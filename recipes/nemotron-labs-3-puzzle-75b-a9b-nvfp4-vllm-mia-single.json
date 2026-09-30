@@ -1,0 +1,623 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "32445b36556244d8a721cd21a2b47a7915bc6408432d05aaeab205bb223ced8b",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/nvidia/mia-puzzle-75b-single"
+      },
+      "dockerfile": "adapters/nvidia/mia-puzzle-75b-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-labs-3-puzzle-75b-a9b-nvfp4-vllm-mia-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Nemotron-75b-Puzzle"
+      ],
+      "port": 8888
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "Executable Candidate single-Spark recipe for NVIDIA's Nemotron-Labs-3 Puzzle 75B-A9B NVFP4 checkpoint (modelopt mixed precision, MTP head), following MiaAI-Lab's Nemotron-Labs-3-Puzzle-75B-DGX-Spark launcher: stock vLLM v0.24.0 arm64 image pinned by digest with upstream's aarch64 NCCL and FlashInfer patches applied at build time, expert parallel, flashinfer Mamba backend and FLASHINFER_CUTLASS MoE, FP8 KV cache, MTP k=3, qwen3_coder tool parser, nemotron_v3 reasoning parser, prefix caching, eager mode, 256K context and 7 sequences. Upstream warns the first start can take several minutes while FlashInfer kernels compile. Code: no licence file upstream; model: NVIDIA OpenMDW-1.1, not gated. Vonk physical Spark acceptance is pending; upstream publishes no throughput figures. Not expressed: upstream's SPEC-empty switch (MTP off) cannot be offered because a choice cannot remove an argument, and the docker-level flags (privileged, memory cap, cache mounts) are platform-owned.",
+    "tags": [
+      "candidate",
+      "executable",
+      "mamba",
+      "mia",
+      "moe",
+      "mtp",
+      "nemotron",
+      "nvfp4",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Nemotron Labs 3 Puzzle 75B-A9B NVFP4 vLLM one Spark (Mia)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+          "id": "primary-metadata-d1a8f4a1d2e3-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-8693c8dea35e-c693279643",
+          "id": "primary-license-8693c8dea35e-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-0b2101cd8a8a-b335630551",
+          "id": "primary-readme-0b2101cd8a8a-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "bias-cf281350b657-132a86726b",
+          "id": "primary-bias-cf281350b657-132a86726b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-575fb74f54ed-00824420d1",
+          "id": "primary-chat-template-575fb74f54ed-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-7bf737ccbd3c-587cb980af",
+          "id": "primary-config-7bf737ccbd3c-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron-h-0fc818c10506-845878ce76",
+          "id": "primary-configuration-nemotron-h-0fc818c10506-845878ce76",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron-h-puzzle-c61d2185d735-5753175326",
+          "id": "primary-configuration-nemotron-h-puzzle-c61d2185d735-5753175326",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "explainability-c540425b4c63-c9ed671e8a",
+          "id": "primary-explainability-c540425b4c63-c9ed671e8a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-27d520b2df55-97dd3d578b",
+          "id": "primary-generation-config-27d520b2df55-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00005-432002caaadc-8453f51e85",
+          "id": "primary-model-00001-of-00005-432002caaadc-8453f51e85",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00005-a5d7b417959a-516421cb37",
+          "id": "primary-model-00002-of-00005-a5d7b417959a-516421cb37",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00005-797ba7e1020e-05880bd763",
+          "id": "primary-model-00003-of-00005-797ba7e1020e-05880bd763",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00005-8fc61fe960e5-c340da1f8a",
+          "id": "primary-model-00004-of-00005-8fc61fe960e5-c340da1f8a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00005-260eeda10462-2bd52bf6f8",
+          "id": "primary-model-00005-of-00005-260eeda10462-2bd52bf6f8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-a87053c51774-0a05be8238",
+          "id": "primary-model-safetensors-index-a87053c51774-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-nemotron-h-e1cb5fc02e88-456a9436f0",
+          "id": "primary-modeling-nemotron-h-e1cb5fc02e88-456a9436f0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-nemotron-h-puzzle-e81a7a97ce55-1b123e8dac",
+          "id": "primary-modeling-nemotron-h-puzzle-e81a7a97ce55-1b123e8dac",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-fa65fc46b6f3-265929bffe",
+          "id": "primary-mtp-fa65fc46b6f3-265929bffe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "privacy-aea46e6515ca-8ca73853d3",
+          "id": "primary-privacy-aea46e6515ca-8ca73853d3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "safety-49fbc15ffdb9-0f7043827d",
+          "id": "primary-safety-49fbc15ffdb9-0f7043827d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-e9435fefd6d8-c07a9be597",
+          "id": "primary-special-tokens-map-e9435fefd6d8-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-623c34567aeb-224931eb13",
+          "id": "primary-tokenizer-623c34567aeb-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-10f93eabcb9b-94d5c6ba8f",
+          "id": "primary-tokenizer-config-10f93eabcb9b-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "3215c2f6d3a49fb7490d73bd4d705151b8c33b03c80f3beab09c664c0e44dd1e",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-labs-3-puzzle-75b-a9b-nvfp4-1d370e47"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: 8-bit KV cache, larger pool.",
+          "label": "FP8 KV",
+          "value": "fp8"
+        },
+        {
+          "args": [
+            {
+              "name": "kv-cache-dtype",
+              "value": "auto"
+            }
+          ],
+          "default": false,
+          "help": "Unquantized KV cache (vLLM auto): more accurate, smaller token pool.",
+          "label": "Model dtype KV",
+          "value": "auto"
+        }
+      ],
+      "help": "Upstream KVD: the --kv-cache-dtype value.",
+      "label": "KV cache dtype",
+      "name": "kv-cache"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default.",
+          "label": "3 tokens",
+          "value": "k3"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2}"
+            }
+          ],
+          "default": false,
+          "help": "Fewer drafted tokens per step.",
+          "label": "2 tokens",
+          "value": "k2"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":1}"
+            }
+          ],
+          "default": false,
+          "help": "Fewest drafted tokens per step.",
+          "label": "1 token",
+          "value": "k1"
+        }
+      ],
+      "help": "Upstream SPEC_TOKENS: drafted tokens per step for MTP speculative decoding.",
+      "label": "MTP speculative tokens",
+      "name": "mtp-tokens"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: CUDA graphs off.",
+          "label": "Eager",
+          "value": "eager"
+        },
+        {
+          "args": [
+            {
+              "name": "enforce-eager",
+              "value": false
+            }
+          ],
+          "default": false,
+          "help": "Upstream: may be less stable.",
+          "label": "CUDA graphs",
+          "value": "graphs"
+        }
+      ],
+      "help": "Upstream EAGER: 1 disables CUDA graphs, which upstream found more stable on Spark.",
+      "label": "Execution mode",
+      "name": "execution"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "MiaAI-Lab",
+      "NVIDIA Nemotron-Labs",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/Nemotron-Labs-3-Puzzle-75B-DGX-Spark/tree/c77d26681086df72aadb6bf2879745408537e0b0"
+  },
+  "release": {
+    "released_at": "2026-07-08",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "Nemotron-75b-Puzzle"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "enable-expert-parallel",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "mamba-backend",
+        "setting": null,
+        "value": "flashinfer"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "flashinfer_cutlass"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
+        "name": "enforce-eager",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3}"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "nemotron_v3"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "MAX_JOBS",
+        "value": "6"
+      },
+      {
+        "name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_SKIP_INIT_MEMORY_CHECK",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 7
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 53545340845,
+            "image_bytes": 22000000000,
+            "safety_margin_bytes": 20000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Nemotron-75b-Puzzle"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
