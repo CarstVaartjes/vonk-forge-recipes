@@ -87,8 +87,8 @@
           ]
         },
         {
-          "file_id": "readme-94a04133ea0a-b335630551",
-          "id": "primary-readme-94a04133ea0a-b335630551",
+          "file_id": "readme-347c9db4e550-b335630551",
+          "id": "primary-readme-347c9db4e550-b335630551",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -131,8 +131,8 @@
           ]
         },
         {
-          "file_id": "readme-5c13c17f9640-5728b2733a",
-          "id": "primary-readme-5c13c17f9640-5728b2733a",
+          "file_id": "readme-a2f0fc3baea3-5728b2733a",
+          "id": "primary-readme-a2f0fc3baea3-5728b2733a",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -142,8 +142,8 @@
           ]
         },
         {
-          "file_id": "encoding-f64a67e5680a-498d5dc375",
-          "id": "primary-encoding-f64a67e5680a-498d5dc375",
+          "file_id": "encoding-502bdaec8a3f-498d5dc375",
+          "id": "primary-encoding-502bdaec8a3f-498d5dc375",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -153,8 +153,8 @@
           ]
         },
         {
-          "file_id": "test-encoding-854aa257e861-d3add5cc1f",
-          "id": "primary-test-encoding-854aa257e861-d3add5cc1f",
+          "file_id": "test-encoding-4a470892dad8-d3add5cc1f",
+          "id": "primary-test-encoding-4a470892dad8-d3add5cc1f",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -219,8 +219,8 @@
           ]
         },
         {
-          "file_id": "test-output-1-1e4f33964231-61eeac8704",
-          "id": "primary-test-output-1-1e4f33964231-61eeac8704",
+          "file_id": "test-output-1-91f79aa95571-61eeac8704",
+          "id": "primary-test-output-1-91f79aa95571-61eeac8704",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -1024,10 +1024,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4cea4dca037ba907c26669ab422bb9c1a76b8af4a4c92fbb64f6c01e6c078814",
+        "content_sha256": "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771",
         "kind": "model",
         "publisher": "deepseek-ai",
-        "slug": "deepseek-v4-1-flash-fb2764a5"
+        "slug": "deepseek-v4-1-flash-dba1be0a"
       }
     }
   ],
@@ -1107,7 +1107,7 @@
   },
   "release": {
     "released_at": "2026-09-25",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -1438,7 +1438,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 510313345146,
+            "artifact_bytes": 510313353565,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 30000000000,
             "working_bytes": 40000000000
@@ -1455,7 +1455,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 510313345146,
+            "artifact_bytes": 510313353565,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 30000000000,
             "working_bytes": 40000000000
