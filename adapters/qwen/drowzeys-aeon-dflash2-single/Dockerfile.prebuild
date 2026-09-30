@@ -1,0 +1,11 @@
+# Keys compile: retag of the community prebuilt runtime.
+# We do not rebuild vLLM. This image IS AEON-7's Spark ultimate.
+#   ghcr.io/aeon-7/aeon-vllm-ultimate:latest
+#   digest sha256:dd2018473ed88bc23b01cfc3179b5b6896a7f0f152ae06d8d274db62d330ef48
+# Read https://github.com/AEON-7 and https://huggingface.co/AEON-7 first.
+FROM ghcr.io/aeon-7/aeon-vllm-ultimate@sha256:dd2018473ed88bc23b01cfc3179b5b6896a7f0f152ae06d8d274db62d330ef48
+LABEL org.opencontainers.image.title="keys-qwen38-27b-nvfp4-dflash2-ablit-cyber-unlock-1m-yarn-single-dgxspark"
+LABEL org.opencontainers.image.description="Community compile runtime: AEON-7 aeon-vllm-ultimate prebuild for Qwen3.8-27B NVFP4 + DFlash2 n=7 + 1M YaRN on one DGX Spark. Upstream image unchanged."
+LABEL org.opencontainers.image.source="https://github.com/drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.base.name="ghcr.io/aeon-7/aeon-vllm-ultimate@sha256:dd2018473ed88bc23b01cfc3179b5b6896a7f0f152ae06d8d274db62d330ef48"

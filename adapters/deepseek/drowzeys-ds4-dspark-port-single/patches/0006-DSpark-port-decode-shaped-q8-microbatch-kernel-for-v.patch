@@ -1,0 +1,329 @@
+From 2c109bb94cd478dd4f1d448cc8ea39a5446b3b28 Mon Sep 17 00:00:00 2001
+From: keyspark <kevin.on.the.rocks@gmail.com>
+Date: Wed, 8 Jul 2026 13:45:01 -0400
+Subject: [PATCH 6/8] DSpark port: decode-shaped q8 microbatch kernel for
+ verifier batches
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+For n_tok > 1 the q8_0 matmuls dispatched to cuBLAS over a dequantized
+f16/f32 weight cache (2-4 bytes/weight) — right for compute-bound prefill
+chunks, a 1.7-1.8x bandwidth tax on 2-16 row speculative verifier batches
+where decode's native q8 GEMV reads 1.06 bytes/weight.  The native batch
+fallback was no better: blockIdx.y per token re-streams the full matrix.
+
+matmul_q8_0_preq_mrow_warp8_kernel keeps the decode kernel's shape (warp
+per output row) and dots every prequantized activation row against each
+weight block from registers, so the model is streamed once for the whole
+batch.  A grouped variant covers the attention out_a path.  Dispatched for
+2..16-row batches via --dspark-mbatch (DS4_CUDA_Q8_MBATCH env; no GPU API
+change, Metal untouched).
+
+GB10 measured: verify(2) 124 -> 95.5 ms, verify(5) 197 -> 167 ms;
+extrapolated verify(1) ~= 72 ms ~= plain decode, i.e. the verifier's fixed
+overhead is gone.  The remaining ~24 ms/row slope is routed-MoE expert
+divergence between draft rows (the sorted expert-tile path already merges
+duplicate experts), not kernel overhead.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ ds4.c        |   8 +++
+ ds4.h        |   1 +
+ ds4_cli.c    |   2 +
+ ds4_cuda.cu  | 159 ++++++++++++++++++++++++++++++++++++++++++++++-----
+ ds4_help.c   |   1 +
+ ds4_server.c |   2 +
+ 6 files changed, 159 insertions(+), 14 deletions(-)
+
+diff --git a/ds4.c b/ds4.c
+index 45f0c6a..a408d11 100644
+--- a/ds4.c
++++ b/ds4.c
+@@ -21894,6 +21894,7 @@ struct ds4_engine {
+     int dspark_rounds;
+     bool dspark_row_commit;
+     bool dspark_adapt;
++    bool dspark_mbatch;
+     char *directional_steering_file;
+     float *directional_steering_dirs;
+     float directional_steering_attn_scale;
+@@ -25697,6 +25698,13 @@ int ds4_engine_open(ds4_engine **out, const ds4_engine_options *opt) {
+     if (e->dspark_rounds > 32) e->dspark_rounds = 32;
+     e->dspark_row_commit = opt->dspark_row_commit;
+     e->dspark_adapt = opt->dspark_adapt;
++    e->dspark_mbatch = opt->dspark_mbatch;
++    if (e->dspark_mbatch && !getenv("DS4_CUDA_Q8_MBATCH")) {
++        /* Route small verifier batches to the decode-shaped q8 microbatch
++         * kernel.  Env-based so the GPU backends need no new API surface;
++         * an explicit DS4_CUDA_Q8_MBATCH always wins. */
++        setenv("DS4_CUDA_Q8_MBATCH", "16", 0);
++    }
+     if ((opt->directional_steering_attn != 0.0f || opt->directional_steering_ffn != 0.0f) &&
+         (!opt->directional_steering_file || !opt->directional_steering_file[0]))
+     {
+diff --git a/ds4.h b/ds4.h
+index 801a39c..7cfb68a 100644
+--- a/ds4.h
++++ b/ds4.h
+@@ -105,6 +105,7 @@ typedef struct {
+     int dspark_rounds;
+     bool dspark_row_commit;
+     bool dspark_adapt;
++    bool dspark_mbatch;
+     const char *directional_steering_file;
+     const char *expert_profile_path;
+     float directional_steering_attn;
+diff --git a/ds4_cli.c b/ds4_cli.c
+index 664e258..6a17e94 100644
+--- a/ds4_cli.c
++++ b/ds4_cli.c
+@@ -1478,6 +1478,8 @@ static cli_config parse_options(int argc, char **argv) {
+             c.engine.dspark_row_commit = true;
+         } else if (!strcmp(arg, "--dspark-adapt")) {
+             c.engine.dspark_adapt = true;
++        } else if (!strcmp(arg, "--dspark-mbatch")) {
++            c.engine.dspark_mbatch = true;
+         } else if (!strcmp(arg, "-n") || !strcmp(arg, "--tokens")) {
+             c.gen.n_predict = parse_int(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-c") || !strcmp(arg, "--ctx")) {
+diff --git a/ds4_cuda.cu b/ds4_cuda.cu
+index 188b341..44e523a 100644
+--- a/ds4_cuda.cu
++++ b/ds4_cuda.cu
+@@ -3849,6 +3849,48 @@ __global__ static void matmul_q8_0_preq_batch_warp8_kernel(
+     if (lane == 0) out[tok * out_dim + row] = acc;
+ }
+ 
++/* Decode-shaped q8_0 microbatch matmul for tiny speculative-verifier batches.
++ *
++ * The grid covers output rows exactly like the single-token decode kernel;
++ * each warp streams one weight row once and dots every prequantized
++ * activation row against it from registers.  This keeps the model read at
++ * ~1.06 bytes/weight for the whole batch, where the batch alternatives cost
++ * n_tok full passes (blockIdx.y batching) or a 2-4 bytes/weight dequantized
++ * cuBLAS pass.  Bandwidth-bound for n_tok <= DS4_CUDA_Q8_MBATCH_MAX. */
++#define DS4_CUDA_Q8_MBATCH_MAX 16
++__global__ static void matmul_q8_0_preq_mrow_warp8_kernel(
++        float *out,
++        const unsigned char *w,
++        const int8_t *xq,
++        const float *xscale,
++        uint64_t in_dim,
++        uint64_t out_dim,
++        uint64_t n_tok,
++        uint64_t blocks,
++        int use_dp4a) {
++    const uint64_t row = (uint64_t)blockIdx.x * 8u + (threadIdx.x >> 5u);
++    const uint32_t lane = threadIdx.x & 31u;
++    if (row >= out_dim) return;
++    const unsigned char *wr = w + row * blocks * 34;
++    float acc[DS4_CUDA_Q8_MBATCH_MAX];
++    for (uint32_t t = 0; t < n_tok; t++) acc[t] = 0.0f;
++    for (uint64_t b = lane; b < blocks; b += 32u) {
++        const uint64_t i0 = b * 32;
++        const uint64_t bn = in_dim - i0 < 32 ? in_dim - i0 : 32;
++        const float ws = __half2float(*(const __half *)(wr + b * 34));
++        const int8_t *qs = (const int8_t *)(wr + b * 34 + 2);
++        for (uint32_t t = 0; t < n_tok; t++) {
++            const int8_t *xqb = xq + t * blocks * 32 + b * 32;
++            int dot = dot_i8_block(qs, xqb, bn, use_dp4a);
++            acc[t] += ws * xscale[t * blocks + b] * (float)dot;
++        }
++    }
++    for (uint32_t t = 0; t < n_tok; t++) {
++        const float v = warp_sum_f32(acc[t]);
++        if (lane == 0) out[t * out_dim + row] = v;
++    }
++}
++
+ __global__ static void dequant_q8_0_to_f16_kernel(
+         __half *out,
+         const unsigned char *w,
+@@ -3925,6 +3967,48 @@ __global__ static void grouped_q8_0_a_preq_warp8_kernel(
+     if (lane == 0) low[tok * low_dim + row] = acc;
+ }
+ 
++/* Decode-shaped microbatch variant of the grouped attention out_a matmul:
++ * one warp per low-rank output row streams the weight row once and dots all
++ * token rows from registers.  See matmul_q8_0_preq_mrow_warp8_kernel. */
++__global__ static void grouped_q8_0_a_preq_mrow_warp8_kernel(
++        float *low,
++        const unsigned char *w,
++        const int8_t *xq,
++        const float *xscale,
++        uint64_t group_dim,
++        uint64_t rank,
++        uint32_t n_groups,
++        uint32_t n_tokens,
++        uint64_t blocks,
++        int use_dp4a) {
++    const uint64_t row = (uint64_t)blockIdx.x * 8u + (threadIdx.x >> 5u);
++    const uint32_t lane = threadIdx.x & 31u;
++    const uint64_t low_dim = (uint64_t)n_groups * rank;
++    if (row >= low_dim) return;
++
++    const uint64_t group = row / rank;
++    const unsigned char *wr = w + row * blocks * 34;
++    float acc[DS4_CUDA_Q8_MBATCH_MAX];
++    for (uint32_t t = 0; t < n_tokens; t++) acc[t] = 0.0f;
++
++    for (uint64_t b = lane; b < blocks; b += 32u) {
++        const uint64_t i0 = b * 32;
++        const uint64_t bn = group_dim - i0 < 32 ? group_dim - i0 : 32;
++        const float ws = __half2float(*(const __half *)(wr + b * 34));
++        const int8_t *qs = (const int8_t *)(wr + b * 34 + 2);
++        for (uint32_t t = 0; t < n_tokens; t++) {
++            const uint64_t xrow = (uint64_t)t * n_groups + group;
++            const int8_t *xqb = xq + xrow * blocks * 32 + b * 32;
++            int dot = dot_i8_block(qs, xqb, bn, use_dp4a);
++            acc[t] += ws * xscale[xrow * blocks + b] * (float)dot;
++        }
++    }
++    for (uint32_t t = 0; t < n_tokens; t++) {
++        const float v = warp_sum_f32(acc[t]);
++        if (lane == 0) low[(uint64_t)t * low_dim + row] = v;
++    }
++}
++
+ __global__ static void rms_norm_plain_kernel(float *out, const float *x, uint32_t n, uint32_t rows, float eps) {
+     uint32_t row = blockIdx.x;
+     if (row >= rows) return;
+@@ -7659,6 +7743,22 @@ extern "C" int ds4_gpu_dsv4_topk_mask_tensor(
+                                       n_comp, n_tokens, top_k);
+     return cuda_ok(cudaGetLastError(), "topk mask launch");
+ }
++/* Max batch rows routed to the decode-shaped q8 microbatch kernel instead of
++ * the dequantized cuBLAS path.  0 disables it; the engine sets the env when
++ * --dspark-mbatch is passed.  cuBLAS stays the right choice for big prefill
++ * chunks, which are compute-bound rather than weight-bandwidth-bound. */
++static int cuda_q8_mbatch_rows(void) {
++    static int cached = -1;
++    if (cached < 0) {
++        const char *env = getenv("DS4_CUDA_Q8_MBATCH");
++        int v = env && env[0] ? atoi(env) : 0;
++        if (v < 0) v = 0;
++        if (v > DS4_CUDA_Q8_MBATCH_MAX) v = DS4_CUDA_Q8_MBATCH_MAX;
++        cached = v;
++    }
++    return cached;
++}
++
+ static int cuda_matmul_q8_0_tensor_labeled(ds4_gpu_tensor *out, const void *model_map, uint64_t model_size, uint64_t weight_offset, uint64_t in_dim, uint64_t out_dim, const ds4_gpu_tensor *x, uint64_t n_tok, const char *label) {
+     if (!out || !x || !model_map) return 0;
+     uint64_t blocks = (in_dim + 31) / 32;
+@@ -7669,7 +7769,8 @@ static int cuda_matmul_q8_0_tensor_labeled(ds4_gpu_tensor *out, const void *mode
+         out->bytes < n_tok * out_dim * sizeof(float)) return 0;
+     const char *wptr = cuda_model_range_ptr(model_map, weight_offset, weight_bytes, "q8_0");
+     if (!wptr) return 0;
+-    if (g_cublas_ready && n_tok > 1) {
++    const int mbatch = n_tok > 1 && n_tok <= (uint64_t)cuda_q8_mbatch_rows();
++    if (g_cublas_ready && n_tok > 1 && !mbatch) {
+         const float *w_f32 = cuda_q8_f32_ptr(model_map, weight_offset, weight_bytes, in_dim, out_dim, label);
+         if (w_f32) {
+             const float alpha = 1.0f;
+@@ -7750,6 +7851,19 @@ static int cuda_matmul_q8_0_tensor_labeled(ds4_gpu_tensor *out, const void *mode
+                 use_dp4a);
+         return cuda_ok(cudaGetLastError(), "matmul_q8_0 warp launch");
+     }
++    if (mbatch) {
++        matmul_q8_0_preq_mrow_warp8_kernel<<<((unsigned)out_dim + 7u) / 8u, 256>>>(
++                (float *)out->ptr,
++                reinterpret_cast<const unsigned char *>(wptr),
++                xq,
++                xscale,
++                in_dim,
++                out_dim,
++                n_tok,
++                blocks,
++                use_dp4a);
++        return cuda_ok(cudaGetLastError(), "matmul_q8_0 mrow warp launch");
++    }
+     if (getenv("DS4_CUDA_NO_Q8_BATCH_WARP") == NULL && blocks <= 32u) {
+         dim3 bgrid(((unsigned)out_dim + 7u) / 8u, (unsigned)n_tok, 1);
+         matmul_q8_0_preq_batch_warp8_kernel<<<bgrid, 256>>>(
+@@ -9291,7 +9405,9 @@ extern "C" int ds4_gpu_attention_output_q8_batch_tensor(
+         long v = strtol(out_a_min_env, &endp, 10);
+         if (endp != out_a_min_env && v > 1 && v < 4096) out_a_cublas_min_tokens = (uint32_t)v;
+     }
+-    if (!g_quality_mode &&
++    const int mbatch = n_tokens > 1 && n_tokens <= (uint32_t)cuda_q8_mbatch_rows();
++    if (!mbatch &&
++        !g_quality_mode &&
+         g_cublas_ready &&
+         n_tokens >= out_a_cublas_min_tokens &&
+         getenv("DS4_CUDA_NO_CUBLAS_ATTENTION_OUTPUT_A") == NULL) {
+@@ -9364,18 +9480,33 @@ extern "C" int ds4_gpu_attention_output_q8_batch_tensor(
+                                                 group_dim,
+                                                 blocks_a);
+         if (!cuda_ok(cudaGetLastError(), "attention_output_q8_a prequant launch")) return 0;
+-        dim3 grid_a(((unsigned)low_dim + 7u) / 8u, (unsigned)n_tokens, 1);
+-        grouped_q8_0_a_preq_warp8_kernel<<<grid_a, 256>>>((float *)low->ptr,
+-                                                          out_a,
+-                                                          xq,
+-                                                          xscale,
+-                                                          group_dim,
+-                                                          rank,
+-                                                          n_groups,
+-                                                          n_tokens,
+-                                                          blocks_a,
+-                                                          use_dp4a);
+-        if (!cuda_ok(cudaGetLastError(), "attention_output_q8_a preq launch")) return 0;
++        if (mbatch) {
++            grouped_q8_0_a_preq_mrow_warp8_kernel<<<((unsigned)low_dim + 7u) / 8u, 256>>>(
++                    (float *)low->ptr,
++                    out_a,
++                    xq,
++                    xscale,
++                    group_dim,
++                    rank,
++                    n_groups,
++                    n_tokens,
++                    blocks_a,
++                    use_dp4a);
++            if (!cuda_ok(cudaGetLastError(), "attention_output_q8_a mrow launch")) return 0;
++        } else {
++            dim3 grid_a(((unsigned)low_dim + 7u) / 8u, (unsigned)n_tokens, 1);
++            grouped_q8_0_a_preq_warp8_kernel<<<grid_a, 256>>>((float *)low->ptr,
++                                                              out_a,
++                                                              xq,
++                                                              xscale,
++                                                              group_dim,
++                                                              rank,
++                                                              n_groups,
++                                                              n_tokens,
++                                                              blocks_a,
++                                                              use_dp4a);
++            if (!cuda_ok(cudaGetLastError(), "attention_output_q8_a preq launch")) return 0;
++        }
+     }
+ 
+     (void)out_b;
+diff --git a/ds4_help.c b/ds4_help.c
+index dc37fc1..3dc81bb 100644
+--- a/ds4_help.c
++++ b/ds4_help.c
+@@ -181,6 +181,7 @@ static void print_model_runtime(FILE *fp, const help_colors *c,
+             opt(fp, c, "--dspark-rounds N", "Maximum chained speculative verify rounds per decode step. Default: 1");
+             opt(fp, c, "--dspark-row-commit", "Commit partial speculative accepts from per-row frontier captures instead of replaying.");
+             opt(fp, c, "--dspark-adapt", "Pause speculation when measured acceptance stops paying for the draft/verify overhead.");
++            opt(fp, c, "--dspark-mbatch", "CUDA: decode-shaped q8 microbatch kernel for small speculative verifier batches.");
+         }
+         opt(fp, c, "--quality", "Prefer exact kernels where faster approximate paths exist.");
+         opt(fp, c, "--warm-weights", "Touch mapped tensor pages at startup to reduce first-use stalls.");
+diff --git a/ds4_server.c b/ds4_server.c
+index d8e696e..9b0af5c 100644
+--- a/ds4_server.c
++++ b/ds4_server.c
+@@ -11572,6 +11572,8 @@ static server_config parse_options(int argc, char **argv) {
+             c.engine.dspark_row_commit = true;
+         } else if (!strcmp(arg, "--dspark-adapt")) {
+             c.engine.dspark_adapt = true;
++        } else if (!strcmp(arg, "--dspark-mbatch")) {
++            c.engine.dspark_mbatch = true;
+         } else if (!strcmp(arg, "-c") || !strcmp(arg, "--ctx")) {
+             c.ctx_size = parse_int_arg(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-n") || !strcmp(arg, "--tokens")) {
+-- 
+2.43.0
+

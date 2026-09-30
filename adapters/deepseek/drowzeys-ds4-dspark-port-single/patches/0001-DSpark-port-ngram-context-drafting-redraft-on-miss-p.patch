@@ -1,0 +1,448 @@
+From 3122c2bfe1970223e022d235873680b479b3a562 Mon Sep 17 00:00:00 2001
+From: keyspark <kevin.on.the.rocks@gmail.com>
+Date: Wed, 8 Jul 2026 08:13:37 -0400
+Subject: [PATCH 1/8] DSpark port: ngram context drafting, redraft on miss,
+ per-position margin stop
+
+--dspark-ngram N extends the MTP chain with suffix-ngram (prompt-lookup)
+proposals from the committed context, replacing the role of DSpark's learned
+Markov head, which the MTP GGUF does not ship. A low-margin second MTP token
+is truncated instead of aborting when the context can extend past the
+verified-for-free drafts[0], and a position-0 MTP miss redrafts from the
+target's own greedy token. --dspark-early-margin F stops the recursive chain
+at the first unsure position so deep chains avoid the partial-accept replay
+verify. --dspark-rounds is parsed but not implemented yet.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ ds4.c        | 180 ++++++++++++++++++++++++++++++++++++++++++++++-----
+ ds4.h        |   4 ++
+ ds4_cli.c    |  16 ++++-
+ ds4_help.c   |   4 ++
+ ds4_server.c |  10 ++-
+ 5 files changed, 196 insertions(+), 18 deletions(-)
+
+diff --git a/ds4.c b/ds4.c
+index 640511e..398e39c 100644
+--- a/ds4.c
++++ b/ds4.c
+@@ -21814,6 +21814,10 @@ struct ds4_engine {
+     ds4_backend backend;
+     int mtp_draft_tokens;
+     float mtp_margin;
++    int dspark_ngram_tokens;
++    int dspark_ngram_min;
++    float dspark_early_margin;
++    int dspark_rounds;
+     char *directional_steering_file;
+     float *directional_steering_dirs;
+     float directional_steering_attn_scale;
+@@ -25561,6 +25565,12 @@ int ds4_engine_open(ds4_engine **out, const ds4_engine_options *opt) {
+     e->mtp_draft_tokens = opt->mtp_draft_tokens > 0 ? opt->mtp_draft_tokens : 1;
+     if (e->mtp_draft_tokens > 16) e->mtp_draft_tokens = 16;
+     e->mtp_margin = opt->mtp_margin >= 0.0f ? opt->mtp_margin : 3.0f;
++    e->dspark_ngram_tokens = opt->dspark_ngram_tokens > 0 ? opt->dspark_ngram_tokens : 0;
++    if (e->dspark_ngram_tokens > 12) e->dspark_ngram_tokens = 12;
++    e->dspark_ngram_min = opt->dspark_ngram_min > 0 ? opt->dspark_ngram_min : 3;
++    e->dspark_early_margin = opt->dspark_early_margin > 0.0f ? opt->dspark_early_margin : 0.0f;
++    e->dspark_rounds = opt->dspark_rounds > 1 ? opt->dspark_rounds : 1;
++    if (e->dspark_rounds > 32) e->dspark_rounds = 32;
+     if ((opt->directional_steering_attn != 0.0f || opt->directional_steering_ffn != 0.0f) &&
+         (!opt->directional_steering_file || !opt->directional_steering_file[0]))
+     {
+@@ -27157,6 +27167,53 @@ int ds4_session_eval(ds4_session *s, int token, char *err, size_t errlen) {
+     return ds4_session_eval_internal(s, token, true, err, errlen);
+ }
+ 
++#ifndef DS4_NO_GPU
++/* DSpark-style context drafter.
++ *
++ * DeepSeek's DSpark speculators ship a learned Markov head inside the draft
++ * checkpoint that biases drafting toward continuations already present in the
++ * context.  The MTP support GGUF has no such tensors, so we replicate the role
++ * at runtime with suffix-ngram lookup: find the longest (then most recent)
++ * earlier occurrence of the current token suffix and propose the tokens that
++ * followed it.  Proposals go through the normal target verifier, so a bad
++ * match costs wasted verifier rows, never correctness.
++ *
++ * The virtual sequence searched is hist[0..hlen) ++ tail[0..tail_n): committed
++ * tokens plus the not-yet-committed draft chain being extended.  Returns the
++ * number of continuation tokens written to out (at most max_out). */
++#define DS4_DSPARK_NGRAM_MAX_MATCH 8
++static int dspark_ngram_propose(const int *hist, int hlen,
++                                const int *tail, int tail_n,
++                                int min_match, int max_out, int *out) {
++    const int total = hlen + tail_n;
++    if (min_match < 1) min_match = 1;
++    if (total < min_match + 1 || max_out <= 0) return 0;
++#define DS4_DSPARK_SEQ(i) ((i) < hlen ? hist[i] : tail[(i) - hlen])
++    int best_pos = -1;
++    int best_len = 0;
++    for (int p = total - 2; p >= min_match - 1; p--) {
++        if (DS4_DSPARK_SEQ(p) != DS4_DSPARK_SEQ(total - 1)) continue;
++        int l = 1;
++        while (l < DS4_DSPARK_NGRAM_MAX_MATCH &&
++               p - l >= 0 &&
++               DS4_DSPARK_SEQ(p - l) == DS4_DSPARK_SEQ(total - 1 - l)) l++;
++        if (l > best_len) {
++            best_len = l;
++            best_pos = p;
++            if (l >= DS4_DSPARK_NGRAM_MAX_MATCH) break;
++        }
++    }
++    if (best_len < min_match) return 0;
++    int n = 0;
++    for (int i = best_pos + 1; i < total && n < max_out; i++) {
++        out[n++] = DS4_DSPARK_SEQ(i);
++        if (out[n - 1] < 0) return 0;
++    }
++#undef DS4_DSPARK_SEQ
++    return n;
++}
++#endif
++
+ /* Speculative decode state machine:
+  * 1. commit the normal target token and use its logits to validate draft[0];
+  * 2. let MTP recursively draft a tiny suffix from its own raw-cache frontier;
+@@ -27229,7 +27286,8 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+     const bool mtp_conf_log = getenv("DS4_MTP_CONF_LOG") != NULL;
+     const bool mtp_need_logits = mtp_conf_log ||
+         getenv("DS4_MTP_FULL_LOGITS") != NULL ||
+-        (!strict_mtp && mtp_margin_threshold > 0.0f);
++        (!strict_mtp && mtp_margin_threshold > 0.0f) ||
++        e->dspark_early_margin > 0.0f;
+     const double mtp_t0 = mtp_timing ? now_sec() : 0.0;
+     double mtp_t_after_draft = mtp_t0;
+     float mtp_last_margin = 0.0f;
+@@ -27241,11 +27299,19 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+      * this point there is no suffix to verify, so the exact behavior is to emit
+      * only first_token and skip all speculative work.
+      */
++    bool redraft = false;
+     if (sample_argmax(s->logits, DS4_N_VOCAB) != drafts[0]) {
+         if (getenv("DS4_MTP_SPEC_LOG")) {
+-            fprintf(stderr, "ds4: mtp spec miss first draft=%d\n", drafts[0]);
++            fprintf(stderr, "ds4: mtp spec miss first draft=%d redraft=%d\n",
++                    drafts[0], e->dspark_ngram_tokens > 0);
+         }
+-        return n_accept;
++        if (e->dspark_ngram_tokens == 0) return n_accept;
++        /* DSpark redraft: MTP missed position 0, but the target's own greedy
++         * token is free.  Reseed the chain with it and let the ngram drafter
++         * propose the continuation.  The MTP hc chain is conditioned on the
++         * rejected token, so recursive MTP drafting must not extend it. */
++        drafts[0] = sample_argmax(s->logits, DS4_N_VOCAB);
++        redraft = true;
+     }
+     if (drafts[0] == eos_token) draft_cap = 1;
+     const uint32_t mtp_base_raw = s->graph.mtp_n_raw;
+@@ -27261,7 +27327,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+         s->graph.mtp_n_raw = keep_; \
+     } while (0)
+ 
+-    for (; draft_n < draft_cap; draft_n++) {
++    for (; !redraft && draft_n < draft_cap; draft_n++) {
+         ds4_gpu_tensor *prev_hc = (draft_n & 1) ? s->graph.mtp_state_hc : s->graph.mtp_next_hc;
+         ds4_gpu_tensor *out_hc = (draft_n & 1) ? s->graph.mtp_next_hc : s->graph.mtp_state_hc;
+         int mtp_top = -1;
+@@ -27280,6 +27346,16 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+             return n_accept;
+         }
+         drafts[draft_n] = mtp_top >= 0 ? mtp_top : sample_argmax(s->mtp_logits, DS4_N_VOCAB);
++        if (e->dspark_early_margin > 0.0f) {
++            /* DSpark-style per-position confidence stop.  A rejected suffix
++             * turns the cycle into a partial accept, and partial accepts pay
++             * a full replay verify, so an unsure draft token is worth less
++             * than the row it occupies: drop it and stop the chain here. */
++            float v0 = 0.0f, v1 = 0.0f;
++            int top0 = -1, top1 = -1;
++            logits_top2(s->mtp_logits, DS4_N_VOCAB, &top0, &v0, &top1, &v1);
++            if (v0 - v1 < e->dspark_early_margin) break;
++        }
+         if (drafts[draft_n] == eos_token) {
+             draft_n++;
+             break;
+@@ -27290,9 +27366,82 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+         logits_top2(s->mtp_logits, DS4_N_VOCAB, &mtp_last_top0, &v0, &mtp_last_top1, &v1);
+         mtp_last_margin = v0 - v1;
+     }
++
++    /* DSpark ngram extension.  MTP raw rows written so far cover exactly the
++     * positions the recursive drafter visited; ngram-committed positions
++     * beyond them become holes in the draft ring, handled at commit time. */
++    const int dspark_mtp_rows = redraft ? 1 : draft_n;
++    int dspark_ngram_n = 0;
++    if (e->dspark_ngram_tokens > 0) {
++        /* A low-margin second MTP token normally aborts speculation, but
++         * drafts[0] is already verified for free: when the context has a
++         * matching suffix, drop the unsure token and extend past drafts[0]
++         * instead. */
++        bool margin_low = false;
++        if (!redraft && !strict_mtp && draft_n == 2 &&
++            e->dspark_early_margin <= 0.0f && mtp_margin_threshold > 0.0f)
++        {
++            if (!mtp_conf_log) {
++                float v0 = 0.0f, v1 = 0.0f;
++                logits_top2(s->mtp_logits, DS4_N_VOCAB, &mtp_last_top0, &v0,
++                            &mtp_last_top1, &v1);
++                mtp_last_margin = v0 - v1;
++            }
++            margin_low = mtp_last_margin < mtp_margin_threshold;
++        }
++        int try_n = margin_low ? 1 : draft_n;
++        if (drafts[try_n - 1] != eos_token) {
++            int ext_cap = try_n + e->dspark_ngram_tokens;
++            if (ext_cap > max_tokens - n_accept) ext_cap = max_tokens - n_accept;
++            if (ext_cap > accepted_cap - n_accept) ext_cap = accepted_cap - n_accept;
++            if (ext_cap > room - 1) ext_cap = room - 1;
++            if (ext_cap > 16) ext_cap = 16;
++            if (ext_cap > try_n) {
++                dspark_ngram_n = dspark_ngram_propose(s->checkpoint.v,
++                                                      s->checkpoint.len,
++                                                      drafts, try_n,
++                                                      e->dspark_ngram_min,
++                                                      ext_cap - try_n,
++                                                      drafts + try_n);
++                for (int i = 0; i < dspark_ngram_n; i++) {
++                    if (drafts[try_n + i] == eos_token) {
++                        dspark_ngram_n = i + 1;
++                        break;
++                    }
++                }
++            }
++        }
++        if (dspark_ngram_n > 0) draft_n = try_n + dspark_ngram_n;
++        if (redraft && dspark_ngram_n == 0) {
++            /* MTP missed and the context has no match: nothing is worth a
++             * verifier pass, keep the plain one-token cycle. */
++            return n_accept;
++        }
++        if (getenv("DS4_MTP_SPEC_LOG") && dspark_ngram_n > 0) {
++            fprintf(stderr,
++                    "ds4: dspark ngram extend mtp=%d ngram=%d redraft=%d margin_low=%d\n",
++                    try_n, dspark_ngram_n, redraft, margin_low);
++        }
++    }
++
++    /* Ngram/redraft-committed positions have no MTP raw rows.  The stock
++     * full-accept path already tolerates a one-row hole; longer stale runs
++     * make the drafter attend mostly garbage, so restart its ring instead
++     * and let normal decode probes refill it. */
++#define DS4_DSPARK_KEEP_ACCEPTED(n_) do { \
++        if ((dspark_ngram_n > 0 || redraft) && \
++            (n_) - (dspark_mtp_rows - 1) > 2) { \
++            s->graph.mtp_n_raw = 0; \
++        } else { \
++            DS4_MTP_KEEP_ACCEPTED(n_); \
++        } \
++    } while (0)
++
+     if (mtp_timing) mtp_t_after_draft = now_sec();
+ 
+-    if (!strict_mtp && draft_n == 2 && mtp_margin_threshold > 0.0f) {
++    if (!strict_mtp && draft_n == 2 && mtp_margin_threshold > 0.0f &&
++        dspark_ngram_n == 0 && !redraft && e->dspark_early_margin <= 0.0f)
++    {
+         if (!mtp_conf_log) {
+             float v0 = 0.0f, v1 = 0.0f;
+             logits_top2(s->mtp_logits, DS4_N_VOCAB, &mtp_last_top0, &v0, &mtp_last_top1, &v1);
+@@ -27320,7 +27469,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+             accepted[n_accept++] = drafts[0];
+             s->checkpoint_valid = true;
+             s->mtp_draft_valid = false;
+-            DS4_MTP_KEEP_ACCEPTED(1);
++            DS4_DSPARK_KEEP_ACCEPTED(1);
+             if (mtp_timing) {
+                 const double done = now_sec();
+                 fprintf(stderr,
+@@ -27376,7 +27525,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+             if (n_accept < accepted_cap) accepted[n_accept++] = drafts[1];
+             s->checkpoint_valid = true;
+             s->mtp_draft_valid = false;
+-            DS4_MTP_KEEP_ACCEPTED(2);
++            DS4_DSPARK_KEEP_ACCEPTED(2);
+             if (mtp_timing) {
+                 fprintf(stderr,
+                         "ds4: mtp timing decode2 drafted=2 committed=2 draft=%.3f ms snapshot=%.3f ms verify=%.3f ms total=%.3f ms\n",
+@@ -27401,7 +27550,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+             accepted[n_accept++] = drafts[0];
+             s->checkpoint_valid = true;
+             s->mtp_draft_valid = false;
+-            DS4_MTP_KEEP_ACCEPTED(1);
++            DS4_DSPARK_KEEP_ACCEPTED(1);
+             if (mtp_timing) {
+                 const double replay_done = now_sec();
+                 fprintf(stderr,
+@@ -27513,7 +27662,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+                         }
+                         s->checkpoint_valid = true;
+                         s->mtp_draft_valid = false;
+-                        DS4_MTP_KEEP_ACCEPTED(replayed);
++                        DS4_DSPARK_KEEP_ACCEPTED(replayed);
+                         spec_frontier_free(&frontier);
+                         free(row_logits);
+                         free(row_tops);
+@@ -27534,7 +27683,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+                     }
+                     s->checkpoint_valid = true;
+                     s->mtp_draft_valid = false;
+-                    DS4_MTP_KEEP_ACCEPTED(draft_n);
++                    DS4_DSPARK_KEEP_ACCEPTED(draft_n);
+                     if (mtp_timing) {
+                         fprintf(stderr,
+                                 "ds4: mtp timing micro drafted=%d committed=%d draft=%.3f ms snapshot=%.3f ms verify=%.3f ms total=%.3f ms\n",
+@@ -27563,7 +27712,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+                     accepted[n_accept++] = drafts[0];
+                     s->checkpoint_valid = true;
+                     s->mtp_draft_valid = false;
+-                    DS4_MTP_KEEP_ACCEPTED(1);
++                    DS4_DSPARK_KEEP_ACCEPTED(1);
+                     token_vec_push(&s->checkpoint, drafts[0]);
+                     if (mtp_timing) {
+                         fprintf(stderr,
+@@ -27597,7 +27746,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+                     accepted[n_accept++] = drafts[0];
+                     s->checkpoint_valid = true;
+                     s->mtp_draft_valid = false;
+-                    DS4_MTP_KEEP_ACCEPTED(1);
++                    DS4_DSPARK_KEEP_ACCEPTED(1);
+                     token_vec_push(&s->checkpoint, drafts[0]);
+                     if (mtp_timing) {
+                         const double replay_done = now_sec();
+@@ -27639,7 +27788,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+                     }
+                     s->checkpoint_valid = true;
+                     s->mtp_draft_valid = false;
+-                    DS4_MTP_KEEP_ACCEPTED(commit_drafts);
++                    DS4_DSPARK_KEEP_ACCEPTED(commit_drafts);
+                     if (mtp_timing) {
+                         const double replay_done = now_sec();
+                         fprintf(stderr,
+@@ -27668,7 +27817,7 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+         } else {
+             snprintf(err, errlen, "MTP verifier failed");
+             s->checkpoint_valid = false;
+-            DS4_MTP_KEEP_ACCEPTED(0);
++            DS4_DSPARK_KEEP_ACCEPTED(0);
+             spec_frontier_free(&frontier);
+             free(row_logits);
+             free(row_tops);
+@@ -27736,7 +27885,8 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+         logits_on_host = true;
+     }
+     (void)logits_on_host;
+-    DS4_MTP_KEEP_ACCEPTED(verified);
++    DS4_DSPARK_KEEP_ACCEPTED(verified);
++#undef DS4_DSPARK_KEEP_ACCEPTED
+ #undef DS4_MTP_KEEP_ACCEPTED
+     if (mtp_timing) {
+         fprintf(stderr,
+diff --git a/ds4.h b/ds4.h
+index 9d040c9..2fbb323 100644
+--- a/ds4.h
++++ b/ds4.h
+@@ -99,6 +99,10 @@ typedef struct {
+     uint32_t prefill_chunk;
+     int mtp_draft_tokens;
+     float mtp_margin;
++    int dspark_ngram_tokens;
++    int dspark_ngram_min;
++    float dspark_early_margin;
++    int dspark_rounds;
+     const char *directional_steering_file;
+     const char *expert_profile_path;
+     float directional_steering_attn;
+diff --git a/ds4_cli.c b/ds4_cli.c
+index 4ad2240..2274403 100644
+--- a/ds4_cli.c
++++ b/ds4_cli.c
+@@ -478,7 +478,7 @@ static int run_sampled_generation(ds4_engine *engine, const cli_config *cfg, con
+                                        cfg->gen.top_p, cfg->gen.min_p, &rng);
+         if (token == ds4_token_eos(engine)) break;
+ 
+-        int toks[17];
++        int toks[64];
+         int ntok = 0;
+         if (cfg->gen.temperature <= 0.0f && ds4_engine_mtp_draft_tokens(engine) > 1 &&
+             getenv("DS4_MTP_SPEC_DISABLE") == NULL) {
+@@ -497,6 +497,10 @@ static int run_sampled_generation(ds4_engine *engine, const cli_config *cfg, con
+                 ds4_session_free(session);
+                 return 1;
+             }
++            if (getenv("DS4_DSPARK_DEBUG")) {
++                fprintf(stderr, "ds4: dbg ntok=%d pos=%d tok0=%d\n",
++                        ntok, ds4_session_pos(session), token);
++            }
+         } else {
+             cli_dist_busy_set(cfg, true);
+             int eval_rc = ds4_session_eval(session, token, err, sizeof(err));
+@@ -1149,7 +1153,7 @@ static int run_chat_turn(ds4_engine *engine, cli_config *cfg, repl_chat *chat, c
+                                        &rng);
+         if (token == ds4_token_eos(engine)) break;
+ 
+-        int toks[17];
++        int toks[64];
+         int ntok = 0;
+         if (cfg->gen.temperature <= 0.0f && ds4_engine_mtp_draft_tokens(engine) > 1 &&
+             getenv("DS4_MTP_SPEC_DISABLE") == NULL) {
+@@ -1462,6 +1466,14 @@ static cli_config parse_options(int argc, char **argv) {
+             c.engine.mtp_draft_tokens = parse_int(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "--mtp-margin")) {
+             c.engine.mtp_margin = parse_float_range(need_arg(&i, argc, argv, arg), arg, 0.0f, 1000.0f);
++        } else if (!strcmp(arg, "--dspark-ngram")) {
++            c.engine.dspark_ngram_tokens = parse_int(need_arg(&i, argc, argv, arg), arg);
++        } else if (!strcmp(arg, "--dspark-ngram-min")) {
++            c.engine.dspark_ngram_min = parse_int(need_arg(&i, argc, argv, arg), arg);
++        } else if (!strcmp(arg, "--dspark-early-margin")) {
++            c.engine.dspark_early_margin = parse_float_range(need_arg(&i, argc, argv, arg), arg, 0.0f, 1000.0f);
++        } else if (!strcmp(arg, "--dspark-rounds")) {
++            c.engine.dspark_rounds = parse_int(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-n") || !strcmp(arg, "--tokens")) {
+             c.gen.n_predict = parse_int(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-c") || !strcmp(arg, "--ctx")) {
+diff --git a/ds4_help.c b/ds4_help.c
+index d32e088..cfd1c68 100644
+--- a/ds4_help.c
++++ b/ds4_help.c
+@@ -175,6 +175,10 @@ static void print_model_runtime(FILE *fp, const help_colors *c,
+         if (tool == DS4_HELP_DS4 || tool == DS4_HELP_AGENT || tool == DS4_HELP_SERVER) {
+             opt(fp, c, "--mtp-draft N", "Maximum autoregressive MTP draft tokens. Default: 1");
+             opt(fp, c, "--mtp-margin F", "Verifier confidence margin for fast MTP acceptance. Default: 3");
++            opt(fp, c, "--dspark-ngram N", "DSpark-style speculation: up to N extra draft tokens from context ngram lookup. Default: 0 (off)");
++            opt(fp, c, "--dspark-ngram-min N", "Minimum ngram suffix match length for --dspark-ngram. Default: 3");
++            opt(fp, c, "--dspark-early-margin F", "Per-position MTP draft confidence stop; replaces the single --mtp-margin gate. Default: 0 (off)");
++            opt(fp, c, "--dspark-rounds N", "Maximum chained speculative verify rounds per decode step. Default: 1");
+         }
+         opt(fp, c, "--quality", "Prefer exact kernels where faster approximate paths exist.");
+         opt(fp, c, "--warm-weights", "Touch mapped tensor pages at startup to reduce first-use stalls.");
+diff --git a/ds4_server.c b/ds4_server.c
+index 34a9d50..cd0b09b 100644
+--- a/ds4_server.c
++++ b/ds4_server.c
+@@ -10413,7 +10413,7 @@ decode_again:
+             break;
+         }
+ 
+-        int toks[17];
++        int toks[64];
+         int ntok = 0;
+         if (temperature <= 0.0f &&
+             ds4_engine_mtp_draft_tokens(s->engine) > 1 &&
+@@ -11560,6 +11560,14 @@ static server_config parse_options(int argc, char **argv) {
+             c.engine.mtp_draft_tokens = parse_int_arg(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "--mtp-margin")) {
+             c.engine.mtp_margin = parse_float_arg(need_arg(&i, argc, argv, arg), arg, 0.0f, 1000.0f);
++        } else if (!strcmp(arg, "--dspark-ngram")) {
++            c.engine.dspark_ngram_tokens = parse_int_arg(need_arg(&i, argc, argv, arg), arg);
++        } else if (!strcmp(arg, "--dspark-ngram-min")) {
++            c.engine.dspark_ngram_min = parse_int_arg(need_arg(&i, argc, argv, arg), arg);
++        } else if (!strcmp(arg, "--dspark-early-margin")) {
++            c.engine.dspark_early_margin = parse_float_arg(need_arg(&i, argc, argv, arg), arg, 0.0f, 1000.0f);
++        } else if (!strcmp(arg, "--dspark-rounds")) {
++            c.engine.dspark_rounds = parse_int_arg(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-c") || !strcmp(arg, "--ctx")) {
+             c.ctx_size = parse_int_arg(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-n") || !strcmp(arg, "--tokens")) {
+-- 
+2.43.0
+
