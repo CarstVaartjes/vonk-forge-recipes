@@ -89,7 +89,7 @@ Which Spark counts each model family runs on.
 | LFM2.5 | ✓ |  |  |  |  |
 | Ling | ✓ |  |  |  |  |
 | LTX | ✓ |  |  |  |  |
-| Meta Llama | ✓ |  |  |  |  |
+| Meta Llama | ✓ | ✓ |  |  |  |
 | Microsoft Phi-4 | ✓ |  |  |  |  |
 | MiMo |  | ✓ | ✓ | ✓ |  |
 | MiniMax H3 | ✓ |  |  |  |  |
