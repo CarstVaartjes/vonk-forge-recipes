@@ -1,0 +1,437 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "3da6bf4220b511b309818d3af1560e8eabc4e91e008cef4347b4dfdff76ccbd3",
+        "repository": "ghcr.io/r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang"
+      },
+      "context": {
+        "path": "adapters/nvidia/r0b0tlab-ornith-sglang-single"
+      },
+      "dockerfile": "adapters/nvidia/r0b0tlab-ornith-sglang-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "ornith-1-5-35b-a3b-nvfp4-w4a16-r0b0tlab-sglang-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Ornith-1.5-35B-A3B"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "r0b0tlab's SGLang click-run profile for its own Ornith-1.5-35B-A3B NVFP4 W4A16 weight-only quantization (NVIDIA Model Optimizer w4_nvfp4 preset, BF16 MTP head kept; MIT) on one Spark, from r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang at 6d0a25d9 (MIT). Runs upstream's published GB10 image (a pinned SGLang-main venv with pre-warmed FlashInfer and Triton JIT caches; pinned here by the digest of its only tag, built 2026-08-21, since upstream publishes no digest) with the claim-row profile: Triton attention, Marlin MoE, FP8 E4M3 KV, memory fraction 0.75, 262,144-token context, qwen3_coder tool parser and EAGLE K=1 (1 step, top-1, 2 draft tokens). Upstream warns that MTP fails needle retrieval at about 235k tokens (a deterministic degenerate output in its r0b0bench lane, while base autoregressive passes), so the option turns MTP off for workloads that really sit near the full window. Upstream claims (not measured here): 74.9 tok/s at c1 and 67.5 tok/s decode with accept length 1.925 in its SM12X-LLM-BENCH claim row (GSM8K 90.75%, MMLU-Pro 81.2%, 15/15 lanes), MTP K=1 sweep best at 80.78 tok/s, aggregate 82 to 513 tok/s from c1 to c64. The independent quantization is not affiliated with Ornith AI or NVIDIA. Physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "eagle",
+      "executable",
+      "mtp",
+      "nvfp4",
+      "ornith",
+      "r0b0tlab",
+      "reasoning",
+      "sglang",
+      "single",
+      "spark",
+      "tool-use",
+      "w4a16"
+    ],
+    "title": "Ornith 1.5 35B-A3B NVFP4 W4A16 SGLang single Spark (r0b0tlab)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-2f0492c40491-b335630551",
+          "id": "primary-readme-2f0492c40491-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-182e77dd83bd-00824420d1",
+          "id": "primary-chat-template-182e77dd83bd-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-9eeb92ac059e-587cb980af",
+          "id": "primary-config-9eeb92ac059e-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "primary-generation-config-e70c136c1b78-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-276608a24385-a481ad90fa",
+          "id": "primary-hf-quant-config-276608a24385-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00003-78d3b8b10f02-5ad6951325",
+          "id": "primary-model-00001-of-00003-78d3b8b10f02-5ad6951325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00003-b4af434afedb-b421ec05d0",
+          "id": "primary-model-00002-of-00003-b4af434afedb-b421ec05d0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00003-c222cbf96c0b-c5bdb3d6ec",
+          "id": "primary-model-00003-of-00003-c222cbf96c0b-c5bdb3d6ec",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-ca61f8e58ed4-0a05be8238",
+          "id": "primary-model-safetensors-index-ca61f8e58ed4-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "primary-processor-config-d89ef49ce9cd-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-5f9e4d4901a9-224931eb13",
+          "id": "primary-tokenizer-5f9e4d4901a9-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-5186f0defcd7-94d5c6ba8f",
+          "id": "primary-tokenizer-config-5186f0defcd7-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "b817eb5b94c840c1533f77e287a2c31f917d8dc022e9eade54c70aa8dce54804",
+        "kind": "model",
+        "publisher": "r0b0tlab",
+        "slug": "ornith-1-5-35b-a3b-nvfp4-w4a16-dcbc0a25"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "args": [
+            {
+              "name": "speculative-algorithm",
+              "value": "EAGLE"
+            },
+            {
+              "name": "speculative-num-steps",
+              "value": 1
+            },
+            {
+              "name": "speculative-eagle-topk",
+              "value": 1
+            },
+            {
+              "name": "speculative-num-draft-tokens",
+              "value": 2
+            }
+          ],
+          "default": true,
+          "help": "Upstream's default: EAGLE with 1 step, top-1, 2 draft tokens. Upstream claims 74.9 tok/s at c1 but a deterministic retrieval failure near 235k tokens.",
+          "label": "MTP K=1",
+          "value": "mtp"
+        },
+        {
+          "help": "Upstream's base autoregressive mode (MTP=0); it passes needle retrieval at 235k tokens where MTP fails.",
+          "label": "No speculation",
+          "value": "none"
+        }
+      ],
+      "help": "Whether the bundled BF16 MTP head drafts tokens through EAGLE.",
+      "label": "Speculative decoding",
+      "name": "speculation"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "r0b0tlab (MIT)",
+      "Ornith AI (MIT)",
+      "SGLang contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang/tree/6d0a25d9cc8b8963161cde085a83768b6bc545e0"
+  },
+  "release": {
+    "released_at": "2026-08-24",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model-path",
+        "setting": null,
+        "value": "/models"
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "Ornith-1.5-35B-A3B"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "triton"
+      },
+      {
+        "name": "moe-runner-backend",
+        "setting": null,
+        "value": "marlin"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "context-length",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8_e4m3"
+      },
+      {
+        "name": "mem-fraction-static",
+        "setting": null,
+        "value": "0.75"
+      },
+      {
+        "name": "enable-metrics",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "sglang",
+    "entrypoint": [
+      "/opt/vonk/bin/sglang-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 23625111852,
+            "image_bytes": 20000000000,
+            "safety_margin_bytes": 16000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 96000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Ornith-1.5-35B-A3B"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

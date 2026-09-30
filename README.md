@@ -51,7 +51,7 @@ Which engines each model family runs on.
 | Nemotron | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |  |
 | Nex N2 | ✓ |  |  |  |  |  |  |  |  |  |
 | OpenAI gpt-oss | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
-| Ornith | ✓ |  |  |  |  |  |  |  |  |  |
+| Ornith | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | ✓ |  |
 | Qwen (text and vision) | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  | ✓ |
 | Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |  |
