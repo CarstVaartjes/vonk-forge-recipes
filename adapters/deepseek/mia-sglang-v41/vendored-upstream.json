@@ -1,6 +1,9 @@
 {
   "ours": [
+    "adapter/encoding_compat.py",
     "dsv41-serve",
+    "tests/test_chat_encoding.py",
+    "tests/test_thinking_alias.py",
     "verify-runtime.py"
   ],
   "source": {
