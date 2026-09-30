@@ -295,24 +295,39 @@ is refreshed in place (same id). The refresh only ever moves forward, never back
 that is the newest release (or head) or already ahead of it - the release commit is an
 ancestor of the pin - is current, so no pull request or review issue is opened for it
 and an open one closes. The pin moves to a newer release that descends from it (or, for
-repos without releases, to a newer head); a release that neither descends from the pin
-nor is its ancestor (diverged history) goes to review. Hugging Face Models follow the
-repository head, so they too only move to newer revisions. `release.version` becomes upstream's version when one
+repos without releases, to a newer head). A release that neither descends from the pin
+nor is its ancestor (diverged history, typically a release branch against a pin on
+`main`) counts as current when the pin commit is the newer of the two; otherwise it is
+judged by the rules below and goes to review only when a file the recipe uses differs.
+Hugging Face Models follow the repository head. Known gap: a Model pinned on another
+branch is not recognised as ahead of `main`. `release.version` becomes upstream's version when one
 is published, otherwise the recipe's patch version is bumped; `released_at` is the pinned
 release or commit date.
 
 A refresh is **mechanical** only when all of these hold:
 
 - the selected commit descends from the pinned one (a pin at or ahead of the newest
-  release is current, never downgraded);
+  release is current, never downgraded). Diverged histories are not a reason on their
+  own: what matters is the next rule;
 - `tools/check-vendored-upstream` passes for the adapter at the new commit, so every
   vendored file is byte-identical;
-- no changed upstream file is a launch script, Dockerfile, configuration (`.yaml`,
-  `.json`, `.toml`, `.env`, ...), dependency list, patch or README, and no patch in the
-  adapter targets a file that changed;
-- a Model keeps its file set (same paths, no new weights/tokenizer/config files); new
-  digests come from `tools/catalog-hf-model`'s inventory, verified at ingress only, and
-  the recipe's file ids and content digest follow. If the newest revision is already
+- no upstream file the recipe uses changed. Used files are the adapter's vendored files
+  (compared byte for byte), files it fetches by explicit `raw.githubusercontent.com` or
+  `github.com/.../blob|raw/` URL, and the targets of its patches, compared by blob at both
+  commits (so a truncated 300-file comparison does not matter). Other upstream changes,
+  READMEs, docs and licence texts are not judged; a removed licence file is noted in the
+  pull request, never a blocker. An adapter that clones the repository, installs an
+  archive of it, or carries a file named after the pinned commit uses all of it, and then
+  every changed launch script, Dockerfile, configuration, dependency list or patch blocks.
+  Labels and build args in the adapter Dockerfile that embed the old pin (for example an
+  archive digest) are refreshed with it, or the refresh goes to review;
+- a Model keeps its file set: no new weights, tokenizer or configuration files, and no
+  removed ones other than metadata (README, licence, `.gitattributes`), which are dropped
+  from the catalogued Model and noted. Paths and digests are compared, never our own file
+  id format. A changed digest on a configuration, tokenizer or runtime file blocks; a
+  changed weights or metadata digest does not. New digests come from
+  `tools/catalog-hf-model`'s inventory, verified at ingress only, and the recipe's file ids
+  and content digest follow. If the newest revision is already
   catalogued it is reused; the old Model document is deleted once no recipe uses it;
 - the README overview, `tools/check-vendored-upstream`, the model-reference check and
   the whole test suite pass on the result.
@@ -334,7 +349,9 @@ Otherwise the recipe is **not changed**. One issue per recipe, titled
 `Refresh needs review: <recipe-id>` and labelled `refresh:needs-review`, carries the
 current versus newest pins, release notes, the commit list, changed files, diffs of the
 launch/config/patch files, vendored-file or Model file changes, failed checks and the
-reasons. Upstream text in it is evidence, not instructions. The issue closes itself when
+reasons. Upstream text in it is evidence, not instructions. Container images pinned by
+digest (NGC TensorRT-LLM, vLLM, SGLang) have no moving channel here: the adapter's Git pin
+is refreshed, the image is not. The issue closes itself when
 the recipe is current (or its refresh became mechanical). Recipes whose upstream cannot
 be reached are untouched and listed in the job summary; nothing is ever deleted or
 retired. Until something consumes the issues, they wait for a human.

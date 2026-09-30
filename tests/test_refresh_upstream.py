@@ -41,9 +41,17 @@ def comparison(
     )
 
 
-def classify(cmp, patched: set[str] | frozenset[str] = frozenset(), problems=()):
+def classify(
+    cmp,
+    patched: set[str] | frozenset[str] = frozenset(),
+    problems=(),
+    used_changes=None,
+):
     return refresh.classify_changes(
-        cmp, patched=set(patched), vendor_problems=list(problems)
+        cmp,
+        patched=set(patched),
+        vendor_problems=list(problems),
+        used_changes=used_changes,
     )
 
 
@@ -71,7 +79,6 @@ class ClassificationTests(unittest.TestCase):
             "Dockerfile",
             "serve.py",
             "configs/a.yaml",
-            "README.md",
             "x.patch",
         ):
             with self.subTest(name=name):
@@ -144,14 +151,22 @@ def model_with(paths: tuple[str, ...]):
 
 
 class ModelTests(unittest.TestCase):
-    def test_same_paths_with_new_digests_is_compatible(self) -> None:
-        old = model_with(("model.safetensors", "config.json"))
+    def test_same_paths_with_new_weight_digests_is_compatible(self) -> None:
+        old = model_with(("model.safetensors", "README.md"))
         self.assertEqual(
             refresh.model_shape_problems(
-                old, files("model.safetensors", "config.json", "NOTES.md")
+                old, files("model.safetensors", "README.md", "NOTES.md")
             ),
             [],
         )
+
+    def test_changed_configuration_tokenizer_or_runtime_file_is_not(self) -> None:
+        for path in ("config.json", "tokenizer.json", "dspark.py"):
+            with self.subTest(path=path):
+                old = model_with(("model.safetensors", path))
+                self.assertTrue(
+                    refresh.model_shape_problems(old, files("model.safetensors", path))
+                )
 
     def test_removed_and_new_weight_files_are_not(self) -> None:
         old = model_with(("model.safetensors", "config.json"))
@@ -489,7 +504,8 @@ class NeverDowngradeTests(unittest.TestCase):
         self.assertEqual(classify(result.items[0].comparison), [])
 
     def test_diverged_history_needs_review(self) -> None:
-        result = self.collect("diverged")
+        with patch("refresh_upstream.pin_is_newer_by_date", return_value=False):
+            result = self.collect("diverged")
         self.assertEqual(len(result.items), 1)
         self.assertTrue(classify(result.items[0].comparison))
 
@@ -547,3 +563,240 @@ class OpenPullRequestTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReadmeAndScopeTests(unittest.TestCase):
+    def test_readme_is_not_a_blocking_file(self) -> None:
+        self.assertFalse(refresh.is_blocking("README.md"))
+        self.assertFalse(refresh.is_blocking("models/readme.rst"))
+        self.assertTrue(refresh.is_blocking("run.sh"))
+
+    def test_ui_mate_unrelated_upstream_changes_are_mechanical(self) -> None:
+        # #491: 3 commits, 300+ files (truncated), none of them used by the recipe.
+        cmp = refresh.Comparison(
+            "ahead",
+            [],
+            [
+                {"filename": "README.md", "status": "modified"},
+                {
+                    "filename": "osworker_bench/CUA-Gym-Hub/deploy-all.sh",
+                    "status": "added",
+                },
+            ],
+            True,
+            "u",
+        )
+        self.assertEqual(classify(cmp, used_changes=[]), [])
+        # Without a verified used set the same change is judged file by file.
+        self.assertTrue(classify(cmp))
+
+    def test_used_file_change_is_a_reason(self) -> None:
+        self.assertTrue(
+            classify(comparison(), used_changes=["agents/ui_mate_agent.py"])
+        )
+
+    def test_diverged_is_not_a_reason_once_used_files_are_verified(self) -> None:
+        self.assertEqual(classify(comparison("diverged"), used_changes=[]), [])
+        self.assertTrue(classify(comparison("diverged")))
+        self.assertTrue(
+            classify(comparison("diverged"), used_changes=[], problems=["x differs"])
+        )
+
+    def test_licence_removal_is_informational(self) -> None:
+        cmp = refresh.Comparison(
+            "ahead", [], [{"filename": "LICENSE", "status": "removed"}], False, "u"
+        )
+        item = refresh.Item(
+            "source",
+            "github",
+            "o/r",
+            OLD,
+            refresh.Target("github", "o/r", NEW, "2026-09-30", None, None, "u"),
+        )
+        self.assertEqual(classify(cmp, used_changes=[]), [])
+        self.assertIn("never gate", refresh.github_evidence(item, cmp, set()))
+
+
+class AdapterUsageTests(unittest.TestCase):
+    def usage(self, files: dict[str, str]):
+        with tempfile.TemporaryDirectory() as tmp:
+            for name, text in files.items():
+                (Path(tmp) / name).write_text(text)
+            return refresh.adapter_usage(Path(tmp), "o/Repo", OLD)
+
+    def test_wrapper_without_references_uses_nothing(self) -> None:
+        self.assertEqual(
+            self.usage({"Dockerfile": "FROM x\nCOPY a /a\n"}), (set(), False)
+        )
+
+    def test_explicit_urls_name_files(self) -> None:
+        text = (
+            "curl https://raw.githubusercontent.com/o/repo/main/cfg/a.yaml\n"
+            "# https://github.com/o/Repo/blob/v1/docs/b.md\n"
+        )
+        self.assertEqual(
+            self.usage({"setup.sh": text}), ({"cfg/a.yaml", "docs/b.md"}, False)
+        )
+
+    def test_clone_or_commit_named_archive_uses_the_whole_repository(self) -> None:
+        clone = "RUN git clone https://github.com/o/Repo /src\n"
+        self.assertTrue(self.usage({"Dockerfile": clone})[1])
+        self.assertTrue(self.usage({f"tensorfold-{OLD}.tar.gz": ""})[1])
+
+
+class DivergedReleaseTests(unittest.TestCase):
+    class FakeHttp:
+        def __init__(self, pin: str, release: str) -> None:
+            self.dates = {OLD: pin, NEW: release}
+
+        def github(self, path: str):
+            return {
+                "commit": {"committer": {"date": self.dates[path.rsplit("/", 1)[1]]}}
+            }
+
+    def test_pin_on_main_newer_than_release_branch_commit(self) -> None:
+        # #485: pin b9ce4b69 on main (1.3.0rc13) against release 1.2.1 on a release branch.
+        http = self.FakeHttp("2026-09-01T00:00:00Z", "2026-04-20T00:00:00Z")
+        self.assertTrue(refresh.pin_is_newer_by_date(http, "o/r", OLD, NEW))
+
+    def test_release_newer_than_pin_is_not_current(self) -> None:
+        http = self.FakeHttp("2026-04-01T00:00:00Z", "2026-04-20T00:00:00Z")
+        self.assertFalse(refresh.pin_is_newer_by_date(http, "o/r", OLD, NEW))
+
+    def test_unreadable_dates_are_not_current(self) -> None:
+        self.assertFalse(refresh.pin_is_newer_by_date(object(), "o/r", OLD, NEW))
+
+    def test_image_wrapper_diverged_release_behind_pin_is_current(self) -> None:
+        collector = NeverDowngradeTests()
+        with patch("refresh_upstream.pin_is_newer_by_date", return_value=True):
+            self.assertFalse(collector.collect("diverged").drifted)
+        with patch("refresh_upstream.pin_is_newer_by_date", return_value=False):
+            self.assertEqual(len(collector.collect("diverged").items), 1)
+
+
+class ModelScopeTests(unittest.TestCase):
+    def old_model(self, paths: tuple[str, ...]):
+        document = model_with(paths)
+        for entry in document["files"]:  # ids as older catalogs wrote them
+            entry["id"] = f"{entry['path'].split('.')[0].lower()}-{'c' * 12}"
+        return document
+
+    def test_old_format_ids_do_not_block(self) -> None:
+        # #476: only README.md changed; every id predates the path-digest suffix.
+        old = self.old_model(
+            (".gitattributes", "README.md", "config.json", "model.safetensors")
+        )
+        new = files(".gitattributes", "config.json", "model.safetensors", "README.md")
+        for entry in new:
+            entry["sha256"] = "c" * 64 if entry["path"] != "README.md" else "d" * 64
+        self.assertEqual(refresh.model_shape_problems(old, new), [])
+
+    def test_same_fixture_with_config_digest_change_needs_review(self) -> None:
+        old = self.old_model(("README.md", "config.json", "model.safetensors"))
+        new = files("README.md", "config.json", "model.safetensors")
+        for entry in new:
+            entry["sha256"] = "d" * 64 if entry["path"] == "config.json" else "c" * 64
+        problems = refresh.model_shape_problems(old, new)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("config.json", problems[0])
+
+    def test_removed_licence_and_readme_are_informational(self) -> None:
+        old = self.old_model(("LICENSE", "README.md", "model.safetensors"))
+        new = files("model.safetensors")
+        for entry in new:
+            entry["sha256"] = "c" * 64
+        self.assertEqual(refresh.model_shape_problems(old, new), [])
+        target = refresh.Target(
+            "huggingface", "o/r", NEW, "2026-09-30", None, None, "u"
+        )
+        refreshed = refresh.refreshed_model(old, new, target)
+        self.assertEqual([f["path"] for f in refreshed["files"]], ["model.safetensors"])
+        item = refresh.Item("model", "huggingface", "o/r", OLD, target)
+        self.assertIn("never gate", refresh.model_evidence(item, old, new))
+
+    def test_restructured_repository_needs_review(self) -> None:
+        # #473: turboderp moved its files; config.json and shards are gone, new weights.
+        old = self.old_model(
+            ("config.json", "model-00001-of-00002.safetensors", "tokenizer.json")
+        )
+        new = files("cal_trace.safetensors", "measurement.json")
+        joined = " ".join(refresh.model_shape_problems(old, new))
+        self.assertIn("config.json", joined)
+        self.assertIn("model-00001-of-00002.safetensors", joined)
+        self.assertIn("new weights file", joined)
+
+    def test_tensorfold_whole_repo_adapter_keeps_judging_every_file(self) -> None:
+        cmp = comparison(files=("src/tensorfold/cuda/server.py", "pyproject.toml"))
+        reasons = classify(cmp)  # used_changes=None: the adapter uses the whole repo
+        self.assertIn("server.py", " ".join(reasons))
+
+    def test_file_id_matches_a_fresh_catalog(self) -> None:
+        tree = [
+            {
+                "type": "file",
+                "path": "sub/model-1.safetensors",
+                "size": 5,
+                "lfs": {"oid": "e" * 64},
+            }
+        ]
+        (entry,) = refresh.catalog.inventory("o/r", NEW, tree)
+        self.assertEqual(entry["id"], refresh.file_id(entry["path"], "e" * 64))
+
+
+class ArchiveLabelTests(unittest.TestCase):
+    OLD_DIGEST = "1" * 64
+    NEW_DIGEST = "2" * 64
+    OTHER = "3" * 64
+
+    def item(self):
+        target = refresh.Target("github", "o/r", NEW, "2026-09-30", None, None, "u")
+        return refresh.Item("source", "github", "o/r", OLD, target)
+
+    def digest(self, _repo: str, commit: str) -> str:
+        return self.OLD_DIGEST if commit == OLD else self.NEW_DIGEST
+
+    def test_archive_label_of_the_pin_moves_with_it(self) -> None:
+        text = (
+            f'LABEL a.archive-sha256="{self.OLD_DIGEST}" \\\n'
+            f'      b.mia-source-archive-sha256="{self.OTHER}"\n'
+        )
+        with patch("refresh_upstream.archive_sha256", self.digest):
+            moved, changed = refresh.retarget_archive_labels(text, self.item())
+        self.assertTrue(changed)
+        self.assertIn(f'a.archive-sha256="{self.NEW_DIGEST}"', moved)
+        self.assertIn(f'mia-source-archive-sha256="{self.OTHER}"', moved)
+
+    def test_unrelated_archive_labels_are_left_alone(self) -> None:
+        text = f'LABEL b.archive-sha256="{self.OTHER}"\n'
+        with patch("refresh_upstream.archive_sha256", self.digest):
+            self.assertEqual(
+                refresh.retarget_archive_labels(text, self.item()), (text, False)
+            )
+
+    def test_fetch_failure_is_a_review_reason_not_a_stale_label(self) -> None:
+        def broken(_repo: str, _commit: str) -> str:
+            raise RuntimeError("offline")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            directory = root / "adapter"
+            directory.mkdir()
+            (directory / "Dockerfile").write_text(
+                f'LABEL x.archive-sha256="{self.OLD_DIGEST}" y="{OLD}"\n'
+            )
+            assessor = refresh.Assessor(
+                refresh.Catalog(root), object(), None, {"recipes": []}
+            )
+            pin = refresh.AdapterPin("o/r", OLD, directory)
+            result = refresh.Assessment("recipe")
+            edits: dict = {}
+            with patch("refresh_upstream.archive_sha256", broken):
+                assessor._retarget_adapter(pin, self.item(), edits, result)
+            self.assertTrue(result.reasons)
+            with patch("refresh_upstream.archive_sha256", self.digest):
+                result = refresh.Assessment("recipe")
+                assessor._retarget_adapter(pin, self.item(), edits, result)
+            new = edits["adapter/Dockerfile"].decode()
+            self.assertIn(self.NEW_DIGEST, new)
+            self.assertIn(NEW, new)
+            self.assertFalse(result.reasons)
