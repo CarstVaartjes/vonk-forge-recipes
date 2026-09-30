@@ -1,0 +1,2 @@
+# NumPy is provided by the digest-pinned SGLang image and checked at build time.
+librosa==0.11.0
