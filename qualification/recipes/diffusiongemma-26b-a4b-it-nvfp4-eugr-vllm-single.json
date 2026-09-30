@@ -1,0 +1,17 @@
+{
+  "id": "vonk-forge/diffusiongemma-26b-a4b-it-nvfp4-eugr-vllm-single",
+  "service_recipes": {
+    "alias": "DiffusionGemma-26B-A4B-it-NVFP4",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Optional bounded streaming and declared concurrency canaries"
+      ]
+    }
+  }
+}

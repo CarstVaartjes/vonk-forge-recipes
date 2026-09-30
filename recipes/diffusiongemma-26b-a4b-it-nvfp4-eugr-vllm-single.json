@@ -1,0 +1,416 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "155ce16b49007c8b00690dd4c7637c0c1eafbe909709c3175c4498325c01c1d8",
+        "repository": "docker.io/eugr/spark-vllm"
+      },
+      "context": {
+        "path": "adapters/eugr/diffusion-gemma-nvfp4"
+      },
+      "dockerfile": "adapters/eugr/diffusion-gemma-nvfp4/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "diffusiongemma-26b-a4b-it-nvfp4-eugr-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "DiffusionGemma-26B-A4B-it-NVFP4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker diffusion-gemma-nvfp4 recipe for NVIDIA's DiffusionGemma-26B-A4B-it-NVFP4 (ModelOpt NVFP4; checkpoint revision ec4ff3df), Apache-2.0, served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: block-diffusion decoding (canvas length 256), TRITON_ATTN attention, fastsafetensors loading, prefix caching, gemma4 reasoning and tool-call parsers, 262,144-token context and memory utilisation 0.8 (upstream defaults); upstream sets no sequence limit, so vLLM's default applies. Upstream's diffusiongemma mod is applied at image build time: it skips its vLLM patches because the pinned image already contains DiffusionGemma support and only installs its no-thinking chat template at /workspace/vllm/fixed_chat_template.jinja, which the recipe passes by absolute path (upstream uses a path relative to its working directory). Thinking is an option: the default is upstream's diffusion-gemma-nvfp4 (thinking off, fixed chat template); the other choice is eugr's diffusion-gemma-nvfp4-thinking recipe (enable_thinking true with the checkpoint's own chat template). The upstream recipe is solo-only. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "diffusion",
+      "diffusiongemma",
+      "eugr",
+      "executable",
+      "gemma",
+      "nvfp4",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "DiffusionGemma 26B-A4B NVFP4 vLLM single Spark (eugr)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file--quant-summary-07a63abd16b3-e17ab81a0d",
+          "id": "primary-file--quant-summary-07a63abd16b3-e17ab81a0d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-94f0de6f2c02-b335630551",
+          "id": "primary-readme-94f0de6f2c02-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "apache-2-0-license-0b0f8a2e5ad4-34e420c62b",
+          "id": "primary-apache-2-0-license-0b0f8a2e5ad4-34e420c62b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-2f1b4d75d067-00824420d1",
+          "id": "primary-chat-template-2f1b4d75d067-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-b4f650bd55f6-587cb980af",
+          "id": "primary-config-b4f650bd55f6-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-99334f763c3d-97dd3d578b",
+          "id": "primary-generation-config-99334f763c3d-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-c5fe6af87002-a481ad90fa",
+          "id": "primary-hf-quant-config-c5fe6af87002-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-24f125781084-27a6880801",
+          "id": "primary-model-00001-of-00002-24f125781084-27a6880801",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-5015731988fb-2cca3b5a88",
+          "id": "primary-model-00002-of-00002-5015731988fb-2cca3b5a88",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-3a1f1d8b64da-0a05be8238",
+          "id": "primary-model-safetensors-index-3a1f1d8b64da-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-32bdf45d2ad4-27f0cb76af",
+          "id": "primary-processor-config-32bdf45d2ad4-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-cc8d3a0ce364-224931eb13",
+          "id": "primary-tokenizer-cc8d3a0ce364-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a284d1243b62-94d5c6ba8f",
+          "id": "primary-tokenizer-config-a284d1243b62-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "0155ed9c92b57e1ea817ed7610a1b7d20a32ee319ebb8a3c6a11f37481153792",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "diffusiongemma-26b-a4b-it-nvfp4-ec4ff3df"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "value": "{\"enable_thinking\": false}"
+            },
+            {
+              "name": "chat-template",
+              "value": "/workspace/vllm/fixed_chat_template.jinja"
+            }
+          ],
+          "default": true,
+          "help": "eugr's diffusion-gemma-nvfp4 recipe: enable_thinking false with the fixed no-thinking chat template baked into the image.",
+          "label": "Thinking off",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "value": "{\"enable_thinking\": true}"
+            }
+          ],
+          "help": "eugr's diffusion-gemma-nvfp4-thinking recipe: enable_thinking true with the checkpoint's own chat template.",
+          "label": "Thinking on",
+          "value": "on"
+        }
+      ],
+      "help": "Whether the chat template enables thinking by default. eugr ships both as separate recipes (diffusion-gemma-nvfp4 and diffusion-gemma-nvfp4-thinking); requests can still override the chat template kwargs.",
+      "label": "Thinking",
+      "name": "thinking"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "eugr (MIT)",
+      "NVIDIA (Apache-2.0)",
+      "Google DeepMind (Apache-2.0)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/42f62e349c610641ac6677ac28275c57bebdf9c3"
+  },
+  "release": {
+    "released_at": "2026-09-28",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "DiffusionGemma-26B-A4B-it-NVFP4"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.8"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "fastsafetensors"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "TRITON_ATTN"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "diffusion-config",
+        "setting": null,
+        "value": "{\"canvas_length\":256}"
+      },
+      {
+        "name": "override-generation-config",
+        "setting": null,
+        "value": "{\"max_new_tokens\": null}"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "gemma4"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 18864432762,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 16000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 110000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "DiffusionGemma-26B-A4B-it-NVFP4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
