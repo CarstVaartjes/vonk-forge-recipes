@@ -8,9 +8,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 COMFY_RECIPES = (
     "flux-2-klein-4b-comfyui-single",
+    "flux-2-klein-4b-nvfp4-comfyui-single",
     "qwen-image-2512-comfyui-single",
     "qwen-image-2512-fp8-lightning-comfyui-single",
     "qwen-image-edit-2511-comfyui-single",
+    "qwen-image-edit-2511-fp8mixed-comfyui-single",
+    "qwen-image-edit-2511-int8-convrot-comfyui-single",
     "wan-2-2-i2v-14b-comfyui-single",
     "wan-2-2-t2v-14b-comfyui-single",
     "wan-2-2-ti2v-5b-comfyui-single",
@@ -48,9 +51,9 @@ CORE_NODES = {
     "Wan22ImageToVideoLatent",
     "WanImageToVideo",
 }
-COMFY_REVISION = "8ff6dc384ba5c410266b40e137799e049459d4f2"
+COMFY_REVISION = "83071e1aec311d31e773d64d6872181b3bad0fe2"
 COMFY_ARCHIVE_SHA256 = (
-    "fa58882988cbb5902dbff71626ca7a82c2548fe34d588c482c8859306734a39f"
+    "fbcb570f26aaf67911d15e164907a0992fb9d5780ea17546f1e0476e9943977c"
 )
 
 

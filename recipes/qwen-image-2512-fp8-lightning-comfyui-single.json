@@ -182,8 +182,8 @@
     "source_reference": "https://huggingface.co/lightx2v/Qwen-Image-2512-Lightning/tree/a52649c9d0f6e1a248bff13f0df33bb8a2abdb52"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.1.1"
+    "released_at": "2026-09-30",
+    "version": "1.1.2"
   },
   "runtime": {
     "arguments": [
