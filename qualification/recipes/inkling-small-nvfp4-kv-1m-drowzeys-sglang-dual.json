@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual",
+  "service_recipes": {
+    "alias": "inkling-small",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context ladder and declared concurrency canaries"
+      ],
+      "recovery": [
+        "Controller stop/start and offline warm-cache restart"
+      ]
+    }
+  }
+}
