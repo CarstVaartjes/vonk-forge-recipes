@@ -102,8 +102,8 @@
           ]
         },
         {
-          "file_id": "config-e23c5d98f53e-587cb980af",
-          "id": "primary-config-e23c5d98f53e-587cb980af",
+          "file_id": "config-41db2811023b-587cb980af",
+          "id": "primary-config-41db2811023b-587cb980af",
           "mount": {
             "target": "/models/target"
           },
@@ -124,8 +124,8 @@
           ]
         },
         {
-          "file_id": "hf-quant-config-1277df937b78-a481ad90fa",
-          "id": "primary-hf-quant-config-1277df937b78-a481ad90fa",
+          "file_id": "hf-quant-config-1bc0d89651f0-a481ad90fa",
+          "id": "primary-hf-quant-config-1bc0d89651f0-a481ad90fa",
           "mount": {
             "target": "/models/target"
           },
@@ -544,10 +544,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "550a1210499a82af61d5940e3712d252b8b9e8d016aa2d52d9f623e2133838eb",
+        "content_sha256": "525fcb05c426820c6fc1a31b74b93cb2cfee47971c6fcdcc73579bdda03b9667",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "glm-5-3-flash-nvfp4-09b04e5e"
+        "slug": "glm-5-3-flash-nvfp4-da920bb0"
       }
     },
     {
@@ -564,8 +564,8 @@
           ]
         },
         {
-          "file_id": "readme-088bc4561a83-b335630551",
-          "id": "drafter-readme-088bc4561a83-b335630551",
+          "file_id": "readme-2014434d3e36-b335630551",
+          "id": "drafter-readme-2014434d3e36-b335630551",
           "mount": {
             "target": "/models/drafter"
           },
@@ -586,8 +586,8 @@
           ]
         },
         {
-          "file_id": "model-8931dc522be0-9d75c1098f",
-          "id": "drafter-model-8931dc522be0-9d75c1098f",
+          "file_id": "model-b038e1d9d1e7-9d75c1098f",
+          "id": "drafter-model-b038e1d9d1e7-9d75c1098f",
           "mount": {
             "target": "/models/drafter"
           },
@@ -599,10 +599,10 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-7d74cdd8",
       "model": {
-        "content_sha256": "c0f1ca07136026aeb714da996a75fa20ad5a106bda212ff677f95231a2e534f9",
+        "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
         "kind": "model",
         "publisher": "incoai",
-        "slug": "glm-5-3-flash-dflash2-7d74cdd8"
+        "slug": "glm-5-3-flash-dflash2-bf582e4e"
       }
     }
   ],
@@ -767,7 +767,7 @@
   },
   "release": {
     "released_at": "2026-09-29",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
