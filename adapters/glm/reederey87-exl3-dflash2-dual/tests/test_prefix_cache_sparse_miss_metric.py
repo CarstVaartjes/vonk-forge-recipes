@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import importlib.util
-import json
 import os
 import stat
 import subprocess
@@ -546,29 +545,26 @@ def test_overlay_does_not_patch_scheduler_or_coordinator(
 
 
 def test_launcher_wiring_contract() -> None:
-    dockerfile = (ROOT / "Dockerfile").read_text()
-    repo = ROOT.parents[2]
-    recipe = json.loads(
-        (repo / "recipes/glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual.json").read_text()
-    )
+    start = (ROOT / "start.sh").read_text()
+    expected = [
+        'PREFIX_CACHE_SPARSE_MISS_PATCH_HOST="${PREFIX_CACHE_SPARSE_MISS_PATCH_HOST:-$SCRIPT_DIR/overlay/patch_prefix_cache_sparse_miss_metric.py}"',
+        'GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC="${GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC-1}"',
+        "GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC",
+        "/opt/glm53/patch_prefix_cache_sparse_miss_metric.py",
+        "/tmp/patch_prefix_cache_sparse_miss_metric.py",
+    ]
+    for needle in expected:
+        assert needle in start
+    assert start.count(
+        "python3 -S /opt/glm53/patch_prefix_cache_sparse_miss_metric.py"
+    ) == 2
+    assert start.count(
+        "/opt/glm53/patch_prefix_cache_sparse_miss_metric.py:ro"
+    ) == 2
     assert (
-        "COPY overlay/patch_prefix_cache_sparse_miss_metric.py "
-        "/opt/glm53/patch_prefix_cache_sparse_miss_metric.py"
-    ) in dockerfile
-    assert (
-        "RUN GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC=1 python3 "
-        "/opt/glm53/patch_prefix_cache_sparse_miss_metric.py"
-    ) in dockerfile
-    assert "GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC=1" in dockerfile
-    assert any(
-        item["name"] == "GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC"
-        and item["value"] == "1"
-        for item in recipe["runtime"]["environment"]
+        "GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC=1"
+        in (ROOT / "env.example").read_text()
     )
-    # This packaging applies patches at image build time and starts the
-    # read-only runtime through the platform wrapper, not upstream start.sh.
-    assert "COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm" in dockerfile
-    assert (ROOT / "vllm-wrapper.py").is_file()
 
 
 def test_source_contains_no_startup_retention_warning() -> None:
