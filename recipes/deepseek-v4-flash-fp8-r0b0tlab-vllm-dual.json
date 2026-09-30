@@ -72,8 +72,8 @@
           ]
         },
         {
-          "file_id": "readme-75c3a5a94ec9-b335630551",
-          "id": "primary-readme-75c3a5a94ec9-b335630551",
+          "file_id": "readme-c4d714818a4d-b335630551",
+          "id": "primary-readme-c4d714818a4d-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -270,8 +270,8 @@
           ]
         },
         {
-          "file_id": "kernel-c4dc859a2208-baff7826cd",
-          "id": "primary-kernel-c4dc859a2208-baff7826cd",
+          "file_id": "kernel-59b325083d71-baff7826cd",
+          "id": "primary-kernel-59b325083d71-baff7826cd",
           "mount": {
             "target": "/models"
           },
@@ -844,10 +844,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "5fb070743924f635b61125438f74506346113f56bda67b00f8bdc34262770bda",
+        "content_sha256": "619e53006bd05a9ac0bd51a78704370db9e0f6ad625b1c3d9ece81fe04cc7c2a",
         "kind": "model",
         "publisher": "deepseek-ai",
-        "slug": "deepseek-v4-flash-6976c7ff"
+        "slug": "deepseek-v4-flash-60d8d707"
       }
     }
   ],
@@ -886,8 +886,8 @@
     "source_reference": "https://github.com/r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark/tree/cd0b670fc84be39c76065d72ac1f58244e702f32"
   },
   "release": {
-    "released_at": "2026-06-15",
-    "version": "1.0.0"
+    "released_at": "2026-06-22",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -1051,7 +1051,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 159629041322,
+            "artifact_bytes": 159629041272,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 60000000000
@@ -1068,7 +1068,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 159629041322,
+            "artifact_bytes": 159629041272,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 60000000000
