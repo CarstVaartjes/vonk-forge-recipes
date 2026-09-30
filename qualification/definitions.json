@@ -5012,6 +5012,22 @@
         ]
       }
     },
+    "vonk-forge/qwen3-14b-nvfp4-nvidia-vllm-single": {
+      "alias": "qwen3-14b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/vibethinker-3b-nvfp4-r0b0tlab-vllm-single": {
       "alias": "vibethinker-3b-nvfp4",
       "smoke_cases": [
