@@ -19,7 +19,9 @@
           "download-r2.pytorch.org",
           "pypi.nvidia.com",
           "files.pythonhosted.org",
-          "pypi.org"
+          "pypi.org",
+          "download-r2.pytorch.org",
+          "pypi.nvidia.com"
         ]
       },
       "patches": []
@@ -320,7 +322,7 @@
   },
   "release": {
     "released_at": "2026-09-29",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [

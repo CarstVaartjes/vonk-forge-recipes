@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-MODEL = Path("/model")
+MODEL = Path("/models")
 CACHE = Path("/outputs/cache")
 
 for name in ("config.json", "model.safetensors.index.json", "model-fp8-mtp-ple.safetensors"):
@@ -18,8 +18,11 @@ for name in ("home", "hf", "jit", "xdg", "triton", "torch", "flashinfer", "ple")
 
 # The upstream entrypoint compiles the profile and locks into the exact server
 # argv, prepares the verified PLE table under /cache/ple, then execs SGLang.
+# It hard-codes the checkpoint at /model, but the platform mounts model files
+# under /models, so rebind that one constant before running its main().
 os.chdir("/opt/r0b0tlab")
-os.execv(
-    sys.executable,
-    (sys.executable, "-m", "runtime.entrypoint", *sys.argv[1:]),
-)
+sys.path.insert(0, "/opt/r0b0tlab")
+from runtime import entrypoint  # noqa: E402
+
+entrypoint.MODEL_PATH = str(MODEL)
+raise SystemExit(entrypoint.main(sys.argv[1:]))

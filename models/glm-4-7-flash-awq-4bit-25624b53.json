@@ -1,0 +1,164 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-e05c625c998f-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e05c625c998f222e3cf4a8f46e222ddd30e12bd8913fc00b8aa67ea04613e499",
+      "size_bytes": 8204
+    },
+    {
+      "id": "chat-template-d63ad536c3c8-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "d63ad536c3c81880043e22ec7fd08db42b4d8fb7c89c7138bc562bfa25281375",
+      "size_bytes": 3120
+    },
+    {
+      "id": "config-079f8fcd477b-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "079f8fcd477b07378deafc21ecc5c3b974bf109ce5c9115854d97f88fa7622b9",
+      "size_bytes": 10750
+    },
+    {
+      "id": "generation-config-3b8cc4bc6db8-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3b8cc4bc6db8b3affa713e161ddbd0c5733d513f2becedc49ff4ee7d9767937d",
+      "size_bytes": 181
+    },
+    {
+      "id": "model-00001-of-00004-2d6793b5b0d8-1913267ec8",
+      "path": "model-00001-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2d6793b5b0d81858925f3f5bd69da53d2e5f892c1a0182079097874555346e25",
+      "size_bytes": 5369424480
+    },
+    {
+      "id": "model-00002-of-00004-6e7608d38359-60f6088da9",
+      "path": "model-00002-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6e7608d383596150c03f40ce3f6c6e463654578065052bfd40f8d52529549a60",
+      "size_bytes": 5368234096
+    },
+    {
+      "id": "model-00003-of-00004-8401718639c8-fc35f2c4d5",
+      "path": "model-00003-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8401718639c81db88a209db5fc46fd80f3df038e4e33e41f904990c0b995cd1e",
+      "size_bytes": 5368506008
+    },
+    {
+      "id": "model-00004-of-00004-49fa98927312-5078e75d62",
+      "path": "model-00004-of-00004.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "49fa9892731203f6d251c5a6794a7975724ba7f59bd8099f2082b1a194d35508",
+      "size_bytes": 4064035344
+    },
+    {
+      "id": "model-safetensors-index-b9c53433e94f-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b9c53433e94f2fe7870cdbc3fcb6ed1431eb500c5242a039de93fef4bb988695",
+      "size_bytes": 2712517
+    },
+    {
+      "id": "tokenizer-353a3ff93723-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "353a3ff93723c098ac93fb593d4d1b93faede916fe502b005cd503871023e012",
+      "size_bytes": 20217541
+    },
+    {
+      "id": "tokenizer-config-b6b807f7bfaf-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "b6b807f7bfaf4fb4bd3952f58a70d61442620df8e5d8a904dcf4bc6ca7946940",
+      "size_bytes": 305
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "awq-int4-compressed-tensors"
+  },
+  "identity": {
+    "family": {
+      "publisher": "cyankiwi",
+      "slug": "glm-4-7-flash-cyankiwi",
+      "title": "GLM 4.7 Flash cyankiwi"
+    },
+    "model": {
+      "publisher": "cyankiwi",
+      "slug": "glm-4-7-flash-awq-4bit",
+      "title": "GLM 4.7 Flash AWQ 4bit"
+    },
+    "publisher": "cyankiwi",
+    "slug": "glm-4-7-flash-awq-4bit-25624b53",
+    "variant": "GLM 4.7 Flash AWQ 4bit 25624b53",
+    "version": "GLM 4.7 Flash AWQ 4bit 25624b53"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Z.ai",
+      "cyankiwi"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/cyankiwi/GLM-4.7-Flash-AWQ-4bit/blob/25624b53414e585bcf7dcb9584667c3106c6089b/README.md"
+  },
+  "metadata": {
+    "description": "cyankiwi AWQ 4-bit (compressed-tensors) quantization of Z.ai GLM-4.7-Flash, a 30B-A3B MoE.",
+    "tags": [
+      "cyankiwi",
+      "glm-4-7-flash-cyankiwi",
+      "text",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/cyankiwi/GLM-4.7-Flash-AWQ-4bit",
+    "revision": "25624b53414e585bcf7dcb9584667c3106c6089b"
+  }
+}
