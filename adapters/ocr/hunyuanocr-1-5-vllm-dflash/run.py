@@ -298,7 +298,7 @@ def write_bundle(
         "schema_version": 1,
         "model": SERVED_NAME,
         "model_revision": "47644ecc4fc854efa4f505155158831f36773ee4",
-        "runtime_source_revision": "c55965d3da1e6f41987abec8068f2e70851318bc",
+        "runtime_source_revision": "1ef4179e53cf860f7e6fd8276a292e5d05b3e927",
         "inference": "vllm-dflash",
         "task_type": task_type,
         "sampling": {

@@ -14,7 +14,7 @@ ADAPTER_ROOT = ROOT / "adapters/ocr/hunyuanocr-1-5-vllm-dflash"
 ADAPTER_PATH = ADAPTER_ROOT / "run.py"
 MODEL_PATH = ROOT / "models/hunyuanocr-1-5-47644ecc.json"
 RECIPE_PATH = ROOT / "recipes/hunyuanocr-1-5-vllm-dflash-single.json"
-SOURCE_REVISION = "c55965d3da1e6f41987abec8068f2e70851318bc"
+SOURCE_REVISION = "1ef4179e53cf860f7e6fd8276a292e5d05b3e927"
 
 
 def load(path: Path) -> dict:
