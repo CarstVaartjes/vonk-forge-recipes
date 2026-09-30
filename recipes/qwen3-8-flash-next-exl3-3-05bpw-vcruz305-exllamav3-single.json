@@ -16,6 +16,7 @@
           "security.ubuntu.com",
           "codeload.github.com",
           "download.pytorch.org",
+          "download-r2.pytorch.org",
           "files.pythonhosted.org",
           "pypi.org"
         ]
