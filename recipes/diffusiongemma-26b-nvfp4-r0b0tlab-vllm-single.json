@@ -1,0 +1,436 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2b79eabe322cef7c80c61910f2c9a349f99050a58b9ca8459eb63a66e7557fb7",
+        "repository": "ghcr.io/r0b0tlab/vllm-diffusiongemma-26b-nvfp4-sm121"
+      },
+      "context": {
+        "path": "adapters/llm/r0b0tlab-diffusiongemma-vllm-single"
+      },
+      "dockerfile": "adapters/llm/r0b0tlab-diffusiongemma-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "diffusiongemma-26b-a4b-it-nvfp4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "r0b0tlab's SM121 vLLM serve of NVIDIA's NVFP4 checkpoint of Google DeepMind DiffusionGemma 26B A4B IT (discrete block-diffusion language model on a Gemma 4 MoE backbone, 256-token canvases) on one GB10: a Spark day-0 vLLM build with the DiffusionGemma patch set, native FlashInfer-CUTLASS NVFP4 MoE, Triton attention, fp8 KV cache, fastsafetensors loading, prefix caching, Gemma 4 tool and reasoning parsers, thinking off by default. Upstream defaults: 65,536 context, 16 sequences, 0.90 memory utilization; it reports about 146 tok/s at c=1 and 243 tok/s at c=16 (upstream claims, not measured here). Licences: model Apache-2.0 plus Gemma terms and prohibited-use policy, package Apache-2.0 per its LICENSE (information only). Upstream's launcher also passes a chat template file (fixed_chat_template.jinja) that is not in its repository; this recipe uses the checkpoint's own chat template.",
+    "tags": [
+      "candidate",
+      "diffusion",
+      "diffusiongemma",
+      "executable",
+      "gemma",
+      "moe",
+      "nvfp4",
+      "openai",
+      "r0b0tlab",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "DiffusionGemma 26B A4B NVFP4 vLLM single Spark (r0b0tlab)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "file--quant-summary-07a63abd16b3-e17ab81a0d",
+          "id": "primary-file--quant-summary-07a63abd16b3-e17ab81a0d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-8bbdba2ffd31-b335630551",
+          "id": "primary-readme-8bbdba2ffd31-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "apache-2-0-license-0b0f8a2e5ad4-34e420c62b",
+          "id": "primary-apache-2-0-license-0b0f8a2e5ad4-34e420c62b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-36e3a42e5cf1-00824420d1",
+          "id": "primary-chat-template-36e3a42e5cf1-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-b4f650bd55f6-587cb980af",
+          "id": "primary-config-b4f650bd55f6-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-99334f763c3d-97dd3d578b",
+          "id": "primary-generation-config-99334f763c3d-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-c5fe6af87002-a481ad90fa",
+          "id": "primary-hf-quant-config-c5fe6af87002-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-24f125781084-27a6880801",
+          "id": "primary-model-00001-of-00002-24f125781084-27a6880801",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-5015731988fb-2cca3b5a88",
+          "id": "primary-model-00002-of-00002-5015731988fb-2cca3b5a88",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-3a1f1d8b64da-0a05be8238",
+          "id": "primary-model-safetensors-index-3a1f1d8b64da-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-32bdf45d2ad4-27f0cb76af",
+          "id": "primary-processor-config-32bdf45d2ad4-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-cc8d3a0ce364-224931eb13",
+          "id": "primary-tokenizer-cc8d3a0ce364-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a284d1243b62-94d5c6ba8f",
+          "id": "primary-tokenizer-config-a284d1243b62-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "6b958fe8a3ccc792a5e67ef618211359366024b14e9168a19fd6a5ba0324e77b",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "diffusiongemma-26b-a4b-it-nvfp4-08763e52"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "enable_thinking=false (upstream default).",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "value": "{\"enable_thinking\":true}"
+            }
+          ],
+          "help": "enable_thinking=true by default.",
+          "label": "On",
+          "value": "on"
+        }
+      ],
+      "help": "Chat template default when a request does not set enable_thinking; requests can still override it. Upstream default is off (ENABLE_THINKING=false).",
+      "label": "Default thinking",
+      "name": "thinking"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Google DeepMind (DiffusionGemma)",
+      "NVIDIA (NVFP4 ModelOpt checkpoint)",
+      "r0b0tlab (SM121 serving package, Apache-2.0)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/r0b0tlab/diffusiongemma-26b-nvfp4-sm121-vllm/tree/c255963962e71c0cb9d7a4baed4ab5c410459988"
+  },
+  "release": {
+    "released_at": "2026-06-10",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "diffusiongemma-26b-a4b-it-nvfp4"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.90"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "fastsafetensors"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "TRITON_ATTN"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "diffusion-config",
+        "setting": null,
+        "value": "{\"canvas_length\":256}"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "override-generation-config",
+        "setting": null,
+        "value": "{\"max_new_tokens\": null}"
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\":false}"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_USE_V2_MODEL_RUNNER",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 16
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 65536
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 18864432890,
+            "image_bytes": 25000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 70000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "diffusiongemma-26b-a4b-it-nvfp4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

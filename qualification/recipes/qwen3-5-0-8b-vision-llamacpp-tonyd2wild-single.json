@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/qwen3-5-0-8b-vision-llamacpp-tonyd2wild-single",
+  "service_recipes": {
+    "alias": "qwen3.5-0.8b-vision",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded 4-slot concurrency and long-context canaries at the default 262K context"
+      ],
+      "recovery": [
+        "Controller stop/start with warm restart"
+      ]
+    }
+  }
+}

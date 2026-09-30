@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/glm-5-3-flash-nvfp4-ablit-l15-43-dflash2-vllm-dual",
+  "service_recipes": {
+    "alias": "glm-5.3-flash-drowzeys-dflash2",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "8K, 32K, 128K, and 256K cold-prefill ladder plus bounded concurrency canaries"
+      ],
+      "recovery": [
+        "Controller-only rank-loss, gated warm-cache restart, and exact thinking-off template revalidation"
+      ]
+    }
+  }
+}
