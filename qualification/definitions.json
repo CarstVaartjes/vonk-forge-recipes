@@ -5300,6 +5300,22 @@
         ]
       }
     },
+    "vonk-forge/qwen3-14b-nvfp4-nvidia-sglang-single": {
+      "alias": "qwen3-14b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/gpt-oss-120b-nvidia-trtllm-single": {
       "alias": "gpt-oss-120b",
       "smoke_cases": [
