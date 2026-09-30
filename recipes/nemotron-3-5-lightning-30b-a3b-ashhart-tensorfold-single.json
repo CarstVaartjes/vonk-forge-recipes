@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark NVIDIA Nemotron 3.5 Lightning 30B-A3B (Mamba-2, attention and MoE hybrid) on Ash Hart's TensorFold engine v0.4.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with Vontra's MLX 4-bit (group 64) checkpoint, which includes the model's MTP draft head. One rank only: TensorFold's two-rank mode is not available here. Requests are served one at a time (upstream CUDA behaviour for Nemotron) in TensorFold's default 16,384-token window; raise the context setting for longer prompts, up to the model's 262,144 tokens, subject to TensorFold's startup memory check. Upstream measured about 123 to 146 tok/s with MTP and a 42.2 GiB peak at 262,144 tokens on a 64 GB M5 Pro, an MLX run with TensorFold 0.3.5.1; no DGX Spark figure is published, and none is measured here. Licence, for information: NVIDIA Nemotron 3.5 Lightning weights are under the OpenMDW License Agreement 1.1 (text in the model repository); TensorFold is MIT.",
+    "description": "Single-DGX-Spark NVIDIA Nemotron 3.5 Lightning 30B-A3B (Mamba-2, attention and MoE hybrid) on Ash Hart's TensorFold engine v0.5.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with Vontra's MLX 4-bit (group 64) checkpoint, which includes the model's MTP draft head. One rank only: TensorFold's two-rank mode is not available here. Requests are served one at a time (upstream CUDA behaviour for Nemotron) in TensorFold's default 16,384-token window; raise the context setting for longer prompts, up to the model's 262,144 tokens, subject to TensorFold's startup memory check. Upstream measured about 123 to 146 tok/s with MTP and a 42.2 GiB peak at 262,144 tokens on a 64 GB M5 Pro, an MLX run with TensorFold 0.3.5.1; no DGX Spark figure is published, and none is measured here. Licence, for information: NVIDIA Nemotron 3.5 Lightning weights are under the OpenMDW License Agreement 1.1 (text in the model repository); TensorFold is MIT. TensorFold v0.5.0 at 9cd52ab4daba68ddd09be89be8f23ad43175e821 includes the updated Nemotron CUDA sampler/server and per-request structured-output controls; the existing MTP, thinking, context, and resource defaults are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests.",
     "tags": [
       "engine",
       "kernel-jit",
@@ -285,11 +285,11 @@
       "Vontra",
       "NVIDIA Corporation"
     ],
-    "source_reference": "https://github.com/ashhart/TensorFold/tree/7a00336b2f6d1a1a3e0ba49d1ef5b4b82e927759"
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/9cd52ab4daba68ddd09be89be8f23ad43175e821"
   },
   "release": {
     "released_at": "2026-09-29",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "runtime": {
     "arguments": [
