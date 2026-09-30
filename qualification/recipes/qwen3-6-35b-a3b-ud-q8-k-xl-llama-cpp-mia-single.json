@@ -1,0 +1,16 @@
+{
+  "id": "vonk-forge/qwen3-6-35b-a3b-ud-q8-k-xl-llama-cpp-mia-single",
+  "service_recipes": {
+    "alias": "Qwen3.6-35B-A3B-UD-Q8_K_XL",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context and 4-slot concurrency canaries with MTP speculative decoding, recording the first-load time of the 39 GB GGUF"
+      ]
+    }
+  }
+}
