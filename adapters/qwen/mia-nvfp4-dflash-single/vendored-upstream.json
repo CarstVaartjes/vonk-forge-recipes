@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "NOTICE"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "c9b071012e8e7a74cdb5277413332d0767ba7fff",
+    "repo": "MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark"
+  }
+}

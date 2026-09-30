@@ -1,0 +1,10 @@
+start.sh, stop.sh, README.md and chat_template.jinja are
+MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark at the commit in vendored-upstream.json,
+byte for byte; start.sh and stop.sh are kept as the reference for this recipe and
+chat_template.jinja is baked into the image. That repository carries no licence file
+(its README shows an Apache-2.0 badge). chat_template.jinja is froggeric's
+qwen3.6-froggeric-v20 template (huggingface.co/froggeric/Qwen-Fixed-Chat-Templates,
+Apache-2.0; identical to archive/v20_chat_template.jinja at revision
+855bffc49448e299789730ff92c9b8d834d6cc14). Models: nvidia/Qwen3.6-27B-NVFP4
+(Apache-2.0), a quantization of Qwen/Qwen3.6-27B, and the z-lab/Qwen3.6-27B-DFlash
+draft (MIT). The Dockerfile is ours; the base image is the official vLLM image.
