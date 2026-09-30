@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "tabby-serve",
+    "verify-runtime.py"
+  ],
+  "renamed": {
+    "tabby-config.yml": "exllamav3-tabby/tabby-config.yml"
+  },
+  "source": {
+    "commit": "6fbc0a2f1a0a8ee3d94830bb607ec36aa370ea49",
+    "repo": "vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe"
+  }
+}
