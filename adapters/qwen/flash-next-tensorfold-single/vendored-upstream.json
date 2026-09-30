@@ -3,11 +3,12 @@
     "licenses/",
     "patches/",
     "requirements.lock",
+    "tests/",
     "tensorfold-serve",
     "vendor/"
   ],
   "source": {
     "repo": "ashhart/TensorFold",
-    "commit": "6b2e4c40064b1e4a05965f61b19ce87b5e0265b3"
+    "commit": "9cd52ab4daba68ddd09be89be8f23ad43175e821"
   }
 }
