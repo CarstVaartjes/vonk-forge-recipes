@@ -1,0 +1,9 @@
+{
+  "ours": [
+    "vllm-wrapper.sh"
+  ],
+  "source": {
+    "commit": "97fd6f02e26870416d3c6b450d4fa3217d9db124",
+    "repo": "0xSero/deepseek-spark"
+  }
+}
