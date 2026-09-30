@@ -318,8 +318,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO/tree/1b71dc011010a3e2c373eafd8a41f12c7c7913fc"
   },
   "release": {
-    "released_at": "2026-09-30",
-    "version": "1.0.1"
+    "released_at": "2026-10-01",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
