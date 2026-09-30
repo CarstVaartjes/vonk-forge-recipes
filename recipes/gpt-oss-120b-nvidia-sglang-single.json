@@ -1,0 +1,476 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "b0d8718a4424bb22e448e04407ab3ce5f7399a4c5fc702d6fbe36c3772ec8862",
+        "repository": "docker.io/lmsysorg/sglang"
+      },
+      "context": {
+        "path": "adapters/nvidia/gpt-oss-120b-nvidia-sglang-single"
+      },
+      "dockerfile": "adapters/nvidia/gpt-oss-120b-nvidia-sglang-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "gpt-oss-120b-nvidia-sglang-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "gpt-oss-120b"
+      ],
+      "port": 30000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (sglang) for gpt-oss 120b MXFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
+    "tags": [
+      "executable",
+      "candidate",
+      "nvidia",
+      "sglang",
+      "openai",
+      "single",
+      "spark",
+      "gpt-oss",
+      "mxfp4",
+      "reasoning"
+    ],
+    "title": "gpt-oss 120b MXFP4 SGLang single Spark (NVIDIA playbook)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-58d1e17ffe51-c693279643",
+          "id": "license-58d1e17ffe51-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-92b0408cf5dc-b335630551",
+          "id": "readme-92b0408cf5dc-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "usage-policy-fc48d386a7a7-07ec0be3af",
+          "id": "usage-policy-fc48d386a7a7-07ec0be3af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-a4c9919cbbd4-00824420d1",
+          "id": "chat-template-a4c9919cbbd4-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-933aeb666a3f-587cb980af",
+          "id": "config-933aeb666a3f-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-f9970ada892d-97dd3d578b",
+          "id": "generation-config-f9970ada892d-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00000-of-00014-695218884684-4b9acead48",
+          "id": "model-00000-of-00014-695218884684-4b9acead48",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00014-a881aa5f561b-a616cff5d0",
+          "id": "model-00001-of-00014-a881aa5f561b-a616cff5d0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00014-022478dd0439-b05d080c89",
+          "id": "model-00002-of-00014-022478dd0439-b05d080c89",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00014-47aee9e7b9d5-eede9b2a5b",
+          "id": "model-00003-of-00014-47aee9e7b9d5-eede9b2a5b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00014-f6c2752acda6-54b0fd962d",
+          "id": "model-00004-of-00014-f6c2752acda6-54b0fd962d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00014-0c8dd401544c-2bad39935b",
+          "id": "model-00005-of-00014-0c8dd401544c-2bad39935b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00014-28d839f2e027-c774652fd4",
+          "id": "model-00006-of-00014-28d839f2e027-c774652fd4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00014-c8958c5f183c-3e70d1e89d",
+          "id": "model-00007-of-00014-c8958c5f183c-3e70d1e89d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00014-bf1f2a88868f-3ad41f1330",
+          "id": "model-00008-of-00014-bf1f2a88868f-3ad41f1330",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00014-f72d34a40042-355610dc19",
+          "id": "model-00009-of-00014-f72d34a40042-355610dc19",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00014-f48c867c2cb0-0213cc861d",
+          "id": "model-00010-of-00014-f48c867c2cb0-0213cc861d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00014-a06851b2cfd3-0d49024e1b",
+          "id": "model-00011-of-00014-a06851b2cfd3-0d49024e1b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00014-3af33667c307-cbd446f7da",
+          "id": "model-00012-of-00014-3af33667c307-cbd446f7da",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00014-bcbcb74b043e-0583d07607",
+          "id": "model-00013-of-00014-bcbcb74b043e-0583d07607",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00014-54b1be160969-788121de91",
+          "id": "model-00014-of-00014-54b1be160969-788121de91",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-ede2655fdc05-0a05be8238",
+          "id": "model-safetensors-index-ede2655fdc05-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-dd5e191d20c1-c07a9be597",
+          "id": "special-tokens-map-dd5e191d20c1-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-0614fe83cada-224931eb13",
+          "id": "tokenizer-0614fe83cada-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-9279e942392b-94d5c6ba8f",
+          "id": "tokenizer-config-9279e942392b-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "43358b54fdc6ef2cb10f658a465217d30db6bcef756812bd7644838096128ba8",
+        "kind": "model",
+        "publisher": "openai",
+        "slug": "gpt-oss-120b-mxfp4-b5c939de"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "NVIDIA",
+      "SGLang contributors",
+      "OpenAI"
+    ],
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/b3bc0813e1864e54ce5ed9a0cc74e0b03745c027/nvidia/sglang/README.md"
+  },
+  "release": {
+    "released_at": "2026-09-18",
+    "version": "0.5.20"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model-path",
+        "setting": null,
+        "value": "/models"
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "gpt-oss-120b"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tp",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "flashinfer"
+      },
+      {
+        "name": "context-length",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "mem-fraction-static",
+        "setting": null,
+        "value": "0.75"
+      }
+    ],
+    "engine": "sglang",
+    "entrypoint": [
+      "/opt/vonk/bin/sglang-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 65276859410,
+            "image_bytes": 35000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 32638429705
+          },
+          "memory": {
+            "peak_bytes": 100000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "gpt-oss-120b"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

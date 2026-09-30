@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/gpt-oss-120b-nvidia-sglang-single",
+  "service_recipes": {
+    "alias": "gpt-oss-120b",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded context and concurrency canaries"
+      ],
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ]
+    }
+  }
+}
