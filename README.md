@@ -39,7 +39,7 @@ Which engines each model family runs on.
 | Ling | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | LTX |  |  |  |  |  |  | ✓ |  | ✓ |  |
 | Meta Llama | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
-| Microsoft Phi-4 |  | ✓ |  |  |  |  |  |  |  |  |
+| Microsoft Phi-4 |  | ✓ | ✓ |  |  |  |  |  |  |  |
 | MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | MiniMax H3 |  |  |  |  |  |  | ✓ |  |  |  |
 | MiniMax M2 | ✓ |  |  |  |  |  |  |  |  |  |
