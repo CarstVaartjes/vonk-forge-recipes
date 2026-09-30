@@ -99,7 +99,7 @@
       "NVIDIA Corporation",
       "ggml-org"
     ],
-    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16"
+    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16/tree/a9904d24bcc1d289a1950fa9d2b978c47cf903b9"
   },
   "release": {
     "released_at": "2026-09-23",

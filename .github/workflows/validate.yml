@@ -213,7 +213,8 @@ jobs:
             tests/test_release_assets.py tests/test_exact_model_file_closure.py \
             tests/test_explicit_hf_file_manifest_closure.py \
             tests/test_distributed_recipe_availability.py \
-            tests/test_family_aware_coverage.py
+            tests/test_family_aware_coverage.py \
+            tests/test_check_upstream_drift.py
 
       - name: Run the full producer test suite
         if: steps.scope.outputs.full == 'true'
