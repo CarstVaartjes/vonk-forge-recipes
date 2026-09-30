@@ -1,0 +1,563 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "82c5900384ae3463ea8a47f24c1a11fa3224ba1bb4bfebe0c7fbca22e785cb7c",
+        "repository": "nvcr.io/nvidia/tensorrt-llm/release"
+      },
+      "context": {
+        "path": "adapters/nvidia/llama-3-3-70b-instruct-nvfp4-draft-target-nvidia-trtllm-single"
+      },
+      "dockerfile": "adapters/nvidia/llama-3-3-70b-instruct-nvfp4-draft-target-nvidia-trtllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "llama-3-3-70b-instruct-nvfp4-draft-target-nvidia-trtllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "llama-3.3-70b-instruct"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate recipe of NVIDIA's own DGX Spark playbook (speculative-decoding) for Llama 3.3 70B NVFP4 draft-target speculative decoding: the NGC TensorRT-LLM release image 1.3.0rc12 (pinned by arm64 digest) serving the exact model revision through trtllm-serve with the playbook's LLM API options. Resource envelopes are estimates from the playbook's 0.8-0.9 KV memory fraction, not measurements; physical Spark acceptance is pending.",
+    "tags": [
+      "executable",
+      "candidate",
+      "nvidia",
+      "tensorrt-llm",
+      "openai",
+      "single",
+      "spark",
+      "llama",
+      "nvfp4",
+      "draft-target",
+      "speculative-decoding"
+    ],
+    "title": "Llama 3.3 70B NVFP4 draft-target speculative decoding TensorRT-LLM single Spark (NVIDIA playbook)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-6ef1c15da261-618cd5b83d",
+          "id": "metadata-6ef1c15da261-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-396d7de220f6-83a544517d",
+          "id": "license-396d7de220f6-83a544517d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-1d3e338cb64a-b335630551",
+          "id": "readme-1d3e338cb64a-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-e7cbee89103c-587cb980af",
+          "id": "config-e7cbee89103c-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-b52d7103195c-97dd3d578b",
+          "id": "generation-config-b52d7103195c-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-83aec68f59d6-a481ad90fa",
+          "id": "hf-quant-config-83aec68f59d6-a481ad90fa",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00009-a74f146988a7-88587b10f1",
+          "id": "model-00001-of-00009-a74f146988a7-88587b10f1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00009-06279ed785b1-197402693c",
+          "id": "model-00002-of-00009-06279ed785b1-197402693c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00009-e4d7f3f0016f-861ce467d6",
+          "id": "model-00003-of-00009-e4d7f3f0016f-861ce467d6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00009-546a5556e147-ef1df50c87",
+          "id": "model-00004-of-00009-546a5556e147-ef1df50c87",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00009-2d25d2373ef3-6efe792e18",
+          "id": "model-00005-of-00009-2d25d2373ef3-6efe792e18",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00009-1a52977e1b1c-6ce9a8a49b",
+          "id": "model-00006-of-00009-1a52977e1b1c-6ce9a8a49b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00009-1b9c5d23fcfa-9bf5db00eb",
+          "id": "model-00007-of-00009-1b9c5d23fcfa-9bf5db00eb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00009-906b5fb504b9-7a39f1d683",
+          "id": "model-00008-of-00009-906b5fb504b9-7a39f1d683",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00009-e8a5a8d96b7c-f25cdaf348",
+          "id": "model-00009-of-00009-e8a5a8d96b7c-f25cdaf348",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-ce9278eebd8b-0a05be8238",
+          "id": "model-safetensors-index-ce9278eebd8b-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-1b1835caa5b4-c07a9be597",
+          "id": "special-tokens-map-1b1835caa5b4-c07a9be597",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-6b9e4e7fb171-224931eb13",
+          "id": "tokenizer-6b9e4e7fb171-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-5c756ad6048c-94d5c6ba8f",
+          "id": "tokenizer-config-5c756ad6048c-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "1a05f7bc60945509c869e52450d1e64f993174c684f90dbf101c5ef2c7f72e80",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "llama-3-3-70b-instruct-nvfp4-f792b707"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "d-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-fa4d54e7b8a1-83a544517d",
+          "id": "d-license-fa4d54e7b8a1-83a544517d",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-4c8a0c1aff18-b335630551",
+          "id": "d-readme-4c8a0c1aff18-b335630551",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-b48c47f64438-00824420d1",
+          "id": "d-chat-template-b48c47f64438-00824420d1",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-017c7a2d2852-587cb980af",
+          "id": "d-config-017c7a2d2852-587cb980af",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-213fe6a98434-97dd3d578b",
+          "id": "d-generation-config-213fe6a98434-97dd3d578b",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-85255d705c28-a481ad90fa",
+          "id": "d-hf-quant-config-85255d705c28-a481ad90fa",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-dbf99c7c01e2-27a6880801",
+          "id": "d-model-00001-of-00002-dbf99c7c01e2-27a6880801",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-5321ca97dd09-2cca3b5a88",
+          "id": "d-model-00002-of-00002-5321ca97dd09-2cca3b5a88",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-2b8515c082c5-0a05be8238",
+          "id": "d-model-safetensors-index-2b8515c082c5-0a05be8238",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-1b1835caa5b4-c07a9be597",
+          "id": "d-special-tokens-map-1b1835caa5b4-c07a9be597",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-6b9e4e7fb171-224931eb13",
+          "id": "d-tokenizer-6b9e4e7fb171-224931eb13",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a6c116761af9-94d5c6ba8f",
+          "id": "d-tokenizer-config-a6c116761af9-94d5c6ba8f",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "drafter",
+      "model": {
+        "content_sha256": "9e7c3beccf9fc4c07636e1e48c0b4b07ff67bf0649b744c540bee1bfbee9bd95",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "llama-3-1-8b-instruct-nvfp4-bdb54e24"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "NVIDIA",
+      "TensorRT-LLM contributors",
+      "NVIDIA Corporation",
+      "Meta Platforms"
+    ],
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/b3bc0813e1864e54ce5ed9a0cc74e0b03745c027/nvidia/speculative-decoding/README.md"
+  },
+  "release": {
+    "released_at": "2026-04-17",
+    "version": "1.3.0rc12"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served_model_name",
+        "setting": null,
+        "value": "llama-3.3-70b-instruct"
+      },
+      {
+        "name": "max_batch_size",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max_seq_len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "backend",
+        "setting": null,
+        "value": "pytorch"
+      },
+      {
+        "name": "tp_size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "free_gpu_memory_fraction",
+        "setting": null,
+        "value": "0.9"
+      },
+      {
+        "name": "extra_llm_api_options",
+        "setting": null,
+        "value": "/opt/vonk/trtllm/llm-api-config.yml"
+      },
+      {
+        "name": "no-telemetry",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "tensorrt-llm",
+    "entrypoint": [
+      "/opt/vonk/bin/trtllm-serve",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRTLLM_NO_USAGE_STATS",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 48772266729,
+            "image_bytes": 45000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 24386133364
+          },
+          "memory": {
+            "peak_bytes": 115000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "llama-3.3-70b-instruct"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
