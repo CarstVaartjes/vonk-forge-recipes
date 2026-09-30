@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "verify-runtime.py",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "2b5dfdc616ea5f3dfa4271f98475eea9cb0ee8b1",
+    "repo": "Reederey87/glm53-flash-exl3-2x-dgx-spark"
+  }
+}
