@@ -879,7 +879,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 206818738738,
+            "artifact_bytes": 206818738896,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000
@@ -896,7 +896,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 206818738738,
+            "artifact_bytes": 206818738896,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000
