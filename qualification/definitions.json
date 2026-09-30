@@ -5885,6 +5885,21 @@
         ]
       }
     },
+    "vonk-forge/llama-3-3-70b-instruct-nvfp4-nvidia-trtllm-single": {
+      "alias": "llama-3.3-70b-instruct",
+      "smoke_cases": [
+        "M0",
+        "A323"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-flash-next-taussoe-tensorfold-single": {
       "alias": "Qwen3.8-Flash-Next",
       "smoke_cases": [
