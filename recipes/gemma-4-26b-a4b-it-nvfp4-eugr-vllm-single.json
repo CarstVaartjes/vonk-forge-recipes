@@ -1,0 +1,440 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "155ce16b49007c8b00690dd4c7637c0c1eafbe909709c3175c4498325c01c1d8",
+        "repository": "docker.io/eugr/spark-vllm"
+      },
+      "context": {
+        "path": "adapters/eugr/gemma4-26b-a4b-nvfp4"
+      },
+      "dockerfile": "adapters/eugr/gemma4-26b-a4b-nvfp4/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "gemma-4-26b-a4b-it-nvfp4-eugr-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Gemma-4-26B-A4B-NVFP4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker gemma4-26b-a4b-nvfp4 recipe for NVIDIA's Gemma-4-26B-A4B-NVFP4 (ModelOpt NVFP4, Apache-2.0; checkpoint revision a19cfe00) with Google's gemma-4-26B-A4B-it-assistant MTP drafter (revision 6e5aaaf4), served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: InstantTensor loading, FP8 KV cache, prefix caching, gemma4 reasoning and tool-call parsers, MTP speculative decoding with four tokens and a Triton drafter MoE backend, 262,144-token context, 8,192 batched tokens and memory utilisation 0.7 (upstream defaults); the sequence limit is left to vLLM's default as upstream sets none. The target weights mount at /models/target and the drafter at /models/assistant, so the speculative-config model is the mounted drafter path instead of upstream's Hugging Face id. Upstream's recipe is solo-only (tensor parallel 1 here; its tensor_parallel default of 2 and --distributed-executor-backend ray are not used in solo mode). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "eugr",
+      "executable",
+      "gemma",
+      "gemma-4",
+      "mtp",
+      "nvfp4",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Gemma 4 26B-A4B NVFP4 MTP vLLM single Spark (eugr)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-5d20eecdd5d4-b335630551",
+          "id": "primary-readme-5d20eecdd5d4-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-94899c0f917d-00824420d1",
+          "id": "primary-chat-template-94899c0f917d-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-4e379cc809c6-587cb980af",
+          "id": "primary-config-4e379cc809c6-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-d4226bbe3117-97dd3d578b",
+          "id": "primary-generation-config-d4226bbe3117-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-fca2ea21cded-a481ad90fa",
+          "id": "primary-hf-quant-config-fca2ea21cded-a481ad90fa",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-b5df31122600-27a6880801",
+          "id": "primary-model-00001-of-00002-b5df31122600-27a6880801",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-ff11061ebf57-2cca3b5a88",
+          "id": "primary-model-00002-of-00002-ff11061ebf57-2cca3b5a88",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-ac5e677ed9f8-0a05be8238",
+          "id": "primary-model-safetensors-index-ac5e677ed9f8-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-32bdf45d2ad4-27f0cb76af",
+          "id": "primary-processor-config-32bdf45d2ad4-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-cc8d3a0ce364-224931eb13",
+          "id": "primary-tokenizer-cc8d3a0ce364-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-90c3a3ba5bf5-94d5c6ba8f",
+          "id": "primary-tokenizer-config-90c3a3ba5bf5-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "c785655332a4f2977303228d232bebe496cfa1efe1e30c8ee56e79072c010e63",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "gemma-4-26b-a4b-it-nvfp4-a19cfe00"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "assistant-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-0872790782ba-b335630551",
+          "id": "assistant-readme-0872790782ba-b335630551",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-f393dd4bbdbb-587cb980af",
+          "id": "assistant-config-f393dd4bbdbb-587cb980af",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-8e58004dc0e2-97dd3d578b",
+          "id": "assistant-generation-config-8e58004dc0e2-97dd3d578b",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-006c8713b29b-9d75c1098f",
+          "id": "assistant-model-006c8713b29b-9d75c1098f",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-75a6583c1a41-224931eb13",
+          "id": "assistant-tokenizer-75a6583c1a41-224931eb13",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-089594a3924f-94d5c6ba8f",
+          "id": "assistant-tokenizer-config-089594a3924f-94d5c6ba8f",
+          "mount": {
+            "target": "/models/assistant"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "assistant",
+      "model": {
+        "content_sha256": "d6724832d5846daf1c2bd472e7d197edbfa1ee02f0121c47e73539eb84dcaaaa",
+        "kind": "model",
+        "publisher": "google",
+        "slug": "gemma-4-26b-a4b-it-assistant-6e5aaaf4"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "eugr (MIT)",
+      "NVIDIA (Apache-2.0)",
+      "Google DeepMind (Apache-2.0)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/42f62e349c610641ac6677ac28275c57bebdf9c3"
+  },
+  "release": {
+    "released_at": "2026-09-28",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "Gemma-4-26B-A4B-NVFP4"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.7"
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "instanttensor"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": "max_batch_tokens",
+        "value": null
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"mtp\",\"model\":\"/models/assistant\",\"num_speculative_tokens\":4,\"moe_backend\":\"triton\"}"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
+    ],
+    "environment": [],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": {
+      "change_effect": "restart",
+      "value": 8192
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 19697311854,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 16000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 98000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Gemma-4-26B-A4B-NVFP4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
