@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Dual-DGX-Spark vLLM 0.30.0 TP2+EP+MTP3 profile for NVIDIA's 133 GB Qwen3.8 Flash Next NVFP4 checkpoint, following MiaAI-Lab's vLLM 0.30 lane: stock vLLM loads the checkpoint natively, BF16 KV cache by default (FP8 KV is an option, via a baked vllm#55557 backport), a 47k reduced MTP draft vocabulary, MTP block-drop and index-share fixes, breakable CUDA graphs off, bfloat16 GDN state, GPU memory utilization 0.80, and a native 262144-token context (YaRN is added only above it). Vonk physical acceptance is pending.",
+    "description": "Dual-DGX-Spark vLLM 0.30.0 TP2+EP+MTP3 profile for NVIDIA's 133 GB Qwen3.8 Flash Next NVFP4 checkpoint, following MiaAI-Lab's vLLM 0.30 lane: stock vLLM loads the checkpoint natively, BF16 KV cache by default (FP8 KV is an option, via a baked vllm#55557 backport), a 47k reduced MTP draft vocabulary, MTP block-drop and index-share fixes, breakable CUDA graphs off, bfloat16 GDN state, GPU memory utilization 0.80, and a native 262144-token context (YaRN is added only above it). Optional bundled 65k German, Spanish, French, Japanese, Portuguese, Russian, and Chinese MTP draft vocabularies are available for language-matched traffic; the English/code 47k choice remains the default. Upstream reports language-specific draft-acceptance and decode changes; these have not been measured on Vonk's dual-Spark deployment. Vonk physical acceptance is pending.",
     "tags": [
       "multimodal",
       "mtp",
@@ -400,9 +400,65 @@
           "help": "Drafts over the full 248,320-token head (stock vLLM 0.30 behaviour, 5-15 percent slower decode per upstream claim).",
           "label": "Full 248k",
           "value": "full"
+        },
+        {
+          "env": {
+            "VLLM_MTP_DRAFT_VOCAB": "/opt/vonk/draft-vocab/draft_vocab_de_en_code_65k.txt"
+          },
+          "help": "Bundled 65,536-token German, English, and code draft vocabulary. Upstream reports higher German draft acceptance; speed depends on workload and host.",
+          "label": "German, English, and code (65k)",
+          "value": "de"
+        },
+        {
+          "env": {
+            "VLLM_MTP_DRAFT_VOCAB": "/opt/vonk/draft-vocab/draft_vocab_es_en_code_65k.txt"
+          },
+          "help": "Bundled 65,536-token Spanish, English, and code draft vocabulary. Upstream reports higher Spanish draft acceptance; speed depends on workload and host.",
+          "label": "Spanish, English, and code (65k)",
+          "value": "es"
+        },
+        {
+          "env": {
+            "VLLM_MTP_DRAFT_VOCAB": "/opt/vonk/draft-vocab/draft_vocab_fr_en_code_65k.txt"
+          },
+          "help": "Bundled 65,536-token French, English, and code draft vocabulary. Upstream reports higher French draft acceptance; speed depends on workload and host.",
+          "label": "French, English, and code (65k)",
+          "value": "fr"
+        },
+        {
+          "env": {
+            "VLLM_MTP_DRAFT_VOCAB": "/opt/vonk/draft-vocab/draft_vocab_ja_en_code_65k.txt"
+          },
+          "help": "Bundled 65,536-token Japanese, English, and code draft vocabulary. Upstream reports higher Japanese draft acceptance; speed depends on workload and host.",
+          "label": "Japanese, English, and code (65k)",
+          "value": "ja"
+        },
+        {
+          "env": {
+            "VLLM_MTP_DRAFT_VOCAB": "/opt/vonk/draft-vocab/draft_vocab_pt_en_code_65k.txt"
+          },
+          "help": "Bundled 65,536-token Portuguese, English, and code draft vocabulary. Upstream reports higher Portuguese draft acceptance; speed depends on workload and host.",
+          "label": "Portuguese, English, and code (65k)",
+          "value": "pt"
+        },
+        {
+          "env": {
+            "VLLM_MTP_DRAFT_VOCAB": "/opt/vonk/draft-vocab/draft_vocab_ru_en_code_65k.txt"
+          },
+          "help": "Bundled 65,536-token Russian, English, and code draft vocabulary. Upstream reports higher Russian draft acceptance; speed depends on workload and host.",
+          "label": "Russian, English, and code (65k)",
+          "value": "ru"
+        },
+        {
+          "env": {
+            "VLLM_MTP_DRAFT_VOCAB": "/opt/vonk/draft-vocab/draft_vocab_zh_en_code_65k.txt"
+          },
+          "help": "Bundled 65,536-token Chinese, English, and code draft vocabulary. Upstream reports higher Chinese draft acceptance; speed depends on workload and host.",
+          "label": "Chinese, English, and code (65k)",
+          "value": "zh"
         }
       ],
-      "help": "Vocabulary the MTP drafter samples over. Output-safe: the target verifies every token; the reduced list only affects speed.",
+      "help": "Vocabulary the MTP drafter samples over. Output-safe: the target verifies every token; vocabulary choice affects draft acceptance and may affect speed, not emitted output.",
       "label": "MTP draft vocabulary",
       "name": "draft_vocab"
     },
@@ -438,11 +494,11 @@
       "NVIDIA",
       "Qwen contributors"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/2c86a1d05f93c8d3a68146a321d417ffa4ca5039"
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks/tree/cd839d0b62f6c737178a0c2037733420e0524ebf"
   },
   "release": {
-    "released_at": "2026-09-27",
-    "version": "2.0.1"
+    "released_at": "2026-09-30",
+    "version": "2.1.0"
   },
   "runtime": {
     "arguments": [

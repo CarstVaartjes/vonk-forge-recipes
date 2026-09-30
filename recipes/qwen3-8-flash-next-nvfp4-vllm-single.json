@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark vLLM TP1 + MTP3 profile for the 99 GiB Mia mirror of the local-inference-lab Qwen3.8 Flash Next NVFP4 checkpoint (text, image and video). The 27 GiB PLE table is served from a memory-mapped packed file built once into the platform cache, so it stays evictable page cache. The adapter bakes MiaAI-Lab's PLE offload, MXFP8, QSA FP8-KV, reduced-vocabulary MTP drafting and block-drop patches into the pinned arm64 image. Defaults follow upstream: 262144 context, FP8 KV, BF16 recurrent state, MTP 3, four sequences, 2048-token prefill chunks; contexts up to 524288 use YaRN. GPU memory utilisation 0.786 is upstream's derived budget for a 121.69 GiB host with a 26 GiB host reserve, not a measured constant. Upstream claims (not measured here): 48.7 tok/s single stream; 162.9 tok/s aggregate needs 8 streams (upstream ran max-num-seqs 8 with a 28 GiB reserve, this recipe defaults to 4).",
+    "description": "Single-DGX-Spark vLLM TP1 + MTP3 profile for the 99 GiB Mia mirror of the local-inference-lab Qwen3.8 Flash Next NVFP4 checkpoint (text, image and video). The 27 GiB PLE table is served from a memory-mapped packed file built once into the platform cache, so it stays evictable page cache. The adapter bakes MiaAI-Lab's PLE offload, MXFP8, QSA FP8-KV, reduced-vocabulary MTP drafting and block-drop patches into the pinned arm64 image. Defaults follow upstream: 262144 context, FP8 KV, BF16 recurrent state, MTP 3, four sequences, 2048-token prefill chunks; contexts up to 524288 use YaRN. GPU memory utilisation 0.786 follows the current upstream .env.sample budget for KV_TARGET_GIB=20, HOST_RESERVE_GIB=26, and a 121.69 GiB host (95.60 GiB budget); it is derived from that owning profile, not a measured constant. The README's 0.780 (94.87 GiB) table documents an earlier KV_TARGET_GIB=16, five-sequence profile. Upstream claims (not measured here): 48.7 tok/s single stream; 162.9 tok/s aggregate needs 8 streams (upstream ran max-num-seqs 8 with a 28 GiB reserve, this recipe defaults to 4).",
     "tags": [
       "multimodal",
       "mtp",
@@ -805,8 +805,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark/tree/7d0712dcb83cc58b467235e24d3a4429ed14518b"
   },
   "release": {
-    "released_at": "2026-09-29",
-    "version": "1.0.1"
+    "released_at": "2026-09-30",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
