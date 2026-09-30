@@ -800,3 +800,51 @@ class ArchiveLabelTests(unittest.TestCase):
             self.assertIn(self.NEW_DIGEST, new)
             self.assertIn(NEW, new)
             self.assertFalse(result.reasons)
+
+
+class EnvelopeTests(unittest.TestCase):
+    def retarget(self, artifact_bytes: int, old_size: int, new_size: int):
+        old = model_with(("model.safetensors",))
+        old["files"][0]["size_bytes"] = old_size
+        fresh = json.loads(json.dumps(old))
+        fresh["identity"]["slug"] = "demo-" + NEW[:8]
+        fresh["files"][0]["sha256"] = "d" * 64
+        fresh["files"][0]["size_bytes"] = new_size
+        fresh["files"][0]["id"] = refresh.file_id("model.safetensors", "d" * 64)
+        recipe = {
+            "models": [
+                {
+                    "model": {"slug": old["identity"]["slug"], "content_sha256": "x"},
+                    "files": [
+                        {
+                            "id": "sel-" + old["files"][0]["id"],
+                            "file_id": old["files"][0]["id"],
+                        }
+                    ],
+                }
+            ],
+            "topology": {
+                "roles": [{"resources": {"disk": {"artifact_bytes": artifact_bytes}}}]
+            },
+        }
+        result = refresh.Assessment("recipe")
+        assessor = refresh.Assessor(
+            refresh.Catalog(Path(".")), object(), None, {"recipes": []}
+        )
+        assessor._retarget_model(recipe, recipe, old, fresh, result)
+        return recipe["topology"]["roles"][0]["resources"]["disk"], result
+
+    def test_small_size_change_shifts_a_derived_envelope(self) -> None:
+        disk, result = self.retarget(10_000_000, 10_000_000, 9_999_600)
+        self.assertEqual(disk["artifact_bytes"], 9_999_600)
+        self.assertFalse(result.reasons)
+
+    def test_small_size_change_keeps_a_declared_allowance(self) -> None:
+        disk, result = self.retarget(10_500_000, 10_000_000, 9_999_600)
+        self.assertEqual(disk["artifact_bytes"], 10_499_600)
+        self.assertFalse(result.reasons)
+
+    def test_material_size_change_needs_review(self) -> None:
+        _disk, result = self.retarget(10_000_000, 10_000_000, 10_200_000)
+        self.assertTrue(result.reasons)
+        self.assertIn("more than 1%", result.reasons[0])
