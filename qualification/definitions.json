@@ -3878,6 +3878,22 @@
         ]
       }
     },
+    "vonk-forge/gpt-oss-120b-eagle3-nvidia-trtllm-single": {
+      "alias": "gpt-oss-120b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/deepseek-v4-flash-0731-dspark-tonyd2wild-vllm-dual": {
       "alias": "deepseek-v4-flash-0731",
       "smoke_cases": [

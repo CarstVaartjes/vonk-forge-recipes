@@ -1,0 +1,108 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "license-fa4d54e7b8a1-83a544517d",
+      "path": "LICENSE.pdf",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fa4d54e7b8a1be9a606bc82964b026d525749978bfadf50f239bd520ce82eebc",
+      "size_bytes": 76728
+    },
+    {
+      "id": "readme-d68f8d7ad37a-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d68f8d7ad37ad23cf424447dc5bae029f4217fe4b262fdc54ff30adb0a466fd5",
+      "size_bytes": 10563
+    },
+    {
+      "id": "config-10ffe04cd912-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "10ffe04cd912a634a512da7b1ac7ad20053b71efbdc854562d1e6210663a96f7",
+      "size_bytes": 1115
+    },
+    {
+      "id": "hf-quant-config-ddad32c568b1-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ddad32c568b10ce65d92d3d86fe6333c458535918e39abddc23b11b02e065b02",
+      "size_bytes": 238
+    },
+    {
+      "id": "model-1831df81533b-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1831df81533be3ce4901a382afdedc1ad7c1af3ab3f4b4708e21210c00e3b6f6",
+      "size_bytes": 430964464
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "gpt-oss",
+      "title": "OpenAI gpt-oss"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "gpt-oss-120b-eagle3-long-context",
+      "title": "gpt-oss 120b Eagle3 long-context drafter"
+    },
+    "publisher": "nvidia",
+    "slug": "gpt-oss-120b-eagle3-long-context-eagle3-633caf45",
+    "variant": "Eagle3 633caf45",
+    "version": "Eagle3 633caf45"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
+  },
+  "metadata": {
+    "description": "Exact public NVIDIA Eagle3 speculative-decoding draft head for gpt-oss-120b (long-context variant).",
+    "tags": [
+      "nvidia",
+      "gpt-oss",
+      "language",
+      "eagle3",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/gpt-oss-120b-Eagle3-long-context",
+    "revision": "633caf45f31288cbb70ee237f7c939db707ecc94"
+  }
+}
