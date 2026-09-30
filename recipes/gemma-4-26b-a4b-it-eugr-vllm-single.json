@@ -1,0 +1,357 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "155ce16b49007c8b00690dd4c7637c0c1eafbe909709c3175c4498325c01c1d8",
+        "repository": "docker.io/eugr/spark-vllm"
+      },
+      "context": {
+        "path": "adapters/eugr/gemma4-26b-a4b"
+      },
+      "dockerfile": "adapters/eugr/gemma4-26b-a4b/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "gemma-4-26b-a4b-it-eugr-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "gemma-4-26b-a4b-it"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker gemma4-26b-a4b recipe for Google's Gemma 4 26B-A4B-it (Apache-2.0; checkpoint revision 4d7ae498) served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: online FP8 quantization of the bf16 checkpoint, FP8 KV cache, safetensors loading, prefix caching, gemma4 reasoning and tool-call parsers, 262,144-token context, 8,192 batched tokens and memory utilisation 0.8 (upstream defaults); the sequence limit is left to vLLM's default as upstream sets none. Upstream's recipe is written for two Sparks with tensor parallel 2; eugr's --solo mode runs the same command at tensor parallel 1 (the only override), which is this single-Spark recipe. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "eugr",
+      "executable",
+      "fp8",
+      "gemma",
+      "gemma-4",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Gemma 4 26B-A4B FP8 vLLM single Spark (eugr)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "mmmu-pro-c310e41b2dfd",
+          "id": "primary-mmmu-pro-c310e41b2dfd",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-aa4fc74fe06a",
+          "id": "primary-metadata-aa4fc74fe06a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-4f463225c4fe",
+          "id": "primary-readme-4f463225c4fe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-ae53464bf3be",
+          "id": "primary-chat-template-ae53464bf3be",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-ed0c1eb3633d",
+          "id": "primary-config-ed0c1eb3633d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-d4226bbe3117",
+          "id": "primary-generation-config-d4226bbe3117",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-1127684971bb",
+          "id": "primary-model-00001-of-00002-1127684971bb",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-aab47033e1e8",
+          "id": "primary-model-00002-of-00002-aab47033e1e8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-907826a6e46f",
+          "id": "primary-model-safetensors-index-907826a6e46f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-32bdf45d2ad4",
+          "id": "primary-processor-config-32bdf45d2ad4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-cc8d3a0ce364",
+          "id": "primary-tokenizer-cc8d3a0ce364",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-9f4fec4b1dc6",
+          "id": "primary-tokenizer-config-9f4fec4b1dc6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "bd6279d808aa71ceb12ade124ca2f2b7ef41c431c2263abcfbf7af78a8777cfa",
+        "kind": "model",
+        "publisher": "google",
+        "slug": "gemma-4-26b-a4b-it-4d7ae498"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "eugr (MIT)",
+      "Google DeepMind (Apache-2.0)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/42f62e349c610641ac6677ac28275c57bebdf9c3"
+  },
+  "release": {
+    "released_at": "2026-09-28",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "gemma-4-26b-a4b-it"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.8"
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "safetensors"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": "max_batch_tokens",
+        "value": null
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": {
+      "change_effect": "restart",
+      "value": 8192
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 51644340088,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 16000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 110000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "gemma-4-26b-a4b-it"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
