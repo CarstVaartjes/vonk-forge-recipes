@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SM121 vLLM overlay serving the official nvidia/GLM-5.3-Flash-NVFP4 ModelOpt checkpoint (MIT) with the incoai DFlash2 K7 block-diffusion drafter (CC-BY-NC-ND-4.0, non-commercial, no derivatives). TP2 over two Sparks, 126,720-token window, bf16 KV, FULL_DECODE_ONLY CUDA graphs, thinking at reasoning_effort max, image and video input. Same checkpoint is used by tonyd2wild abb38bb0 and sfxnz 072c3f68; this recipe follows r0b0tlab 22269731. Performance figures are upstream claims until measured here; Vonk physical two-Spark acceptance is pending.",
+    "description": "r0b0tlab's SM121 vLLM overlay serving the official nvidia/GLM-5.3-Flash-NVFP4 ModelOpt checkpoint (MIT) with the incoai DFlash2 K7 block-diffusion drafter (CC-BY-NC-ND-4.0, non-commercial, no derivatives). TP2 over two Sparks, using the da920bb0 NVIDIA Model revision whose config adds layer-45 quantization ignore rules (weight shards unchanged; native-MTP load remains unverified). 126,720-token window, bf16 KV, FULL_DECODE_ONLY CUDA graphs, thinking at reasoning_effort max, image and video input. Same checkpoint is used by tonyd2wild abb38bb0 and sfxnz 072c3f68; this recipe follows r0b0tlab 22269731. Performance figures are upstream claims until measured here; Vonk physical two-Spark acceptance is pending.",
     "tags": [
       "candidate",
       "dflash2",
@@ -96,8 +96,8 @@
           ]
         },
         {
-          "file_id": "config-e23c5d98f53e-587cb980af",
-          "id": "primary-config-e23c5d98f53e-587cb980af",
+          "file_id": "config-41db2811023b-587cb980af",
+          "id": "primary-config-41db2811023b-587cb980af",
           "mount": {
             "target": "/models/target"
           },
@@ -118,8 +118,8 @@
           ]
         },
         {
-          "file_id": "hf-quant-config-1277df937b78-a481ad90fa",
-          "id": "primary-hf-quant-config-1277df937b78-a481ad90fa",
+          "file_id": "hf-quant-config-1bc0d89651f0-a481ad90fa",
+          "id": "primary-hf-quant-config-1bc0d89651f0-a481ad90fa",
           "mount": {
             "target": "/models/target"
           },
@@ -538,10 +538,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "550a1210499a82af61d5940e3712d252b8b9e8d016aa2d52d9f623e2133838eb",
+        "content_sha256": "525fcb05c426820c6fc1a31b74b93cb2cfee47971c6fcdcc73579bdda03b9667",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "glm-5-3-flash-nvfp4-09b04e5e"
+        "slug": "glm-5-3-flash-nvfp4-da920bb0"
       }
     },
     {
@@ -673,8 +673,8 @@
     "source_reference": "https://github.com/r0b0tlab/glm53-flash-nvfp4-sm121/tree/222697317a4a165767ab8ef17b44cf969a5ece09"
   },
   "release": {
-    "released_at": "2026-09-11",
-    "version": "1.0.2"
+    "released_at": "2026-09-30",
+    "version": "1.0.3"
   },
   "runtime": {
     "arguments": [

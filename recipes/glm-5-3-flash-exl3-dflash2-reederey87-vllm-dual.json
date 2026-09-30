@@ -39,7 +39,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Reederey87's production GLM-5.3-Flash EXL3 kit (Apache-2.0), release v1.5.0: the TR3 4 bpw EXL3 checkpoint (the Mia-AiLab mirror, byte-identical to the brandonmusic upload in weights and configuration) with the incoai DFlash2 drafter pinned to revision 7d74cdd8 as upstream pins it (CC-BY-NC-ND-4.0, non-commercial, no derivatives), TP2 over two Sparks with the vLLM mp backend, a 1,000,000-token window that coexists with speculation, fp8 KV pinned to 15,414,698,763 bytes, async scheduling off, 3,584-token batches (the hybrid KDA page size) with a 1,792-token long-prefill cap, thinking at reasoning_effort high, image and video input, and upstream's adaptive-k verification. The image is upstream's own Dockerfile (digest-pinned GLM-5.3 arm64 vLLM base, exllamav3 built from source with the fat-expert kernels and ticket scheduler) plus the patch sequence upstream's start.sh applies at every container start, replayed once at build time because the runtime is read-only. Differences from upstream: loopback binding and the SSH/docker launcher are replaced by the platform; the cache-reset dev routes (GLM53_EXPOSE_CACHE_RESET, upstream default 1, mounted outside the bearer guard) are off; upstream's optional SpinCondition patch (off in its env.example) is not applied; its boot shape warmup is not run. HEAD has moved 18 commits past v1.5.0 without a release and is not adopted. Model weights are under the repository licences shown in the Model documents. Upstream figures (about 33 tok/s prose and 74 tok/s structured decode at 1M, 4 concurrent sessions) are claims until measured here; Vonk physical two-Spark acceptance is pending.",
+    "description": "Reederey87 GLM-5.3-Flash EXL3 dual-Spark source refresh at fd87969cb43a5ba66573bd2508bc05651fc1579c (2026-09-30), recipe release 1.5.1. Keeps the byte-exact Mia-AiLab TR3 4 bpw primary Model and the source launcher\u2019s exact incoai DFlash2 drafter pin 7d74cdd881ed7e32c31175984a67823127b66cfe (non-commercial, no derivatives). Moves the recipe-owned ARM64 ExLlamaV3 build from 1.4.7 ca13bdd83a1f4a74fd817b88f49509e0f22a9b07 to 1.4.9 5be886578ec80324c2c715269387be2058724b6e; the six EXL3 quant/MoE source files used by this recipe are byte-identical across those pins, preserving the existing fused-kernel/ticket-scheduler ABI. The digest-pinned vLLM base image is unchanged. Refreshes the current GLM/DFlash2 overlay/test closure, retains Vonk\u2019s non-root read-only runtime wrapper and build-time patching, and carries upstream\u2019s default-on sparse-cache-miss metric and prompt-token detail reporting. Default serving remains DFlash2 k=7, TP2 across two Sparks, fp8 KV and the existing context/resource envelope. Upstream\u2019s performance and DFlash2 acceptance evidence is not Vonk physical two-Spark acceptance; local build and runtime qualification remain separate gates. The drafter license terms are shown in its Model document.",
     "tags": [
       "adaptive-k",
       "candidate",
@@ -1787,8 +1787,8 @@
     "source_reference": "https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark/tree/2b5dfdc616ea5f3dfa4271f98475eea9cb0ee8b1"
   },
   "release": {
-    "released_at": "2026-09-10",
-    "version": "1.5.0"
+    "released_at": "2026-09-30",
+    "version": "1.5.1"
   },
   "runtime": {
     "arguments": [
@@ -1896,6 +1896,11 @@
         "name": "limit-mm-per-prompt",
         "setting": null,
         "value": "{\"image\":4,\"video\":1}"
+      },
+      {
+        "name": "enable-prompt-tokens-details",
+        "setting": null,
+        "value": true
       },
       {
         "name": "skip-mm-profiling",
@@ -2104,6 +2109,10 @@
       },
       {
         "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
+        "value": "1"
+      },
+      {
+        "name": "GLM53_PREFIX_CACHE_SPARSE_MISS_METRIC",
         "value": "1"
       }
     ],

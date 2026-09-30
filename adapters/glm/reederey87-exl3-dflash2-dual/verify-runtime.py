@@ -40,7 +40,8 @@ required = (
     "/opt/glm53/patch_suppress_stops_in_reasoning.py",
     "/opt/glm53/patch_w28_correctness.py",
     "/opt/glm53/patch_xgrammar_termination.py",
-    "/opt/glm53/qwen3_dflash2.py",
+    "/opt/glm53/dflash2_model.py",
+    "/opt/glm53/patch_prefix_cache_sparse_miss_metric.py",
 )
 missing = [path for path in required if not Path(path).is_file()]
 if missing:
