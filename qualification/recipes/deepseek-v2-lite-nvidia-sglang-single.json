@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/deepseek-v2-lite-nvidia-sglang-single",
+  "service_recipes": {
+    "alias": "deepseek-v2-lite",
+    "smoke_cases": [
+      "M0",
+      "A323"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded context and concurrency canaries"
+      ],
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ]
+    }
+  }
+}
