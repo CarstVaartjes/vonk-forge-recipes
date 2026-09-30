@@ -16,50 +16,50 @@ We cover Agents-A1, DeepSeek V4 Flash, DiffusionGemma, FastContext, FLUX.2, Gemm
 
 Which engines each model family runs on.
 
-| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Agents-A1 | ✓ |  |  |  |  |  |  |  |  |
-| DeepSeek V4 Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |
-| DiffusionGemma | ✓ |  |  |  |  |  |  |  |  |
-| FastContext | ✓ |  |  |  |  |  |  |  |  |
-| FLUX.2 |  |  |  |  |  |  |  | ✓ |  |
-| Gemma | ✓ |  |  | ✓ |  |  |  |  |  |
-| GLM | ✓ |  |  |  |  |  |  |  |  |
-| Google Gemma | ✓ |  |  |  |  |  |  |  |  |
-| Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |
-| HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |
-| HunyuanVideo |  |  |  |  |  |  | ✓ |  |  |
-| HunyuanVideo Foley |  |  |  |  |  |  |  |  | ✓ |
-| Hy3 kodelow | ✓ |  |  |  |  |  |  |  |  |
-| Inkling | ✓ | ✓ |  |  |  |  |  |  |  |
-| Laguna | ✓ |  |  |  |  |  |  |  |  |
-| Leanstral | ✓ |  |  |  |  |  |  |  |  |
-| LFM2.5 | ✓ |  |  |  |  |  |  |  |  |
-| Ling | ✓ | ✓ |  |  |  |  |  |  |  |
-| LTX |  |  |  |  |  |  | ✓ |  | ✓ |
-| Meta Llama | ✓ | ✓ | ✓ |  |  |  |  |  |  |
-| MiMo | ✓ | ✓ |  |  |  |  |  |  |  |
-| MiniMax H3 |  |  |  |  |  |  | ✓ |  |  |
-| MiniMax M2 | ✓ |  |  |  |  |  |  |  |  |
-| MiniMax M3 | ✓ |  |  |  |  |  |  |  |  |
-| MOSS-VL |  |  |  |  |  |  |  |  | ✓ |
-| MOVA |  |  |  |  |  |  |  |  | ✓ |
-| Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |
-| Nemotron | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |
-| OpenAI gpt-oss |  |  | ✓ |  |  |  |  |  |  |
-| Ornith | ✓ |  |  |  |  |  |  |  |  |
-| Pixal3D |  |  |  |  |  |  |  |  | ✓ |
-| Qwen (text and vision) | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |
-| Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |
-| SkinTokens |  |  |  |  |  |  |  |  | ✓ |
-| Step 3.7 Flash | ✓ |  |  |  |  |  |  |  |  |
-| Step1X-3D |  |  |  |  |  |  |  |  | ✓ |
-| TRELLIS |  |  |  |  |  |  |  |  | ✓ |
-| TripoSG |  |  |  |  |  |  |  |  | ✓ |
-| UI-Mate | ✓ |  |  |  |  |  |  |  |  |
-| UkisAI Swift Qwen3.8 checkpoints |  |  |  |  | ✓ |  |  |  |  |
-| VibeThinker | ✓ |  |  |  |  |  |  |  |  |
-| Wan |  |  |  |  |  |  |  | ✓ | ✓ |
+| Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline | exllamav3 |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Agents-A1 | ✓ |  |  |  |  |  |  |  |  |  |
+| DeepSeek V4 Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |  |
+| DiffusionGemma | ✓ |  |  |  |  |  |  |  |  |  |
+| FastContext | ✓ |  |  |  |  |  |  |  |  |  |
+| FLUX.2 |  |  |  |  |  |  |  | ✓ |  |  |
+| Gemma | ✓ |  |  | ✓ |  |  |  |  |  |  |
+| GLM | ✓ |  |  |  |  |  |  |  |  |  |
+| Google Gemma | ✓ |  |  |  |  |  |  |  |  |  |
+| Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |  |
+| HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |  |
+| HunyuanVideo |  |  |  |  |  |  | ✓ |  |  |  |
+| HunyuanVideo Foley |  |  |  |  |  |  |  |  | ✓ |  |
+| Hy3 kodelow | ✓ |  |  |  |  |  |  |  |  |  |
+| Inkling | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| Laguna | ✓ |  |  |  |  |  |  |  |  |  |
+| Leanstral | ✓ |  |  |  |  |  |  |  |  |  |
+| LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
+| Ling | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| LTX |  |  |  |  |  |  | ✓ |  | ✓ |  |
+| Meta Llama | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
+| MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| MiniMax H3 |  |  |  |  |  |  | ✓ |  |  |  |
+| MiniMax M2 | ✓ |  |  |  |  |  |  |  |  |  |
+| MiniMax M3 | ✓ |  |  |  |  |  |  |  |  |  |
+| MOSS-VL |  |  |  |  |  |  |  |  | ✓ |  |
+| MOVA |  |  |  |  |  |  |  |  | ✓ |  |
+| Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |  |
+| Nemotron | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |  |
+| OpenAI gpt-oss |  |  | ✓ |  |  |  |  |  |  |  |
+| Ornith | ✓ |  |  |  |  |  |  |  |  |  |
+| Pixal3D |  |  |  |  |  |  |  |  | ✓ |  |
+| Qwen (text and vision) | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  | ✓ |
+| Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |  |
+| SkinTokens |  |  |  |  |  |  |  |  | ✓ |  |
+| Step 3.7 Flash | ✓ |  |  |  |  |  |  |  |  |  |
+| Step1X-3D |  |  |  |  |  |  |  |  | ✓ |  |
+| TRELLIS |  |  |  |  |  |  |  |  | ✓ |  |
+| TripoSG |  |  |  |  |  |  |  |  | ✓ |  |
+| UI-Mate | ✓ |  |  |  |  |  |  |  |  |  |
+| UkisAI Swift Qwen3.8 checkpoints |  |  |  |  | ✓ |  |  |  |  |  |
+| VibeThinker | ✓ |  |  |  |  |  |  |  |  |  |
+| Wan |  |  |  |  |  |  |  | ✓ | ✓ |  |
 
 ### Spark variants
 
