@@ -2,8 +2,6 @@ name: Validate recipes
 
 on:
   pull_request:
-  push:
-    branches: [main]
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -16,8 +14,8 @@ on:
 permissions:
   contents: read
 
-# A new push to a pull request supersedes its previous run. Main pushes and
-# publication calls never cancel each other (each gets its own group).
+# A new push to a pull request supersedes its previous run. Publication calls
+# and manual runs never cancel each other (each gets its own group).
 concurrency:
   group: validate-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -34,8 +32,9 @@ jobs:
       # and packages from this checkout before validating them.
       platform_ref: f26923bdd462aec433895c5675358f57adce8b01
 
-  # Pull requests and main pushes get these checks inside producer-contracts
-  # (one runner, not three); a skipped job still satisfies its required check.
+  # Pull requests and publication runs (push to main) get these checks inside
+  # producer-contracts (one runner, not three); a skipped job still satisfies
+  # its required check.
   catalog-index:
     if: ${{ !inputs.producer_only && github.event_name != 'pull_request' && github.event_name != 'push' }}
     name: Verify catalog index
