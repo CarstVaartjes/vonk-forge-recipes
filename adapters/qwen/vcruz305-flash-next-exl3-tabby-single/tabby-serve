@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""Vonk entrypoint for upstream's TabbyAPI launch (replaces exllamav3-tabby/serve.sh).
+
+Upstream's serve.sh renders tabby-config.yml with string.Template from shell
+variables and starts `python main.py --config` from the TabbyAPI directory.
+This wrapper does the same from command-line flags, so the recipe's settings
+can bind to them. Host, port and the model view directory are platform
+specific; every other value is the flag's, defaulting to upstream's
+concurrent profile.
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import string
+import sys
+from pathlib import Path
+
+MODEL_DIR = Path("/models/target")
+TEMPLATE = Path("/opt/vonk/tabby-config.yml")
+TABBY = Path("/opt/tabbyAPI")
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--served-name", default="Qwen3.8-Flash-Next-EXL3")
+parser.add_argument("--host", default="0.0.0.0")
+parser.add_argument("--port", type=int, default=8000)
+parser.add_argument("--max-seq-len", type=int, default=262144)
+parser.add_argument("--cache-size", type=int, default=1048576)
+parser.add_argument("--max-batch-size", type=int, default=4)
+parser.add_argument("--ngram-ram", choices=("true", "false"), default="false")
+parser.add_argument("--vision", choices=("true", "false"), default="false")
+parser.add_argument("--draft-num-tokens", type=int, default=5)
+options = parser.parse_args()
+
+# Upstream's own sizing checks (serve.sh).
+if options.cache_size % 256:
+    raise SystemExit("cache-size must be a multiple of 256")
+if options.cache_size < options.max_seq_len:
+    raise SystemExit(
+        f"cache-size ({options.cache_size}) < max-seq-len ({options.max_seq_len}): "
+        "one full-length request would not fit"
+    )
+
+for name in (
+    "HOME",
+    "XDG_CACHE_HOME",
+    "XDG_CONFIG_HOME",
+    "TRITON_CACHE_DIR",
+    "TORCH_HOME",
+    "TORCH_EXTENSIONS_DIR",
+    "CUDA_CACHE_PATH",
+):
+    path = os.environ.get(name)
+    if path:
+        os.makedirs(path, exist_ok=True)
+
+# TabbyAPI lists every directory under model_dir, so serve one isolated view
+# holding a single symlink to the read-only model mount (upstream does the same).
+state = Path(os.environ.get("XDG_CACHE_HOME", "/tmp")) / "tabby"
+view = state / "models"
+view.mkdir(parents=True, exist_ok=True)
+for entry in view.iterdir():
+    if entry.is_symlink():
+        entry.unlink()
+(view / options.served_name).symlink_to(MODEL_DIR)
+
+# Upstream serves on loopback with auth disabled; the platform owns exposure.
+values = {
+    "HOST": options.host,
+    "PORT": options.port,
+    "DISABLE_AUTH": "true",
+    "MODEL_PARENT": view,
+    "MODEL_NAME": options.served_name,
+    "MAX_SEQ_LEN": options.max_seq_len,
+    "CACHE_SIZE": options.cache_size,
+    "MAX_BATCH_SIZE": options.max_batch_size,
+    "NGRAM_RAM": options.ngram_ram,
+    "VISION": options.vision,
+    "DRAFT_NUM_TOKENS": options.draft_num_tokens,
+}
+config = state / "config.yml"
+config.write_text(
+    string.Template(TEMPLATE.read_text()).substitute({key: str(value) for key, value in values.items()})
+)
+
+# TabbyAPI resolves templates/, sampler_overrides/ and api_tokens.yml relative to its cwd.
+os.chdir(TABBY)
+os.execv(
+    sys.executable,
+    (sys.executable, "-u", str(TABBY / "main.py"), "--config", str(config)),
+)

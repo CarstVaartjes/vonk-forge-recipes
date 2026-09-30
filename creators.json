@@ -8,6 +8,7 @@
     {"name": "NVIDIA playbooks", "url": "https://github.com/NVIDIA/dgx-spark-playbooks", "aliases": ["nvidia", "nvidia corporation"], "focus": "Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints."},
     {"name": "eugr", "url": "https://github.com/eugr", "aliases": ["eugr"], "focus": "spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking."},
     {"name": "sfxnz", "url": "https://github.com/sfxnz", "aliases": ["sfxnz"], "focus": "Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3."},
+    {"name": "vcruz305", "url": "https://github.com/vcruz305", "aliases": ["vcruz305"], "focus": "Single-Spark EXL3 recipes on a GB10-tuned exllamav3 fork with TabbyAPI or vLLM: Qwen3.8 Flash Next, GLM 5.3 Flash, DeepSeek V4.1 Flash."},
     {"name": "0xSero", "url": "https://github.com/0xSero", "aliases": ["0xsero"], "focus": "SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark."},
     {"name": "amarjeet", "url": "https://github.com/amarjeet", "aliases": ["amarjeet"], "focus": "dgx-spark-recipes: single-Spark llama.cpp GGUF, TensorFold and EXL3 recipes that pin model revisions and shard SHA-256s; Ling, Ternary-Bonsai, Qwen3.8 Flash Next."},
     {"name": "antirez", "url": "https://github.com/antirez/ds4", "aliases": ["antirez", "salvatore sanfilippo (antirez)"], "focus": "ds4: the DeepSeek 4 Flash inference engine (Metal, CUDA, ROCm)."}

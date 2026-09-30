@@ -1,0 +1,15 @@
+{
+  "id": "vonk-forge/qwen3-8-flash-next-exl3-3-05bpw-vcruz305-exllamav3-single",
+  "service_recipes": {
+    "alias": "Qwen3.8-Flash-Next-EXL3",
+    "smoke_cases": [
+      "M0",
+      "A391"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context canaries at 32K, 128K and 240K tokens and four concurrent full-length sessions against the shared 1,048,576-token pool, recording the cold-load time of the 84 GB pack"
+      ]
+    }
+  }
+}
