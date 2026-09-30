@@ -1,0 +1,9 @@
+{
+  "ours": [
+    "vllm-wrapper.sh"
+  ],
+  "source": {
+    "commit": "6ff8595aa271f2eac49579fbf5e90cde9e90674e",
+    "repo": "0xSero/GLM-5.3-Flash-EXL3-1x-DGX-Spark"
+  }
+}
