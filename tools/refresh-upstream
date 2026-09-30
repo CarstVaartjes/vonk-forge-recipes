@@ -1325,6 +1325,53 @@ def close_current_issues(
         summary.closed.append(recipe_id)
 
 
+def recipe_footprint(catalog_: Catalog, recipe_id: str) -> tuple[set[str], list[str]]:
+    """Files and directories a refresh of the recipe may write (exact paths, prefixes)."""
+    recipe = catalog_.recipes[recipe_id]
+    files = {f"recipes/{recipe_id}.json"}
+    for reference in recipe["models"]:
+        files.add(f"models/{reference['model']['slug']}.json")
+    context = recipe["execution"]["build"]["context"]["path"].rstrip("/") + "/"
+    return files, [context]
+
+
+def blocking_prs(
+    footprint: tuple[set[str], list[str]], open_prs: dict[int, set[str]]
+) -> list[int]:
+    """Open pull requests (not the detector's own) that modify the recipe's files."""
+    files, prefixes = footprint
+    return sorted(
+        number
+        for number, changed in open_prs.items()
+        if any(name in files or name.startswith(tuple(prefixes)) for name in changed)
+    )
+
+
+def foreign_open_prs() -> dict[int, set[str]]:
+    """Changed paths of every open pull request whose branch is not ``refresh/*``."""
+    found: dict[int, set[str]] = {}
+    listing = gh(
+        "api",
+        "--paginate",
+        "repos/{owner}/{repo}/pulls?state=open&per_page=100",
+        "--jq",
+        '.[] | "\\(.number) \\(.head.ref)"',
+    )
+    pulls = [line.split(" ", 1) for line in listing.splitlines() if line.strip()]
+    for number, branch in pulls:
+        if branch.startswith("refresh/"):
+            continue
+        names = gh(
+            "api",
+            "--paginate",
+            f"repos/{{owner}}/{{repo}}/pulls/{number}/files?per_page=100",
+            "--jq",
+            ".[].filename",
+        ).split()
+        found[int(number)] = set(names)
+    return found
+
+
 def publish_if_stale() -> None:
     """A merge made with GITHUB_TOKEN starts no publication run: dispatch one when main moved."""
     head = gh("api", "repos/{owner}/{repo}/commits/main", "--jq", ".sha").strip()
@@ -1415,7 +1462,19 @@ def command_run(arguments: argparse.Namespace) -> int:
     review_ids: set[str] = set()
     failed: set[str] = set()
     published = 0
+    open_prs = foreign_open_prs()
     for result in results:
+        if result.drifted and (
+            blockers := blocking_prs(
+                recipe_footprint(catalog_, result.recipe_id), open_prs
+            )
+        ):
+            review_ids.add(result.recipe_id)  # leave any existing issue alone
+            summary.deferred.append(
+                f"{result.recipe_id}: skipped: open PR "
+                + ", ".join(f"#{n}" for n in blockers)
+            )
+            continue
         if result.unreachable:
             summary.unreachable.append(
                 f"{result.recipe_id}: {'; '.join(result.unreachable)}"
