@@ -48,7 +48,7 @@ Which engines each model family runs on.
 | MOVA |  |  |  |  |  |  |  |  | ✓ |  |
 | Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |  |
 | Nemotron | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |  |
-| OpenAI gpt-oss |  |  | ✓ |  |  |  |  |  |  |  |
+| OpenAI gpt-oss | ✓ |  | ✓ |  |  |  |  |  |  |  |
 | Ornith | ✓ |  |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | ✓ |  |
 | Qwen (text and vision) | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  | ✓ |
