@@ -367,7 +367,7 @@ for byte.
 Every publish also uploads one asset, `recipe-library.tar`, built by
 `tools/build-release-bundle`: an uncompressed, deterministic tar (sorted flat
 member names, regular files only, mtime 0, uid/gid 0, empty uname/gname, mode
-0644, PAX format) whose members are exactly `SHA256SUMS`,
+0644, plain ustar: asset names over 100 bytes fail the build) whose members are exactly `SHA256SUMS`,
 `SHA256SUMS.sigstore.json` and every file `SHA256SUMS` lists. It is the trust
 unit consumers should read: verify `SHA256SUMS.sigstore.json` against
 `SHA256SUMS` from inside the tar, then every member against `SHA256SUMS`. The

@@ -8,6 +8,10 @@ else. Members are sorted by name, are regular files only, and carry no owner,
 group or time: mode 0644, uid/gid 0, empty uname/gname, mtime 0. The same
 release directory therefore always produces the same bytes.
 
+The format is plain ustar, so a consumer needs no extended-header support. A
+name longer than ustar's 100 bytes fails the build (and so the publication)
+instead of producing a header some readers reject.
+
 The existing signature over ``SHA256SUMS`` is the trust root. A consumer
 verifies ``SHA256SUMS.sigstore.json`` from inside the tar, then every member
 against ``SHA256SUMS``. The builder applies the digest check too, so a bundle is
@@ -25,6 +29,7 @@ from pathlib import Path
 BUNDLE_NAME = "recipe-library.tar"
 CHECKSUMS = "SHA256SUMS"
 ATTESTATION = "SHA256SUMS.sigstore.json"
+USTAR_NAME_BYTES = 100
 CHECKSUM_LINE = re.compile(r"^([0-9a-f]{64})  ([A-Za-z0-9][A-Za-z0-9._-]*)$")
 
 
@@ -64,6 +69,10 @@ def member_names(release: Path) -> list[str]:
             f"missing {missing}, unlisted {extra}"
         )
     for name in names:
+        if len(name.encode()) > USTAR_NAME_BYTES:
+            raise SystemExit(
+                f"{name} exceeds the {USTAR_NAME_BYTES}-byte ustar name limit"
+            )
         path = release / name
         if path.is_symlink() or not path.is_file():
             raise SystemExit(f"{path} is not a regular file")
@@ -80,7 +89,7 @@ def build(release: Path, output: Path) -> list[str]:
     names = member_names(release)
     if output.parent.resolve() == release.resolve():
         raise SystemExit("write the bundle outside the release directory")
-    with tarfile.open(output, "w", format=tarfile.PAX_FORMAT) as archive:
+    with tarfile.open(output, "w", format=tarfile.USTAR_FORMAT) as archive:
         for name in names:
             path = release / name
             info = tarfile.TarInfo(name)
