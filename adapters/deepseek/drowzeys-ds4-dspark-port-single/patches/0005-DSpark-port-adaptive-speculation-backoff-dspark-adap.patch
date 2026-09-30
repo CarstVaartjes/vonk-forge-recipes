@@ -1,0 +1,156 @@
+From c50699e02ac1d5a8a0f222cabbc8d7e9f68eb88e Mon Sep 17 00:00:00 2001
+From: keyspark <kevin.on.the.rocks@gmail.com>
+Date: Wed, 8 Jul 2026 08:57:39 -0400
+Subject: [PATCH 5/8] DSpark port: adaptive speculation backoff
+ (--dspark-adapt)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Analog of DSpark's hardware-aware confidence scheduler for a single stream:
+track an EMA of extra tokens committed per speculative cycle and pause
+drafting when it falls under roughly one token per cycle — on GB10 the probe
+plus batch-verifier taxes are ~2 decode-equivalents, so low-acceptance text
+(typical prose at temp 0) otherwise pays more than speculation returns.
+While backed off, cycles run the plain decode path at full speed; drafting
+re-tests every 24 cycles.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ ds4.c        | 31 ++++++++++++++++++++++++++++++-
+ ds4.h        |  1 +
+ ds4_cli.c    |  2 ++
+ ds4_help.c   |  1 +
+ ds4_server.c |  2 ++
+ 5 files changed, 36 insertions(+), 1 deletion(-)
+
+diff --git a/ds4.c b/ds4.c
+index 335a481..45f0c6a 100644
+--- a/ds4.c
++++ b/ds4.c
+@@ -21893,6 +21893,7 @@ struct ds4_engine {
+     float dspark_early_margin;
+     int dspark_rounds;
+     bool dspark_row_commit;
++    bool dspark_adapt;
+     char *directional_steering_file;
+     float *directional_steering_dirs;
+     float directional_steering_attn_scale;
+@@ -23362,6 +23363,12 @@ struct ds4_session {
+     bool dspark_seed_valid;
+     int dspark_seed_token;
+     int dspark_seed_pos;
++    /* Adaptive speculation backoff: EMA of extra tokens committed per
++     * speculative cycle.  When the text is not accepting drafts the probe and
++     * verifier taxes make MTP a strict loss, so drafting pauses and re-tests
++     * periodically. */
++    float dspark_accept_ema;
++    int dspark_backoff;
+ };
+ 
+ /* =========================================================================
+@@ -25689,6 +25696,7 @@ int ds4_engine_open(ds4_engine **out, const ds4_engine_options *opt) {
+     e->dspark_rounds = opt->dspark_rounds > 1 ? opt->dspark_rounds : 1;
+     if (e->dspark_rounds > 32) e->dspark_rounds = 32;
+     e->dspark_row_commit = opt->dspark_row_commit;
++    e->dspark_adapt = opt->dspark_adapt;
+     if ((opt->directional_steering_attn != 0.0f || opt->directional_steering_ffn != 0.0f) &&
+         (!opt->directional_steering_file || !opt->directional_steering_file[0]))
+     {
+@@ -26222,6 +26230,7 @@ int ds4_session_create(ds4_session **out, ds4_engine *e, int ctx_size) {
+     if (e->mtp_ready) {
+         s->mtp_logits = xmalloc((size_t)DS4_N_VOCAB * sizeof(s->mtp_logits[0]));
+         s->mtp_draft_token = -1;
++        s->dspark_accept_ema = 1.0f; /* start optimistic; adapt down */
+     }
+     if (e->distributed.role == DS4_DISTRIBUTED_COORDINATOR) {
+         char err[256];
+@@ -27237,7 +27246,8 @@ static int ds4_session_eval_internal(ds4_session *s, int token, bool probe_mtp,
+     const bool mtp_probe_log = getenv("DS4_MTP_PROBE") != NULL;
+     const bool mtp_should_draft =
+         probe_mtp && e->mtp_ready && s->mtp_logits &&
+-        (e->mtp_draft_tokens > 1 || mtp_probe_log);
++        (e->mtp_draft_tokens > 1 || mtp_probe_log) &&
++        (!e->dspark_adapt || s->dspark_backoff == 0);
+     if (probe_mtp && s->mtp_draft_valid) {
+         if (mtp_probe_log) {
+             s->mtp_probe_total++;
+@@ -28393,6 +28403,25 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+         n += r;
+     }
+ #endif
++    if (n > 0 && s->engine && s->engine->dspark_adapt) {
++        /* Adaptive backoff: on text that rejects drafts, the MTP probe and
++         * verifier passes are pure overhead.  Track extra tokens per cycle
++         * and pause drafting when the average falls under the taxes, waking
++         * periodically to re-test. */
++        if (s->dspark_backoff > 0) {
++            s->dspark_backoff--;
++        } else {
++            float gain = (float)(n - 1);
++            if (gain > 4.0f) gain = 4.0f;
++            s->dspark_accept_ema = 0.85f * s->dspark_accept_ema + 0.15f * gain;
++            /* Break-even is roughly one extra token per cycle: below that the
++             * probe plus verifier passes cost more than the tokens they add. */
++            if (s->dspark_accept_ema < 1.0f) {
++                s->dspark_backoff = 24;
++                s->dspark_accept_ema = 1.05f;
++            }
++        }
++    }
+     return n;
+ }
+ 
+diff --git a/ds4.h b/ds4.h
+index 64f742b..801a39c 100644
+--- a/ds4.h
++++ b/ds4.h
+@@ -104,6 +104,7 @@ typedef struct {
+     float dspark_early_margin;
+     int dspark_rounds;
+     bool dspark_row_commit;
++    bool dspark_adapt;
+     const char *directional_steering_file;
+     const char *expert_profile_path;
+     float directional_steering_attn;
+diff --git a/ds4_cli.c b/ds4_cli.c
+index 0fb70db..664e258 100644
+--- a/ds4_cli.c
++++ b/ds4_cli.c
+@@ -1476,6 +1476,8 @@ static cli_config parse_options(int argc, char **argv) {
+             c.engine.dspark_rounds = parse_int(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "--dspark-row-commit")) {
+             c.engine.dspark_row_commit = true;
++        } else if (!strcmp(arg, "--dspark-adapt")) {
++            c.engine.dspark_adapt = true;
+         } else if (!strcmp(arg, "-n") || !strcmp(arg, "--tokens")) {
+             c.gen.n_predict = parse_int(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-c") || !strcmp(arg, "--ctx")) {
+diff --git a/ds4_help.c b/ds4_help.c
+index 6fc3700..dc37fc1 100644
+--- a/ds4_help.c
++++ b/ds4_help.c
+@@ -180,6 +180,7 @@ static void print_model_runtime(FILE *fp, const help_colors *c,
+             opt(fp, c, "--dspark-early-margin F", "Per-position MTP draft confidence stop; replaces the single --mtp-margin gate. Default: 0 (off)");
+             opt(fp, c, "--dspark-rounds N", "Maximum chained speculative verify rounds per decode step. Default: 1");
+             opt(fp, c, "--dspark-row-commit", "Commit partial speculative accepts from per-row frontier captures instead of replaying.");
++            opt(fp, c, "--dspark-adapt", "Pause speculation when measured acceptance stops paying for the draft/verify overhead.");
+         }
+         opt(fp, c, "--quality", "Prefer exact kernels where faster approximate paths exist.");
+         opt(fp, c, "--warm-weights", "Touch mapped tensor pages at startup to reduce first-use stalls.");
+diff --git a/ds4_server.c b/ds4_server.c
+index 2d172d1..d8e696e 100644
+--- a/ds4_server.c
++++ b/ds4_server.c
+@@ -11570,6 +11570,8 @@ static server_config parse_options(int argc, char **argv) {
+             c.engine.dspark_rounds = parse_int_arg(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "--dspark-row-commit")) {
+             c.engine.dspark_row_commit = true;
++        } else if (!strcmp(arg, "--dspark-adapt")) {
++            c.engine.dspark_adapt = true;
+         } else if (!strcmp(arg, "-c") || !strcmp(arg, "--ctx")) {
+             c.ctx_size = parse_int_arg(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-n") || !strcmp(arg, "--tokens")) {
+-- 
+2.43.0
+

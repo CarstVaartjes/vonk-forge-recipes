@@ -1,0 +1,379 @@
+From 33f6d5149f2cca75771604c878b5331b48676928 Mon Sep 17 00:00:00 2001
+From: keyspark <kevin.on.the.rocks@gmail.com>
+Date: Wed, 8 Jul 2026 08:43:11 -0400
+Subject: [PATCH 4/8] DSpark port: MTP-seeded chained rounds from committed
+ hidden state
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Commit paths now capture the last committed row's target hidden state (one
+hc-row copy).  A chained round re-grounds the MTP chain on that captured row
+— the same conditioning the stock probe gets from a plain decode — and
+verifies [next greedy token ++ MTP chain ++ ngram continuation] in one
+batched pass through the row-commit path.  Rounds replace the plain decode
+between speculative cycles, which cost ~74 ms per cycle on GB10.  Chainless
+rounds still require a full-length ngram match: without an acceptance signal
+a whole-batch miss costs more than the decode it replaces.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ ds4.c | 219 +++++++++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 179 insertions(+), 40 deletions(-)
+
+diff --git a/ds4.c b/ds4.c
+index 11b8c20..335a481 100644
+--- a/ds4.c
++++ b/ds4.c
+@@ -10432,6 +10432,10 @@ typedef struct {
+     ds4_gpu_tensor *mtp_state_hc;
+     ds4_gpu_tensor *mtp_next_hc;
+     ds4_gpu_tensor *mtp_raw_cache;
++    /* DSpark chained rounds: final target hidden state of the last committed
++     * batch row, used to seed the next MTP draft chain without a plain
++     * decode.  Valid only within one speculative call. */
++    ds4_gpu_tensor *dspark_seed_hc;
+     uint32_t mtp_n_raw;
+     uint32_t prefill_cap;
+     uint32_t raw_window;
+@@ -10589,6 +10593,7 @@ static void metal_graph_free(ds4_gpu_graph *g) {
+     ds4_gpu_tensor_free(g->prefill_tokens);
+     ds4_gpu_tensor_free(g->logits);
+     ds4_gpu_tensor_free(g->mtp_raw_cache);
++    ds4_gpu_tensor_free(g->dspark_seed_hc);
+     ds4_gpu_tensor_free(g->mtp_next_hc);
+     ds4_gpu_tensor_free(g->mtp_state_hc);
+     ds4_gpu_tensor_free(g->mtp_input_hc);
+@@ -11187,6 +11192,7 @@ static bool metal_graph_alloc_raw_cap(
+         g->mtp_input_hc = ds4_gpu_tensor_alloc(hc_dim * sizeof(float));
+         g->mtp_state_hc = ds4_gpu_tensor_alloc(hc_dim * sizeof(float));
+         g->mtp_next_hc = ds4_gpu_tensor_alloc(hc_dim * sizeof(float));
++        g->dspark_seed_hc = ds4_gpu_tensor_alloc(hc_dim * sizeof(float));
+         g->mtp_raw_cache = metal_graph_alloc_kv_cache_tensor(
+                 managed_kv_cache,
+                 (uint64_t)raw_cap * DS4_N_HEAD_DIM * sizeof(float));
+@@ -11292,7 +11298,7 @@ static bool metal_graph_alloc_raw_cap(
+                      (g->mtp_embed && g->mtp_enorm && g->mtp_eproj &&
+                       g->mtp_eproj_hc && g->mtp_hnorm_hc && g->mtp_hproj_hc &&
+                       g->mtp_input_hc && g->mtp_state_hc && g->mtp_next_hc &&
+-                      g->mtp_raw_cache && g->spec_logits)) &&
++                      g->mtp_raw_cache && g->dspark_seed_hc && g->spec_logits)) &&
+                     g->prefill_tokens &&
+                     g->batch_cur_hc && g->batch_next_hc && g->batch_flat_hc &&
+                     g->batch_hc_mix && g->batch_hc_split &&
+@@ -23353,6 +23359,9 @@ struct ds4_session {
+     int ctx_size;
+     bool checkpoint_valid;
+     bool mtp_draft_valid;
++    bool dspark_seed_valid;
++    int dspark_seed_token;
++    int dspark_seed_pos;
+ };
+ 
+ /* =========================================================================
+@@ -27224,6 +27233,7 @@ static int ds4_session_eval_internal(ds4_session *s, int token, bool probe_mtp,
+     return 1;
+ #else
+     ds4_engine *e = s->engine;
++    s->dspark_seed_valid = false;
+     const bool mtp_probe_log = getenv("DS4_MTP_PROBE") != NULL;
+     const bool mtp_should_draft =
+         probe_mtp && e->mtp_ready && s->mtp_logits &&
+@@ -27326,6 +27336,44 @@ static int dspark_ngram_propose(const int *hist, int hlen,
+ }
+ #endif
+ 
++#ifndef DS4_NO_GPU
++/* Record the last committed row's target hidden state as the seed of a
++ * chained-round MTP draft.  One hc-row device copy. */
++static bool dspark_seed_from_batch_row(ds4_session *s, uint32_t row, int token, int pos) {
++    ds4_gpu_graph *g = &s->graph;
++    if (!g->dspark_seed_hc || !g->batch_cur_hc) return false;
++    const uint64_t hc_bytes = (uint64_t)DS4_N_HC * DS4_N_EMBD * sizeof(float);
++    bool ok = ds4_gpu_begin_commands() != 0;
++    if (ok) ok = ds4_gpu_tensor_copy(g->dspark_seed_hc, 0,
++                                       g->batch_cur_hc,
++                                       (uint64_t)row * hc_bytes, hc_bytes) != 0;
++    if (ok) ok = ds4_gpu_end_commands() != 0;
++    else (void)ds4_gpu_synchronize();
++    if (!ok) return false;
++    s->dspark_seed_token = token;
++    s->dspark_seed_pos = pos;
++    s->dspark_seed_valid = true;
++    return true;
++}
++
++/* Same, from the single-token decode path where the final hidden state is
++ * left in the graph's cur_hc. */
++static bool dspark_seed_from_cur_hc(ds4_session *s, int token, int pos) {
++    ds4_gpu_graph *g = &s->graph;
++    if (!g->dspark_seed_hc || !g->cur_hc) return false;
++    const uint64_t hc_bytes = (uint64_t)DS4_N_HC * DS4_N_EMBD * sizeof(float);
++    bool ok = ds4_gpu_begin_commands() != 0;
++    if (ok) ok = ds4_gpu_tensor_copy(g->dspark_seed_hc, 0, g->cur_hc, 0, hc_bytes) != 0;
++    if (ok) ok = ds4_gpu_end_commands() != 0;
++    else (void)ds4_gpu_synchronize();
++    if (!ok) return false;
++    s->dspark_seed_token = token;
++    s->dspark_seed_pos = pos;
++    s->dspark_seed_valid = true;
++    return true;
++}
++#endif
++
+ /* Speculative decode state machine:
+  * 1. commit the normal target token and use its logits to validate draft[0];
+  * 2. let MTP recursively draft a tiny suffix from its own raw-cache frontier;
+@@ -27397,6 +27445,8 @@ static int ds4_session_eval_speculative_argmax_once(
+     }
+     const bool mtp_timing = getenv("DS4_MTP_TIMING") != NULL;
+     const bool mtp_conf_log = getenv("DS4_MTP_CONF_LOG") != NULL;
++    /* Chained rounds re-seed the MTP chain from committed hidden state. */
++    const bool want_seed = e->dspark_rounds > 1 && e->dspark_row_commit;
+     const bool mtp_need_logits = mtp_conf_log ||
+         getenv("DS4_MTP_FULL_LOGITS") != NULL ||
+         (!strict_mtp && mtp_margin_threshold > 0.0f) ||
+@@ -27589,6 +27639,7 @@ static int ds4_session_eval_speculative_argmax_once(
+             s->checkpoint_valid = true;
+             s->mtp_draft_valid = false;
+             DS4_DSPARK_KEEP_ACCEPTED(1);
++            if (want_seed) (void)dspark_seed_from_cur_hc(s, drafts[0], start);
+             if (mtp_timing) {
+                 const double done = now_sec();
+                 fprintf(stderr,
+@@ -27637,6 +27688,7 @@ static int ds4_session_eval_speculative_argmax_once(
+         s->checkpoint_valid = true;
+         s->mtp_draft_valid = false;
+         DS4_DSPARK_KEEP_ACCEPTED(1);
++        if (want_seed) (void)dspark_seed_from_cur_hc(s, drafts[0], start);
+         if (mtp_timing) {
+             fprintf(stderr,
+                     "ds4: mtp timing margin-stop drafted=1 committed=1 draft=%.3f ms verify=%.3f ms total=%.3f ms\n",
+@@ -27845,6 +27897,11 @@ static int ds4_session_eval_speculative_argmax_once(
+                     s->checkpoint_valid = true;
+                     s->mtp_draft_valid = false;
+                     DS4_DSPARK_KEEP_ACCEPTED(draft_n);
++                    if (want_seed)
++                        (void)dspark_seed_from_batch_row(s,
++                                                         (uint32_t)(draft_n - 1),
++                                                         drafts[draft_n - 1],
++                                                         start + draft_n - 1);
+                     if (mtp_timing) {
+                         fprintf(stderr,
+                                 "ds4: mtp timing micro drafted=%d committed=%d draft=%.3f ms snapshot=%.3f ms verify=%.3f ms total=%.3f ms\n",
+@@ -27880,6 +27937,11 @@ static int ds4_session_eval_speculative_argmax_once(
+                     s->checkpoint_valid = true;
+                     s->mtp_draft_valid = false;
+                     DS4_DSPARK_KEEP_ACCEPTED(commit_drafts);
++                    if (want_seed)
++                        (void)dspark_seed_from_batch_row(s,
++                                                         (uint32_t)(commit_drafts - 1),
++                                                         drafts[commit_drafts - 1],
++                                                         start + commit_drafts - 1);
+                     if (mtp_timing) {
+                         fprintf(stderr,
+                                 "ds4: mtp timing micro drafted=%d committed=%d draft=%.3f ms snapshot=%.3f ms verify=%.3f ms rowcommit=%.3f ms total=%.3f ms\n",
+@@ -28117,45 +28179,113 @@ static int ds4_session_eval_speculative_argmax_once(
+ }
+ 
+ #ifndef DS4_NO_GPU
+-/* One DSpark chained round: verify [seed ++ ngram continuation] in a single
+- * batched pass, committing the accepted prefix through the row-commit path.
+- * The seed is the target's own greedy next token, so row zero always commits.
+- * Returns tokens committed, 0 if the round was not worth attempting, or -1 on
+- * a decode error with the session invalidated. */
+-static int dspark_eval_ngram_round(ds4_session *s, int max_new, int eos_token,
+-                                   int *accepted, char *err, size_t errlen) {
++/* One DSpark chained round.
++ *
++ * After a committed speculative cycle the next position's logits are already
++ * on the host and the last committed row's hidden state has been captured,
++ * so both the target's next greedy token and a re-grounded MTP chain are
++ * available without a plain decode.  Verify [next ++ MTP chain ++ ngram
++ * continuation] in one batched pass and commit the accepted prefix through
++ * the row-commit path.  Returns tokens committed, 0 when a round is not
++ * worth attempting, or -1 on a decode error with the session invalidated. */
++static int dspark_eval_round(ds4_session *s, int max_new, int eos_token,
++                             int *accepted, char *err, size_t errlen) {
+     ds4_engine *e = s->engine;
+     ds4_gpu_graph *g = &s->graph;
+     int batch[16];
+     int seed = sample_argmax(s->logits, DS4_N_VOCAB);
+     if (seed == eos_token) return 0;
+     batch[0] = seed;
++    int n = 1;
+ 
+-    int cap = 1 + e->dspark_ngram_tokens;
+-    if (cap > max_new) cap = max_new;
++    int nmax = 1 + (e->mtp_draft_tokens - 1) + e->dspark_ngram_tokens;
++    if (nmax > max_new) nmax = max_new;
+     int room = s->ctx_size - s->checkpoint.len;
+-    if (cap > room - 1) cap = room - 1;
+-    if (cap > 16) cap = 16;
+-    if (cap < 3) return 0;
+-
+-    /* Chained rounds skip the plain decode entirely, so a whole-batch miss
+-     * costs more than the decode it replaces.  Only bet on the strongest
+-     * evidence: a full-length suffix match. */
+-    int match_len = 0;
+-    int m = dspark_ngram_propose(s->checkpoint.v, s->checkpoint.len,
+-                                 batch, 1,
+-                                 e->dspark_ngram_min,
+-                                 cap - 1,
+-                                 batch + 1,
+-                                 &match_len);
+-    for (int i = 0; i < m; i++) {
+-        if (batch[1 + i] == eos_token) {
+-            m = i + 1;
+-            break;
++    if (nmax > room - 1) nmax = room - 1;
++    if (nmax > 16) nmax = 16;
++    if (nmax < 2) return 0;
++
++    /* MTP chain from the captured hidden state.  The first eval re-grounds
++     * the chain on the committed row and predicts the already-known seed
++     * token, which doubles as the position-0 agreement gate. */
++    const uint32_t base_raw = g->mtp_n_raw;
++    int mtp_rows = 0;
++    if (s->dspark_seed_valid && e->mtp_ready && s->mtp_logits &&
++        e->mtp_draft_tokens > 1 && batch[0] != eos_token)
++    {
++        const bool need_logits = e->dspark_early_margin > 0.0f;
++        int top = -1;
++        if (metal_graph_eval_mtp_draft_from_hc(g,
++                                               &e->model,
++                                               &e->weights,
++                                               &e->mtp_model,
++                                               &e->mtp_weights,
++                                               g->dspark_seed_hc,
++                                               g->mtp_state_hc,
++                                               s->dspark_seed_token,
++                                               (uint32_t)s->dspark_seed_pos,
++                                               need_logits ? s->mtp_logits : NULL,
++                                               &top))
++        {
++            mtp_rows = 1;
++            int pred = top >= 0 ? top : sample_argmax(s->mtp_logits, DS4_N_VOCAB);
++            if (pred == batch[0]) {
++                ds4_gpu_tensor *prev = g->mtp_state_hc;
++                while (n < nmax && n < e->mtp_draft_tokens) {
++                    ds4_gpu_tensor *out =
++                        (n & 1) ? g->mtp_next_hc : g->mtp_state_hc;
++                    top = -1;
++                    if (!metal_graph_eval_mtp_draft_from_hc(g,
++                                                            &e->model,
++                                                            &e->weights,
++                                                            &e->mtp_model,
++                                                            &e->mtp_weights,
++                                                            prev,
++                                                            out,
++                                                            batch[n - 1],
++                                                            (uint32_t)(s->dspark_seed_pos + n),
++                                                            need_logits ? s->mtp_logits : NULL,
++                                                            &top))
++                        break;
++                    mtp_rows++;
++                    pred = top >= 0 ? top : sample_argmax(s->mtp_logits, DS4_N_VOCAB);
++                    if (need_logits) {
++                        float v0 = 0.0f, v1 = 0.0f;
++                        int t0 = -1, t1 = -1;
++                        logits_top2(s->mtp_logits, DS4_N_VOCAB, &t0, &v0, &t1, &v1);
++                        if (v0 - v1 < e->dspark_early_margin) break;
++                    }
++                    batch[n++] = pred;
++                    prev = out;
++                    if (pred == eos_token) break;
++                }
++            }
++        }
++    }
++    const int mtp_n = n;
++
++    /* Ngram extension, capped by the suffix match length. */
++    int ngram_match = 0;
++    if (e->dspark_ngram_tokens > 0 && n < nmax && batch[n - 1] != eos_token) {
++        int m = dspark_ngram_propose(s->checkpoint.v, s->checkpoint.len,
++                                     batch, n,
++                                     e->dspark_ngram_min,
++                                     nmax - n,
++                                     batch + n,
++                                     &ngram_match);
++        if (m > ngram_match) m = ngram_match;
++        for (int i = 0; i < m; i++) {
++            if (batch[n + i] == eos_token) {
++                m = i + 1;
++                break;
++            }
+         }
++        n += m;
+     }
+-    if (m < 2 || match_len < DS4_DSPARK_NGRAM_MAX_MATCH) return 0;
+-    const int n = 1 + m;
++    if (n < 2) return 0;
++    /* Without a re-grounded MTP chain the round has no acceptance signal, so
++     * only bet a chainless verifier pass on the strongest ngram evidence. */
++    if (mtp_n < 2 && (ngram_match < DS4_DSPARK_NGRAM_MAX_MATCH || n < 3)) return 0;
+ 
+     ds4_spec_frontier frontier;
+     memset(&frontier, 0, sizeof(frontier));
+@@ -28194,6 +28324,7 @@ static int dspark_eval_ngram_round(ds4_session *s, int max_new, int eos_token,
+             free(row_logits);
+             return -1;
+         }
++        g->mtp_n_raw = base_raw;
+         spec_frontier_free(&frontier);
+         free(row_logits);
+         return 0;
+@@ -28205,12 +28336,21 @@ static int dspark_eval_ngram_round(ds4_session *s, int max_new, int eos_token,
+     }
+     s->checkpoint_valid = true;
+     s->mtp_draft_valid = false;
+-    /* Round-committed positions have no MTP raw rows; see the hole policy in
+-     * the main speculative path. */
+-    if (commit > 2) g->mtp_n_raw = 0;
+-    if (getenv("DS4_MTP_SPEC_LOG")) {
+-        fprintf(stderr, "ds4: dspark round drafted=%d committed=%d match=%d\n",
+-                n, commit, match_len);
++    /* Draft-ring hole policy, as in the main speculative path: rows exist for
++     * the chain the drafter visited; positions committed beyond them are
++     * stale holes, tolerable when short. */
++    if (commit - (mtp_rows - 1) > 2) {
++        g->mtp_n_raw = 0;
++    } else {
++        uint32_t keep = base_raw + (uint32_t)commit;
++        if (keep > g->raw_window) keep = g->raw_window;
++        g->mtp_n_raw = keep;
++    }
++    (void)dspark_seed_from_batch_row(s, (uint32_t)(commit - 1),
++                                     batch[commit - 1], start + commit - 1);
++    if (getenv("DS4_MTP_SPEC_LOG") || getenv("DS4_MTP_TIMING")) {
++        fprintf(stderr, "ds4: dspark round drafted=%d committed=%d mtp=%d\n",
++                n, commit, mtp_n);
+     }
+     spec_frontier_free(&frontier);
+     free(row_logits);
+@@ -28232,9 +28372,8 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+                                                      errlen);
+ #ifndef DS4_NO_GPU
+     ds4_engine *e = s ? s->engine : NULL;
+-    if (n < 2 || !e ||
++    if (n < 1 || !e ||
+         e->dspark_rounds <= 1 ||
+-        e->dspark_ngram_tokens <= 0 ||
+         !e->dspark_row_commit ||
+         s->distributed || ds4_session_is_cpu(s))
+         return n;
+@@ -28247,8 +28386,8 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+         int max_new = max_tokens - n;
+         if (max_new > accepted_cap - n) max_new = accepted_cap - n;
+         if (max_new < 3) break;
+-        int r = dspark_eval_ngram_round(s, max_new, eos_token,
+-                                        accepted + n, err, errlen);
++        int r = dspark_eval_round(s, max_new, eos_token,
++                                  accepted + n, err, errlen);
+         if (r < 0) return -1;
+         if (r == 0) break;
+         n += r;
+-- 
+2.43.0
+

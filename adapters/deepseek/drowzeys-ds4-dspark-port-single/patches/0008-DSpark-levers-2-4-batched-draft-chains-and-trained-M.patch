@@ -1,0 +1,842 @@
+From 9c9fa2d1bbf2983bb6ff6df7112742d1947ccbcc Mon Sep 17 00:00:00 2001
+From: keyspark <kevin.on.the.rocks@gmail.com>
+Date: Wed, 8 Jul 2026 15:43:06 -0400
+Subject: [PATCH 8/8] =?UTF-8?q?DSpark=20levers=202+4:=20batched=20draft=20?=
+ =?UTF-8?q?chains=20and=20trained=20Markov=20table=20=E2=80=94=20measured?=
+ =?UTF-8?q?=20neutral/negative,=20kept=20flag-gated=20off?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+--dspark-draft-batch (CUDA): the whole MTP draft chain in one submission via
+device-side token feedback (embed_tokens from the previous step's top id,
+GPU top1-top2 margin kernel, single readback).  Measured neutral on GB10
+(19.4 vs 19.7 tok/s over 3 interleaved reps): the per-step synchronize it
+removes (~1-2 ms) is repaid by evals that run past the early-margin stop.
+Batching round chains as well (DS4_DSPARK_ROUND_BATCH=1) is a clear loss
+(17.8): rounds gate on the probe and truncate earlier, so the wasted evals
+dominate.  Draft-during-verify overlap proper is dependency-blocked: the
+chain needs the verifier's committed hidden state and next greedy token.
+
+--dspark-markov FILE + --dspark-markov-fit OUT: offline confident-trigram
+table (407k-token corpus -> 6349 trigrams kept at count>=4, majority>=2/3),
+chained after the local suffix-ngram.  Measured a loss on every prompt class
+(code 18.7->17.5, json 19.6->19.1, prose 14.9->14.7) even when gated to
+local-miss-only and capped at 3 tokens: rejected rows past the accept point
+still cost ~15 ms each and raw-trigram acceptance is far below the ~25%
+break-even.  DSpark's real Markov head is trained on hidden states, not
+token trigrams; the honest conclusion is that an offline table cannot
+substitute for it.  Kept for reproduction; off by default.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ ds4.c        | 486 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+ ds4.h        |   4 +
+ ds4_cli.c    |  21 +++
+ ds4_cuda.cu  |  65 +++++++
+ ds4_gpu.h    |   7 +
+ ds4_help.c   |   3 +
+ ds4_metal.m  |  14 ++
+ ds4_server.c |   4 +
+ 8 files changed, 603 insertions(+), 1 deletion(-)
+
+diff --git a/ds4.c b/ds4.c
+index 1753c9e..2a0d5f1 100644
+--- a/ds4.c
++++ b/ds4.c
+@@ -10436,6 +10436,10 @@ typedef struct {
+      * batch row, used to seed the next MTP draft chain without a plain
+      * decode.  Valid only within one speculative call. */
+     ds4_gpu_tensor *dspark_seed_hc;
++    /* Batched draft chain: per-step top ids and top1-top2 margins written on
++     * device so the whole MTP chain runs in one submission. */
++    ds4_gpu_tensor *dspark_chain_ids;
++    ds4_gpu_tensor *dspark_chain_margins;
+     uint32_t mtp_n_raw;
+     uint32_t prefill_cap;
+     uint32_t raw_window;
+@@ -10594,6 +10598,8 @@ static void metal_graph_free(ds4_gpu_graph *g) {
+     ds4_gpu_tensor_free(g->logits);
+     ds4_gpu_tensor_free(g->mtp_raw_cache);
+     ds4_gpu_tensor_free(g->dspark_seed_hc);
++    ds4_gpu_tensor_free(g->dspark_chain_ids);
++    ds4_gpu_tensor_free(g->dspark_chain_margins);
+     ds4_gpu_tensor_free(g->mtp_next_hc);
+     ds4_gpu_tensor_free(g->mtp_state_hc);
+     ds4_gpu_tensor_free(g->mtp_input_hc);
+@@ -11193,6 +11199,8 @@ static bool metal_graph_alloc_raw_cap(
+         g->mtp_state_hc = ds4_gpu_tensor_alloc(hc_dim * sizeof(float));
+         g->mtp_next_hc = ds4_gpu_tensor_alloc(hc_dim * sizeof(float));
+         g->dspark_seed_hc = ds4_gpu_tensor_alloc(hc_dim * sizeof(float));
++        g->dspark_chain_ids = ds4_gpu_tensor_alloc(16u * sizeof(int32_t));
++        g->dspark_chain_margins = ds4_gpu_tensor_alloc(16u * sizeof(float));
+         g->mtp_raw_cache = metal_graph_alloc_kv_cache_tensor(
+                 managed_kv_cache,
+                 (uint64_t)raw_cap * DS4_N_HEAD_DIM * sizeof(float));
+@@ -20125,6 +20133,132 @@ static bool metal_graph_eval_mtp_draft_from_hc(
+     return ok;
+ }
+ 
++/* One MTP chain step for the batched drafter: same math as
++ * metal_graph_eval_mtp_draft_from_hc, but encoded into the caller's open
++ * command batch with the input token read from the device-side chain and the
++ * step's top id + top1-top2 margin written to device slots, so a whole chain
++ * needs one submission and one readback. */
++static bool metal_graph_eval_mtp_draft_step_dev(
++        ds4_gpu_graph       *g,
++        const ds4_model       *base_model,
++        const ds4_weights     *base_weights,
++        const ds4_model       *mtp_model,
++        const ds4_mtp_weights *mtp,
++        ds4_gpu_tensor      *prev_hc,
++        ds4_gpu_tensor      *out_hc,
++        int                    host_token,
++        uint32_t               token_slot,
++        uint32_t               out_slot,
++        uint32_t               pos) {
++    if (!mtp || !mtp->block.attn_q_a || !g->mtp_raw_cache || !prev_hc || !out_hc ||
++        !g->dspark_chain_ids || !g->dspark_chain_margins) return false;
++
++    const uint64_t hc_dim = (uint64_t)DS4_N_HC * DS4_N_EMBD;
++    const uint32_t raw_row = pos % g->raw_cap;
++    uint32_t n_raw = g->mtp_n_raw + 1u;
++    if (n_raw > g->raw_window) n_raw = g->raw_window;
++    if (n_raw > g->raw_cap) n_raw = g->raw_cap;
++
++    ds4_gpu_tensor *saved_cur = g->cur_hc;
++    ds4_gpu_tensor *saved_after = g->after_ffn_hc;
++    bool ok;
++    if (host_token >= 0) {
++        ok = ds4_gpu_embed_token_hc_tensor(g->mtp_embed,
++                                             base_model->map,
++                                             base_model->size,
++                                             base_weights->token_embd->abs_offset,
++                                             (uint32_t)base_weights->token_embd->dim[1],
++                                             (uint32_t)host_token,
++                                             DS4_N_EMBD,
++                                             1) != 0;
++    } else {
++        ds4_gpu_tensor *tok_view = ds4_gpu_tensor_view(g->dspark_chain_ids,
++                                                        (uint64_t)token_slot * sizeof(int32_t),
++                                                        sizeof(int32_t));
++        ok = tok_view != NULL &&
++             ds4_gpu_embed_tokens_hc_tensor(g->mtp_embed,
++                                              tok_view,
++                                              base_model->map,
++                                              base_model->size,
++                                              base_weights->token_embd->abs_offset,
++                                              (uint32_t)base_weights->token_embd->dim[1],
++                                              1,
++                                              DS4_N_EMBD,
++                                              1) != 0;
++        ds4_gpu_tensor_free(tok_view);
++    }
++    if (ok) ok = ds4_gpu_rms_norm_weight_tensor(g->mtp_enorm,
++                                                  g->mtp_embed,
++                                                  mtp_model->map,
++                                                  mtp_model->size,
++                                                  mtp->enorm->abs_offset,
++                                                  DS4_N_EMBD,
++                                                  DS4_RMS_EPS) != 0;
++    if (ok) ok = ds4_gpu_matmul_q8_0_tensor(g->mtp_eproj,
++                                              mtp_model->map,
++                                              mtp_model->size,
++                                              mtp->e_proj->abs_offset,
++                                              DS4_N_EMBD,
++                                              DS4_N_EMBD,
++                                              g->mtp_enorm,
++                                              1) != 0;
++    if (ok) ok = ds4_gpu_repeat_hc_tensor(g->mtp_eproj_hc,
++                                            g->mtp_eproj,
++                                            DS4_N_EMBD,
++                                            DS4_N_HC) != 0;
++    if (ok) ok = ds4_gpu_rms_norm_weight_rows_tensor(g->mtp_hnorm_hc,
++                                                       prev_hc,
++                                                       mtp_model->map,
++                                                       mtp_model->size,
++                                                       mtp->hnorm->abs_offset,
++                                                       DS4_N_EMBD,
++                                                       DS4_N_HC,
++                                                       DS4_RMS_EPS) != 0;
++    if (ok) ok = ds4_gpu_matmul_q8_0_tensor(g->mtp_hproj_hc,
++                                              mtp_model->map,
++                                              mtp_model->size,
++                                              mtp->h_proj->abs_offset,
++                                              DS4_N_EMBD,
++                                              DS4_N_EMBD,
++                                              g->mtp_hnorm_hc,
++                                              DS4_N_HC) != 0;
++    if (ok) ok = ds4_gpu_add_tensor(g->mtp_input_hc,
++                                      g->mtp_eproj_hc,
++                                      g->mtp_hproj_hc,
++                                      (uint32_t)hc_dim) != 0;
++    if (ok) {
++        g->cur_hc = g->mtp_input_hc;
++        g->after_ffn_hc = out_hc;
++        ok = metal_graph_encode_decode_layer(g,
++                                             mtp_model,
++                                             &mtp->block,
++                                             1,
++                                             pos,
++                                             g->mtp_raw_cache,
++                                             g->raw_cap,
++                                             raw_row,
++                                             n_raw,
++                                             host_token >= 0 ? host_token : 0);
++    }
++    if (ok) g->cur_hc = out_hc;
++    if (ok) ok = metal_graph_encode_output_head_mtp(g,
++                                                    base_model,
++                                                    base_weights,
++                                                    mtp_model,
++                                                    mtp,
++                                                    base_weights->output->dim[1]);
++    if (ok) ok = ds4_gpu_logits_top2_margin_tensor(g->dspark_chain_ids,
++                                                     (uint64_t)out_slot * sizeof(int32_t),
++                                                     g->dspark_chain_margins,
++                                                     (uint64_t)out_slot * sizeof(float),
++                                                     g->logits,
++                                                     DS4_N_VOCAB) != 0;
++    g->cur_hc = saved_cur;
++    g->after_ffn_hc = saved_after;
++    if (ok && g->mtp_n_raw < g->raw_window) g->mtp_n_raw++;
++    return ok;
++}
++
+ static bool metal_graph_eval_mtp_draft(
+         ds4_gpu_graph       *g,
+         const ds4_model       *base_model,
+@@ -21915,6 +22049,12 @@ struct ds4_engine {
+     bool dspark_row_commit;
+     bool dspark_adapt;
+     bool dspark_mbatch;
++    bool dspark_draft_batch;
++    void *dspark_markov_map;
++    size_t dspark_markov_map_len;
++    const uint64_t *dspark_markov_keys;
++    const uint32_t *dspark_markov_next;
++    uint32_t dspark_markov_n;
+     char *directional_steering_file;
+     float *directional_steering_dirs;
+     float directional_steering_attn_scale;
+@@ -25075,6 +25215,110 @@ void ds4_engine_dump_tokens(ds4_engine *e, const ds4_tokens *tokens) {
+     dump_tokens(&e->vocab, tokens);
+ }
+ 
++/* DSpark trained Markov drafter.
++ *
++ * DSpark's speculators ship a learned Markov head; the MTP GGUF does not.
++ * This is the small offline replacement: fit a confident-trigram table
++ * (context pair -> next token, kept only when the continuation is frequent
++ * and near-deterministic) on target-generated or domain text, and let the
++ * drafter chain from it when the local suffix-ngram has no match.  The file
++ * is a sorted key array plus a next-token array for binary search. */
++#define DS4_MARKOV_MAGIC "DS4MKV1"
++#define DS4_MARKOV_KEY(p2, p1) (((uint64_t)(uint32_t)(p2) << 21) | (uint32_t)(p1))
++
++typedef struct {
++    uint64_t key;
++    uint32_t next;
++} ds4_markov_pair;
++
++static int markov_pair_cmp(const void *a, const void *b) {
++    const ds4_markov_pair *pa = (const ds4_markov_pair *)a;
++    const ds4_markov_pair *pb = (const ds4_markov_pair *)b;
++    if (pa->key != pb->key) return pa->key < pb->key ? -1 : 1;
++    if (pa->next != pb->next) return pa->next < pb->next ? -1 : 1;
++    return 0;
++}
++
++int ds4_dspark_markov_fit(const char *model_path, const char *text,
++                          const char *out_path, int min_count) {
++    ds4_model model;
++    ds4_vocab vocab;
++    token_vec tokens = {0};
++    if (min_count < 2) min_count = 4;
++
++    model_open(&model, model_path, false, false);
++    vocab_load(&vocab, &model);
++    tokenize_rendered_chat_vocab(&vocab, text ? text : "", &tokens);
++    fprintf(stderr, "ds4: markov fit: %d corpus tokens\n", tokens.len);
++    if (tokens.len < 3) {
++        vocab_free(&vocab);
++        model_close(&model);
++        return 1;
++    }
++
++    const int n_tri = tokens.len - 2;
++    ds4_markov_pair *tri = xmalloc((size_t)n_tri * sizeof(tri[0]));
++    for (int i = 0; i + 2 < tokens.len; i++) {
++        tri[i].key = DS4_MARKOV_KEY(tokens.v[i], tokens.v[i + 1]);
++        tri[i].next = (uint32_t)tokens.v[i + 2];
++    }
++    qsort(tri, (size_t)n_tri, sizeof(tri[0]), markov_pair_cmp);
++
++    uint64_t *keys = xmalloc((size_t)n_tri * sizeof(keys[0]));
++    uint32_t *next = xmalloc((size_t)n_tri * sizeof(next[0]));
++    uint32_t n_out = 0;
++    int i = 0;
++    while (i < n_tri) {
++        int j = i;
++        while (j < n_tri && tri[j].key == tri[i].key) j++;
++        const int total = j - i;
++        if (total >= min_count) {
++            /* runs are sorted by next inside the key run */
++            int best_n = 0;
++            uint32_t best = 0;
++            int k = i;
++            while (k < j) {
++                int m = k;
++                while (m < j && tri[m].next == tri[k].next) m++;
++                if (m - k > best_n) {
++                    best_n = m - k;
++                    best = tri[k].next;
++                }
++                k = m;
++            }
++            if (3 * best_n >= 2 * total) {
++                keys[n_out] = tri[i].key;
++                next[n_out] = best;
++                n_out++;
++            }
++        }
++        i = j;
++    }
++    free(tri);
++
++    FILE *fp = fopen(out_path, "wb");
++    int rc = 1;
++    if (fp) {
++        char magic[8] = DS4_MARKOV_MAGIC;
++        uint32_t hdr[2] = {n_out, 0};
++        if (fwrite(magic, 1, 8, fp) == 8 &&
++            fwrite(hdr, sizeof(uint32_t), 2, fp) == 2 &&
++            fwrite(keys, sizeof(keys[0]), n_out, fp) == n_out &&
++            fwrite(next, sizeof(next[0]), n_out, fp) == n_out) {
++            rc = 0;
++        }
++        fclose(fp);
++    }
++    fprintf(stderr, "ds4: markov fit: kept %u confident trigrams -> %s\n",
++            n_out, out_path);
++    free(keys);
++    free(next);
++    token_vec_free(&tokens);
++    vocab_free(&vocab);
++    model_close(&model);
++    return rc;
++}
++
+ int ds4_dump_text_tokenization(const char *model_path, const char *text, FILE *fp) {
+     ds4_model model;
+     ds4_vocab vocab;
+@@ -25719,6 +25963,37 @@ int ds4_engine_open(ds4_engine **out, const ds4_engine_options *opt) {
+     e->dspark_row_commit = opt->dspark_row_commit;
+     e->dspark_adapt = opt->dspark_adapt;
+     e->dspark_mbatch = opt->dspark_mbatch;
++    e->dspark_draft_batch = opt->dspark_draft_batch;
++    if (opt->dspark_markov_path && opt->dspark_markov_path[0]) {
++        int fd = open(opt->dspark_markov_path, O_RDONLY);
++        struct stat st;
++        if (fd >= 0 && fstat(fd, &st) == 0 && st.st_size >= 16) {
++            void *map = mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
++            if (map != MAP_FAILED) {
++                const char *base = (const char *)map;
++                uint32_t n = 0;
++                memcpy(&n, base + 8, sizeof(n));
++                const uint64_t need = 16ull + (uint64_t)n * 12ull;
++                if (memcmp(base, "DS4MKV1", 7) == 0 && need <= (uint64_t)st.st_size) {
++                    e->dspark_markov_map = map;
++                    e->dspark_markov_map_len = (size_t)st.st_size;
++                    e->dspark_markov_keys = (const uint64_t *)(base + 16);
++                    e->dspark_markov_next = (const uint32_t *)(base + 16 + (uint64_t)n * 8ull);
++                    e->dspark_markov_n = n;
++                    fprintf(stderr, "ds4: DSpark markov table loaded: %u trigrams from %s\n",
++                            n, opt->dspark_markov_path);
++                } else {
++                    munmap(map, (size_t)st.st_size);
++                    fprintf(stderr, "ds4: invalid DSpark markov table %s\n",
++                            opt->dspark_markov_path);
++                }
++            }
++        } else {
++            fprintf(stderr, "ds4: failed to open DSpark markov table %s\n",
++                    opt->dspark_markov_path);
++        }
++        if (fd >= 0) close(fd);
++    }
+     if (e->dspark_mbatch && !getenv("DS4_CUDA_Q8_MBATCH")) {
+         /* Route small verifier batches to the decode-shaped q8 microbatch
+          * kernel.  Env-based so the GPU backends need no new API surface;
+@@ -26189,6 +26464,7 @@ void ds4_engine_close(ds4_engine *e) {
+     vocab_free(&e->vocab);
+     ds4_threads_shutdown();
+     if (e->mtp_ready) model_close(&e->mtp_model);
++    if (e->dspark_markov_map) munmap(e->dspark_markov_map, e->dspark_markov_map_len);
+     model_close(&e->model);
+ #ifndef DS4_NO_GPU
+     ds4_gpu_cleanup();
+@@ -27372,6 +27648,46 @@ static int dspark_ngram_propose(const int *hist, int hlen,
+ #undef DS4_DSPARK_SEQ
+     return n;
+ }
++
++/* Confident-trigram lookup in the trained Markov table (see
++ * ds4_dspark_markov_fit).  Returns the next token or -1. */
++static int dspark_markov_next_token(const ds4_engine *e, int prev2, int prev1) {
++    if (!e->dspark_markov_n || prev2 < 0 || prev1 < 0) return -1;
++    const uint64_t key = DS4_MARKOV_KEY(prev2, prev1);
++    uint32_t lo = 0, hi = e->dspark_markov_n;
++    while (lo < hi) {
++        const uint32_t mid = lo + (hi - lo) / 2u;
++        if (e->dspark_markov_keys[mid] < key) lo = mid + 1u;
++        else hi = mid;
++    }
++    if (lo < e->dspark_markov_n && e->dspark_markov_keys[lo] == key) {
++        return (int)e->dspark_markov_next[lo];
++    }
++    return -1;
++}
++
++/* Chain confident-trigram continuations after hist ++ tail ++ out, up to
++ * max_out tokens.  The verifier prices every proposed row, so the table only
++ * holds near-deterministic continuations by construction. */
++static int dspark_markov_propose(const ds4_engine *e, const int *hist, int hlen,
++                                 const int *tail, int tail_n,
++                                 int max_out, int *out) {
++    if (!e->dspark_markov_n || max_out <= 0) return 0;
++#define DS4_DSPARK_SEQ2(i) ((i) < hlen ? hist[i] : \
++        ((i) - hlen < tail_n ? tail[(i) - hlen] : out[(i) - hlen - tail_n]))
++    const int base = hlen + tail_n;
++    if (base < 2) return 0;
++    int n = 0;
++    while (n < max_out) {
++        const int prev2 = DS4_DSPARK_SEQ2(base + n - 2);
++        const int prev1 = DS4_DSPARK_SEQ2(base + n - 1);
++        const int t = dspark_markov_next_token(e, prev2, prev1);
++        if (t < 0) break;
++        out[n++] = t;
++    }
++#undef DS4_DSPARK_SEQ2
++    return n;
++}
+ #endif
+ 
+ #ifndef DS4_NO_GPU
+@@ -27528,7 +27844,68 @@ static int ds4_session_eval_speculative_argmax_once(
+         s->graph.mtp_n_raw = keep_; \
+     } while (0)
+ 
+-    for (; !redraft && draft_n < draft_cap; draft_n++) {
++    /* Batched draft chain: encode every remaining MTP step into one command
++     * submission, feeding each step's token from the previous step's device-
++     * side top id, and read ids + margins back once.  Removes the per-step
++     * synchronize/readback the sequential loop pays (~1-2 ms per step). */
++    bool chain_done = false;
++    if (!redraft && e->dspark_draft_batch && e->backend == DS4_BACKEND_CUDA &&
++        e->dspark_early_margin > 0.0f &&
++        draft_n < draft_cap && s->graph.dspark_chain_ids)
++    {
++        const uint32_t base_raw_chain = s->graph.mtp_n_raw;
++        const int first = draft_n;
++        int planned = 0;
++        bool ok_chain = ds4_gpu_begin_commands() != 0;
++        for (int j = first; ok_chain && j < draft_cap; j++) {
++            ds4_gpu_tensor *prev_hc = (j & 1) ? s->graph.mtp_state_hc : s->graph.mtp_next_hc;
++            ds4_gpu_tensor *out_hc = (j & 1) ? s->graph.mtp_next_hc : s->graph.mtp_state_hc;
++            ok_chain = metal_graph_eval_mtp_draft_step_dev(&s->graph,
++                                                           &e->model,
++                                                           &e->weights,
++                                                           &e->mtp_model,
++                                                           &e->mtp_weights,
++                                                           prev_hc,
++                                                           out_hc,
++                                                           j == first ? drafts[j - 1] : -1,
++                                                           (uint32_t)(j - 1),
++                                                           (uint32_t)j,
++                                                           (uint32_t)(s->checkpoint.len + j - 1));
++            if (ok_chain) planned = j - first + 1;
++        }
++        if (ok_chain) ok_chain = ds4_gpu_end_commands() != 0;
++        else (void)ds4_gpu_synchronize();
++        int32_t chain_ids[16];
++        float chain_margins[16];
++        if (ok_chain && planned > 0) {
++            ok_chain = ds4_gpu_tensor_read(s->graph.dspark_chain_ids,
++                                             (uint64_t)first * sizeof(int32_t),
++                                             chain_ids + first,
++                                             (uint64_t)planned * sizeof(int32_t)) != 0 &&
++                       ds4_gpu_tensor_read(s->graph.dspark_chain_margins,
++                                             (uint64_t)first * sizeof(float),
++                                             chain_margins + first,
++                                             (uint64_t)planned * sizeof(float)) != 0;
++        }
++        chain_done = true;
++        if (!ok_chain) {
++            /* Chain encode failed: the ping-pong hc state is unusable, so give
++             * up on extending this cycle rather than falling to the loop. */
++            s->graph.mtp_n_raw = base_raw_chain;
++        } else {
++            for (int j = first; j < first + planned; j++) {
++                if (e->dspark_early_margin > 0.0f &&
++                    chain_margins[j] < e->dspark_early_margin) break;
++                drafts[j] = chain_ids[j];
++                if (mtp_need_logits && j + 1 == first + planned) {
++                    mtp_last_margin = chain_margins[j];
++                }
++                draft_n = j + 1;
++                if (drafts[j] == eos_token) break;
++            }
++        }
++    }
++    for (; !redraft && !chain_done && draft_n < draft_cap; draft_n++) {
+         ds4_gpu_tensor *prev_hc = (draft_n & 1) ? s->graph.mtp_state_hc : s->graph.mtp_next_hc;
+         ds4_gpu_tensor *out_hc = (draft_n & 1) ? s->graph.mtp_next_hc : s->graph.mtp_state_hc;
+         int mtp_top = -1;
+@@ -27618,6 +27995,31 @@ static int ds4_session_eval_speculative_argmax_once(
+                 }
+             }
+         }
++        /* Trained Markov table: only when the local suffix match found
++         * nothing (exact-context evidence beats global stats), and only a
++         * short chain — each speculative row costs real verifier bandwidth. */
++        if (e->dspark_markov_n > 0 && dspark_ngram_n == 0) {
++            int ext_cap2 = try_n + e->dspark_ngram_tokens;
++            if (ext_cap2 > max_tokens - n_accept) ext_cap2 = max_tokens - n_accept;
++            if (ext_cap2 > accepted_cap - n_accept) ext_cap2 = accepted_cap - n_accept;
++            if (ext_cap2 > room - 1) ext_cap2 = room - 1;
++            if (ext_cap2 > 16) ext_cap2 = 16;
++            if (ext_cap2 > try_n + 3) ext_cap2 = try_n + 3;
++            int have = try_n + dspark_ngram_n;
++            if (have < ext_cap2 && drafts[have - 1] != eos_token) {
++                int m = dspark_markov_propose(e, s->checkpoint.v, s->checkpoint.len,
++                                              drafts, have,
++                                              ext_cap2 - have,
++                                              drafts + have);
++                for (int k = 0; k < m; k++) {
++                    if (drafts[have + k] == eos_token) {
++                        m = k + 1;
++                        break;
++                    }
++                }
++                dspark_ngram_n += m;
++            }
++        }
+         if (dspark_ngram_n > 0) draft_n = try_n + dspark_ngram_n;
+         if (redraft && dspark_ngram_n == 0) {
+             /* MTP missed and the context has no match: nothing is worth a
+@@ -28249,6 +28651,76 @@ static int dspark_eval_round(ds4_session *s, int max_new, int eos_token,
+     const uint32_t base_raw = g->mtp_n_raw;
+     int mtp_rows = 0;
+     if (s->dspark_seed_valid && e->mtp_ready && s->mtp_logits &&
++        e->dspark_draft_batch && e->backend == DS4_BACKEND_CUDA &&
++        e->dspark_early_margin > 0.0f &&
++        getenv("DS4_DSPARK_ROUND_BATCH") != NULL &&
++        e->mtp_draft_tokens > 1 && batch[0] != eos_token &&
++        g->dspark_chain_ids)
++    {
++        /* Round chain, two submissions: the probe first (its top id is the
++         * position-0 agreement gate and not worth drafting past when it
++         * misses), then the remaining chain in one batch with device-side
++         * token feedback. */
++        int top = -1;
++        bool okc = metal_graph_eval_mtp_draft_from_hc(g,
++                                                      &e->model,
++                                                      &e->weights,
++                                                      &e->mtp_model,
++                                                      &e->mtp_weights,
++                                                      g->dspark_seed_hc,
++                                                      g->mtp_state_hc,
++                                                      s->dspark_seed_token,
++                                                      (uint32_t)s->dspark_seed_pos,
++                                                      NULL,
++                                                      &top);
++        if (okc) {
++            mtp_rows = 1;
++            if (top == batch[0]) {
++                const int chain_cap = e->mtp_draft_tokens < nmax ? e->mtp_draft_tokens : nmax;
++                int planned = 0;
++                bool oks = ds4_gpu_begin_commands() != 0;
++                for (int j = 1; oks && j < chain_cap; j++) {
++                    ds4_gpu_tensor *prev = (j & 1) ? g->mtp_state_hc : g->mtp_next_hc;
++                    ds4_gpu_tensor *out = (j & 1) ? g->mtp_next_hc : g->mtp_state_hc;
++                    oks = metal_graph_eval_mtp_draft_step_dev(g,
++                                                              &e->model,
++                                                              &e->weights,
++                                                              &e->mtp_model,
++                                                              &e->mtp_weights,
++                                                              prev,
++                                                              out,
++                                                              j == 1 ? batch[0] : -1,
++                                                              (uint32_t)(j - 1),
++                                                              (uint32_t)j,
++                                                              (uint32_t)(s->dspark_seed_pos + j));
++                    if (oks) planned = j;
++                }
++                if (oks) oks = ds4_gpu_end_commands() != 0;
++                else (void)ds4_gpu_synchronize();
++                int32_t ids[16];
++                float margins[16];
++                if (oks && planned > 0) {
++                    oks = ds4_gpu_tensor_read(g->dspark_chain_ids,
++                                                sizeof(int32_t), ids + 1,
++                                                (uint64_t)planned * sizeof(int32_t)) != 0 &&
++                          ds4_gpu_tensor_read(g->dspark_chain_margins,
++                                                sizeof(float), margins + 1,
++                                                (uint64_t)planned * sizeof(float)) != 0;
++                }
++                if (!oks) {
++                    g->mtp_n_raw = base_raw;
++                    mtp_rows = 0;
++                } else {
++                    mtp_rows = 1 + planned;
++                    for (int j = 1; j <= planned && n < nmax; j++) {
++                        if (margins[j] < e->dspark_early_margin) break;
++                        batch[n++] = (int)ids[j];
++                        if (ids[j] == eos_token) break;
++                    }
++                }
++            }
++        }
++    } else if (s->dspark_seed_valid && e->mtp_ready && s->mtp_logits &&
+         e->mtp_draft_tokens > 1 && batch[0] != eos_token)
+     {
+         const bool need_logits = e->dspark_early_margin > 0.0f;
+@@ -28320,6 +28792,18 @@ static int dspark_eval_round(ds4_session *s, int max_new, int eos_token,
+         }
+         n += m;
+     }
++    if (e->dspark_markov_n > 0 && n < nmax && batch[n - 1] != eos_token) {
++        int cap_mk = nmax - n < 3 ? nmax - n : 3;
++        int m = dspark_markov_propose(e, s->checkpoint.v, s->checkpoint.len,
++                                      batch, n, cap_mk, batch + n);
++        for (int i = 0; i < m; i++) {
++            if (batch[n + i] == eos_token) {
++                m = i + 1;
++                break;
++            }
++        }
++        n += m;
++    }
+     if (n < 2) return 0;
+     /* Without a re-grounded MTP chain the round has no acceptance signal, so
+      * only bet a chainless verifier pass on the strongest ngram evidence. */
+diff --git a/ds4.h b/ds4.h
+index 7cfb68a..112030e 100644
+--- a/ds4.h
++++ b/ds4.h
+@@ -105,6 +105,8 @@ typedef struct {
+     int dspark_rounds;
+     bool dspark_row_commit;
+     bool dspark_adapt;
++    bool dspark_draft_batch;
++    const char *dspark_markov_path;
+     bool dspark_mbatch;
+     const char *directional_steering_file;
+     const char *expert_profile_path;
+@@ -195,6 +197,8 @@ int ds4_engine_collect_imatrix(ds4_engine *e,
+                                int max_tokens);
+ void ds4_engine_dump_tokens(ds4_engine *e, const ds4_tokens *tokens);
+ int ds4_dump_text_tokenization(const char *model_path, const char *text, FILE *fp);
++int ds4_dspark_markov_fit(const char *model_path, const char *text,
++                          const char *out_path, int min_count);
+ int ds4_engine_head_test(ds4_engine *e, const ds4_tokens *prompt);
+ int ds4_engine_first_token_test(ds4_engine *e, const ds4_tokens *prompt);
+ int ds4_engine_metal_graph_test(ds4_engine *e, const ds4_tokens *prompt);
+diff --git a/ds4_cli.c b/ds4_cli.c
+index 6a17e94..3f9f95d 100644
+--- a/ds4_cli.c
++++ b/ds4_cli.c
+@@ -56,6 +56,7 @@ typedef struct {
+     ds4_dist_options *dist;
+     cli_generation_options gen;
+     char *prompt_owned;
++    const char *dspark_markov_fit_out;
+     bool inspect;
+ } cli_config;
+ 
+@@ -1480,6 +1481,12 @@ static cli_config parse_options(int argc, char **argv) {
+             c.engine.dspark_adapt = true;
+         } else if (!strcmp(arg, "--dspark-mbatch")) {
+             c.engine.dspark_mbatch = true;
++        } else if (!strcmp(arg, "--dspark-draft-batch")) {
++            c.engine.dspark_draft_batch = true;
++        } else if (!strcmp(arg, "--dspark-markov")) {
++            c.engine.dspark_markov_path = need_arg(&i, argc, argv, arg);
++        } else if (!strcmp(arg, "--dspark-markov-fit")) {
++            c.dspark_markov_fit_out = need_arg(&i, argc, argv, arg);
+         } else if (!strcmp(arg, "-n") || !strcmp(arg, "--tokens")) {
+             c.gen.n_predict = parse_int(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-c") || !strcmp(arg, "--ctx")) {
+@@ -1654,6 +1661,20 @@ static cli_config parse_options(int argc, char **argv) {
+ 
+ int main(int argc, char **argv) {
+     cli_config cfg = parse_options(argc, argv);
++    if (cfg.dspark_markov_fit_out) {
++        if (cfg.gen.prompt == NULL) {
++            fprintf(stderr, "ds4: --dspark-markov-fit requires -p or --prompt-file\n");
++            free(cfg.prompt_owned);
++            return 2;
++        }
++        int rc = ds4_dspark_markov_fit(cfg.engine.model_path,
++                                       cfg.gen.prompt,
++                                       cfg.dspark_markov_fit_out,
++                                       0);
++        ds4_dist_options_free(cfg.dist);
++        free(cfg.prompt_owned);
++        return rc;
++    }
+     if (cfg.gen.dump_tokens) {
+         if (cfg.gen.prompt == NULL) {
+             fprintf(stderr, "ds4: --dump-tokens requires -p or --prompt-file\n");
+diff --git a/ds4_cuda.cu b/ds4_cuda.cu
+index a1e7321..8bc9136 100644
+--- a/ds4_cuda.cu
++++ b/ds4_cuda.cu
+@@ -7870,6 +7870,71 @@ extern "C" int ds4_gpu_indexer_topk_tensor(
+     return cuda_ok(cudaGetLastError(), "indexer topk launch");
+ }
+ 
++__global__ static void logits_top2_margin_kernel(
++        int32_t *out_id,
++        float *out_margin,
++        const float *logits,
++        uint32_t n) {
++    __shared__ float s_v0[256];
++    __shared__ float s_v1[256];
++    __shared__ int32_t s_i0[256];
++    float v0 = -3.4e38f, v1 = -3.4e38f;
++    int32_t i0 = -1;
++    for (uint32_t i = threadIdx.x; i < n; i += blockDim.x) {
++        const float v = logits[i];
++        if (v > v0) {
++            v1 = v0;
++            v0 = v;
++            i0 = (int32_t)i;
++        } else if (v > v1) {
++            v1 = v;
++        }
++    }
++    s_v0[threadIdx.x] = v0;
++    s_v1[threadIdx.x] = v1;
++    s_i0[threadIdx.x] = i0;
++    __syncthreads();
++    for (uint32_t stride = blockDim.x >> 1u; stride > 0; stride >>= 1u) {
++        if (threadIdx.x < stride) {
++            const float ov0 = s_v0[threadIdx.x + stride];
++            const float ov1 = s_v1[threadIdx.x + stride];
++            if (ov0 > s_v0[threadIdx.x]) {
++                s_v1[threadIdx.x] = s_v0[threadIdx.x] > ov1 ? s_v0[threadIdx.x] : ov1;
++                s_v0[threadIdx.x] = ov0;
++                s_i0[threadIdx.x] = s_i0[threadIdx.x + stride];
++            } else if (ov0 > s_v1[threadIdx.x]) {
++                s_v1[threadIdx.x] = ov0;
++            }
++        }
++        __syncthreads();
++    }
++    if (threadIdx.x == 0) {
++        out_id[0] = s_i0[0];
++        out_margin[0] = s_v0[0] - s_v1[0];
++    }
++}
++
++extern "C" int ds4_gpu_logits_top2_margin_tensor(
++        ds4_gpu_tensor *out_id,
++        uint64_t        id_offset,
++        ds4_gpu_tensor *out_margin,
++        uint64_t        margin_offset,
++        const ds4_gpu_tensor *logits,
++        uint32_t        n) {
++    if (!out_id || !out_margin || !logits || n == 0 ||
++        out_id->bytes < id_offset + sizeof(int32_t) ||
++        out_margin->bytes < margin_offset + sizeof(float) ||
++        logits->bytes < (uint64_t)n * sizeof(float)) {
++        return 0;
++    }
++    logits_top2_margin_kernel<<<1, 256>>>(
++            (int32_t *)((char *)out_id->ptr + id_offset),
++            (float *)((char *)out_margin->ptr + margin_offset),
++            (const float *)logits->ptr,
++            n);
++    return cuda_ok(cudaGetLastError(), "logits top2 margin launch");
++}
++
+ extern "C" int ds4_gpu_argmax_tensor(
+         ds4_gpu_tensor       *out_idx,
+         const ds4_gpu_tensor *logits,
+diff --git a/ds4_gpu.h b/ds4_gpu.h
+index b58aca9..9dad9dd 100644
+--- a/ds4_gpu.h
++++ b/ds4_gpu.h
+@@ -201,6 +201,13 @@ int ds4_gpu_indexer_topk_tensor(
+ 
+ /* GPU argmax over n_vocab F32 logits. Writes the winning index as int32 at
+  * out_idx[0]. Tie-break: lower index wins (matches host sample_argmax). */
++int ds4_gpu_logits_top2_margin_tensor(
++        ds4_gpu_tensor *out_id,
++        uint64_t        id_offset,
++        ds4_gpu_tensor *out_margin,
++        uint64_t        margin_offset,
++        const ds4_gpu_tensor *logits,
++        uint32_t        n);
+ int ds4_gpu_argmax_tensor(
+         ds4_gpu_tensor       *out_idx,
+         const ds4_gpu_tensor *logits,
+diff --git a/ds4_help.c b/ds4_help.c
+index 3dc81bb..f31d1f7 100644
+--- a/ds4_help.c
++++ b/ds4_help.c
+@@ -182,6 +182,9 @@ static void print_model_runtime(FILE *fp, const help_colors *c,
+             opt(fp, c, "--dspark-row-commit", "Commit partial speculative accepts from per-row frontier captures instead of replaying.");
+             opt(fp, c, "--dspark-adapt", "Pause speculation when measured acceptance stops paying for the draft/verify overhead.");
+             opt(fp, c, "--dspark-mbatch", "CUDA: decode-shaped q8 microbatch kernel for small speculative verifier batches.");
++            opt(fp, c, "--dspark-draft-batch", "CUDA: run the whole MTP draft chain in one submission with device-side token feedback.");
++            opt(fp, c, "--dspark-markov FILE", "Trained confident-trigram table for speculative drafting (build with --dspark-markov-fit).");
++            opt(fp, c, "--dspark-markov-fit OUT", "Fit a trigram table from -p/--prompt-file text and exit.");
+         }
+         opt(fp, c, "--quality", "Prefer exact kernels where faster approximate paths exist.");
+         opt(fp, c, "--warm-weights", "Touch mapped tensor pages at startup to reduce first-use stalls.");
+diff --git a/ds4_metal.m b/ds4_metal.m
+index 7e3f8bd..bb2926e 100644
+--- a/ds4_metal.m
++++ b/ds4_metal.m
+@@ -12645,6 +12645,20 @@ int ds4_gpu_indexer_topk_tensor(
+     return 1;
+ }
+ 
++int ds4_gpu_logits_top2_margin_tensor(
++        ds4_gpu_tensor *out_id,
++        uint64_t        id_offset,
++        ds4_gpu_tensor *out_margin,
++        uint64_t        margin_offset,
++        const ds4_gpu_tensor *logits,
++        uint32_t        n) {
++    /* Not implemented on Metal: the batched draft chain falls back to the
++     * per-step path when this returns 0. */
++    (void)out_id; (void)id_offset; (void)out_margin; (void)margin_offset;
++    (void)logits; (void)n;
++    return 0;
++}
++
+ int ds4_gpu_argmax_tensor(
+         ds4_gpu_tensor       *out_idx,
+         const ds4_gpu_tensor *logits,
+diff --git a/ds4_server.c b/ds4_server.c
+index 9b0af5c..36356f3 100644
+--- a/ds4_server.c
++++ b/ds4_server.c
+@@ -11574,6 +11574,10 @@ static server_config parse_options(int argc, char **argv) {
+             c.engine.dspark_adapt = true;
+         } else if (!strcmp(arg, "--dspark-mbatch")) {
+             c.engine.dspark_mbatch = true;
++        } else if (!strcmp(arg, "--dspark-draft-batch")) {
++            c.engine.dspark_draft_batch = true;
++        } else if (!strcmp(arg, "--dspark-markov")) {
++            c.engine.dspark_markov_path = need_arg(&i, argc, argv, arg);
+         } else if (!strcmp(arg, "-c") || !strcmp(arg, "--ctx")) {
+             c.ctx_size = parse_int_arg(need_arg(&i, argc, argv, arg), arg);
+         } else if (!strcmp(arg, "-n") || !strcmp(arg, "--tokens")) {
+-- 
+2.43.0
+
