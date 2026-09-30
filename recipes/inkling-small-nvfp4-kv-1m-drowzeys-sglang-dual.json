@@ -59,7 +59,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -69,7 +70,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -79,7 +81,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -89,7 +92,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -99,7 +103,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -109,7 +114,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -119,7 +125,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -129,7 +136,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -139,7 +147,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -149,7 +158,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -159,7 +169,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -169,7 +180,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -179,7 +191,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -189,7 +202,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -199,7 +213,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -209,7 +224,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -219,7 +235,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -229,7 +246,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -239,7 +257,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -249,7 +268,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -259,7 +279,8 @@
             "target": "/models/target"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         }
       ],
@@ -280,7 +301,8 @@
             "target": "/models/drafter"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -290,7 +312,8 @@
             "target": "/models/drafter"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -300,7 +323,8 @@
             "target": "/models/drafter"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -310,7 +334,8 @@
             "target": "/models/drafter"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -320,7 +345,8 @@
             "target": "/models/drafter"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         },
         {
@@ -330,7 +356,8 @@
             "target": "/models/drafter"
           },
           "roles": [
-            "entrypoint"
+            "entrypoint",
+            "worker"
           ]
         }
       ],
@@ -380,7 +407,7 @@
   },
   "release": {
     "released_at": "2026-08-16",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
