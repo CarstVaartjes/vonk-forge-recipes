@@ -215,11 +215,11 @@
       "SGLang contributors",
       "DeepSeek AI"
     ],
-    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/b3bc0813e1864e54ce5ed9a0cc74e0b03745c027/nvidia/sglang/README.md"
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/c9033a130e1d14cb3125b017b80901d8d04c0856/nvidia/sglang/README.md"
   },
   "release": {
-    "released_at": "2026-09-18",
-    "version": "0.5.20"
+    "released_at": "2026-09-30",
+    "version": "0.5.21"
   },
   "runtime": {
     "arguments": [
