@@ -75,8 +75,8 @@
           ]
         },
         {
-          "file_id": "readme-8bbdba2ffd31-b335630551",
-          "id": "primary-readme-8bbdba2ffd31-b335630551",
+          "file_id": "readme-94f0de6f2c02-b335630551",
+          "id": "primary-readme-94f0de6f2c02-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -95,8 +95,8 @@
           ]
         },
         {
-          "file_id": "chat-template-36e3a42e5cf1-00824420d1",
-          "id": "primary-chat-template-36e3a42e5cf1-00824420d1",
+          "file_id": "chat-template-2f1b4d75d067-00824420d1",
+          "id": "primary-chat-template-2f1b4d75d067-00824420d1",
           "mount": {
             "target": "/models"
           },
@@ -197,10 +197,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6b958fe8a3ccc792a5e67ef618211359366024b14e9168a19fd6a5ba0324e77b",
+        "content_sha256": "0155ed9c92b57e1ea817ed7610a1b7d20a32ee319ebb8a3c6a11f37481153792",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "diffusiongemma-26b-a4b-it-nvfp4-08763e52"
+        "slug": "diffusiongemma-26b-a4b-it-nvfp4-ec4ff3df"
       }
     }
   ],
@@ -240,8 +240,8 @@
     "source_reference": "https://github.com/r0b0tlab/diffusiongemma-26b-nvfp4-sm121-vllm/tree/c255963962e71c0cb9d7a4baed4ab5c410459988"
   },
   "release": {
-    "released_at": "2026-06-10",
-    "version": "1.0.0"
+    "released_at": "2026-07-04",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -374,7 +374,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 18864432890,
+            "artifact_bytes": 18864432762,
             "image_bytes": 25000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 30000000000
