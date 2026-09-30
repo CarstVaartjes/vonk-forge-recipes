@@ -66,6 +66,8 @@ LABEL_NEEDS_REVIEW = "refresh:needs-review"
 LABEL_MECHANICAL = "refresh:mechanical"
 # Full-suite verification takes minutes per recipe; the rest wait for the next hour.
 MAX_MECHANICAL_PER_RUN = 3
+# A model revision that resizes the disk envelope by more than this needs a human.
+MATERIAL_ENVELOPE_PERCENT = 1
 MAX_BODY = 60000
 VERSION_TAG = re.compile(r"^v?(\d+(?:\.\d+)*)$")
 OWN_VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
@@ -1334,17 +1336,22 @@ class Assessor:
                 if selected["id"].endswith(before):
                     selected["id"] = selected["id"][: -len(before)] + replacement["id"]
         if old_total != new_total:
-            resized = False
-            for role in new_recipe["topology"]["roles"]:
-                disk = role["resources"]["disk"]
-                if disk["artifact_bytes"] == old_total:
-                    disk["artifact_bytes"] = new_total
-                    resized = True
-            if not resized:
+            delta = new_total - old_total
+            roles = new_recipe["topology"]["roles"]
+            if any(
+                abs(delta) * 100 > role["resources"]["disk"]["artifact_bytes"]
+                for role in roles
+            ):
                 result.reasons.append(
                     f"model sizes changed ({old_total} -> {new_total} bytes) and the recipe's "
-                    "disk envelope is not derived from them"
+                    f"disk envelope would change by more than {MATERIAL_ENVELOPE_PERCENT}%"
                 )
+                return
+            # The artifact envelope follows the selected files' sizes (the sum over
+            # the recipe's models, or that sum plus a declared allowance), so shift
+            # it by the size difference.
+            for role in roles:
+                role["resources"]["disk"]["artifact_bytes"] += delta
 
 
 # ---------------------------------------------------------------------------
