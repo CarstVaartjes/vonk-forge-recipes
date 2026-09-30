@@ -1,5 +1,11 @@
 """Verify the vLLM CLI sentinel used to disable speculative decoding."""
 
+import os
+
+# This process checks CLI parsing, not inference. Explicit CPU mode lets the
+# real vLLM parser construct defaults without requiring a builder GPU.
+os.environ["VLLM_TARGET_DEVICE"] = "cpu"
+
 from vllm.engine.arg_utils import EngineArgs
 from vllm.utils.argparse_utils import FlexibleArgumentParser
 
