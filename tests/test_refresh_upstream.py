@@ -199,5 +199,31 @@ class ReleaseTests(unittest.TestCase):
         )
 
 
+class OpenPullRequestTests(unittest.TestCase):
+    footprint = (
+        {"recipes/a.json", "models/m-1.json"},
+        ["adapters/llm/a/"],
+    )
+
+    def test_foreign_pr_touching_recipe_model_or_adapter_blocks(self) -> None:
+        for name in ("recipes/a.json", "models/m-1.json", "adapters/llm/a/Dockerfile"):
+            with self.subTest(name=name):
+                self.assertEqual(
+                    refresh.blocking_prs(self.footprint, {7: {name, "README.md"}}), [7]
+                )
+
+    def test_unrelated_pr_does_not_block(self) -> None:
+        opens = {7: {"recipes/b.json", "adapters/llm/ab/Dockerfile", "README.md"}}
+        self.assertEqual(refresh.blocking_prs(self.footprint, opens), [])
+
+    def test_footprint_covers_recipe_models_and_context(self) -> None:
+        catalog = refresh.Catalog(ROOT)
+        catalog.recipes["a"] = {
+            "models": [{"model": {"slug": "m-1"}}],
+            "execution": {"build": {"context": {"path": "adapters/llm/a"}}},
+        }
+        self.assertEqual(refresh.recipe_footprint(catalog, "a"), self.footprint)
+
+
 if __name__ == "__main__":
     unittest.main()
