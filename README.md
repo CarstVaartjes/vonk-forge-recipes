@@ -138,6 +138,7 @@ Creators whose DGX Spark work we package; filter by creator in vonkctl or the we
 | [MiaAI-Lab](https://github.com/MiaAI-Lab) | Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling. |
 | [NVIDIA playbooks](https://github.com/NVIDIA/dgx-spark-playbooks) | Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints. |
 | [r0b0tlab](https://github.com/r0b0tlab) | vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron. |
+| [Reederey87](https://github.com/Reederey87) | Production GLM-5.3-Flash EXL3 kit for two Sparks: 1M-token context with DFlash2, hybrid prefix-cache fixes and fat-expert MoE kernels. |
 | [sfxnz](https://github.com/sfxnz) | Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3. |
 | [tonyd2wild](https://github.com/tonyd2wild) | Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo. |
 | [vcruz305](https://github.com/vcruz305) | Single-Spark EXL3 recipes on a GB10-tuned exllamav3 fork with TabbyAPI or vLLM: Qwen3.8 Flash Next, GLM 5.3 Flash, DeepSeek V4.1 Flash. |
