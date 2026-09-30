@@ -64,8 +64,8 @@
           ]
         },
         {
-          "file_id": "readme-2a001916abad-b335630551",
-          "id": "primary-readme-2a001916abad-b335630551",
+          "file_id": "readme-9e4501d2f1e3-b335630551",
+          "id": "primary-readme-9e4501d2f1e3-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -186,10 +186,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bc340088de37c8ac6a6bad4940544642e227cf5c69a1ec5e3fe46451222d819d",
+        "content_sha256": "6ac052486d3eb4d37f05429d60448c2833e09d86729527d4156babf32acb5669",
         "kind": "model",
         "publisher": "redhatai",
-        "slug": "qwen3-6-35b-a3b-nvfp4-redhatai-e850c696"
+        "slug": "qwen3-6-35b-a3b-nvfp4-redhatai-e94a930c"
       }
     }
   ],
@@ -244,8 +244,8 @@
     "source_reference": "https://github.com/r0b0tlab/qwen36-35b-a3b-nvfp4-gb10-native-mtp/tree/c962efdf2b80bbf71e092bb3f4ca65a6d1380386"
   },
   "release": {
-    "released_at": "2026-05-19",
-    "version": "1.0.0"
+    "released_at": "2026-08-13",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -366,7 +366,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 25075981088,
+            "artifact_bytes": 25075986431,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 16000000000,
             "working_bytes": 30000000000
