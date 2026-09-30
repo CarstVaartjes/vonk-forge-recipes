@@ -1,0 +1,16 @@
+{
+  "id": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single",
+  "service_recipes": {
+    "alias": "deepseek-v4-flash-0731-spark",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Physical memory headroom, 252K cold-prefill, and bounded concurrency canaries"
+      ]
+    }
+  }
+}
