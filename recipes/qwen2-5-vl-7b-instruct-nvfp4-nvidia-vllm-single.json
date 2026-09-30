@@ -1,0 +1,374 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "9204569b17ee4c0eff75194b8e6e458479c8aee18953b5ab9cf359fcdac659e2",
+        "repository": "nvcr.io/nvidia/vllm"
+      },
+      "context": {
+        "path": "adapters/nvidia/qwen2-5-vl-7b-instruct-nvfp4-nvidia-vllm-single"
+      },
+      "dockerfile": "adapters/nvidia/qwen2-5-vl-7b-instruct-nvfp4-nvidia-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen2-5-vl-7b-instruct-nvfp4-nvidia-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "qwen2.5-vl-7b-instruct"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Qwen2.5-VL 7B Instruct NVFP4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes are estimates from vLLM's default 0.9 GPU memory utilization, not measurements; physical Spark acceptance is pending.",
+    "tags": [
+      "executable",
+      "candidate",
+      "nvidia",
+      "vllm",
+      "openai",
+      "single",
+      "spark",
+      "qwen",
+      "nvfp4",
+      "vision"
+    ],
+    "title": "Qwen2.5-VL 7B Instruct NVFP4 vLLM single Spark (NVIDIA playbook)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-63db53e79ebe-618cd5b83d",
+          "id": "metadata-63db53e79ebe-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-fa4d54e7b8a1-83a544517d",
+          "id": "license-fa4d54e7b8a1-83a544517d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-413650e4ed6a-b335630551",
+          "id": "readme-413650e4ed6a-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "added-tokens-58b54bbe36fc-dec41b9537",
+          "id": "added-tokens-58b54bbe36fc-dec41b9537",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-a0bc6f6fc7a2-00824420d1",
+          "id": "chat-template-a0bc6f6fc7a2-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-776d24a29b93-587cb980af",
+          "id": "config-776d24a29b93-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-bc068f56ab9b-97dd3d578b",
+          "id": "generation-config-bc068f56ab9b-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-7ffe2f63dcdb-a481ad90fa",
+          "id": "hf-quant-config-7ffe2f63dcdb-a481ad90fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-8831e4f1a044-b0d6dcfed4",
+          "id": "merges-8831e4f1a044-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-e1fd4af01e69-27a6880801",
+          "id": "model-00001-of-00002-e1fd4af01e69-27a6880801",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-b67d3920398d-2cca3b5a88",
+          "id": "model-00002-of-00002-b67d3920398d-2cca3b5a88",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-7192522e412c-0a05be8238",
+          "id": "model-safetensors-index-7192522e412c-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-276e1dbe46dd-36afccab5d",
+          "id": "preprocessor-config-276e1dbe46dd-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-a4c29a7f6314-c07a9be597",
+          "id": "special-tokens-map-a4c29a7f6314-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-9c5ae00e602b-224931eb13",
+          "id": "tokenizer-9c5ae00e602b-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-60f6e7bc948c-94d5c6ba8f",
+          "id": "tokenizer-config-60f6e7bc948c-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-2e82d384445c-35d01a7325",
+          "id": "video-preprocessor-config-2e82d384445c-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "260e0e560500f27ae1c9409419bc6f9f2a84754e443e7eb5cbbef0c884299036",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "qwen2-5-vl-7b-instruct-nvfp4-d13bb1f2"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "NVIDIA",
+      "vLLM contributors",
+      "NVIDIA Corporation",
+      "Alibaba Qwen"
+    ],
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/b3bc0813e1864e54ce5ed9a0cc74e0b03745c027/nvidia/vllm/README.md"
+  },
+  "release": {
+    "released_at": "2026-05-29",
+    "version": "26.05.post1"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "qwen2.5-vl-7b-instruct"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 128000
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 7220464249,
+            "image_bytes": 25000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 16000000000
+          },
+          "memory": {
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen2.5-vl-7b-instruct"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
