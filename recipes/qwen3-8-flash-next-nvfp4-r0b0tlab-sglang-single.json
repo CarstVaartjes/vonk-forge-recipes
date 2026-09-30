@@ -58,7 +58,7 @@
           "file_id": "metadata-fe81d528e7ee-618cd5b83d",
           "id": "primary-metadata-fe81d528e7ee-618cd5b83d",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -68,7 +68,7 @@
           "file_id": "readme-e3ed0cb89950-b335630551",
           "id": "primary-readme-e3ed0cb89950-b335630551",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -78,7 +78,7 @@
           "file_id": "chat-template-c3cf9e34abf4-00824420d1",
           "id": "primary-chat-template-c3cf9e34abf4-00824420d1",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -88,7 +88,7 @@
           "file_id": "config-deef67a61f33-587cb980af",
           "id": "primary-config-deef67a61f33-587cb980af",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -98,7 +98,7 @@
           "file_id": "generation-config-e70c136c1b78-97dd3d578b",
           "id": "primary-generation-config-e70c136c1b78-97dd3d578b",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -108,7 +108,7 @@
           "file_id": "hf-quant-config-331ad11d57c8-a481ad90fa",
           "id": "primary-hf-quant-config-331ad11d57c8-a481ad90fa",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -118,7 +118,7 @@
           "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -128,7 +128,7 @@
           "file_id": "model-00001-of-00010-63fde954be6f-abda2caf91",
           "id": "primary-model-00001-of-00010-63fde954be6f-abda2caf91",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -138,7 +138,7 @@
           "file_id": "model-00002-of-00010-4dafaef62a90-c78aeb3aa5",
           "id": "primary-model-00002-of-00010-4dafaef62a90-c78aeb3aa5",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -148,7 +148,7 @@
           "file_id": "model-00003-of-00010-3218ddc12925-3bbb02f554",
           "id": "primary-model-00003-of-00010-3218ddc12925-3bbb02f554",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -158,7 +158,7 @@
           "file_id": "model-00004-of-00010-55e2bdf6a3a1-9744fa3b65",
           "id": "primary-model-00004-of-00010-55e2bdf6a3a1-9744fa3b65",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -168,7 +168,7 @@
           "file_id": "model-00005-of-00010-d3c169d3694b-287722c574",
           "id": "primary-model-00005-of-00010-d3c169d3694b-287722c574",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -178,7 +178,7 @@
           "file_id": "model-00006-of-00010-38f65a9d1109-5c0b2f8f0d",
           "id": "primary-model-00006-of-00010-38f65a9d1109-5c0b2f8f0d",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -188,7 +188,7 @@
           "file_id": "model-00007-of-00010-8cf3fa05c04c-3028b843f1",
           "id": "primary-model-00007-of-00010-8cf3fa05c04c-3028b843f1",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -198,7 +198,7 @@
           "file_id": "model-00008-of-00010-53d1f80746aa-1a97e5bd74",
           "id": "primary-model-00008-of-00010-53d1f80746aa-1a97e5bd74",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -208,7 +208,7 @@
           "file_id": "model-00009-of-00010-eaff6a87ece6-9e545a3307",
           "id": "primary-model-00009-of-00010-eaff6a87ece6-9e545a3307",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -218,7 +218,7 @@
           "file_id": "model-00010-of-00010-0d49b0cf7c15-3cc422b9fe",
           "id": "primary-model-00010-of-00010-0d49b0cf7c15-3cc422b9fe",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -228,7 +228,7 @@
           "file_id": "model-fp8-mtp-ple-3525520c8602-8c766fad0c",
           "id": "primary-model-fp8-mtp-ple-3525520c8602-8c766fad0c",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -238,7 +238,7 @@
           "file_id": "model-safetensors-index-660414e83007-0a05be8238",
           "id": "primary-model-safetensors-index-660414e83007-0a05be8238",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -248,7 +248,7 @@
           "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
           "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -258,7 +258,7 @@
           "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
           "id": "primary-processor-config-d89ef49ce9cd-27f0cb76af",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -268,7 +268,7 @@
           "file_id": "tokenizer-0997f410c57a-224931eb13",
           "id": "primary-tokenizer-0997f410c57a-224931eb13",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -278,7 +278,7 @@
           "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "id": "primary-tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -288,7 +288,7 @@
           "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
           "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -298,7 +298,7 @@
           "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
           "mount": {
-            "target": "/model"
+            "target": "/models"
           },
           "roles": [
             "entrypoint"
@@ -362,7 +362,7 @@
   },
   "release": {
     "released_at": "2026-09-13",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
