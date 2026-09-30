@@ -1,0 +1,1085 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "e4462a915ba56026f9c7b5ed195180e07986983ac1aa26a8bb0160d7a031f396",
+        "repository": "ghcr.io/0xsero/deepseek-v4-flash-spark-vllm"
+      },
+      "context": {
+        "path": "adapters/deepseek/0xsero-reap-single"
+      },
+      "dockerfile": "adapters/deepseek/0xsero-reap-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-flash-reap-180b-0xsero-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "DeepSeek-V4-Flash-Spark"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "0xSero's DeepSeek V4 Flash REAP 180B (K160, 160 experts per layer, MXFP4, about 103 GB) on one Spark with vLLM, from 0xSero/deepseek-spark at 97fd6f02 (runtime/ configs and launcher; the vLLM Studio controller in the same repository is not packaged). Runs on upstream's public arm64 cutlass451-g27 vLLM image (pinned by digest) with upstream's GB10 REAP patcher applied at build time instead of at each start: router fallback for non-standard expert counts, per-layer MXFP4 memory hygiene, CUDA-IPC fix. 200000-token context, FP8 KV cache (fixed KV budget), one sequence, thinking on by default, DeepSeek V4 tokenizer, tool-call and reasoning parsers, CUDA graphs (FULL_AND_PIECEWISE), prefix caching. DeepSeek MTP speculation with 2 draft tokens is on (the k160-mtp2-200k profile, the upstream default; upstream also has a no-speculation k160 profile with a larger KV budget that is not packaged, since an option cannot remove the speculative config). Upstream claims, not measured here: model load 96.66 GiB, 537516 KV tokens, about 33 tok/s median decode and 550 tok/s prefill on a 136k prompt with MTP acceptance about 70 percent. Licences are informational: weights repository and DeepSeek V4 are MIT; the source repository carries no licence file. Physical Spark acceptance is pending.",
+    "tags": [
+      "0xsero",
+      "candidate",
+      "deepseek-v4",
+      "executable",
+      "mtp",
+      "mxfp4",
+      "reap",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "DeepSeek V4 Flash REAP 180B (K160) MTP vLLM single Spark (0xSero)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-64a7f55935f2-618cd5b83d",
+          "id": "primary-metadata-64a7f55935f2-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-f2c6c6028156-c693279643",
+          "id": "primary-license-f2c6c6028156-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-3b8c6acc8c52-b335630551",
+          "id": "primary-readme-3b8c6acc8c52-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-83792681fee1-587cb980af",
+          "id": "primary-config-83792681fee1-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-605363e9e43e-5728b2733a",
+          "id": "primary-readme-605363e9e43e-5728b2733a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "encoding-dsv4-bdbd57c132a1-640bcceb70",
+          "id": "primary-encoding-dsv4-bdbd57c132a1-640bcceb70",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "test-encoding-dsv4-c2bc54c4c934-8e23368506",
+          "id": "primary-test-encoding-dsv4-c2bc54c4c934-8e23368506",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "test-input-1-10e0c074c977-c2c0cf1c63",
+          "id": "primary-test-input-1-10e0c074c977-c2c0cf1c63",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "test-input-2-c44ae0db20fa-1e915f673a",
+          "id": "primary-test-input-2-c44ae0db20fa-1e915f673a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "test-input-3-37bf8ef95e04-a9bea918ca",
+          "id": "primary-test-input-3-37bf8ef95e04-a9bea918ca",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "test-input-4-c45bbd0a1b7a-8eeffe20fa",
+          "id": "primary-test-input-4-c45bbd0a1b7a-8eeffe20fa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "test-output-1-9b366d9d2eac-61eeac8704",
+          "id": "primary-test-output-1-9b366d9d2eac-61eeac8704",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "test-output-2-ca66b01a1ac3-5cee9cd964",
+          "id": "primary-test-output-2-ca66b01a1ac3-5cee9cd964",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "test-output-3-b3b1cd8748b7-8f31f9617b",
+          "id": "primary-test-output-3-b3b1cd8748b7-8f31f9617b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "test-output-4-60e1643840ba-11e6eaf31c",
+          "id": "primary-test-output-4-60e1643840ba-11e6eaf31c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-5fccff80f55a-97dd3d578b",
+          "id": "primary-generation-config-5fccff80f55a-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-b9fe8027f91f-ec778488b2",
+          "id": "primary-readme-b9fe8027f91f-ec778488b2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-f4d82749ecf6-ea2d4a0a9f",
+          "id": "primary-config-f4d82749ecf6-ea2d4a0a9f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "convert-912acfc20bdd-a1490d76d2",
+          "id": "primary-convert-912acfc20bdd-a1490d76d2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generate-d4d443c0be84-8c6ee707d6",
+          "id": "primary-generate-d4d443c0be84-8c6ee707d6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "kernel-c4dc859a2208-baff7826cd",
+          "id": "primary-kernel-c4dc859a2208-baff7826cd",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-ee27814de8ef-8aa37e8d7b",
+          "id": "primary-model-ee27814de8ef-8aa37e8d7b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "requirements-857e0b8b58e4-95abf76140",
+          "id": "primary-requirements-857e0b8b58e4-95abf76140",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00046-da50e8a6088c-f95e20edf0",
+          "id": "primary-model-00001-of-00046-da50e8a6088c-f95e20edf0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00046-e5773b661aa8-5e650d43e8",
+          "id": "primary-model-00002-of-00046-e5773b661aa8-5e650d43e8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00046-35df007adab7-890c5a16ac",
+          "id": "primary-model-00003-of-00046-35df007adab7-890c5a16ac",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00046-e7ad94279162-21c29c314d",
+          "id": "primary-model-00004-of-00046-e7ad94279162-21c29c314d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00046-7a026921426a-ab3ae8357e",
+          "id": "primary-model-00005-of-00046-7a026921426a-ab3ae8357e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00046-daa2d828e661-13ac44f94b",
+          "id": "primary-model-00006-of-00046-daa2d828e661-13ac44f94b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00046-5d39fd19d947-21b81f0b09",
+          "id": "primary-model-00007-of-00046-5d39fd19d947-21b81f0b09",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00046-a254049fc391-c0db9d6f8b",
+          "id": "primary-model-00008-of-00046-a254049fc391-c0db9d6f8b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00046-efeb7a1804c0-c51fbfe32f",
+          "id": "primary-model-00009-of-00046-efeb7a1804c0-c51fbfe32f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00046-33369d290f7b-4e0cee4a4a",
+          "id": "primary-model-00010-of-00046-33369d290f7b-4e0cee4a4a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00046-9125445e8db0-860f1f8b12",
+          "id": "primary-model-00011-of-00046-9125445e8db0-860f1f8b12",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00046-a700c0a70502-dc2c0bd373",
+          "id": "primary-model-00012-of-00046-a700c0a70502-dc2c0bd373",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00046-a24a31f216fc-1768baab13",
+          "id": "primary-model-00013-of-00046-a24a31f216fc-1768baab13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00046-144f59cc41eb-4e58a151ab",
+          "id": "primary-model-00014-of-00046-144f59cc41eb-4e58a151ab",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00046-18c3a42daf95-18e46eef5b",
+          "id": "primary-model-00015-of-00046-18c3a42daf95-18e46eef5b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00046-8d935be24aa6-bf6005d45c",
+          "id": "primary-model-00016-of-00046-8d935be24aa6-bf6005d45c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00046-43854e794fc2-04be08c5aa",
+          "id": "primary-model-00017-of-00046-43854e794fc2-04be08c5aa",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00046-e95acf772376-6738ff3ecc",
+          "id": "primary-model-00018-of-00046-e95acf772376-6738ff3ecc",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00046-e33a9c8a1d52-0059d03803",
+          "id": "primary-model-00019-of-00046-e33a9c8a1d52-0059d03803",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00046-b35b0303aaa4-ccebfbf396",
+          "id": "primary-model-00020-of-00046-b35b0303aaa4-ccebfbf396",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00046-652b784985fc-2bdebaecb3",
+          "id": "primary-model-00021-of-00046-652b784985fc-2bdebaecb3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00046-48150e553301-d0408fe7f2",
+          "id": "primary-model-00022-of-00046-48150e553301-d0408fe7f2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00046-474273114eb8-6d358e9f85",
+          "id": "primary-model-00023-of-00046-474273114eb8-6d358e9f85",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00046-4aa4b02c7a77-d1ad7eeb1f",
+          "id": "primary-model-00024-of-00046-4aa4b02c7a77-d1ad7eeb1f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00046-baf3f7c4bb28-9ae35d3ca6",
+          "id": "primary-model-00025-of-00046-baf3f7c4bb28-9ae35d3ca6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00046-deca336d9173-42dea5a9b4",
+          "id": "primary-model-00026-of-00046-deca336d9173-42dea5a9b4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00046-fc95f27f7b71-040f92393a",
+          "id": "primary-model-00027-of-00046-fc95f27f7b71-040f92393a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00046-5f574dc6a775-8462489f35",
+          "id": "primary-model-00028-of-00046-5f574dc6a775-8462489f35",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00046-60d65d7e3b10-2b3b6f0a20",
+          "id": "primary-model-00029-of-00046-60d65d7e3b10-2b3b6f0a20",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00046-1c3e74b40da8-d23b19bf3b",
+          "id": "primary-model-00030-of-00046-1c3e74b40da8-d23b19bf3b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00046-30c7362e2707-b6f46f758f",
+          "id": "primary-model-00031-of-00046-30c7362e2707-b6f46f758f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00046-558eb049354d-44649c3162",
+          "id": "primary-model-00032-of-00046-558eb049354d-44649c3162",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00046-d104f4009baf-804331497b",
+          "id": "primary-model-00033-of-00046-d104f4009baf-804331497b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00034-of-00046-b0202e5c8f77-7103b11051",
+          "id": "primary-model-00034-of-00046-b0202e5c8f77-7103b11051",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00035-of-00046-d89cd4593e5d-d5f82c106c",
+          "id": "primary-model-00035-of-00046-d89cd4593e5d-d5f82c106c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00036-of-00046-952b051c9f16-a62506a582",
+          "id": "primary-model-00036-of-00046-952b051c9f16-a62506a582",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00037-of-00046-96214113de67-b7c4dd21c1",
+          "id": "primary-model-00037-of-00046-96214113de67-b7c4dd21c1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00038-of-00046-c72d9fc308fd-ee137a6278",
+          "id": "primary-model-00038-of-00046-c72d9fc308fd-ee137a6278",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00039-of-00046-a0aad20e78ec-2c3b3487ba",
+          "id": "primary-model-00039-of-00046-a0aad20e78ec-2c3b3487ba",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00040-of-00046-3da94219c63f-1a5b9b4e2f",
+          "id": "primary-model-00040-of-00046-3da94219c63f-1a5b9b4e2f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00041-of-00046-f67c13d4cab7-7b3ada0a9a",
+          "id": "primary-model-00041-of-00046-f67c13d4cab7-7b3ada0a9a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00042-of-00046-7018b3761478-d2809cf9ca",
+          "id": "primary-model-00042-of-00046-7018b3761478-d2809cf9ca",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00043-of-00046-be507899ac0d-9929cb51c1",
+          "id": "primary-model-00043-of-00046-be507899ac0d-9929cb51c1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00044-of-00046-a35d98461bc4-40b62863ea",
+          "id": "primary-model-00044-of-00046-a35d98461bc4-40b62863ea",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00045-of-00046-5ebf62d857df-96f9410e34",
+          "id": "primary-model-00045-of-00046-5ebf62d857df-96f9410e34",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00046-of-00046-7899ee9395ae-a02cef327c",
+          "id": "primary-model-00046-of-00046-7899ee9395ae-a02cef327c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-b18da116ef4a-0a05be8238",
+          "id": "primary-model-safetensors-index-b18da116ef4a-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "reap-plan-2837dc8cd0f7-67dbc7ebc9",
+          "id": "primary-reap-plan-2837dc8cd0f7-67dbc7ebc9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-8f9f37ca37fd-224931eb13",
+          "id": "primary-tokenizer-8f9f37ca37fd-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
+          "id": "primary-tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "373faffe7302295737c3c7742f0c2d3d906d124d2a603bd8a7239a4dba2c4202",
+        "kind": "model",
+        "publisher": "0xsero",
+        "slug": "deepseek-v4-flash-reap-180b-k160-d3c704b7"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "0xSero",
+      "DeepSeek-AI (DeepSeek V4 Flash, MIT)",
+      "vLLM contributors (Apache-2.0)",
+      "NVIDIA (CUTLASS DSL)"
+    ],
+    "source_reference": "https://github.com/0xSero/deepseek-spark/tree/97fd6f02e26870416d3c6b450d4fa3217d9db124"
+  },
+  "release": {
+    "released_at": "2026-09-03",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "DeepSeek-V4-Flash-Spark"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "pipeline-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": "6G"
+      },
+      {
+        "name": "block-size",
+        "setting": null,
+        "value": 256
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": "max_batch_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.88"
+      },
+      {
+        "name": "distributed-executor-backend",
+        "setting": null,
+        "value": "mp"
+      },
+      {
+        "name": "tokenizer-mode",
+        "setting": null,
+        "value": "deepseek_v4"
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "safetensors"
+      },
+      {
+        "name": "disable-uvicorn-access-log",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "deepseek_v4"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "deepseek_v4"
+      },
+      {
+        "name": "reasoning-config",
+        "setting": null,
+        "value": "{\"reasoning_parser\":\"deepseek_v4\",\"reasoning_start_str\":\"<think>\",\"reasoning_end_str\":\"</think>\"}"
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"thinking\":true}"
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_mode\":\"FULL_AND_PIECEWISE\",\"custom_ops\":[\"all\"]}"
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"deepseek_mtp\",\"num_speculative_tokens\":2}"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_TRITON_MLA_SPARSE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_TRITON_MLA_SPARSE_ALLOW_CUDAGRAPH",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ENABLE_DEEPSEEK_V4_MHC_WARMUP",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ENABLE_DEEPSEEK_V4_SPARSE_MLA_WARMUP",
+        "value": "0"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "TILELANG_CLEANUP_TEMP_FILES",
+        "value": "1"
+      },
+      {
+        "name": "DG_JIT_USE_NVRTC",
+        "value": "0"
+      },
+      {
+        "name": "DG_JIT_NVCC_COMPILER",
+        "value": "/usr/local/cuda/bin/nvcc"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+      },
+      {
+        "name": "K160_DISABLE_CUTEDSL",
+        "value": "0"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 200000
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": {
+      "change_effect": "restart",
+      "value": 4096
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 103117732735,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 20000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 113000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "DeepSeek-V4-Flash-Spark"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
