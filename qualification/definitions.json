@@ -4320,6 +4320,22 @@
         ]
       }
     },
+    "vonk-forge/gpt-oss-20b-nvidia-trtllm-single": {
+      "alias": "gpt-oss-20b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual": {
       "alias": "inkling-small",
       "smoke_cases": [
