@@ -1,0 +1,282 @@
+{
+  "capabilities": [
+    "image-understanding",
+    "reasoning",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d1a8f4a1d2e3787c5956393d9306365ebefe1912cb76828870682b1ab16f5c27",
+      "size_bytes": 1635
+    },
+    {
+      "id": "readme-2dcb611deb72-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "2dcb611deb72d8dadac9306bc662b06abf07ce0a4e92c50ebefe4f54a0baddd2",
+      "size_bytes": 4222
+    },
+    {
+      "id": "chat-template-a4aee8afcf2e-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+      "size_bytes": 7756
+    },
+    {
+      "id": "config-e5333359cc8a-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e5333359cc8a4fd99fbc7071f59f89626254722cdd10773e25491d0b4026e625",
+      "size_bytes": 27865
+    },
+    {
+      "id": "generation-config-3b7624911fa0-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3b7624911fa09d1e6e430b43661ffe87113a850888af0b30b59aadc2097c2bbc",
+      "size_bytes": 213
+    },
+    {
+      "id": "model-00001-of-00014-d719248096be-a616cff5d0",
+      "path": "model-00001-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d719248096be67ac10ecf872fa88f519d4770e57ebf09d7c1cf7ea20188a77df",
+      "size_bytes": 5368897696
+    },
+    {
+      "id": "model-00002-of-00014-01952be77e15-b05d080c89",
+      "path": "model-00002-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "01952be77e152fa31e11de47a325629108965918ea63631b95d6f56b5acfff07",
+      "size_bytes": 5369406824
+    },
+    {
+      "id": "model-00003-of-00014-2a8185d6c9e5-eede9b2a5b",
+      "path": "model-00003-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2a8185d6c9e529fef1162f6a4e9accb6d7a5ea0afa4c202e8081f60f4c9e1ace",
+      "size_bytes": 5369412104
+    },
+    {
+      "id": "model-00004-of-00014-8910f9e2931c-54b0fd962d",
+      "path": "model-00004-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8910f9e2931cab4cc08a68e9cc6fcd28ae61d7e2ef819e1c36d65967d0c73b8b",
+      "size_bytes": 5369416352
+    },
+    {
+      "id": "model-00005-of-00014-ea11ef9fbf69-2bad39935b",
+      "path": "model-00005-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ea11ef9fbf69fad51c13f1c742a3d576c6c3fdce5b9074d92925bb5dd30aa0a2",
+      "size_bytes": 5369416440
+    },
+    {
+      "id": "model-00006-of-00014-5cad19a48f5c-c774652fd4",
+      "path": "model-00006-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5cad19a48f5c715c305170b54d2ef3325a7a7f97394be9e8aa50772274d80058",
+      "size_bytes": 5369416448
+    },
+    {
+      "id": "model-00007-of-00014-5d5797732bf1-3e70d1e89d",
+      "path": "model-00007-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5d5797732bf1a5bbc70fa4e44b57ab1194bc3d0956c392fed224903c25820fd3",
+      "size_bytes": 5369416528
+    },
+    {
+      "id": "model-00008-of-00014-8901c0ddd9bc-3ad41f1330",
+      "path": "model-00008-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8901c0ddd9bcfdffc9cf08a248aa0228f0ce78c7c3c7bc1e8687c4d4e8d09aa7",
+      "size_bytes": 5369416600
+    },
+    {
+      "id": "model-00009-of-00014-30a90bc45979-355610dc19",
+      "path": "model-00009-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "30a90bc45979f079e89d87c37147e744e2cc19e2e2e34d2b2d42e80f06ec282b",
+      "size_bytes": 5369416608
+    },
+    {
+      "id": "model-00010-of-00014-4fadf721724d-0213cc861d",
+      "path": "model-00010-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4fadf721724d1c0ce0146beb9d8e4b216dfd8ad1a458f5d2713a67987aadea78",
+      "size_bytes": 5369416600
+    },
+    {
+      "id": "model-00011-of-00014-e7683ba223b1-0d49024e1b",
+      "path": "model-00011-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e7683ba223b19f3341f3bfe90a9d5ff1343ac4c731726aad6affb42726eb2de3",
+      "size_bytes": 5369416600
+    },
+    {
+      "id": "model-00012-of-00014-5cb13135d184-cbd446f7da",
+      "path": "model-00012-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5cb13135d18487c3f70b7c52bea0817a6e9d3a723d918908f529303453febb83",
+      "size_bytes": 5232865144
+    },
+    {
+      "id": "model-00013-of-00014-d0304e9b33e9-0583d07607",
+      "path": "model-00013-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d0304e9b33e90d1b0d1ac10d449dc96d6bf5930f78211f734f20fb1018482c35",
+      "size_bytes": 5368758664
+    },
+    {
+      "id": "model-00014-of-00014-09bb7085c47f-788121de91",
+      "path": "model-00014-of-00014.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "09bb7085c47f1412ed04ebcca40e92ea00b544ff744acc6a84b2fcb543900f05",
+      "size_bytes": 2012848152
+    },
+    {
+      "id": "model-safetensors-index-ee1e6bb3475b-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ee1e6bb3475b4a1769bfc25e2bffbba62a84c68ee6d72085c63f33805e02fae4",
+      "size_bytes": 12393848
+    },
+    {
+      "id": "model-extra-tensors-b4fc887d1af4-31d39b22c6",
+      "path": "model_extra_tensors.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b4fc887d1af4d780a74f4e06298b660bd96b4e431d483f04de1cfeb4df9ecc2c",
+      "size_bytes": 5047454424
+    },
+    {
+      "id": "processor-config-14932921ca48-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "14932921ca485d458a04dafd8069fbb0a4505622a48208d19ed247115801385b",
+      "size_bytes": 1300
+    },
+    {
+      "id": "quantization-config-f38aec833715-6f24389fb3",
+      "path": "quantization_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f38aec833715c857e48e56593964ede0dc78567d426fb9290494d76d0e394de6",
+      "size_bytes": 22855
+    },
+    {
+      "id": "tokenizer-87a7830d63fc-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "87a7830d63fcf43bf241c3c5242e96e62dd3fdc29224ca26fed8ea333db72de4",
+      "size_bytes": 19989343
+    },
+    {
+      "id": "tokenizer-config-e98f1901ac6f-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e98f1901ac6f0adff67b1d540bfa0c36ac1a0cf59eb72ed78146ef89aafa1182",
+      "size_bytes": 1139
+    }
+  ],
+  "format": {
+    "precision": "int4",
+    "quantization": "autoround"
+  },
+  "identity": {
+    "family": {
+      "publisher": "intel",
+      "slug": "qwen3-5-intel",
+      "title": "Intel Qwen3.5"
+    },
+    "model": {
+      "publisher": "intel",
+      "slug": "qwen3-5-122b-a10b-int4-autoround",
+      "title": "Qwen3.5 122B-A10B INT4 AutoRound (Intel)"
+    },
+    "publisher": "intel",
+    "slug": "qwen3-5-122b-a10b-int4-autoround-3045d02b",
+    "variant": "INT4 AutoRound 3045d02b",
+    "version": "INT4 AutoRound 3045d02b"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Intel",
+      "Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Intel/Qwen3.5-122B-A10B-int4-AutoRound/blob/3045d02bb737effc4581da91bddbad3be02934e4/README.md"
+  },
+  "metadata": {
+    "description": "Exact Intel AutoRound INT4 (group size 128) quantization of Qwen3.5-122B-A10B; Intel states to follow the licence of the original model.",
+    "tags": [
+      "intel",
+      "qwen3-5-intel",
+      "image",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/Intel/Qwen3.5-122B-A10B-int4-AutoRound",
+    "revision": "3045d02bb737effc4581da91bddbad3be02934e4"
+  }
+}
