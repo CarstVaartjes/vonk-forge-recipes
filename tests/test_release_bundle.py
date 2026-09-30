@@ -100,16 +100,20 @@ class ReleaseBundleTests(unittest.TestCase):
         bundle_tool.build(second, two)
         self.assertEqual(one.read_bytes(), two.read_bytes())
 
-    def test_long_names_stay_deterministic(self) -> None:
-        files = {**FILES, f"{'a' * 120}.tar.gz": b"\x1f\x8blong"}
-        release = write_release(self.tmp / "release", files)
-        one, two = self.tmp / "one.tar", self.tmp / "two.tar"
-        bundle_tool.build(release, one)
-        bundle_tool.build(release, two)
-        self.assertEqual(one.read_bytes(), two.read_bytes())
-        with tarfile.open(one) as archive:
-            self.assertIn(f"{'a' * 120}.tar.gz", archive.getnames())
-            self.assertTrue(all(member.isreg() for member in archive.getmembers()))
+    def test_names_beyond_ustar_are_refused_not_extended(self) -> None:
+        exact = f"{'a' * 93}.tar.gz"
+        release = write_release(self.tmp / "ok", {**FILES, exact: b"\x1f\x8bok"})
+        bundle_tool.build(release, self.tmp / "ok.tar")
+        with tarfile.open(self.tmp / "ok.tar") as archive:
+            self.assertIn(exact, archive.getnames())
+            self.assertEqual(
+                {member.type for member in archive.getmembers()}, {tarfile.REGTYPE}
+            )
+        release = write_release(
+            self.tmp / "long", {**FILES, f"{'a' * 94}.tar.gz": b"\x1f\x8blong"}
+        )
+        with self.assertRaises(SystemExit):
+            bundle_tool.build(release, self.tmp / "long.tar")
 
     def test_inconsistent_release_directories_are_refused(self) -> None:
         cases = {
