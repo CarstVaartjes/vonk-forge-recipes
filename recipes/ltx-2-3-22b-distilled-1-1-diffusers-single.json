@@ -127,7 +127,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1690085562b839a4b0d35ce1a5049cbd968ec573b4ffde95878b367b3a4805c8",
+        "content_sha256": "b60b82a99f796b592cf77c5beec52096ec65ee285ff12dddd6a6964e074c548e",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-3-22b-distilled-1-1"
@@ -369,11 +369,11 @@
     "attribution": [
       "Lightricks"
     ],
-    "source_reference": "https://huggingface.co/Lightricks/LTX-2.3/tree/6b5a83e3045eaf8e46cfa0acce512412aa2b9cce"
+    "source_reference": "https://huggingface.co/Lightricks/LTX-2.3/tree/5948be4ced3a4493d1f836df64378ff136ddb770"
   },
   "release": {
     "released_at": "2026-09-30",
-    "version": "1.4.1"
+    "version": "1.4.2"
   },
   "runtime": {
     "arguments": [
