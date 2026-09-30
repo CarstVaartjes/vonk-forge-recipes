@@ -6,14 +6,7 @@
     "text-generation",
     "video-understanding"
   ],
-  "dependencies": [
-    {
-      "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
-      "kind": "model",
-      "publisher": "incoai",
-      "slug": "glm-5-3-flash-dflash2-bf582e4e"
-    }
-  ],
+  "dependencies": [],
   "files": [
     {
       "id": "metadata-d3b10d515fb2-618cd5b83d",
@@ -1324,13 +1317,13 @@
     },
     "model": {
       "publisher": "mia-ai-lab",
-      "slug": "glm-5-3-flash-exl3-tr3-dflash2",
-      "title": "GLM 5.3 Flash EXL3 TR3 with DFlash2"
+      "slug": "glm-5-3-flash-exl3-tr3",
+      "title": "GLM 5.3 Flash EXL3 TR3"
     },
     "publisher": "mia-ai-lab",
-    "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb",
-    "variant": "GLM 5.3 Flash EXL3 TR3 4bpw plus DFlash2 25a44fdb",
-    "version": "GLM 5.3 Flash EXL3 TR3 4bpw plus DFlash2 25a44fdb"
+    "slug": "glm-5-3-flash-exl3-tr3-4bpw-25a44fdb",
+    "variant": "GLM 5.3 Flash EXL3 TR3 4bpw 25a44fdb",
+    "version": "GLM 5.3 Flash EXL3 TR3 4bpw 25a44fdb"
   },
   "kind": "model",
   "license": {
@@ -1344,7 +1337,7 @@
     "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/blob/25a44fdbf16862a46b7cc9921142c6c81350af2f/LICENSE"
   },
   "metadata": {
-    "description": "Exact public GLM 5.3 Flash EXL3 TR3 4bpw plus DFlash2 25a44fdb checkpoint.",
+    "description": "Exact public GLM 5.3 Flash EXL3 TR3 4bpw 25a44fdb checkpoint. Drafter checkpoints are selected separately by each recipe.",
     "tags": [
       "mia-ai-lab",
       "glm-5-3-mia",

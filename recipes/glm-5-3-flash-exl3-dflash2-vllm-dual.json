@@ -39,7 +39,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public 94ae731f EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the launcher-selected dc77ff1c DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at 0.84 GPU utilization; the declared 0.845 utilization keeps the 192k context about 0.6 GiB inside the engine's measured KV budget. Upstream defaults now include FP8 dense projections with BF16 large-batch KDA prefill, compact draft KV pages, the Mamba/kpool/loader fixes and an explicit 11 GiB KV pool. Options choose adaptive verification length and BF16 projections; same-checkpoint native MTP (k=2) is also available as a rollback. The launcher documents SPEC_METHOD=mtp. The DFlash2 drafter remains part of the exact recipe closure but is unused in MTP mode. No comparative performance claim is made. Vonk physical acceptance and checkpoint requalification remain pending.",
+    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public 94ae731f EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the launcher-selected dc77ff1c DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at 0.84 GPU utilization; the declared 0.845 utilization keeps the 192k context about 0.6 GiB inside the engine's measured KV budget. Upstream defaults now include FP8 dense projections with BF16 large-batch KDA prefill, compact draft KV pages, the Mamba/kpool/loader fixes and an explicit 11 GiB KV pool. Options choose adaptive verification length and BF16 projections; same-checkpoint native MTP (k=2) is also available as a rollback. The launcher documents SPEC_METHOD=mtp. The DFlash2 drafter remains part of the exact recipe closure but is unused in MTP mode. No comparative performance claim is made. Vonk physical acceptance and checkpoint requalification remain pending. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1646,10 +1646,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "de7aff5993f2348592bc4fa7d273877fc0ea05771633114658b35e119fa13c60",
+        "content_sha256": "88c209df509b46dc0aeba398b76e16afe6fee6678a24889125f8fb58eca326bd",
         "kind": "model",
         "publisher": "mia-ai-lab",
-        "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb"
+        "slug": "glm-5-3-flash-exl3-tr3-4bpw-25a44fdb"
       }
     },
     {
@@ -1795,8 +1795,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/tree/94ae731f4619f769be1f4dfe6f6607ce0a3e869d"
   },
   "release": {
-    "released_at": "2026-09-30",
-    "version": "1.7.5"
+    "released_at": "2026-10-01",
+    "version": "1.7.6"
   },
   "runtime": {
     "arguments": [

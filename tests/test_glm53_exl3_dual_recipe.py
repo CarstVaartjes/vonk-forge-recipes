@@ -122,7 +122,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         )
         self.assertEqual(
             recipe["models"][0]["model"]["slug"],
-            "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb",
+            "glm-5-3-flash-exl3-tr3-4bpw-25a44fdb",
         )
 
     def test_wrapper_preserves_authored_engine_arguments(self) -> None:
