@@ -1,0 +1,16 @@
+{
+  "id": "vonk-forge/ling-3-0-flash-dspark-sglang-single",
+  "service_recipes": {
+    "alias": "ling-3-0-flash",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Optional bounded streaming and declared concurrency canaries"
+      ]
+    }
+  }
+}
