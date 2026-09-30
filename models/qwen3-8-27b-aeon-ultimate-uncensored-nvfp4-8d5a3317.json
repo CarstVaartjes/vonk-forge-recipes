@@ -1,0 +1,190 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-14a7ffa03b89-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "14a7ffa03b8925dcaa5b7a6702ee2aec2f9ff632199c9aae997441a3f0e8e635",
+      "size_bytes": 4100
+    },
+    {
+      "id": "chat-template-c3cf9e34abf4-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+      "size_bytes": 8952
+    },
+    {
+      "id": "config-783a7999e813-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "783a7999e813d3388e93bbe9ac865a62ed729196b40b07fa2b3c32258f8aaea1",
+      "size_bytes": 15632
+    },
+    {
+      "id": "generation-config-069f479d9098-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "069f479d9098b15e9246a782bfa0dedf8bc38d8153233d8215e4e16839fd2908",
+      "size_bytes": 225
+    },
+    {
+      "id": "model-mtp-bf16-90fa0e3eed5a-44922e9b24",
+      "path": "model-mtp-bf16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "90fa0e3eed5a647c035c6df9ecabc416c0f8d573ff84ac12485b085f00a7cdf2",
+      "size_bytes": 849400424
+    },
+    {
+      "id": "model-5ca4957d492e-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5ca4957d492e9ac0cdf77d79a2f7809482924588cd42cbb589990c6c11efbc2a",
+      "size_bytes": 19709883808
+    },
+    {
+      "id": "model-safetensors-index-17bca6239df2-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "17bca6239df2e5a846bf01c90d235623c61dc30cd98c9fd7439b5cb4e45ca118",
+      "size_bytes": 238113
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+      "size_bytes": 1191
+    },
+    {
+      "id": "recipe-6c2685b6ea5a-e6afb07ce9",
+      "path": "recipe.yaml",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "6c2685b6ea5abc77609c9fc0c7acd24e6a36c51a56ac47da68f5cc87acb4a74c",
+      "size_bytes": 218
+    },
+    {
+      "id": "tokenizer-445a1c450cb8-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "445a1c450cb82eba3dac6d4cac5d6ce9a6be0ab6e326bf919934d71e604a871f",
+      "size_bytes": 19989424
+    },
+    {
+      "id": "tokenizer-config-dcb88c4a1dff-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "dcb88c4a1dff8096b6fd919e458d987351b499f86db65d1b997ed515a90cc35c",
+      "size_bytes": 1269
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4-compressed-tensors-uniform"
+  },
+  "identity": {
+    "family": {
+      "publisher": "sakamakismile",
+      "slug": "qwen3-8-aeon-uncensored",
+      "title": "Qwen3.8 AEON Ultimate Uncensored"
+    },
+    "model": {
+      "publisher": "sakamakismile",
+      "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4",
+      "title": "Qwen3.8 27B AEON Ultimate Uncensored NVFP4"
+    },
+    "publisher": "sakamakismile",
+    "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4-8d5a3317",
+    "variant": "8d5a3317b4fcb6f278e1cde7fcae5ed88a27443a",
+    "version": "8d5a3317b4fcb6f278e1cde7fcae5ed88a27443a"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Qwen",
+      "AEON-7",
+      "sakamakismile"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/sakamakismile/Qwen3.8-27B-AEON-ULTIMATE-UNCENSORED-NVFP4/blob/8d5a3317b4fcb6f278e1cde7fcae5ed88a27443a/README.md"
+  },
+  "metadata": {
+    "description": "sakamakismile's uniform NVFP4 (compressed-tensors) quantization of AEON-7's uncensored Qwen3.8 27B with a BF16 MTP head, vision-language. Apache-2.0.",
+    "tags": [
+      "abliterated",
+      "candidate",
+      "language",
+      "mtp",
+      "multimodal",
+      "nvfp4",
+      "qwen3-8-aeon-uncensored",
+      "qwen3.8",
+      "sakamakismile",
+      "uncensored"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/sakamakismile/Qwen3.8-27B-AEON-ULTIMATE-UNCENSORED-NVFP4",
+    "revision": "8d5a3317b4fcb6f278e1cde7fcae5ed88a27443a"
+  }
+}
