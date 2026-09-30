@@ -1,0 +1,16 @@
+{
+  "id": "vonk-forge/minimax-m2-7-awq-4bit-eugr-vllm-dual",
+  "service_recipes": {
+    "alias": "MiniMax-M2.7-AWQ",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Optional bounded streaming and declared concurrency canaries"
+      ]
+    }
+  }
+}
