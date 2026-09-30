@@ -1,0 +1,48 @@
+{
+  "id": "vonk-forge/trellis-2-4b-pytorch-single",
+  "recipes": {
+    "interface": "mesh-job",
+    "parameters": {},
+    "inputs": [
+      {
+        "slot": "image",
+        "fixture": "generic-image-png"
+      }
+    ],
+    "output_limits": {
+      "max_files": 1,
+      "max_file_bytes": 1073741824,
+      "max_total_bytes": 1073741824,
+      "allowed_media_types": [
+        "model/gltf-binary"
+      ]
+    },
+    "timeout_seconds": 3600,
+    "assertions": [
+      {
+        "kind": "file-count",
+        "exact": 1
+      },
+      {
+        "kind": "media-type",
+        "allowed": [
+          "model/gltf-binary"
+        ]
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 20
+      },
+      {
+        "kind": "format",
+        "format": "glb"
+      },
+      {
+        "kind": "glb-structure",
+        "profile": "textured-pbr",
+        "minimum_meshes": 1,
+        "minimum_primitives": 1
+      }
+    ]
+  }
+}

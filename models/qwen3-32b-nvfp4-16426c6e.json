@@ -1,0 +1,221 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-ea9622f8b707-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ea9622f8b707702afee28a2ef096808094565200c978d03400313687b2287e4a",
+      "size_bytes": 1571
+    },
+    {
+      "id": "readme-859d7fc72507-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "859d7fc725073e13d834fb0734d18dda9f426242e909677fa924f2578ce3d29c",
+      "size_bytes": 5739
+    },
+    {
+      "id": "added-tokens-c0284b582e14-dec41b9537",
+      "path": "added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c0284b582e14987fbd3d5a2cb2bd139084371ed9acbae488829a1c900833c680",
+      "size_bytes": 707
+    },
+    {
+      "id": "chat-template-87a2728cb8dc-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "87a2728cb8dc9fe424d624542f6060ec05a1d285ebbec578bb078900e33396b5",
+      "size_bytes": 4116
+    },
+    {
+      "id": "config-30113988e318-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "30113988e318a58d6448380294201c75f6efe4f0cbb6e9d42f402ec30e927e35",
+      "size_bytes": 3407
+    },
+    {
+      "id": "generation-config-0419e3a8fd1e-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0419e3a8fd1ead1af64a9861a404179d26867fd2e9f98d562d4e5303f6705a8e",
+      "size_bytes": 214
+    },
+    {
+      "id": "hf-quant-config-a7338e63f043-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a7338e63f043d3173377a8aae3796db939243d2727e15a324fe2bd9371b2cae6",
+      "size_bytes": 268
+    },
+    {
+      "id": "merges-8831e4f1a044-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+      "size_bytes": 1671853
+    },
+    {
+      "id": "model-00001-of-00005-8648ed7353da-8453f51e85",
+      "path": "model-00001-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8648ed7353da4d1c713aa6b01eba69c372a8bdfb0f3adbcfaade8111592d11b7",
+      "size_bytes": 4974154840
+    },
+    {
+      "id": "model-00002-of-00005-4a17d0318dfd-516421cb37",
+      "path": "model-00002-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4a17d0318dfd131d9fda6efaad7f1d20774b8c99d05da9e2fd9d17cda03c745b",
+      "size_bytes": 4937271816
+    },
+    {
+      "id": "model-00003-of-00005-d9cfa615230e-05880bd763",
+      "path": "model-00003-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d9cfa615230e1968f9c0c1f643eb0e6e2e3e336016d0da3723719f121494e9f9",
+      "size_bytes": 4937271816
+    },
+    {
+      "id": "model-00004-of-00005-1c9025b63244-c340da1f8a",
+      "path": "model-00004-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1c9025b63244ec1ce185c0d351abfd91391a436694923421914905ae50f01315",
+      "size_bytes": 4261880984
+    },
+    {
+      "id": "model-00005-of-00005-fbd6a7104a88-2bd52bf6f8",
+      "path": "model-00005-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "fbd6a7104a886641f322332c121ef34cfaa312ed757e3cb019b14c26002a8fb6",
+      "size_bytes": 1555824768
+    },
+    {
+      "id": "model-safetensors-index-a62afb7fcf0a-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a62afb7fcf0a73deb177652fde62341a01d6f0fadf7668d506a2e51a253a0acf",
+      "size_bytes": 186841
+    },
+    {
+      "id": "special-tokens-map-a4c29a7f6314-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a4c29a7f63146cb43eef20b92caab0e2a5000d13d4dc9cd29888bbfad8059466",
+      "size_bytes": 388
+    },
+    {
+      "id": "tokenizer-aeb13307a71a-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+      "size_bytes": 11422654
+    },
+    {
+      "id": "tokenizer-config-67e5a0a11cd3-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "67e5a0a11cd35f9c00ee52e0af4cdc0baa75fea0cb5fce7d1beb251b4621d15c",
+      "size_bytes": 5407
+    },
+    {
+      "id": "vocab-ca10d7e9fb3e-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    }
+  ],
+  "format": {
+    "precision": "fp4",
+    "quantization": "nvfp4-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "qwen3",
+      "title": "Alibaba Qwen3"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "qwen3-32b",
+      "title": "Qwen3 32B"
+    },
+    "publisher": "nvidia",
+    "slug": "qwen3-32b-nvfp4-16426c6e",
+    "variant": "NVFP4 16426c6e",
+    "version": "NVFP4 16426c6e"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Alibaba Qwen"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "metadata": {
+    "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Qwen3 32B.",
+    "tags": [
+      "nvidia",
+      "qwen3",
+      "language",
+      "nvfp4",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Qwen3-32B-NVFP4",
+    "revision": "16426c6eb87be9e27c14cc9fb318f9c7a5f8588c"
+  }
+}
