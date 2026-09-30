@@ -291,14 +291,20 @@ mutable or unresolved inputs and package-resolution gaps remain explicit as muta
 unknown. A Git head difference is review evidence, never an instruction to replace a
 specialized pin with generic latest. The inventory does not claim to resolve every
 transitive package or infer an upstream mapping from top-level provenance. Each recipe
-is refreshed in place (same id). `release.version` becomes upstream's version when one
+is refreshed in place (same id). The refresh only ever moves forward, never back: a pin
+that is the newest release (or head) or already ahead of it - the release commit is an
+ancestor of the pin - is current, so no pull request or review issue is opened for it
+and an open one closes. The pin moves to a newer release that descends from it (or, for
+repos without releases, to a newer head); a release that neither descends from the pin
+nor is its ancestor (diverged history) goes to review. Hugging Face Models follow the
+repository head, so they too only move to newer revisions. `release.version` becomes upstream's version when one
 is published, otherwise the recipe's patch version is bumped; `released_at` is the pinned
 release or commit date.
 
 A refresh is **mechanical** only when all of these hold:
 
-- the selected commit descends from the pinned one (a pin already ahead of the newest
-  release is never downgraded automatically);
+- the selected commit descends from the pinned one (a pin at or ahead of the newest
+  release is current, never downgraded);
 - `tools/check-vendored-upstream` passes for the adapter at the new commit, so every
   vendored file is byte-identical;
 - no changed upstream file is a launch script, Dockerfile, configuration (`.yaml`,
