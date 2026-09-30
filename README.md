@@ -47,7 +47,7 @@ Which engines each model family runs on.
 | Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |
 | Nemotron | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |
 | OpenAI gpt-oss |  |  | ✓ |  |  |  |  |  |  |
-| Ornith | ✓ |  |  |  |  |  |  |  |  |
+| Ornith | ✓ | ✓ |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | ✓ |
 | Qwen (text and vision) | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |
 | Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |
