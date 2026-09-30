@@ -39,7 +39,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Reederey87 GLM-5.3-Flash EXL3 dual-Spark source refresh at fd87969cb43a5ba66573bd2508bc05651fc1579c (2026-09-30), recipe release 1.5.1. Keeps the byte-exact Mia-AiLab TR3 4 bpw primary Model and the source launcher\u2019s exact incoai DFlash2 drafter pin 7d74cdd881ed7e32c31175984a67823127b66cfe (non-commercial, no derivatives). Moves the recipe-owned ARM64 ExLlamaV3 build from 1.4.7 ca13bdd83a1f4a74fd817b88f49509e0f22a9b07 to 1.4.9 5be886578ec80324c2c715269387be2058724b6e; the six EXL3 quant/MoE source files used by this recipe are byte-identical across those pins, preserving the existing fused-kernel/ticket-scheduler ABI. The digest-pinned vLLM base image is unchanged. Refreshes the current GLM/DFlash2 overlay/test closure, retains Vonk\u2019s non-root read-only runtime wrapper and build-time patching, and carries upstream\u2019s default-on sparse-cache-miss metric and prompt-token detail reporting. Default serving remains DFlash2 k=7, TP2 across two Sparks, fp8 KV and the existing context/resource envelope. Upstream\u2019s performance and DFlash2 acceptance evidence is not Vonk physical two-Spark acceptance; local build and runtime qualification remain separate gates. The drafter license terms are shown in its Model document.",
+    "description": "Reederey87 GLM-5.3-Flash EXL3 dual-Spark source refresh at fd87969cb43a5ba66573bd2508bc05651fc1579c (2026-09-30), recipe release 1.5.1. Keeps the byte-exact Mia-AiLab TR3 4 bpw primary Model and the source launcher’s exact incoai DFlash2 drafter pin 7d74cdd881ed7e32c31175984a67823127b66cfe (non-commercial, no derivatives). Moves the recipe-owned ARM64 ExLlamaV3 build from 1.4.7 ca13bdd83a1f4a74fd817b88f49509e0f22a9b07 to 1.4.9 5be886578ec80324c2c715269387be2058724b6e; the six EXL3 quant/MoE source files used by this recipe are byte-identical across those pins, preserving the existing fused-kernel/ticket-scheduler ABI. The digest-pinned vLLM base image is unchanged. Refreshes the current GLM/DFlash2 overlay/test closure, retains Vonk’s non-root read-only runtime wrapper and build-time patching, and carries upstream’s default-on sparse-cache-miss metric and prompt-token detail reporting. Default serving remains DFlash2 k=7, TP2 across two Sparks, fp8 KV and the existing context/resource envelope. Upstream’s performance and DFlash2 acceptance evidence is not Vonk physical two-Spark acceptance; local build and runtime qualification remain separate gates. The drafter license terms are shown in its Model document. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter.",
     "tags": [
       "adaptive-k",
       "candidate",
@@ -1647,10 +1647,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "de7aff5993f2348592bc4fa7d273877fc0ea05771633114658b35e119fa13c60",
+        "content_sha256": "88c209df509b46dc0aeba398b76e16afe6fee6678a24889125f8fb58eca326bd",
         "kind": "model",
         "publisher": "mia-ai-lab",
-        "slug": "glm-5-3-flash-exl3-tr3-4bpw-dflash2-25a44fdb"
+        "slug": "glm-5-3-flash-exl3-tr3-4bpw-25a44fdb"
       }
     },
     {
@@ -1787,8 +1787,8 @@
     "source_reference": "https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark/tree/2b5dfdc616ea5f3dfa4271f98475eea9cb0ee8b1"
   },
   "release": {
-    "released_at": "2026-09-30",
-    "version": "1.5.1"
+    "released_at": "2026-10-01",
+    "version": "1.5.2"
   },
   "runtime": {
     "arguments": [
