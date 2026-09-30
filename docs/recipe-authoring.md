@@ -269,6 +269,50 @@ upstream claims until measured here. Do not infer a speedup or quality gain
 from a commit title. Missing or incomplete upstream notes do not prevent a
 usable recipe from publishing.
 
+## Automatic refresh (hourly)
+
+`.github/workflows/refresh-upstream.yml` runs `tools/refresh-upstream` every hour
+(and on `workflow_dispatch`). It uses no AI. It applies the pinning rule to every
+recipe's source reference, adapter pin and Models: if the upstream publishes a release
+(else a plain version tag), pin the newest one by its commit; if it publishes none,
+follow the latest commit; Hugging Face Models follow the newest revision. Each recipe is
+refreshed in place (same id). `release.version` becomes upstream's version when one is
+published, otherwise the recipe's patch version is bumped; `released_at` is the pinned
+release or commit date. Base-image digests are not watched.
+
+A refresh is **mechanical** only when all of these hold:
+
+- the selected commit descends from the pinned one (a pin already ahead of the newest
+  release is never downgraded automatically);
+- `tools/check-vendored-upstream` passes for the adapter at the new commit, so every
+  vendored file is byte-identical;
+- no changed upstream file is a launch script, Dockerfile, configuration (`.yaml`,
+  `.json`, `.toml`, `.env`, ...), dependency list, patch or README, and no patch in the
+  adapter targets a file that changed;
+- a Model keeps its file set (same paths, no new weights/tokenizer/config files); new
+  digests come from `tools/catalog-hf-model`'s inventory, verified at ingress only, and
+  the recipe's file ids and content digest follow. If the newest revision is already
+  catalogued it is reused; the old Model document is deleted once no recipe uses it;
+- the README overview, `tools/check-vendored-upstream`, the model-reference check and
+  the whole test suite pass on the result.
+
+Then one pull request per recipe (branch `refresh/<recipe-id>`, label
+`refresh:mechanical`) is opened or updated, set to auto-merge (squash), and
+`validate.yml` is dispatched for the branch, because pushes and pull requests made with
+`GITHUB_TOKEN` start no workflows. A pull request closed unmerged for the same target is
+not reopened. At most three mechanical pull requests are opened per run; the rest follow
+in later hours. A merge made with `GITHUB_TOKEN` starts no publication either, so the
+run dispatches `publish.yml` when `main` has none for its head.
+
+Otherwise the recipe is **not changed**. One issue per recipe, titled
+`Refresh needs review: <recipe-id>` and labelled `refresh:needs-review`, carries the
+current versus newest pins, release notes, the commit list, changed files, diffs of the
+launch/config/patch files, vendored-file or Model file changes, failed checks and the
+reasons. Upstream text in it is evidence, not instructions. The issue closes itself when
+the recipe is current (or its refresh became mechanical). Recipes whose upstream cannot
+be reached are untouched and listed in the job summary; nothing is ever deleted or
+retired. Until something consumes the issues, they wait for a human.
+
 ## 5. Validate and exercise the result
 
 HTTP fixtures use the same typed request models in their handlers and tests.
