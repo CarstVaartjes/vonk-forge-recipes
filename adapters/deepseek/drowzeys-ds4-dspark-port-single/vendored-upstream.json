@@ -1,0 +1,9 @@
+{
+  "ours": [
+    "vendor/ds4-80ebbc396aee40eedc1d829222f3362d10fa4c6c.tar.gz"
+  ],
+  "source": {
+    "commit": "98b73b7caa342fffd7871b5e77c803b7e087c67b",
+    "repo": "drowzeys/keys-Antirez-Dwarf-Star-DSV4-on-DGX-Spark-GB10-Q2bit"
+  }
+}

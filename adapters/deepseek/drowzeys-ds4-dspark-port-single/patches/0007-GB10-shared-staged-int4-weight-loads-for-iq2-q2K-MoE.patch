@@ -1,0 +1,608 @@
+From 80e898be362254ec3db7480f446ecc5ed167baa3 Mon Sep 17 00:00:00 2001
+From: keyspark <kevin.on.the.rocks@gmail.com>
+Date: Wed, 8 Jul 2026 15:10:02 -0400
+Subject: [PATCH 7/8] GB10: shared-staged int4 weight loads for iq2/q2K MoE and
+ q8 GEMV kernels
+
+The iq2_xxs (66 B), q2_K (84 B), and q8_0 (34 B) block strides defeat load
+vectorization: per-block scalar loads hold the decode MoE kernel at ~110
+GB/s where the same access pattern with int4 loads reaches ~170 (measured
+against a 226 GB/s sequential ceiling on GB10; microbench in the campaign
+notes).  Each 8-lane oct (or warp for q8) now stages a whole 16-byte-aligned
+weight row into its own shared slot with __ldcs int4 loads and decodes from
+shared, preserving per-lane block sets and reduction order.
+
+Staged variants: decode gate/up LUT, fused sum6 down, per-pair batch
+gate/up + down (2-16 row speculative verifier batches, where the expert-tile
+dedup wins little: adjacent draft rows share ~2 of 6 experts), q8 warp8 /
+mrow / pair GEMVs.  Escape hatches: DS4_CUDA_MOE_NO_STAGED,
+DS4_CUDA_NO_STAGED_Q8.
+
+GB10 measured: decode routed_moe 0.384 -> 0.258 ms/layer; plain decode
+14.9 -> 16.2 tok/s; verify(2) 93 -> 82 ms; DSpark full config on the code
+bench 16.6 -> 19.0 tok/s.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ ds4.c       |  20 +++
+ ds4_cuda.cu | 454 +++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 472 insertions(+), 2 deletions(-)
+
+diff --git a/ds4.c b/ds4.c
+index a408d11..1753c9e 100644
+--- a/ds4.c
++++ b/ds4.c
+@@ -19002,6 +19002,26 @@ static bool metal_graph_encode_layer_ffn_batch(
+                                       (uint64_t)n_tokens * DS4_N_EXPERT_USED, il, pos0);
+     }
+     DS4_METAL_PROFILE_FFN_STAGE("router");
++    if (ok && n_tokens >= 2 && n_tokens <= 16 && DS4_N_EXPERT_USED <= 16 &&
++        getenv("DS4_DSPARK_ROUTE_LOG")) {
++        /* Diagnostic: expert-set overlap between speculative verifier rows.
++         * Costs a sync per layer; measurement runs only. */
++        int32_t sel[16 * 16]; /* n_expert_used is 8 for Flash/PRO */
++        const uint64_t n_sel = (uint64_t)n_tokens * DS4_N_EXPERT_USED;
++        if (ds4_gpu_synchronize() != 0 &&
++            ds4_gpu_tensor_read(g->batch_router_selected, 0, sel,
++                                  n_sel * sizeof(sel[0])) != 0) {
++            fprintf(stderr, "ds4: dspark route layer=%u n=%u sel=", il, n_tokens);
++            for (uint32_t t = 0; t < n_tokens; t++) {
++                for (uint32_t e = 0; e < DS4_N_EXPERT_USED; e++) {
++                    fprintf(stderr, "%d%s", sel[t * DS4_N_EXPERT_USED + e],
++                            e + 1 < DS4_N_EXPERT_USED ? "," : "");
++                }
++                fprintf(stderr, t + 1 < n_tokens ? ";" : "\n");
++            }
++            (void)ds4_gpu_begin_commands();
++        }
++    }
+ 
+     if (ok) {
+         ok = metal_graph_cuda_stream_prefill_batch_selected_load(g,
+diff --git a/ds4_cuda.cu b/ds4_cuda.cu
+index 44e523a..a1e7321 100644
+--- a/ds4_cuda.cu
++++ b/ds4_cuda.cu
+@@ -3817,6 +3817,168 @@ __global__ static void matmul_q8_0_hc_expand_preq_warp8_kernel(
+     }
+ }
+ 
++/* Staged q8_0 GEMV.
++ *
++ * q8_0 blocks are 34 bytes, so the per-block scale+qs loads never vectorize
++ * (the qs pointer is 2-byte aligned) and the warp8 kernel is load-limited
++ * well under the DRAM ceiling on GB10.  Each warp stages a 64-block chunk of
++ * its weight row into shared memory with int4 streaming loads, then runs the
++ * exact dot from shared where byte addressing is free.  Per-lane block sets
++ * and accumulation order match the unstaged kernel.  Requires blocks % 8 == 0
++ * and a 16-byte-aligned weight base (enforced at dispatch). */
++#define DS4_CUDA_Q8_MBATCH_MAX 16
++#define DS4_Q8_STAGE_CHUNK 64u
++__global__ static void matmul_q8_0_preq_warp8_staged_kernel(
++        float *out,
++        const unsigned char *w,
++        const int8_t *xq,
++        const float *xscale,
++        uint64_t in_dim,
++        uint64_t out_dim,
++        uint64_t blocks,
++        int use_dp4a) {
++    const uint32_t warp = threadIdx.x >> 5u;
++    const uint32_t lane = threadIdx.x & 31u;
++    const uint64_t row = (uint64_t)blockIdx.x * 8u + warp;
++    __shared__ int4 srow[8][(DS4_Q8_STAGE_CHUNK * 34u) >> 4u];
++    if (row >= out_dim) return;
++    const unsigned char *wr = w + row * blocks * 34u;
++    float acc = 0.0f;
++    for (uint64_t c0 = 0; c0 < blocks; c0 += DS4_Q8_STAGE_CHUNK) {
++        const uint32_t nb = blocks - c0 < DS4_Q8_STAGE_CHUNK ?
++                (uint32_t)(blocks - c0) : DS4_Q8_STAGE_CHUNK;
++        const uint32_t n_int4 = (nb * 34u) >> 4u;
++        const int4 *src = (const int4 *)(wr + c0 * 34u);
++        for (uint32_t i = lane; i < n_int4; i += 32u) srow[warp][i] = __ldcs(src + i);
++        __syncwarp();
++        const unsigned char *sw = (const unsigned char *)srow[warp];
++        for (uint32_t b = lane; b < nb; b += 32u) {
++            const uint64_t gb = c0 + b;
++            const uint64_t i0 = gb * 32u;
++            const uint64_t bn = in_dim - i0 < 32 ? in_dim - i0 : 32;
++            const __half *scale_h = (const __half *)(sw + b * 34u);
++            const int8_t *qs = (const int8_t *)(sw + b * 34u + 2u);
++            int dot = dot_i8_block(qs, xq + gb * 32u, bn, use_dp4a);
++            acc += __half2float(*scale_h) * xscale[gb] * (float)dot;
++        }
++        __syncwarp();
++    }
++    acc = warp_sum_f32(acc);
++    if (lane == 0) out[row] = acc;
++}
++
++/* Staged multi-token variant for speculative verifier microbatches. */
++__global__ static void matmul_q8_0_preq_mrow_warp8_staged_kernel(
++        float *out,
++        const unsigned char *w,
++        const int8_t *xq,
++        const float *xscale,
++        uint64_t in_dim,
++        uint64_t out_dim,
++        uint64_t n_tok,
++        uint64_t blocks,
++        int use_dp4a) {
++    const uint32_t warp = threadIdx.x >> 5u;
++    const uint32_t lane = threadIdx.x & 31u;
++    const uint64_t row = (uint64_t)blockIdx.x * 8u + warp;
++    __shared__ int4 srow[8][(DS4_Q8_STAGE_CHUNK * 34u) >> 4u];
++    if (row >= out_dim) return;
++    const unsigned char *wr = w + row * blocks * 34u;
++    float acc[DS4_CUDA_Q8_MBATCH_MAX];
++    for (uint32_t t = 0; t < n_tok; t++) acc[t] = 0.0f;
++    for (uint64_t c0 = 0; c0 < blocks; c0 += DS4_Q8_STAGE_CHUNK) {
++        const uint32_t nb = blocks - c0 < DS4_Q8_STAGE_CHUNK ?
++                (uint32_t)(blocks - c0) : DS4_Q8_STAGE_CHUNK;
++        const uint32_t n_int4 = (nb * 34u) >> 4u;
++        const int4 *src = (const int4 *)(wr + c0 * 34u);
++        for (uint32_t i = lane; i < n_int4; i += 32u) srow[warp][i] = __ldcs(src + i);
++        __syncwarp();
++        const unsigned char *sw = (const unsigned char *)srow[warp];
++        for (uint32_t b = lane; b < nb; b += 32u) {
++            const uint64_t gb = c0 + b;
++            const uint64_t i0 = gb * 32u;
++            const uint64_t bn = in_dim - i0 < 32 ? in_dim - i0 : 32;
++            const float ws = __half2float(*(const __half *)(sw + b * 34u));
++            const int8_t *qs = (const int8_t *)(sw + b * 34u + 2u);
++            for (uint32_t t = 0; t < n_tok; t++) {
++                int dot = dot_i8_block(qs, xq + t * blocks * 32u + gb * 32u, bn, use_dp4a);
++                acc[t] += ws * xscale[t * blocks + gb] * (float)dot;
++            }
++        }
++        __syncwarp();
++    }
++    for (uint32_t t = 0; t < n_tok; t++) {
++        const float v = warp_sum_f32(acc[t]);
++        if (lane == 0) out[t * out_dim + row] = v;
++    }
++}
++
++/* Staged fused pair variant (two weight matrices, one activation row). */
++__global__ static void matmul_q8_0_pair_preq_warp8_staged_kernel(
++        float *out0,
++        float *out1,
++        const unsigned char *w0,
++        const unsigned char *w1,
++        const int8_t *xq,
++        const float *xscale,
++        uint64_t in_dim,
++        uint64_t out0_dim,
++        uint64_t out1_dim,
++        uint64_t blocks,
++        int use_dp4a) {
++    const uint32_t warp = threadIdx.x >> 5u;
++    const uint32_t lane = threadIdx.x & 31u;
++    const uint64_t row = (uint64_t)blockIdx.x * 8u + warp;
++    __shared__ int4 srow[2][8][(DS4_Q8_STAGE_CHUNK * 34u) >> 4u];
++    if (row >= out0_dim && row >= out1_dim) return;
++    const unsigned char *wr0 = row < out0_dim ? w0 + row * blocks * 34u : NULL;
++    const unsigned char *wr1 = row < out1_dim ? w1 + row * blocks * 34u : NULL;
++    float acc0 = 0.0f;
++    float acc1 = 0.0f;
++    for (uint64_t c0 = 0; c0 < blocks; c0 += DS4_Q8_STAGE_CHUNK) {
++        const uint32_t nb = blocks - c0 < DS4_Q8_STAGE_CHUNK ?
++                (uint32_t)(blocks - c0) : DS4_Q8_STAGE_CHUNK;
++        const uint32_t n_int4 = (nb * 34u) >> 4u;
++        if (wr0) {
++            const int4 *src = (const int4 *)(wr0 + c0 * 34u);
++            for (uint32_t i = lane; i < n_int4; i += 32u) srow[0][warp][i] = __ldcs(src + i);
++        }
++        if (wr1) {
++            const int4 *src = (const int4 *)(wr1 + c0 * 34u);
++            for (uint32_t i = lane; i < n_int4; i += 32u) srow[1][warp][i] = __ldcs(src + i);
++        }
++        __syncwarp();
++        const unsigned char *sw0 = (const unsigned char *)srow[0][warp];
++        const unsigned char *sw1 = (const unsigned char *)srow[1][warp];
++        for (uint32_t b = lane; b < nb; b += 32u) {
++            const uint64_t gb = c0 + b;
++            const uint64_t i0 = gb * 32u;
++            const uint64_t bn = in_dim - i0 < 32 ? in_dim - i0 : 32;
++            const int8_t *xqb = xq + gb * 32u;
++            const float xs = xscale[gb];
++            if (wr0) {
++                const __half *scale_h = (const __half *)(sw0 + b * 34u);
++                const int8_t *qs = (const int8_t *)(sw0 + b * 34u + 2u);
++                int dot = dot_i8_block(qs, xqb, bn, use_dp4a);
++                acc0 += __half2float(*scale_h) * xs * (float)dot;
++            }
++            if (wr1) {
++                const __half *scale_h = (const __half *)(sw1 + b * 34u);
++                const int8_t *qs = (const int8_t *)(sw1 + b * 34u + 2u);
++                int dot = dot_i8_block(qs, xqb, bn, use_dp4a);
++                acc1 += __half2float(*scale_h) * xs * (float)dot;
++            }
++        }
++        __syncwarp();
++    }
++    acc0 = warp_sum_f32(acc0);
++    acc1 = warp_sum_f32(acc1);
++    if (lane == 0) {
++        if (row < out0_dim) out0[row] = acc0;
++        if (row < out1_dim) out1[row] = acc1;
++    }
++}
++
+ __global__ static void matmul_q8_0_preq_batch_warp8_kernel(
+         float *out,
+         const unsigned char *w,
+@@ -3857,7 +4019,6 @@ __global__ static void matmul_q8_0_preq_batch_warp8_kernel(
+  * ~1.06 bytes/weight for the whole batch, where the batch alternatives cost
+  * n_tok full passes (blockIdx.y batching) or a 2-4 bytes/weight dequantized
+  * cuBLAS pass.  Bandwidth-bound for n_tok <= DS4_CUDA_Q8_MBATCH_MAX. */
+-#define DS4_CUDA_Q8_MBATCH_MAX 16
+ __global__ static void matmul_q8_0_preq_mrow_warp8_kernel(
+         float *out,
+         const unsigned char *w,
+@@ -7747,6 +7908,12 @@ extern "C" int ds4_gpu_dsv4_topk_mask_tensor(
+  * the dequantized cuBLAS path.  0 disables it; the engine sets the env when
+  * --dspark-mbatch is passed.  cuBLAS stays the right choice for big prefill
+  * chunks, which are compute-bound rather than weight-bandwidth-bound. */
++/* Staged q8 GEMV eligibility: rows must be 16-byte aligned end to end. */
++static int cuda_q8_staged_ok(const void *wptr, uint64_t blocks) {
++    if (getenv("DS4_CUDA_NO_STAGED_Q8") != NULL) return 0;
++    return ((uintptr_t)wptr & 15u) == 0 && (blocks & 7u) == 0 && blocks >= 8u;
++}
++
+ static int cuda_q8_mbatch_rows(void) {
+     static int cached = -1;
+     if (cached < 0) {
+@@ -7840,6 +8007,18 @@ static int cuda_matmul_q8_0_tensor_labeled(ds4_gpu_tensor *out, const void *mode
+     quantize_q8_0_f32_kernel<<<qgrid, 32>>>(xq, xscale, (const float *)x->ptr, in_dim, blocks);
+     if (!cuda_ok(cudaGetLastError(), "matmul_q8_0 quantize launch")) return 0;
+     if (n_tok == 1) {
++        if (cuda_q8_staged_ok(wptr, blocks)) {
++            matmul_q8_0_preq_warp8_staged_kernel<<<((unsigned)out_dim + 7u) / 8u, 256>>>(
++                    (float *)out->ptr,
++                    reinterpret_cast<const unsigned char *>(wptr),
++                    xq,
++                    xscale,
++                    in_dim,
++                    out_dim,
++                    blocks,
++                    use_dp4a);
++            return cuda_ok(cudaGetLastError(), "matmul_q8_0 staged warp launch");
++        }
+         matmul_q8_0_preq_warp8_kernel<<<((unsigned)out_dim + 7u) / 8u, 256>>>(
+                 (float *)out->ptr,
+                 reinterpret_cast<const unsigned char *>(wptr),
+@@ -7852,6 +8031,19 @@ static int cuda_matmul_q8_0_tensor_labeled(ds4_gpu_tensor *out, const void *mode
+         return cuda_ok(cudaGetLastError(), "matmul_q8_0 warp launch");
+     }
+     if (mbatch) {
++        if (cuda_q8_staged_ok(wptr, blocks)) {
++            matmul_q8_0_preq_mrow_warp8_staged_kernel<<<((unsigned)out_dim + 7u) / 8u, 256>>>(
++                    (float *)out->ptr,
++                    reinterpret_cast<const unsigned char *>(wptr),
++                    xq,
++                    xscale,
++                    in_dim,
++                    out_dim,
++                    n_tok,
++                    blocks,
++                    use_dp4a);
++            return cuda_ok(cudaGetLastError(), "matmul_q8_0 staged mrow launch");
++        }
+         matmul_q8_0_preq_mrow_warp8_kernel<<<((unsigned)out_dim + 7u) / 8u, 256>>>(
+                 (float *)out->ptr,
+                 reinterpret_cast<const unsigned char *>(wptr),
+@@ -7945,6 +8137,21 @@ extern "C" int ds4_gpu_matmul_q8_0_pair_tensor(
+     quantize_q8_0_f32_kernel<<<qgrid, 32>>>(xq, xscale, (const float *)x->ptr, in_dim, blocks);
+     if (!cuda_ok(cudaGetLastError(), "matmul_q8_0 pair quantize launch")) return 0;
+     const uint64_t max_out = out0_dim > out1_dim ? out0_dim : out1_dim;
++    if (cuda_q8_staged_ok(w0, blocks) && cuda_q8_staged_ok(w1, blocks)) {
++        matmul_q8_0_pair_preq_warp8_staged_kernel<<<((unsigned)max_out + 7u) / 8u, 256>>>(
++                (float *)out0->ptr,
++                (float *)out1->ptr,
++                reinterpret_cast<const unsigned char *>(w0),
++                reinterpret_cast<const unsigned char *>(w1),
++                xq,
++                xscale,
++                in_dim,
++                out0_dim,
++                out1_dim,
++                blocks,
++                use_dp4a);
++        return cuda_ok(cudaGetLastError(), "matmul_q8_0 staged pair launch");
++    }
+     matmul_q8_0_pair_preq_warp8_kernel<<<((unsigned)max_out + 7u) / 8u, 256>>>(
+             (float *)out0->ptr,
+             (float *)out1->ptr,
+@@ -10639,6 +10846,93 @@ __global__ static void moe_gate_up_mid_decode_lut_qwarp32_kernel(
+     }
+ }
+ 
++/* Staged variant of the decode gate/up kernel.
++ *
++ * The iq2_xxs block is 66 bytes, so per-block scalar loads never vectorize
++ * and the kernel sustains ~110 GB/s on GB10 where the same access pattern
++ * with int4 loads reaches ~170.  Each 8-lane oct stages one whole weight row
++ * (a 16-byte-aligned multiple) into its own shared slot with __ldcs int4
++ * loads, then decodes from shared where byte addressing is free.  Even octs
++ * take the gate row, odd octs the up row; reduction order per row matches
++ * the unstaged kernel, so results are bit-identical. */
++__global__ static void moe_gate_up_mid_decode_lut_staged_kernel(
++        float *gate_out,
++        float *up_out,
++        float *mid_out,
++        const char *gate_base,
++        const char *up_base,
++        const cuda_block_q8_K *xq,
++        const int32_t *selected,
++        const float *weights,
++        uint64_t gate_expert_bytes,
++        uint64_t gate_row_bytes,
++        uint32_t xq_blocks,
++        uint32_t expert_mid_dim,
++        uint32_t n_expert,
++        uint32_t write_aux,
++        float clamp) {
++    const uint32_t lane = threadIdx.x & 7u;
++    const uint32_t oct = threadIdx.x >> 3u;
++    const uint32_t row_slot = oct >> 1u;
++    const int is_up = oct & 1u;
++    const uint32_t pair = blockIdx.y;
++    const uint32_t tok = pair / n_expert;
++    const uint32_t slot = pair - tok * n_expert;
++    int32_t expert_i = selected[(uint64_t)tok * n_expert + slot];
++    if (expert_i < 0) expert_i = 0;
++    const uint32_t expert = (uint32_t)expert_i;
++    const cuda_block_q8_K *xqb = xq + (uint64_t)tok * xq_blocks;
++
++    __shared__ cuda_block_q8_K sxq[16];
++    __shared__ uint64_t s_iq2_grid[256];
++    __shared__ uint8_t s_iq2_signs[128];
++    __shared__ int4 srows[32][66];
++    if (xq_blocks > 16u || gate_row_bytes > sizeof(srows[0]) ||
++        (gate_row_bytes & 15u) != 0) {
++        return; /* dispatch guarantees this never triggers */
++    }
++    for (uint32_t i = threadIdx.x; i < xq_blocks; i += blockDim.x) sxq[i] = xqb[i];
++    for (uint32_t i = threadIdx.x; i < 256u; i += blockDim.x) s_iq2_grid[i] = cuda_iq2xxs_grid[i];
++    for (uint32_t i = threadIdx.x; i < 128u; i += blockDim.x) s_iq2_signs[i] = cuda_ksigns_iq2xs[i];
++    __syncthreads();
++    xqb = sxq;
++
++    const uint32_t row_int4s = (uint32_t)(gate_row_bytes >> 4u);
++    for (uint32_t rr = 0; rr < 4u; rr++) {
++        const uint32_t row = blockIdx.x * 64u + row_slot + rr * 16u;
++        if (row >= expert_mid_dim) continue;
++        const char *base = is_up ? up_base : gate_base;
++        const int4 *src = (const int4 *)(base + (uint64_t)expert * gate_expert_bytes +
++                                         (uint64_t)row * gate_row_bytes);
++        int4 *dst = srows[oct];
++        for (uint32_t w = lane; w < row_int4s; w += 8u) dst[w] = __ldcs(src + w);
++        __syncwarp();
++        const cuda_block_iq2_xxs *r = (const cuda_block_iq2_xxs *)dst;
++        float acc = 0.0f;
++        for (uint32_t b = lane; b < xq_blocks; b += 8u) {
++            acc += dev_dot_iq2_xxs_q8_K_block_lut(r + b, xqb + b, s_iq2_grid, s_iq2_signs);
++        }
++        acc = quarter_warp_sum_f32(acc, lane);
++        const float other = __shfl_sync(0xffffffffu, acc, (threadIdx.x + 8u) & 31u, 32);
++        if (lane == 0 && !is_up) {
++            float gate = acc;
++            float up = other;
++            if (clamp > 1.0e-6f) {
++                if (gate > clamp) gate = clamp;
++                if (up > clamp) up = clamp;
++                if (up < -clamp) up = -clamp;
++            }
++            const uint64_t off = (uint64_t)pair * expert_mid_dim + row;
++            if (write_aux) {
++                gate_out[off] = gate;
++                up_out[off] = up;
++            }
++            mid_out[off] = (gate / (1.0f + expf(-gate))) * up * weights[(uint64_t)tok * n_expert + slot];
++        }
++        __syncwarp();
++    }
++}
++
+ __global__ static void moe_count_sorted_pairs_kernel(
+         uint32_t *counts,
+         const int32_t *selected,
+@@ -11523,6 +11817,84 @@ __global__ static void moe_down_sum6_qwarp32_kernel(
+     if (lane == 0) out[row] = total;
+ }
+ 
++/* Staged variant of the fused 6-expert decode down kernel; same int4
++ * shared-staging rationale as the gate/up kernel (q2_K blocks are 84 bytes,
++ * rows are 16-byte-aligned multiples). Bit-identical reduction order. */
++__global__ static void moe_down_sum6_staged_kernel(
++        float *out,
++        const char *down_base,
++        const cuda_block_q8_K *midq,
++        const int32_t *selected,
++        uint64_t down_expert_bytes,
++        uint64_t down_row_bytes,
++        uint32_t midq_blocks,
++        uint32_t out_dim) {
++    const uint32_t lane = threadIdx.x & 7u;
++    const uint32_t oct = threadIdx.x >> 3u;
++    const uint32_t row = blockIdx.x * 32u + oct;
++    __shared__ int4 srows[32][42];
++    if (down_row_bytes > sizeof(srows[0]) || (down_row_bytes & 15u) != 0) return;
++    if (row >= out_dim) return;
++    const uint32_t row_int4s = (uint32_t)(down_row_bytes >> 4u);
++    float total = 0.0f;
++    #pragma unroll
++    for (uint32_t slot = 0; slot < 6u; slot++) {
++        int32_t expert_i = selected[slot];
++        if (expert_i < 0) expert_i = 0;
++        const int4 *src = (const int4 *)(down_base +
++                (uint64_t)(uint32_t)expert_i * down_expert_bytes +
++                (uint64_t)row * down_row_bytes);
++        int4 *dst = srows[oct];
++        for (uint32_t w = lane; w < row_int4s; w += 8u) dst[w] = __ldcs(src + w);
++        __syncwarp();
++        const cuda_block_q2_K *wr = (const cuda_block_q2_K *)dst;
++        const cuda_block_q8_K *xq = midq + (uint64_t)slot * midq_blocks;
++        float acc = 0.0f;
++        for (uint32_t b = lane; b < midq_blocks; b += 8u) acc += dev_dot_q2_K_q8_K_block(wr + b, xq + b);
++        acc = quarter_warp_sum_f32(acc, lane);
++        if (lane == 0) total += acc;
++        __syncwarp();
++    }
++    if (lane == 0) out[row] = total;
++}
++
++/* Staged per-pair down kernel for small speculative-verifier batches. */
++__global__ static void moe_down_staged_kernel(
++        float *down_out,
++        const char *down_base,
++        const cuda_block_q8_K *midq,
++        const int32_t *selected,
++        uint64_t down_expert_bytes,
++        uint64_t down_row_bytes,
++        uint32_t midq_blocks,
++        uint32_t out_dim,
++        uint32_t n_expert) {
++    const uint32_t lane = threadIdx.x & 7u;
++    const uint32_t oct = threadIdx.x >> 3u;
++    const uint32_t row = blockIdx.x * 32u + oct;
++    const uint32_t pair = blockIdx.y;
++    __shared__ int4 srows[32][42];
++    if (down_row_bytes > sizeof(srows[0]) || (down_row_bytes & 15u) != 0) return;
++    if (row >= out_dim) return;
++    const uint32_t tok = pair / n_expert;
++    const uint32_t slot = pair - tok * n_expert;
++    int32_t expert_i = selected[(uint64_t)tok * n_expert + slot];
++    if (expert_i < 0) expert_i = 0;
++    const uint32_t row_int4s = (uint32_t)(down_row_bytes >> 4u);
++    const int4 *src = (const int4 *)(down_base +
++            (uint64_t)(uint32_t)expert_i * down_expert_bytes +
++            (uint64_t)row * down_row_bytes);
++    int4 *dst = srows[oct];
++    for (uint32_t w = lane; w < row_int4s; w += 8u) dst[w] = __ldcs(src + w);
++    __syncwarp();
++    const cuda_block_q2_K *wr = (const cuda_block_q2_K *)dst;
++    const cuda_block_q8_K *xq = midq + (uint64_t)pair * midq_blocks;
++    float acc = 0.0f;
++    for (uint32_t b = lane; b < midq_blocks; b += 8u) acc += dev_dot_q2_K_q8_K_block(wr + b, xq + b);
++    acc = quarter_warp_sum_f32(acc, lane);
++    if (lane == 0) down_out[(uint64_t)pair * out_dim + row] = acc;
++}
++
+ __global__ static void moe_down_q4K_sum6_qwarp32_kernel(
+         float *out,
+         const char *down_base,
+@@ -12591,7 +12963,35 @@ static int routed_moe_launch(
+         if (prof_ev[2]) (void)cudaEventRecord(prof_ev[2], 0);
+         if (ok) {
+             dim3 mgrid((expert_mid_dim + 31u) / 32u, n_tokens * n_expert, 1);
+-            if (ok && sorted_pairs && use_expert_tiles && sorted_offsets && sorted_counts && tile_total && tile_experts && tile_starts) {
++            /* Small speculative-verifier batches: the expert-tile dedup wins
++             * little at 2-16 rows (adjacent draft rows share ~2 of 6 experts)
++             * while the staged per-pair kernel reads weights at ~1.6x the
++             * bandwidth; take staging. */
++            const uint32_t use_staged_small_batch =
++                !q4k_path && n_tokens >= 2u && n_tokens <= 16u &&
++                xq_blocks <= 16u &&
++                gate_row_bytes <= 66u * 16u && (gate_row_bytes & 15u) == 0 &&
++                (expert_mid_dim & 63u) == 0 &&
++                getenv("DS4_CUDA_MOE_NO_STAGED") == NULL;
++            if (use_staged_small_batch) {
++                dim3 sgrid2((expert_mid_dim + 63u) / 64u, n_tokens * n_expert, 1);
++                moe_gate_up_mid_decode_lut_staged_kernel<<<sgrid2, 256>>>(
++                    (float *)gate->ptr,
++                    (float *)up->ptr,
++                    (float *)mid->ptr,
++                    gate_w,
++                    up_w,
++                    xq,
++                    selected_ptr,
++                    (const float *)weights->ptr,
++                    gate_expert_bytes,
++                    gate_row_bytes,
++                    xq_blocks,
++                    expert_mid_dim,
++                    n_expert,
++                    write_gate_up,
++                    clamp);
++            } else if (ok && sorted_pairs && use_expert_tiles && sorted_offsets && sorted_counts && tile_total && tile_experts && tile_starts) {
+                 if (q4k_path) {
+                     if (use_gate_row2048) {
+                         if (gate_row_span == 512u) {
+@@ -12726,6 +13126,27 @@ static int routed_moe_launch(
+                         n_expert,
+                         write_gate_up,
+                         clamp);
++                } else if (use_decode_lut_gate &&
++                           gate_row_bytes <= 66u * 16u && (gate_row_bytes & 15u) == 0 &&
++                           (expert_mid_dim & 63u) == 0 &&
++                           getenv("DS4_CUDA_MOE_NO_STAGED") == NULL) {
++                    dim3 sgrid2((expert_mid_dim + 63u) / 64u, n_tokens * n_expert, 1);
++                    moe_gate_up_mid_decode_lut_staged_kernel<<<sgrid2, 256>>>(
++                        (float *)gate->ptr,
++                        (float *)up->ptr,
++                        (float *)mid->ptr,
++                        gate_w,
++                        up_w,
++                        xq,
++                        selected_ptr,
++                        (const float *)weights->ptr,
++                        gate_expert_bytes,
++                        gate_row_bytes,
++                        xq_blocks,
++                        expert_mid_dim,
++                        n_expert,
++                        write_gate_up,
++                        clamp);
+                 } else if (use_decode_lut_gate) {
+                     moe_gate_up_mid_decode_lut_qwarp32_kernel<<<qgrid, 256>>>(
+                         (float *)gate->ptr,
+@@ -12794,6 +13215,18 @@ static int routed_moe_launch(
+                         down_row_bytes,
+                         midq_blocks,
+                         out_dim);
++                } else if (down_row_bytes <= 42u * 16u && (down_row_bytes & 15u) == 0 &&
++                           (out_dim & 31u) == 0 &&
++                           getenv("DS4_CUDA_MOE_NO_STAGED") == NULL) {
++                    moe_down_sum6_staged_kernel<<<sgrid, 256>>>(
++                        (float *)out->ptr,
++                        down_w,
++                        midq,
++                        selected_ptr,
++                        down_expert_bytes,
++                        down_row_bytes,
++                        midq_blocks,
++                        out_dim);
+                 } else {
+                     moe_down_sum6_qwarp32_kernel<<<sgrid, 256>>>(
+                         (float *)out->ptr,
+@@ -12810,8 +13243,25 @@ static int routed_moe_launch(
+                 zero_kernel<<<(n + 255u) / 256u, 256>>>((float *)out->ptr, n);
+                 ok = cuda_ok(cudaGetLastError(), "routed_moe atomic zero launch");
+             }
++            const uint32_t use_staged_small_down =
++                !q4k_path && !use_direct_down_sum6 && !use_atomic_down &&
++                n_tokens >= 2u && n_tokens <= 16u &&
++                down_row_bytes <= 42u * 16u && (down_row_bytes & 15u) == 0 &&
++                (out_dim & 31u) == 0 &&
++                getenv("DS4_CUDA_MOE_NO_STAGED") == NULL;
+             if (use_direct_down_sum6) {
+                 /* The direct decode kernel writes the final token row. */
++            } else if (use_staged_small_down) {
++                moe_down_staged_kernel<<<dgrid, 256>>>(
++                    (float *)down->ptr,
++                    down_w,
++                    midq,
++                    selected_ptr,
++                    down_expert_bytes,
++                    down_row_bytes,
++                    midq_blocks,
++                    out_dim,
++                    n_expert);
+             } else if (sorted_pairs && use_expert_tiles && sorted_offsets && sorted_counts &&
+                 down_tile_total && down_tile_experts && down_tile_starts) {
+                 if (q4k_path) {
+-- 
+2.43.0
+

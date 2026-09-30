@@ -1,0 +1,718 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "079775a8deb415d16b89a505df0795987add3395e6e63a42a885a712ccb1ddc3",
+        "repository": "ghcr.io/drowzeys/inkling-sglang-gb10"
+      },
+      "context": {
+        "path": "adapters/inkling/drowzeys-kvquant-dual"
+      },
+      "dockerfile": "adapters/inkling/drowzeys-kvquant-dual/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "inkling-small"
+      ],
+      "port": 30000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "drowzeys' champion two-Spark profile for thinkingmachines/Inkling-Small-NVFP4 (276B total, 12B active MoE) with RadixArk's stock DSpark speculator (block size 7 of the checkpoint's 15) and a first NVFP4-style KV cache on SGLang's triton backend (fp4_mx_block16), giving a 1,048,576-token context. Runs upstream's :kvquant image (lmsysorg/sglang dev-inkling-dspark plus NCCL 2.30 and the KV-quant patches). Defaults follow scripts/nvfp4-kv-boot.sh: fp4_mx_block16 KV, triton attention with fp32 reduction, page size 1, marlin MoE, extra_buffer mamba radix cache, memory fraction 0.85, 16 running requests, 8192-token prefill chunks, decode CUDA graphs for 1 to 16 (piecewise and prefill graphs off). Upstream reports (not measured here): about 33 tok/s decode, accept length about 3.5, KV pool 1,082,627 tokens, byte-exact against the bf16 reference at temperature 0 and needle retrieval to 113K. Text only: upstream does not enable multimodal. Licences: checkpoint Apache-2.0 (Thinking Machines); the RadixArk draft declares none; drowzeys' repository declares none. Not gated.",
+    "tags": [
+      "candidate",
+      "dspark",
+      "executable",
+      "dual",
+      "inkling",
+      "moe",
+      "nvfp4",
+      "nvfp4-kv",
+      "reasoning",
+      "sglang",
+      "spark",
+      "tool-use"
+    ],
+    "title": "Inkling Small NVFP4 DSpark NVFP4-KV 1M SGLang two Sparks (drowzeys)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d",
+          "id": "primary-metadata-34448b82c17d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-146664eb4ce2",
+          "id": "primary-readme-146664eb4ce2",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-0aa1aa0c729d",
+          "id": "primary-chat-template-0aa1aa0c729d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-dcb5b1d587bc",
+          "id": "primary-config-dcb5b1d587bc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-70f2ae087bb4",
+          "id": "primary-hf-quant-config-70f2ae087bb4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00009-0536fc0774c0",
+          "id": "primary-model-00001-of-00009-0536fc0774c0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00009-94046cd4c60e",
+          "id": "primary-model-00002-of-00009-94046cd4c60e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00009-5b011d77adab",
+          "id": "primary-model-00003-of-00009-5b011d77adab",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00009-f84efa4eab97",
+          "id": "primary-model-00004-of-00009-f84efa4eab97",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00009-04911920af13",
+          "id": "primary-model-00005-of-00009-04911920af13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00009-6f2e9eb03063",
+          "id": "primary-model-00006-of-00009-6f2e9eb03063",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00009-728792823d6b",
+          "id": "primary-model-00007-of-00009-728792823d6b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00009-dc821c24f1af",
+          "id": "primary-model-00008-of-00009-dc821c24f1af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00009-c91d957b4a0c",
+          "id": "primary-model-00009-of-00009-c91d957b4a0c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-2e3a00b15c54",
+          "id": "primary-model-safetensors-index-2e3a00b15c54",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mtp-d286dd21cb98",
+          "id": "primary-mtp-d286dd21cb98",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-b4a3962ea5f7",
+          "id": "primary-processor-config-b4a3962ea5f7",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-abc97715b4b3",
+          "id": "primary-special-tokens-map-abc97715b4b3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-bc253fd2b702",
+          "id": "primary-tokenizer-bc253fd2b702",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-9fb6333a7db8",
+          "id": "primary-tokenizer-9fb6333a7db8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-2e36c9748a20",
+          "id": "primary-tokenizer-config-2e36c9748a20",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "90ffed7245a29ca1a0cb69bee73cf893bc0c4ca037489bc6f1757858e1e8ebfe",
+        "kind": "model",
+        "publisher": "thinkingmachines",
+        "slug": "inkling-small-nvfp4"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-11ad7efa2497-618cd5b83d",
+          "id": "drafter-metadata-11ad7efa2497-618cd5b83d",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-3e8f99828c98-b335630551",
+          "id": "drafter-readme-3e8f99828c98-b335630551",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-f360cef0abbc-587cb980af",
+          "id": "drafter-config-f360cef0abbc-587cb980af",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dflash-1b8fcdf0e1b8-817fe2d011",
+          "id": "drafter-dflash-1b8fcdf0e1b8-817fe2d011",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dspark-805928129fe9-b784e2643b",
+          "id": "drafter-dspark-805928129fe9-b784e2643b",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-c9d68f9ba297-9d75c1098f",
+          "id": "drafter-model-c9d68f9ba297-9d75c1098f",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "drafter",
+      "model": {
+        "content_sha256": "bec6548e464aa7563223538d40de55ee31c5fb0084d63f0ac95d709ba7024e09",
+        "kind": "model",
+        "publisher": "radixark",
+        "slug": "inkling-small-dspark-preview-fcc210dc"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: measured optimum; the checkpoint native block 15 was worse on this hardware.",
+          "label": "DSpark block 7",
+          "value": "block-7"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-dspark-block-size",
+              "value": 15
+            }
+          ],
+          "help": "The draft checkpoint native block size; upstream measured it as worse here.",
+          "label": "DSpark block 15",
+          "value": "block-15"
+        }
+      ],
+      "help": "Speculative decoding with the stock RadixArk draft. Upstream measured about 2x over no speculation and lossless at temperature 0; its draft finetune and confidence scheduling variants did not beat the stock setup.",
+      "label": "DSpark speculation",
+      "name": "speculation"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "drowzeys (keyspark)",
+      "Thinking Machines Lab",
+      "RadixArk",
+      "SGLang contributors"
+    ],
+    "source_reference": "https://github.com/drowzeys/keys-1M-CTX-Inkling-Small-NVFP4-Dspark-NVFP4-KV-Cache-SGlang-SM121-optimized-on-Two-DGX-Sparks/tree/539a7747d030233e9ed845dab682a948ff0cbfb2"
+  },
+  "release": {
+    "released_at": "2026-08-16",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model-path",
+        "setting": null,
+        "value": "/models/target"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "inkling-small"
+      },
+      {
+        "name": "tp-size",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "context-length",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "modelopt_fp4"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp4_mx_block16"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "triton"
+      },
+      {
+        "name": "triton-attention-reduce-in-fp32",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "page-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "fp4-gemm-backend",
+        "setting": null,
+        "value": "flashinfer_trtllm"
+      },
+      {
+        "name": "moe-runner-backend",
+        "setting": null,
+        "value": "marlin"
+      },
+      {
+        "name": "mamba-radix-cache-strategy",
+        "setting": null,
+        "value": "extra_buffer"
+      },
+      {
+        "name": "mem-fraction-static",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
+        "name": "swa-full-tokens-ratio",
+        "setting": null,
+        "value": "0.1"
+      },
+      {
+        "name": "mamba-full-memory-ratio",
+        "setting": null,
+        "value": "0.1"
+      },
+      {
+        "name": "max-running-requests",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "chunked-prefill-size",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "inkling"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "inkling"
+      },
+      {
+        "name": "skip-server-warmup",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "disable-flashinfer-autotune",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "stream-interval",
+        "setting": null,
+        "value": 32
+      },
+      {
+        "name": "speculative-algorithm",
+        "setting": null,
+        "value": "DSPARK"
+      },
+      {
+        "name": "speculative-draft-model-path",
+        "setting": null,
+        "value": "/models/drafter"
+      },
+      {
+        "name": "speculative-draft-model-quantization",
+        "setting": null,
+        "value": "unquant"
+      },
+      {
+        "name": "speculative-dspark-block-size",
+        "setting": null,
+        "value": 7
+      },
+      {
+        "name": "cuda-graph-bs",
+        "setting": null,
+        "value": "1 2 3 4 5 6 7 8 10 12 14 16"
+      },
+      {
+        "name": "disable-piecewise-cuda-graph",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "disable-prefill-cuda-graph",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "sglang",
+    "entrypoint": [
+      "/opt/vonk/bin/sglang-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "SGLANG_ENABLE_UNIFIED_RADIX_TREE",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_TORCH_CONV_COMMIT",
+        "value": "1"
+      },
+      {
+        "name": "INKLING_COMMIT_STEP_BIAS",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_NET",
+        "value": "IB"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_NET_PLUGIN",
+        "value": "none"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_NVLS_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_IGNORE_CPU_AFFINITY",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 16
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 1048576
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "native",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 172564754792,
+            "image_bytes": 45000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 52000000000
+          },
+          "memory": {
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 172564754792,
+            "image_bytes": 45000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 52000000000
+          },
+          "memory": {
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "inkling-small"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
