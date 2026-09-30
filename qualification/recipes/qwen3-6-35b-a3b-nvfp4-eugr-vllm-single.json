@@ -1,0 +1,16 @@
+{
+  "id": "vonk-forge/qwen3-6-35b-a3b-nvfp4-eugr-vllm-single",
+  "service_recipes": {
+    "alias": "Qwen3.6-35B-A3B-NVFP4",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Optional bounded streaming and declared concurrency canaries"
+      ]
+    }
+  }
+}
