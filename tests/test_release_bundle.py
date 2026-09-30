@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import importlib.machinery
 import importlib.util
+import io
 import json
 import os
 import sys
@@ -201,9 +202,8 @@ class SyncReleaseAssetsTests(unittest.TestCase):
         self.bundle = self.tmp / "bundle" / "recipe-library.tar"
         self.bundle.parent.mkdir()
         bundle_tool.build(self.release, self.bundle)
-        self.expected = sync_tool.expected_from_files(self.release, self.bundle)
-        self.sources = {path.name: path for path in self.release.iterdir()}
-        self.sources[self.bundle.name] = self.bundle
+        self.expected = sync_tool.expected_from_bundle(self.bundle)
+        self.sources = {self.bundle.name: self.bundle}
 
     def converge(self, github: FakeGitHub) -> bool:
         return sync_tool.converge(
@@ -215,45 +215,47 @@ class SyncReleaseAssetsTests(unittest.TestCase):
             sleep=lambda _seconds: None,
         )
 
-    def test_uploads_into_an_empty_release_with_the_manifest_last(self) -> None:
+    def test_only_the_bundle_is_expected(self) -> None:
+        self.assertEqual(list(self.expected), ["recipe-library.tar"])
+
+    def test_uploads_only_the_bundle_into_an_empty_release(self) -> None:
         github = FakeGitHub()
         self.assertTrue(self.converge(github))
-        stages = github.uploads
-        self.assertEqual(stages[1], ["recipe-library.tar"])
-        self.assertEqual(stages[2], ["SHA256SUMS", "SHA256SUMS.sigstore.json"])
-        self.assertNotIn("SHA256SUMS", stages[0])
+        self.assertEqual(github.uploads, [["recipe-library.tar"]])
+        self.assertEqual(list(github.assets), ["recipe-library.tar"])
 
     def test_a_server_error_mid_update_is_retried_until_it_converges(self) -> None:
         github = FakeGitHub(failures=["500"])
         self.assertTrue(self.converge(github))
-        self.assertFalse(
+        self.assertTrue(
             sync_tool.compare(
                 self.expected, sync_tool.published_assets(github, "o/r", "v1")
-            ).missing
+            ).clean
         )
 
     def test_a_corrupted_asset_is_detected_by_digest_and_replaced(self) -> None:
         github = FakeGitHub(failures=["corrupt"])
         self.assertTrue(self.converge(github))
 
-    def test_stale_and_extra_assets_are_repaired_and_removed(self) -> None:
+    def test_the_old_individual_assets_are_deleted_after_the_bundle_lands(self) -> None:
         github = FakeGitHub()
         for name, payload in FILES.items():
             github.put(name, payload)
-        github.put("alpha-recipe.tar.gz", b"stale")
-        github.put("removed-recipe.tar.gz", b"gone")
+        github.put("SHA256SUMS", b"old")
+        github.put("SHA256SUMS.sigstore.json", b"old")
         self.assertTrue(self.converge(github))
-        self.assertNotIn("removed-recipe.tar.gz", github.assets)
-        self.assertEqual(github.uploads[0], ["alpha-recipe.tar.gz"])
+        self.assertEqual(list(github.assets), ["recipe-library.tar"])
+        self.assertEqual(github.uploads, [["recipe-library.tar"]])
 
     def test_an_unconvergeable_release_fails_visibly(self) -> None:
         github = FakeGitHub(failures=["500"] * 20)
         self.assertFalse(self.converge(github))
 
-    def test_a_manifest_is_not_uploaded_over_failed_content(self) -> None:
+    def test_extra_assets_are_kept_while_the_bundle_cannot_be_uploaded(self) -> None:
         github = FakeGitHub(failures=["500"] * 20)
+        github.put("alpha-recipe.tar.gz", b"old")
         self.converge(github)
-        self.assertNotIn("SHA256SUMS", github.assets)
+        self.assertNotIn("recipe-library.tar", github.assets)
 
     def test_a_missing_digest_falls_back_to_size_only_when_the_size_is_known(
         self,
@@ -281,19 +283,31 @@ class SyncReleaseAssetsTests(unittest.TestCase):
         )
         self.assertFalse(difference.clean)
 
-    def test_check_accepts_a_release_that_carries_its_own_manifest(self) -> None:
-        github = FakeGitHub()
-        for name, payload in FILES.items():
-            github.put(name, payload)
+    def test_check_needs_the_bundle_to_carry_the_manifest(self) -> None:
         manifest = self.release / "SHA256SUMS"
-        github.put("SHA256SUMS", manifest.read_bytes())
-        github.put("SHA256SUMS.sigstore.json", b"any")
-        expected = sync_tool.expected_from_manifest(manifest)
-        assets = sync_tool.published_assets(github, "o/r", "v1")
-        self.assertIn("recipe-library.tar", sync_tool.compare(expected, assets).missing)
-        github.put("recipe-library.tar", b"any")
-        assets = sync_tool.published_assets(github, "o/r", "v1")
-        self.assertTrue(sync_tool.compare(expected, assets).clean)
+        self.assertTrue(sync_tool.bundle_matches_manifest(self.bundle, manifest))
+        other = write_release(
+            self.tmp / "other", {**FILES, "extra.tar.gz": b"\x1f\x8bextra"}
+        )
+        self.assertFalse(
+            sync_tool.bundle_matches_manifest(self.bundle, other / "SHA256SUMS")
+        )
+
+    def test_check_rejects_a_bundle_with_a_tampered_member(self) -> None:
+        tampered = self.tmp / "tampered.tar"
+        with (
+            tarfile.open(self.bundle) as source,
+            tarfile.open(tampered, "w", format=tarfile.USTAR_FORMAT) as target,
+        ):
+            for member in source:
+                payload = source.extractfile(member).read()  # type: ignore[union-attr]
+                if member.name == "zeta-recipe.tar.gz":
+                    payload = b"tampered"
+                    member.size = len(payload)
+                target.addfile(member, io.BytesIO(payload))
+        self.assertFalse(
+            sync_tool.bundle_matches_manifest(tampered, self.release / "SHA256SUMS")
+        )
 
 
 if __name__ == "__main__":

@@ -154,20 +154,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          current="$RUNNER_TEMP/current"
-          mkdir -p "$current"
           if ! gh release view "$RELEASE_TAG" --json tagName >/dev/null 2>&1; then
             echo "exists=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           echo "exists=true" >> "$GITHUB_OUTPUT"
-          # Identical manifest is not enough to skip: a half-updated release
-          # keeps its manifest, and one published before the bundle existed
-          # lacks recipe-library.tar. Skip only when the release is complete.
-          if gh release download "$RELEASE_TAG" --pattern SHA256SUMS --dir "$current" \
-            && cmp -s "$current/SHA256SUMS" "$RUNNER_TEMP/release/SHA256SUMS" \
-            && "$RELEASE_TEST_PYTHON" tools/sync-release-assets --tag "$RELEASE_TAG" \
-              check --sums "$current/SHA256SUMS"; then
+          # Skip only when the release holds exactly recipe-library.tar and that
+          # bundle carries this SHA256SUMS with every member matching it.
+          if "$RELEASE_TEST_PYTHON" tools/sync-release-assets --tag "$RELEASE_TAG" \
+            check --sums "$RUNNER_TEMP/release/SHA256SUMS"; then
             echo "release $RELEASE_TAG already publishes this complete asset set"
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
@@ -200,22 +195,21 @@ jobs:
             --message "Vonk Forge recipe library $RELEASE_TAG, updated $UPDATED_AT" "$GITHUB_SHA"
           git push --force origin "refs/tags/$RELEASE_TAG"
           # One asset holds the whole signed library: SHA256SUMS, its Sigstore
-          # bundle and every listed file, deterministically. Consumers read it
-          # instead of racing the per-asset updates below.
+          # bundle and every listed file, deterministically. It is the release's
+          # only asset.
           bundle="$RUNNER_TEMP/bundle/recipe-library.tar"
           mkdir -p "$(dirname "$bundle")"
           "$RELEASE_TEST_PYTHON" tools/build-release-bundle "$release" "$bundle"
           if [ "$RELEASE_EXISTS" != "true" ]; then
-            # Upload every asset to a draft first: "latest" must never name a
-            # release whose signed asset set is incomplete.
+            # Upload the bundle to a draft first: "latest" must never name a
+            # release without its bundle.
             gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
-              --title "$title" --notes "$notes" "$release"/* "$bundle"
+              --title "$title" --notes "$notes" "$bundle"
             gh release edit "$RELEASE_TAG" --draft=false --latest
           fi
-          # Upload what is missing or different (content, then the bundle, then
-          # the signed manifest), drop assets the manifest no longer lists, and
-          # verify the release's digests and sizes. Per-asset replacement is not
-          # atomic; the run fails unless the release converges to the exact set.
+          # Upload the bundle when missing or different, delete every other
+          # asset, and verify the release's digest and size. The run fails
+          # unless the release converges to exactly the one bundle asset.
           "$RELEASE_TEST_PYTHON" tools/sync-release-assets --tag "$RELEASE_TAG" \
-            publish --release-dir "$release" --bundle "$bundle"
+            publish --bundle "$bundle"
           gh release edit "$RELEASE_TAG" --title "$title" --notes "$notes" --latest
