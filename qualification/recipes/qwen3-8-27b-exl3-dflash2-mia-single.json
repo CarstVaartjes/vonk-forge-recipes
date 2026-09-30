@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/qwen3-8-27b-exl3-dflash2-mia-single",
+  "service_recipes": {
+    "alias": "qwen3.8-27b-exl3-3.5bpw-wm",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded streaming canaries; the server generates one request at a time, so concurrent requests queue"
+      ],
+      "recovery": [
+        "Controller stop/start with warm kernel-cache restart, with the first-start Triton kernel compile time recorded separately"
+      ]
+    }
+  }
+}

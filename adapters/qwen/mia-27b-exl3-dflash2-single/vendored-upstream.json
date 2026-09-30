@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "exl3-serve",
+    "verify-runtime.py"
+  ],
+  "source": {
+    "repo": "MiaAI-Lab/Qwen3.8-27B-DFlash2-EXL3-5.0bpw",
+    "commit": "1242187390f780dba907e30659f1639fd0b491c8"
+  }
+}
