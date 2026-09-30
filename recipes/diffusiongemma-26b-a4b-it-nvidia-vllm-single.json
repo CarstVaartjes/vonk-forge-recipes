@@ -1,0 +1,477 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "e7d5835566d26faaefa2f7b0f9c365e8bda83aa340f2ebf2f9ba8e53ed5c7e55",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/nvidia/diffusiongemma-26b-a4b-it-nvidia-vllm-single"
+      },
+      "dockerfile": "adapters/nvidia/diffusiongemma-26b-a4b-it-nvidia-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "diffusiongemma-26b-a4b-it-nvidia-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "diffusiongemma-26b-a4b-it"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for DiffusionGemma 26B-A4B IT BF16: vllm/vllm-openai:gemma (DiffusionGemma custom container named by the playbook), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes are estimates from vLLM's default 0.9 GPU memory utilization, not measurements; physical Spark acceptance is pending.",
+    "tags": [
+      "executable",
+      "candidate",
+      "nvidia",
+      "vllm",
+      "openai",
+      "single",
+      "spark",
+      "gemma",
+      "diffusion",
+      "bf16"
+    ],
+    "title": "DiffusionGemma 26B-A4B IT BF16 vLLM single Spark (NVIDIA playbook)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-fd82bca78d82-618cd5b83d",
+          "id": "metadata-fd82bca78d82-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-3acbbf7e4c01-b335630551",
+          "id": "readme-3acbbf7e4c01-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-9aeb7eac68ad-00824420d1",
+          "id": "chat-template-9aeb7eac68ad-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-13b11d2fe873-587cb980af",
+          "id": "config-13b11d2fe873-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-99334f763c3d-97dd3d578b",
+          "id": "generation-config-99334f763c3d-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00011-3efe137998af-9b90934164",
+          "id": "model-00001-of-00011-3efe137998af-9b90934164",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00011-4a39d68c756f-c04a9dab92",
+          "id": "model-00002-of-00011-4a39d68c756f-c04a9dab92",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00011-ac6083e34892-74de7f5b30",
+          "id": "model-00003-of-00011-ac6083e34892-74de7f5b30",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00011-865b66393de5-3816020362",
+          "id": "model-00004-of-00011-865b66393de5-3816020362",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00011-a87e01bed77a-5709a5a751",
+          "id": "model-00005-of-00011-a87e01bed77a-5709a5a751",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00011-077e841b3b13-e4ac42a7fe",
+          "id": "model-00006-of-00011-077e841b3b13-e4ac42a7fe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00011-13a18b3c04a7-4cb1fbe204",
+          "id": "model-00007-of-00011-13a18b3c04a7-4cb1fbe204",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00011-aca5d3bdfc84-785d125f4e",
+          "id": "model-00008-of-00011-aca5d3bdfc84-785d125f4e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00011-8e2418867354-e228bcc2fe",
+          "id": "model-00009-of-00011-8e2418867354-e228bcc2fe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00011-93d564b7dd68-418939ece1",
+          "id": "model-00010-of-00011-93d564b7dd68-418939ece1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00011-afec047176bb-fe7fbfbe20",
+          "id": "model-00011-of-00011-afec047176bb-fe7fbfbe20",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-6e33e8465d55-0a05be8238",
+          "id": "model-safetensors-index-6e33e8465d55-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-989c453462f9-ee03ace9a3",
+          "id": "model-index-989c453462f9-ee03ace9a3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-32bdf45d2ad4-27f0cb76af",
+          "id": "processor-config-32bdf45d2ad4-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-5e5536ea036c-67ecb3dc37",
+          "id": "scheduler-config-5e5536ea036c-67ecb3dc37",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-cc8d3a0ce364-224931eb13",
+          "id": "tokenizer-cc8d3a0ce364-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a284d1243b62-94d5c6ba8f",
+          "id": "tokenizer-config-a284d1243b62-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "8ff6a404f1b7a8709a3cebce797856836e2d6321733a1ec8067a609d9bbaec43",
+        "kind": "model",
+        "publisher": "google",
+        "slug": "diffusiongemma-26b-a4b-it-bf16-f7f5b7f5"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "NVIDIA",
+      "vLLM contributors",
+      "Google DeepMind"
+    ],
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/b3bc0813e1864e54ce5ed9a0cc74e0b03745c027/nvidia/vllm/README.md"
+  },
+  "release": {
+    "released_at": "2026-06-10",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "diffusiongemma-26b-a4b-it"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.8"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "TRITON_ATTN"
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": null,
+        "value": 10
+      },
+      {
+        "name": "diffusion-config",
+        "setting": null,
+        "value": "{\"canvas_length\":256}"
+      },
+      {
+        "name": "override-generation-config",
+        "setting": null,
+        "value": "{\"max_new_tokens\": null}"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\": true}"
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "fastsafetensors"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "triton"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_USE_V2_MODEL_RUNNER",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 51680024015,
+            "image_bytes": 22000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 25840012007
+          },
+          "memory": {
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "diffusiongemma-26b-a4b-it"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
