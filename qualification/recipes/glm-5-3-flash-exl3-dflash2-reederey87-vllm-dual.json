@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",
+  "service_recipes": {
+    "alias": "GLM-5.3-Flash-EXL3",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "8K, 32K and 240K-token cold-prefill ladder, four concurrent sessions with prefix-cache retention and adaptive-k acceptance checks, and a short request behind a long prefill; thinking is always on, so use budgets of at least 8K tokens"
+      ],
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery; swap enabled with vm.swappiness=0 on both ranks"
+      ]
+    }
+  }
+}

@@ -7,6 +7,7 @@
     {"name": "drowzeys (keyz)", "url": "https://github.com/drowzeys", "aliases": ["drowzeys", "keyz"], "focus": "Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants."},
     {"name": "NVIDIA playbooks", "url": "https://github.com/NVIDIA/dgx-spark-playbooks", "aliases": ["nvidia", "nvidia corporation"], "focus": "Official DGX Spark playbooks and NVIDIA model releases: Nemotron, NVFP4 checkpoints."},
     {"name": "eugr", "url": "https://github.com/eugr", "aliases": ["eugr"], "focus": "spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking."},
+    {"name": "Reederey87", "url": "https://github.com/Reederey87", "aliases": ["reederey87"], "focus": "Production GLM-5.3-Flash EXL3 kit for two Sparks: 1M-token context with DFlash2, hybrid prefix-cache fixes and fat-expert MoE kernels."},
     {"name": "sfxnz", "url": "https://github.com/sfxnz", "aliases": ["sfxnz"], "focus": "Dual-Spark vLLM TP=2 cookbooks: Qwen3.8, GLM 5.3, DeepSeek V4.1 EXL3."},
     {"name": "vcruz305", "url": "https://github.com/vcruz305", "aliases": ["vcruz305"], "focus": "Single-Spark EXL3 recipes on a GB10-tuned exllamav3 fork with TabbyAPI or vLLM: Qwen3.8 Flash Next, GLM 5.3 Flash, DeepSeek V4.1 Flash."},
     {"name": "0xSero", "url": "https://github.com/0xSero", "aliases": ["0xsero"], "focus": "SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark."},
