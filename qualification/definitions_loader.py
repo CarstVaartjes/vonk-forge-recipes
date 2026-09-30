@@ -1,7 +1,7 @@
 """Assemble the qualification definitions from their source files.
 
-``qualification/definitions.json`` holds the shared parts (schema version,
-fixtures, special fixtures, service case templates). Each recipe owns one file,
+``qualification/shared.json`` holds the shared parts (schema version, fixtures,
+special fixtures, service case templates). Each recipe owns one file,
 ``qualification/recipes/<slug>.json``, where ``<slug>`` is the recipe id without
 its publisher prefix::
 
@@ -9,9 +9,9 @@ its publisher prefix::
 
 Either section may be omitted. ``load_definitions`` is the only reader; it
 returns the same document the single file used to hold, with both maps sorted
-by recipe id. Entries still in the shared file are read too. It fails loudly
-on a recipe id defined twice (in two files or in a file and the shared file), on
-a duplicate JSON key, or on a file name that does not match its id.
+by recipe id. It fails loudly on a recipe id defined twice, on a duplicate JSON
+key, on a file name that does not match its id, and on a leftover
+``definitions.json`` (the pre-split layout).
 """
 
 from __future__ import annotations
@@ -49,10 +49,16 @@ def recipe_file_name(recipe_id: str) -> str:
 
 
 def load_definitions(root: Path = QUALIFICATION_ROOT) -> dict[str, Any]:
-    document = _read(root / "definitions.json")
+    if (root / "definitions.json").exists():
+        raise ValueError(
+            "qualification/definitions.json is the old layout; "
+            "run tools/migrate-pr-qualification"
+        )
+    document = _read(root / "shared.json")
     for section in PER_RECIPE_SECTIONS:
-        # Entries not yet moved out of the shared file are still honoured.
-        document.setdefault(section, {})
+        if section in document:
+            raise ValueError(f"shared.json must not hold {section!r}")
+        document[section] = {}
     for path in sorted((root / "recipes").glob("*.json")):
         entry = _read(path)
         recipe_id = entry.get("id")

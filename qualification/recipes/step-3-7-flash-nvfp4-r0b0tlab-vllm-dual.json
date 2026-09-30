@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/step-3-7-flash-nvfp4-r0b0tlab-vllm-dual",
+  "service_recipes": {
+    "alias": "/models/Step-3.7-Flash-NVFP4",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded 32K-context and four-sequence concurrency canaries with image input"
+      ],
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery"
+      ]
+    }
+  }
+}

@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
-"""Move a PR branch's qualification edits into per-recipe files.
+"""Move qualification entries to the per-recipe layout.
 
-For a branch that changed the old single ``qualification/definitions.json``.
-Merge main into the branch first, taking main's ``definitions.json`` (and
-``README.md``) for those conflicts, and commit the merge. Then, from the
-repository root (the script may come from a newer checkout than the branch)::
+The old layout kept every recipe in ``qualification/definitions.json``; the new
+one has ``qualification/shared.json`` plus ``qualification/recipes/<slug>.json``.
+
+For an open PR branch that changed the old file: merge main into the branch (the
+merge conflicts modify/delete on ``definitions.json``, and on ``README.md`` if
+it changed; take main's README, and delete ``definitions.json``), commit the
+merge, then from the repository root (the script may come from a newer checkout
+than the branch)::
 
     tools/migrate-pr-qualification
 
 It reads the merge commit ``HEAD``: the branch's old ``definitions.json``
-(``HEAD^1``) against the merge base with main, and writes every added or
-changed entry of the ``recipes`` and ``service_recipes`` maps to
-``qualification/recipes/<slug>.json``, on top of any file main already has.
-Removed entries are reported, not applied. Commit the result.
+(``HEAD^1``) against the merge base with main, writes every added or changed
+entry of the ``recipes`` and ``service_recipes`` maps to
+``qualification/recipes/<slug>.json`` on top of any file main already has, and
+deletes a leftover ``definitions.json``. Removed entries, and edits to the shared
+sections (now ``shared.json``), are reported, not applied. Commit the result.
 
-``tools/migrate-pr-qualification --all`` instead moves every entry still in
-``qualification/definitions.json`` into its per-recipe file and drops the two
-maps from it (used once, on main).
+``tools/migrate-pr-qualification --all`` instead converts the old file on the
+current tree: shared sections to ``shared.json``, every entry to its file, and
+``definitions.json`` is deleted (used once, on main).
 """
 
 from __future__ import annotations
@@ -62,7 +67,8 @@ def _migrate_all(root: Path) -> int:
             document[section] = entry
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(_dump(document), encoding="utf-8")
-    path.write_text(_dump(shared), encoding="utf-8")
+    (root / "qualification" / "shared.json").write_text(_dump(shared), encoding="utf-8")
+    path.unlink()
     return 0
 
 
@@ -93,6 +99,7 @@ def main() -> int:
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(_dump(document), encoding="utf-8")
             print(f"migrated {section}: {recipe_id} -> {target.relative_to(root)}")
+    (root / DEFINITIONS).unlink(missing_ok=True)
     return 0
 
 
