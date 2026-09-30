@@ -1,7 +1,7 @@
 FROM ghcr.io/r0b0tlab/sglang-mimo26-env@sha256:84857252a1a9b4196702154ae38eb3cfafdf4cd832795eba18ac2772f8a83f1e
 
 LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/mimo26-nvfp4-sm121" \
-      org.opencontainers.image.revision="683239d7280880af3bfdce6500ea7349e473b8da" \
+      org.opencontainers.image.revision="2852795bf05a2e6f7c4a830ac26e551cdf94d745" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 

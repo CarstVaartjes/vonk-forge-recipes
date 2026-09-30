@@ -78,8 +78,8 @@
           ]
         },
         {
-          "file_id": "readme-e8108c005b9d-b335630551",
-          "id": "primary-readme-e8108c005b9d-b335630551",
+          "file_id": "readme-510fed8d005f-b335630551",
+          "id": "primary-readme-510fed8d005f-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -1092,10 +1092,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "290cdba4e3bc121dc9aaafb0e7d7e4ecec4eec4c7d597f34b0953699d60c2610",
+        "content_sha256": "ec7b261a2d04279ac9685c5f38a619b91d8b4ae4b4b490c64e2c7d65c6692de8",
         "kind": "model",
         "publisher": "r0b0tlab",
-        "slug": "mimo-v2-6-flash-rl-nvfp4-b9827178"
+        "slug": "mimo-v2-6-flash-rl-nvfp4-0c75a7a5"
       }
     }
   ],
@@ -1106,11 +1106,11 @@
       "SGLang contributors (Apache-2.0)",
       "vLLM contributors (marlin-skip loader adaptation, Apache-2.0)"
     ],
-    "source_reference": "https://github.com/r0b0tlab/mimo26-nvfp4-sm121/tree/683239d7280880af3bfdce6500ea7349e473b8da"
+    "source_reference": "https://github.com/r0b0tlab/mimo26-nvfp4-sm121/tree/2852795bf05a2e6f7c4a830ac26e551cdf94d745"
   },
   "release": {
-    "released_at": "2026-09-27",
-    "version": "1.0.0"
+    "released_at": "2026-09-30",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -1291,7 +1291,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 187250621561,
+            "artifact_bytes": 187250622819,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 50000000000
@@ -1308,7 +1308,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 187250621561,
+            "artifact_bytes": 187250622819,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 50000000000
