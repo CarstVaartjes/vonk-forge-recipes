@@ -4834,6 +4834,22 @@
         ]
       }
     },
+    "vonk-forge/qwen3-14b-nvfp4-nvidia-trtllm-single": {
+      "alias": "qwen3-14b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/qwen3-8-27b-vllm-single": {
       "alias": "qwen3-8-27b",
       "smoke_cases": [
