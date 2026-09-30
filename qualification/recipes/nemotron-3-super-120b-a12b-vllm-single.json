@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/nemotron-3-super-120b-a12b-vllm-single",
+  "service_recipes": {
+    "alias": "nemotron-3-super",
+    "smoke_cases": [
+      "M0",
+      "NEM_A391_OFF",
+      "NEM_REASON",
+      "NEM_TOOL"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded concurrency, context, unified-memory floor, and explicit multimodal-rejection canaries"
+      ],
+      "recovery": [
+        "Controller stop/start, alias stability, no redownload, and parser revalidation"
+      ]
+    }
+  }
+}

@@ -111,7 +111,7 @@ jobs:
           if [[ -n "$base" ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
             # Capture first: grep -q exiting early must not fail the pipeline.
             changed=$(git diff --name-only "$base" HEAD)
-            other=$(grep -Ev '^(recipes/|models/|adapters/|qualification/definitions\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
+            other=$(grep -Ev '^(recipes/|models/|adapters/|qualification/shared\.json$|qualification/recipes/|README\.md$|creators\.json$)' <<<"$changed" | grep -v '^$' || true)
             if [[ -z "$other" ]]; then full=false; else echo "Not recipe data:"; head -20 <<<"$other"; fi
           fi
           echo "full=$full" >> "$GITHUB_OUTPUT"
@@ -212,7 +212,8 @@ jobs:
             tests/test_release_assets.py tests/test_exact_model_file_closure.py \
             tests/test_explicit_hf_file_manifest_closure.py \
             tests/test_distributed_recipe_availability.py \
-            tests/test_family_aware_coverage.py
+            tests/test_family_aware_coverage.py \
+            tests/test_check_upstream_drift.py
 
       - name: Run the full producer test suite
         if: steps.scope.outputs.full == 'true'

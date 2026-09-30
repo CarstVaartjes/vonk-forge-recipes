@@ -366,11 +366,11 @@ it with `--output-dir`), so a new recipe needs only its recipe, model and
 `qualification/recipes/<slug>.json` file (`<slug>` is the recipe id without the
 publisher prefix; shape `{"id": "<publisher>/<slug>", "recipes": {...},
 "service_recipes": {...}}`); no plan, count, generated file or shared file is
-edited. Never add per-recipe entries to `qualification/definitions.json`, which
-holds the shared fixtures and templates. Read the assembled document only
-through `qualification.definitions_loader.load_definitions`, which fails on a
-recipe id defined twice. A branch that still edits the old `definitions.json`
-merges main (taking main's `definitions.json`), commits, then runs
+edited. `qualification/shared.json` holds only the shared fixtures and
+templates. Read the assembled document only through
+`qualification.definitions_loader.load_definitions`, which fails on a recipe id
+defined twice. A branch that still edits the old `qualification/definitions.json`
+merges main (deleting `definitions.json` in the merge), commits, then runs
 `tools/migrate-pr-qualification` and commits the new files. Tests assert that
 every recipe has a definition and is scheduled.
 
