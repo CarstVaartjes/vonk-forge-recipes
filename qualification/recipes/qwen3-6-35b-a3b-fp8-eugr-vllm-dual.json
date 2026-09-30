@@ -1,0 +1,17 @@
+{
+  "id": "vonk-forge/qwen3-6-35b-a3b-fp8-eugr-vllm-dual",
+  "service_recipes": {
+    "alias": "Qwen3.6-35B-A3B-FP8",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Optional bounded streaming and declared concurrency canaries"
+      ]
+    }
+  }
+}
