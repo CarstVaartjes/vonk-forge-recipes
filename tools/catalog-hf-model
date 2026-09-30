@@ -114,19 +114,10 @@ def _roles(path: str) -> list[str]:
     return ["metadata"]
 
 
-def main() -> int:
-    args = _arguments()
-    root = args.root.resolve()
-    api_base = f"https://huggingface.co/api/models/{quote(args.repository, safe='/')}"
-    model_api = _get_json(api_base)
-    if not isinstance(model_api, dict):
-        raise SystemExit("Hugging Face model response is not an object")
-    revision = args.revision or model_api.get("sha")
-    if not isinstance(revision, str) or len(revision) != 40:
-        raise SystemExit("a 40-character model revision is required")
-    tree = _get_tree(f"{api_base}/tree/{revision}?recursive=true&expand=true&limit=100")
-    if not tree:
-        raise SystemExit("Hugging Face model tree is empty")
+def inventory(
+    repository: str, revision: str, tree: list[object]
+) -> list[dict[str, Any]]:
+    """Artifacts (path, digest, size, roles) of one snapshot's file entries."""
 
     file_entries = [
         entry
@@ -151,7 +142,7 @@ def main() -> int:
                 )
             try:
                 payload = _get_bytes(
-                    f"https://huggingface.co/{args.repository}/resolve/{revision}/{quote(path, safe='/')}"
+                    f"https://huggingface.co/{repository}/resolve/{revision}/{quote(path, safe='/')}"
                 )
             except HTTPError as error:
                 raise SystemExit(
@@ -173,7 +164,7 @@ def main() -> int:
                 "id": f"{artifact_stem[:39]}-{sha256[:12]}-{path_sha256[:10]}",
                 "path": path,
                 "kind": "huggingface.file",
-                "repository": f"https://huggingface.co/{args.repository}",
+                "repository": f"https://huggingface.co/{repository}",
                 "revision": revision,
                 "sha256": sha256,
                 "download_bytes": size,
@@ -184,6 +175,24 @@ def main() -> int:
     artifacts.sort(key=lambda item: str(item["path"]))
     if not artifacts:
         raise SystemExit("Hugging Face model has no file artifacts")
+    return artifacts
+
+
+def main() -> int:
+    args = _arguments()
+    root = args.root.resolve()
+    api_base = f"https://huggingface.co/api/models/{quote(args.repository, safe='/')}"
+    model_api = _get_json(api_base)
+    if not isinstance(model_api, dict):
+        raise SystemExit("Hugging Face model response is not an object")
+    revision = args.revision or model_api.get("sha")
+    if not isinstance(revision, str) or len(revision) != 40:
+        raise SystemExit("a 40-character model revision is required")
+    tree = _get_tree(f"{api_base}/tree/{revision}?recursive=true&expand=true&limit=100")
+    if not tree:
+        raise SystemExit("Hugging Face model tree is empty")
+
+    artifacts = inventory(args.repository, revision, tree)
     total_bytes = sum(int(item["download_bytes"]) for item in artifacts)
 
     modality = {"language": "text", "multimodal": "text"}.get(
