@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/phi-4-reasoning-plus-fp8-nvidia-vllm-single",
+  "service_recipes": {
+    "alias": "phi-4-reasoning-plus",
+    "smoke_cases": [
+      "M0",
+      "A323"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded context and concurrency canaries"
+      ],
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ]
+    }
+  }
+}
