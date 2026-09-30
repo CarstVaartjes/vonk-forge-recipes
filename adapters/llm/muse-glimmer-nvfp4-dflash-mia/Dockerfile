@@ -11,6 +11,10 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Muse-Glimmer
 COPY start.sh /opt/vonk/upstream/start.sh
 COPY LICENSE.upstream /opt/vonk/upstream/LICENSE
 COPY NOTICE.upstream /opt/vonk/upstream/NOTICE
+COPY verify-speculative-config.py /opt/vonk/verify-speculative-config.py
+
+# Exercise the pinned vLLM CLI parser without creating an engine or loading a model.
+RUN python3 /opt/vonk/verify-speculative-config.py
 
 RUN install --directory --mode=0755 /opt/vonk/bin \
     && printf '%s\n' '#!/bin/sh' 'exec vllm "$@"' > /opt/vonk/bin/vllm \

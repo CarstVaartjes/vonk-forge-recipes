@@ -7,7 +7,7 @@
   platform builds its own image from the vendored source. That recipe runs TensorFold 0.3.6.3's own 27B code, so this
   one pins the upstream release instead of the taussoe/TensorFold fork.
 - **[TensorFold](https://github.com/ashhart/TensorFold)** by Ash Hart and the TensorFold contributors (MIT): the
-  engine, vendored unmodified at v0.4.0 (commit 7a00336b2f6d1a1a3e0ba49d1ef5b4b82e927759).
+  engine, vendored unmodified at v0.5.0 (commit 9cd52ab4daba68ddd09be89be8f23ad43175e821).
 - **[Vontra](https://huggingface.co/Vontra)**: the MLX 4-bit conversion of **Qwen3.8-27B** by Qwen (Apache-2.0).
 - **[z-lab](https://huggingface.co/z-lab)** (mirror of incoai): the Qwen3.8-27B DFlash2 draft model (Apache-2.0 per
   its card).

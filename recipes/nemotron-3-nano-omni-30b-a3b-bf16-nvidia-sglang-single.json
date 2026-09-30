@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (nemotron) for Nemotron 3 Nano Omni 30B-A3B BF16: lmsysorg/sglang:dev-cu13-nemotronh-nano-omni-reasoning-v3 as named by the Nemotron Omni model card, pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (nemotron) for Nemotron 3 Nano Omni 30B-A3B BF16: lmsysorg/sglang:dev-cu13-nemotronh-nano-omni-reasoning-v3 as named by the Nemotron Omni model card, pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags. The adapter image pins librosa 0.11.0 with a hash-locked Python 3.12 ARM64 wheel closure for offline audio requests. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -574,8 +574,8 @@
     "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/b3bc0813e1864e54ce5ed9a0cc74e0b03745c027/nvidia/nemotron/README.md"
   },
   "release": {
-    "released_at": "2026-04-27",
-    "version": "1.0.0"
+    "released_at": "2026-09-30",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [

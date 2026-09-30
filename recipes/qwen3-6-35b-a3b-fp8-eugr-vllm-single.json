@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker recipe for Qwen's official Qwen3.6-35B-A3B-FP8 (block-wise FP8, Apache-2.0; checkpoint revision 95a723d0) served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: VLLM_MARLIN_USE_ATOMIC_ADD=1, FlashInfer attention, FP8 KV cache, fastsafetensors loading, prefix caching, qwen3 reasoning and qwen3_xml tool parsing, eugr's fix-qwen3.6-chat-template mod (baked into the image at build time; the chat template it installs is selected with --chat-template), 262,144-token context, 16,384 batched tokens and memory utilisation 0.8 (upstream defaults); scheduler sequence capacity is left to vLLM as upstream does not set it. Upstream's recipe is written for two Sparks; eugr's --solo mode runs the same command at tensor parallel 1 (the only override), which is this single-Spark recipe. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker recipe for Qwen's official Qwen3.6-35B-A3B-FP8 (block-wise FP8, Apache-2.0; checkpoint revision 95a723d0) served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: VLLM_MARLIN_USE_ATOMIC_ADD=1, FlashInfer attention, FP8 KV cache, fastsafetensors loading, prefix caching, qwen3 reasoning and qwen3_xml tool parsing, eugr's fix-qwen3.6-chat-template mod (baked into the image at build time; the chat template it installs is selected with --chat-template), 262,144-token context, 16,384 batched tokens and memory utilisation 0.8 (upstream defaults); scheduler sequence capacity is left to vLLM as upstream does not set it. Upstream's recipe is written for two Sparks; eugr's --solo mode runs the same command at tensor parallel 1 (the only override), which is this single-Spark recipe. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. Version 1.0.1 (2026-09-30) adds a single `speculation` selector (autoregressive default or native Qwen3.6 MTP) and a `modality` selector (multimodal default or zero-limit language-model-only). On the pinned vLLM release that mode disables multimodal inputs but retains the Qwen3.5 vision tower, so it is not a VRAM-reduction switch. The native MTP choice uses the MTP head already in the pinned FP8 checkpoint and the pinned vLLM parser; it adds no model files, image changes, or runtime downloads. Sources: https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8/tree/95a723d08a9490559dae23d0cff1d9466213d989 and https://github.com/vllm-project/vllm/blob/af5b4857e/vllm/engine/arg_utils.py.",
     "tags": [
       "candidate",
       "eugr",
@@ -632,8 +632,8 @@
     "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/42f62e349c610641ac6677ac28275c57bebdf9c3"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.0.0"
+    "released_at": "2026-09-30",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -806,5 +806,55 @@
       ],
       "interface": "openai"
     }
-  }
+  },
+  "options": [
+    {
+      "name": "speculation",
+      "label": "Speculative decoding",
+      "help": "Choose one decoding mode. This selector replaces the single vLLM speculative configuration, so DFlash and native MTP cannot be combined.",
+      "choices": [
+        {
+          "value": "off",
+          "label": "Off",
+          "default": true,
+          "help": "Keep vLLM autoregressive decoding, as this recipe currently runs."
+        },
+        {
+          "value": "native-mtp",
+          "label": "Native MTP",
+          "help": "Use the FP8 checkpoint’s bundled MTP head with two speculative tokens; no companion model or download is needed.",
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"qwen3_next_mtp\",\"num_speculative_tokens\":2}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "modality",
+      "label": "Model modality",
+      "help": "Keep vision support or tell vLLM to load the language model only.",
+      "choices": [
+        {
+          "value": "multimodal",
+          "label": "Vision and text",
+          "default": true,
+          "help": "Keep the current multimodal loading behavior."
+        },
+        {
+          "value": "text-only",
+          "label": "Language model only",
+          "help": "Pass --language-model-only to disable all multimodal inputs by setting modality limits to zero. The pinned Qwen3.5 model still constructs its vision tower, so this does not remove vision weights or promise a VRAM reduction.",
+          "args": [
+            {
+              "name": "language-model-only",
+              "value": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

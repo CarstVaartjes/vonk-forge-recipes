@@ -1258,58 +1258,6 @@
       }
     }
   ],
-  "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream default; measured 21.8 tok/s single stream.",
-          "label": "1 token (default)",
-          "value": "mtp1"
-        },
-        {
-          "args": [
-            {
-              "name": "speculative-config",
-              "setting": null,
-              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2}"
-            }
-          ],
-          "help": "Upstream measured this as a net loss of about 30 percent on GB10 (with CUDA graphs); the official recipe suggests 2.",
-          "label": "2 tokens",
-          "value": "mtp2"
-        }
-      ],
-      "help": "Tokens the model's native MTP layer drafts per step. Upstream measured position-1 acceptance at 62-76 percent and position-2 at about 18-21 percent on GB10.",
-      "label": "MTP draft length",
-      "name": "speculative"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream default: measured about 25 percent faster than compiled execution with Marlin W4A16 decode on sm121 in vLLM 0.23.",
-          "label": "Eager (default)",
-          "value": "eager"
-        },
-        {
-          "args": [
-            {
-              "name": "enforce-eager",
-              "setting": null,
-              "value": false
-            }
-          ],
-          "help": "Removes --enforce-eager. Upstream measured 15-16 tok/s single stream against 21.8 in eager mode; untried by the platform.",
-          "label": "CUDA graphs",
-          "value": "graphs"
-        }
-      ],
-      "help": "Eager execution or inductor compile with CUDA graphs.",
-      "label": "Execution mode",
-      "name": "execution"
-    }
-  ],
   "provenance": {
     "attribution": [
       "Tencent Hunyuan",

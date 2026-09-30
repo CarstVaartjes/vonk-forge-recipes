@@ -282,10 +282,18 @@ usable recipe from publishing.
 (and on `workflow_dispatch`). It uses no AI. It applies the pinning rule to every
 recipe's source reference, adapter pin and Models: if the upstream publishes a release
 (else a plain version tag), pin the newest one by its commit; if it publishes none,
-follow the latest commit; Hugging Face Models follow the newest revision. Each recipe is
-refreshed in place (same id). `release.version` becomes upstream's version when one is
-published, otherwise the recipe's patch version is bumped; `released_at` is the pinned
-release or commit date. Base-image digests are not watched.
+follow the latest commit; Hugging Face Models follow the newest revision. The job's
+"no drift" count applies only to those configured source, adapter and Model watches.
+Its derived embedded-input inventory also records Dockerfile stages, build-time Git and
+package commands, selected companion Models, patches, launch defaults and runtime
+options. Immutable image digests are pin-only evidence with no implied moving channel;
+mutable or unresolved inputs and package-resolution gaps remain explicit as mutable or
+unknown. A Git head difference is review evidence, never an instruction to replace a
+specialized pin with generic latest. The inventory does not claim to resolve every
+transitive package or infer an upstream mapping from top-level provenance. Each recipe
+is refreshed in place (same id). `release.version` becomes upstream's version when one
+is published, otherwise the recipe's patch version is bumped; `released_at` is the pinned
+release or commit date.
 
 A refresh is **mechanical** only when all of these hold:
 

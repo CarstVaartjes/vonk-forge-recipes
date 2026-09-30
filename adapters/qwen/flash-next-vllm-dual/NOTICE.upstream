@@ -1,11 +1,12 @@
 Qwen3.8-Flash-Next-Dual-DGX-Sparks adapter attribution
 
 Upstream source: https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks
-Revision: 2c86a1d05f93c8d3a68146a321d417ffa4ca5039
+Revision: cd839d0b62f6c737178a0c2037733420e0524ebf
 License: GNU Affero General Public License, version 3 or later (see LICENSE.upstream).
 
 The vendored overlays (reduced MTP draft vocabulary, the vLLM 0.30 FP8 KV
-backport of vllm-project/vllm#55557) and the 47k draft vocabulary preserve the
-upstream MiaAI-Lab attribution and its source-specific third-party credits.
+backport of vllm-project/vllm#55557), the 47k draft vocabulary, and seven
+language-extended 65k draft vocabularies preserve the upstream MiaAI-Lab
+attribution and its source-specific third-party credits.
 The base vLLM OCI image and the referenced model have separate license terms
 recorded by their publishers and in the Recipe/Model metadata.

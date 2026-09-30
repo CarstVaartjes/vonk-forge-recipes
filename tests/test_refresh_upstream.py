@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import ClassVar
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
@@ -172,6 +173,215 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(
             new["files"][0]["id"], refresh.file_id("model.safetensors", "a" * 64)
         )
+
+    def test_provider_gate_change_creates_review_without_retargeting_model(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            model = model_with(("model.safetensors",))
+            model["identity"]["slug"] = "gated-model"
+            model["source"] = {
+                "repository": "https://huggingface.co/example/model",
+                "revision": OLD,
+            }
+            model["requires_token"] = False
+            recipe = {
+                "identity": {"slug": "recipe"},
+                "models": [{"model": {"slug": "gated-model"}}],
+                "execution": {"build": {"context": {"path": "missing-context"}}},
+            }
+            catalog = refresh.Catalog(
+                Path(temporary),
+                recipes={"recipe": recipe},
+                models={"gated-model": model},
+            )
+            target = refresh.Target(
+                "huggingface",
+                "example/model",
+                OLD,
+                "2026-09-30",
+                None,
+                None,
+                "https://huggingface.co/example/model/tree/" + OLD,
+                access_status="gated",
+            )
+
+            result = refresh.collect_items(
+                catalog, "recipe", object(), lambda _provider, _repo: target
+            )
+
+            self.assertFalse(result.items)
+            self.assertTrue(result.drifted)
+            self.assertIn("provider access changed to gated", result.reasons[0])
+
+    def test_restricted_token_required_or_unspecified_model_is_unverified(self) -> None:
+        for requires_token in (True, None):
+            with (
+                self.subTest(requires_token=requires_token),
+                tempfile.TemporaryDirectory() as temporary,
+            ):
+                model = model_with(("model.safetensors",))
+                model["identity"]["slug"] = "restricted-model"
+                model["source"] = {
+                    "repository": "https://huggingface.co/example/model",
+                    "revision": OLD,
+                }
+                if requires_token is not None:
+                    model["requires_token"] = requires_token
+                else:
+                    model.pop("requires_token", None)
+                recipe = {
+                    "identity": {"slug": "recipe"},
+                    "models": [{"model": {"slug": "restricted-model"}}],
+                    "execution": {"build": {"context": {"path": "missing-context"}}},
+                }
+                catalog = refresh.Catalog(
+                    Path(temporary),
+                    recipes={"recipe": recipe},
+                    models={"restricted-model": model},
+                )
+
+                def restricted(_provider: str, _repo: str):
+                    raise refresh.AccessRestricted("anonymous metadata denied")
+
+                result = refresh.collect_items(catalog, "recipe", object(), restricted)
+
+                self.assertFalse(result.items)
+                self.assertFalse(result.reasons)
+                self.assertFalse(result.drifted)
+                self.assertTrue(result.unreachable)
+                self.assertIn("no credentials were requested", result.unreachable[0])
+
+    def test_unknown_anonymous_access_status_is_unverified(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            model = model_with(("model.safetensors",))
+            model["identity"]["slug"] = "unknown-access-model"
+            model["source"] = {
+                "repository": "https://huggingface.co/example/model",
+                "revision": OLD,
+            }
+            model["requires_token"] = False
+            recipe = {
+                "identity": {"slug": "recipe"},
+                "models": [{"model": {"slug": "unknown-access-model"}}],
+                "execution": {"build": {"context": {"path": "missing-context"}}},
+            }
+            catalog = refresh.Catalog(
+                Path(temporary),
+                recipes={"recipe": recipe},
+                models={"unknown-access-model": model},
+            )
+            target = refresh.Target(
+                "huggingface",
+                "example/model",
+                OLD,
+                "2026-09-30",
+                None,
+                None,
+                "https://huggingface.co/example/model/tree/" + OLD,
+                access_status="unknown",
+            )
+
+            result = refresh.collect_items(
+                catalog, "recipe", object(), lambda _provider, _repo: target
+            )
+
+            self.assertFalse(result.items)
+            self.assertFalse(result.reasons)
+            self.assertFalse(result.drifted)
+            self.assertTrue(result.unreachable)
+            self.assertIn("access status is unknown", result.unreachable[0])
+
+    def test_huggingface_resolver_records_explicit_access_status(self) -> None:
+        class FakeHttp:
+            def json(self, _url, _provider, *, anonymous=False):
+                self.anonymous = anonymous
+                return {"sha": OLD, "gated": "auto", "private": False}
+
+        http = FakeHttp()
+        target = refresh.resolve_huggingface(http, "example/model")
+        self.assertEqual(target.access_status, "gated")
+        self.assertTrue(http.anonymous)
+
+
+class EmbeddedSourceReviewTests(unittest.TestCase):
+    def test_unrelated_default_head_advance_does_not_block_safe_refresh(
+        self,
+    ) -> None:
+        class FakeProvider:
+            def json(self, url: str, _provider: str):
+                if url.endswith("/repos/example/dependency"):
+                    return {"default_branch": "main"}
+                if url.endswith("/commits/main"):
+                    return {
+                        "sha": NEW,
+                        "html_url": "https://github.com/example/dependency/commit/new",
+                        "commit": {"committer": {"date": "2026-09-30T00:00:00Z"}},
+                    }
+                raise AssertionError(url)
+
+        embedded = {
+            "coverage": {},
+            "recipes": [
+                {
+                    "recipe_id": "recipe",
+                    "inputs": [
+                        {
+                            "kind": "download-source",
+                            "repository": "example/dependency",
+                            "revision": OLD,
+                        }
+                    ],
+                }
+            ],
+        }
+        refresh.drift.observe_embedded_heads(embedded, FakeProvider())
+        catalog = refresh.Catalog(
+            Path(tempfile.gettempdir()),
+            recipes={
+                "recipe": {
+                    "identity": {"slug": "recipe"},
+                    "provenance": {
+                        "attribution": ["Example"],
+                        "source_reference": f"https://github.com/example/recipe/tree/{OLD}",
+                    },
+                    "release": {
+                        "version": "1.0.0",
+                        "released_at": "2026-01-01",
+                    },
+                    "models": [],
+                    "execution": {"build": {"context": {"path": "missing"}}},
+                }
+            },
+        )
+        assessor = refresh.Assessor(catalog, object(), None, embedded)
+        target = refresh.Target(
+            "github",
+            "example/recipe",
+            NEW,
+            "2026-09-30",
+            "v2.0.0",
+            "2.0.0",
+            "https://github.com/example/recipe/commit/new",
+        )
+        assessor.target = lambda _provider, _repo: target
+        with patch(
+            "refresh_upstream.compare_commits",
+            return_value=refresh.Comparison(
+                "ahead", [], [], False, "https://github.com/example/recipe/compare"
+            ),
+        ):
+            result = assessor.assess("recipe")
+
+        self.assertEqual(
+            embedded["recipes"][0]["inputs"][0]["candidate_status"], "advanced"
+        )
+        self.assertFalse(result.reasons)
+        self.assertTrue(result.mechanical)
+        self.assertIn(
+            "review evidence, not a configured upgrade channel", result.evidence[0]
+        )
+        self.assertIn(NEW, result.edits["recipes/recipe.json"].decode())
 
 
 class ReleaseTests(unittest.TestCase):

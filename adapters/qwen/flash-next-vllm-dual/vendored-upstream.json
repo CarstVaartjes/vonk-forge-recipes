@@ -7,12 +7,19 @@
   ],
   "renamed": {
     "draft_vocab_en_code_47k.txt": "files/draft_vocab_en_code_47k.txt",
+    "draft-vocab/draft_vocab_de_en_code_65k.txt": "files/draft_vocab_de_en_code_65k.txt",
+    "draft-vocab/draft_vocab_es_en_code_65k.txt": "files/draft_vocab_es_en_code_65k.txt",
+    "draft-vocab/draft_vocab_fr_en_code_65k.txt": "files/draft_vocab_fr_en_code_65k.txt",
+    "draft-vocab/draft_vocab_ja_en_code_65k.txt": "files/draft_vocab_ja_en_code_65k.txt",
+    "draft-vocab/draft_vocab_pt_en_code_65k.txt": "files/draft_vocab_pt_en_code_65k.txt",
+    "draft-vocab/draft_vocab_ru_en_code_65k.txt": "files/draft_vocab_ru_en_code_65k.txt",
+    "draft-vocab/draft_vocab_zh_en_code_65k.txt": "files/draft_vocab_zh_en_code_65k.txt",
     "patch_mtp_draft_vocab.py": "files/patch_mtp_draft_vocab.py",
     "patch_mtp_draft_vocab_v030.py": "files/patch_mtp_draft_vocab_v030.py",
     "patch_qsa_fp8_kv_v030.py": "files/patch_qsa_fp8_kv_v030.py"
   },
   "source": {
     "repo": "MiaAI-Lab/Qwen3.8-Flash-Next-Dual-DGX-Sparks",
-    "commit": "2c86a1d05f93c8d3a68146a321d417ffa4ca5039"
+    "commit": "cd839d0b62f6c737178a0c2037733420e0524ebf"
   }
 }

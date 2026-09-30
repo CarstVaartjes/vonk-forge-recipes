@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8-27B on Ash Hart's TensorFold engine v0.4.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with Vontra's MLX 4-bit (group 64) checkpoint and z-lab's DFlash2 draft model, which TensorFold's CUDA engine requires unless drafting is switched off. One rank only: TensorFold's two-rank mode is not available here. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the model's 262,144-token window. Image input (--vision) is an opt-in option that upstream still marks experimental. Upstream measured about 63 tok/s code and 46 tok/s chat with DFlash2 on a 64 GB M5 Pro and 46 to 50 tok/s on one DGX Spark (upstream claims, unmeasured here). Licences, for information: Qwen3.8-27B and the Vontra conversion are Apache-2.0; z-lab/Qwen3.8-27B-DFlash2 states Apache-2.0 on its model card (a mirror of incoai/Qwen3.8-27B-DFlash2); TensorFold is MIT.",
+    "description": "Single-DGX-Spark Qwen3.8-27B on Ash Hart's TensorFold engine v0.5.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with Vontra's MLX 4-bit (group 64) checkpoint and z-lab's DFlash2 draft model, which TensorFold's CUDA engine requires unless drafting is switched off. One rank only: TensorFold's two-rank mode is not available here. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the model's 262,144-token window. Image input (--vision) is an opt-in option that upstream still marks experimental. Upstream measured about 63 tok/s code and 46 tok/s chat with DFlash2 on a 64 GB M5 Pro and 46 to 50 tok/s on one DGX Spark (upstream claims, unmeasured here). Licences, for information: Qwen3.8-27B and the Vontra conversion are Apache-2.0; z-lab/Qwen3.8-27B-DFlash2 states Apache-2.0 on its model card (a mirror of incoai/Qwen3.8-27B-DFlash2); TensorFold is MIT. TensorFold v0.5.0 at 9cd52ab4daba68ddd09be89be8f23ad43175e821 includes the tiled QSA selector for sparse attention past 131072 keys and updated Flash Next CUDA/EXL3 paths; the existing 262144-token bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests.",
     "tags": [
       "dflash2",
       "engine",
@@ -395,11 +395,11 @@
       "z-lab",
       "IncoAI"
     ],
-    "source_reference": "https://github.com/ashhart/TensorFold/tree/7a00336b2f6d1a1a3e0ba49d1ef5b4b82e927759"
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/9cd52ab4daba68ddd09be89be8f23ad43175e821"
   },
   "release": {
     "released_at": "2026-09-29",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "runtime": {
     "arguments": [

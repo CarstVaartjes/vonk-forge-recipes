@@ -1,6 +1,10 @@
 {
   "ours": [
     "NOTICE.upstream",
+    "mods/fix-mimo-v2-vllm/apply-pr41797.sh",
+    "mods/fix-mimo-v2-vllm/pr41797-source.txt",
+    "mods/fix-mimo-v2-vllm/pr41797-vllm.diff",
+    "mods/fix-mimo-v2-vllm/run.sh",
     "verify-runtime.py",
     "vllm-wrapper.py"
   ],
@@ -12,7 +16,7 @@
     "mods/": "recipe/mods/"
   },
   "source": {
-    "repo": "tonyd2wild/MiMo-V2.5-TP2-1M-NVFP4-KV-2xDGX-Spark",
-    "commit": "6dae0a60dd3f90580029c2dd981a0cd5de49fc4e"
+    "commit": "6dae0a60dd3f90580029c2dd981a0cd5de49fc4e",
+    "repo": "tonyd2wild/MiMo-V2.5-TP2-1M-NVFP4-KV-2xDGX-Spark"
   }
 }

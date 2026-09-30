@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate reproducing sfxnz's Ornith-1.5-35B-A3B-NVFP4-DGX-Spark kit (MIT; commit 45c2e78d, no upstream version tag; repo last updated 2026-09-04, README measured 2026-08-19) on one DGX Spark: official vLLM v0.27.1 (ARM64 manifest digest-pinned), the ornith-ai NVFP4 checkpoint at the kit's stated 9660379a snapshot (newer HF head 94e431d9 is a different checkpoint, used by the other Ornith recipe), tensor-parallel 1, Marlin MoE with FlashInfer attention, FP8 KV cache, MTP-3 speculative decoding, 262,144 context, 4 sequences, GPU memory utilization 0.4 and fastsafetensors loading. Upstream measured (not measured here): 59 GiB used of 121 GiB after load, weights 22 GiB in 24.7 s, engine init about 148 s, vllm bench serve output 52.61 tok/s at max-concurrency 1 and 89.88 tok/s at max-concurrency 2 (completions). Upstream notes that thinking must be off for short generation and chat benches, otherwise content can be null with finish_reason length; the validation chat disables thinking. Model and kit licence: MIT. Physical Spark acceptance remains pending.",
+    "description": "Executable Candidate following sfxnz's Ornith-1.5-35B-A3B-NVFP4-DGX-Spark kit at commit 45c2e78d063cd53ad5835978844b2f7924ccfc1d on one DGX Spark. This refresh binds Hugging Face revision 94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa and updates config.json, model.safetensors.index.json and all three weight shards together from the prior 9660379a snapshot, along with its quant summary and README metadata. The Qwen3.5 MoE architecture is supported by the unchanged, digest-pinned vLLM 0.27.1 image. The image, tokenizer, SFXNZ launch profile and serving defaults remain pinned: tensor-parallel 1, Marlin MoE, FlashInfer attention, FP8 KV cache, MTP-3, 262,144 context, 4 sequences, 0.4 GPU memory utilization and fastsafetensors loading. Upstream measured 59 GiB after load, 22 GiB of weights loaded in 24.7 s, engine initialization in about 148 s, and 52.61/89.88 completion tokens/s at concurrency 1/2; those are not measurements here. Upstream notes that thinking must be off for short generation and chat benchmarks. Model and recipe-kit licences are MIT. The refreshed checkpoint has not been loaded in this image or physically qualified here.",
     "tags": [
       "executable",
       "candidate",
@@ -55,8 +55,8 @@
     {
       "files": [
         {
-          "file_id": "metadata-8342fc1e4d71-618cd5b83d",
-          "id": "primary-metadata-8342fc1e4d71-618cd5b83d",
+          "file_id": "file--c72cd14e9557-618cd5b83d",
+          "id": "primary-file--c72cd14e9557-618cd5b83d",
           "mount": {
             "target": "/models"
           },
@@ -65,8 +65,8 @@
           ]
         },
         {
-          "file_id": "file--quant-summary-9660f36ad241-e17ab81a0d",
-          "id": "primary-file--quant-summary-9660f36ad241-e17ab81a0d",
+          "file_id": "file--e3b0c44298fc-af165cf854",
+          "id": "primary-file--e3b0c44298fc-af165cf854",
           "mount": {
             "target": "/models"
           },
@@ -75,8 +75,8 @@
           ]
         },
         {
-          "file_id": "metadata-d790a1d453a7-04dcd99eb1",
-          "id": "primary-metadata-d790a1d453a7-04dcd99eb1",
+          "file_id": "file--quant-summary-53ad6a368188-e17ab81a0d",
+          "id": "primary-file--quant-summary-53ad6a368188-e17ab81a0d",
           "mount": {
             "target": "/models"
           },
@@ -85,8 +85,18 @@
           ]
         },
         {
-          "file_id": "readme-072ccf0efbf7-b335630551",
-          "id": "primary-readme-072ccf0efbf7-b335630551",
+          "file_id": "file--d790a1d453a7-04dcd99eb1",
+          "id": "primary-file--d790a1d453a7-04dcd99eb1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-a4f67cd2a7b7-b335630551",
+          "id": "primary-readme-a4f67cd2a7b7-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -125,8 +135,8 @@
           ]
         },
         {
-          "file_id": "config-4b12527ba7cc-587cb980af",
-          "id": "primary-config-4b12527ba7cc-587cb980af",
+          "file_id": "config-319ee1293a27-587cb980af",
+          "id": "primary-config-319ee1293a27-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -165,8 +175,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-00003-3fd2238ccda4-5ad6951325",
-          "id": "primary-model-00001-of-00003-3fd2238ccda4-5ad6951325",
+          "file_id": "model-00001-of-00003-648fe8317148-5ad6951325",
+          "id": "primary-model-00001-of-00003-648fe8317148-5ad6951325",
           "mount": {
             "target": "/models"
           },
@@ -175,8 +185,8 @@
           ]
         },
         {
-          "file_id": "model-00002-of-00003-e66cc8cc37c4-b421ec05d0",
-          "id": "primary-model-00002-of-00003-e66cc8cc37c4-b421ec05d0",
+          "file_id": "model-00002-of-00003-cb5c5978721a-b421ec05d0",
+          "id": "primary-model-00002-of-00003-cb5c5978721a-b421ec05d0",
           "mount": {
             "target": "/models"
           },
@@ -185,8 +195,8 @@
           ]
         },
         {
-          "file_id": "model-00003-of-00003-5724de7de4b8-c5bdb3d6ec",
-          "id": "primary-model-00003-of-00003-5724de7de4b8-c5bdb3d6ec",
+          "file_id": "model-00003-of-00003-8303cef7d375-c5bdb3d6ec",
+          "id": "primary-model-00003-of-00003-8303cef7d375-c5bdb3d6ec",
           "mount": {
             "target": "/models"
           },
@@ -195,8 +205,8 @@
           ]
         },
         {
-          "file_id": "model-safetensors-index-c9bfd574cc1d-0a05be8238",
-          "id": "primary-model-safetensors-index-c9bfd574cc1d-0a05be8238",
+          "file_id": "model-safetensors-index-52af7e400d01-0a05be8238",
+          "id": "primary-model-safetensors-index-52af7e400d01-0a05be8238",
           "mount": {
             "target": "/models"
           },
@@ -267,10 +277,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cd6814f5e118dacebae543d5e069ff13de1b14e6674ac21d9930e0ef15f4f2e7",
+        "content_sha256": "8a33a3e7d4f5950e91a83109184533f2ff6738c4b3ccf51ceff37d7924cf3b0f",
         "kind": "model",
         "publisher": "ornith-ai",
-        "slug": "ornith-1-5-35b-a3b-nvfp4-9660379a"
+        "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"
       }
     }
   ],
@@ -282,8 +292,8 @@
     "source_reference": "https://github.com/sfxnz/Ornith-1.5-35B-A3B-NVFP4-DGX-Spark/tree/45c2e78d063cd53ad5835978844b2f7924ccfc1d"
   },
   "release": {
-    "released_at": "2026-09-04",
-    "version": "1.0.0"
+    "released_at": "2026-09-30",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [

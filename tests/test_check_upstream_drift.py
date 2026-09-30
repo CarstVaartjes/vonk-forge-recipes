@@ -180,6 +180,62 @@ class DiscoveryTests(unittest.TestCase):
             with self.assertRaises(drift.DriftInputError):
                 drift.discover_watches(root, {"huggingface": "default-branch"}, {})
 
+    def test_embedded_dockerfile_pin_change_is_visible_without_provenance_drift(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for directory in ("recipes", "models", "context"):
+                (root / directory).mkdir()
+            recipe = json.loads(
+                (
+                    ROOT
+                    / "contracts/src/vonk_forge_contracts/examples/recipe-source-build.json"
+                ).read_text()
+            )
+            recipe["identity"] = {"publisher": "example", "slug": "embedded"}
+            recipe["execution"]["build"]["dockerfile"] = "context/Dockerfile"
+            recipe["execution"]["build"]["context"]["path"] = "context"
+            recipe["runtime"]["engine"] = "vllm"
+            (root / "recipes/embedded.json").write_text(json.dumps(recipe))
+            model = json.loads(
+                (
+                    ROOT
+                    / "contracts/src/vonk_forge_contracts/examples/model-definition.json"
+                ).read_text()
+            )
+            model["source"] = {
+                "repository": "https://huggingface.co/example/model",
+                "revision": PINNED,
+            }
+            (root / "models/synthetic-tiny-fp16.json").write_text(json.dumps(model))
+            dockerfile = root / "context/Dockerfile"
+            dockerfile.write_text(
+                "ARG BASE_IMAGE=registry.example/runtime:stable\nFROM ${BASE_IMAGE}\n"
+            )
+
+            first = drift.embedded_inventory(root, [])
+            first_input = next(
+                item
+                for item in first["recipes"][0]["inputs"]
+                if item["kind"] == "docker-image"
+            )
+            self.assertEqual(first_input["status"], "mutable")
+
+            dockerfile.write_text(
+                "ARG BASE_IMAGE=registry.example/runtime@sha256:"
+                + "a" * 64
+                + "\nFROM ${BASE_IMAGE}\n"
+            )
+            second = drift.embedded_inventory(root, [])
+            second_input = next(
+                item
+                for item in second["recipes"][0]["inputs"]
+                if item["kind"] == "docker-image"
+            )
+            self.assertEqual(second_input["status"], "pin_only")
+            self.assertIn("no configured moving channel", second_input["reason"])
+
 
 class ObservationTests(unittest.TestCase):
     def watch(self, *, provider: str, policy: str) -> object:

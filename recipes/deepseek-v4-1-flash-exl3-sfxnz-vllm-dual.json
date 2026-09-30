@@ -42,7 +42,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "sfxnz's two-DGX-Spark vLLM TP2 kit (head 3de91468, 2026-09-27, no upstream release tag) for its EXL3 2.0 bpw pack of DeepSeek V4.1 Flash, branch 2.0bpw-mcg-viterbi-lmhead-mxfp8 (snapshot 982b7045, 357 GB on the Hub, which upstream calls 334 GB: routed experts re-encoded with tail-biting Viterbi plus a scale refit, lm_head in MXFP8, Engram tables on NVMe read from the same pack), on the digest-pinned vllm/vllm-openai:deepseekv41-flash-0909 arm64 image. Upstream's docker/Dockerfile steps and its whole docker/patch directory are baked byte-identically at the paths run.sh bind-mounts; its boot-time vLLM source rewrites are pre-applied at build because the Vonk root is read-only. Upstream defaults: DSpark k=3 with matched CUDA graph sizes, fp8 KV pinned to 8 GiB, native 1,048,576-token window, two sequences (upstream refuses more), 8192-token prefill chunks, vision on, thinking off by default with reasoning effort low (clients can override chat_template_kwargs). Upstream claims (measured on its own two Sparks, not measured here): 42.6 tok/s real-use prose and 50.4 tok/s prose at concurrency 1, 33.2 tok/s before its round-35 kernel bundle. Memory: the 108 GB per-node peak is derived from upstream's only figure (21.6 and 23.2 GiB free per Spark after a 32k prefill; Mia's sibling recipe on the same base declares 119 GB), not measured here. First-use kernels (native Engram staging, dense GEMV) compile into container temp space; DSV41_DROP_PAGE_CACHE cannot write drop_caches unprivileged, so that lever is untested here. DSV41_PATCH_STRICT stays on, so a required boot-time rewrite that no longer matches aborts the rank. Not exposed: upstream's post-ready engagement audit and warmup script (host-side run.sh steps), the unsafe-override switches, and its SSH orchestration. Licences are information only: kit scripts MIT (upstream LICENSE), DeepSeek weights MIT, the vllm-exl3 plugin the image builds is AGPL-3.0 per upstream. Vonk physical acceptance is pending.",
+    "description": "sfxnz's two-DGX-Spark vLLM TP2 kit (head 3de91468, 2026-09-27, no upstream release tag) for its EXL3 2.0 bpw pack of DeepSeek V4.1 Flash, branch 2.0bpw-mcg-viterbi-lmhead-mxfp8 (snapshot 982b7045, 357 GB on the Hub, which upstream calls 334 GB: routed experts re-encoded with tail-biting Viterbi plus a scale refit, lm_head in MXFP8, Engram tables on NVMe read from the same pack), on the digest-pinned vllm/vllm-openai:deepseekv41-flash-0909 arm64 image. Upstream's docker/Dockerfile steps and its whole docker/patch directory are baked byte-identically at the paths run.sh bind-mounts; its boot-time vLLM source rewrites are pre-applied at build because the Vonk root is read-only. Upstream defaults: DSpark k=3 with matched CUDA graph sizes, fp8 KV pinned to 8 GiB, native 1,048,576-token window, two sequences (upstream refuses more), 8192-token prefill chunks, vision on, thinking off by default with reasoning effort low (clients can override chat_template_kwargs). The image also contains selectable P2B modes off, cooperative, and dataflow; dataflow remains the upstream round-35 default. Upstream claims (measured on its own two Sparks, not measured here): 42.6 tok/s real-use prose and 50.4 tok/s prose at concurrency 1, 33.2 tok/s before its round-35 kernel bundle. Memory: the 108 GB per-node peak is derived from upstream's only figure (21.6 and 23.2 GiB free per Spark after a 32k prefill; Mia's sibling recipe on the same base declares 119 GB), not measured here. First-use kernels (native Engram staging, dense GEMV) compile into container temp space; DSV41_DROP_PAGE_CACHE cannot write drop_caches unprivileged, so that lever is untested here. DSV41_PATCH_STRICT stays on, so a required boot-time rewrite that no longer matches aborts the rank. Not exposed: upstream's post-ready engagement audit and warmup script (host-side run.sh steps), the unsafe-override switches, and its SSH orchestration. Licences are information only: kit scripts MIT (upstream LICENSE), DeepSeek weights MIT, the vllm-exl3 plugin the image builds is AGPL-3.0 per upstream. Vonk physical acceptance is pending.",
     "tags": [
       "deepseek",
       "deepseek-v4-1",
@@ -783,6 +783,35 @@
       "help": "Chunked-prefill token budget per step (upstream MAX_NUM_BATCHED_TOKENS).",
       "label": "Prefill chunk size",
       "name": "prefill"
+    },
+    {
+      "name": "p2b_moe",
+      "label": "P2B MoE kernel mode",
+      "help": "Select the compiled P2B kernel implementation. This changes DSV41_P2B_COOP on every rank; the default remains the upstream dataflow mode.",
+      "choices": [
+        {
+          "value": "dataflow",
+          "label": "Dataflow (default)",
+          "default": true,
+          "help": "DSV41_P2B_COOP=2, the upstream launcher default since round 35."
+        },
+        {
+          "value": "cooperative",
+          "label": "Cooperative",
+          "env": {
+            "DSV41_P2B_COOP": "1"
+          },
+          "help": "DSV41_P2B_COOP=1 selects the compiled cooperative P2B kernel."
+        },
+        {
+          "value": "off",
+          "label": "Off",
+          "env": {
+            "DSV41_P2B_COOP": "0"
+          },
+          "help": "DSV41_P2B_COOP=0 uses the existing SORT=0/1 kernels, byte-identical to the canonical-e13 baseline."
+        }
+      ]
     }
   ],
   "provenance": {
@@ -795,8 +824,8 @@
     "source_reference": "https://github.com/sfxnz/DeepSeek-V4.1-Flash-EXL3-vLLM-2x-DGX-Spark/tree/3de914682d0880c8e478712a60ada930339c22e4"
   },
   "release": {
-    "released_at": "2026-09-27",
-    "version": "1.0.0"
+    "released_at": "2026-09-30",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
