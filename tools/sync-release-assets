@@ -1,0 +1,298 @@
+#!/usr/bin/env python3
+"""Publish a release asset set and prove GitHub holds exactly that set.
+
+``gh release upload --clobber`` replaces assets one at a time, so a server
+error halfway through leaves a release half-updated. This tool makes
+publication converge instead: it compares the release's assets (REST
+``digest`` and ``size``) with what must be published, uploads only what is
+missing or different, deletes assets that do not belong, and repeats until the
+release matches. If it cannot converge it exits non-zero and says what differs.
+
+Upload order inside one round keeps the signed manifest last: content first,
+then the ``recipe-library.tar`` bundle, then ``SHA256SUMS`` with its Sigstore
+bundle. A failed step ends the round, so the manifest never lands over an
+incomplete set.
+
+``publish`` expects the release directory (SHA256SUMS, its Sigstore bundle and
+every listed file) and the bundle file. ``check`` answers whether a published
+release is complete against the SHA256SUMS it already carries, and is how the
+workflow decides that an identical release needs no republication.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import subprocess
+import sys
+import time
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
+from pathlib import Path
+
+REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
+CHECKSUMS = "SHA256SUMS"
+ATTESTATION = "SHA256SUMS.sigstore.json"
+BUNDLE = "recipe-library.tar"
+MAX_REPAIRS = 3
+RETRY_DELAY_SECONDS = 10
+
+Gh = Callable[[Sequence[str]], str]
+
+
+@dataclass(frozen=True)
+class Expected:
+    """What one release asset must be. ``None`` leaves that property unchecked."""
+
+    sha256: str | None = None
+    size: int | None = None
+
+
+@dataclass(frozen=True)
+class Difference:
+    missing: tuple[str, ...]
+    mismatched: tuple[str, ...]
+    extra: tuple[str, ...]
+
+    @property
+    def clean(self) -> bool:
+        return not (self.missing or self.mismatched or self.extra)
+
+    def describe(self) -> str:
+        return (
+            f"missing {list(self.missing)}, differing {list(self.mismatched)}, "
+            f"unexpected {list(self.extra)}"
+        )
+
+
+def run_gh(arguments: Sequence[str]) -> str:
+    completed = subprocess.run(
+        ["gh", *arguments],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(
+            f"gh {' '.join(arguments[:3])} failed ({completed.returncode}): "
+            f"{completed.stderr.strip()[-500:]}"
+        )
+    return completed.stdout
+
+
+def file_digest(path: Path) -> str:
+    with path.open("rb") as handle:
+        return hashlib.file_digest(handle, "sha256").hexdigest()
+
+
+def parse_checksums(text: str) -> dict[str, str]:
+    digests: dict[str, str] = {}
+    for line in text.splitlines():
+        digest, _, name = line.partition("  ")
+        if len(digest) != 64 or not name:
+            raise SystemExit(f"malformed {CHECKSUMS} line: {line!r}")
+        digests[name] = digest
+    if not digests:
+        raise SystemExit(f"{CHECKSUMS} is empty")
+    return digests
+
+
+def expected_from_files(release: Path, bundle: Path) -> dict[str, Expected]:
+    """Every file to publish, with its exact digest and size."""
+
+    expected = {
+        path.name: Expected(file_digest(path), path.stat().st_size)
+        for path in sorted(release.iterdir())
+    }
+    expected[bundle.name] = Expected(file_digest(bundle), bundle.stat().st_size)
+    if {CHECKSUMS, ATTESTATION} - expected.keys():
+        raise SystemExit(f"release directory lacks {CHECKSUMS} or {ATTESTATION}")
+    return expected
+
+
+def expected_from_manifest(manifest: Path) -> dict[str, Expected]:
+    """What a release carrying this SHA256SUMS must hold.
+
+    Listed files are exact. The Sigstore bundle and ``recipe-library.tar`` must
+    be present; only the workflow that built them knows their bytes.
+    """
+
+    expected = {
+        name: Expected(digest)
+        for name, digest in parse_checksums(manifest.read_text("utf-8")).items()
+    }
+    expected[CHECKSUMS] = Expected(file_digest(manifest), manifest.stat().st_size)
+    expected[ATTESTATION] = Expected()
+    expected[BUNDLE] = Expected()
+    return expected
+
+
+def published_assets(gh: Gh, repository: str, tag: str) -> dict[str, dict[str, object]]:
+    """The release's uploaded assets by name, read through the REST API."""
+
+    release = json.loads(gh(["api", f"repos/{repository}/releases/tags/{tag}"]))
+    assets: dict[str, dict[str, object]] = {}
+    page = 1
+    while True:
+        batch = json.loads(
+            gh(
+                [
+                    "api",
+                    (
+                        f"repos/{repository}/releases/{release['id']}/assets"
+                        f"?per_page=100&page={page}"
+                    ),
+                ]
+            )
+        )
+        for asset in batch:
+            assets[str(asset["name"])] = asset
+        if len(batch) < 100:
+            return assets
+        page += 1
+
+
+def compare(
+    expected: Mapping[str, Expected], assets: Mapping[str, Mapping[str, object]]
+) -> Difference:
+    missing: list[str] = []
+    mismatched: list[str] = []
+    for name, want in sorted(expected.items()):
+        asset = assets.get(name)
+        if asset is None:
+            missing.append(name)
+            continue
+        if asset.get("state") != "uploaded":
+            mismatched.append(name)
+            continue
+        digest = asset.get("digest")
+        if want.sha256 is not None:
+            if digest is not None:
+                if digest != f"sha256:{want.sha256}":
+                    mismatched.append(name)
+                    continue
+            elif want.size is None or asset.get("size") != want.size:
+                # No digest reported: fall back to the size, never to "matches".
+                mismatched.append(name)
+                continue
+        if want.size is not None and asset.get("size") != want.size:
+            mismatched.append(name)
+    extra = sorted(set(assets) - set(expected))
+    return Difference(tuple(missing), tuple(mismatched), tuple(extra))
+
+
+def repair(
+    gh: Gh,
+    repository: str,
+    tag: str,
+    sources: Mapping[str, Path],
+    difference: Difference,
+) -> None:
+    """One round: upload what is wrong (content, bundle, manifest), drop extras."""
+
+    wrong = {*difference.missing, *difference.mismatched}
+    manifest = {CHECKSUMS, ATTESTATION}
+    stages = [
+        [name for name in sorted(wrong) if name not in manifest and name != BUNDLE],
+        [name for name in sorted(wrong) if name == BUNDLE],
+        [name for name in sorted(wrong) if name in manifest],
+    ]
+    for stage in stages:
+        if stage:
+            gh(
+                [
+                    "release",
+                    "upload",
+                    tag,
+                    "--repo",
+                    repository,
+                    "--clobber",
+                    *(str(sources[name]) for name in stage),
+                ]
+            )
+    for name in difference.extra:
+        gh(["release", "delete-asset", tag, name, "--repo", repository, "--yes"])
+
+
+def converge(
+    gh: Gh,
+    repository: str,
+    tag: str,
+    expected: Mapping[str, Expected],
+    sources: Mapping[str, Path],
+    sleep: Callable[[float], None] = time.sleep,
+) -> bool:
+    """Repair the release until it matches ``expected``; False if it cannot."""
+
+    difference = Difference((), (), ())
+    outcome = ""
+    for round_number in range(MAX_REPAIRS + 1):
+        readable = True
+        try:
+            difference = compare(expected, published_assets(gh, repository, tag))
+        except RuntimeError as error:
+            readable = False
+            outcome = f"release unreadable: {error}"
+            print(f"could not read release {tag}: {error}", file=sys.stderr)
+        else:
+            if difference.clean:
+                print(
+                    f"release {tag} holds exactly the {len(expected)} expected assets"
+                )
+                return True
+            outcome = difference.describe()
+            print(f"release {tag} differs: {outcome}", file=sys.stderr)
+        if round_number == MAX_REPAIRS:
+            break
+        if round_number:
+            sleep(RETRY_DELAY_SECONDS * round_number)
+        if not readable:
+            continue
+        try:
+            repair(gh, repository, tag, sources, difference)
+        except RuntimeError as error:
+            print(f"repair round {round_number + 1} failed: {error}", file=sys.stderr)
+    print(
+        f"::error::release {tag} did not converge to the signed asset set "
+        f"after {MAX_REPAIRS} repair rounds: {outcome}",
+        file=sys.stderr,
+    )
+    return False
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--tag", required=True)
+    parser.add_argument(
+        "--repo", default=os.environ.get("GITHUB_REPOSITORY", REPOSITORY)
+    )
+    commands = parser.add_subparsers(dest="command", required=True)
+    publish = commands.add_parser("publish", help="make the release match")
+    publish.add_argument("--release-dir", type=Path, required=True)
+    publish.add_argument("--bundle", type=Path, required=True)
+    check = commands.add_parser("check", help="exit 0 if the release is complete")
+    check.add_argument("--sums", type=Path, required=True, help="published SHA256SUMS")
+    arguments = parser.parse_args()
+
+    if arguments.command == "check":
+        expected = expected_from_manifest(arguments.sums)
+        difference = compare(
+            expected, published_assets(run_gh, arguments.repo, arguments.tag)
+        )
+        if not difference.clean:
+            print(f"release {arguments.tag} is incomplete: {difference.describe()}")
+        return 0 if difference.clean else 1
+
+    if arguments.bundle.name != BUNDLE:
+        raise SystemExit(f"the bundle asset must be named {BUNDLE}")
+    sources = {path.name: path for path in arguments.release_dir.iterdir()}
+    sources[arguments.bundle.name] = arguments.bundle
+    expected = expected_from_files(arguments.release_dir, arguments.bundle)
+    converged = converge(run_gh, arguments.repo, arguments.tag, expected, sources)
+    return 0 if converged else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
