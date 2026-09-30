@@ -1,0 +1,276 @@
+From 92ee232406b72d2acbac0fae6ab02252508483a0 Mon Sep 17 00:00:00 2001
+From: keyspark <kevin.on.the.rocks@gmail.com>
+Date: Wed, 8 Jul 2026 08:34:04 -0400
+Subject: [PATCH 3/8] DSpark port: chained ngram rounds, one-token fast path,
+ match-scaled bets
+
+--dspark-rounds N (needs --dspark-row-commit): after a committed speculative
+cycle the next position's logits are already on the host, so the next greedy
+token is free; while the context has a full-length suffix match, keep
+verifying [next ++ ngram continuation] batches instead of returning for a
+plain one-token decode.
+
+A one-token chain (early-margin stop at the first position) now commits with
+the exact decode path: the batch verifier costs ~85 ms for a single row on
+GB10 where the decode path costs ~70 ms. Ngram extensions are capped by the
+suffix match length so weak matches stop wasting verifier rows.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+---
+ ds4.c | 199 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 193 insertions(+), 6 deletions(-)
+
+diff --git a/ds4.c b/ds4.c
+index 94d4abb..11b8c20 100644
+--- a/ds4.c
++++ b/ds4.c
+@@ -27293,8 +27293,10 @@ int ds4_session_eval(ds4_session *s, int token, char *err, size_t errlen) {
+ #define DS4_DSPARK_NGRAM_MAX_MATCH 8
+ static int dspark_ngram_propose(const int *hist, int hlen,
+                                 const int *tail, int tail_n,
+-                                int min_match, int max_out, int *out) {
++                                int min_match, int max_out, int *out,
++                                int *match_len) {
+     const int total = hlen + tail_n;
++    if (match_len) *match_len = 0;
+     if (min_match < 1) min_match = 1;
+     if (total < min_match + 1 || max_out <= 0) return 0;
+ #define DS4_DSPARK_SEQ(i) ((i) < hlen ? hist[i] : tail[(i) - hlen])
+@@ -27313,6 +27315,7 @@ static int dspark_ngram_propose(const int *hist, int hlen,
+         }
+     }
+     if (best_len < min_match) return 0;
++    if (match_len) *match_len = best_len;
+     int n = 0;
+     for (int i = best_pos + 1; i < total && n < max_out; i++) {
+         out[n++] = DS4_DSPARK_SEQ(i);
+@@ -27330,10 +27333,11 @@ static int dspark_ngram_propose(const int *hist, int hlen,
+  *    prefix and rolling back speculative Metal state on miss;
+  * 4. fall back to ordinary one-token decode if the fast verifier cannot prove
+  *    the target stream. */
+-int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+-                                        int max_tokens, int eos_token,
+-                                        int *accepted, int accepted_cap,
+-                                        char *err, size_t errlen) {
++static int ds4_session_eval_speculative_argmax_once(
++        ds4_session *s, int first_token,
++        int max_tokens, int eos_token,
++        int *accepted, int accepted_cap,
++        char *err, size_t errlen) {
+     if (!s || max_tokens <= 0 || accepted_cap <= 0) return 0;
+     if (s->distributed) {
+         if (!accepted) return 0;
+@@ -27506,12 +27510,18 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+             if (ext_cap > room - 1) ext_cap = room - 1;
+             if (ext_cap > 16) ext_cap = 16;
+             if (ext_cap > try_n) {
++                int ngram_match = 0;
+                 dspark_ngram_n = dspark_ngram_propose(s->checkpoint.v,
+                                                       s->checkpoint.len,
+                                                       drafts, try_n,
+                                                       e->dspark_ngram_min,
+                                                       ext_cap - try_n,
+-                                                      drafts + try_n);
++                                                      drafts + try_n,
++                                                      &ngram_match);
++                /* Scale the bet with the evidence: verifier rows cost real
++                 * bandwidth, so a short suffix match may only propose as many
++                 * tokens as it matched. */
++                if (dspark_ngram_n > ngram_match) dspark_ngram_n = ngram_match;
+                 for (int i = 0; i < dspark_ngram_n; i++) {
+                     if (drafts[try_n + i] == eos_token) {
+                         dspark_ngram_n = i + 1;
+@@ -27601,6 +27611,42 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+      * logits.  --quality / DS4_MTP_STRICT selects the exact decode verifier,
+      * which preserves the one-token target stream but is not a speed win.
+      */
++    /* A one-token chain does not need the batch verifier: drafts[0] is
++     * already target-verified for free, and the batch pass costs measurably
++     * more than one exact decode.  Commit it like the margin-skip path. */
++    if (draft_n == 1 && !strict_mtp && e->dspark_early_margin > 0.0f) {
++        float *row_logits = xmalloc((size_t)DS4_N_VOCAB * sizeof(row_logits[0]));
++        const int start = s->checkpoint.len;
++        const double verify_t0 = mtp_timing ? now_sec() : 0.0;
++        bool ok = metal_graph_eval_token_raw_swa(&s->graph,
++                                                 &e->model,
++                                                 &e->weights,
++                                                 drafts[0],
++                                                 (uint32_t)start,
++                                                 row_logits);
++        if (!ok) {
++            free(row_logits);
++            snprintf(err, errlen, "%s decode failed", ds4_backend_name(e->backend));
++            s->checkpoint_valid = false;
++            return -1;
++        }
++        memcpy(s->logits, row_logits, (size_t)DS4_N_VOCAB * sizeof(s->logits[0]));
++        free(row_logits);
++        token_vec_push(&s->checkpoint, drafts[0]);
++        accepted[n_accept++] = drafts[0];
++        s->checkpoint_valid = true;
++        s->mtp_draft_valid = false;
++        DS4_DSPARK_KEEP_ACCEPTED(1);
++        if (mtp_timing) {
++            fprintf(stderr,
++                    "ds4: mtp timing margin-stop drafted=1 committed=1 draft=%.3f ms verify=%.3f ms total=%.3f ms\n",
++                    (mtp_t_after_draft - mtp_t0) * 1000.0,
++                    (now_sec() - verify_t0) * 1000.0,
++                    (now_sec() - mtp_t0) * 1000.0);
++        }
++        return n_accept;
++    }
++
+     const bool use_decode2_exact =
+         draft_n == 2 && strict_mtp && getenv("DS4_MTP_BATCH_VERIFY") == NULL;
+     if (use_decode2_exact) {
+@@ -28070,6 +28116,147 @@ int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
+ #endif
+ }
+ 
++#ifndef DS4_NO_GPU
++/* One DSpark chained round: verify [seed ++ ngram continuation] in a single
++ * batched pass, committing the accepted prefix through the row-commit path.
++ * The seed is the target's own greedy next token, so row zero always commits.
++ * Returns tokens committed, 0 if the round was not worth attempting, or -1 on
++ * a decode error with the session invalidated. */
++static int dspark_eval_ngram_round(ds4_session *s, int max_new, int eos_token,
++                                   int *accepted, char *err, size_t errlen) {
++    ds4_engine *e = s->engine;
++    ds4_gpu_graph *g = &s->graph;
++    int batch[16];
++    int seed = sample_argmax(s->logits, DS4_N_VOCAB);
++    if (seed == eos_token) return 0;
++    batch[0] = seed;
++
++    int cap = 1 + e->dspark_ngram_tokens;
++    if (cap > max_new) cap = max_new;
++    int room = s->ctx_size - s->checkpoint.len;
++    if (cap > room - 1) cap = room - 1;
++    if (cap > 16) cap = 16;
++    if (cap < 3) return 0;
++
++    /* Chained rounds skip the plain decode entirely, so a whole-batch miss
++     * costs more than the decode it replaces.  Only bet on the strongest
++     * evidence: a full-length suffix match. */
++    int match_len = 0;
++    int m = dspark_ngram_propose(s->checkpoint.v, s->checkpoint.len,
++                                 batch, 1,
++                                 e->dspark_ngram_min,
++                                 cap - 1,
++                                 batch + 1,
++                                 &match_len);
++    for (int i = 0; i < m; i++) {
++        if (batch[1 + i] == eos_token) {
++            m = i + 1;
++            break;
++        }
++    }
++    if (m < 2 || match_len < DS4_DSPARK_NGRAM_MAX_MATCH) return 0;
++    const int n = 1 + m;
++
++    ds4_spec_frontier frontier;
++    memset(&frontier, 0, sizeof(frontier));
++    if (!spec_frontier_snapshot(&frontier, s)) return 0;
++    const int start = s->checkpoint.len;
++    int row_tops[16];
++    float *row_logits = xmalloc((size_t)DS4_N_VOCAB * sizeof(row_logits[0]));
++    for (int i = 0; i < n; i++) token_vec_push(&s->checkpoint, batch[i]);
++    bool ok = metal_graph_verify_suffix_tops(g,
++                                             &e->model,
++                                             &e->weights,
++                                             &s->checkpoint,
++                                             (uint32_t)start,
++                                             (uint32_t)n,
++                                             false,
++                                             (uint32_t)(n - 1),
++                                             row_tops,
++                                             NULL);
++    int commit = 0;
++    if (ok) {
++        commit = 1;
++        for (int i = 1; i < n; i++) {
++            if (row_tops[i - 1] != batch[i]) break;
++            commit++;
++        }
++        s->checkpoint.len = start;
++        if (commit < n) ok = spec_frontier_commit_row(s, (uint32_t)(commit - 1));
++        if (ok) ok = metal_graph_read_spec_logits_row(g, (uint32_t)(commit - 1), row_logits);
++    }
++    if (!ok) {
++        s->checkpoint.len = start;
++        if (!spec_frontier_restore(&frontier, s)) {
++            snprintf(err, errlen, "DSpark round verifier failed");
++            s->checkpoint_valid = false;
++            spec_frontier_free(&frontier);
++            free(row_logits);
++            return -1;
++        }
++        spec_frontier_free(&frontier);
++        free(row_logits);
++        return 0;
++    }
++    memcpy(s->logits, row_logits, (size_t)DS4_N_VOCAB * sizeof(s->logits[0]));
++    for (int i = 0; i < commit; i++) {
++        token_vec_push(&s->checkpoint, batch[i]);
++        accepted[i] = batch[i];
++    }
++    s->checkpoint_valid = true;
++    s->mtp_draft_valid = false;
++    /* Round-committed positions have no MTP raw rows; see the hole policy in
++     * the main speculative path. */
++    if (commit > 2) g->mtp_n_raw = 0;
++    if (getenv("DS4_MTP_SPEC_LOG")) {
++        fprintf(stderr, "ds4: dspark round drafted=%d committed=%d match=%d\n",
++                n, commit, match_len);
++    }
++    spec_frontier_free(&frontier);
++    free(row_logits);
++    return commit;
++}
++#endif
++
++int ds4_session_eval_speculative_argmax(ds4_session *s, int first_token,
++                                        int max_tokens, int eos_token,
++                                        int *accepted, int accepted_cap,
++                                        char *err, size_t errlen) {
++    int n = ds4_session_eval_speculative_argmax_once(s,
++                                                     first_token,
++                                                     max_tokens,
++                                                     eos_token,
++                                                     accepted,
++                                                     accepted_cap,
++                                                     err,
++                                                     errlen);
++#ifndef DS4_NO_GPU
++    ds4_engine *e = s ? s->engine : NULL;
++    if (n < 2 || !e ||
++        e->dspark_rounds <= 1 ||
++        e->dspark_ngram_tokens <= 0 ||
++        !e->dspark_row_commit ||
++        s->distributed || ds4_session_is_cpu(s))
++        return n;
++    /* DSpark chained rounds: each committed cycle leaves the next position's
++     * logits on the host, so the next greedy token is free.  While the context
++     * keeps matching, keep verifying [next ++ ngram continuation] batches
++     * instead of returning to the caller for a plain one-token decode. */
++    for (int round = 1; round < e->dspark_rounds; round++) {
++        if (accepted[n - 1] == eos_token) break;
++        int max_new = max_tokens - n;
++        if (max_new > accepted_cap - n) max_new = accepted_cap - n;
++        if (max_new < 3) break;
++        int r = dspark_eval_ngram_round(s, max_new, eos_token,
++                                        accepted + n, err, errlen);
++        if (r < 0) return -1;
++        if (r == 0) break;
++        n += r;
++    }
++#endif
++    return n;
++}
++
+ void ds4_session_invalidate(ds4_session *s) {
+     s->checkpoint_valid = false;
+     s->checkpoint.len = 0;
+-- 
+2.43.0
+

@@ -337,7 +337,11 @@ It requires tracked edits to be staged together; CI remains the authoritative
 full-repository verification.
 
 Publication (`.github/workflows/publish.yml`) runs on every merge to `main`
-that changes more than Markdown and builds the release asset set from the
+that changes more than Markdown. It is the only workflow that runs on a push to
+`main`: it first runs the platform validator, the producer checks from
+`validate.yml` (recipe-data-only pushes get the light checks, anything else the
+full suite) and the catalog-index check, and publishes only when none of them
+failed. Pull requests run `validate.yml` directly. It builds the release asset set from the
 merge commit with `tools/build-catalog-index --release-dir`:
 `catalog-index.json`, `qualification-index.json`, one `<slug>.tar.gz` per
 recipe, the family-aware coverage matrix and report, and a `SHA256SUMS`

@@ -1,0 +1,5 @@
+start.sh and README.md are MiaAI-Lab/Nemotron-Labs-3-Puzzle-75B-DGX-Spark at the
+commit in vendored-upstream.json, byte for byte, kept as the reference for this
+recipe. That repository carries no licence file. Model: nvidia/NVIDIA-Nemotron-Labs-3-Puzzle-75B-A9B-NVFP4
+(OpenMDW-1.1). The build-time form of upstream's in-container aarch64 patches
+(patch-aarch64.sh) and verify-runtime.py are ours.

@@ -1,0 +1,8 @@
+Apache-2.0
+
+Original files in this repository (serve scripts, YaRN overlays, chat template,
+eval JSON, documentation) are licensed under Apache License 2.0.
+
+Upstream weights, the DFlash2 drafter, and the AEON vLLM prebuilt image keep
+their own licenses (also Apache-2.0 at the time of this compile). Keys does
+not relicense them. See CREDITS.md.
