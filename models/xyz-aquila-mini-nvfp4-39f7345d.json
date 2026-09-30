@@ -1,0 +1,174 @@
+{
+  "capabilities": [
+    "chat",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-d1a8f4a1d2e3-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d1a8f4a1d2e3787c5956393d9306365ebefe1912cb76828870682b1ab16f5c27",
+      "size_bytes": 1635
+    },
+    {
+      "id": "readme-aaee74ddaaf2-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "aaee74ddaaf2666162b8da5225a017807083ca91d29ef63861d8e32d5d6c8586",
+      "size_bytes": 3836
+    },
+    {
+      "id": "chat-template-e84f32a23fdd-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e84f32a23fdda27689f868aa4a1a5621f41133e51a48d7f3efcbea2839574259",
+      "size_bytes": 7764
+    },
+    {
+      "id": "config-e6c219608089-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e6c2196080893940be32a8267e2d8ed4c6ca7730e94648044fbe4ee13636768d",
+      "size_bytes": 68129
+    },
+    {
+      "id": "evidence-report-ee1fbb918fd2-14da8e7ae9",
+      "path": "evidence-report.html",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ee1fbb918fd2b7acfd73a0a4e2e3f6d9ee37018fecc01ad9a7a612c4e1f85ba5",
+      "size_bytes": 15149
+    },
+    {
+      "id": "generation-config-e4e0f2b3fd23-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e4e0f2b3fd23477a87df363f54b78877ab3dd27de87c9899d8e8a55856ffff15",
+      "size_bytes": 204
+    },
+    {
+      "id": "hf-quant-config-935304ef078f-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "935304ef078ff60589e786b2a08b977785c48aa4d8d194208249ef6c0ebdaeca",
+      "size_bytes": 41190
+    },
+    {
+      "id": "model-00001-of-00003-ac93d31957be-5ad6951325",
+      "path": "model-00001-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ac93d31957be3d027e7bfd96193456456999c544eadc99d9150de6ec0bdd11b6",
+      "size_bytes": 10006877608
+    },
+    {
+      "id": "model-00002-of-00003-d9400875d66a-b421ec05d0",
+      "path": "model-00002-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d9400875d66a02dcd6d0e4871575deadea522886a70046f3b1e2951d3575c830",
+      "size_bytes": 10003595752
+    },
+    {
+      "id": "model-00003-of-00003-e59ac89d8c50-c5bdb3d6ec",
+      "path": "model-00003-of-00003.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e59ac89d8c5027423e01e051c9289b26b79f73e8e97f4cf9fc413b6a3a02b581",
+      "size_bytes": 1724573248
+    },
+    {
+      "id": "model-safetensors-index-7698e2d92c73-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7698e2d92c73a841b45cf08078bbbbb019988d04db23ebe768b2bf61574629fd",
+      "size_bytes": 13724727
+    },
+    {
+      "id": "tokenizer-06b9509352d2-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+      "size_bytes": 19989325
+    },
+    {
+      "id": "tokenizer-config-8c2c6b1d95cb-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "8c2c6b1d95cbd7160140400eee2922b4089ec80fb1a69cb51ea72a414909eae8",
+      "size_bytes": 1161
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4-modelopt-mixed"
+  },
+  "identity": {
+    "family": {
+      "publisher": "r0b0tlab",
+      "slug": "xyz-aquila",
+      "title": "XYZ Aquila"
+    },
+    "model": {
+      "publisher": "r0b0tlab",
+      "slug": "xyz-aquila-mini",
+      "title": "XYZ-Aquila-mini"
+    },
+    "publisher": "r0b0tlab",
+    "slug": "xyz-aquila-mini-nvfp4-39f7345d",
+    "variant": "NVFP4 39f7345d",
+    "version": "NVFP4 39f7345d"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "XYZAILab",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/r0b0tlab/XYZ-Aquila-mini-NVFP4/blob/39f7345d7838713107a7ee728cbe7c963a707f4d/README.md"
+  },
+  "metadata": {
+    "description": "XYZAILab XYZ-Aquila-mini (Qwen3-architecture mixture-of-experts language model).",
+    "tags": [
+      "r0b0tlab",
+      "xyz-aquila",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/r0b0tlab/XYZ-Aquila-mini-NVFP4",
+    "revision": "39f7345d7838713107a7ee728cbe7c963a707f4d"
+  }
+}
