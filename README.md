@@ -79,7 +79,7 @@ Which Spark counts each model family runs on.
 | DiffusionGemma | ✓ |  |  |  |  |
 | FastContext | ✓ |  |  |  |  |
 | FLUX.2 | ✓ |  |  |  |  |
-| Gemma | ✓ |  |  |  |  |
+| Gemma | ✓ | ✓ |  |  |  |
 | GLM | ✓ | ✓ | ✓ | ✓ |  |
 | Google Gemma | ✓ |  |  |  |  |
 | Hunyuan3D | ✓ |  |  |  |  |
