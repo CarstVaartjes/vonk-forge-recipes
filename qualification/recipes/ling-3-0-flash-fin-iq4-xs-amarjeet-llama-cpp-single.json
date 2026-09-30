@@ -1,0 +1,15 @@
+{
+  "id": "vonk-forge/ling-3-0-flash-fin-iq4-xs-amarjeet-llama-cpp-single",
+  "service_recipes": {
+    "alias": "ling-3.0-flash-fin-iq4-xs",
+    "smoke_cases": [
+      "M0",
+      "A391"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context and one- versus four-slot canaries with MTP speculative decoding, recording the first-load time of the 64 GiB GGUF; thinking is always on, so use budgets of at least 8K tokens"
+      ]
+    }
+  }
+}

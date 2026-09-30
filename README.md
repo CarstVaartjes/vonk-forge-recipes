@@ -38,7 +38,7 @@ Which engines each model family runs on.
 | Laguna | ✓ |  |  |  |  |  |  |  |  |  |
 | Leanstral | ✓ |  |  |  |  |  |  |  |  |  |
 | LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
-| Ling | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| Ling | ✓ | ✓ |  | ✓ |  |  |  |  |  |  |
 | LTX |  |  |  |  |  |  | ✓ |  | ✓ |  |
 | Meta Llama | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
 | Microsoft Phi-4 | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
@@ -129,6 +129,7 @@ Creators whose DGX Spark work we package; filter by creator in vonkctl or the we
 | Creator | Focus |
 | --- | --- |
 | [0xSero](https://github.com/0xSero) | SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark. |
+| [amarjeet](https://github.com/amarjeet) | dgx-spark-recipes: single-Spark llama.cpp GGUF, TensorFold and EXL3 recipes that pin model revisions and shard SHA-256s; Ling, Ternary-Bonsai, Qwen3.8 Flash Next. |
 | [antirez](https://github.com/antirez/ds4) | ds4: the DeepSeek 4 Flash inference engine (Metal, CUDA, ROCm). |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. |
 | [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |
