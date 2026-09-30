@@ -434,6 +434,7 @@ class Item:
     current: str
     target: Target
     model_slug: str | None = None
+    comparison: Comparison | None = None  # pin -> newest, GitHub items only
 
     @property
     def label(self) -> str:
@@ -528,8 +529,17 @@ def collect_items(
                 result.unreachable.append(
                     f"{provider}:{repo}: provider access status is unknown from anonymous metadata; no credentials were requested"
                 )
-        if target.sha != current:
-            result.items.append(Item(kind, provider, repo, current, target, slug))
+        if target.sha == current:
+            return
+        compared: Comparison | None = None
+        if provider == "github":
+            try:
+                compared = compare_commits(http, repo, current, target.sha)
+            except (RuntimeError, KeyError, TypeError):
+                compared = None  # assessed (and reported) later
+            if compared is not None and pin_is_current(compared):
+                return  # never downgrade: the pin is at or ahead of the newest
+        result.items.append(Item(kind, provider, repo, current, target, slug, compared))
 
     source = source_pin(recipe)
     if source is not None:
@@ -593,6 +603,11 @@ def compare_commits(http: Http, repo: str, old: str, new: str) -> Comparison:
     return Comparison(status, commits, files, truncated, url)
 
 
+def pin_is_current(comparison: Comparison) -> bool:
+    """The pin is the newest release/head or already ahead of it (never downgrade)."""
+    return comparison.status in {"behind", "identical"}
+
+
 def patch_targets(adapter: Path) -> set[str]:
     """Paths named by ``+++ b/<path>`` in the adapter's ``*.patch`` and ``*.diff`` files."""
     targets: set[str] = set()
@@ -618,7 +633,7 @@ def classify_changes(
         reasons.append(
             "the pin is newer than the version the pinning rule selects; "
             "moving to it would be a downgrade"
-        )
+        )  # unreachable through assess(): such pins are current
     elif comparison.status == "diverged":
         reasons.append("the selected version is not a descendant of the pinned commit")
     elif comparison.status not in {"ahead", "identical"}:
@@ -945,7 +960,7 @@ class Assessor:
         result: Assessment,
         edits: dict[str, bytes | None],
     ) -> None:
-        comparison = compare_commits(
+        comparison = item.comparison or compare_commits(
             self.http, item.repo, item.current, item.target.sha
         )
         pin = adapter_pin(self.catalog.root, recipe)

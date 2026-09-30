@@ -384,6 +384,51 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
         self.assertIn(NEW, result.edits["recipes/recipe.json"].decode())
 
 
+class NeverDowngradeTests(unittest.TestCase):
+    def collect(self, status: str):
+        catalog = refresh.Catalog(
+            Path(tempfile.gettempdir()),
+            recipes={
+                "recipe": {
+                    "identity": {"slug": "recipe"},
+                    "provenance": {
+                        "attribution": ["Example"],
+                        "source_reference": f"https://github.com/example/recipe/tree/{OLD}",
+                    },
+                    "release": {"version": "1.0.0", "released_at": "2026-01-01"},
+                    "models": [],
+                    "execution": {"build": {"context": {"path": "missing"}}},
+                }
+            },
+        )
+        target = refresh.Target(
+            "github", "example/recipe", NEW, "2026-09-30", "v2.0.0", "2.0.0", "u"
+        )
+        with patch(
+            "refresh_upstream.compare_commits",
+            return_value=refresh.Comparison(status, [], [], False, "u"),
+        ):
+            return refresh.collect_items(
+                catalog, "recipe", object(), lambda _p, _r: target
+            )
+
+    def test_pin_ahead_of_release_is_current(self) -> None:
+        result = self.collect("behind")
+        self.assertFalse(result.drifted)
+        self.assertFalse(result.reasons)
+
+    def test_release_ahead_of_pin_is_refreshed(self) -> None:
+        result = self.collect("ahead")
+        self.assertEqual(len(result.items), 1)
+        self.assertEqual(result.items[0].comparison.status, "ahead")
+        self.assertEqual(classify(result.items[0].comparison), [])
+
+    def test_diverged_history_needs_review(self) -> None:
+        result = self.collect("diverged")
+        self.assertEqual(len(result.items), 1)
+        self.assertTrue(classify(result.items[0].comparison))
+
+
 class ReleaseTests(unittest.TestCase):
     recipe: ClassVar[dict[str, object]] = {
         "release": {"version": "1.0.0", "released_at": "2026-06-01"}
