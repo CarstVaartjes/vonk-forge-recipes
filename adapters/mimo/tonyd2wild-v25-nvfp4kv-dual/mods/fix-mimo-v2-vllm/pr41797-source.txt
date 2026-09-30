@@ -1,0 +1,10 @@
+Upstream: https://github.com/vllm-project/vllm/pull/41797
+Immutable diff: https://github.com/vllm-project/vllm/compare/d841386d272200dd381a5791833771db9a47adf7...ab10addb603ac17611d55aa88b64acbf1da71373
+Base revision: d841386d272200dd381a5791833771db9a47adf7
+Head revision: ab10addb603ac17611d55aa88b64acbf1da71373
+Merged by: f81daf8880632eea46590a8222c082a1e27fd11f
+Full immutable compare diff SHA-256: 0cf2b53ba0601f76aa81e6be5c0e6fae2c3e49ec265ebad8e065bcce8c82c673
+Build-scoped vllm/ diff SHA-256: 01ace84baef35fea8d337f5b44623286fd150367140ae383cef846cfdd028a83
+
+The vendored diff is byte-for-byte the vllm/ subset of the immutable base-to-head compare above.
+No network fetch is performed during an image build.
