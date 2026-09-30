@@ -101,6 +101,13 @@ still supply identity, license, `--requires-token` for a gated repository and
 files the model does not need, and list only capabilities the model supports
 before you use the Model in a recipe.
 
+The curated library excludes provider-gated checkpoints, even when the
+authoring tool can represent their credential requirement with `requires_token`.
+Do not add or retain a recipe that depends on such a checkpoint. This is the
+catalog owner's provider-access policy; it does not enforce territory or decide
+license compliance. Keep the general contract's token field for consumers and
+other catalogs that support gated sources.
+
 `capabilities` is the list of capability names the model supports. Leave out
 what is unknown. A source model's vision capability does not prove that every
 engine recipe can serve images.
