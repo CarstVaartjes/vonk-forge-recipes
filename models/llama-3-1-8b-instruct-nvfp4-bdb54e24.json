@@ -1,0 +1,174 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "license-fa4d54e7b8a1-83a544517d",
+      "path": "LICENSE.pdf",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fa4d54e7b8a1be9a606bc82964b026d525749978bfadf50f239bd520ce82eebc",
+      "size_bytes": 76728
+    },
+    {
+      "id": "readme-4c8a0c1aff18-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "4c8a0c1aff18c7cfe4d6c6cca580c3bda57f13dc49d38f7388e545856d2b809d",
+      "size_bytes": 5571
+    },
+    {
+      "id": "chat-template-b48c47f64438-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "b48c47f6443892716176eb200bf4ef108f64e06ca26ed0fa8ebc0a4b3992fcb2",
+      "size_bytes": 348
+    },
+    {
+      "id": "config-017c7a2d2852-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "017c7a2d285256747f75b01c5fbc7a78fa351ea49958cdf6e16f45b0a8d31afe",
+      "size_bytes": 1921
+    },
+    {
+      "id": "generation-config-213fe6a98434-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "213fe6a984340485c4bfd5a328aeeaace9db58bff033098fcda627c0bc79dc8e",
+      "size_bytes": 184
+    },
+    {
+      "id": "hf-quant-config-85255d705c28-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "85255d705c2820a439413dce566c2435d4d259945af533e92b3a5df480c6fe88",
+      "size_bytes": 294
+    },
+    {
+      "id": "model-00001-of-00002-dbf99c7c01e2-27a6880801",
+      "path": "model-00001-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "dbf99c7c01e269c8af0d4438d8972d1e0348ce93e3339ca2b6ea4eb2bccb7677",
+      "size_bytes": 4977188096
+    },
+    {
+      "id": "model-00002-of-00002-5321ca97dd09-2cca3b5a88",
+      "path": "model-00002-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5321ca97dd0968a3e2b676b3a42728e9f5327d516bcf0addd4e9cd61c068a1ad",
+      "size_bytes": 1050673280
+    },
+    {
+      "id": "model-safetensors-index-2b8515c082c5-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2b8515c082c5e64db4963a0b7ca0e501127cc484ccdc3639330ddd5eff8a76bf",
+      "size_bytes": 88107
+    },
+    {
+      "id": "special-tokens-map-1b1835caa5b4-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "1b1835caa5b4d70acaa210fa222b0036f1882f9525c4660fd4810fb3e1e40ff8",
+      "size_bytes": 325
+    },
+    {
+      "id": "tokenizer-6b9e4e7fb171-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "6b9e4e7fb171f92fd137b777cc2714bf87d11576700a1dcd7a399e7bbe39537b",
+      "size_bytes": 17209920
+    },
+    {
+      "id": "tokenizer-config-a6c116761af9-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a6c116761af9f371c68fd4a2da6e3cf6b3a4b41148f38eca4047aecfccdb6403",
+      "size_bytes": 50554
+    }
+  ],
+  "format": {
+    "precision": "fp4",
+    "quantization": "nvfp4-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "llama",
+      "title": "Meta Llama"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "llama-3-1-8b-instruct",
+      "title": "Llama 3.1 8B Instruct"
+    },
+    "publisher": "nvidia",
+    "slug": "llama-3-1-8b-instruct-nvfp4-bdb54e24",
+    "variant": "NVFP4 bdb54e24",
+    "version": "NVFP4 bdb54e24"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Meta Platforms"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
+  },
+  "metadata": {
+    "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Meta Llama 3.1 8B Instruct (governed by the NVIDIA Open Model License and the Llama 3.1 Community License).",
+    "tags": [
+      "nvidia",
+      "llama",
+      "language",
+      "nvfp4",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Llama-3.1-8B-Instruct-NVFP4",
+    "revision": "bdb54e24298451af785c0ac63c1b485e9b7400a2"
+  }
+}
