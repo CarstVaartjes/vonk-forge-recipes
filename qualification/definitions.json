@@ -4692,6 +4692,23 @@
         ]
       }
     },
+    "vonk-forge/diffusiongemma-26b-a4b-it-nvidia-vllm-single": {
+      "alias": "diffusiongemma-26b-a4b-it",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT",
+        "V7"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/qwen3-6-27b-nvfp4-r0b0tlab-vllm-single": {
       "alias": "nvidia/Qwen3.6-27B-NVFP4",
       "smoke_cases": [
