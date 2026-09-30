@@ -25,7 +25,7 @@ Which engines each model family runs on.
 | FastContext | ✓ |  |  |  |  |  |  |  |  |  |
 | FLUX.2 |  |  |  |  |  |  |  | ✓ |  |  |
 | Gemma | ✓ |  |  | ✓ |  |  |  |  |  |  |
-| GLM | ✓ |  |  |  |  |  |  |  |  |  |
+| GLM | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | Google Gemma | ✓ |  |  |  |  |  |  |  |  |  |
 | Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |  |
 | HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |  |
