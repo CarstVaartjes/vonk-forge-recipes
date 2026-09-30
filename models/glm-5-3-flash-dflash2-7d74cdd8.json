@@ -1,0 +1,89 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-70e0ed421d65-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "70e0ed421d653865ad7ace84728e32ded01ec0a860e989a5ed736fe11b42214f",
+      "size_bytes": 116
+    },
+    {
+      "id": "readme-088bc4561a83-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "088bc4561a839840004fe2c02d01fd2da85079b90e76998e884f6cd9784ffd9c",
+      "size_bytes": 4666
+    },
+    {
+      "id": "config-c4aeac010119-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c4aeac0101196a6e26705b34c45230bcd0c7c68ee2d2d1efdb242087f3712573",
+      "size_bytes": 1273
+    },
+    {
+      "id": "model-8931dc522be0-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8931dc522be0aa31760a7463f8d2f8044fa3e6d40be2e87aa08e9fd17bfd6683",
+      "size_bytes": 2342169800
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "incoai",
+      "slug": "glm-5-3-dflash",
+      "title": "GLM 5.3 DFlash"
+    },
+    "model": {
+      "publisher": "incoai",
+      "slug": "glm-5-3-flash-dflash2",
+      "title": "GLM 5.3 Flash DFlash2"
+    },
+    "publisher": "incoai",
+    "slug": "glm-5-3-flash-dflash2-7d74cdd8",
+    "variant": "GLM 5.3 Flash DFlash2 7d74cdd8",
+    "version": "GLM 5.3 Flash DFlash2 7d74cdd8"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "IncoAI"
+    ],
+    "spdx": "CC-BY-NC-ND-4.0",
+    "url": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2/blob/7d74cdd881ed7e32c31175984a67823127b66cfe/README.md"
+  },
+  "metadata": {
+    "description": "IncoAI DFlash2 block-diffusion draft model for GLM 5.3 Flash.",
+    "tags": [
+      "incoai",
+      "glm-5-3-dflash",
+      "text",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/incoai/GLM-5.3-Flash-DFlash2",
+    "revision": "7d74cdd881ed7e32c31175984a67823127b66cfe"
+  }
+}

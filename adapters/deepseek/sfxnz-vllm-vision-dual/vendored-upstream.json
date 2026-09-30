@@ -1,0 +1,9 @@
+{
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "repo": "sfxnz/DeepSeek-V4-Flash-Vision-Exp-vLLM-2x-DGX-Spark",
+    "commit": "099b90321fa6629ce15b02f909fd9df1921b80ad"
+  }
+}

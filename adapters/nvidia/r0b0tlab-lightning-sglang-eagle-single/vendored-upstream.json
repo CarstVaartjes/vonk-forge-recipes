@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "r0b0tlab/nemotron-3.5-lightning-sglang-sm121",
+    "commit": "d4ae1993c61aa46e6578ecfdb0eb72ed5f17b85e"
+  },
+  "ours": [
+    "sglang-serve"
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  }
+}
