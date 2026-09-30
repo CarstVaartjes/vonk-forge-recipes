@@ -1,0 +1,108 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-b2e477ac11e8-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "b2e477ac11e8f8ae6bf3c94b172c2b32c132d8a251d3e93a9895cccc754354f1",
+      "size_bytes": 1580
+    },
+    {
+      "id": "readme-8c84039b46d0-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8c84039b46d0448865611811caa6cae7109619c5ad70471429b4612d7fc1498e",
+      "size_bytes": 3414
+    },
+    {
+      "id": "dflash-system-bea1f8279690-2f2063835c",
+      "path": "assets/dflash_system.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "bea1f82796909c1e4f7261ee3c08af743ec3c25057b83fca918808b76af4a7dc",
+      "size_bytes": 338153
+    },
+    {
+      "id": "speedup-0f1b16c20ccc-8fef229cc3",
+      "path": "assets/speedup.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "0f1b16c20ccce188749a0e9054d596d35986395c55cbe2ab6b79eb75c51c8045",
+      "size_bytes": 66921
+    },
+    {
+      "id": "config-fcdec9ee2da9-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "fcdec9ee2da902d24e69ba3fc666e50a0aa723147689ffc900f425db0381bc54",
+      "size_bytes": 1135
+    },
+    {
+      "id": "model-e0c050b34798-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e0c050b34798d32728a164d2c3f1681746ff85c11945701b0205b654e2f1fdbe",
+      "size_bytes": 3460432504
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "z-lab",
+      "slug": "qwen3-6-z-lab",
+      "title": "Qwen3.6 z-lab"
+    },
+    "model": {
+      "publisher": "z-lab",
+      "slug": "qwen3-6-27b-dflash",
+      "title": "Qwen3.6 27B DFlash draft"
+    },
+    "publisher": "z-lab",
+    "slug": "qwen3-6-27b-dflash-09196886",
+    "variant": "Qwen3.6 27B DFlash 09196886",
+    "version": "Qwen3.6 27B DFlash 09196886"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "z-lab",
+      "Qwen"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/z-lab/Qwen3.6-27B-DFlash/blob/0919688658996800f86b895034249700e9481106/README.md"
+  },
+  "metadata": {
+    "description": "Exact public z-lab DFlash draft for Qwen3.6 27B.",
+    "tags": [
+      "z-lab",
+      "qwen3-6-z-lab",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/z-lab/Qwen3.6-27B-DFlash",
+    "revision": "0919688658996800f86b895034249700e9481106"
+  }
+}
