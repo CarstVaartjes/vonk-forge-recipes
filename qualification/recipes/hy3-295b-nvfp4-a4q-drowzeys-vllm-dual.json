@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/hy3-295b-nvfp4-a4q-drowzeys-vllm-dual",
+  "service_recipes": {
+    "alias": "hy3-nvfp4",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context ladder and declared concurrency canaries"
+      ],
+      "recovery": [
+        "Controller stop/start and offline warm-cache restart"
+      ]
+    }
+  }
+}
