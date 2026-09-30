@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Vonk entrypoint for 0xSero's single-Spark EXL3 (mul1) SGLang profiles.
+#
+# Upstream's docker/run-spark.sh censuses the downloaded tensors first and only then
+# launches the server with EXL3_PLAIN_CENSUS pointing at the receipt. The platform
+# mounts the checkpoint read-only at /models, so the same census runs here, into
+# the writable outputs volume, with upstream's contract check; a layout mismatch
+# stops the container before the server starts. Everything else is the recipe's argv.
+set -Eeuo pipefail
+
+die() {
+  printf 'glm53-exl3-plain-single: %s\n' "$*" >&2
+  exit 2
+}
+
+[[ $(uname -m) == aarch64 ]] || die "the pinned image requires Linux aarch64"
+[[ -r /models/config.json ]] || die "hydrated config.json is missing"
+[[ -r /models/model.safetensors.index.json ]] || die "hydrated weight index is missing"
+[[ -n ${EXL3_PLAIN_CENSUS:-} ]] || die "EXL3_PLAIN_CENSUS must name the census receipt path"
+
+mkdir -p "$(dirname "${EXL3_PLAIN_CENSUS}")"
+python3 -m exl3_plain_sglang_overlay.census /models --out "${EXL3_PLAIN_CENSUS}"
+python3 - "${EXL3_PLAIN_CENSUS}" <<'PY'
+import json
+import sys
+
+r = json.load(open(sys.argv[1]))
+assert r.get("schema") == "exl3-plain-census-v1" and r.get("index_only") is False and (
+    r.get("verdict", {}).get("contract_ok") is True
+), "census contract check FAILED: the model does not match the served EXL3 layout"
+print("census_ok tensors=%s codebook=%s" % (r.get("tensors", "n/a"), r.get("codebook")))
+PY
+
+exec python3 -m sglang.launch_server "$@"

@@ -1,0 +1,573 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "85cb3fa86d31a781b94dcf10ee168adf096cfeaac14d2f1e6c560504e58e4eed",
+        "repository": "ghcr.io/0xsero/glm53-flash-exl3-plain"
+      },
+      "context": {
+        "path": "adapters/glm/0xsero-exl3-plain-sglang-single"
+      },
+      "dockerfile": "adapters/glm/0xsero-exl3-plain-sglang-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "glm-5.3-flash"
+      ],
+      "port": 30000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "0xSero's M288-12L mosaic of GLM-5.3-Flash EXL3 on one Spark with SGLang, from glm-5.3-flash-spark-mosaic at 248dbaa0 (docker/run-spark.sh with the mosaic's measured values, also reachable as start-mosaic.sh in GLM-5.3-Flash-EXL3-1x-DGX-Spark): 12 of the 45 MoE layers at 3.05 bpw and the rest at 2.05 bpw (codebook mul1, 96.1 GB, byte-copy of turboderp's quants), served through upstream's exl3-plain SGLang overlay image (pinned by digest, built on the lmsysorg glm-5.3-flash base) with DSA attention, FP8 E4M3 KV cache, 262144-token context, one request at a time, image input, glm45 reasoning and glm47 tool parsers. CUDA graphs are off and there is no speculative decoding: the mul1 codebook is rejected by the MTP-capable vLLM overlay (see the 0xSero vLLM K2 recipe for the MTP path). Upstream census of the tensors runs first at container start and stops the launch on a layout mismatch. Upstream claims, not measured here: 10.79 tok/s decode and 503.5 tok/s prefill on one Spark, top-1 agreement with BF16 0.80842 versus 0.78902 for the 2.05 bpw baseline, images up to about 8000 tokens each. Licences are informational: repository and weights are MIT. Physical Spark acceptance is pending.",
+    "tags": [
+      "0xsero",
+      "candidate",
+      "executable",
+      "exl3",
+      "glm-5.3",
+      "mosaic",
+      "multimodal",
+      "reasoning",
+      "sglang",
+      "single",
+      "spark",
+      "tool-use"
+    ],
+    "title": "GLM 5.3 Flash EXL3 M288-12L mosaic SGLang single Spark (0xSero)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d3b10d515fb2-618cd5b83d",
+          "id": "primary-metadata-d3b10d515fb2-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "download-seal-3b9b98e4b0d0-797eec07de",
+          "id": "primary-download-seal-3b9b98e4b0d0-797eec07de",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-30b85b6b9659-c693279643",
+          "id": "primary-license-30b85b6b9659-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "provenance-dcc332b8cf01-1a9fea295a",
+          "id": "primary-provenance-dcc332b8cf01-1a9fea295a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-bdc458b0d1c4-b335630551",
+          "id": "primary-readme-bdc458b0d1c4-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-41cff9af7b3a-00824420d1",
+          "id": "primary-chat-template-41cff9af7b3a-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-43921c0b6dd5-587cb980af",
+          "id": "primary-config-43921c0b6dd5-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-230c30609ecb-97dd3d578b",
+          "id": "primary-generation-config-230c30609ecb-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00012-0c747ea520a7-e235f22bf0",
+          "id": "primary-model-00001-of-00012-0c747ea520a7-e235f22bf0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00012-fa59e1f5a50f-63b9232469",
+          "id": "primary-model-00002-of-00012-fa59e1f5a50f-63b9232469",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00012-5b9464704a0f-0d09615476",
+          "id": "primary-model-00003-of-00012-5b9464704a0f-0d09615476",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00012-022876be3d8f-d08e48c277",
+          "id": "primary-model-00004-of-00012-022876be3d8f-d08e48c277",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00012-87df348852f7-85a9aa348b",
+          "id": "primary-model-00005-of-00012-87df348852f7-85a9aa348b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00012-10777ced7345-758dbe5f7f",
+          "id": "primary-model-00006-of-00012-10777ced7345-758dbe5f7f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00012-bf3a8deb3189-b6157fc53e",
+          "id": "primary-model-00007-of-00012-bf3a8deb3189-b6157fc53e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00012-57a097001adc-891b9c236c",
+          "id": "primary-model-00008-of-00012-57a097001adc-891b9c236c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00012-5edb8b52e9f2-5fb18cad8c",
+          "id": "primary-model-00009-of-00012-5edb8b52e9f2-5fb18cad8c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00012-bd32555c618e-a516c1bea9",
+          "id": "primary-model-00010-of-00012-bd32555c618e-a516c1bea9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00012-73452e068d0d-ab33a3ad40",
+          "id": "primary-model-00011-of-00012-73452e068d0d-ab33a3ad40",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00012-c33e65346646-0e7b720cca",
+          "id": "primary-model-00012-of-00012-c33e65346646-0e7b720cca",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-9509363becd7-0a05be8238",
+          "id": "primary-model-safetensors-index-9509363becd7-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-aae38374c94b-27f0cb76af",
+          "id": "primary-processor-config-aae38374c94b-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "pull-0fd462eec793-df027a58eb",
+          "id": "primary-pull-0fd462eec793-df027a58eb",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-config-06c2613e0204-6f24389fb3",
+          "id": "primary-quantization-config-06c2613e0204-6f24389fb3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "sha256-manifest-56ecbca418a1-b8968e5934",
+          "id": "primary-sha256-manifest-56ecbca418a1-b8968e5934",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-19e773648cb4-224931eb13",
+          "id": "primary-tokenizer-19e773648cb4-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-98b1271574f4-94d5c6ba8f",
+          "id": "primary-tokenizer-config-98b1271574f4-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "bfa8663541092d23d52c44860d90aeb9b6fb2ac3992bf5607c86c1c268204546",
+        "kind": "model",
+        "publisher": "0xsero",
+        "slug": "glm-5-3-flash-exl3-mosaic-12l-2726c32b"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "0xSero",
+      "turboderp (EXL3 quantizations, MIT)",
+      "Z.ai (GLM-5.3-Flash, MIT)",
+      "SGLang contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/0xSero/glm-5.3-flash-spark-mosaic/tree/248dbaa00fffab296f255c16546c21621a4b2d89"
+  },
+  "release": {
+    "released_at": "2026-09-18",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model-path",
+        "setting": null,
+        "value": "/models"
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "glm-5.3-flash"
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "exl3"
+      },
+      {
+        "name": "tp-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "ep-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "context-length",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8_e4m3"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "dsa"
+      },
+      {
+        "name": "dsa-prefill-backend",
+        "setting": null,
+        "value": "flashinfer_sparse_mla"
+      },
+      {
+        "name": "dsa-decode-backend",
+        "setting": null,
+        "value": "flashinfer_sparse_mla"
+      },
+      {
+        "name": "linear-attn-backend",
+        "setting": null,
+        "value": "triton"
+      },
+      {
+        "name": "disable-shared-experts-fusion",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "chunked-prefill-size",
+        "setting": null,
+        "value": 256
+      },
+      {
+        "name": "max-prefill-tokens",
+        "setting": null,
+        "value": 256
+      },
+      {
+        "name": "max-running-requests",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "mem-fraction-static",
+        "setting": null,
+        "value": "0.95"
+      },
+      {
+        "name": "enable-multimodal",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/glm53/chat-template-mm.jinja"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "glm45"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "glm47"
+      },
+      {
+        "name": "disable-cuda-graph",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "sglang",
+    "entrypoint": [
+      "/opt/vonk/bin/sglang-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "SGLANG_EXL3_MAX_BATCH_TOKENS",
+        "value": "256"
+      },
+      {
+        "name": "EXL3_PLAIN_CENSUS",
+        "value": "/outputs/exl3-plain-census.json"
+      },
+      {
+        "name": "EXL3_PLAIN_DECODER",
+        "value": "exl3_plain_sglang_overlay.exl3_reference:decode"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 96105142126,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 20000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "glm-5.3-flash"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
