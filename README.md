@@ -39,7 +39,7 @@ Which engines each model family runs on.
 | Leanstral | ✓ |  |  |  |  |  |  |  |  |  |
 | LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
 | Ling | ✓ | ✓ |  | ✓ |  |  |  |  |  |  |
-| LTX |  |  |  |  |  |  | ✓ |  | ✓ |  |
+| LTX |  |  |  |  |  |  |  |  | ✓ |  |
 | Meta Llama | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
 | Microsoft Phi-4 | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
 | MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |

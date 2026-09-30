@@ -207,17 +207,11 @@ def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
         assert not PLATFORM_OWNED_ENVIRONMENT & names, path.name
 
 
-def test_gated_models_declare_that_they_require_a_token() -> None:
-    gated = {
-        json.loads(path.read_text())["identity"]["slug"]
+def test_catalog_excludes_provider_gated_models() -> None:
+    assert all(
+        not json.loads(path.read_text())["requires_token"]
         for path in ROOT.joinpath("models").glob("*.json")
-        if json.loads(path.read_text())["requires_token"]
-    }
-    assert gated == {
-        "glm-5-3-flash-nvfp4-ablit-l15-43-mtp-l45-80b6d18d",
-        "glm-5-3-flash-nvfp4-abliterated-d7f8afa8",
-        "ltx-2-5-22b-distilled-bf16-diffusers",
-    }
+    )
 
 
 def test_model_territorial_restrictions_preserve_all_published_records() -> None:

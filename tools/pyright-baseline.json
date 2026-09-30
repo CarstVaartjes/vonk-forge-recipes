@@ -32,18 +32,6 @@
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
     },
     {
-      "file": "tests/test_ltx25_diffusers_adapter.py",
-      "rule": "reportArgumentType",
-      "count": 1,
-      "reason": "The test deliberately passes partial or malformed values to prove the producer refuses them."
-    },
-    {
-      "file": "tests/test_ltx25_diffusers_adapter.py",
-      "rule": "reportAttributeAccessIssue",
-      "count": 2,
-      "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
-    },
-    {
       "file": "tests/test_ltx_fp4_adapter.py",
       "rule": "reportAttributeAccessIssue",
       "count": 2,
@@ -95,12 +83,6 @@
       "file": "tests/test_nvidia_single_recipe_audit.py",
       "rule": "reportIndexIssue",
       "count": 7,
-      "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
-    },
-    {
-      "file": "tests/test_origin_aligned_profiles.py",
-      "rule": "reportIndexIssue",
-      "count": 4,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
