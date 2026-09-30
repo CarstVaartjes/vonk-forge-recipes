@@ -49,7 +49,7 @@ Which engines each model family runs on.
 | OpenAI gpt-oss |  |  | ✓ |  |  |  |  |  |  |
 | Ornith | ✓ |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | ✓ |
-| Qwen (text and vision) | ✓ | ✓ |  | ✓ | ✓ |  |  |  |  |
+| Qwen (text and vision) | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |
 | Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |
 | SkinTokens |  |  |  |  |  |  |  |  | ✓ |
 | Step 3.7 Flash | ✓ |  |  |  |  |  |  |  |  |
