@@ -349,30 +349,33 @@ listing all of them. `catalog-index.json` records the `contract_version`, the
 `source_commit` and `updated_at`, that commit's time. The release tag is
 `v<CONTRACT_VERSION>`. When that release does not exist yet (a new contract
 version), the workflow creates it; otherwise it moves the tag to the new
-commit and replaces the release's assets in place. `tools/sync-release-assets`
-uploads what is missing or different (content first, then the bundle, then
-`SHA256SUMS` and its bundle), deletes assets the manifest no longer lists,
-retries failed rounds, and fails the run unless the release's asset digests and
-sizes (as GitHub reports them) match the signed set exactly. A run whose
-`SHA256SUMS` equals the published one changes nothing, provided the published
-release is complete. The workflow attests `SHA256SUMS` with a keyless GitHub
-artifact attestation (Sigstore) and attaches it as `SHA256SUMS.sigstore.json`.
+commit and replaces the release's bundle in place. The release carries exactly
+one asset, `recipe-library.tar` (below); it holds no per-file assets.
+`tools/sync-release-assets` uploads the bundle when it is missing or different,
+then deletes every other asset (this also removes the per-file assets older
+releases carried), retries failed rounds, and fails the run unless the
+release's single asset digest and size (as GitHub reports them) match the bundle
+exactly. A run whose `SHA256SUMS` equals the one inside the published bundle
+changes nothing, provided the release holds only that bundle and every member
+matches. The workflow attests `SHA256SUMS` with a keyless GitHub
+artifact attestation (Sigstore) and stores it in the bundle as
+`SHA256SUMS.sigstore.json`.
 Control planes accept a release only when that attestation names this
-repository's `publish.yml` on `refs/heads/main` and every asset matches its
-listed digest; verify a release with
-`gh attestation verify SHA256SUMS -R CarstVaartjes/vonk-forge-recipes`.
+repository's `publish.yml` on `refs/heads/main` and every bundle member matches
+its listed digest; extract `SHA256SUMS` and `SHA256SUMS.sigstore.json` from the
+bundle and verify with
+`gh attestation verify SHA256SUMS -R CarstVaartjes/vonk-forge-recipes --bundle SHA256SUMS.sigstore.json`.
 Rebuilding the tagged commit reproduces the release's index and packages byte
 for byte.
 
-Every publish also uploads one asset, `recipe-library.tar`, built by
+Every publish uploads one asset, `recipe-library.tar`, built by
 `tools/build-release-bundle`: an uncompressed, deterministic tar (sorted flat
 member names, regular files only, mtime 0, uid/gid 0, empty uname/gname, mode
 0644, plain ustar: asset names over 100 bytes fail the build) whose members are exactly `SHA256SUMS`,
 `SHA256SUMS.sigstore.json` and every file `SHA256SUMS` lists. It is the trust
 unit consumers should read: verify `SHA256SUMS.sigstore.json` against
-`SHA256SUMS` from inside the tar, then every member against `SHA256SUMS`. The
-per-asset copies of the same files remain published for consumers that have
-not moved yet; they are dropped once none read them.
+`SHA256SUMS` from inside the tar, then every member against `SHA256SUMS`. It
+is the only published asset.
 
 The qualification authority is derived, never committed. Coverage builds it in
 memory from the generated catalog (`tools/build-qualification-authority` writes
