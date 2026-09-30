@@ -1,0 +1,54 @@
+FROM ghcr.io/r0b0tlab/vllm-v0250-cu130-sm121:v0.25.0-cu130-sm121-arm64-702f4814-r2@sha256:2d144fafe3f330fa17fa1facf4f589eee49b75bdf539ac69d1fe002b5b5bb0a5
+
+ARG VLLM_RELEASE_COMMIT=702f4814fe54fabff350d43cb753ae3e47c0c276
+
+LABEL org.opencontainers.image.title="XYZ-Aquila-mini NVFP4 vLLM v0.25 SM121 runtime" \
+      org.opencontainers.image.description="Digest-pinned vLLM v0.25.0 runtime with native SM121 ModelOpt NVFP4 routing for XYZ-Aquila-mini (MTP off by default)" \
+      org.opencontainers.image.version="0.25.0-aquila.1" \
+      org.opencontainers.image.revision="${VLLM_RELEASE_COMMIT}" \
+      org.opencontainers.image.source="https://github.com/r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm" \
+      org.opencontainers.image.licenses="MIT" \
+      io.r0b0tlab.vllm.release-commit="${VLLM_RELEASE_COMMIT}" \
+      io.r0b0tlab.base-image.digest="sha256:2d144fafe3f330fa17fa1facf4f589eee49b75bdf539ac69d1fe002b5b5bb0a5"
+
+ENV MODEL_ID=/models/model \
+    SERVED_MODEL_NAME=xyz-aquila-nvfp4 \
+    HOST=0.0.0.0 \
+    PORT=8000 \
+    KV_CACHE_DTYPE=fp8 \
+    ATTENTION_BACKEND=flashinfer \
+    MOE_BACKEND=flashinfer_b12x \
+    LINEAR_BACKEND=flashinfer_cutlass \
+    QUANTIZATION=modelopt_mixed \
+    GPU_MEMORY_UTILIZATION=0.88 \
+    MAX_MODEL_LEN=32768 \
+    MAX_NUM_SEQS=16 \
+    MAX_NUM_BATCHED_TOKENS=16384 \
+    SPECULATIVE_CONFIG= \
+    LANGUAGE_MODEL_ONLY=1 \
+    ENABLE_AUTO_TOOL_CHOICE=1 \
+    TOOL_CALL_PARSER=qwen3_xml \
+    REASONING_PARSER=qwen3 \
+    MAX_JOBS=6 \
+    FLASHINFER_NVCC_THREADS=2 \
+    PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
+    CUTE_DSL_ARCH=sm_121a
+
+USER root
+RUN install -d -m 0755 /opt/r0b0tlab
+COPY patches/patch_modelopt_w4a16_native_w4a4.py /tmp/patch_modelopt_w4a16_native_w4a4.py
+COPY scripts/audit_runtime_v025.py /opt/r0b0tlab/audit_runtime_v025.py
+COPY scripts/start_vllm_v025.sh /usr/local/bin/start_vllm_v025.sh
+COPY scripts/verify_server.py /opt/r0b0tlab/verify_server.py
+
+RUN set -eux; \
+    MODELOPT_PATH="$(python3 -c 'import importlib.util; s=importlib.util.find_spec("vllm.model_executor.layers.quantization.modelopt"); assert s and s.origin; print(s.origin)')"; \
+    python3 /tmp/patch_modelopt_w4a16_native_w4a4.py --path "${MODELOPT_PATH}"; \
+    python3 -m py_compile "${MODELOPT_PATH}" /opt/r0b0tlab/audit_runtime_v025.py; \
+    chmod 0755 /usr/local/bin/start_vllm_v025.sh /opt/r0b0tlab/audit_runtime_v025.py /opt/r0b0tlab/verify_server.py; \
+    rm -f /tmp/patch_modelopt_w4a16_native_w4a4.py
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=300s --retries=5 \
+  CMD /usr/bin/python3 /opt/r0b0tlab/verify_server.py --health-only
+
+ENTRYPOINT ["/usr/local/bin/start_vllm_v025.sh"]
