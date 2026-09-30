@@ -1,0 +1,404 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "abd8ea18080ae571a72e8113d80775c38f4cfe07eacd591d4fedd70e95cd1bbf",
+        "repository": "ghcr.io/drowzeys/keys-vllm-027-gb10-qwen38"
+      },
+      "context": {
+        "path": "adapters/qwen/drowzeys-unsloth-mtp3-single"
+      },
+      "dockerfile": "adapters/qwen/drowzeys-unsloth-mtp3-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-27b-nvfp4-drowzeys-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "qwen38-nvfp4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "drowzeys' tuned single-Spark serve of unsloth/Qwen3.8-27B-NVFP4 (MTP head baked in) on vLLM 0.27 (eugr spark-vllm-b12x nightly-20260813, mirrored by drowzeys), native FlashInfer CUTLASS NVFP4 GEMM, FP8 KV cache and MTP speculative decoding at depth 3. Defaults are upstream's Profile A (throughput): 262144 context, GPU memory 0.90, qwen3_xml tool parser, flashinfer autotune; the sequence limit is left to vLLM. Upstream reports (not measured here) 31.7 tok/s single stream (2.85x the 11.1 baseline), 313 tok/s aggregate at 64-way and a 2.31M-token KV pool. Upstream's Profile B (1M context, YaRN 4x via --rope-scaling) is not included: its launcher passes a --rope-scaling flag that drowzeys' own Qwen3.8 repo says eugr 0.27 dropped. Licence: checkpoint Apache-2.0; drowzeys repository declares none. Not gated.",
+    "tags": [
+      "candidate",
+      "executable",
+      "mtp",
+      "multimodal",
+      "nvfp4",
+      "qwen3.8",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Qwen3.8 27B NVFP4 MTP-3 vLLM 0.27 one Spark (drowzeys)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-a319a7af9a6f-b335630551",
+          "id": "primary-readme-a319a7af9a6f-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-12827f24b742-00824420d1",
+          "id": "primary-chat-template-12827f24b742-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-1b3c71868d12-587cb980af",
+          "id": "primary-config-1b3c71868d12-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-d0d0ed2e37cd-97dd3d578b",
+          "id": "primary-generation-config-d0d0ed2e37cd-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-c473512c70ea-9d75c1098f",
+          "id": "primary-model-c473512c70ea-9d75c1098f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-429430e1b9e6-0a05be8238",
+          "id": "primary-model-safetensors-index-429430e1b9e6-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-mtp-1d8268aa85ac-3cebc61d53",
+          "id": "primary-model-mtp-1d8268aa85ac-3cebc61d53",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-06b9509352d2-224931eb13",
+          "id": "primary-tokenizer-06b9509352d2-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-529f30018c36-94d5c6ba8f",
+          "id": "primary-tokenizer-config-529f30018c36-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "3e8f212c718c527284f171dd26a9436548569be3b23bee030d536764b713b4dc",
+        "kind": "model",
+        "publisher": "unsloth",
+        "slug": "qwen3-8-27b-nvfp4-unsloth-f0b7c9e7"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream champion and default.",
+          "label": "MTP 3",
+          "value": "n3"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2}"
+            }
+          ],
+          "help": "Upstream-measured 26.3 tok/s single stream.",
+          "label": "MTP 2",
+          "value": "n2"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":1}"
+            }
+          ],
+          "help": "Upstream-measured 19.4 tok/s single stream.",
+          "label": "MTP 1",
+          "value": "n1"
+        }
+      ],
+      "help": "Tokens drafted per step by the checkpoint MTP head. Upstream measured n=1 19.4, n=2 26.3, n=3 31.7 tok/s single stream; n of 4 or more crashes because the model has one MTP layer.",
+      "label": "MTP speculative depth",
+      "name": "mtp-depth"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "drowzeys (keyspark)",
+      "Unsloth",
+      "Qwen",
+      "eugr (spark-vllm-b12x)",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/drowzeys/keys-vLLm.0.27-Qwen3.8-NVFP4-MTP3-Single-DGX-Spark/tree/047aa237efa334fde70427629e59b6f9606ec21d"
+  },
+  "release": {
+    "released_at": "2026-08-16",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "qwen38-nvfp4"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.90"
+      },
+      {
+        "name": "enable-flashinfer-autotune",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_xml"
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3}"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 23444511852,
+            "image_bytes": 35000000000,
+            "safety_margin_bytes": 20000000000,
+            "working_bytes": 40000000000
+          },
+          "memory": {
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 4000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen38-nvfp4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

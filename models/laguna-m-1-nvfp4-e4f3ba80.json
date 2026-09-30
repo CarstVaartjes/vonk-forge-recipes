@@ -1,0 +1,414 @@
+{
+  "capabilities": [
+    "code-generation",
+    "reasoning",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-c96667522371-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "c96667522371c060c119874628058a5d62f0277ab322a30f717a42b20c92204b",
+      "size_bytes": 1584
+    },
+    {
+      "id": "license-be9def2b354d-4673a3aba0",
+      "path": "LICENSE.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "be9def2b354d571d0dd52c70023e90a4c63aea5fc97ee89998332353c4dae6b6",
+      "size_bytes": 11338
+    },
+    {
+      "id": "readme-8079c13a9bc0-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8079c13a9bc01d6365675b24ce69a1088cd259727defe7ba8ce7bd00d2c0c373",
+      "size_bytes": 7739
+    },
+    {
+      "id": "chat-template-5f1bf14725b6-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5f1bf14725b6a0e662678e7ca66d7b347bbaa436b09db038472045aba37da2f2",
+      "size_bytes": 6116
+    },
+    {
+      "id": "config-94708101d70c-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "94708101d70c353bb07c3204be9b7e630bb357d389bed3442cc7aabe8f1d8fa6",
+      "size_bytes": 4681
+    },
+    {
+      "id": "configuration-laguna-394db5679b9b-5e71f51702",
+      "path": "configuration_laguna.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "394db5679b9b92880f3170a55682b8924e9426e8961170128616bf9375536f52",
+      "size_bytes": 9734
+    },
+    {
+      "id": "generation-config-47c2fe6c02e5-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "47c2fe6c02e595b68ad73f77f5b194b1c98f3eb5826f2b7521c0e7ad5b7183cd",
+      "size_bytes": 328
+    },
+    {
+      "id": "model-00001-of-00028-78ae73fde5b5-2374eb6aeb",
+      "path": "model-00001-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "78ae73fde5b507ef418bcb84cedf9926ed316c860e76fe97dfedfa33b8d29c5c",
+      "size_bytes": 5085505768
+    },
+    {
+      "id": "model-00002-of-00028-7a7cf341f7a2-3cefd2a106",
+      "path": "model-00002-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7a7cf341f7a20944ca3589ec148cdea794b452e90974968f4030424ee6e03747",
+      "size_bytes": 5076093152
+    },
+    {
+      "id": "model-00003-of-00028-e816ceed0641-41cf80225e",
+      "path": "model-00003-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e816ceed06416a0e5f696c2e3fdce8ff5e0c15f192702612f65417be34088420",
+      "size_bytes": 5067704432
+    },
+    {
+      "id": "model-00004-of-00028-2182b6043cce-62b0015f3d",
+      "path": "model-00004-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2182b6043cced66148e9b3412519ff3c40d051471208e56c77f06c97cef626a7",
+      "size_bytes": 5120309544
+    },
+    {
+      "id": "model-00005-of-00028-0b70738bc322-aff372238a",
+      "path": "model-00005-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0b70738bc322b491fe35af9e65e3249e993aac54e54a1a7d338f5925f08b4a9d",
+      "size_bytes": 5121019768
+    },
+    {
+      "id": "model-00006-of-00028-f4c186660514-a31814da7e",
+      "path": "model-00006-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f4c186660514ca7c2a5c106199f0add93ebdd9d5439268bfae51c439a2112c1b",
+      "size_bytes": 5120757376
+    },
+    {
+      "id": "model-00007-of-00028-bb7496c5335e-b8087a117a",
+      "path": "model-00007-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "bb7496c5335e1da7eadeed728db519e0b3f760bfca6d0fa5165c2cf9d65821e8",
+      "size_bytes": 5120765520
+    },
+    {
+      "id": "model-00008-of-00028-9fe4cfb50b25-bcd8846662",
+      "path": "model-00008-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9fe4cfb50b2547ba7a98f34e397652433ff5c4c8fb7c9c536741ada775dfa8e3",
+      "size_bytes": 5120765400
+    },
+    {
+      "id": "model-00009-of-00028-bdc02f353163-8fece95348",
+      "path": "model-00009-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "bdc02f353163fb73e64297251684b4f1798b497d581682849ab3f0a6ca350b73",
+      "size_bytes": 5120765400
+    },
+    {
+      "id": "model-00010-of-00028-c15b38e6996e-e98850900d",
+      "path": "model-00010-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c15b38e6996eb54cbc187af7e9a11d0608dc51f48b7816f52a1bf2609c8462a7",
+      "size_bytes": 5120765600
+    },
+    {
+      "id": "model-00011-of-00028-4956b89476c3-d53906c624",
+      "path": "model-00011-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4956b89476c3d562c3e70ef7315e4124a393a5f987c8c722f400cacf16d1bd11",
+      "size_bytes": 5120765936
+    },
+    {
+      "id": "model-00012-of-00028-ff1f49095430-d6faec9947",
+      "path": "model-00012-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ff1f490954305af2779ae65470d0b7deae4458bc575cbdff8a2bec3ce1485df2",
+      "size_bytes": 5120765976
+    },
+    {
+      "id": "model-00013-of-00028-9b34a520096b-ebe2582ad7",
+      "path": "model-00013-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9b34a520096bb5c6e13a050e5c0fc03aec07c5de2d225f1a2b1e791a074abc24",
+      "size_bytes": 5120765392
+    },
+    {
+      "id": "model-00014-of-00028-5b0397c774e4-03643eba9c",
+      "path": "model-00014-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5b0397c774e4644d0d528e4985891a4bdff4b4bea0d9c01ba39e9fc1e0f70adb",
+      "size_bytes": 5120765400
+    },
+    {
+      "id": "model-00015-of-00028-ebb93dcbfc55-9918bcdc23",
+      "path": "model-00015-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ebb93dcbfc55208670ae65b9f58acf8cc66ae6a90d330e92561921b7ba6de095",
+      "size_bytes": 5120765400
+    },
+    {
+      "id": "model-00016-of-00028-35fb7931aaa9-ad8f7f7e2e",
+      "path": "model-00016-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "35fb7931aaa9da6c0d797427ad4ea6c02ec050e5e60f2ef06252e14654bb3611",
+      "size_bytes": 5120765744
+    },
+    {
+      "id": "model-00017-of-00028-503c0d6192a4-a80491fa9d",
+      "path": "model-00017-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "503c0d6192a4105744d5efd0b510df3d1c2619d4a6a73a9bfa5967d7b8b277b4",
+      "size_bytes": 5120765936
+    },
+    {
+      "id": "model-00018-of-00028-c8da8eb7da8b-bb15aa1c12",
+      "path": "model-00018-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c8da8eb7da8b0a524fc591454bd9e59e5ace6d09998db6c9522caa237cd425ff",
+      "size_bytes": 5120765832
+    },
+    {
+      "id": "model-00019-of-00028-25098a7a2cfb-064d799a5e",
+      "path": "model-00019-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "25098a7a2cfb6dabc78ffd808d870331020a082f5757543e1fbd71427b98c0aa",
+      "size_bytes": 5120765392
+    },
+    {
+      "id": "model-00020-of-00028-5f53ff9de307-d65929aef4",
+      "path": "model-00020-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "5f53ff9de307a0284f0575d7a19756f9d560549fd52c3ad6fa9a98021a6bed27",
+      "size_bytes": 5120765400
+    },
+    {
+      "id": "model-00021-of-00028-dbe227198b84-31e5fc19dc",
+      "path": "model-00021-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "dbe227198b846e1bf703dc3c9efdf06e1f7a4ff6965faeb56ac8cc6d07bde531",
+      "size_bytes": 5120765400
+    },
+    {
+      "id": "model-00022-of-00028-2fcd62742bab-01b5659868",
+      "path": "model-00022-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2fcd62742babc88840984eeac1361199ca57eb60be373709947a88727996a981",
+      "size_bytes": 5120765888
+    },
+    {
+      "id": "model-00023-of-00028-51bdf675ba50-429f46d95b",
+      "path": "model-00023-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "51bdf675ba50986f9c1aee75274cadad7720ac9c9e273cd9205e48cb3e760328",
+      "size_bytes": 5120765936
+    },
+    {
+      "id": "model-00024-of-00028-de798bfa7b7c-b00c9702dc",
+      "path": "model-00024-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "de798bfa7b7cf250f3de60833ebcbfd1a4ab21b436eae85363a147b418d9fc12",
+      "size_bytes": 5120765688
+    },
+    {
+      "id": "model-00025-of-00028-7f6bf78de595-d294747ad3",
+      "path": "model-00025-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7f6bf78de59598c36dab65d09665d25bbdb38025be6c83ab32d10492db36319d",
+      "size_bytes": 5120765392
+    },
+    {
+      "id": "model-00026-of-00028-3513101164d1-fd19f5a983",
+      "path": "model-00026-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3513101164d1a9ad19ce9d002b618acea04a996f44c39d7d66a946cf89966acf",
+      "size_bytes": 5120765400
+    },
+    {
+      "id": "model-00027-of-00028-1d4d91d7881f-1801541547",
+      "path": "model-00027-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1d4d91d7881fb9bc5aa35cb3ccb2a16aab26cd66cf22bfbe97e6da960f5ce5f3",
+      "size_bytes": 5120765504
+    },
+    {
+      "id": "model-00028-of-00028-ff87f897c7d3-ca4568bad3",
+      "path": "model-00028-of-00028.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ff87f897c7d37d08c3e16da4b1103a44f2b67c4a3e90606bac12dbb41dea6115",
+      "size_bytes": 1165739232
+    },
+    {
+      "id": "model-safetensors-index-cae959c82401-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "cae959c82401fe9c50541416b7e165444fbdbeb5da83a23d8cdf277bce7f65d5",
+      "size_bytes": 20804822
+    },
+    {
+      "id": "modeling-laguna-4cc408f96dea-4becc4c665",
+      "path": "modeling_laguna.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "4cc408f96dea10d0fe54fcabebac27c56ee00436474fc85f4a86cc45a8f8d204",
+      "size_bytes": 34091
+    },
+    {
+      "id": "special-tokens-map-70cd3459fde6-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "70cd3459fde61761e9440751a590e89a108c09b1803cc7727f5ad1ed1ea6122b",
+      "size_bytes": 214
+    },
+    {
+      "id": "tokenizer-807c53a95141-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "807c53a95141e77c14e45f68c51db3f84d2ea6b555a6ea832bc99c88dae6a279",
+      "size_bytes": 7287678
+    },
+    {
+      "id": "tokenizer-config-7458ce192bcd-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "7458ce192bcd810dd43cad15c1996711168f2cc12d5400dac247da5033d6c283",
+      "size_bytes": 12922
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "poolside",
+      "slug": "poolside",
+      "title": "Poolside Laguna"
+    },
+    "model": {
+      "publisher": "poolside",
+      "slug": "laguna-m-1",
+      "title": "Laguna M.1"
+    },
+    "publisher": "poolside",
+    "slug": "laguna-m-1-nvfp4-e4f3ba80",
+    "variant": "NVFP4 e4f3ba80",
+    "version": "NVFP4 e4f3ba80"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Poolside"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/poolside/Laguna-M.1-NVFP4/blob/e4f3ba80ca1d8d83443df18e03ecebd7ef55a066/LICENSE.md"
+  },
+  "metadata": {
+    "description": "Poolside Laguna M.1 mixture-of-experts coding model (225B total, 23B active).",
+    "tags": [
+      "poolside",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/poolside/Laguna-M.1-NVFP4",
+    "revision": "e4f3ba80ca1d8d83443df18e03ecebd7ef55a066"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "vonk-forge/qwen3-6-27b-nvfp4-dflash-vllm-mia-single",
+  "service_recipes": {
+    "alias": "qwen36-27b-nvidia-nvfp4-dflash",
+    "smoke_cases": [
+      "M0",
+      "A391"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context and concurrency canaries up to the 256K default context (4 sequences, memory utilization 0.84), with the first-run kernel compile time recorded separately"
+      ]
+    }
+  }
+}

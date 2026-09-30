@@ -1,0 +1,12 @@
+{
+  "ours": [
+    "NOTICE",
+    "patch-aarch64.sh",
+    "verify-runtime.py"
+  ],
+  "renamed": {},
+  "source": {
+    "commit": "c77d26681086df72aadb6bf2879745408537e0b0",
+    "repo": "MiaAI-Lab/Nemotron-Labs-3-Puzzle-75B-DGX-Spark"
+  }
+}

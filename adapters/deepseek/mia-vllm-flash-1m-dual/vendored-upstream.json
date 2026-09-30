@@ -1,0 +1,10 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "repo": "MiaAI-Lab/DeepSeek-V4-Flash-Dual-DGX-Spark-1M-Context",
+    "commit": "d84319952b41df812603830cd13ae921c39860f7"
+  }
+}

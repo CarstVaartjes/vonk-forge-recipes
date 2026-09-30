@@ -1,0 +1,1104 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "b0501f99fec5136f248f78d5850977a2ec32d55cd9a665f4a9ffef24cbdf7fe5",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/glm/sfxnz-nvfp4-dflash2-dual"
+      },
+      "dockerfile": "adapters/glm/sfxnz-nvfp4-dflash2-dual/Dockerfile",
+      "network": {
+        "hosts": [
+          "files.pythonhosted.org",
+          "flashinfer.ai",
+          "github.com",
+          "pypi.org",
+          "release-assets.githubusercontent.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-nvfp4-sfxnz-vllm-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/health",
+      "model_aliases": [
+        "nvidia/GLM-5.3-Flash-NVFP4"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "sfxnz's two-DGX-Spark vLLM TP2 recipe (upstream commit 072c3f68, 2026-09-28) for the official nvidia/GLM-5.3-Flash-NVFP4 ModelOpt checkpoint (snapshot 09b04e5e, MIT) with the incoai GLM-5.3-Flash-DFlash2 block-diffusion drafter (snapshot 7d74cdd8, CC-BY-NC-ND-4.0: non-commercial, no derivatives) drafting 7 tokens per step. The image bakes upstream's whole glm53-sm121-v8 to v13 patch chain byte-identically on the digest-pinned vllm/vllm-openai glm53-flash-arm64-cu130 base: sm_121 sparse-MLA and FP8 KV, DFlash2 backport (vLLM PR 52816), GLM5-Next aux-hidden capture and draft KV groups, and the opt-in v13 switches. Upstream's defaults are kept: drafter linears NVFP4 W4A16, target shared/MLA/KDA/lm_head linears INT8 W8A16 (g128), indexer tail-ring fix and adaptive verify at tau 0.3, FP8 KV pinned at 4.14 GiB, 327,680-token window, two sequences, CUDA graphs 1/2/4/8/16, image and video input (4 images, 1 video per prompt), thinking off by default with upstream's chat template, output capped at 65,536 tokens. Each upstream switch that needs no different weights is a recipe option with upstream's default. Not offered: upstream's SPEC=mtp lane needs the different LibertAI checkpoint (upstream refuses MTP on the nvidia pack), the DRAFT_REV drafter snapshots are different weights, and upstream's refuse-guards (more than 327,680 tokens on fp8 KV, a non-marlin MoE or linear backend, hiding the vision tower, an unpinned KV budget) stay closed. Upstream's JIT compile cache is left to the platform's cache handling. Upstream measured prose decode of 30.04 tok/s at concurrency 1 and 20.69 tok/s per stream (39.43 aggregate) at concurrency 2 on its own two-Spark lab (claims, not measured here). Licences are information only: upstream scripts MIT (sfxnz), vLLM Apache-2.0, checkpoint MIT, drafter CC-BY-NC-ND-4.0 (commercial use via inco.ai). Vonk physical two-Spark acceptance is pending.",
+    "tags": [
+      "dflash2",
+      "glm-5.3",
+      "int8",
+      "modelopt",
+      "multimodal",
+      "non-commercial-drafter",
+      "nvfp4",
+      "reasoning",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "GLM 5.3 Flash NVFP4 sfxnz vLLM two Sparks"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-fe81d528e7ee-618cd5b83d",
+          "id": "primary-metadata-fe81d528e7ee-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "file--quant-summary-3c4fdaad5237-e17ab81a0d",
+          "id": "primary-file--quant-summary-3c4fdaad5237-e17ab81a0d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-b592c5b0a0dc-b335630551",
+          "id": "primary-readme-b592c5b0a0dc-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-34d5ee66b12f-00824420d1",
+          "id": "primary-chat-template-34d5ee66b12f-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-e23c5d98f53e-587cb980af",
+          "id": "primary-config-e23c5d98f53e-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "generation-config-a07de3408f57-97dd3d578b",
+          "id": "primary-generation-config-a07de3408f57-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-1277df937b78-a481ad90fa",
+          "id": "primary-hf-quant-config-1277df937b78-a481ad90fa",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00033-5c7ee3e2a0bd-e0895bf2ca",
+          "id": "primary-model-00001-of-00033-5c7ee3e2a0bd-e0895bf2ca",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00033-7afab1480693-8c5d3c23fd",
+          "id": "primary-model-00002-of-00033-7afab1480693-8c5d3c23fd",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00033-f184e8b75db4-e4381e6ebc",
+          "id": "primary-model-00003-of-00033-f184e8b75db4-e4381e6ebc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00033-dd08e62f3f86-1e359e110f",
+          "id": "primary-model-00004-of-00033-dd08e62f3f86-1e359e110f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00033-bc763b5eec69-6968e629a5",
+          "id": "primary-model-00005-of-00033-bc763b5eec69-6968e629a5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00033-c7d9597fad87-d8e6a739be",
+          "id": "primary-model-00006-of-00033-c7d9597fad87-d8e6a739be",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00033-3d0f68feb7fe-28f3c34a99",
+          "id": "primary-model-00007-of-00033-3d0f68feb7fe-28f3c34a99",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00033-5c4d7657a3d6-537e0081ee",
+          "id": "primary-model-00008-of-00033-5c4d7657a3d6-537e0081ee",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00033-4770820b433f-c4024900c2",
+          "id": "primary-model-00009-of-00033-4770820b433f-c4024900c2",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00033-be92de14713d-2d1853fac3",
+          "id": "primary-model-00010-of-00033-be92de14713d-2d1853fac3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00033-a3294966995e-8778b87bc9",
+          "id": "primary-model-00011-of-00033-a3294966995e-8778b87bc9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00033-4d6f4b1a5553-393c6f33d9",
+          "id": "primary-model-00012-of-00033-4d6f4b1a5553-393c6f33d9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00033-d1d5c86fa356-32165176ff",
+          "id": "primary-model-00013-of-00033-d1d5c86fa356-32165176ff",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00033-fd6c81655a57-5f98d6f07e",
+          "id": "primary-model-00014-of-00033-fd6c81655a57-5f98d6f07e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00033-6ff8daa650fc-28dfbbf4aa",
+          "id": "primary-model-00015-of-00033-6ff8daa650fc-28dfbbf4aa",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00033-286c1a635749-2eecb9a653",
+          "id": "primary-model-00016-of-00033-286c1a635749-2eecb9a653",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00033-7be78c2466c0-070addbc38",
+          "id": "primary-model-00017-of-00033-7be78c2466c0-070addbc38",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00033-b5755440acc1-ad18a6a54b",
+          "id": "primary-model-00018-of-00033-b5755440acc1-ad18a6a54b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00033-2385071e3600-f0c307a5e0",
+          "id": "primary-model-00019-of-00033-2385071e3600-f0c307a5e0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00033-8597c39572ca-5dd1a21e19",
+          "id": "primary-model-00020-of-00033-8597c39572ca-5dd1a21e19",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00033-cf2923ceb37f-507f58b958",
+          "id": "primary-model-00021-of-00033-cf2923ceb37f-507f58b958",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00033-8f27fac338e9-f7710f0047",
+          "id": "primary-model-00022-of-00033-8f27fac338e9-f7710f0047",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00033-04bbd26640bd-a96508c371",
+          "id": "primary-model-00023-of-00033-04bbd26640bd-a96508c371",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00033-2dc1b2fdf6ba-8059756343",
+          "id": "primary-model-00024-of-00033-2dc1b2fdf6ba-8059756343",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00033-12a327e0f52b-ebe306d6e6",
+          "id": "primary-model-00025-of-00033-12a327e0f52b-ebe306d6e6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00033-0eb6db2777be-b05e1a0828",
+          "id": "primary-model-00026-of-00033-0eb6db2777be-b05e1a0828",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00033-e220abe4abb6-f14fc7a495",
+          "id": "primary-model-00027-of-00033-e220abe4abb6-f14fc7a495",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00033-04b44953c3a5-fd219a3763",
+          "id": "primary-model-00028-of-00033-04b44953c3a5-fd219a3763",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00033-a705d67e2580-317130262f",
+          "id": "primary-model-00029-of-00033-a705d67e2580-317130262f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00033-60c0e12a7936-ba817defa8",
+          "id": "primary-model-00030-of-00033-60c0e12a7936-ba817defa8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00033-5d3a07314659-bb8164a3b4",
+          "id": "primary-model-00031-of-00033-5d3a07314659-bb8164a3b4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00033-5126cddeb350-5a4880be1d",
+          "id": "primary-model-00032-of-00033-5126cddeb350-5a4880be1d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00033-c6fa79214526-06d0d7ed05",
+          "id": "primary-model-00033-of-00033-c6fa79214526-06d0d7ed05",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-26765b2601fd-0a05be8238",
+          "id": "primary-model-safetensors-index-26765b2601fd-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "processor-config-aae38374c94b-27f0cb76af",
+          "id": "primary-processor-config-aae38374c94b-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-19e773648cb4-224931eb13",
+          "id": "primary-tokenizer-19e773648cb4-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-98b1271574f4-94d5c6ba8f",
+          "id": "primary-tokenizer-config-98b1271574f4-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "550a1210499a82af61d5940e3712d252b8b9e8d016aa2d52d9f623e2133838eb",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "glm-5-3-flash-nvfp4-09b04e5e"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-70e0ed421d65-618cd5b83d",
+          "id": "drafter-metadata-70e0ed421d65-618cd5b83d",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-088bc4561a83-b335630551",
+          "id": "drafter-readme-088bc4561a83-b335630551",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-c4aeac010119-587cb980af",
+          "id": "drafter-config-c4aeac010119-587cb980af",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-8931dc522be0-9d75c1098f",
+          "id": "drafter-model-8931dc522be0-9d75c1098f",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "dependency-glm-5-3-flash-dflash2-7d74cdd8",
+      "model": {
+        "content_sha256": "c0f1ca07136026aeb714da996a75fa20ad5a106bda212ff677f95231a2e534f9",
+        "kind": "model",
+        "publisher": "incoai",
+        "slug": "glm-5-3-flash-dflash2-7d74cdd8"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: drafter linears quantized to NVFP4 W4A16 at load (GLM53_NVFP4_W4A16=draft). Upstream E2e: step -4 ms, quality at the cross-boot A/A (upstream claim).",
+          "label": "NVFP4 W4A16",
+          "value": "nvfp4"
+        },
+        {
+          "env": {
+            "GLM53_NVFP4_W4A16": ""
+          },
+          "help": "Upstream DRAFT_WEIGHTS=bf16: drafter stays BF16 (the v11-equivalent path).",
+          "label": "BF16",
+          "value": "bf16"
+        }
+      ],
+      "help": "Precision of the DFlash2 drafter linears (upstream DRAFT_WEIGHTS). The target verifies every draft, so output is unchanged.",
+      "label": "Drafter weights",
+      "name": "drafter_weights"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: shared experts, MLA, KDA in/out projections and lm_head in INT8. Upstream E4a: decode step -17 ms, prose +24.9%, Tier 1 863 vs 857 of 1010 (upstream claims); long prefill about 10% slower.",
+          "label": "INT8 all groups",
+          "value": "int8"
+        },
+        {
+          "env": {
+            "GLM53_INT8_W8A16": ""
+          },
+          "help": "Upstream TARGET_WEIGHT_GROUPS_INT8=none: those linears stay BF16 (about 10% faster long prefill, slower decode; more memory).",
+          "label": "BF16",
+          "value": "bf16"
+        }
+      ],
+      "help": "Target non-MoE linears run as INT8 W8A16 g128 Marlin (upstream TARGET_WEIGHT_GROUPS_INT8). Trades some long-prefill speed for decode speed.",
+      "label": "Target INT8 groups",
+      "name": "target_int8"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default (E4b: +5.2% prose over tau 0.2, upstream claim).",
+          "label": "Adaptive, tau 0.3",
+          "value": "tau-0-3"
+        },
+        {
+          "env": {
+            "GLM53_ADAPTIVE_VERIFY_TAU": "0.2"
+          },
+          "help": "Upstream E3b setting: verifies more drafts per step than tau 0.3.",
+          "label": "Adaptive, tau 0.2",
+          "value": "tau-0-2"
+        },
+        {
+          "env": {
+            "GLM53_ADAPTIVE_VERIFY": "0"
+          },
+          "help": "Upstream ADAPTIVE_VERIFY=0: verify every drafted token every step.",
+          "label": "Off",
+          "value": "off"
+        }
+      ],
+      "help": "Verify only the leading drafts whose running DFlash2 confidence stays at or above tau, at fixed shapes (upstream ADAPTIVE_VERIFY, lossless).",
+      "label": "Adaptive verify",
+      "name": "adaptive_verify"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: rejected drafts no longer write committed indexer pool keys; needles pass to 128k (upstream claim).",
+          "label": "On",
+          "value": "on"
+        },
+        {
+          "env": {
+            "GLM53_KPOOL_TAIL_FIX": "0"
+          },
+          "help": "Upstream KPOOL_TAIL_FIX=0: the v11 ring.",
+          "label": "Off",
+          "value": "off"
+        }
+      ],
+      "help": "Per-request DSA indexer tail ring sized for the verify window (upstream KPOOL_TAIL_FIX): a correctness fix, matters above 2048 tokens.",
+      "label": "Indexer tail ring",
+      "name": "kpool_tail_fix"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: Marlin at every input size.",
+          "label": "Off",
+          "value": "off"
+        },
+        {
+          "env": {
+            "GLM53_WQ_DEQUANT_GROUPS": "kda_in",
+            "GLM53_WQ_DEQUANT_MIN_M": "512"
+          },
+          "help": "Upstream PREFILL_DEQUANT_MIN_M=512: +9.5% at a 7k prompt but only +6.4% / +3.5% at 32k / 128k; upstream keeps it off because that misses its +5% rule (upstream claim).",
+          "label": "From 512 rows",
+          "value": "rows-512"
+        }
+      ],
+      "help": "Dequantize the INT8 kda_in weight to BF16 and use cuBLAS for prefill inputs of at least 512 rows (upstream PREFILL_DEQUANT_MIN_M). Only matters with INT8 target groups.",
+      "label": "Prefill dequant",
+      "name": "prefill_dequant"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: DFlash2 trained block of 7, two sequences, graphs 1/2/4/8/16.",
+          "label": "Two sequences, 7 drafts",
+          "value": "two-seq"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":5}"
+            },
+            {
+              "name": "max-num-seqs",
+              "value": 4
+            },
+            {
+              "name": "compilation-config",
+              "value": "{\"cudagraph_capture_sizes\":[1,2,4,6,12,18,24]}"
+            }
+          ],
+          "help": "Upstream rollback NUM_SPECULATIVE_TOKENS=5 MAX_NUM_SEQS=4 (graphs 1/2/4/6/12/18/24). Upstream measured it before its v13 defaults, not with them; the fourth request queued about 10 s at 7 drafts. Overrides the concurrency setting.",
+          "label": "Four sequences, 5 drafts",
+          "value": "four-seq"
+        }
+      ],
+      "help": "Concurrent sequences against drafted tokens per step. Each extra sequence carries a KDA state copy on the pinned 4.14 GiB KV budget.",
+      "label": "Occupancy",
+      "name": "occupancy"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "sfxnz",
+      "Z.AI",
+      "NVIDIA",
+      "IncoAI",
+      "tonyd2wild",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/sfxnz/GLM-5.3-Flash-NVFP4-vLLM-2x-DGX-Spark/tree/072c3f68fe425edb141e08cc60576f4bb0477ed2"
+  },
+  "release": {
+    "released_at": "2026-09-29",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "nvidia/GLM-5.3-Flash-NVFP4"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8_e4m3"
+      },
+      {
+        "name": "kv-cache-memory",
+        "setting": null,
+        "value": 4445787956
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_capture_sizes\":[1,2,4,8,16]}"
+      },
+      {
+        "name": "block-size",
+        "setting": null,
+        "value": 2304
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "marlin"
+      },
+      {
+        "name": "linear-backend",
+        "setting": null,
+        "value": "marlin"
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":7}"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "glm47"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "glm45"
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\": false}"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/vonk/templates/glm53-chat-template.jinja"
+      },
+      {
+        "name": "mm-processor-cache-gb",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":4,\"video\":1}"
+      },
+      {
+        "name": "override-generation-config",
+        "setting": null,
+        "value": "{\"max_new_tokens\": 65536}"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_ENGINE_READY_TIMEOUT_S",
+        "value": "3600"
+      },
+      {
+        "name": "TORCH_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_CUDA_ARCH_LIST",
+        "value": "12.1a"
+      },
+      {
+        "name": "FLASHINFER_DISABLE_VERSION_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      },
+      {
+        "name": "NCCL_NET",
+        "value": "IB"
+      },
+      {
+        "name": "NCCL_IB_DISABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CROSS_NIC",
+        "value": "1"
+      },
+      {
+        "name": "NCCL_NVLS_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_CUMEM_ENABLE",
+        "value": "0"
+      },
+      {
+        "name": "NCCL_DEBUG",
+        "value": "WARN"
+      },
+      {
+        "name": "GLM53_NVFP4_W4A16",
+        "value": "draft"
+      },
+      {
+        "name": "GLM53_INT8_W8A16",
+        "value": "shared,mla,kda_o,kda_in,lm_head"
+      },
+      {
+        "name": "GLM53_KPOOL_TAIL_FIX",
+        "value": "1"
+      },
+      {
+        "name": "GLM53_ADAPTIVE_VERIFY",
+        "value": "1"
+      },
+      {
+        "name": "GLM53_ADAPTIVE_VERIFY_TAU",
+        "value": "0.3"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 2
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 327680
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "mp",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 206818453896,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 65000000000
+          },
+          "memory": {
+            "peak_bytes": 123000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 206818453896,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 24000000000,
+            "working_bytes": 65000000000
+          },
+          "memory": {
+            "peak_bytes": 123000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/health",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "nvidia/GLM-5.3-Flash-NVFP4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "bounded-vision",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "describe this image",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAYElEQVR4nO3PwQkAIBDAMAX3H/lwCB9BaCZo96y/HR3wqgGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQHtAgK6AfwYG1VIAAAAAElFTkSuQmCC"
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "nvidia/GLM-5.3-Flash-NVFP4"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
