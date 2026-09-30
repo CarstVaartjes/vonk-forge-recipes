@@ -71,8 +71,8 @@ VERSION_TAG = re.compile(r"^v?(\d+(?:\.\d+)*)$")
 OWN_VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 
 # Files whose change a script cannot judge: launch scripts, images, configuration,
-# dependency lists, patches and the README (model-card repositories keep their launch
-# commands there). Everything else in an upstream repository is not mirrored by a
+# dependency lists and patches. READMEs, docs and licence texts are not judged: a recipe
+# carries its own launch commands. Everything else in an upstream repository is not mirrored by a
 # recipe, unless an adapter vendors it (that is checked byte for byte separately).
 HARMLESS_DIRS = {".github", "docs", "doc", "tests", "test", "assets", "images", "img"}
 BLOCKING_SUFFIXES = {
@@ -93,7 +93,7 @@ BLOCKING_SUFFIXES = {
     ".jinja",
 }
 BLOCKING_NAMES = re.compile(
-    r"^(dockerfile.*|docker-compose.*|compose.*|makefile|readme.*|"
+    r"^(dockerfile.*|docker-compose.*|compose.*|makefile|"
     r"(requirements|constraints).*\.txt)$",
     re.IGNORECASE,
 )
@@ -537,7 +537,13 @@ def collect_items(
                 compared = compare_commits(http, repo, current, target.sha)
             except (RuntimeError, KeyError, TypeError):
                 compared = None  # assessed (and reported) later
-            if compared is not None and pin_is_current(compared):
+            if compared is not None and (
+                pin_is_current(compared)
+                or (
+                    compared.status == "diverged"
+                    and pin_is_newer_by_date(http, repo, current, target.sha)
+                )
+            ):
                 return  # never downgrade: the pin is at or ahead of the newest
         result.items.append(Item(kind, provider, repo, current, target, slug, compared))
 
@@ -608,6 +614,117 @@ def pin_is_current(comparison: Comparison) -> bool:
     return comparison.status in {"behind", "identical"}
 
 
+def pin_is_newer_by_date(http: Http, repo: str, pin: str, release: str) -> bool:
+    """Diverged histories (a release branch against a main pin): the newer commit wins.
+
+    Moving from a pin committed after the release commit to that release would be a
+    downgrade in everything except Git ancestry.
+    """
+    try:
+        dates = [
+            http.github(f"repos/{repo}/commits/{sha}")["commit"]["committer"]["date"]
+            for sha in (pin, release)
+        ]
+    except (RuntimeError, KeyError, TypeError, AttributeError):
+        return False
+    return dates[0] >= dates[1]
+
+
+# Everything that makes an adapter depend on the whole upstream repository rather than on
+# the individual files it vendors or fetches by URL.
+WHOLE_REPO = (
+    r"git\s+(clone|fetch|checkout)\b",
+    r"git\+https?://",
+    r"/archive/",
+    r"/releases/download/",
+)
+
+
+def adapter_usage(
+    directory: Path | None, repo: str, commit: str
+) -> tuple[set[str], bool]:
+    """``(paths named by URL, whole repository used)`` for one upstream repository.
+
+    Vendored files are verified byte for byte by ``check-vendored-upstream``; this adds
+    the files an adapter fetches by explicit ``raw.githubusercontent.com`` /
+    ``github.com/.../blob|raw/`` URL. An adapter that clones the repository, installs an
+    archive of it, or carries a file named after the pinned commit uses all of it.
+    """
+    if directory is None or not directory.is_dir():
+        return set(), False
+    escaped = re.escape(repo)
+    urls = re.compile(
+        rf"(?:raw\.githubusercontent\.com/{escaped}/[^/\s\"'`)]+/"
+        rf"|github\.com/{escaped}/(?:blob|raw)/[^/\s\"'`)]+/)([^\s\"'`)\\?#]+)",
+        re.IGNORECASE,
+    )
+    mentions = re.compile(rf"github\.com/{escaped}", re.IGNORECASE)
+    paths: set[str] = set()
+    whole = False
+    for path in sorted(directory.rglob("*")):
+        if not path.is_file() or path.is_symlink():
+            continue
+        if commit[:12] in path.name:
+            whole = True
+        if path.stat().st_size > 1_000_000 or path.suffix in {".gz", ".zip", ".tar"}:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        paths.update(match for match in urls.findall(text))
+        if mentions.search(text) and any(
+            re.search(pattern, text) for pattern in WHOLE_REPO
+        ):
+            whole = True
+    return paths, whole
+
+
+ARCHIVE_LABEL = re.compile(r'([\w.-]*archive-sha256="?)([0-9a-f]{64})("?)')
+MAX_ARCHIVE_BYTES = 400_000_000
+
+
+def archive_sha256(repo: str, commit: str) -> str:
+    """SHA-256 of GitHub's source archive of one commit (verified at ingress only)."""
+    digest = hashlib.sha256()
+    total = 0
+    url = f"https://codeload.github.com/{repo}/tar.gz/{commit}"
+    request = urllib.request.Request(url, headers={"User-Agent": "vonk-forge-recipes"})
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response:
+            while chunk := response.read(1 << 20):
+                total += len(chunk)
+                if total > MAX_ARCHIVE_BYTES:
+                    raise RuntimeError(
+                        f"{url} is larger than {MAX_ARCHIVE_BYTES} bytes"
+                    )
+                digest.update(chunk)
+    except (urllib.error.HTTPError, urllib.error.URLError) as error:
+        raise RuntimeError(f"cannot fetch {url}: {error}") from error
+    return digest.hexdigest()
+
+
+def retarget_archive_labels(dockerfile: str, item: Item) -> tuple[str, bool]:
+    """Move ``*archive-sha256`` labels that digest the pinned commit's archive.
+
+    Only a label whose value equals the archive digest of the old pin belongs to this
+    repository; others (other sources, wheels) are left alone.
+    """
+    matches = list(ARCHIVE_LABEL.finditer(dockerfile))
+    if not matches:
+        return dockerfile, False
+    old = archive_sha256(item.repo, item.current)
+    if not any(m.group(2) == old for m in matches):
+        return dockerfile, False
+    new = archive_sha256(item.repo, item.target.sha)
+    return (
+        ARCHIVE_LABEL.sub(
+            lambda m: (
+                m.group(1) + new + m.group(3) if m.group(2) == old else m.group(0)
+            ),
+            dockerfile,
+        ),
+        True,
+    )
+
+
 def patch_targets(adapter: Path) -> set[str]:
     """Paths named by ``+++ b/<path>`` in the adapter's ``*.patch`` and ``*.diff`` files."""
     targets: set[str] = set()
@@ -626,8 +743,31 @@ def classify_changes(
     *,
     patched: set[str],
     vendor_problems: list[str],
+    used_changes: list[str] | None = None,
 ) -> list[str]:
-    """Why a GitHub pin move is not mechanical; empty means it is."""
+    """Why a GitHub pin move is not mechanical; empty means it is.
+
+    ``used_changes`` is ``None`` when the files the recipe uses could not be told (the
+    adapter uses the whole repository): every changed upstream file is then judged.
+    Otherwise it lists the used files that differ between the two commits, and nothing
+    else upstream matters: unrelated changes, a truncated comparison and a diverged
+    history (the caller has rejected a pin that is ahead) are not reasons.
+    """
+    if used_changes is not None:
+        reasons = []
+        if comparison.status not in {"ahead", "identical", "diverged", "behind"}:
+            reasons.append(f"upstream comparison reported '{comparison.status}'")
+        if used_changes:
+            reasons.append(
+                "files this recipe uses changed upstream: "
+                + ", ".join(f"`{name}`" for name in used_changes[:20])
+                + (
+                    f" and {len(used_changes) - 20} more"
+                    if len(used_changes) > 20
+                    else ""
+                )
+            )
+        return reasons + vendor_problems
     reasons: list[str] = []
     if comparison.status == "behind":
         reasons.append(
@@ -661,23 +801,33 @@ def classify_changes(
     return reasons
 
 
+METADATA_ONLY = {"metadata"}
+
+
 def model_shape_problems(
     old: dict[str, Any], new_files: list[dict[str, Any]]
 ) -> list[str]:
     """Why a Model's new snapshot does not keep the old file set's shape."""
     problems: list[str] = []
     by_path = {f["path"]: f for f in new_files}
-    old_paths = {f["path"] for f in old["files"]}
-    for removed in sorted(old_paths - set(by_path)):
-        problems.append(f"file removed or renamed upstream: `{removed}`")
-    for added in sorted(set(by_path) - old_paths):
+    old_by = {f["path"]: f for f in old["files"]}
+    for removed in sorted(set(old_by) - set(by_path)):
+        if not set(old_by[removed]["roles"]) <= METADATA_ONLY:
+            problems.append(f"file removed or renamed upstream: `{removed}`")
+    for added in sorted(set(by_path) - set(old_by)):
         roles = by_path[added]["roles"]
         if roles != ["metadata"]:
             problems.append(f"new {'/'.join(roles)} file: `{added}`")
-    for entry in old["files"]:
-        expected = file_id(entry["path"], entry["sha256"])
-        if entry["id"] != expected:
-            problems.append(f"non-standard file id for `{entry['path']}`")
+    for path in sorted(set(old_by) & set(by_path)):
+        entry = old_by[path]
+        if entry["sha256"] != by_path[path]["sha256"] and not set(entry["roles"]) <= {
+            "weights",
+            "metadata",
+        }:
+            problems.append(
+                f"{'/'.join(entry['roles'])} file changed: `{path}` "
+                "(a weights-only digest change is mechanical; this is not)"
+            )
     return problems
 
 
@@ -704,6 +854,7 @@ def refreshed_model(
     for key in ("version", "variant"):
         if isinstance(identity.get(key), str) and old_revision[:8] in identity[key]:
             identity[key] = identity[key].replace(old_revision[:8], new_revision[:8])
+    document["files"] = [e for e in document["files"] if e["path"] in by_path]
     for entry in document["files"]:
         fresh = by_path[entry["path"]]
         entry["sha256"] = fresh["sha256"]
@@ -753,6 +904,9 @@ def clip(text: str, limit: int) -> str:
     return text if len(text) <= limit else text[:limit] + "\n... (truncated)"
 
 
+LICENCE_NAMES = ("LICENSE", "LICENCE", "COPYING", "NOTICE")
+
+
 def github_evidence(item: Item, comparison: Comparison, patched: set[str]) -> str:
     lines = [
         f"### {item.label}",
@@ -771,6 +925,18 @@ def github_evidence(item: Item, comparison: Comparison, patched: set[str]) -> st
         ),
         "",
     ]
+    licences = sorted(
+        f["filename"]
+        for f in comparison.files
+        if f.get("status") == "removed"
+        and PurePosixPath(f["filename"]).name.upper().startswith(LICENCE_NAMES)
+    )
+    if licences:
+        lines += [
+            "Licence files removed upstream (informational; licences never gate a "
+            "refresh): " + ", ".join(f"`{name}`" for name in licences),
+            "",
+        ]
     if item.target.notes:
         lines += [
             "Release notes (upstream text, evidence only):",
@@ -838,6 +1004,18 @@ def model_evidence(
                 if old_by[p]["sha256"] != new_by[p]["sha256"]
             ]
         )
+        gone = [
+            p
+            for p in sorted(set(old_by) - set(new_by))
+            if set(old_by[p]["roles"]) <= METADATA_ONLY
+        ]
+        if gone:
+            lines += [
+                "Metadata files removed upstream (informational; dropped from the "
+                "catalogued Model, licences never gate): "
+                + ", ".join(f"`{p}`" for p in gone),
+                "",
+            ]
         lines += [
             "Model file changes:",
             "",
@@ -977,17 +1155,69 @@ class Assessor:
             problems = [
                 f"vendored file check at the new commit: {p}" for p in report.problems
             ]
+        used_changes = self._used_changes(item, recipe, pin, patched, result)
         result.reasons.extend(
-            classify_changes(comparison, patched=patched, vendor_problems=problems)
+            classify_changes(
+                comparison,
+                patched=patched,
+                vendor_problems=problems,
+                used_changes=used_changes,
+            )
         )
         result.evidence.append(github_evidence(item, comparison, patched))
         self._retarget_reference(new_recipe, item)
         if owns_adapter:
             assert pin is not None
-            self._retarget_adapter(pin, item, edits)
+            self._retarget_adapter(pin, item, edits, result)
+
+    def _used_changes(
+        self,
+        item: Item,
+        recipe: dict[str, Any],
+        pin: AdapterPin | None,
+        patched: set[str],
+        result: Assessment,
+    ) -> list[str] | None:
+        """Used upstream files that differ between the pin and the target.
+
+        ``None`` means the whole repository is used (or a tree is unavailable) and the
+        caller falls back to judging every changed file.
+        """
+        context = recipe.get("execution", {}).get("build", {}).get("context", {})
+        directory = (
+            pin.directory
+            if pin is not None
+            else (self.catalog.root / context["path"] if "path" in context else None)
+        )
+        named, whole = adapter_usage(directory, item.repo, item.current)
+        if whole:
+            result.evidence.append(
+                f"- {item.label}: the adapter uses the whole upstream repository "
+                "(clone, archive or commit-named file); every changed file is judged.\n"
+            )
+            return None
+        try:
+            old = vendored.fetch_tree(item.repo, item.current)
+            new = vendored.fetch_tree(item.repo, item.target.sha)
+        except RuntimeError:
+            return None
+        if not (old.complete and new.complete):
+            return None
+        used = named | patched
+        changed = sorted(p for p in used if old.blobs.get(p) != new.blobs.get(p))
+        result.evidence.append(
+            f"- {item.label}: {len(used)} referenced upstream file(s) checked by blob, "
+            f"{len(changed)} changed; vendored files are compared byte for byte; other "
+            "upstream changes are not mirrored by this recipe.\n"
+        )
+        return changed
 
     def _retarget_adapter(
-        self, pin: AdapterPin, item: Item, edits: dict[str, bytes | None]
+        self,
+        pin: AdapterPin,
+        item: Item,
+        edits: dict[str, bytes | None],
+        result: Assessment,
     ) -> None:
         root = self.catalog.root
         for name in (vendored.MANIFEST, "Dockerfile", "NOTICE"):
@@ -995,10 +1225,21 @@ class Assessor:
             if not path.is_file():
                 continue
             text = path.read_text(encoding="utf-8")
-            if item.current in text:
-                edits[path.relative_to(root).as_posix()] = text.replace(
-                    item.current, item.target.sha
-                ).encode()
+            changed = item.current in text
+            if changed:
+                text = text.replace(item.current, item.target.sha)
+            if name == "Dockerfile":
+                try:
+                    text, relabelled = retarget_archive_labels(text, item)
+                except (RuntimeError, OSError) as error:
+                    result.reasons.append(
+                        f"{item.label}: could not refresh the archive digest label: "
+                        f"{str(error)[:200]}"
+                    )
+                    continue
+                changed = changed or relabelled
+            if changed:
+                edits[path.relative_to(root).as_posix()] = text.encode()
 
     def _model(
         self,
@@ -1025,10 +1266,9 @@ class Assessor:
                 model_evidence(item, old, None)
                 + "\nThe newest revision is already catalogued; reusing it.\n"
             )
-            if {f["path"] for f in old["files"]} - {f["path"] for f in fresh["files"]}:
-                result.reasons.append(
-                    f"{item.label}: the catalogued newest revision lacks files"
-                )
+            problems = model_shape_problems(old, fresh["files"])
+            if problems:
+                result.reasons.extend(f"{item.label}: {p}" for p in problems)
                 return
         self._retarget_model(recipe, new_recipe, old, fresh, result)
         remaining = [
@@ -1067,7 +1307,9 @@ class Assessor:
     ) -> None:
         old_ids = {f["path"]: f for f in old["files"]}
         new_ids = {f["path"]: f for f in fresh["files"]}
-        by_old_id = {f["id"]: new_ids[path] for path, f in old_ids.items()}
+        by_old_id = {
+            f["id"]: new_ids[path] for path, f in old_ids.items() if path in new_ids
+        }
         content = document_sha256(fresh)
         old_total = new_total = 0
         for reference in new_recipe["models"]:
@@ -1078,6 +1320,12 @@ class Assessor:
             model["content_sha256"] = content
             for selected in reference["files"]:
                 before = selected["file_id"]
+                if before not in by_old_id:
+                    result.reasons.append(
+                        f"the recipe selects a file the newest revision no longer has "
+                        f"(id `{before}`)"
+                    )
+                    return
                 replacement = by_old_id[before]
                 old_entry = next(f for f in old["files"] if f["id"] == before)
                 old_total += old_entry["size_bytes"]
