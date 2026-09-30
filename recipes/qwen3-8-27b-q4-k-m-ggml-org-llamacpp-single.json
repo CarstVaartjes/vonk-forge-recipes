@@ -1,0 +1,245 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "e5a2f80c0f1bdbb829d19b3ba3e84359acad95ea9fae2161661e08af46a31ce0",
+        "repository": "ghcr.io/ggml-org/llama.cpp"
+      },
+      "context": {
+        "path": "adapters/nvidia/qwen3-8-27b-q4-k-m-ggml-org-llamacpp-single"
+      },
+      "dockerfile": "adapters/nvidia/qwen3-8-27b-q4-k-m-ggml-org-llamacpp-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-27b-q4-k-m-ggml-org-llamacpp-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "qwen3.8-27b"
+      ],
+      "port": 8080
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate llama.cpp recipe based on the ggml-org GGUF repository: the official ggml-org llama.cpp 0.5.0 CUDA 13 server image (arm64, pinned by digest; its default CUDA architectures include GB10 sm_121a) serving the exact GGUF revision through llama-server. NVIDIA's llama.cpp playbook compiles the same upstream source with -DCMAKE_CUDA_ARCHITECTURES=121a-real; this recipe uses the project's published binary instead. Resource envelopes are estimates, not measurements; physical Spark acceptance is pending.",
+    "tags": [
+      "executable",
+      "candidate",
+      "llama-cpp",
+      "openai",
+      "single",
+      "spark",
+      "qwen",
+      "qwen3-8",
+      "gguf",
+      "q4_k_m",
+      "vision",
+      "reasoning"
+    ],
+    "title": "Qwen3.8 27B Q4_K_M llama.cpp single Spark (ggml-org)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d1516d3eb100-618cd5b83d",
+          "id": "metadata-d1516d3eb100-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "qwen3-8-27b-q4-k-m-c600de0300ae-2fd523f171",
+          "id": "qwen3-8-27b-q4-k-m-c600de0300ae-2fd523f171",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-4a1ddebc85fd-b335630551",
+          "id": "readme-4a1ddebc85fd-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mmproj-qwen3-8-27b-q8-0-2e968a6af97c-266eaebc83",
+          "id": "mmproj-qwen3-8-27b-q8-0-2e968a6af97c-266eaebc83",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "bfa8830198121f2eae83637f9f248c677cd8194eea2f0f380f9b18d65fceb324",
+        "kind": "model",
+        "publisher": "ggml-org",
+        "slug": "qwen3-8-27b-q4-k-m-71bc7b62"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "ggml-org",
+      "llama.cpp contributors",
+      "Alibaba Qwen",
+      "ggml-org"
+    ],
+    "source_reference": "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF/tree/71bc7b627595dc8a91039addd9c791ae548d6747"
+  },
+  "release": {
+    "released_at": "2026-09-23",
+    "version": "0.5.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models/Qwen3.8-27B-Q4_K_M.gguf"
+      },
+      {
+        "name": "alias",
+        "setting": null,
+        "value": "qwen3.8-27b"
+      },
+      {
+        "name": "ctx-size",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "mmproj",
+        "setting": null,
+        "value": "/models/mmproj-Qwen3.8-27B-Q8_0.gguf"
+      },
+      {
+        "name": "offline",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "llama-cpp",
+    "entrypoint": [
+      "/opt/vonk/bin/llama-server"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 19603120191,
+            "image_bytes": 8000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 16000000000
+          },
+          "memory": {
+            "peak_bytes": 50000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen3.8-27b"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
