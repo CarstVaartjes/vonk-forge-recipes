@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single",
+  "service_recipes": {
+    "alias": "diffusiongemma-26b-a4b-it-nvfp4",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded 64K-context and 16-request concurrency canaries with streaming"
+      ],
+      "recovery": [
+        "Controller stop/start and warm-cache restart"
+      ]
+    }
+  }
+}

@@ -1,0 +1,257 @@
+{
+  "capabilities": [
+    "chat",
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-fd82bca78d82-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fd82bca78d82eb3604d07379f861f2289fefa0f0642b442277ee66f8c81b9e96",
+      "size_bytes": 1658
+    },
+    {
+      "id": "readme-3acbbf7e4c01-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "3acbbf7e4c01297291113b1297732b6bcecf0d7769a2571fefeca4f0f5909747",
+      "size_bytes": 19722
+    },
+    {
+      "id": "chat-template-9aeb7eac68ad-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "9aeb7eac68ad87bba7567e9d4597ff203e5609f1b427d9e823437d0142cc61bf",
+      "size_bytes": 18575
+    },
+    {
+      "id": "config-13b11d2fe873-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "13b11d2fe87302cc2332c64eb9eb4ac305d9b8a123ffe9c5cb5b1920fc70c506",
+      "size_bytes": 3469
+    },
+    {
+      "id": "generation-config-99334f763c3d-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "99334f763c3dbe8b161aeaca1c150a05344299fda2d2e4a0e1d342c744461200",
+      "size_bytes": 357
+    },
+    {
+      "id": "model-00001-of-00011-3efe137998af-9b90934164",
+      "path": "model-00001-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3efe137998af7d2bde4e3ab04ab3524823699a4ac3130adace5003ef40cceeb6",
+      "size_bytes": 4732780476
+    },
+    {
+      "id": "model-00002-of-00011-4a39d68c756f-c04a9dab92",
+      "path": "model-00002-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4a39d68c756fb26bbd2a54f2b8d550047ea98f3152f87ec75db825c8e17934a7",
+      "size_bytes": 4884578006
+    },
+    {
+      "id": "model-00003-of-00011-ac6083e34892-74de7f5b30",
+      "path": "model-00003-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ac6083e3489215ca032501714b78832e5cc4c945a8dbbb905b5292a4e95bc75e",
+      "size_bytes": 4913414742
+    },
+    {
+      "id": "model-00004-of-00011-865b66393de5-3816020362",
+      "path": "model-00004-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "865b66393de5a9c752e67beae1bd2c860c12786b72ad86ca9345c00b7b586e60",
+      "size_bytes": 4884578030
+    },
+    {
+      "id": "model-00005-of-00011-a87e01bed77a-5709a5a751",
+      "path": "model-00005-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a87e01bed77ad9d2234851267d99af583ff79c7a86d7494fe08ae0f9de9cd318",
+      "size_bytes": 4913414814
+    },
+    {
+      "id": "model-00006-of-00011-077e841b3b13-e4ac42a7fe",
+      "path": "model-00006-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "077e841b3b138fbc38df2c36665abdaafa96b8c96f968e2263a7452afaa912ab",
+      "size_bytes": 4884578070
+    },
+    {
+      "id": "model-00007-of-00011-13a18b3c04a7-4cb1fbe204",
+      "path": "model-00007-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "13a18b3c04a7f19a16385dd8a0d7fd0b9cc89ef131e4294a063c31c7d90c58ef",
+      "size_bytes": 4913414814
+    },
+    {
+      "id": "model-00008-of-00011-aca5d3bdfc84-785d125f4e",
+      "path": "model-00008-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "aca5d3bdfc84700bd55b475781cb46e5608104c4832d2abe111a119ddcb23ff7",
+      "size_bytes": 4884578070
+    },
+    {
+      "id": "model-00009-of-00011-8e2418867354-e228bcc2fe",
+      "path": "model-00009-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8e2418867354e5cb356c0af8ccfdcc60bc363500674d6cf395991e7d6219eb29",
+      "size_bytes": 4913414814
+    },
+    {
+      "id": "model-00010-of-00011-93d564b7dd68-418939ece1",
+      "path": "model-00010-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "93d564b7dd686464a5c068ff9665cd5d3bca399c2ce320aecd41bd011e3787d5",
+      "size_bytes": 4884578070
+    },
+    {
+      "id": "model-00011-of-00011-afec047176bb-fe7fbfbe20",
+      "path": "model-00011-of-00011.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "afec047176bb2a05f078566576aec6bdb71ad4d041275d0d0c89473fda6d6d87",
+      "size_bytes": 2838371118
+    },
+    {
+      "id": "model-safetensors-index-6e33e8465d55-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6e33e8465d55fe6c7bc0a5453c7a4b341e6467d032c6ded82aaf439f61dac69a",
+      "size_bytes": 104650
+    },
+    {
+      "id": "model-index-989c453462f9-ee03ace9a3",
+      "path": "model_index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "989c453462f9b84b90f02fe82b89f23c743b513a767a1789292da76f056f5117",
+      "size_bytes": 295
+    },
+    {
+      "id": "processor-config-32bdf45d2ad4-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "32bdf45d2ad4cc29a0822ddd157a182de76644f0419a6228d151495256e9813c",
+      "size_bytes": 1689
+    },
+    {
+      "id": "scheduler-config-5e5536ea036c-67ecb3dc37",
+      "path": "scheduler/scheduler_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5e5536ea036c284bcc09c7b08045868d741a41a3090069f6c035697bba31c6c7",
+      "size_bytes": 209
+    },
+    {
+      "id": "tokenizer-cc8d3a0ce364-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "cc8d3a0ce36466ccc1278bf987df5f71db1719b9ca6b4118264f45cb627bfe0f",
+      "size_bytes": 32169626
+    },
+    {
+      "id": "tokenizer-config-a284d1243b62-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a284d1243b62be31faa9c13e1c28cece940c4abaa7bd9ad87b94f61b40687200",
+      "size_bytes": 2741
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "google",
+      "slug": "gemma",
+      "title": "Google Gemma"
+    },
+    "model": {
+      "publisher": "google",
+      "slug": "diffusiongemma-26b-a4b",
+      "title": "DiffusionGemma 26B-A4B"
+    },
+    "publisher": "google",
+    "slug": "diffusiongemma-26b-a4b-it-bf16-f7f5b7f5",
+    "variant": "IT-BF16 f7f5b7f5",
+    "version": "IT-BF16 f7f5b7f5"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Google DeepMind"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
+  },
+  "metadata": {
+    "description": "Exact public Google DiffusionGemma 26B-A4B IT (diffusion-decoding Gemma) checkpoint.",
+    "tags": [
+      "google",
+      "gemma",
+      "language",
+      "instruction-tuned",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/google/diffusiongemma-26B-A4B-it",
+    "revision": "f7f5b7f5fa82ffc52addd066915886d497f5517b"
+  }
+}
