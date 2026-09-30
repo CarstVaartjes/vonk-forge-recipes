@@ -5,11 +5,20 @@
 # provenance; they expect a host-built llama-server and are not run in the image.
 # The recipe launches /opt/vonk/bin/llama-server with the same flags start.sh uses.
 ARG LLAMA_CPP_COMMIT=b5cf8ce02aaf95c15375e2ed97f273fa7e274f5c
+ARG UBUNTU_SNAPSHOT=20260929T000000Z
 
 FROM nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37 AS build
 ARG LLAMA_CPP_COMMIT
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates cmake curl ninja-build \
+ARG UBUNTU_SNAPSHOT
+# Resolve build tools only from the fixed Ubuntu ARM64 archive snapshot. CUDA
+# packages already come from the digest-pinned NGC base, so exclude its live apt
+# source while resolving this closure.
+RUN test -f /etc/apt/sources.list.d/ubuntu.sources \
+    && sed -i "s|^URIs: .*|URIs: https://snapshot.ubuntu.com/ubuntu/${UBUNTU_SNAPSHOT}/|" /etc/apt/sources.list.d/ubuntu.sources \
+    && find /etc/apt/sources.list.d -type f \
+        \( -name '*.list' -o -name '*.sources' \) ! -name ubuntu.sources -delete \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates=20260601~24.04.1 cmake=3.28.3-1build7 curl=8.5.0-2ubuntu10.15 ninja-build=1.11.1-2 \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/src
 # Source by immutable commit (codeload serves the commit tree). The pinned commit
