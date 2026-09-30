@@ -1,0 +1,27 @@
+services:
+  vllm:
+    image: ghcr.io/r0b0tlab/nex-n2-mini-nvfp4:latest
+    container_name: nex-n2-mini-nvfp4
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      - nex-n2-model:/mnt/model
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - GPU_MEM_UTIL=${GPU_MEM_UTIL:-0.90}
+      - MAX_MODEL_LEN=${MAX_MODEL_LEN:-32768}
+      - MAX_BATCHED_TOKENS=${MAX_BATCHED_TOKENS:-32768}
+      - PORT=8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    shm_size: "8g"
+    restart: unless-stopped
+
+volumes:
+  nex-n2-model:
+    name: nex-n2-model
