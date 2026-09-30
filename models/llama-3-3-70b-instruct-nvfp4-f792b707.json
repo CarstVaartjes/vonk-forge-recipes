@@ -1,0 +1,228 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-6ef1c15da261-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "6ef1c15da26160d3271f7a8f1fd08305cd6db183b32de5e3f19efa5874db3ca6",
+      "size_bytes": 1618
+    },
+    {
+      "id": "license-396d7de220f6-83a544517d",
+      "path": "LICENSE.pdf",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "396d7de220f6b0e6fcfe33836f1b99a9943769b97c56330444f8efe1b441f607",
+      "size_bytes": 151612
+    },
+    {
+      "id": "readme-1d3e338cb64a-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "1d3e338cb64a6421eb76e937cd07e48ce075a612b3c58f32b60f57aecf7ddcd2",
+      "size_bytes": 4882
+    },
+    {
+      "id": "config-e7cbee89103c-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e7cbee89103cc488ef55c142c2a2a376ea00ce67b49c3ae9282d944107d97c33",
+      "size_bytes": 940
+    },
+    {
+      "id": "generation-config-b52d7103195c-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b52d7103195cf7520887804dc703c715515dca31c7a2db20afdb2bf8f78203f0",
+      "size_bytes": 184
+    },
+    {
+      "id": "hf-quant-config-83aec68f59d6-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "83aec68f59d6d62bf3c43feb439eac248202b017f1aa014450e57af9a55e7282",
+      "size_bytes": 269
+    },
+    {
+      "id": "model-00001-of-00009-a74f146988a7-88587b10f1",
+      "path": "model-00001-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a74f146988a79d5f85aa72b73c59c5df3e0f82a33b1d464f97aa6f232446f8e8",
+      "size_bytes": 4989342736
+    },
+    {
+      "id": "model-00002-of-00009-06279ed785b1-197402693c",
+      "path": "model-00002-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "06279ed785b12bcd77cdf4929c12e89dcba54b9bc122aba9ad8c28ea0f48eca2",
+      "size_bytes": 4898263386
+    },
+    {
+      "id": "model-00003-of-00009-e4d7f3f0016f-861ce467d6",
+      "path": "model-00003-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e4d7f3f0016f28f8f924469a0ea78b7cac03e49e6217e2d66d40099bb3d01d02",
+      "size_bytes": 4945447880
+    },
+    {
+      "id": "model-00004-of-00009-546a5556e147-ef1df50c87",
+      "path": "model-00004-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "546a5556e147952fd73585c933e26e085ed930c33287bed461981bb42f2546d0",
+      "size_bytes": 4945447872
+    },
+    {
+      "id": "model-00005-of-00009-2d25d2373ef3-6efe792e18",
+      "path": "model-00005-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2d25d2373ef3898d4eedcf7935a28ce74335c75fe4376b19ac55c7c0ef556803",
+      "size_bytes": 4992668346
+    },
+    {
+      "id": "model-00006-of-00009-1a52977e1b1c-6ce9a8a49b",
+      "path": "model-00006-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1a52977e1b1c9094d543aa7614e5a5f4c2184c98b46a768f90f6e088b0cb6719",
+      "size_bytes": 4983197070
+    },
+    {
+      "id": "model-00007-of-00009-1b9c5d23fcfa-9bf5db00eb",
+      "path": "model-00007-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1b9c5d23fcfa5d1ce4c29922e459dd61bdfdc052a7fc423bddb1dc8dc12b19e0",
+      "size_bytes": 4945447872
+    },
+    {
+      "id": "model-00008-of-00009-906b5fb504b9-7a39f1d683",
+      "path": "model-00008-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "906b5fb504b99bbe21078cddaf0135cba6fc0eb62b30b74d181a06117027d3fa",
+      "size_bytes": 4992668346
+    },
+    {
+      "id": "model-00009-of-00009-e8a5a8d96b7c-f25cdaf348",
+      "path": "model-00009-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e8a5a8d96b7c315abd04052dc19a7ff4191c5b7b8108e6a8f5a093fc9abbb95e",
+      "size_bytes": 3016840884
+    },
+    {
+      "id": "model-safetensors-index-ce9278eebd8b-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ce9278eebd8b608480455059b7d5abcad9f2d0b594221faf0e1a5d8bc6728bff",
+      "size_bytes": 220264
+    },
+    {
+      "id": "special-tokens-map-1b1835caa5b4-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "1b1835caa5b4d70acaa210fa222b0036f1882f9525c4660fd4810fb3e1e40ff8",
+      "size_bytes": 325
+    },
+    {
+      "id": "tokenizer-6b9e4e7fb171-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "6b9e4e7fb171f92fd137b777cc2714bf87d11576700a1dcd7a399e7bbe39537b",
+      "size_bytes": 17209920
+    },
+    {
+      "id": "tokenizer-config-5c756ad6048c-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5c756ad6048c884974a331963ae3c3e1624b548a11174dadda02a69041c87352",
+      "size_bytes": 55425
+    }
+  ],
+  "format": {
+    "precision": "fp4",
+    "quantization": "nvfp4-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "llama",
+      "title": "Meta Llama"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "llama-3-3-70b-instruct",
+      "title": "Llama 3.3 70B Instruct"
+    },
+    "publisher": "nvidia",
+    "slug": "llama-3-3-70b-instruct-nvfp4-f792b707",
+    "variant": "NVFP4 f792b707",
+    "version": "NVFP4 f792b707"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Meta Platforms"
+    ],
+    "spdx": "LicenseRef-Llama-3.3-Community-License",
+    "url": "https://www.llama.com/llama3_3/license/"
+  },
+  "metadata": {
+    "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Meta Llama 3.3 70B Instruct.",
+    "tags": [
+      "nvidia",
+      "llama",
+      "language",
+      "nvfp4",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Llama-3.3-70B-Instruct-NVFP4",
+    "revision": "f792b707002f2c613e0729c6b37bbcedc4efa94e"
+  }
+}
