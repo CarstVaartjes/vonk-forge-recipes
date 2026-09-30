@@ -1,6 +1,7 @@
 {
   "ours": [
-    "NOTICE.upstream"
+    "NOTICE.upstream",
+    "verify-speculative-config.py"
   ],
   "source": {
     "commit": "1b71dc011010a3e2c373eafd8a41f12c7c7913fc",

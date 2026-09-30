@@ -60,6 +60,82 @@ class MuseGlimmerRecipeTests(unittest.TestCase):
         )
         self.assertEqual(entry["package"]["recipe_content_sha256"], digest(recipe))
 
+    def test_nvfp4_dflash_option_compiles_vllm_none_sentinel(self) -> None:
+        from vonk_forge_contracts import read_recipe
+
+        recipe = read_recipe(
+            load(ROOT / "recipes/muse-glimmer-30b-nvfp4-vllm-mia-single.json")
+        )
+        default = recipe.with_option_choices({})
+        default_value = next(
+            item.value
+            for item in default.runtime.arguments
+            if item.name == "speculative-config"
+        )
+        self.assertEqual(
+            json.loads(str(default_value)),
+            {
+                "method": "dflash",
+                "model": "/models/drafter",
+                "num_speculative_tokens": 16,
+            },
+        )
+        default_kv = next(
+            item.value
+            for item in default.runtime.arguments
+            if item.name == "kv-cache-dtype"
+        )
+        self.assertEqual(default_kv, "fp8_e4m3")
+
+        auto_kv = recipe.with_option_choices({"kv-cache": "auto"})
+        self.assertEqual(
+            next(
+                item.value
+                for item in auto_kv.runtime.arguments
+                if item.name == "kv-cache-dtype"
+            ),
+            "auto",
+        )
+        self.assertEqual(
+            json.loads(
+                str(
+                    next(
+                        item.value
+                        for item in auto_kv.runtime.arguments
+                        if item.name == "speculative-config"
+                    )
+                )
+            ),
+            {
+                "method": "dflash",
+                "model": "/models/drafter",
+                "num_speculative_tokens": 16,
+            },
+        )
+
+        disabled = recipe.with_option_choices({"speculative-decoding": "off"})
+        disabled_value = next(
+            item.value
+            for item in disabled.runtime.arguments
+            if item.name == "speculative-config"
+        )
+        self.assertEqual(disabled_value, "None")
+        self.assertEqual(
+            next(
+                item.value
+                for item in disabled.runtime.arguments
+                if item.name == "kv-cache-dtype"
+            ),
+            "fp8_e4m3",
+        )
+
+        both = recipe.with_option_choices(
+            {"speculative-decoding": "off", "kv-cache": "auto"}
+        )
+        args = {item.name: item.value for item in both.runtime.arguments}
+        self.assertEqual(args["speculative-config"], "None")
+        self.assertEqual(args["kv-cache-dtype"], "auto")
+
 
 if __name__ == "__main__":
     unittest.main()
