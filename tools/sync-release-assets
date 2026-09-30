@@ -1,22 +1,20 @@
 #!/usr/bin/env python3
-"""Publish a release asset set and prove GitHub holds exactly that set.
+"""Publish the release's one asset, ``recipe-library.tar``, and prove GitHub holds exactly it.
 
-``gh release upload --clobber`` replaces assets one at a time, so a server
-error halfway through leaves a release half-updated. This tool makes
-publication converge instead: it compares the release's assets (REST
-``digest`` and ``size``) with what must be published, uploads only what is
-missing or different, deletes assets that do not belong, and repeats until the
-release matches. If it cannot converge it exits non-zero and says what differs.
+The release carries a single asset: the signed bundle (SHA256SUMS, its Sigstore
+bundle and every listed file, as members). ``gh release upload --clobber``
+replaces an asset non-atomically, so this tool makes publication converge: it
+compares the release's assets (REST ``digest`` and ``size``) with the bundle,
+uploads it when missing or different, then deletes every other asset (the
+per-file assets earlier releases carried), and repeats until the release
+matches. If it cannot converge it exits non-zero and says what differs.
+Uploading first means a consumer reading the bundle never waits on the cleanup.
 
-Upload order inside one round keeps the signed manifest last: content first,
-then the ``recipe-library.tar`` bundle, then ``SHA256SUMS`` with its Sigstore
-bundle. A failed step ends the round, so the manifest never lands over an
-incomplete set.
-
-``publish`` expects the release directory (SHA256SUMS, its Sigstore bundle and
-every listed file) and the bundle file. ``check`` answers whether a published
-release is complete against the SHA256SUMS it already carries, and is how the
-workflow decides that an identical release needs no republication.
+``publish`` expects the bundle file. ``check`` answers whether the published
+release already carries exactly the bundle for a given SHA256SUMS (the bundle is
+the only asset and its ``SHA256SUMS`` member equals the local one, and every
+member matches it), and is how the workflow decides that an identical release
+needs no republication.
 """
 
 from __future__ import annotations
@@ -27,6 +25,8 @@ import json
 import os
 import subprocess
 import sys
+import tarfile
+import tempfile
 import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
@@ -87,46 +87,34 @@ def file_digest(path: Path) -> str:
         return hashlib.file_digest(handle, "sha256").hexdigest()
 
 
-def parse_checksums(text: str) -> dict[str, str]:
-    digests: dict[str, str] = {}
-    for line in text.splitlines():
+def expected_from_bundle(bundle: Path) -> dict[str, Expected]:
+    """The only asset to publish, with its exact digest and size."""
+
+    return {bundle.name: Expected(file_digest(bundle), bundle.stat().st_size)}
+
+
+def bundle_matches_manifest(bundle: Path, manifest: Path) -> bool:
+    """Whether the tar carries this SHA256SUMS and every member matches it."""
+
+    wanted: dict[str, str] = {}
+    for line in manifest.read_text("utf-8").splitlines():
         digest, _, name = line.partition("  ")
         if len(digest) != 64 or not name:
-            raise SystemExit(f"malformed {CHECKSUMS} line: {line!r}")
-        digests[name] = digest
-    if not digests:
-        raise SystemExit(f"{CHECKSUMS} is empty")
-    return digests
-
-
-def expected_from_files(release: Path, bundle: Path) -> dict[str, Expected]:
-    """Every file to publish, with its exact digest and size."""
-
-    expected = {
-        path.name: Expected(file_digest(path), path.stat().st_size)
-        for path in sorted(release.iterdir())
-    }
-    expected[bundle.name] = Expected(file_digest(bundle), bundle.stat().st_size)
-    if {CHECKSUMS, ATTESTATION} - expected.keys():
-        raise SystemExit(f"release directory lacks {CHECKSUMS} or {ATTESTATION}")
-    return expected
-
-
-def expected_from_manifest(manifest: Path) -> dict[str, Expected]:
-    """What a release carrying this SHA256SUMS must hold.
-
-    Listed files are exact. The Sigstore bundle and ``recipe-library.tar`` must
-    be present; only the workflow that built them knows their bytes.
-    """
-
-    expected = {
-        name: Expected(digest)
-        for name, digest in parse_checksums(manifest.read_text("utf-8")).items()
-    }
-    expected[CHECKSUMS] = Expected(file_digest(manifest), manifest.stat().st_size)
-    expected[ATTESTATION] = Expected()
-    expected[BUNDLE] = Expected()
-    return expected
+            return False
+        wanted[name] = digest
+    seen: dict[str, str] = {}
+    with tarfile.open(bundle, "r:") as archive:
+        for member in archive:
+            handle = archive.extractfile(member)
+            if not member.isreg() or handle is None or member.name in seen:
+                return False
+            seen[member.name] = hashlib.sha256(handle.read()).hexdigest()
+    return (
+        seen.get(CHECKSUMS) == file_digest(manifest)
+        and ATTESTATION in seen
+        and {name: seen.get(name) for name in wanted} == wanted
+        and set(seen) == {*wanted, CHECKSUMS, ATTESTATION}
+    )
 
 
 def published_assets(gh: Gh, repository: str, tag: str) -> dict[str, dict[str, object]]:
@@ -190,28 +178,21 @@ def repair(
     sources: Mapping[str, Path],
     difference: Difference,
 ) -> None:
-    """One round: upload what is wrong (content, bundle, manifest), drop extras."""
+    """One round: upload the bundle if wrong, then drop every other asset."""
 
-    wrong = {*difference.missing, *difference.mismatched}
-    manifest = {CHECKSUMS, ATTESTATION}
-    stages = [
-        [name for name in sorted(wrong) if name not in manifest and name != BUNDLE],
-        [name for name in sorted(wrong) if name == BUNDLE],
-        [name for name in sorted(wrong) if name in manifest],
-    ]
-    for stage in stages:
-        if stage:
-            gh(
-                [
-                    "release",
-                    "upload",
-                    tag,
-                    "--repo",
-                    repository,
-                    "--clobber",
-                    *(str(sources[name]) for name in stage),
-                ]
-            )
+    wrong = sorted({*difference.missing, *difference.mismatched})
+    if wrong:
+        gh(
+            [
+                "release",
+                "upload",
+                tag,
+                "--repo",
+                repository,
+                "--clobber",
+                *(str(sources[name]) for name in wrong),
+            ]
+        )
     for name in difference.extra:
         gh(["release", "delete-asset", tag, name, "--repo", repository, "--yes"])
 
@@ -270,26 +251,42 @@ def main() -> int:
     )
     commands = parser.add_subparsers(dest="command", required=True)
     publish = commands.add_parser("publish", help="make the release match")
-    publish.add_argument("--release-dir", type=Path, required=True)
     publish.add_argument("--bundle", type=Path, required=True)
     check = commands.add_parser("check", help="exit 0 if the release is complete")
-    check.add_argument("--sums", type=Path, required=True, help="published SHA256SUMS")
+    check.add_argument("--sums", type=Path, required=True, help="new SHA256SUMS")
     arguments = parser.parse_args()
 
     if arguments.command == "check":
-        expected = expected_from_manifest(arguments.sums)
         difference = compare(
-            expected, published_assets(run_gh, arguments.repo, arguments.tag)
+            {BUNDLE: Expected()},
+            published_assets(run_gh, arguments.repo, arguments.tag),
         )
         if not difference.clean:
             print(f"release {arguments.tag} is incomplete: {difference.describe()}")
-        return 0 if difference.clean else 1
+            return 1
+        with tempfile.TemporaryDirectory() as directory:
+            run_gh(
+                [
+                    "release",
+                    "download",
+                    arguments.tag,
+                    "--repo",
+                    arguments.repo,
+                    "--pattern",
+                    BUNDLE,
+                    "--dir",
+                    directory,
+                ]
+            )
+            if not bundle_matches_manifest(Path(directory) / BUNDLE, arguments.sums):
+                print(f"release {arguments.tag} bundle differs from {arguments.sums}")
+                return 1
+        return 0
 
     if arguments.bundle.name != BUNDLE:
         raise SystemExit(f"the bundle asset must be named {BUNDLE}")
-    sources = {path.name: path for path in arguments.release_dir.iterdir()}
-    sources[arguments.bundle.name] = arguments.bundle
-    expected = expected_from_files(arguments.release_dir, arguments.bundle)
+    expected = expected_from_bundle(arguments.bundle)
+    sources = {arguments.bundle.name: arguments.bundle}
     converged = converge(run_gh, arguments.repo, arguments.tag, expected, sources)
     return 0 if converged else 1
 
