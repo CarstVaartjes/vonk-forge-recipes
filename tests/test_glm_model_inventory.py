@@ -51,6 +51,34 @@ class GlmModelInventoryTests(unittest.TestCase):
                 f"{path.name} duplicates the recipe's model payload",
             )
 
+    def test_exl3_serving_closure_does_not_prepare_an_unselected_drafter(self) -> None:
+        # Wrong implementation: a target Model retains its historical drafter
+        # dependency after each recipe selects a different drafter. Cache
+        # preparation then resolves both and collides on shared metadata keys.
+        models = {
+            digest(document): document
+            for path in (ROOT / "models").glob("*.json")
+            for document in [load(str(path.relative_to(ROOT)))]
+        }
+        for path in (ROOT / "recipes").glob("glm-5-3-flash-exl3-dflash2*.json"):
+            recipe = load(str(path.relative_to(ROOT)))
+            selected = {item["model"]["content_sha256"] for item in recipe["models"]}
+            closure = set()
+            pending = list(selected)
+            while pending:
+                current = pending.pop()
+                if current in closure:
+                    continue
+                closure.add(current)
+                pending.extend(
+                    item["content_sha256"] for item in models[current]["dependencies"]
+                )
+            self.assertEqual(
+                closure,
+                selected,
+                f"{path.name} prepares an unselected companion checkpoint",
+            )
+
     def test_current_inventory_and_recipe_select_the_calibrated_snapshot(self) -> None:
         model = load("models/glm-5-3-flash-nvfp4-caca4e6a.json")
         recipe = load("recipes/glm-5-3-flash-nvfp4-vllm-dual.json")
