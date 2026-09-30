@@ -447,6 +447,41 @@ unit consumers should read: verify `SHA256SUMS.sigstore.json` against
 `SHA256SUMS` from inside the tar, then every member against `SHA256SUMS`. It
 is the only published asset.
 
+### Prebuilt runtime images
+
+Recipe runtime images are built in CI, not on a Spark.
+`.github/workflows/recipe-images.yml` runs inside every publication (and by hand
+for a backfill: `gh workflow run recipe-images.yml -f slugs=all`, or a list of
+recipe ids). Vonk Forge's `scripts/recipe-image-plan` (at the workflow's
+`PLATFORM_REF`) derives each recipe's executable build key (source bundle,
+Dockerfile, pinned base images, build options and capabilities, runtime
+adapter) and the exact Spark build flags and platform adaptation stage. Recipes
+that build the same adapter directory the same way share one key and one
+build. For recipes changed since the last published commit whose image is
+missing, a hosted `ubuntu-24.04-arm` runner builds the image with those flags
+and pushes it to the public package
+`ghcr.io/<owner>/vonk-forge-recipe-<recipe-id>` as `build-<key>` and
+`<version>`; a key another recipe already has is copied, not rebuilt.
+
+`tools/prebuilt-images resolve` then looks up every recipe's `build-<key>`
+digest, and the release index records it beside the recipe:
+
+```json
+"prebuilt_image": {
+  "reference": "ghcr.io/carstvaartjes/vonk-forge-recipe-<recipe-id>@sha256:<digest>",
+  "build_key": "<64 hex>"
+}
+```
+
+The field is optional and covered by the same signed `SHA256SUMS` as the rest
+of the index; Controllers that do not know it ignore it. A Controller whose own
+key for the revision matches pulls that digest (verified once, at ingress)
+instead of building on a Spark, so updating a running recipe needs no Spark
+build memory. A recipe whose image build failed or has not run yet publishes
+without the field (the job summary lists them) and is built on a Spark as a
+fallback. A backfill run republishes when it finishes so the index picks up
+the new digests.
+
 The qualification authority is derived, never committed. Coverage builds it in
 memory from the generated catalog (`tools/build-qualification-authority` writes
 it with `--output-dir`), so a new recipe needs only its recipe, model and

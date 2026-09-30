@@ -645,11 +645,31 @@ def recipe_package(
     return payload, metadata
 
 
+def pin_prebuilt_images(
+    recipes: list[dict[str, Any]], images: dict[str, dict[str, str]]
+) -> None:
+    """Record each recipe's CI-built runtime image, pinned by digest.
+
+    ``images`` maps a recipe content digest to ``{reference, build_key}``
+    (``tools/prebuilt-images resolve``). The entry belongs to that exact
+    revision; a recipe without one is built on a Spark by the Controller.
+    """
+
+    for entry in recipes:
+        image = images.get(str(entry["content_sha256"]))
+        if image is not None:
+            entry["prebuilt_image"] = {
+                "reference": image["reference"],
+                "build_key": image["build_key"],
+            }
+
+
 def build(
     *,
     package_dir: Path,
     platform_root: Path | None = None,
     source_commit: str | None = None,
+    prebuilt_images: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     package_dir.mkdir(parents=True, exist_ok=True)
     entities = _catalog_entity_documents()
@@ -678,6 +698,7 @@ def build(
                 "release": document["release"],
             }
         )
+    pin_prebuilt_images(recipes, prebuilt_images or {})
     from vonk_forge_contracts import CONTRACT_VERSION, document_sha256
 
     catalog_entities = [
@@ -779,7 +800,11 @@ def write_outputs(directory: Path, *, source_commit: str) -> dict[str, Any]:
 
 
 def write_release(
-    directory: Path, *, source_commit: str, include: tuple[Path, ...] = ()
+    directory: Path,
+    *,
+    source_commit: str,
+    include: tuple[Path, ...] = (),
+    prebuilt_images: dict[str, dict[str, str]] | None = None,
 ) -> dict[str, str]:
     """Write the flat release asset set and its SHA256SUMS manifest.
 
@@ -794,7 +819,11 @@ def write_release(
         raise SystemExit(f"release directory must be empty: {directory}")
     with tempfile.TemporaryDirectory(prefix="vonk-forge-release-") as temporary:
         package_dir = Path(temporary)
-        document = build(package_dir=package_dir, source_commit=source_commit)
+        document = build(
+            package_dir=package_dir,
+            source_commit=source_commit,
+            prebuilt_images=prebuilt_images,
+        )
         assets = {
             RELEASE_INDEX: _rendered_index(document),
             RELEASE_QUALIFICATION_INDEX: rendered(qualification_index(document)).encode(
@@ -848,18 +877,30 @@ def main() -> int:
         default=[],
         help="add this file to the release asset set (with --release-dir)",
     )
+    parser.add_argument(
+        "--prebuilt-images",
+        type=Path,
+        help="JSON map of recipe content digest to its prebuilt runtime image "
+        "(tools/prebuilt-images resolve), recorded in the index (with --release-dir)",
+    )
     arguments = parser.parse_args()
     source_commit = arguments.source_commit or _git_revision(ROOT)
+    prebuilt_images = (
+        json.loads(arguments.prebuilt_images.read_text(encoding="utf-8"))
+        if arguments.prebuilt_images is not None
+        else None
+    )
     if arguments.release_dir is not None:
         digests = write_release(
             arguments.release_dir,
             source_commit=source_commit,
             include=tuple(arguments.include),
+            prebuilt_images=prebuilt_images,
         )
         print(f"wrote {len(digests)} release assets to {arguments.release_dir}")
         return 0
-    if arguments.include:
-        parser.error("--include requires --release-dir")
+    if arguments.include or prebuilt_images is not None:
+        parser.error("--include and --prebuilt-images require --release-dir")
     document = write_outputs(arguments.output_dir, source_commit=source_commit)
     print(
         f"wrote catalog-index.json, qualification/qualification-index.json and "

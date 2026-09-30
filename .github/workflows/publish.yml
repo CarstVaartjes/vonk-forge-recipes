@@ -7,7 +7,8 @@ name: Publish recipe library release
 # This is the only workflow that runs on a push to main: it orchestrates the
 # validation jobs (the platform validator, the producer checks reused from
 # validate.yml with their light/full scope logic, the catalog index) and the
-# publish job fans in on all of them. Pull requests run validate.yml directly.
+# recipe runtime images (recipe-images.yml), and the publish job fans in on
+# all of them. Pull requests run validate.yml directly.
 on:
   push:
     branches: [main]
@@ -73,11 +74,29 @@ jobs:
           "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
 
+  # Build the runtime images of recipes changed since the last publication on
+  # hosted ARM64 runners and resolve every recipe's pinned GHCR image for the
+  # index. A failed build never holds publication: that recipe publishes
+  # without a prebuilt image and Controllers build it on a Spark.
+  images:
+    name: Recipe runtime images
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+      actions: write
+    uses: ./.github/workflows/recipe-images.yml
+
   publish:
     name: Create signed library release
-    needs: [validate, producer-contracts, catalog-index]
+    needs: [validate, producer-contracts, catalog-index, images]
     # Fan-in: publish only when no validation job failed or was cancelled.
-    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.ref == 'refs/heads/main' }}
+    # The image job is informative only: its outcome never blocks the release.
+    if: >-
+      ${{ !cancelled() && github.ref == 'refs/heads/main'
+      && needs.validate.result != 'failure'
+      && needs.producer-contracts.result != 'failure'
+      && needs.catalog-index.result != 'failure' }}
     runs-on: ubuntu-24.04
     environment: recipe-release
     # Control planes accept only assets whose SHA256SUMS carries a Sigstore
@@ -130,10 +149,24 @@ jobs:
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
           echo "updated_at=$updated_at" >> "$GITHUB_OUTPUT"
 
+      - name: Download the pinned prebuilt images
+        id: prebuilt
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: prebuilt-images
+          path: ${{ runner.temp }}/prebuilt
+
       - name: Build release assets from the release commit
         shell: bash
         run: |
           set -euo pipefail
+          prebuilt=()
+          if [ -f "$RUNNER_TEMP/prebuilt/prebuilt-images.json" ]; then
+            prebuilt=(--prebuilt-images "$RUNNER_TEMP/prebuilt/prebuilt-images.json")
+          else
+            echo "::warning::no prebuilt image map; this release pins no prebuilt images"
+          fi
           # Coverage is derived offline from this build (the authority is derived from it, not committed).
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index --source-commit "$GITHUB_SHA"
           "$RELEASE_TEST_PYTHON" tools/build-family-aware-coverage
@@ -144,7 +177,8 @@ jobs:
             --release-dir "$RUNNER_TEMP/release" --source-commit "$GITHUB_SHA" \
             --include qualification/coverage/family-aware-coverage-2026-09-24.json \
             --include qualification/coverage/family-aware-coverage-2026-09-24.md \
-            --include "$RUNNER_TEMP/overview/recipe-overview.md"
+            --include "$RUNNER_TEMP/overview/recipe-overview.md" \
+            "${prebuilt[@]}"
 
       - name: Compare with the published release
         id: current
