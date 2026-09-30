@@ -105,7 +105,7 @@ Which Spark counts each model family runs on.
 | MOSS-VL | ✓ |  |  |  |  |
 | MOVA | ✓ |  |  |  |  |
 | Muse Glimmer | ✓ |  |  |  |  |
-| Nemotron | ✓ |  |  |  |  |
+| Nemotron | ✓ | ✓ |  |  |  |
 | Nex N2 | ✓ |  |  |  |  |
 | OpenAI gpt-oss | ✓ |  |  |  |  |
 | Ornith | ✓ |  |  |  |  |
