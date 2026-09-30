@@ -1,0 +1,535 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "fd31bd450510bebbb6d28623eb88ff8a86a6ac6c8db2a9009f21fafe8ff1eff9",
+        "repository": "ghcr.io/drowzeys/keys-qwen38-27b-nvfp4-dflash2-ablit-cyber-unlock-1m-yarn-single-dgxspark"
+      },
+      "context": {
+        "path": "adapters/qwen/drowzeys-aeon-dflash2-single"
+      },
+      "dockerfile": "adapters/qwen/drowzeys-aeon-dflash2-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-27b-aeon-abliterated-dflash2-drowzeys-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "aeon"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "abliterated",
+    "description": "drowzeys' community compile for one Spark: sakamakismile's uniform NVFP4 quantization of AEON-7's uncensored (abliterated) Qwen3.8 27B, IncoAI's DFlash2 draft at n=7, a cybersecurity-unlock chat template, and a 1,048,576-token window by YaRN x4 (nested rope hf-overrides plus a YaRN-extended drafter config, because vLLM does not stretch the draft rope past 262144). Runs AEON-7's aeon-vllm-ultimate as retagged by drowzeys. Defaults follow upstream's 1M seat (serve_b5_on_4.sh): 2 sequences, GPU memory 0.70, 8192 batched tokens, FP8 KV, Triton attention, no prefix caching, sampling temperature 0.6 top-p 0.95 top-k 20 repetition penalty 1.05. Upstream reports (not measured here): needle hit at 999,714 tokens, 1,113,770-token KV pool, cyber 8/8 and refusal 32/32, prose decode about 20 and code about 42 tok/s. Uncensored weights and an unlock template: users supply their own guardrails; upstream ships a Responsible Use agreement (RESPONSIBLE_USE.md, vendored). Licences: weights and draft Apache-2.0 per their model cards, drowzeys repository Apache-2.0 (LICENSE vendored). Not gated. Upstream's second seat (16k, 64 sequences) is available as an option; set the context and concurrency settings to 16384 and 64 with it.",
+    "tags": [
+      "abliterated",
+      "candidate",
+      "dflash2",
+      "executable",
+      "mtp",
+      "multimodal",
+      "nvfp4",
+      "qwen3.8",
+      "single",
+      "spark",
+      "tool-use",
+      "uncensored",
+      "vllm",
+      "yarn"
+    ],
+    "title": "Qwen3.8 27B AEON Uncensored NVFP4 DFlash2 1M YaRN vLLM one Spark (drowzeys)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-14a7ffa03b89-b335630551",
+          "id": "primary-readme-14a7ffa03b89-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "id": "primary-chat-template-c3cf9e34abf4-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-783a7999e813-587cb980af",
+          "id": "primary-config-783a7999e813-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-069f479d9098-97dd3d578b",
+          "id": "primary-generation-config-069f479d9098-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-mtp-bf16-90fa0e3eed5a-44922e9b24",
+          "id": "primary-model-mtp-bf16-90fa0e3eed5a-44922e9b24",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-5ca4957d492e-9d75c1098f",
+          "id": "primary-model-5ca4957d492e-9d75c1098f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-17bca6239df2-0a05be8238",
+          "id": "primary-model-safetensors-index-17bca6239df2-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "primary-processor-config-d89ef49ce9cd-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "recipe-6c2685b6ea5a-e6afb07ce9",
+          "id": "primary-recipe-6c2685b6ea5a-e6afb07ce9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-445a1c450cb8-224931eb13",
+          "id": "primary-tokenizer-445a1c450cb8-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-dcb88c4a1dff-94d5c6ba8f",
+          "id": "primary-tokenizer-config-dcb88c4a1dff-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "57e36f8f10b7269de5f3b92dedf74a6e0406f92b63043e78340c0421a85bfca5",
+        "kind": "model",
+        "publisher": "sakamakismile",
+        "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4-8d5a3317"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-8e63f02a5caa-618cd5b83d",
+          "id": "drafter-metadata-8e63f02a5caa-618cd5b83d",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-be141ff737af-b335630551",
+          "id": "drafter-readme-be141ff737af-b335630551",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "id": "drafter-dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-873e3556509b-587cb980af",
+          "id": "drafter-config-873e3556509b-587cb980af",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-67fc76d68dc5-9d75c1098f",
+          "id": "drafter-model-67fc76d68dc5-9d75c1098f",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "drafter",
+      "model": {
+        "content_sha256": "cfdf4b57dbba6052de2d5e6c5c6f8df558b368424ee67d7d42f57f9d4bc9fc5f",
+        "kind": "model",
+        "publisher": "incoai",
+        "slug": "qwen3-8-27b-dflash2-incoai-015e7956"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Upstream default: YaRN x4 to 1,048,576, YaRN-extended drafter config, GPU memory 0.70, 8192 batched tokens.",
+          "label": "1M YaRN, 2 sequences",
+          "value": "yarn-1m"
+        },
+        {
+          "args": [
+            {
+              "name": "max-num-batched-tokens",
+              "value": 16384
+            },
+            {
+              "name": "gpu-memory-utilization",
+              "value": "0.75"
+            },
+            {
+              "name": "hf-overrides",
+              "value": "{}"
+            },
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":7,\"attention_backend\":\"TRITON_ATTN\"}"
+            }
+          ],
+          "help": "Upstream rollback seat: no YaRN, stock drafter config, GPU memory 0.75, 16384 batched tokens.",
+          "label": "16k, 64 sequences",
+          "value": "speed-16k"
+        }
+      ],
+      "help": "Upstream ships two seats. The 1M seat is the default; the 16k seat trades context for concurrency (set context_tokens 16384 and concurrency 64 with it).",
+      "label": "Serving seat",
+      "name": "seat"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "drowzeys (keyspark)",
+      "AEON-7 (uncensored weights, aeon-vllm-ultimate image)",
+      "sakamakismile (NVFP4 quantization)",
+      "IncoAI and Z Lab (DFlash2)",
+      "Qwen",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark/tree/fca3d18bcab52b65e4a428b883cbcbcb0a7a3443"
+  },
+  "release": {
+    "released_at": "2026-09-09",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "aeon"
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "compressed-tensors"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8_e4m3"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "TRITON_ATTN"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.70"
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "no-enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "hf-overrides",
+        "setting": null,
+        "value": "{\"text_config\":{\"max_position_embeddings\":1048576,\"rope_parameters\":{\"mrope_interleaved\":true,\"mrope_section\":[11,11,10],\"rope_type\":\"yarn\",\"rope_theta\":10000000,\"partial_rotary_factor\":0.25,\"factor\":4.0,\"original_max_position_embeddings\":262144}}}"
+      },
+      {
+        "name": "compilation-config",
+        "setting": null,
+        "value": "{\"cudagraph_mode\":\"FULL_AND_PIECEWISE\"}"
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"dflash\",\"model\":\"/outputs/drafter-yarn-1m\",\"num_speculative_tokens\":7,\"attention_backend\":\"TRITON_ATTN\"}"
+      },
+      {
+        "name": "override-generation-config",
+        "setting": null,
+        "value": "{\"temperature\":0.6,\"top_p\":0.95,\"top_k\":20,\"min_p\":0.0,\"presence_penalty\":0.0,\"repetition_penalty\":1.05}"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "qwen3"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/vonk/overlay/chat_template_b5_uncensored.jinja"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "PYTORCH_CUDA_ALLOC_CONF",
+        "value": "expandable_segments:True"
+      },
+      {
+        "name": "VLLM_ALLOW_LONG_MAX_MODEL_LEN",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 2
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 1048576
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 24428658705,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 20000000000,
+            "working_bytes": 40000000000
+          },
+          "memory": {
+            "peak_bytes": 98000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "aeon"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
