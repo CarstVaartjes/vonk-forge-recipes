@@ -1,0 +1,360 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "repository": "nvcr.io/nvidia/cuda"
+      },
+      "context": {
+        "path": "adapters/llama-cpp/amarjeet-bonsai-prism-single"
+      },
+      "dockerfile": "adapters/llama-cpp/amarjeet-bonsai-prism-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "archive.ubuntu.com",
+          "ports.ubuntu.com",
+          "security.ubuntu.com",
+          "codeload.github.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "ternary-bonsai-2-27b-pq2-0-amarjeet-llama-cpp-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "ternary-bonsai-2-27b-pq2-0"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "Candidate one-DGX Spark PrismML Ternary-Bonsai-2-27B (a ternary g128 quantization of Qwen3.8-27B: 1.72 bits per weight, 6.70 GiB resident; hybrid 48 gated-DeltaNet plus 16 full-attention layers; vision-language with the Q8_0 projector; thinking on) on the PrismML llama.cpp fork, as in amarjeet's dgx-spark-recipes (MIT) default wide profile: PQ2_0 weights, four slots of 262,144 tokens each (1,048,576 tokens in total, about 85 GiB resident by upstream's header-derived budget because the hybrid backbone costs only 64 KiB of KV per token), 8 checkpoints and an 8 GiB checkpoint cache. Stock llama.cpp cannot run these files (the PQ2_0 and PTQ1_0 types and the Hadamard activation transform exist only in the fork), and the fork publishes no aarch64 CUDA binary, so this recipe builds the pinned fork commit 5d80cff0 (release prism-b10687-5d80cff, MIT) with CUDA for sm_121a in its own image, without the web UI, as upstream's build.sh does. Upstream loads the weights with mmap+mlock; this recipe uses plain mmap because the platform raises the memlock limit only for multi-Spark fabric containers. Upstream warns that llama.cpp issue 27756 reports a silent instant-EOS at long depth for this architecture; it did not reproduce on this fork build (needle recalled at 254,032 tokens), but the onset is prompt dependent, so set the context to 262,144 with concurrency 4 (65,536 tokens per slot) for upstream's conservative safe profile. Upstream's PTQ1_0 packing (faster decode, slower prefill) and its F16 files are not packaged: a recipe carries one set of model files. The Hugging Face repository has moved past the pinned revision 6ed5e12b and the fork past prism-b10687; both pins follow upstream. Upstream figures (about 30 tok/s decode and 1,034 tok/s prefill for PQ2_0) are claims until measured here; Vonk physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "executable",
+      "gguf",
+      "llama-cpp",
+      "ternary",
+      "ternary-bonsai",
+      "openai",
+      "prism-ml",
+      "reasoning",
+      "single",
+      "spark",
+      "vision"
+    ],
+    "title": "Ternary Bonsai 2 27B PQ2_0 llama.cpp single Spark (amarjeet)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-69849221bfb9-c693279643",
+          "id": "primary-license-69849221bfb9-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "notice-de0e0c48fb6f-b810ebe4ff",
+          "id": "primary-notice-de0e0c48fb6f-b810ebe4ff",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "pq2-0-3907dc1658db",
+          "id": "primary-pq2-0-3907dc1658db",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mmproj-q8-0-6807ede61d57",
+          "id": "primary-mmproj-q8-0-6807ede61d57",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "5d9e73bac7436e8556393508bd55007851b19d37ab8400a788ee18ae02baf9c9",
+        "kind": "model",
+        "publisher": "prism-ml",
+        "slug": "ternary-bonsai-2-27b-pq2-0-gguf-6ed5e12b"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Leave the template's own default, which upstream notes is the most expensive one (xhigh).",
+          "label": "Template default (xhigh)",
+          "value": "default"
+        },
+        {
+          "args": [
+            {
+              "name": "chat-template-kwargs",
+              "value": "{\"reasoning_effort\":\"medium\"}"
+            }
+          ],
+          "help": "Pin reasoning_effort to medium.",
+          "label": "Medium",
+          "value": "medium"
+        },
+        {
+          "args": [
+            {
+              "name": "chat-template-kwargs",
+              "value": "{\"reasoning_effort\":\"low\"}"
+            }
+          ],
+          "help": "Pin reasoning_effort to low; the model card says low is not really honoured and behaves close to xhigh.",
+          "label": "Low",
+          "value": "low"
+        }
+      ],
+      "help": "Server-wide default thinking depth, passed through the chat template. Clients can still override it per request with chat_template_kwargs. The template raises an error on any other value.",
+      "label": "Thinking effort",
+      "name": "reasoning-effort"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "amarjeet",
+      "PrismML",
+      "Qwen",
+      "llama.cpp contributors"
+    ],
+    "source_reference": "https://github.com/amarjeet/dgx-spark-recipes/tree/67c5c388026c3984acd8d96fbbb12c5643205719"
+  },
+  "release": {
+    "released_at": "2026-09-29",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model",
+        "setting": null,
+        "value": "/models/Ternary-Bonsai-2-27B-PQ2_0.gguf"
+      },
+      {
+        "name": "alias",
+        "setting": null,
+        "value": "ternary-bonsai-2-27b-pq2-0"
+      },
+      {
+        "name": "ctx-size",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8000
+      },
+      {
+        "name": "n-gpu-layers",
+        "setting": null,
+        "value": 999
+      },
+      {
+        "name": "flash-attn",
+        "setting": null,
+        "value": "on"
+      },
+      {
+        "name": "batch-size",
+        "setting": null,
+        "value": 2048
+      },
+      {
+        "name": "ubatch-size",
+        "setting": null,
+        "value": 512
+      },
+      {
+        "name": "load-mode",
+        "setting": null,
+        "value": "mmap"
+      },
+      {
+        "name": "ctx-checkpoints",
+        "setting": null,
+        "value": 8
+      },
+      {
+        "name": "cache-ram",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "jinja",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-format",
+        "setting": null,
+        "value": "auto"
+      },
+      {
+        "name": "temp",
+        "setting": null,
+        "value": 1.0
+      },
+      {
+        "name": "top-p",
+        "setting": null,
+        "value": 0.95
+      },
+      {
+        "name": "top-k",
+        "setting": null,
+        "value": 20
+      },
+      {
+        "name": "mmproj",
+        "setting": null,
+        "value": "/models/Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf"
+      }
+    ],
+    "engine": "llama-cpp",
+    "entrypoint": [
+      "/opt/vonk/bin/llama-server"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 1048576
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 7835426489,
+            "image_bytes": 6000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 4000000000
+          },
+          "memory": {
+            "peak_bytes": 92000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 4096,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "ternary-bonsai-2-27b-pq2-0"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

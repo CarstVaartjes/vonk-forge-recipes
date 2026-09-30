@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-We cover Agents-A1, Alibaba Qwen2.5-VL, DeepSeek V4 Flash, DiffusionGemma, FastContext, FLUX.2, Gemma, GLM, Google Gemma, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3, Hy3 kodelow, Hy3 LibertAI, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, Microsoft Phi-4, MiMo, MiniMax H3, MiniMax M2, MiniMax M3, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Nex N2, OpenAI gpt-oss, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, TRELLIS, TripoSG, UI-Mate, UkisAI Swift Qwen3.8 checkpoints, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+We cover Agents-A1, Alibaba Qwen2.5-VL, DeepSeek V4 Flash, DiffusionGemma, FastContext, FLUX.2, Gemma, GLM, Google Gemma, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3, Hy3 kodelow, Hy3 LibertAI, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, Microsoft Phi-4, MiMo, MiniMax H3, MiniMax M2, MiniMax M3, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Nex N2, OpenAI gpt-oss, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, Ternary Bonsai, TRELLIS, TripoSG, UI-Mate, UkisAI Swift Qwen3.8 checkpoints, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -59,6 +59,7 @@ Which engines each model family runs on.
 | SkinTokens |  |  |  |  |  |  |  |  | ✓ |  |
 | Step 3.7 Flash | ✓ |  |  |  |  |  |  |  |  |  |
 | Step1X-3D |  |  |  |  |  |  |  |  | ✓ |  |
+| Ternary Bonsai |  |  |  | ✓ |  |  |  |  |  |  |
 | TRELLIS |  |  |  |  |  |  |  |  | ✓ |  |
 | TripoSG |  |  |  |  |  |  |  |  | ✓ |  |
 | UI-Mate | ✓ |  |  |  |  |  |  |  |  |  |
@@ -114,6 +115,7 @@ Which Spark counts each model family runs on.
 | SkinTokens | ✓ |  |  |  |  |
 | Step 3.7 Flash |  | ✓ |  |  |  |
 | Step1X-3D | ✓ |  |  |  |  |
+| Ternary Bonsai | ✓ |  |  |  |  |
 | TRELLIS | ✓ |  |  |  |  |
 | TripoSG | ✓ |  |  |  |  |
 | UI-Mate | ✓ |  |  |  |  |
@@ -129,6 +131,7 @@ Creators whose DGX Spark work we package; filter by creator in vonkctl or the we
 | Creator | Focus |
 | --- | --- |
 | [0xSero](https://github.com/0xSero) | SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark. |
+| [amarjeet](https://github.com/amarjeet) | dgx-spark-recipes: single-Spark llama.cpp GGUF, TensorFold and EXL3 recipes that pin model revisions and shard SHA-256s; Ling, Ternary-Bonsai, Qwen3.8 Flash Next. |
 | [antirez](https://github.com/antirez/ds4) | ds4: the DeepSeek 4 Flash inference engine (Metal, CUDA, ROCm). |
 | [drowzeys (keyz)](https://github.com/drowzeys) | Large multi-Spark vLLM builds with prebuilt images: GLM, MiMo, abliterated variants. |
 | [eugr](https://github.com/eugr) | spark-vllm-docker: vLLM container builds for dual DGX Spark; llama-benchy benchmarking. |

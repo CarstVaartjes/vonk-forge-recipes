@@ -1,0 +1,16 @@
+{
+  "id": "vonk-forge/ternary-bonsai-2-27b-pq2-0-amarjeet-llama-cpp-single",
+  "service_recipes": {
+    "alias": "ternary-bonsai-2-27b-pq2-0",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Needle-in-haystack at the per-slot context (262,144 tokens, telling a silent instant EOS apart from a lost needle; llama.cpp issue 27756) and four-slot concurrency canaries; thinking is always on, so use budgets of at least 8K tokens"
+      ]
+    }
+  }
+}
