@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/qwen3-8-27b-q4-k-m-ggml-org-llamacpp-single",
+  "service_recipes": {
+    "alias": "qwen3.8-27b",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded context and concurrency canaries"
+      ],
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ]
+    }
+  }
+}
