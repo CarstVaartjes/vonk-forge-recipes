@@ -1,0 +1,266 @@
+#!/usr/bin/env python3
+"""Plan, look up and record the prebuilt runtime images of the recipe library.
+
+Every distinct recipe image is built on a GitHub-hosted ARM64 runner and pushed
+to GHCR as ``ghcr.io/<owner>/vonk-forge-recipe-<slug>:build-<key>``, where
+``<key>`` is the executable build key Vonk Forge's ``scripts/recipe-image-plan``
+derives (source bundle, Dockerfile, pinned base images, build options and
+capabilities, runtime adapter). The Controller derives the same key for a
+revision and prefers the pinned digest over a Spark build.
+
+``select``  decides what the image workflow builds: recipes changed since the
+            last published commit (or the slugs asked for, or all) whose
+            ``build-<key>`` tag is missing, one build per distinct key. A key
+            another recipe already has is copied instead of rebuilt.
+``resolve`` looks up every recipe's ``build-<key>`` digest for the signed index.
+
+Recipes whose image is missing (not built yet, or its build failed) simply
+publish without ``prebuilt_image``; Controllers then build them on a Spark.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+from collections.abc import Callable, Iterable, Mapping
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path, PurePosixPath
+from typing import Any
+
+REGISTRY = "ghcr.io"
+PACKAGE_PREFIX = "vonk-forge-recipe-"
+# A matrix may hold at most 256 jobs; the rest wait for the next run.
+MAX_BUILDS = 256
+_MANIFEST_TYPES = (
+    "application/vnd.oci.image.manifest.v1+json, "
+    "application/vnd.docker.distribution.manifest.v2+json, "
+    "application/vnd.oci.image.index.v1+json, "
+    "application/vnd.docker.distribution.manifest.list.v2+json"
+)
+
+# (owner, package, tag) -> manifest digest or None
+Lookup = Callable[[str, str, str], "str | None"]
+
+
+def package(slug: str) -> str:
+    return f"{PACKAGE_PREFIX}{slug}"
+
+
+def repository(owner: str, slug: str) -> str:
+    return f"{REGISTRY}/{owner.lower()}/{package(slug)}"
+
+
+def ghcr_digest(owner: str, name: str, tag: str) -> str | None:
+    """Anonymous manifest lookup; ``None`` when the tag does not exist."""
+
+    scope = f"repository:{owner.lower()}/{name}:pull"
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(
+                f"https://{REGISTRY}/token?scope={scope}", timeout=30
+            ) as response:
+                token = json.load(response)["token"]
+            request = urllib.request.Request(
+                f"https://{REGISTRY}/v2/{owner.lower()}/{name}/manifests/{tag}",
+                method="HEAD",
+                headers={"Authorization": f"Bearer {token}", "Accept": _MANIFEST_TYPES},
+            )
+            with urllib.request.urlopen(request, timeout=30) as response:
+                digest = response.headers.get("Docker-Content-Digest")
+                return digest if isinstance(digest, str) else None
+        except urllib.error.HTTPError as error:
+            # A package that was never pushed denies the token or the manifest.
+            if error.code in {401, 403, 404}:
+                return None
+            if attempt == 2:
+                raise
+        except (urllib.error.URLError, TimeoutError, OSError):
+            if attempt == 2:
+                raise
+    return None
+
+
+def _recipes(plan: Mapping[str, Any]) -> Iterable[tuple[str, Mapping[str, Any]]]:
+    for image in plan.get("images", []):
+        for recipe in image.get("recipes", []):
+            yield str(image["build_key"]), recipe
+
+
+def changed_slugs(plan: Mapping[str, Any], paths: Iterable[str]) -> set[str]:
+    """Recipes whose document or build context a set of changed paths touches."""
+
+    changed = [PurePosixPath(path) for path in paths if path]
+    slugs: set[str] = set()
+    for _key, recipe in _recipes(plan):
+        source = PurePosixPath(str(recipe["source_path"]))
+        context = PurePosixPath(str(recipe["context"]))
+        if any(path == source or context in path.parents for path in changed):
+            slugs.add(str(recipe["slug"]))
+    return slugs
+
+
+def select(
+    plan: Mapping[str, Any],
+    *,
+    owner: str,
+    candidates: set[str] | None,
+    lookup: Lookup = ghcr_digest,
+) -> dict[str, Any]:
+    """What to build and what to copy for the candidate recipes.
+
+    ``candidates`` of ``None`` means every recipe. A key is built once, into
+    the first candidate recipe that lacks it; recipes sharing a key another
+    package already holds are copied from it.
+    """
+
+    builds: dict[str, dict[str, Any]] = {}
+    copies: list[dict[str, str]] = []
+    for image in plan.get("images", []):
+        key = str(image["build_key"])
+        recipes = list(image.get("recipes", []))
+        wanted = [
+            recipe
+            for recipe in recipes
+            if candidates is None or str(recipe["slug"]) in candidates
+        ]
+        if not wanted:
+            continue
+        tag = f"build-{key}"
+        present = {
+            str(recipe["slug"]): lookup(owner, package(str(recipe["slug"])), tag)
+            for recipe in recipes
+        }
+        source = next((slug for slug, digest in present.items() if digest), None)
+        missing = [recipe for recipe in wanted if not present[str(recipe["slug"])]]
+        if not missing:
+            continue
+        if source is not None:
+            digest = present[source]
+            assert digest is not None
+            copies.extend(
+                {
+                    "from": f"{repository(owner, source)}@{digest}",
+                    "to": f"{repository(owner, str(recipe['slug']))}:{tag}",
+                    "version_tag": f"{repository(owner, str(recipe['slug']))}:"
+                    f"{recipe.get('version') or 'latest'}",
+                }
+                for recipe in missing
+            )
+            continue
+        builds[key] = {
+            "build_key": key,
+            "recipes": [
+                {
+                    "slug": str(recipe["slug"]),
+                    "version": recipe.get("version"),
+                    "repository": repository(owner, str(recipe["slug"])),
+                }
+                for recipe in missing
+            ],
+        }
+    ordered = sorted(builds.values(), key=lambda item: item["recipes"][0]["slug"])
+    return {
+        "builds": ordered[:MAX_BUILDS],
+        "deferred": [item["build_key"] for item in ordered[MAX_BUILDS:]],
+        "copies": copies,
+    }
+
+
+def resolve(
+    plan: Mapping[str, Any], *, owner: str, lookup: Lookup = ghcr_digest
+) -> tuple[dict[str, dict[str, str]], list[str]]:
+    """Map each recipe's content digest to its pinned prebuilt image."""
+
+    entries = list(_recipes(plan))
+
+    def one(entry: tuple[str, Mapping[str, Any]]) -> tuple[str, str, str | None]:
+        key, recipe = entry
+        slug = str(recipe["slug"])
+        try:
+            digest = lookup(owner, package(slug), f"build-{key}")
+        except OSError as error:
+            print(f"{slug}: registry lookup failed: {error}", file=sys.stderr)
+            digest = None
+        return key, slug, digest
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        found = list(pool.map(one, entries))
+    images: dict[str, dict[str, str]] = {}
+    missing: list[str] = []
+    for (key, recipe), (_key, slug, digest) in zip(entries, found, strict=True):
+        if digest is None:
+            missing.append(slug)
+            continue
+        images[str(recipe["content_sha256"])] = {
+            "reference": f"{repository(owner, slug)}@{digest}",
+            "build_key": key,
+        }
+    return images, sorted(missing)
+
+
+def _git_changed(baseline: str) -> list[str]:
+    completed = subprocess.run(
+        ["git", "diff", "--name-only", baseline, "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout.splitlines()
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    commands = parser.add_subparsers(dest="command", required=True)
+    choose = commands.add_parser("select")
+    choose.add_argument("--plan", type=Path, required=True)
+    choose.add_argument("--owner", required=True)
+    choose.add_argument(
+        "--baseline",
+        default="",
+        help="last published commit; recipes changed since it are candidates",
+    )
+    choose.add_argument(
+        "--slugs", default="", help="space-separated recipe ids, or 'all'"
+    )
+    choose.add_argument("--output", type=Path, required=True)
+    look = commands.add_parser("resolve")
+    look.add_argument("--plan", type=Path, required=True)
+    look.add_argument("--owner", required=True)
+    look.add_argument("--output", type=Path, required=True)
+    arguments = parser.parse_args()
+    plan = json.loads(arguments.plan.read_text(encoding="utf-8"))
+    if arguments.command == "select":
+        requested = arguments.slugs.split()
+        if requested == ["all"]:
+            candidates = None
+        elif requested:
+            candidates = set(requested)
+        elif arguments.baseline:
+            candidates = changed_slugs(plan, _git_changed(arguments.baseline))
+        else:
+            # No published baseline (a new contract release): build on request only.
+            candidates = set()
+        selection = select(plan, owner=arguments.owner, candidates=candidates)
+        arguments.output.write_text(json.dumps(selection, indent=2), encoding="utf-8")
+        print(
+            f"{len(selection['builds'])} image build(s), "
+            f"{len(selection['copies'])} copy(ies), "
+            f"{len(selection['deferred'])} deferred"
+        )
+        return 0
+    images, missing = resolve(plan, owner=arguments.owner)
+    arguments.output.write_text(
+        json.dumps(images, indent=2, sort_keys=True), encoding="utf-8"
+    )
+    print(f"{len(images)} recipe(s) have a prebuilt image; {len(missing)} do not")
+    for slug in missing:
+        print(f"  no prebuilt image: {slug}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
