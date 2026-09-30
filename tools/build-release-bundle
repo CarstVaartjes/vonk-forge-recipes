@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""Bundle a signed release asset set into one deterministic ``recipe-library.tar``.
+
+The bundle is an uncompressed tar (the packages inside are already gzip). Its
+members are the flat release asset names: ``SHA256SUMS``, its Sigstore bundle
+``SHA256SUMS.sigstore.json`` and every file ``SHA256SUMS`` lists, and nothing
+else. Members are sorted by name, are regular files only, and carry no owner,
+group or time: mode 0644, uid/gid 0, empty uname/gname, mtime 0. The same
+release directory therefore always produces the same bytes.
+
+The existing signature over ``SHA256SUMS`` is the trust root. A consumer
+verifies ``SHA256SUMS.sigstore.json`` from inside the tar, then every member
+against ``SHA256SUMS``. The builder applies the digest check too, so a bundle is
+never written from an inconsistent release directory.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import re
+import tarfile
+from pathlib import Path
+
+BUNDLE_NAME = "recipe-library.tar"
+CHECKSUMS = "SHA256SUMS"
+ATTESTATION = "SHA256SUMS.sigstore.json"
+CHECKSUM_LINE = re.compile(r"^([0-9a-f]{64})  ([A-Za-z0-9][A-Za-z0-9._-]*)$")
+
+
+def parse_checksums(text: str) -> dict[str, str]:
+    """Return ``{asset name: sha256}`` from a SHA256SUMS manifest."""
+
+    digests: dict[str, str] = {}
+    for line in text.splitlines():
+        match = CHECKSUM_LINE.match(line)
+        if not match:
+            raise SystemExit(f"malformed {CHECKSUMS} line: {line!r}")
+        digest, name = match.groups()
+        if name in digests:
+            raise SystemExit(f"{CHECKSUMS} lists {name} twice")
+        if name in (CHECKSUMS, ATTESTATION):
+            raise SystemExit(f"{CHECKSUMS} must not list {name}")
+        digests[name] = digest
+    if not digests:
+        raise SystemExit(f"{CHECKSUMS} is empty")
+    return digests
+
+
+def member_names(release: Path) -> list[str]:
+    """Return the sorted member names, validating the release directory."""
+
+    manifest = release / CHECKSUMS
+    if manifest.is_symlink() or not manifest.is_file():
+        raise SystemExit(f"{manifest} is not a regular file")
+    digests = parse_checksums(manifest.read_text(encoding="utf-8"))
+    names = sorted({CHECKSUMS, ATTESTATION, *digests}, key=str.encode)
+    present = sorted((path.name for path in release.iterdir()), key=str.encode)
+    if present != names:
+        missing = sorted(set(names) - set(present))
+        extra = sorted(set(present) - set(names))
+        raise SystemExit(
+            f"release directory does not match {CHECKSUMS}: "
+            f"missing {missing}, unlisted {extra}"
+        )
+    for name in names:
+        path = release / name
+        if path.is_symlink() or not path.is_file():
+            raise SystemExit(f"{path} is not a regular file")
+    for name, digest in digests.items():
+        actual = hashlib.sha256((release / name).read_bytes()).hexdigest()
+        if actual != digest:
+            raise SystemExit(f"{name} does not match its {CHECKSUMS} digest")
+    return names
+
+
+def build(release: Path, output: Path) -> list[str]:
+    """Write the bundle to ``output`` and return its member names."""
+
+    names = member_names(release)
+    if output.parent.resolve() == release.resolve():
+        raise SystemExit("write the bundle outside the release directory")
+    with tarfile.open(output, "w", format=tarfile.PAX_FORMAT) as archive:
+        for name in names:
+            path = release / name
+            info = tarfile.TarInfo(name)
+            info.size = path.stat().st_size
+            info.mode = 0o644
+            info.mtime = 0
+            info.uid = info.gid = 0
+            info.uname = info.gname = ""
+            info.type = tarfile.REGTYPE
+            with path.open("rb") as handle:
+                archive.addfile(info, handle)
+    return names
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("release_dir", type=Path, help="signed release asset set")
+    parser.add_argument(
+        "output", type=Path, help=f"bundle to write (published as {BUNDLE_NAME})"
+    )
+    arguments = parser.parse_args()
+    names = build(arguments.release_dir, arguments.output)
+    with arguments.output.open("rb") as handle:
+        digest = hashlib.file_digest(handle, "sha256").hexdigest()
+    print(f"{arguments.output}: {len(names)} members, sha256 {digest}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

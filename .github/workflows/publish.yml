@@ -161,9 +161,14 @@ jobs:
             exit 0
           fi
           echo "exists=true" >> "$GITHUB_OUTPUT"
+          # Identical manifest is not enough to skip: a half-updated release
+          # keeps its manifest, and one published before the bundle existed
+          # lacks recipe-library.tar. Skip only when the release is complete.
           if gh release download "$RELEASE_TAG" --pattern SHA256SUMS --dir "$current" \
-            && cmp -s "$current/SHA256SUMS" "$RUNNER_TEMP/release/SHA256SUMS"; then
-            echo "release $RELEASE_TAG already publishes this asset set"
+            && cmp -s "$current/SHA256SUMS" "$RUNNER_TEMP/release/SHA256SUMS" \
+            && "$RELEASE_TEST_PYTHON" tools/sync-release-assets --tag "$RELEASE_TAG" \
+              check --sums "$current/SHA256SUMS"; then
+            echo "release $RELEASE_TAG already publishes this complete asset set"
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
@@ -194,32 +199,23 @@ jobs:
           git tag --force --annotate "$RELEASE_TAG" \
             --message "Vonk Forge recipe library $RELEASE_TAG, updated $UPDATED_AT" "$GITHUB_SHA"
           git push --force origin "refs/tags/$RELEASE_TAG"
+          # One asset holds the whole signed library: SHA256SUMS, its Sigstore
+          # bundle and every listed file, deterministically. Consumers read it
+          # instead of racing the per-asset updates below.
+          bundle="$RUNNER_TEMP/bundle/recipe-library.tar"
+          mkdir -p "$(dirname "$bundle")"
+          "$RELEASE_TEST_PYTHON" tools/build-release-bundle "$release" "$bundle"
           if [ "$RELEASE_EXISTS" != "true" ]; then
             # Upload every asset to a draft first: "latest" must never name a
             # release whose signed asset set is incomplete.
             gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
-              --title "$title" --notes "$notes" "$release"/*
+              --title "$title" --notes "$notes" "$release"/* "$bundle"
             gh release edit "$RELEASE_TAG" --draft=false --latest
-            exit 0
           fi
-          # Update in place: content first, then the signed manifest, then drop
-          # assets the new manifest no longer lists. A reader that sees a mixed
-          # set fails verification once and heals on its next sync.
-          content=()
-          for path in "$release"/*; do
-            case "$(basename "$path")" in
-              SHA256SUMS | SHA256SUMS.sigstore.json) ;;
-              *) content+=("$path") ;;
-            esac
-          done
-          gh release upload "$RELEASE_TAG" --clobber "${content[@]}"
-          gh release upload "$RELEASE_TAG" --clobber \
-            "$release/SHA256SUMS" "$release/SHA256SUMS.sigstore.json"
-          keep=$(ls "$release")
-          gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' |
-            while IFS= read -r name; do
-              if ! grep -qxF "$name" <<< "$keep"; then
-                gh release delete-asset "$RELEASE_TAG" "$name" --yes
-              fi
-            done
+          # Upload what is missing or different (content, then the bundle, then
+          # the signed manifest), drop assets the manifest no longer lists, and
+          # verify the release's digests and sizes. Per-asset replacement is not
+          # atomic; the run fails unless the release converges to the exact set.
+          "$RELEASE_TEST_PYTHON" tools/sync-release-assets --tag "$RELEASE_TAG" \
+            publish --release-dir "$release" --bundle "$bundle"
           gh release edit "$RELEASE_TAG" --title "$title" --notes "$notes" --latest
