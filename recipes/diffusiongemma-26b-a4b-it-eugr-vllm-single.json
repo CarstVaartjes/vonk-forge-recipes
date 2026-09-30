@@ -1,0 +1,509 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "155ce16b49007c8b00690dd4c7637c0c1eafbe909709c3175c4498325c01c1d8",
+        "repository": "docker.io/eugr/spark-vllm"
+      },
+      "context": {
+        "path": "adapters/eugr/diffusion-gemma-bf16"
+      },
+      "dockerfile": "adapters/eugr/diffusion-gemma-bf16/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "diffusiongemma-26b-a4b-it-eugr-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "DiffusionGemma-26B-A4B-it"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker diffusion-gemma-bf16 recipe for Google's DiffusionGemma-26B-A4B-it (bf16; checkpoint revision f7f5b7f5), Apache-2.0, served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: block-diffusion decoding (canvas length 256), TRITON_ATTN attention, fastsafetensors loading, prefix caching, gemma4 reasoning and tool-call parsers, 262,144-token context and memory utilisation 0.8 (upstream defaults), ten sequences and Triton MoE backend. Upstream's diffusiongemma mod is applied at image build time: it skips its vLLM patches because the pinned image already contains DiffusionGemma support and only installs its no-thinking chat template at /workspace/vllm/fixed_chat_template.jinja, which the recipe passes by absolute path (upstream uses a path relative to its working directory). Thinking is an option: the default is upstream's diffusion-gemma-bf16 (thinking off, fixed chat template); the other choice is eugr's diffusion-gemma-bf16-thinking recipe (enable_thinking true with the checkpoint's own chat template). The upstream recipe is solo-only. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending.",
+    "tags": [
+      "bf16",
+      "candidate",
+      "diffusion",
+      "diffusiongemma",
+      "eugr",
+      "executable",
+      "gemma",
+      "reasoning",
+      "single",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "DiffusionGemma 26B-A4B bf16 vLLM single Spark (eugr)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-fd82bca78d82-618cd5b83d",
+          "id": "primary-metadata-fd82bca78d82-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-3acbbf7e4c01-b335630551",
+          "id": "primary-readme-3acbbf7e4c01-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-9aeb7eac68ad-00824420d1",
+          "id": "primary-chat-template-9aeb7eac68ad-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-13b11d2fe873-587cb980af",
+          "id": "primary-config-13b11d2fe873-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-99334f763c3d-97dd3d578b",
+          "id": "primary-generation-config-99334f763c3d-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00011-3efe137998af-9b90934164",
+          "id": "primary-model-00001-of-00011-3efe137998af-9b90934164",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00011-4a39d68c756f-c04a9dab92",
+          "id": "primary-model-00002-of-00011-4a39d68c756f-c04a9dab92",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00011-ac6083e34892-74de7f5b30",
+          "id": "primary-model-00003-of-00011-ac6083e34892-74de7f5b30",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00011-865b66393de5-3816020362",
+          "id": "primary-model-00004-of-00011-865b66393de5-3816020362",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00011-a87e01bed77a-5709a5a751",
+          "id": "primary-model-00005-of-00011-a87e01bed77a-5709a5a751",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00011-077e841b3b13-e4ac42a7fe",
+          "id": "primary-model-00006-of-00011-077e841b3b13-e4ac42a7fe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00011-13a18b3c04a7-4cb1fbe204",
+          "id": "primary-model-00007-of-00011-13a18b3c04a7-4cb1fbe204",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00011-aca5d3bdfc84-785d125f4e",
+          "id": "primary-model-00008-of-00011-aca5d3bdfc84-785d125f4e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00011-8e2418867354-e228bcc2fe",
+          "id": "primary-model-00009-of-00011-8e2418867354-e228bcc2fe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00011-93d564b7dd68-418939ece1",
+          "id": "primary-model-00010-of-00011-93d564b7dd68-418939ece1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00011-afec047176bb-fe7fbfbe20",
+          "id": "primary-model-00011-of-00011-afec047176bb-fe7fbfbe20",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-6e33e8465d55-0a05be8238",
+          "id": "primary-model-safetensors-index-6e33e8465d55-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-index-989c453462f9-ee03ace9a3",
+          "id": "primary-model-index-989c453462f9-ee03ace9a3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-32bdf45d2ad4-27f0cb76af",
+          "id": "primary-processor-config-32bdf45d2ad4-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "scheduler-config-5e5536ea036c-67ecb3dc37",
+          "id": "primary-scheduler-config-5e5536ea036c-67ecb3dc37",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-cc8d3a0ce364-224931eb13",
+          "id": "primary-tokenizer-cc8d3a0ce364-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-a284d1243b62-94d5c6ba8f",
+          "id": "primary-tokenizer-config-a284d1243b62-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "8ff6a404f1b7a8709a3cebce797856836e2d6321733a1ec8067a609d9bbaec43",
+        "kind": "model",
+        "publisher": "google",
+        "slug": "diffusiongemma-26b-a4b-it-bf16-f7f5b7f5"
+      }
+    }
+  ],
+  "options": [
+    {
+      "choices": [
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "value": "{\"enable_thinking\": false}"
+            },
+            {
+              "name": "chat-template",
+              "value": "/workspace/vllm/fixed_chat_template.jinja"
+            }
+          ],
+          "default": true,
+          "help": "eugr's diffusion-gemma-bf16 recipe: enable_thinking false with the fixed no-thinking chat template baked into the image.",
+          "label": "Thinking off",
+          "value": "off"
+        },
+        {
+          "args": [
+            {
+              "name": "default-chat-template-kwargs",
+              "value": "{\"enable_thinking\": true}"
+            }
+          ],
+          "help": "eugr's diffusion-gemma-bf16-thinking recipe: enable_thinking true with the checkpoint's own chat template.",
+          "label": "Thinking on",
+          "value": "on"
+        }
+      ],
+      "help": "Whether the chat template enables thinking by default. eugr ships both as separate recipes (diffusion-gemma-bf16 and diffusion-gemma-bf16-thinking); requests can still override the chat template kwargs.",
+      "label": "Thinking",
+      "name": "thinking"
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "eugr (MIT)",
+      "Google DeepMind (Apache-2.0)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/42f62e349c610641ac6677ac28275c57bebdf9c3"
+  },
+  "release": {
+    "released_at": "2026-09-28",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 1
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "DiffusionGemma-26B-A4B-it"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.8"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "fastsafetensors"
+      },
+      {
+        "name": "attention-backend",
+        "setting": null,
+        "value": "TRITON_ATTN"
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "diffusion-config",
+        "setting": null,
+        "value": "{\"canvas_length\":256}"
+      },
+      {
+        "name": "override-generation-config",
+        "setting": null,
+        "value": "{\"max_new_tokens\": null}"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "gemma4"
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "triton"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 10
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 51680024015,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 16000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 110000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "DiffusionGemma-26B-A4B-it"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

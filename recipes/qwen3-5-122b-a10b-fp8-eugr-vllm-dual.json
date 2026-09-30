@@ -1,0 +1,835 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "155ce16b49007c8b00690dd4c7637c0c1eafbe909709c3175c4498325c01c1d8",
+        "repository": "docker.io/eugr/spark-vllm"
+      },
+      "context": {
+        "path": "adapters/eugr/qwen3-5-122b-fp8"
+      },
+      "dockerfile": "adapters/eugr/qwen3-5-122b-fp8/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-5-122b-a10b-fp8-eugr-vllm-dual"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Qwen3.5-122B-A10B-FP8"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker recipe for Qwen's official Qwen3.5-122B-A10B-FP8 (block-wise FP8, Apache-2.0; checkpoint revision a099dee7) served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: InstantTensor loading, prefix caching, qwen3_coder tool parsing, qwen3 reasoning parsing, eugr's fix-qwen3.5-chat-template mod (baked into the image at build time; the unsloth chat template it installs is selected with --chat-template), 262,144-token context, 8,192 batched tokens and memory utilisation 0.8 (upstream defaults); scheduler sequence capacity is left to vLLM as upstream does not set it. Upstream marks this recipe cluster-only (the FP8 weights do not fit one Spark), so there is no single-Spark recipe. This is upstream's recipe as written (tensor parallel 2); the Controller runs it as native multi-node vLLM (eugr's default no-Ray cluster mode, instead of --distributed-executor-backend ray). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending.",
+    "tags": [
+      "candidate",
+      "dual",
+      "eugr",
+      "executable",
+      "fp8",
+      "instanttensor",
+      "qwen",
+      "qwen3-5",
+      "reasoning",
+      "spark",
+      "tool-use",
+      "vllm"
+    ],
+    "title": "Qwen3.5 122B-A10B FP8 vLLM two Sparks (eugr)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "license-50cbab8a892c-c693279643",
+          "id": "primary-license-50cbab8a892c-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-bca4fee86199-b335630551",
+          "id": "primary-readme-bca4fee86199-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-a4aee8afcf2e-00824420d1",
+          "id": "primary-chat-template-a4aee8afcf2e-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "config-008eaf274520-587cb980af",
+          "id": "primary-config-008eaf274520-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "configuration-a78221ae93dd-761e16ca02",
+          "id": "primary-configuration-a78221ae93dd-761e16ca02",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "generation-config-303aba891d66-97dd3d578b",
+          "id": "primary-generation-config-303aba891d66-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00001-of-00039-03570a0776e1-0bed514236",
+          "id": "primary-model-safetensors-00001-of-00039-03570a0776e1-0bed514236",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00002-of-00039-a90419c5f032-69d1d6b7e5",
+          "id": "primary-model-safetensors-00002-of-00039-a90419c5f032-69d1d6b7e5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00003-of-00039-bf09da6d8b7d-770c4778a7",
+          "id": "primary-model-safetensors-00003-of-00039-bf09da6d8b7d-770c4778a7",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00004-of-00039-b01caa1e89a0-5c3d167de1",
+          "id": "primary-model-safetensors-00004-of-00039-b01caa1e89a0-5c3d167de1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00005-of-00039-5cdfbfa94f45-4d075d190d",
+          "id": "primary-model-safetensors-00005-of-00039-5cdfbfa94f45-4d075d190d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00006-of-00039-bb4bd51e673a-f00ee4a0ce",
+          "id": "primary-model-safetensors-00006-of-00039-bb4bd51e673a-f00ee4a0ce",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00007-of-00039-825e4dafc67f-0fa05e0d14",
+          "id": "primary-model-safetensors-00007-of-00039-825e4dafc67f-0fa05e0d14",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00008-of-00039-dcc0f57db1ee-bbc677aeff",
+          "id": "primary-model-safetensors-00008-of-00039-dcc0f57db1ee-bbc677aeff",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00009-of-00039-d548121a402a-f43ff1d30e",
+          "id": "primary-model-safetensors-00009-of-00039-d548121a402a-f43ff1d30e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00010-of-00039-15c8e524b8ce-d941104e76",
+          "id": "primary-model-safetensors-00010-of-00039-15c8e524b8ce-d941104e76",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00011-of-00039-69183f4aae8a-792c61b596",
+          "id": "primary-model-safetensors-00011-of-00039-69183f4aae8a-792c61b596",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00012-of-00039-97abce01afe1-a04ad51653",
+          "id": "primary-model-safetensors-00012-of-00039-97abce01afe1-a04ad51653",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00013-of-00039-a183abc66109-5ef9bc58c5",
+          "id": "primary-model-safetensors-00013-of-00039-a183abc66109-5ef9bc58c5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00014-of-00039-8a3890952b28-cd7bf0cbd7",
+          "id": "primary-model-safetensors-00014-of-00039-8a3890952b28-cd7bf0cbd7",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00015-of-00039-de3b6a245b29-54db69c645",
+          "id": "primary-model-safetensors-00015-of-00039-de3b6a245b29-54db69c645",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00016-of-00039-a3cde2ce2f94-9df0569150",
+          "id": "primary-model-safetensors-00016-of-00039-a3cde2ce2f94-9df0569150",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00017-of-00039-ac646f42d733-83541eec75",
+          "id": "primary-model-safetensors-00017-of-00039-ac646f42d733-83541eec75",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00018-of-00039-ebea05736faa-3ecdf802af",
+          "id": "primary-model-safetensors-00018-of-00039-ebea05736faa-3ecdf802af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00019-of-00039-5afd209ebd65-6e8023cde6",
+          "id": "primary-model-safetensors-00019-of-00039-5afd209ebd65-6e8023cde6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00020-of-00039-89bc8e26f6d0-3e4df3657b",
+          "id": "primary-model-safetensors-00020-of-00039-89bc8e26f6d0-3e4df3657b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00021-of-00039-5346dd81bada-0085f8d027",
+          "id": "primary-model-safetensors-00021-of-00039-5346dd81bada-0085f8d027",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00022-of-00039-dd61546aa76a-c17a056cf3",
+          "id": "primary-model-safetensors-00022-of-00039-dd61546aa76a-c17a056cf3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00023-of-00039-70a486c4a29d-7c15ebdf60",
+          "id": "primary-model-safetensors-00023-of-00039-70a486c4a29d-7c15ebdf60",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00024-of-00039-2834454d3610-39c11cc563",
+          "id": "primary-model-safetensors-00024-of-00039-2834454d3610-39c11cc563",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00025-of-00039-e56c4604d5d1-aa268fe06e",
+          "id": "primary-model-safetensors-00025-of-00039-e56c4604d5d1-aa268fe06e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00026-of-00039-9c2a569fc52d-b4305ad616",
+          "id": "primary-model-safetensors-00026-of-00039-9c2a569fc52d-b4305ad616",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00027-of-00039-b20b4245e8ef-4ea21ca566",
+          "id": "primary-model-safetensors-00027-of-00039-b20b4245e8ef-4ea21ca566",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00028-of-00039-79cbd97216da-8f4650e8d5",
+          "id": "primary-model-safetensors-00028-of-00039-79cbd97216da-8f4650e8d5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00029-of-00039-5cd452476b9f-72f3eec812",
+          "id": "primary-model-safetensors-00029-of-00039-5cd452476b9f-72f3eec812",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00030-of-00039-059a4b8e7331-032dc84682",
+          "id": "primary-model-safetensors-00030-of-00039-059a4b8e7331-032dc84682",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00031-of-00039-417b8aaf0425-0ee5028abc",
+          "id": "primary-model-safetensors-00031-of-00039-417b8aaf0425-0ee5028abc",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00032-of-00039-d4e989134a41-b6ed76639c",
+          "id": "primary-model-safetensors-00032-of-00039-d4e989134a41-b6ed76639c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00033-of-00039-e6484a95e4b9-a470d0527f",
+          "id": "primary-model-safetensors-00033-of-00039-e6484a95e4b9-a470d0527f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00034-of-00039-744c593b7d47-eb11a57b91",
+          "id": "primary-model-safetensors-00034-of-00039-744c593b7d47-eb11a57b91",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00035-of-00039-92bb405529e5-91d58a52a8",
+          "id": "primary-model-safetensors-00035-of-00039-92bb405529e5-91d58a52a8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00036-of-00039-ba5650043c6b-53e77ce851",
+          "id": "primary-model-safetensors-00036-of-00039-ba5650043c6b-53e77ce851",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00037-of-00039-861c78ce0ccd-0975ca2f5a",
+          "id": "primary-model-safetensors-00037-of-00039-861c78ce0ccd-0975ca2f5a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00038-of-00039-fcae161d3581-cabc832add",
+          "id": "primary-model-safetensors-00038-of-00039-fcae161d3581-cabc832add",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-00039-of-00039-bc4f8cae2cc6-1b25bca263",
+          "id": "primary-model-safetensors-00039-of-00039-bc4f8cae2cc6-1b25bca263",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-bd24760f446b-0a05be8238",
+          "id": "primary-model-safetensors-index-bd24760f446b-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "primary-preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-5f9e4d4901a9-224931eb13",
+          "id": "primary-tokenizer-5f9e4d4901a9-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-316230d6a809-94d5c6ba8f",
+          "id": "primary-tokenizer-config-316230d6a809-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "bc56c3ebbdf5f4d78e2ae3e14958981058123be3adf1ae2514b5668484c46a71",
+        "kind": "model",
+        "publisher": "qwen",
+        "slug": "qwen3-5-122b-a10b-fp8-a099dee7"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "eugr (MIT)",
+      "Qwen (Apache-2.0)",
+      "vLLM contributors (Apache-2.0)"
+    ],
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/42f62e349c610641ac6677ac28275c57bebdf9c3"
+  },
+  "release": {
+    "released_at": "2026-09-28",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "tensor-parallel-size",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "Qwen3.5-122B-A10B-FP8"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.8"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": "max_batch_tokens",
+        "value": null
+      },
+      {
+        "name": "load-format",
+        "setting": null,
+        "value": "instanttensor"
+      },
+      {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "qwen3"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/workspace/vllm/unsloth.jinja"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [],
+    "lifecycle": {
+      "stop_timeout_seconds": 180
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": {
+      "change_effect": "restart",
+      "value": 8192
+    }
+  },
+  "topology": {
+    "name": "dual",
+    "node_count": 2,
+    "parallelism": {
+      "backend": "mp",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 2
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 127195718583,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 16000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 111000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      },
+      {
+        "count": 1,
+        "endpoint_owner": false,
+        "name": "worker",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 127195718583,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 16000000000,
+            "working_bytes": 30000000000
+          },
+          "memory": {
+            "peak_bytes": 111000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "worker",
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Qwen3.5-122B-A10B-FP8"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
