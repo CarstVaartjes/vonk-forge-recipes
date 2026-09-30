@@ -1,0 +1,393 @@
+{
+  "capabilities": [
+    "audio-understanding",
+    "chat",
+    "image-understanding",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-7378d59663c2-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "7378d59663c2fa4c4208d984383871f5d1727cd20b9446b5f7d28dd96dea20e4",
+      "size_bytes": 1696
+    },
+    {
+      "id": "license-fa4d54e7b8a1-83a544517d",
+      "path": "LICENSE.pdf",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fa4d54e7b8a1be9a606bc82964b026d525749978bfadf50f239bd520ce82eebc",
+      "size_bytes": 76728
+    },
+    {
+      "id": "readme-b3ad13c35faf-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "b3ad13c35faf3f3ead702a11c059dac9e5bee0cbf186ef9bfc8a6f450b50e4c2",
+      "size_bytes": 17554
+    },
+    {
+      "id": "added-tokens-d4f2aceb0f20-dec41b9537",
+      "path": "added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "d4f2aceb0f20b71dd1f4bcc7e052e4412946bf281840b8f83d39f259571af486",
+      "size_bytes": 249
+    },
+    {
+      "id": "chat-template-591dc4ec220b-56edbbf8f7",
+      "path": "chat_template.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "591dc4ec220bfae2396cb3a95589bc1fd013cd64085ef6931ded40b47bba4544",
+      "size_bytes": 449
+    },
+    {
+      "id": "config-bf2609faab7f-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "bf2609faab7f34f8203494c7904914fa0db2143c8588c9a3e0a147bac32cb4dc",
+      "size_bytes": 20656
+    },
+    {
+      "id": "configuration-phi4mm-bd9609bd47ba-fe91131060",
+      "path": "configuration_phi4mm.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "bd9609bd47ba0c87788011e5158a8bd3e1e93165a82a9b764eb7cb048006c949",
+      "size_bytes": 11014
+    },
+    {
+      "id": "generation-config-5f2e229fdc55-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5f2e229fdc55d043706b42cdbe7a9b601764ce4815273cf7873c01f8a36c36bd",
+      "size_bytes": 169
+    },
+    {
+      "id": "hf-quant-config-4b604b2cce5f-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4b604b2cce5f26c3056402a6275d86fc2115b3a3ebc0af4ee5d3fdd34bbd887c",
+      "size_bytes": 14448
+    },
+    {
+      "id": "merges-856ce61180bb-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "856ce61180bb689282eed6b3a6838bb1f438399be23aefe9d20eb379791fb4ad",
+      "size_bytes": 2418348
+    },
+    {
+      "id": "model-00001-of-00002-a59dcd3fb4d2-27a6880801",
+      "path": "model-00001-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a59dcd3fb4d22e586ff2e1790e07c0e4bf7161191854003f3053fc252b93dd26",
+      "size_bytes": 4997181968
+    },
+    {
+      "id": "model-00002-of-00002-a91607c21bda-2cca3b5a88",
+      "path": "model-00002-of-00002.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a91607c21bda79b3230c0e51927cebcef6df5d210e75dc749a7e97165a67809a",
+      "size_bytes": 3669049232
+    },
+    {
+      "id": "model-safetensors-index-604050d50efb-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "604050d50efb26ca00bc48359ffe4c449e782d3853946a44466cc5b8fd66c047",
+      "size_bytes": 265217
+    },
+    {
+      "id": "modeling-phi4mm-e2b44eb7a66d-0aed67e9df",
+      "path": "modeling_phi4mm.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "e2b44eb7a66d6cc54524cee1ff9ba92d0658d435ea8900329ea0dbdb85c6439d",
+      "size_bytes": 116057
+    },
+    {
+      "id": "preprocessor-config-9db19b9663fb-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "9db19b9663fb86f04c0f11d3a9b7f65a19f13d4543fb4a15bd33f82b0c92d64f",
+      "size_bytes": 482
+    },
+    {
+      "id": "processing-phi4mm-84914d3e1225-eb3a01c356",
+      "path": "processing_phi4mm.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "84914d3e12256b4e2186e040c9830c11408468b6774f42afe85e6f8de2626d50",
+      "size_bytes": 32775
+    },
+    {
+      "id": "processor-config-798fc4cd09c0-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "798fc4cd09c067053af27f07f0d2b329b471c5b2eb923ceb06efa41dee660c05",
+      "size_bytes": 121
+    },
+    {
+      "id": "special-tokens-map-57491904f868-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "57491904f8680d4b52ed440f1f7ba48cad1c31ecf3eb453b03484e6ff4723ae8",
+      "size_bytes": 473
+    },
+    {
+      "id": "adapter-config-ed252a6ae210-56ea639c2d",
+      "path": "speech-lora/adapter_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ed252a6ae210888ee69f5720bd7e8d8261f0abfda90b18ea6452316c71336df8",
+      "size_bytes": 465
+    },
+    {
+      "id": "adapter-model-1c2237461a4d-6b9612fc23",
+      "path": "speech-lora/adapter_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1c2237461a4d1f9292cd128147bd3f0f70326a48d5d79c8e0f7583b26c095b30",
+      "size_bytes": 922782296
+    },
+    {
+      "id": "added-tokens-d4f2aceb0f20-71a06f241e",
+      "path": "speech-lora/added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "d4f2aceb0f20b71dd1f4bcc7e052e4412946bf281840b8f83d39f259571af486",
+      "size_bytes": 249
+    },
+    {
+      "id": "special-tokens-map-57491904f868-40c977e8b0",
+      "path": "speech-lora/special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "57491904f8680d4b52ed440f1f7ba48cad1c31ecf3eb453b03484e6ff4723ae8",
+      "size_bytes": 473
+    },
+    {
+      "id": "tokenizer-382cc235b56c-1b470e7079",
+      "path": "speech-lora/tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "382cc235b56c725945e149cc25f191da667c836655efd0857b004320e90e91ea",
+      "size_bytes": 15524095
+    },
+    {
+      "id": "tokenizer-config-d51bf28bbdc9-4dab2437c6",
+      "path": "speech-lora/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "d51bf28bbdc9915926a0b1908f95cec05f3d10b71af0d27f85344d9a486b03ae",
+      "size_bytes": 3248
+    },
+    {
+      "id": "vocab-6cb65a857824-2b459b0716",
+      "path": "speech-lora/vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "6cb65a857824fa6615bb1782d95d882617a8bbce1da0317118586b36f39e98bd",
+      "size_bytes": 3910310
+    },
+    {
+      "id": "speech-conformer-encoder-3742827e9457-903e7683c9",
+      "path": "speech_conformer_encoder.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "3742827e945732cc5deea4a95e14004da037044431a94e3f3fac26239e614e3a",
+      "size_bytes": 110521
+    },
+    {
+      "id": "tokenizer-4c1b9f641d4f-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "4c1b9f641d4f8b7247b8d5007dd3b6a9f6a87cb5123134fe0d326f14d10c0585",
+      "size_bytes": 15524479
+    },
+    {
+      "id": "tokenizer-config-733c9322d8f5-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "733c9322d8f592273541e98c989da896d4527a1d9177d26d189bd0455a192083",
+      "size_bytes": 3274
+    },
+    {
+      "id": "adapter-config-efbff3b978dd-197c3102c9",
+      "path": "vision-lora/adapter_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "efbff3b978dd25e0c3abd7e71a1e9acb9a4f25e13f7430ce035654c0cb159484",
+      "size_bytes": 464
+    },
+    {
+      "id": "adapter-model-1620b16722ed-f566fb18c1",
+      "path": "vision-lora/adapter_model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1620b16722edf701038bf66e3cd46412c7cc5458e58df89e9f92cedb71fcbde8",
+      "size_bytes": 738232904
+    },
+    {
+      "id": "added-tokens-d4f2aceb0f20-1ca8225119",
+      "path": "vision-lora/added_tokens.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "d4f2aceb0f20b71dd1f4bcc7e052e4412946bf281840b8f83d39f259571af486",
+      "size_bytes": 249
+    },
+    {
+      "id": "special-tokens-map-57491904f868-161cd21b66",
+      "path": "vision-lora/special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "57491904f8680d4b52ed440f1f7ba48cad1c31ecf3eb453b03484e6ff4723ae8",
+      "size_bytes": 473
+    },
+    {
+      "id": "tokenizer-382cc235b56c-bacc363141",
+      "path": "vision-lora/tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "382cc235b56c725945e149cc25f191da667c836655efd0857b004320e90e91ea",
+      "size_bytes": 15524095
+    },
+    {
+      "id": "tokenizer-config-d51bf28bbdc9-fb209ecbc6",
+      "path": "vision-lora/tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "d51bf28bbdc9915926a0b1908f95cec05f3d10b71af0d27f85344d9a486b03ae",
+      "size_bytes": 3248
+    },
+    {
+      "id": "vocab-6cb65a857824-5d0460e3e4",
+      "path": "vision-lora/vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "6cb65a857824fa6615bb1782d95d882617a8bbce1da0317118586b36f39e98bd",
+      "size_bytes": 3910310
+    },
+    {
+      "id": "vision-siglip-navit-7d5c053341ee-928239bad3",
+      "path": "vision_siglip_navit.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "7d5c053341ee9c099126fe675d5dcdc0ed5c0246f92fffdec78a1ab2f804e28d",
+      "size_bytes": 78218
+    },
+    {
+      "id": "vocab-6cb65a857824-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "6cb65a857824fa6615bb1782d95d882617a8bbce1da0317118586b36f39e98bd",
+      "size_bytes": 3910310
+    }
+  ],
+  "format": {
+    "precision": "fp8",
+    "quantization": "fp8-modelopt"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "phi-4",
+      "title": "Microsoft Phi-4"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "phi-4-multimodal-instruct",
+      "title": "Phi-4 Multimodal Instruct"
+    },
+    "publisher": "nvidia",
+    "slug": "phi-4-multimodal-instruct-fp8-d822efce",
+    "variant": "FP8 d822efce",
+    "version": "FP8 d822efce"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation",
+      "Microsoft"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
+  },
+  "metadata": {
+    "description": "Exact public NVIDIA Model Optimizer FP8 quantization of Phi-4-multimodal-instruct with its speech and vision LoRA adapters.",
+    "tags": [
+      "nvidia",
+      "phi-4",
+      "language",
+      "fp8",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "audio",
+    "image",
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/Phi-4-multimodal-instruct-FP8",
+    "revision": "d822efce23f65f86c165aeed435cc27092e21d60"
+  }
+}
