@@ -4819,6 +4819,22 @@
         ]
       }
     },
+    "vonk-forge/qwen3-14b-fp8-nvidia-vllm-single": {
+      "alias": "qwen3-14b",
+      "smoke_cases": [
+        "M0",
+        "A323",
+        "T_PRODUCT"
+      ],
+      "higher_tiers": {
+        "stress": [
+          "Bounded context and concurrency canaries"
+        ],
+        "recovery": [
+          "Controller stop/start, exact alias, and offline warm-cache restart"
+        ]
+      }
+    },
     "vonk-forge/diffusiongemma-26b-a4b-it-nvidia-vllm-single": {
       "alias": "diffusiongemma-26b-a4b-it",
       "smoke_cases": [
