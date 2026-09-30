@@ -6,7 +6,7 @@
     "vendor/"
   ],
   "source": {
-    "commit": "7a00336b2f6d1a1a3e0ba49d1ef5b4b82e927759",
+    "commit": "9cd52ab4daba68ddd09be89be8f23ad43175e821",
     "repo": "ashhart/TensorFold"
   }
 }

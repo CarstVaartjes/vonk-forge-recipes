@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "DeepSeek-V4.1-Flash (deepseek-ai, MIT; native MXFP4 experts, FP8 dense weights, DSpark speculative decoding, tool calling and vision) on four DGX Sparks with SGLang tensor parallel 4 over the ConnectX-7 fabric and up to the model's 1M-token context. Basis: MiaAI-Lab's kit (AGPL-3.0-or-later, boot.py, the Engram row-store and adapters vendored unchanged, on the lmsysorg/sglang dev-dsv41 image) with its start-tp4.sh profile as shipped: exact attention shards (no padding), EP 2, 8M-token KV pin at memory fraction 0.80, sixteen concurrent requests, 4096-token chunked prefill with the chunked indexer. Upstream's opt-in production line (canary SGLang branch image with RoCEnante, b12x main, fast loader and the further decode adapters) needs its own image and rail-specific device names and is not part of this recipe. The Engram tables are read from the checkpoint by an NVMe row store; upstream's optional per-node repacking is not part of the recipe. Upstream throughput figures are for that production line and are its own claims, not measured here; Vonk physical four-Spark acceptance is pending.",
+    "description": "DeepSeek-V4.1-Flash (deepseek-ai official dba1be0a snapshot, MIT; namespace-aware tool calls and current low/high/max effort mappings; native MXFP4 experts, FP8 dense weights, DSpark speculative decoding, tool calling and vision) on four DGX Sparks with SGLang tensor parallel 4 over the ConnectX-7 fabric and up to the model's 1M-token context. Basis: MiaAI-Lab's kit (AGPL-3.0-or-later, boot.py, the Engram row-store and adapters vendored unchanged, on the lmsysorg/sglang dev-dsv41 image) with its start-tp4.sh profile as shipped: exact attention shards (no padding), EP 2, 8M-token KV pin at memory fraction 0.80, sixteen concurrent requests, 4096-token chunked prefill with the chunked indexer. Upstream's opt-in production line (canary SGLang branch image with RoCEnante, b12x main, fast loader and the further decode adapters) needs its own image and rail-specific device names and is not part of this recipe. The Engram tables are read from the checkpoint by an NVMe row store; upstream's optional per-node repacking is not part of the recipe. Upstream throughput figures are for that production line and are its own claims, not measured here; Vonk physical four-Spark acceptance is pending.",
     "tags": [
       "candidate",
       "chat",
@@ -87,8 +87,8 @@
           ]
         },
         {
-          "file_id": "readme-94a04133ea0a-b335630551",
-          "id": "primary-readme-94a04133ea0a-b335630551",
+          "file_id": "readme-347c9db4e550-b335630551",
+          "id": "primary-readme-347c9db4e550-b335630551",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -131,8 +131,8 @@
           ]
         },
         {
-          "file_id": "readme-5c13c17f9640-5728b2733a",
-          "id": "primary-readme-5c13c17f9640-5728b2733a",
+          "file_id": "readme-a2f0fc3baea3-5728b2733a",
+          "id": "primary-readme-a2f0fc3baea3-5728b2733a",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -142,8 +142,8 @@
           ]
         },
         {
-          "file_id": "encoding-f64a67e5680a-498d5dc375",
-          "id": "primary-encoding-f64a67e5680a-498d5dc375",
+          "file_id": "encoding-502bdaec8a3f-498d5dc375",
+          "id": "primary-encoding-502bdaec8a3f-498d5dc375",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -153,8 +153,8 @@
           ]
         },
         {
-          "file_id": "test-encoding-854aa257e861-d3add5cc1f",
-          "id": "primary-test-encoding-854aa257e861-d3add5cc1f",
+          "file_id": "test-encoding-4a470892dad8-d3add5cc1f",
+          "id": "primary-test-encoding-4a470892dad8-d3add5cc1f",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -219,8 +219,8 @@
           ]
         },
         {
-          "file_id": "test-output-1-1e4f33964231-61eeac8704",
-          "id": "primary-test-output-1-1e4f33964231-61eeac8704",
+          "file_id": "test-output-1-91f79aa95571-61eeac8704",
+          "id": "primary-test-output-1-91f79aa95571-61eeac8704",
           "mount": {
             "target": "/models/DeepSeek-V4.1-Flash"
           },
@@ -1024,10 +1024,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4cea4dca037ba907c26669ab422bb9c1a76b8af4a4c92fbb64f6c01e6c078814",
+        "content_sha256": "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771",
         "kind": "model",
         "publisher": "deepseek-ai",
-        "slug": "deepseek-v4-1-flash-fb2764a5"
+        "slug": "deepseek-v4-1-flash-dba1be0a"
       }
     }
   ],
@@ -1106,8 +1106,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-DGX-Sparks/tree/cad252b7d3000cf21d919764e70a6912b6d3b0b0"
   },
   "release": {
-    "released_at": "2026-09-25",
-    "version": "1.0.0"
+    "released_at": "2026-09-30",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [

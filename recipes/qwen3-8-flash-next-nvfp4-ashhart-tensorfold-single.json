@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8 Flash Next on Ash Hart's TensorFold engine v0.4.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with local-inference-lab's quantization-aware-distilled NVFP4 checkpoint (NVFP4 routed experts and n-gram tables, MXFP8 attention, DeltaNet and shared experts, MTP head included; about 98.6 GiB), which TensorFold's CUDA engine reads as it ships on one GPU. Chosen over RadixArk/Qwen3.8-Flash-Next-NVFP4 (about 126 GiB, bf16 besides the experts), which does not fit 128 GB. The n-gram tables stay memory-mapped from the checkpoint (upstream refuses --ple-on-ssd on NVFP4 checkpoints, since they already are), so page-cache pressure, not a flag, governs speed. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the 262,144-token window with a bf16 KV cache. Text only: stock TensorFold has no image or video path for Flash Next (the MLX 4-bit recipe qwen3-8-flash-next-tensorfold-single carries MiaAI-Lab's vision patch). Upstream publishes no speed or memory figure for this checkpoint on a Spark, and none is measured here; the memory envelope below is the checkpoint size plus KV. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses); TensorFold is MIT.",
+    "description": "Single-DGX-Spark Qwen3.8 Flash Next on Ash Hart's TensorFold engine v0.5.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with local-inference-lab's quantization-aware-distilled NVFP4 checkpoint (NVFP4 routed experts and n-gram tables, MXFP8 attention, DeltaNet and shared experts, MTP head included; about 98.6 GiB), which TensorFold's CUDA engine reads as it ships on one GPU. Chosen over RadixArk/Qwen3.8-Flash-Next-NVFP4 (about 126 GiB, bf16 besides the experts), which does not fit 128 GB. The n-gram tables stay memory-mapped from the checkpoint (upstream refuses --ple-on-ssd on NVFP4 checkpoints, since they already are), so page-cache pressure, not a flag, governs speed. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the 262,144-token window with a bf16 KV cache. Text only: stock TensorFold has no image or video path for Flash Next (the MLX 4-bit recipe qwen3-8-flash-next-tensorfold-single carries MiaAI-Lab's vision patch). Upstream publishes no speed or memory figure for this checkpoint on a Spark, and none is measured here; the memory envelope below is the checkpoint size plus KV. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses); TensorFold is MIT. TensorFold v0.5.0 at 9cd52ab4daba68ddd09be89be8f23ad43175e821 includes the tiled QSA selector for sparse attention past 131072 keys and updated Flash Next CUDA/EXL3 paths; the existing 262144-token bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests.",
     "tags": [
       "engine",
       "kernel-jit",
@@ -679,11 +679,11 @@
       "local-inference-lab",
       "Qwen contributors"
     ],
-    "source_reference": "https://github.com/ashhart/TensorFold/tree/7a00336b2f6d1a1a3e0ba49d1ef5b4b82e927759"
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/9cd52ab4daba68ddd09be89be8f23ad43175e821"
   },
   "release": {
     "released_at": "2026-09-29",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "runtime": {
     "arguments": [

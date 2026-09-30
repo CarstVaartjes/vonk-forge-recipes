@@ -1,0 +1,10 @@
+{
+  "files": {
+    "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "vllm/model_executor/models/mimo_v2.py": "96c1c2ba0b72f28777145c079ad5cb831c8041ec99486dc600e6035ebd3059d1",
+    "vllm/v1/attention/backends/flash_attn_diffkv.py": "0de13a41d83875f87340a8341d87340e506f38c2432706cef754d3208d1dccca",
+    "vllm/v1/attention/backends/registry.py": "bc4adf34a954dd92c01cc2439922857c8fb7e15f29ac1fe85813dcd86107c065"
+  },
+  "revision": "d841386d272200dd381a5791833771db9a47adf7",
+  "upstream": "https://github.com/vllm-project/vllm"
+}

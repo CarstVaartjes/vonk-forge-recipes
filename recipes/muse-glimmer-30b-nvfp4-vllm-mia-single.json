@@ -283,6 +283,30 @@
       "help": "FP8 KV halves KV memory versus the model dtype at a small long-range recall cost; upstream keeps it on. Switching to auto uses the checkpoint dtype and roughly halves the token slots at the same memory fraction.",
       "label": "KV cache dtype",
       "name": "kv-cache"
+    },
+    {
+      "name": "speculative-decoding",
+      "label": "Speculative decoding",
+      "help": "DFlash can speed up decoding but uses memory that could otherwise hold target KV cache.",
+      "choices": [
+        {
+          "value": "dflash",
+          "label": "DFlash (upstream default)",
+          "default": true,
+          "help": "Use the attached Muse Glimmer drafter for speculative decoding."
+        },
+        {
+          "value": "off",
+          "label": "Off (more KV-cache capacity)",
+          "help": "Disable DFlash with vLLM's literal None sentinel. The target has more memory available for KV cache, while losing DFlash decode acceleration.",
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "None"
+            }
+          ]
+        }
+      ]
     }
   ],
   "provenance": {
@@ -294,8 +318,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO/tree/1b71dc011010a3e2c373eafd8a41f12c7c7913fc"
   },
   "release": {
-    "released_at": "2026-08-11",
-    "version": "1.0.0"
+    "released_at": "2026-09-30",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [

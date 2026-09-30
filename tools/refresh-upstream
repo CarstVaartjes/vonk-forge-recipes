@@ -129,6 +129,10 @@ class NotFound(RuntimeError):
     pass
 
 
+class AccessRestricted(RuntimeError):
+    """An anonymous provider request requires access the catalog does not bind."""
+
+
 class Http:
     """GET JSON with an ETag cache: a 304 answer costs no API quota."""
 
@@ -159,18 +163,19 @@ class Http:
         with self.lock:
             self.cache_path.write_text(json.dumps(self.cache), encoding="utf-8")
 
-    def json(self, url: str, provider: str) -> Any:
+    def json(self, url: str, provider: str, *, anonymous: bool = False) -> Any:
+        cache_key = f"{url}#anonymous" if anonymous else url
         with self.lock:
-            if url in self.memo:
-                return self.memo[url]
-            cached = self.cache.get(url)
+            if cache_key in self.memo:
+                return self.memo[cache_key]
+            cached = self.cache.get(cache_key)
         headers = {
             "Accept": "application/vnd.github+json"
             if provider == "github"
             else "application/json",
             "User-Agent": "vonk-forge-refresh-upstream/1",
         }
-        token = self.tokens.get(provider)
+        token = None if anonymous else self.tokens.get(provider)
         if token:
             headers["Authorization"] = f"Bearer {token}"
         if cached:
@@ -187,9 +192,13 @@ class Http:
                 value = json.loads(payload)
                 if etag and len(payload) < 2_000_000:
                     with self.lock:
-                        self.cache[url] = {"etag": etag, "body": value}
+                        self.cache[cache_key] = {"etag": etag, "body": value}
                 break
             except urllib.error.HTTPError as error:
+                if anonymous and error.code in {401, 403}:
+                    raise AccessRestricted(
+                        f"anonymous provider request returned HTTP {error.code}"
+                    ) from error
                 if error.code == 304 and cached:
                     with self.lock:
                         self.requests += 1
@@ -206,7 +215,7 @@ class Http:
         else:
             raise RuntimeError(f"request failed for {url}: {last}")
         with self.lock:
-            self.memo[url] = value
+            self.memo[cache_key] = value
         return value
 
     def github(self, path: str) -> Any:
@@ -230,6 +239,7 @@ class Target:
     version: str | None  # upstream's version spelling (no leading "v")
     url: str
     notes: str | None = None
+    access_status: str | None = None
 
 
 def pick_version_tag(tags: Iterable[dict[str, Any]]) -> dict[str, Any] | None:
@@ -281,11 +291,24 @@ def resolve_github(http: Http, repo: str) -> Target:
 
 def resolve_huggingface(http: Http, repo: str) -> Target:
     document = http.json(
-        f"https://huggingface.co/api/models/{quote(repo, safe='/')}", "huggingface"
+        f"https://huggingface.co/api/models/{quote(repo, safe='/')}",
+        "huggingface",
+        anonymous=True,
     )
     sha = document["sha"]
     if not SHA.match(sha):
         raise RuntimeError(f"{repo}: provider returned a non-Git revision")
+    gated = document.get("gated")
+    if document.get("disabled") is True:
+        access_status = "disabled"
+    elif document.get("private") is True:
+        access_status = "private"
+    elif gated not in (None, False, "false", ""):
+        access_status = "gated"
+    elif document.get("private") is False and gated in (None, False, "false", ""):
+        access_status = "public"
+    else:
+        access_status = "unknown"
     return Target(
         provider="huggingface",
         repo=repo,
@@ -294,6 +317,7 @@ def resolve_huggingface(http: Http, repo: str) -> Target:
         ref=None,
         version=None,
         url=f"https://huggingface.co/{repo}/tree/{sha}",
+        access_status=access_status,
     )
 
 
@@ -428,7 +452,7 @@ class Assessment:
 
     @property
     def drifted(self) -> bool:
-        return bool(self.items)
+        return bool(self.items or self.reasons)
 
     @property
     def mechanical(self) -> bool:
@@ -457,11 +481,53 @@ def collect_items(
         try:
             target = targets(provider, repo)
         except NotFound:
+            model = catalog_.models.get(slug or "", {})
+            if kind == "model" and model.get("requires_token") is False:
+                result.reasons.append(
+                    f"model {repo} is no longer anonymously resolvable; review or withdraw this public Model rather than replacing it automatically."
+                )
+                return
             result.unreachable.append(f"{provider}:{repo} was not found upstream")
+            return
+        except AccessRestricted as error:
+            model = catalog_.models.get(slug or "", {})
+            if kind == "model" and model.get("requires_token") is False:
+                result.reasons.append(
+                    f"model {repo} provider now requires access ({error!s}); review or withdraw this public Model. The updater will not retrieve credentials or author a replacement."
+                )
+            else:
+                result.evidence.append(
+                    f"### Model access status: {repo}\n\nAnonymous check was restricted ({error!s}); the authored requires_token flag is not provider evidence.\n"
+                )
+                result.unreachable.append(
+                    f"{provider}:{repo}: anonymous access status could not be verified ({error!s}); no credentials were requested"
+                )
             return
         except (RuntimeError, KeyError, TypeError) as error:
             result.unreachable.append(f"{provider}:{repo}: {str(error)[:200]}")
             return
+        if kind == "model" and target.access_status is not None:
+            model = catalog_.models.get(slug or "", {})
+            token_required = model.get("requires_token") is True
+            if target.access_status in {"private", "disabled"}:
+                result.reasons.append(
+                    f"model {repo} provider access is {target.access_status}; review or withdraw this Model. The updater will not retrieve access credentials or author a replacement."
+                )
+            elif target.access_status == "gated" and not token_required:
+                result.reasons.append(
+                    f"model {repo} provider access changed to {target.access_status}; the catalog declares anonymous access. Review or withdraw this Model; do not replace it automatically."
+                )
+            elif target.access_status == "public" and token_required:
+                result.reasons.append(
+                    f"model {repo} is publicly accessible but the catalog requires a token; review the access declaration before changing it."
+                )
+            elif target.access_status == "unknown":
+                result.evidence.append(
+                    f"### Model access status: {repo}\n\nProvider gating/private status was not explicit in the anonymous metadata response; the authored requires_token flag is not treated as provider evidence.\n"
+                )
+                result.unreachable.append(
+                    f"{provider}:{repo}: provider access status is unknown from anonymous metadata; no credentials were requested"
+                )
         if target.sha != current:
             result.items.append(Item(kind, provider, repo, current, target, slug))
 
@@ -772,12 +838,32 @@ def model_evidence(
 
 
 class Assessor:
-    def __init__(self, catalog_: Catalog, http: Http, cache_dir: Path | None) -> None:
+    def __init__(
+        self,
+        catalog_: Catalog,
+        http: Http,
+        cache_dir: Path | None,
+        embedded: dict[str, Any],
+    ) -> None:
         self.catalog = catalog_
         self.http = http
         self.cache_dir = cache_dir
         self.targets: dict[tuple[str, str], Target] = {}
         self.target_lock = threading.Lock()
+        self.embedded_candidates: dict[str, list[dict[str, Any]]] = {}
+        for record in embedded.get("recipes", []):
+            if not isinstance(record, dict) or not isinstance(
+                record.get("recipe_id"), str
+            ):
+                continue
+            for item in record.get("inputs", []):
+                if (
+                    isinstance(item, dict)
+                    and item.get("candidate_status") == "advanced"
+                ):
+                    self.embedded_candidates.setdefault(record["recipe_id"], []).append(
+                        item
+                    )
 
     def target(self, provider: str, repo: str) -> Target:
         key = (provider, repo.lower())
@@ -791,7 +877,28 @@ class Assessor:
 
     def assess(self, recipe_id: str) -> Assessment:
         result = collect_items(self.catalog, recipe_id, self.http, self.target)
+        for item in self.embedded_candidates.get(recipe_id, []):
+            repository = item.get("repository")
+            pinned = item.get("revision")
+            candidate = item.get("candidate_revision")
+            candidate_url = item.get("candidate_url")
+            result.evidence.append(
+                f"### Embedded Git source candidate: {repository}\n\n"
+                f"- embedded commit: `{pinned}`\n"
+                f"- advertised default-branch candidate: `{candidate}` - {candidate_url}\n"
+                f"- candidate observed at: {item.get('candidate_observed_at')}\n"
+                "- this is review evidence, not a configured upgrade channel or compatibility recommendation; no pin was changed.\n"
+            )
         if not result.drifted or result.unreachable:
+            return result
+        if result.reasons:
+            for item in result.items:
+                result.evidence.append(
+                    f"### Held source candidate: {item.label}\n\n"
+                    f"- current pin: `{item.current}`\n"
+                    f"- proposed upstream pin: `{item.target.sha}` - {item.target.url}\n"
+                    "- no automatic retarget was prepared because this recipe has another review blocker.\n"
+                )
             return result
         recipe = self.catalog.recipes[recipe_id]
         edits: dict[str, bytes | None] = {}
@@ -1392,7 +1499,12 @@ def publish_if_stale() -> None:
     gh("workflow", "run", "publish.yml", "--ref", "main", check=False)
 
 
-def write_summary(summary: Summary, http: Http, path: str | None) -> None:
+def write_summary(
+    summary: Summary,
+    http: Http,
+    path: str | None,
+    embedded: dict[str, Any],
+) -> None:
     def section(title: str, rows: list[str]) -> list[str]:
         return [
             f"### {title}: {len(rows)}",
@@ -1405,10 +1517,57 @@ def write_summary(summary: Summary, http: Http, path: str | None) -> None:
         "## Upstream refresh",
         "",
         (
-            f"{summary.current} recipes current; {len(summary.mechanical)} mechanical pull requests; "
+            f"{summary.current} recipes had no drift in configured source, adapter and Model watches; "
+            f"{len(summary.mechanical)} mechanical pull requests; "
             f"{len(summary.review)} need review; {len(summary.unreachable)} unreachable. "
             f"{http.requests} upstream requests ({http.not_modified} answered 304)."
         ),
+        "",
+        "Embedded source inventory is evidence, not a latest-channel claim. Immutable image digests are pin-only; unresolved transitive dependencies remain unknown.",
+        "",
+        f"Embedded inputs by status: `{json.dumps(embedded['coverage'].get('counts_by_status', {}), sort_keys=True)}`.",
+        "",
+    ]
+    candidate_counts = embedded["coverage"].get("counts_by_candidate_status", {})
+    lines += [
+        f"Embedded Git head candidates by status: `{json.dumps(candidate_counts, sort_keys=True)}`. Candidates are review evidence only.",
+        "",
+        "### Embedded inputs requiring review or retaining an unknown reason",
+        "",
+    ]
+    details: list[str] = []
+    for recipe in embedded.get("recipes", []):
+        if not isinstance(recipe, dict):
+            continue
+        recipe_id = recipe.get("recipe_id", "unknown")
+        for item in recipe.get("inputs", []):
+            if not isinstance(item, dict):
+                continue
+            if item.get("status") not in {
+                "mutable",
+                "unknown",
+                "pinned_untracked",
+            } and item.get("candidate_status") not in {
+                "advanced",
+                "unknown",
+                "no-immutable-pin",
+            }:
+                continue
+            location = str(item.get("path", "unknown"))
+            if item.get("line") is not None:
+                location += f":{item['line']}"
+            evidence = item.get("candidate_reason") or item.get("reason")
+            if item.get("candidate_status") == "advanced":
+                evidence = (
+                    f"{item.get('repository')}@{item.get('revision')} -> observed candidate "
+                    f"{item.get('candidate_revision')}; {evidence}"
+                )
+            details.append(
+                f"- `{recipe_id}` `{item.get('kind')}` at `{location}` "
+                f"({item.get('status')}/{item.get('candidate_status', 'no head candidate')}): {evidence}"
+            )
+    lines += details or ["None."]
+    lines += [
         "",
         *section("Mechanical refresh pull requests", summary.mechanical),
         *section("Needs review (issues)", summary.review),
@@ -1424,6 +1583,16 @@ def write_summary(summary: Summary, http: Http, path: str | None) -> None:
             handle.write(text + "\n")
 
 
+class AnonymousHeadClient:
+    """Adapt the refresh HTTP cache for public-only embedded Git observations."""
+
+    def __init__(self, http: Http) -> None:
+        self.http = http
+
+    def json(self, url: str, provider: str) -> Any:
+        return self.http.json(url, provider, anonymous=True)
+
+
 def command_run(arguments: argparse.Namespace) -> int:
     root = ROOT
     cache_dir = arguments.cache_dir
@@ -1435,7 +1604,11 @@ def command_run(arguments: argparse.Namespace) -> int:
     if cache_dir is not None:
         os.environ.setdefault("VONK_UPSTREAM_CACHE", str(cache_dir / "github-trees"))
     catalog_ = Catalog.load(root)
-    assessor = Assessor(catalog_, http, cache_dir)
+    defaults, overrides = drift.load_manifest(root / "upstream-watch.json")
+    watches = drift.discover_watches(root, defaults, overrides)
+    embedded = drift.embedded_inventory(root, watches)
+    drift.observe_embedded_heads(embedded, AnonymousHeadClient(http))
+    assessor = Assessor(catalog_, http, cache_dir, embedded)
     summary = Summary()
     with ThreadPoolExecutor(max_workers=8) as pool:
         results = list(pool.map(assessor.assess, sorted(catalog_.recipes)))
@@ -1503,7 +1676,7 @@ def command_run(arguments: argparse.Namespace) -> int:
         publish_if_stale()
     except RuntimeError as error:
         summary.failures.append(f"housekeeping: {str(error)[:300]}")
-    write_summary(summary, http, os.environ.get("GITHUB_STEP_SUMMARY"))
+    write_summary(summary, http, os.environ.get("GITHUB_STEP_SUMMARY"), embedded)
     return 1 if summary.failures else 0
 
 

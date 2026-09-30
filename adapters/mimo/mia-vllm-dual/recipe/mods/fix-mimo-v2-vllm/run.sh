@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SITE_PACKAGES="/usr/local/lib/python3.12/dist-packages"
-PR41797_URL="https://patch-diff.githubusercontent.com/raw/vllm-project/vllm/pull/41797.diff"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 cd "$SITE_PACKAGES"
 
@@ -1038,50 +1038,8 @@ else:
     print('[fix-mimo-v2-vllm] SpeculativeConfig Omni MTP mapping already patched')
 PY
 
-# PR #41797: add TRITON_ATTN_DIFFKV and make MiMoV2 auto-fallback to it on
-# non-FA3 hardware (GB10/sm_121a). Without this, MiMoV2's K/V head-dim split
-# forces FlashAttentionDiffKV and fails on DGX Spark.
-if python3 - <<'PY'
-import importlib.util
-raise SystemExit(0 if importlib.util.find_spec('vllm.v1.attention.backends.triton_attn_diffkv') else 1)
-PY
-then
-    echo "[fix-mimo-v2-vllm] TRITON_ATTN_DIFFKV already present; skipping PR #41797"
-else
-    echo "[fix-mimo-v2-vllm] Applying vLLM PR #41797 (TRITON_ATTN_DIFFKV)"
-    tmpdir="$(mktemp -d)"
-    trap 'rm -rf "$tmpdir"' EXIT
-    curl -fsL "$PR41797_URL" -o "$tmpdir/pr41797.diff"
-
-    # The upstream diff contains docs; only apply package files under vllm/.
-    python3 - "$tmpdir/pr41797.diff" "$tmpdir/pr41797-vllm-only.diff" <<'PY'
-from pathlib import Path
-import sys
-src = Path(sys.argv[1])
-dst = Path(sys.argv[2])
-keep = False
-out = []
-for line in src.read_text().splitlines(True):
-    if line.startswith('diff --git '):
-        parts = line.strip().split()
-        # format: diff --git a/path b/path
-        b_path = parts[3][2:] if len(parts) >= 4 and parts[3].startswith('b/') else ''
-        keep = b_path.startswith('vllm/')
-    if keep:
-        out.append(line)
-dst.write_text(''.join(out))
-PY
-
-    if git apply --check --unsafe-paths "$tmpdir/pr41797-vllm-only.diff"; then
-        git apply --unsafe-paths --whitespace=nowarn "$tmpdir/pr41797-vllm-only.diff"
-    elif patch -p1 --dry-run --forward --batch < "$tmpdir/pr41797-vllm-only.diff" >/dev/null 2>&1; then
-        patch -p1 --forward --batch < "$tmpdir/pr41797-vllm-only.diff"
-    else
-        echo "[fix-mimo-v2-vllm] ERROR: PR #41797 is not applicable to this vLLM install" >&2
-        echo "[fix-mimo-v2-vllm] Rebuild with --apply-vllm-pr 41797 or update the base image." >&2
-        exit 1
-    fi
-fi
+# Apply the reviewed immutable PR 41797 package diff; no build-time network fetch.
+"$SCRIPT_DIR/apply-pr41797.sh"
 
 # CyberTen's #41834 minimal fallback for V2 executor + MTP + cudagraph.
 # Newer vLLM already contains this; older builds may not. Apply only when the

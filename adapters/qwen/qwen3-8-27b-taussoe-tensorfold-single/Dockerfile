@@ -1,20 +1,20 @@
-# TensorFold v0.4.0 (MIT, commit 7a00336b) with the Qwen3.8-27B CUDA engine and DFlash2 drafting, on NVIDIA's PyTorch container (arm64).
+# TensorFold v0.5.0 (MIT, commit 9cd52ab4) with the Qwen3.8-27B CUDA engine and DFlash2 drafting, on NVIDIA's PyTorch container (arm64).
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
-      org.opencontainers.image.revision="7a00336b2f6d1a1a3e0ba49d1ef5b4b82e927759" \
+      org.opencontainers.image.revision="9cd52ab4daba68ddd09be89be8f23ad43175e821" \
       org.opencontainers.image.licenses="MIT" \
       io.vonk.recipe.source="https://github.com/taussoe/tensorfold-recipes/tree/d8a7c09c893eb41be5e93dbd684ce7d4f127d7ac"
 
 # NGC exports PIP_CONSTRAINT for its own stack; the hash-pinned lock below is resolved without it and leaves torch and numpy alone.
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
 
-COPY vendor/tensorfold-7a00336b2f6d1a1a3e0ba49d1ef5b4b82e927759.tar.gz /tmp/tensorfold.tar.gz
+COPY vendor/tensorfold-9cd52ab4daba68ddd09be89be8f23ad43175e821.tar.gz /tmp/tensorfold.tar.gz
 COPY requirements.lock /tmp/requirements.lock
-RUN echo "bd9fe90cc73eaa9b30d907a925fb74b705fb46a2476e0bc5bb48ad18a7256a5e  /tmp/tensorfold.tar.gz" | sha256sum -c - \
+RUN echo "4d92dbd7f1b1d1ba07257ac481edbf952bc195dfd714db70d3aaf4b84a0a6694  /tmp/tensorfold.tar.gz" | sha256sum -c - \
     && mkdir /tmp/tensorfold-src \
     && tar -xzf /tmp/tensorfold.tar.gz -C /tmp/tensorfold-src --strip-components=1 \
-    && PIP_CONSTRAINT= python -m pip install --no-cache-dir --require-hashes --requirement /tmp/requirements.lock \
+    && PIP_CONSTRAINT= python -m pip install --ignore-installed --no-deps --no-cache-dir --require-hashes --requirement /tmp/requirements.lock \
     && python -c "import setuptools; assert int(setuptools.__version__.split('.')[0]) >= 69, setuptools.__version__" \
     && PIP_CONSTRAINT= python -m pip install --no-cache-dir --no-deps --no-build-isolation /tmp/tensorfold-src \
     && python -c "import tensorfold.cuda.server, tensorfold.families.qwen3_5" \
