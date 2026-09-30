@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+"""Launch the pinned SGLang for r0b0tlab's Ornith 1.5 NVFP4 W4A16 profile."""
+
+from __future__ import annotations
+
+import os
+import shutil
+import sys
+from pathlib import Path
+
+MODEL = Path("/models")
+PREWARM = Path("/opt/vonk/prewarm")
+
+arguments = sys.argv[1:]
+if str(MODEL) not in arguments or not (MODEL / "config.json").is_file():
+    raise SystemExit("the immutable /models checkpoint is required")
+
+# Seed the pre-warmed JIT caches once into the writable cache locations.
+for source, target in (
+    (PREWARM / "sglang", Path(os.environ["HOME"]) / ".cache" / "sglang"),
+    (PREWARM / "triton", Path(os.environ["TRITON_CACHE_DIR"])),
+):
+    marker = target / ".vonk-prewarmed"
+    if source.is_dir() and not marker.exists():
+        target.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source, target, dirs_exist_ok=True)
+        marker.write_text("seeded\n", encoding="utf-8")
+
+os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))
