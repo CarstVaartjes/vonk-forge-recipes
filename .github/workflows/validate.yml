@@ -96,10 +96,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Recipe data (recipes, models, adapters, qualification definitions,
-          # README, creators) gets the light checks: the platform validator,
-          # packaging checks and the recipe-wide tests. Any other change
-          # (contracts, tools, tests, workflows) gets the full suite.
+          # Recipe data (recipes, models, adapters, qualification, README,
+          # creators) skips lint, format, type checks and the wheel build; every
+          # other change (contracts, tools, tests, workflows) runs them too.
           case "${{ github.event_name }}" in
             pull_request)
               git fetch --no-tags origin "${{ github.base_ref }}"
@@ -202,21 +201,9 @@ jobs:
           set -euo pipefail
           python3 tools/check-vendored-upstream
 
-      - name: Run the recipe-wide tests
-        if: steps.scope.outputs.full != 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          "$RECIPE_TEST_PYTHON" -m pytest -q \
-            tests/test_recipe_*.py tests/test_qualification_*.py \
-            tests/test_release_assets.py tests/test_exact_model_file_closure.py \
-            tests/test_explicit_hf_file_manifest_closure.py \
-            tests/test_distributed_recipe_availability.py \
-            tests/test_family_aware_coverage.py \
-            tests/test_check_upstream_drift.py
-
+      # Every test runs on recipe changes too: the suite takes about as long
+      # as any subset, and a subset silently misses recipe-data checks.
       - name: Run the full producer test suite
-        if: steps.scope.outputs.full == 'true'
         shell: bash
         run: |
           set -euo pipefail
