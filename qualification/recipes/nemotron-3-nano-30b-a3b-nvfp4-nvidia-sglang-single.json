@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-nvidia-sglang-single",
+  "service_recipes": {
+    "alias": "nemotron-3-nano",
+    "smoke_cases": [
+      "M0",
+      "A323"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded context and concurrency canaries"
+      ],
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ]
+    }
+  }
+}

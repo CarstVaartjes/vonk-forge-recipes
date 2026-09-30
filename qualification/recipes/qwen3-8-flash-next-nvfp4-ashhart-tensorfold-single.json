@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/qwen3-8-flash-next-nvfp4-ashhart-tensorfold-single",
+  "service_recipes": {
+    "alias": "Qwen3.8-Flash-Next",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded concurrency, long-context and unified-memory canaries with the n-gram tables memory-mapped, and the first-run kernel compile time recorded separately"
+      ],
+      "recovery": [
+        "Controller stop/start with warm kernel-cache restart"
+      ]
+    }
+  }
+}

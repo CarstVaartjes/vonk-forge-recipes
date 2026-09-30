@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/qwen3-14b-fp8-nvidia-sglang-single",
+  "service_recipes": {
+    "alias": "qwen3-14b",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded context and concurrency canaries"
+      ],
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ]
+    }
+  }
+}

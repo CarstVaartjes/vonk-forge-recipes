@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual",
+  "service_recipes": {
+    "alias": "deepseek-v4-flash-vision-exp",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context, concurrency and image-input canaries at the 327,680 default context (32 running requests are capped by the KV pool)"
+      ],
+      "recovery": [
+        "Controller-only rank-loss, warm-cache recovery and image-input revalidation; the first start compiles kernels for 10 to 15 minutes"
+      ]
+    }
+  }
+}

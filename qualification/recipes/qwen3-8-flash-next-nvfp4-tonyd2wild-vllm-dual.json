@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-dual",
+  "service_recipes": {
+    "alias": "qwen3.8-flash-next",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context and concurrency canaries at the 262K default; TP2 over the fabric"
+      ],
+      "recovery": [
+        "Controller-only rank-loss and warm-cache restart"
+      ]
+    }
+  }
+}

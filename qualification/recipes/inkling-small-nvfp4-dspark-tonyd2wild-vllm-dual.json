@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual",
+  "service_recipes": {
+    "alias": "inkling-small",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded long-context and concurrency canaries at the 262K default context (five sequences, C6 is a known deadlock upstream)"
+      ],
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery"
+      ]
+    }
+  }
+}

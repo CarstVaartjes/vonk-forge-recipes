@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/fastcontext-1-0-4b-rl-nvfp4-r0b0tlab-vllm-single",
+  "service_recipes": {
+    "alias": "FastContext-1.0-4B-RL-NVFP4",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded 128K-context and tool-call canaries"
+      ],
+      "recovery": [
+        "Controller stop/start and warm-cache restart"
+      ]
+    }
+  }
+}
