@@ -498,8 +498,9 @@ is the only published asset.
 Recipe runtime images are built in CI, not on a Spark.
 `.github/workflows/recipe-images.yml` runs inside every publication (and by hand
 for a backfill: `gh workflow run recipe-images.yml -f slugs=all`, or a list of
-recipe ids). Vonk Forge's `scripts/recipe-image-plan` (at the workflow's
-`PLATFORM_REF`) derives each recipe's executable build key (source bundle,
+recipe ids). Vonk Forge's `scripts/recipe-image-plan` (at the `platform_ref`
+`publish.yml` validates the library with: one pin for validation and images)
+derives each recipe's executable build key (source bundle,
 Dockerfile, pinned base images, build options and capabilities, runtime
 adapter) and the exact Spark build flags and platform adaptation stage. Recipes
 that build the same adapter directory the same way share one key and one
@@ -508,6 +509,10 @@ missing, a hosted `ubuntu-24.04-arm` runner builds the image with those flags
 and pushes it to the public package
 `ghcr.io/<owner>/vonk-forge-recipe-<recipe-id>` as `build-<key>` and
 `<version>`; a key another recipe already has is copied, not rebuilt.
+When the `platform_ref` moved since the last publication, every recipe is
+considered, not only the changed ones, so a platform change that moves build
+keys (for example a new adapter stage) rebuilds exactly the images whose key
+changed instead of leaving them stale.
 
 `tools/prebuilt-images resolve` then looks up every recipe's `build-<key>`
 digest, and the release index records it beside the recipe:

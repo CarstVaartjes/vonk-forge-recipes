@@ -11,6 +11,7 @@ from __future__ import annotations
 import importlib.machinery
 import importlib.util
 import runpy
+import subprocess
 import sys
 from pathlib import Path
 
@@ -123,3 +124,84 @@ def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
         {"content_sha256": "o" * 64, "prebuilt_image": images["o" * 64]},
         {"content_sha256": "s" * 64},
     ]
+
+
+OLD_PIN, NEW_PIN = "1" * 40, "2" * 40
+
+
+def _publication_repo(tmp_path: Path, monkeypatch) -> str:
+    """A repo whose last publication pinned OLD_PIN; returns that commit."""
+
+    def git(*args: str) -> str:
+        return subprocess.run(
+            ["git", "-c", "user.name=t", "-c", "user.email=t@t", *args],
+            cwd=tmp_path,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+
+    workflow = tmp_path / ".github/workflows/publish.yml"
+    workflow.parent.mkdir(parents=True)
+    workflow.write_text(f"with:\n  platform_ref: {OLD_PIN}\n", encoding="utf-8")
+    git("init", "-q")
+    git("add", "-A")
+    git("commit", "-q", "-m", "published")
+    baseline = git("rev-parse", "HEAD")
+    monkeypatch.chdir(tmp_path)
+    return baseline
+
+
+def _repin(tmp_path: Path, pin: str) -> None:
+    workflow = tmp_path / ".github/workflows/publish.yml"
+    workflow.write_text(f"with:\n  platform_ref: {pin}\n", encoding="utf-8")
+    subprocess.run(
+        ["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam", "next"],
+        cwd=tmp_path,
+        check=True,
+    )
+
+
+def test_the_platform_pin_is_read_from_the_publication_workflow() -> None:
+    assert tool.platform_ref(f"x:\n  platform_ref: {OLD_PIN}\n") == OLD_PIN
+    assert tool.platform_ref("platform_ref: not-a-commit\n") is None
+    workflow = (ROOT / ".github/workflows/publish.yml").read_text(encoding="utf-8")
+    assert tool.platform_ref(workflow) is not None
+
+
+def test_a_moved_platform_pin_considers_every_recipe(
+    tmp_path: Path, monkeypatch, capsys
+) -> None:
+    baseline = _publication_repo(tmp_path, monkeypatch)
+    workflow = Path(".github/workflows/publish.yml")
+
+    # Same pin, nothing changed: nothing is a candidate.
+    unchanged = tool.candidate_slugs(_plan(), [], baseline=baseline, workflow=workflow)
+    assert unchanged == set()
+
+    # A moved pin can move the keys of recipes nobody touched.
+    _repin(tmp_path, NEW_PIN)
+    moved = tool.candidate_slugs(_plan(), [], baseline=baseline, workflow=workflow)
+    assert moved is None
+    assert "platform ref moved" in capsys.readouterr().out
+
+    # Only keys whose image is missing are built, so unchanged images stay.
+    registry = _registry({("vonk-forge-recipe-other", f"build-{OWN}"): DIGEST})
+    selection = tool.select(_plan(), owner=OWNER, candidates=moved, lookup=registry)
+    assert [item["build_key"] for item in selection["builds"]] == [SHARED]
+
+
+def test_explicit_requests_and_a_missing_baseline_ignore_the_pin(
+    tmp_path: Path, monkeypatch
+) -> None:
+    baseline = _publication_repo(tmp_path, monkeypatch)
+    workflow = Path(".github/workflows/publish.yml")
+    _repin(tmp_path, NEW_PIN)
+    assert tool.candidate_slugs(
+        _plan(), ["other"], baseline=baseline, workflow=workflow
+    ) == {"other"}
+    assert (
+        tool.candidate_slugs(_plan(), ["all"], baseline=baseline, workflow=workflow)
+        is None
+    )
+    assert tool.candidate_slugs(_plan(), [], baseline="", workflow=workflow) == set()

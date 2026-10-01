@@ -35,11 +35,11 @@ on:
 permissions:
   contents: read
 
-env:
-  # The Vonk Forge commit whose planner derives the build keys, the exact Spark
-  # build flags and the platform adaptation stage. Controllers compare the same
-  # key, so move it with the Forge release they run.
-  PLATFORM_REF: 3d351906275bae0d38e0598032f9fd9adf2b1ccb
+# The Vonk Forge commit whose planner derives the build keys, the exact Spark
+# build flags and the platform adaptation stage is the `platform_ref` that
+# publish.yml validates the library with: one pin, read from there. Controllers
+# compare the same key. When that pin moves, the next publication considers
+# every recipe, and builds the images whose key changed.
 
 jobs:
   plan:
@@ -57,11 +57,18 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
+      - name: Read the platform ref
+        id: platform
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "ref=$(python3 tools/prebuilt-images platform-ref)" >> "$GITHUB_OUTPUT"
+
       - name: Check out the Vonk Forge planner
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: CarstVaartjes/vonk-forge
-          ref: ${{ env.PLATFORM_REF }}
+          ref: ${{ steps.platform.outputs.ref }}
           path: .vonk-forge
 
       - name: Set up uv
@@ -115,7 +122,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           {
             echo "### Recipe images"
-            echo "Baseline: \`${baseline:-none}\`; requested: \`${SLUGS:-changed}\`"
+            echo "Baseline: \`${baseline:-none}\`; requested: \`${SLUGS:-changed}\`; platform: \`${{ steps.platform.outputs.ref }}\`"
             echo
             jq -r '.builds[] | "- build `\(.build_key[0:12])` for \([.recipes[].slug] | join(", "))"' "$RUNNER_TEMP/selection.json"
             jq -r '.copies[] | "- copy to `\(.to)`"' "$RUNNER_TEMP/selection.json"
