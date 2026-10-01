@@ -79,7 +79,8 @@ RUN git clone --filter=blob:none --no-checkout https://github.com/microsoft/TREL
     && git clone --filter=blob:none --no-checkout https://github.com/NVlabs/nvdiffrast.git /opt/vonk/nvdiffrast-source \
     && git -C /opt/vonk/nvdiffrast-source checkout 253ac4fcea7de5f396371124af597e6cc957bfae \
     && git clone --filter=blob:none --no-checkout https://github.com/SHI-Labs/NATTEN.git /opt/vonk/natten-source \
-    && git -C /opt/vonk/natten-source checkout 39375ea1d2f3b1bb284315fa5f79f6ecbebb6382
+    && git -C /opt/vonk/natten-source checkout 39375ea1d2f3b1bb284315fa5f79f6ecbebb6382 \
+    && git -C /opt/vonk/natten-source submodule update --init --recursive
 
 COPY patches/apply-sdpa-arm64.py /opt/vonk/source/apply-sdpa-arm64.py
 RUN python3 /opt/vonk/source/apply-sdpa-arm64.py \
