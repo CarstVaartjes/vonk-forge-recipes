@@ -14,6 +14,14 @@ revision and prefers the pinned digest over a Spark build.
             another recipe already has is copied instead of rebuilt.
 ``resolve`` looks up every recipe's ``build-<key>`` digest for the signed index.
 
+``platform-ref`` prints the Vonk Forge commit the library is validated with
+            (``platform_ref`` in publish.yml). The image workflow plans and
+            builds with that same commit, so there is one pin and it cannot
+            drift between validation and images. When the pin moved since the
+            last publication, ``select`` considers every recipe: a platform
+            change can move the build keys of recipes nobody touched, and only
+            keys whose image is missing are built.
+
 Recipes whose image is missing (not built yet, or its build failed) simply
 publish without ``prebuilt_image``; Controllers then build them on a Spark.
 """
@@ -22,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import urllib.error
@@ -202,6 +211,38 @@ def resolve(
     return images, sorted(missing)
 
 
+PLATFORM_WORKFLOW = Path(".github/workflows/publish.yml")
+_PLATFORM_REF = re.compile(r"^\s*platform_ref:\s*([0-9a-f]{40})\s*$", re.MULTILINE)
+
+
+def platform_ref(workflow: str) -> str | None:
+    """The Vonk Forge commit a workflow pins as ``platform_ref``, if any."""
+
+    found = _PLATFORM_REF.search(workflow)
+    return found.group(1) if found else None
+
+
+def _git_file(revision: str, path: Path) -> str | None:
+    completed = subprocess.run(
+        ["git", "show", f"{revision}:{path.as_posix()}"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout if completed.returncode == 0 else None
+
+
+def platform_moved(current: str | None, baseline: str | None) -> bool:
+    """Whether the platform pin differs from the one at the last publication.
+
+    An unknown pin on either side counts as moved: rebuilding is only ever
+    paid for keys whose image is missing, so assuming a change is cheap and
+    assuming none could leave every image stale.
+    """
+
+    return current is None or baseline is None or current != baseline
+
+
 def _git_changed(baseline: str) -> list[str]:
     completed = subprocess.run(
         ["git", "diff", "--name-only", baseline, "HEAD"],
@@ -210,6 +251,33 @@ def _git_changed(baseline: str) -> list[str]:
         text=True,
     )
     return completed.stdout.splitlines()
+
+
+def candidate_slugs(
+    plan: Mapping[str, Any],
+    requested: list[str],
+    *,
+    baseline: str,
+    workflow: Path,
+) -> set[str] | None:
+    """The recipes whose image a run considers; ``None`` means every recipe."""
+
+    if requested == ["all"]:
+        return None
+    if requested:
+        return set(requested)
+    if not baseline:
+        # No published baseline (a new contract release): build on request only.
+        return set()
+    current = platform_ref(workflow.read_text(encoding="utf-8"))
+    previous = _git_file(baseline, workflow)
+    if platform_moved(current, None if previous is None else platform_ref(previous)):
+        print(
+            "the platform ref moved since the last publication; "
+            "considering every recipe"
+        )
+        return None
+    return changed_slugs(plan, _git_changed(baseline))
 
 
 def main() -> int:
@@ -227,23 +295,34 @@ def main() -> int:
         "--slugs", default="", help="space-separated recipe ids, or 'all'"
     )
     choose.add_argument("--output", type=Path, required=True)
+    choose.add_argument(
+        "--workflow",
+        type=Path,
+        default=PLATFORM_WORKFLOW,
+        help="workflow that pins platform_ref; a move since the baseline selects all",
+    )
+    pin = commands.add_parser("platform-ref")
+    pin.add_argument("--workflow", type=Path, default=PLATFORM_WORKFLOW)
     look = commands.add_parser("resolve")
     look.add_argument("--plan", type=Path, required=True)
     look.add_argument("--owner", required=True)
     look.add_argument("--output", type=Path, required=True)
     arguments = parser.parse_args()
+    if arguments.command == "platform-ref":
+        ref = platform_ref(arguments.workflow.read_text(encoding="utf-8"))
+        if ref is None:
+            print(f"{arguments.workflow} pins no platform_ref", file=sys.stderr)
+            return 1
+        print(ref)
+        return 0
     plan = json.loads(arguments.plan.read_text(encoding="utf-8"))
     if arguments.command == "select":
-        requested = arguments.slugs.split()
-        if requested == ["all"]:
-            candidates = None
-        elif requested:
-            candidates = set(requested)
-        elif arguments.baseline:
-            candidates = changed_slugs(plan, _git_changed(arguments.baseline))
-        else:
-            # No published baseline (a new contract release): build on request only.
-            candidates = set()
+        candidates = candidate_slugs(
+            plan,
+            arguments.slugs.split(),
+            baseline=arguments.baseline,
+            workflow=arguments.workflow,
+        )
         selection = select(plan, owner=arguments.owner, candidates=candidates)
         arguments.output.write_text(json.dumps(selection, indent=2), encoding="utf-8")
         print(
