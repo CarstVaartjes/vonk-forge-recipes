@@ -1,7 +1,0 @@
-boot.py and patches/sitecustomize.py are from
-https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks at commit
-201be3e743d215291feee09fe470822ec453c63d, byte-identical (AGPL-3.0, see
-LICENSE.upstream). The upstream kit's start.sh, NFS head export and worker
-mount, host NCCL overlay and SSD HiCache mounts are not used: Vonk places the
-ranks, the model files and the fabric. The engine is lmsysorg/sglang
-(Apache-2.0).

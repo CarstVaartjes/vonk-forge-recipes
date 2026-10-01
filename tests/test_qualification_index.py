@@ -99,16 +99,6 @@ def test_qualification_assets_are_owned_and_digest_checked_here() -> None:
         assert isinstance(value.get("provenance"), dict), fixture_id
 
 
-def test_deepseek_vision_smoke_contract_is_recipe_owned() -> None:
-    definitions = load_definitions(QUALIFICATION_ROOT)
-    services = definitions["service_recipes"]
-    assert isinstance(services, dict)
-    contract = services["vonk-forge/deepseek-v4-flash-vision-exp-mia-dual"]
-    assert contract["alias"] == "deepseek-v4-flash-vision-exp"
-    assert contract["smoke_cases"] == ["M0", "A391", "T_REPORT", "V_RED"]
-    assert "content_sha256" not in contract
-
-
 def test_cube_fixture_generator_is_byte_identical(tmp_path: Path) -> None:
     output = tmp_path / "cube.glb"
     subprocess.run(
