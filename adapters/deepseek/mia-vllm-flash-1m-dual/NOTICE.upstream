@@ -1,6 +1,8 @@
-The launch profile (docker-compose.yml, start/stop scripts, .env.example) is from
+The launch arguments and environment come from the launch profile (docker-compose.yml, start/stop
+scripts, .env.example) at
 https://github.com/MiaAI-Lab/DeepSeek-V4-Flash-Dual-DGX-Spark-1M-Context at commit
-d84319952b41df812603830cd13ae921c39860f7. The repository has no licence file; its README
+d84319952b41df812603830cd13ae921c39860f7. The profile files themselves are not vendored: the
+platform owns host networking, device access (RoCE), mounts and the container lifecycle. The repository has no licence file; its README
 states the code is provided under the MIT License. The container image is aidendle94's
 public vLLM fork build (pinned by digest); its own licences apply. The model weights are
 DeepSeek's (MIT).

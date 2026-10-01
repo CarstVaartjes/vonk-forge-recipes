@@ -46,7 +46,7 @@ def main() -> None:
             ast.parse(text, filename=str(path))
         for name in BASE:
             ast.parse((PKG / name).read_text(encoding="utf-8"), filename=name)
-        if not Path("/opt/vonk/bin/qwen38-tonyd2wild-serve").is_file():
+        if not Path("/opt/vonk/bin/vllm").is_file():
             raise SystemExit("Controller wrapper is missing")
     else:
         raise SystemExit("usage: verify-runtime.py base|overlays")

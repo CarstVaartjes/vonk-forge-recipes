@@ -9,7 +9,7 @@ LABEL org.opencontainers.image.source="https://github.com/sfxnz/DeepSeek-V4-Flas
 # vLLM plugin and patches the DSpark loader; both are baked byte-identically.
 COPY docker/plugin /opt/dsv4_vision_src
 COPY docker/patch_dspark_skip_bias_vl.py /tmp/patch_dspark_skip_bias_vl.py
-COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm-serve
+COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 COPY LICENSE /opt/vonk/LICENSE.upstream
 
 RUN python3 -m pip install --no-cache-dir --no-deps /opt/dsv4_vision_src \

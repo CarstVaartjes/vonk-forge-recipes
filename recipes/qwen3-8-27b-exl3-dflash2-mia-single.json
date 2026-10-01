@@ -457,7 +457,7 @@
     ],
     "engine": "exllamav3",
     "entrypoint": [
-      "/opt/vonk/bin/exl3-serve"
+      "/opt/vonk/bin/exllamav3-serve"
     ],
     "environment": [
       {
