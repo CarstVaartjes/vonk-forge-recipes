@@ -1,0 +1,15 @@
+{
+  "ours": [
+    "NOTICE",
+    "example-session.json",
+    "input_contract.py",
+    "requirements.in",
+    "requirements.lock",
+    "run.py",
+    "session.schema.json"
+  ],
+  "source": {
+    "commit": "f4ffcd3658fa9cc3a288d05ff9a705fbc7778c28",
+    "repo": "OpenMOSS/MOSS-VL"
+  }
+}
