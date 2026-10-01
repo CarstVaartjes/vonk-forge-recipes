@@ -16,13 +16,13 @@
       "size_bytes": 1635
     },
     {
-      "id": "readme-2a001916abad-b335630551",
+      "id": "readme-9e4501d2f1e3-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "2a001916abadd53f3af4df37cd86fee7edf53847e8d6bd0c3414af1f6c6b5ca3",
-      "size_bytes": 4328
+      "sha256": "9e4501d2f1e3d32e0e327cbd035495e5e93d0ec3167b1f5f6a064bdf9471fb14",
+      "size_bytes": 9671
     },
     {
       "id": "chat-template-e84f32a23fdd-00824420d1",
@@ -140,9 +140,9 @@
       "title": "Qwen3.6 35B-A3B NVFP4"
     },
     "publisher": "redhatai",
-    "slug": "qwen3-6-35b-a3b-nvfp4-redhatai-e850c696",
-    "variant": "Qwen3.6 35B-A3B NVFP4 RedHatAI e850c696",
-    "version": "Qwen3.6 35B-A3B NVFP4 RedHatAI e850c696"
+    "slug": "qwen3-6-35b-a3b-nvfp4-redhatai-e94a930c",
+    "variant": "Qwen3.6 35B-A3B NVFP4 RedHatAI e94a930c",
+    "version": "Qwen3.6 35B-A3B NVFP4 RedHatAI e94a930c"
   },
   "kind": "model",
   "license": {
@@ -168,6 +168,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/RedHatAI/Qwen3.6-35B-A3B-NVFP4",
-    "revision": "e850c696e6d75f965367e816c16bc7dacd955ffa"
+    "revision": "e94a930c8e9b8a7d3763e449289c261c9c7d3e5e"
   }
 }
