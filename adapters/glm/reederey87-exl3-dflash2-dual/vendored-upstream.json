@@ -1,7 +1,8 @@
 {
   "ours": [
     "verify-runtime.py",
-    "vllm-wrapper.py"
+    "vllm-wrapper.py",
+    "vonk-patches/"
   ],
   "source": {
     "commit": "fd87969cb43a5ba66573bd2508bc05651fc1579c",
