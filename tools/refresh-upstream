@@ -60,6 +60,8 @@ def _load(name: str) -> Any:
 drift = _load("check-upstream-drift")
 vendored = _load("check-vendored-upstream")
 catalog = _load("catalog-hf-model")
+RefreshAppAuth = _load("_refresh_auth.py").RefreshAppAuth
+APP_AUTH: Any = None
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
 LABEL_NEEDS_REVIEW = "refresh:needs-review"
@@ -1561,13 +1563,18 @@ def run(
     check: bool = True,
     env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
+    app_env = (
+        APP_AUTH.environment()
+        if APP_AUTH is not None and command[0] in {"gh", "git"}
+        else {}
+    )
     result = subprocess.run(
         command,
         cwd=cwd,
         text=True,
         capture_output=True,
         check=False,
-        env={**os.environ, **(env or {})},
+        env={**os.environ, **(env or {}), **app_env},
     )
     if check and result.returncode != 0:
         raise RuntimeError(
@@ -1870,9 +1877,7 @@ def publish_mechanical(root: Path, assessment: Assessment, summary: Summary) -> 
         ).strip()
         number = int(url.rsplit("/", 1)[-1])
     arm_mechanical_pr(number, recipe_id, summary)
-    # Pushes and pull requests made with GITHUB_TOKEN start no workflows; dispatch the
-    # required validation for the branch explicitly.
-    gh("workflow", "run", "validate.yml", "--ref", branch)
+    # App-created PRs trigger normal pull_request validation without human approval.
     summary.mechanical.append(f"{recipe_id}: PR #{number}")
 
 
@@ -2000,7 +2005,7 @@ def foreign_open_prs() -> dict[int, set[str]]:
 
 
 def publish_if_stale() -> None:
-    """A merge made with GITHUB_TOKEN starts no publication run: dispatch one when main moved."""
+    """Repair a missing publication receipt without duplicating an active main run."""
     head = gh("api", "repos/{owner}/{repo}/commits/main", "--jq", ".sha").strip()
     runs = gh_json(
         "run",
@@ -2213,7 +2218,45 @@ def main() -> int:
     parser.add_argument(
         "--dry-run", action="store_true", help="classify and print; change nothing"
     )
-    return command_run(parser.parse_args())
+    parser.add_argument(
+        "--github-app",
+        action="store_true",
+        help="require renewable repository-scoped App credentials for git/gh",
+    )
+    parser.add_argument(
+        "--verify-app",
+        action="store_true",
+        help="verify App authentication and exact repository scope; change no recipes",
+    )
+    arguments = parser.parse_args()
+    if arguments.verify_app and not arguments.github_app:
+        parser.error("--verify-app requires --github-app")
+    global APP_AUTH
+    if arguments.github_app:
+        APP_AUTH = RefreshAppAuth(
+            os.environ.get("REFRESH_APP_CLIENT_ID", ""),
+            os.environ.pop("REFRESH_APP_PRIVATE_KEY", ""),
+            os.environ.get("GITHUB_REPOSITORY", ""),
+        )
+        APP_AUTH.environment()  # Fail before upstream work when setup is incomplete.
+    try:
+        if arguments.verify_app:
+            installation = gh_json("api", "installation/repositories")
+            repositories = [repo["full_name"] for repo in installation["repositories"]]
+            expected = os.environ["GITHUB_REPOSITORY"]
+            if repositories != [expected]:
+                raise RuntimeError(
+                    f"Refresh App token scope differs from {expected}: {repositories}"
+                )
+            print(
+                f"Refresh App authentication verified; token restricted to {expected}."
+            )
+            return 0
+        return command_run(arguments)
+    finally:
+        if APP_AUTH is not None:
+            APP_AUTH.close()
+            APP_AUTH = None
 
 
 if __name__ == "__main__":
