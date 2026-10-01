@@ -131,6 +131,21 @@ offline. Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
+The image must be buildable by the Controller, and publication builds the same
+image on a hosted runner and pins it in the signed index, so two checks run on
+every pull request (`validate-recipe-library`): the Controller's static source
+policy over the build context (no Dockerfile heredocs or `ADD`, digest-pinned
+bases, a numeric non-root final user, every URL host in
+`execution.build.network.hosts`, no Compose device, host-namespace or bind
+settings; put multi-line scripts in vendored files and `COPY` them), and the
+launcher rule: the platform's runtime adapter verifies the engine's canonical
+launcher in the built image (`/opt/vonk/bin/vllm`, `sglang-serve`,
+`exllamav3-serve`, and so on), so the Dockerfile installs your wrapper at that
+exact path and `runtime.entrypoint` names it. The image workflow lists, in each
+run summary, why a recipe has no prebuilt image; recipes that genuinely cannot
+build on a hosted runner are declared with the reason in
+`prebuilt-image-exclusions.json`.
+
 Leave out unused optional fields. For optional fields with a `None` default,
 explicit `null` and omission have the same meaning; required nullable fields
 must still be written, even when their value is `null`. Do not remove false,
