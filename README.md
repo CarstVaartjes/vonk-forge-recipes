@@ -75,7 +75,7 @@ Which Spark counts each model family runs on.
 | --- | :---: | :---: | :---: | :---: | :---: |
 | Agents-A1 | ✓ |  |  |  |  |
 | Alibaba Qwen2.5-VL | ✓ |  |  |  |  |
-| DeepSeek V4 Flash | ✓ | ✓ | ✓ | ✓ |  |
+| DeepSeek V4 Flash | ✓ | ✓ |  | ✓ |  |
 | FastContext | ✓ |  |  |  |  |
 | FLUX.2 | ✓ |  |  |  |  |
 | Gemma | ✓ | ✓ |  |  |  |
