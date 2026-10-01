@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.machinery
 import importlib.util
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -401,6 +402,79 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
 
 class MergeGateTests(unittest.TestCase):
     main_head = "a" * 40
+
+    def test_unchanged_prepared_pr_is_armed_after_publication_recovers(self) -> None:
+        assessment = refresh.Assessment("recipe", edits={"recipe.json": b"new pin\n"})
+        merges: list[tuple[str, ...]] = []
+        published = False
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch.dict(
+                os.environ,
+                {
+                    "GIT_CONFIG_GLOBAL": os.devnull,
+                    "GIT_CONFIG_NOSYSTEM": "1",
+                    "GIT_CONFIG_COUNT": "0",
+                    "GIT_AUTHOR_NAME": "Refresh test",
+                    "GIT_AUTHOR_EMAIL": "refresh@example.test",
+                    "GIT_COMMITTER_NAME": "Refresh test",
+                    "GIT_COMMITTER_EMAIL": "refresh@example.test",
+                },
+            ),
+            patch("refresh_upstream.verify", return_value=None),
+        ):
+            root = Path(temporary)
+            refresh.git("init", "-q", "--initial-branch=main", cwd=root)
+            refresh.git("remote", "add", "origin", str(root), cwd=root)
+            (root / "recipe.json").write_bytes(b"old pin\n")
+            refresh.git("add", "recipe.json", cwd=root)
+            refresh.git("commit", "-qm", "Base", cwd=root)
+            main = refresh.git("rev-parse", "HEAD", cwd=root)
+            refresh.git("update-ref", "refs/remotes/origin/main", main, cwd=root)
+            refresh.git("switch", "-qc", "refresh/recipe", cwd=root)
+            refresh.apply_edits(root, assessment.edits)
+            refresh.git("commit", "-qam", "Prepared refresh", cwd=root)
+            prepared = refresh.git("rev-parse", "HEAD", cwd=root)
+
+            def github(*arguments: str) -> str:
+                if arguments[:3] == ("pr", "list", "--head"):
+                    return json.dumps([{"number": 421, "state": "OPEN", "body": ""}])
+                if arguments[:2] == ("pr", "list"):
+                    return "[]"
+                if arguments[0] == "api":
+                    return main
+                if arguments[:2] == ("run", "list"):
+                    return json.dumps(
+                        [
+                            {
+                                "headSha": main,
+                                "status": "completed",
+                                "conclusion": "success",
+                            }
+                        ]
+                        if published
+                        else []
+                    )
+                if arguments[:2] == ("pr", "merge"):
+                    merges.append(arguments)
+                    return ""
+                raise AssertionError(f"Unexpected GitHub mutation: {arguments}")
+
+            with patch("refresh_upstream.gh", side_effect=github):
+                waiting = refresh.Summary()
+                refresh.publish_mechanical(root, assessment, waiting)
+                self.assertIsNone(waiting.armed_pr)
+                self.assertEqual(merges, [])
+                published = True
+                resumed = refresh.Summary()
+                refresh.publish_mechanical(root, assessment, resumed)
+
+            self.assertEqual(resumed.armed_pr, 421)
+            self.assertEqual(merges, [("pr", "merge", "421", "--auto", "--squash")])
+            self.assertEqual(
+                refresh.git("rev-parse", "refs/heads/refresh/recipe", cwd=root),
+                prepared,
+            )
 
     def test_existing_armed_pr_blocks_another_mechanical_merge(self) -> None:
         summary = refresh.Summary()

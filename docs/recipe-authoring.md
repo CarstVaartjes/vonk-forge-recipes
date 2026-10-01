@@ -346,8 +346,10 @@ mechanical pull requests are prepared per run; the rest follow in later hours. T
 refresh arms auto-merge (squash) for at most one pull request at a time, and only when
 no other pull request already has auto-merge armed and the current `main` commit has a
 successful `publish.yml` run. That successful run is the signed-publication receipt;
-failed, pending or older-head publication runs do not satisfy the gate. App-authorized
-merges trigger publication normally. As recovery, the hourly refresh dispatches `publish.yml` for `main` when its current head lacks a successful receipt
+failed, pending or older-head publication runs do not satisfy the gate. Later runs
+reconsider unchanged prepared PRs for auto-merge without pushing another commit.
+App-authorized merges trigger publication normally. As recovery, the hourly refresh
+dispatches `publish.yml` for `main` when its current head lacks a successful receipt
 and no run for that head is already pending.
 
 The hourly workflow requires `REFRESH_APP_CLIENT_ID` (repository variable) and
