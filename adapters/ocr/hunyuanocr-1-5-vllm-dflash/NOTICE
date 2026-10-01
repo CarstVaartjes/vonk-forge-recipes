@@ -3,7 +3,7 @@ HunyuanOCR 1.5 runtime attribution
 
 This adapter is a thin Vonk artifact-job wrapper around Tencent's official
 HunyuanOCR 1.5 inference toolkit at commit
-c55965d3da1e6f41987abec8068f2e70851318bc. The image preserves the official
+1ef4179e53cf860f7e6fd8276a292e5d05b3e927. The image preserves the official
 task prompts, greedy sampling settings, tail-repetition protection,
 document-Markdown normalization, and lossless DFlash speculative decoding.
 
