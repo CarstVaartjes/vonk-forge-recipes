@@ -8,14 +8,14 @@ RUN cat /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-aa \
          /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ac \
          /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ad \
          /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ae \
-         > /tmp/xgrammar-0.2.3.whl \
-    && printf '11255f184971489fc72b948b096e2917f482ba2dca975177f5411562cedb9c6d  /tmp/xgrammar-0.2.3.whl\n' \
+         > /tmp/xgrammar-0.2.3-cp312-cp312-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl \
+    && printf '11255f184971489fc72b948b096e2917f482ba2dca975177f5411562cedb9c6d  /tmp/xgrammar-0.2.3-cp312-cp312-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl\n' \
          | sha256sum -c - \
     && env -u PIP_CONSTRAINT /opt/runtime-venv/bin/python -m pip install \
-         --no-deps --no-index /tmp/xgrammar-0.2.3.whl \
+         --no-deps --no-index /tmp/xgrammar-0.2.3-cp312-cp312-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl \
     && /opt/runtime-venv/bin/python -c \
          'import importlib.metadata; from xgrammar import normalize_tool_choice; assert importlib.metadata.version("xgrammar") == "0.2.3"' \
-    && rm -f /tmp/xgrammar-0.2.3.whl \
+    && rm -f /tmp/xgrammar-0.2.3-cp312-cp312-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl \
          /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-aa \
          /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ab \
          /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ac \
@@ -27,10 +27,10 @@ LABEL org.opencontainers.image.source="https://github.com/0xSero/deepseek-v4-fla
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.description="Offline Vonk target-only canary adapter for DeepSeek V4 Flash on one DGX Spark"
 
-RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
+# The base image's PATH has no groupadd/useradd; write the entries directly.
+RUN if ! getent group 10001 >/dev/null; then echo 'vonk:x:10001:' >> /etc/group; fi \
     && if ! getent passwd 10001 >/dev/null; then \
-         useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home \
-           --shell /usr/sbin/nologin vonk; \
+         echo 'vonk:x:10001:10001::/state:/usr/sbin/nologin' >> /etc/passwd; \
        fi \
     && install --directory --owner 10001 --group 10001 \
          /opt/vonk/bin /opt/vonk/tiktoken-cache /state /outputs \

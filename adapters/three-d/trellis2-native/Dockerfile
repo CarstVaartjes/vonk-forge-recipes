@@ -49,7 +49,7 @@ RUN apt-get update \
         kornia==0.8.2 \
         ninja==1.13.0 \
         numpy==2.3.5 \
-        opencv-python-headless==4.12.0.88 \
+        opencv-python-headless==4.13.0.92 \
         packaging==26.0 \
         Pillow==12.0.0 \
         plyfile==1.1.3 \

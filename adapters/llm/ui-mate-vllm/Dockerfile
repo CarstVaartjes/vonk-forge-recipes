@@ -8,12 +8,12 @@ LABEL org.opencontainers.image.source="https://github.com/Tencent/UI-Mate" \
 
 COPY agents /opt/vonk/ui-mate/agents
 COPY LICENSE.upstream NOTICE /opt/vonk/ui-mate/
-COPY ui-mate-step.py vllm-wrapper.sh /opt/vonk/bin/
+COPY --chmod=0755 ui-mate-step.py /opt/vonk/bin/ui-mate-step
+COPY --chmod=0755 vllm-wrapper.sh /opt/vonk/bin/vllm-wrapper.sh
 
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner=10001 --group=10001 /outputs /outputs/cache \
-    && chmod 0755 /opt/vonk/bin/ui-mate-step /opt/vonk/bin/vllm-wrapper.sh \
     && ln -s /opt/vonk/bin/vllm-wrapper.sh /opt/vonk/bin/vllm \
     && PYTHONPATH=/opt/vonk/ui-mate python -c \
       'import openai, PIL, requests; from agents.ui_mate_agent import UIMateAgent, parse_response; assert UIMateAgent and parse_response'
