@@ -1,0 +1,3 @@
+{
+  "skintokens-pytorch-single": "pip compiles flash-attn 2.8.3.post1 from source for CUDA sm_121; on the 4-vCPU hosted ARM64 runner that ran past the 120-minute job limit (run 36790344084) without finishing. A Spark builds it with its own cores. Name the recipe in a manual run of the image workflow to try again."
+}

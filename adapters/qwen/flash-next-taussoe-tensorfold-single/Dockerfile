@@ -14,7 +14,7 @@ COPY requirements.lock /tmp/requirements.lock
 RUN echo "8bf12b9a2e44cbc78e669eb08b3d02aba8ab1e4dae0d66dfa1c5e856f7f836d4  /tmp/tensorfold.tar.gz" | sha256sum -c - \
     && mkdir /tmp/tensorfold-src \
     && tar -xzf /tmp/tensorfold.tar.gz -C /tmp/tensorfold-src --strip-components=1 \
-    && PIP_CONSTRAINT= python -m pip install --no-cache-dir --require-hashes --requirement /tmp/requirements.lock \
+    && PIP_CONSTRAINT= python -m pip install --ignore-installed --no-deps --no-cache-dir --require-hashes --requirement /tmp/requirements.lock \
     && python -c "import setuptools; assert int(setuptools.__version__.split('.')[0]) >= 69, setuptools.__version__" \
     && PIP_CONSTRAINT= python -m pip install --no-cache-dir --no-deps --no-build-isolation /tmp/tensorfold-src \
     && python -c "import tensorfold.cuda.server, tensorfold.families.qwen4_exp.cuda.engine" \

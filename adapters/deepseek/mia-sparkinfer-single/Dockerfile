@@ -6,10 +6,10 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/DeepSeek-v4-
       org.opencontainers.image.licenses="Apache-2.0 AND MIT" \
       org.opencontainers.image.description="Offline Vonk adapter for MiaAI-Lab's 384K compact-NVFP4 one-DGX-Spark profile"
 
-RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
+# The base image's PATH has no groupadd/useradd; write the entries directly.
+RUN if ! getent group 10001 >/dev/null; then echo 'vonk:x:10001:' >> /etc/group; fi \
     && if ! getent passwd 10001 >/dev/null; then \
-         useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home \
-           --shell /usr/sbin/nologin vonk; \
+         echo 'vonk:x:10001:10001::/state:/usr/sbin/nologin' >> /etc/passwd; \
        fi \
     && install --directory --owner 10001 --group 10001 \
          /opt/vonk/bin /opt/vonk/tiktoken-cache /state /outputs \

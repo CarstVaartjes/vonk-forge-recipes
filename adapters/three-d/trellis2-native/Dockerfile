@@ -49,7 +49,7 @@ RUN apt-get update \
         kornia==0.8.2 \
         ninja==1.13.0 \
         numpy==2.3.5 \
-        opencv-python-headless==4.12.0.88 \
+        opencv-python-headless==4.13.0.92 \
         packaging==26.0 \
         Pillow==12.0.0 \
         plyfile==1.1.3 \
@@ -85,6 +85,7 @@ COPY patches/apply-sdpa-arm64.py /opt/vonk/source/apply-sdpa-arm64.py
 RUN python3 /opt/vonk/source/apply-sdpa-arm64.py \
         /opt/vonk/trellis2-source/trellis2 \
         /opt/vonk/pixal3d-source/pixal3d \
+    && ln -sf /usr/bin/python3 /usr/local/bin/python \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation --no-deps /opt/vonk/cumesh-source \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation --no-deps /opt/vonk/flexgemm-source \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation --no-deps /opt/vonk/nvdiffrast-source \

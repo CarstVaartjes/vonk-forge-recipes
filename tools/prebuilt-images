@@ -24,6 +24,10 @@ revision and prefers the pinned digest over a Spark build.
 
 Recipes whose image is missing (not built yet, or its build failed) simply
 publish without ``prebuilt_image``; Controllers then build them on a Spark.
+``resolve`` names the reason for every recipe without an image: refused by the
+Controller's source policy (not planned), declared unbuildable in CI in
+``prebuilt-image-exclusions.json`` (those are not retried until asked for by
+name), or no image in the registry (the build failed or has not run).
 """
 
 from __future__ import annotations
@@ -179,6 +183,41 @@ def select(
     }
 
 
+EXCLUSIONS = Path("prebuilt-image-exclusions.json")
+
+
+def read_exclusions(path: Path = EXCLUSIONS) -> dict[str, str]:
+    """Recipes CI cannot build, each with the reason, from the repository file."""
+
+    if not path.is_file():
+        return {}
+    document = json.loads(path.read_text(encoding="utf-8"))
+    return {str(slug): str(reason) for slug, reason in document.items()}
+
+
+def without_excluded(
+    plan: Mapping[str, Any],
+    candidates: set[str] | None,
+    excluded: Mapping[str, str],
+    *,
+    requested: list[str],
+) -> set[str] | None:
+    """Drop recipes declared unbuildable in CI, unless a run names them.
+
+    A build that cannot finish on a hosted runner would otherwise burn its full
+    job timeout on every platform move.
+    """
+
+    if requested and requested != ["all"]:
+        return candidates
+    universe = (
+        {slug for _key, recipe in _recipes(plan) for slug in [str(recipe["slug"])]}
+        if candidates is None
+        else candidates
+    )
+    return universe - set(excluded)
+
+
 def resolve(
     plan: Mapping[str, Any], *, owner: str, lookup: Lookup = ghcr_digest
 ) -> tuple[dict[str, dict[str, str]], list[str]]:
@@ -280,6 +319,25 @@ def candidate_slugs(
     return changed_slugs(plan, _git_changed(baseline))
 
 
+def missing_reasons(
+    plan: Mapping[str, Any], missing: list[str], excluded: Mapping[str, str]
+) -> dict[str, str]:
+    """Why each recipe without a prebuilt image has none."""
+
+    reasons = {
+        str(item["slug"]): f"not planned: {item['reason']}"
+        for item in plan.get("skipped", [])
+    }
+    for slug in missing:
+        reasons[slug] = (
+            f"declared unbuildable in CI: {excluded[slug]}"
+            if slug in excluded
+            else "no image in the registry for its build key: the build failed "
+            "or has not run (see the Build jobs of the image workflow)"
+        )
+    return dict(sorted(reasons.items()))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     commands = parser.add_subparsers(dest="command", required=True)
@@ -323,6 +381,12 @@ def main() -> int:
             baseline=arguments.baseline,
             workflow=arguments.workflow,
         )
+        candidates = without_excluded(
+            plan,
+            candidates,
+            read_exclusions(),
+            requested=arguments.slugs.split(),
+        )
         selection = select(plan, owner=arguments.owner, candidates=candidates)
         arguments.output.write_text(json.dumps(selection, indent=2), encoding="utf-8")
         print(
@@ -335,9 +399,10 @@ def main() -> int:
     arguments.output.write_text(
         json.dumps(images, indent=2, sort_keys=True), encoding="utf-8"
     )
-    print(f"{len(images)} recipe(s) have a prebuilt image; {len(missing)} do not")
-    for slug in missing:
-        print(f"  no prebuilt image: {slug}")
+    reasons = missing_reasons(plan, missing, read_exclusions())
+    print(f"{len(images)} recipe(s) have a prebuilt image; {len(reasons)} do not")
+    for slug, reason in reasons.items():
+        print(f"  no prebuilt image: {slug}: {reason}")
     return 0
 
 

@@ -205,3 +205,35 @@ def test_explicit_requests_and_a_missing_baseline_ignore_the_pin(
         is None
     )
     assert tool.candidate_slugs(_plan(), [], baseline="", workflow=workflow) == set()
+
+
+def test_a_recipe_declared_unbuildable_is_not_retried_unless_asked_for() -> None:
+    excluded = {"dual": "compiles for hours on the hosted runner"}
+
+    everything = tool.without_excluded(_plan(), None, excluded, requested=["all"])
+    assert everything == {"single", "other"}
+    changed = tool.without_excluded(_plan(), {"dual", "other"}, excluded, requested=[])
+    assert changed == {"other"}
+    # Naming the recipe is an explicit request to try it again.
+    assert tool.without_excluded(_plan(), {"dual"}, excluded, requested=["dual"]) == {
+        "dual"
+    }
+
+
+def test_every_recipe_without_an_image_says_why() -> None:
+    plan = _plan()
+    plan["skipped"] = [{"slug": "refused", "reason": "dockerfile.heredoc_forbidden"}]
+    reasons = tool.missing_reasons(
+        plan, ["dual", "single"], {"dual": "compiles for hours"}
+    )
+
+    assert set(reasons) == {"refused", "dual", "single"}
+    assert "dockerfile.heredoc_forbidden" in reasons["refused"]
+    assert "compiles for hours" in reasons["dual"]
+    assert "build failed" in reasons["single"]
+
+
+def test_declared_exclusions_name_existing_recipes_and_give_a_reason() -> None:
+    for slug, reason in tool.read_exclusions(ROOT / tool.EXCLUSIONS).items():
+        assert (ROOT / "recipes" / f"{slug}.json").is_file(), slug
+        assert reason.strip(), slug
