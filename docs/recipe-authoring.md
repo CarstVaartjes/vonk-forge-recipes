@@ -339,17 +339,38 @@ A refresh is **mechanical** only when all of these hold:
   the whole test suite pass on the result.
 
 Then a bounded set of pull requests (branch `refresh/<recipe-id>`, label
-`refresh:mechanical`) is opened or updated, and `validate.yml` is dispatched for each
-branch because pushes and pull requests made with `GITHUB_TOKEN` start no workflows.
+`refresh:mechanical`) is opened or updated using a repository-scoped GitHub App.
+Its pushes and PRs trigger normal `pull_request` validation without GitHub's built-in Actions-token approval gate.
 A pull request closed unmerged for the same target is not reopened. At most three
 mechanical pull requests are prepared per run; the rest follow in later hours. The
 refresh arms auto-merge (squash) for at most one pull request at a time, and only when
 no other pull request already has auto-merge armed and the current `main` commit has a
 successful `publish.yml` run. That successful run is the signed-publication receipt;
-failed, pending or older-head publication runs do not satisfy the gate. A merge made
-with `GITHUB_TOKEN` starts no publication either, so the hourly refresh dispatches
-`publish.yml` for `main` when its current head lacks a successful receipt and no run for
-that head is already pending.
+failed, pending or older-head publication runs do not satisfy the gate. App-authorized
+merges trigger publication normally. As recovery, the hourly refresh dispatches `publish.yml` for `main` when its current head lacks a successful receipt
+and no run for that head is already pending.
+
+The hourly workflow requires `REFRESH_APP_CLIENT_ID` (repository variable) and
+`REFRESH_APP_PRIVATE_KEY` (repository Actions secret). Register a private GitHub App
+with Contents, Pull requests, Issues and Actions **read/write**, leave webhooks
+inactive, and install it on **only `vonk-forge-recipes`**. It needs no administration,
+secrets, workflow-editing, account or organization permissions. The App renews its
+one-hour installation token before each git/gh operation when fewer than five
+minutes remain, so the 150-minute job can finish. The key is removed from child
+process environments; installation tokens are masked and the final token is revoked
+on normal exit. Missing or refused App credentials fail explicitly without falling
+back to the Actions token. Local manual runs continue to use the operator's CLI login.
+
+[GitHub's token behavior](https://docs.github.com/en/actions/concepts/security/github_token)
+explains the approval gate. Register/install the App once, then store credentials
+with `gh variable set REFRESH_APP_CLIENT_ID --repo CarstVaartjes/vonk-forge-recipes`
+and `gh secret set REFRESH_APP_PRIVATE_KEY --repo CarstVaartjes/vonk-forge-recipes`
+using stdin; never put the private key in command arguments or tracked files.
+Before activation, verify the credentials on the candidate branch without creating
+recipe PRs: `gh workflow run refresh-upstream.yml --ref BRANCH -f verify_app_only=true`.
+This uses the normal App authentication path, confirms that the minted token can
+access exactly this repository, and revokes it on exit. It can run beside the
+hourly refresh because it does not change recipes, PRs, issues or publication.
 
 Otherwise the recipe is **not changed**. One issue per recipe, titled
 `Refresh needs review: <recipe-id>` and labelled `refresh:needs-review`, carries the

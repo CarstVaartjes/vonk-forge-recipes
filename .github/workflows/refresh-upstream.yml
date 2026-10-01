@@ -11,17 +11,19 @@ on:
   schedule:
     - cron: "23 * * * *"
   workflow_dispatch:
+    inputs:
+      verify_app_only:
+        description: Verify App credentials without refreshing recipes or changing PRs
+        type: boolean
+        default: false
 
 # One run at a time; never cancel a run that may be mid-push.
 concurrency:
-  group: refresh-upstream
+  group: refresh-upstream${{ inputs.verify_app_only && '-verify-app' || '' }}
   cancel-in-progress: false
 
 permissions:
-  contents: write # push refresh/<recipe-id> branches
-  pull-requests: write # open, update and auto-merge the pull requests
-  issues: write # needs-review issues and their labels
-  actions: write # dispatch validate.yml and publish.yml (GITHUB_TOKEN events start no workflows)
+  contents: read # upstream observations; mutations use the repository-scoped App
 
 jobs:
   refresh:
@@ -32,8 +34,9 @@ jobs:
       - name: Check out main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: main
+          ref: ${{ inputs.verify_app_only && github.ref || 'main' }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up uv and Python
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
@@ -45,6 +48,7 @@ jobs:
       # ETags make repeat polls free (a 304 does not count against the API quota);
       # upstream trees and Model inventories are immutable per commit.
       - name: Restore the upstream cache
+        if: ${{ !inputs.verify_app_only }}
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ${{ runner.temp }}/refresh-cache
@@ -64,13 +68,22 @@ jobs:
         run: '"$REFRESH_PYTHON" -m pytest -q tests/test_check_upstream_drift.py tests/test_refresh_upstream.py'
 
       - name: Refresh
+        if: ${{ !inputs.verify_app_only }}
         env:
-          GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
+          REFRESH_APP_CLIENT_ID: ${{ vars.REFRESH_APP_CLIENT_ID }}
+          REFRESH_APP_PRIVATE_KEY: ${{ secrets.REFRESH_APP_PRIVATE_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          "$REFRESH_PYTHON" tools/refresh-upstream --cache-dir "$RUNNER_TEMP/refresh-cache"
+          "$REFRESH_PYTHON" tools/refresh-upstream --github-app --cache-dir "$RUNNER_TEMP/refresh-cache"
+
+      - name: Verify App authentication and repository scope
+        if: ${{ inputs.verify_app_only }}
+        env:
+          REFRESH_APP_CLIENT_ID: ${{ vars.REFRESH_APP_CLIENT_ID }}
+          REFRESH_APP_PRIVATE_KEY: ${{ secrets.REFRESH_APP_PRIVATE_KEY }}
+        run: '"$REFRESH_PYTHON" tools/refresh-upstream --github-app --verify-app'
