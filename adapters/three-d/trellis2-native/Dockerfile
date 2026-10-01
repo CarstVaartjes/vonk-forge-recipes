@@ -85,6 +85,7 @@ COPY patches/apply-sdpa-arm64.py /opt/vonk/source/apply-sdpa-arm64.py
 RUN python3 /opt/vonk/source/apply-sdpa-arm64.py \
         /opt/vonk/trellis2-source/trellis2 \
         /opt/vonk/pixal3d-source/pixal3d \
+    && ln -sf /usr/bin/python3 /usr/local/bin/python \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation --no-deps /opt/vonk/cumesh-source \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation --no-deps /opt/vonk/flexgemm-source \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation --no-deps /opt/vonk/nvdiffrast-source \

@@ -15,7 +15,7 @@ RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner=10001 --group=10001 /outputs /outputs/cache \
     && ln -s /opt/vonk/bin/vllm-wrapper.sh /opt/vonk/bin/vllm \
-    && PYTHONPATH=/opt/vonk/ui-mate python -c \
+    && PYTHONPATH=/opt/vonk/ui-mate python3 -c \
       'import openai, PIL, requests; from agents.ui_mate_agent import UIMateAgent, parse_response; assert UIMateAgent and parse_response'
 
 ENV PYTHONPATH=/opt/vonk/ui-mate \
