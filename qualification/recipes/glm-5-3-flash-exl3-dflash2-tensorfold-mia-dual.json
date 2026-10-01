@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual",
+  "service_recipes": {
+    "alias": "GLM-5.3-Flash-EXL3",
+    "smoke_cases": [
+      "M0",
+      "A391",
+      "T_REPORT",
+      "V_RED"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Long-context canaries with the first-run kernel compile and the RoCE all-gather build recorded separately from the roughly 2 to 6 minute weight load; bounded concurrency up to 4 streams, with the server's shared KV pool lines checked"
+      ],
+      "recovery": [
+        "Controller-only rank-loss and warm-cache recovery"
+      ]
+    }
+  }
+}
