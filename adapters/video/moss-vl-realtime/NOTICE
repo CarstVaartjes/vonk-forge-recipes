@@ -6,7 +6,7 @@ native create_realtime_session API; it does not reimplement model inference.
 
 Primary sources:
 - https://huggingface.co/OpenMOSS-Team/MOSS-VL-Realtime/tree/d1f71a588deaf2b9b9cea7c6fff66cb10847cc86
-- https://github.com/OpenMOSS/MOSS-VL/tree/288cc2dcd145e53a3baf9c11fc9be298cf1b30d7/realtime_inference
+- https://github.com/OpenMOSS/MOSS-VL/tree/f4ffcd3658fa9cc3a288d05ff9a705fbc7778c28/inference/realtime
 
 The upstream deployment currently pins PyTorch 2.8 CUDA 12.8. This Vonk source
 context is a thin, unaccepted CUDA 13 ARM64 adaptation for DGX Spark. It must
