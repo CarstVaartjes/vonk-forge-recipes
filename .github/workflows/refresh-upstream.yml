@@ -18,10 +18,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write # push refresh/<recipe-id> branches
-  pull-requests: write # open, update and auto-merge the pull requests
-  issues: write # needs-review issues and their labels
-  actions: write # dispatch validate.yml and publish.yml (GITHUB_TOKEN events start no workflows)
+  contents: read # upstream observations; mutations use the repository-scoped App
 
 jobs:
   refresh:
@@ -34,6 +31,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up uv and Python
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
@@ -65,12 +63,13 @@ jobs:
 
       - name: Refresh
         env:
-          GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
+          REFRESH_APP_CLIENT_ID: ${{ vars.REFRESH_APP_CLIENT_ID }}
+          REFRESH_APP_PRIVATE_KEY: ${{ secrets.REFRESH_APP_PRIVATE_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          "$REFRESH_PYTHON" tools/refresh-upstream --cache-dir "$RUNNER_TEMP/refresh-cache"
+          "$REFRESH_PYTHON" tools/refresh-upstream --github-app --cache-dir "$RUNNER_TEMP/refresh-cache"
