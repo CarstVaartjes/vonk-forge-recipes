@@ -372,7 +372,7 @@
     ],
     "engine": "exllamav3",
     "entrypoint": [
-      "/opt/vonk/bin/tabby-serve"
+      "/opt/vonk/bin/exllamav3-serve"
     ],
     "environment": [
       {

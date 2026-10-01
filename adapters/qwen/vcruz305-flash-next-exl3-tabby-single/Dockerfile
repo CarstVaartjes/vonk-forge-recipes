@@ -63,7 +63,7 @@ RUN set -eux; \
     pip show exllamav3 | grep -q '^Version:'
 
 COPY tabby-config.yml /opt/vonk/tabby-config.yml
-COPY --chmod=0755 tabby-serve /opt/vonk/bin/tabby-serve
+COPY --chmod=0755 tabby-serve /opt/vonk/bin/exllamav3-serve
 COPY verify-runtime.py /opt/vonk/verify-runtime.py
 
 RUN python3 /opt/vonk/verify-runtime.py \

@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flas
 
 COPY patch_mtp_draft_vocab.py patch_mtp_draft_vocab_v030.py patch_qsa_fp8_kv_v030.py draft_vocab_en_code_47k.txt apply_patches.py /opt/vonk/build/
 COPY draft-vocab/ /opt/vonk/draft-vocab/
-COPY --chmod=0755 qwen38-vllm-wrapper.py /opt/vonk/bin/qwen38-vllm-serve
+COPY --chmod=0755 qwen38-vllm-wrapper.py /opt/vonk/bin/vllm
 COPY LICENSE.upstream NOTICE.upstream /opt/vonk/
 
 RUN python3 /opt/vonk/build/apply_patches.py \
