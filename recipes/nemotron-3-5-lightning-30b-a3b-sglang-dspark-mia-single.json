@@ -967,7 +967,7 @@
         "value": "3"
       }
     ],
-    "engine": "vllm",
+    "engine": "sglang",
     "entrypoint": [
       "/opt/vonk/bin/sglang-serve"
     ],

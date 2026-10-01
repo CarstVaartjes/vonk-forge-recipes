@@ -9,7 +9,7 @@ LABEL org.opencontainers.image.source="https://github.com/sfxnz/Qwen3.8-Flash-Ne
 # nightly image; the recipe bakes the same byte-identical files at the same paths.
 COPY docker/ple_layer.py /usr/local/lib/python3.12/dist-packages/vllm/models/qwen4_exp/nvidia/ple_layer.py
 COPY docker/modelopt.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/modelopt.py
-COPY --chmod=0755 qwen38-vllm-wrapper.py /opt/vonk/bin/qwen38-vllm-serve
+COPY --chmod=0755 qwen38-vllm-wrapper.py /opt/vonk/bin/vllm
 COPY LICENSE /opt/vonk/LICENSE.upstream
 
 # Same checks as upstream run.sh ensure_ple_overlay / ensure_mtp_overlay.

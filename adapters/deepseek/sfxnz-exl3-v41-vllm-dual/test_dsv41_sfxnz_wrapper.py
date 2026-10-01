@@ -24,7 +24,7 @@ def test_entrypoint_and_runtime_metadata_are_declared() -> None:
     dockerfile = (ADAPTER / "Dockerfile").read_text()
     assert 'ai.vonkforge.runtime-interface="v1"' in dockerfile
     recipe = json.loads(RECIPE.read_text())
-    assert recipe["runtime"]["entrypoint"] == ["/opt/vonk/bin/dsv41-vllm-serve"]
+    assert recipe["runtime"]["entrypoint"] == ["/opt/vonk/bin/vllm"]
 
 
 def test_upstream_patch_directory_is_baked_at_the_bind_mount_paths() -> None:

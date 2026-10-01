@@ -21,7 +21,7 @@ COPY patch/upstream-overlays/qsa.py /usr/local/lib/python3.12/dist-packages/vllm
 COPY patch/upstream-overlays/platforms_interface.py /usr/local/lib/python3.12/dist-packages/vllm/platforms/interface.py
 COPY patch/upstream-overlays/modelopt.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/modelopt.py
 COPY LICENSE.upstream NOTICE.upstream /opt/vonk/
-COPY --chmod=0755 qwen38-tonyd2wild-serve.py /opt/vonk/bin/qwen38-tonyd2wild-serve
+COPY --chmod=0755 qwen38-tonyd2wild-serve.py /opt/vonk/bin/vllm
 
 RUN python3 /opt/vonk/verify-runtime.py overlays \
     && install --directory --mode=0755 /outputs \

@@ -26,7 +26,7 @@ RUN PYTHONPATH=/opt/dsv41/adapter python3 /opt/dsv41/tests/test_thinking_alias.p
  && PYTHONPATH=/opt/dsv41/adapter python3 /opt/dsv41/tests/test_autotune_keep.py
 
 # Vonk packaging: the placement wrapper, a non-root user and the writable state directory.
-COPY --chmod=0755 dsv41-serve /opt/vonk/bin/dsv41-serve
+COPY --chmod=0755 dsv41-serve /opt/vonk/bin/sglang-serve
 COPY verify-runtime.py /opt/dsv41/verify-runtime.py
 RUN python3 /opt/dsv41/verify-runtime.py \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \

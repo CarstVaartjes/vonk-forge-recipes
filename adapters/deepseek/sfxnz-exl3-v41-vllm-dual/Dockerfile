@@ -78,7 +78,7 @@ LABEL dsv41.recipe.patches="shapes,mrow,cfg1,codebook,fshift,srcsort,coop,datafl
 # multi-node arguments and maps the recipe switches upstream run.sh handles in
 # shell (SPEC=none, ENFORCE_EAGER=1, LANGUAGE_MODEL_ONLY=1). Upstream's
 # SSH/docker launcher (run.sh) is not used.
-COPY --chmod=0755 dsv41-vllm-wrapper.py /opt/vonk/bin/dsv41-vllm-serve
+COPY --chmod=0755 dsv41-vllm-wrapper.py /opt/vonk/bin/vllm
 COPY LICENSE /opt/vonk/LICENSE.upstream
 
 # Upstream's sitecustomize.py rewrites vLLM sources at interpreter start

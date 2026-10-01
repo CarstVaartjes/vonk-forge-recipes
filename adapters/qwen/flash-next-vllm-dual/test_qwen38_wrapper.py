@@ -58,4 +58,4 @@ def test_oci_runtime_metadata_and_entrypoint_are_declared() -> None:
             adapter.parents[2] / "recipes/qwen3-8-flash-next-nvfp4-vllm-dual.json"
         ).read_text()
     )
-    assert recipe["runtime"]["entrypoint"] == ["/opt/vonk/bin/qwen38-vllm-serve"]
+    assert recipe["runtime"]["entrypoint"] == ["/opt/vonk/bin/vllm"]

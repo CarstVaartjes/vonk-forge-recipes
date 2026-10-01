@@ -636,7 +636,7 @@
     ],
     "engine": "vllm",
     "entrypoint": [
-      "/opt/vonk/bin/qwen38-tonyd2wild-serve"
+      "/opt/vonk/bin/vllm"
     ],
     "environment": [
       {

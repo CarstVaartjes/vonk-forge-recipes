@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/qwen38-flash-
 # writable /cache; the platform provides /outputs/cache, so /cache points there.
 USER root
 COPY LICENSE.upstream /opt/vonk/licenses/LICENSE.r0b0tlab-flash-next
-COPY --chmod=0755 flash-next-serve /opt/vonk/bin/flash-next-serve
+COPY --chmod=0755 flash-next-serve /opt/vonk/bin/sglang-serve
 RUN rm -rf /cache \
     && ln -s /outputs/cache /cache \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \

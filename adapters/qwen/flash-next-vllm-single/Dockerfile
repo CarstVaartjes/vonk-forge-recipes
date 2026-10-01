@@ -8,7 +8,7 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flas
 COPY patch_ple_layer.py patch_modelopt_mxfp8.py patch_qsa_fp8_kv.py patch_determinism.py patch_mtp_draft_vocab.py patch_block_drop.py patch_ple_offload.py build_ple_packed_table.py apply_patches.py /opt/vonk/build/
 COPY draft-vocab /opt/vonk/draft-vocab
 COPY chat_template.froggeric.jinja LICENSE.upstream /opt/vonk/
-COPY --chmod=0755 qwen38-single-serve.py /opt/vonk/bin/qwen38-single-serve
+COPY --chmod=0755 qwen38-single-serve.py /opt/vonk/bin/vllm
 
 RUN python3 /opt/vonk/build/apply_patches.py \
     && install --directory --mode=0755 /outputs \

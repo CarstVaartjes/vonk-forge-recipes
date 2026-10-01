@@ -1232,7 +1232,7 @@
     ],
     "engine": "vllm",
     "entrypoint": [
-      "/opt/vonk/bin/vllm-serve"
+      "/opt/vonk/bin/vllm"
     ],
     "environment": [
       {

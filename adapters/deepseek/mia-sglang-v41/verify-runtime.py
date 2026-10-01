@@ -48,7 +48,7 @@ def main() -> None:
         "/opt/dsv41/boot.py",
         "/opt/dsv41/adapter/sitecustomize.py",
         "/opt/dsv41/adapter/librow_store.so",
-        "/opt/vonk/bin/dsv41-serve",
+        "/opt/vonk/bin/sglang-serve",
     ):
         if not os.path.exists(path):
             raise SystemExit(f"missing {path}")

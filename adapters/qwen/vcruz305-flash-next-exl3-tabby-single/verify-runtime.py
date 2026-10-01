@@ -12,13 +12,13 @@ from pathlib import Path
 required = (
     "/opt/tabbyAPI/main.py",
     "/opt/vonk/tabby-config.yml",
-    "/opt/vonk/bin/tabby-serve",
+    "/opt/vonk/bin/exllamav3-serve",
 )
 missing = [path for path in required if not Path(path).is_file()]
 if missing:
     raise SystemExit(f"incomplete EXL3 runtime: {missing}")
-if not os.access("/opt/vonk/bin/tabby-serve", os.X_OK):
-    raise SystemExit("/opt/vonk/bin/tabby-serve is not executable")
+if not os.access("/opt/vonk/bin/exllamav3-serve", os.X_OK):
+    raise SystemExit("/opt/vonk/bin/exllamav3-serve is not executable")
 
 try:
     # torch first: the compiled extension needs libc10/libtorch already loaded.

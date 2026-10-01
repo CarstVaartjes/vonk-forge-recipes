@@ -14,7 +14,7 @@ def test_oci_runtime_metadata_and_entrypoint_are_declared() -> None:
             / "recipes/qwen3-8-flash-next-nvfp4-sfxnz-vllm-dual.json"
         ).read_text()
     )
-    assert recipe["runtime"]["entrypoint"] == ["/opt/vonk/bin/qwen38-vllm-serve"]
+    assert recipe["runtime"]["entrypoint"] == ["/opt/vonk/bin/vllm"]
 
 
 def test_upstream_overlays_are_baked_at_the_vllm_paths() -> None:
