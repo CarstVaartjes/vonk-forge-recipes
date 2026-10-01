@@ -11,9 +11,7 @@
       "dockerfile": "adapters/qwen/mia-gguf-35b-single/Dockerfile",
       "network": {
         "hosts": [
-          "archive.ubuntu.com",
-          "ports.ubuntu.com",
-          "security.ubuntu.com",
+          "snapshot.ubuntu.com",
           "codeload.github.com"
         ]
       },

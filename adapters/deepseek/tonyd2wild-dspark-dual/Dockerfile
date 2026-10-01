@@ -25,9 +25,9 @@ RUN set -eu; \
     B=/opt/vonk/build; \
     cp -a "$B/recipe/overlay/vllm/." "$V/"; \
     awk '$1 == "COPY" { print $3 }' "$B/recipe/Dockerfile.dspark-runtime-overlay" | xargs /opt/env/bin/python -m py_compile; \
-    awk '/<<.PY.$/ { f = 1; next } /^PY$/ { f = 0 } f' "$B/recipe/Dockerfile.dspark-runtime-overlay" | /opt/env/bin/python -; \
+    awk '/[<][<].PY.$/ { f = 1; next } /^PY$/ { f = 0 } f' "$B/recipe/Dockerfile.dspark-runtime-overlay" | /opt/env/bin/python -; \
     for stage in a b c; do \
-      awk '/<<.PY.$/ { f = 1; next } /^PY$/ { f = 0 } f' "$B/recipe/nvfp4/Dockerfile.stage-$stage" | /opt/env/bin/python -; \
+      awk '/[<][<].PY.$/ { f = 1; next } /^PY$/ { f = 0 } f' "$B/recipe/nvfp4/Dockerfile.stage-$stage" | /opt/env/bin/python -; \
     done; \
     M="$V/models/deepseek_v4/nvidia"; \
     /opt/env/bin/python "$B/port/patch_vision.py" "$M/model.py"; \
