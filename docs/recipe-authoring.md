@@ -299,8 +299,14 @@ repos without releases, to a newer head). A release that neither descends from t
 nor is its ancestor (diverged history, typically a release branch against a pin on
 `main`) counts as current when the pin commit is the newer of the two; otherwise it is
 judged by the rules below and goes to review only when a file the recipe uses differs.
-Hugging Face Models follow the repository head. Known gap: a Model pinned on another
-branch is not recognised as ahead of `main`. `release.version` becomes upstream's version when one
+Hugging Face Models follow the repository head. A pin on a non-default branch (a per-bpw
+branch of an EXL3 repository whose `main` holds only a README, a feature branch of a
+GitHub recipe) follows that branch: it is derived from the pin itself, as the branch whose
+head is the pinned commit or, when the branch has moved on, the only branch whose history
+contains it (a pin the default branch's history contains follows the default branch). The
+refresh then compares with that branch's head, and for GitHub with its newest version tag
+when that tag lies inside the branch; the issue and pull request name the branch.
+`release.version` becomes upstream's version when one
 is published, otherwise the recipe's patch version is bumped; `released_at` is the pinned
 release or commit date.
 

@@ -242,6 +242,7 @@ class Target:
     url: str
     notes: str | None = None
     access_status: str | None = None
+    branch: str | None = None  # non-default branch the pin follows, when it does
 
 
 def pick_version_tag(tags: Iterable[dict[str, Any]]) -> dict[str, Any] | None:
@@ -321,6 +322,168 @@ def resolve_huggingface(http: Http, repo: str) -> Target:
         url=f"https://huggingface.co/{repo}/tree/{sha}",
         access_status=access_status,
     )
+
+
+# ---------------------------------------------------------------------------
+# Branch-following pins
+# ---------------------------------------------------------------------------
+#
+# A pin that sits on a non-default branch (a per-bpw branch of an EXL3 repository whose
+# ``main`` holds only a README, a feature branch of a Docker recipe) follows that branch,
+# not the default branch. The branch is derived from the pin itself: the branch whose head
+# is the pinned commit, or whose history contains it when the pin is not the head. A pin
+# the default branch's history contains follows the default branch.
+
+# Branches probed for containing a pin (GitHub compare, Hugging Face history).
+BRANCH_SEARCH_LIMIT = 30
+HF_HISTORY_PAGES = 3  # 50 commits a page
+
+
+def _github_compare_status(http: Http, repo: str, old: str, new: str) -> str:
+    document = http.github(f"repos/{repo}/compare/{old}...{new}?per_page=1")
+    return str(document.get("status", "unknown"))
+
+
+def follow_github_branch(http: Http, repo: str, current: str) -> Target | None:
+    """The non-default branch a GitHub pin follows, as a Target at that branch's head."""
+    try:
+        default = http.github(f"repos/{repo}")["default_branch"]
+        default_head = http.github(f"repos/{repo}/commits/{quote(default, safe='')}")
+        if _github_compare_status(http, repo, current, default_head["sha"]) in {
+            "ahead",
+            "identical",
+        }:
+            return None  # the default branch's own history
+        chosen: tuple[str, str] | None = None
+        heads = http.github(f"repos/{repo}/commits/{current}/branches-where-head")
+        names = sorted(b["name"] for b in heads if b["name"] != default)
+        if names:
+            chosen = (names[0], current)
+        else:
+            candidates: list[tuple[int, str, str]] = []
+            for branch in http.github(f"repos/{repo}/branches?per_page=100"):
+                name = branch["name"]
+                if name == default:
+                    continue
+                if len(candidates) >= BRANCH_SEARCH_LIMIT:
+                    break
+                head = branch["commit"]["sha"]
+                document = http.github(
+                    f"repos/{repo}/compare/{current}...{head}?per_page=1"
+                )
+                if document.get("status") == "ahead":
+                    candidates.append((int(document.get("ahead_by", 0)), name, head))
+            if candidates:
+                _, name, head = min(candidates)
+                chosen = (name, head)
+        if chosen is None:
+            return None
+        name, head = chosen
+        commit = http.github(f"repos/{repo}/commits/{head}")
+        target = Target(
+            provider="github",
+            repo=repo,
+            sha=head,
+            date=_date(commit["commit"]["committer"]["date"]),
+            ref=None,
+            version=None,
+            url=commit["html_url"],
+            branch=name,
+        )
+        return _prefer_branch_release(http, repo, target)
+    except (NotFound, RuntimeError, KeyError, TypeError, AttributeError):
+        return None
+
+
+def _prefer_branch_release(http: Http, repo: str, target: Target) -> Target:
+    """The newest published version tag inside the branch, else the branch head."""
+    try:
+        found = pick_version_tag(http.github(f"repos/{repo}/tags?per_page=100"))
+        if found is None:
+            return target
+        tag_sha = found["commit"]["sha"]
+        if tag_sha != target.sha and _github_compare_status(
+            http, repo, tag_sha, target.sha
+        ) not in {"ahead", "identical"}:
+            return target  # the tag is not on this branch
+        commit = http.github(f"repos/{repo}/commits/{tag_sha}")
+        return Target(
+            provider="github",
+            repo=repo,
+            sha=tag_sha,
+            date=_date(commit["commit"]["committer"]["date"]),
+            ref=found["name"],
+            version=found["name"].removeprefix("v"),
+            url=commit["html_url"],
+            branch=target.branch,
+        )
+    except (NotFound, RuntimeError, KeyError, TypeError):
+        return target
+
+
+def follow_huggingface_branch(
+    http: Http, repo: str, current: str, default: Target
+) -> Target | None:
+    """The non-default branch a Hugging Face pin follows, as a Target at its head."""
+    base = f"https://huggingface.co/api/models/{quote(repo, safe='/')}"
+
+    def get(url: str) -> Any:
+        return http.json(url, "huggingface", anonymous=True)
+
+    def history(branch: str) -> list[dict[str, Any]]:
+        commits: list[dict[str, Any]] = []
+        for page in range(HF_HISTORY_PAGES):
+            batch = get(f"{base}/commits/{quote(branch, safe='')}?p={page}")
+            commits.extend(batch)
+            if len(batch) < 50:
+                break
+        return commits
+
+    try:
+        branches = get(f"{base}/refs")["branches"]
+        others = sorted(
+            (b for b in branches if b["targetCommit"] != default.sha),
+            key=lambda b: b["name"],
+        )
+        chosen: tuple[str, str, str] | None = None
+        for branch in others:
+            if branch["targetCommit"] == current:
+                chosen = (branch["name"], current, default.date)
+                break
+        if chosen is None:
+            main = next((b for b in branches if b["targetCommit"] == default.sha), None)
+            if main is not None and any(
+                c["id"] == current for c in history(main["name"])
+            ):
+                return None  # the default branch's own history
+            found: list[tuple[str, str, str]] = []
+            for branch in others[:BRANCH_SEARCH_LIMIT]:
+                commits = history(branch["name"])
+                if any(c["id"] == current for c in commits):
+                    found.append(
+                        (
+                            branch["name"],
+                            branch["targetCommit"],
+                            _date(commits[0].get("date")),
+                        )
+                    )
+            if len(found) != 1:
+                return None  # none, or ambiguous: leave it to review
+            chosen = found[0]
+        name, head, date = chosen
+        return Target(
+            provider="huggingface",
+            repo=repo,
+            sha=head,
+            date=date,
+            ref=None,
+            version=None,
+            url=f"https://huggingface.co/{repo}/tree/{head}",
+            access_status=default.access_status,
+            branch=name,
+        )
+    except (NotFound, RuntimeError, KeyError, TypeError, AttributeError):
+        return None
 
 
 def resolve(http: Http, provider: str, repo: str) -> Target:
@@ -534,11 +697,27 @@ def collect_items(
         if target.sha == current:
             return
         compared: Comparison | None = None
+        if provider == "huggingface":
+            followed = follow_huggingface_branch(http, repo, current, target)
+            if followed is not None:
+                target = followed
+                if target.sha == current:
+                    return  # at the head of the branch it follows
         if provider == "github":
             try:
                 compared = compare_commits(http, repo, current, target.sha)
             except (RuntimeError, KeyError, TypeError):
                 compared = None  # assessed (and reported) later
+            if compared is not None and compared.status == "diverged":
+                followed = follow_github_branch(http, repo, current)
+                if followed is not None:
+                    target = followed
+                    if target.sha == current:
+                        return  # at the head of the branch it follows
+                    try:
+                        compared = compare_commits(http, repo, current, target.sha)
+                    except (RuntimeError, KeyError, TypeError):
+                        compared = None
             if compared is not None and (
                 pin_is_current(compared)
                 or (
@@ -920,6 +1099,7 @@ def github_evidence(item: Item, comparison: Comparison, patched: set[str]) -> st
             if item.target.ref
             else "(latest commit, no published version)"
         )
+        + (f", branch `{item.target.branch}`" if item.target.branch else "")
         + f", {item.target.date} - {item.target.url}",
         (
             f"- comparison: {comparison.url} ({comparison.status}, "
@@ -988,7 +1168,8 @@ def model_evidence(
         f"### {item.label}",
         "",
         f"- catalogued revision: `{item.current}`",
-        f"- newest revision: `{item.target.sha}` ({item.target.date}) - {item.target.url}",
+        f"- newest revision: `{item.target.sha}` ({item.target.date}) - {item.target.url}"
+        + (f" (branch `{item.target.branch}`)" if item.target.branch else ""),
         "",
     ]
     if new_files is not None:
