@@ -1,7 +1,7 @@
 {
   "source": {
     "repo": "r0b0tlab/mimo26-nvfp4-sm121",
-    "commit": "683239d7280880af3bfdce6500ea7349e473b8da"
+    "commit": "2852795bf05a2e6f7c4a830ac26e551cdf94d745"
   },
   "ours": [
     "sglang-serve"

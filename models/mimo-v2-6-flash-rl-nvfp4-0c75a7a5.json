@@ -27,13 +27,13 @@
       "size_bytes": 1065
     },
     {
-      "id": "readme-e8108c005b9d-b335630551",
+      "id": "readme-510fed8d005f-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "e8108c005b9db20368be102542cdf05b779aad0a9f3fdef946a1e2718dc59804",
-      "size_bytes": 10164
+      "sha256": "510fed8d005fd02606bbd1f2b7dff9da214b97af3740e5e337a9a9c21b45ed7f",
+      "size_bytes": 11422
     },
     {
       "id": "chat-template-cf1a0a0e5cbc-d61688c200",
@@ -871,9 +871,9 @@
       "title": "MiMo V2.6 Flash RL"
     },
     "publisher": "r0b0tlab",
-    "slug": "mimo-v2-6-flash-rl-nvfp4-b9827178",
-    "variant": "MiMo V2.6 Flash RL r0b0tlab NVFP4 b9827178",
-    "version": "NVFP4 b9827178"
+    "slug": "mimo-v2-6-flash-rl-nvfp4-0c75a7a5",
+    "variant": "MiMo V2.6 Flash RL r0b0tlab NVFP4 0c75a7a5",
+    "version": "NVFP4 0c75a7a5"
   },
   "kind": "model",
   "license": {
@@ -902,6 +902,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/r0b0tlab/MiMo-V2.6-Flash-RL-NVFP4",
-    "revision": "b98271785a70bf9ae64484ad46e1498d78caf2cf"
+    "revision": "0c75a7a5ea64b6a4a4179a17a01d593a5ca695cb"
   }
 }
