@@ -110,8 +110,188 @@
     {
       "files": [
         {
-          "file_id": "snapshot",
-          "id": "primary-snapshot",
+          "file_id": "metadata-11ad7efa2497-618cd5b83d",
+          "id": "primary-11ad7efa2497-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-31d37e9c4fee-c693279643",
+          "id": "primary-31d37e9c4fee-c693279643",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "notice-2d9c4437b2c3-dfb14fbb9e",
+          "id": "primary-2d9c4437b2c3-dfb14fbb9e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-e7928862cfee-b335630551",
+          "id": "primary-e7928862cfee-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "shape-dec-next-dc-f16c32-fp16-5f1b856dffce-029dc2e8a3",
+          "id": "primary-5f1b856dffce-029dc2e8a3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "shape-dec-next-dc-f16c32-fp16-e3b718d3e43e-46baaa46a5",
+          "id": "primary-e3b718d3e43e-46baaa46a5",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "slat-flow-img2shape-dit-1-3b-1024-bf16-f47fca563119-d5787cb1da",
+          "id": "primary-f47fca563119-d5787cb1da",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "slat-flow-img2shape-dit-1-3b-1024-bf16-3e6d1df0e62b-7c824f297d",
+          "id": "primary-3e6d1df0e62b-7c824f297d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "slat-flow-img2shape-dit-1-3b-512-bf16-2f7b736e8535-6deb30dc48",
+          "id": "primary-2f7b736e8535-6deb30dc48",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "slat-flow-img2shape-dit-1-3b-512-bf16-63569838c1da-08687ad538",
+          "id": "primary-63569838c1da-08687ad538",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "slat-flow-imgshape2tex-dit-1-3b-1024-bf-f18455729d08-8e04077f04",
+          "id": "primary-f18455729d08-8e04077f04",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "slat-flow-imgshape2tex-dit-1-3b-1024-bf-65df179ad02f-0635b411df",
+          "id": "primary-65df179ad02f-0635b411df",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ss-dec-conv3d-16l8-fp16-646781293f1c-85f0b62954",
+          "id": "primary-646781293f1c-85f0b62954",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ss-dec-conv3d-16l8-fp16-1c76d4a40519-f445c876e9",
+          "id": "primary-1c76d4a40519-f445c876e9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ss-flow-img-dit-1-3b-64-bf16-2b3ef4c63b72-cfcec5a523",
+          "id": "primary-2b3ef4c63b72-cfcec5a523",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ss-flow-img-dit-1-3b-64-bf16-6d0147bb347e-92d4da3434",
+          "id": "primary-6d0147bb347e-92d4da3434",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tex-dec-next-dc-f16c32-fp16-22074e4ab5b2-90e5f1233b",
+          "id": "primary-22074e4ab5b2-90e5f1233b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tex-dec-next-dc-f16c32-fp16-97ea69addea2-5e554c0085",
+          "id": "primary-97ea69addea2-5e554c0085",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "pipeline-1647217de06e-a1130aae5d",
+          "id": "primary-1647217de06e-a1130aae5d",
           "mount": {
             "target": "/models/target"
           },
@@ -122,10 +302,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "25f49066454eda89a249416444fd333b0b8b40a6e0eba511ab19a7730d0dd501",
+        "content_sha256": "8ce5a064b7d4ec8c375f8f0f4f2629bc899b2588470d316644d2a87d0d101bb9",
         "kind": "model",
         "publisher": "tencentarc",
-        "slug": "pixal3d"
+        "slug": "pixal3d-b0cb2e1b"
       }
     }
   ],
@@ -139,8 +319,8 @@
     "source_reference": "https://github.com/TencentARC/Pixal3D/tree/f7cf38429b0bd264f1995f0f8743a88b1c728b94"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "2.0.10"
+    "released_at": "2026-08-31",
+    "version": "2.0.11"
   },
   "runtime": {
     "arguments": [
