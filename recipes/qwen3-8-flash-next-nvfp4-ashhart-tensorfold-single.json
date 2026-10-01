@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8 Flash Next on Ash Hart's TensorFold engine v0.5.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with local-inference-lab's quantization-aware-distilled NVFP4 checkpoint (NVFP4 routed experts and n-gram tables, MXFP8 attention, DeltaNet and shared experts, MTP head included; about 98.6 GiB), which TensorFold's CUDA engine reads as it ships on one GPU. Chosen over RadixArk/Qwen3.8-Flash-Next-NVFP4 (about 126 GiB, bf16 besides the experts), which does not fit 128 GB. The n-gram tables stay memory-mapped from the checkpoint (upstream refuses --ple-on-ssd on NVFP4 checkpoints, since they already are), so page-cache pressure, not a flag, governs speed. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the 262,144-token window with a bf16 KV cache. Text only: stock TensorFold has no image or video path for Flash Next (the MLX 4-bit recipe qwen3-8-flash-next-tensorfold-single carries MiaAI-Lab's vision patch). Upstream publishes no speed or memory figure for this checkpoint on a Spark, and none is measured here; the memory envelope below is the checkpoint size plus KV. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses); TensorFold is MIT. TensorFold v0.5.0 at 9cd52ab4daba68ddd09be89be8f23ad43175e821 includes the tiled QSA selector for sparse attention past 131072 keys and updated Flash Next CUDA/EXL3 paths; the existing 262144-token bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests.",
+    "description": "Single-DGX-Spark Qwen3.8 Flash Next on Ash Hart's TensorFold engine v0.6.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with local-inference-lab's quantization-aware-distilled NVFP4 checkpoint (NVFP4 routed experts and n-gram tables, MXFP8 attention, DeltaNet and shared experts, MTP head included; about 98.6 GiB), which TensorFold's CUDA engine reads as it ships on one GPU. Chosen over RadixArk/Qwen3.8-Flash-Next-NVFP4 (about 126 GiB, bf16 besides the experts), which does not fit 128 GB. The n-gram tables stay memory-mapped from the checkpoint (upstream refuses --ple-on-ssd on NVFP4 checkpoints, since they already are), so page-cache pressure, not a flag, governs speed. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the 262,144-token window with a bf16 KV cache. Text only: stock TensorFold has no image or video path for Flash Next (the MLX 4-bit recipe qwen3-8-flash-next-tensorfold-single carries MiaAI-Lab's vision patch). Upstream publishes no speed or memory figure for this checkpoint on a Spark, and none is measured here; the memory envelope below is the checkpoint size plus KV. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses); TensorFold is Apache-2.0 from 0.6.0 (MIT up to 0.5.0). TensorFold v0.6.0 at c4646171139ee8a3c38103eaa1699dad226ec12b keeps every option this recipe passes. Per upstream's release notes it runs CUDA prompts at bf16 by default and serves Prometheus /metrics, fills prompts inside the decode rounds when concurrency is above 1, resumes resends on Flash Next, and decodes NVFP4 checkpoints 4.9-7.1% faster with 15-16% faster prompt fill (upstream claims, unmeasured here); the existing context bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests.",
     "tags": [
       "engine",
       "kernel-jit",
@@ -679,11 +679,11 @@
       "local-inference-lab",
       "Qwen contributors"
     ],
-    "source_reference": "https://github.com/ashhart/TensorFold/tree/9cd52ab4daba68ddd09be89be8f23ad43175e821"
+    "source_reference": "https://github.com/ashhart/TensorFold/tree/c4646171139ee8a3c38103eaa1699dad226ec12b"
   },
   "release": {
-    "released_at": "2026-09-29",
-    "version": "0.5.0"
+    "released_at": "2026-09-30",
+    "version": "0.6.0"
   },
   "runtime": {
     "arguments": [
