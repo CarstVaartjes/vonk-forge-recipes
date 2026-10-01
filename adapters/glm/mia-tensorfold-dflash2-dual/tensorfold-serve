@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""Entrypoint for the two-Spark TensorFold GLM-5.3-Flash recipe.
+
+The recipe passes named `tensorfold serve` options. The platform appends
+`--tp`, `--rank`, `--master VONK_MASTER_ADDR` and `--master-port
+VONK_MASTER_PORT` for a distributed recipe; this wrapper replaces the two
+placeholders with the rendezvous address and port the platform placed in the
+environment, and fails closed when they are missing or malformed. The target
+checkpoint is always mounted at /models/target.
+"""
+
+import os
+import sys
+from ipaddress import ip_address
+
+PLACEHOLDERS = ("VONK_MASTER_ADDR", "VONK_MASTER_PORT")
+
+
+def fail(message):
+    raise SystemExit(f"tensorfold-serve: {message}")
+
+
+def resolve(arguments):
+    if not any(argument in PLACEHOLDERS for argument in arguments):
+        return arguments
+    address = os.environ.get("VONK_MASTER_ADDR", "")
+    port = os.environ.get("VONK_MASTER_PORT", "")
+    try:
+        ip_address(address)
+    except ValueError:
+        fail("distributed TensorFold needs a valid VONK_MASTER_ADDR")
+    if not (port.isascii() and port.isdigit() and 1024 <= int(port) <= 65535):
+        fail("distributed TensorFold needs a valid VONK_MASTER_PORT")
+    values = {"VONK_MASTER_ADDR": address, "VONK_MASTER_PORT": port}
+    return [values.get(argument, argument) for argument in arguments]
+
+
+for name in ("HOME", "TORCH_EXTENSIONS_DIR", "TRITON_CACHE_DIR", "TMPDIR"):
+    if not os.environ.get(name):
+        fail(f"{name} is not set")
+# The platform binds /outputs/cache; the kernel-compile and prefix-snapshot
+# directories below it are created here (nothing else is writable).
+for path in (
+    os.path.join(os.environ["HOME"], ".cache", "tensorfold"),
+    os.environ["TORCH_EXTENSIONS_DIR"],
+    os.environ["TRITON_CACHE_DIR"],
+    os.environ["TMPDIR"],
+):
+    os.makedirs(path, exist_ok=True)
+arguments = resolve(sys.argv[1:])
+os.execvp("tensorfold", ["tensorfold", "serve", "/models/target", *arguments])
