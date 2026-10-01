@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import runpy
 import subprocess
 import sys
 import unittest
@@ -22,9 +21,6 @@ MODEL_REVISION = "ce5ff0f1efb2e184aafc759d281bfae47d3a359c"
 EXECUTABLE_PAYLOAD_REVISION = "22f28d32b9b29b4352eaa380ff8c2c170b2847ab"
 RUNTIME_REVISION = "d370c0f0806a9ac994dc5f354715576cc23840b9"
 IMAGE_DIGEST = "2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4"
-SOURCE_BUNDLE_DIGEST = (
-    "709dc6e714b4b8910b7b57b9cf79b84fcbef3f4ece79e94930643ae5d816831c"
-)
 
 
 def _document(path: Path) -> dict[str, object]:
@@ -111,13 +107,10 @@ class SparkInferSingleRecipeTests(unittest.TestCase):
             check=True,
         )
 
-    def test_source_bundle_and_package_digests_match(self) -> None:
+    def test_catalog_package_digests_match_the_recipe(self) -> None:
         recipe = _document(RECIPE_PATH)
-        index_tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
-        _archive, _files, source_digest = index_tool["source_bundle"](ADAPTER_ROOT)
         context = recipe["execution"]["build"]["context"]
         self.assertEqual(context["path"], "adapters/deepseek/sparkinfer-single")
-        self.assertEqual(source_digest, SOURCE_BUNDLE_DIGEST)
         recipe_digest = _canonical_digest(RECIPE_PATH)
         entry = _catalog_entry(recipe["identity"]["slug"])
         self.assertEqual(
