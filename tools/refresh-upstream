@@ -1850,6 +1850,7 @@ def publish_mechanical(root: Path, assessment: Assessment, summary: Summary) -> 
     if open_pr and remote:
         git("fetch", "-q", "origin", branch, cwd=root)
         if git("rev-parse", "FETCH_HEAD^{tree}", cwd=root) == tree:
+            arm_mechanical_pr(open_pr["number"], recipe_id, summary)
             summary.mechanical.append(
                 f"{recipe_id}: PR #{open_pr['number']} already current"
             )
