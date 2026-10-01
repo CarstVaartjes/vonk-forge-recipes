@@ -848,3 +848,173 @@ class EnvelopeTests(unittest.TestCase):
         _disk, result = self.retarget(10_000_000, 10_000_000, 10_200_000)
         self.assertTrue(result.reasons)
         self.assertIn("more than 1%", result.reasons[0])
+
+
+class BranchFollowingTests(unittest.TestCase):
+    """A pin on a non-default branch is compared with that branch, not the default."""
+
+    BRANCH_HEAD = "b" * 40
+    MAIN_HEAD = "a" * 40
+
+    def hf_catalog(self, root: str):
+        model = model_with(("model.safetensors",))
+        model["identity"]["slug"] = "branch-model"
+        model["source"] = {
+            "repository": "https://huggingface.co/example/model",
+            "revision": OLD,
+        }
+        recipe = {
+            "identity": {"slug": "recipe"},
+            "models": [{"model": {"slug": "branch-model"}}],
+            "execution": {"build": {"context": {"path": "missing-context"}}},
+        }
+        return refresh.Catalog(
+            Path(root), recipes={"recipe": recipe}, models={"branch-model": model}
+        )
+
+    def hf_collect(self, branches, histories):
+        class FakeHttp:
+            def json(self, url, _provider, *, anonymous=False):
+                if url.endswith("/refs"):
+                    return {"branches": branches}
+                name = url.split("/commits/")[1].split("?")[0]
+                return histories[name]
+
+        main = refresh.Target(
+            "huggingface",
+            "example/model",
+            self.MAIN_HEAD,
+            "2026-09-30",
+            None,
+            None,
+            "u",
+            access_status="public",
+        )
+        with tempfile.TemporaryDirectory() as root:
+            return refresh.collect_items(
+                self.hf_catalog(root), "recipe", FakeHttp(), lambda _p, _r: main
+            )
+
+    def test_huggingface_pin_at_the_head_of_a_per_bpw_branch_is_current(self) -> None:
+        result = self.hf_collect(
+            [
+                {"name": "main", "targetCommit": self.MAIN_HEAD},
+                {"name": "3.00bpw", "targetCommit": OLD},
+            ],
+            {},
+        )
+        self.assertFalse(result.items)
+        self.assertFalse(result.drifted)
+
+    def test_huggingface_branch_that_moved_ahead_is_the_target(self) -> None:
+        result = self.hf_collect(
+            [
+                {"name": "main", "targetCommit": self.MAIN_HEAD},
+                {"name": "3.00bpw", "targetCommit": self.BRANCH_HEAD},
+                {"name": "2.00bpw", "targetCommit": "c" * 40},
+            ],
+            {
+                "main": [{"id": self.MAIN_HEAD}],
+                "3.00bpw": [
+                    {"id": self.BRANCH_HEAD, "date": "2026-10-01T00:00:00.000Z"},
+                    {"id": OLD},
+                ],
+                "2.00bpw": [{"id": "c" * 40}],
+            },
+        )
+        self.assertEqual(len(result.items), 1)
+        self.assertEqual(result.items[0].target.sha, self.BRANCH_HEAD)
+        self.assertEqual(result.items[0].target.branch, "3.00bpw")
+
+    def test_huggingface_pin_in_the_default_history_follows_the_default(self) -> None:
+        result = self.hf_collect(
+            [
+                {"name": "main", "targetCommit": self.MAIN_HEAD},
+                {"name": "other", "targetCommit": "c" * 40},
+            ],
+            {"main": [{"id": self.MAIN_HEAD}, {"id": OLD}]},
+        )
+        self.assertEqual(len(result.items), 1)
+        self.assertEqual(result.items[0].target.sha, self.MAIN_HEAD)
+        self.assertIsNone(result.items[0].target.branch)
+
+    def github_collect(self, *, heads, branches, statuses):
+        class FakeHttp:
+            def github(self, path):
+                if path == "repos/example/recipe":
+                    return {"default_branch": "main"}
+                if path.endswith("/branches-where-head"):
+                    return [{"name": n} for n in heads]
+                if path.startswith("repos/example/recipe/branches"):
+                    return [{"name": n, "commit": {"sha": h}} for n, h in branches]
+                if "/compare/" in path:
+                    head = path.split("...")[1].split("?")[0]
+                    return {"status": statuses[head], "ahead_by": 2}
+                if path.endswith("/tags?per_page=100"):
+                    return []
+                sha = path.rsplit("/", 1)[1]
+                return {
+                    "sha": MainSha.get(sha, sha),
+                    "html_url": "u/" + sha,
+                    "commit": {"committer": {"date": "2026-10-01T00:00:00Z"}},
+                }
+
+        MainSha: dict[str, str] = {"main": self.MAIN_HEAD}
+        catalog = refresh.Catalog(
+            Path(tempfile.gettempdir()),
+            recipes={
+                "recipe": {
+                    "identity": {"slug": "recipe"},
+                    "provenance": {
+                        "attribution": ["Example"],
+                        "source_reference": f"https://github.com/example/recipe/tree/{OLD}",
+                    },
+                    "release": {"version": "1.0.0", "released_at": "2026-01-01"},
+                    "models": [],
+                    "execution": {"build": {"context": {"path": "missing"}}},
+                }
+            },
+        )
+        main = refresh.Target(
+            "github", "example/recipe", self.MAIN_HEAD, "2026-09-30", None, None, "u"
+        )
+        with (
+            patch(
+                "refresh_upstream.compare_commits",
+                side_effect=lambda _h, _r, _old, new: refresh.Comparison(
+                    "diverged" if new == self.MAIN_HEAD else "ahead", [], [], False, "u"
+                ),
+            ),
+            patch("refresh_upstream.pin_is_newer_by_date", return_value=False),
+        ):
+            return refresh.collect_items(
+                catalog, "recipe", FakeHttp(), lambda _p, _r: main
+            )
+
+    def test_github_pin_at_the_head_of_a_feature_branch_is_current(self) -> None:
+        result = self.github_collect(
+            heads=["feature"],
+            branches=[],
+            statuses={self.MAIN_HEAD: "diverged"},
+        )
+        self.assertFalse(result.items)
+        self.assertFalse(result.drifted)
+
+    def test_github_feature_branch_that_moved_ahead_is_the_target(self) -> None:
+        result = self.github_collect(
+            heads=[],
+            branches=[("main", self.MAIN_HEAD), ("feature", self.BRANCH_HEAD)],
+            statuses={self.MAIN_HEAD: "diverged", self.BRANCH_HEAD: "ahead"},
+        )
+        self.assertEqual(len(result.items), 1)
+        self.assertEqual(result.items[0].target.sha, self.BRANCH_HEAD)
+        self.assertEqual(result.items[0].target.branch, "feature")
+
+    def test_github_pin_in_the_default_history_is_not_a_branch(self) -> None:
+        result = self.github_collect(
+            heads=[],
+            branches=[("feature", self.BRANCH_HEAD)],
+            statuses={self.MAIN_HEAD: "ahead", self.BRANCH_HEAD: "ahead"},
+        )
+        self.assertEqual(len(result.items), 1)
+        self.assertIsNone(result.items[0].target.branch)
