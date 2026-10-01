@@ -20,7 +20,7 @@ RUN set -eux; \
     rm -f /tmp/patch_modelopt_w4a16_native_w4a4.py
 
 COPY LICENSE.upstream /opt/vonk/licenses/LICENSE.upstream
-COPY --chmod=0755 vllm-api /opt/vonk/bin/vllm-api
+COPY --chmod=0755 vllm-api /opt/vonk/bin/vllm
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache

@@ -44,7 +44,7 @@ RUN set -eux; \
 
 # Upstream server, byte-identical to the vendored copy.
 COPY tools/serve_openai.py /opt/exl3/tools/serve_openai.py
-COPY --chmod=0755 exl3-serve /opt/vonk/bin/exl3-serve
+COPY --chmod=0755 exl3-serve /opt/vonk/bin/exllamav3-serve
 COPY verify-runtime.py /opt/vonk/verify-runtime.py
 
 RUN python3 /opt/vonk/verify-runtime.py \

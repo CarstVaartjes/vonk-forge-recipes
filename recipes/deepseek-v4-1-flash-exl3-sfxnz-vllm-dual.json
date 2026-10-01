@@ -942,7 +942,7 @@
     ],
     "engine": "vllm",
     "entrypoint": [
-      "/opt/vonk/bin/dsv41-vllm-serve"
+      "/opt/vonk/bin/vllm"
     ],
     "environment": [
       {

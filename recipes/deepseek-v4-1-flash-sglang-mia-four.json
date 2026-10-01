@@ -1149,7 +1149,7 @@
     ],
     "engine": "sglang",
     "entrypoint": [
-      "/opt/vonk/bin/dsv41-serve"
+      "/opt/vonk/bin/sglang-serve"
     ],
     "environment": [
       {
