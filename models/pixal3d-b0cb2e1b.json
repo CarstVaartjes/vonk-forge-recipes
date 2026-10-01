@@ -1,0 +1,223 @@
+{
+  "capabilities": [
+    "3d-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "license-31d37e9c4fee-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "31d37e9c4fee1e0cd2196bccd592e8a2c30bfa17ea177d70ad25f977ba6bd9c0",
+      "size_bytes": 1064
+    },
+    {
+      "id": "notice-2d9c4437b2c3-dfb14fbb9e",
+      "path": "NOTICE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "2d9c4437b2c3264dcea406c6af5066c0b21c7a7b34384c567dc6551b9129f815",
+      "size_bytes": 12527
+    },
+    {
+      "id": "readme-e7928862cfee-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e7928862cfeedf78ab6d4f8684ca489638be05ac6ad2bfb7ad89ee1bfc6806d6",
+      "size_bytes": 13251
+    },
+    {
+      "id": "shape-dec-next-dc-f16c32-fp16-5f1b856dffce-029dc2e8a3",
+      "path": "ckpts/shape_dec_next_dc_f16c32_fp16.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5f1b856dffce79466fb18f5f0eefc08f08c673b24b3c05b20359c0b6d318a209",
+      "size_bytes": 678
+    },
+    {
+      "id": "shape-dec-next-dc-f16c32-fp16-e3b718d3e43e-46baaa46a5",
+      "path": "ckpts/shape_dec_next_dc_f16c32_fp16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e3b718d3e43e4f8780e9a24ac6fff231811a67e3b058e336e10fe654c911d581",
+      "size_bytes": 948490494
+    },
+    {
+      "id": "slat-flow-img2shape-dit-1-3b-1024-bf16-f47fca563119-d5787cb1da",
+      "path": "ckpts/slat_flow_img2shape_dit_1_3B_1024_bf16.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f47fca56311959a643e8cfd2750229a2c53cbab0027406d8426cd564ce4fb5bc",
+      "size_bytes": 535
+    },
+    {
+      "id": "slat-flow-img2shape-dit-1-3b-1024-bf16-3e6d1df0e62b-7c824f297d",
+      "path": "ckpts/slat_flow_img2shape_dit_1_3B_1024_bf16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3e6d1df0e62bc5bc863320d1d63d6b996235eef4abb8b851e878c88f316369f1",
+      "size_bytes": 5546764048
+    },
+    {
+      "id": "slat-flow-img2shape-dit-1-3b-512-bf16-2f7b736e8535-6deb30dc48",
+      "path": "ckpts/slat_flow_img2shape_dit_1_3B_512_bf16.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2f7b736e8535aae96e7c41e8d123c24a14ee809fc25bea76eeac72643d21b997",
+      "size_bytes": 535
+    },
+    {
+      "id": "slat-flow-img2shape-dit-1-3b-512-bf16-63569838c1da-08687ad538",
+      "path": "ckpts/slat_flow_img2shape_dit_1_3B_512_bf16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "63569838c1da93f010e2fa805b202ecf802cc758830230abac202a81b70e5b45",
+      "size_bytes": 5546764048
+    },
+    {
+      "id": "slat-flow-imgshape2tex-dit-1-3b-1024-bf-f18455729d08-8e04077f04",
+      "path": "ckpts/slat_flow_imgshape2tex_dit_1_3B_1024_bf16.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f18455729d08d2ce7ef809f947ffa47f6f468b3bcf8a86473e8c326e80128ac2",
+      "size_bytes": 535
+    },
+    {
+      "id": "slat-flow-imgshape2tex-dit-1-3b-1024-bf-65df179ad02f-0635b411df",
+      "path": "ckpts/slat_flow_imgshape2tex_dit_1_3B_1024_bf16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "65df179ad02f9e92bc18335d7861fadd95f268e6249217352468dd83cb79d1d0",
+      "size_bytes": 5546960656
+    },
+    {
+      "id": "ss-dec-conv3d-16l8-fp16-646781293f1c-85f0b62954",
+      "path": "ckpts/ss_dec_conv3d_16l8_fp16.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "646781293f1cda74720de85d1cef50a957fb4aebd9a4bd014e454e32f2330ac5",
+      "size_bytes": 245
+    },
+    {
+      "id": "ss-dec-conv3d-16l8-fp16-1c76d4a40519-f445c876e9",
+      "path": "ckpts/ss_dec_conv3d_16l8_fp16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1c76d4a40519aa2d711cc263a8404105231ac26db31d946bed48b84fee79009a",
+      "size_bytes": 147591972
+    },
+    {
+      "id": "ss-flow-img-dit-1-3b-64-bf16-2b3ef4c63b72-cfcec5a523",
+      "path": "ckpts/ss_flow_img_dit_1_3B_64_bf16.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2b3ef4c63b72a3de8adf745bd9d9d36b7960bdd7ba3740a6fa4d18fea6c475dd",
+      "size_bytes": 503
+    },
+    {
+      "id": "ss-flow-img-dit-1-3b-64-bf16-6d0147bb347e-92d4da3434",
+      "path": "ckpts/ss_flow_img_dit_1_3B_64_bf16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6d0147bb347eb61fa81c304cc68c7fd69d447e91870357a549b47e1d0fd77242",
+      "size_bytes": 5359822584
+    },
+    {
+      "id": "tex-dec-next-dc-f16c32-fp16-22074e4ab5b2-90e5f1233b",
+      "path": "ckpts/tex_dec_next_dc_f16c32_fp16.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "22074e4ab5b28e2b72d33a3fe61bf416134b89e12d0fc5c729f37da75da0c4d1",
+      "size_bytes": 705
+    },
+    {
+      "id": "tex-dec-next-dc-f16c32-fp16-97ea69addea2-5e554c0085",
+      "path": "ckpts/tex_dec_next_dc_f16c32_fp16.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "97ea69addea2ecd9312910f5f548234665eef51c088386180b7cd5b258645e3c",
+      "size_bytes": 948458812
+    },
+    {
+      "id": "pipeline-1647217de06e-a1130aae5d",
+      "path": "pipeline.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "1647217de06e32477702d14895e826fea73497d94537b809a53637f13482a237",
+      "size_bytes": 4068
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "tencentarc",
+      "slug": "pixal3d",
+      "title": "Pixal3D"
+    },
+    "model": {
+      "publisher": "tencentarc",
+      "slug": "pixal3d",
+      "title": "Pixal3D"
+    },
+    "publisher": "tencentarc",
+    "slug": "pixal3d-b0cb2e1b",
+    "variant": "Pixal3D",
+    "version": "Pixal3D"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "tencentarc"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/TencentARC/Pixal3D/blob/b0cb2e1b794cab9aa0ac38a95d794a4d9337437f/LICENSE"
+  },
+  "metadata": {
+    "description": "Immutable public snapshot of TencentARC/Pixal3D at b0cb2e1b: the single-view checkpoint set (the multi-view *_mv files are not used by this recipe).",
+    "tags": [
+      "tencentarc",
+      "three-d",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "3d"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/TencentARC/Pixal3D",
+    "revision": "b0cb2e1b794cab9aa0ac38a95d794a4d9337437f"
+  }
+}
