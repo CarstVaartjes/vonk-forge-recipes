@@ -48,7 +48,7 @@ RUN apt update && \
     && pip install uv
 
 # The PyTorch index carries no upload dates, so torch is pinned exactly instead.
-RUN UV_EXCLUDE_NEWER= uv pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 triton --index-url https://download.pytorch.org/whl/cu130 && \
+RUN env -u UV_EXCLUDE_NEWER uv pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 triton --index-url https://download.pytorch.org/whl/cu130 && \
     uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2" filelock pynvml requests tqdm
 
 ARG TORCH_CUDA_ARCH_LIST="12.1a"
@@ -164,7 +164,7 @@ RUN mkdir -p tiktoken_encodings && \
     echo "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d  tiktoken_encodings/o200k_base.tiktoken" | sha256sum -c - && \
     echo "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7  tiktoken_encodings/cl100k_base.tiktoken" | sha256sum -c -
 
-RUN UV_EXCLUDE_NEWER= uv pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 triton --index-url https://download.pytorch.org/whl/cu130 && \
+RUN env -u UV_EXCLUDE_NEWER uv pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 triton --index-url https://download.pytorch.org/whl/cu130 && \
     uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2"
 
 COPY --from=base /workspace/wheels-flashinfer /workspace/wheels-flashinfer

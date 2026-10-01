@@ -136,6 +136,10 @@ jobs:
           name: recipe-image-plan
           path: ${{ runner.temp }}/upload
           retention-days: 7
+          # Build contexts contain dotfiles (state/.keep, .dockerignore, vendored
+          # .vendored-from-commit); without them a COPY of an otherwise empty
+          # directory fails here although the Controller's bundle has it.
+          include-hidden-files: true
 
   copy:
     name: Tag shared images
