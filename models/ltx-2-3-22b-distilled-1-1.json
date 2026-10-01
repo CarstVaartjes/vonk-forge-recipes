@@ -49,7 +49,7 @@
     "publisher": "lightricks",
     "slug": "ltx-2-3-22b-distilled-1-1",
     "variant": "LTX-2.3 22B distilled 1.1",
-    "version": "22b-distilled-1.1-6b5a83e3"
+    "version": "22b-distilled-1.1-5948be4c"
   },
   "kind": "model",
   "license": {
@@ -57,10 +57,10 @@
       "Lightricks"
     ],
     "spdx": "LTX-2 Community License Agreement",
-    "url": "https://huggingface.co/Lightricks/LTX-2.3/blob/6b5a83e3045eaf8e46cfa0acce512412aa2b9cce/LICENSE"
+    "url": "https://huggingface.co/Lightricks/LTX-2.3/blob/5948be4ced3a4493d1f836df64378ff136ddb770/LICENSE"
   },
   "metadata": {
-    "description": "Exact executable checkpoint closure at 6b5a83e3 with a digest-bound Gemma 3 companion dependency.",
+    "description": "Exact executable checkpoint closure at 5948be4c with a digest-bound Gemma 3 companion dependency.",
     "tags": [
       "lightricks",
       "ltx",
@@ -76,6 +76,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Lightricks/LTX-2.3",
-    "revision": "6b5a83e3045eaf8e46cfa0acce512412aa2b9cce"
+    "revision": "5948be4ced3a4493d1f836df64378ff136ddb770"
   }
 }
