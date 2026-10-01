@@ -1018,3 +1018,134 @@ class BranchFollowingTests(unittest.TestCase):
         )
         self.assertEqual(len(result.items), 1)
         self.assertIsNone(result.items[0].target.branch)
+
+
+class AppCommandBoundaryTests(unittest.TestCase):
+    def test_renewed_app_token_reaches_both_gh_and_git(self) -> None:
+        from unittest.mock import Mock
+
+        auth = Mock()
+        auth.environment.side_effect = [
+            {"GH_TOKEN": "first-app-token"},
+            {"GH_TOKEN": "renewed-app-token"},
+        ]
+        completed = __import__("subprocess").CompletedProcess([], 0, "", "")
+        with (
+            patch.object(refresh, "APP_AUTH", auth),
+            patch.dict(refresh.os.environ, {"GH_TOKEN": "actions-token"}),
+            patch.object(refresh.subprocess, "run", return_value=completed) as run,
+        ):
+            refresh.gh("pr", "list")
+            refresh.git("push", "origin", cwd=ROOT)
+        self.assertEqual(
+            run.call_args_list[0].kwargs["env"]["GH_TOKEN"], "first-app-token"
+        )
+        self.assertEqual(
+            run.call_args_list[1].kwargs["env"]["GH_TOKEN"], "renewed-app-token"
+        )
+
+    def test_missing_app_key_fails_before_recipe_work(self) -> None:
+        with (
+            patch.object(sys, "argv", ["refresh-upstream", "--github-app"]),
+            patch.dict(refresh.os.environ, {}, clear=True),
+            patch.object(refresh, "command_run") as command,
+            patch.object(refresh, "APP_AUTH", None),
+            self.assertRaisesRegex(RuntimeError, "not configured"),
+        ):
+            refresh.main()
+        command.assert_not_called()
+
+
+class AppKeyLifetimeTests(unittest.TestCase):
+    def test_signing_key_is_removed_before_recipe_subprocesses_and_auth_is_closed(
+        self,
+    ) -> None:
+        from unittest.mock import Mock
+
+        auth = Mock()
+
+        def command(arguments):
+            self.assertNotIn("REFRESH_APP_PRIVATE_KEY", refresh.os.environ)
+            return 0
+
+        with (
+            patch.object(sys, "argv", ["refresh-upstream", "--github-app"]),
+            patch.dict(
+                refresh.os.environ,
+                {
+                    "REFRESH_APP_CLIENT_ID": "client",
+                    "REFRESH_APP_PRIVATE_KEY": "private-signing-key",
+                    "GITHUB_REPOSITORY": "owner/repo",
+                },
+            ),
+            patch.object(refresh, "RefreshAppAuth", return_value=auth),
+            patch.object(refresh, "command_run", side_effect=command),
+            patch.object(refresh, "APP_AUTH", None),
+        ):
+            self.assertEqual(refresh.main(), 0)
+            auth.close.assert_called_once()
+            self.assertIsNone(refresh.APP_AUTH)
+
+
+class AppVerificationTests(unittest.TestCase):
+    def test_live_verification_does_not_start_recipe_work(self) -> None:
+        from unittest.mock import Mock
+
+        auth = Mock()
+        with (
+            patch.object(
+                sys, "argv", ["refresh-upstream", "--github-app", "--verify-app"]
+            ),
+            patch.dict(
+                refresh.os.environ,
+                {
+                    "REFRESH_APP_CLIENT_ID": "client",
+                    "REFRESH_APP_PRIVATE_KEY": "key",
+                    "GITHUB_REPOSITORY": "owner/repo",
+                },
+            ),
+            patch.object(refresh, "RefreshAppAuth", return_value=auth),
+            patch.object(refresh, "APP_AUTH", None),
+            patch.object(
+                refresh,
+                "gh_json",
+                return_value={"repositories": [{"full_name": "owner/repo"}]},
+            ),
+            patch.object(refresh, "command_run") as command,
+        ):
+            self.assertEqual(refresh.main(), 0)
+            command.assert_not_called()
+            auth.close.assert_called_once()
+
+    def test_broader_token_scope_is_refused(self) -> None:
+        from unittest.mock import Mock
+
+        auth = Mock()
+        with (
+            patch.object(
+                sys, "argv", ["refresh-upstream", "--github-app", "--verify-app"]
+            ),
+            patch.dict(
+                refresh.os.environ,
+                {
+                    "REFRESH_APP_CLIENT_ID": "client",
+                    "REFRESH_APP_PRIVATE_KEY": "key",
+                    "GITHUB_REPOSITORY": "owner/repo",
+                },
+            ),
+            patch.object(refresh, "RefreshAppAuth", return_value=auth),
+            patch.object(refresh, "APP_AUTH", None),
+            patch.object(
+                refresh,
+                "gh_json",
+                return_value={
+                    "repositories": [
+                        {"full_name": "owner/repo"},
+                        {"full_name": "owner/other"},
+                    ]
+                },
+            ),
+            self.assertRaisesRegex(RuntimeError, "scope differs"),
+        ):
+            refresh.main()
+        auth.close.assert_called_once()
