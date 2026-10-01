@@ -2223,7 +2223,14 @@ def main() -> int:
         action="store_true",
         help="require renewable repository-scoped App credentials for git/gh",
     )
+    parser.add_argument(
+        "--verify-app",
+        action="store_true",
+        help="verify App authentication and exact repository scope; change no recipes",
+    )
     arguments = parser.parse_args()
+    if arguments.verify_app and not arguments.github_app:
+        parser.error("--verify-app requires --github-app")
     global APP_AUTH
     if arguments.github_app:
         APP_AUTH = RefreshAppAuth(
@@ -2233,6 +2240,18 @@ def main() -> int:
         )
         APP_AUTH.environment()  # Fail before upstream work when setup is incomplete.
     try:
+        if arguments.verify_app:
+            installation = gh_json("api", "installation/repositories")
+            repositories = [repo["full_name"] for repo in installation["repositories"]]
+            expected = os.environ["GITHUB_REPOSITORY"]
+            if repositories != [expected]:
+                raise RuntimeError(
+                    f"Refresh App token scope differs from {expected}: {repositories}"
+                )
+            print(
+                f"Refresh App authentication verified; token restricted to {expected}."
+            )
+            return 0
         return command_run(arguments)
     finally:
         if APP_AUTH is not None:

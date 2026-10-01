@@ -1085,3 +1085,67 @@ class AppKeyLifetimeTests(unittest.TestCase):
             self.assertEqual(refresh.main(), 0)
             auth.close.assert_called_once()
             self.assertIsNone(refresh.APP_AUTH)
+
+
+class AppVerificationTests(unittest.TestCase):
+    def test_live_verification_does_not_start_recipe_work(self) -> None:
+        from unittest.mock import Mock
+
+        auth = Mock()
+        with (
+            patch.object(
+                sys, "argv", ["refresh-upstream", "--github-app", "--verify-app"]
+            ),
+            patch.dict(
+                refresh.os.environ,
+                {
+                    "REFRESH_APP_CLIENT_ID": "client",
+                    "REFRESH_APP_PRIVATE_KEY": "key",
+                    "GITHUB_REPOSITORY": "owner/repo",
+                },
+            ),
+            patch.object(refresh, "RefreshAppAuth", return_value=auth),
+            patch.object(refresh, "APP_AUTH", None),
+            patch.object(
+                refresh,
+                "gh_json",
+                return_value={"repositories": [{"full_name": "owner/repo"}]},
+            ),
+            patch.object(refresh, "command_run") as command,
+        ):
+            self.assertEqual(refresh.main(), 0)
+            command.assert_not_called()
+            auth.close.assert_called_once()
+
+    def test_broader_token_scope_is_refused(self) -> None:
+        from unittest.mock import Mock
+
+        auth = Mock()
+        with (
+            patch.object(
+                sys, "argv", ["refresh-upstream", "--github-app", "--verify-app"]
+            ),
+            patch.dict(
+                refresh.os.environ,
+                {
+                    "REFRESH_APP_CLIENT_ID": "client",
+                    "REFRESH_APP_PRIVATE_KEY": "key",
+                    "GITHUB_REPOSITORY": "owner/repo",
+                },
+            ),
+            patch.object(refresh, "RefreshAppAuth", return_value=auth),
+            patch.object(refresh, "APP_AUTH", None),
+            patch.object(
+                refresh,
+                "gh_json",
+                return_value={
+                    "repositories": [
+                        {"full_name": "owner/repo"},
+                        {"full_name": "owner/other"},
+                    ]
+                },
+            ),
+            self.assertRaisesRegex(RuntimeError, "scope differs"),
+        ):
+            refresh.main()
+        auth.close.assert_called_once()

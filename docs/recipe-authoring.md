@@ -366,6 +366,11 @@ explains the approval gate. Register/install the App once, then store credential
 with `gh variable set REFRESH_APP_CLIENT_ID --repo CarstVaartjes/vonk-forge-recipes`
 and `gh secret set REFRESH_APP_PRIVATE_KEY --repo CarstVaartjes/vonk-forge-recipes`
 using stdin; never put the private key in command arguments or tracked files.
+Before activation, verify the credentials on the candidate branch without creating
+recipe PRs: `gh workflow run refresh-upstream.yml --ref BRANCH -f verify_app_only=true`.
+This uses the normal App authentication path, confirms that the minted token can
+access exactly this repository, and revokes it on exit. It can run beside the
+hourly refresh because it does not change recipes, PRs, issues or publication.
 
 Otherwise the recipe is **not changed**. One issue per recipe, titled
 `Refresh needs review: <recipe-id>` and labelled `refresh:needs-review`, carries the
