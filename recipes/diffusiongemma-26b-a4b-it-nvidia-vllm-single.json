@@ -286,11 +286,11 @@
       "vLLM contributors",
       "Google DeepMind"
     ],
-    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/c9033a130e1d14cb3125b017b80901d8d04c0856/nvidia/vllm/README.md"
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/c3c7324c49145814eb2674e1162ece12aaa9d0b4/nvidia/vllm/README.md"
   },
   "release": {
-    "released_at": "2026-09-30",
-    "version": "1.0.1"
+    "released_at": "2026-10-01",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
