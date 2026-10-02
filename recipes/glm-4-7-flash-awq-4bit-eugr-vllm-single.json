@@ -188,11 +188,11 @@
       "cyankiwi",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/42f62e349c610641ac6677ac28275c57bebdf9c3"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/9296ced563e9996f1424149a62432ea752816b90"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.0.0"
+    "released_at": "2026-10-02",
+    "version": "prebuilt-vllm-current"
   },
   "runtime": {
     "arguments": [
