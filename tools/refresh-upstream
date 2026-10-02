@@ -747,6 +747,22 @@ def check_kit_dependencies(
                 f"`{pin.ref}` (`{pin.commit[:12]}`), as locked\n- {info}\n"
             )
             continue
+        if pin.kind == "branch" and locked.get("ref") == pin.ref:
+            # the kit still names the same branch; its head moved since the lock
+            result.reasons.append(
+                f"the branch `{pin.ref}` of {pin.repo} that the kit declares moved from "
+                f"`{str(locked.get('commit', '?'))[:12]}` to `{pin.commit[:12]}` "
+                f"({pin.date}): a kit dependency changed; review the branch's new "
+                f"commits, then run `tools/kit-pins lock {recipe['identity']['slug']}`"
+            )
+            result.evidence.append(
+                f"### Kit dependency `{pin.name}` (branch `{pin.ref}`) moved\n\n"
+                f"- locked: `{locked.get('commit', '?')}`\n- branch head now: "
+                f"`{pin.commit}` ({pin.date})\n- compare: "
+                f"https://github.com/{pin.repo}/compare/{locked.get('commit', '?')}...{pin.commit}\n"
+                f"- {info}\n"
+            )
+            continue
         result.reasons.append(
             f"the kit declares {pin.repo} `{pin.ref}` (`{pin.commit[:12]}`) at "
             f"{kit_head[:12]}, but the recipe is locked to `{locked.get('ref', '?')}` "
