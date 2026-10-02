@@ -18,6 +18,7 @@ import statistics
 from collections import defaultdict
 from collections.abc import Callable, Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from .catalog import Model, Recipe
@@ -36,6 +37,36 @@ def keyword_boost(keywords: Sequence[str], factor: float = 4.0) -> Boost:
     def boost(recipe: Recipe) -> float:
         text = f"{recipe.key} {recipe.title}".lower()
         return factor if any(word in text for word in lowered) else 1.0
+
+    return boost
+
+
+def recent_boost(now: float, days: float, factor: float = 1.5) -> Boost:
+    """Boost recipes whose newest revision is at most ``days`` old."""
+
+    def boost(recipe: Recipe) -> float:
+        try:
+            published = datetime.fromisoformat(recipe.updated_at).timestamp()
+        except ValueError:
+            return 1.0
+        return factor if 0 <= now - published <= days * 86400 else 1.0
+
+    return boost
+
+
+def make_boost(
+    keywords: Sequence[str],
+    seed: Collection[str],
+    now: float,
+    recent_days: float = 3.0,
+) -> Boost:
+    """Owner-priority families, recently updated recipes, and the operator's seed list."""
+    keyword = keyword_boost(keywords)
+    recent = recent_boost(now, recent_days)
+
+    def boost(recipe: Recipe) -> float:
+        seeded = recipe.slug in seed or recipe.key in seed
+        return keyword(recipe) * recent(recipe) * (1000.0 if seeded else 1.0)
 
     return boost
 

@@ -440,3 +440,28 @@ def test_planning_the_whole_catalog_is_fast_enough_to_run_every_tick() -> None:
     assert sorted(k for p in plans for k in p.recipes) == sorted(
         r.key for r in recipes
     )  # every recipe exactly once
+
+
+def test_recently_updated_recipes_and_seed_lists_are_boosted() -> None:
+    from datetime import UTC, datetime
+
+    now = datetime(2026, 10, 2, tzinfo=UTC).timestamp()
+    boost = policy.make_boost(["glm-5-3"], {"seeded"}, now, recent_days=3)
+    fresh = recipe("fresh", updated_at="2026-10-01T12:00:00Z")
+    stale = recipe("stale", updated_at="2026-09-01T00:00:00Z")
+    assert boost(fresh) > boost(stale) == 1.0
+    assert boost(recipe("glm-5-3-x", updated_at="")) == 4.0
+    assert boost(recipe("seeded")) == 1000.0
+    assert boost(recipe("odd", updated_at="not a date")) == 1.0
+    plans = policy.plan_groups(
+        [
+            recipe("a", ("A",), updated_at="2026-09-01T00:00:00Z"),
+            recipe("b", ("B",), updated_at="2026-10-01T23:00:00Z"),
+        ],
+        {"A": 10 * GB, "B": 12 * GB},
+        set(),
+        boost,
+    )
+    assert keys(plans)[0] == [
+        "b"
+    ]  # slightly bigger, but newer: ahead of the cheaper stale one

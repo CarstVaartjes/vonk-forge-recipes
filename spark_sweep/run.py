@@ -41,6 +41,7 @@ from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
 from .state import ResultsLog, State
 from .vonkctl import Vonkctl, VonkctlError, request_key
 
+CLEAR_TIMEOUT_SECONDS = 900.0
 ACTIVE_APP = frozenset({"queued", "running"})
 SETTLED = frozenset({"succeeded", "failed", "cancelled", "waiting-for-operator"})
 
@@ -81,6 +82,7 @@ class SweepConfig:
     prefetch: PrefetchConfig = field(default_factory=PrefetchConfig)
     timeouts: policy.TimeoutPolicy = field(default_factory=policy.TimeoutPolicy)
     boost: tuple[str, ...] = ("glm-5-3",)
+    recent_days: float = 3.0
     seed: frozenset[str] = frozenset()
     only: tuple[str, ...] = ()
     limit: int = 0
@@ -142,15 +144,9 @@ class Sweep:
     # ------------------------------------------------------------------ setup
 
     def _build_boost(self) -> policy.Boost:
-        keyword = policy.keyword_boost(self.cfg.boost)
-        seed = self.cfg.seed
-
-        def boost(recipe: Recipe) -> float:
-            return keyword(recipe) * (
-                1000.0 if recipe.slug in seed or recipe.key in seed else 1.0
-            )
-
-        return boost
+        return policy.make_boost(
+            self.cfg.boost, self.cfg.seed, self.clock.now(), self.cfg.recent_days
+        )
 
     def preflight(self) -> None:
         """Read-only facts before anything is changed: fleet, owner baseline, owner profile export."""
@@ -234,15 +230,20 @@ class Sweep:
         if not self._selected(recipe):
             return
         entry = self.state.entry(recipe.key)
-        if recipe.node_count > usable_sparks:
+        if recipe.node_count > usable_sparks and entry.get("status") in (
+            "pending",
+            "skipped",
+        ):
             entry.update(
                 status="skipped",
                 reason=f"not testable on this fleet: needs {recipe.node_count} Sparks, {usable_sparks} usable",
                 content_sha256=recipe.content_sha256,
             )
             return
-        if entry.get("status") == "skipped":
+        if entry.get("status") == "skipped" and recipe.node_count <= usable_sparks:
             entry["status"] = "pending"
+        if recipe.node_count > usable_sparks:
+            return  # a Spark offline for a moment must not rewrite a recorded result
         why = policy.requeue_reason(entry, recipe)
         if why is None:
             return
@@ -372,14 +373,29 @@ class Sweep:
         self.finish()
         return 0
 
+    def _model_preparing(self, recipe: Recipe) -> bool:
+        return any(
+            (m := self.models.get(d)) is not None and m.local == "preparing"
+            for d in recipe.model_digests
+        )
+
     def _nothing_moves(self) -> bool:
         busy = bool(self.state.slots) or any(
             r.get("state") in ("queued", "running", "partial", "accepted")
             or (r.get("retry_at") and r.get("state") == "failed")
             for r in self.state.downloads.values()
         )
-        waiting = self.owner_status.paused or self.clock.now() < max(
-            self.backoff_until, self.prefetcher.pressure_until
+        external = any(
+            self.recipes[k].local == "preparing"
+            or self._model_preparing(self.recipes[k])
+            for k in self.queue
+            if k in self.recipes
+        )  # downloads started by someone else still deliver
+        waiting = (
+            external
+            or self.owner_status.paused
+            or self.clock.now()
+            < max(self.backoff_until, self.prefetcher.pressure_until)
         )
         return not busy and not waiting and not self.ready_candidates()
 
@@ -871,8 +887,66 @@ class Sweep:
             spark_ids = tuple(b.id for b in bins[:width])
             if len(spark_ids) == width:
                 placements = [policy.Placement(head, spark_ids)]
-        if placements:
+        if placements and self._take_over(now):
             self._apply(placements, now)
+
+    def _take_over(self, now: float) -> bool:
+        """Once, just before the first placement: stop whatever else the Sparks run.
+
+        A profile load replaces the whole fleet's workloads anyway; doing it as
+        its own step (an empty sweep profile) means the first review sees idle
+        Sparks instead of arguing about the owner's workload. ``run --yes`` is
+        the operator's consent. Returns False to try again on the next tick.
+        """
+        if self.state.data.get("took_over") or self.state.slots:
+            return True
+        try:
+            self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+        except VonkctlError:
+            return False
+        if not self.fleet.presences:
+            self.state.data["took_over"] = True
+            return True
+        key = request_key("takeover", self.state.nonce)
+        self.state.event(
+            "stopping what the Sparks run: loading the empty sweep profile"
+        )
+        self.state.data["dirty"] = True
+        self.state.save()
+        try:
+            submitted = self.vk.call(
+                "profile",
+                "load",
+                "--yes",
+                "--detach",
+                "--request-key",
+                key,
+                profile=self.cfg.sweep_profile,
+            )
+        except VonkctlError as error:
+            self.state.event(f"could not clear the Sparks: {str(error)[:150]}")
+            self.backoff_until = now + self.cfg.retry_delay
+            return False
+        deadline = now + CLEAR_TIMEOUT_SECONDS
+        status = ""
+        while self.clock.now() < deadline:
+            reply = self.vk.run(
+                "profile",
+                "progress",
+                "--application",
+                str(dig(submitted, "id")),
+                profile=self.cfg.sweep_profile,
+            )
+            status = str(dig(reply.document, "state", default=""))
+            if status in SETTLED:
+                break
+            self.clock.sleep(self.cfg.poll_seconds)
+        if status != "succeeded":
+            raise RuntimeError(
+                f"clearing the Sparks did not succeed (last state {status or 'unknown'})"
+            )
+        self.state.data["took_over"] = True
+        return True
 
     def _apply(self, placements: Sequence[policy.Placement], now: float) -> None:
         profile = self.cfg.sweep_profile
@@ -927,8 +1001,8 @@ class Sweep:
         seq = int(self.state.data["load_seq"]) + 1
         key = request_key(
             "sweep-load",
+            self.state.nonce,
             self.cfg.sweep_profile,
-            self.state.data.get("started_at", 0),
             seq,
         )
         self.state.data["load_seq"] = seq
@@ -954,7 +1028,7 @@ class Sweep:
             self._rollback(added, f"load refused: {error}")
             return
         self.state.data["load"]["app_id"] = dig(submitted, "id")
-        self.state.data["loaded_any"] = True
+        self.state.data["dirty"] = True
         for placement in added:
             self._open_slot(placement, key, now)
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
@@ -978,6 +1052,7 @@ class Sweep:
             "started_at": now,
             "deadline": now + timeout,
             "model_bytes": model_bytes,
+            "digests": list(recipe.model_digests),
         }
 
     def _rollback(self, placements: Sequence[policy.Placement], why: str) -> None:
@@ -1070,11 +1145,13 @@ class Sweep:
 
     def _leave_fleet(self) -> None:
         number = self.cfg.restore_owner
+        if not self.state.data.get("dirty"):
+            return  # the sweep never changed what the Sparks run
+        nonce = self.state.nonce
         try:
-            started = self.state.data.get("started_at", 0)
             if number is not None:
                 key = request_key(
-                    "restore-owner", number, started, self.state.data["load_seq"]
+                    "restore-owner", nonce, number, self.state.data["load_seq"]
                 )
                 self.vk.call(
                     "profile",
@@ -1087,11 +1164,12 @@ class Sweep:
                     allow_owner_write=True,
                 )
                 self.state.event(f"restored owner profile {number}")
-            elif self.cfg.stop_at_end and self.state.data.get("loaded_any"):
+                self.state.data["dirty"] = False
+            elif self.cfg.stop_at_end:
                 key = request_key(
                     "sweep-stop",
+                    nonce,
                     self.cfg.sweep_profile,
-                    started,
                     self.state.data["load_seq"],
                 )
                 self.vk.call(
@@ -1103,6 +1181,7 @@ class Sweep:
                     key,
                     profile=self.cfg.sweep_profile,
                 )
+                self.state.data["dirty"] = False
         except VonkctlError as error:
             self.state.event(f"leaving the fleet failed: {str(error)[:150]}")
 

@@ -14,6 +14,7 @@ import json
 import os
 import tempfile
 import time
+import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -27,6 +28,8 @@ TERMINAL = frozenset({"passed", "failed", "skipped"})
 def _fresh() -> dict[str, Any]:
     return {
         "schema": SCHEMA,
+        # Folded into every request key: a fresh state directory never replays an old run's requests.
+        "nonce": uuid.uuid4().hex,
         "recipes": {},  # key -> result entry
         "slots": {},  # key -> a recipe currently loading, serving or smoking
         "load": None,  # the sweep profile's in-flight application
@@ -81,6 +84,10 @@ class State:
     def save(self) -> None:
         self.data["updated_at"] = self.clock()
         write_atomic(self.path, json.dumps(self.data, indent=1, sort_keys=True))
+
+    @property
+    def nonce(self) -> str:
+        return str(self.data["nonce"])
 
     # -- recipes -----------------------------------------------------------
 

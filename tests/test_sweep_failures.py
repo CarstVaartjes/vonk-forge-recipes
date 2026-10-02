@@ -199,3 +199,32 @@ def test_same_root_cause_forms_one_cluster(tmp_path: Path, gateway: Gateway) -> 
     report = json.loads((tmp_path / "report.json").read_text())
     sizes = sorted(len(c["recipes"]) for c in report["failure_clusters"])
     assert sizes == [1, 2]
+
+
+def test_a_bad_checkpoint_found_at_start_pushes_its_siblings_to_the_back_but_still_tests_them(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    lead = FakeRecipe(
+        "lead",
+        ("m1",),
+        fail_load="invalid model: corrupt safetensors header",
+        fail_phase="start",
+    )
+    sibling = FakeRecipe("sibling", ("m1",), engine="sglang")
+    others = [FakeRecipe(f"other{i}", (f"m{i + 2}",)) for i in range(3)]
+    sweep, fleet, _ = make_sweep(
+        tmp_path,
+        [lead, sibling, *others],
+        [FakeModel(f"m{i + 1}") for i in range(4)],
+        gateway=gateway,
+        sparks=("spark-a",),
+    )
+    sweep.run()
+    order = [c[2] for p, c in fleet.calls if p == 10 and c[:2] == ("profile", "add")]
+    assert (
+        order[0] == "vonk-forge/lead" and order[-1] == "vonk-forge/sibling"
+    )  # siblings last
+    assert sweep.state.recipes["vonk-forge/lead"]["failure_class"] == "model-integrity"
+    assert (
+        sweep.state.recipes["vonk-forge/sibling"]["status"] == "passed"
+    )  # still tested, not condemned

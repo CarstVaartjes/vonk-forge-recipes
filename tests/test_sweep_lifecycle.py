@@ -260,3 +260,115 @@ def test_the_sweep_profiles_are_labelled_so_a_rerun_recognises_them(
     sweep.run()
     assert fleet.profiles[10]["labels"] == {"purpose": "hardware-sweep"}
     assert fleet.profiles[13]["labels"] == {"purpose": "hardware-sweep"}
+
+
+def test_waiting_for_someone_elses_long_download_is_not_being_stuck(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    # The operator's own prefetch: one long download, far longer than the 30 idle ticks of the stuck guard.
+    fleet.ops["op-ext"] = {
+        "id": "op-ext",
+        "recipe": "vonk-forge/a",
+        "state": "running",
+        "started": clock.now(),
+        "duration": 3000.0,
+        "request": "ext",
+        "bytes": 20 * 10**9,
+    }
+    assert sweep.run() == 0
+    assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
+    assert not [c for _, c in fleet.calls if c[:2] == ("recipe", "download")]
+
+
+def test_a_fresh_state_directory_never_replays_an_old_runs_requests(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    first, fleet, _ = make_sweep(
+        tmp_path / "one", [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    first.run()
+    second, _, _ = make_sweep(
+        tmp_path / "two", [FakeRecipe("a")], [FakeModel("m1")], fleet=fleet
+    )
+    fleet.recipes["vonk-forge/a"].local = "not_cached"
+    fleet.models["m1"].local = "not_cached"
+    second.run()
+
+    def keys(verb: tuple[str, ...]) -> list[str]:
+        return [
+            c[c.index("--request-key") + 1]
+            for _, c in fleet.calls
+            if c[: len(verb)] == verb and "--request-key" in c
+        ]
+
+    loads = keys(("profile", "load", "--yes"))
+    downloads = keys(("recipe", "download"))
+    assert len(set(loads)) == len(loads) and len(set(downloads)) == len(
+        downloads
+    )  # no key was reused
+    assert (
+        second.state.recipes["vonk-forge/a"]["status"] == "passed"
+    )  # and the replayed answer was not mistaken for new work
+
+
+def test_a_spark_offline_for_a_moment_does_not_rewrite_recorded_results(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    dual = FakeRecipe("dual", node_count=2)
+    sweep, _, _ = make_sweep(tmp_path, [dual], [FakeModel("m1")], gateway=gateway)
+    sweep.run()
+    assert sweep.state.recipes["vonk-forge/dual"]["status"] == "passed"
+    sweep._reconcile_entry(sweep.recipes["vonk-forge/dual"], usable_sparks=1)
+    assert sweep.state.recipes["vonk-forge/dual"]["status"] == "passed"
+
+
+def test_the_first_placement_clears_what_else_the_sparks_run(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, _ = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    fleet.runs.append(
+        {
+            "alias": "owner-glm",
+            "recipe": "x",
+            "run_id": "run-owner",
+            "node_ids": ["spk_a", "spk_b"],
+            "ready": True,
+        }
+    )
+    sweep.run()
+    ops = [
+        (c[1], c[2] if c[1] == "add" else "")
+        for p, c in fleet.calls
+        if p == 10 and c[0] == "profile" and c[1] in ("load", "add")
+    ]
+    assert (
+        ops[0][0] == "load" and ("add", "vonk-forge/a") in ops
+    )  # cleared first, then placed
+    assert all(r["alias"] != "owner-glm" for r in fleet.runs)
+    assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
+
+
+def test_an_idle_fleet_needs_no_clearing_and_a_noop_rerun_changes_nothing(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, _ = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway, restore_owner=2
+    )
+    sweep.run()
+    first_loads = [
+        c for p, c in fleet.calls if p == 10 and c[:3] == ("profile", "load", "--yes")
+    ]
+    assert len(first_loads) == 1  # the real load; no clearing step on an idle fleet
+    before = len(fleet.calls)
+    again, _, _ = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], fleet=fleet, restore_owner=2
+    )
+    again.run()
+    assert not [
+        c for _, c in fleet.calls[before:] if c[:2] == ("profile", "load")
+    ]  # nothing to restore: nothing was touched

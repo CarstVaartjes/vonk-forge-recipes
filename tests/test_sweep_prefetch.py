@@ -188,3 +188,23 @@ def test_throughput_is_measured_from_the_operations(
         2 * 20 * GB / 60, rel=0.01
     )  # two operations moving at once
     assert sweep.state.data["rate"]["samples"] > 0
+
+
+def test_one_pin_protects_a_model_shared_by_several_recipes(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipes = [
+        FakeRecipe("a1", ("m1",)),
+        FakeRecipe("a2", ("m1",), engine="sglang"),
+        FakeRecipe("a3", ("m1",), engine="trtllm"),
+        FakeRecipe("b", ("m2",)),
+    ]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("m1"), FakeModel("m2")], gateway=gateway
+    )
+    peak: list[int] = []
+    clock.hooks.append(
+        lambda _t: peak.append(len(fleet.profiles.get(13, {}).get("assignments", [])))
+    )
+    sweep.run()
+    assert max(peak) == 2  # one per model set, not one per recipe

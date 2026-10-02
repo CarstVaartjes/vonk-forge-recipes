@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
@@ -56,6 +57,12 @@ def _parser() -> argparse.ArgumentParser:
             "--seed-list",
             type=Path,
             help="JSON list of recipe slugs to test first (already prefetched)",
+        )
+        sub.add_argument(
+            "--recent-days",
+            type=float,
+            default=3.0,
+            help="boost recipes whose newest revision is this recent",
         )
         sub.add_argument("--authority-id", default=AUTHORITY_ID)
 
@@ -171,11 +178,7 @@ def _parser() -> argparse.ArgumentParser:
 
 def _boost(args: argparse.Namespace) -> policy.Boost:
     keywords = tuple(args.boost) if args.boost is not None else ("glm-5-3",)
-    keyword = policy.keyword_boost(keywords)
-    seed = _seed(args)
-    return lambda recipe: (
-        keyword(recipe) * (1000.0 if recipe.slug in seed or recipe.key in seed else 1.0)
-    )
+    return policy.make_boost(keywords, _seed(args), time.time(), args.recent_days)
 
 
 def _seed(args: argparse.Namespace) -> frozenset[str]:
@@ -215,6 +218,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
             cap_seconds=args.max_load_minutes * 60,
         ),
         boost=tuple(args.boost) if args.boost is not None else ("glm-5-3",),
+        recent_days=args.recent_days,
         seed=_seed(args),
         only=tuple(args.only),
         limit=args.limit,

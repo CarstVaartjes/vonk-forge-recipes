@@ -142,7 +142,9 @@ class Prefetcher:
     def _request(self, recipe: Recipe, kind: str) -> None:
         record = self.state.downloads.get(recipe.key, {})
         attempt = int(record.get("attempt", 0)) + 1
-        key = request_key("download", recipe.key, recipe.content_sha256, attempt)
+        key = request_key(
+            "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
+        )
         try:
             document = self.vk.call(
                 "recipe",
@@ -329,8 +331,13 @@ class Prefetcher:
         sizes: Mapping[str, int],
         present: set[str],
     ) -> list[str]:
-        """Recipes whose models are on (or heading to) the NAS and not yet tested, within the byte budget."""
-        wanted: list[str] = []
+        """One pin per model set that is on (or heading to) the NAS and not yet tested, within the byte budget."""
+        wanted = list(
+            self.state.slots
+        )  # a recipe under test already protects its models
+        covered = {
+            frozenset(slot.get("digests", ())) for slot in self.state.slots.values()
+        }
         spent = 0
         for plan in plans:
             if plan.digests - present and not any(
@@ -341,8 +348,15 @@ class Prefetcher:
             if spent + cost > self.config.nas_budget_bytes and spent:
                 continue
             spent += cost
-            wanted += [k for k in plan.recipes if k in by_key]
-        wanted += [k for k in self.state.slots if k not in wanted]
+            # The model is what needs protecting: one recipe per model set, plus any recipe
+            # that needs a different combination of models.
+            members = [k for k in plan.recipes if k in by_key]
+            wanted += [
+                k
+                for i, k in enumerate(members)
+                if (i == 0 and plan.digests not in covered)
+                or by_key[k].model_set != plan.digests
+            ]
         return wanted
 
     def _reconcile_pins(

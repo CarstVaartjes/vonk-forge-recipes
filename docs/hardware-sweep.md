@@ -93,11 +93,11 @@ The next models are downloaded to the NAS while the Sparks test.
   downloads for ten minutes.
 * **Eviction pins.** The Controller evicts unused models LRU but "nothing is
   removed while a saved profile (loaded or not) points to it". The sweep keeps a
-  never-loaded **pin profile** (default `--pin-profile 13`) naming every recipe
-  that is downloaded or downloading and not yet tested (assignments with
-  `--state installed`), within the byte budget, and removes each recipe once
-  tested. If the Controller refuses the pin edits the sweep carries on and says
-  so in the status page.
+  never-loaded **pin profile** (default `--pin-profile 13`) naming one recipe
+  per model set that is downloaded or downloading and not yet tested
+  (assignments with `--state installed`), within the byte budget, and removes
+  it once the set is tested. If the Controller refuses the pin edits the sweep
+  carries on and says so in the status page.
 * **Measured throughput.** The summed `smoothed_bytes_per_second` of the
   active operations feeds the ETA on the status page.
 
@@ -141,8 +141,12 @@ refuses a profile that already holds assignments it did not create. At start it
 stores a read-only export of profiles 1-3. If an owner profile load starts, the
 sweep submits nothing until it ends plus a hold (30 minutes), and requeues its
 in-flight tests without blame. `--restore-owner 2` loads profile 2 at the end.
-`run` refuses to start without `--yes`, because the first load replaces whatever
-the Sparks run.
+`run` refuses to start without `--yes`, because the sweep replaces whatever the
+Sparks run: just before the first placement it loads the empty sweep profile
+once, so the first review sees idle Sparks. Every request key carries a
+per-state-directory nonce, so a fresh state directory never replays an older
+run's requests, while a resumed run reconnects to its own. Downloads that
+someone else started (library state `preparing`) are waited for, not repeated.
 
 ## Evidence
 
@@ -161,11 +165,20 @@ directory; a test checks that every file names a real recipe.
 
 ## Assumptions to confirm on the first real run
 
+The first real run should use `--limit 2` and watch the first load and review.
+Each tick makes roughly 8-12 `vonkctl` calls (owner polls, fleet, application and
+download progress, pin edits), so the real cadence is 15-30 seconds, not
+`--poll-seconds`.
+
 The tests use a fake `vonkctl` modelled on the Controller's OpenAPI schemas and
 on real library and fleet output. Not yet seen on a real fleet: that a load
 submitted while another lane's workload is up reports `keep` for it; that the
 Controller accepts many `--state installed` assignments in the pin profile; and
-the exact gateway `api_base` and key handling. Not built: Spark-side staging of
-the next recipe ahead of its load (it would rely on the same unverified
-concurrent-load behaviour), submitting the reviewed job fixtures for generation
-recipes, and reading the NAS's free space (not exposed).
+the exact gateway `api_base` and key handling (the key is sent as
+`Authorization: Bearer`, the usual OpenAI-compatible form; the platform's own
+campaign smoke sends no header).
+
+Not built: Spark-side staging of the next recipe ahead of its load (it would
+rely on the same unverified concurrent-load behaviour), submitting the reviewed
+job fixtures for generation recipes, and reading the NAS's free space (not
+exposed).
