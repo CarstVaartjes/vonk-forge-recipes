@@ -2120,6 +2120,30 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
     return True
 
 
+def arm_open_mechanical_prs(summary: Summary) -> None:
+    """Arm already-open refresh PRs first, before the slow assessment of every recipe.
+
+    A full run takes tens of minutes; prepared PRs must not wait for it. Required checks
+    still gate each merge, and a later push to the branch only restarts them.
+    """
+    pull_requests = gh_json(
+        "pr",
+        "list",
+        "--state",
+        "open",
+        "--label",
+        LABEL_MECHANICAL,
+        "--limit",
+        "200",
+        "--json",
+        "number,headRefName,autoMergeRequest",
+    )
+    for pr in pull_requests:
+        branch = str(pr.get("headRefName", ""))
+        if branch.startswith("refresh/") and not pr.get("autoMergeRequest"):
+            arm_mechanical_pr(pr["number"], branch.removeprefix("refresh/"), summary)
+
+
 def has_publication_receipt(main_head: str, runs: list[dict[str, Any]]) -> bool:
     """A successful publish.yml run for this exact main SHA is the release receipt."""
     return any(
@@ -2546,13 +2570,18 @@ def command_run(arguments: argparse.Namespace) -> int:
     )
     if cache_dir is not None:
         os.environ.setdefault("VONK_UPSTREAM_CACHE", str(cache_dir / "github-trees"))
+    summary = Summary()
+    if not arguments.dry_run:
+        try:
+            arm_open_mechanical_prs(summary)
+        except RuntimeError as error:
+            summary.failures.append(f"arming open PRs: {str(error)[:300]}")
     catalog_ = Catalog.load(root)
     defaults, overrides = drift.load_manifest(root / "upstream-watch.json")
     watches = drift.discover_watches(root, defaults, overrides)
     embedded = drift.embedded_inventory(root, watches)
     drift.observe_embedded_heads(embedded, AnonymousHeadClient(http))
     assessor = Assessor(catalog_, http, cache_dir, embedded)
-    summary = Summary()
     with ThreadPoolExecutor(max_workers=8) as pool:
         results = list(pool.map(assessor.assess, sorted(catalog_.recipes)))
     assessed = {r.recipe_id: r for r in results}
