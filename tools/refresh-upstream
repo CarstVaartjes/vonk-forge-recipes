@@ -60,6 +60,7 @@ def _load(name: str) -> Any:
 
 drift = _load("check-upstream-drift")
 vendored = _load("check-vendored-upstream")
+kit_pins = _load("kit-pins")
 catalog = _load("catalog-hf-model")
 RefreshAppAuth = _load("_refresh_auth.py").RefreshAppAuth
 APP_AUTH: Any = None
@@ -253,6 +254,7 @@ class Target:
     notes: str | None = None
     access_status: str | None = None
     branch: str | None = None  # non-default branch the pin follows, when it does
+    committed_at: str | None = None  # the commit's own timestamp (ISO 8601), when known
 
 
 def pick_version_tag(tags: Iterable[dict[str, Any]]) -> dict[str, Any] | None:
@@ -299,6 +301,7 @@ def resolve_github(http: Http, repo: str) -> Target:
         version=version,
         url=commit["html_url"],
         notes=notes,
+        committed_at=commit["commit"]["committer"]["date"],
     )
 
 
@@ -399,6 +402,7 @@ def follow_github_branch(http: Http, repo: str, current: str) -> Target | None:
             version=None,
             url=commit["html_url"],
             branch=name,
+            committed_at=commit["commit"]["committer"]["date"],
         )
         return _prefer_branch_release(http, repo, target)
     except (NotFound, RuntimeError, KeyError, TypeError, AttributeError):
@@ -426,6 +430,7 @@ def _prefer_branch_release(http: Http, repo: str, target: Target) -> Target:
             version=found["name"].removeprefix("v"),
             url=commit["html_url"],
             branch=target.branch,
+            committed_at=commit["commit"]["committer"]["date"],
         )
     except (NotFound, RuntimeError, KeyError, TypeError):
         return target
@@ -560,23 +565,70 @@ class AdapterPin:
     repo: str
     commit: str
     directory: Path
+    derived: bool = False  # the commit is locked from what the recipe's kit declares
+
+
+def adapter_manifest(directory: Path) -> dict[str, Any]:
+    path = directory / vendored.MANIFEST
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def kit_directory(root: Path, recipe: dict[str, Any]) -> Path | None:
+    """The adapter directory when its manifest declares kit dependencies."""
+    directory = root / recipe["execution"]["build"]["context"]["path"]
+    if not (directory / "Dockerfile").is_file():
+        return None
+    return directory if "kit" in adapter_manifest(directory) else None
 
 
 def adapter_pin(root: Path, recipe: dict[str, Any]) -> AdapterPin | None:
     directory = root / recipe["execution"]["build"]["context"]["path"]
     if not (directory / "Dockerfile").is_file():
         return None
-    manifest_path = directory / vendored.MANIFEST
-    manifest = (
-        json.loads(manifest_path.read_text(encoding="utf-8"))
-        if manifest_path.is_file()
-        else {}
-    )
+    manifest = adapter_manifest(directory)
     try:
         found = vendored._source(directory, manifest)
     except (KeyError, OSError):
         return None
-    return None if found is None else AdapterPin(found[0], found[1], directory)
+    if found is None:
+        return None
+    return AdapterPin(found[0], found[1], directory, "kit" in manifest)
+
+
+def kit_citation(repo: str) -> re.Pattern[str]:
+    return re.compile(
+        rf"(github\.com/{re.escape(repo)}/tree/)([0-9a-f]{{40}})", re.IGNORECASE
+    )
+
+
+def cites_kit(directory: Path | None, repo: str) -> bool:
+    """Whether the adapter's files record a commit of the repository as their source.
+
+    An adapter that records ``github.com/<repo>/tree/<commit>`` (a recipe-patches source
+    label, a NOTICE) was built from the repository: its patches and scripts are that
+    repository's, so the repository is a kit, not a model card.
+    """
+    if directory is None or not directory.is_dir():
+        return False
+    needle = kit_citation(repo)
+    for path in sorted(directory.rglob("*")):
+        if not path.is_file() or path.is_symlink() or path.stat().st_size > 1_000_000:
+            continue
+        if path.suffix in {".gz", ".zip", ".tar", ".patch", ".diff"}:
+            continue
+        if needle.search(path.read_text(encoding="utf-8", errors="replace")):
+            return True
+    return False
+
+
+def adapter_files(directory: Path) -> set[str]:
+    """Relative paths of the adapter's files that could be copies of upstream files."""
+    own = {"Dockerfile", vendored.MANIFEST, vendored.KIT_LOCK}
+    return {
+        path.relative_to(directory).as_posix()
+        for path in directory.rglob("*")
+        if path.is_file() and path.relative_to(directory).as_posix() not in own
+    }
 
 
 def source_pin(recipe: dict[str, Any]) -> tuple[str, str, str] | None:
@@ -610,6 +662,7 @@ class Item:
     target: Target
     model_slug: str | None = None
     comparison: Comparison | None = None  # pin -> newest, GitHub items only
+    noop: bool = False  # assessed as not worth a move (set while assessing)
 
     @property
     def label(self) -> str:
@@ -639,8 +692,80 @@ class Assessment:
         return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 
+def check_kit_dependencies(
+    catalog_: Catalog,
+    recipe: dict[str, Any],
+    directory: Path,
+    result: Assessment,
+    kit_head: str,
+    kit_source: Any,
+) -> None:
+    """What the kit declares at ``kit_head`` against what the recipe is locked to.
+
+    A kit-built recipe pins only the kit; its base (engine version, ref) is whatever the
+    kit declares at that commit (``tools/kit-pins``). The base repository's own newest
+    release is information, never the proposed pin. A declared base that differs from the
+    lock means the kit moved its base: its patches were rebased onto it, so that is a
+    review, and ``tools/kit-pins lock`` then derives the new pin.
+    """
+    kit = kit_pins.kit_of(recipe)
+    if kit is None:
+        return
+    try:
+        wanted = kit_pins.declarations(adapter_manifest(directory))
+        pins = kit_pins.derive(kit[0], kit_head, wanted, kit_source)
+    except kit_pins.KitError as error:
+        result.reasons.append(
+            f"the kit's declared dependencies cannot be read at {kit_head[:12]}: "
+            f"{str(error)[:300]}"
+        )
+        return
+    lock = kit_pins.read_lock(directory)
+    if lock is None:
+        result.reasons.append(
+            f"{vendored.KIT_LOCK} is missing; run `tools/kit-pins lock {recipe['identity']['slug']}`"
+        )
+        return
+    for pin in pins:
+        locked = lock.get("dependencies", {}).get(pin.name) or {}
+        newest = kit_pins.newest_release(kit_source, pin.repo)
+        info = (
+            f"{pin.repo} newest release `{newest}` is shown for information; "
+            "the pin follows the kit's declaration"
+            if newest
+            else f"{pin.repo}: no release information"
+        )
+        if pin.overridden:
+            result.evidence.append(
+                f"### Kit dependency `{pin.name}` is overridden\n\n- {pin.repo} is "
+                f"locked to `{pin.ref}` on purpose: {pin.overridden}\n- {info}\n"
+            )
+            continue
+        if locked.get("commit") == pin.commit:
+            result.evidence.append(
+                f"### Kit dependency `{pin.name}`\n\n- the kit declares {pin.repo} "
+                f"`{pin.ref}` (`{pin.commit[:12]}`), as locked\n- {info}\n"
+            )
+            continue
+        result.reasons.append(
+            f"the kit declares {pin.repo} `{pin.ref}` (`{pin.commit[:12]}`) at "
+            f"{kit_head[:12]}, but the recipe is locked to `{locked.get('ref', '?')}` "
+            f"(`{str(locked.get('commit', '?'))[:12]}`): the kit moved its base, so its "
+            f"patches were rebased; review them, then run "
+            f"`tools/kit-pins lock {recipe['identity']['slug']}`"
+        )
+        result.evidence.append(
+            f"### Kit dependency `{pin.name}` moved\n\n- locked: `{locked.get('ref', '?')}`"
+            f"\n- declared now: `{pin.ref}` (`{pin.commit}`)\n- {info}\n"
+        )
+
+
 def collect_items(
-    catalog_: Catalog, recipe_id: str, http: Http, targets: Callable[[str, str], Target]
+    catalog_: Catalog,
+    recipe_id: str,
+    http: Http,
+    targets: Callable[[str, str], Target],
+    kit_source: Any = None,
 ) -> Assessment:
     """Compare every pin a recipe carries with what the pinning rule selects."""
     recipe = catalog_.recipes[recipe_id]
@@ -742,7 +867,24 @@ def collect_items(
     if source is not None:
         consider("source", *source)
     pin = adapter_pin(catalog_.root, recipe)
-    if pin is not None:
+    kit_dir = kit_directory(catalog_.root, recipe)
+    if kit_dir is not None:
+        # The base follows what the kit declares at the kit commit this run proposes (or
+        # keeps); the base repository's own newest release is not a pin candidate.
+        kit_head = next(
+            (i.target.sha for i in result.items if i.kind == "source"),
+            source[2] if source is not None else None,
+        )
+        if kit_head is not None:
+            check_kit_dependencies(
+                catalog_,
+                recipe,
+                kit_dir,
+                result,
+                kit_head,
+                kit_source or kit_pins.GitHub(http.github),
+            )
+    elif pin is not None:
         consider("adapter", "github", pin.repo, pin.commit)
     for reference in recipe["models"]:
         slug = reference["model"]["slug"]
@@ -935,11 +1077,15 @@ def classify_changes(
     patched: set[str],
     vendor_problems: list[str],
     used_changes: list[str] | None = None,
+    mirrored: set[str] | frozenset[str] = frozenset(),
 ) -> list[str]:
     """Why a GitHub pin move is not mechanical; empty means it is.
 
-    ``used_changes`` is ``None`` when the files the recipe uses could not be told (the
-    adapter uses the whole repository): every changed upstream file is then judged.
+    ``mirrored`` names upstream paths whose copy ships in the adapter (a kit's patches and
+    scripts); a change to one is always a reason. ``used_changes`` is ``None`` when the
+    files the recipe uses could not be told (the adapter uses the whole repository, or
+    the repository is the kit the adapter is built from): every changed upstream file is
+    then judged.
     Otherwise it lists the used files that differ between the two commits, and nothing
     else upstream matters: unrelated changes, a truncated comparison and a diverged
     history (the caller has rejected a pin that is ahead) are not reasons.
@@ -975,7 +1121,7 @@ def classify_changes(
     changed |= {
         f["previous_filename"] for f in comparison.files if "previous_filename" in f
     }
-    blocking = sorted(name for name in changed if is_blocking(name))
+    blocking = sorted(name for name in changed if is_blocking(name) or name in mirrored)
     if blocking:
         reasons.append(
             "launch scripts, configuration, patches or the README changed: "
@@ -1020,6 +1166,15 @@ def model_shape_problems(
                 "(a weights-only digest change is mechanical; this is not)"
             )
     return problems
+
+
+def payload_identical(old: dict[str, Any], new_files: list[dict[str, Any]]) -> bool:
+    """Whether every non-metadata file is the same bytes at the same path."""
+    before = {
+        f["path"]: f["sha256"] for f in old["files"] if f["roles"] != ["metadata"]
+    }
+    after = {f["path"]: f["sha256"] for f in new_files if f["roles"] != ["metadata"]}
+    return before == after
 
 
 def file_id(path: str, sha256: str) -> str:
@@ -1305,6 +1460,7 @@ class Assessor:
                 result.reasons.append(
                     f"{item.label}: could not be assessed: {str(error)[:300]}"
                 )
+        result.items = [item for item in result.items if not item.noop]
         if result.mechanical:
             version, date = released(recipe, result.items)
             new_recipe["release"] = {"version": version, "released_at": date}
@@ -1348,13 +1504,35 @@ class Assessor:
             problems = [
                 f"vendored file check at the new commit: {p}" for p in report.problems
             ]
-        used_changes = self._used_changes(item, recipe, pin, patched, result)
+        context = self.catalog.root / recipe["execution"]["build"]["context"]["path"]
+        is_kit = (
+            item.kind == "source"
+            and not owns_adapter
+            and (
+                kit_directory(self.catalog.root, recipe) is not None
+                or cites_kit(context, item.repo)
+            )
+        )
+        mirrored: set[str] = set()
+        if is_kit:
+            # The adapter is built from this repository's patches and scripts, so a
+            # change to what runs is a reason even though no file is named by URL.
+            used_changes = None
+            mirrored = adapter_files(context)
+            result.evidence.append(
+                f"- {item.label}: the adapter is built from this kit; every changed file "
+                "is judged (docs, tests and client-side helper scripts are not runtime; "
+                "patches, launch scripts, configuration and files the adapter copies are).\n"
+            )
+        else:
+            used_changes = self._used_changes(item, recipe, pin, patched, result)
         result.reasons.extend(
             classify_changes(
                 comparison,
                 patched=patched,
                 vendor_problems=problems,
                 used_changes=used_changes,
+                mirrored=mirrored,
             )
         )
         result.evidence.append(github_evidence(item, comparison, patched))
@@ -1362,6 +1540,8 @@ class Assessor:
         if owns_adapter:
             assert pin is not None
             self._retarget_adapter(pin, item, edits, result)
+        elif is_kit:
+            self._retarget_kit(context, item, edits)
 
     def _used_changes(
         self,
@@ -1434,6 +1614,29 @@ class Assessor:
             if changed:
                 edits[path.relative_to(root).as_posix()] = text.encode()
 
+    def _retarget_kit(
+        self, directory: Path, item: Item, edits: dict[str, bytes | None]
+    ) -> None:
+        """Move the kit's own commit where the adapter cites it (labels, the lock)."""
+        dockerfile = directory / "Dockerfile"
+        if dockerfile.is_file():
+            text = dockerfile.read_text(encoding="utf-8")
+            moved = kit_citation(item.repo).sub(
+                lambda m: m.group(1) + item.target.sha, text
+            )
+            if moved != text:
+                edits[dockerfile.relative_to(self.catalog.root).as_posix()] = (
+                    moved.encode()
+                )
+        lock = kit_pins.read_lock(directory)
+        if lock is not None:
+            lock["kit"]["commit"] = item.target.sha
+            edits[
+                (directory / vendored.KIT_LOCK)
+                .relative_to(self.catalog.root)
+                .as_posix()
+            ] = kit_pins.lock_text(lock).encode()
+
     def _model(
         self,
         item: Item,
@@ -1451,6 +1654,15 @@ class Assessor:
             result.reasons.extend(f"{item.label}: {p}" for p in problems)
             result.evidence.append(model_evidence(item, old, new_files))
             if problems:
+                return
+            if payload_identical(old, new_files):
+                # Same bytes in every file that is not metadata (a README edit): a
+                # second catalogued revision would only duplicate the payload.
+                item.noop = True
+                result.evidence.append(
+                    "The newest revision differs only in metadata files; the catalogued "
+                    "revision keeps serving identical weights, so no move is proposed.\n"
+                )
                 return
             fresh = refreshed_model(old, new_files, item.target)
             edits[f"models/{fresh['identity']['slug']}.json"] = canonical(fresh)
@@ -1709,12 +1921,55 @@ def issue_title(recipe_id: str) -> str:
     return f"Refresh needs review: {recipe_id}"
 
 
-def issue_body(assessment: Assessment) -> str:
+HEADS_MARKER = re.compile(r"<!-- refresh-heads: (.*?) -->")
+MOVED_LINE = re.compile(r"^> Upstream moved since the last check: (.*)$", re.MULTILINE)
+
+
+def upstream_heads(assessment: Assessment) -> str:
+    """The upstream commits an assessment was computed from, as one stable string."""
+    return ", ".join(sorted(f"{i.repo}@{i.target.sha[:12]}" for i in assessment.items))
+
+
+def render_heads(assessment: Assessment) -> str:
+    rows = [
+        f"- {i.label}: head `{i.target.sha[:12]}`"
+        + (
+            f", committed {i.target.committed_at}"
+            if i.target.committed_at
+            else f", {i.target.date}"
+        )
+        for i in assessment.items
+    ]
+    return "\n".join(rows)
+
+
+def issue_body(assessment: Assessment, previous: str | None = None) -> str:
+    """The review issue's body; ``previous`` is the body it replaces, when there is one.
+
+    The body records the upstream commits it was computed from. When a later run sees
+    different heads than the previous body recorded, it says so (and keeps saying so
+    until the heads are stable again), so a reader of a stale issue knows the evidence
+    below was recomputed against newer upstream commits.
+    """
+    heads = upstream_heads(assessment)
+    moved: str | None = None
+    if previous:
+        recorded = HEADS_MARKER.search(previous)
+        carried = MOVED_LINE.search(previous)
+        if recorded is not None and recorded.group(1) != heads:
+            moved = f"{recorded.group(1) or 'none'} -> {heads or 'none'}"
+        elif carried is not None:
+            moved = carried.group(1)
     body = [
+        *([f"> Upstream moved since the last check: {moved}", ""] if moved else []),
         (
             f"`{assessment.recipe_id}` is behind its upstream and a script cannot refresh it safely. "
             "The recipe is unchanged."
         ),
+        "",
+        "## Computed from",
+        "",
+        render_heads(assessment),
         "",
         "## Current vs newest pins",
         "",
@@ -1731,6 +1986,7 @@ def issue_body(assessment: Assessment) -> str:
         *assessment.evidence,
         f"<!-- refresh-recipe: {assessment.recipe_id} -->",
         f"<!-- refresh-target: {assessment.fingerprint()} -->",
+        f"<!-- refresh-heads: {heads} -->",
     ]
     return clip("\n".join(body), MAX_BODY)
 
@@ -1920,7 +2176,6 @@ def publish_mechanical(root: Path, assessment: Assessment, summary: Summary) -> 
 
 def sync_issue(assessment: Assessment, summary: Summary) -> None:
     title = issue_title(assessment.recipe_id)
-    body = issue_body(assessment)
     issues = gh_json(
         "issue",
         "list",
@@ -1934,6 +2189,7 @@ def sync_issue(assessment: Assessment, summary: Summary) -> None:
         "number,title,body",
     )
     existing = next((i for i in issues if i["title"] == title), None)
+    body = issue_body(assessment, None if existing is None else existing["body"])
     if existing is None:
         gh(
             "issue",

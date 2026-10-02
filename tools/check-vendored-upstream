@@ -29,6 +29,10 @@ Upstream trees are fetched by commit through the GitHub API (``GITHUB_TOKEN`` or
 ``~/.cache/vonk-forge-upstream``), keyed by commit sha; commits are immutable so
 the cache never needs invalidation.
 
+For a recipe built from a creator's kit the base is not authored here: the manifest's
+``kit`` block says where the kit declares it and ``kit-lock.json`` (derived by
+``tools/kit-pins``) holds the resolved commit that is compared below.
+
 Manifest ``vendored-upstream.json``::
 
     {
@@ -57,6 +61,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = "vendored-upstream.json"
+KIT_LOCK = "kit-lock.json"  # derived by tools/kit-pins from the kit the recipe pins
 SHA = re.compile(r"^[0-9a-f]{40}$")
 GITHUB = re.compile(
     r"^https://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+?)(?:\.git)?/?$"
@@ -160,6 +165,14 @@ def fetch_tree(repo: str, commit: str) -> Tree:
 
 
 def _source(adapter: Path, manifest: dict[str, Any]) -> tuple[str, str] | None:
+    if manifest.get("kit") is not None:
+        # The base is what the kit declares, locked by tools/kit-pins; a hand-authored
+        # ``source`` beside a declaration is a duplicate pin and is rejected there.
+        lock = adapter / KIT_LOCK
+        if not lock.is_file():
+            return None
+        entry = json.loads(lock.read_text(encoding="utf-8"))["dependencies"].get("base")
+        return None if entry is None else (entry["repo"], entry["commit"])
     declared = manifest.get("source")
     if declared:
         return declared["repo"], declared["commit"]
@@ -201,7 +214,7 @@ def _local_files(adapter: Path, root: Path) -> list[str]:
         if any(parent in path.parents for parent in nested):
             continue
         rel = path.relative_to(adapter).as_posix()
-        if "__pycache__" in path.parts or rel in {"Dockerfile", MANIFEST}:
+        if "__pycache__" in path.parts or rel in {"Dockerfile", MANIFEST, KIT_LOCK}:
             continue
         files.append(rel)
     return files
