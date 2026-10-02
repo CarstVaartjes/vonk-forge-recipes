@@ -414,6 +414,49 @@ the recipe is current (or its refresh became mechanical). Recipes whose upstream
 be reached are untouched and listed in the job summary; nothing is ever deleted or
 retired. Until something consumes the issues, they wait for a human.
 
+### Kit-built recipes: the kit declares the base
+
+A recipe built from a creator's kit (a patch stack, launch scripts, a configuration that
+names its base engine version) pins **only the kit**: `provenance.source_reference`. The
+base the kit builds on (for example `TF_VERSION` in a kit's `scripts/config.sh`) is the
+kit's declaration at that commit, so the recipe never carries a second, hand-authored pin
+for it. The patches are written for that exact base; the base repository's newest release
+is information, not a candidate (TensorFold v0.6.2 existing says nothing about a kit
+whose patches apply to v0.6.0).
+
+- **Declaration.** The adapter's `vendored-upstream.json` names where the kit declares
+  each dependency, as a Renovate-style regex manager: `repo`, `datasource` (`git-ref`),
+  `file` and a `pattern` with a named group `version`. Exactly one value must match.
+- **Lock.** `tools/kit-pins lock <recipe>` derives `kit-lock.json` from the kit commit
+  the recipe pins: the declared ref resolved once to an immutable commit. It also
+  vendors the base archive for that commit and moves the Dockerfile's commit, archive
+  file name and archive digest. `kit-lock.json` is generated output and is never edited
+  by hand; the Dockerfile header comment and licence labels are the author's to review.
+  Builds read only the lock and never resolve a tag.
+- **Check.** `tools/kit-pins check` (CI) is the "lock is up to date" gate: it re-reads
+  the declaring file at the pinned kit commit and fails when the committed lock differs,
+  when the manifest keeps a hand-authored `source` pin beside the declaration, or when
+  the Dockerfile and vendored archive do not follow the lock.
+- **Override.** A recipe may deliberately deviate (a known-bad upstream, a security fix)
+  with `"override": {"ref": ..., "reason": ...}` on the dependency. The lock records it,
+  refresh reports it as overridden and proposes nothing.
+- **Refresh.** The scanner watches only the kit. A kit move that changes the declared
+  base is a review (the patches were rebased; run `tools/kit-pins lock`); one that keeps
+  the base moves the recipe's source reference, the Dockerfile's kit label and the lock
+  together. Recipes whose kit declares nothing machine-readable keep an explicit
+  `source` pin in the manifest: there is no duplicate to derive.
+- **Judging kit changes.** An adapter built from a kit (declared, or one whose files cite
+  `github.com/<kit>/tree/<commit>`) is judged by every changed kit file, not only by files
+  named by URL. Not runtime: READMEs, changelogs, notices, docs, tests and client-side
+  helper scripts such as a new `tools/*.py`. Runtime, so a review: patches, launch
+  scripts (`*.sh`, `start`/`serve`/`run` Python), configuration and dependency files,
+  Dockerfiles, and any file the adapter ships a copy of at the same path. A truncated or
+  diverged comparison is never trusted.
+- **Review issues** record the upstream heads (commit and timestamp) they were computed
+  from; when a later run sees newer heads the body says "Upstream moved since the last
+  check" with the old and new heads. A Model revision that differs from the catalogued
+  one only in metadata files (a README edit) is not a move.
+
 ## 5. Validate and exercise the result
 
 HTTP fixtures use the same typed request models in their handlers and tests.
