@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate binding of MiaAI-Lab's Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark kit for one DGX Spark: Unsloth's Qwen3.6-35B-A3B NVFP4 checkpoint (mixed FP8 dense + NVFP4 experts) on MiaAI-Lab's published mia-vllm-gb10-linear-b12x image (vLLM 0.26 gb10 build with a soft-fallback patch so --linear-backend flashinfer_b12x survives FP8 layers), pinned by ARM64 digest. B12X linear GEMM, auto MoE backend, flashinfer attention, FP8 KV cache, MTP speculative decoding with two tokens, 24 sequences, 262144 context, qwen3 reasoning and qwen3_coder tool-call parsers, thinking on and Qwen coding sampling defaults. The upstream image tag is a mutable :latest (and its base ghcr.io/timothystewart6/vllm-gb10:latest has since moved to v0.30.0-gb10.3), so the digest is the pin. Code: no licence file upstream (README says MIT); model: Apache-2.0. Upstream reports about 95 tok/s single-stream on a Spark (upstream claim, unverified here). Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network.",
+    "description": "Executable Candidate binding of MiaAI-Lab's Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark kit for one DGX Spark: Unsloth's Qwen3.6-35B-A3B NVFP4 checkpoint (mixed FP8 dense + NVFP4 experts) on MiaAI-Lab's published mia-vllm-gb10-linear-b12x image (vLLM 0.26 gb10 build with a soft-fallback patch so --linear-backend flashinfer_b12x survives FP8 layers), pinned by ARM64 digest. B12X linear GEMM, auto MoE backend, flashinfer attention, FP8 KV cache, MTP speculative decoding with two tokens, 24 sequences, 262144 context, qwen3 reasoning and qwen3_coder tool-call parsers, thinking on and Qwen coding sampling defaults. The upstream image tag is a mutable :latest (and its base ghcr.io/timothystewart6/vllm-gb10:latest has since moved to v0.30.0-gb10.3), so the digest is the pin. Code: no licence file upstream (README says MIT); model: Apache-2.0. Upstream reports about 95 tok/s single-stream on a Spark (upstream claim, unverified here). Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network. Thinking mode is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking and preserve_thinking true (upstream default).",
     "tags": [
       "candidate",
       "executable",
@@ -256,45 +256,6 @@
         "publisher": "unsloth",
         "slug": "qwen3-6-35b-a3b-unsloth-nvfp4-739af1e7"
       }
-    }
-  ],
-  "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "enable_thinking and preserve_thinking true (upstream default).",
-          "label": "On (default)",
-          "value": "on"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"enable_thinking\":false,\"preserve_thinking\":true}"
-            }
-          ],
-          "help": "enable_thinking false; thinking blocks from history are still preserved.",
-          "label": "Off",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"enable_thinking\":true,\"preserve_thinking\":true,\"auto_disable_thinking_with_tools\":true}"
-            }
-          ],
-          "help": "Sets auto_disable_thinking_with_tools true so requests that define tools skip thinking.",
-          "label": "On, off when tools are defined",
-          "value": "off-with-tools"
-        }
-      ],
-      "help": "Default chat-template kwargs of the checkpoint's own chat template. Upstream documents enable_thinking, preserve_thinking and auto_disable_thinking_with_tools.",
-      "label": "Thinking mode",
-      "name": "thinking"
     }
   ],
   "provenance": {

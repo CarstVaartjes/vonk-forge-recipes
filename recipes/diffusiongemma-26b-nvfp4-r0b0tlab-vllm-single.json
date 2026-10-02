@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's SM121 vLLM serve of NVIDIA's NVFP4 checkpoint of Google DeepMind DiffusionGemma 26B A4B IT (discrete block-diffusion language model on a Gemma 4 MoE backbone, 256-token canvases) on one GB10: a Spark day-0 vLLM build with the DiffusionGemma patch set, native FlashInfer-CUTLASS NVFP4 MoE, Triton attention, fp8 KV cache, fastsafetensors loading, prefix caching, Gemma 4 tool and reasoning parsers, thinking off by default. Upstream defaults: 65,536 context, 16 sequences, 0.90 memory utilization; it reports about 146 tok/s at c=1 and 243 tok/s at c=16 (upstream claims, not measured here). Licences: model Apache-2.0 plus Gemma terms and prohibited-use policy, package Apache-2.0 per its LICENSE (information only). Upstream's launcher also passes a chat template file (fixed_chat_template.jinja) that is not in its repository; this recipe uses the checkpoint's own chat template.",
+    "description": "r0b0tlab's SM121 vLLM serve of NVIDIA's NVFP4 checkpoint of Google DeepMind DiffusionGemma 26B A4B IT (discrete block-diffusion language model on a Gemma 4 MoE backbone, 256-token canvases) on one GB10: a Spark day-0 vLLM build with the DiffusionGemma patch set, native FlashInfer-CUTLASS NVFP4 MoE, Triton attention, fp8 KV cache, fastsafetensors loading, prefix caching, Gemma 4 tool and reasoning parsers, thinking off by default. Upstream defaults: 65,536 context, 16 sequences, 0.90 memory utilization; it reports about 146 tok/s at c=1 and 243 tok/s at c=16 (upstream claims, not measured here). Licences: model Apache-2.0 plus Gemma terms and prohibited-use policy, package Apache-2.0 per its LICENSE (information only). Upstream's launcher also passes a chat template file (fixed_chat_template.jinja) that is not in its repository; this recipe uses the checkpoint's own chat template. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking=false (upstream default).",
     "tags": [
       "candidate",
       "diffusion",
@@ -202,32 +202,6 @@
         "publisher": "nvidia",
         "slug": "diffusiongemma-26b-a4b-it-nvfp4-ec4ff3df"
       }
-    }
-  ],
-  "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "enable_thinking=false (upstream default).",
-          "label": "Off",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "value": "{\"enable_thinking\":true}"
-            }
-          ],
-          "help": "enable_thinking=true by default.",
-          "label": "On",
-          "value": "on"
-        }
-      ],
-      "help": "Chat template default when a request does not set enable_thinking; requests can still override it. Upstream default is off (ENABLE_THINKING=false).",
-      "label": "Default thinking",
-      "name": "thinking"
     }
   ],
   "provenance": {

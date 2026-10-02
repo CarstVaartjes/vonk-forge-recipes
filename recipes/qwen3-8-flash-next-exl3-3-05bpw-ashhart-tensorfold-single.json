@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8 Flash Next on Ash Hart's TensorFold engine v0.6.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with turboderp's EXL3 3.05 bits-per-weight pack (branch 3.05bpw_h5_ng5; 85 GB including a 32.6 GB n-gram table that stays memory-mapped from the checkpoint; MTP layer included). TensorFold marks its EXL3 path experimental and runs it on one GPU only (upstream refuses --tp 2 and --ple-on-ssd on EXL3 packs); the platform harness has no distributed support anyway. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the 262,144-token window with a bf16 KV cache. Text only: stock TensorFold has no image or video path for Flash Next. Upstream measured on one DGX Spark: 81 tok/s code sampled and 59 tok/s chat sampled (MLX 4-bit checkpoint: 77 and 63), prefill at about 0.4x the MLX checkpoint, 52 GB of GPU memory for the weights and 57.6 GiB allocated after loading at 262,144 tokens (upstream claims, unmeasured here); the memory envelope below adds the mapped n-gram table to that figure. Only the 3.05bpw_h5_ng5 branch is measured upstream. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses); TensorFold is Apache-2.0 from 0.6.0 (MIT up to 0.5.0). TensorFold v0.6.0 at c4646171139ee8a3c38103eaa1699dad226ec12b keeps every option this recipe passes. Per upstream's release notes it runs CUDA prompts at bf16 by default and serves Prometheus /metrics, fills prompts inside the decode rounds when concurrency is above 1, resumes resends on Flash Next, and reads consolidated EXL3 n-gram tables; the existing context bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests.",
+    "description": "Single-DGX-Spark Qwen3.8 Flash Next on Ash Hart's TensorFold engine v0.6.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with turboderp's EXL3 3.05 bits-per-weight pack (branch 3.05bpw_h5_ng5; 85 GB including a 32.6 GB n-gram table that stays memory-mapped from the checkpoint; MTP layer included). TensorFold marks its EXL3 path experimental and runs it on one GPU only (upstream refuses --tp 2 and --ple-on-ssd on EXL3 packs); the platform harness has no distributed support anyway. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the 262,144-token window with a bf16 KV cache. Text only: stock TensorFold has no image or video path for Flash Next. Upstream measured on one DGX Spark: 81 tok/s code sampled and 59 tok/s chat sampled (MLX 4-bit checkpoint: 77 and 63), prefill at about 0.4x the MLX checkpoint, 52 GB of GPU memory for the weights and 57.6 GiB allocated after loading at 262,144 tokens (upstream claims, unmeasured here); the memory envelope below adds the mapped n-gram table to that figure. Only the 3.05bpw_h5_ng5 branch is measured upstream. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses); TensorFold is Apache-2.0 from 0.6.0 (MIT up to 0.5.0). TensorFold v0.6.0 at c4646171139ee8a3c38103eaa1699dad226ec12b keeps every option this recipe passes. Per upstream's release notes it runs CUDA prompts at bf16 by default and serves Prometheus /metrics, fills prompts inside the decode rounds when concurrency is above 1, resumes resends on Flash Next, and reads consolidated EXL3 n-gram tables; the existing context bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests. Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default: --thinking).",
     "tags": [
       "engine",
       "kernel-jit",
@@ -347,34 +347,6 @@
       "help": "Precision of the per-stream KV cache (--kv-dtype). int8 and int4 store keys and values as codes with one fp16 scale per 32 values (ExLlamaV3's -cq 8 and -cq 4 scheme); upstream says a quantized cache changes the output, so replies differ from bf16's, while drafted output still equals serial output at the same dtype. A token costs 30,784 bytes in bf16, 18,304 in int8 and 11,648 in int4 (upstream figures).",
       "label": "KV cache precision",
       "name": "kv_dtype"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Open a think block by default (upstream default: --thinking).",
-          "label": "Think first",
-          "value": "thinking"
-        },
-        {
-          "args": [
-            {
-              "name": "thinking",
-              "value": false
-            },
-            {
-              "name": "no-thinking",
-              "value": true
-            }
-          ],
-          "help": "Answer without a think block unless a request asks for one.",
-          "label": "Answer directly",
-          "value": "direct"
-        }
-      ],
-      "help": "Whether the chat template opens a think block by default. A request can still set chat_template_kwargs.enable_thinking; reasoning comes back separately from the answer.",
-      "label": "Thinking",
-      "name": "thinking"
     },
     {
       "choices": [

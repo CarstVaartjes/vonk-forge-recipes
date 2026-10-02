@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Candidate one-DGX Spark PrismML Ternary-Bonsai-2-27B (a ternary g128 quantization of Qwen3.8-27B: 1.72 bits per weight, 6.70 GiB resident; hybrid 48 gated-DeltaNet plus 16 full-attention layers; vision-language with the Q8_0 projector; thinking on) on the PrismML llama.cpp fork, as in amarjeet's dgx-spark-recipes (MIT) default wide profile: PQ2_0 weights, four slots of 262,144 tokens each (1,048,576 tokens in total, about 85 GiB resident by upstream's header-derived budget because the hybrid backbone costs only 64 KiB of KV per token), 8 checkpoints and an 8 GiB checkpoint cache. Stock llama.cpp cannot run these files (the PQ2_0 and PTQ1_0 types and the Hadamard activation transform exist only in the fork), and the fork publishes no aarch64 CUDA binary, so this recipe builds the pinned fork commit 5d80cff0 (release prism-b10687-5d80cff, MIT) with CUDA for sm_121a in its own image, without the web UI, as upstream's build.sh does. Upstream loads the weights with mmap+mlock; this recipe uses plain mmap because the platform raises the memlock limit only for multi-Spark fabric containers. Upstream warns that llama.cpp issue 27756 reports a silent instant-EOS at long depth for this architecture; it did not reproduce on this fork build (needle recalled at 254,032 tokens), but the onset is prompt dependent, so set the context to 262,144 with concurrency 4 (65,536 tokens per slot) for upstream's conservative safe profile. Upstream's PTQ1_0 packing (faster decode, slower prefill) and its F16 files are not packaged: a recipe carries one set of model files. The Hugging Face repository has moved past the pinned revision 6ed5e12b and the fork past prism-b10687; both pins follow upstream. Upstream figures (about 30 tok/s decode and 1,034 tok/s prefill for PQ2_0) are claims until measured here; Vonk physical Spark acceptance is pending.",
+    "description": "Candidate one-DGX Spark PrismML Ternary-Bonsai-2-27B (a ternary g128 quantization of Qwen3.8-27B: 1.72 bits per weight, 6.70 GiB resident; hybrid 48 gated-DeltaNet plus 16 full-attention layers; vision-language with the Q8_0 projector; thinking on) on the PrismML llama.cpp fork, as in amarjeet's dgx-spark-recipes (MIT) default wide profile: PQ2_0 weights, four slots of 262,144 tokens each (1,048,576 tokens in total, about 85 GiB resident by upstream's header-derived budget because the hybrid backbone costs only 64 KiB of KV per token), 8 checkpoints and an 8 GiB checkpoint cache. Stock llama.cpp cannot run these files (the PQ2_0 and PTQ1_0 types and the Hadamard activation transform exist only in the fork), and the fork publishes no aarch64 CUDA binary, so this recipe builds the pinned fork commit 5d80cff0 (release prism-b10687-5d80cff, MIT) with CUDA for sm_121a in its own image, without the web UI, as upstream's build.sh does. Upstream loads the weights with mmap+mlock; this recipe uses plain mmap because the platform raises the memlock limit only for multi-Spark fabric containers. Upstream warns that llama.cpp issue 27756 reports a silent instant-EOS at long depth for this architecture; it did not reproduce on this fork build (needle recalled at 254,032 tokens), but the onset is prompt dependent, so set the context to 262,144 with concurrency 4 (65,536 tokens per slot) for upstream's conservative safe profile. Upstream's PTQ1_0 packing (faster decode, slower prefill) and its F16 files are not packaged: a recipe carries one set of model files. The Hugging Face repository has moved past the pinned revision 6ed5e12b and the fork past prism-b10687; both pins follow upstream. Upstream figures (about 30 tok/s decode and 1,034 tok/s prefill for PQ2_0) are claims until measured here; Vonk physical Spark acceptance is pending. Thinking effort is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Leave the template's own default, which upstream notes is the most expensive one (xhigh).",
     "tags": [
       "candidate",
       "executable",
@@ -105,43 +105,6 @@
         "publisher": "prism-ml",
         "slug": "ternary-bonsai-2-27b-pq2-0-gguf-6ed5e12b"
       }
-    }
-  ],
-  "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Leave the template's own default, which upstream notes is the most expensive one (xhigh).",
-          "label": "Template default (xhigh)",
-          "value": "default"
-        },
-        {
-          "args": [
-            {
-              "name": "chat-template-kwargs",
-              "value": "{\"reasoning_effort\":\"medium\"}"
-            }
-          ],
-          "help": "Pin reasoning_effort to medium.",
-          "label": "Medium",
-          "value": "medium"
-        },
-        {
-          "args": [
-            {
-              "name": "chat-template-kwargs",
-              "value": "{\"reasoning_effort\":\"low\"}"
-            }
-          ],
-          "help": "Pin reasoning_effort to low; the model card says low is not really honoured and behaves close to xhigh.",
-          "label": "Low",
-          "value": "low"
-        }
-      ],
-      "help": "Server-wide default thinking depth, passed through the chat template. Clients can still override it per request with chat_template_kwargs. The template raises an error on any other value.",
-      "label": "Thinking effort",
-      "name": "reasoning-effort"
     }
   ],
   "provenance": {

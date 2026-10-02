@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 26B-A4B IT on one Spark with vLLM v0.25.1 plus upstream's patched gemma4.py (ModelOpt lm_head tying): 262144-token context, fp8 KV cache, 18 concurrent sequences, MTP speculative decoding (1 token) with Google's gemma-4-26B-A4B-it-assistant, one image per prompt, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's 18-concurrency start.sh (no licence file upstream; gemma4.py keeps vLLM's Apache-2.0 header). Upstream runs the mutable vllm-openai:nightly of July 2026; this recipe pins v0.25.1, whose gemma4.py differs from the patch by 13 lines. Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput figures (about 282 tok/s at 18 sessions) are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network.",
+    "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 26B-A4B IT on one Spark with vLLM v0.25.1 plus upstream's patched gemma4.py (ModelOpt lm_head tying): 262144-token context, fp8 KV cache, 18 concurrent sequences, MTP speculative decoding (1 token) with Google's gemma-4-26B-A4B-it-assistant, one image per prompt, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's 18-concurrency start.sh (no licence file upstream; gemma4.py keeps vLLM's Apache-2.0 header). Upstream runs the mutable vllm-openai:nightly of July 2026; this recipe pins v0.25.1, whose gemma4.py differs from the patch by 13 lines. Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput figures (about 282 tok/s at 18 sessions) are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking true (upstream default); reasoning is returned via the gemma4 parser.",
     "tags": [
       "candidate",
       "concurrency",
@@ -293,31 +293,6 @@
       "help": "Multi-Token Prediction with google/gemma-4-26B-A4B-it-assistant as the draft (1 speculative token). Upstream ENABLE_MTP, on by default; the benchmark table it publishes was measured with MTP on.",
       "label": "MTP speculative decoding",
       "name": "mtp"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "enable_thinking true (upstream default); reasoning is returned via the gemma4 parser.",
-          "label": "On (default)",
-          "value": "on"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"enable_thinking\":false}"
-            }
-          ],
-          "help": "enable_thinking false by default; faster short answers.",
-          "label": "Off",
-          "value": "off"
-        }
-      ],
-      "help": "Whether the chat template thinks by default (upstream ENABLE_THINKING). Requests can still override it with chat_template_kwargs.enable_thinking.",
-      "label": "Thinking default",
-      "name": "thinking"
     }
   ],
   "provenance": {

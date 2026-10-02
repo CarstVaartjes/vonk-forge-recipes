@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Swift 1.5 (UkisAI's reasoning-efficient Qwen3.8 Flash Next derivative) as its NVFP4 checkpoint (186.4 GB: FP4 routed experts, BF16 elsewhere, BF16 PLE n-gram table) on the TensorFold engine v0.4.0 (MIT; exact decoding, custom CUDA kernels JIT-compiled on first start). Text only: the CUDA route does not read the checkpoint's vision tower. Follows tournierjc's single-Spark rig (b695b88f, MIT), which pins TensorFold 0.3.6.3 (191188075bca); v0.4.0 contains that commit. Upstream measured on one Spark with the complete checkpoint: 97.39 GiB loaded within a 105.04 GiB budget, a 262,144-token window, about 9 minutes to load, decode 27.2 tok/s on prose and 54.6 on code and prefill 1,181 tok/s (upstream figures from 0.3.6.3 with 5 drafts at confidence 0.30, unmeasured here). The n-gram table (95.4 GiB) is memory-mapped and paged from disk, so keep the model on NVMe; --ple-on-ssd is refused for an NVFP4 checkpoint and is not used. Licences (information only): the Swift contribution is under the Swift Open License v1.0 (free up to US$1M gross annual revenue including affiliates, above that a separate Swift Enterprise License from UkisAI); the Qwen3.8 Flash Next base terms still apply under the Qwen Community License 1.0 (model name displayed above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses).",
+    "description": "Single-DGX-Spark Swift 1.5 (UkisAI's reasoning-efficient Qwen3.8 Flash Next derivative) as its NVFP4 checkpoint (186.4 GB: FP4 routed experts, BF16 elsewhere, BF16 PLE n-gram table) on the TensorFold engine v0.4.0 (MIT; exact decoding, custom CUDA kernels JIT-compiled on first start). Text only: the CUDA route does not read the checkpoint's vision tower. Follows tournierjc's single-Spark rig (b695b88f, MIT), which pins TensorFold 0.3.6.3 (191188075bca); v0.4.0 contains that commit. Upstream measured on one Spark with the complete checkpoint: 97.39 GiB loaded within a 105.04 GiB budget, a 262,144-token window, about 9 minutes to load, decode 27.2 tok/s on prose and 54.6 on code and prefill 1,181 tok/s (upstream figures from 0.3.6.3 with 5 drafts at confidence 0.30, unmeasured here). The n-gram table (95.4 GiB) is memory-mapped and paged from disk, so keep the model on NVMe; --ple-on-ssd is refused for an NVFP4 checkpoint and is not used. Licences (information only): the Swift contribution is under the Swift Open License v1.0 (free up to US$1M gross annual revenue including affiliates, above that a separate Swift Enterprise License from UkisAI); the Qwen3.8 Flash Next base terms still apply under the Qwen Community License 1.0 (model name displayed above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: No think block unless a request asks for one; text arrives in content (upstream default, --no-thinking).",
     "tags": [
       "engine",
       "kernel-jit",
@@ -1044,30 +1044,6 @@
     }
   ],
   "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "No think block unless a request asks for one; text arrives in content (upstream default, --no-thinking).",
-          "label": "Answer directly",
-          "value": "direct"
-        },
-        {
-          "args": [
-            {
-              "name": "no-thinking",
-              "value": false
-            }
-          ],
-          "help": "Open a think block by default; reasoning comes back in reasoning_content.",
-          "label": "Think first",
-          "value": "thinking"
-        }
-      ],
-      "help": "Whether the reply starts in a think block. On TensorFold 0.3.6.3 with thinking on, the reply streams as reasoning_content and content stays null until the thinking budget is spent, so a client that reads only delta.content sees an empty stream (upstream note). A request can still set chat_template_kwargs.enable_thinking.",
-      "label": "Thinking",
-      "name": "thinking"
-    },
     {
       "choices": [
         {

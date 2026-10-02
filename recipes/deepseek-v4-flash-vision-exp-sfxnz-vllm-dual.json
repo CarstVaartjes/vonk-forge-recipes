@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "sfxnz's two-DGX-Spark vLLM TP2 recipe for the official DeepSeek V4 Flash Vision Experimental checkpoint (snapshot 86f746b3, an older snapshot than the newest official revision 6821d6ad) on the digest-pinned eugr spark-vllm-b12x image. Upstream's official ViT/aligner vLLM plugin (dsv4_vision, subclassing DeepseekV4ForCausalLM so DSpark keeps lm_head) and its DSpark loader patch are baked byte-identically. Serves OpenAI image_url input (8 images per prompt) with fused DSpark-6, B12X MoE, fp8 KV pinned at 12 GiB, the native 1,048,576-token window, two sequences (the only occupancy upstream measured; its run.sh refuses more, a larger KV pin, a window above 1M on fp8, a smaller pin above a 289,024 window, and draft lengths not divisible by 3, and the wrapper enforces the same guards without upstream's FORCE_UNSAFE_CTX override), thinking off by default. Upstream measured 26.2 tok/s prose at concurrency 1 and 20.5 per stream at 2 (40.5 aggregate) on its own lab (claims, not measured here); a 200,013-token needle missed and a 1M needle was not run. Known upstream limit: image-token expert routing (ffn.gate.bias_vl) is not applied on the B12X text path. Host RAM headroom after boot is about 8 GiB upstream; memory and disk envelopes use that statement, the 8 GiB reserve, and an assumed 25 GB image. Not options: VLLM_USE_B12X_MHC (kernel rejects this model's rms_norm_eps 1e-20), the KV pin, sequence count and window (guarded), block size, MoE backend. Licences are information only: recipe scripts and model weights MIT. Vonk physical acceptance is pending.",
+    "description": "sfxnz's two-DGX-Spark vLLM TP2 recipe for the official DeepSeek V4 Flash Vision Experimental checkpoint (snapshot 86f746b3, an older snapshot than the newest official revision 6821d6ad) on the digest-pinned eugr spark-vllm-b12x image. Upstream's official ViT/aligner vLLM plugin (dsv4_vision, subclassing DeepseekV4ForCausalLM so DSpark keeps lm_head) and its DSpark loader patch are baked byte-identically. Serves OpenAI image_url input (8 images per prompt) with fused DSpark-6, B12X MoE, fp8 KV pinned at 12 GiB, the native 1,048,576-token window, two sequences (the only occupancy upstream measured; its run.sh refuses more, a larger KV pin, a window above 1M on fp8, a smaller pin above a 289,024 window, and draft lengths not divisible by 3, and the wrapper enforces the same guards without upstream's FORCE_UNSAFE_CTX override), thinking off by default. Upstream measured 26.2 tok/s prose at concurrency 1 and 20.5 per stream at 2 (40.5 aggregate) on its own lab (claims, not measured here); a 200,013-token needle missed and a 1M needle was not run. Known upstream limit: image-token expert routing (ffn.gate.bias_vl) is not applied on the B12X text path. Host RAM headroom after boot is about 8 GiB upstream; memory and disk envelopes use that statement, the 8 GiB reserve, and an assumed 25 GB image. Not options: VLLM_USE_B12X_MHC (kernel rejects this model's rms_norm_eps 1e-20), the KV pin, sequence count and window (guarded), block size, MoE backend. Licences are information only: recipe scripts and model weights MIT. Vonk physical acceptance is pending. Default reasoning is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: thinking=false, reasoning_effort=low.",
     "tags": [
       "b12x",
       "deepseek",
@@ -966,52 +966,6 @@
     }
   ],
   "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream default: thinking=false, reasoning_effort=low.",
-          "label": "Off",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "value": "{\"thinking\":true,\"reasoning_effort\":\"low\"}"
-            }
-          ],
-          "help": "thinking=true with reasoning_effort low.",
-          "label": "Thinking, low effort",
-          "value": "low"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "value": "{\"thinking\":true,\"reasoning_effort\":\"high\"}"
-            }
-          ],
-          "help": "thinking=true with reasoning_effort high.",
-          "label": "Thinking, high effort",
-          "value": "high"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "value": "{\"thinking\":true,\"reasoning_effort\":\"max\"}"
-            }
-          ],
-          "help": "thinking=true with reasoning_effort max: longest reasoning, slowest first answer.",
-          "label": "Thinking, max effort",
-          "value": "max"
-        }
-      ],
-      "help": "Chat-template default when a request sets neither thinking nor reasoning_effort; clients can still override per request (chat_template_kwargs). Effort levels low, high and max come from the vendored DeepSeek V4 prompt encoder.",
-      "label": "Default reasoning",
-      "name": "thinking"
-    },
     {
       "choices": [
         {

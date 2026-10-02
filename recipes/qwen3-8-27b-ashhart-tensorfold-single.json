@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8-27B on Ash Hart's TensorFold engine v0.6.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with Vontra's MLX 4-bit (group 64) checkpoint and z-lab's DFlash2 draft model, which TensorFold's CUDA engine requires unless drafting is switched off. One rank only: TensorFold's two-rank mode is not available here. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the model's 262,144-token window. Image input (--vision) is an opt-in option that upstream still marks experimental. Upstream measured about 63 tok/s code and 46 tok/s chat with DFlash2 on a 64 GB M5 Pro and 46 to 50 tok/s on one DGX Spark (upstream claims, unmeasured here). Licences, for information: Qwen3.8-27B and the Vontra conversion are Apache-2.0; z-lab/Qwen3.8-27B-DFlash2 states Apache-2.0 on its model card (a mirror of incoai/Qwen3.8-27B-DFlash2); TensorFold is Apache-2.0 from 0.6.0 (MIT up to 0.5.0). TensorFold v0.6.0 at c4646171139ee8a3c38103eaa1699dad226ec12b keeps every option this recipe passes. Per upstream's release notes it runs CUDA prompts at bf16 by default and serves Prometheus /metrics (opt-in --prefill-fp8 and --checkpoint-slots exist but are not exposed here); the existing context bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests.",
+    "description": "Single-DGX-Spark Qwen3.8-27B on Ash Hart's TensorFold engine v0.6.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with Vontra's MLX 4-bit (group 64) checkpoint and z-lab's DFlash2 draft model, which TensorFold's CUDA engine requires unless drafting is switched off. One rank only: TensorFold's two-rank mode is not available here. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the model's 262,144-token window. Image input (--vision) is an opt-in option that upstream still marks experimental. Upstream measured about 63 tok/s code and 46 tok/s chat with DFlash2 on a 64 GB M5 Pro and 46 to 50 tok/s on one DGX Spark (upstream claims, unmeasured here). Licences, for information: Qwen3.8-27B and the Vontra conversion are Apache-2.0; z-lab/Qwen3.8-27B-DFlash2 states Apache-2.0 on its model card (a mirror of incoai/Qwen3.8-27B-DFlash2); TensorFold is Apache-2.0 from 0.6.0 (MIT up to 0.5.0). TensorFold v0.6.0 at c4646171139ee8a3c38103eaa1699dad226ec12b keeps every option this recipe passes. Per upstream's release notes it runs CUDA prompts at bf16 by default and serves Prometheus /metrics (opt-in --prefill-fp8 and --checkpoint-slots exist but are not exposed here); the existing context bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests. Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default: --thinking).",
     "tags": [
       "dflash2",
       "engine",
@@ -333,34 +333,6 @@
       "help": "Serve image_url parts with the model's own vision tower (--vision). TensorFold's vision guide calls this experimental pending its hardware matrix and makes no vision throughput claim; image requests start with a fresh KV cache (no prefix reuse). Video is not supported by this engine.",
       "label": "Image input",
       "name": "images"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Open a think block by default (upstream default: --thinking).",
-          "label": "Think first",
-          "value": "thinking"
-        },
-        {
-          "args": [
-            {
-              "name": "thinking",
-              "value": false
-            },
-            {
-              "name": "no-thinking",
-              "value": true
-            }
-          ],
-          "help": "Answer without a think block unless a request asks for one.",
-          "label": "Answer directly",
-          "value": "direct"
-        }
-      ],
-      "help": "Whether the chat template opens a think block by default. A request can still set chat_template_kwargs.enable_thinking; reasoning comes back separately from the answer.",
-      "label": "Thinking",
-      "name": "thinking"
     },
     {
       "choices": [

@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v0.5.0 (exactly verified speculative decoding, custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and native MTP head. Serves five concurrent 262,144-token streams with an int8 KV cache, SSD-resident n-gram tables, and optional image/video input. The pinned MiaAI-Lab feature set is ported to TensorFold commit 9cd52ab4; image processing is bounded to four images and 4,096 visual tokens per request. Chinese and Japanese draft vocabularies are opt-in and affect draft coverage only; exact verification preserves output semantics. Upstream performance claims have not been measured on this deployment. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses).",
+    "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v0.5.0 (exactly verified speculative decoding, custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and native MTP head. Serves five concurrent 262,144-token streams with an int8 KV cache, SSD-resident n-gram tables, and optional image/video input. The pinned MiaAI-Lab feature set is ported to TensorFold commit 9cd52ab4; image processing is bounded to four images and 4,096 visual tokens per request. Chinese and Japanese draft vocabularies are opt-in and affect draft coverage only; exact verification preserves output semantics. Upstream performance claims have not been measured on this deployment. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default, Qwen thinking-mode sampling).",
     "tags": [
       "engine",
       "image-input",
@@ -489,34 +489,6 @@
       "help": "Precision of the per-stream KV cache. int8 keeps 5 x 262,144 tokens within budget; int4 needs less memory (upstream says it changes outputs slightly, quality not measured). bf16 is omitted because it only fits 3 streams at full context.",
       "label": "KV cache precision",
       "name": "kv_dtype"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Open a think block by default (upstream default, Qwen thinking-mode sampling).",
-          "label": "Think first",
-          "value": "thinking"
-        },
-        {
-          "args": [
-            {
-              "name": "thinking",
-              "value": false
-            },
-            {
-              "name": "no-thinking",
-              "value": true
-            }
-          ],
-          "help": "Answer without a think block unless a request asks for one.",
-          "label": "Answer directly",
-          "value": "direct"
-        }
-      ],
-      "help": "Whether the chat template opens a think block by default. A request can still set chat_template_kwargs.enable_thinking; reasoning comes back in reasoning_content.",
-      "label": "Thinking",
-      "name": "thinking"
     },
     {
       "choices": [

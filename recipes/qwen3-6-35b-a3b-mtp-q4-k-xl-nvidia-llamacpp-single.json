@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate llama.cpp recipe based on NVIDIA's llama.cpp DGX Spark playbook (its hands-on example): the official ggml-org llama.cpp 0.5.0 CUDA 13 server image (arm64, pinned by digest; its default CUDA architectures include GB10 sm_121a) serving the exact GGUF revision through llama-server. NVIDIA's llama.cpp playbook compiles the same upstream source with -DCMAKE_CUDA_ARCHITECTURES=121a-real; this recipe uses the project's published binary instead. Resource envelopes are estimates, not measurements; physical Spark acceptance is pending.",
+    "description": "Executable Candidate llama.cpp recipe based on NVIDIA's llama.cpp DGX Spark playbook (its hands-on example): the official ggml-org llama.cpp 0.5.0 CUDA 13 server image (arm64, pinned by digest; its default CUDA architectures include GB10 sm_121a) serving the exact GGUF revision through llama-server. NVIDIA's llama.cpp playbook compiles the same upstream source with -DCMAKE_CUDA_ARCHITECTURES=121a-real; this recipe uses the project's published binary instead. Resource envelopes are estimates, not measurements; physical Spark acceptance is pending. Preserve thinking blocks is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Playbook default launch: template default.",
     "tags": [
       "executable",
       "candidate",
@@ -130,30 +130,6 @@
       "help": "Multi-token-prediction drafting from the checkpoint's own MTP head (NVIDIA playbook: 'To run with MTP speculative decoding'). The playbook's first launch command runs without it.",
       "label": "MTP speculative decoding",
       "name": "speculative"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Playbook default launch: template default.",
-          "label": "Off",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "chat-template-kwargs",
-              "value": "{\"preserve_thinking\": true}"
-            }
-          ],
-          "help": "Adds --chat-template-kwargs '{\"preserve_thinking\": true}' as in the playbook.",
-          "label": "On",
-          "value": "on"
-        }
-      ],
-      "help": "Qwen 'interleaved thinking': keep prior thinking blocks in the chat history, useful for agentic workflows (NVIDIA playbook MTP example).",
-      "label": "Preserve thinking blocks",
-      "name": "preserve_thinking"
     }
   ],
   "provenance": {
