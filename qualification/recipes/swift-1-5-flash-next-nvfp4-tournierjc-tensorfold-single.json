@@ -9,7 +9,7 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Long-context canaries with the first-run kernel compile and the roughly 9-minute weight load recorded separately; a --parallel setting above 1 needs the server's allocated-window line checked"
+        "Long-context canaries with the first-run kernel compile and the weight load (about 214 s upstream) recorded separately; the default is three lanes, so the server's allocated-window line needs checking, and image and video input needs at least two lanes"
       ],
       "recovery": [
         "Controller stop/start with warm kernel-cache restart"

@@ -35,18 +35,20 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Swift 1.5 (UkisAI's reasoning-efficient Qwen3.8 Flash Next derivative) as its NVFP4 checkpoint (186.4 GB: FP4 routed experts, BF16 elsewhere, BF16 PLE n-gram table) on the TensorFold engine v0.3.6.3 (MIT; exact decoding, custom CUDA kernels JIT-compiled on first start). Text only: the CUDA route does not read the checkpoint's vision tower. Follows tournierjc's single-Spark rig (b695b88f, MIT) and the engine it pins, TensorFold 0.3.6.3 (191188075bca), which is what its Dockerfile's TF_REF declares. Upstream measured on one Spark with the complete checkpoint: 97.39 GiB loaded within a 105.04 GiB budget, a 262,144-token window, about 9 minutes to load, decode 27.2 tok/s on prose and 54.6 on code and prefill 1,181 tok/s (upstream figures from 0.3.6.3 with 5 drafts at confidence 0.30, unmeasured here). The n-gram table (95.4 GiB) is memory-mapped and paged from disk, so keep the model on NVMe; --ple-on-ssd is refused for an NVFP4 checkpoint and is not used. Licences (information only): the Swift contribution is under the Swift Open License v1.0 (free up to US$1M gross annual revenue including affiliates, above that a separate Swift Enterprise License from UkisAI); the Qwen3.8 Flash Next base terms still apply under the Qwen Community License 1.0 (model name displayed above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: No think block unless a request asks for one; text arrives in content (upstream default, --no-thinking).",
+    "description": "Single-DGX-Spark Swift 1.5 (UkisAI's reasoning-efficient Qwen3.8 Flash Next derivative) as its NVFP4 checkpoint (186.4 GB: FP4 routed experts, BF16 elsewhere, BF16 PLE n-gram table) on tournierjc's TensorFold fork (branch integration/0.6.1 at 808767fd: TensorFold v0.6.1 plus video input, 8-bit decode faces, the 80,014-id MTP draft vocabulary and PLE row prefetch; Apache-2.0; exact drafting, custom CUDA kernels JIT-compiled on first start). Follows tournierjc's single-Spark rig (d956df5f, MIT), which pins that fork commit in its Dockerfile (TF_REPO, TF_REF) and runs three lanes of the full 262,144-token window with int8 KV, image and video input (--vision, which needs at least two lanes), MTP confidence 0.60, TENSORFOLD_FACES_FP8=all and a 1,280 MiB vision workspace reserve; replies without max_tokens get up to 32,768 tokens. Upstream measured on one Spark with the complete checkpoint: a startup estimate of 98.31 GiB within a 104.44 GiB budget, about 214 s to load, three streams sustaining 111.6 tok/s aggregate against 42.1 for one (upstream figures, unmeasured here). The 8-bit faces trade precision for speed (upstream notes the copy answers the stored rows within 15% and the draft head accepted 48% instead of 64% in its author's measurement); they are the kit's configuration. The n-gram table (95.4 GiB) is memory-mapped and paged from disk, so keep the model on NVMe; --ple-on-ssd is refused for an NVFP4 checkpoint and is not used. Licences (information only): the Swift contribution is under the Swift Open License v1.0 (free up to US$1M gross annual revenue including affiliates, above that a separate Swift Enterprise License from UkisAI); the Qwen3.8 Flash Next base terms still apply under the Qwen Community License 1.0 (model name displayed above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: thinking on with reasoning effort xhigh (the kit's setting).",
     "tags": [
       "engine",
+      "image-input",
       "kernel-jit",
       "mtp",
+      "multimodal",
       "nvfp4",
       "qwen3.8",
       "reasoning",
       "spark",
       "swift",
       "tensorfold",
-      "text-only"
+      "video-input"
     ],
     "title": "Swift 1.5 Flash Next NVFP4 TensorFold single Spark"
   },
@@ -1048,35 +1050,20 @@
       "choices": [
         {
           "default": true,
-          "help": "At most 5 MTP drafts a round; a chain stops before a draft under 30 percent. Upstream measured 27.2 tok/s prose, 54.6 code (upstream claim; also TensorFold's stock confidence).",
-          "label": "MTP, 5 drafts, confidence 0.30",
-          "value": "mtp-5-030"
+          "help": "The kit's setting: a chain stops before a draft under 60 percent (upstream claim: the last value that still gains).",
+          "label": "MTP, up to 6 drafts, confidence 0.60",
+          "value": "mtp-6-060"
         },
         {
           "args": [
             {
               "name": "mtp-confidence",
-              "value": 0.2
+              "value": 0.3
             }
           ],
-          "help": "The confidence the rig carried before its sweep: prose 26.4 tok/s, code 54.5 (upstream claim).",
-          "label": "MTP, 5 drafts, confidence 0.20",
-          "value": "mtp-5-020"
-        },
-        {
-          "args": [
-            {
-              "name": "mtp-drafts",
-              "value": 10
-            },
-            {
-              "name": "mtp-confidence",
-              "value": 0.2
-            }
-          ],
-          "help": "The rig's earlier tuning on a branch: prose 22.9 tok/s, code 53.8 on 0.3.6.3 (upstream claim).",
-          "label": "MTP, 10 drafts, confidence 0.20",
-          "value": "mtp-10-020"
+          "help": "TensorFold's stock confidence; the kit measured it slower at three lanes (upstream claim).",
+          "label": "MTP, up to 6 drafts, confidence 0.30",
+          "value": "mtp-6-030"
         },
         {
           "args": [
@@ -1085,12 +1072,12 @@
               "value": true
             }
           ],
-          "help": "Serial one-token-at-a-time reference decoding (--no-drafts); same output, slower. Upstream also uses it to avoid a draft-vocabulary IndexError seen on an older branch tip.",
+          "help": "Serial one-token-at-a-time reference decoding (--no-drafts); same output, slower.",
           "label": "No drafting",
           "value": "serial"
         }
       ],
-      "help": "MTP drafts are verified against the model's own samples, so outputs are unchanged by drafting (upstream claim). Upstream swept the draft window on 0.3.6.3 on this checkpoint: 5 drafts beat 10 on prose (26.4 against 22.9 tok/s) at equal code speed, and 3 drafts cost code a fifth of its rate (upstream claims).",
+      "help": "MTP drafts are verified against the model's own samples, so outputs are unchanged by drafting (upstream claim). The kit swept the draft chain's confidence at three lanes: 0.30 / 0.45 / 0.60 / 0.75 gave 80.6 / 84.9 / 88.9 / 88.9 tok/s aggregate, while a long-reply decode broke at 0.75 (upstream claims).",
       "label": "Speculative drafting",
       "name": "drafting"
     }
@@ -1102,11 +1089,11 @@
       "UkisAI",
       "Qwen contributors"
     ],
-    "source_reference": "https://github.com/tournierjc/Swift-1.5-TensorFold-Single-DGX-Spark/tree/b695b88f786977428246dcc3e0d97293caca2c34"
+    "source_reference": "https://github.com/tournierjc/Swift-1.5-TensorFold-Single-DGX-Spark/tree/d956df5fea1db1fc9b5ffcd46f627d88a1be0b68"
   },
   "release": {
-    "released_at": "2026-09-29",
-    "version": "0.3.6.3"
+    "released_at": "2026-10-01",
+    "version": "0.6.1"
   },
   "runtime": {
     "arguments": [
@@ -1136,19 +1123,39 @@
         "value": null
       },
       {
+        "name": "kv-dtype",
+        "setting": null,
+        "value": "int8"
+      },
+      {
         "name": "mtp-drafts",
         "setting": null,
-        "value": 5
+        "value": 6
       },
       {
         "name": "mtp-confidence",
         "setting": null,
-        "value": 0.3
+        "value": 0.6
       },
       {
-        "name": "no-thinking",
+        "name": "max-tokens",
+        "setting": null,
+        "value": 32768
+      },
+      {
+        "name": "vision",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "thinking",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-effort",
+        "setting": null,
+        "value": "xhigh"
       }
     ],
     "engine": "tensorfold",
@@ -1167,6 +1174,14 @@
       {
         "name": "TRANSFORMERS_OFFLINE",
         "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_FACES_FP8",
+        "value": "all"
+      },
+      {
+        "name": "TENSORFOLD_VISION_WORKSPACE_MIB",
+        "value": "1280"
       }
     ],
     "lifecycle": {
@@ -1176,7 +1191,7 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 3
     },
     "context_tokens": {
       "change_effect": "restart",
@@ -1208,7 +1223,7 @@
             "working_bytes": 10000000000
           },
           "memory": {
-            "peak_bytes": 105000000000,
+            "peak_bytes": 106000000000,
             "reserve_bytes": 13100000000
           }
         }
@@ -1247,6 +1262,40 @@
               "messages": [
                 {
                   "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "swift-1.5"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "bounded-vision",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "describe this image",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAYElEQVR4nO3PwQkAIBDAMAX3H/lwCB9BaCZo96y/HR3wqgGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQHtAgK6AfwYG1VIAAAAAElFTkSuQmCC"
+                      },
+                      "type": "image_url"
+                    }
+                  ],
                   "role": "user"
                 }
               ],

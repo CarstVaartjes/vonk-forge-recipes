@@ -5,7 +5,7 @@
         "datasource": "git-ref",
         "file": "Dockerfile",
         "pattern": "^ARG TF_REF=(?P<version>[0-9a-f]{7,40})$",
-        "repo": "ashhart/TensorFold"
+        "repo_pattern": "^ARG TF_REPO=(?P<repo>\\S+)$"
       }
     }
   },
