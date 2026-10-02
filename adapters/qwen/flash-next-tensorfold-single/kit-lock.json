@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "base": {
+      "commit": "17c73e189f5e6a5304cda7ea37f086f9c49b4788",
+      "kind": "tag",
+      "ref": "v0.6.1",
+      "repo": "ashhart/TensorFold"
+    }
+  },
+  "kit": {
+    "commit": "4c0dea8ebe93a1d445d6a716b5a38995ff6e9362",
+    "repo": "MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold"
+  }
+}

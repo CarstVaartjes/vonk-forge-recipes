@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v0.5.0 (exactly verified speculative decoding, custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and native MTP head. Serves five concurrent 262,144-token streams with an int8 KV cache, SSD-resident n-gram tables, and optional image/video input. The pinned MiaAI-Lab feature set is ported to TensorFold commit 9cd52ab4; image processing is bounded to four images and 4,096 visual tokens per request. Chinese and Japanese draft vocabularies are opt-in and affect draft coverage only; exact verification preserves output semantics. Upstream performance claims have not been measured on this deployment. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default, Qwen thinking-mode sampling).",
+    "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v0.6.1 (exactly verified speculative decoding, custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and native MTP head. Serves five concurrent 262,144-token streams with an int8 KV cache, SSD-resident n-gram tables, and optional image/video input. Follows MiaAI-Lab's kit (4c0dea8e): its TensorFold v0.6.1 base (17c73e18, the version the kit's scripts/config.sh declares) with the kit's patch that extends TensorFold's image input with video and many images per request (up to 50 images sharing 16,384 image tokens, and a 16,384-token video budget), prompt-piece rows of 2,048, prompt-lookup copy drafts and a 2 GiB startup memory reserve. Replies without max_tokens get up to 32,768 tokens. Chinese and Japanese draft vocabularies are opt-in and affect draft coverage only; exact verification preserves output semantics. Upstream performance claims have not been measured on this deployment. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default, Qwen thinking-mode sampling).",
     "tags": [
       "engine",
       "image-input",
@@ -418,8 +418,14 @@
     {
       "choices": [
         {
+          "args": [
+            {
+              "name": "vision-max-images",
+              "value": 50
+            }
+          ],
           "default": true,
-          "help": "Load the 0.84 GiB vision tower; image and video requests are available.",
+          "help": "Load the 0.84 GiB vision tower; image and video requests are available (up to 50 images a request, sharing 16,384 image tokens).",
           "label": "Images and video",
           "value": "vision"
         },
@@ -430,15 +436,12 @@
               "value": false
             }
           ],
-          "env": {
-            "TENSORFOLD_PREFILL_ROWS": "4096"
-          },
-          "help": "Skip the vision tower and use 4,096-row prompt chunks.",
+          "help": "Skip the vision tower (text only).",
           "label": "Text only",
           "value": "text-only"
         }
       ],
-      "help": "Load Flash Next's vision tower for image_url and video_url requests, or choose text only. Text-only mode uses 4,096-row prompt chunks; vision mode preserves the standard 2,048-row chunk default.",
+      "help": "Load Flash Next's vision tower for image_url and video_url requests, or choose text only. Prompt pieces are 2,048 rows in both modes while the n-gram tables are on SSD (the kit measured 4,096 rows 10-30% slower there).",
       "label": "Image and video input",
       "name": "images_video"
     },
@@ -609,11 +612,11 @@
       "Vontra",
       "Qwen contributors"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold/tree/856bb6be4b58ce6a6727e6d071fb1c52f3f80e6e"
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold/tree/4c0dea8ebe93a1d445d6a716b5a38995ff6e9362"
   },
   "release": {
     "released_at": "2026-10-01",
-    "version": "0.4.0"
+    "version": "0.6.1"
   },
   "runtime": {
     "arguments": [
@@ -673,6 +676,11 @@
         "value": 20
       },
       {
+        "name": "max-tokens",
+        "setting": null,
+        "value": 32768
+      },
+      {
         "name": "ple-on-ssd",
         "setting": null,
         "value": true
@@ -722,12 +730,12 @@
         "value": "1"
       },
       {
-        "name": "TENSORFOLD_MAX_IMAGES",
-        "value": "4"
+        "name": "TENSORFOLD_IMAGE_TOKENS",
+        "value": "16384"
       },
       {
-        "name": "TENSORFOLD_IMAGE_TOKENS",
-        "value": "4096"
+        "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
+        "value": "2"
       },
       {
         "name": "TENSORFOLD_DRAFT_VOCAB",

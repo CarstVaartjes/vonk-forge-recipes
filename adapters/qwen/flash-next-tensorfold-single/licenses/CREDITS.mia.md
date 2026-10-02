@@ -14,11 +14,14 @@ This repository is a thin layer of scripts and patches. Almost everything that m
 
 ## Inference engine
 
-- **[TensorFold](https://github.com/ashhart/TensorFold)** by Ash Hart ([ashhart](https://github.com/ashhart)) and the TensorFold contributors (MIT License):
-  the engine that serves the model, including the CUDA engine for Qwen3.8 Flash Next, MTP drafting with exact
-  verification, the quantized KV cache, the OpenAI-compatible server and the Qwen image pipeline (image input, preprocessing and the CUDA vision frontend). The C2 port in `patches/` targets TensorFold v0.5.0 (commit `9cd52ab4`).
+- **[TensorFold](https://github.com/ashhart/TensorFold)** by Ash Hart ([ashhart](https://github.com/ashhart)) and the TensorFold contributors.
+  v0.6.0 and later are Apache-2.0 (releases through v0.5.0 stay MIT). The engine serves the model, including the CUDA engine
+  for Qwen3.8 Flash Next, MTP drafting with exact verification, the quantized KV cache, the OpenAI-compatible server
+  and Flash Next image input on CUDA (TensorFold #146, adapted from this recipe's v0.6.0 vision patch), which
+  `patches/0002-flash-next-v061.patch` extends with video and many images.
+  Every file in `patches/` is a modification of TensorFold v0.6.1 (`17c73e1`).
 - TensorFold itself builds on, and credits in its
-  [third-party notices](https://github.com/ashhart/TensorFold/blob/9cd52ab4daba68ddd09be89be8f23ad43175e821/THIRD_PARTY_NOTICES.md):
+  [third-party notices](https://github.com/ashhart/TensorFold/blob/v0.6.1/THIRD_PARTY_NOTICES.md):
   [MLX](https://github.com/ml-explore/mlx) and [mlx-lm](https://github.com/ml-explore/mlx-lm) (Apple, MIT),
   [mlx-vlm](https://github.com/Blaizzy/mlx-vlm) (Prince Canuma, MIT),
   [ExLlamaV3](https://github.com/turboderp-org/exllamav3) (turboderp, MIT), whose cache quantization scheme the int8 and int4
@@ -28,10 +31,19 @@ This repository is a thin layer of scripts and patches. Almost everything that m
 
 ## Patches
 
-- The TensorFold v0.5.0 port consolidates the still-needed Flash Next vision, read-ahead, prompt-chunk, and copy-draft behavior. Features already present upstream in v0.5.0 were removed from the old patch set.
-- Image/video support builds on TensorFold's Qwen3.5 vision pipeline, Hugging Face transformers' Qwen3.5 rotary implementation, and Qwen3-VL video processing.
-- The language draft-vocabulary lists (German, French, Japanese, Portuguese, Russian, Chinese) come from **Javier ([jvr0x](https://github.com/jvr0x))**'s language vocabularies for this model's vLLM recipe, built from per-language Wikipedia token frequency; the lists add IDs missing from TensorFold's default. The recipe exposes Chinese and Japanese choices only. See Mia's [credits](https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold/blob/a3aa89835022c55ca8e55008c37785954834e04f/CREDITS.md).
-- MiaAI-Lab's patch and image kit were developed with [Claude Code](https://claude.com/claude-code).
+- Former `0001-cuda-live-token-counters`, `0004-flash-next-qsa-tiled-select` and `0005-cuda-stream-draft-stats`
+  are in TensorFold v0.5.0 (`cuda/health.py`, tiled QSA, stream draft accounting). The recipe's earlier
+  typed-tool-parameters patch ([#75](https://github.com/ashhart/TensorFold/pull/75)) was already in v0.3.6.3.
+- `0002-flash-next-v061.patch` folds the v0.5.0 series into one diff; image input itself is now TensorFold's own.
+  The prefill rows override is a port of [TensorFold #40](https://github.com/ashhart/TensorFold/pull/40) by
+  **[MovieMaker93](https://github.com/MovieMaker93)**. Copy drafts use TensorFold's `CopyIndex` from the Qwen3.5 27B
+  engine. Vision builds on the Qwen3.5/3.8 dense tower, Hugging Face transformers, and Qwen3-VL video processing.
+  The v0.5.0 series and the v0.6.0 and v0.6.1 rebases are by MiaAI-Lab, developed with
+  [Claude Code](https://claude.com/claude-code) and Cursor.
+- `languages/0010-flash-next-draft-languages`: the language token lists come from
+  **Javier ([jvr0x](https://github.com/jvr0x))**'s language draft vocabularies for this model's vLLM recipe
+  ([MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark#84](https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark/pull/84)),
+  built from each language's Wikipedia by token frequency.
 
 ## Runtime stack
 
@@ -39,9 +51,10 @@ This repository is a thin layer of scripts and patches. Almost everything that m
   (`nvcr.io/nvidia/pytorch:26.07-py3`), the base of the image, with NVIDIA's CUDA, cuDNN, cuBLAS, NCCL and related
   libraries. Governed by the NVIDIA Software License Agreement and the Product-Specific Terms for NVIDIA AI Products;
   see the README's License section.
-- **[PyTorch](https://pytorch.org/)** (BSD-3-Clause): tensors, CUDA streams and model execution.
+- **[PyTorch](https://pytorch.org/)** (BSD-3-Clause): tensors, CUDA streams and the C++ extension builder that compiles
+  the native n-gram reader in patch 0003.
 - **[Triton](https://github.com/triton-lang/triton)** (MIT): the language most of TensorFold's Flash Next CUDA kernels,
-  and the tiled attention-block select are written in.
+  and TensorFold's tiled attention-block select, are written in.
 - **[NumPy](https://numpy.org/)** (BSD-3-Clause): the host-side n-gram lookups and read planning, and video patches.
 - **[Hugging Face transformers](https://github.com/huggingface/transformers)** (Apache 2.0): the Qwen vision tower's
   modules and the image processor.
