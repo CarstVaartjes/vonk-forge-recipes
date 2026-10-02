@@ -909,5 +909,41 @@ class IssueFreshnessTests(unittest.TestCase):
         self.assertEqual(refresh.issue_body(issue_assessment([KIT_NEW]), first), first)
 
 
+FOLLOWING_RECIPES = {
+    "glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual": ("tag", "v0.6.0"),
+    "qwen3-8-flash-next-tensorfold-single": ("tag", "v0.6.1"),
+    "qwen3-8-27b-taussoe-tensorfold-single": ("commit", "191188075bca"),
+    "swift-1-5-flash-next-nvfp4-tournierjc-tensorfold-single": (
+        "commit",
+        "191188075bca",
+    ),
+    "qwen3-8-flash-next-taussoe-tensorfold-single": (
+        "branch",
+        "glm-long-context",
+    ),
+}
+
+
+class CatalogKitTests(unittest.TestCase):
+    """Recipes whose kit declares its base follow the declaration, not the newest tag."""
+
+    def test_each_listed_recipe_declares_and_locks_its_base_without_a_second_pin(
+        self,
+    ) -> None:
+        catalog = refresh.Catalog.load(ROOT)
+        for slug, (kind, ref) in FOLLOWING_RECIPES.items():
+            with self.subTest(recipe=slug):
+                directory = refresh.kit_directory(ROOT, catalog.recipes[slug])
+                self.assertIsNotNone(directory)  # so consider("adapter") is never asked
+                manifest = json.loads(
+                    (directory / "vendored-upstream.json").read_text()
+                )
+                self.assertNotIn("source", manifest)
+                locked = kit_pins.read_lock(directory)["dependencies"]["base"]
+                self.assertEqual(locked["kind"], kind)
+                self.assertTrue(locked["ref"].startswith(ref), locked)
+                self.assertRegex(locked["commit"], r"^[0-9a-f]{40}$")
+
+
 if __name__ == "__main__":
     unittest.main()
