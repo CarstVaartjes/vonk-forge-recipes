@@ -1,0 +1,392 @@
+"""Keep the NAS ahead of the Sparks: bounded downloads, and pins against eviction.
+
+``recipe download`` fetches a recipe's model (Hugging Face) and its runtime
+image (GHCR) as children of one operation, so the two sources already run
+concurrently inside an operation; the prefetcher adds concurrency across
+operations. Two budgets bound it (model downloads in flight, image-only pulls
+in flight) plus a byte budget for everything downloaded but not yet tested.
+
+Nothing in vonkctl or the Controller reports the NAS's free space, so the byte
+budget is the operator's (``--nas-budget``); a ``free_space`` failure also
+pauses new model downloads for a while.
+
+The Controller never evicts what a saved profile names, loaded or not. The
+prefetcher therefore keeps one never-loaded *pin profile* that names every
+recipe that has been downloaded (or is downloading) and not yet tested, and
+removes each recipe from it once tested.
+"""
+
+from __future__ import annotations
+
+import hashlib
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
+from typing import Any
+
+from .catalog import Model, Recipe, dig
+from .policy import Boost, Failure, RateTracker, classify, plan_groups
+from .state import State
+from .vonkctl import Vonkctl, VonkctlError, request_key
+
+TIB = 1024**4
+ACTIVE_OPERATION = frozenset({"accepted", "queued", "running", "partial", "cancelling"})
+FailureHandler = Callable[[str, Failure, str | None, bool], None]
+
+
+@dataclass(frozen=True)
+class PrefetchConfig:
+    max_model_downloads: int = 3
+    max_image_pulls: int = 2
+    nas_budget_bytes: int = 2 * TIB
+    pin_profile: int | None = None
+    pins_per_tick: int = 8
+    retry_cooldown: float = 120.0
+    pressure_pause: float = 600.0
+    group_window: int = 16
+    pin_spark: str = ""  # a Spark to name in the (never loaded) pin profile
+
+
+def pin_alias(key: str) -> str:
+    return "pin-" + hashlib.sha1(key.encode()).hexdigest()[:12]
+
+
+class Prefetcher:
+    def __init__(
+        self,
+        vk: Vonkctl,
+        state: State,
+        config: PrefetchConfig,
+        rate: RateTracker,
+        clock: Callable[[], float],
+        on_failure: FailureHandler,
+    ) -> None:
+        self.vk = vk
+        self.state = state
+        self.config = config
+        self.rate = rate
+        self.clock = clock
+        self.on_failure = on_failure
+        self.pressure_until = 0.0
+        self.pin_error: str | None = None
+        self.pin_failures = 0
+        self.last_plans: list[Any] = []
+
+    # -- operations ---------------------------------------------------------
+
+    def _poll(self) -> float:
+        """Refresh our operations; returns the summed live throughput."""
+        total_rate = 0.0
+        for key, record in list(self.state.downloads.items()):
+            if record.get("state") not in ACTIVE_OPERATION:
+                continue
+            reply = self.vk.run("recipe", "progress", *self._progress_args(record))
+            document = reply.document
+            if not reply.ok or not isinstance(document, dict):
+                continue  # keep the last truthful state; try again next tick
+            record["operation_id"] = document.get("id", record.get("operation_id"))
+            record["state"] = document.get("state", record.get("state"))
+            progress = document.get("progress") or {}
+            record["bytes_done"] = progress.get("completed_bytes", 0)
+            record["bytes_total"] = progress.get("total_bytes")
+            speed = (
+                progress.get("smoothed_bytes_per_second")
+                or progress.get("bytes_per_second")
+                or 0
+            )
+            record["bps"] = speed
+            if record["state"] in ACTIVE_OPERATION:
+                total_rate += float(speed)
+            elif record["state"] == "failed":
+                self._failed(key, record, document)
+            elif record["state"] == "cancelled":
+                record["state"] = "cancelled"
+            if record["state"] == "succeeded":
+                record["done_at"] = self.clock()
+        self.rate.add(total_rate)
+        return total_rate
+
+    @staticmethod
+    def _progress_args(record: Mapping[str, Any]) -> list[str]:
+        if record.get("operation_id"):
+            return [str(record["operation_id"])]
+        return ["--request-key", str(record["request_key"])]
+
+    def _failed(
+        self, key: str, record: dict[str, Any], document: Mapping[str, Any]
+    ) -> None:
+        failure_doc = document.get("failure") or {}
+        code = str(failure_doc.get("code", ""))
+        detail = str(failure_doc.get("detail", "") or document.get("detail", ""))
+        actions = [str(a) for a in failure_doc.get("recovery_actions", [])]
+        failure = classify("download", code, detail)
+        if "free_space" in actions or failure.klass == "capacity":
+            self.pressure_until = self.clock() + self.config.pressure_pause
+            self.state.event(f"NAS pressure on {key}: new model downloads paused")
+        model_child = any(
+            child.get("kind") == "model-cache" and child.get("state") == "failed"
+            for child in document.get("children", [])
+            if isinstance(child, dict)
+        )
+        record["failure"] = failure.signature
+        retry = failure.transient and record.get("attempt", 1) < 2
+        if retry:
+            record["retry_at"] = self.clock() + self.config.retry_cooldown
+            return
+        self.on_failure(
+            key,
+            failure,
+            str(document.get("id") or ""),
+            model_child or failure.model_level,
+        )
+
+    def _request(self, recipe: Recipe, kind: str) -> None:
+        record = self.state.downloads.get(recipe.key, {})
+        attempt = int(record.get("attempt", 0)) + 1
+        key = request_key("download", recipe.key, recipe.content_sha256, attempt)
+        try:
+            document = self.vk.call(
+                "recipe",
+                "download",
+                recipe.key,
+                "--yes",
+                "--detach",
+                "--request-key",
+                key,
+                tolerate=(1, 2),
+            )
+        except VonkctlError as error:
+            document = (
+                error.reply.document
+                if error.reply and isinstance(error.reply.document, dict)
+                else {}
+            )
+            failure = classify(
+                "download",
+                str(document.get("code", "")),
+                str(document.get("detail", error)),
+            )
+            self.state.downloads[recipe.key] = {
+                "request_key": key,
+                "state": "failed",
+                "kind": kind,
+                "attempt": attempt,
+                "failure": failure.signature,
+            }
+            if failure.transient and attempt < 2:
+                self.state.downloads[recipe.key]["retry_at"] = (
+                    self.clock() + self.config.retry_cooldown
+                )
+            else:
+                self.on_failure(recipe.key, failure, None, failure.model_level)
+            return
+        op_state = str(dig(document, "state", default="queued"))
+        self.state.downloads[recipe.key] = {
+            "operation_id": dig(document, "id"),
+            "request_key": key,
+            "state": op_state,
+            "kind": kind,
+            "attempt": attempt,
+            "started_at": self.clock(),
+        }
+        self.state.event(f"download {kind}: {recipe.key}")
+
+    # -- planning -----------------------------------------------------------
+
+    def _in_flight(
+        self, recipes: Mapping[str, Recipe], models: Mapping[str, Model]
+    ) -> tuple[int, int]:
+        model_ops = image_ops = 0
+        counted: set[str] = set()
+        for key, record in self.state.downloads.items():
+            if record.get("state") in ACTIVE_OPERATION:
+                counted.add(key)
+                if record.get("kind") == "model":
+                    model_ops += 1
+                else:
+                    image_ops += 1
+        for (
+            key,
+            recipe,
+        ) in recipes.items():  # started by someone else: do not re-request, do count
+            if recipe.local == "preparing" and key not in counted:
+                missing = any(
+                    models.get(d, Model("", d, 0, "unknown")).local != "cached"
+                    for d in recipe.model_digests
+                )
+                if missing:
+                    model_ops += 1
+                else:
+                    image_ops += 1
+        return model_ops, image_ops
+
+    def tick(
+        self,
+        recipes: Mapping[str, Recipe],
+        models: Mapping[str, Model],
+        pending: Sequence[Recipe],
+        sizes: Mapping[str, int],
+        present: set[str],
+        boost: Boost,
+    ) -> dict[str, Any]:
+        now = self.clock()
+        live_rate = self._poll()
+        plans = plan_groups(pending, sizes, present, boost)
+        self.last_plans = plans
+        model_ops, image_ops = self._in_flight(recipes, models)
+        by_key = {r.key: r for r in pending}
+
+        tracked = {
+            digest
+            for plan in plans
+            for digest in plan.digests
+            if digest in present or any(self._requested(k) for k in plan.recipes)
+        }
+        pinned_bytes = sum(sizes.get(d, 0) for d in tracked)
+
+        cached = {digest for digest, model in models.items() if model.local == "cached"}
+        for plan in plans[: self.config.group_window]:
+            leads = [by_key[k] for k in plan.recipes if k in by_key]
+            if plan.digests - cached:
+                # The model is not on the NAS yet: one lead recipe fetches it; siblings wait for it.
+                if any(self._active(r.key) or r.local == "preparing" for r in leads):
+                    continue
+                lead = next((r for r in leads if self._can_request(r, now)), None)
+                if (
+                    lead is not None
+                    and model_ops < self.config.max_model_downloads
+                    and now >= self.pressure_until
+                    and (
+                        pinned_bytes == 0
+                        or pinned_bytes + plan.new_bytes <= self.config.nas_budget_bytes
+                    )
+                ):
+                    self._request(lead, "model")
+                    model_ops += 1
+                    pinned_bytes += plan.new_bytes
+                continue
+            for recipe in leads:  # model cached: only the runtime image is missing
+                if (
+                    recipe.local not in ("cached", "preparing")
+                    and image_ops < self.config.max_image_pulls
+                    and self._can_request(recipe, now)
+                ):
+                    self._request(recipe, "image")
+                    image_ops += 1
+        self._reconcile_pins(plans, by_key, models, sizes, present)
+        return {
+            "model_ops": model_ops,
+            "image_ops": image_ops,
+            "rate": self.rate.rate,
+            "live_rate": live_rate,
+            "pinned_bytes": pinned_bytes,
+            "pressure": now < self.pressure_until,
+        }
+
+    def _requested(self, key: str) -> bool:
+        return key in self.state.downloads
+
+    def _active(self, key: str) -> bool:
+        return self.state.downloads.get(key, {}).get("state") in ACTIVE_OPERATION
+
+    def _can_request(self, recipe: Recipe, now: float) -> bool:
+        if self.state.status(recipe.key) in ("passed", "failed", "skipped"):
+            return False
+        record = self.state.downloads.get(recipe.key)
+        if record is None:
+            return True
+        if record.get("state") in ACTIVE_OPERATION:
+            return False
+        if record.get("state") == "succeeded":
+            # Library still says not cached well after success: it was evicted, ask again.
+            return (
+                recipe.local == "not_cached"
+                and now - float(record.get("done_at", now)) > 300
+            )
+        return bool(record.get("retry_at")) and now >= float(record["retry_at"])
+
+    # -- pins ---------------------------------------------------------------
+
+    def release_pins(self) -> None:
+        """Nothing is left to protect: empty the pin profile."""
+        number = self.config.pin_profile
+        for key in list(self.state.data["pins"]):
+            if number is None or self.pin_failures >= 3:
+                return
+            try:
+                self.vk.call(
+                    "profile", "remove", pin_alias(key), "--yes", profile=number
+                )
+            except VonkctlError:
+                self.pin_failures += 1
+                continue
+            self.state.data["pins"].remove(key)
+
+    def desired_pins(
+        self,
+        plans: Sequence[Any],
+        by_key: Mapping[str, Recipe],
+        models: Mapping[str, Model],
+        sizes: Mapping[str, int],
+        present: set[str],
+    ) -> list[str]:
+        """Recipes whose models are on (or heading to) the NAS and not yet tested, within the byte budget."""
+        wanted: list[str] = []
+        spent = 0
+        for plan in plans:
+            if plan.digests - present and not any(
+                k in self.state.downloads for k in plan.recipes
+            ):
+                continue  # not downloaded, not requested: nothing to protect
+            cost = sum(sizes.get(d, 0) for d in plan.digests)
+            if spent + cost > self.config.nas_budget_bytes and spent:
+                continue
+            spent += cost
+            wanted += [k for k in plan.recipes if k in by_key]
+        wanted += [k for k in self.state.slots if k not in wanted]
+        return wanted
+
+    def _reconcile_pins(
+        self,
+        plans: Sequence[Any],
+        by_key: Mapping[str, Recipe],
+        models: Mapping[str, Model],
+        sizes: Mapping[str, int],
+        present: set[str],
+    ) -> None:
+        number = self.config.pin_profile
+        if number is None or self.pin_failures >= 3 or not self.config.pin_spark:
+            return
+        wanted = self.desired_pins(plans, by_key, models, sizes, present)
+        current: list[str] = list(self.state.data["pins"])
+        budget = self.config.pins_per_tick
+        try:
+            for key in [k for k in current if k not in wanted][:budget]:
+                self.vk.call(
+                    "profile", "remove", pin_alias(key), "--yes", profile=number
+                )
+                current.remove(key)
+                budget -= 1
+            for key in [k for k in wanted if k not in current][: max(budget, 0)]:
+                self.vk.call(
+                    "profile",
+                    "add",
+                    key,
+                    "--spark",
+                    self.config.pin_spark,
+                    "--as",
+                    pin_alias(key),
+                    "--state",
+                    "installed",
+                    "--yes",
+                    profile=number,
+                )
+                current.append(key)
+            self.pin_failures = 0
+            self.pin_error = None
+        except VonkctlError as error:
+            self.pin_failures += 1
+            self.pin_error = str(error)[:200]
+            self.state.event(
+                f"pin profile {number} could not be updated: {self.pin_error}"
+            )
+        self.state.data["pins"] = current

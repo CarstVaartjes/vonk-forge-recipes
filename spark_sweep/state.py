@@ -1,0 +1,152 @@
+"""The resumable record: one JSON state file and one JSON-lines results log.
+
+The state file is rewritten atomically after every change, so a crash or a
+reboot resumes exactly where the sweep stopped: finished recipes are skipped,
+an in-flight load is adopted, and download operations are re-found by their
+deterministic request keys. The results log has the shape the platform's
+``vonk-fleet-qualify-campaign`` writes (one line per outcome, latest wins),
+extended with the hardware facts of the run.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import tempfile
+import time
+from collections.abc import Callable
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
+
+SCHEMA = 1
+EVENT_LIMIT = 60
+TERMINAL = frozenset({"passed", "failed", "skipped"})
+
+
+def _fresh() -> dict[str, Any]:
+    return {
+        "schema": SCHEMA,
+        "recipes": {},  # key -> result entry
+        "slots": {},  # key -> a recipe currently loading, serving or smoking
+        "load": None,  # the sweep profile's in-flight application
+        "load_seq": 0,
+        "downloads": {},  # key -> {operation_id, request_key, ...}
+        "pins": [],  # recipe keys in the pin profile
+        "learned": {},  # engine -> [[model bytes, load seconds]]
+        "rate": {"ema": 0.0, "samples": 0},
+        "owner": {"baseline": {}, "hold_until": 0.0, "export": {}},
+        "model_failures": {},  # model digest -> failure cluster
+        "mode": "single",
+        "events": [],
+    }
+
+
+def write_atomic(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+    try:
+        with os.fdopen(handle, "w", encoding="utf-8") as stream:
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    except BaseException:
+        Path(temporary).unlink(missing_ok=True)
+        raise
+
+
+class State:
+    def __init__(
+        self,
+        path: Path,
+        data: dict[str, Any] | None = None,
+        clock: Callable[[], float] = time.time,
+    ) -> None:
+        self.path = path
+        self.data = data if data is not None else _fresh()
+        self.clock = clock
+
+    @classmethod
+    def load(cls, path: Path, clock: Callable[[], float] = time.time) -> State:
+        if not path.exists():
+            return cls(path, None, clock)
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if data.get("schema") != SCHEMA:
+            raise ValueError(f"{path}: unsupported state schema {data.get('schema')!r}")
+        merged = _fresh()
+        merged.update(data)
+        return cls(path, merged, clock)
+
+    def save(self) -> None:
+        self.data["updated_at"] = self.clock()
+        write_atomic(self.path, json.dumps(self.data, indent=1, sort_keys=True))
+
+    # -- recipes -----------------------------------------------------------
+
+    @property
+    def recipes(self) -> dict[str, dict[str, Any]]:
+        return self.data["recipes"]
+
+    def entry(self, key: str) -> dict[str, Any]:
+        return self.recipes.setdefault(key, {"status": "pending", "attempts": 0})
+
+    def status(self, key: str) -> str:
+        return str(self.recipes.get(key, {}).get("status", "pending"))
+
+    def count(self, status: str) -> int:
+        return sum(1 for e in self.recipes.values() if e.get("status") == status)
+
+    def event(self, message: str) -> None:
+        events = self.data["events"]
+        events.append({"at": self.clock(), "message": message})
+        del events[:-EVENT_LIMIT]
+
+    # -- shorthands --------------------------------------------------------
+
+    @property
+    def slots(self) -> dict[str, dict[str, Any]]:
+        return self.data["slots"]
+
+    @property
+    def downloads(self) -> dict[str, dict[str, Any]]:
+        return self.data["downloads"]
+
+
+class ResultsLog:
+    """One JSON line per outcome, in the platform campaign's results-log shape."""
+
+    def __init__(self, path: Path, authority_id: str) -> None:
+        self.path = path
+        self.authority_id = authority_id
+
+    def append(self, **entry: Any) -> dict[str, Any]:
+        record = {
+            "recorded_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "authority_id": self.authority_id,
+            **entry,
+        }
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.path.open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(record, sort_keys=True, default=str) + "\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        return record
+
+    def entries(self) -> list[dict[str, Any]]:
+        try:
+            lines = self.path.read_text(encoding="utf-8").splitlines()
+        except FileNotFoundError:
+            return []
+        records: list[dict[str, Any]] = []
+        for line in lines:
+            try:
+                record = json.loads(line)
+            except ValueError:
+                continue  # a torn final line from an interrupted write
+            if (
+                isinstance(record, dict)
+                and record.get("authority_id") == self.authority_id
+            ):
+                records.append(record)
+        return records
