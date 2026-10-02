@@ -586,7 +586,7 @@ class MergeGateTests(unittest.TestCase):
         summary = refresh.Summary()
         self.assertEqual(summary.prepared, 0)
 
-    def test_chain_guard_skips_failed_publication_and_recent_runs(self) -> None:
+    def test_chain_guard_detects_a_burst_not_a_single_recent_run(self) -> None:
         now = datetime(2026, 10, 2, 12, 0, tzinfo=UTC)
 
         def run(minutes_ago: int, **extra: object) -> dict[str, object]:
@@ -595,22 +595,24 @@ class MergeGateTests(unittest.TestCase):
                 "databaseId": 7,
                 "status": "completed",
                 "conclusion": "success",
-                "updatedAt": when.isoformat().replace("+00:00", "Z"),
+                "updatedAt": when.isoformat(),
             } | extra
 
-        self.assertTrue(refresh.recent_refresh_ran([run(3)], 99, now, 10))
-        self.assertFalse(refresh.recent_refresh_ran([run(30)], 99, now, 10))
-        # Active or queued runs never block a chained run (the concurrency group queues).
+        burst = [run(m) for m in (1, 5, 9, 14)]
+        self.assertTrue(refresh.refresh_is_spinning(burst, 99, now))
+        # One run that just finished (the one ahead in the queue) does not skip us.
+        self.assertFalse(refresh.refresh_is_spinning([run(1)], 99, now))
         self.assertFalse(
-            refresh.recent_refresh_ran([run(1, status="in_progress")], 99, now, 10)
+            refresh.refresh_is_spinning([run(m) for m in (40, 50, 60, 70)], 99, now)
         )
-        # The current run never blocks itself.
-        self.assertFalse(
-            refresh.recent_refresh_ran([run(1, databaseId=99)], 99, now, 10)
-        )
-        self.assertFalse(
-            refresh.recent_refresh_ran([run(1, conclusion="cancelled")], 99, now, 10)
-        )
+        # Active, cancelled and the current run never count.
+        mixed = [
+            run(1, status="in_progress"),
+            run(2, conclusion="cancelled"),
+            run(3, databaseId=99),
+            run(4),
+        ]
+        self.assertFalse(refresh.refresh_is_spinning(mixed + burst[:2], 99, now))
 
     def test_chain_guard_command(self) -> None:
         def decide(event: str, conclusion: str, runs: list[dict[str, object]]) -> str:
@@ -627,11 +629,12 @@ class MergeGateTests(unittest.TestCase):
 
         recent = [
             {
-                "databaseId": 7,
+                "databaseId": 7 + n,
                 "status": "completed",
                 "conclusion": "success",
-                "updatedAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                "updatedAt": datetime.now(UTC).isoformat(),
             }
+            for n in range(4)
         ]
         self.assertEqual(decide("schedule", "", recent), "run=true")
         self.assertEqual(decide("workflow_dispatch", "", recent), "run=true")

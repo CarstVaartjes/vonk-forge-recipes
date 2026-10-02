@@ -376,7 +376,7 @@ an armed PR, then regenerated on `main` by the next run. Open `refresh:mechanica
 PRs that fall behind `main` are updated from it. Later runs reconsider unchanged
 prepared PRs for auto-merge without pushing another commit. The refresh runs hourly,
 and also after each finished `publish.yml` run on `main` (which follows every merge)
-unless the publication failed or another refresh finished in the last 3 minutes.
+unless the publication failed or the refresh is spinning (four successful runs in 30 minutes).
 App-authorized merges trigger publication normally. As recovery, the hourly refresh
 dispatches `publish.yml` for `main` when its current head lacks a successful receipt
 and no run for that head is already pending.

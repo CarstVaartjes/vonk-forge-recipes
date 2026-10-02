@@ -74,11 +74,11 @@ LABEL_MECHANICAL = "refresh:mechanical"
 # each one when its required checks pass. Publication keeps up because publish.yml
 # serialises on one concurrency group and every release is built from the newest main.
 MAX_MECHANICAL_PER_RUN = 6
-# A refresh triggered by a finished publication is skipped only to drop near-duplicate
-# triggers. Skipped runs also finish "success", so a long window would let skips starve
-# real runs; queue pile-up is the concurrency group's job, and a chain without work
-# ends because nothing merges.
-CHAIN_MIN_INTERVAL_MINUTES = 3
+# A refresh chained from a finished publication is skipped when the last window already
+# held this many successful refresh runs (a loop). A single recent run must never skip
+# it: a run queued behind a long one always sees that one just finish.
+CHAIN_WINDOW_MINUTES = 30
+CHAIN_MAX_RUNS = 4
 # A model revision that resizes the disk envelope by more than this needs a human.
 MATERIAL_ENVELOPE_PERCENT = 1
 MAX_BODY = 60000
@@ -2356,33 +2356,37 @@ def stale_mechanical_prs(pull_requests: list[dict[str, Any]]) -> list[dict[str, 
     ]
 
 
-def recent_refresh_ran(
-    runs: list[dict[str, Any]], run_id: int, now: datetime, minutes: int
+def refresh_is_spinning(
+    runs: list[dict[str, Any]],
+    run_id: int,
+    now: datetime,
+    minutes: int = CHAIN_WINDOW_MINUTES,
+    limit: int = CHAIN_MAX_RUNS,
 ) -> bool:
-    """Another refresh run finished successfully within ``minutes`` of ``now``.
+    """At least ``limit`` other refresh runs finished successfully in the last ``minutes``.
 
-    Active or queued runs do not count: the concurrency group serialises them, and
-    counting them made chained runs skip each other so nothing was ever armed.
+    A real chain has gaps (every merge waits for a publication, minutes long), so a burst
+    means a loop. Active or queued runs, and a run that just finished ahead of this one
+    in the concurrency queue, must not count against a single run.
     """
-    for run in runs:
-        if run.get("databaseId") == run_id:
-            continue
-        if run.get("status") != "completed":
-            continue
-        finished = datetime.fromisoformat(str(run.get("updatedAt", "")))
-        if run.get("conclusion") == "success" and now - finished < timedelta(
-            minutes=minutes
-        ):
-            return True
-    return False
+    finished = [
+        datetime.fromisoformat(str(run.get("updatedAt", "")))
+        for run in runs
+        if run.get("databaseId") != run_id
+        and run.get("status") == "completed"
+        and run.get("conclusion") == "success"
+    ]
+    return (
+        sum(1 for when in finished if now - when < timedelta(minutes=minutes)) >= limit
+    )
 
 
 def command_guard(arguments: argparse.Namespace) -> int:
     """Decide whether a chained (workflow_run) refresh should proceed.
 
     Scheduled and manual runs always proceed. A run chained from a finished
-    publication proceeds unless the publication failed or another refresh ran in the
-    last CHAIN_MIN_INTERVAL_MINUTES.
+    publication proceeds unless the publication failed or the refresh is spinning
+    (CHAIN_MAX_RUNS successful runs in the last CHAIN_WINDOW_MINUTES minutes).
     """
     run = True
     if arguments.event == "workflow_run":
@@ -2399,11 +2403,10 @@ def command_guard(arguments: argparse.Namespace) -> int:
                 "--json",
                 "databaseId,status,conclusion,updatedAt",
             )
-            run = not recent_refresh_ran(
+            run = not refresh_is_spinning(
                 runs,
                 arguments.run_id,
                 datetime.now(UTC),
-                CHAIN_MIN_INTERVAL_MINUTES,
             )
     output = os.environ.get("GITHUB_OUTPUT")
     if output:
