@@ -131,7 +131,10 @@ class Vonkctl:
         if profile is not None:
             argv += ["--profile", str(profile)]
         argv += list(args)
-        code, out, err = self.runner(argv, timeout or self.timeout)
+        try:
+            code, out, err = self.runner(argv, timeout or self.timeout)
+        except VonkctlTimeout as error:
+            return Reply(tuple(argv), 124, None, str(error))
         document = _parse(out)
         if document is None:
             document = _parse(err)

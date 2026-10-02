@@ -302,9 +302,11 @@ def main(
     state = State.load(state_path)
     try:
         code = Sweep(config, vk, state, results, defs, clock).run()
-    except (RuntimeError, VonkctlError) as error:
+    except (RuntimeError, VonkctlError, OSError) as error:
         print(f"sweep-recipes: {error}", file=sys.stderr)
         return 2
+    except KeyboardInterrupt:
+        return 130
     if args.file_issues:
         for item in file_issues(state.recipes, REPO):
             print(f"{item['recipe']}: {item['url']}")

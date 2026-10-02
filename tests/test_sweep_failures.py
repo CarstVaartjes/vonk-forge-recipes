@@ -228,3 +228,44 @@ def test_a_bad_checkpoint_found_at_start_pushes_its_siblings_to_the_back_but_sti
     assert (
         sweep.state.recipes["vonk-forge/sibling"]["status"] == "passed"
     )  # still tested, not condemned
+
+
+def test_a_download_that_fails_the_same_transient_way_twice_is_a_final_failure(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    flaky = FakeRecipe("flaky", fail_download="connection reset by peer")
+    sweep, fleet, _ = make_sweep(tmp_path, [flaky], [FakeModel("m1")], gateway=gateway)
+    assert sweep.run() == 0
+    entry = _entry(sweep, "flaky")
+    assert (entry["status"], entry["phase"], entry["failure_class"]) == (
+        "failed",
+        "download",
+        "network",
+    )
+    assert (
+        len([c for _, c in fleet.calls if c[:2] == ("recipe", "download")]) == 2
+    )  # asked once more, then gave up
+
+
+def test_a_controller_that_stops_answering_costs_a_pass_not_the_sweep(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    real = fleet.runner
+    outage = {"until": clock.now() + 100}
+
+    def runner(argv, timeout):
+        if clock.now() < outage["until"] and "library" in argv:
+            from spark_sweep.vonkctl import VonkctlTimeout
+
+            raise VonkctlTimeout(argv, None, "vonkctl timed out")
+        return real(argv, timeout)
+
+    sweep.vk.runner = runner
+    assert sweep.run() == 0
+    assert _entry(sweep, "a")["status"] == "passed"
+    assert any(
+        "library refresh failed" in e["message"] for e in sweep.state.data["events"]
+    )

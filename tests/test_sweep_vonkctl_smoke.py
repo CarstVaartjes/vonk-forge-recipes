@@ -407,3 +407,15 @@ def test_the_client_key_is_sent_as_a_bearer_token(tmp_path: Path) -> None:
 def test_non_openai_recipes_are_checked_for_readiness_only() -> None:
     result = smoke_readiness("run-1")
     assert result.ok and result.kind == "readiness-only" and result.perf is None
+
+
+def test_a_timeout_is_a_failed_reply_for_reads_and_an_error_for_calls() -> None:
+    from spark_sweep.vonkctl import VonkctlTimeout
+
+    def run(argv, timeout):
+        raise VonkctlTimeout(argv, None, "vonkctl timed out after 5s")
+
+    vk = Vonkctl("vonkctl", runner=run)
+    assert not vk.run("fleet").ok
+    with pytest.raises(VonkctlError):
+        vk.call("fleet")

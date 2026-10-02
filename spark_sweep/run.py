@@ -123,6 +123,9 @@ class Sweep:
         self.models: dict[str, Model] = {}
         self.fleet = Fleet((), ())
         self.catalog_at = -1e18
+        self.catalog_loaded = (
+            False  # nothing is done, or stuck, before the library has been read once
+        )
         self.status_at = -1e18
         self.owner_at = -1e18
         self.owner_status = OwnerStatus()
@@ -217,6 +220,7 @@ class Sweep:
             self.catalog_at = now
             return
         self.recipes = {r.key: r for r in recipes}
+        self.catalog_loaded = True
         self.catalog_at = now
         self.sizes = policy.build_sizes(recipes, self.models)
         usable = len(self.sparks())
@@ -288,6 +292,14 @@ class Sweep:
     # ------------------------------------------------------------------ tick
 
     def tick(self) -> None:
+        """One pass. A Controller that stops answering costs a pass, never the sweep."""
+        try:
+            self._tick()
+        except VonkctlError as error:
+            self.state.event(f"vonkctl failed, will retry: {str(error)[:150]}")
+            self.state.save()
+
+    def _tick(self) -> None:
         now = self.clock.now()
         if now - self.catalog_at >= self.cfg.catalog_seconds:
             self.refresh_catalog()
@@ -330,7 +342,7 @@ class Sweep:
         return {r.key for r in pending if any(d in failures for d in r.model_digests)}
 
     def done(self) -> bool:
-        if self.state.slots:
+        if not self.catalog_loaded or self.state.slots:
             return False
         if any(
             r.get("state") in ("queued", "running", "partial")
@@ -380,6 +392,8 @@ class Sweep:
         )
 
     def _nothing_moves(self) -> bool:
+        if not self.catalog_loaded:
+            return False  # the Controller has not answered yet: keep trying
         busy = bool(self.state.slots) or any(
             r.get("state") in ("queued", "running", "partial", "accepted")
             or (r.get("retry_at") and r.get("state") == "failed")
@@ -405,7 +419,8 @@ class Sweep:
         self, key: str, failure: policy.Failure, op_id: str | None, model_level: bool
     ) -> None:
         recipe = self.recipes.get(key)
-        self._record_failure(key, failure, op_id)
+        # The prefetcher already retried what is worth retrying: this one is final.
+        self._record_failure(key, failure, op_id, retryable=False)
         if model_level and recipe is not None:
             for digest in recipe.model_digests:
                 self.state.data["model_failures"][digest] = failure.cluster
@@ -415,7 +430,9 @@ class Sweep:
                     and other.model_set == recipe.model_set
                     and self.state.status(other.key) == "pending"
                 ):
-                    self._record_failure(other.key, failure, op_id, inherited_from=key)
+                    self._record_failure(
+                        other.key, failure, op_id, inherited_from=key, retryable=False
+                    )
 
     def _record_failure(
         self,
@@ -424,7 +441,7 @@ class Sweep:
         op_id: str | None,
         *,
         inherited_from: str | None = None,
-        penalise: bool = True,
+        retryable: bool = True,
     ) -> None:
         now = self.clock.now()
         entry = self.state.entry(key)
@@ -439,11 +456,14 @@ class Sweep:
                 key, f"{failure.phase} failure overlapped an owner profile load"
             )
             return
-        if penalise:
-            entry["attempts"] = int(entry.get("attempts", 0)) + 1
+        entry["attempts"] = int(entry.get("attempts", 0)) + 1
         if slot is not None:
             slot["phase"] = "finished"
-        if penalise and failure.transient and entry["attempts"] < self.cfg.max_attempts:
+        if (
+            retryable
+            and failure.transient
+            and entry["attempts"] < self.cfg.max_attempts
+        ):
             entry.update(
                 status="pending",
                 not_before=now + self.cfg.retry_delay,
