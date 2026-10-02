@@ -9,6 +9,6 @@
   },
   "source": {
     "repo": "eugr/spark-vllm-docker",
-    "commit": "60dee5b47ab14201381d486c6e994b5cf0e648a1"
+    "commit": "9296ced563e9996f1424149a62432ea752816b90"
   }
 }

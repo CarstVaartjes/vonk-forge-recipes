@@ -332,8 +332,8 @@
     "source_reference": "https://github.com/tonyd2wild/Inkling-Small-NVFP4-MTP-262K-2x-DGX-Spark/tree/7913395c4f1bacfc8a97c90efe096a62f3010178"
   },
   "release": {
-    "released_at": "2026-07-31",
-    "version": "1.0.0"
+    "released_at": "2026-10-02",
+    "version": "prebuilt-vllm-current"
   },
   "runtime": {
     "arguments": [
