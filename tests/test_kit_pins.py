@@ -998,7 +998,7 @@ FOLLOWING_RECIPES = {
     "qwen3-8-27b-taussoe-tensorfold-single": ("commit", "191188075bca"),
     "swift-1-5-flash-next-nvfp4-tournierjc-tensorfold-single": (
         "commit",
-        "191188075bca",
+        "808767fd479c",
     ),
     "qwen3-8-flash-next-taussoe-tensorfold-single": (
         "branch",
