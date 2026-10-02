@@ -1,19 +1,19 @@
-# TensorFold v0.5.0 (MIT, commit 9cd52ab4) plus MiaAI-Lab's 52-patch GLM-5.3-Flash EXL3 set on NVIDIA's PyTorch container (arm64).
+# TensorFold v0.6.0 (Apache-2.0, commit c4646171) plus MiaAI-Lab's 53-patch GLM-5.3-Flash EXL3 set on NVIDIA's PyTorch container (arm64).
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
-      org.opencontainers.image.revision="9cd52ab4daba68ddd09be89be8f23ad43175e821" \
-      org.opencontainers.image.licenses="MIT" \
-      io.vonk.recipe-patches.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/ed026ef92d1650120dada1294a112acb6c8f2f48"
+      org.opencontainers.image.revision="c4646171139ee8a3c38103eaa1699dad226ec12b" \
+      org.opencontainers.image.licenses="Apache-2.0" \
+      io.vonk.recipe-patches.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/4bbf2f3d83f8b5363832368021c5b56b4ced3d92"
 
 # NGC exports PIP_CONSTRAINT for its own stack; the hash-pinned lock below is resolved without it and leaves torch and numpy alone.
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
 
-COPY vendor/tensorfold-9cd52ab4daba68ddd09be89be8f23ad43175e821.tar.gz /tmp/tensorfold.tar.gz
+COPY vendor/tensorfold-c4646171139ee8a3c38103eaa1699dad226ec12b.tar.gz /tmp/tensorfold.tar.gz
 COPY requirements.lock /tmp/requirements.lock
 COPY patches /opt/tf-patches
 # Mia's patches are unified diffs against the installed package (paths such as tensorfold/cuda/server.py), applied with -p0 in filename order.
-RUN echo "4d92dbd7f1b1d1ba07257ac481edbf952bc195dfd714db70d3aaf4b84a0a6694  /tmp/tensorfold.tar.gz" | sha256sum -c - \
+RUN echo "bfaec2d02944f8ddf576ef0fed67f5cca23dbc252caeb0b558154a968d001641  /tmp/tensorfold.tar.gz" | sha256sum -c - \
     && mkdir /tmp/tensorfold-src \
     && tar -xzf /tmp/tensorfold.tar.gz -C /tmp/tensorfold-src --strip-components=1 \
     && PIP_CONSTRAINT= python -m pip install --ignore-installed --no-deps --no-cache-dir --require-hashes --requirement /tmp/requirements.lock \

@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "GLM-5.3-Flash on two DGX Sparks with the TensorFold engine (exact decoding, custom CUDA kernels JIT-compiled on first start), one rank per Spark over the ConnectX-7 link with RoCE all-gathers. Serves MiaAI-Lab's EXL3 TR3 4 bpw checkpoint with a 1,048,576-token window, up to 4 concurrent requests sharing an FP8 KV pool, DFlash2 and copy drafts, 4-bit dense weights, image and video input, tool calling and structured outputs. Based on MiaAI-Lab's two-Spark TensorFold kit (ed026ef9, Apache-2.0) on TensorFold v0.5.0 (MIT) with her 52 patches; a different engine from the vLLM two-Spark recipe. Upstream claims 60.4 tok/s for one request and 108.8 tok/s aggregate at 4, about 1,950 tok/s prefill and GSM8K 98.0 percent / HumanEval 97.6 percent, all unmeasured here. Licences, for information: the checkpoint is under the ShapleyMcG License 1.0 (attribution required); the DFlash2 drafter is CC BY-NC-ND 4.0 (non-commercial) and is not used with the MTP drafter option. Thinking is on by default (the chat template's default) and is chosen per request: a request can set reasoning_effort or chat_template_kwargs.enable_thinking, and reasoning comes back in reasoning_content.",
+    "description": "GLM-5.3-Flash on two DGX Sparks with the TensorFold engine (exact decoding, custom CUDA kernels JIT-compiled on first start), one rank per Spark over the ConnectX-7 link with RoCE all-gathers that use both PCIe links of the cabled QSFP port when the platform's fabric setup passes both RoCE devices (the engine takes up to two from NCCL_IB_HCA). Serves MiaAI-Lab's EXL3 TR3 4 bpw checkpoint with a 1,048,576-token window, up to 4 concurrent requests sharing an FP8 KV pool, DFlash2 and copy drafts, 4-bit dense weights, image and video input (up to 50 images and 4 videos a request), tool calling (a call is sent whole, never cut off) and structured outputs, a default reply budget of 32,768 tokens for requests that set none, and room for 32 kept prompt states. Based on MiaAI-Lab's two-Spark TensorFold kit (4bbf2f3d, Apache-2.0) on TensorFold v0.6.0 (Apache-2.0; code written before 0.6.0 keeps its MIT notice) with her 53 patches; a different engine from the vLLM two-Spark recipe. Upstream claims 60.4 tok/s for one request and 108.8 tok/s aggregate at 4, about 1,950 tok/s prefill and GSM8K 98.0 percent / HumanEval 97.6 percent, all unmeasured here. Licences, for information: the checkpoint is under the ShapleyMcG License 1.0 (attribution required); the DFlash2 drafter is CC BY-NC-ND 4.0 (non-commercial) and is not used with the MTP drafter option. Thinking is on by default (the chat template's default) and is chosen per request: a request can set reasoning_effort or chat_template_kwargs.enable_thinking, and reasoning comes back in reasoning_content.",
     "tags": [
       "dflash2",
       "engine",
@@ -1750,7 +1750,7 @@
       "choices": [
         {
           "default": true,
-          "help": "Vision tower loaded; data URLs only (upstream default).",
+          "help": "Vision tower loaded; data URLs only, up to 50 images and 4 videos a request (upstream default).",
           "label": "Images and video",
           "value": "vision"
         },
@@ -1779,11 +1779,11 @@
       "IncoAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/ed026ef92d1650120dada1294a112acb6c8f2f48"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/4bbf2f3d83f8b5363832368021c5b56b4ced3d92"
   },
   "release": {
     "released_at": "2026-10-01",
-    "version": "0.5.0"
+    "version": "0.6.0"
   },
   "runtime": {
     "arguments": [
@@ -1811,6 +1811,11 @@
         "name": "context",
         "setting": "context_tokens",
         "value": null
+      },
+      {
+        "name": "max-tokens",
+        "setting": null,
+        "value": 32768
       },
       {
         "name": "drafter",
@@ -1848,6 +1853,10 @@
       {
         "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
         "value": "14.5"
+      },
+      {
+        "name": "TF_GLM_MTP",
+        "value": "auto"
       },
       {
         "name": "TF_GLM_KV",
@@ -1899,7 +1908,7 @@
       },
       {
         "name": "TF_GLM_MULTI_LONE",
-        "value": "1"
+        "value": "0"
       },
       {
         "name": "TF_GLM_MULTI_PREFILL",
@@ -1919,7 +1928,11 @@
       },
       {
         "name": "TF_GLM_CACHE_GIB",
-        "value": "11"
+        "value": "12.5"
+      },
+      {
+        "name": "TF_GLM_CACHE_ENTRIES",
+        "value": "32"
       },
       {
         "name": "NCCL_MIN_NCHANNELS",
