@@ -1,12 +1,18 @@
 {
+  "kit": {
+    "dependencies": {
+      "base": {
+        "datasource": "git-ref",
+        "file": "lib/common.sh",
+        "pattern": "^TENSORFOLD_COMMIT=(?P<version>[0-9a-f]{7,40})$",
+        "repo": "ashhart/TensorFold"
+      }
+    }
+  },
   "ours": [
     "licenses/",
     "requirements.lock",
     "tensorfold-serve",
     "vendor/"
-  ],
-  "source": {
-    "commit": "c4646171139ee8a3c38103eaa1699dad226ec12b",
-    "repo": "ashhart/TensorFold"
-  }
+  ]
 }
