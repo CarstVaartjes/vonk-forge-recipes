@@ -479,7 +479,7 @@ class MergeGateTests(unittest.TestCase):
 
     def test_existing_armed_pr_does_not_block_a_disjoint_mechanical_merge(self) -> None:
         summary = refresh.Summary()
-        summary.receipt = True
+        summary.healthy = True
         pulls = [
             {
                 "number": 419,
@@ -500,7 +500,7 @@ class MergeGateTests(unittest.TestCase):
 
     def test_shared_model_file_defers_the_second_pr(self) -> None:
         summary = refresh.Summary()
-        summary.receipt = True
+        summary.healthy = True
         pulls = [
             {
                 "number": 419,
@@ -542,7 +542,7 @@ class MergeGateTests(unittest.TestCase):
 
         self.assertFalse(allowed)
         self.assertEqual(summary.armed, [])
-        self.assertIn("publish.yml receipt", summary.deferred[0])
+        self.assertIn("did not succeed", summary.deferred[0])
         self.assertFalse(any("merge" in call.args for call in gh.call_args_list))
 
     def test_successful_publication_arms_every_green_pr_in_one_run(self) -> None:
@@ -571,6 +571,15 @@ class MergeGateTests(unittest.TestCase):
         self.assertEqual(summary.armed, [421, 422, 423])
         merges = [call for call in gh.call_args_list if "merge" in call.args]
         self.assertEqual(len(merges), 3)
+
+    def test_inflight_publication_does_not_block_but_failure_does(self) -> None:
+        done = {"status": "completed", "conclusion": "success"}
+        inflight = {"status": "in_progress", "conclusion": ""}
+        cancelled = {"status": "completed", "conclusion": "cancelled"}
+        failed = {"status": "completed", "conclusion": "failure"}
+        self.assertTrue(refresh.publication_healthy([inflight, cancelled, done]))
+        self.assertFalse(refresh.publication_healthy([inflight, failed, done]))
+        self.assertFalse(refresh.publication_healthy([]))
 
     def test_prepare_bound_counts_pushed_prs_only(self) -> None:
         self.assertEqual(refresh.MAX_MECHANICAL_PER_RUN, 6)

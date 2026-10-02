@@ -2026,15 +2026,23 @@ class Summary:
     failures: list[str] = field(default_factory=list)
     armed: list[int] = field(default_factory=list)
     prepared: int = 0
-    receipt: bool | None = None  # main's publication receipt, looked up once per run
+    healthy: bool | None = None  # publication health, looked up once per run
 
 
-def main_has_receipt() -> tuple[bool, str]:
-    main_head = gh("api", "repos/{owner}/{repo}/commits/main", "--jq", ".sha").strip()
-    if not SHA.fullmatch(main_head):
-        raise RuntimeError(
-            "GitHub returned an invalid main revision while checking publication"
-        )
+def publication_healthy(runs: list[dict[str, Any]]) -> bool:
+    """The newest finished publish.yml run on main succeeded (newest first).
+
+    Cancelled runs are replaced pending runs, not failures. In-flight publications do
+    not block arming: publish.yml queues them and builds from the newest main, so
+    gating on an exact-head receipt would serialise merges (each merge moves main).
+    """
+    for run in runs:
+        if run.get("status") == "completed" and run.get("conclusion") != "cancelled":
+            return run.get("conclusion") == "success"
+    return False
+
+
+def main_publication_healthy() -> bool:
     runs = gh_json(
         "run",
         "list",
@@ -2043,11 +2051,11 @@ def main_has_receipt() -> tuple[bool, str]:
         "--branch",
         "main",
         "--limit",
-        "50",
+        "20",
         "--json",
-        "headSha,status,conclusion",
+        "status,conclusion",
     )
-    return has_publication_receipt(main_head, runs), main_head
+    return publication_healthy(runs)
 
 
 def file_overlaps(
@@ -2074,7 +2082,7 @@ def file_overlaps(
 
 
 def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
-    """Arm a prepared mechanical PR once main has a successful publication receipt.
+    """Arm a prepared mechanical PR while publication is healthy.
 
     Every prepared PR is armed, not one per run: required checks gate each merge and
     publication coalesces back-to-back merges. Only a shared file with another armed PR
@@ -2082,11 +2090,11 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
     """
     if number in summary.armed:
         return True
-    if summary.receipt is None:
-        summary.receipt, _ = main_has_receipt()
-    if not summary.receipt:
+    if summary.healthy is None:
+        summary.healthy = main_publication_healthy()
+    if not summary.healthy:
         summary.deferred.append(
-            f"{recipe_id}: prepared PR #{number}; waiting for main's publish.yml receipt"
+            f"{recipe_id}: prepared PR #{number}; the latest publish.yml run on main did not succeed"
         )
         return False
 
