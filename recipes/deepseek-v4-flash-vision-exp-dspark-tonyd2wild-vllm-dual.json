@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's DeepSeek V4 Flash DSpark profile on two Sparks: vLLM tensor parallel 2 with the bundled DSpark drafter (k=5), a 4-bit nvfp4_ds_mla KV cache, B12X MoE and a 1,048,576-token context, on bjk110's DSpark vLLM runtime image (digest-pinned) with upstream's overlay (scheduler cold-prefill garble fix, draft shared-expert loader fix) and NVFP4 stage patches applied at build, plus upstream's native-vision port (ViT and aligner, image input). Model: Vision-Exp checkpoint at 6821d6ad (upstream pins 86f746b3, which differs only by two documentation files). Same-creator alternatives for this model and Spark count are older tonyd2wild repositories (preview-checkpoint DSpark, Ray-free MTP recipes); other creators' choices are separate recipes. Licences (information only): recipe MIT, model MIT, overlay files derived from vLLM (Apache-2.0). Upstream figures (about 55 tok/s mean, 78 peak on text 0731; about 53 tok/s real-prompt decode on Vision-Exp) are claims until measured here; Vonk physical two-Spark acceptance is pending. Upstream warns that speculative buffers allocate on the first real request, so a memory utilization above 0.78 can boot and then fail under traffic.",
+    "description": "tonyd2wild's DeepSeek V4 Flash DSpark profile on two Sparks: vLLM tensor parallel 2 with the bundled DSpark drafter (k=5), a 4-bit nvfp4_ds_mla KV cache, B12X MoE and a 1,048,576-token context, on bjk110's DSpark vLLM runtime image (digest-pinned) with upstream's overlay (scheduler cold-prefill garble fix, draft shared-expert loader fix) and NVFP4 stage patches applied at build, plus upstream's native-vision port (ViT and aligner, image input). Model: Vision-Exp checkpoint at 6821d6ad (upstream pins 86f746b3, which differs only by two documentation files). Same-creator alternatives for this model and Spark count are older tonyd2wild repositories (preview-checkpoint DSpark, Ray-free MTP recipes); other creators' choices are separate recipes. Licences (information only): recipe MIT, model MIT, overlay files derived from vLLM (Apache-2.0). Upstream figures (about 55 tok/s mean, 78 peak on text 0731; about 53 tok/s real-prompt decode on Vision-Exp) are claims until measured here; Vonk physical two-Spark acceptance is pending. Upstream warns that speculative buffers allocate on the first real request, so a memory utilization above 0.78 can boot and then fail under traffic. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default).",
     "tags": [
       "deepseek",
       "distributed",
@@ -1011,31 +1011,6 @@
       "help": "Drafted tokens per step. The drafter emits exactly 5 per pass, so upstream allows 5 or fewer (or a multiple of 5); 7 crashes on first generation. k=5 measured about 24 percent faster than k=3 (upstream).",
       "label": "DSpark draft length",
       "name": "speculative-length"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Thinking off unless a request enables it (upstream default).",
-          "label": "Off (default)",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"thinking\":true}"
-            }
-          ],
-          "help": "Thinking on by default.",
-          "label": "On",
-          "value": "on"
-        }
-      ],
-      "help": "Server default for the chat template's thinking switch; a request can still override it.",
-      "label": "Thinking default",
-      "name": "thinking"
     },
     {
       "choices": [

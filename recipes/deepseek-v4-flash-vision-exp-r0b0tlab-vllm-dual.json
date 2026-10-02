@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's dual-GB10 vLLM serve of the official DeepSeek V4 Flash Vision Experimental checkpoint (image and text input): the official per-model vision image with PR 54631 (streaming weight loader, DSpark n_predict), a TOPK=512 FlashInfer sparse-MLA prefill kernel and SM121 adaptive verification baked in; DSpark k=5 with adaptive verification, fp8 KV, decode-only CUDA graphs, thinking off by default (clients can request thinking per call), 524,288 token context (upstream also qualified 1,048,576 by raising the context setting). No licence file is declared in the upstream repository; the model is MIT and vLLM Apache-2.0 (information only). Upstream claims about 43 tok/s single-stream short decode; not measured here.",
+    "description": "r0b0tlab's dual-GB10 vLLM serve of the official DeepSeek V4 Flash Vision Experimental checkpoint (image and text input): the official per-model vision image with PR 54631 (streaming weight loader, DSpark n_predict), a TOPK=512 FlashInfer sparse-MLA prefill kernel and SM121 adaptive verification baked in; DSpark k=5 with adaptive verification, fp8 KV, decode-only CUDA graphs, thinking off by default (clients can request thinking per call), 524,288 token context (upstream also qualified 1,048,576 by raising the context setting). No licence file is declared in the upstream repository; the model is MIT and vLLM Apache-2.0 (information only). Upstream claims about 43 tok/s single-stream short decode; not measured here. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: thinking=false by default (upstream default, used for the throughput numbers).",
     "tags": [
       "candidate",
       "deepseek",
@@ -987,30 +987,6 @@
     }
   ],
   "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "thinking=false by default (upstream default, used for the throughput numbers).",
-          "label": "Off",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "value": "{\"thinking\":true,\"reasoning_effort\":\"high\"}"
-            }
-          ],
-          "help": "thinking=true with reasoning_effort high by default (upstream quality-run setting).",
-          "label": "High",
-          "value": "high"
-        }
-      ],
-      "help": "Chat template default when a request does not set thinking; requests can still override it. Upstream default is off (quality clients send thinking with reasoning_effort high per request).",
-      "label": "Default thinking",
-      "name": "thinking"
-    },
     {
       "choices": [
         {

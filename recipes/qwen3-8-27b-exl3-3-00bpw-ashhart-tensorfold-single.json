@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8-27B on Ash Hart's TensorFold engine v0.6.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with turboderp's EXL3 3.00 bits-per-weight pack (branch 3.00bpw, 13.8 GB) and z-lab's DFlash2 draft model, which TensorFold's CUDA engine requires unless drafting is switched off. TensorFold marks its EXL3 path experimental: replies are exact against the same engine, prompts prefill about half as fast as the MLX 4-bit checkpoint, and it runs on one GPU only. One rank only: the platform harness has no distributed support. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the model's 262,144-token window. Text only: upstream documents no image input on EXL3 packs. Upstream measured on one DGX Spark: 83 tok/s code sampled and 44 tok/s chat sampled (MLX 4-bit checkpoint: 58 and 50), 13.2 GiB after loading and a 28 GiB peak on a 64k prompt (upstream claims, unmeasured here); the memory envelope below extrapolates upstream's 62.5 GiB startup estimate for the 262,144-token window and is unmeasured. Only the 3.00bpw branch is measured upstream; other branches (for example 4.00bpw) are different weights and would be a different recipe. Licences, for information: Qwen3.8-27B and turboderp's EXL3 pack are Apache-2.0; z-lab/Qwen3.8-27B-DFlash2 states Apache-2.0 on its model card (a mirror of incoai/Qwen3.8-27B-DFlash2); TensorFold is Apache-2.0 from 0.6.0 (MIT up to 0.5.0). TensorFold v0.6.0 at c4646171139ee8a3c38103eaa1699dad226ec12b keeps every option this recipe passes. Per upstream's release notes it runs CUDA prompts at bf16 by default and serves Prometheus /metrics (opt-in --prefill-fp8 and --checkpoint-slots exist but are not exposed here); the existing context bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests.",
+    "description": "Single-DGX-Spark Qwen3.8-27B on Ash Hart's TensorFold engine v0.6.0 (exact decoding, custom CUDA kernels JIT-compiled on first start, stock upstream source) with turboderp's EXL3 3.00 bits-per-weight pack (branch 3.00bpw, 13.8 GB) and z-lab's DFlash2 draft model, which TensorFold's CUDA engine requires unless drafting is switched off. TensorFold marks its EXL3 path experimental: replies are exact against the same engine, prompts prefill about half as fast as the MLX 4-bit checkpoint, and it runs on one GPU only. One rank only: the platform harness has no distributed support. Serves one request at a time by default (upstream CUDA default; the concurrency setting enables shared rounds) at the model's 262,144-token window. Text only: upstream documents no image input on EXL3 packs. Upstream measured on one DGX Spark: 83 tok/s code sampled and 44 tok/s chat sampled (MLX 4-bit checkpoint: 58 and 50), 13.2 GiB after loading and a 28 GiB peak on a 64k prompt (upstream claims, unmeasured here); the memory envelope below extrapolates upstream's 62.5 GiB startup estimate for the 262,144-token window and is unmeasured. Only the 3.00bpw branch is measured upstream; other branches (for example 4.00bpw) are different weights and would be a different recipe. Licences, for information: Qwen3.8-27B and turboderp's EXL3 pack are Apache-2.0; z-lab/Qwen3.8-27B-DFlash2 states Apache-2.0 on its model card (a mirror of incoai/Qwen3.8-27B-DFlash2); TensorFold is Apache-2.0 from 0.6.0 (MIT up to 0.5.0). TensorFold v0.6.0 at c4646171139ee8a3c38103eaa1699dad226ec12b keeps every option this recipe passes. Per upstream's release notes it runs CUDA prompts at bf16 by default and serves Prometheus /metrics (opt-in --prefill-fp8 and --checkpoint-slots exist but are not exposed here); the existing context bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests. Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default: --thinking).",
     "tags": [
       "dflash2",
       "engine",
@@ -295,34 +295,6 @@
     }
   ],
   "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Open a think block by default (upstream default: --thinking).",
-          "label": "Think first",
-          "value": "thinking"
-        },
-        {
-          "args": [
-            {
-              "name": "thinking",
-              "value": false
-            },
-            {
-              "name": "no-thinking",
-              "value": true
-            }
-          ],
-          "help": "Answer without a think block unless a request asks for one.",
-          "label": "Answer directly",
-          "value": "direct"
-        }
-      ],
-      "help": "Whether the chat template opens a think block by default. A request can still set chat_template_kwargs.enable_thinking; reasoning comes back separately from the answer.",
-      "label": "Thinking",
-      "name": "thinking"
-    },
     {
       "choices": [
         {

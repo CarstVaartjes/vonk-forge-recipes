@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM profile from MiaAI-Lab's Laguna-S-2.1-DGX-Spark-RTX-6000-PRO at 750a52ea: the exact 826aacdf Laguna S 2.1 NVFP4 checkpoint with the exact b3b5921a Laguna S 2.1 DFlash NVFP4 speculative draft (7 tokens), vLLM 0.25.1 with FlashInfer attention, 256K context, 4 sequences, reasoning and tool parsing. Upstream ships no container: the image is the digest-pinned official vLLM v0.25.1 image with upstream's FlashInfer 0.6.15.dev20260712 nightly wheels baked in at build time instead of installed at every start. Upstream code has no licence file; the target model is OpenMDW-1.1 and the draft repository declares no licence. Upstream claims (not measured here) a ~15 minute first start and its own decode-throughput chart. Physical Spark acceptance is pending. Upstream's RTX 6000 PRO variant is not covered.",
+    "description": "Candidate single-Spark vLLM profile from MiaAI-Lab's Laguna-S-2.1-DGX-Spark-RTX-6000-PRO at 750a52ea: the exact 826aacdf Laguna S 2.1 NVFP4 checkpoint with the exact b3b5921a Laguna S 2.1 DFlash NVFP4 speculative draft (7 tokens), vLLM 0.25.1 with FlashInfer attention, 256K context, 4 sequences, reasoning and tool parsing. Upstream ships no container: the image is the digest-pinned official vLLM v0.25.1 image with upstream's FlashInfer 0.6.15.dev20260712 nightly wheels baked in at build time instead of installed at every start. Upstream code has no licence file; the target model is OpenMDW-1.1 and the draft repository declares no licence. Upstream claims (not measured here) a ~15 minute first start and its own decode-throughput chart. Physical Spark acceptance is pending. Upstream's RTX 6000 PRO variant is not covered. Reasoning by default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking true.",
     "tags": [
       "executable",
       "candidate",
@@ -762,30 +762,6 @@
       "help": "How many parallel compile jobs FlashInfer/CUDA JIT may fan out to on a cold cache. Upstream lowers it when the container is OOM-killed during the first start.",
       "label": "Kernel compile parallelism",
       "name": "jit-parallelism"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream default: enable_thinking true.",
-          "label": "Thinking on",
-          "value": "thinking"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "value": "{\"enable_thinking\":false}"
-            }
-          ],
-          "help": "Default to non-thinking replies; upstream notes clients can disable thinking per request.",
-          "label": "Thinking off",
-          "value": "no-thinking"
-        }
-      ],
-      "help": "Default chat-template thinking mode. Clients can still override it per request.",
-      "label": "Reasoning by default",
-      "name": "reasoning"
     }
   ],
   "provenance": {

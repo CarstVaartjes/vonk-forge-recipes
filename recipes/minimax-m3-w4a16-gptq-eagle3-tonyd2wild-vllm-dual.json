@@ -50,7 +50,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "MiniMax-M3 (428B, unpruned) as Sebesky's W4A16 GPTQ checkpoint on two Sparks with vLLM tensor parallel 2 over the native multi-node executor: b12x nvfp4 KV cache for the sparse MSA layers, the indexer and dense layers 0-2, Marlin int4 MoE, EAGLE-3 speculative decoding with Sebesky's int4 drafter and a 196,608-token context (upstream lane A, the balanced verified configuration; an fp8-KV variant is an option). Basis: a3refaat's spark-vllm-docker minimax-m3-4bit-w4a16 stack (MIT) as reproduced and extended by tonyd2wild (two build patches, lane recipes). The image is a re-pinned reproduction, not a byte-identical rebuild of upstream's locally built image: vLLM 979b56a6 (MiniMax-M3 release merge) with the fused fp8-KV patch and the Rust tool parser, FlashInfer 0.6.12 built from source, the zyang-dev NCCL mesh fork, the vendored b12x library and the lane's mods are built in the recipe's own Dockerfile with pinned commits, an exact Rust toolchain and PyPI frozen at 2026-07-05. Lanes B (KVarN, drafterless) and C (KVarN plus EAGLE3) use mutually exclusive mods and are not packaged. Upstream figures (36.6 tok/s JSON and 31.8 code at 196K context, 208K-token KV pool, single stream, thinking disabled) are claims until measured here; Vonk physical two-Spark acceptance is pending. License: MiniMax Community License (free for non-commercial use; commercial use has attribution, notice and authorization conditions; prohibited-use appendix), shown as information only.",
+    "description": "MiniMax-M3 (428B, unpruned) as Sebesky's W4A16 GPTQ checkpoint on two Sparks with vLLM tensor parallel 2 over the native multi-node executor: b12x nvfp4 KV cache for the sparse MSA layers, the indexer and dense layers 0-2, Marlin int4 MoE, EAGLE-3 speculative decoding with Sebesky's int4 drafter and a 196,608-token context (upstream lane A, the balanced verified configuration; an fp8-KV variant is an option). Basis: a3refaat's spark-vllm-docker minimax-m3-4bit-w4a16 stack (MIT) as reproduced and extended by tonyd2wild (two build patches, lane recipes). The image is a re-pinned reproduction, not a byte-identical rebuild of upstream's locally built image: vLLM 979b56a6 (MiniMax-M3 release merge) with the fused fp8-KV patch and the Rust tool parser, FlashInfer 0.6.12 built from source, the zyang-dev NCCL mesh fork, the vendored b12x library and the lane's mods are built in the recipe's own Dockerfile with pinned commits, an exact Rust toolchain and PyPI frozen at 2026-07-05. Lanes B (KVarN, drafterless) and C (KVarN plus EAGLE3) use mutually exclusive mods and are not packaged. Upstream figures (36.6 tok/s JSON and 31.8 code at 196K context, 208K-token KV pool, single stream, thinking disabled) are claims until measured here; Vonk physical two-Spark acceptance is pending. License: MiniMax Community License (free for non-commercial use; commercial use has attribution, notice and authorization conditions; prohibited-use appendix), shown as information only. Thinking mode default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: thinking_mode adaptive (upstream default).",
     "tags": [
       "b12x",
       "eagle3",
@@ -1058,31 +1058,6 @@
       "help": "EAGLE-3 drafting with Sebesky's int4 drafter (3 draft tokens). Decode is weight-bandwidth bound, so upstream treats the drafter as the main throughput lever.",
       "label": "Speculative decoding",
       "name": "speculative"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "thinking_mode adaptive (upstream default).",
-          "label": "Adaptive (default)",
-          "value": "adaptive"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"thinking_mode\":\"disabled\"}"
-            }
-          ],
-          "help": "thinking_mode disabled by default; a request can still override it.",
-          "label": "Disabled",
-          "value": "disabled"
-        }
-      ],
-      "help": "Server default for the chat template's thinking_mode. Upstream's recipes use adaptive; tonyd2wild measured thinking disabled as slightly faster on structured work (JSON 36.6 against 35.4 tok/s, code 31.8 against 29.2).",
-      "label": "Thinking mode default",
-      "name": "thinking"
     }
   ],
   "provenance": {

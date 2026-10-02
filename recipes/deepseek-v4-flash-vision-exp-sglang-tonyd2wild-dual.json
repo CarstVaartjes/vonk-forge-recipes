@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's DeepSeek-V4-Flash-Vision-Exp (native image input, bundled DSpark draft head) on two Sparks with SGLang tensor parallel 2 over RoCE, from the SGLang DeepSeek-V4 cookbook's verified dgx-spark flash-vision fp4 balanced cell: b12x MoE runner, DSpark speculative decoding, 327,680-token context, about a 507K-token KV pool, thinking off by default. Image: the SGLang DGX Spark preview build lmsysorg/sglang:dev-v4f-2dgx-v2 (branch b12x-vision @ 452239a74f), pinned by digest and used unmodified. Upstream calls this a staging checkpoint: untuned, the DSpark accept length observed was 1.7 to 2.6 tokens per step, and the TP4 lane is only planned (not packaged). Same-creator alternative for this model and Spark count: the vLLM DSpark recipe. Host prerequisite from upstream: the FP8-to-FP4 weight conversion needs tens of GB of host memory on GB10, so upstream adds a 48 GB swapfile per node as a safety net (peak swap use about 36 GB). Licences (information only): recipe MIT, model MIT, SGLang Apache-2.0. Upstream figures (about 45 tok/s median real-prompt single stream, 75 tok/s aggregate at 16 streams) are claims until measured here; Vonk physical two-Spark acceptance is pending.",
+    "description": "tonyd2wild's DeepSeek-V4-Flash-Vision-Exp (native image input, bundled DSpark draft head) on two Sparks with SGLang tensor parallel 2 over RoCE, from the SGLang DeepSeek-V4 cookbook's verified dgx-spark flash-vision fp4 balanced cell: b12x MoE runner, DSpark speculative decoding, 327,680-token context, about a 507K-token KV pool, thinking off by default. Image: the SGLang DGX Spark preview build lmsysorg/sglang:dev-v4f-2dgx-v2 (branch b12x-vision @ 452239a74f), pinned by digest and used unmodified. Upstream calls this a staging checkpoint: untuned, the DSpark accept length observed was 1.7 to 2.6 tokens per step, and the TP4 lane is only planned (not packaged). Same-creator alternative for this model and Spark count: the vLLM DSpark recipe. Host prerequisite from upstream: the FP8-to-FP4 weight conversion needs tens of GB of host memory on GB10, so upstream adds a 48 GB swapfile per node as a safety net (peak swap use about 36 GB). Licences (information only): recipe MIT, model MIT, SGLang Apache-2.0. Upstream figures (about 45 tok/s median real-prompt single stream, 75 tok/s aggregate at 16 streams) are claims until measured here; Vonk physical two-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default).",
     "tags": [
       "deepseek",
       "distributed",
@@ -985,31 +985,6 @@
     }
   ],
   "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Thinking off unless a request enables it (upstream default).",
-          "label": "Off (default)",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"thinking\":true}"
-            }
-          ],
-          "help": "Thinking on by default; the reasoning parser keeps it out of content.",
-          "label": "On",
-          "value": "on"
-        }
-      ],
-      "help": "Server default for the chat template's thinking switch; a request can still override it. Upstream serves with thinking off so decode numbers are answer tokens.",
-      "label": "Thinking default",
-      "name": "thinking"
-    },
     {
       "choices": [
         {

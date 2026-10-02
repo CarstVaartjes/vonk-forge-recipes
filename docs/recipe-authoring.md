@@ -218,6 +218,14 @@ When users can reasonably choose between ways to run the same weights, declare a
 | choice `args` | Literal runtime arguments (`name` and `value`, never a `setting` binding). |
 | choice `env` | Environment variables as `{NAME: value}`. |
 
+**Deployment choices only.** An option must be a real deployment choice: it changes
+what is loaded or how the server runs (drafter, vision on or off, quantization or
+projection, context size when it changes memory, server flags a request cannot
+set). Anything a client chooses per API call (thinking or reasoning on or off,
+reasoning effort, sampling parameters such as temperature, chat template kwargs)
+is not an option; leave the engine's default in `runtime.arguments` and make sure
+requests can still override it.
+
 **The default is the recipe as it runs today.** The recipe's own `runtime.arguments`
 and `runtime.environment` hold the upstream defaults, so the default choice
 normally adds nothing (`args` and `env` left out); when upstream's default

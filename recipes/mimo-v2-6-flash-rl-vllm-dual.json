@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Xiaomi MiMo-V2.6-Flash-RL (309B total, 15B active, fp8 attention with MXFP4 routed experts, MIT) on two Sparks with vLLM tensor parallel 2, the bundled DFlash drafter (7 tokens), FP8 KV, Marlin MoE, 300K context and text, image, video and audio input. Basis: tonyd2wild's recipe (MIT, measured, patched stock image with the three vLLM overlays baked in). Alternatives from other creators: MiaAI-Lab's SGLang kit (AGPL-3.0, EAGLE MTP or DFlash, 1M context) and r0b0tlab's SGLang kit on a self-quantized NVFP4 checkpoint (MIT, claimed +21 percent decode). Upstream throughput figures (about 45 tok/s single stream, 156 tok/s aggregate at six streams) are claims until measured here; Vonk physical two-Spark acceptance is pending.",
+    "description": "Xiaomi MiMo-V2.6-Flash-RL (309B total, 15B active, fp8 attention with MXFP4 routed experts, MIT) on two Sparks with vLLM tensor parallel 2, the bundled DFlash drafter (7 tokens), FP8 KV, Marlin MoE, 300K context and text, image, video and audio input. Basis: tonyd2wild's recipe (MIT, measured, patched stock image with the three vLLM overlays baked in). Alternatives from other creators: MiaAI-Lab's SGLang kit (AGPL-3.0, EAGLE MTP or DFlash, 1M context) and r0b0tlab's SGLang kit on a self-quantized NVFP4 checkpoint (MIT, claimed +21 percent decode). Upstream throughput figures (about 45 tok/s single stream, 156 tok/s aggregate at six streams) are claims until measured here; Vonk physical two-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default). Sampling defaults is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Checkpoint generation config with repetition_penalty 1.05 (upstream default).",
     "tags": [
       "audio",
       "dflash",
@@ -1082,56 +1082,6 @@
       "help": "DFlash drafts 7 tokens per step using the bundled 2.9 GB drafter. Upstream measured it accepts about 5-7 of 7 on structured output and code, and about 1 on prose. Turn it off for plain decoding.",
       "label": "Speculative decoding",
       "name": "speculative"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Thinking off unless a request enables it (upstream default).",
-          "label": "Off (default)",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"enable_thinking\":true}"
-            }
-          ],
-          "help": "Thinking on by default.",
-          "label": "On",
-          "value": "on"
-        }
-      ],
-      "help": "Server default for the chat template's enable_thinking. A request can still override it with chat_template_kwargs. Upstream notes that with thinking on, reasoning text can leak into content for clients that do not expect it.",
-      "label": "Thinking default",
-      "name": "thinking"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Checkpoint generation config with repetition_penalty 1.05 (upstream default).",
-          "label": "Checkpoint plus repetition penalty (default)",
-          "value": "agent"
-        },
-        {
-          "args": [
-            {
-              "name": "override-generation-config",
-              "setting": null,
-              "value": "{}"
-            }
-          ],
-          "help": "Checkpoint generation config without a repetition penalty.",
-          "label": "Checkpoint only",
-          "value": "checkpoint"
-        }
-      ],
-      "help": "Server-side sampling defaults for requests that send none. Upstream adds a 1.05 repetition penalty on top of the checkpoint's temperature 1.0 and top_p 0.95 to reduce repeated tool calls in agent sessions.",
-      "label": "Sampling defaults",
-      "name": "sampling"
     }
   ],
   "provenance": {
