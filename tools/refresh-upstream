@@ -765,7 +765,8 @@ def check_kit_dependencies(
             continue
         result.reasons.append(
             f"the kit declares {pin.repo} `{pin.ref}` (`{pin.commit[:12]}`) at "
-            f"{kit_head[:12]}, but the recipe is locked to `{locked.get('ref', '?')}` "
+            f"{kit_head[:12]}, but the recipe is locked to {locked.get('repo', '?')} "
+            f"`{locked.get('ref', '?')}` "
             f"(`{str(locked.get('commit', '?'))[:12]}`): the kit moved its base, so its "
             f"patches were rebased; review them, then run "
             f"`tools/kit-pins lock {recipe['identity']['slug']}`"
