@@ -366,9 +366,9 @@ Then a bounded set of pull requests (branch `refresh/<recipe-id>`, label
 Its pushes and PRs trigger normal `pull_request` validation without GitHub's built-in Actions-token approval gate.
 A pull request closed unmerged for the same target is not reopened. At most six
 mechanical pull requests are pushed (prepared) per run; the rest follow in the next
-run. The refresh arms auto-merge (squash) for every prepared PR, not one per run, once
-the current `main` commit has a successful `publish.yml` run (the signed-publication
-receipt; failed, pending or older-head runs do not satisfy it). Required checks gate
+run. The refresh arms auto-merge (squash) for every prepared PR, not one per run, while
+the latest finished `publish.yml` run on `main` succeeded (in-flight or cancelled runs
+do not block; a failed one does, and the refresh re-dispatches it). Required checks gate
 each merge, `main` does not require up-to-date branches, and `publish.yml` serialises
 on one concurrency group and builds from the newest `main`, so back-to-back merges
 coalesce. A PR is deferred only when it shares a file (a common Model document) with
