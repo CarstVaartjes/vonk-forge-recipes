@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "base": {
+      "commit": "c4646171139ee8a3c38103eaa1699dad226ec12b",
+      "ref": "v0.6.0",
+      "repo": "ashhart/TensorFold"
+    }
+  },
+  "kit": {
+    "commit": "4bbf2f3d83f8b5363832368021c5b56b4ced3d92",
+    "repo": "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold"
+  }
+}

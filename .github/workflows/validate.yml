@@ -200,6 +200,18 @@ jobs:
           set -euo pipefail
           python3 tools/check-vendored-upstream
 
+      # A kit-built recipe pins only its kit; the base is what the kit declares
+      # at that commit. Re-reads the declaring file and fails when the committed
+      # kit-lock.json (or what consumes it) differs, so generated pins are never
+      # hand-edited or left behind.
+      - name: Require kit-declared base pins to be locked and current
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 tools/kit-pins check
+
       # Every test runs on recipe changes too: the suite takes about as long
       # as any subset, and a subset silently misses recipe-data checks.
       - name: Run the full producer test suite
