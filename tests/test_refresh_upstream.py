@@ -581,6 +581,31 @@ class MergeGateTests(unittest.TestCase):
         self.assertFalse(refresh.publication_healthy([inflight, failed, done]))
         self.assertFalse(refresh.publication_healthy([]))
 
+    def test_open_refresh_prs_are_armed_up_front(self) -> None:
+        summary = refresh.Summary()
+        summary.healthy = True
+        listing = [
+            {"number": 1, "headRefName": "refresh/a", "autoMergeRequest": None},
+            {"number": 2, "headRefName": "refresh/b", "autoMergeRequest": {"x": 1}},
+            {"number": 3, "headRefName": "codex/c", "autoMergeRequest": None},
+        ]
+        calls = []
+
+        def gh_json(*arguments: str):
+            calls.append(arguments)
+            if "autoMergeRequest,files" in arguments[-1]:
+                return [{"number": 1, "files": []}]
+            return listing
+
+        with (
+            patch("refresh_upstream.gh_json", side_effect=gh_json),
+            patch("refresh_upstream.gh") as gh,
+        ):
+            refresh.arm_open_mechanical_prs(summary)
+
+        self.assertEqual(summary.armed, [1])
+        gh.assert_called_once_with("pr", "merge", "1", "--auto", "--squash")
+
     def test_prepare_bound_counts_pushed_prs_only(self) -> None:
         self.assertEqual(refresh.MAX_MECHANICAL_PER_RUN, 6)
         summary = refresh.Summary()
