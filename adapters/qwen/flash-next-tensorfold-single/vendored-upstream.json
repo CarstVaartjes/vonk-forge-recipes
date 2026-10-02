@@ -1,14 +1,19 @@
 {
+  "kit": {
+    "dependencies": {
+      "base": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "^TF_VERSION=\"\\$\\{TF_VERSION:-(?P<version>[^}\"]+)\\}\"",
+        "repo": "ashhart/TensorFold"
+      }
+    }
+  },
   "ours": [
     "licenses/",
     "patches/",
     "requirements.lock",
-    "tests/",
     "tensorfold-serve",
     "vendor/"
-  ],
-  "source": {
-    "repo": "ashhart/TensorFold",
-    "commit": "9cd52ab4daba68ddd09be89be8f23ad43175e821"
-  }
+  ]
 }
