@@ -364,13 +364,19 @@ A refresh is **mechanical** only when all of these hold:
 Then a bounded set of pull requests (branch `refresh/<recipe-id>`, label
 `refresh:mechanical`) is opened or updated using a repository-scoped GitHub App.
 Its pushes and PRs trigger normal `pull_request` validation without GitHub's built-in Actions-token approval gate.
-A pull request closed unmerged for the same target is not reopened. At most three
-mechanical pull requests are prepared per run; the rest follow in later hours. The
-refresh arms auto-merge (squash) for at most one pull request at a time, and only when
-no other pull request already has auto-merge armed and the current `main` commit has a
-successful `publish.yml` run. That successful run is the signed-publication receipt;
-failed, pending or older-head publication runs do not satisfy the gate. Later runs
-reconsider unchanged prepared PRs for auto-merge without pushing another commit.
+A pull request closed unmerged for the same target is not reopened. At most six
+mechanical pull requests are pushed (prepared) per run; the rest follow in the next
+run. The refresh arms auto-merge (squash) for every prepared PR, not one per run, once
+the current `main` commit has a successful `publish.yml` run (the signed-publication
+receipt; failed, pending or older-head runs do not satisfy it). Required checks gate
+each merge, `main` does not require up-to-date branches, and `publish.yml` serialises
+on one concurrency group and builds from the newest `main`, so back-to-back merges
+coalesce. A PR is deferred only when it shares a file (a common Model document) with
+an armed PR, then regenerated on `main` by the next run. Open `refresh:mechanical`
+PRs that fall behind `main` are updated from it. Later runs reconsider unchanged
+prepared PRs for auto-merge without pushing another commit. The refresh runs hourly,
+and also after each finished `publish.yml` run on `main` (which follows every merge)
+unless the publication failed or another refresh finished in the last 10 minutes.
 App-authorized merges trigger publication normally. As recovery, the hourly refresh
 dispatches `publish.yml` for `main` when its current head lacks a successful receipt
 and no run for that head is already pending.

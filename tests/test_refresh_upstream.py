@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 import unittest
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import ClassVar
 from unittest.mock import patch
@@ -463,57 +464,88 @@ class MergeGateTests(unittest.TestCase):
             with patch("refresh_upstream.gh", side_effect=github):
                 waiting = refresh.Summary()
                 refresh.publish_mechanical(root, assessment, waiting)
-                self.assertIsNone(waiting.armed_pr)
+                self.assertEqual(waiting.armed, [])
                 self.assertEqual(merges, [])
                 published = True
                 resumed = refresh.Summary()
                 refresh.publish_mechanical(root, assessment, resumed)
 
-            self.assertEqual(resumed.armed_pr, 421)
+            self.assertEqual(resumed.armed, [421])
             self.assertEqual(merges, [("pr", "merge", "421", "--auto", "--squash")])
             self.assertEqual(
                 refresh.git("rev-parse", "refs/heads/refresh/recipe", cwd=root),
                 prepared,
             )
 
-    def test_existing_armed_pr_blocks_another_mechanical_merge(self) -> None:
+    def test_existing_armed_pr_does_not_block_a_disjoint_mechanical_merge(self) -> None:
         summary = refresh.Summary()
+        summary.receipt = True
+        pulls = [
+            {
+                "number": 419,
+                "autoMergeRequest": {"enabledAt": "now"},
+                "files": [{"path": "recipes/a.json"}],
+            },
+            {"number": 421, "files": [{"path": "recipes/b.json"}]},
+        ]
         with (
-            patch(
-                "refresh_upstream.gh_json",
-                return_value=[
-                    {"number": 419, "autoMergeRequest": {"enabledAt": "now"}}
-                ],
-            ),
+            patch("refresh_upstream.gh_json", return_value=pulls),
+            patch("refresh_upstream.gh") as gh,
+        ):
+            allowed = refresh.arm_mechanical_pr(421, "recipe-b", summary)
+
+        self.assertTrue(allowed)
+        self.assertEqual(summary.armed, [421])
+        gh.assert_called_once_with("pr", "merge", "421", "--auto", "--squash")
+
+    def test_shared_model_file_defers_the_second_pr(self) -> None:
+        summary = refresh.Summary()
+        summary.receipt = True
+        pulls = [
+            {
+                "number": 419,
+                "autoMergeRequest": {"enabledAt": "now"},
+                "files": [{"path": "models/shared.json"}],
+            },
+            {
+                "number": 421,
+                "files": [{"path": "recipes/b.json"}, {"path": "models/shared.json"}],
+            },
+        ]
+        with (
+            patch("refresh_upstream.gh_json", return_value=pulls),
             patch("refresh_upstream.gh") as gh,
         ):
             allowed = refresh.arm_mechanical_pr(421, "recipe-b", summary)
 
         self.assertFalse(allowed)
-        self.assertIsNone(summary.armed_pr)
-        self.assertIn("another PR already has auto-merge armed", summary.deferred[0])
+        self.assertEqual(summary.armed, [])
+        self.assertIn("shares files with armed PR #419", summary.deferred[0])
         gh.assert_not_called()
+
+    def test_file_overlap_counts_prs_armed_earlier_in_the_run(self) -> None:
+        pulls = [
+            {"number": 1, "files": [{"path": "models/m.json"}]},
+            {"number": 2, "files": [{"path": "models/m.json"}]},
+            {"number": 3, "files": [{"path": "models/m.json"}]},
+        ]
+        self.assertEqual(refresh.file_overlaps(2, pulls, armed=[1]), [1])
+        self.assertEqual(refresh.file_overlaps(2, pulls), [])
 
     def test_pending_publication_keeps_prepared_pr_unarmed(self) -> None:
         summary = refresh.Summary()
         with (
-            patch(
-                "refresh_upstream.gh_json",
-                side_effect=[[], []],
-            ),
-            patch(
-                "refresh_upstream.gh",
-                return_value=self.main_head,
-            ) as gh,
+            patch("refresh_upstream.gh_json", side_effect=[[]]),
+            patch("refresh_upstream.gh", return_value=self.main_head) as gh,
         ):
             allowed = refresh.arm_mechanical_pr(421, "recipe", summary)
 
         self.assertFalse(allowed)
-        self.assertIsNone(summary.armed_pr)
-        self.assertIn("no successful publish.yml receipt yet", summary.deferred[0])
+        self.assertEqual(summary.armed, [])
+        self.assertIn("publish.yml receipt", summary.deferred[0])
         self.assertFalse(any("merge" in call.args for call in gh.call_args_list))
 
-    def test_successful_publication_for_current_main_allows_one_pr(self) -> None:
+    def test_successful_publication_arms_every_green_pr_in_one_run(self) -> None:
         summary = refresh.Summary()
         runs = [
             {
@@ -522,20 +554,97 @@ class MergeGateTests(unittest.TestCase):
                 "conclusion": "success",
             }
         ]
+        pulls = [
+            {"number": n, "files": [{"path": f"recipes/r{n}.json"}]}
+            for n in (421, 422, 423)
+        ]
         with (
-            patch("refresh_upstream.gh_json", side_effect=[[], runs]),
+            patch("refresh_upstream.gh_json", side_effect=[runs, pulls, pulls, pulls]),
             patch("refresh_upstream.gh", return_value=self.main_head) as gh,
         ):
-            allowed = refresh.arm_mechanical_pr(421, "recipe", summary)
-            second = refresh.arm_mechanical_pr(422, "recipe-b", summary)
+            results = [
+                refresh.arm_mechanical_pr(n, f"recipe-{n}", summary)
+                for n in (421, 422, 423)
+            ]
 
-        self.assertTrue(allowed)
-        self.assertFalse(second)
-        self.assertEqual(summary.armed_pr, 421)
+        self.assertEqual(results, [True, True, True])
+        self.assertEqual(summary.armed, [421, 422, 423])
         merges = [call for call in gh.call_args_list if "merge" in call.args]
-        self.assertEqual(len(merges), 1)
-        self.assertIn("421", merges[0].args)
-        self.assertIn("already uses this run's merge slot", summary.deferred[-1])
+        self.assertEqual(len(merges), 3)
+
+    def test_prepare_bound_counts_pushed_prs_only(self) -> None:
+        self.assertEqual(refresh.MAX_MECHANICAL_PER_RUN, 6)
+        summary = refresh.Summary()
+        self.assertEqual(summary.prepared, 0)
+
+    def test_chain_guard_skips_failed_publication_and_recent_runs(self) -> None:
+        now = datetime(2026, 10, 2, 12, 0, tzinfo=UTC)
+
+        def run(minutes_ago: int, **extra: object) -> dict[str, object]:
+            when = now - timedelta(minutes=minutes_ago)
+            return {
+                "databaseId": 7,
+                "status": "completed",
+                "conclusion": "success",
+                "updatedAt": when.isoformat().replace("+00:00", "Z"),
+            } | extra
+
+        self.assertTrue(refresh.recent_refresh_ran([run(3)], 99, now, 10))
+        self.assertFalse(refresh.recent_refresh_ran([run(30)], 99, now, 10))
+        self.assertTrue(
+            refresh.recent_refresh_ran([run(60, status="in_progress")], 99, now, 10)
+        )
+        # The current run never blocks itself.
+        self.assertFalse(
+            refresh.recent_refresh_ran([run(1, databaseId=99)], 99, now, 10)
+        )
+        self.assertFalse(
+            refresh.recent_refresh_ran([run(1, conclusion="cancelled")], 99, now, 10)
+        )
+
+    def test_chain_guard_command(self) -> None:
+        def decide(event: str, conclusion: str, runs: list[dict[str, object]]) -> str:
+            with tempfile.NamedTemporaryFile("w+", suffix=".out") as output:
+                arguments = refresh.argparse.Namespace(
+                    event=event, run_id=99, upstream_conclusion=conclusion
+                )
+                with (
+                    patch("refresh_upstream.gh_json", return_value=runs),
+                    patch.dict(os.environ, {"GITHUB_OUTPUT": output.name}),
+                ):
+                    refresh.command_guard(arguments)
+                return Path(output.name).read_text().strip()
+
+        recent = [
+            {
+                "databaseId": 7,
+                "status": "completed",
+                "conclusion": "success",
+                "updatedAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            }
+        ]
+        self.assertEqual(decide("schedule", "", recent), "run=true")
+        self.assertEqual(decide("workflow_dispatch", "", recent), "run=true")
+        self.assertEqual(decide("workflow_run", "success", []), "run=true")
+        self.assertEqual(decide("workflow_run", "failure", []), "run=false")
+        self.assertEqual(decide("workflow_run", "success", recent), "run=false")
+
+    def test_only_behind_refresh_branches_are_updated(self) -> None:
+        pulls = [
+            {"number": 1, "headRefName": "refresh/a", "mergeStateStatus": "BEHIND"},
+            {"number": 2, "headRefName": "refresh/b", "mergeStateStatus": "CLEAN"},
+            {"number": 3, "headRefName": "codex/x", "mergeStateStatus": "BEHIND"},
+        ]
+        self.assertEqual(
+            [p["number"] for p in refresh.stale_mechanical_prs(pulls)], [1]
+        )
+        summary = refresh.Summary()
+        with (
+            patch("refresh_upstream.gh_json", return_value=pulls),
+            patch("refresh_upstream.gh", return_value="") as gh,
+        ):
+            refresh.update_stale_prs(summary)
+        gh.assert_called_once_with("pr", "update-branch", "1", check=False)
 
 
 class NeverDowngradeTests(unittest.TestCase):

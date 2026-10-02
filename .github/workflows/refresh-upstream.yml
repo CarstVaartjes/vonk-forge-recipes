@@ -3,13 +3,21 @@ name: Refresh upstream pins
 # Hourly, no AI. Keeps recipes on the pinning rule (newest published upstream version,
 # else the latest commit; Model weights at the newest revision). Mechanical refreshes
 # become a bounded set of prepared pull requests (branch refresh/<recipe-id>, label
-# refresh:mechanical); at most one is auto-armed after main has a successful signed
-# publication and no other PR is armed. Everything else becomes one
+# refresh:mechanical); every prepared PR is auto-armed once main has a successful
+# signed publication (a bounded number is prepared per run). Everything else becomes one
 # refresh:needs-review issue per recipe and the recipe is left untouched. See
 # docs/recipe-authoring.md.
+#
+# GitHub drops and delays scheduled runs, so the refresh also chains: every finished
+# publication (which follows every merge to main) starts it, guarded against loops
+# (tools/refresh-upstream --guard).
 on:
   schedule:
     - cron: "23 * * * *"
+  workflow_run:
+    workflows: ["Publish recipe library release"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       verify_app_only:
@@ -17,13 +25,15 @@ on:
         type: boolean
         default: false
 
-# One run at a time; never cancel a run that may be mid-push.
+# One run at a time, and at most one waiting (GitHub replaces an older pending run),
+# so triggers never pile up; never cancel a run that may be mid-push.
 concurrency:
   group: refresh-upstream${{ inputs.verify_app_only && '-verify-app' || '' }}
   cancel-in-progress: false
 
 permissions:
   contents: read # upstream observations; mutations use the repository-scoped App
+  actions: read # the chain guard lists workflow runs
 
 jobs:
   refresh:
@@ -64,11 +74,21 @@ jobs:
           uv pip install --python "$venv/bin/python" -e contracts 'jsonschema>=4.24,<5' 'pytest==9.1.1'
           echo "REFRESH_PYTHON=$venv/bin/python" >> "$GITHUB_ENV"
 
+      - name: Chain guard
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          RUN_ID: ${{ github.run_id }}
+          UPSTREAM_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: '"$REFRESH_PYTHON" tools/refresh-upstream --guard --event "$EVENT" --run-id "$RUN_ID" --upstream-conclusion "$UPSTREAM_CONCLUSION"'
+
       - name: Test upstream inventory and refresh classification
+        if: ${{ steps.guard.outputs.run != 'false' }}
         run: '"$REFRESH_PYTHON" -m pytest -q tests/test_check_upstream_drift.py tests/test_refresh_upstream.py'
 
       - name: Refresh
-        if: ${{ !inputs.verify_app_only }}
+        if: ${{ !inputs.verify_app_only && steps.guard.outputs.run != 'false' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           REFRESH_APP_CLIENT_ID: ${{ vars.REFRESH_APP_CLIENT_ID }}

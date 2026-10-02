@@ -35,6 +35,7 @@ import urllib.request
 from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import quote
@@ -66,8 +67,15 @@ APP_AUTH: Any = None
 SHA = re.compile(r"^[0-9a-f]{40}$")
 LABEL_NEEDS_REVIEW = "refresh:needs-review"
 LABEL_MECHANICAL = "refresh:mechanical"
-# Full-suite verification takes minutes per recipe; the rest wait for the next hour.
-MAX_MECHANICAL_PER_RUN = 3
+# Full-suite verification takes minutes per recipe, so a run pushes (prepares) at most
+# this many new or updated PRs; the rest wait for the next run, which the publish
+# workflow chains. Arming is not bounded: every prepared PR is armed and GitHub merges
+# each one when its required checks pass. Publication keeps up because publish.yml
+# serialises on one concurrency group and every release is built from the newest main.
+MAX_MECHANICAL_PER_RUN = 6
+# A refresh triggered by a finished publication is skipped when another refresh run
+# finished this recently, so a publish -> refresh -> merge -> publish chain cannot spin.
+CHAIN_MIN_INTERVAL_MINUTES = 10
 # A model revision that resizes the disk envelope by more than this needs a human.
 MATERIAL_ENVELOPE_PERCENT = 1
 MAX_BODY = 60000
@@ -1741,39 +1749,12 @@ class Summary:
     unreachable: list[str] = field(default_factory=list)
     deferred: list[str] = field(default_factory=list)
     failures: list[str] = field(default_factory=list)
-    armed_pr: int | None = None
+    armed: list[int] = field(default_factory=list)
+    prepared: int = 0
+    receipt: bool | None = None  # main's publication receipt, looked up once per run
 
 
-def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
-    """Arm at most one mechanical PR after main has a successful publication receipt."""
-    if summary.armed_pr is not None:
-        summary.deferred.append(
-            f"{recipe_id}: prepared PR #{number}; PR #{summary.armed_pr} already uses this run's merge slot"
-        )
-        return False
-
-    pull_requests = gh_json(
-        "pr",
-        "list",
-        "--state",
-        "open",
-        "--limit",
-        "1000",
-        "--json",
-        "number,autoMergeRequest",
-    )
-    armed = [
-        pr
-        for pr in pull_requests
-        if pr.get("autoMergeRequest") and pr.get("number") != number
-    ]
-    if armed:
-        numbers = ", ".join(f"#{pr['number']}" for pr in armed[:5])
-        summary.deferred.append(
-            f"{recipe_id}: prepared PR #{number}; another PR already has auto-merge armed ({numbers})"
-        )
-        return False
-
+def main_has_receipt() -> tuple[bool, str]:
     main_head = gh("api", "repos/{owner}/{repo}/commits/main", "--jq", ".sha").strip()
     if not SHA.fullmatch(main_head):
         raise RuntimeError(
@@ -1791,14 +1772,68 @@ def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
         "--json",
         "headSha,status,conclusion",
     )
-    if not has_publication_receipt(main_head, runs):
+    return has_publication_receipt(main_head, runs), main_head
+
+
+def file_overlaps(
+    number: int, pull_requests: list[dict[str, Any]], armed: Iterable[int] = ()
+) -> list[int]:
+    """Armed PRs (open with auto-merge, or armed earlier in this run) sharing a file with PR ``number``.
+
+    Recipe files are per recipe, so refreshes only collide when two recipes share a
+    Model file; the later PR then waits for the next run and is regenerated on main.
+    """
+
+    def paths(pr: dict[str, Any]) -> set[str]:
+        return {f.get("path", "") for f in pr.get("files") or []}
+
+    own = next((paths(pr) for pr in pull_requests if pr.get("number") == number), set())
+    taken = set(armed)
+    return sorted(
+        pr["number"]
+        for pr in pull_requests
+        if pr.get("number") != number
+        and (pr.get("autoMergeRequest") or pr.get("number") in taken)
+        and paths(pr) & own
+    )
+
+
+def arm_mechanical_pr(number: int, recipe_id: str, summary: Summary) -> bool:
+    """Arm a prepared mechanical PR once main has a successful publication receipt.
+
+    Every prepared PR is armed, not one per run: required checks gate each merge and
+    publication coalesces back-to-back merges. Only a shared file with another armed PR
+    (a real merge conflict) or an unpublished main defers it.
+    """
+    if number in summary.armed:
+        return True
+    if summary.receipt is None:
+        summary.receipt, _ = main_has_receipt()
+    if not summary.receipt:
         summary.deferred.append(
-            f"{recipe_id}: prepared PR #{number}; main {main_head[:12]} has no successful publish.yml receipt yet"
+            f"{recipe_id}: prepared PR #{number}; waiting for main's publish.yml receipt"
+        )
+        return False
+
+    pull_requests = gh_json(
+        "pr",
+        "list",
+        "--state",
+        "open",
+        "--limit",
+        "1000",
+        "--json",
+        "number,autoMergeRequest,files",
+    )
+    if conflicting := file_overlaps(number, pull_requests, summary.armed):
+        numbers = ", ".join(f"#{n}" for n in conflicting[:5])
+        summary.deferred.append(
+            f"{recipe_id}: prepared PR #{number}; shares files with armed PR {numbers}"
         )
         return False
 
     gh("pr", "merge", str(number), "--auto", "--squash")
-    summary.armed_pr = number
+    summary.armed.append(number)
     return True
 
 
@@ -1856,6 +1891,7 @@ def publish_mechanical(root: Path, assessment: Assessment, summary: Summary) -> 
             )
             return
     git("push", "-q", "--force", "origin", f"HEAD:refs/heads/{branch}", cwd=root)
+    summary.prepared += 1
     title = f"Refresh {recipe_id} to the newest upstream pins"
     body = pr_body(assessment)
     if open_pr:
@@ -2005,6 +2041,91 @@ def foreign_open_prs() -> dict[int, set[str]]:
     return found
 
 
+def update_stale_prs(summary: Summary) -> None:
+    """Bring open refresh:mechanical PRs that fell behind main up to date.
+
+    Best effort: a PR whose recipe still drifts was already regenerated on main by this
+    run; the rest are merged forward. A merge conflict is left to the next regeneration.
+    """
+    pull_requests = gh_json(
+        "pr",
+        "list",
+        "--state",
+        "open",
+        "--label",
+        LABEL_MECHANICAL,
+        "--limit",
+        "200",
+        "--json",
+        "number,headRefName,mergeStateStatus",
+    )
+    for pr in stale_mechanical_prs(pull_requests):
+        result = gh("pr", "update-branch", str(pr["number"]), check=False)
+        summary.lines.append(f"PR #{pr['number']}: updated from main {result.strip()}")
+
+
+def stale_mechanical_prs(pull_requests: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        pr
+        for pr in pull_requests
+        if str(pr.get("headRefName", "")).startswith("refresh/")
+        and pr.get("mergeStateStatus") == "BEHIND"
+    ]
+
+
+def recent_refresh_ran(
+    runs: list[dict[str, Any]], run_id: int, now: datetime, minutes: int
+) -> bool:
+    """Another refresh run is active or finished within ``minutes`` of ``now``."""
+    for run in runs:
+        if run.get("databaseId") == run_id:
+            continue
+        if run.get("status") != "completed":
+            return True
+        finished = datetime.fromisoformat(str(run.get("updatedAt", "")))
+        if run.get("conclusion") == "success" and now - finished < timedelta(
+            minutes=minutes
+        ):
+            return True
+    return False
+
+
+def command_guard(arguments: argparse.Namespace) -> int:
+    """Decide whether a chained (workflow_run) refresh should proceed.
+
+    Scheduled and manual runs always proceed. A run chained from a finished
+    publication proceeds unless the publication failed or another refresh ran in the
+    last CHAIN_MIN_INTERVAL_MINUTES, which breaks publish -> refresh -> publish loops.
+    """
+    run = True
+    if arguments.event == "workflow_run":
+        if arguments.upstream_conclusion != "success":
+            run = False
+        else:
+            runs = gh_json(
+                "run",
+                "list",
+                "--workflow",
+                "refresh-upstream.yml",
+                "--limit",
+                "10",
+                "--json",
+                "databaseId,status,conclusion,updatedAt",
+            )
+            run = not recent_refresh_ran(
+                runs,
+                arguments.run_id,
+                datetime.now(UTC),
+                CHAIN_MIN_INTERVAL_MINUTES,
+            )
+    output = os.environ.get("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a", encoding="utf-8") as handle:
+            handle.write(f"run={'true' if run else 'false'}\n")
+    print(f"refresh {'proceeds' if run else 'skipped by the chain guard'}")
+    return 0
+
+
 def publish_if_stale() -> None:
     """Repair a missing publication receipt without duplicating an active main run."""
     head = gh("api", "repos/{owner}/{repo}/commits/main", "--jq", ".sha").strip()
@@ -2049,7 +2170,8 @@ def write_summary(
         "",
         (
             f"{summary.current} recipes had no drift in configured source, adapter and Model watches; "
-            f"{len(summary.mechanical)} mechanical pull requests; "
+            f"{len(summary.mechanical)} mechanical pull requests "
+            f"({summary.prepared} prepared, {len(summary.armed)} armed); "
             f"{len(summary.review)} need review; {len(summary.unreachable)} unreachable. "
             f"{http.requests} upstream requests ({http.not_modified} answered 304)."
         ),
@@ -2165,7 +2287,6 @@ def command_run(arguments: argparse.Namespace) -> int:
     summary.current = sum(1 for r in results if not r.drifted and not r.unreachable)
     review_ids: set[str] = set()
     failed: set[str] = set()
-    published = 0
     open_prs = foreign_open_prs()
     for result in results:
         if result.drifted and (
@@ -2188,14 +2309,12 @@ def command_run(arguments: argparse.Namespace) -> int:
             continue
         try:
             if result.mechanical:
-                if published >= MAX_MECHANICAL_PER_RUN:
+                if summary.prepared >= MAX_MECHANICAL_PER_RUN:
                     summary.deferred.append(
                         f"{result.recipe_id}: mechanical, over this run's limit"
                     )
                     continue
-                before = len(summary.mechanical)
                 publish_mechanical(root, result, summary)
-                published += len(summary.mechanical) - before
             if result.reasons:
                 review_ids.add(result.recipe_id)
                 sync_issue(result, summary)
@@ -2204,6 +2323,7 @@ def command_run(arguments: argparse.Namespace) -> int:
             summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
     try:
         close_current_issues(assessed, review_ids | failed, summary)
+        update_stale_prs(summary)
         publish_if_stale()
     except RuntimeError as error:
         summary.failures.append(f"housekeeping: {str(error)[:300]}")
@@ -2229,7 +2349,17 @@ def main() -> int:
         action="store_true",
         help="verify App authentication and exact repository scope; change no recipes",
     )
+    parser.add_argument(
+        "--guard",
+        action="store_true",
+        help="only decide whether a chained refresh should proceed (needs gh, no App)",
+    )
+    parser.add_argument("--event", default="schedule")
+    parser.add_argument("--run-id", type=int, default=0)
+    parser.add_argument("--upstream-conclusion", default="success")
     arguments = parser.parse_args()
+    if arguments.guard:
+        return command_guard(arguments)
     if arguments.verify_app and not arguments.github_app:
         parser.error("--verify-app requires --github-app")
     global APP_AUTH
