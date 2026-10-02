@@ -432,7 +432,14 @@ whose patches apply to v0.6.0).
   vendors the base archive for that commit and moves the Dockerfile's commit, archive
   file name and archive digest. `kit-lock.json` is generated output and is never edited
   by hand; the Dockerfile header comment and licence labels are the author's to review.
-  Builds read only the lock and never resolve a tag.
+  Builds read only the lock and never resolve a tag. The lock records what the declared
+  ref named (`"kind"`: `tag`, `branch` or `commit`).
+- **Branches.** A kit may declare a branch (a creator's fork branch) instead of a tag.
+  `lock` resolves the branch head to a commit once and locks it as `"kind": "branch"`,
+  as a Nix flake locks a branch input; the build and `check` use only the locked
+  commit, so a moving branch changes nothing by itself. The scanner resolves the head
+  again: a moved head is a change of the kit's dependency, so a review (compare the
+  branch's new commits, then run `tools/kit-pins lock`).
 - **Check.** `tools/kit-pins check` (CI) is the "lock is up to date" gate: it re-reads
   the declaring file at the pinned kit commit and fails when the committed lock differs,
   when the manifest keeps a hand-authored `source` pin beside the declaration, or when

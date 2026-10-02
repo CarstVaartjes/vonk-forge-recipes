@@ -50,6 +50,8 @@ CONFIG = {
     KIT_NEW: 'MODEL_ID="x"\nTF_VERSION="${TF_VERSION:-v0.6.0}"\nTF_REPO="${TF_REPO:-https://github.com/ashhart/TensorFold.git}"\n',
 }
 TAGS = {"v0.5.0": BASE_050, "v0.6.0": BASE_060, "v0.6.1": BASE_061, "v0.6.2": BASE_062}
+BRANCH_OLD = "b" * 40
+BRANCH_NEW = "c" * 40
 MANIFEST = {
     "kit": {
         "dependencies": {
@@ -70,6 +72,7 @@ class FakeApi:
 
     def __init__(self, config: dict[str, str] | None = None) -> None:
         self.config = CONFIG if config is None else config
+        self.branches: dict[str, str] = {}
         self.calls: list[str] = []
         self.compare: dict[tuple[str, str], dict[str, Any]] = {}
 
@@ -85,9 +88,13 @@ class FakeApi:
                 "encoding": "base64",
                 "content": base64.b64encode(text.encode()).decode(),
             }
+        if route[3:6] == ["git", "ref", "heads"]:
+            if "/".join(route[6:]) not in self.branches:
+                raise RuntimeError(f"HTTP 404 for {path}")
+            return {"ref": "refs/heads/" + "/".join(route[6:])}
         if route[3] == "commits":
-            ref = route[4]
-            commit = TAGS.get(ref, ref)
+            ref = "/".join(route[4:])
+            commit = self.branches.get(ref) or TAGS.get(ref, ref)
             return {
                 "sha": commit,
                 "html_url": f"https://github.com/{route[1]}/{route[2]}/commit/{commit}",
@@ -180,7 +187,12 @@ class DerivationTests(unittest.TestCase):
             json.loads(text),
             {
                 "dependencies": {
-                    "base": {"commit": BASE_060, "ref": "v0.6.0", "repo": BASE}
+                    "base": {
+                        "commit": BASE_060,
+                        "kind": "tag",
+                        "ref": "v0.6.0",
+                        "repo": BASE,
+                    }
                 },
                 "kit": {"commit": KIT_NEW, "repo": KIT},
             },
@@ -188,6 +200,88 @@ class DerivationTests(unittest.TestCase):
         self.assertEqual(
             text, json.dumps(json.loads(text), indent=2, sort_keys=True) + "\n"
         )
+
+
+KIT_BRANCH = "d" * 40  # declares the branch glm-long-context
+CONFIG_BRANCH = {
+    KIT_BRANCH: "TF_REF=glm-long-context\n",
+}
+BRANCH_PATTERN = r"^TF_REF=(?P<version>\S+)$"
+BRANCH_MANIFEST = {
+    "kit": {
+        "dependencies": {
+            "base": {
+                "repo": "taussoe/TensorFold",
+                "datasource": "git-ref",
+                "file": "scripts/config.sh",
+                "pattern": BRANCH_PATTERN,
+            }
+        }
+    },
+    "ours": ["licenses/", "patches/", "vendor/"],
+}
+
+
+class BranchDeclarationTests(unittest.TestCase):
+    """A kit that declares a branch is followed like a Nix branch input."""
+
+    def api(self, head: str = BRANCH_OLD) -> FakeApi:
+        api = FakeApi(CONFIG_BRANCH)
+        api.branches["glm-long-context"] = head
+        return api
+
+    def derive(self, api: FakeApi) -> Any:
+        wanted = kit_pins.declarations(BRANCH_MANIFEST)
+        return kit_pins.derive(KIT, KIT_BRANCH, wanted, kit_pins.GitHub(api))[0]
+
+    def test_a_declared_branch_is_resolved_to_its_head_commit_and_locked_as_a_branch(
+        self,
+    ) -> None:
+        pin = self.derive(self.api())
+        self.assertEqual(
+            (pin.ref, pin.kind, pin.commit),
+            ("glm-long-context", "branch", BRANCH_OLD),
+        )
+        lock = kit_pins.lock_document(KIT, KIT_BRANCH, [pin])
+        self.assertEqual(
+            lock["dependencies"]["base"],
+            {
+                "repo": "taussoe/TensorFold",
+                "ref": "glm-long-context",
+                "kind": "branch",
+                "commit": BRANCH_OLD,
+            },
+        )
+
+    def test_tags_and_commits_keep_their_own_kind(self) -> None:
+        source = kit_pins.GitHub(FakeApi())
+        self.assertEqual(source.kind(BASE, "v0.6.0"), "tag")
+        self.assertEqual(source.kind(BASE, "191188075bca"), "commit")
+        self.assertEqual(source.kind(BASE, BASE_060), "commit")
+
+    def test_a_branch_with_a_slash_in_its_name_is_a_branch(self) -> None:
+        api = FakeApi()
+        api.branches["integration/0.6.1"] = BRANCH_OLD
+        self.assertEqual(kit_pins.GitHub(api).kind(BASE, "integration/0.6.1"), "branch")
+
+    def test_a_moved_branch_does_not_make_the_committed_lock_stale(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_adapter(
+                root,
+                kit_commit=KIT_BRANCH,
+                base_commit=BRANCH_OLD,
+                base_ref="glm-long-context",
+                base_kind="branch",
+                manifest=BRANCH_MANIFEST,
+                base_repo="taussoe/TensorFold",
+            )
+            api = self.api(BRANCH_NEW)
+            problems = kit_pins.check_recipe(
+                root, "mia", recipe_for(KIT_BRANCH), kit_pins.GitHub(api)
+            )
+        self.assertEqual([p for p in problems if "stale" in p], [])
+        self.assertFalse(any("heads" in call for call in api.calls), api.calls)
 
 
 def recipe_for(kit_commit: str, context: str = "adapters/mia") -> dict[str, Any]:
@@ -213,6 +307,8 @@ def write_adapter(
     manifest: dict[str, Any] | None = None,
     lock: bool = True,
     dockerfile_commit: str | None = None,
+    base_kind: str = "tag",
+    base_repo: str = BASE,
 ) -> Path:
     import hashlib
 
@@ -239,7 +335,12 @@ def write_adapter(
             kit_pins.lock_text(
                 {
                     "dependencies": {
-                        "base": {"commit": base_commit, "ref": base_ref, "repo": BASE}
+                        "base": {
+                            "commit": base_commit,
+                            "kind": base_kind,
+                            "ref": base_ref,
+                            "repo": base_repo,
+                        }
                     },
                     "kit": {"commit": kit_commit, "repo": KIT},
                 }
@@ -663,6 +764,42 @@ class AssessmentTests(unittest.TestCase):
         self.assertFalse(result.mechanical)
         self.assertTrue(
             any("cannot be read" in r for r in result.reasons), result.reasons
+        )
+
+
+class BranchAssessmentTests(unittest.TestCase):
+    def assess(self, locked: str, head: str) -> Any:
+        api = FakeApi(CONFIG_BRANCH)
+        api.branches["glm-long-context"] = head
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog = kit_catalog(
+                Path(tmp),
+                KIT_BRANCH,
+                base_commit=locked,
+                base_ref="glm-long-context",
+                base_kind="branch",
+                manifest=BRANCH_MANIFEST,
+                base_repo="taussoe/TensorFold",
+            )
+            return assessor_for(catalog, api, KIT_BRANCH).assess("mia")
+
+    def test_a_branch_at_its_locked_commit_is_not_drift(self) -> None:
+        result = self.assess(BRANCH_OLD, BRANCH_OLD)
+        self.assertFalse(result.drifted)
+
+    def test_a_moved_branch_head_is_a_kit_dependency_change_for_review(self) -> None:
+        result = self.assess(BRANCH_OLD, BRANCH_NEW)
+        self.assertTrue(result.drifted)
+        self.assertFalse(result.mechanical)
+        self.assertEqual(result.items, [])
+        self.assertTrue(
+            any(
+                "branch `glm-long-context`" in r
+                and BRANCH_OLD[:12] in r
+                and BRANCH_NEW[:12] in r
+                for r in result.reasons
+            ),
+            result.reasons,
         )
 
 
