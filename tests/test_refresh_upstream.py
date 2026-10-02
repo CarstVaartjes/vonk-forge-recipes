@@ -591,8 +591,9 @@ class MergeGateTests(unittest.TestCase):
 
         self.assertTrue(refresh.recent_refresh_ran([run(3)], 99, now, 10))
         self.assertFalse(refresh.recent_refresh_ran([run(30)], 99, now, 10))
-        self.assertTrue(
-            refresh.recent_refresh_ran([run(60, status="in_progress")], 99, now, 10)
+        # Active or queued runs never block a chained run (the concurrency group queues).
+        self.assertFalse(
+            refresh.recent_refresh_ran([run(1, status="in_progress")], 99, now, 10)
         )
         # The current run never blocks itself.
         self.assertFalse(
