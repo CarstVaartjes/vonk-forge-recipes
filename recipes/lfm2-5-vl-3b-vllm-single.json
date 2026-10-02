@@ -169,11 +169,11 @@
     "attribution": [
       "liquidai"
     ],
-    "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/a3af5799199acdd2a4f56ac4342816abb46c12a9"
+    "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-VL-3B/tree/35a118d938ce6d123ac2d371649f24a8efb69058"
   },
   "release": {
     "released_at": "2026-09-28",
-    "version": "1.2.0"
+    "version": "1.2.1"
   },
   "runtime": {
     "arguments": [
