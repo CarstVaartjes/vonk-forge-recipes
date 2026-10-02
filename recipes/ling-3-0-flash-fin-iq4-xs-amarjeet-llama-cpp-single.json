@@ -117,11 +117,11 @@
       "inclusionAI",
       "llama.cpp contributors"
     ],
-    "source_reference": "https://github.com/amarjeet/dgx-spark-recipes/tree/67c5c388026c3984acd8d96fbbb12c5643205719"
+    "source_reference": "https://github.com/amarjeet/dgx-spark-recipes/tree/43697e780972fd63c1378c532b392edbe95240bc"
   },
   "release": {
-    "released_at": "2026-09-29",
-    "version": "1.0.0"
+    "released_at": "2026-10-02",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
