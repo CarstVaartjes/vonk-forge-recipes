@@ -1,10 +1,10 @@
 {
   "dependencies": {
     "base": {
-      "commit": "191188075bca56a7c71074a79375eb4c1cb22e1c",
-      "kind": "commit",
-      "ref": "191188075bca56a7c71074a79375eb4c1cb22e1c",
-      "repo": "ashhart/TensorFold"
+      "commit": "c32abe92411eced43565a63f5be7fe3595f8e22c",
+      "kind": "branch",
+      "ref": "glm-long-context",
+      "repo": "taussoe/TensorFold"
     }
   },
   "kit": {
