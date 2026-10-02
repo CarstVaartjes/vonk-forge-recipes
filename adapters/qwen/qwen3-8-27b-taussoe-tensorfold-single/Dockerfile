@@ -1,17 +1,17 @@
-# TensorFold v0.3.6.3 (MIT, commit 19118807) with the Qwen3.8-27B CUDA engine and DFlash2 drafting, on NVIDIA's PyTorch container (arm64).
+# taussoe/TensorFold branch glm-long-context at c32abe92 (MIT; TensorFold 0.3.6.3 plus the creator's long-context work) with the Qwen3.8-27B CUDA engine and DFlash2 drafting, on NVIDIA's PyTorch container (arm64).
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 
-LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
-      org.opencontainers.image.revision="191188075bca56a7c71074a79375eb4c1cb22e1c" \
+LABEL org.opencontainers.image.source="https://github.com/taussoe/TensorFold" \
+      org.opencontainers.image.revision="c32abe92411eced43565a63f5be7fe3595f8e22c" \
       org.opencontainers.image.licenses="MIT" \
       io.vonk.recipe.source="https://github.com/taussoe/tensorfold-recipes/tree/d8a7c09c893eb41be5e93dbd684ce7d4f127d7ac"
 
 # NGC exports PIP_CONSTRAINT for its own stack; the hash-pinned lock below is resolved without it and leaves torch and numpy alone.
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
 
-COPY vendor/tensorfold-191188075bca56a7c71074a79375eb4c1cb22e1c.tar.gz /tmp/tensorfold.tar.gz
+COPY vendor/tensorfold-c32abe92411eced43565a63f5be7fe3595f8e22c.tar.gz /tmp/tensorfold.tar.gz
 COPY requirements.lock /tmp/requirements.lock
-RUN echo "d2e8665e2adb80d8d98fdd6b5d4c8923e562732b0c6f388ca56a559956979ddf  /tmp/tensorfold.tar.gz" | sha256sum -c - \
+RUN echo "8bf12b9a2e44cbc78e669eb08b3d02aba8ab1e4dae0d66dfa1c5e856f7f836d4  /tmp/tensorfold.tar.gz" | sha256sum -c - \
     && mkdir /tmp/tensorfold-src \
     && tar -xzf /tmp/tensorfold.tar.gz -C /tmp/tensorfold-src --strip-components=1 \
     && PIP_CONSTRAINT= python -m pip install --ignore-installed --no-deps --no-cache-dir --require-hashes --requirement /tmp/requirements.lock \

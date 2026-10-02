@@ -3,9 +3,9 @@
     "dependencies": {
       "base": {
         "datasource": "git-ref",
-        "file": "lib/common.sh",
-        "pattern": "^TENSORFOLD_COMMIT=(?P<version>[0-9a-f]{7,40})$",
-        "repo": "ashhart/TensorFold"
+        "file": "lib/engine-tensorfold-spark.sh",
+        "pattern": "\"\\$\\{ENGINE_BRANCH:=(?P<version>[^}\"]+)\\}\"",
+        "repo_pattern": "\"\\$\\{ENGINE_REPO:=(?P<repo>[^}\"]+)\\}\""
       }
     }
   },
