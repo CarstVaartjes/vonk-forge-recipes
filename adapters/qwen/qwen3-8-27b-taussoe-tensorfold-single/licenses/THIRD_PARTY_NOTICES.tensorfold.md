@@ -50,10 +50,6 @@ The MLX engine of `glm5_next` (`src/tensorfold/families/glm5_next/`: the forward
   and `GEMVTKernel` (`gemv.h`) and the `rms_norm` kernels, one row per grid slice with the tiling MLX picks for one
   row, so each row keeps MLX's one-row bits.
 
-OpenAI `response_format` structured generation uses [xgrammar](https://github.com/mlc-ai/xgrammar)
-(Apache-2.0), with [Apache TVM FFI](https://github.com/apache/tvm-ffi) (Apache-2.0),
-installed as pinned runtime dependencies.
-
 ## CUDA
 
 CUDA backends use [PyTorch](https://github.com/pytorch/pytorch), BSD-3-Clause, and

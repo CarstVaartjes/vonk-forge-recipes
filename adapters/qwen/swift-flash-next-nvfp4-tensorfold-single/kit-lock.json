@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "base": {
+      "commit": "191188075bca56a7c71074a79375eb4c1cb22e1c",
+      "kind": "commit",
+      "ref": "191188075bca56a7c71074a79375eb4c1cb22e1c",
+      "repo": "ashhart/TensorFold"
+    }
+  },
+  "kit": {
+    "commit": "b695b88f786977428246dcc3e0d97293caca2c34",
+    "repo": "tournierjc/Swift-1.5-TensorFold-Single-DGX-Spark"
+  }
+}

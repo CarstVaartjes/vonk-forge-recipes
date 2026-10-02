@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "base": {
+      "commit": "191188075bca56a7c71074a79375eb4c1cb22e1c",
+      "kind": "commit",
+      "ref": "191188075bca56a7c71074a79375eb4c1cb22e1c",
+      "repo": "ashhart/TensorFold"
+    }
+  },
+  "kit": {
+    "commit": "d8a7c09c893eb41be5e93dbd684ce7d4f127d7ac",
+    "repo": "taussoe/tensorfold-recipes"
+  }
+}
