@@ -434,6 +434,10 @@ whose patches apply to v0.6.0).
   by hand; the Dockerfile header comment and licence labels are the author's to review.
   Builds read only the lock and never resolve a tag. The lock records what the declared
   ref named (`"kind"`: `tag`, `branch` or `commit`).
+- **Declared repository.** A kit that also declares which repository it builds (a creator's
+  fork, e.g. `ARG TF_REPO=`) gives `repo_pattern` (group `repo`, an `owner/name` or GitHub
+  URL) instead of `repo`; the lock records the repository with the commit, and a kit that
+  moves to another repository is a review like a moved ref.
 - **Branches.** A kit may declare a branch (a creator's fork branch) instead of a tag.
   `lock` resolves the branch head to a commit once and locks it as `"kind": "branch"`,
   as a Nix flake locks a branch input; the build and `check` use only the locked
