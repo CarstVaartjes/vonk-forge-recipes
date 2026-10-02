@@ -27,6 +27,11 @@ declares each dependency, in the shape of a Renovate regex manager::
   branch head to a commit and records ``"kind": "branch"``; the build and ``check`` use only
   the locked commit, so a branch that moves changes nothing until the next ``lock``. The
   refresh scanner reports a moved head as a change of the kit's dependency (a review).
+* ``repo`` names the repository the version is of. A kit that also declares *which*
+  repository it builds (a fork, as ``ARG TF_REPO=...``) is followed there too: give
+  ``repo_pattern`` (a regex with a ``(?P<repo>...)`` group, an ``owner/name`` or a GitHub
+  URL, exactly one distinct match in the same file) instead of ``repo``. The lock records
+  the repository with the commit.
 * ``override`` is the only way to deviate from the kit (a known-bad upstream, a security
   fix). It needs a reason and replaces the declaration; refresh reports it as overridden
   and proposes nothing.
@@ -90,6 +95,7 @@ class Declaration:
     file: str
     pattern: str
     override: dict[str, str] | None = None
+    repo_pattern: str | None = None  # the repo is declared by the kit too
 
 
 @dataclass(frozen=True, slots=True)
@@ -214,7 +220,14 @@ def declarations(manifest: dict[str, Any]) -> list[Declaration]:
         return []
     found: list[Declaration] = []
     for name, entry in sorted(block.get("dependencies", {}).items()):
-        missing = {"repo", "datasource", "file", "pattern"} - set(entry)
+        required = {"datasource", "file", "pattern"}
+        if "repo_pattern" not in entry:
+            required.add("repo")
+        elif "repo" in entry:
+            raise KitError(
+                f"kit dependency '{name}': give either repo or repo_pattern, not both"
+            )
+        missing = required - set(entry)
         if missing:
             raise KitError(
                 f"kit dependency '{name}' lacks {', '.join(sorted(missing))}"
@@ -241,14 +254,26 @@ def declarations(manifest: dict[str, Any]) -> list[Declaration]:
             raise KitError(
                 f"kit dependency '{name}': the pattern has no (?P<version>...) group"
             )
+        if "repo_pattern" in entry:
+            try:
+                repo_compiled = re.compile(entry["repo_pattern"], re.MULTILINE)
+            except re.error as error:
+                raise KitError(
+                    f"kit dependency '{name}': invalid repo_pattern: {error}"
+                ) from error
+            if "repo" not in repo_compiled.groupindex:
+                raise KitError(
+                    f"kit dependency '{name}': the repo_pattern has no (?P<repo>...) group"
+                )
         found.append(
             Declaration(
                 name,
-                entry["repo"],
+                entry.get("repo", ""),
                 entry["datasource"],
                 entry["file"],
                 entry["pattern"],
                 override,
+                entry.get("repo_pattern"),
             )
         )
     return found
@@ -271,6 +296,48 @@ def parse_declared(text: str, declaration: Declaration) -> str:
     return matches[0]
 
 
+def parse_repo(text: str, declaration: Declaration) -> str:
+    """The base repository: the manifest's ``repo``, or what the kit declares."""
+    if declaration.repo_pattern is None:
+        return declaration.repo
+    matches = {
+        _owner_name(m.group("repo"))
+        for m in re.finditer(declaration.repo_pattern, text, re.MULTILINE)
+    }
+    if not matches:
+        raise KitError(
+            f"kit dependency '{declaration.name}': nothing in {declaration.file} matches "
+            "its repo_pattern at the pinned kit commit"
+        )
+    if len(matches) > 1:
+        raise KitError(
+            f"kit dependency '{declaration.name}': {declaration.file} declares several "
+            f"repositories ({', '.join(sorted(matches))}); narrow the repo_pattern"
+        )
+    return next(iter(matches))
+
+
+def _owner_name(value: str) -> str:
+    """``owner/name`` from a GitHub URL (``.git`` and trailing slash allowed) or itself."""
+    value = value.strip().rstrip("/").removesuffix(".git")
+    value = re.sub(r"^(?:https?://|git@)github\.com[/:]", "", value)
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
+        raise KitError(f"'{value}' is not a GitHub repository")
+    return value
+
+
+def read_declared(
+    source: GitHub, kit_repo: str, kit_commit: str, declaration: Declaration
+) -> tuple[str, str, str | None]:
+    """``(repo, ref, override reason)`` the kit declares at ``kit_commit``."""
+    text = source.read(kit_repo, kit_commit, declaration.file)
+    repo = parse_repo(text, declaration)
+    if declaration.override is not None:
+        ref = declaration.override.get("ref") or declaration.override["commit"]
+        return repo, ref, declaration.override["reason"]
+    return repo, parse_declared(text, declaration), None
+
+
 def derive(
     kit_repo: str,
     kit_commit: str,
@@ -280,23 +347,16 @@ def derive(
     """Resolve what the kit declares at ``kit_commit`` to immutable commits."""
     pins: list[Pin] = []
     for declaration in wanted:
-        if declaration.override is not None:
-            ref = declaration.override.get("ref") or declaration.override["commit"]
-            reason: str | None = declaration.override["reason"]
-        else:
-            ref = parse_declared(
-                source.read(kit_repo, kit_commit, declaration.file), declaration
-            )
-            reason = None
-        commit, date = source.resolve(declaration.repo, ref)
+        repo, ref, reason = read_declared(source, kit_repo, kit_commit, declaration)
+        commit, date = source.resolve(repo, ref)
         pins.append(
             Pin(
                 declaration.name,
-                declaration.repo,
+                repo,
                 ref,
                 commit,
                 date,
-                source.kind(declaration.repo, ref),
+                source.kind(repo, ref),
                 reason,
             )
         )
@@ -470,18 +530,11 @@ def check_recipe(
             if locked is None:
                 problems.append(f"{label}: {LOCK} lacks '{declaration.name}'")
                 continue
-            if declaration.override is not None:
-                ref = declaration.override.get("ref") or declaration.override["commit"]
-                reason: str | None = declaration.override["reason"]
-            else:
-                ref = parse_declared(
-                    source.read(kit[0], kit[1], declaration.file), declaration
-                )
-                reason = None
+            repo, ref, reason = read_declared(source, kit[0], kit[1], declaration)
             pins.append(
                 Pin(
                     declaration.name,
-                    declaration.repo,
+                    repo,
                     ref,
                     locked["commit"],
                     "",

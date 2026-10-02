@@ -909,6 +909,89 @@ class IssueFreshnessTests(unittest.TestCase):
         self.assertEqual(refresh.issue_body(issue_assessment([KIT_NEW]), first), first)
 
 
+FORK = "tournierjc/TensorFold"
+KIT_FORK = "e" * 40
+FORK_COMMIT = "f" * 40
+FORK_MANIFEST = {
+    "kit": {
+        "dependencies": {
+            "base": {
+                "datasource": "git-ref",
+                "file": "scripts/config.sh",
+                "pattern": r"^ARG TF_REF=(?P<version>[0-9a-f]{7,40})$",
+                "repo_pattern": r"^ARG TF_REPO=(?P<repo>\S+)$",
+            }
+        }
+    }
+}
+
+
+class DeclaredRepositoryTests(unittest.TestCase):
+    """A kit that declares the repository it builds (a fork) is followed there."""
+
+    def derive(self, text: str, manifest: dict[str, Any] = FORK_MANIFEST) -> Any:
+        api = FakeApi({KIT_FORK: text})
+        api.branches["integration/0.6.1"] = FORK_COMMIT
+        wanted = kit_pins.declarations(manifest)
+        return kit_pins.derive(KIT, KIT_FORK, wanted, kit_pins.GitHub(api))[0]
+
+    def test_the_repository_and_the_ref_are_locked_together(self) -> None:
+        pin = self.derive(
+            f"ARG TF_REPO=https://github.com/{FORK}.git\nARG TF_REF={FORK_COMMIT}\n"
+        )
+        self.assertEqual((pin.repo, pin.ref, pin.kind), (FORK, FORK_COMMIT, "commit"))
+        lock = kit_pins.lock_document(KIT, KIT_FORK, [pin])
+        self.assertEqual(lock["dependencies"]["base"]["repo"], FORK)
+
+    def test_a_plain_owner_name_is_accepted(self) -> None:
+        pin = self.derive(f"ARG TF_REPO={FORK}\nARG TF_REF={FORK_COMMIT}\n")
+        self.assertEqual(pin.repo, FORK)
+
+    def test_no_or_several_repositories_is_an_error(self) -> None:
+        with self.assertRaisesRegex(kit_pins.KitError, "repo_pattern"):
+            self.derive(f"ARG TF_REF={FORK_COMMIT}\n")
+        with self.assertRaisesRegex(kit_pins.KitError, "several repositories"):
+            self.derive(
+                f"ARG TF_REPO={FORK}\nARG TF_REPO={BASE}\nARG TF_REF={FORK_COMMIT}\n"
+            )
+
+    def test_repo_and_repo_pattern_are_exclusive_and_the_group_is_needed(self) -> None:
+        both = json.loads(json.dumps(FORK_MANIFEST))
+        both["kit"]["dependencies"]["base"]["repo"] = BASE
+        with self.assertRaisesRegex(kit_pins.KitError, "not both"):
+            kit_pins.declarations(both)
+        bad = json.loads(json.dumps(FORK_MANIFEST))
+        bad["kit"]["dependencies"]["base"]["repo_pattern"] = r"^ARG TF_REPO=\S+$"
+        with self.assertRaisesRegex(kit_pins.KitError, "no .*repo"):
+            kit_pins.declarations(bad)
+
+    def test_a_kit_that_moves_to_another_repository_makes_the_lock_stale(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_adapter(
+                root,
+                kit_commit=KIT_FORK,
+                base_commit=FORK_COMMIT,
+                base_ref=FORK_COMMIT,
+                base_kind="commit",
+                base_repo=BASE,  # the lock still says the old repository
+                manifest=FORK_MANIFEST,
+            )
+            problems = kit_pins.check_recipe(
+                root,
+                "mia",
+                recipe_for(KIT_FORK),
+                kit_pins.GitHub(
+                    FakeApi(
+                        {
+                            KIT_FORK: f"ARG TF_REPO={FORK}\nARG TF_REF={FORK_COMMIT}\n",
+                        }
+                    )
+                ),
+            )
+        self.assertTrue(any("stale" in p for p in problems), problems)
+
+
 FOLLOWING_RECIPES = {
     "glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual": ("tag", "v0.6.0"),
     "qwen3-8-flash-next-tensorfold-single": ("tag", "v0.6.1"),
