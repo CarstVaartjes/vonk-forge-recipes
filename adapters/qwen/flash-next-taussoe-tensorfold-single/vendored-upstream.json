@@ -5,7 +5,7 @@
         "datasource": "git-ref",
         "file": "lib/engine-tensorfold-spark.sh",
         "pattern": "\"\\$\\{ENGINE_BRANCH:=(?P<version>[^}\"]+)\\}\"",
-        "repo": "taussoe/TensorFold"
+        "repo_pattern": "\"\\$\\{ENGINE_REPO:=(?P<repo>[^}\"]+)\\}\""
       }
     }
   },

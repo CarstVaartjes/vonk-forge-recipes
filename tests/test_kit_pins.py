@@ -995,7 +995,7 @@ class DeclaredRepositoryTests(unittest.TestCase):
 FOLLOWING_RECIPES = {
     "glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual": ("tag", "v0.6.0"),
     "qwen3-8-flash-next-tensorfold-single": ("tag", "v0.6.1"),
-    "qwen3-8-27b-taussoe-tensorfold-single": ("commit", "191188075bca"),
+    "qwen3-8-27b-taussoe-tensorfold-single": ("branch", "glm-long-context"),
     "swift-1-5-flash-next-nvfp4-tournierjc-tensorfold-single": (
         "commit",
         "808767fd479c",
