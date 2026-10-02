@@ -135,5 +135,7 @@ tokenizer encoding and the downloaded archives asserted against Dockerfiles.
 - [Create and update recipes](docs/recipe-authoring.md): standard agent workflow.
 - [Contract guide](contracts/README.md): fields, ownership, and shared validation.
 - [Pydantic definitions](contracts/src/vonk_forge_contracts): authoritative types.
+- [Hardware sweep](docs/hardware-sweep.md): `tools/sweep-recipes` tests recipes on the real
+  Sparks through `vonkctl`, with prefetch, resumable state and a report.
 - [Producer checks](.github/workflows/validate.yml) and
   [publication](.github/workflows/publish.yml): executable CI procedures.
