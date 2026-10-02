@@ -39,7 +39,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Reederey87 GLM-5.3-Flash EXL3 dual-Spark source refresh at fd87969cb43a5ba66573bd2508bc05651fc1579c (2026-09-30), recipe release 1.5.1. Keeps the byte-exact Mia-AiLab TR3 4 bpw primary Model and the source launcher’s exact incoai DFlash2 drafter pin 7d74cdd881ed7e32c31175984a67823127b66cfe (non-commercial, no derivatives). Moves the recipe-owned ARM64 ExLlamaV3 build from 1.4.7 ca13bdd83a1f4a74fd817b88f49509e0f22a9b07 to 1.4.9 5be886578ec80324c2c715269387be2058724b6e; the six EXL3 quant/MoE source files used by this recipe are byte-identical across those pins, preserving the existing fused-kernel/ticket-scheduler ABI. The digest-pinned vLLM base image is unchanged. Refreshes the current GLM/DFlash2 overlay/test closure, retains Vonk’s non-root read-only runtime wrapper and build-time patching, and carries upstream’s default-on sparse-cache-miss metric and prompt-token detail reporting. Default serving remains DFlash2 k=7, TP2 across two Sparks, fp8 KV and the existing context/resource envelope. Upstream’s performance and DFlash2 acceptance evidence is not Vonk physical two-Spark acceptance; local build and runtime qualification remain separate gates. The drafter license terms are shown in its Model document. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter.",
+    "description": "Reederey87 GLM-5.3-Flash EXL3 dual-Spark source refresh at fd87969cb43a5ba66573bd2508bc05651fc1579c (2026-09-30), recipe release 1.5.1. Keeps the byte-exact Mia-AiLab TR3 4 bpw primary Model and the source launcher’s exact incoai DFlash2 drafter pin 7d74cdd881ed7e32c31175984a67823127b66cfe (non-commercial, no derivatives). Moves the recipe-owned ARM64 ExLlamaV3 build from 1.4.7 ca13bdd83a1f4a74fd817b88f49509e0f22a9b07 to 1.4.9 5be886578ec80324c2c715269387be2058724b6e; the six EXL3 quant/MoE source files used by this recipe are byte-identical across those pins, preserving the existing fused-kernel/ticket-scheduler ABI. The digest-pinned vLLM base image is unchanged. Refreshes the current GLM/DFlash2 overlay/test closure, retains Vonk’s non-root read-only runtime wrapper and build-time patching, and carries upstream’s default-on sparse-cache-miss metric and prompt-token detail reporting. Default serving remains DFlash2 k=7, TP2 across two Sparks, fp8 KV and the existing context/resource envelope. Upstream’s performance and DFlash2 acceptance evidence is not Vonk physical two-Spark acceptance; local build and runtime qualification remain separate gates. The drafter license terms are shown in its Model document. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter. Default thinking effort is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: reasoning_effort high (upstream production default).",
     "tags": [
       "adaptive-k",
       "candidate",
@@ -1737,41 +1737,6 @@
       "help": "How many drafted tokens the target verifies per step. Upstream adopted adaptive-k (GLM53_ADAPTIVE_K=ema) in production on 2026-09-09; it needs extra CUDA graph shapes and is lossless at temperature 0.",
       "label": "Draft verification",
       "name": "verification"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "reasoning_effort high (upstream production default).",
-          "label": "High",
-          "value": "high"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "value": "{\"reasoning_effort\":\"low\"}"
-            }
-          ],
-          "help": "reasoning_effort low.",
-          "label": "Low",
-          "value": "low"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "value": "{\"reasoning_effort\":\"max\"}"
-            }
-          ],
-          "help": "reasoning_effort max (what the template renders when nothing is set).",
-          "label": "Max",
-          "value": "max"
-        }
-      ],
-      "help": "Server-side default reasoning effort for clients that omit chat_template_kwargs.reasoning_effort (upstream GLM53_DEFAULT_REASONING_EFFORT); per-request values still win. Upstream notes the template renders Max when nothing is set, and that quality at high for long agentic tasks is not yet established on this stack.",
-      "label": "Default thinking effort",
-      "name": "reasoning-effort"
     }
   ],
   "provenance": {

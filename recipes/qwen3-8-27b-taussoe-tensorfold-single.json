@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark dense Qwen3.8-27B (Gated DeltaNet plus full attention) on the TensorFold engine v0.6.0 (exact decoding: drafted replies equal serial ones; custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and z-lab's DFlash2 draft model proposing token trees of 12 rows, following taussoe's tensorfold-recipes (d8a7c09c, MIT, NODES=1). Text only. Upstream measured on one Spark (TensorFold 0.3.6.1): decode 59 / 52 / 56 / 52 tok/s in the standard cells (code and chat, sampled and greedy), code as a chat reply 96 / 111, a 32k prompt read at 1,579 tok/s; serial decoding without the draft model is 13.1 tok/s, so drafting is where the speed comes from (upstream figures, unmeasured here). TensorFold's published concurrency figure on one Spark is 161.7 tok/s at 16 streams in flight (25.4 GiB peak, context 8192; TensorFold's own benchmark). The memory envelope is TensorFold's startup estimate of 62.5 GiB at the 262,144-token window for the sibling NVFP4 checkpoint; upstream states none for this checkpoint. Both the checkpoint and the draft model are Apache-2.0 (the DFlash2 draft model per its card). TensorFold v0.6.0 at c4646171139ee8a3c38103eaa1699dad226ec12b keeps every option this recipe passes. Per upstream's release notes it runs CUDA prompts at bf16 by default and serves Prometheus /metrics (opt-in --prefill-fp8 and --checkpoint-slots exist but are not exposed here); the existing context bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests.",
+    "description": "Single-DGX-Spark dense Qwen3.8-27B (Gated DeltaNet plus full attention) on the TensorFold engine v0.6.0 (exact decoding: drafted replies equal serial ones; custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and z-lab's DFlash2 draft model proposing token trees of 12 rows, following taussoe's tensorfold-recipes (d8a7c09c, MIT, NODES=1). Text only. Upstream measured on one Spark (TensorFold 0.3.6.1): decode 59 / 52 / 56 / 52 tok/s in the standard cells (code and chat, sampled and greedy), code as a chat reply 96 / 111, a 32k prompt read at 1,579 tok/s; serial decoding without the draft model is 13.1 tok/s, so drafting is where the speed comes from (upstream figures, unmeasured here). TensorFold's published concurrency figure on one Spark is 161.7 tok/s at 16 streams in flight (25.4 GiB peak, context 8192; TensorFold's own benchmark). The memory envelope is TensorFold's startup estimate of 62.5 GiB at the 262,144-token window for the sibling NVFP4 checkpoint; upstream states none for this checkpoint. Both the checkpoint and the draft model are Apache-2.0 (the DFlash2 draft model per its card). TensorFold v0.6.0 at c4646171139ee8a3c38103eaa1699dad226ec12b keeps every option this recipe passes. Per upstream's release notes it runs CUDA prompts at bf16 by default and serves Prometheus /metrics (opt-in --prefill-fp8 and --checkpoint-slots exist but are not exposed here); the existing context bound, KV/drafting defaults, and one-stream resource profile are retained. The pinned ARM64 image includes xgrammar 0.2.8 and Apache TVM FFI 0.1.11 for OpenAI response_format structured-output requests. Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (TensorFold default).",
     "tags": [
       "dense",
       "dflash2",
@@ -266,30 +266,6 @@
     }
   ],
   "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Open a think block by default (TensorFold default).",
-          "label": "Think first",
-          "value": "thinking"
-        },
-        {
-          "args": [
-            {
-              "name": "no-thinking",
-              "value": true
-            }
-          ],
-          "help": "Answer without a think block unless a request asks for one (--no-thinking).",
-          "label": "Answer directly",
-          "value": "direct"
-        }
-      ],
-      "help": "Whether the chat template opens a think block by default (TensorFold's default is on). A request can still set chat_template_kwargs.enable_thinking; reasoning comes back in reasoning_content. Upstream lists --no-thinking as a serve flag for this recipe.",
-      "label": "Thinking",
-      "name": "thinking"
-    },
     {
       "choices": [
         {

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate binding of MiaAI-Lab's Qwen3.6-35B-A3B-NVFP4-vLLM kit for one DGX Spark: Unsloth's Qwen3.6-35B-A3B NVFP4 checkpoint on stock vLLM 0.24.0 (ARM64 digest) with flashinfer attention, Marlin MoE, fastsafetensors loading, an auto-dtype KV cache, MTP speculative decoding with three tokens, prefix caching, up to four images per prompt, the qwen3 reasoning and qwen3_coder tool-call parsers, and the froggeric v20 chat template with thinking on. Upstream's README names the NVIDIA checkpoint but its start.sh (the executable truth) serves unsloth/Qwen3.6-35B-A3B-NVFP4, which is what is pinned. Code: no licence file upstream (README says MIT); model: Apache-2.0. Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network.",
+    "description": "Executable Candidate binding of MiaAI-Lab's Qwen3.6-35B-A3B-NVFP4-vLLM kit for one DGX Spark: Unsloth's Qwen3.6-35B-A3B NVFP4 checkpoint on stock vLLM 0.24.0 (ARM64 digest) with flashinfer attention, Marlin MoE, fastsafetensors loading, an auto-dtype KV cache, MTP speculative decoding with three tokens, prefix caching, up to four images per prompt, the qwen3 reasoning and qwen3_coder tool-call parsers, and the froggeric v20 chat template with thinking on. Upstream's README names the NVIDIA checkpoint but its start.sh (the executable truth) serves unsloth/Qwen3.6-35B-A3B-NVFP4, which is what is pinned. Code: no licence file upstream (README says MIT); model: Apache-2.0. Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network. Thinking mode is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking and preserve_thinking true (upstream default).",
     "tags": [
       "candidate",
       "executable",
@@ -254,45 +254,6 @@
         "publisher": "unsloth",
         "slug": "qwen3-6-35b-a3b-unsloth-nvfp4-739af1e7"
       }
-    }
-  ],
-  "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "enable_thinking and preserve_thinking true (upstream default).",
-          "label": "On (default)",
-          "value": "on"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"enable_thinking\":false,\"preserve_thinking\":true}"
-            }
-          ],
-          "help": "enable_thinking false; thinking blocks from history are still preserved.",
-          "label": "Off",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"enable_thinking\":true,\"preserve_thinking\":true,\"auto_disable_thinking_with_tools\":true}"
-            }
-          ],
-          "help": "Sets auto_disable_thinking_with_tools true so requests that define tools skip thinking.",
-          "label": "On, off when tools are defined",
-          "value": "off-with-tools"
-        }
-      ],
-      "help": "Default chat-template kwargs (froggeric v20 template). Upstream documents enable_thinking, preserve_thinking and auto_disable_thinking_with_tools.",
-      "label": "Thinking mode",
-      "name": "thinking"
     }
   ],
   "provenance": {

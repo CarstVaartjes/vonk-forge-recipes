@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 31B IT on one Spark with stock vLLM v0.25.1: 262144-token context, fp8 KV cache, up to 2 concurrent sequences, MTP speculative decoding (4 tokens) with Google's gemma-4-31B-it-assistant, image and video input, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's start.sh (no licence file upstream; its README says scripts are MIT). Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput and KV-capacity figures are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network.",
+    "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 31B IT on one Spark with stock vLLM v0.25.1: 262144-token context, fp8 KV cache, up to 2 concurrent sequences, MTP speculative decoding (4 tokens) with Google's gemma-4-31B-it-assistant, image and video input, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's start.sh (no licence file upstream; its README says scripts are MIT). Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput and KV-capacity figures are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking true (upstream default); reasoning is returned in the reasoning field via the gemma4 parser.",
     "tags": [
       "candidate",
       "executable",
@@ -297,31 +297,6 @@
     }
   ],
   "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "enable_thinking true (upstream default); reasoning is returned in the reasoning field via the gemma4 parser.",
-          "label": "On (default)",
-          "value": "on"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "setting": null,
-              "value": "{\"enable_thinking\":false}"
-            }
-          ],
-          "help": "enable_thinking false by default; faster short answers.",
-          "label": "Off",
-          "value": "off"
-        }
-      ],
-      "help": "Whether the chat template thinks by default. Requests can still override it with chat_template_kwargs.enable_thinking.",
-      "label": "Thinking default",
-      "name": "thinking"
-    },
     {
       "choices": [
         {

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "sfxnz's two-DGX-Spark vLLM TP2 recipe for NVIDIA's Qwen3.8 Flash Next NVFP4 checkpoint (snapshot fc694b54, the current NVIDIA revision) on the digest-pinned official vllm/vllm-openai nightly-aarch64 image (0.28.1rc1.dev437+ge962733e0). Upstream's two overlays are baked byte-identically: docker/ple_layer.py (qwen4_exp MIXED_PRECISION FP8 per-layer embeddings) and docker/modelopt.py (MTP FP8_BLOCK_SCALES and FP8_PB_WO load). In-band MTP-3 with the Triton draft MoE, BF16 (auto) KV cache, native 262144-token window, eight sequences (the only occupancy upstream measured), thinking off by default. Upstream measured 43.2 tok/s per stream prose and 55.5 structured at concurrency 1 on its own lab (claims, not measured here). Licences are information only: recipe scripts MIT (sfxnz), vLLM overlays Apache-2.0, model weights under the NVIDIA Open Model License. Vonk physical acceptance is pending.",
+    "description": "sfxnz's two-DGX-Spark vLLM TP2 recipe for NVIDIA's Qwen3.8 Flash Next NVFP4 checkpoint (snapshot fc694b54, the current NVIDIA revision) on the digest-pinned official vllm/vllm-openai nightly-aarch64 image (0.28.1rc1.dev437+ge962733e0). Upstream's two overlays are baked byte-identically: docker/ple_layer.py (qwen4_exp MIXED_PRECISION FP8 per-layer embeddings) and docker/modelopt.py (MTP FP8_BLOCK_SCALES and FP8_PB_WO load). In-band MTP-3 with the Triton draft MoE, BF16 (auto) KV cache, native 262144-token window, eight sequences (the only occupancy upstream measured), thinking off by default. Upstream measured 43.2 tok/s per stream prose and 55.5 structured at concurrency 1 on its own lab (claims, not measured here). Licences are information only: recipe scripts MIT (sfxnz), vLLM overlays Apache-2.0, model weights under the NVIDIA Open Model License. Vonk physical acceptance is pending. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking=false; the card template seeds an empty think block.",
     "tags": [
       "mtp",
       "multimodal",
@@ -357,30 +357,6 @@
       "help": "Upstream ENFORCE_EAGER switch. Eager disables CUDA graph capture (slower decode, faster startup, useful for diagnosis).",
       "label": "CUDA graphs",
       "name": "cuda_graphs"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream default: enable_thinking=false; the card template seeds an empty think block.",
-          "label": "Off",
-          "value": "off"
-        },
-        {
-          "args": [
-            {
-              "name": "default-chat-template-kwargs",
-              "value": "{\"enable_thinking\": true}"
-            }
-          ],
-          "help": "Server default enable_thinking=true; the qwen3 reasoning parser splits reasoning from content.",
-          "label": "On",
-          "value": "on"
-        }
-      ],
-      "help": "Default chat-template thinking mode. Clients can still override enable_thinking per request.",
-      "label": "Default thinking",
-      "name": "thinking"
     }
   ],
   "provenance": {

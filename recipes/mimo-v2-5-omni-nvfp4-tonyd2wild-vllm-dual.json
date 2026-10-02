@@ -34,7 +34,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on two Sparks with vLLM tensor parallel 2 over Ray, a 1,000,000-token context on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode), MTP1 speculative decoding and safetensors loading. Basis: tonyd2wild's recipe (MIT; the vendored mods are derived from vLLM, Apache-2.0) on tonyd2wild's published patched vLLM 0.21.1rc1.dev85 dev-build image, with upstream's four image mods applied at build time. Alternatives by the same creator for this model and Spark count are the DFlash speculative-decoding variants with FP8 or NVFP4 KV (separate repositories, not packaged here). Upstream figures (about 32 tok/s single stream, 184 tok/s at eight streams, 2.17M-token KV pool at 1M context) are claims until measured here; the upstream deployment is Ray-based and Vonk physical two-Spark acceptance is pending.",
+    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on two Sparks with vLLM tensor parallel 2 over Ray, a 1,000,000-token context on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode), MTP1 speculative decoding and safetensors loading. Basis: tonyd2wild's recipe (MIT; the vendored mods are derived from vLLM, Apache-2.0) on tonyd2wild's published patched vLLM 0.21.1rc1.dev85 dev-build image, with upstream's four image mods applied at build time. Alternatives by the same creator for this model and Spark count are the DFlash speculative-decoding variants with FP8 or NVFP4 KV (separate repositories, not packaged here). Upstream figures (about 32 tok/s single stream, 184 tok/s at eight streams, 2.17M-token KV pool at 1M context) are claims until measured here; the upstream deployment is Ray-based and Vonk physical two-Spark acceptance is pending. Sampling defaults is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: temperature 0, top_p 0.95, repetition_penalty 1.08 (upstream default).",
     "tags": [
       "audio",
       "diffkv",
@@ -746,31 +746,6 @@
       "help": "Fraction of unified memory vLLM may take. Upstream's OOM guidance: 0.84 is what the 1M profile needs (0.80 just fails at 500K); lower it only together with the context setting when a load or profile step runs out of memory.",
       "label": "GPU memory utilization",
       "name": "memory"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "temperature 0, top_p 0.95, repetition_penalty 1.08 (upstream default).",
-          "label": "Stable (default)",
-          "value": "stable"
-        },
-        {
-          "args": [
-            {
-              "name": "override-generation-config",
-              "setting": null,
-              "value": "{}"
-            }
-          ],
-          "help": "The checkpoint's own generation config (MiMo recommends temperature 1.0, top_p 0.95); upstream warns of drift.",
-          "label": "Checkpoint only",
-          "value": "checkpoint"
-        }
-      ],
-      "help": "Server-side sampling defaults for requests that send none. Upstream's stable defaults (temperature 0, top_p 0.95, repetition_penalty 1.08) exist because the NVFP4 weights with NVFP4 KV can drift into Chinese or repetition loops on long generations at the checkpoint's temperature 1.0.",
-      "label": "Sampling defaults",
-      "name": "sampling"
     }
   ],
   "provenance": {

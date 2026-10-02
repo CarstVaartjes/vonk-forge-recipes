@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "GLM-5.3-Flash on two DGX Sparks with the TensorFold engine (exact decoding, custom CUDA kernels JIT-compiled on first start), one rank per Spark over the ConnectX-7 link with RoCE all-gathers. Serves MiaAI-Lab's EXL3 TR3 4 bpw checkpoint with a 1,048,576-token window, up to 4 concurrent requests sharing an FP8 KV pool, DFlash2 and copy drafts, 4-bit dense weights, image and video input, tool calling and structured outputs. Based on MiaAI-Lab's two-Spark TensorFold kit (ed026ef9, Apache-2.0) on TensorFold v0.5.0 (MIT) with her 52 patches; a different engine from the vLLM two-Spark recipe. Upstream claims 60.4 tok/s for one request and 108.8 tok/s aggregate at 4, about 1,950 tok/s prefill and GSM8K 98.0 percent / HumanEval 97.6 percent, all unmeasured here. Licences, for information: the checkpoint is under the ShapleyMcG License 1.0 (attribution required); the DFlash2 drafter is CC BY-NC-ND 4.0 (non-commercial) and is not used with the MTP drafter option.",
+    "description": "GLM-5.3-Flash on two DGX Sparks with the TensorFold engine (exact decoding, custom CUDA kernels JIT-compiled on first start), one rank per Spark over the ConnectX-7 link with RoCE all-gathers. Serves MiaAI-Lab's EXL3 TR3 4 bpw checkpoint with a 1,048,576-token window, up to 4 concurrent requests sharing an FP8 KV pool, DFlash2 and copy drafts, 4-bit dense weights, image and video input, tool calling and structured outputs. Based on MiaAI-Lab's two-Spark TensorFold kit (ed026ef9, Apache-2.0) on TensorFold v0.5.0 (MIT) with her 52 patches; a different engine from the vLLM two-Spark recipe. Upstream claims 60.4 tok/s for one request and 108.8 tok/s aggregate at 4, about 1,950 tok/s prefill and GSM8K 98.0 percent / HumanEval 97.6 percent, all unmeasured here. Licences, for information: the checkpoint is under the ShapleyMcG License 1.0 (attribution required); the DFlash2 drafter is CC BY-NC-ND 4.0 (non-commercial) and is not used with the MTP drafter option. Thinking is on by default (the chat template's default) and is chosen per request: a request can set reasoning_effort or chat_template_kwargs.enable_thinking, and reasoning comes back in reasoning_content.",
     "tags": [
       "dflash2",
       "engine",
@@ -1745,34 +1745,6 @@
       "help": "Which draft source speeds up decoding. The DFlash2 drafter is IncoAI's (CC BY-NC-ND 4.0, non-commercial: licence information only, nothing here enforces it). The checkpoint's own MTP head serves one request at a time. Replies are verified against the model's own samples either way (upstream claim).",
       "label": "Speculative drafter",
       "name": "drafter"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Think before answering (upstream default).",
-          "label": "Think first",
-          "value": "thinking"
-        },
-        {
-          "args": [
-            {
-              "name": "thinking",
-              "value": false
-            },
-            {
-              "name": "no-thinking",
-              "value": true
-            }
-          ],
-          "help": "Answer without a think block unless a request asks for one.",
-          "label": "Answer directly",
-          "value": "direct"
-        }
-      ],
-      "help": "Whether the chat template opens a think block by default. A request can still set reasoning_effort or chat_template_kwargs.enable_thinking; reasoning comes back in reasoning_content.",
-      "label": "Thinking",
-      "name": "thinking"
     },
     {
       "choices": [
