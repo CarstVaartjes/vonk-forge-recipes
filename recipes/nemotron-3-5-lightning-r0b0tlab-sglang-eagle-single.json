@@ -54,8 +54,8 @@
     {
       "files": [
         {
-          "file_id": "metadata-8e951b009695-618cd5b83d",
-          "id": "primary-metadata-8e951b009695-618cd5b83d",
+          "file_id": "metadata-gitattributes",
+          "id": "primary-metadata-gitattributes",
           "mount": {
             "target": "/models"
           },
@@ -64,8 +64,8 @@
           ]
         },
         {
-          "file_id": "license-d7c8a9e5d189-c693279643",
-          "id": "primary-license-d7c8a9e5d189-c693279643",
+          "file_id": "metadata-license",
+          "id": "primary-metadata-license",
           "mount": {
             "target": "/models"
           },
@@ -74,8 +74,8 @@
           ]
         },
         {
-          "file_id": "readme-033ebc08bcd1-b335630551",
-          "id": "primary-readme-033ebc08bcd1-b335630551",
+          "file_id": "metadata-readme",
+          "id": "primary-metadata-readme",
           "mount": {
             "target": "/models"
           },
@@ -84,8 +84,8 @@
           ]
         },
         {
-          "file_id": "accuracy-plot-1397995f8a5d-de05870682",
-          "id": "primary-accuracy-plot-1397995f8a5d-de05870682",
+          "file_id": "metadata-accuracy-plot",
+          "id": "primary-metadata-accuracy-plot",
           "mount": {
             "target": "/models"
           },
@@ -94,8 +94,8 @@
           ]
         },
         {
-          "file_id": "agentic-coding-benchmarks-06cf5486ae94-cfad1a7135",
-          "id": "primary-agentic-coding-benchmarks-06cf5486ae94-cfad1a7135",
+          "file_id": "metadata-agentic-coding-benchmarks",
+          "id": "primary-metadata-agentic-coding-benchmarks",
           "mount": {
             "target": "/models"
           },
@@ -104,8 +104,8 @@
           ]
         },
         {
-          "file_id": "bias-c5cedf15a6a2-132a86726b",
-          "id": "primary-bias-c5cedf15a6a2-132a86726b",
+          "file_id": "metadata-bias",
+          "id": "primary-metadata-bias",
           "mount": {
             "target": "/models"
           },
@@ -114,8 +114,8 @@
           ]
         },
         {
-          "file_id": "chat-template-58933db77d30-00824420d1",
-          "id": "primary-chat-template-58933db77d30-00824420d1",
+          "file_id": "tokenizer-chat-template",
+          "id": "primary-tokenizer-chat-template",
           "mount": {
             "target": "/models"
           },
@@ -124,8 +124,8 @@
           ]
         },
         {
-          "file_id": "config-f1d98b530846-587cb980af",
-          "id": "primary-config-f1d98b530846-587cb980af",
+          "file_id": "configuration",
+          "id": "primary-configuration",
           "mount": {
             "target": "/models"
           },
@@ -134,8 +134,8 @@
           ]
         },
         {
-          "file_id": "explainability-0633d9f35191-c9ed671e8a",
-          "id": "primary-explainability-0633d9f35191-c9ed671e8a",
+          "file_id": "metadata-explainability",
+          "id": "primary-metadata-explainability",
           "mount": {
             "target": "/models"
           },
@@ -144,8 +144,8 @@
           ]
         },
         {
-          "file_id": "generation-config-c67c90fcadf0-97dd3d578b",
-          "id": "primary-generation-config-c67c90fcadf0-97dd3d578b",
+          "file_id": "generation-config",
+          "id": "primary-generation-config",
           "mount": {
             "target": "/models"
           },
@@ -154,8 +154,8 @@
           ]
         },
         {
-          "file_id": "hf-quant-config-529a5a524399-a481ad90fa",
-          "id": "primary-hf-quant-config-529a5a524399-a481ad90fa",
+          "file_id": "quantization-config",
+          "id": "primary-quantization-config",
           "mount": {
             "target": "/models"
           },
@@ -164,8 +164,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-00052-672c8bda10fd-747296ee2c",
-          "id": "primary-model-00001-of-00052-672c8bda10fd-747296ee2c",
+          "file_id": "weights-01",
+          "id": "primary-weights-01",
           "mount": {
             "target": "/models"
           },
@@ -174,8 +174,8 @@
           ]
         },
         {
-          "file_id": "model-00002-of-00052-b365ac815ea7-344b4eaf0e",
-          "id": "primary-model-00002-of-00052-b365ac815ea7-344b4eaf0e",
+          "file_id": "weights-02",
+          "id": "primary-weights-02",
           "mount": {
             "target": "/models"
           },
@@ -184,8 +184,8 @@
           ]
         },
         {
-          "file_id": "model-00003-of-00052-8fbad8247cd4-a8289ae3eb",
-          "id": "primary-model-00003-of-00052-8fbad8247cd4-a8289ae3eb",
+          "file_id": "weights-03",
+          "id": "primary-weights-03",
           "mount": {
             "target": "/models"
           },
@@ -194,8 +194,8 @@
           ]
         },
         {
-          "file_id": "model-00004-of-00052-243a94b1f2b3-2c85e03ed0",
-          "id": "primary-model-00004-of-00052-243a94b1f2b3-2c85e03ed0",
+          "file_id": "weights-04",
+          "id": "primary-weights-04",
           "mount": {
             "target": "/models"
           },
@@ -204,8 +204,8 @@
           ]
         },
         {
-          "file_id": "model-00005-of-00052-e675767a4747-620cc56f7e",
-          "id": "primary-model-00005-of-00052-e675767a4747-620cc56f7e",
+          "file_id": "weights-05",
+          "id": "primary-weights-05",
           "mount": {
             "target": "/models"
           },
@@ -214,8 +214,8 @@
           ]
         },
         {
-          "file_id": "model-00006-of-00052-8f8e9623934b-2e9058b60d",
-          "id": "primary-model-00006-of-00052-8f8e9623934b-2e9058b60d",
+          "file_id": "weights-06",
+          "id": "primary-weights-06",
           "mount": {
             "target": "/models"
           },
@@ -224,8 +224,8 @@
           ]
         },
         {
-          "file_id": "model-00007-of-00052-306aee6514a7-afc67d213c",
-          "id": "primary-model-00007-of-00052-306aee6514a7-afc67d213c",
+          "file_id": "weights-07",
+          "id": "primary-weights-07",
           "mount": {
             "target": "/models"
           },
@@ -234,8 +234,8 @@
           ]
         },
         {
-          "file_id": "model-00008-of-00052-31235989ff64-25cc7fd3e9",
-          "id": "primary-model-00008-of-00052-31235989ff64-25cc7fd3e9",
+          "file_id": "weights-08",
+          "id": "primary-weights-08",
           "mount": {
             "target": "/models"
           },
@@ -244,8 +244,8 @@
           ]
         },
         {
-          "file_id": "model-00009-of-00052-bcd6b2645a6b-231f2e570c",
-          "id": "primary-model-00009-of-00052-bcd6b2645a6b-231f2e570c",
+          "file_id": "weights-09",
+          "id": "primary-weights-09",
           "mount": {
             "target": "/models"
           },
@@ -254,8 +254,8 @@
           ]
         },
         {
-          "file_id": "model-00010-of-00052-5fae7d86c343-0c7744b219",
-          "id": "primary-model-00010-of-00052-5fae7d86c343-0c7744b219",
+          "file_id": "weights-10",
+          "id": "primary-weights-10",
           "mount": {
             "target": "/models"
           },
@@ -264,8 +264,8 @@
           ]
         },
         {
-          "file_id": "model-00011-of-00052-10237b58cd28-25b2f215e4",
-          "id": "primary-model-00011-of-00052-10237b58cd28-25b2f215e4",
+          "file_id": "weights-11",
+          "id": "primary-weights-11",
           "mount": {
             "target": "/models"
           },
@@ -274,8 +274,8 @@
           ]
         },
         {
-          "file_id": "model-00012-of-00052-dfa4a2312fc9-325a2ec00f",
-          "id": "primary-model-00012-of-00052-dfa4a2312fc9-325a2ec00f",
+          "file_id": "weights-12",
+          "id": "primary-weights-12",
           "mount": {
             "target": "/models"
           },
@@ -284,8 +284,8 @@
           ]
         },
         {
-          "file_id": "model-00013-of-00052-41feb27e3376-a8f6251a78",
-          "id": "primary-model-00013-of-00052-41feb27e3376-a8f6251a78",
+          "file_id": "weights-13",
+          "id": "primary-weights-13",
           "mount": {
             "target": "/models"
           },
@@ -294,8 +294,8 @@
           ]
         },
         {
-          "file_id": "model-00014-of-00052-16653126b271-c05536c499",
-          "id": "primary-model-00014-of-00052-16653126b271-c05536c499",
+          "file_id": "weights-14",
+          "id": "primary-weights-14",
           "mount": {
             "target": "/models"
           },
@@ -304,8 +304,8 @@
           ]
         },
         {
-          "file_id": "model-00015-of-00052-1016d76b1b0d-c560e13fff",
-          "id": "primary-model-00015-of-00052-1016d76b1b0d-c560e13fff",
+          "file_id": "weights-15",
+          "id": "primary-weights-15",
           "mount": {
             "target": "/models"
           },
@@ -314,8 +314,8 @@
           ]
         },
         {
-          "file_id": "model-00016-of-00052-70aaec01374f-050aabe40d",
-          "id": "primary-model-00016-of-00052-70aaec01374f-050aabe40d",
+          "file_id": "weights-16",
+          "id": "primary-weights-16",
           "mount": {
             "target": "/models"
           },
@@ -324,8 +324,8 @@
           ]
         },
         {
-          "file_id": "model-00017-of-00052-67763384429d-be6373f4fb",
-          "id": "primary-model-00017-of-00052-67763384429d-be6373f4fb",
+          "file_id": "weights-17",
+          "id": "primary-weights-17",
           "mount": {
             "target": "/models"
           },
@@ -334,8 +334,8 @@
           ]
         },
         {
-          "file_id": "model-00018-of-00052-252e3fb2e6c3-f528b1f84a",
-          "id": "primary-model-00018-of-00052-252e3fb2e6c3-f528b1f84a",
+          "file_id": "weights-18",
+          "id": "primary-weights-18",
           "mount": {
             "target": "/models"
           },
@@ -344,8 +344,8 @@
           ]
         },
         {
-          "file_id": "model-00019-of-00052-3fd080a21df9-f607c07f4e",
-          "id": "primary-model-00019-of-00052-3fd080a21df9-f607c07f4e",
+          "file_id": "weights-19",
+          "id": "primary-weights-19",
           "mount": {
             "target": "/models"
           },
@@ -354,8 +354,8 @@
           ]
         },
         {
-          "file_id": "model-00020-of-00052-31dada97bfd5-23d7ce5e09",
-          "id": "primary-model-00020-of-00052-31dada97bfd5-23d7ce5e09",
+          "file_id": "weights-20",
+          "id": "primary-weights-20",
           "mount": {
             "target": "/models"
           },
@@ -364,8 +364,8 @@
           ]
         },
         {
-          "file_id": "model-00021-of-00052-601a05eb0b22-f0ecd540e3",
-          "id": "primary-model-00021-of-00052-601a05eb0b22-f0ecd540e3",
+          "file_id": "weights-21",
+          "id": "primary-weights-21",
           "mount": {
             "target": "/models"
           },
@@ -374,8 +374,8 @@
           ]
         },
         {
-          "file_id": "model-00022-of-00052-4b3eb401a315-0953717f26",
-          "id": "primary-model-00022-of-00052-4b3eb401a315-0953717f26",
+          "file_id": "weights-22",
+          "id": "primary-weights-22",
           "mount": {
             "target": "/models"
           },
@@ -384,8 +384,8 @@
           ]
         },
         {
-          "file_id": "model-00023-of-00052-1f92f9b4bc06-f0af75d31e",
-          "id": "primary-model-00023-of-00052-1f92f9b4bc06-f0af75d31e",
+          "file_id": "weights-23",
+          "id": "primary-weights-23",
           "mount": {
             "target": "/models"
           },
@@ -394,8 +394,8 @@
           ]
         },
         {
-          "file_id": "model-00024-of-00052-64d36b45162f-394eb16a60",
-          "id": "primary-model-00024-of-00052-64d36b45162f-394eb16a60",
+          "file_id": "weights-24",
+          "id": "primary-weights-24",
           "mount": {
             "target": "/models"
           },
@@ -404,8 +404,8 @@
           ]
         },
         {
-          "file_id": "model-00025-of-00052-1d8f5436a1e7-42da78e42e",
-          "id": "primary-model-00025-of-00052-1d8f5436a1e7-42da78e42e",
+          "file_id": "weights-25",
+          "id": "primary-weights-25",
           "mount": {
             "target": "/models"
           },
@@ -414,8 +414,8 @@
           ]
         },
         {
-          "file_id": "model-00026-of-00052-97e410e49188-c09dbca8dc",
-          "id": "primary-model-00026-of-00052-97e410e49188-c09dbca8dc",
+          "file_id": "weights-26",
+          "id": "primary-weights-26",
           "mount": {
             "target": "/models"
           },
@@ -424,8 +424,8 @@
           ]
         },
         {
-          "file_id": "model-00027-of-00052-e67fb58638bf-925851b35a",
-          "id": "primary-model-00027-of-00052-e67fb58638bf-925851b35a",
+          "file_id": "weights-27",
+          "id": "primary-weights-27",
           "mount": {
             "target": "/models"
           },
@@ -434,8 +434,8 @@
           ]
         },
         {
-          "file_id": "model-00028-of-00052-1800ab07214a-99c8680e9a",
-          "id": "primary-model-00028-of-00052-1800ab07214a-99c8680e9a",
+          "file_id": "weights-28",
+          "id": "primary-weights-28",
           "mount": {
             "target": "/models"
           },
@@ -444,8 +444,8 @@
           ]
         },
         {
-          "file_id": "model-00029-of-00052-045dc61dc334-f0311008ce",
-          "id": "primary-model-00029-of-00052-045dc61dc334-f0311008ce",
+          "file_id": "weights-29",
+          "id": "primary-weights-29",
           "mount": {
             "target": "/models"
           },
@@ -454,8 +454,8 @@
           ]
         },
         {
-          "file_id": "model-00030-of-00052-794679784bde-9f939e4527",
-          "id": "primary-model-00030-of-00052-794679784bde-9f939e4527",
+          "file_id": "weights-30",
+          "id": "primary-weights-30",
           "mount": {
             "target": "/models"
           },
@@ -464,8 +464,8 @@
           ]
         },
         {
-          "file_id": "model-00031-of-00052-727bb1bf4829-66dd669be3",
-          "id": "primary-model-00031-of-00052-727bb1bf4829-66dd669be3",
+          "file_id": "weights-31",
+          "id": "primary-weights-31",
           "mount": {
             "target": "/models"
           },
@@ -474,8 +474,8 @@
           ]
         },
         {
-          "file_id": "model-00032-of-00052-cc68cfd7f1e8-c910d94be9",
-          "id": "primary-model-00032-of-00052-cc68cfd7f1e8-c910d94be9",
+          "file_id": "weights-32",
+          "id": "primary-weights-32",
           "mount": {
             "target": "/models"
           },
@@ -484,8 +484,8 @@
           ]
         },
         {
-          "file_id": "model-00033-of-00052-ee8d3fc76401-83eddb8a14",
-          "id": "primary-model-00033-of-00052-ee8d3fc76401-83eddb8a14",
+          "file_id": "weights-33",
+          "id": "primary-weights-33",
           "mount": {
             "target": "/models"
           },
@@ -494,8 +494,8 @@
           ]
         },
         {
-          "file_id": "model-00034-of-00052-90c579b134e5-9e0ae438dd",
-          "id": "primary-model-00034-of-00052-90c579b134e5-9e0ae438dd",
+          "file_id": "weights-34",
+          "id": "primary-weights-34",
           "mount": {
             "target": "/models"
           },
@@ -504,8 +504,8 @@
           ]
         },
         {
-          "file_id": "model-00035-of-00052-d6b9441c3fb7-77a31293bf",
-          "id": "primary-model-00035-of-00052-d6b9441c3fb7-77a31293bf",
+          "file_id": "weights-35",
+          "id": "primary-weights-35",
           "mount": {
             "target": "/models"
           },
@@ -514,8 +514,8 @@
           ]
         },
         {
-          "file_id": "model-00036-of-00052-130ee06f0ba0-6bf49e9d32",
-          "id": "primary-model-00036-of-00052-130ee06f0ba0-6bf49e9d32",
+          "file_id": "weights-36",
+          "id": "primary-weights-36",
           "mount": {
             "target": "/models"
           },
@@ -524,8 +524,8 @@
           ]
         },
         {
-          "file_id": "model-00037-of-00052-7464b7b51237-fdf2ccf7cf",
-          "id": "primary-model-00037-of-00052-7464b7b51237-fdf2ccf7cf",
+          "file_id": "weights-37",
+          "id": "primary-weights-37",
           "mount": {
             "target": "/models"
           },
@@ -534,8 +534,8 @@
           ]
         },
         {
-          "file_id": "model-00038-of-00052-1a0ab61ef65a-def29ed362",
-          "id": "primary-model-00038-of-00052-1a0ab61ef65a-def29ed362",
+          "file_id": "weights-38",
+          "id": "primary-weights-38",
           "mount": {
             "target": "/models"
           },
@@ -544,8 +544,8 @@
           ]
         },
         {
-          "file_id": "model-00039-of-00052-9f31f2fa9502-4df43e6bd4",
-          "id": "primary-model-00039-of-00052-9f31f2fa9502-4df43e6bd4",
+          "file_id": "weights-39",
+          "id": "primary-weights-39",
           "mount": {
             "target": "/models"
           },
@@ -554,8 +554,8 @@
           ]
         },
         {
-          "file_id": "model-00040-of-00052-407f0e74455e-d28dc267aa",
-          "id": "primary-model-00040-of-00052-407f0e74455e-d28dc267aa",
+          "file_id": "weights-40",
+          "id": "primary-weights-40",
           "mount": {
             "target": "/models"
           },
@@ -564,8 +564,8 @@
           ]
         },
         {
-          "file_id": "model-00041-of-00052-4e8442377f26-11ae8e1602",
-          "id": "primary-model-00041-of-00052-4e8442377f26-11ae8e1602",
+          "file_id": "weights-41",
+          "id": "primary-weights-41",
           "mount": {
             "target": "/models"
           },
@@ -574,8 +574,8 @@
           ]
         },
         {
-          "file_id": "model-00042-of-00052-85ca012bff38-4163075556",
-          "id": "primary-model-00042-of-00052-85ca012bff38-4163075556",
+          "file_id": "weights-42",
+          "id": "primary-weights-42",
           "mount": {
             "target": "/models"
           },
@@ -584,8 +584,8 @@
           ]
         },
         {
-          "file_id": "model-00043-of-00052-01c56b23b7ea-874688f2cf",
-          "id": "primary-model-00043-of-00052-01c56b23b7ea-874688f2cf",
+          "file_id": "weights-43",
+          "id": "primary-weights-43",
           "mount": {
             "target": "/models"
           },
@@ -594,8 +594,8 @@
           ]
         },
         {
-          "file_id": "model-00044-of-00052-a3ebcaf00a08-cbeaddcfd6",
-          "id": "primary-model-00044-of-00052-a3ebcaf00a08-cbeaddcfd6",
+          "file_id": "weights-44",
+          "id": "primary-weights-44",
           "mount": {
             "target": "/models"
           },
@@ -604,8 +604,8 @@
           ]
         },
         {
-          "file_id": "model-00045-of-00052-e9d559259cb0-d7e1f6ae2a",
-          "id": "primary-model-00045-of-00052-e9d559259cb0-d7e1f6ae2a",
+          "file_id": "weights-45",
+          "id": "primary-weights-45",
           "mount": {
             "target": "/models"
           },
@@ -614,8 +614,8 @@
           ]
         },
         {
-          "file_id": "model-00046-of-00052-5e5cfe7a6e50-80652f06f9",
-          "id": "primary-model-00046-of-00052-5e5cfe7a6e50-80652f06f9",
+          "file_id": "weights-46",
+          "id": "primary-weights-46",
           "mount": {
             "target": "/models"
           },
@@ -624,8 +624,8 @@
           ]
         },
         {
-          "file_id": "model-00047-of-00052-96ffe8358c3e-2c64ad171e",
-          "id": "primary-model-00047-of-00052-96ffe8358c3e-2c64ad171e",
+          "file_id": "weights-47",
+          "id": "primary-weights-47",
           "mount": {
             "target": "/models"
           },
@@ -634,8 +634,8 @@
           ]
         },
         {
-          "file_id": "model-00048-of-00052-1dcdf08d0f47-7525fdae7c",
-          "id": "primary-model-00048-of-00052-1dcdf08d0f47-7525fdae7c",
+          "file_id": "weights-48",
+          "id": "primary-weights-48",
           "mount": {
             "target": "/models"
           },
@@ -644,8 +644,8 @@
           ]
         },
         {
-          "file_id": "model-00049-of-00052-25da4593995d-a68f3d37e2",
-          "id": "primary-model-00049-of-00052-25da4593995d-a68f3d37e2",
+          "file_id": "weights-49",
+          "id": "primary-weights-49",
           "mount": {
             "target": "/models"
           },
@@ -654,8 +654,8 @@
           ]
         },
         {
-          "file_id": "model-00050-of-00052-ef5b1baa53ab-d0eacd8fd7",
-          "id": "primary-model-00050-of-00052-ef5b1baa53ab-d0eacd8fd7",
+          "file_id": "weights-50",
+          "id": "primary-weights-50",
           "mount": {
             "target": "/models"
           },
@@ -664,8 +664,8 @@
           ]
         },
         {
-          "file_id": "model-00051-of-00052-2da1f6cbbcfb-2e1987747b",
-          "id": "primary-model-00051-of-00052-2da1f6cbbcfb-2e1987747b",
+          "file_id": "weights-51",
+          "id": "primary-weights-51",
           "mount": {
             "target": "/models"
           },
@@ -674,8 +674,8 @@
           ]
         },
         {
-          "file_id": "model-00052-of-00052-85db447be6ac-dc5f5cc850",
-          "id": "primary-model-00052-of-00052-85db447be6ac-dc5f5cc850",
+          "file_id": "weights-52",
+          "id": "primary-weights-52",
           "mount": {
             "target": "/models"
           },
@@ -684,8 +684,8 @@
           ]
         },
         {
-          "file_id": "model-safetensors-index-3c3bc7efa8d6-0a05be8238",
-          "id": "primary-model-safetensors-index-3c3bc7efa8d6-0a05be8238",
+          "file_id": "weights-index",
+          "id": "primary-weights-index",
           "mount": {
             "target": "/models"
           },
@@ -694,8 +694,8 @@
           ]
         },
         {
-          "file_id": "privacy-8d7bcc6314e4-8ca73853d3",
-          "id": "primary-privacy-8d7bcc6314e4-8ca73853d3",
+          "file_id": "metadata-privacy",
+          "id": "primary-metadata-privacy",
           "mount": {
             "target": "/models"
           },
@@ -704,8 +704,8 @@
           ]
         },
         {
-          "file_id": "safety-60f74211be1d-0f7043827d",
-          "id": "primary-safety-60f74211be1d-0f7043827d",
+          "file_id": "metadata-safety",
+          "id": "primary-metadata-safety",
           "mount": {
             "target": "/models"
           },
@@ -714,8 +714,8 @@
           ]
         },
         {
-          "file_id": "special-tokens-map-e9435fefd6d8-c07a9be597",
-          "id": "primary-special-tokens-map-e9435fefd6d8-c07a9be597",
+          "file_id": "special-tokens",
+          "id": "primary-special-tokens",
           "mount": {
             "target": "/models"
           },
@@ -724,8 +724,8 @@
           ]
         },
         {
-          "file_id": "tokenizer-623c34567aeb-224931eb13",
-          "id": "primary-tokenizer-623c34567aeb-224931eb13",
+          "file_id": "tokenizer",
+          "id": "primary-tokenizer",
           "mount": {
             "target": "/models"
           },
@@ -734,8 +734,8 @@
           ]
         },
         {
-          "file_id": "tokenizer-config-10f93eabcb9b-94d5c6ba8f",
-          "id": "primary-tokenizer-config-10f93eabcb9b-94d5c6ba8f",
+          "file_id": "tokenizer-config",
+          "id": "primary-tokenizer-config",
           "mount": {
             "target": "/models"
           },
@@ -746,10 +746,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1f40d1a709bd78a8ab18108b72e2efe2fd5140778fc4d6c53f3e32c1e7678a36",
+        "content_sha256": "9dc64a40590bf10ea0236e869907fe640d6f6608ddcba992cef527213d512a9a",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-e8f3c7c4"
+        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
       }
     }
   ],
@@ -762,8 +762,8 @@
     "source_reference": "https://github.com/r0b0tlab/nemotron-3.5-lightning-sglang-sm121/tree/d4ae1993c61aa46e6578ecfdb0eb72ed5f17b85e"
   },
   "release": {
-    "released_at": "2026-08-12",
-    "version": "1.0.0"
+    "released_at": "2026-09-10",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -910,7 +910,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 21583785126,
+            "artifact_bytes": 21583785438,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 30000000000
