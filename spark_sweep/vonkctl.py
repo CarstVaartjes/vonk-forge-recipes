@@ -8,6 +8,9 @@ profiles 1-3 are refused unless the caller opts in for one deliberate restore.
 from __future__ import annotations
 
 import json
+import os
+import re
+import signal
 import subprocess
 import uuid
 from collections.abc import Callable, Sequence
@@ -46,6 +49,40 @@ class VonkctlError(RuntimeError):
             return str(document.get("code") or document.get("error_type") or "")
         return ""
 
+    def infrastructure(self, *, reviewing: bool = False) -> bool:
+        return is_infrastructure(self.reply, reviewing=reviewing)
+
+
+_STRUCTURED_REASON = re.compile(r"^\s*[a-z][a-z0-9_]*(\.[a-z0-9_]+)+\s*:")
+
+
+def is_infrastructure(reply: Reply | None, *, reviewing: bool = False) -> bool:
+    """Is this failure the client, the protocol or the transport, not anything about a recipe?
+
+    Those must never fail a recipe: the sweep pauses, backs off, and says so. A
+    ``controller.unavailable`` that carries a structured platform reason
+    (``dockerfile.heredoc_forbidden: ...``) is the Controller refusing that
+    recipe and stays a recipe failure. ``reviewing`` marks a call whose
+    only job is to ask the Controller for a verdict on a plan (review, profile
+    edits), where a generic ``controller.invalid_request`` means the request was
+    malformed, not the recipe.
+    """
+    document = reply.document if reply is not None else None
+    if not isinstance(document, dict):
+        return True  # a timeout, a crash, unreadable output
+    code = str(document.get("code") or "")
+    if document.get("error_type") in ("arguments", "update"):
+        return True  # the installed vonkctl does not speak this command
+    if code == "controller.protocol_invalid" or code.startswith(
+        "controller.transport_"
+    ):
+        return True
+    if code == "controller.unavailable":
+        return not _STRUCTURED_REASON.match(str(document.get("detail") or ""))
+    if code == "controller.invalid_request":
+        return reviewing
+    return False
+
 
 class VonkctlTimeout(VonkctlError):
     """The command did not finish within its time limit."""
@@ -79,16 +116,40 @@ class Reply:
         return (self.stderr or f"exit {self.exit_code}").strip()[:500]
 
 
-def subprocess_runner(argv: Sequence[str], timeout: float) -> tuple[int, str, str]:
+def _kill_group(process: subprocess.Popen[str]) -> None:
     try:
-        done = subprocess.run(
-            list(argv), capture_output=True, text=True, timeout=timeout, check=False
-        )
+        os.killpg(process.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        process.kill()
+
+
+def subprocess_runner(argv: Sequence[str], timeout: float) -> tuple[int, str, str]:
+    """Run one command in its own session, so an interrupt or a timeout really ends it.
+
+    The child is not in our terminal's process group (Ctrl-C reaches only us) and it
+    inherits no ignored SIGINT; on an interrupt, a timeout or any other exit from this
+    function its whole process group is killed.
+    """
+    process = subprocess.Popen(
+        list(argv),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+    )
+    try:
+        out, err = process.communicate(timeout=timeout)
     except subprocess.TimeoutExpired as error:
+        _kill_group(process)
+        process.communicate()
         raise VonkctlTimeout(
             argv, None, f"{argv[0]} timed out after {timeout}s"
         ) from error
-    return done.returncode, done.stdout, done.stderr
+    except BaseException:
+        _kill_group(process)
+        process.wait()
+        raise
+    return process.returncode, out, err
 
 
 def _parse(text: str) -> Any:

@@ -169,6 +169,10 @@ class FakeFleet:
         self.page_size = 2
         self.next_id = 1
         self.reject_pins = False
+        # One-shot injected errors: (command prefix, error code, detail), consumed on first match.
+        self.faults: list[tuple[tuple[str, ...], str, str]] = []
+        self.client_build: dict[str, Any] = {"version": "1.0", "source_sha": "a" * 40}
+        self.accepted_version = "1.0"
         # Scripted library trouble, consumed one library call at a time: "timeout", "cursor" or None.
         self.library_faults: list[str | None] = []
         # The library's local cache state lags what the NAS holds (it keeps saying not_cached).
@@ -271,6 +275,28 @@ class FakeFleet:
         self.calls.append((profile, tuple(clean)))
         self.call_times.append(self.clock.now())
         self._tick()
+        for index, (prefix, code, detail) in enumerate(self.faults):
+            # Pin-profile edits are best effort and have their own tests: faults aim at the sweep.
+            if profile != 13 and tuple(clean[: len(prefix)]) == prefix:
+                del self.faults[index]
+                _, document = self._error(code, detail)
+                return 2, json.dumps(document), ""
+        if clean[:1] == ["--version"]:
+            return 0, json.dumps(self.client_build), ""
+        if clean[:1] == ["update"]:
+            drift = self.accepted_version != self.client_build["version"]
+            return (
+                0,
+                json.dumps(
+                    {
+                        "current": self.client_build,
+                        "accepted_version": self.accepted_version,
+                        "update_available": drift,
+                        "updated": False,
+                    }
+                ),
+                "",
+            )
         code, document = self._dispatch(profile, clean)
         return code, json.dumps(document), ""
 

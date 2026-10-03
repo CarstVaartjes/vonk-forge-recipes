@@ -120,6 +120,11 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             }
             for c in policy.cluster(data["recipes"])
         ],
+        "infrastructure": {
+            source: {**item, "retry_in_s": max(0, round(item["until"] - now))}
+            for source, item in data["infra"].items()
+        },
+        "client": data.get("client"),
         "events": [e["message"] for e in data["events"][-10:]],
     }
 
@@ -141,6 +146,12 @@ def render_status(status: Mapping[str, Any]) -> str:
             for i in items
         )
         lines.append(f"- {spark}: {text or 'idle'}")
+    if status.get("infrastructure"):
+        lines += ["", "## Infrastructure problems (not recipe failures; retrying)"]
+        lines += [
+            f"- {source} x{item['count']}, next try in {_duration(item['retry_in_s'])}: {item['message']}"
+            for source, item in status["infrastructure"].items()
+        ]
     d = status["downloads"]
     lines += [
         "",

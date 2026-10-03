@@ -15,9 +15,11 @@ under a fake clock and a fake ``vonkctl``:
 
 from __future__ import annotations
 
+import signal
+import threading
 import time
-from collections.abc import Iterable, Mapping, Sequence
-from concurrent.futures import Future, ThreadPoolExecutor
+from collections.abc import Callable, Iterable, Mapping, Sequence
+from concurrent.futures import Future
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Protocol
@@ -38,13 +40,60 @@ from .owner import OwnerGuard, OwnerStatus
 from .prefetch import PrefetchConfig, Prefetcher
 from .report import write_status
 from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
-from .state import ResultsLog, State
-from .vonkctl import Vonkctl, VonkctlError, request_key
+from .state import ResultsLog, State, StateLock
+from .vonkctl import Vonkctl, VonkctlError, is_infrastructure, request_key
 
 CLEAR_TIMEOUT_SECONDS = 900.0
 MAX_REVIEW_DEFERS = 3
+INFRA_BASE = 30.0
+INFRA_CAP = 600.0
 ACTIVE_APP = frozenset({"queued", "running"})
 SETTLED = frozenset({"succeeded", "failed", "cancelled", "waiting-for-operator"})
+
+
+class DaemonExecutor:
+    """Smoke tests on daemon threads: a request that hangs never keeps an interrupted sweep alive."""
+
+    def submit(self, fn: Callable[..., Any], *args: Any) -> Future[Any]:
+        future: Future[Any] = Future()
+
+        def work() -> None:
+            if not future.set_running_or_notify_cancel():
+                return
+            try:
+                future.set_result(fn(*args))
+            except BaseException as error:  # noqa: BLE001 - delivered through the future
+                future.set_exception(error)
+
+        threading.Thread(target=work, daemon=True, name="smoke").start()
+        return future
+
+    def shutdown(self, **_: Any) -> None:
+        return None
+
+
+def _interrupt(_signum: int, _frame: Any) -> None:
+    raise KeyboardInterrupt
+
+
+def _install_signal_handlers() -> dict[int, Any]:
+    """SIGINT and SIGTERM raise KeyboardInterrupt, even when started with SIGINT ignored.
+
+    A process started in the background of a non-interactive shell inherits SIGINT as
+    ignored, and Python then installs no handler of its own: Ctrl-C and ``kill -INT``
+    would do nothing for as long as it ran.
+    """
+    if threading.current_thread() is not threading.main_thread():
+        return {}
+    previous: dict[int, Any] = {}
+    for number in (signal.SIGINT, signal.SIGTERM):
+        previous[number] = signal.signal(number, _interrupt)
+    return previous
+
+
+def _restore_signal_handlers(previous: Mapping[int, Any]) -> None:
+    for number, handler in previous.items():
+        signal.signal(number, handler)
 
 
 class Clock(Protocol):
@@ -92,6 +141,7 @@ class SweepConfig:
     restore_owner: int | None = None
     stop_at_end: bool = True
     watch_seconds: float = 0.0
+    allow_version_skew: bool = False
 
 
 def alias_for(recipe: Recipe, definitions: Definitions) -> str:
@@ -108,7 +158,7 @@ class Sweep:
         log: ResultsLog,
         definitions: Definitions,
         clock: Clock | None = None,
-        executor: ThreadPoolExecutor | None = None,
+        executor: Any = None,
     ) -> None:
         self.cfg = config
         self.vk = vk
@@ -116,9 +166,7 @@ class Sweep:
         self.log = log
         self.defs = definitions
         self.clock = clock or RealClock()
-        self.executor = executor or ThreadPoolExecutor(
-            max_workers=4, thread_name_prefix="smoke"
-        )
+        self.executor = executor or DaemonExecutor()
         self.futures: dict[str, Future[SmokeResult]] = {}
         # The cached listings: scheduling reads these, a refresh updates them page by page.
         self.recipe_list = recipe_listing(vk)
@@ -144,6 +192,8 @@ class Sweep:
             self._download_failed,
             self._download_done,
         )
+        self.prefetcher.on_infra = self.note_infra
+        self.prefetcher.on_ok = self.clear_infra
         self.boost = self._build_boost()
         self.queue: list[str] = []
         self.sizes: dict[str, int] = {}
@@ -451,9 +501,54 @@ class Sweep:
             self.owner_status = self.guard.check(self.clock.now())
         self._take_over(self.clock.now())
 
+    def check_client(self) -> None:
+        """Refuse to run with a vonkctl that is not the accepted release.
+
+        The Controller exposes no version of its own; the accepted signed release is what it
+        is deployed from, so ``vonkctl update`` (a read-only check) tells whether this client
+        has drifted. An older client fails at runtime with protocol errors that look like
+        every recipe failing.
+        """
+        version = self.vk.run("--version")
+        if isinstance(version.document, dict):
+            self.state.data["client"] = {
+                k: version.document.get(k) for k in ("version", "source_sha")
+            }
+        check = self.vk.run("update", timeout=60)
+        document = check.document if isinstance(check.document, dict) else {}
+        if not check.ok or "update_available" not in document:
+            self.state.event(
+                "could not compare vonkctl with the accepted release: "
+                f"{check.error_text[:120]}"
+            )
+            return
+        if document["update_available"] is not True:
+            return
+        current = dig(document, "current", "version", default="unknown")
+        accepted = document.get("accepted_version", "unknown")
+        message = (
+            f"vonkctl {current} differs from the accepted release {accepted}: "
+            "run `vonkctl update --apply`"
+        )
+        if not self.cfg.allow_version_skew:
+            raise RuntimeError(message + " (or pass --allow-version-skew)")
+        self.state.event(f"WARNING: {message}; continuing as asked")
+
     def run(self) -> int:
+        """Run the sweep. One sweep per state directory; SIGINT and SIGTERM end it cleanly."""
+        lock = StateLock(self.cfg.state_dir)
+        lock.acquire()
+        previous = _install_signal_handlers()
+        try:
+            return self._run()
+        finally:
+            _restore_signal_handlers(previous)
+            lock.release()
+
+    def _run(self) -> int:
         stuck = 0
         try:
+            self.check_client()
             self.preflight()
             self.start_takeover()
             while True:
@@ -501,8 +596,13 @@ class Sweep:
         waiting = (
             external
             or self.owner_status.paused
+            or bool(self.state.data["infra"])
             or self.clock.now()
-            < max(self.backoff_until, self.prefetcher.pressure_until)
+            < max(
+                self.backoff_until,
+                self.prefetcher.pressure_until,
+                self.prefetcher.pause_until,
+            )
         )
         return not busy and not waiting and not self.ready_candidates()
 
@@ -842,6 +942,9 @@ class Sweep:
                 "profile", "endpoint", slot["alias"], profile=self.cfg.sweep_profile
             )
         except VonkctlError as error:
+            if error.infrastructure():
+                self.note_infra("endpoint", str(error))
+                return  # the run is up: look the endpoint up again on the next pass
             self._fail_slot(
                 key, slot, policy.classify("readiness", "endpoint", str(error)), {}
             )
@@ -1045,6 +1148,8 @@ class Sweep:
         except VonkctlError as error:
             self.state.event(f"could not clear the Sparks: {str(error)[:150]}")
             self.backoff_until = now + self.cfg.retry_delay
+            if error.infrastructure(reviewing=True):
+                self.note_infra("review", str(error))
             return False
         deadline = now + CLEAR_TIMEOUT_SECONDS
         status = ""
@@ -1087,6 +1192,11 @@ class Sweep:
                 self.vk.call("profile", *args, profile=profile)
                 added.append(placement)
             except VonkctlError as error:
+                if error.infrastructure(reviewing=True):
+                    # The client, protocol or transport failed: nothing about this recipe.
+                    self._rollback(added, f"profile edit failed: {error}")
+                    self.note_infra("review", str(error))
+                    return
                 self._record_failure(
                     recipe.key, policy.classify("review", error.code, str(error)), None
                 )
@@ -1100,7 +1210,10 @@ class Sweep:
         document = review.document if isinstance(review.document, dict) else {}
         if review.is_error_document or not document:
             self._rollback(added, f"review failed: {review.error_text}")
+            if is_infrastructure(review, reviewing=True):
+                self.note_infra("review", review.error_text)
             return
+        self.clear_infra("review")
         stopped = [
             r["alias"]
             for r in dig(document, "effects", "runs", default=[])
@@ -1145,6 +1258,8 @@ class Sweep:
         except VonkctlError as error:
             self.state.data["load"] = None
             self._rollback(added, f"load refused: {error}")
+            if error.infrastructure(reviewing=True):
+                self.note_infra("review", str(error))
             return
         self.state.data["load"]["app_id"] = dig(submitted, "id")
         self.state.data["dirty"] = True
@@ -1242,6 +1357,33 @@ class Sweep:
                 entry["defer_until"] = now + self.cfg.defer_delay
             else:
                 self._record_failure(key, policy.classify("review", code, detail), None)
+
+    def note_infra(self, source: str, message: str) -> None:
+        """A client, protocol or transport problem: pause that kind of work, back off, show it."""
+        now = self.clock.now()
+        item = self.state.data["infra"].get(source) or {"since": now, "count": 0}
+        item["count"] += 1
+        hint = (
+            " (vonkctl may be older than the Controller: run `vonkctl update --apply`)"
+            if "protocol_invalid" in message or "OpenAPI" in message
+            else ""
+        )
+        item["message"] = message[:300] + hint
+        item["until"] = now + min(INFRA_BASE * 2 ** (item["count"] - 1), INFRA_CAP)
+        self.state.data["infra"][source] = item
+        if source == "download":
+            self.prefetcher.pause_until = item["until"]
+        else:
+            self.backoff_until = max(self.backoff_until, item["until"])
+        if item["count"] in (1, 5) or item["count"] % 20 == 0:
+            self.state.event(
+                f"infrastructure problem ({source}, not a recipe failure), "
+                f"retrying with backoff: {item['message'][:160]}"
+            )
+
+    def clear_infra(self, source: str) -> None:
+        if self.state.data["infra"].pop(source, None) is not None:
+            self.state.event(f"infrastructure problem cleared ({source})")
 
     def _foreign_runs(self) -> bool:
         try:
