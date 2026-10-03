@@ -7,5 +7,5 @@ clean `pip install .` because the training-only bitsandbytes dependency is not
 installed. The build verifies the exact upstream initializer SHA-256 and then
 exports only the MOVA inference class. No inference implementation is changed.
 
-Upstream source: https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/mova/diffusion/pipelines/__init__.py
-Upstream issue boundary: https://github.com/OpenMOSS/MOVA/blob/83bcbe8eab55ded920889239af93c112834ee5b8/pyproject.toml
+Upstream source: https://github.com/OpenMOSS/MOVA/blob/1591b2557b42030a3421442c998dd6f5602ed9bd/mova/diffusion/pipelines/__init__.py
+Upstream issue boundary: https://github.com/OpenMOSS/MOVA/blob/1591b2557b42030a3421442c998dd6f5602ed9bd/pyproject.toml
