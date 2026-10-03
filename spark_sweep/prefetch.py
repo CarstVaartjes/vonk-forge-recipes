@@ -72,6 +72,10 @@ class Prefetcher:
         self.clock = clock
         self.on_failure = on_failure
         self.on_done = on_done
+        # Set by the sweep: a client, protocol or transport problem is reported, never a recipe's failure.
+        self.on_infra: Callable[[str, str], None] = lambda _source, _message: None
+        self.on_ok: Callable[[str], None] = lambda _source: None
+        self.pause_until = 0.0
         self.library_fresh_since = 0.0  # start of the newest complete library pass
         self.pressure_until = 0.0
         self.pin_error: str | None = None
@@ -166,6 +170,8 @@ class Prefetcher:
         )
 
     def _request(self, recipe: Recipe, kind: str) -> None:
+        if self.clock() < self.pause_until:
+            return  # backing off after an infrastructure error
         record = self.state.downloads.get(recipe.key, {})
         attempt = int(record.get("attempt", 0)) + 1
         rerequests = int(record.get("rerequests", 0)) + (
@@ -186,6 +192,9 @@ class Prefetcher:
                 tolerate=(1, 2),
             )
         except VonkctlError as error:
+            if error.infrastructure():
+                self.on_infra("download", str(error))
+                return
             document = (
                 error.reply.document
                 if error.reply and isinstance(error.reply.document, dict)
@@ -210,6 +219,7 @@ class Prefetcher:
             else:
                 self.on_failure(recipe.key, failure, None, failure.model_level)
             return
+        self.on_ok("download")
         op_state = str(dig(document, "state", default="queued"))
         self.state.downloads[recipe.key] = {
             "operation_id": dig(document, "id"),

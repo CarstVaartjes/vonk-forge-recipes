@@ -10,8 +10,10 @@ extended with the hardware facts of the run.
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
+import socket
 import tempfile
 import time
 import uuid
@@ -42,6 +44,7 @@ def _fresh() -> dict[str, Any]:
         "models_done": [],  # digests whose download finished, whatever a lagging listing says
         "took_over": False,
         "model_failures": {},  # model digest -> failure cluster
+        "infra": {},  # source -> {message, since, count, until}: problems that are not the recipes
         "mode": "single",
         "events": [],
     }
@@ -59,6 +62,47 @@ def write_atomic(path: Path, text: str) -> None:
     except BaseException:
         Path(temporary).unlink(missing_ok=True)
         raise
+
+
+class StateLocked(RuntimeError):
+    """Another sweep process holds this state directory."""
+
+
+class StateLock:
+    """An exclusive lock on a state directory: pid and host, released when the process ends.
+
+    Two sweeps on one state would fight over the same profile and requests. The lock
+    is an ``flock`` on ``run.lock``, so a crashed process never leaves a stale lock
+    behind; the file's content only says who holds it.
+    """
+
+    def __init__(self, directory: Path) -> None:
+        self.path = directory / "run.lock"
+        self._handle: Any = None
+
+    def acquire(self) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        handle = self.path.open("a+", encoding="utf-8")
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            handle.seek(0)
+            holder = handle.read().strip() or "an unknown process"
+            handle.close()
+            raise StateLocked(
+                f"another sweep is running on {self.path.parent} ({holder}); "
+                "stop it first (its status page shows what it is doing)"
+            ) from None
+        handle.seek(0)
+        handle.truncate()
+        handle.write(f"pid {os.getpid()} on {socket.gethostname()}")
+        handle.flush()
+        self._handle = handle
+
+    def release(self) -> None:
+        if self._handle is not None:
+            self._handle.close()  # closing releases the flock
+            self._handle = None
 
 
 class State:
