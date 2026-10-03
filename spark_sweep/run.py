@@ -142,6 +142,8 @@ class SweepConfig:
     stop_at_end: bool = True
     watch_seconds: float = 0.0
     allow_version_skew: bool = False
+    release_seconds: float = 300.0
+    retry_failed: bool = False
 
 
 def alias_for(recipe: Recipe, definitions: Definitions) -> str:
@@ -174,6 +176,7 @@ class Sweep:
         self.recipes: dict[str, Recipe] = self.recipe_list.rows
         self.models: dict[str, Model] = self.model_list.rows
         self.fleet = Fleet((), ())
+        self.release_at = self.clock.now()  # check_client has just read it
         self.status_at = -1e18
         self.owner_at = -1e18
         self.owner_status = OwnerStatus()
@@ -406,6 +409,7 @@ class Sweep:
     def _tick(self) -> None:
         now = self.clock.now()
         self.advance_catalog(now)
+        self.check_release(now)
         if now - self.owner_at >= self.cfg.owner_poll_seconds:
             self.owner_at = now
             self.owner_status = self.guard.check(now)
@@ -522,6 +526,7 @@ class Sweep:
                 f"{check.error_text[:120]}"
             )
             return
+        self.observe_release(document)
         if document["update_available"] is not True:
             return
         current = dig(document, "current", "version", default="unknown")
@@ -533,6 +538,118 @@ class Sweep:
         if not self.cfg.allow_version_skew:
             raise RuntimeError(message + " (or pass --allow-version-skew)")
         self.state.event(f"WARNING: {message}; continuing as asked")
+
+    @property
+    def release_sha(self) -> str | None:
+        value = self.state.data["release"].get("sha")
+        return value if isinstance(value, str) else None
+
+    def observe_release(self, document: Mapping[str, Any]) -> None:
+        """Note the accepted Controller release; a change requeues failures a fix may have cured.
+
+        The Controller has no version endpoint, so the accepted signed release (the source it
+        is deployed from) stands in for it, as in the client check.
+        """
+        version = document.get("accepted_version")
+        identity = document.get("accepted_source_sha") or version
+        if not isinstance(identity, str) or not identity:
+            return
+        release = self.state.data["release"]
+        if release.get("sha") != identity:
+            if release:
+                self.state.event(
+                    f"Controller release changed: {release.get('sha')} -> {identity}"
+                )
+            release.update(sha=identity, version=version, seen_at=self.clock.now())
+            self.state.data["release_history"].append(
+                {"sha": identity, "version": version, "seen_at": self.clock.now()}
+            )
+        self.requeue_for_release()
+
+    def check_release(self, now: float) -> None:
+        if now - self.release_at < self.cfg.release_seconds:
+            return
+        self.release_at = now
+        reply = self.vk.run("update", timeout=60)
+        if reply.ok and isinstance(reply.document, dict):
+            self.observe_release(reply.document)
+
+    def requeue_for_release(self) -> None:
+        """Failures from another Controller release, of a platform-side class, are tried again."""
+        current = self.release_sha
+        if current is None:
+            return
+        for key, entry in self.state.recipes.items():
+            if (
+                entry.get("status") == "failed"
+                and entry.get("release") != current
+                and policy.platform_side(entry.get("failure_class"))
+                and self._selected_key(key)
+            ):
+                self._requeue_failed(key, f"controller-release-changed ({current})")
+
+    def requeue_failed(self) -> int:
+        """``--retry-failed``: every failed recipe (within ``--only``), whatever the cause."""
+        keys = [
+            key
+            for key, entry in self.state.recipes.items()
+            if entry.get("status") == "failed" and self._selected_key(key)
+        ]
+        for key in keys:
+            self._requeue_failed(key, "operator: --retry-failed")
+        return len(keys)
+
+    def _selected_key(self, key: str) -> bool:
+        return not self.cfg.only or any(word in key for word in self.cfg.only)
+
+    def _requeue_failed(self, key: str, why: str) -> None:
+        """Back to pending; the failure stays in results.jsonl, which is only ever appended to."""
+        entry = self.state.entry(key)
+        previous = {
+            name: entry.get(name)
+            for name in (
+                "phase",
+                "failure_class",
+                "cluster",
+                "release",
+                "error",
+                "content_sha256",
+            )
+        }
+        self.log.append(
+            batch="sweep",
+            recipe=key,
+            step="requeue",
+            status="requeued",
+            reason=why,
+            controller_release=self.release_sha,
+            previous=previous,
+        )
+        entry["previous"] = {"status": "failed", **previous}
+        entry.update(status="pending", attempts=0, requeued_because=why)
+        for stale in (
+            "phase",
+            "failure_class",
+            "code",
+            "error",
+            "signature",
+            "cluster",
+            "evidence",
+            "inherited_from",
+            "not_before",
+            "defer_until",
+            "release",
+        ):
+            entry.pop(stale, None)
+        recipe = self.recipes.get(key)
+        for digest in recipe.model_digests if recipe else ():
+            self.state.data["model_failures"].pop(digest, None)
+        record = self.state.downloads.get(key)
+        if record is not None and record.get("state") in ("failed", "cancelled"):
+            # Ask again with the next attempt number (a new request key: the old key would
+            # replay the failed operation). A finished download stands.
+            record["state"] = "retired"
+        self.state.event(f"requeued {key}: {why}")
 
     def run(self) -> int:
         """Run the sweep. One sweep per state directory; SIGINT and SIGTERM end it cleanly."""
@@ -549,6 +666,8 @@ class Sweep:
         stuck = 0
         try:
             self.check_client()
+            if self.cfg.retry_failed:
+                self.requeue_failed()
             self.preflight()
             self.start_takeover()
             while True:
@@ -664,8 +783,9 @@ class Sweep:
             )
             self.state.event(f"retry {key}: {failure.klass} ({failure.phase})")
             return
+        entry["evidence_seq"] = int(entry.get("evidence_seq", 0)) + 1
         evidence = (
-            self._evidence(key, op_id, entry["attempts"])
+            self._evidence(key, op_id, entry["evidence_seq"])
             if inherited_from is None
             else None
         )
@@ -678,6 +798,7 @@ class Sweep:
             signature=failure.signature,
             cluster=failure.cluster,
             finished_at=now,
+            release=self.release_sha,
             content_sha256=recipe.content_sha256
             if recipe
             else entry.get("content_sha256"),
@@ -718,6 +839,8 @@ class Sweep:
             if recipe
             else entry.get("revision_id"),
             "library_commit": self.library_commit or None,
+            "controller_release": entry.get("release"),
+            "controller_version": self.state.data["release"].get("version"),
             "engine": recipe.engine if recipe else None,
             "timings": entry.get("timings"),
         }
@@ -755,6 +878,7 @@ class Sweep:
             status="passed",
             attempts=int(entry.get("attempts", 0)) + 1,
             finished_at=now,
+            release=self.release_sha,
             content_sha256=recipe.content_sha256,
             revision_id=recipe.revision_id,
             timings=timings,

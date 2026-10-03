@@ -44,6 +44,8 @@ def _fresh() -> dict[str, Any]:
         "models_done": [],  # digests whose download finished, whatever a lagging listing says
         "took_over": False,
         "model_failures": {},  # model digest -> failure cluster
+        "release": {},  # the accepted Controller release last seen: sha, version, seen_at
+        "release_history": [],
         "infra": {},  # source -> {message, since, count, until}: problems that are not the recipes
         "mode": "single",
         "events": [],
