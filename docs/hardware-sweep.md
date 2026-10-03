@@ -162,6 +162,32 @@ per-state-directory nonce, so a fresh state directory never replays an older
 run's requests, while a resumed run reconnects to its own. Downloads that
 someone else started (library state `preparing`) are waited for, not repeated.
 
+## Infrastructure errors, the client, and one sweep at a time
+
+* A client, protocol or transport error is not a recipe's failure:
+  `controller.protocol_invalid`, `controller.transport_*`, a
+  `controller.unavailable` without a structured platform reason, a timeout or
+  unreadable output, a command the installed `vonkctl` does not know, and a
+  generic `controller.invalid_request` from a review or profile edit. The sweep
+  pauses that kind of work, retries with backoff (30 s doubling to 10 min) and
+  shows the problem on the status page until the Controller answers. A
+  structured refusal such as `dockerfile.heredoc_forbidden: ...` still fails
+  its recipe.
+* At start `vonkctl --version` is recorded and `vonkctl update` (a read-only
+  check) compares the installed build with the accepted signed release the
+  Controller is deployed from; the Controller has no version endpoint of its
+  own. If they differ the sweep refuses with "run `vonkctl update --apply`"
+  (`--allow-version-skew` runs anyway with a warning). An unanswered check only
+  warns.
+* A state directory has an exclusive lock (`run.lock`, an `flock` that names the
+  holder's pid and host and disappears with the process). A second `run` on the
+  same directory refuses to start.
+* SIGINT and SIGTERM stop the sweep even when it was started with SIGINT
+  ignored (a background job of a non-interactive shell inherits that, and Python
+  then installs no handler). Every `vonkctl` call runs in its own session and is
+  killed with its process group on an interrupt or timeout; smoke requests run on
+  daemon threads, so a hung request cannot keep the process alive.
+
 ## Evidence
 
 `results.jsonl` follows the platform campaign's log shape (`recorded_at`,

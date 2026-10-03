@@ -149,6 +149,11 @@ def _parser() -> argparse.ArgumentParser:
     )
     run.add_argument("--poll-seconds", type=float, default=10.0)
     run.add_argument(
+        "--allow-version-skew",
+        action="store_true",
+        help="run even when vonkctl is not the accepted release (otherwise: vonkctl update --apply)",
+    )
+    run.add_argument(
         "--file-issues",
         action="store_true",
         help=f"file one {REPO} issue per failure (label hardware-test)",
@@ -227,6 +232,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         restore_owner=args.restore_owner,
         stop_at_end=not args.leave_running,
         watch_seconds=args.watch,
+        allow_version_skew=args.allow_version_skew,
     )
 
 
