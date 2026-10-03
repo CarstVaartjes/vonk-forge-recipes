@@ -538,12 +538,15 @@ class HfCheckAndLockTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             world = tr3_world(Path(tmp), KIT_NEW)
             new = model_document(NEW, NEW_REV, NEW_FILES, size=7)
+            # a public copy by another publisher: the reference follows the document
+            new["identity"]["publisher"] = "public-copy"
             world.write_model(new)
             changed = world.lock()
             self.assertIn("recipes/mia.json", changed)
             recipe = json.loads((world.root / "recipes/mia.json").read_text())
             primary = next(m for m in recipe["models"] if m["id"] == "primary")
             self.assertEqual(primary["model"]["slug"], new["identity"]["slug"])
+            self.assertEqual(primary["model"]["publisher"], "public-copy")
             self.assertEqual(
                 primary["model"]["content_sha256"], kit_pins.model_digest(new)
             )

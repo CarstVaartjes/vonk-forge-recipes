@@ -26,5 +26,22 @@
   "source": {
     "repo": "MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark",
     "commit": "7d0712dcb83cc58b467235e24d3a4429ed14518b"
+  },
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "start.sh",
+        "repo_pattern": "^STOCK_MODEL_ID=\"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\"$",
+        "pattern": "^STOCK_MODEL_REVISION=\"(?P<version>[0-9a-f]{40})\"$",
+        "override": {
+          "repo": "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+          "revision": "ada4da32a583a78aa47299f45a70603c950490b8",
+          "reason": "upstream repo Mia-AiLab/Qwen3.8-Flash-Next-NVFP4 returns HTTP 401 since 2026-10-03 (the kit names the repository but pins no revision); byte-identical public copy, evidence: anonymous Hugging Face API at 2026-10-03, local-inference-lab/Qwen3.8-Flash-Next-NVFP4@ada4da32 (the origin the Mia mirror states) matches sha256 and size of all 50 non-README files of the catalogued 925d7be6 (37 weight files, configuration, tokenizer, chat template); only README.md differs"
+        }
+      }
+    },
+    "whole": false
   }
 }

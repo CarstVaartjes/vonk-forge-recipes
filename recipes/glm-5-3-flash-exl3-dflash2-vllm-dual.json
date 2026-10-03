@@ -93,28 +93,6 @@
           ]
         },
         {
-          "file_id": "mirror-2a30e3b7fde5-683682b54b",
-          "id": "primary-mirror-2a30e3b7fde5-683682b54b",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint",
-            "worker"
-          ]
-        },
-        {
-          "file_id": "original-model-card-f7adf502e7ac-58beb10032",
-          "id": "primary-original-model-card-f7adf502e7ac-58beb10032",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint",
-            "worker"
-          ]
-        },
-        {
           "file_id": "provenance-749cd28826a4-4c0d27425c",
           "id": "primary-provenance-749cd28826a4-4c0d27425c",
           "mount": {
@@ -126,8 +104,8 @@
           ]
         },
         {
-          "file_id": "readme-ad818d1fb7c0-b335630551",
-          "id": "primary-readme-ad818d1fb7c0-b335630551",
+          "file_id": "readme-04534d94ac3c-b335630551",
+          "id": "primary-readme-04534d94ac3c-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -1646,10 +1624,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "88c209df509b46dc0aeba398b76e16afe6fee6678a24889125f8fb58eca326bd",
+        "content_sha256": "7bbca6442bc92110f8bc71b65fdf988f551b57f18ed7ae19c711db46f28ea306",
         "kind": "model",
         "publisher": "mia-ai-lab",
-        "slug": "glm-5-3-flash-exl3-tr3-4bpw-25a44fdb"
+        "slug": "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704"
       }
     },
     {
@@ -2143,7 +2121,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 180400776148,
+            "artifact_bytes": 180400776825,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000
@@ -2160,7 +2138,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 180400776148,
+            "artifact_bytes": 180400776825,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000

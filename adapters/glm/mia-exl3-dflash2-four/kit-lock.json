@@ -1,12 +1,5 @@
 {
   "dependencies": {
-    "drafter": {
-      "datasource": "hf-revision",
-      "kind": "commit",
-      "ref": "7d74cdd881ed7e32c31175984a67823127b66cfe",
-      "repo": "incoai/GLM-5.3-Flash-DFlash2",
-      "revision": "7d74cdd881ed7e32c31175984a67823127b66cfe"
-    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",
@@ -17,7 +10,7 @@
     }
   },
   "kit": {
-    "commit": "2b5dfdc616ea5f3dfa4271f98475eea9cb0ee8b1",
-    "repo": "Reederey87/glm53-flash-exl3-2x-dgx-spark"
+    "commit": "94ae731f4619f769be1f4dfe6f6607ce0a3e869d",
+    "repo": "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks"
   }
 }

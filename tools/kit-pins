@@ -1337,6 +1337,7 @@ def rebind(
             f"Model '{model_id}': selected file ids collide once cut to 64 characters"
         )
     reference["files"] = selected
+    reference["model"]["publisher"] = new["identity"]["publisher"]
     reference["model"]["slug"] = new["identity"]["slug"]
     reference["model"]["content_sha256"] = model_digest(new)
     delta = sum(f["size_bytes"] for f in targets) - sum(f["size_bytes"] for f in chosen)
