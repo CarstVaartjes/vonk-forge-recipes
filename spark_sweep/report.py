@@ -52,6 +52,38 @@ def average_test_seconds(recipes: Mapping[str, Mapping[str, Any]]) -> float:
     return statistics.mean(totals) if totals else DEFAULT_TEST_SECONDS
 
 
+def failures_by_release(data: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Failed recipes grouped by the Controller release they failed under, newest release first."""
+    versions = {h["sha"]: h.get("version") for h in data.get("release_history", [])}
+    current = data.get("release", {}).get("sha")
+    groups: dict[str, dict[str, Mapping[str, Any]]] = defaultdict(dict)
+    for key, entry in data["recipes"].items():
+        if entry.get("status") == "failed":
+            groups[str(entry.get("release") or "unknown")][key] = entry
+    order = [h["sha"] for h in reversed(data.get("release_history", []))]
+    ranked = sorted(
+        groups, key=lambda sha: order.index(sha) if sha in order else len(order)
+    )
+    return [
+        {
+            "release": sha,
+            "version": versions.get(sha),
+            "current": sha == current,
+            "failed": len(groups[sha]),
+            "clusters": [
+                {
+                    "id": c.id,
+                    "signature": c.signature,
+                    "count": len(c.recipes),
+                    "recipes": list(c.recipes[:6]),
+                }
+                for c in policy.cluster(groups[sha])
+            ],
+        }
+        for sha in ranked
+    ]
+
+
 def build_status(sweep: Sweep) -> dict[str, Any]:
     data = sweep.state.data
     now = sweep.clock.now()
@@ -120,6 +152,8 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             }
             for c in policy.cluster(data["recipes"])
         ],
+        "release": data["release"].get("sha"),
+        "failures_by_release": failures_by_release(data),
         "infrastructure": {
             source: {**item, "retry_in_s": max(0, round(item["until"] - now))}
             for source, item in data["infra"].items()
@@ -170,6 +204,15 @@ def render_status(status: Mapping[str, Any]) -> str:
         f"- {q['recipe']}{'' if q['cached'] else ' (downloading)'}"
         for q in status["queue"]
     ]
+    if status.get("failures_by_release"):
+        lines += ["", "## Failures by Controller release"]
+        for group in status["failures_by_release"]:
+            tag = " (current)" if group["current"] else ""
+            version = f" {group['version']}" if group["version"] else ""
+            lines.append(
+                f"- release {str(group['release'])[:12]}{version}{tag}: {group['failed']} failed"
+            )
+            lines += [f"  - {c['count']} x {c['signature']}" for c in group["clusters"]]
     if status["failure_clusters"]:
         lines += ["", "## Failure clusters"]
         lines += [

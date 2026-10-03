@@ -173,6 +173,7 @@ class FakeFleet:
         self.faults: list[tuple[tuple[str, ...], str, str]] = []
         self.client_build: dict[str, Any] = {"version": "1.0", "source_sha": "a" * 40}
         self.accepted_version = "1.0"
+        self.release_sha = "a" * 40  # the accepted Controller release
         # Scripted library trouble, consumed one library call at a time: "timeout", "cursor" or None.
         self.library_faults: list[str | None] = []
         # The library's local cache state lags what the NAS holds (it keeps saying not_cached).
@@ -291,6 +292,7 @@ class FakeFleet:
                     {
                         "current": self.client_build,
                         "accepted_version": self.accepted_version,
+                        "accepted_source_sha": self.release_sha,
                         "update_available": drift,
                         "updated": False,
                     }

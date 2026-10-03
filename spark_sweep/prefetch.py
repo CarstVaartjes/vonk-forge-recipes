@@ -342,6 +342,8 @@ class Prefetcher:
             return True
         if record.get("state") in ACTIVE_OPERATION:
             return False
+        if record.get("state") == "retired":
+            return True
         if recipe.cache_ready:
             return False
         if record.get("state") == "succeeded":
