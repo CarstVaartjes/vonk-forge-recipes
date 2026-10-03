@@ -7,13 +7,14 @@ or a missing optional field never stops a sweep.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
 from .vonkctl import Vonkctl
 
 PAGE_LIMIT = "512"
+MAX_PAGE_FAILURES = 3
 
 
 def dig(value: Any, *path: str | int, default: Any = None) -> Any:
@@ -64,6 +65,7 @@ class Recipe:
     local: str
     updated_at: str
     base_image: str
+    cache_ready: bool = False  # the library's own assessment: exact NAS assets ready
     checks: tuple[dict[str, Any], ...] = field(default=(), compare=False)
 
     @property
@@ -144,6 +146,7 @@ def parse_recipe(row: dict[str, Any]) -> Recipe | None:
         base_image=str(
             dig(document, "execution", "build", "base_image", "digest", default="")
         ),
+        cache_ready=dig(row, "assessment", "cache", "state") == "ready",
         checks=tuple(
             c
             for c in dig(document, "validation", "serving", "checks", default=[])
@@ -165,27 +168,102 @@ def parse_model(row: dict[str, Any]) -> Model | None:
     )
 
 
-def fetch_pages(
-    vk: Vonkctl, noun: str, collection: str
-) -> tuple[list[dict[str, Any]], str]:
-    """Every row of ``vonkctl <noun> library`` (following ``next_cursor``) and the library commit."""
-    rows: list[dict[str, Any]] = []
-    cursor: str | None = None
-    seen: set[str] = set()
-    commit = ""
-    while True:
-        args = [noun, "library", "--limit", PAGE_LIMIT]
-        if cursor:
-            args += ["--cursor", cursor]
-        page = vk.call(*args, timeout=300)
-        rows += [
-            row for row in dig(page, collection, default=[]) if isinstance(row, dict)
-        ]
-        commit = commit or str(dig(page, "library", "commit", default=""))
-        cursor = dig(page, "next_cursor")
-        if not isinstance(cursor, str) or cursor in seen:
-            return rows, commit
-        seen.add(cursor)
+class Listing[T]:
+    """A library listing read one page at a time and kept between passes.
+
+    The Controller bounds a library read (a slow page times out) and invalidates
+    a cursor when the selection changes under it. So a failed page is retried
+    on the next call, an invalid cursor restarts the pass from the first page,
+    and rows already read stay usable: scheduling never waits for a complete
+    pass. Rows absent from a complete, uninterrupted pass are dropped.
+    """
+
+    def __init__(
+        self,
+        vk: Vonkctl,
+        noun: str,
+        collection: str,
+        parse: Callable[[dict[str, Any]], T | None],
+        key: Callable[[T], str],
+    ) -> None:
+        self.vk = vk
+        self.noun = noun
+        self.collection = collection
+        self.parse = parse
+        self.key = key
+        self.rows: dict[str, T] = {}
+        self.cursor: str | None = None
+        self.seen: set[str] = set()
+        self.in_pass = False
+        self.passes = 0
+        self.pass_started_at = 0.0
+        self.pass_done_at = -1e18
+        self.complete_started_at = 0.0  # when the newest *complete* pass began
+        self.commit = ""
+        self.last_error = ""
+        self.failures = 0
+
+    def begin(self, now: float) -> None:
+        self.in_pass = True
+        self.pass_started_at = now
+        self._restart()
+
+    def _restart(self) -> None:
+        self.cursor = None
+        self.seen = set()
+        self.failures = 0
+
+    def step(self, now: float = 0.0) -> bool:
+        """Read one page. True when this call completed a pass."""
+        args = [self.noun, "library", "--limit", PAGE_LIMIT]
+        if self.cursor:
+            args += ["--cursor", self.cursor]
+        reply = self.vk.run(*args, timeout=300)
+        if not reply.ok or not isinstance(reply.document, dict):
+            self.last_error = reply.error_text
+            self.failures += 1
+            if "cursor" in self.last_error or self.failures >= MAX_PAGE_FAILURES:
+                self._restart()  # the selection changed under the cursor: start again
+            return False
+        self.last_error = ""
+        self.failures = 0
+        for row in dig(reply.document, self.collection, default=[]):
+            item = self.parse(row) if isinstance(row, dict) else None
+            if item is not None:
+                self.rows[self.key(item)] = item
+                self.seen.add(self.key(item))
+        self.commit = self.commit or str(
+            dig(reply.document, "library", "commit", default="")
+        )
+        following = dig(reply.document, "next_cursor")
+        if isinstance(following, str) and following != self.cursor:
+            self.cursor = following
+            return False
+        for gone in set(self.rows) - self.seen:
+            del self.rows[gone]
+        self.in_pass = False
+        self.passes += 1
+        self.pass_done_at = now
+        self.complete_started_at = self.pass_started_at
+        return True
+
+
+def recipe_listing(vk: Vonkctl) -> Listing[Recipe]:
+    return Listing(vk, "recipe", "recipes", parse_recipe, lambda r: r.key)
+
+
+def model_listing(vk: Vonkctl) -> Listing[Model]:
+    return Listing(vk, "model", "models", parse_model, lambda m: m.digest)
+
+
+def read_fully[T](listing: Listing[T], max_steps: int = 200) -> None:
+    listing.begin(0.0)
+    for _ in range(max_steps):
+        if listing.step():
+            return
+    raise RuntimeError(
+        f"the {listing.noun} library could not be read: {listing.last_error}"
+    )
 
 
 @dataclass(frozen=True)
@@ -273,14 +351,15 @@ def serving_run(
 
 
 def fetch_recipes(vk: Vonkctl) -> tuple[list[Recipe], str]:
-    rows, commit = fetch_pages(vk, "recipe", "recipes")
-    parsed = (parse_recipe(row) for row in rows)
-    return [recipe for recipe in parsed if recipe is not None], commit
+    listing = recipe_listing(vk)
+    read_fully(listing)
+    return list(listing.rows.values()), listing.commit
 
 
 def fetch_models(vk: Vonkctl) -> dict[str, Model]:
-    parsed = (parse_model(row) for row in fetch_pages(vk, "model", "models")[0])
-    return {model.digest: model for model in parsed if model is not None}
+    listing = model_listing(vk)
+    read_fully(listing)
+    return dict(listing.rows)
 
 
 def fetch_fleet(vk: Vonkctl, default_memory: int) -> Fleet:
