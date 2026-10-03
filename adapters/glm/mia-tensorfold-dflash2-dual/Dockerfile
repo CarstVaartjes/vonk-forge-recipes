@@ -1,10 +1,10 @@
-# TensorFold v0.6.0 (Apache-2.0, commit c4646171) plus MiaAI-Lab's 53-patch GLM-5.3-Flash EXL3 set on NVIDIA's PyTorch container (arm64).
+# TensorFold v0.6.0 (Apache-2.0, commit c4646171) plus MiaAI-Lab's 70-patch GLM-5.3-Flash EXL3 set on NVIDIA's PyTorch container (arm64).
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
       org.opencontainers.image.revision="c4646171139ee8a3c38103eaa1699dad226ec12b" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      io.vonk.recipe-patches.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/4bbf2f3d83f8b5363832368021c5b56b4ced3d92"
+      io.vonk.recipe-patches.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/1576746a04983b6eded0551dbf22512ee9e95654"
 
 # NGC exports PIP_CONSTRAINT for its own stack; the hash-pinned lock below is resolved without it and leaves torch and numpy alone.
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
