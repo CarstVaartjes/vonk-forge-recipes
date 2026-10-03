@@ -207,10 +207,10 @@
       "NVIDIA Corporation",
       "Microsoft"
     ],
-    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/b3bc0813e1864e54ce5ed9a0cc74e0b03745c027/nvidia/vllm/README.md"
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/c3c7324c49145814eb2674e1162ece12aaa9d0b4/nvidia/vllm/README.md"
   },
   "release": {
-    "released_at": "2026-05-29",
+    "released_at": "2026-10-01",
     "version": "26.05.post1"
   },
   "runtime": {
