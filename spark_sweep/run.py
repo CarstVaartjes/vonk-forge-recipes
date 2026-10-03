@@ -1260,15 +1260,7 @@ class Sweep:
         self.state.data["dirty"] = True
         self.state.save()
         try:
-            submitted = self.vk.call(
-                "profile",
-                "load",
-                "--yes",
-                "--detach",
-                "--request-key",
-                key,
-                profile=self.cfg.sweep_profile,
-            )
+            submitted = self._submit_load(self.cfg.sweep_profile, key, "takeover")
         except VonkctlError as error:
             self.state.event(f"could not clear the Sparks: {str(error)[:150]}")
             self.backoff_until = now + self.cfg.retry_delay
@@ -1370,15 +1362,7 @@ class Sweep:
         }
         self.state.save()
         try:
-            submitted = self.vk.call(
-                "profile",
-                "load",
-                "--yes",
-                "--detach",
-                "--request-key",
-                key,
-                profile=profile,
-            )
+            submitted = self._submit_load(profile, key, "placement")
         except VonkctlError as error:
             self.state.data["load"] = None
             self._rollback(added, f"load refused: {error}")
@@ -1548,6 +1532,42 @@ class Sweep:
         write_status(self, final=True)
         self.state.save()
 
+    def _submit_load(
+        self, profile: int, key: str, kind: str, *, owner: bool = False
+    ) -> Any:
+        """Submit a load the sweep itself decided on.
+
+        Its request key is written to the state *before* the call, and the application id
+        after it, so the owner guard can tell it from an owner's load, in this process and
+        in the next one (a restore of the owner's profile is otherwise an "owner load").
+        """
+        own: list[dict[str, Any]] = self.state.data["own_loads"]
+        record = next((item for item in own if item["request_key"] == key), None)
+        if record is None:
+            record = {
+                "request_key": key,
+                "kind": kind,
+                "profile": profile,
+                "at": self.clock.now(),
+            }
+            own.append(record)
+            del own[:-200]
+        self.state.save()
+        document = self.vk.call(
+            "profile",
+            "load",
+            "--yes",
+            "--detach",
+            "--request-key",
+            key,
+            profile=profile,
+            allow_owner_write=owner,
+        )
+        if isinstance(dig(document, "id"), str):
+            record["application_id"] = document["id"]
+            self.state.save()
+        return document
+
     def _leave_fleet(self) -> None:
         number = self.cfg.restore_owner
         if not self.state.data.get("dirty"):
@@ -1558,16 +1578,7 @@ class Sweep:
                 key = request_key(
                     "restore-owner", nonce, number, self.state.data["load_seq"]
                 )
-                self.vk.call(
-                    "profile",
-                    "load",
-                    "--yes",
-                    "--detach",
-                    "--request-key",
-                    key,
-                    profile=number,
-                    allow_owner_write=True,
-                )
+                self._submit_load(number, key, "restore-owner", owner=True)
                 self.state.event(f"restored owner profile {number}")
                 self.state.data["dirty"] = False
             elif self.cfg.stop_at_end:
@@ -1577,15 +1588,7 @@ class Sweep:
                     self.cfg.sweep_profile,
                     self.state.data["load_seq"],
                 )
-                self.vk.call(
-                    "profile",
-                    "load",
-                    "--yes",
-                    "--detach",
-                    "--request-key",
-                    key,
-                    profile=self.cfg.sweep_profile,
-                )
+                self._submit_load(self.cfg.sweep_profile, key, "stop")
                 self.state.data["dirty"] = False
         except VonkctlError as error:
             self.state.event(f"leaving the fleet failed: {str(error)[:150]}")

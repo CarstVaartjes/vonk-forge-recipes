@@ -46,6 +46,8 @@ def _fresh() -> dict[str, Any]:
         "model_failures": {},  # model digest -> failure cluster
         "release": {},  # the accepted Controller release last seen: sha, version, seen_at
         "release_history": [],
+        # Every load the sweep submitted itself (request key, application id): never an owner's load.
+        "own_loads": [],
         "infra": {},  # source -> {message, since, count, until}: problems that are not the recipes
         "mode": "single",
         "events": [],

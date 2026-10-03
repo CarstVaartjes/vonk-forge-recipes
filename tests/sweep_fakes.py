@@ -723,6 +723,7 @@ class FakeFleet:
             "created": self.clock.now(),
             "assign": assign,
             "state": "running",
+            "request_key": request,
         }
         data["latest"] = app_id
         self.by_request[request] = app_id
@@ -733,6 +734,7 @@ class FakeFleet:
     def _app_doc(self, app: dict[str, Any]) -> dict[str, Any]:
         return {
             "id": app["id"],
+            "request_key": app.get("request_key", ""),
             "state": app["state"],
             "status_reason": app.get("reason"),
             "current_operation_id": app["id"],

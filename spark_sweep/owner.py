@@ -38,7 +38,7 @@ class OwnerGuard:
         self.hold_seconds = hold_seconds
         self.profiles = sorted(profiles)
 
-    def _latest(self, number: int) -> tuple[str, str] | None:
+    def _latest(self, number: int) -> tuple[str, str, str] | None:
         reply = self.vk.run("profile", "progress", profile=number)
         document = reply.document
         if (
@@ -46,8 +46,18 @@ class OwnerGuard:
             and isinstance(document, dict)
             and isinstance(document.get("id"), str)
         ):
-            return document["id"], str(document.get("state", ""))
+            return (
+                document["id"],
+                str(document.get("state", "")),
+                str(document.get("request_key", "")),
+            )
         return None  # no application yet, or unreadable: nothing to defer to
+
+    def _is_ours(self, app_id: str, request: str) -> bool:
+        return any(
+            item.get("application_id") == app_id or item["request_key"] == request
+            for item in self.state.data["own_loads"]
+        )
 
     def check(self, now: float) -> OwnerStatus:
         owner = self.state.data["owner"]
@@ -62,7 +72,14 @@ class OwnerGuard:
                     str(number), {"id": "", "state": ""}
                 )  # none yet: any later one is new
                 continue
-            app_id, app_state = latest
+            app_id, app_state, request = latest
+            if self._is_ours(app_id, request):
+                # The sweep's own load (a restore of the owner's profile, a clearing load): not an
+                # owner's. While it runs we wait for it; afterwards no hold, no preemption.
+                if app_state in ACTIVE:
+                    paused.append(f"profile {number} is loading (our own load)")
+                baseline[str(number)] = {"id": app_id, "state": app_state}
+                continue
             changed = known is not None and known["id"] != app_id
             if app_state in ACTIVE:
                 paused.append(f"profile {number} is loading")

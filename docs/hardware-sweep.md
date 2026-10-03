@@ -202,6 +202,15 @@ someone else started (library state `preparing`) are waited for, not repeated.
   killed with its process group on an interrupt or timeout; smoke requests run on
   daemon threads, so a hung request cannot keep the process alive.
 
+## The sweep's own loads
+
+Every load the sweep submits itself (clearing the fleet, placements, the final stop,
+`--restore-owner`) has its request key recorded in `state.json` before the call and its
+application id after, so the owner guard never mistakes it for an owner's load, in this
+process or the next. A later run that finds the previous run's restore still
+coming up waits for it ("our own load") but does not hold or requeue anything; only
+an application the sweep did not submit counts as the owner loading a profile.
+
 ## Evidence
 
 `results.jsonl` follows the platform campaign's log shape (`recorded_at`,
