@@ -39,6 +39,8 @@ def _fresh() -> dict[str, Any]:
         "learned": {},  # engine -> [[model bytes, load seconds]]
         "rate": {"ema": 0.0, "samples": 0},
         "owner": {"baseline": {}, "hold_until": 0.0, "export": {}},
+        "models_done": [],  # digests whose download finished, whatever a lagging listing says
+        "took_over": False,
         "model_failures": {},  # model digest -> failure cluster
         "mode": "single",
         "events": [],

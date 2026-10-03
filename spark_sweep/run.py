@@ -29,8 +29,8 @@ from .catalog import (
     Recipe,
     dig,
     fetch_fleet,
-    fetch_models,
-    fetch_recipes,
+    model_listing,
+    recipe_listing,
     serving_run,
 )
 from .definitions import Definitions
@@ -42,6 +42,7 @@ from .state import ResultsLog, State
 from .vonkctl import Vonkctl, VonkctlError, request_key
 
 CLEAR_TIMEOUT_SECONDS = 900.0
+MAX_REVIEW_DEFERS = 3
 ACTIVE_APP = frozenset({"queued", "running"})
 SETTLED = frozenset({"succeeded", "failed", "cancelled", "waiting-for-operator"})
 
@@ -119,13 +120,12 @@ class Sweep:
             max_workers=4, thread_name_prefix="smoke"
         )
         self.futures: dict[str, Future[SmokeResult]] = {}
-        self.recipes: dict[str, Recipe] = {}
-        self.models: dict[str, Model] = {}
+        # The cached listings: scheduling reads these, a refresh updates them page by page.
+        self.recipe_list = recipe_listing(vk)
+        self.model_list = model_listing(vk)
+        self.recipes: dict[str, Recipe] = self.recipe_list.rows
+        self.models: dict[str, Model] = self.model_list.rows
         self.fleet = Fleet((), ())
-        self.catalog_at = -1e18
-        self.catalog_loaded = (
-            False  # nothing is done, or stuck, before the library has been read once
-        )
         self.status_at = -1e18
         self.owner_at = -1e18
         self.owner_status = OwnerStatus()
@@ -136,12 +136,19 @@ class Sweep:
         self.rate.samples = int(state.data["rate"].get("samples", 0))
         self.guard = OwnerGuard(vk, state, config.owner_hold_seconds)
         self.prefetcher = Prefetcher(
-            vk, state, config.prefetch, self.rate, self.clock.now, self._download_failed
+            vk,
+            state,
+            config.prefetch,
+            self.rate,
+            self.clock.now,
+            self._download_failed,
+            self._download_done,
         )
         self.boost = self._build_boost()
         self.queue: list[str] = []
         self.sizes: dict[str, int] = {}
         self.last_prefetch: dict[str, Any] = {}
+        self.cached_models: set[str] = set()
         self.idle_ticks = 0
 
     # ------------------------------------------------------------------ setup
@@ -208,23 +215,70 @@ class Sweep:
             chosen = [s for s in picked if s is not None and s.online]
         return chosen
 
-    def refresh_catalog(self) -> None:
+    @property
+    def catalog_loaded(self) -> bool:
+        """Nothing is done, or stuck, before the recipe library has been read once."""
+        return self.recipe_list.passes > 0
+
+    def advance_catalog(self, now: float) -> None:
+        """Read library pages and merge them into the cached listings.
+
+        One page per tick once both listings have been read (several at start),
+        so a slow or failed page never stalls scheduling, which reads the cache.
+        """
+        budget = 1 if self.recipe_list.passes and self.model_list.passes else 6
+        for _ in range(budget):
+            active = next(
+                (item for item in (self.recipe_list, self.model_list) if item.in_pass),
+                None,
+            )
+            if active is None:
+                due = next(
+                    (
+                        item
+                        for item in (self.recipe_list, self.model_list)
+                        if now - item.pass_done_at >= self.cfg.catalog_seconds
+                    ),
+                    None,
+                )
+                if due is None:
+                    break
+                due.begin(now)
+                active = due
+            before = active.last_error
+            try:
+                finished = active.step(now)
+            except VonkctlError as error:  # not expected: run() does not raise
+                self.state.event(f"library page failed: {str(error)[:120]}")
+                break
+            if active.last_error and active.last_error != before:
+                self.state.event(
+                    f"library page failed, retrying: {active.last_error[:120]}"
+                )
+            if finished and active is self.recipe_list:
+                self.library_commit = active.commit
+        self._reconcile_all()
+
+    def refresh_catalog(self, max_steps: int = 200) -> None:
+        """Read both libraries completely now (tests, and anyone who needs a fresh view)."""
         now = self.clock.now()
-        try:
-            if not self.fleet.sparks:
+        for item in (self.recipe_list, self.model_list):
+            item.begin(now)
+            for _ in range(max_steps):
+                if item.step(now):
+                    break
+        self.library_commit = self.recipe_list.commit
+        self._reconcile_all()
+
+    def _reconcile_all(self) -> None:
+        if not self.fleet.sparks:
+            try:
                 self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
-            recipes, self.library_commit = fetch_recipes(self.vk)
-            self.models = fetch_models(self.vk)
-        except VonkctlError as error:
-            self.state.event(f"library refresh failed: {str(error)[:120]}")
-            self.catalog_at = now
-            return
-        self.recipes = {r.key: r for r in recipes}
-        self.catalog_loaded = True
-        self.catalog_at = now
-        self.sizes = policy.build_sizes(recipes, self.models)
+            except VonkctlError:
+                return
+        self.sizes = policy.build_sizes(self.recipes.values(), self.models)
         usable = len(self.sparks())
-        for recipe in recipes:
+        for recipe in list(self.recipes.values()):
             self._reconcile_entry(recipe, usable)
 
     def _selected(self, recipe: Recipe) -> bool:
@@ -301,23 +355,28 @@ class Sweep:
 
     def _tick(self) -> None:
         now = self.clock.now()
-        if now - self.catalog_at >= self.cfg.catalog_seconds:
-            self.refresh_catalog()
+        self.advance_catalog(now)
         if now - self.owner_at >= self.cfg.owner_poll_seconds:
             self.owner_at = now
             self.owner_status = self.guard.check(now)
             if self.owner_status.new_activity:
+                self.state.data["took_over"] = (
+                    False  # their load replaced what ours ran
+                )
                 self.state.data["owner"]["seen_at"] = now
                 self.preempt("an owner profile was loaded")
         self.advance_slots(now)
         pending = self.pending()
+        self.cached_models = self._cached_models()
+        self.prefetcher.library_fresh_since = self.recipe_list.complete_started_at
         self.last_prefetch = self.prefetcher.tick(
             self.recipes,
             self.models,
             pending,
             self.sizes,
-            policy.present_models(self.models),
+            self._present(),
             self.boost,
+            self.cached_models,
         )
         self.queue = policy.order_queue(
             self.prefetcher.last_plans,
@@ -336,6 +395,26 @@ class Sweep:
             self.status_at = now
             write_status(self)
         self.state.save()
+
+    def _cached_models(self) -> set[str]:
+        """Models on the NAS: the library says so, a download of ours finished, or the library's own
+        assessment of a recipe says its exact assets are ready. Never fleet fit or readiness."""
+        cached = {d for d, m in self.models.items() if m.local == "cached"}
+        cached |= set(self.state.data["models_done"])
+        for recipe in self.recipes.values():
+            if recipe.cache_ready:
+                cached |= set(recipe.model_digests)
+        return cached
+
+    def _present(self) -> set[str]:
+        """Models on the NAS or arriving."""
+        return policy.present_models(self.models) | self.cached_models
+
+    def _download_done(self, key: str) -> None:
+        recipe = self.recipes.get(key)
+        if recipe is not None:
+            done = set(self.state.data["models_done"]) | set(recipe.model_digests)
+            self.state.data["models_done"] = sorted(done)
 
     def _deprioritised(self, pending: Iterable[Recipe]) -> set[str]:
         failures = self.state.data["model_failures"]
@@ -359,17 +438,25 @@ class Sweep:
             and self._selected(self.recipes[key])
         )
 
+    def start_takeover(self) -> None:
+        """``run --yes`` means the sweep owns the fleet: clear it once, now, so reviews see idle Sparks."""
+        while self.owner_status.paused:  # an owner load is in progress: wait for it
+            self.clock.sleep(self.cfg.poll_seconds)
+            self.owner_status = self.guard.check(self.clock.now())
+        self._take_over(self.clock.now())
+
     def run(self) -> int:
-        self.preflight()
         stuck = 0
         try:
+            self.preflight()
+            self.start_takeover()
             while True:
                 self.tick()
                 if self.done():
                     if self.cfg.watch_seconds <= 0:
                         break
                     self.clock.sleep(self.cfg.watch_seconds)
-                    self.catalog_at = -1e18
+                    self.recipe_list.pass_done_at = self.model_list.pass_done_at = -1e18
                     continue
                 stuck = stuck + 1 if self._nothing_moves() else 0
                 if stuck >= 30:
@@ -831,11 +918,17 @@ class Sweep:
             del self.state.slots[key]
 
     def ready(self, recipe: Recipe) -> bool:
-        if recipe.local != "cached":
-            return False
-        return all(
-            (model := self.models.get(d)) is not None and model.local == "cached"
-            for d in recipe.model_digests
+        """The exact NAS assets are there (the download finished).
+
+        Never fleet fit or the library's readiness: those cannot hold while someone else's
+        workload fills the Sparks. ``profile load --review`` decides fit at placement.
+        """
+        if recipe.cache_ready:
+            return True
+        if self.state.downloads.get(recipe.key, {}).get("state") == "succeeded":
+            return True
+        return recipe.local == "cached" and all(
+            d in self.cached_models for d in recipe.model_digests
         )
 
     def ready_candidates(self) -> list[Recipe]:
@@ -911,12 +1004,12 @@ class Sweep:
             self._apply(placements, now)
 
     def _take_over(self, now: float) -> bool:
-        """Once, just before the first placement: stop whatever else the Sparks run.
+        """Stop whatever else the Sparks run, once (again after an owner load).
 
         A profile load replaces the whole fleet's workloads anyway; doing it as
-        its own step (an empty sweep profile) means the first review sees idle
-        Sparks instead of arguing about the owner's workload. ``run --yes`` is
-        the operator's consent. Returns False to try again on the next tick.
+        its own step (an empty sweep profile) means every review sees idle
+        Sparks instead of arguing about someone else's workload. ``run --yes``
+        is the operator's consent. Returns False to try again on the next tick.
         """
         if self.state.data.get("took_over") or self.state.slots:
             return True
@@ -1122,15 +1215,35 @@ class Sweep:
         self._rollback(
             blocked, "review blocked: " + ", ".join(p.recipe.key for p in blocked)
         )
+        if not busy and self._foreign_runs():
+            # Someone else's workload is back on the Sparks (the owner loaded a profile):
+            # that is the fit problem, not the recipe's. Clear the fleet again, then retry.
+            self.state.data["took_over"] = False
+            self.backoff_until = now
+            self.state.event("review blocked by a workload that is not ours: clearing")
+            return
         for placement in blocked:
             key = placement.recipe.key
+            entry = self.state.entry(key)
             code, detail = reasons.get(
                 alias_for(placement.recipe, self.defs), [("review.blocked", "")]
             )[0]
-            if busy:
-                self.state.entry(key)["defer_until"] = now + self.cfg.defer_delay
+            cache = "cache" in code or "not-cached" in detail or "not cached" in detail
+            if cache and int(entry.get("review_defers", 0)) < MAX_REVIEW_DEFERS:
+                entry["review_defers"] = int(entry.get("review_defers", 0)) + 1
+                entry["defer_until"] = now + self.cfg.defer_delay
+            elif busy:
+                entry["defer_until"] = now + self.cfg.defer_delay
             else:
                 self._record_failure(key, policy.classify("review", code, detail), None)
+
+    def _foreign_runs(self) -> bool:
+        try:
+            self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+        except VonkctlError:
+            return False
+        ours = {s["alias"] for s in self.state.slots.values()}
+        return any(p.alias not in ours for p in self.fleet.presences)
 
     # ---------------------------------------------------------- end of a run
 

@@ -169,6 +169,12 @@ class FakeFleet:
         self.page_size = 2
         self.next_id = 1
         self.reject_pins = False
+        # Scripted library trouble, consumed one library call at a time: "timeout", "cursor" or None.
+        self.library_faults: list[str | None] = []
+        # The library's local cache state lags what the NAS holds (it keeps saying not_cached).
+        self.library_lag = False
+        # Rows carry the library's assessment, as the real Controller's do when it has time.
+        self.assessments = False
 
     # -- helpers -------------------------------------------------------------
 
@@ -285,6 +291,18 @@ class FakeFleet:
                 json.dumps({"operation": a[2]}), encoding="utf-8"
             )
             return 0, {"output": a[a.index("--output") + 1]}
+        if noun in ("recipe", "model") and verb == "library" and self.library_faults:
+            fault = self.library_faults.pop(0)
+            if fault == "timeout":
+                return self._error(
+                    "controller.transport_timeout",
+                    "GET /api/recipe/library control API request failed [retry]",
+                )
+            if fault == "cursor":
+                return self._error(
+                    "controller.invalid_request",
+                    "library cursor is invalid or the selection changed; restart without a cursor",
+                )
         if noun == "recipe" and verb == "library":
             return 0, self._library(
                 a, "recipes", self._recipe_row, list(self.recipes.values())
@@ -326,9 +344,10 @@ class FakeFleet:
                 o["recipe"] == r.key and o["state"] in ("queued", "running")
                 for o in self.ops.values()
             )
-            else r.local
+            else ("not_cached" if self.library_lag else r.local)
         )
         return {
+            **self._assessment(r),
             "selector": r.key,
             "identity": {
                 "content_sha256": r.content,
@@ -367,6 +386,29 @@ class FakeFleet:
                 "validation": {"serving": {"checks": []}},
                 "runtime": {"engine": r.engine},
             },
+        }
+
+    def _assessment(self, r: FakeRecipe) -> dict[str, Any]:
+        if not self.assessments:
+            return {}
+        foreign = any(run["alias"] not in self._ours() for run in self.runs)
+        cache = "ready" if r.local == "cached" else "blocked"
+        return {
+            "assessment": {
+                "cache": {"state": cache},
+                # The advisory fit and readiness cannot hold while someone else's workload fills the Sparks.
+                "fit": {"allowed": not foreign},
+                "readiness": {
+                    "state": "blocked" if foreign or cache != "ready" else "ready"
+                },
+            }
+        }
+
+    def _ours(self) -> set[str]:
+        return {
+            x["assignment_name"]
+            for n in (10,)
+            for x in self.profiles.get(n, {}).get("assignments", [])
         }
 
     def _model_row(self, m: FakeModel) -> dict[str, Any]:
