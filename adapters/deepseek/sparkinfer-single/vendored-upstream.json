@@ -1,0 +1,13 @@
+{
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "compose.yaml",
+        "pattern": "^[ \\t]*MODEL_REPO:\\ (?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)[^\\n]*\\n^[ \\t]*MODEL_REVISION:\\ (?P<version>[0-9a-f]{40})"
+      }
+    },
+    "whole": false
+  }
+}

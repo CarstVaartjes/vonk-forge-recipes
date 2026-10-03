@@ -305,7 +305,8 @@ usable recipe from publishing.
 (and on `workflow_dispatch`). It uses no AI. It applies the pinning rule to every
 recipe's source reference, adapter pin and Models: if the upstream publishes a release
 (else a plain version tag), pin the newest one by its commit; if it publishes none,
-follow the latest commit; Hugging Face Models follow the newest revision. The job's
+follow the latest commit; Hugging Face Models follow the newest revision (except a Model
+that a kit's declaration pins: the kit decides, see Kit-built recipes below). The job's
 "no drift" count applies only to those configured source, adapter and Model watches.
 Its derived embedded-input inventory also records Dockerfile stages, build-time Git and
 package commands, selected companion Models, patches, launch defaults and runtime
@@ -414,51 +415,75 @@ the recipe is current (or its refresh became mechanical). Recipes whose upstream
 be reached are untouched and listed in the job summary; nothing is ever deleted or
 retired. Until something consumes the issues, they wait for a human.
 
-### Kit-built recipes: the kit declares the base
+### Kit-built recipes: the kit declares what it builds on
 
 A recipe built from a creator's kit (a patch stack, launch scripts, a configuration that
-names its base engine version) pins **only the kit**: `provenance.source_reference`. The
-base the kit builds on (for example `TF_VERSION` in a kit's `scripts/config.sh`) is the
-kit's declaration at that commit, so the recipe never carries a second, hand-authored pin
-for it. The patches are written for that exact base; the base repository's newest release
-is information, not a candidate (TensorFold v0.6.2 existing says nothing about a kit
-whose patches apply to v0.6.0).
+names its base engine version, the model it serves, the image it runs on) pins **only the
+kit**: `provenance.source_reference` (a `tree` URL, or a `blob` URL of the declaring file).
+What the kit builds on is the kit's declaration at that commit, so the recipe never carries
+a second, hand-authored pin for it. The patches are written for that exact base; the base
+repository's newest release is information, not a candidate (TensorFold v0.6.2 existing
+says nothing about a kit whose patches apply to v0.6.0), and neither is a model
+repository's newest revision or an image repository's newest tag.
 
-- **Declaration.** The adapter's `vendored-upstream.json` names where the kit declares
-  each dependency, as a Renovate-style regex manager: `repo`, `datasource` (`git-ref`),
-  `file` and a `pattern` with a named group `version`. Exactly one value must match.
-- **Lock.** `tools/kit-pins lock <recipe>` derives `kit-lock.json` from the kit commit
-  the recipe pins: the declared ref resolved once to an immutable commit. It also
-  vendors the base archive for that commit and moves the Dockerfile's commit, archive
-  file name and archive digest. `kit-lock.json` is generated output and is never edited
-  by hand; the Dockerfile header comment and licence labels are the author's to review.
-  Builds read only the lock and never resolve a tag. The lock records what the declared
-  ref named (`"kind"`: `tag`, `branch` or `commit`).
-- **Declared repository.** A kit that also declares which repository it builds (a creator's
-  fork, e.g. `ARG TF_REPO=`) gives `repo_pattern` (group `repo`, an `owner/name` or GitHub
-  URL) instead of `repo`; the lock records the repository with the commit, and a kit that
-  moves to another repository is a review like a moved ref.
-- **Branches.** A kit may declare a branch (a creator's fork branch) instead of a tag.
-  `lock` resolves the branch head to a commit once and locks it as `"kind": "branch"`,
-  as a Nix flake locks a branch input; the build and `check` use only the locked
-  commit, so a moving branch changes nothing by itself. The scanner resolves the head
-  again: a moved head is a change of the kit's dependency, so a review (compare the
-  branch's new commits, then run `tools/kit-pins lock`).
-- **Check.** `tools/kit-pins check` (CI) is the "lock is up to date" gate: it re-reads
-  the declaring file at the pinned kit commit and fails when the committed lock differs,
-  when the manifest keeps a hand-authored `source` pin beside the declaration, or when
-  the Dockerfile and vendored archive do not follow the lock.
-- **Override.** A recipe may deliberately deviate (a known-bad upstream, a security fix)
-  with `"override": {"ref": ..., "reason": ...}` on the dependency. The lock records it,
-  refresh reports it as overridden and proposes nothing.
-- **Refresh.** The scanner watches only the kit. A kit move that changes the declared
-  base is a review (the patches were rebased; run `tools/kit-pins lock`); one that keeps
-  the base moves the recipe's source reference, the Dockerfile's kit label and the lock
-  together. Recipes whose kit declares nothing machine-readable keep an explicit
-  `source` pin in the manifest: there is no duplicate to derive.
-- **Judging kit changes.** An adapter built from a kit (declared, or one whose files cite
-  `github.com/<kit>/tree/<commit>`) is judged by every changed kit file, not only by files
-  named by URL. Not runtime: READMEs, changelogs, notices, docs, tests and client-side
+- **Declaration.** The adapter's `vendored-upstream.json` names where the kit declares each
+  dependency, as a Renovate-style regex manager: `datasource`, `file` and a `pattern` with a
+  named group `version`. Exactly one distinct value must match. The datasources:
+  - `git-ref`: a tag, branch or commit of a GitHub repository (`TF_VERSION=...`).
+  - `hf-revision`: a revision of a Hugging Face model repository, for the model and for a
+    drafter. `binds` names the recipe model (`models[].id`) it pins.
+  - `oci-image`: a tag (or digest) of a container image repository, locked as the digest of
+    its `linux/arm64` manifest.
+- **Lock.** `tools/kit-pins lock <recipe>` derives `kit-lock.json` from the kit commit the
+  recipe pins: each declared value resolved once to an immutable one (a Git commit, a Hugging
+  Face revision, an image digest), recorded with what it named (`"kind"`: `tag`, `branch`,
+  `commit` or `digest`). `kit-lock.json` is generated output and is never edited by hand.
+  Builds read only the lock and never resolve a tag. `lock` also moves what follows it: the
+  vendored base archive and the Dockerfile's commit, archive file name and digest for a
+  `git-ref` base; the recipe's Model binding (and the disk envelope, and removal of the old
+  Model once no recipe uses it) for an `hf-revision`, which must be catalogued first with
+  `tools/catalog-hf-model`; the Dockerfile's `FROM` digest and `base_image` for an
+  `oci-image`. The Dockerfile header comment and licence labels are the author's to review.
+- **Declared repository.** A kit that also declares *which* repository (a creator's fork,
+  e.g. `ARG TF_REPO=`; a model id; an image name) gives `repo_pattern` (group `repo`),
+  or a `repo` group in `pattern` itself when one line pairs the repository with the value
+  (a shell `case` on the model id), instead of `repo`. The lock records the repository with
+  the value, and a kit that moves to another repository is a review like a moved ref.
+- **Branches.** A kit may declare a branch (a creator's fork branch, a Hugging Face `main`)
+  instead of a tag or commit. `lock` resolves the head once and locks it as
+  `"kind": "branch"`, as a Nix flake locks a branch input; the build and `check` use only the
+  locked value, so a moving branch changes nothing by itself. The scanner resolves the head
+  again: a moved head is a change of the kit's dependency, so a review.
+- **Check.** `tools/kit-pins check` (CI) is the "lock is up to date" gate and enforces, per
+  datasource, that the recipe carries no hand-authored pin for a declared dependency: it
+  re-reads the declaring file at the pinned kit commit and fails when the committed lock
+  differs, when the manifest keeps a hand-authored `source` pin beside a `git-ref`
+  declaration, when the Dockerfile and vendored archive do not follow a locked base, when
+  the Model bound to an `hf-revision` is not that repository at that revision, or when the
+  Dockerfile's `FROM` or `base_image` for an `oci-image` is not the locked digest.
+- **Override.** A recipe may deliberately deviate (a known-bad upstream, a mutable alias the
+  kit names, a security fix) with `"override": {"ref": ..., "reason": ...}` on the
+  dependency (`revision`, `digest` and `repo` are accepted where they apply). The lock records
+  it, refresh reports it as overridden and proposes nothing.
+- **Monorepo kits.** A kit that is one directory of a creator's repository, of which the
+  recipe uses only the declared values (NVIDIA's playbooks name their TensorRT-LLM image in a
+  README), sets `"whole": false` on the `kit` block: only the declarations are checked, and
+  the repository's other changes are judged as for any source.
+- **Refresh.** The scanner watches the kit and what it declares, never the dependency's own
+  channel. A kit move that changes a declared value is a review (the patches were rebased,
+  the image is another build; run `tools/kit-pins lock`), except one case: a kit that moves a
+  declared model to another revision of the same Hugging Face repository whose files, apart
+  from metadata, are the catalogued bytes (weights, configuration and tokenizer) moves the
+  recipe's Model, its lock and the kit commit together. A different repository, different
+  weights, a changed configuration or tokenizer, another image tag or a tag that now names
+  another digest is a review. A kit move that keeps every declared value moves the recipe's
+  source reference, the Dockerfile's kit label and the lock together. Recipes whose kit
+  declares nothing machine-readable (or only a floating tag such as `latest`) keep explicit
+  pins in the manifest or the Dockerfile and the scanner's newest-upstream rule: there is no
+  duplicate to derive.
+- **Judging kit changes.** An adapter built from a whole kit (declared, or one whose files
+  cite `github.com/<kit>/tree/<commit>`) is judged by every changed kit file, not only by
+  files named by URL. Not runtime: READMEs, changelogs, notices, docs, tests and client-side
   helper scripts such as a new `tools/*.py`. Runtime, so a review: patches, launch
   scripts (`*.sh`, `start`/`serve`/`run` Python), configuration and dependency files,
   Dockerfiles, and any file the adapter ships a copy of at the same path. A truncated or

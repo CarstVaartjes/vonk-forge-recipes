@@ -2,6 +2,7 @@
   "dependencies": {
     "base": {
       "commit": "17c73e189f5e6a5304cda7ea37f086f9c49b4788",
+      "datasource": "git-ref",
       "kind": "tag",
       "ref": "v0.6.1",
       "repo": "ashhart/TensorFold"

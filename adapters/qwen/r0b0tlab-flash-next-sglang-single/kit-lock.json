@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "fc694b54fb0174e0913e6adf86691ef85a4ead47",
+      "repo": "nvidia/Qwen3.8-Flash-Next-NVFP4",
+      "revision": "fc694b54fb0174e0913e6adf86691ef85a4ead47"
+    }
+  },
+  "kit": {
+    "commit": "1dc3c2f0796945b175b541076f036f7f21a145d8",
+    "repo": "r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang"
+  }
+}

@@ -2,9 +2,24 @@
   "dependencies": {
     "base": {
       "commit": "c4646171139ee8a3c38103eaa1699dad226ec12b",
+      "datasource": "git-ref",
       "kind": "tag",
       "ref": "v0.6.0",
       "repo": "ashhart/TensorFold"
+    },
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "bf582e4eacc1810f76656d1811693ff6c6737d2a",
+      "repo": "incoai/GLM-5.3-Flash-DFlash2",
+      "revision": "bf582e4eacc1810f76656d1811693ff6c6737d2a"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "078455ffe6472f9a52fbc1139f58b9db2881b25c",
+      "repo": "Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold",
+      "revision": "078455ffe6472f9a52fbc1139f58b9db2881b25c"
     }
   },
   "kit": {

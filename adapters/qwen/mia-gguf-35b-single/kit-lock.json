@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "branch",
+      "ref": "main",
+      "repo": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
+      "revision": "5bc3e238d916f48a861bac2f8a1990a0e9b7e98d"
+    }
+  },
+  "kit": {
+    "commit": "52db946cec5da439e3cae5297e9947ae54c5949f",
+    "repo": "MiaAI-Lab/Qwen3.6-35B-A3B-UD-Q8_K_XL_DGX-Spark-Recipe"
+  }
+}

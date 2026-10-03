@@ -1,12 +1,29 @@
 {
-  "source": {
-    "repo": "r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121",
-    "commit": "3baf136cb09830656e6aeba19a20d39c3f02e81b"
+  "kit": {
+    "dependencies": {
+      "drafter": {
+        "binds": "draft",
+        "datasource": "hf-revision",
+        "file": "runtime/runtime-contract.json",
+        "pattern": "^[ \\t]*\"draft\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\\ @\\ (?P<version>[0-9a-f]{40})\""
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "runtime/runtime-contract.json",
+        "pattern": "^[ \\t]*\"target\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\\ @\\ (?P<version>[0-9a-f]{40})\","
+      }
+    },
+    "whole": false
   },
   "ours": [
     "sglang-serve"
   ],
   "renamed": {
     "LICENSE.upstream": "LICENSE"
+  },
+  "source": {
+    "commit": "3baf136cb09830656e6aeba19a20d39c3f02e81b",
+    "repo": "r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121"
   }
 }

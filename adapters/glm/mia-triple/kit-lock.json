@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "53e0082eedebd806b63e19779c47905937d768ca",
+      "repo": "jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid",
+      "revision": "53e0082eedebd806b63e19779c47905937d768ca"
+    }
+  },
+  "kit": {
+    "commit": "5c85163ccb8d98d395880e71e2dbd03976a3f4ad",
+    "repo": "MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks"
+  }
+}

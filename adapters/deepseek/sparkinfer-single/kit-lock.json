@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "22f28d32b9b29b4352eaa380ff8c2c170b2847ab",
+      "repo": "0xSero/deepseek-v4-flash-0731-spark",
+      "revision": "22f28d32b9b29b4352eaa380ff8c2c170b2847ab"
+    }
+  },
+  "kit": {
+    "commit": "d370c0f0806a9ac994dc5f354715576cc23840b9",
+    "repo": "0xSero/deepseek-v4-flash-0731-spark-sparkinfer"
+  }
+}

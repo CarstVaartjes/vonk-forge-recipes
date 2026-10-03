@@ -1,0 +1,12 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "nvidia/trt-llm/README.md",
+        "pattern": "^export DOCKER_IMAGE=\"(?P<repo>nvcr\\.io/nvidia/tensorrt-llm/release):(?P<version>[^\"\\s]+)\"$"
+      }
+    },
+    "whole": false
+  }
+}

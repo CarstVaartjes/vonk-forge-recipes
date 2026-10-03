@@ -2,6 +2,7 @@
   "dependencies": {
     "base": {
       "commit": "808767fd479c6bd8dbb2eb68f2a3537f75e6d520",
+      "datasource": "git-ref",
       "kind": "commit",
       "ref": "808767fd479c6bd8dbb2eb68f2a3537f75e6d520",
       "repo": "tournierjc/TensorFold"

@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "491c2f1ea524c639598bf8fa787a93fed5a6fbce",
+      "repo": "nvidia/Qwen3.6-35B-A3B-NVFP4",
+      "revision": "491c2f1ea524c639598bf8fa787a93fed5a6fbce"
+    }
+  },
+  "kit": {
+    "commit": "106fb53372c260e719c97d5b59e48142792783c7",
+    "repo": "r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm"
+  }
+}

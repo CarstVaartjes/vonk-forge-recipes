@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "6ed5e12bf84b7a63069882c91dd9e9218647d17b",
+      "repo": "prism-ml/Ternary-Bonsai-2-27B-gguf",
+      "revision": "6ed5e12bf84b7a63069882c91dd9e9218647d17b"
+    }
+  },
+  "kit": {
+    "commit": "67c5c388026c3984acd8d96fbbb12c5643205719",
+    "repo": "amarjeet/dgx-spark-recipes"
+  }
+}

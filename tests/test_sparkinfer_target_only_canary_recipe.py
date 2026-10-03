@@ -18,12 +18,10 @@ from vonk_forge_contracts import (
 from qualification.definitions_loader import load_definitions
 
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-target-only-single"
-MODEL_PATH = ROOT / "models/deepseek-v4-flash-0731-sparkinfer-exl3-k216.json"
 ORIGINAL_RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-single.json"
 RECIPE_PATH = (
     ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single.json"
 )
-MODEL_REVISION = "ce5ff0f1efb2e184aafc759d281bfae47d3a359c"
 EXECUTABLE_PAYLOAD_REVISION = "22f28d32b9b29b4352eaa380ff8c2c170b2847ab"
 RUNTIME_REVISION = "d370c0f0806a9ac994dc5f354715576cc23840b9"
 IMAGE_DIGEST = "2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4"
@@ -36,6 +34,12 @@ LOWER_SPARK_BASELINE_BYTES = 126_946_283_520
 
 def _document(path: Path) -> dict[str, object]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _model_path() -> Path:
+    """The Model the recipe selects: the kit declares its revision, so no slug is pinned here."""
+    recipe: Any = _document(RECIPE_PATH)
+    return ROOT / "models" / f"{recipe['models'][0]['model']['slug']}.json"
 
 
 def _canonical_digest(path: Path) -> str:
@@ -54,12 +58,13 @@ def _catalog_entry(slug: str) -> dict[str, object]:
 class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
     def test_exact_target_only_contract_and_authority_closure(self) -> None:
         recipe = _document(RECIPE_PATH)
-        model = _document(MODEL_PATH)
+        model = _document(_model_path())
         self.assertEqual(
             recipe["models"][0]["model"]["content_sha256"],
-            _canonical_digest(MODEL_PATH),
+            _canonical_digest(_model_path()),
         )
-        self.assertEqual(model["source"]["revision"], MODEL_REVISION)
+        # the wrapper keeps its state under the payload revision: the Model is that revision
+        self.assertEqual(model["source"]["revision"], EXECUTABLE_PAYLOAD_REVISION)
         self.assertEqual(len(model["files"]), 190)
 
         arguments = {

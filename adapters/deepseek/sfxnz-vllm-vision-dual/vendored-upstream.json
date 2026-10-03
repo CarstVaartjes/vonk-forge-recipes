@@ -1,9 +1,20 @@
 {
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "recipe.yaml",
+        "pattern": "^[ \\t]*id:\\ \\&model\\ (?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)[^\\n]*\\n^[ \\t]*revision:\\ \\&revision\\ (?P<version>[0-9a-f]{40})"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "vllm-wrapper.py"
   ],
   "source": {
-    "repo": "sfxnz/DeepSeek-V4-Flash-Vision-Exp-vLLM-2x-DGX-Spark",
-    "commit": "099b90321fa6629ce15b02f909fd9df1921b80ad"
+    "commit": "099b90321fa6629ce15b02f909fd9df1921b80ad",
+    "repo": "sfxnz/DeepSeek-V4-Flash-Vision-Exp-vLLM-2x-DGX-Spark"
   }
 }

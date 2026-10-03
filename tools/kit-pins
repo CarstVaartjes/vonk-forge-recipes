@@ -1,58 +1,93 @@
 #!/usr/bin/env python3
-r"""Derive and check the base pins a creator's kit declares (``kit-lock.json``).
+r"""Derive and check the pins a creator's kit declares (``kit-lock.json``).
 
 A recipe built from a creator's kit (a patch stack, launch scripts, a configuration that
-names the base engine version) pins only the kit: ``provenance.source_reference``. What
-the kit builds on is the kit's own statement at that commit, so this repository does not
-author a second pin for it. The adapter's ``vendored-upstream.json`` says *where* the kit
-declares each dependency, in the shape of a Renovate regex manager::
+names the base engine version, the model it serves, the image it runs on) pins only the
+kit: ``provenance.source_reference``. What the kit builds on is the kit's own statement
+at that commit, so this repository does not author a second pin for it. The adapter's
+``vendored-upstream.json`` says *where* the kit declares each dependency, in the shape of
+a Renovate regex manager::
 
     "kit": {
       "dependencies": {
         "base": {
-          "repo": "ashhart/TensorFold",
           "datasource": "git-ref",
+          "repo": "ashhart/TensorFold",
           "file": "scripts/config.sh",
           "pattern": "^TF_VERSION=\"\\$\\{TF_VERSION:-(?P<version>[^}\"]+)\\}\"",
           "override": {"ref": "v0.6.1", "reason": "why this recipe deviates"}
+        },
+        "model": {
+          "datasource": "hf-revision",
+          "file": "scripts/config.sh",
+          "pattern": "^\\s*(?P<repo>[\\w.-]+/[\\w.-]+)\\) _rev=(?P<version>[0-9a-f]{40}) ;;",
+          "binds": "primary"
         }
       }
     }
 
-* ``file`` and ``pattern`` locate the declared version (the named group ``version``) in
-  the kit at the pinned commit; exactly one match is required.
-* ``datasource`` says what the version names. ``git-ref`` is a tag, branch or commit of
-  ``repo``; it is resolved to an immutable commit once, here, never at build time. A kit
-  that declares a *branch* is followed like a Nix branch input: ``lock`` resolves the
-  branch head to a commit and records ``"kind": "branch"``; the build and ``check`` use only
-  the locked commit, so a branch that moves changes nothing until the next ``lock``. The
-  refresh scanner reports a moved head as a change of the kit's dependency (a review).
-* ``repo`` names the repository the version is of. A kit that also declares *which*
-  repository it builds (a fork, as ``ARG TF_REPO=...``) is followed there too: give
-  ``repo_pattern`` (a regex with a ``(?P<repo>...)`` group, an ``owner/name`` or a GitHub
-  URL, exactly one distinct match in the same file) instead of ``repo``. The lock records
-  the repository with the commit.
+* ``file`` and ``pattern`` locate the declared value (the named group ``version``) in the
+  kit at the pinned commit; exactly one distinct value is required.
+* ``datasource`` says what the value names, and is resolved to an immutable value once,
+  here, never at build time:
+
+  - ``git-ref``: a tag, branch or commit of a GitHub repository, locked as its commit. A
+    declared *branch* is followed like a Nix branch input (``"kind": "branch"``): ``lock``
+    resolves the head once; the build and ``check`` use only the locked commit, and the
+    refresh scanner reports a moved head as a change of the kit's dependency (a review).
+  - ``hf-revision``: a revision (a commit, or a branch or tag) of a Hugging Face model
+    repository, locked as its commit. ``binds`` names the recipe model (``models[].id``)
+    the kit's pin is for: that model's catalogued document must be this repository at this
+    revision, so a model that is not the kit's is rejected. Resolving needs the revision
+    to be anonymously readable.
+  - ``oci-image``: a tag (or ``sha256:`` digest) of a container image repository, locked as
+    the digest of its ``linux/arm64`` manifest (an index is followed to that entry; the
+    platform builds and runs on arm64 only). The Dockerfile's ``FROM`` lines of that
+    repository and the recipe's ``execution.build.base_image`` must carry the locked digest.
+* ``repo`` names the repository the value is of. A kit that also declares *which*
+  repository (a fork, a model id, an image) gives either ``repo_pattern`` (a regex with a
+  ``(?P<repo>...)`` group, exactly one distinct match in the same file) instead of
+  ``repo``, or a ``repo`` group in ``pattern`` itself when one line pairs the two (a shell
+  ``case`` on the model id). The lock records the repository with the value, and a kit
+  that moves to another repository is a review like a moved ref.
 * ``override`` is the only way to deviate from the kit (a known-bad upstream, a security
-  fix). It needs a reason and replaces the declaration; refresh reports it as overridden
-  and proposes nothing.
+  fix). It needs a reason, replaces the declaration (``ref``, ``revision`` or ``digest``,
+  and ``repo`` when it is another repository); refresh reports it as overridden and
+  proposes nothing.
 
 ``kit-lock.json`` is the derived, committed result::
 
     {"kit": {"repo": ..., "commit": ...},
-     "dependencies": {"base": {"repo": ..., "ref": ..., "kind": ..., "commit": ...}}}
+     "dependencies": {"base": {"datasource": "git-ref", "repo": ..., "ref": ..., "kind": ...,
+                               "commit": ...},
+                      "model": {"datasource": "hf-revision", "repo": ..., "ref": ...,
+                                "kind": ..., "revision": ...},
+                      "image": {"datasource": "oci-image", "repo": ..., "ref": ..., "kind": ...,
+                                "digest": ...}}}
 
-``kind`` says what ``ref`` named when it was locked: ``tag``, ``branch`` or ``commit``.
+``kind`` says what ``ref`` named when it was locked: ``tag``, ``branch`` or ``commit``
+(``digest`` for an image declared by digest).
 
 It is generated by ``tools/kit-pins lock`` and never edited by hand. ``tools/kit-pins
 check`` is the "lock is up to date" gate: it re-derives the lock from the kit commit the
-recipe pins (one fetch of that exact commit's declaring file, no tag lookups) and fails
-when the committed lock differs, when the adapter keeps a second hand-authored pin
-beside the declaration, or when the files that consume the pin (the Dockerfile's
-labels, the vendored archive's name and digest) do not follow the lock.
+recipe pins (one fetch of that exact commit's declaring file; the locked values are not
+looked up again) and fails when the committed lock differs, when the adapter keeps a second
+hand-authored pin beside a declaration, or when what consumes a pin does not follow the
+lock: the Dockerfile's labels and the vendored archive for a ``git-ref`` base, the bound
+Model for an ``hf-revision``, the Dockerfile and ``base_image`` for an ``oci-image``.
 
-``tools/kit-pins lock <recipe>`` also vendors the base archive for the locked commit
-and moves the pin in the Dockerfile (commit, archive file name, archive digest). Prose in
-the Dockerfile (a header comment, licence labels) is the author's to review.
+A recipe may cite its kit with a ``blob`` URL of the declaring file (a playbook's README) as
+well as a ``tree`` URL. A kit that is one directory of a creator's monorepo, of which the
+recipe uses only the declared values, sets ``"whole": false`` on the ``kit`` block: the
+refresh scanner then checks the declarations and judges the repository's other changes as it
+does for any source (files the adapter names by URL and patches), not every changed file.
+
+``tools/kit-pins lock <recipe>`` also moves the consumers: it vendors the base archive for
+the locked commit and moves the Dockerfile's commit, archive file name and archive
+digest; it rebinds the recipe to the catalogued Model of the locked revision (the Model
+must be catalogued first, with ``tools/catalog-hf-model``); it moves the image digest in the
+Dockerfile and the recipe. Prose in the Dockerfile (a header comment, licence labels) is
+the author's to review.
 """
 
 from __future__ import annotations
@@ -64,6 +99,7 @@ import os
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
@@ -75,12 +111,22 @@ MANIFEST = "vendored-upstream.json"
 LOCK = "kit-lock.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 ABBREVIATED_SHA = re.compile(r"^[0-9a-f]{7,40}$")
-KINDS = {"tag", "branch", "commit"}
-DATASOURCES = {"git-ref"}
+IMAGE_DIGEST = re.compile(r"^sha256:[0-9a-f]{64}$")
+KINDS = {"tag", "branch", "commit", "digest"}
+# The immutable value each datasource resolves to, and the lock key that holds it.
+IMMUTABLE_KEYS = {
+    "git-ref": "commit",
+    "hf-revision": "revision",
+    "oci-image": "digest",
+}
+DATASOURCES = set(IMMUTABLE_KEYS)
 GITHUB_REFERENCE = re.compile(
-    r"^https://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)/tree/([0-9a-f]{40})/?$"
+    r"^https://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)"
+    r"/(?:tree|blob)/([0-9a-f]{40})(?:/.*)?$"
 )
 MAX_ARCHIVE_BYTES = 400_000_000
+MAX_SELECTION_ID = 64  # the contract bounds a selected file's id
+OVERRIDE_VALUES = ("ref", "commit", "revision", "digest")
 
 
 class KitError(RuntimeError):
@@ -96,23 +142,33 @@ class Declaration:
     pattern: str
     override: dict[str, str] | None = None
     repo_pattern: str | None = None  # the repo is declared by the kit too
+    binds: str | None = None  # hf-revision: the recipe model (``models[].id``) it pins
+
+    @property
+    def repo_in_pattern(self) -> bool:
+        return "(?P<repo>" in self.pattern
 
 
 @dataclass(frozen=True, slots=True)
 class Pin:
-    """One derived dependency, resolved to an immutable commit."""
+    """One derived dependency, resolved to an immutable value."""
 
     name: str
     repo: str
     ref: str
-    commit: str
-    date: str  # committer date of ``commit`` (YYYY-MM-DD)
-    kind: str = "tag"  # what ``ref`` names: tag, branch or commit
+    immutable: str  # a Git commit, a Hugging Face revision or an image digest
+    date: str  # committer date of a commit or revision (YYYY-MM-DD); "" for an image
+    kind: str = "tag"  # what ``ref`` names: tag, branch, commit or digest
     overridden: str | None = None  # the reason, when the pin is an override
+    datasource: str = "git-ref"
 
     @property
     def version(self) -> str:
         return self.ref.removeprefix("v")
+
+    @property
+    def key(self) -> str:
+        return IMMUTABLE_KEYS[self.datasource]
 
 
 # ---------------------------------------------------------------------------
@@ -164,7 +220,212 @@ class GitHub:
         return "branch"
 
 
-def cli_source() -> GitHub:
+class HuggingFace:
+    """Anonymous reads of Hugging Face model repositories through ``path -> JSON``.
+
+    Paths are relative to ``https://huggingface.co/api/``. No token is ever sent: a
+    repository that is not anonymously readable cannot be locked.
+    """
+
+    def __init__(
+        self,
+        api: Callable[[str], Any],
+        inventory: Callable[[str, str], list[dict[str, Any]]] | None = None,
+    ) -> None:
+        self.api = api
+        self._inventory = inventory
+
+    def inventory(self, repo: str, revision: str) -> list[dict[str, Any]]:
+        """The files of a snapshot (``tools/catalog-hf-model``'s artifact records)."""
+        if self._inventory is None:
+            raise KitError("no Hugging Face file listing is configured")
+        return self._inventory(repo, revision)
+
+    def resolve(self, repo: str, ref: str) -> tuple[str, str]:
+        """``(revision, date)`` of a commit, branch or tag of a model repository."""
+        try:
+            document = self.api(
+                f"models/{repo}/revision/{urllib.parse.quote(ref, safe='')}"
+            )
+        except (RuntimeError, KeyError) as error:
+            raise KitError(f"cannot resolve {repo}@{ref}: {error}") from error
+        revision = document.get("sha")
+        if not isinstance(revision, str) or not SHA.match(revision):
+            raise KitError(f"{repo}@{ref}: provider returned a non-Git revision")
+        return revision, str(document.get("lastModified") or "")[:10]
+
+    def kind(self, repo: str, ref: str) -> str:
+        if ABBREVIATED_SHA.match(ref):
+            return "commit"
+        try:
+            refs = self.api(f"models/{repo}/refs")
+        except (RuntimeError, KeyError):
+            return "tag"
+        branches = {b.get("name") for b in refs.get("branches", [])}
+        return "branch" if ref in branches else "tag"
+
+    def head(self, repo: str) -> str | None:
+        try:
+            document = self.api(f"models/{repo}")
+        except (RuntimeError, KeyError):
+            return None
+        sha = document.get("sha")
+        return sha if isinstance(sha, str) and SHA.match(sha) else None
+
+
+class Registry:
+    """Image tag to digest through an OCI registry's anonymous pull access.
+
+    ``fetch(url, headers) -> (status, response headers, body)``; response header names
+    are lower case. The answer for a tag (or a digest the kit names) is the digest of the
+    ``linux/arm64`` manifest: a multi-platform index is followed to its arm64 entry, a
+    single-platform manifest is its own answer. That is the digest the Dockerfile's ``FROM``
+    carries, because the platform builds and runs on arm64 only.
+    """
+
+    ACCEPT = (
+        "application/vnd.oci.image.index.v1+json, "
+        "application/vnd.docker.distribution.manifest.list.v2+json, "
+        "application/vnd.oci.image.manifest.v1+json, "
+        "application/vnd.docker.distribution.manifest.v2+json"
+    )
+
+    def __init__(
+        self, fetch: Callable[[str, dict[str, str]], tuple[int, dict[str, str], bytes]]
+    ) -> None:
+        self.fetch = fetch
+
+    @staticmethod
+    def split(repo: str) -> tuple[str, str]:
+        """``(registry host, repository path)`` of an image repository name."""
+        first, _, rest = repo.partition("/")
+        if rest and ("." in first or ":" in first or first == "localhost"):
+            return first, rest
+        host = "registry-1.docker.io"
+        return host, repo if "/" in repo else f"library/{repo}"
+
+    def resolve(self, repo: str, ref: str) -> str:
+        """The ``linux/arm64`` manifest digest of ``repo:ref`` (or ``repo@digest``)."""
+        host, path = self.split(repo)
+        url = f"https://{host}/v2/{path}/manifests/{urllib.parse.quote(ref, safe=':')}"
+        headers = {"Accept": self.ACCEPT}
+        status, answer, body = self.fetch(url, headers)
+        if status == 401:
+            token = self._token(answer.get("www-authenticate", ""), path)
+            status, answer, body = self.fetch(url, {**headers, "Authorization": token})
+        if status != 200:
+            raise KitError(f"cannot resolve {repo}:{ref}: HTTP {status}")
+        try:
+            document = json.loads(body)
+        except ValueError as error:
+            raise KitError(f"{repo}:{ref}: the registry sent no manifest") from error
+        if "manifests" not in document:
+            digest = answer.get("docker-content-digest") or (
+                "sha256:" + hashlib.sha256(body).hexdigest()
+            )
+            if not IMAGE_DIGEST.match(digest):
+                raise KitError(f"{repo}:{ref}: the registry sent no digest")
+            return digest
+        arm64 = [
+            m["digest"]
+            for m in document["manifests"]
+            if m.get("platform", {}).get("os") == "linux"
+            and m.get("platform", {}).get("architecture") == "arm64"
+        ]
+        if len(arm64) != 1 or not IMAGE_DIGEST.match(arm64[0]):
+            raise KitError(f"{repo}:{ref} has no single linux/arm64 manifest")
+        return arm64[0]
+
+    def _token(self, challenge: str, path: str) -> str:
+        fields = dict(re.findall(r'(\w+)="([^"]*)"', challenge))
+        realm = fields.get("realm")
+        if not challenge.lower().startswith("bearer") or not realm:
+            raise KitError(f"registry for {path} wants credentials; none are used")
+        query = urllib.parse.urlencode(
+            {
+                "service": fields.get("service", ""),
+                "scope": fields.get("scope") or f"repository:{path}:pull",
+            }
+        )
+        status, _, body = self.fetch(f"{realm}?{query}", {})
+        try:
+            document = json.loads(body)
+            token = document.get("token") or document["access_token"]
+        except (ValueError, KeyError, AttributeError) as error:
+            raise KitError(
+                f"registry for {path} refused an anonymous token (HTTP {status})"
+            ) from error
+        return f"Bearer {token}"
+
+
+@dataclass(frozen=True, slots=True)
+class Upstream:
+    """Where each datasource is resolved: GitHub, Hugging Face and OCI registries."""
+
+    github: GitHub
+    hub: HuggingFace | None = None
+    registry: Registry | None = None
+
+    def hf(self) -> HuggingFace:
+        if self.hub is None:
+            raise KitError("no Hugging Face access is configured")
+        return self.hub
+
+    def oci(self) -> Registry:
+        if self.registry is None:
+            raise KitError("no registry access is configured")
+        return self.registry
+
+
+def fetch(url: str, headers: dict[str, str]) -> tuple[int, dict[str, str], bytes]:
+    request = urllib.request.Request(
+        url, headers={"User-Agent": "vonk-forge-recipes", **headers}
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            return (
+                response.status,
+                {k.lower(): v for k, v in response.headers.items()},
+                response.read(50_000_000),
+            )
+    except urllib.error.HTTPError as error:
+        return (
+            error.code,
+            {k.lower(): v for k, v in error.headers.items()},
+            error.read(1_000_000),
+        )
+    except urllib.error.URLError as error:
+        raise RuntimeError(f"cannot reach {url}: {error.reason}") from error
+
+
+def _hub_api(path: str) -> Any:
+    status, _, body = fetch(f"https://huggingface.co/api/{path}", {})
+    if status != 200:
+        raise RuntimeError(f"HTTP {status} for {path}")
+    return json.loads(body)
+
+
+def _hub_inventory(repo: str, revision: str) -> list[dict[str, Any]]:
+    """The files of a snapshot, listed and digested as ``tools/catalog-hf-model`` does."""
+    import importlib.machinery
+    import importlib.util
+
+    loader = importlib.machinery.SourceFileLoader(
+        "catalog_hf_model", str(ROOT / "tools" / "catalog-hf-model")
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    assert spec is not None
+    catalog = importlib.util.module_from_spec(spec)
+    sys.modules[loader.name] = catalog
+    loader.exec_module(catalog)
+    base = f"https://huggingface.co/api/models/{urllib.parse.quote(repo, safe='/')}"
+    tree = catalog._get_tree(
+        f"{base}/tree/{revision}?recursive=true&expand=true&limit=100"
+    )
+    return catalog.inventory(repo, revision, tree)
+
+
+def cli_source() -> Upstream:
     sys.path.insert(0, str(ROOT / "tools"))
     import importlib.machinery
     import importlib.util
@@ -205,7 +466,7 @@ def cli_source() -> GitHub:
             file.write_text(json.dumps(document, sort_keys=True))
         return document
 
-    return GitHub(api)
+    return Upstream(GitHub(api), HuggingFace(_hub_api, _hub_inventory), Registry(fetch))
 
 
 # ---------------------------------------------------------------------------
@@ -221,12 +482,6 @@ def declarations(manifest: dict[str, Any]) -> list[Declaration]:
     found: list[Declaration] = []
     for name, entry in sorted(block.get("dependencies", {}).items()):
         required = {"datasource", "file", "pattern"}
-        if "repo_pattern" not in entry:
-            required.add("repo")
-        elif "repo" in entry:
-            raise KitError(
-                f"kit dependency '{name}': give either repo or repo_pattern, not both"
-            )
         missing = required - set(entry)
         if missing:
             raise KitError(
@@ -239,10 +494,11 @@ def declarations(manifest: dict[str, Any]) -> list[Declaration]:
         override = entry.get("override")
         if override is not None and (
             not override.get("reason")
-            or not (override.get("ref") or override.get("commit"))
+            or not any(override.get(key) for key in OVERRIDE_VALUES)
         ):
             raise KitError(
-                f"kit dependency '{name}': an override needs a ref (or commit) and a reason"
+                f"kit dependency '{name}': an override needs a ref (or commit, revision, "
+                "digest) and a reason"
             )
         try:
             compiled = re.compile(entry["pattern"], re.MULTILINE)
@@ -253,6 +509,27 @@ def declarations(manifest: dict[str, Any]) -> list[Declaration]:
         if "version" not in compiled.groupindex:
             raise KitError(
                 f"kit dependency '{name}': the pattern has no (?P<version>...) group"
+            )
+        # The repository is declared in exactly one place: the manifest, a repo_pattern,
+        # or a repo group of the pattern itself.
+        places = [
+            place
+            for place, given in (
+                ("repo", "repo" in entry),
+                ("repo_pattern", "repo_pattern" in entry),
+                ("a (?P<repo>...) group in pattern", "repo" in compiled.groupindex),
+            )
+            if given
+        ]
+        if len(places) > 1:
+            raise KitError(
+                f"kit dependency '{name}': the repository is given by {' and '.join(places)}; "
+                "give one"
+            )
+        if not places:
+            raise KitError(
+                f"kit dependency '{name}' lacks repo (or repo_pattern, or a "
+                "(?P<repo>...) group in pattern)"
             )
         if "repo_pattern" in entry:
             try:
@@ -265,6 +542,17 @@ def declarations(manifest: dict[str, Any]) -> list[Declaration]:
                 raise KitError(
                     f"kit dependency '{name}': the repo_pattern has no (?P<repo>...) group"
                 )
+        binds = entry.get("binds")
+        if entry["datasource"] == "hf-revision" and not binds:
+            raise KitError(
+                f"kit dependency '{name}': an hf-revision names the recipe model it pins "
+                "(binds: the models[].id)"
+            )
+        if binds and entry["datasource"] != "hf-revision":
+            raise KitError(
+                f"kit dependency '{name}': binds is for an hf-revision, not "
+                f"{entry['datasource']}"
+            )
         found.append(
             Declaration(
                 name,
@@ -274,47 +562,75 @@ def declarations(manifest: dict[str, Any]) -> list[Declaration]:
                 entry["pattern"],
                 override,
                 entry.get("repo_pattern"),
+                binds,
             )
         )
     return found
 
 
+def parse_pairs(text: str, declaration: Declaration) -> set[tuple[str | None, str]]:
+    """Every distinct ``(repo or None, version)`` the pattern matches in the text."""
+    return {
+        (m.groupdict().get("repo"), m.group("version"))
+        for m in re.finditer(declaration.pattern, text, re.MULTILINE)
+    }
+
+
 def parse_declared(text: str, declaration: Declaration) -> str:
-    matches = [
-        m.group("version") for m in re.finditer(declaration.pattern, text, re.MULTILINE)
-    ]
+    matches = {version for _, version in parse_pairs(text, declaration)}
     if not matches:
         raise KitError(
             f"kit dependency '{declaration.name}': nothing in {declaration.file} matches "
             "its pattern at the pinned kit commit"
         )
-    if len(set(matches)) > 1:
+    if len(matches) > 1:
         raise KitError(
             f"kit dependency '{declaration.name}': {declaration.file} declares several "
-            f"values ({', '.join(sorted(set(matches)))}); narrow the pattern"
+            f"values ({', '.join(sorted(matches))}); narrow the pattern"
         )
-    return matches[0]
+    return next(iter(matches))
 
 
 def parse_repo(text: str, declaration: Declaration) -> str:
-    """The base repository: the manifest's ``repo``, or what the kit declares."""
-    if declaration.repo_pattern is None:
+    """The dependency's repository: the manifest's ``repo``, or what the kit declares."""
+    if declaration.repo_in_pattern:
+        repos = {repo for repo, _ in parse_pairs(text, declaration)}
+    elif declaration.repo_pattern is not None:
+        repos = {
+            m.group("repo")
+            for m in re.finditer(declaration.repo_pattern, text, re.MULTILINE)
+        }
+    else:
         return declaration.repo
-    matches = {
-        _owner_name(m.group("repo"))
-        for m in re.finditer(declaration.repo_pattern, text, re.MULTILINE)
-    }
-    if not matches:
+    if not repos:
         raise KitError(
             f"kit dependency '{declaration.name}': nothing in {declaration.file} matches "
             "its repo_pattern at the pinned kit commit"
         )
-    if len(matches) > 1:
+    named = {_repository(declaration.datasource, str(repo)) for repo in repos}
+    if len(named) > 1:
         raise KitError(
             f"kit dependency '{declaration.name}': {declaration.file} declares several "
-            f"repositories ({', '.join(sorted(matches))}); narrow the repo_pattern"
+            f"repositories ({', '.join(sorted(named))}); narrow the "
+            f"{'pattern' if declaration.repo_in_pattern else 'repo_pattern'}"
         )
-    return next(iter(matches))
+    return next(iter(named))
+
+
+def _repository(datasource: str, value: str) -> str:
+    """The canonical repository name of a declared value, for its datasource."""
+    value = value.strip().rstrip("/")
+    if datasource == "git-ref":
+        return _owner_name(value)
+    if datasource == "hf-revision":
+        value = re.sub(r"^https?://huggingface\.co/", "", value)
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
+            raise KitError(f"'{value}' is not a Hugging Face repository (owner/name)")
+        return value
+    value = re.sub(r"^(?:docker://|https?://)", "", value)
+    if not re.fullmatch(r"[a-z0-9][a-z0-9._:/-]*[a-z0-9]", value) or "@" in value:
+        raise KitError(f"'{value}' is not an image repository (registry/name)")
+    return value
 
 
 def _owner_name(value: str) -> str:
@@ -327,37 +643,63 @@ def _owner_name(value: str) -> str:
 
 
 def read_declared(
-    source: GitHub, kit_repo: str, kit_commit: str, declaration: Declaration
+    source: Upstream, kit_repo: str, kit_commit: str, declaration: Declaration
 ) -> tuple[str, str, str | None]:
     """``(repo, ref, override reason)`` the kit declares at ``kit_commit``."""
-    text = source.read(kit_repo, kit_commit, declaration.file)
-    repo = parse_repo(text, declaration)
-    if declaration.override is not None:
-        ref = declaration.override.get("ref") or declaration.override["commit"]
-        return repo, ref, declaration.override["reason"]
-    return repo, parse_declared(text, declaration), None
+    text = source.github.read(kit_repo, kit_commit, declaration.file)
+    override = declaration.override
+    if override is not None:
+        repo = override.get("repo")
+        repo = (
+            _repository(declaration.datasource, repo)
+            if repo
+            else parse_repo(text, declaration)
+        )
+        ref = next(override[key] for key in OVERRIDE_VALUES if override.get(key))
+        return repo, ref, override["reason"]
+    return parse_repo(text, declaration), parse_declared(text, declaration), None
+
+
+def resolve(
+    source: Upstream, declaration: Declaration, repo: str, ref: str
+) -> tuple[str, str, str]:
+    """``(immutable value, date, kind)`` of a declared ref, resolved once."""
+    if declaration.datasource == "git-ref":
+        commit, date = source.github.resolve(repo, ref)
+        return commit, date, source.github.kind(repo, ref)
+    if declaration.datasource == "hf-revision":
+        hub = source.hf()
+        revision, date = hub.resolve(repo, ref)
+        return revision, date, hub.kind(repo, ref)
+    registry = source.oci()
+    return (
+        registry.resolve(repo, ref),
+        "",
+        "digest" if IMAGE_DIGEST.match(ref) else "tag",
+    )
 
 
 def derive(
     kit_repo: str,
     kit_commit: str,
     wanted: Iterable[Declaration],
-    source: GitHub,
+    source: Upstream,
 ) -> list[Pin]:
-    """Resolve what the kit declares at ``kit_commit`` to immutable commits."""
+    """Resolve what the kit declares at ``kit_commit`` to immutable values."""
     pins: list[Pin] = []
     for declaration in wanted:
         repo, ref, reason = read_declared(source, kit_repo, kit_commit, declaration)
-        commit, date = source.resolve(repo, ref)
+        immutable, date, kind = resolve(source, declaration, repo, ref)
         pins.append(
             Pin(
                 declaration.name,
                 repo,
                 ref,
-                commit,
+                immutable,
                 date,
-                source.kind(repo, ref),
+                kind,
                 reason,
+                declaration.datasource,
             )
         )
     return pins
@@ -380,6 +722,20 @@ def newest_release(source: GitHub, repo: str) -> str | None:
     return None if best is None else best[1]
 
 
+def newest_information(source: Upstream, pin: Pin) -> str | None:
+    """What the dependency's own channel offers now, for information only.
+
+    The pin follows the kit's declaration: this is never a candidate.
+    """
+    if pin.datasource == "git-ref":
+        newest = newest_release(source.github, pin.repo)
+        return f"{pin.repo} newest release `{newest}`" if newest else None
+    if pin.datasource == "hf-revision" and source.hub is not None:
+        head = source.hub.head(pin.repo)
+        return f"{pin.repo} newest revision `{head[:12]}`" if head else None
+    return None
+
+
 # ---------------------------------------------------------------------------
 # The lock
 # ---------------------------------------------------------------------------
@@ -391,10 +747,11 @@ def lock_document(
     dependencies: dict[str, Any] = {}
     for pin in pins:
         entry: dict[str, Any] = {
+            "datasource": pin.datasource,
             "repo": pin.repo,
             "ref": pin.ref,
             "kind": pin.kind,
-            "commit": pin.commit,
+            pin.key: pin.immutable,
         }
         if pin.overridden:
             entry["overridden"] = pin.overridden
@@ -406,7 +763,7 @@ def lock_document(
 
 
 def lock_text(document: dict[str, Any]) -> str:
-    return json.dumps(document, indent=2, sort_keys=True) + "\n"
+    return json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
 def read_lock(adapter: Path) -> dict[str, Any] | None:
@@ -438,16 +795,20 @@ def manifest_of(adapter: Path) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Check ("is the lock up to date")
+# Consumers: what follows a pin
 # ---------------------------------------------------------------------------
 
 ARCHIVE_NAME = re.compile(r"^(?P<stem>.+)-(?P<commit>[0-9a-f]{40})\.tar\.gz$")
 ARCHIVE_DIGEST = re.compile(
     r'echo "(?P<digest>[0-9a-f]{64})  [^"]+"\s*\|\s*sha256sum -c'
 )
+FROM_LINE = re.compile(
+    r"^(?P<lead>[ \t]*FROM[ \t]+(?:--\S+[ \t]+)*)(?P<image>\S+)",
+    re.MULTILINE | re.IGNORECASE,
+)
 
 
-def consumers(adapter: Path, pin: Pin) -> list[str]:
+def base_consumers(adapter: Path, pin: Pin) -> list[str]:
     """What the files that consume the base pin say; empty when they follow it."""
     problems: list[str] = []
     dockerfile = adapter / "Dockerfile"
@@ -461,12 +822,12 @@ def consumers(adapter: Path, pin: Pin) -> list[str]:
         named = [
             a
             for a in archives
-            if (m := ARCHIVE_NAME.match(a.name)) and m["commit"] == pin.commit
+            if (m := ARCHIVE_NAME.match(a.name)) and m["commit"] == pin.immutable
         ]
         if not named:
             problems.append(
                 f"vendor/ holds {', '.join(a.name for a in archives)}, not an archive of the "
-                f"locked {pin.repo} commit {pin.commit}"
+                f"locked {pin.repo} commit {pin.immutable}"
             )
         elif len(archives) > 1:
             problems.append(
@@ -482,18 +843,167 @@ def consumers(adapter: Path, pin: Pin) -> list[str]:
             if f"vendor/{named[0].name}" not in text:
                 problems.append(f"Dockerfile does not COPY vendor/{named[0].name}")
     revision = re.search(r'org\.opencontainers\.image\.revision="([^"]+)"', text)
-    if revision is not None and revision.group(1) != pin.commit:
+    if revision is not None and revision.group(1) != pin.immutable:
         problems.append(
             f"Dockerfile's image revision label is {revision.group(1)}, not the locked "
-            f"commit {pin.commit}"
+            f"commit {pin.immutable}"
         )
-    elif pin.commit not in text:
-        problems.append(f"Dockerfile does not name the locked commit {pin.commit}")
+    elif pin.immutable not in text:
+        problems.append(f"Dockerfile does not name the locked commit {pin.immutable}")
     return problems
 
 
+def _document(path: Path) -> dict[str, Any] | None:
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
+
+
+def bound_model(
+    root: Path, recipe: dict[str, Any], model_id: str
+) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    """``(the recipe's model reference, its catalogued Model document)`` for a ``models[].id``."""
+    for reference in recipe.get("models", []):
+        if reference.get("id") == model_id:
+            document = _document(root / "models" / f"{reference['model']['slug']}.json")
+            return None if document is None else (reference, document)
+    return None
+
+
+def model_matches(document: dict[str, Any], repo: str, revision: str) -> bool:
+    source = document.get("source") or {}
+    return (
+        str(source.get("repository", "")).lower()
+        == f"https://huggingface.co/{repo}".lower()
+        and source.get("revision") == revision
+    )
+
+
+def model_consumers(
+    root: Path, recipe: dict[str, Any], declaration: Declaration, pin: Pin
+) -> list[str]:
+    """Why the bound Model is not the repository and revision the kit locks."""
+    assert declaration.binds is not None
+    found = bound_model(root, recipe, declaration.binds)
+    if found is None:
+        return [
+            (
+                f"the recipe selects no Model '{declaration.binds}' (or it is not "
+                f"catalogued) for the kit's {declaration.name} "
+                f"({pin.repo}@{pin.immutable[:12]})"
+            )
+        ]
+    reference, document = found
+    if model_matches(document, pin.repo, pin.immutable):
+        return []
+    source = document.get("source") or {}
+    was = str(source.get("repository", "?")).removeprefix("https://huggingface.co/")
+    return [
+        (
+            f"the recipe's Model '{declaration.binds}' ({reference['model']['slug']}) is "
+            f"{was}@{str(source.get('revision', '?'))[:12]}, but the kit locks "
+            f"{pin.repo}@{pin.immutable[:12]}; catalogue that revision "
+            f"(tools/catalog-hf-model --repository {pin.repo} --revision {pin.immutable}) "
+            "and run tools/kit-pins lock"
+        )
+    ]
+
+
+def split_image(image: str) -> tuple[str, str | None, str | None]:
+    """``(repository, tag, digest)`` of an image reference."""
+    name, _, digest = image.partition("@")
+    colon, slash = name.rfind(":"), name.rfind("/")
+    if colon > slash:
+        return name[:colon], name[colon + 1 :], digest or None
+    return name, None, digest or None
+
+
+def image_reference(pin: Pin, written: str) -> str:
+    """The image reference of a pin, in the form ``written`` has it.
+
+    A reference that names a tag keeps naming it (the locked tag); a digest-only
+    reference stays digest-only.
+    """
+    repo, tag, _ = split_image(written)
+    if tag is not None and pin.kind == "tag":
+        return f"{repo}:{pin.ref}@{pin.immutable}"
+    return f"{repo}@{pin.immutable}"
+
+
+def image_consumers(adapter: Path, recipe: dict[str, Any], pin: Pin) -> list[str]:
+    """Why the Dockerfile and the recipe's base image are not the locked image."""
+    problems: list[str] = []
+    dockerfile = adapter / "Dockerfile"
+    text = dockerfile.read_text(encoding="utf-8") if dockerfile.is_file() else ""
+    named = [
+        m["image"]
+        for m in FROM_LINE.finditer(text)
+        if "$" not in m["image"]
+        and split_image(m["image"])[0].lower() == pin.repo.lower()
+    ]
+    if not named:
+        problems.append(f"Dockerfile has no FROM of the kit's image {pin.repo}")
+    for image in named:
+        if image != image_reference(pin, image):
+            problems.append(
+                f"Dockerfile's FROM {image} is not the kit's locked image "
+                f"{image_reference(pin, image)}"
+            )
+    base = recipe.get("execution", {}).get("build", {}).get("base_image") or {}
+    if str(base.get("repository", "")).lower() == pin.repo.lower():
+        locked = pin.immutable.removeprefix("sha256:")
+        if base.get("digest") != locked:
+            problems.append(
+                f"the recipe's base_image digest is {base.get('digest')}, not the locked {locked}"
+            )
+    return problems
+
+
+def consumers(
+    root: Path,
+    adapter: Path,
+    recipe: dict[str, Any],
+    declaration: Declaration,
+    pin: Pin,
+) -> list[str]:
+    """What consumes a locked pin and does not follow it, for each datasource."""
+    if pin.datasource == "hf-revision":
+        return model_consumers(root, recipe, declaration, pin)
+    if pin.datasource == "oci-image":
+        return image_consumers(adapter, recipe, pin)
+    return base_consumers(adapter, pin) if pin.name == "base" else []
+
+
+# ---------------------------------------------------------------------------
+# Check ("is the lock up to date")
+# ---------------------------------------------------------------------------
+
+
+def declares_base(wanted: Iterable[Declaration]) -> bool:
+    """Whether the kit declares the base the adapter's vendored files come from."""
+    return any(d.name == "base" and d.datasource == "git-ref" for d in wanted)
+
+
+def lock_difference(lock: dict[str, Any], expected: dict[str, Any]) -> str:
+    """What differs between a committed lock and the one its kit declaration yields."""
+    parts: list[str] = []
+    if lock.get("kit") != expected["kit"]:
+        parts.append(
+            f"the lock is for kit {lock.get('kit', {}).get('commit', '?')[:12]}"
+        )
+    old, new = lock.get("dependencies", {}), expected["dependencies"]
+    for name in sorted(set(old) | set(new)):
+        if old.get(name) == new.get(name):
+            continue
+        fields = sorted(
+            key
+            for key in set(old.get(name) or {}) | set(new.get(name) or {})
+            if (old.get(name) or {}).get(key) != (new.get(name) or {}).get(key)
+        )
+        parts.append(f"'{name}' differs in {', '.join(fields) or 'its presence'}")
+    return "which declares otherwise: " + "; ".join(parts)
+
+
 def check_recipe(
-    root: Path, recipe_id: str, recipe: dict[str, Any], source: GitHub
+    root: Path, recipe_id: str, recipe: dict[str, Any], source: Upstream
 ) -> list[str]:
     """Reasons the recipe's committed lock is not what its kit declares ([] when current)."""
     adapter = adapter_of(root, recipe)
@@ -513,7 +1023,7 @@ def check_recipe(
             f"{label}: the recipe does not pin a kit commit (provenance.source_reference)"
         ]
     problems: list[str] = []
-    if "source" in manifest:
+    if "source" in manifest and declares_base(wanted):
         problems.append(
             f"{label}: {MANIFEST} keeps a hand-authored 'source' pin beside the kit "
             "declaration; remove it (the lock derives it), or use an explicit override"
@@ -522,8 +1032,8 @@ def check_recipe(
     if lock is None:
         return problems + [f"{label}: no {LOCK}; run tools/kit-pins lock {recipe_id}"]
     try:
-        # Offline in the tag direction: the lock's own ref is used for the commit, so only
-        # the declaring file at the pinned kit commit is fetched.
+        # Offline in the resolving direction: the lock's own value is used for the pin, so
+        # only the declaring file at the pinned kit commit is fetched.
         pins = []
         for declaration in wanted:
             locked = lock.get("dependencies", {}).get(declaration.name)
@@ -536,26 +1046,28 @@ def check_recipe(
                     declaration.name,
                     repo,
                     ref,
-                    locked["commit"],
+                    locked.get(IMMUTABLE_KEYS[declaration.datasource], ""),
                     "",
                     locked.get("kind", ""),
                     reason,
+                    declaration.datasource,
                 )
             )
         expected = lock_document(kit[0], kit[1], pins)
         if lock != expected:
             problems.append(
-                f"{label}: {LOCK} is stale: the recipe pins kit {kit[0]}@{kit[1][:12]}, which "
-                f"declares {json.dumps({p.name: p.ref for p in pins}, sort_keys=True)}, but "
-                f"the lock says {json.dumps({k: v.get('ref') for k, v in lock.get('dependencies', {}).items()}, sort_keys=True)} "
-                f"for kit {lock.get('kit', {}).get('commit', '?')[:12]}; run tools/kit-pins lock {recipe_id}"
+                f"{label}: {LOCK} is stale: the recipe pins kit {kit[0]}@{kit[1][:12]}, "
+                f"{lock_difference(lock, expected)}; run tools/kit-pins lock {recipe_id}"
             )
     except KitError as error:
         problems.append(f"{label}: {error}")
         return problems
+    by_name = {d.name: d for d in wanted}
     for pin in pins:
-        if pin.name == "base":
-            problems.extend(f"{label}: {p}" for p in consumers(adapter, pin))
+        problems.extend(
+            f"{label}: {p}"
+            for p in consumers(root, adapter, recipe, by_name[pin.name], pin)
+        )
     return problems
 
 
@@ -577,11 +1089,15 @@ def download_archive(repo: str, commit: str) -> bytes:
     return data
 
 
+def recipe_text(recipe: dict[str, Any]) -> str:
+    return json.dumps(recipe, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+
+
 def apply_lock(
     root: Path,
     recipe_id: str,
     recipe: dict[str, Any],
-    source: GitHub,
+    source: Upstream,
     fetch_archive: Callable[[str, str], bytes] = download_archive,
 ) -> list[str]:
     """Write ``kit-lock.json`` and move the consumers to it; returns what changed."""
@@ -605,15 +1121,31 @@ def apply_lock(
     if not lock_path.is_file() or lock_path.read_text(encoding="utf-8") != new:
         lock_path.write_text(new, encoding="utf-8")
         changed.append(LOCK)
-    if "source" in manifest:
+    if "source" in manifest and declares_base(wanted):
         del manifest["source"]
         (adapter / MANIFEST).write_text(
-            json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            json.dumps(manifest, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+            encoding="utf-8",
         )
         changed.append(f"{MANIFEST} (hand-authored source pin removed)")
-    base = next((p for p in pins if p.name == "base"), None)
-    if base is not None:
-        changed.extend(_move_consumers(adapter, previous, base, kit, fetch_archive))
+    by_name = {d.name: d for d in wanted}
+    current = recipe
+    for pin in pins:
+        if pin.datasource == "git-ref" and pin.name == "base":
+            changed.extend(_move_consumers(adapter, previous, pin, kit, fetch_archive))
+        elif pin.datasource == "hf-revision":
+            current, moved = _rebind_model(
+                root, current, by_name[pin.name], pin, source
+            )
+            changed.extend(moved)
+        elif pin.datasource == "oci-image":
+            current, moved = _move_image(adapter, current, pin)
+            changed.extend(moved)
+    if current != recipe:
+        (root / "recipes" / f"{recipe_id}.json").write_text(
+            recipe_text(current), encoding="utf-8"
+        )
+        changed.append(f"recipes/{recipe_id}.json")
     return changed
 
 
@@ -633,12 +1165,12 @@ def _move_consumers(
     vendor = adapter / "vendor"
     old_archives = sorted(vendor.glob("*.tar.gz")) if vendor.is_dir() else []
     if old_archives:
-        named = next((a for a in old_archives if base.commit in a.name), None)
+        named = next((a for a in old_archives if base.immutable in a.name), None)
         if named is None:
             template = ARCHIVE_NAME.match(old_archives[0].name)
             stem = template["stem"] if template else old_archives[0].name.split(".")[0]
-            data = fetch_archive(base.repo, base.commit)
-            named = vendor / f"{stem}-{base.commit}.tar.gz"
+            data = fetch_archive(base.repo, base.immutable)
+            named = vendor / f"{stem}-{base.immutable}.tar.gz"
             named.write_bytes(data)
             changed.append(f"vendor/{named.name} (new base archive)")
         digest = hashlib.sha256(named.read_bytes()).hexdigest()
@@ -649,14 +1181,14 @@ def _move_consumers(
             old_commit = ARCHIVE_NAME.match(old.name)
             text = text.replace(old.name, named.name).replace(old_digest, digest)
             if old_commit:
-                text = text.replace(old_commit["commit"], base.commit)
+                text = text.replace(old_commit["commit"], base.immutable)
             old.unlink()
             changed.append(f"vendor/{old.name} (removed)")
         found = ARCHIVE_DIGEST.search(text)
         if found and found["digest"] != digest:
             text = text.replace(found["digest"], digest)
-    if previous is not None and previous[1] != base.commit:
-        text = text.replace(previous[1], base.commit)
+    if previous is not None and previous[1] != base.immutable:
+        text = text.replace(previous[1], base.immutable)
     # the kit's own commit, where the Dockerfile cites it (a recipe-patches source label)
     cited = re.search(
         rf"github\.com/{re.escape(kit[0])}/tree/(?P<commit>[0-9a-f]{{40}})", text
@@ -669,6 +1201,233 @@ def _move_consumers(
             "Dockerfile (pins; review its header comment and licence labels)"
         )
     return changed
+
+
+def file_id(path: str, sha256: str) -> str:
+    """The id ``tools/catalog-hf-model`` gives a file: readable stem, content and path digests."""
+    value = path.rsplit("/", 1)[-1].rsplit(".", 1)[0]
+    stem = value.lower().replace("_", "-").replace(".", "-") if value else "metadata"
+    if not stem[:1].isalpha():
+        stem = f"file-{stem}"
+    return f"{stem[:39]}-{sha256[:12]}-{hashlib.sha256(path.encode()).hexdigest()[:10]}"
+
+
+def moved_model(
+    old: dict[str, Any], inventory: list[dict[str, Any]], revision: str
+) -> dict[str, Any]:
+    """The Model document ``old`` moved to the snapshot ``inventory`` of ``revision``.
+
+    The curation is kept: identity, licence, capabilities, and the files the document
+    kept (a file the snapshot no longer has is dropped). A file the snapshot adds is
+    catalogued unless it is metadata (a README), as the old document may have left such
+    files out on purpose. The slug, version and variant follow the revision.
+    """
+    sys.path.insert(0, str(ROOT / "contracts" / "src"))
+    from vonk_forge_contracts import ModelDefinition
+
+    by_path = {f["path"]: f for f in inventory}
+    document = json.loads(json.dumps(old))
+    old_revision = old["source"]["revision"]
+    document["source"]["revision"] = revision
+    identity = document["identity"]
+    slug = identity["slug"]
+    if slug.endswith(old_revision[:8]):
+        identity["slug"] = slug[: -len(old_revision[:8])] + revision[:8]
+    elif not slug.endswith(revision[:8]):
+        identity["slug"] = f"{slug}-{revision[:8]}"
+    for key in ("version", "variant"):
+        if isinstance(identity.get(key), str) and old_revision[:8] in identity[key]:
+            identity[key] = identity[key].replace(old_revision[:8], revision[:8])
+    known = {entry["path"] for entry in old["files"]}
+    files = [dict(entry) for entry in old["files"] if entry["path"] in by_path]
+    for path in sorted(set(by_path) - known):
+        if by_path[path]["roles"] != ["metadata"]:
+            files.append({"path": path, "roles": by_path[path]["roles"]})
+    for entry in files:
+        fresh = by_path[entry["path"]]
+        entry["sha256"] = fresh["sha256"]
+        entry["size_bytes"] = fresh["installed_bytes"]
+        entry["id"] = file_id(entry["path"], fresh["sha256"])
+    document["files"] = sorted(files, key=lambda entry: entry["path"])
+    ModelDefinition.model_validate(document)
+    return document
+
+
+def catalogued_model(root: Path, repo: str, revision: str) -> dict[str, Any] | None:
+    """The Model document of a Hugging Face repository at a revision, when catalogued."""
+    for path in sorted((root / "models").glob("*.json")):
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if model_matches(document, repo, revision):
+            return document
+    return None
+
+
+def selection_id(model_id: str, example: dict[str, Any], file_id: str) -> str:
+    """The id of a selected file, spelled as the recipe spells its other ones.
+
+    A selected file's id is its file id behind a prefix (often the model's role), cut to
+    the contract's bound; the example selected file shows the prefix.
+    """
+    old = example["file_id"]
+    for length in range(len(old), 0, -1):
+        if example["id"].endswith(old[:length]):
+            prefix = example["id"][: len(example["id"]) - length]
+            return (prefix + file_id)[:MAX_SELECTION_ID]
+    return f"{model_id}-{file_id}"[:MAX_SELECTION_ID]
+
+
+def rebind(
+    recipe: dict[str, Any], model_id: str, old: dict[str, Any], new: dict[str, Any]
+) -> dict[str, Any]:
+    """The recipe with its Model ``model_id`` moved from the ``old`` document to ``new``.
+
+    A recipe that mounts every file of the old Model mounts every file of the new one (a
+    repository switch has no file in common); otherwise each selected file is followed by
+    its path and one the new Model lacks is an error. The disk envelope follows the size
+    of what is selected.
+    """
+    document = json.loads(json.dumps(recipe))
+    reference = next(m for m in document["models"] if m["id"] == model_id)
+    old_by_id = {f["id"]: f for f in old["files"]}
+    chosen = [old_by_id[f["file_id"]] for f in reference["files"]]
+    new_by_path = {f["path"]: f for f in new["files"]}
+    if {f["id"] for f in chosen} == set(old_by_id):
+        shapes = {
+            json.dumps([f["mount"], f["roles"]], sort_keys=True)
+            for f in reference["files"]
+        }
+        if len(shapes) != 1:
+            raise KitError(
+                f"Model '{model_id}' mounts every file, but not all the same way; "
+                "rebind it by hand"
+            )
+        template = reference["files"][0]
+        targets = list(new["files"])
+    else:
+        missing = [f["path"] for f in chosen if f["path"] not in new_by_path]
+        if missing:
+            raise KitError(
+                f"the recipe selects files the new Model lacks: {', '.join(missing[:5])}"
+            )
+        template = None
+        targets = [new_by_path[f["path"]] for f in chosen]
+    selected = []
+    for item in targets:
+        if template is not None:
+            entry = {
+                "file_id": item["id"],
+                "id": selection_id(model_id, template, item["id"]),
+                "mount": template["mount"],
+                "roles": template["roles"],
+            }
+        else:
+            old_entry = next(
+                e
+                for e in reference["files"]
+                if old_by_id[e["file_id"]]["path"] == item["path"]
+            )
+            entry = dict(
+                old_entry,
+                file_id=item["id"],
+                id=selection_id(model_id, old_entry, item["id"]),
+            )
+        selected.append(entry)
+    if len({e["id"] for e in selected}) != len(selected):
+        raise KitError(
+            f"Model '{model_id}': selected file ids collide once cut to 64 characters"
+        )
+    reference["files"] = selected
+    reference["model"]["slug"] = new["identity"]["slug"]
+    reference["model"]["content_sha256"] = model_digest(new)
+    delta = sum(f["size_bytes"] for f in targets) - sum(f["size_bytes"] for f in chosen)
+    for role in document["topology"]["roles"]:
+        role["resources"]["disk"]["artifact_bytes"] += delta
+    return document
+
+
+def model_digest(document: dict[str, Any]) -> str:
+    sys.path.insert(0, str(ROOT / "contracts" / "src"))
+    from vonk_forge_contracts import document_sha256
+
+    return document_sha256(document)
+
+
+def _rebind_model(
+    root: Path,
+    recipe: dict[str, Any],
+    declaration: Declaration,
+    pin: Pin,
+    source: Upstream,
+) -> tuple[dict[str, Any], list[str]]:
+    assert declaration.binds is not None
+    found = bound_model(root, recipe, declaration.binds)
+    if found is None:
+        raise KitError(
+            f"the recipe selects no catalogued Model '{declaration.binds}' for the kit's "
+            f"{declaration.name}"
+        )
+    _, old = found
+    if model_matches(old, pin.repo, pin.immutable):
+        return recipe, []
+    changed: list[str] = []
+    new = catalogued_model(root, pin.repo, pin.immutable)
+    if new is None:
+        old_repo = str((old.get("source") or {}).get("repository", ""))
+        if old_repo.lower() != f"https://huggingface.co/{pin.repo}".lower():
+            raise KitError(
+                f"the kit locks {pin.repo}@{pin.immutable}, another repository than the "
+                f"recipe's Model: run tools/catalog-hf-model --repository {pin.repo} "
+                f"--revision {pin.immutable} (with its identity, licence and capability "
+                "flags), then lock again"
+            )
+        # another revision of the same repository: the old document's curation moves along
+        new = moved_model(
+            old, source.hf().inventory(pin.repo, pin.immutable), pin.immutable
+        )
+        path = root / "models" / f"{new['identity']['slug']}.json"
+        path.write_text(
+            json.dumps(new, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        changed.append(f"models/{new['identity']['slug']}.json (catalogued)")
+    moved = rebind(recipe, declaration.binds, old, new)
+    changed.append(f"Model '{declaration.binds}' -> {new['identity']['slug']}")
+    slug = old["identity"]["slug"]
+    if slug != new["identity"]["slug"] and not any(
+        m["model"]["slug"] == slug
+        for path in sorted((root / "recipes").glob("*.json"))
+        for other in [json.loads(path.read_text(encoding="utf-8"))]
+        if other["identity"]["slug"] != recipe["identity"]["slug"]
+        for m in other["models"]
+    ):
+        (root / "models" / f"{slug}.json").unlink()
+        changed.append(f"models/{slug}.json (removed: no recipe uses it)")
+    return moved, changed
+
+
+def _move_image(
+    adapter: Path, recipe: dict[str, Any], pin: Pin
+) -> tuple[dict[str, Any], list[str]]:
+    changed: list[str] = []
+    dockerfile = adapter / "Dockerfile"
+    if dockerfile.is_file():
+        text = dockerfile.read_text(encoding="utf-8")
+
+        def move(match: re.Match[str]) -> str:
+            image = match["image"]
+            if "$" in image or split_image(image)[0].lower() != pin.repo.lower():
+                return match[0]
+            return match["lead"] + image_reference(pin, image)
+
+        moved = FROM_LINE.sub(move, text)
+        if moved != text:
+            dockerfile.write_text(moved, encoding="utf-8")
+            changed.append("Dockerfile (FROM digest)")
+    document = json.loads(json.dumps(recipe))
+    base = document.get("execution", {}).get("build", {}).get("base_image")
+    if base and str(base.get("repository", "")).lower() == pin.repo.lower():
+        base["digest"] = pin.immutable.removeprefix("sha256:")
+    return document, changed
 
 
 # ---------------------------------------------------------------------------

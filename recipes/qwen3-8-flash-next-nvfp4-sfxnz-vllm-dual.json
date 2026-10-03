@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "sfxnz's two-DGX-Spark vLLM TP2 recipe for NVIDIA's Qwen3.8 Flash Next NVFP4 checkpoint (snapshot fc694b54, the current NVIDIA revision) on the digest-pinned official vllm/vllm-openai nightly-aarch64 image (0.28.1rc1.dev437+ge962733e0). Upstream's two overlays are baked byte-identically: docker/ple_layer.py (qwen4_exp MIXED_PRECISION FP8 per-layer embeddings) and docker/modelopt.py (MTP FP8_BLOCK_SCALES and FP8_PB_WO load). In-band MTP-3 with the Triton draft MoE, BF16 (auto) KV cache, native 262144-token window, eight sequences (the only occupancy upstream measured), thinking off by default. Upstream measured 43.2 tok/s per stream prose and 55.5 structured at concurrency 1 on its own lab (claims, not measured here). Licences are information only: recipe scripts MIT (sfxnz), vLLM overlays Apache-2.0, model weights under the NVIDIA Open Model License. Vonk physical acceptance is pending. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking=false; the card template seeds an empty think block.",
+    "description": "sfxnz's two-DGX-Spark vLLM TP2 recipe for NVIDIA's Qwen3.8 Flash Next NVFP4 checkpoint (snapshot fab0aecb, the revision the kit declares) on the digest-pinned official vllm/vllm-openai nightly-aarch64 image (0.28.1rc1.dev437+ge962733e0). Upstream's two overlays are baked byte-identically: docker/ple_layer.py (qwen4_exp MIXED_PRECISION FP8 per-layer embeddings) and docker/modelopt.py (MTP FP8_BLOCK_SCALES and FP8_PB_WO load). In-band MTP-3 with the Triton draft MoE, BF16 (auto) KV cache, native 262144-token window, eight sequences (the only occupancy upstream measured), thinking off by default. Upstream measured 43.2 tok/s per stream prose and 55.5 structured at concurrency 1 on its own lab (claims, not measured here). Licences are information only: recipe scripts MIT (sfxnz), vLLM overlays Apache-2.0, model weights under the NVIDIA Open Model License. Vonk physical acceptance is pending. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking=false; the card template seeds an empty think block.",
     "tags": [
       "mtp",
       "multimodal",
@@ -60,8 +60,8 @@
           ]
         },
         {
-          "file_id": "readme-e3ed0cb89950-b335630551",
-          "id": "primary-readme-e3ed0cb89950-b335630551",
+          "file_id": "readme-e56b4bd51523-b335630551",
+          "id": "primary-readme-e56b4bd51523-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -82,8 +82,8 @@
           ]
         },
         {
-          "file_id": "config-deef67a61f33-587cb980af",
-          "id": "primary-config-deef67a61f33-587cb980af",
+          "file_id": "config-4156f806efe3-587cb980af",
+          "id": "primary-config-4156f806efe3-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -326,10 +326,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a870adf202e8f1241cbeaba904694534d090e9875e4b147a61ade2fa0f601518",
+        "content_sha256": "0ea261494bbb96ee3b14dc2efea28ef32216038bce553c0fb1ecb817de94eddb",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "qwen3-8-flash-next-nvfp4-fc694b54"
+        "slug": "qwen3-8-flash-next-nvfp4-fab0aecb"
       }
     }
   ],
@@ -561,7 +561,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 132734506847,
+            "artifact_bytes": 132734506208,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 54000000000
@@ -578,7 +578,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 132734506847,
+            "artifact_bytes": 132734506208,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 54000000000

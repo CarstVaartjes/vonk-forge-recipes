@@ -1,10 +1,21 @@
 {
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "recipe.yaml",
+        "pattern": "^[ \\t]*id:\\ \\&model\\ (?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)[^\\n]*\\n^[ \\t]*revision:\\ \\&revision\\ (?P<version>[^\\s\"\\'`}),;\\]]+)"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "dsv41-vllm-wrapper.py",
     "test_dsv41_sfxnz_wrapper.py"
   ],
   "source": {
-    "repo": "sfxnz/DeepSeek-V4.1-Flash-EXL3-vLLM-2x-DGX-Spark",
-    "commit": "3de914682d0880c8e478712a60ada930339c22e4"
+    "commit": "3de914682d0880c8e478712a60ada930339c22e4",
+    "repo": "sfxnz/DeepSeek-V4.1-Flash-EXL3-vLLM-2x-DGX-Spark"
   }
 }

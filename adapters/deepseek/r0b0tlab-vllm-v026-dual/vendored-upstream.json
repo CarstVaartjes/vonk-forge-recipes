@@ -1,9 +1,20 @@
 {
-  "source": {
-    "repo": "r0b0tlab/DeepSeek-V4-Flash-DSpark-v026-SM121",
-    "commit": "d8393134b49f7e92ffd64b9670b5d500fc6478cb"
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "recipe/vllm-v0.26.0.lock.json",
+        "pattern": "^[ \\t]*\"id\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\",[^\\n]*\\n^[ \\t]*\"revision\":\\ \"(?P<version>[0-9a-f]{40})\","
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
-  ]
+  ],
+  "source": {
+    "commit": "d8393134b49f7e92ffd64b9670b5d500fc6478cb",
+    "repo": "r0b0tlab/DeepSeek-V4-Flash-DSpark-v026-SM121"
+  }
 }

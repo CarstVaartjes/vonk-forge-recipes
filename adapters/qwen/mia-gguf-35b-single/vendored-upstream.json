@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "start.sh",
+        "pattern": "^[ \\t]*HF_REPO_ID=\"\\$\\{HF_REPO_ID:\\-(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\\}\"[^\\n]*\\n^[ \\t]*HF_REVISION=\"\\$\\{HF_REVISION:\\-(?P<version>[^\\s\"\\'`}),;\\]]+)\\}\""
+      }
+    },
+    "whole": false
+  },
   "ours": [],
   "source": {
     "commit": "52db946cec5da439e3cae5297e9947ae54c5949f",

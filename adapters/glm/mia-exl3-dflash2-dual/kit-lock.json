@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "dc77ff1c99eeb2df044ee3d4f0094eb033fee410",
+      "repo": "incoai/GLM-5.3-Flash-DFlash2",
+      "revision": "dc77ff1c99eeb2df044ee3d4f0094eb033fee410"
+    }
+  },
+  "kit": {
+    "commit": "94ae731f4619f769be1f4dfe6f6607ce0a3e869d",
+    "repo": "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks"
+  }
+}

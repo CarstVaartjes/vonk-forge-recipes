@@ -1,0 +1,13 @@
+{
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "recipes/Ternary-Bonsai-2-27B-GGUF-llamacpp-prism/manifests/pq2.json",
+        "pattern": "^[ \\t]*\"repo\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\",[^\\n]*\\n^[ \\t]*\"revision\":\\ \"(?P<version>[0-9a-f]{40})\","
+      }
+    },
+    "whole": false
+  }
+}

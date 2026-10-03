@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "86f746b36186f0e567729a5c06a8c918caba82a9",
+      "repo": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+      "revision": "86f746b36186f0e567729a5c06a8c918caba82a9"
+    }
+  },
+  "kit": {
+    "commit": "099b90321fa6629ce15b02f909fd9df1921b80ad",
+    "repo": "sfxnz/DeepSeek-V4-Flash-Vision-Exp-vLLM-2x-DGX-Spark"
+  }
+}

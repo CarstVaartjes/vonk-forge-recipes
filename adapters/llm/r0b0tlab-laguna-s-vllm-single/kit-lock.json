@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "723794750422b3efbf3a7b3af76dffb4ba035943",
+      "repo": "poolside/Laguna-S-2.1-DFlash-NVFP4",
+      "revision": "723794750422b3efbf3a7b3af76dffb4ba035943"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "07614121b31898586430f189d27a25a0be310843",
+      "repo": "poolside/Laguna-S-2.1-NVFP4",
+      "revision": "07614121b31898586430f189d27a25a0be310843"
+    }
+  },
+  "kit": {
+    "commit": "4cf44cf36b88b564031ddb19c41d7cb9cfe0f52a",
+    "repo": "r0b0tlab/laguna-s-2.1-nvfp4-sm121-vllm"
+  }
+}

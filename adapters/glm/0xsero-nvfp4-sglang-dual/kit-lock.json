@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "9e0d74e3cef17f634e84fb8e2223707e02616290",
+      "repo": "LibertAIDAI/GLM-5.3-Flash-NVFP4",
+      "revision": "9e0d74e3cef17f634e84fb8e2223707e02616290"
+    }
+  },
+  "kit": {
+    "commit": "dfb1bb7e45c20058d37df7a39cceda45a9d216a8",
+    "repo": "0xSero/glm-5.3-flash-sglang-sm121"
+  }
+}

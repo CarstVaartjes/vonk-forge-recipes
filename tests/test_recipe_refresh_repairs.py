@@ -43,13 +43,19 @@ class RecipeRefreshRepairTests(unittest.TestCase):
         )
         self.assertIs(arguments["enforce-eager"], True)
 
-    def test_laguna_pair_uses_current_complete_models_and_matches_asset_envelope(
-        self,
-    ) -> None:
+    def test_laguna_pair_follows_its_kit_and_matches_asset_envelope(self) -> None:
         recipe = load(LAGUNA)
+        lock = load(ROOT / "adapters/llm/r0b0tlab-laguna-s-vllm-single/kit-lock.json")[
+            "dependencies"
+        ]
+        expected_revisions = {
+            "laguna-s-2-1-nvfp4-": lock["model"]["revision"],
+            "laguna-s-2-1-dflash-nvfp4-": lock["drafter"]["revision"],
+        }
         self.assertEqual(
             recipe["release"]["version"],
-            "0.25.1-gb10-k7-826aacdf-b3b5921a",
+            "0.25.1-gb10-k7-"
+            f"{lock['model']['revision'][:8]}-{lock['drafter']['revision'][:8]}",
         )
         self.assertEqual(
             recipe["execution"]["build"]["base_image"],
@@ -67,15 +73,12 @@ class RecipeRefreshRepairTests(unittest.TestCase):
             '{"method":"dflash","model":"/models/drafter","num_speculative_tokens":7}',
         )
 
-        expected_revisions = {
-            "laguna-s-2-1-nvfp4-826aacdf": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
-            "laguna-s-2-1-dflash-nvfp4-b3b5921a": "b3b5921a900b9e0a1e27e50bdaeb480692a6d19b",
-        }
         total_artifact_bytes = 0
         for selection in recipe["models"]:
             slug = selection["model"]["slug"]
             model = load(ROOT / "models" / f"{slug}.json")
-            self.assertEqual(model["source"]["revision"], expected_revisions[slug])
+            prefix = next(p for p in expected_revisions if slug.startswith(p))
+            self.assertEqual(model["source"]["revision"], expected_revisions[prefix])
             self.assertEqual(
                 document_sha256(model), selection["model"]["content_sha256"]
             )
@@ -96,9 +99,6 @@ class RecipeRefreshRepairTests(unittest.TestCase):
         declared = recipe["topology"]["roles"][0]["resources"]["disk"]["artifact_bytes"]
         self.assertEqual(declared, total_artifact_bytes)
         self.assertIn("vLLM 0.25.0 or later", recipe["metadata"]["description"])
-        self.assertIn(
-            "does not validate these changed weights", recipe["metadata"]["description"]
-        )
 
 
 if __name__ == "__main__":

@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "manifest.json",
+        "pattern": "^[ \\t]*\"repository\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\",[^\\n]*\\n^[ \\t]*\"revision\":\\ \"(?P<version>[0-9a-f]{40})\","
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "sglang-serve"
   ],

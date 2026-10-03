@@ -1,12 +1,23 @@
 {
-  "source": {
-    "repo": "r0b0tlab/nvidia-qwen-3.6-27B-sm121-nvfp4",
-    "commit": "d0343b430a2853f0422665c93aac0fe9984a7a79"
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "docker/runtime-manifest.production.json",
+        "pattern": "^[ \\t]*\"model_id\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\",[^\\n]*\\n^[ \\t]*\"model_revision\":\\ \"(?P<version>[0-9a-f]{40})\","
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
   ],
   "renamed": {
     "LICENSE.upstream": "LICENSE"
+  },
+  "source": {
+    "commit": "d0343b430a2853f0422665c93aac0fe9984a7a79",
+    "repo": "r0b0tlab/nvidia-qwen-3.6-27B-sm121-nvfp4"
   }
 }

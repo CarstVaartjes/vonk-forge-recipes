@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:4f30c464ead64fb9727a24064b25057dacc07bef848022421108e544c91f0965",
+      "kind": "tag",
+      "ref": "1.3.0rc13",
+      "repo": "nvcr.io/nvidia/tensorrt-llm/release"
+    }
+  },
+  "kit": {
+    "commit": "b3bc0813e1864e54ce5ed9a0cc74e0b03745c027",
+    "repo": "NVIDIA/dgx-spark-playbooks"
+  }
+}

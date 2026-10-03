@@ -7,7 +7,7 @@
   "dependencies": [],
   "files": [
     {
-      "id": "metadata-c96667522371",
+      "id": "metadata-c96667522371-618cd5b83d",
       "path": ".gitattributes",
       "roles": [
         "metadata"
@@ -16,7 +16,7 @@
       "size_bytes": 1584
     },
     {
-      "id": "calibration-coverage-21c70f0f186f",
+      "id": "calibration-coverage-21c70f0f186f-076abd5672",
       "path": "CALIBRATION_COVERAGE.json",
       "roles": [
         "configuration"
@@ -25,7 +25,7 @@
       "size_bytes": 178648
     },
     {
-      "id": "exl3-manifest-1e35cbbc33a9",
+      "id": "exl3-manifest-1e35cbbc33a9-c1f66f1a2f",
       "path": "EXL3_MANIFEST.json",
       "roles": [
         "configuration"
@@ -34,16 +34,16 @@
       "size_bytes": 54949
     },
     {
-      "id": "readme-5018cee4256e",
+      "id": "readme-ca1cf77f8a4f-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "5018cee4256e58d39bf2b4111f45d98a53284a09883e3ad07f1a98e84165c6f8",
-      "size_bytes": 9164
+      "sha256": "ca1cf77f8a4f8fb98635d939132c17b361887add85f9287e0c3e03a98ea62354",
+      "size_bytes": 2985
     },
     {
-      "id": "reap-k216-plan-cc2bdaf189eb",
+      "id": "reap-k216-plan-cc2bdaf189eb-2dc33560e8",
       "path": "REAP_K216_PLAN.json",
       "roles": [
         "configuration"
@@ -52,7 +52,7 @@
       "size_bytes": 593765
     },
     {
-      "id": "reap-k216-structured-report-8395e7380d0f",
+      "id": "reap-k216-structured-report-8395e7380d0f-5146cee342",
       "path": "REAP_K216_STRUCTURED_REPORT.json",
       "roles": [
         "configuration"
@@ -61,7 +61,7 @@
       "size_bytes": 179143
     },
     {
-      "id": "carried-001-3b67ae29f1e7",
+      "id": "carried-001-3b67ae29f1e7-0b00a83b24",
       "path": "carried-001.safetensors",
       "roles": [
         "weights"
@@ -70,7 +70,7 @@
       "size_bytes": 4288630252
     },
     {
-      "id": "carried-002-1dd46d58c304",
+      "id": "carried-002-1dd46d58c304-e8b26dd3fb",
       "path": "carried-002.safetensors",
       "roles": [
         "weights"
@@ -79,7 +79,7 @@
       "size_bytes": 4262702688
     },
     {
-      "id": "carried-003-575d17d00109",
+      "id": "carried-003-575d17d00109-11369d5a83",
       "path": "carried-003.safetensors",
       "roles": [
         "weights"
@@ -88,7 +88,7 @@
       "size_bytes": 3730648120
     },
     {
-      "id": "carried-004-464e5a703972",
+      "id": "carried-004-464e5a703972-eff93a9d00",
       "path": "carried-004.safetensors",
       "roles": [
         "weights"
@@ -97,7 +97,7 @@
       "size_bytes": 3648926248
     },
     {
-      "id": "carried-005-081607b99e61",
+      "id": "carried-005-081607b99e61-f6efc72713",
       "path": "carried-005.safetensors",
       "roles": [
         "weights"
@@ -106,7 +106,7 @@
       "size_bytes": 2159077868
     },
     {
-      "id": "config-b001ec830804",
+      "id": "config-b001ec830804-587cb980af",
       "path": "config.json",
       "roles": [
         "configuration"
@@ -115,7 +115,7 @@
       "size_bytes": 3806
     },
     {
-      "id": "exl3-layer-000-tp4-rank0-2ed7ae798a79",
+      "id": "exl3-layer-000-tp4-rank0-2ed7ae798a79-76aafcd4b1",
       "path": "exl3-layer-000-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -124,7 +124,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-000-tp4-rank1-90c67773b779",
+      "id": "exl3-layer-000-tp4-rank1-90c67773b779-de231bf3bf",
       "path": "exl3-layer-000-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -133,7 +133,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-000-tp4-rank2-a7e6fbde0239",
+      "id": "exl3-layer-000-tp4-rank2-a7e6fbde0239-0908d1ee6b",
       "path": "exl3-layer-000-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -142,7 +142,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-000-tp4-rank3-cc8f331941e8",
+      "id": "exl3-layer-000-tp4-rank3-cc8f331941e8-1fdf2188b1",
       "path": "exl3-layer-000-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -151,7 +151,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-001-tp4-rank0-ef77ff985ddc",
+      "id": "exl3-layer-001-tp4-rank0-ef77ff985ddc-d9fac916b9",
       "path": "exl3-layer-001-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -160,7 +160,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-001-tp4-rank1-757e55e7b62d",
+      "id": "exl3-layer-001-tp4-rank1-757e55e7b62d-c1a99c3fc9",
       "path": "exl3-layer-001-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -169,7 +169,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-001-tp4-rank2-fe5bfd3a86b1",
+      "id": "exl3-layer-001-tp4-rank2-fe5bfd3a86b1-6d51a041b6",
       "path": "exl3-layer-001-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -178,7 +178,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-001-tp4-rank3-7ef9934382d2",
+      "id": "exl3-layer-001-tp4-rank3-7ef9934382d2-444ae8bdd6",
       "path": "exl3-layer-001-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -187,7 +187,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-002-tp4-rank0-fd83b6203d48",
+      "id": "exl3-layer-002-tp4-rank0-fd83b6203d48-29e9034567",
       "path": "exl3-layer-002-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -196,7 +196,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-002-tp4-rank1-fc8f361a725d",
+      "id": "exl3-layer-002-tp4-rank1-fc8f361a725d-601ceda825",
       "path": "exl3-layer-002-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -205,7 +205,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-002-tp4-rank2-e25b13fe2203",
+      "id": "exl3-layer-002-tp4-rank2-e25b13fe2203-2af4eb2159",
       "path": "exl3-layer-002-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -214,7 +214,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-002-tp4-rank3-ea74ad7636c3",
+      "id": "exl3-layer-002-tp4-rank3-ea74ad7636c3-6f37e24a94",
       "path": "exl3-layer-002-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -223,7 +223,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-003-tp4-rank0-129c52f4b51a",
+      "id": "exl3-layer-003-tp4-rank0-129c52f4b51a-8f4dcf1302",
       "path": "exl3-layer-003-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -232,7 +232,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-003-tp4-rank1-a0c906456bc5",
+      "id": "exl3-layer-003-tp4-rank1-a0c906456bc5-c6a5a0ea4d",
       "path": "exl3-layer-003-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -241,7 +241,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-003-tp4-rank2-f80d99805847",
+      "id": "exl3-layer-003-tp4-rank2-f80d99805847-bf8ff619f0",
       "path": "exl3-layer-003-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -250,7 +250,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-003-tp4-rank3-39bfc7af6cb5",
+      "id": "exl3-layer-003-tp4-rank3-39bfc7af6cb5-e30bd94e74",
       "path": "exl3-layer-003-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -259,7 +259,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-004-tp4-rank0-41bd9609bc3d",
+      "id": "exl3-layer-004-tp4-rank0-41bd9609bc3d-040d96ba40",
       "path": "exl3-layer-004-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -268,7 +268,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-004-tp4-rank1-5ff71db04ff6",
+      "id": "exl3-layer-004-tp4-rank1-5ff71db04ff6-49d235bd06",
       "path": "exl3-layer-004-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -277,7 +277,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-004-tp4-rank2-51b3f6af073f",
+      "id": "exl3-layer-004-tp4-rank2-51b3f6af073f-1ca9f3a374",
       "path": "exl3-layer-004-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -286,7 +286,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-004-tp4-rank3-f6f896dcaddf",
+      "id": "exl3-layer-004-tp4-rank3-f6f896dcaddf-fac458cbe3",
       "path": "exl3-layer-004-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -295,7 +295,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-005-tp4-rank0-515d9488070d",
+      "id": "exl3-layer-005-tp4-rank0-515d9488070d-cd39912fed",
       "path": "exl3-layer-005-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -304,7 +304,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-005-tp4-rank1-a8c779cb75f5",
+      "id": "exl3-layer-005-tp4-rank1-a8c779cb75f5-be82778b88",
       "path": "exl3-layer-005-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -313,7 +313,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-005-tp4-rank2-46c03373c1ea",
+      "id": "exl3-layer-005-tp4-rank2-46c03373c1ea-ae7857a03d",
       "path": "exl3-layer-005-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -322,7 +322,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-005-tp4-rank3-e5079e13d929",
+      "id": "exl3-layer-005-tp4-rank3-e5079e13d929-810433026d",
       "path": "exl3-layer-005-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -331,7 +331,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-006-tp4-rank0-84df9fbc89e9",
+      "id": "exl3-layer-006-tp4-rank0-84df9fbc89e9-db4270c809",
       "path": "exl3-layer-006-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -340,7 +340,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-006-tp4-rank1-efbbcd1e873d",
+      "id": "exl3-layer-006-tp4-rank1-efbbcd1e873d-db6209d6bd",
       "path": "exl3-layer-006-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -349,7 +349,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-006-tp4-rank2-7e63fa021816",
+      "id": "exl3-layer-006-tp4-rank2-7e63fa021816-7861576c07",
       "path": "exl3-layer-006-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -358,7 +358,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-006-tp4-rank3-309e59765e9d",
+      "id": "exl3-layer-006-tp4-rank3-309e59765e9d-5d0947be38",
       "path": "exl3-layer-006-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -367,7 +367,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-007-tp4-rank0-017cca519dcf",
+      "id": "exl3-layer-007-tp4-rank0-017cca519dcf-29b4d72d65",
       "path": "exl3-layer-007-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -376,7 +376,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-007-tp4-rank1-db419a77553f",
+      "id": "exl3-layer-007-tp4-rank1-db419a77553f-fcf5acea3c",
       "path": "exl3-layer-007-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -385,7 +385,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-007-tp4-rank2-d96512b28909",
+      "id": "exl3-layer-007-tp4-rank2-d96512b28909-009630c09b",
       "path": "exl3-layer-007-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -394,7 +394,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-007-tp4-rank3-7f6d30bab852",
+      "id": "exl3-layer-007-tp4-rank3-7f6d30bab852-44dd747206",
       "path": "exl3-layer-007-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -403,7 +403,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-008-tp4-rank0-eb90fdf4f71d",
+      "id": "exl3-layer-008-tp4-rank0-eb90fdf4f71d-161a947ebb",
       "path": "exl3-layer-008-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -412,7 +412,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-008-tp4-rank1-d02d4d0a83a9",
+      "id": "exl3-layer-008-tp4-rank1-d02d4d0a83a9-b938001d5f",
       "path": "exl3-layer-008-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -421,7 +421,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-008-tp4-rank2-c48f91523b9a",
+      "id": "exl3-layer-008-tp4-rank2-c48f91523b9a-bfd927cfa5",
       "path": "exl3-layer-008-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -430,7 +430,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-008-tp4-rank3-6aeee4645f05",
+      "id": "exl3-layer-008-tp4-rank3-6aeee4645f05-b190f69c18",
       "path": "exl3-layer-008-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -439,7 +439,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-009-tp4-rank0-f7260514923b",
+      "id": "exl3-layer-009-tp4-rank0-f7260514923b-b737604cb1",
       "path": "exl3-layer-009-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -448,7 +448,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-009-tp4-rank1-97f7dcf83e12",
+      "id": "exl3-layer-009-tp4-rank1-97f7dcf83e12-764d9d5590",
       "path": "exl3-layer-009-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -457,7 +457,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-009-tp4-rank2-f2443da192a4",
+      "id": "exl3-layer-009-tp4-rank2-f2443da192a4-5cf66799b0",
       "path": "exl3-layer-009-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -466,7 +466,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-009-tp4-rank3-298b941f710b",
+      "id": "exl3-layer-009-tp4-rank3-298b941f710b-459ff6e492",
       "path": "exl3-layer-009-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -475,7 +475,7 @@
       "size_bytes": 515850920
     },
     {
-      "id": "exl3-layer-010-tp4-rank0-3c0d06169962",
+      "id": "exl3-layer-010-tp4-rank0-3c0d06169962-35cb125183",
       "path": "exl3-layer-010-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -484,7 +484,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-010-tp4-rank1-f834ba564e4f",
+      "id": "exl3-layer-010-tp4-rank1-f834ba564e4f-fb5e360e49",
       "path": "exl3-layer-010-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -493,7 +493,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-010-tp4-rank2-66c1ef28ead3",
+      "id": "exl3-layer-010-tp4-rank2-66c1ef28ead3-3836e24f0c",
       "path": "exl3-layer-010-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -502,7 +502,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-010-tp4-rank3-3194cbc8280e",
+      "id": "exl3-layer-010-tp4-rank3-3194cbc8280e-d87e79c9ac",
       "path": "exl3-layer-010-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -511,7 +511,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-011-tp4-rank0-d09505de01db",
+      "id": "exl3-layer-011-tp4-rank0-d09505de01db-40ef13d42e",
       "path": "exl3-layer-011-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -520,7 +520,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-011-tp4-rank1-ce6dd9996568",
+      "id": "exl3-layer-011-tp4-rank1-ce6dd9996568-df3b9763a2",
       "path": "exl3-layer-011-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -529,7 +529,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-011-tp4-rank2-37f29fb5bb03",
+      "id": "exl3-layer-011-tp4-rank2-37f29fb5bb03-830b2b0fe7",
       "path": "exl3-layer-011-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -538,7 +538,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-011-tp4-rank3-8654cc6e9f9c",
+      "id": "exl3-layer-011-tp4-rank3-8654cc6e9f9c-5d65553de4",
       "path": "exl3-layer-011-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -547,7 +547,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-012-tp4-rank0-405a5d64601f",
+      "id": "exl3-layer-012-tp4-rank0-405a5d64601f-cf020e6944",
       "path": "exl3-layer-012-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -556,7 +556,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-012-tp4-rank1-ededad8e71b4",
+      "id": "exl3-layer-012-tp4-rank1-ededad8e71b4-cb4019d006",
       "path": "exl3-layer-012-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -565,7 +565,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-012-tp4-rank2-a54eb92af135",
+      "id": "exl3-layer-012-tp4-rank2-a54eb92af135-23c243df78",
       "path": "exl3-layer-012-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -574,7 +574,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-012-tp4-rank3-0a5c55092595",
+      "id": "exl3-layer-012-tp4-rank3-0a5c55092595-0527fafe98",
       "path": "exl3-layer-012-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -583,7 +583,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-013-tp4-rank0-37a09bf614d9",
+      "id": "exl3-layer-013-tp4-rank0-37a09bf614d9-dca66d6703",
       "path": "exl3-layer-013-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -592,7 +592,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-013-tp4-rank1-bc53f31d31b1",
+      "id": "exl3-layer-013-tp4-rank1-bc53f31d31b1-a383ab26fa",
       "path": "exl3-layer-013-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -601,7 +601,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-013-tp4-rank2-5aa2bdb6d189",
+      "id": "exl3-layer-013-tp4-rank2-5aa2bdb6d189-1c3cad3593",
       "path": "exl3-layer-013-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -610,7 +610,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-013-tp4-rank3-443b10caa2b8",
+      "id": "exl3-layer-013-tp4-rank3-443b10caa2b8-3c6d32e694",
       "path": "exl3-layer-013-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -619,7 +619,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-014-tp4-rank0-686c1a7c38ba",
+      "id": "exl3-layer-014-tp4-rank0-686c1a7c38ba-ce78859a0e",
       "path": "exl3-layer-014-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -628,7 +628,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-014-tp4-rank1-b37cf18c239a",
+      "id": "exl3-layer-014-tp4-rank1-b37cf18c239a-ddb6bd4cb6",
       "path": "exl3-layer-014-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -637,7 +637,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-014-tp4-rank2-d2e669baf345",
+      "id": "exl3-layer-014-tp4-rank2-d2e669baf345-f9e14f7c23",
       "path": "exl3-layer-014-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -646,7 +646,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-014-tp4-rank3-fc086c4686ec",
+      "id": "exl3-layer-014-tp4-rank3-fc086c4686ec-787bd7c379",
       "path": "exl3-layer-014-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -655,7 +655,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-015-tp4-rank0-992d91fd7546",
+      "id": "exl3-layer-015-tp4-rank0-992d91fd7546-068d4da0b5",
       "path": "exl3-layer-015-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -664,7 +664,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-015-tp4-rank1-b53e9264096e",
+      "id": "exl3-layer-015-tp4-rank1-b53e9264096e-eff224fa89",
       "path": "exl3-layer-015-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -673,7 +673,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-015-tp4-rank2-65ea65a04c06",
+      "id": "exl3-layer-015-tp4-rank2-65ea65a04c06-53c665a1c0",
       "path": "exl3-layer-015-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -682,7 +682,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-015-tp4-rank3-66d70fb8c615",
+      "id": "exl3-layer-015-tp4-rank3-66d70fb8c615-d37652f47f",
       "path": "exl3-layer-015-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -691,7 +691,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-016-tp4-rank0-0e1a9e33a5e8",
+      "id": "exl3-layer-016-tp4-rank0-0e1a9e33a5e8-4f5602b60e",
       "path": "exl3-layer-016-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -700,7 +700,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-016-tp4-rank1-623d8cb404f7",
+      "id": "exl3-layer-016-tp4-rank1-623d8cb404f7-6e658fbb5e",
       "path": "exl3-layer-016-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -709,7 +709,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-016-tp4-rank2-6bbbfeae934e",
+      "id": "exl3-layer-016-tp4-rank2-6bbbfeae934e-92ee3a30cb",
       "path": "exl3-layer-016-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -718,7 +718,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-016-tp4-rank3-f3c30be4d6af",
+      "id": "exl3-layer-016-tp4-rank3-f3c30be4d6af-b1d366f3e3",
       "path": "exl3-layer-016-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -727,7 +727,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-017-tp4-rank0-af020791da1a",
+      "id": "exl3-layer-017-tp4-rank0-af020791da1a-0d4ecf6298",
       "path": "exl3-layer-017-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -736,7 +736,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-017-tp4-rank1-3eaae33bfd55",
+      "id": "exl3-layer-017-tp4-rank1-3eaae33bfd55-03e5a8618e",
       "path": "exl3-layer-017-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -745,7 +745,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-017-tp4-rank2-80fafa95a817",
+      "id": "exl3-layer-017-tp4-rank2-80fafa95a817-918532d223",
       "path": "exl3-layer-017-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -754,7 +754,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-017-tp4-rank3-62b0d3dfe992",
+      "id": "exl3-layer-017-tp4-rank3-62b0d3dfe992-35f5f9a278",
       "path": "exl3-layer-017-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -763,7 +763,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-018-tp4-rank0-bd3b2050a73b",
+      "id": "exl3-layer-018-tp4-rank0-bd3b2050a73b-94cf64bd1c",
       "path": "exl3-layer-018-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -772,7 +772,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-018-tp4-rank1-5224e8b270af",
+      "id": "exl3-layer-018-tp4-rank1-5224e8b270af-b9df617dab",
       "path": "exl3-layer-018-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -781,7 +781,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-018-tp4-rank2-d4e67eb116c1",
+      "id": "exl3-layer-018-tp4-rank2-d4e67eb116c1-59d174282f",
       "path": "exl3-layer-018-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -790,7 +790,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-018-tp4-rank3-58cceff7e2ef",
+      "id": "exl3-layer-018-tp4-rank3-58cceff7e2ef-494730d4ad",
       "path": "exl3-layer-018-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -799,7 +799,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-019-tp4-rank0-4ce5ab67992a",
+      "id": "exl3-layer-019-tp4-rank0-4ce5ab67992a-b3f032e343",
       "path": "exl3-layer-019-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -808,7 +808,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-019-tp4-rank1-b2a6fc8eef77",
+      "id": "exl3-layer-019-tp4-rank1-b2a6fc8eef77-163eb3ae8e",
       "path": "exl3-layer-019-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -817,7 +817,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-019-tp4-rank2-646716d95299",
+      "id": "exl3-layer-019-tp4-rank2-646716d95299-cf753c4e84",
       "path": "exl3-layer-019-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -826,7 +826,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-019-tp4-rank3-c8806d8f8b88",
+      "id": "exl3-layer-019-tp4-rank3-c8806d8f8b88-421317b951",
       "path": "exl3-layer-019-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -835,7 +835,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-020-tp4-rank0-bcfd8eb4a5c3",
+      "id": "exl3-layer-020-tp4-rank0-bcfd8eb4a5c3-f59528fcc7",
       "path": "exl3-layer-020-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -844,7 +844,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-020-tp4-rank1-41ae07243897",
+      "id": "exl3-layer-020-tp4-rank1-41ae07243897-2dc97230ca",
       "path": "exl3-layer-020-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -853,7 +853,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-020-tp4-rank2-05f741701b92",
+      "id": "exl3-layer-020-tp4-rank2-05f741701b92-ec863a4939",
       "path": "exl3-layer-020-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -862,7 +862,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-020-tp4-rank3-1abebbca06cf",
+      "id": "exl3-layer-020-tp4-rank3-1abebbca06cf-d36c6343e5",
       "path": "exl3-layer-020-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -871,7 +871,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-021-tp4-rank0-1c64dbb9ff1a",
+      "id": "exl3-layer-021-tp4-rank0-1c64dbb9ff1a-eb2bceb3a0",
       "path": "exl3-layer-021-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -880,7 +880,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-021-tp4-rank1-abbd224ce24c",
+      "id": "exl3-layer-021-tp4-rank1-abbd224ce24c-57ad7eee50",
       "path": "exl3-layer-021-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -889,7 +889,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-021-tp4-rank2-9f4d265944e8",
+      "id": "exl3-layer-021-tp4-rank2-9f4d265944e8-4a90488e1f",
       "path": "exl3-layer-021-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -898,7 +898,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-021-tp4-rank3-b5f45c994c70",
+      "id": "exl3-layer-021-tp4-rank3-b5f45c994c70-c1b4c3cc85",
       "path": "exl3-layer-021-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -907,7 +907,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-022-tp4-rank0-e8c2fed157f0",
+      "id": "exl3-layer-022-tp4-rank0-e8c2fed157f0-3755ecb5ad",
       "path": "exl3-layer-022-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -916,7 +916,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-022-tp4-rank1-27e4a34cbf29",
+      "id": "exl3-layer-022-tp4-rank1-27e4a34cbf29-d323c12334",
       "path": "exl3-layer-022-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -925,7 +925,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-022-tp4-rank2-22ae1130dd07",
+      "id": "exl3-layer-022-tp4-rank2-22ae1130dd07-45b1dafc46",
       "path": "exl3-layer-022-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -934,7 +934,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-022-tp4-rank3-87fb87529772",
+      "id": "exl3-layer-022-tp4-rank3-87fb87529772-51f4d80542",
       "path": "exl3-layer-022-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -943,7 +943,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-023-tp4-rank0-086fa43479a9",
+      "id": "exl3-layer-023-tp4-rank0-086fa43479a9-19ee051b0a",
       "path": "exl3-layer-023-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -952,7 +952,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-023-tp4-rank1-825b83e34ee8",
+      "id": "exl3-layer-023-tp4-rank1-825b83e34ee8-2a7318e7a4",
       "path": "exl3-layer-023-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -961,7 +961,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-023-tp4-rank2-4391a13427ab",
+      "id": "exl3-layer-023-tp4-rank2-4391a13427ab-19aea246e4",
       "path": "exl3-layer-023-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -970,7 +970,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-023-tp4-rank3-9736e7c2ac44",
+      "id": "exl3-layer-023-tp4-rank3-9736e7c2ac44-4687b2f316",
       "path": "exl3-layer-023-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -979,7 +979,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-024-tp4-rank0-0b8a96f103ac",
+      "id": "exl3-layer-024-tp4-rank0-0b8a96f103ac-c3f529e637",
       "path": "exl3-layer-024-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -988,7 +988,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-024-tp4-rank1-d8334acba9f4",
+      "id": "exl3-layer-024-tp4-rank1-d8334acba9f4-2a2e6390e5",
       "path": "exl3-layer-024-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -997,7 +997,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-024-tp4-rank2-a743ea220a97",
+      "id": "exl3-layer-024-tp4-rank2-a743ea220a97-734265ab48",
       "path": "exl3-layer-024-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1006,7 +1006,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-024-tp4-rank3-cf6a68c075d4",
+      "id": "exl3-layer-024-tp4-rank3-cf6a68c075d4-04619dd889",
       "path": "exl3-layer-024-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1015,7 +1015,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-025-tp4-rank0-97eca50e22e8",
+      "id": "exl3-layer-025-tp4-rank0-97eca50e22e8-d5536c8444",
       "path": "exl3-layer-025-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1024,7 +1024,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-025-tp4-rank1-ec1bfda45074",
+      "id": "exl3-layer-025-tp4-rank1-ec1bfda45074-a02bd3c992",
       "path": "exl3-layer-025-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1033,7 +1033,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-025-tp4-rank2-5a4e0d5dfec0",
+      "id": "exl3-layer-025-tp4-rank2-5a4e0d5dfec0-30d2650ace",
       "path": "exl3-layer-025-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1042,7 +1042,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-025-tp4-rank3-0d459d2c62fd",
+      "id": "exl3-layer-025-tp4-rank3-0d459d2c62fd-bc390f07ea",
       "path": "exl3-layer-025-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1051,7 +1051,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-026-tp4-rank0-c7dd71fb7afe",
+      "id": "exl3-layer-026-tp4-rank0-c7dd71fb7afe-a55241ba91",
       "path": "exl3-layer-026-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1060,7 +1060,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-026-tp4-rank1-fdf40841e40e",
+      "id": "exl3-layer-026-tp4-rank1-fdf40841e40e-b54340ebfa",
       "path": "exl3-layer-026-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1069,7 +1069,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-026-tp4-rank2-b64a2ce13657",
+      "id": "exl3-layer-026-tp4-rank2-b64a2ce13657-ed454551b4",
       "path": "exl3-layer-026-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1078,7 +1078,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-026-tp4-rank3-b541b91a856b",
+      "id": "exl3-layer-026-tp4-rank3-b541b91a856b-9817e68f2c",
       "path": "exl3-layer-026-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1087,7 +1087,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-027-tp4-rank0-f061af5dd3fc",
+      "id": "exl3-layer-027-tp4-rank0-f061af5dd3fc-e7757412c7",
       "path": "exl3-layer-027-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1096,7 +1096,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-027-tp4-rank1-2759706db3ab",
+      "id": "exl3-layer-027-tp4-rank1-2759706db3ab-5734d80577",
       "path": "exl3-layer-027-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1105,7 +1105,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-027-tp4-rank2-cd46c708eaf7",
+      "id": "exl3-layer-027-tp4-rank2-cd46c708eaf7-2c4972e024",
       "path": "exl3-layer-027-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1114,7 +1114,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-027-tp4-rank3-50ffee4c3e91",
+      "id": "exl3-layer-027-tp4-rank3-50ffee4c3e91-fc0d43e674",
       "path": "exl3-layer-027-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1123,7 +1123,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-028-tp4-rank0-2b11da263ed2",
+      "id": "exl3-layer-028-tp4-rank0-2b11da263ed2-4a2d406702",
       "path": "exl3-layer-028-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1132,7 +1132,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-028-tp4-rank1-078cf58e69b6",
+      "id": "exl3-layer-028-tp4-rank1-078cf58e69b6-0639bd9d7e",
       "path": "exl3-layer-028-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1141,7 +1141,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-028-tp4-rank2-9d4e9faa03c6",
+      "id": "exl3-layer-028-tp4-rank2-9d4e9faa03c6-442d3902ec",
       "path": "exl3-layer-028-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1150,7 +1150,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-028-tp4-rank3-277e35b30c8a",
+      "id": "exl3-layer-028-tp4-rank3-277e35b30c8a-0cf7389f28",
       "path": "exl3-layer-028-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1159,7 +1159,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-029-tp4-rank0-efaf52e0440d",
+      "id": "exl3-layer-029-tp4-rank0-efaf52e0440d-d57cdf7238",
       "path": "exl3-layer-029-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1168,7 +1168,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-029-tp4-rank1-f321cc884e0e",
+      "id": "exl3-layer-029-tp4-rank1-f321cc884e0e-a520e59646",
       "path": "exl3-layer-029-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1177,7 +1177,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-029-tp4-rank2-7463b776a9f8",
+      "id": "exl3-layer-029-tp4-rank2-7463b776a9f8-b55c0e18fa",
       "path": "exl3-layer-029-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1186,7 +1186,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-029-tp4-rank3-9654b28806f7",
+      "id": "exl3-layer-029-tp4-rank3-9654b28806f7-b7e203c48d",
       "path": "exl3-layer-029-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1195,7 +1195,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-030-tp4-rank0-a487d1a02527",
+      "id": "exl3-layer-030-tp4-rank0-a487d1a02527-37aecba456",
       "path": "exl3-layer-030-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1204,7 +1204,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-030-tp4-rank1-e16cbe8cc085",
+      "id": "exl3-layer-030-tp4-rank1-e16cbe8cc085-ba01656c91",
       "path": "exl3-layer-030-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1213,7 +1213,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-030-tp4-rank2-f521c70dcac0",
+      "id": "exl3-layer-030-tp4-rank2-f521c70dcac0-67b93037ac",
       "path": "exl3-layer-030-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1222,7 +1222,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-030-tp4-rank3-7c6c81459a9b",
+      "id": "exl3-layer-030-tp4-rank3-7c6c81459a9b-0f1ba6173a",
       "path": "exl3-layer-030-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1231,7 +1231,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-031-tp4-rank0-2bc969daf8c8",
+      "id": "exl3-layer-031-tp4-rank0-2bc969daf8c8-757ca69084",
       "path": "exl3-layer-031-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1240,7 +1240,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-031-tp4-rank1-3a819ea5d0a1",
+      "id": "exl3-layer-031-tp4-rank1-3a819ea5d0a1-1d62d99c97",
       "path": "exl3-layer-031-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1249,7 +1249,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-031-tp4-rank2-ec7382339909",
+      "id": "exl3-layer-031-tp4-rank2-ec7382339909-d4d1b02aef",
       "path": "exl3-layer-031-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1258,7 +1258,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-031-tp4-rank3-08e1ef0f13b9",
+      "id": "exl3-layer-031-tp4-rank3-08e1ef0f13b9-b3295a0e18",
       "path": "exl3-layer-031-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1267,7 +1267,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-032-tp4-rank0-e50ca46e85d3",
+      "id": "exl3-layer-032-tp4-rank0-e50ca46e85d3-dfc4b6cc95",
       "path": "exl3-layer-032-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1276,7 +1276,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-032-tp4-rank1-eee1a358d01e",
+      "id": "exl3-layer-032-tp4-rank1-eee1a358d01e-584c943c0e",
       "path": "exl3-layer-032-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1285,7 +1285,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-032-tp4-rank2-88382a762c61",
+      "id": "exl3-layer-032-tp4-rank2-88382a762c61-8a103b5680",
       "path": "exl3-layer-032-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1294,7 +1294,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-032-tp4-rank3-dc78935745ed",
+      "id": "exl3-layer-032-tp4-rank3-dc78935745ed-55335f984b",
       "path": "exl3-layer-032-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1303,7 +1303,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-033-tp4-rank0-1d5c5b861265",
+      "id": "exl3-layer-033-tp4-rank0-1d5c5b861265-65d36e4c00",
       "path": "exl3-layer-033-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1312,7 +1312,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-033-tp4-rank1-b7857f2d6957",
+      "id": "exl3-layer-033-tp4-rank1-b7857f2d6957-6cde5734ac",
       "path": "exl3-layer-033-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1321,7 +1321,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-033-tp4-rank2-bbea14b64d82",
+      "id": "exl3-layer-033-tp4-rank2-bbea14b64d82-0208aca436",
       "path": "exl3-layer-033-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1330,7 +1330,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-033-tp4-rank3-0307befa69de",
+      "id": "exl3-layer-033-tp4-rank3-0307befa69de-ce03e19af8",
       "path": "exl3-layer-033-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1339,7 +1339,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-034-tp4-rank0-7a38a6c99b14",
+      "id": "exl3-layer-034-tp4-rank0-7a38a6c99b14-7812e7ac85",
       "path": "exl3-layer-034-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1348,7 +1348,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-034-tp4-rank1-6497203977ca",
+      "id": "exl3-layer-034-tp4-rank1-6497203977ca-88ce1b1b72",
       "path": "exl3-layer-034-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1357,7 +1357,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-034-tp4-rank2-ad100a4f7e5e",
+      "id": "exl3-layer-034-tp4-rank2-ad100a4f7e5e-165dbbd857",
       "path": "exl3-layer-034-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1366,7 +1366,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-034-tp4-rank3-234074e21708",
+      "id": "exl3-layer-034-tp4-rank3-234074e21708-1c7945f38e",
       "path": "exl3-layer-034-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1375,7 +1375,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-035-tp4-rank0-1148903f45c1",
+      "id": "exl3-layer-035-tp4-rank0-1148903f45c1-ba1216ee00",
       "path": "exl3-layer-035-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1384,7 +1384,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-035-tp4-rank1-9a966c55d886",
+      "id": "exl3-layer-035-tp4-rank1-9a966c55d886-97108b930f",
       "path": "exl3-layer-035-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1393,7 +1393,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-035-tp4-rank2-5aa09b21e486",
+      "id": "exl3-layer-035-tp4-rank2-5aa09b21e486-e51925f27e",
       "path": "exl3-layer-035-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1402,7 +1402,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-035-tp4-rank3-a0dcf1be5d6e",
+      "id": "exl3-layer-035-tp4-rank3-a0dcf1be5d6e-5d820ee3b0",
       "path": "exl3-layer-035-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1411,7 +1411,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-036-tp4-rank0-180b275719d6",
+      "id": "exl3-layer-036-tp4-rank0-180b275719d6-ca3059a2e9",
       "path": "exl3-layer-036-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1420,7 +1420,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-036-tp4-rank1-ac58a21e30a4",
+      "id": "exl3-layer-036-tp4-rank1-ac58a21e30a4-64f02ad4c2",
       "path": "exl3-layer-036-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1429,7 +1429,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-036-tp4-rank2-c21f357a8dc9",
+      "id": "exl3-layer-036-tp4-rank2-c21f357a8dc9-2b3ad4865e",
       "path": "exl3-layer-036-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1438,7 +1438,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-036-tp4-rank3-f88133d5b158",
+      "id": "exl3-layer-036-tp4-rank3-f88133d5b158-a9021bec81",
       "path": "exl3-layer-036-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1447,7 +1447,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-037-tp4-rank0-6324acdc6ba1",
+      "id": "exl3-layer-037-tp4-rank0-6324acdc6ba1-cff640c9a4",
       "path": "exl3-layer-037-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1456,7 +1456,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-037-tp4-rank1-579772d800dd",
+      "id": "exl3-layer-037-tp4-rank1-579772d800dd-95dc3a588e",
       "path": "exl3-layer-037-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1465,7 +1465,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-037-tp4-rank2-a8a73d3bfd1d",
+      "id": "exl3-layer-037-tp4-rank2-a8a73d3bfd1d-c1d0b00a3c",
       "path": "exl3-layer-037-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1474,7 +1474,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-037-tp4-rank3-f3acfb372879",
+      "id": "exl3-layer-037-tp4-rank3-f3acfb372879-80a869527b",
       "path": "exl3-layer-037-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1483,7 +1483,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-038-tp4-rank0-f3a0d0a500ec",
+      "id": "exl3-layer-038-tp4-rank0-f3a0d0a500ec-78dcb33838",
       "path": "exl3-layer-038-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1492,7 +1492,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-038-tp4-rank1-5b6b5f042d45",
+      "id": "exl3-layer-038-tp4-rank1-5b6b5f042d45-276f6a8a0b",
       "path": "exl3-layer-038-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1501,7 +1501,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-038-tp4-rank2-779fc22ae838",
+      "id": "exl3-layer-038-tp4-rank2-779fc22ae838-9286d694b5",
       "path": "exl3-layer-038-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1510,7 +1510,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-038-tp4-rank3-aa44e9a19674",
+      "id": "exl3-layer-038-tp4-rank3-aa44e9a19674-872007270a",
       "path": "exl3-layer-038-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1519,7 +1519,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-039-tp4-rank0-2e9fed9e069e",
+      "id": "exl3-layer-039-tp4-rank0-2e9fed9e069e-c70f475db7",
       "path": "exl3-layer-039-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1528,7 +1528,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-039-tp4-rank1-9a76ef155f11",
+      "id": "exl3-layer-039-tp4-rank1-9a76ef155f11-4b933ded0e",
       "path": "exl3-layer-039-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1537,7 +1537,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-039-tp4-rank2-320c34a1b599",
+      "id": "exl3-layer-039-tp4-rank2-320c34a1b599-0f5072ac6c",
       "path": "exl3-layer-039-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1546,7 +1546,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-039-tp4-rank3-9d330607f4b2",
+      "id": "exl3-layer-039-tp4-rank3-9d330607f4b2-c58210d92c",
       "path": "exl3-layer-039-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1555,7 +1555,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-040-tp4-rank0-e9daf4767106",
+      "id": "exl3-layer-040-tp4-rank0-e9daf4767106-87b93f28b5",
       "path": "exl3-layer-040-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1564,7 +1564,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-040-tp4-rank1-ca97c546fcd6",
+      "id": "exl3-layer-040-tp4-rank1-ca97c546fcd6-5382e60b0b",
       "path": "exl3-layer-040-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1573,7 +1573,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-040-tp4-rank2-67c774e6161c",
+      "id": "exl3-layer-040-tp4-rank2-67c774e6161c-04dd5344ca",
       "path": "exl3-layer-040-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1582,7 +1582,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-040-tp4-rank3-38f600369d07",
+      "id": "exl3-layer-040-tp4-rank3-38f600369d07-bbf3e2c7ad",
       "path": "exl3-layer-040-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1591,7 +1591,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-041-tp4-rank0-898ccbc4be5f",
+      "id": "exl3-layer-041-tp4-rank0-898ccbc4be5f-0da84891d9",
       "path": "exl3-layer-041-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1600,7 +1600,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-041-tp4-rank1-c43e6ff6f389",
+      "id": "exl3-layer-041-tp4-rank1-c43e6ff6f389-4c9df07549",
       "path": "exl3-layer-041-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1609,7 +1609,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-041-tp4-rank2-b7f550120406",
+      "id": "exl3-layer-041-tp4-rank2-b7f550120406-b4d8fec63b",
       "path": "exl3-layer-041-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1618,7 +1618,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-041-tp4-rank3-891504ed0401",
+      "id": "exl3-layer-041-tp4-rank3-891504ed0401-49b2a992d7",
       "path": "exl3-layer-041-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1627,7 +1627,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-042-tp4-rank0-a6ce463b2a42",
+      "id": "exl3-layer-042-tp4-rank0-a6ce463b2a42-c09bad1e46",
       "path": "exl3-layer-042-tp4-rank0.safetensors",
       "roles": [
         "weights"
@@ -1636,7 +1636,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-042-tp4-rank1-cac5c7991e2a",
+      "id": "exl3-layer-042-tp4-rank1-cac5c7991e2a-750257b9d9",
       "path": "exl3-layer-042-tp4-rank1.safetensors",
       "roles": [
         "weights"
@@ -1645,7 +1645,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-042-tp4-rank2-0ace607796ef",
+      "id": "exl3-layer-042-tp4-rank2-0ace607796ef-23f1fd9163",
       "path": "exl3-layer-042-tp4-rank2.safetensors",
       "roles": [
         "weights"
@@ -1654,7 +1654,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "exl3-layer-042-tp4-rank3-3ab52063d50d",
+      "id": "exl3-layer-042-tp4-rank3-3ab52063d50d-2bdb0a6c18",
       "path": "exl3-layer-042-tp4-rank3.safetensors",
       "roles": [
         "weights"
@@ -1663,7 +1663,7 @@
       "size_bytes": 515853512
     },
     {
-      "id": "generation-config-5fccff80f55a",
+      "id": "generation-config-5fccff80f55a-97dd3d578b",
       "path": "generation_config.json",
       "roles": [
         "configuration"
@@ -1672,7 +1672,7 @@
       "size_bytes": 170
     },
     {
-      "id": "model-safetensors-index-61af5c0782a8",
+      "id": "model-safetensors-index-61af5c0782a8-0a05be8238",
       "path": "model.safetensors.index.json",
       "roles": [
         "configuration"
@@ -1681,7 +1681,7 @@
       "size_bytes": 38814231
     },
     {
-      "id": "quantization-config-b076bf3012ab",
+      "id": "quantization-config-b076bf3012ab-6f24389fb3",
       "path": "quantization_config.json",
       "roles": [
         "configuration"
@@ -1690,7 +1690,7 @@
       "size_bytes": 363
     },
     {
-      "id": "tier-bitmap-3-0bpw-235bef5658aa",
+      "id": "tier-bitmap-3-0bpw-235bef5658aa-99af408184",
       "path": "tier-bitmap-3.0bpw.json",
       "roles": [
         "configuration"
@@ -1699,7 +1699,7 @@
       "size_bytes": 85424
     },
     {
-      "id": "tokenizer-8f9f37ca37fd",
+      "id": "tokenizer-8f9f37ca37fd-224931eb13",
       "path": "tokenizer.json",
       "roles": [
         "tokenizer"
@@ -1708,7 +1708,7 @@
       "size_bytes": 6367146
     },
     {
-      "id": "tokenizer-config-6ac8c8dc065e",
+      "id": "tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
       "path": "tokenizer_config.json",
       "roles": [
         "tokenizer"
@@ -1733,9 +1733,9 @@
       "title": "DeepSeek V4 Flash 0731"
     },
     "publisher": "0xsero",
-    "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216",
+    "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216-22f28d32",
     "variant": "DeepSeek V4 Flash 0731 REAP-K216 EXL3 3.0 bpw",
-    "version": "0731-reap-k216-exl3-3.0bpw-ce5ff0f1"
+    "version": "0731-reap-k216-exl3-3.0bpw-22f28d32"
   },
   "kind": "model",
   "license": {
@@ -1768,6 +1768,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/0xSero/deepseek-v4-flash-0731-spark",
-    "revision": "ce5ff0f1efb2e184aafc759d281bfae47d3a359c"
+    "revision": "22f28d32b9b29b4352eaa380ff8c2c170b2847ab"
   }
 }

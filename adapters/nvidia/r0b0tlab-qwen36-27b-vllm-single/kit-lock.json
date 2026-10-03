@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "0893e1606ff3d5f97a441f405d5fc541a6bdf404",
+      "repo": "nvidia/Qwen3.6-27B-NVFP4",
+      "revision": "0893e1606ff3d5f97a441f405d5fc541a6bdf404"
+    }
+  },
+  "kit": {
+    "commit": "d0343b430a2853f0422665c93aac0fe9984a7a79",
+    "repo": "r0b0tlab/nvidia-qwen-3.6-27B-sm121-nvfp4"
+  }
+}
