@@ -149,6 +149,11 @@ def _parser() -> argparse.ArgumentParser:
     )
     run.add_argument("--poll-seconds", type=float, default=10.0)
     run.add_argument(
+        "--retry-failed",
+        action="store_true",
+        help="requeue failed recipes (limited by --only) before starting, whatever the cause",
+    )
+    run.add_argument(
         "--allow-version-skew",
         action="store_true",
         help="run even when vonkctl is not the accepted release (otherwise: vonkctl update --apply)",
@@ -233,6 +238,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         stop_at_end=not args.leave_running,
         watch_seconds=args.watch,
         allow_version_skew=args.allow_version_skew,
+        retry_failed=args.retry_failed,
     )
 
 

@@ -419,6 +419,22 @@ _RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ),
 )
 _FIXED_CLASS = {"timeout": "timeout", "readiness": "readiness"}
+# Failures that say something about the recipe or its model, not the platform: a new Controller
+# release does not change them. Everything else (install, start, publication, review, admission,
+# an unclassified download or build error) may have been the platform's.
+RECIPE_SIDE_CLASSES = frozenset(
+    {
+        "model-integrity",
+        "build-policy",
+        "oom",
+        "network",
+        "timeout",
+        "smoke",
+        "smoke-assertion",
+        "smoke-request",
+        "smoke-timeout",
+    }
+)
 TRANSIENT_CLASSES = frozenset({"network", "smoke-timeout"})
 MODEL_LEVEL_CLASSES = frozenset({"model-integrity"})
 
@@ -441,6 +457,11 @@ class Failure:
     @property
     def model_level(self) -> bool:
         return self.klass in MODEL_LEVEL_CLASSES
+
+
+def platform_side(failure_class: str | None) -> bool:
+    """Could a platform fix have changed this failure? Unknown classes count as the platform's."""
+    return failure_class not in RECIPE_SIDE_CLASSES
 
 
 def child_phase(name: str | None) -> str | None:

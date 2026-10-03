@@ -142,6 +142,20 @@ certificate).
 * Each result is bound to the recipe document digest (`content_sha256`). When a
   recipe's digest changes (the hourly refresh, a fix), a failed recipe is
   requeued and a passed one is retested last (`--no-revalidate` keeps old passes).
+* Each result records the accepted Controller release it ran under
+  (`controller_release` in `results.jsonl`, `release` in the state). The
+  release is re-read every five minutes (`vonkctl update`, the same read-only
+  check as above). When it changes, failures of a platform-side class
+  (install, start, readiness, review, fit, capacity, and an unclassified
+  download or build error) are requeued at normal priority; failures that say
+  something about the recipe or its model (model integrity, a build refused by
+  policy, out of memory, network, timeout, smoke assertions) are not. Failures
+  recorded before releases were tracked are retried once. The requeue is a new
+  line in `results.jsonl` (`step: "requeue"`, with the previous failure); the
+  file is only ever appended to, and each failure keeps its own evidence bundle.
+* `run --retry-failed [--only SELECTOR]` requeues failed recipes (all of them, or
+  those whose selector contains the text), whatever the cause. The status
+  page groups failures by Controller release, newest first.
 * A recipe that does not fit the declared memory still gets its own review: the
   platform's admission decides, and a blocked review is a `review` failure.
 * Recipes needing more Sparks than the fleet has are `skipped`, not failed.
