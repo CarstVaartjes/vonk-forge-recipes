@@ -757,6 +757,56 @@
       }
     }
   ],
+  "options": [
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Keep the current upstream DFlash configuration with its mounted companion drafter and 15 speculative tokens.",
+          "label": "DFlash",
+          "value": "dflash"
+        },
+        {
+          "args": [
+            {
+              "name": "speculative-config",
+              "value": "{\"method\":\"qwen3_next_mtp\",\"num_speculative_tokens\":2}"
+            }
+          ],
+          "help": "Use the FP8 checkpoint’s bundled MTP head with two speculative tokens; the DFlash companion remains mounted but is not selected.",
+          "label": "Native MTP",
+          "value": "native-mtp"
+        }
+      ],
+      "help": "Choose one decoding mode. This selector replaces the single vLLM speculative configuration, so DFlash and native MTP cannot be combined.",
+      "label": "Speculative decoding",
+      "name": "speculation"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
+          "help": "Keep the current multimodal loading behavior.",
+          "label": "Vision and text",
+          "value": "multimodal"
+        },
+        {
+          "args": [
+            {
+              "name": "language-model-only",
+              "value": true
+            }
+          ],
+          "help": "Pass --language-model-only to disable all multimodal inputs by setting modality limits to zero. The pinned Qwen3.5 model still constructs its vision tower, so this does not remove vision weights or promise a VRAM reduction.",
+          "label": "Language model only",
+          "value": "text-only"
+        }
+      ],
+      "help": "Keep vision support or tell vLLM to load the language model only.",
+      "label": "Model modality",
+      "name": "modality"
+    }
+  ],
   "provenance": {
     "attribution": [
       "eugr (MIT)",
@@ -764,11 +814,11 @@
       "z-lab (Apache-2.0)",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/42f62e349c610641ac6677ac28275c57bebdf9c3"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/9296ced563e9996f1424149a62432ea752816b90"
   },
   "release": {
-    "released_at": "2026-09-30",
-    "version": "1.0.1"
+    "released_at": "2026-10-02",
+    "version": "prebuilt-vllm-current"
   },
   "runtime": {
     "arguments": [
@@ -954,55 +1004,5 @@
       ],
       "interface": "openai"
     }
-  },
-  "options": [
-    {
-      "name": "speculation",
-      "label": "Speculative decoding",
-      "help": "Choose one decoding mode. This selector replaces the single vLLM speculative configuration, so DFlash and native MTP cannot be combined.",
-      "choices": [
-        {
-          "value": "dflash",
-          "label": "DFlash",
-          "default": true,
-          "help": "Keep the current upstream DFlash configuration with its mounted companion drafter and 15 speculative tokens."
-        },
-        {
-          "value": "native-mtp",
-          "label": "Native MTP",
-          "help": "Use the FP8 checkpoint’s bundled MTP head with two speculative tokens; the DFlash companion remains mounted but is not selected.",
-          "args": [
-            {
-              "name": "speculative-config",
-              "value": "{\"method\":\"qwen3_next_mtp\",\"num_speculative_tokens\":2}"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "modality",
-      "label": "Model modality",
-      "help": "Keep vision support or tell vLLM to load the language model only.",
-      "choices": [
-        {
-          "value": "multimodal",
-          "label": "Vision and text",
-          "default": true,
-          "help": "Keep the current multimodal loading behavior."
-        },
-        {
-          "value": "text-only",
-          "label": "Language model only",
-          "help": "Pass --language-model-only to disable all multimodal inputs by setting modality limits to zero. The pinned Qwen3.5 model still constructs its vision tower, so this does not remove vision weights or promise a VRAM reduction.",
-          "args": [
-            {
-              "name": "language-model-only",
-              "value": true
-            }
-          ]
-        }
-      ]
-    }
-  ]
+  }
 }
