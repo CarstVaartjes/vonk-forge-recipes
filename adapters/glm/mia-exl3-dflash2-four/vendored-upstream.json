@@ -17,5 +17,22 @@
   "reason": {
     "Dockerfile (chmod)": "patch_apc_no_store.py leaves three installed vLLM files root-only (0600); the unprivileged service account could not import them, so the build makes installed vLLM files world-readable and verify-runtime.py checks it",
     "verify-runtime.py": "checks installed vLLM files are readable by the service account"
+  },
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "start.sh",
+        "pattern": "^MODEL_REVISION=\"\\$\\{MODEL_REVISION:-(?P<version>[0-9a-f]{40})\\}\"$",
+        "repo_pattern": "^MODEL=\"\\$\\{MODEL:-(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\\}\"$",
+        "override": {
+          "repo": "brandonmusic/GLM-5.3-Flash-tr3-4bpw",
+          "revision": "1ae6d70430a12d762917786696db06a7b4f9bbae",
+          "reason": "upstream repo Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw returns HTTP 401 since 2026-10-03; byte-identical public copy, evidence: anonymous Hugging Face API at 2026-10-03, brandonmusic/GLM-5.3-Flash-tr3-4bpw@1ae6d704 (the revision Reederey87's env.example names) matches sha256 and size of all 141 shared files of the catalogued 25a44fdb (120 weight shards, config, tokenizer, chat template, index, processor, LICENSE); only README.md differs, and MIRROR.json and ORIGINAL_MODEL_CARD.md exist only in the mirror"
+        }
+      }
+    },
+    "whole": false
   }
 }

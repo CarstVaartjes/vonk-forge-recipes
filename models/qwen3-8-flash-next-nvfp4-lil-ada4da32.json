@@ -18,13 +18,13 @@
       "size_bytes": 1635
     },
     {
-      "id": "readme-88aa02fb5819-b335630551",
+      "id": "readme-0358df5ae88a-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "88aa02fb581958b987c78ce8536e5913a1522156b7657a19ecdafbf8cf3be4ab",
-      "size_bytes": 599
+      "sha256": "0358df5ae88ab3d359b44ee1055825c05d0ddf50821207e5bc5eb62badf2eb0f",
+      "size_bytes": 70
     },
     {
       "id": "amax-d2c9c496023f-c29225e6d5",
@@ -474,35 +474,34 @@
   },
   "identity": {
     "family": {
-      "publisher": "mia-ai-lab",
-      "slug": "qwen3-8-mia",
-      "title": "Qwen3.8 MiaAI-Lab deployments"
+      "publisher": "local-inference-lab",
+      "slug": "qwen3-8-flash-next-nvfp4-lil",
+      "title": "local-inference-lab Qwen3.8 Flash Next NVFP4"
     },
     "model": {
-      "publisher": "mia-ai-lab",
-      "slug": "qwen3-8-flash-next-nvfp4-mirror",
-      "title": "Qwen3.8 Flash Next NVFP4 (Mia mirror)"
+      "publisher": "local-inference-lab",
+      "slug": "qwen3-8-flash-next-nvfp4-modelopt",
+      "title": "Qwen3.8 Flash Next NVFP4 (ModelOpt, local-inference-lab)"
     },
-    "publisher": "mia-ai-lab",
-    "slug": "qwen3-8-flash-next-nvfp4-mia-925d7be6",
-    "variant": "Qwen3.8 Flash Next NVFP4 Mia mirror 925d7be6",
-    "version": "Qwen3.8 Flash Next NVFP4 Mia mirror 925d7be6"
+    "publisher": "local-inference-lab",
+    "slug": "qwen3-8-flash-next-nvfp4-lil-ada4da32",
+    "variant": "Qwen3.8 Flash Next NVFP4 local-inference-lab ada4da32",
+    "version": "Qwen3.8 Flash Next NVFP4 local-inference-lab ada4da32"
   },
   "kind": "model",
   "license": {
     "attribution": [
       "Qwen",
-      "local-inference-lab",
-      "MiaAI-Lab"
+      "local-inference-lab"
     ],
     "spdx": "LicenseRef-Qwen-Community-1.0",
     "url": "https://huggingface.co/Qwen/Qwen3.8-Flash-Next/blob/de4b8e4d43b917e7706784d8bb445c9af86a3540/LICENSE"
   },
   "metadata": {
-    "description": "Exact public Mia-AiLab mirror of the local-inference-lab Qwen3.8 Flash Next NVFP4 checkpoint (MXFP8 attention, NVFP4 experts and PLE table, about 99 GiB), sized for one 121 GiB Spark. The Hugging Face card of the mirror declares apache-2.0; the base model Qwen/Qwen3.8-Flash-Next is under the Qwen Community License 1.0 (attribution and Model-as-a-Service conditions for commercial use).",
+    "description": "Public local-inference-lab Qwen3.8 Flash Next NVFP4 checkpoint (MXFP8 attention, NVFP4 experts and PLE table, about 99 GiB), sized for one 121 GiB Spark; the origin of the Mia-AiLab mirror this family was catalogued from (that repository returns HTTP 401 since 2026-10-03), with every weight, configuration and tokenizer file byte-identical. The base model Qwen/Qwen3.8-Flash-Next is under the Qwen Community License 1.0 (attribution and Model-as-a-Service conditions for commercial use).",
     "tags": [
-      "mia-ai-lab",
-      "qwen3-8-mia",
+      "local-inference-lab",
+      "qwen3-8-flash-next-nvfp4-lil",
       "multimodal",
       "candidate"
     ]
@@ -512,7 +511,7 @@
   ],
   "requires_token": false,
   "source": {
-    "repository": "https://huggingface.co/Mia-AiLab/Qwen3.8-Flash-Next-NVFP4",
-    "revision": "925d7be6c14c6c9442ef83e8f05b5a3c39304f69"
+    "repository": "https://huggingface.co/local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+    "revision": "ada4da32a583a78aa47299f45a70603c950490b8"
   }
 }
