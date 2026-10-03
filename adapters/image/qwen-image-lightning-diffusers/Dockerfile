@@ -1,7 +1,7 @@
 FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://github.com/ModelTC/Qwen-Image-Lightning" \
-      org.opencontainers.image.revision="25d1e9935ba97e1f60503f8c000201e08b1fe8f4" \
+      org.opencontainers.image.revision="115d41afa959f0bc858d25d3b3fddd44054767ad" \
       org.opencontainers.image.licenses="Apache-2.0" \
       io.vonk.diffusers.revision="c5469b7ceb606edd7ba6570dcd17d38590a18db6"
 
