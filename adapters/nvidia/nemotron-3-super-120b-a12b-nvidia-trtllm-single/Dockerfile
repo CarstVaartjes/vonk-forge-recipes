@@ -1,7 +1,7 @@
 FROM nvcr.io/nvidia/tensorrt-llm/release@sha256:3f293455e9450298f548c5c3268186f80703dfc490926f398aec9a746422e840
 
 LABEL org.opencontainers.image.source="https://github.com/NVIDIA/TensorRT-LLM" \
-      org.opencontainers.image.revision="33533348196f236dc291ad573710184858501f79" \
+      org.opencontainers.image.revision="376f7e1bd8ed543f75014309e3fd4b237e9b0e73" \
       org.opencontainers.image.version="1.3.0rc9" \
       org.opencontainers.image.licenses="Apache-2.0"
 
