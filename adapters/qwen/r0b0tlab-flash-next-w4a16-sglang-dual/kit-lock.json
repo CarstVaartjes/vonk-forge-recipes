@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "8b73dc60cfa9b224100daaf3f44e9fe7825781dc",
+      "repo": "r0b0tlab/Qwen3.8-Flash-Next-NVFP4-W4A16-sm121",
+      "revision": "8b73dc60cfa9b224100daaf3f44e9fe7825781dc"
+    }
+  },
+  "kit": {
+    "commit": "7bfacc510506e955a1392f94b87213b798e45e51",
+    "repo": "r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang"
+  }
+}

@@ -1,9 +1,20 @@
 {
-  "source": {
-    "repo": "r0b0tlab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark",
-    "commit": "8a4ef5a5ce1196f3c1b6b8c2005087ffd9c52f03"
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "docker/runtime-manifest.production.json",
+        "pattern": "^[ \\t]*\"model_id\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\",[^\\n]*\\n^[ \\t]*\"model_revision\":\\ \"(?P<version>[0-9a-f]{40})\","
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
-  ]
+  ],
+  "source": {
+    "commit": "8a4ef5a5ce1196f3c1b6b8c2005087ffd9c52f03",
+    "repo": "r0b0tlab/DeepSeek-v4-Flash-DSpark-2x-DGX-Spark"
+  }
 }

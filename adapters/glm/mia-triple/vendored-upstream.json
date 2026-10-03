@@ -1,0 +1,13 @@
+{
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "start.sh",
+        "pattern": "^[ \\t]*HF_REPO=\"\\$\\{HF_REPO:\\-(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\\}\"[^\\n]*\\n(?:[^\\n]*\\n){1}^[ \\t]*HF_REVISION=\"\\$\\{HF_REVISION:\\-(?P<version>[0-9a-f]{40})\\}\""
+      }
+    },
+    "whole": false
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "nvidia/speculative-decoding/README.md",
+        "pattern": "^\\s*docker run --gpus all (?P<repo>nvcr\\.io/nvidia/tensorrt-llm/release):(?P<version>\\S+) nvidia-smi$"
+      }
+    },
+    "whole": false
+  }
+}

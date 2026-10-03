@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "README.md",
+        "pattern": "^hf download (?P<repo>[^\\s\\\\]+/[^\\s\\\\]+) \\\\\\n[ \\t]*--revision (?P<version>[0-9a-f]{40})"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "NOTICE.upstream",
     "mods/fix-mimo-v2-vllm/apply-pr41797.sh",

@@ -1,0 +1,22 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "recipes/Ling-3.0-flash-Fin-GGUF-llamacpp/profiles.sh",
+        "override": {
+          "reason": "The kit names the mutable alias server-cuda and guards it with a minimum build (MIN_LLAMA_BUILD) instead of pinning an image; the alias resolves to the CUDA 12 build in the registry (checked 2026-10-03). This recipe pins the CUDA 13 arm64 build server-cuda13-v0.5.0 that the platform runs.",
+          "ref": "server-cuda13-v0.5.0"
+        },
+        "pattern": "^IMAGE=\"\\$\\{IMAGE:-(?P<repo>[^:}\"]+):(?P<version>[^}\"]+)\\}\"$"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "recipes/Ling-3.0-flash-Fin-GGUF-llamacpp/manifests/iq4xs.json",
+        "pattern": "^[ \\t]*\"repo\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\",[^\\n]*\\n^[ \\t]*\"revision\":\\ \"(?P<version>[0-9a-f]{40})\","
+      }
+    },
+    "whole": false
+  }
+}

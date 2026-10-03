@@ -73,8 +73,8 @@
           ]
         },
         {
-          "file_id": "readme-3a9459303c2a-b335630551",
-          "id": "primary-readme-3a9459303c2a-b335630551",
+          "file_id": "readme-7d166e71121c-b335630551",
+          "id": "primary-readme-7d166e71121c-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -867,10 +867,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0d116e48651320249e620e159e0da012edcfbeb0c2d33ba77712676662704dce",
+        "content_sha256": "0d72027cb94e56be79a285757f47b123396a71bb6e63bed8c49733e543671419",
         "kind": "model",
         "publisher": "deepseek-ai",
-        "slug": "deepseek-v4-flash-dspark-62af8fff"
+        "slug": "deepseek-v4-flash-dspark-913f0657"
       }
     }
   ],
@@ -1164,7 +1164,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 166898666055,
+            "artifact_bytes": 166898665144,
             "image_bytes": 25000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 60000000000
@@ -1181,7 +1181,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 166898666055,
+            "artifact_bytes": 166898665144,
             "image_bytes": 25000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 60000000000

@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:e5a2f80c0f1bdbb829d19b3ba3e84359acad95ea9fae2161661e08af46a31ce0",
+      "kind": "tag",
+      "overridden": "The kit names the mutable alias server-cuda and guards it with a minimum build (MIN_LLAMA_BUILD) instead of pinning an image; the alias resolves to the CUDA 12 build in the registry (checked 2026-10-03). This recipe pins the CUDA 13 arm64 build server-cuda13-v0.5.0 that the platform runs.",
+      "ref": "server-cuda13-v0.5.0",
+      "repo": "ghcr.io/ggml-org/llama.cpp"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "a792b6bd51d2cb47b5aa8687ff5dd4f2974acdb4",
+      "repo": "bartowski/Ling-3.0-flash-Fin-GGUF",
+      "revision": "a792b6bd51d2cb47b5aa8687ff5dd4f2974acdb4"
+    }
+  },
+  "kit": {
+    "commit": "43697e780972fd63c1378c532b392edbe95240bc",
+    "repo": "amarjeet/dgx-spark-recipes"
+  }
+}

@@ -6,6 +6,18 @@
         "file": "scripts/config.sh",
         "pattern": "^TF_VERSION=\"\\$\\{TF_VERSION:-(?P<version>[^}\"]+)\\}\"",
         "repo": "ashhart/TensorFold"
+      },
+      "drafter": {
+        "binds": "drafter",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "^_rev=\"\"; \\[\\[ \"\\$DFLASH2_ID\" == (?P<repo>[\\w.-]+/[\\w.-]+) \\]\\] && _rev=(?P<version>[0-9a-f]{40})$"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "^\\s*(?P<repo>[\\w.-]+/[\\w.-]+)\\) _rev=(?P<version>[0-9a-f]{40}) ;;$"
       }
     }
   },

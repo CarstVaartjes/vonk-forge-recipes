@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "0xSero's two-Spark SGLang profile for the LibertAIDAI/GLM-5.3-Flash-NVFP4 checkpoint at its newest revision (caca4e6a; upstream hash-locks the older 9e0d74e3, but we follow the newest revision per owner policy, so the per-expert input scales and changed config of caca4e6a have not been verified against upstream's SGLang patches), from glm-5.3-flash-sglang-sm121 at dfb1bb7e. Tensor and expert parallel 2 over the Spark fabric with upstream's six GLM/SGLang SM121 patches applied to the digest-pinned lmsysorg/sglang glm-5.3-flash image: DSA attention with flashinfer sparse MLA, FP8 E4M3 KV cache, flashinfer_cutlass MoE, NEXTN multi-token-prediction speculation (5 steps, 6 draft tokens, adaptive), image and video input, glm45 reasoning and glm47 tool parsing, CUDA graphs. Defaults are upstream's conservative tp2 profile (131072 tokens, 2 requests); upstream's tp4 profile (four Sparks) is not packaged. Upstream claims, not measured here: 17.49 tok/s at one request and 30.72 tok/s at two on two Sparks, 992128 KV tokens per rank. Licences are informational: the checkpoint is MIT; the source repository carries no licence file. Physical Spark acceptance is pending.",
+    "description": "0xSero's two-Spark SGLang profile for the LibertAIDAI/GLM-5.3-Flash-NVFP4 checkpoint at the revision upstream hash-locks (9e0d74e3, the one its SGLang patches were written against; the repository's newer caca4e6a changed per-expert input scales and configuration and is not used), from glm-5.3-flash-sglang-sm121 at dfb1bb7e. Tensor and expert parallel 2 over the Spark fabric with upstream's six GLM/SGLang SM121 patches applied to the digest-pinned lmsysorg/sglang glm-5.3-flash image: DSA attention with flashinfer sparse MLA, FP8 E4M3 KV cache, flashinfer_cutlass MoE, NEXTN multi-token-prediction speculation (5 steps, 6 draft tokens, adaptive), image and video input, glm45 reasoning and glm47 tool parsing, CUDA graphs. Defaults are upstream's conservative tp2 profile (131072 tokens, 2 requests); upstream's tp4 profile (four Sparks) is not packaged. Upstream claims, not measured here: 17.49 tok/s at one request and 30.72 tok/s at two on two Sparks, 992128 KV tokens per rank. Licences are informational: the checkpoint is MIT; the source repository carries no licence file. Physical Spark acceptance is pending.",
     "tags": [
       "0xsero",
       "candidate",
@@ -75,8 +75,8 @@
           ]
         },
         {
-          "file_id": "readme-6948c0c9ed7d-b335630551",
-          "id": "primary-readme-6948c0c9ed7d-b335630551",
+          "file_id": "readme-0f951fdc7cdc-b335630551",
+          "id": "primary-readme-0f951fdc7cdc-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -86,8 +86,8 @@
           ]
         },
         {
-          "file_id": "chat-template-34d5ee66b12f-00824420d1",
-          "id": "primary-chat-template-34d5ee66b12f-00824420d1",
+          "file_id": "chat-template-41cff9af7b3a-00824420d1",
+          "id": "primary-chat-template-41cff9af7b3a-00824420d1",
           "mount": {
             "target": "/models"
           },
@@ -97,8 +97,8 @@
           ]
         },
         {
-          "file_id": "config-5db46f44956e-587cb980af",
-          "id": "primary-config-5db46f44956e-587cb980af",
+          "file_id": "config-a47f597b3470-587cb980af",
+          "id": "primary-config-a47f597b3470-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -1439,19 +1439,8 @@
           ]
         },
         {
-          "file_id": "model-input-scales-b812b4d7df15-97f927cc40",
-          "id": "primary-model-input-scales-b812b4d7df15-97f927cc40",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint",
-            "worker"
-          ]
-        },
-        {
-          "file_id": "model-safetensors-index-0a5cb10ccc9b-0a05be8238",
-          "id": "primary-model-safetensors-index-0a5cb10ccc9b-0a05be8238",
+          "file_id": "model-safetensors-index-f3a4c40897e0-0a05be8238",
+          "id": "primary-model-safetensors-index-f3a4c40897e0-0a05be8238",
           "mount": {
             "target": "/models"
           },
@@ -1496,10 +1485,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4f0926158e9e9e9cd204257df16a5576cb04791cc2a8615efab908a954c49986",
+        "content_sha256": "17d7133704c97da597649d0f049f0b119035783fe5c918467b631772f381e37e",
         "kind": "model",
         "publisher": "libertaidai",
-        "slug": "glm-5-3-flash-nvfp4-caca4e6a"
+        "slug": "glm-5-3-flash-nvfp4-9e0d74e3"
       }
     }
   ],
@@ -1753,7 +1742,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 194692687003,
+            "artifact_bytes": 194683561459,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 40000000000
@@ -1770,7 +1759,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 194692687003,
+            "artifact_bytes": 194683561459,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 40000000000
