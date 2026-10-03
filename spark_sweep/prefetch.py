@@ -31,6 +31,10 @@ from .vonkctl import Vonkctl, VonkctlError, request_key
 TIB = 1024**4
 ACTIVE_OPERATION = frozenset({"accepted", "queued", "running", "partial", "cancelling"})
 FailureHandler = Callable[[str, Failure, str | None, bool], None]
+DoneHandler = Callable[[str], None]
+MAX_REREQUESTS = (
+    2  # after a success, ask again at most this often when the cache looks empty
+)
 
 
 @dataclass(frozen=True)
@@ -59,6 +63,7 @@ class Prefetcher:
         rate: RateTracker,
         clock: Callable[[], float],
         on_failure: FailureHandler,
+        on_done: DoneHandler = lambda _key: None,
     ) -> None:
         self.vk = vk
         self.state = state
@@ -66,6 +71,8 @@ class Prefetcher:
         self.rate = rate
         self.clock = clock
         self.on_failure = on_failure
+        self.on_done = on_done
+        self.library_fresh_since = 0.0  # start of the newest complete library pass
         self.pressure_until = 0.0
         self.pin_error: str | None = None
         self.pin_failures = 0
@@ -100,10 +107,29 @@ class Prefetcher:
                 self._failed(key, record, document)
             elif record["state"] == "cancelled":
                 record["state"] = "cancelled"
-            if record["state"] == "succeeded":
+            if record["state"] == "succeeded" and not record.get("done_at"):
                 record["done_at"] = self.clock()
+                self.on_done(key)
         self.rate.add(total_rate)
         return total_rate
+
+    def _track_external(self, recipes: Mapping[str, Recipe], now: float) -> None:
+        """Follow downloads someone else started until they land.
+
+        The library lists models and recipes separately and a page at a time, so right
+        after an external download finishes a stale model row can still say "missing".
+        Remembering that we saw it in flight lets its landing count as done.
+        """
+        for key, recipe in recipes.items():
+            record = self.state.downloads.get(key)
+            if recipe.local == "preparing" and record is None:
+                self.state.downloads[key] = {"state": "external", "started_at": now}
+            elif record is not None and record.get("state") == "external":
+                if recipe.local == "cached":
+                    record.update(state="succeeded", done_at=now)
+                    self.on_done(key)
+                elif recipe.local in ("failed", "not_cached"):
+                    del self.state.downloads[key]  # it did not land: ours to ask for
 
     @staticmethod
     def _progress_args(record: Mapping[str, Any]) -> list[str]:
@@ -142,6 +168,9 @@ class Prefetcher:
     def _request(self, recipe: Recipe, kind: str) -> None:
         record = self.state.downloads.get(recipe.key, {})
         attempt = int(record.get("attempt", 0)) + 1
+        rerequests = int(record.get("rerequests", 0)) + (
+            1 if record.get("state") == "succeeded" else 0
+        )
         key = request_key(
             "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
         )
@@ -188,6 +217,7 @@ class Prefetcher:
             "state": op_state,
             "kind": kind,
             "attempt": attempt,
+            "rerequests": rerequests,
             "started_at": self.clock(),
         }
         self.state.event(f"download {kind}: {recipe.key}")
@@ -229,9 +259,11 @@ class Prefetcher:
         sizes: Mapping[str, int],
         present: set[str],
         boost: Boost,
+        cached: set[str] | None = None,
     ) -> dict[str, Any]:
         now = self.clock()
         live_rate = self._poll()
+        self._track_external(recipes, now)
         plans = plan_groups(pending, sizes, present, boost)
         self.last_plans = plans
         model_ops, image_ops = self._in_flight(recipes, models)
@@ -245,7 +277,8 @@ class Prefetcher:
         }
         pinned_bytes = sum(sizes.get(d, 0) for d in tracked)
 
-        cached = {digest for digest, model in models.items() if model.local == "cached"}
+        if cached is None:
+            cached = {d for d, model in models.items() if model.local == "cached"}
         for plan in plans[: self.config.group_window]:
             leads = [by_key[k] for k in plan.recipes if k in by_key]
             if plan.digests - cached:
@@ -269,6 +302,7 @@ class Prefetcher:
             for recipe in leads:  # model cached: only the runtime image is missing
                 if (
                     recipe.local not in ("cached", "preparing")
+                    and not recipe.cache_ready
                     and image_ops < self.config.max_image_pulls
                     and self._can_request(recipe, now)
                 ):
@@ -298,11 +332,18 @@ class Prefetcher:
             return True
         if record.get("state") in ACTIVE_OPERATION:
             return False
+        if recipe.cache_ready:
+            return False
         if record.get("state") == "succeeded":
-            # Library still says not cached well after success: it was evicted, ask again.
+            # A finished download stands. Ask again only if a library read made *after*
+            # it still says the cache is empty (evicted), and only a couple of times: a
+            # lagging listing must never turn into a download loop.
+            done_at = float(record.get("done_at", now))
             return (
                 recipe.local == "not_cached"
-                and now - float(record.get("done_at", now)) > 300
+                and int(record.get("rerequests", 0)) < MAX_REREQUESTS
+                and now - done_at > 600
+                and self.library_fresh_since > done_at
             )
         return bool(record.get("retry_at")) and now >= float(record["retry_at"])
 

@@ -76,8 +76,21 @@ The next models are downloaded to the NAS while the Sparks test.
   variants share files) and the download time at `--rate-mb-s` or the rate
   measured in a previous run.
 * **Already there is present.** Cached and in-flight (`preparing`) recipes and
-  models are never requested again. Request keys are deterministic, so a restart
+  models are never requested again; a download that someone else started is
+  followed until it lands. Request keys are deterministic, so a restart
   reconnects to its own operations.
+* **Download done means the assets are there.** A recipe is ready to place when
+  its download operation succeeded, or the library lists it cached, or the
+  library's own assessment says `Exact NAS assets: ready`. It never depends on
+  fleet fit or readiness: those cannot hold while someone else's workload fills
+  the Sparks, and `profile load --review` on the sweep profile decides fit at
+  placement. A finished download is not requested again unless a library read
+  made after it still says the cache is empty, and then at most twice.
+* **The library is read a page at a time.** The listings are cached; a refresh
+  reads one page per pass of the loop (several at start), retries a failed or
+  timed-out page, and restarts from the first page when the Controller
+  invalidates the cursor. Scheduling reads the cache, so one failed page never
+  stalls it, and rows missing from a complete pass are dropped.
 * **Bounded.** `--max-model-downloads` (default 3) operations that fetch a
   model, `--max-image-pulls` (default 2) operations that only pull an image,
   and `--nas-budget-tib` (default 2) for models that are downloaded or
@@ -142,8 +155,9 @@ stores a read-only export of profiles 1-3. If an owner profile load starts, the
 sweep submits nothing until it ends plus a hold (30 minutes), and requeues its
 in-flight tests without blame. `--restore-owner 2` loads profile 2 at the end.
 `run` refuses to start without `--yes`, because the sweep replaces whatever the
-Sparks run: just before the first placement it loads the empty sweep profile
-once, so the first review sees idle Sparks. Every request key carries a
+Sparks run: at start it loads the empty sweep profile once (again after an
+owner load, or when a review is blocked by a workload that is not ours), so
+every review sees idle Sparks. Every request key carries a
 per-state-directory nonce, so a fresh state directory never replays an older
 run's requests, while a resumed run reconnects to its own. Downloads that
 someone else started (library state `preparing`) are waited for, not repeated.

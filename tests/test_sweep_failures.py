@@ -267,5 +267,5 @@ def test_a_controller_that_stops_answering_costs_a_pass_not_the_sweep(
     assert sweep.run() == 0
     assert _entry(sweep, "a")["status"] == "passed"
     assert any(
-        "library refresh failed" in e["message"] for e in sweep.state.data["events"]
+        "library page failed" in e["message"] for e in sweep.state.data["events"]
     )
