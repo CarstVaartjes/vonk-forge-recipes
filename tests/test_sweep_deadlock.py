@@ -128,3 +128,27 @@ def test_a_review_blocked_by_a_workload_that_is_back_clears_the_fleet_instead_of
     assert (
         sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
     )  # not a `review` failure
+
+
+def test_a_state_file_with_finished_downloads_resumes_without_asking_again(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipes = [FakeRecipe("a1", ("m1",)), FakeRecipe("a2", ("m1",), engine="sglang")]
+    first, fleet, _ = make_sweep(
+        tmp_path, recipes, [FakeModel("m1")], gateway=gateway, limit=0
+    )
+    first.state.downloads["vonk-forge/a1"] = {
+        "state": "succeeded",
+        "kind": "model",
+        "attempt": 6,
+        "done_at": fleet.clock.now(),
+        "operation_id": "old",
+    }
+    fleet.library_lag = True  # and the library still says not cached, as in production
+    first.state.save()
+    sweep, _, _ = make_sweep(tmp_path, recipes, [FakeModel("m1")], fleet=fleet)
+    assert sweep.run() == 0
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+    assert _downloads(fleet) == [
+        "vonk-forge/a2"
+    ]  # the sibling pulled its image; a1 was not asked for again

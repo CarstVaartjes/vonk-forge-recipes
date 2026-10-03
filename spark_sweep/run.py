@@ -367,6 +367,12 @@ class Sweep:
                 self.preempt("an owner profile was loaded")
         self.advance_slots(now)
         pending = self.pending()
+        for (
+            key,
+            record,
+        ) in self.state.downloads.items():  # a state file from an older run
+            if record.get("state") == "succeeded":
+                self._download_done(key)
         self.cached_models = self._cached_models()
         self.prefetcher.library_fresh_since = self.recipe_list.complete_started_at
         self.last_prefetch = self.prefetcher.tick(
