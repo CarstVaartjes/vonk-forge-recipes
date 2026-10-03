@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "7fc1f1ff4b82b917efbd0710df0872c2bb89caa5",
+      "repo": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DFlash",
+      "revision": "7fc1f1ff4b82b917efbd0710df0872c2bb89caa5"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "e8f3c7c4de75ad84fe1bcef95d38eca76214480b",
+      "repo": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
+      "revision": "e8f3c7c4de75ad84fe1bcef95d38eca76214480b"
+    }
+  },
+  "kit": {
+    "commit": "3baf136cb09830656e6aeba19a20d39c3f02e81b",
+    "repo": "r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121"
+  }
+}

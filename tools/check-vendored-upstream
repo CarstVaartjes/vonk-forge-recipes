@@ -31,7 +31,10 @@ the cache never needs invalidation.
 
 For a recipe built from a creator's kit the base is not authored here: the manifest's
 ``kit`` block says where the kit declares it and ``kit-lock.json`` (derived by
-``tools/kit-pins``) holds the resolved commit that is compared below.
+``tools/kit-pins``) holds the resolved commit that is compared below. A ``kit`` block
+that declares no base (only a model, a drafter or an image) leaves the adapter's own
+``source`` (or labels) as its source, and a manifest that holds only a ``kit`` block
+claims no vendored files.
 
 Manifest ``vendored-upstream.json``::
 
@@ -165,9 +168,10 @@ def fetch_tree(repo: str, commit: str) -> Tree:
 
 
 def _source(adapter: Path, manifest: dict[str, Any]) -> tuple[str, str] | None:
-    if manifest.get("kit") is not None:
+    if "base" in (manifest.get("kit") or {}).get("dependencies", {}):
         # The base is what the kit declares, locked by tools/kit-pins; a hand-authored
-        # ``source`` beside a declaration is a duplicate pin and is rejected there.
+        # ``source`` beside a declaration is a duplicate pin and is rejected there. (A kit
+        # that declares only a model or an image has no base: ``source`` is the kit's own.)
         lock = adapter / KIT_LOCK
         if not lock.is_file():
             return None
@@ -256,7 +260,8 @@ def check_adapter(adapter: Path, root: Path, load_tree: TreeLoader) -> Report:
     for path, sha in tree.blobs.items():
         by_sha[sha].append(path)
         by_name[PurePosixPath(path).name].append(path)
-    vendored = bool(manifest)
+    # A manifest that only says where the kit declares its dependencies claims no files.
+    vendored = bool(set(manifest) - {"kit"})
     unclassified: list[str] = []
     weak_problems: list[str] = []
     for rel in files:

@@ -1,12 +1,23 @@
 {
-  "source": {
-    "repo": "r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang",
-    "commit": "7bfacc510506e955a1392f94b87213b798e45e51"
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/click_run_tp2.sh",
+        "pattern": "^[ \\t]*HF_REPO=\"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\"[^\\n]*\\n^[ \\t]*HF_REVISION=\"(?P<version>[0-9a-f]{40})\""
+      }
+    },
+    "whole": false
   },
   "ours": [
     "sglang-serve"
   ],
   "renamed": {
     "LICENSE.upstream": "LICENSE"
+  },
+  "source": {
+    "commit": "7bfacc510506e955a1392f94b87213b798e45e51",
+    "repo": "r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang"
   }
 }

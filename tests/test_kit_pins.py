@@ -114,6 +114,10 @@ class FakeApi:
         return self(path)
 
 
+def upstream(api: Any, **sources: Any) -> Any:
+    return kit_pins.Upstream(kit_pins.GitHub(api), **sources)
+
+
 def declaration(**override: Any) -> Any:
     entry = dict(MANIFEST["kit"]["dependencies"]["base"], **override)
     return kit_pins.declarations({"kit": {"dependencies": {"base": entry}}})[0]
@@ -138,7 +142,7 @@ class DeclarationTests(unittest.TestCase):
         with self.assertRaisesRegex(kit_pins.KitError, "version"):
             declaration(pattern="^TF_VERSION=(.*)$")
         with self.assertRaisesRegex(kit_pins.KitError, "datasource"):
-            declaration(datasource="oci-image")
+            declaration(datasource="npm-package")
         with self.assertRaisesRegex(kit_pins.KitError, "lacks"):
             kit_pins.declarations({"kit": {"dependencies": {"base": {"repo": BASE}}}})
 
@@ -154,15 +158,15 @@ class DeclarationTests(unittest.TestCase):
 class DerivationTests(unittest.TestCase):
     def derive(self, commit: str, **override: Any) -> Any:
         return kit_pins.derive(
-            KIT, commit, [declaration(**override)], kit_pins.GitHub(FakeApi())
+            KIT, commit, [declaration(**override)], upstream(FakeApi())
         )[0]
 
     def test_mia_v050_to_v060_follows_the_kit_not_the_newest_tag(self) -> None:
         old, new = self.derive(KIT_OLD), self.derive(KIT_NEW)
-        self.assertEqual((old.ref, old.commit), ("v0.5.0", BASE_050))
-        self.assertEqual((new.ref, new.commit), ("v0.6.0", BASE_060))
+        self.assertEqual((old.ref, old.immutable), ("v0.5.0", BASE_050))
+        self.assertEqual((new.ref, new.immutable), ("v0.6.0", BASE_060))
         self.assertEqual(new.version, "0.6.0")
-        self.assertNotIn(new.commit, {BASE_061, BASE_062})
+        self.assertNotIn(new.immutable, {BASE_061, BASE_062})
         self.assertEqual(new.date, "2026-10-01")
 
     def test_the_newest_release_is_information_only(self) -> None:
@@ -172,13 +176,13 @@ class DerivationTests(unittest.TestCase):
 
     def test_an_override_replaces_the_declaration_and_is_recorded(self) -> None:
         pin = self.derive(KIT_NEW, override={"ref": "v0.6.1", "reason": "fix"})
-        self.assertEqual((pin.commit, pin.overridden), (BASE_061, "fix"))
+        self.assertEqual((pin.immutable, pin.overridden), (BASE_061, "fix"))
         lock = kit_pins.lock_document(KIT, KIT_NEW, [pin])
         self.assertEqual(lock["dependencies"]["base"]["overridden"], "fix")
 
     def test_an_unreadable_kit_file_names_the_commit(self) -> None:
         with self.assertRaisesRegex(kit_pins.KitError, "cannot read"):
-            kit_pins.derive(KIT, "f" * 40, [declaration()], kit_pins.GitHub(FakeApi()))
+            kit_pins.derive(KIT, "f" * 40, [declaration()], upstream(FakeApi()))
 
     def test_the_lock_is_deterministic(self) -> None:
         pin = self.derive(KIT_NEW)
@@ -189,6 +193,7 @@ class DerivationTests(unittest.TestCase):
                 "dependencies": {
                     "base": {
                         "commit": BASE_060,
+                        "datasource": "git-ref",
                         "kind": "tag",
                         "ref": "v0.6.0",
                         "repo": BASE,
@@ -232,20 +237,21 @@ class BranchDeclarationTests(unittest.TestCase):
 
     def derive(self, api: FakeApi) -> Any:
         wanted = kit_pins.declarations(BRANCH_MANIFEST)
-        return kit_pins.derive(KIT, KIT_BRANCH, wanted, kit_pins.GitHub(api))[0]
+        return kit_pins.derive(KIT, KIT_BRANCH, wanted, upstream(api))[0]
 
     def test_a_declared_branch_is_resolved_to_its_head_commit_and_locked_as_a_branch(
         self,
     ) -> None:
         pin = self.derive(self.api())
         self.assertEqual(
-            (pin.ref, pin.kind, pin.commit),
+            (pin.ref, pin.kind, pin.immutable),
             ("glm-long-context", "branch", BRANCH_OLD),
         )
         lock = kit_pins.lock_document(KIT, KIT_BRANCH, [pin])
         self.assertEqual(
             lock["dependencies"]["base"],
             {
+                "datasource": "git-ref",
                 "repo": "taussoe/TensorFold",
                 "ref": "glm-long-context",
                 "kind": "branch",
@@ -278,7 +284,7 @@ class BranchDeclarationTests(unittest.TestCase):
             )
             api = self.api(BRANCH_NEW)
             problems = kit_pins.check_recipe(
-                root, "mia", recipe_for(KIT_BRANCH), kit_pins.GitHub(api)
+                root, "mia", recipe_for(KIT_BRANCH), upstream(api)
             )
         self.assertEqual([p for p in problems if "stale" in p], [])
         self.assertFalse(any("heads" in call for call in api.calls), api.calls)
@@ -337,6 +343,7 @@ def write_adapter(
                     "dependencies": {
                         "base": {
                             "commit": base_commit,
+                            "datasource": "git-ref",
                             "kind": base_kind,
                             "ref": base_ref,
                             "repo": base_repo,
@@ -352,7 +359,7 @@ def write_adapter(
 class LockCheckTests(unittest.TestCase):
     def check(self, root: Path, kit_commit: str) -> list[str]:
         return kit_pins.check_recipe(
-            root, "mia", recipe_for(kit_commit), kit_pins.GitHub(FakeApi())
+            root, "mia", recipe_for(kit_commit), upstream(FakeApi())
         )
 
     def test_a_current_lock_passes_and_costs_one_kit_file_fetch(self) -> None:
@@ -363,7 +370,7 @@ class LockCheckTests(unittest.TestCase):
             api = FakeApi()
             self.assertEqual(
                 kit_pins.check_recipe(
-                    Path(tmp), "mia", recipe_for(KIT_NEW), kit_pins.GitHub(api)
+                    Path(tmp), "mia", recipe_for(KIT_NEW), upstream(api)
                 ),
                 [],
             )
@@ -462,7 +469,7 @@ class ApplyLockTests(unittest.TestCase):
                 return b"new archive"
 
             changed = kit_pins.apply_lock(
-                root, "mia", recipe_for(KIT_NEW), kit_pins.GitHub(FakeApi()), fetch
+                root, "mia", recipe_for(KIT_NEW), upstream(FakeApi()), fetch
             )
             self.assertEqual(fetched, [(BASE, BASE_060)])
             self.assertTrue(any(c.startswith("kit-lock.json") for c in changed))
@@ -482,13 +489,13 @@ class ApplyLockTests(unittest.TestCase):
             # the result is exactly what the lock check asks for, and a second run is a no-op
             self.assertEqual(
                 kit_pins.check_recipe(
-                    root, "mia", recipe_for(KIT_NEW), kit_pins.GitHub(FakeApi())
+                    root, "mia", recipe_for(KIT_NEW), upstream(FakeApi())
                 ),
                 [],
             )
             self.assertEqual(
                 kit_pins.apply_lock(
-                    root, "mia", recipe_for(KIT_NEW), kit_pins.GitHub(FakeApi()), fetch
+                    root, "mia", recipe_for(KIT_NEW), upstream(FakeApi()), fetch
                 ),
                 [],
             )
@@ -933,7 +940,7 @@ class DeclaredRepositoryTests(unittest.TestCase):
         api = FakeApi({KIT_FORK: text})
         api.branches["integration/0.6.1"] = FORK_COMMIT
         wanted = kit_pins.declarations(manifest)
-        return kit_pins.derive(KIT, KIT_FORK, wanted, kit_pins.GitHub(api))[0]
+        return kit_pins.derive(KIT, KIT_FORK, wanted, upstream(api))[0]
 
     def test_the_repository_and_the_ref_are_locked_together(self) -> None:
         pin = self.derive(
@@ -958,7 +965,7 @@ class DeclaredRepositoryTests(unittest.TestCase):
     def test_repo_and_repo_pattern_are_exclusive_and_the_group_is_needed(self) -> None:
         both = json.loads(json.dumps(FORK_MANIFEST))
         both["kit"]["dependencies"]["base"]["repo"] = BASE
-        with self.assertRaisesRegex(kit_pins.KitError, "not both"):
+        with self.assertRaisesRegex(kit_pins.KitError, "give one"):
             kit_pins.declarations(both)
         bad = json.loads(json.dumps(FORK_MANIFEST))
         bad["kit"]["dependencies"]["base"]["repo_pattern"] = r"^ARG TF_REPO=\S+$"
@@ -981,7 +988,7 @@ class DeclaredRepositoryTests(unittest.TestCase):
                 root,
                 "mia",
                 recipe_for(KIT_FORK),
-                kit_pins.GitHub(
+                upstream(
                     FakeApi(
                         {
                             KIT_FORK: f"ARG TF_REPO={FORK}\nARG TF_REF={FORK_COMMIT}\n",

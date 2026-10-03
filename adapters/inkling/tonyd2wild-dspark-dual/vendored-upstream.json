@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "drafter": {
+        "binds": "dependency-inkling-small-dspark-preview-fcc210dc",
+        "datasource": "hf-revision",
+        "file": "scripts/download-dspark-preview.py",
+        "pattern": "^[ \\t]*repo_id=\"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\",[^\\n]*\\n^[ \\t]*revision=\"(?P<version>[0-9a-f]{40})\","
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "NOTICE.upstream",
     "mods/inkling-agent-parser-fix/",
@@ -13,7 +24,7 @@
     "LICENSE.upstream": "LICENSE"
   },
   "source": {
-    "repo": "eugr/spark-vllm-docker",
-    "commit": "9296ced563e9996f1424149a62432ea752816b90"
+    "commit": "9296ced563e9996f1424149a62432ea752816b90",
+    "repo": "eugr/spark-vllm-docker"
   }
 }

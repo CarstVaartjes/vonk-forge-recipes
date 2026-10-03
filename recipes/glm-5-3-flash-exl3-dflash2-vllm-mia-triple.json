@@ -1668,8 +1668,8 @@
           ]
         },
         {
-          "file_id": "readme-2014434d3e36-b335630551",
-          "id": "drafter-readme-2014434d3e36-b335630551",
+          "file_id": "readme-088bc4561a83-b335630551",
+          "id": "drafter-readme-088bc4561a83-b335630551",
           "mount": {
             "target": "/models/drafter"
           },
@@ -1690,8 +1690,8 @@
           ]
         },
         {
-          "file_id": "model-b038e1d9d1e7-9d75c1098f",
-          "id": "drafter-model-b038e1d9d1e7-9d75c1098f",
+          "file_id": "model-b33c03475ba7-9d75c1098f",
+          "id": "drafter-model-b33c03475ba7-9d75c1098f",
           "mount": {
             "target": "/models/drafter"
           },
@@ -1703,10 +1703,10 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-dc77ff1c",
       "model": {
-        "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
+        "content_sha256": "fc55725430d893c74409a63fcb9b13fab574d69e9d90bc50839f5f1b8bc2f176",
         "kind": "model",
         "publisher": "incoai",
-        "slug": "glm-5-3-flash-dflash2-bf582e4e"
+        "slug": "glm-5-3-flash-dflash2-dc77ff1c"
       }
     }
   ],
@@ -2156,7 +2156,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 180400774101,
+            "artifact_bytes": 180400776148,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000
@@ -2173,7 +2173,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 180400774101,
+            "artifact_bytes": 180400776148,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000

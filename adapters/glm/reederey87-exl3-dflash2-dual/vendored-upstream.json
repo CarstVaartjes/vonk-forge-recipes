@@ -1,4 +1,16 @@
 {
+  "kit": {
+    "dependencies": {
+      "drafter": {
+        "binds": "dependency-glm-5-3-flash-dflash2-7d74cdd8",
+        "datasource": "hf-revision",
+        "file": "start.sh",
+        "pattern": "^[ \\t]*DFLASH_REVISION=\"\\$\\{DFLASH_REVISION\\-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^[ \\t]*DFLASH_MODEL=\"\\$\\{DFLASH_MODEL:\\-(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\\}\""
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "verify-runtime.py",
     "vllm-wrapper.py",

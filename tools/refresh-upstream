@@ -42,7 +42,7 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, document_sha256
+from vonk_forge_contracts import document_sha256
 from vonk_forge_contracts.recipe import RecipeRelease
 
 
@@ -235,6 +235,19 @@ class Http:
 
     def github(self, path: str) -> Any:
         return self.json(f"https://api.github.com/{path}", "github")
+
+
+def kit_upstream(http: Http) -> Any:
+    """Where a kit's declared dependencies are resolved: GitHub, Hugging Face, registries."""
+    return kit_pins.Upstream(
+        kit_pins.GitHub(http.github),
+        kit_pins.HuggingFace(
+            lambda path: http.json(
+                f"https://huggingface.co/api/{path}", "huggingface", anonymous=True
+            )
+        ),
+        kit_pins.Registry(kit_pins.fetch),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -583,6 +596,36 @@ def kit_directory(root: Path, recipe: dict[str, Any]) -> Path | None:
     return directory if "kit" in adapter_manifest(directory) else None
 
 
+def declares_adapter_source(directory: Path | None) -> bool:
+    """Whether the kit declares what the adapter's source pin would only duplicate.
+
+    A declared base (the engine the kit's patches apply to) or image (what the Dockerfile's
+    labels name the source of) is derived from the kit, so the adapter's own pin is not a
+    second thing to follow. A kit that declares only models leaves the adapter pin alone.
+    """
+    if directory is None:
+        return False
+    try:
+        wanted = kit_pins.declarations(adapter_manifest(directory))
+    except kit_pins.KitError:
+        return False  # reported by check_kit_dependencies
+    return any(
+        d.datasource == "oci-image" or kit_pins.declares_base([d]) for d in wanted
+    )
+
+
+def whole_kit(directory: Path | None) -> bool:
+    """Whether every changed file of the kit repository is judged (the default).
+
+    A kit that is one directory of a creator's monorepo sets ``"whole": false``: only its
+    declarations are checked, and the repository's other changes are judged as for any
+    source.
+    """
+    return directory is not None and adapter_manifest(directory)["kit"].get(
+        "whole", True
+    )
+
+
 def adapter_pin(root: Path, recipe: dict[str, Any]) -> AdapterPin | None:
     directory = root / recipe["execution"]["build"]["context"]["path"]
     if not (directory / "Dockerfile").is_file():
@@ -665,6 +708,9 @@ class Item:
     model_slug: str | None = None
     comparison: Comparison | None = None  # pin -> newest, GitHub items only
     noop: bool = False  # assessed as not worth a move (set while assessing)
+    kit_pin: Any = (
+        None  # a kit-declared dependency's pin: the target is the kit's, not the newest
+    )
 
     @property
     def label(self) -> str:
@@ -694,6 +740,28 @@ class Assessment:
         return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 
+def kit_declared_models(
+    recipe: dict[str, Any], directory: Path | None
+) -> dict[str, Any]:
+    """Slug of each Model a kit declaration pins -> that declaration (``tools/kit-pins``)."""
+    if directory is None:
+        return {}
+    try:
+        wanted = kit_pins.declarations(adapter_manifest(directory))
+    except kit_pins.KitError:
+        return {}
+    found: dict[str, Any] = {}
+    for declaration in wanted:
+        if declaration.datasource != "hf-revision":
+            continue
+        reference = next(
+            (m for m in recipe["models"] if m["id"] == declaration.binds), None
+        )
+        if reference is not None:
+            found[reference["model"]["slug"]] = declaration
+    return found
+
+
 def check_kit_dependencies(
     catalog_: Catalog,
     recipe: dict[str, Any],
@@ -704,15 +772,18 @@ def check_kit_dependencies(
 ) -> None:
     """What the kit declares at ``kit_head`` against what the recipe is locked to.
 
-    A kit-built recipe pins only the kit; its base (engine version, ref) is whatever the
-    kit declares at that commit (``tools/kit-pins``). The base repository's own newest
-    release is information, never the proposed pin. A declared base that differs from the
-    lock means the kit moved its base: its patches were rebased onto it, so that is a
-    review, and ``tools/kit-pins lock`` then derives the new pin.
+    A kit-built recipe pins only the kit; everything the kit declares (its base engine
+    ref, its model revision, its image) is whatever the kit says at that commit
+    (``tools/kit-pins``). The dependency's own newest release, revision or tag is
+    information, never the proposed pin. A declaration that differs from the lock means
+    the kit moved it: a review, except a revision of the same Hugging Face repository
+    whose files are the catalogued ones (see ``Assessor._model``). ``tools/kit-pins lock``
+    then derives the new pin.
     """
     kit = kit_pins.kit_of(recipe)
     if kit is None:
         return
+    slug = recipe["identity"]["slug"]
     try:
         wanted = kit_pins.declarations(adapter_manifest(directory))
         pins = kit_pins.derive(kit[0], kit_head, wanted, kit_source)
@@ -725,15 +796,15 @@ def check_kit_dependencies(
     lock = kit_pins.read_lock(directory)
     if lock is None:
         result.reasons.append(
-            f"{vendored.KIT_LOCK} is missing; run `tools/kit-pins lock {recipe['identity']['slug']}`"
+            f"{vendored.KIT_LOCK} is missing; run `tools/kit-pins lock {slug}`"
         )
         return
+    declared = {d.name: d for d in wanted}
     for pin in pins:
         locked = lock.get("dependencies", {}).get(pin.name) or {}
-        newest = kit_pins.newest_release(kit_source, pin.repo)
+        newest = kit_pins.newest_information(kit_source, pin)
         info = (
-            f"{pin.repo} newest release `{newest}` is shown for information; "
-            "the pin follows the kit's declaration"
+            f"{newest} is shown for information; the pin follows the kit's declaration"
             if newest
             else f"{pin.repo}: no release information"
         )
@@ -743,40 +814,115 @@ def check_kit_dependencies(
                 f"locked to `{pin.ref}` on purpose: {pin.overridden}\n- {info}\n"
             )
             continue
-        if locked.get("commit") == pin.commit:
+        if locked.get(pin.key) == pin.immutable:
             result.evidence.append(
                 f"### Kit dependency `{pin.name}`\n\n- the kit declares {pin.repo} "
-                f"`{pin.ref}` (`{pin.commit[:12]}`), as locked\n- {info}\n"
+                f"`{pin.ref}` (`{pin.immutable[:12]}`), as locked\n- {info}\n"
+            )
+            continue
+        if pin.datasource == "hf-revision":
+            kit_model_moved(
+                catalog_, recipe, declared[pin.name], pin, locked, info, result
+            )
+            continue
+        if pin.datasource == "oci-image":
+            result.reasons.append(
+                f"the kit's image {pin.repo} is `{pin.ref}` (`{pin.immutable}`) at "
+                f"{kit_head[:12]}, but the recipe is locked to `{locked.get('ref', '?')}` "
+                f"(`{locked.get('digest', '?')}`): a moved tag or another tag is a new "
+                f"image; review it, then run `tools/kit-pins lock {slug}`"
+            )
+            result.evidence.append(
+                f"### Kit dependency `{pin.name}` (image) moved\n\n- locked: "
+                f"`{locked.get('ref', '?')}` `{locked.get('digest', '?')}`\n- declared now: "
+                f"`{pin.ref}` `{pin.immutable}`\n- {info}\n"
             )
             continue
         if pin.kind == "branch" and locked.get("ref") == pin.ref:
             # the kit still names the same branch; its head moved since the lock
             result.reasons.append(
                 f"the branch `{pin.ref}` of {pin.repo} that the kit declares moved from "
-                f"`{str(locked.get('commit', '?'))[:12]}` to `{pin.commit[:12]}` "
+                f"`{str(locked.get('commit', '?'))[:12]}` to `{pin.immutable[:12]}` "
                 f"({pin.date}): a kit dependency changed; review the branch's new "
-                f"commits, then run `tools/kit-pins lock {recipe['identity']['slug']}`"
+                f"commits, then run `tools/kit-pins lock {slug}`"
             )
             result.evidence.append(
                 f"### Kit dependency `{pin.name}` (branch `{pin.ref}`) moved\n\n"
                 f"- locked: `{locked.get('commit', '?')}`\n- branch head now: "
-                f"`{pin.commit}` ({pin.date})\n- compare: "
-                f"https://github.com/{pin.repo}/compare/{locked.get('commit', '?')}...{pin.commit}\n"
+                f"`{pin.immutable}` ({pin.date})\n- compare: "
+                f"https://github.com/{pin.repo}/compare/{locked.get('commit', '?')}...{pin.immutable}\n"
                 f"- {info}\n"
             )
             continue
         result.reasons.append(
-            f"the kit declares {pin.repo} `{pin.ref}` (`{pin.commit[:12]}`) at "
+            f"the kit declares {pin.repo} `{pin.ref}` (`{pin.immutable[:12]}`) at "
             f"{kit_head[:12]}, but the recipe is locked to {locked.get('repo', '?')} "
             f"`{locked.get('ref', '?')}` "
             f"(`{str(locked.get('commit', '?'))[:12]}`): the kit moved its base, so its "
             f"patches were rebased; review them, then run "
-            f"`tools/kit-pins lock {recipe['identity']['slug']}`"
+            f"`tools/kit-pins lock {slug}`"
         )
         result.evidence.append(
             f"### Kit dependency `{pin.name}` moved\n\n- locked: `{locked.get('ref', '?')}`"
-            f"\n- declared now: `{pin.ref}` (`{pin.commit}`)\n- {info}\n"
+            f"\n- declared now: `{pin.ref}` (`{pin.immutable}`)\n- {info}\n"
         )
+
+
+def kit_model_moved(
+    catalog_: Catalog,
+    recipe: dict[str, Any],
+    declaration: Any,
+    pin: Any,
+    locked: dict[str, Any],
+    info: str,
+    result: Assessment,
+) -> None:
+    """The kit declares another model repository or revision than the lock holds.
+
+    Another repository is a review. Another revision of the same repository becomes a
+    model move at exactly the kit's revision (never the repository's newest), which
+    ``Assessor._model`` makes mechanical only when every file but the metadata is the
+    catalogued bytes.
+    """
+    slug = recipe["identity"]["slug"]
+    was = f"{locked.get('repo', '?')}@{str(locked.get('revision', '?'))[:12]}"
+    result.evidence.append(
+        f"### Kit dependency `{pin.name}` (model) moved\n\n- locked: {was}\n- declared "
+        f"now: {pin.repo}@{pin.immutable} ({pin.date})\n- {info}\n"
+    )
+    if str(locked.get("repo", "")).lower() != pin.repo.lower():
+        result.reasons.append(
+            f"the kit now declares the model {pin.repo}@{pin.immutable[:12]} instead of "
+            f"{was}: another model repository is a review; catalogue it with "
+            f"`tools/catalog-hf-model`, then run `tools/kit-pins lock {slug}`"
+        )
+        return
+    found = kit_pins.bound_model(catalog_.root, recipe, declaration.binds)
+    if found is None:
+        result.reasons.append(
+            f"the recipe's Model '{declaration.binds}' for the kit's {pin.name} is not catalogued"
+        )
+        return
+    document = found[1]
+    result.items.append(
+        Item(
+            "model",
+            "huggingface",
+            pin.repo,
+            document["source"]["revision"],
+            Target(
+                provider="huggingface",
+                repo=pin.repo,
+                sha=pin.immutable,
+                date=pin.date,
+                ref=None,
+                version=None,
+                url=f"https://huggingface.co/{pin.repo}/tree/{pin.immutable}",
+            ),
+            document["identity"]["slug"],
+            kit_pin=pin,
+        )
+    )
 
 
 def collect_items(
@@ -888,8 +1034,8 @@ def collect_items(
     pin = adapter_pin(catalog_.root, recipe)
     kit_dir = kit_directory(catalog_.root, recipe)
     if kit_dir is not None:
-        # The base follows what the kit declares at the kit commit this run proposes (or
-        # keeps); the base repository's own newest release is not a pin candidate.
+        # What the kit declares follows the kit commit this run proposes (or keeps); the
+        # dependency's own newest release, revision or tag is not a pin candidate.
         kit_head = next(
             (i.target.sha for i in result.items if i.kind == "source"),
             source[2] if source is not None else None,
@@ -901,10 +1047,11 @@ def collect_items(
                 kit_dir,
                 result,
                 kit_head,
-                kit_source or kit_pins.GitHub(http.github),
+                kit_source or kit_upstream(http),
             )
-    elif pin is not None:
+    if pin is not None and not declares_adapter_source(kit_dir):
         consider("adapter", "github", pin.repo, pin.commit)
+    kit_models = kit_declared_models(recipe, kit_dir)
     for reference in recipe["models"]:
         slug = reference["model"]["slug"]
         document = catalog_.models.get(slug)
@@ -912,6 +1059,20 @@ def collect_items(
         if not model_source:
             continue
         location = drift.parse_source(model_source["repository"])
+        if slug in kit_models and location.provider == "huggingface":
+            # The kit pins this model: the repository's newest revision is information,
+            # never an independent proposal (the kit's own declaration is checked above).
+            try:
+                newest = targets("huggingface", location.repository)
+                result.evidence.append(
+                    f"### Model {location.repository} follows the kit\n\n- catalogued "
+                    f"revision `{model_source['revision']}`\n- the repository's newest "
+                    f"revision `{newest.sha}` ({newest.date}) is shown for information; the "
+                    "pin follows the kit's declaration\n"
+                )
+            except (RuntimeError, KeyError, TypeError):
+                pass
+            continue
         if location.provider == "huggingface":
             consider(
                 "model",
@@ -1158,6 +1319,13 @@ def classify_changes(
 
 
 METADATA_ONLY = {"metadata"}
+# A kit-declared model revision is followed mechanically only when it changes nothing but
+# metadata: the weights, configuration and tokenizer stay the catalogued bytes.
+KIT_MODEL_FILES_CHANGED = (
+    "the kit declares a revision whose files differ from the catalogued ones beyond "
+    "metadata (weights, configuration or tokenizer); it is a different model payload, "
+    "so review it"
+)
 
 
 def model_shape_problems(
@@ -1196,38 +1364,14 @@ def payload_identical(old: dict[str, Any], new_files: list[dict[str, Any]]) -> b
     return before == after
 
 
-def file_id(path: str, sha256: str) -> str:
-    stem = catalog._slug(path.rsplit("/", 1)[-1].rsplit(".", 1)[0])
-    return f"{stem[:39]}-{sha256[:12]}-{hashlib.sha256(path.encode()).hexdigest()[:10]}"
+file_id = kit_pins.file_id
 
 
 def refreshed_model(
     old: dict[str, Any], new_files: list[dict[str, Any]], target: Target
 ) -> dict[str, Any]:
     """The old Model document moved to the new snapshot, keeping its curation."""
-    old_revision = old["source"]["revision"]
-    new_revision = target.sha
-    by_path = {f["path"]: f for f in new_files}
-    document = json.loads(json.dumps(old))
-    document["source"]["revision"] = new_revision
-    identity = document["identity"]
-    slug = identity["slug"]
-    if slug.endswith(old_revision[:8]):
-        identity["slug"] = slug[: -len(old_revision[:8])] + new_revision[:8]
-    else:
-        identity["slug"] = f"{slug}-{new_revision[:8]}"
-    for key in ("version", "variant"):
-        if isinstance(identity.get(key), str) and old_revision[:8] in identity[key]:
-            identity[key] = identity[key].replace(old_revision[:8], new_revision[:8])
-    document["files"] = [e for e in document["files"] if e["path"] in by_path]
-    for entry in document["files"]:
-        fresh = by_path[entry["path"]]
-        entry["sha256"] = fresh["sha256"]
-        entry["size_bytes"] = fresh["installed_bytes"]
-        entry["id"] = file_id(entry["path"], fresh["sha256"])
-    document["files"].sort(key=lambda entry: entry["path"])
-    ModelDefinition.model_validate(document)
-    return document
+    return kit_pins.moved_model(old, new_files, target.sha)
 
 
 def released(recipe: dict[str, Any], items: list[Item]) -> tuple[str, str]:
@@ -1524,12 +1668,13 @@ class Assessor:
                 f"vendored file check at the new commit: {p}" for p in report.problems
             ]
         context = self.catalog.root / recipe["execution"]["build"]["context"]["path"]
+        declared_kit = kit_directory(self.catalog.root, recipe)
         is_kit = (
             item.kind == "source"
             and not owns_adapter
             and (
-                kit_directory(self.catalog.root, recipe) is not None
-                or cites_kit(context, item.repo)
+                whole_kit(declared_kit)
+                or (declared_kit is None and cites_kit(context, item.repo))
             )
         )
         mirrored: set[str] = set()
@@ -1561,6 +1706,8 @@ class Assessor:
             self._retarget_adapter(pin, item, edits, result)
         elif is_kit:
             self._retarget_kit(context, item, edits)
+        if declared_kit is not None and item.kind == "source":
+            self._retarget_lock(declared_kit, item, edits)
 
     def _used_changes(
         self,
@@ -1647,14 +1794,31 @@ class Assessor:
                 edits[dockerfile.relative_to(self.catalog.root).as_posix()] = (
                     moved.encode()
                 )
-        lock = kit_pins.read_lock(directory)
+        self._retarget_lock(directory, item, edits)
+
+    def _retarget_lock(
+        self, directory: Path, item: Item, edits: dict[str, bytes | None]
+    ) -> None:
+        """Move the kit commit the adapter's lock was derived from."""
+        lock = self._lock(directory, edits)
         if lock is not None:
             lock["kit"]["commit"] = item.target.sha
-            edits[
-                (directory / vendored.KIT_LOCK)
-                .relative_to(self.catalog.root)
-                .as_posix()
-            ] = kit_pins.lock_text(lock).encode()
+            self._write_lock(directory, lock, edits)
+
+    def _lock(self, directory: Path, edits: dict[str, bytes | None]) -> Any:
+        """The adapter's kit lock with the edits already prepared for it."""
+        pending = edits.get(self._lock_path(directory))
+        if pending is not None:
+            return json.loads(pending)
+        return kit_pins.read_lock(directory)
+
+    def _lock_path(self, directory: Path) -> str:
+        return (directory / vendored.KIT_LOCK).relative_to(self.catalog.root).as_posix()
+
+    def _write_lock(
+        self, directory: Path, lock: Any, edits: dict[str, bytes | None]
+    ) -> None:
+        edits[self._lock_path(directory)] = kit_pins.lock_text(lock).encode()
 
     def _model(
         self,
@@ -1666,15 +1830,18 @@ class Assessor:
     ) -> None:
         old = self.catalog.models[str(item.model_slug)]
         fresh = self.catalog.catalogued(item.repo, item.target.sha)
+        declared = item.kit_pin is not None
         new_files: list[dict[str, Any]] | None = None
         if fresh is None:
             new_files = self._inventory(item.repo, item.target.sha)
             problems = model_shape_problems(old, new_files)
+            if declared and not problems and not payload_identical(old, new_files):
+                problems = [KIT_MODEL_FILES_CHANGED]
             result.reasons.extend(f"{item.label}: {p}" for p in problems)
             result.evidence.append(model_evidence(item, old, new_files))
             if problems:
                 return
-            if payload_identical(old, new_files):
+            if payload_identical(old, new_files) and not declared:
                 # Same bytes in every file that is not metadata (a README edit): a
                 # second catalogued revision would only duplicate the payload.
                 item.noop = True
@@ -1691,10 +1858,22 @@ class Assessor:
                 + "\nThe newest revision is already catalogued; reusing it.\n"
             )
             problems = model_shape_problems(old, fresh["files"])
+            if declared and not problems and not payload_identical(old, fresh["files"]):
+                problems = [KIT_MODEL_FILES_CHANGED]
             if problems:
                 result.reasons.extend(f"{item.label}: {p}" for p in problems)
                 return
         self._retarget_model(recipe, new_recipe, old, fresh, result)
+        if declared:
+            directory = (
+                self.catalog.root / recipe["execution"]["build"]["context"]["path"]
+            )
+            lock = self._lock(directory, edits)
+            if lock is not None:
+                lock["dependencies"][item.kit_pin.name] = kit_pins.lock_document(
+                    lock["kit"]["repo"], lock["kit"]["commit"], [item.kit_pin]
+                )["dependencies"][item.kit_pin.name]
+                self._write_lock(directory, lock, edits)
         remaining = [
             rid
             for rid in self.catalog.model_references(old["identity"]["slug"])

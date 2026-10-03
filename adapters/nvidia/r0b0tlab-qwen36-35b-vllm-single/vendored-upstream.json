@@ -1,14 +1,25 @@
 {
-  "source": {
-    "repo": "r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm",
-    "commit": "106fb53372c260e719c97d5b59e48142792783c7"
+  "kit": {
+    "dependencies": {
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/verify_release.py",
+        "pattern": "^[ \\t]*MODEL\\ =\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\"[^\\n]*\\n^[ \\t]*REVISION\\ =\\ \"(?P<version>[0-9a-f]{40})\""
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-api"
   ],
   "renamed": {
     "LICENSE.upstream": "LICENSE",
-    "patch_modelopt_w4a16_native_w4a4.py": "patches/patch_modelopt_w4a16_native_w4a4.py",
-    "audit_runtime_v025.py": "scripts/audit_runtime_v025.py"
+    "audit_runtime_v025.py": "scripts/audit_runtime_v025.py",
+    "patch_modelopt_w4a16_native_w4a4.py": "patches/patch_modelopt_w4a16_native_w4a4.py"
+  },
+  "source": {
+    "commit": "106fb53372c260e719c97d5b59e48142792783c7",
+    "repo": "r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm"
   }
 }

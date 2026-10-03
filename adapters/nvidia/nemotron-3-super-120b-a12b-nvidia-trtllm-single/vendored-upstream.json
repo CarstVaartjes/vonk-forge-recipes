@@ -1,0 +1,12 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "nvidia/nemotron/README.md",
+        "pattern": "^docker pull (?P<repo>nvcr\\.io/nvidia/tensorrt-llm/release):(?P<version>\\S+)$"
+      }
+    },
+    "whole": false
+  }
+}

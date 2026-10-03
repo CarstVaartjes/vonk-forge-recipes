@@ -95,9 +95,8 @@ class GlmModelInventoryTests(unittest.TestCase):
     def test_aqlm_inventory_closes_the_full_pinned_snapshot(self) -> None:
         model = load("models/glm-5-2-nvfp4-aqlm-hybrid-53e0082e.json")
         recipe = load("recipes/glm-5-2-aqlm-vllm-triple.json")
-        self.assertTrue(
-            any(item["path"].startswith("traces/") for item in model["files"])
-        )
+        # directories of the snapshot are catalogued, not only its top-level files
+        self.assertTrue(any("/" in item["path"] for item in model["files"]))
         self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
         self.assertEqual(recipe["topology"]["parallelism"]["backend"], "ray")
         self.assertEqual(

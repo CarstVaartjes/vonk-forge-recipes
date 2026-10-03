@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "fcc210dcf244cc2f550ef1f75507eb4146c17a57",
+      "repo": "RadixArk/Inkling-Small-DSpark-Preview",
+      "revision": "fcc210dcf244cc2f550ef1f75507eb4146c17a57"
+    }
+  },
+  "kit": {
+    "commit": "7795dd3a6a476a544f43e84ea1bad072ea86648b",
+    "repo": "tonyd2wild/Inkling-Small-NVFP4-DSpark-BF16-KV-262K-2x-DGX-Spark"
+  }
+}

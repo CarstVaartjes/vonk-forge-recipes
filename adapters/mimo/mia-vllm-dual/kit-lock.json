@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "a147dd04d6cf861e43b2d783dcde23b53ab7ee68",
+      "repo": "lukealonso/MiMo-V2.5-NVFP4",
+      "revision": "a147dd04d6cf861e43b2d783dcde23b53ab7ee68"
+    }
+  },
+  "kit": {
+    "commit": "eb9c5fa61ed183a085f622dbb4c67f9fcb065a47",
+    "repo": "MiaAI-Lab/MiMo-V2.5-vLLM-Dual-DGX-Sparks"
+  }
+}

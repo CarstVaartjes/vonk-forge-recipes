@@ -1,7 +1,24 @@
 {
-  "source": {
-    "repo": "r0b0tlab/laguna-s-2.1-nvfp4-sm121-vllm",
-    "commit": "4cf44cf36b88b564031ddb19c41d7cb9cfe0f52a"
+  "kit": {
+    "dependencies": {
+      "drafter": {
+        "binds": "drafter",
+        "datasource": "hf-revision",
+        "file": "docker/runtime-manifest.production.json",
+        "pattern": "^[ \\t]*\"draft_model_id\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\",[^\\n]*\\n^[ \\t]*\"draft_model_revision\":\\ \"(?P<version>[0-9a-f]{40})\","
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "docker/runtime-manifest.production.json",
+        "pattern": "^[ \\t]*\"model_id\":\\ \"(?P<repo>[^\\s\"\\'`}),;\\]:]+/[^\\s\"\\'`}),;\\]:]+)\",[^\\n]*\\n^[ \\t]*\"model_revision\":\\ \"(?P<version>[0-9a-f]{40})\","
+      }
+    },
+    "whole": false
   },
-  "ours": []
+  "ours": [],
+  "source": {
+    "commit": "4cf44cf36b88b564031ddb19c41d7cb9cfe0f52a",
+    "repo": "r0b0tlab/laguna-s-2.1-nvfp4-sm121-vllm"
+  }
 }
