@@ -36,24 +36,6 @@
       "size_bytes": 49454
     },
     {
-      "id": "mirror-2a30e3b7fde5-683682b54b",
-      "path": "MIRROR.json",
-      "roles": [
-        "configuration"
-      ],
-      "sha256": "2a30e3b7fde56cd537f3f2f9f4e8b4c24a7d2a88a98927f0460e793b23329b19",
-      "size_bytes": 492
-    },
-    {
-      "id": "original-model-card-f7adf502e7ac-58beb10032",
-      "path": "ORIGINAL_MODEL_CARD.md",
-      "roles": [
-        "metadata"
-      ],
-      "sha256": "f7adf502e7ac90e752a5bd0dfbced0aea619c8ce9b66e612658a285f092a2d88",
-      "size_bytes": 6174
-    },
-    {
       "id": "provenance-749cd28826a4-4c0d27425c",
       "path": "PROVENANCE.md",
       "roles": [
@@ -63,13 +45,13 @@
       "size_bytes": 1336
     },
     {
-      "id": "readme-ad818d1fb7c0-b335630551",
+      "id": "readme-04534d94ac3c-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "ad818d1fb7c02d6d10c1cd9fa0a378f6e636879bded387d3d4d90037a726235f",
-      "size_bytes": 3357
+      "sha256": "04534d94ac3c1582d8d3f5835b629ba90e51c5cfd8adabd0b3e00145fe872a6f",
+      "size_bytes": 10700
     },
     {
       "id": "sha256sums-cb0da1f97a53-e6351d3766",
@@ -1321,9 +1303,9 @@
       "title": "GLM 5.3 Flash EXL3 TR3"
     },
     "publisher": "mia-ai-lab",
-    "slug": "glm-5-3-flash-exl3-tr3-4bpw-25a44fdb",
-    "variant": "GLM 5.3 Flash EXL3 TR3 4bpw 25a44fdb",
-    "version": "GLM 5.3 Flash EXL3 TR3 4bpw 25a44fdb"
+    "slug": "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704",
+    "variant": "GLM 5.3 Flash EXL3 TR3 4bpw brandonmusic 1ae6d704",
+    "version": "GLM 5.3 Flash EXL3 TR3 4bpw brandonmusic 1ae6d704"
   },
   "kind": "model",
   "license": {
@@ -1334,10 +1316,10 @@
       "IncoAI"
     ],
     "spdx": "LicenseRef-ShapleyMCG-1.0",
-    "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw/blob/25a44fdbf16862a46b7cc9921142c6c81350af2f/LICENSE"
+    "url": "https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw/blob/1ae6d70430a12d762917786696db06a7b4f9bbae/LICENSE"
   },
   "metadata": {
-    "description": "Exact public GLM 5.3 Flash EXL3 TR3 4bpw 25a44fdb checkpoint. Drafter checkpoints are selected separately by each recipe.",
+    "description": "Public brandonmusic copy of the GLM 5.3 Flash EXL3 TR3 4bpw checkpoint at the revision Reederey87's kit names: the weights, configuration, tokenizer, chat template, index and processor files are byte-identical to the Mia-AiLab repository this family was catalogued from (that repository returns HTTP 401 since 2026-10-03). Drafter checkpoints are selected separately by each recipe.",
     "tags": [
       "mia-ai-lab",
       "glm-5-3-mia",
@@ -1354,7 +1336,7 @@
   ],
   "requires_token": false,
   "source": {
-    "repository": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw",
-    "revision": "25a44fdbf16862a46b7cc9921142c6c81350af2f"
+    "repository": "https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw",
+    "revision": "1ae6d70430a12d762917786696db06a7b4f9bbae"
   }
 }

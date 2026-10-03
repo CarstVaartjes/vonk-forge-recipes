@@ -60,8 +60,8 @@
           ]
         },
         {
-          "file_id": "readme-88aa02fb5819-b335630551",
-          "id": "primary-readme-88aa02fb5819-b335630551",
+          "file_id": "readme-0358df5ae88a-b335630551",
+          "id": "primary-readme-0358df5ae88a-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -562,10 +562,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "aa7c0a71e70932d77d700eb395749dada1099d43b6f7e7aefd8ecd88d89386c9",
+        "content_sha256": "747186e2aa8ac3e271abe7d043741fd304a9501c9aaf0420212e1756e87d30bf",
         "kind": "model",
-        "publisher": "mia-ai-lab",
-        "slug": "qwen3-8-flash-next-nvfp4-mia-925d7be6"
+        "publisher": "local-inference-lab",
+        "slug": "qwen3-8-flash-next-nvfp4-lil-ada4da32"
       }
     }
   ],
@@ -972,7 +972,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 105935744618,
+            "artifact_bytes": 105935744089,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 40000000000

@@ -6,6 +6,14 @@
       "ref": "dc77ff1c99eeb2df044ee3d4f0094eb033fee410",
       "repo": "incoai/GLM-5.3-Flash-DFlash2",
       "revision": "dc77ff1c99eeb2df044ee3d4f0094eb033fee410"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "overridden": "upstream repo Mia-AiLab/GLM-5.3-Flash-EXL3-TR3-4bpw returns HTTP 401 since 2026-10-03; byte-identical public copy, evidence: anonymous Hugging Face API at 2026-10-03, brandonmusic/GLM-5.3-Flash-tr3-4bpw@1ae6d704 (the revision Reederey87's env.example names) matches sha256 and size of all 141 shared files of the catalogued 25a44fdb (120 weight shards, config, tokenizer, chat template, index, processor, LICENSE); only README.md differs, and MIRROR.json and ORIGINAL_MODEL_CARD.md exist only in the mirror",
+      "ref": "1ae6d70430a12d762917786696db06a7b4f9bbae",
+      "repo": "brandonmusic/GLM-5.3-Flash-tr3-4bpw",
+      "revision": "1ae6d70430a12d762917786696db06a7b4f9bbae"
     }
   },
   "kit": {
