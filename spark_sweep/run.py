@@ -44,6 +44,8 @@ from .state import ResultsLog, State, StateLock
 from .vonkctl import Vonkctl, VonkctlError, is_infrastructure, request_key
 
 CLEAR_TIMEOUT_SECONDS = 900.0
+IDLE_WAIT_SECONDS = 120.0
+CLEARING_ATTEMPTS = 3
 MAX_REVIEW_DEFERS = 3
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
@@ -1253,40 +1255,66 @@ class Sweep:
         if not self.fleet.presences:
             self.state.data["took_over"] = True
             return True
-        key = request_key("takeover", self.state.nonce)
         self.state.event(
             "stopping what the Sparks run: loading the empty sweep profile"
         )
         self.state.data["dirty"] = True
         self.state.save()
-        try:
-            submitted = self._submit_load(self.cfg.sweep_profile, key, "takeover")
-        except VonkctlError as error:
-            self.state.event(f"could not clear the Sparks: {str(error)[:150]}")
-            self.backoff_until = now + self.cfg.retry_delay
-            if error.infrastructure(reviewing=True):
-                self.note_infra("review", str(error))
-            return False
-        deadline = now + CLEAR_TIMEOUT_SECONDS
+        for attempt in range(1, CLEARING_ATTEMPTS + 1):
+            try:
+                submitted = self._submit_fresh_load(self.cfg.sweep_profile, "takeover")
+            except VonkctlError as error:
+                self.state.event(f"could not clear the Sparks: {str(error)[:150]}")
+                self.backoff_until = now + self.cfg.retry_delay
+                if error.infrastructure(reviewing=True):
+                    self.note_infra("review", str(error))
+                return False
+            status = self._await_application(str(dig(submitted, "id")), now)
+            if status != "succeeded":
+                raise RuntimeError(
+                    f"clearing the Sparks did not succeed (last state {status or 'unknown'})"
+                )
+            if self._wait_idle():
+                self.state.data["took_over"] = True
+                return True
+            self.state.event(
+                f"the Sparks still run something after clearing load {attempt}: trying again"
+            )
+        raise RuntimeError(
+            f"the Sparks still run workloads after {CLEARING_ATTEMPTS} clearing loads: "
+            + ", ".join(sorted({p.alias for p in self.fleet.presences}))
+        )
+
+    def _await_application(self, application_id: str, started: float) -> str:
         status = ""
+        deadline = started + CLEAR_TIMEOUT_SECONDS
         while self.clock.now() < deadline:
             reply = self.vk.run(
                 "profile",
                 "progress",
                 "--application",
-                str(dig(submitted, "id")),
+                application_id,
                 profile=self.cfg.sweep_profile,
             )
             status = str(dig(reply.document, "state", default=""))
             if status in SETTLED:
                 break
             self.clock.sleep(self.cfg.poll_seconds)
-        if status != "succeeded":
-            raise RuntimeError(
-                f"clearing the Sparks did not succeed (last state {status or 'unknown'})"
-            )
-        self.state.data["took_over"] = True
-        return True
+        return status
+
+    def _wait_idle(self) -> bool:
+        """Did the load really empty the Sparks? Look at the fleet, not at the application."""
+        deadline = self.clock.now() + IDLE_WAIT_SECONDS
+        while True:
+            try:
+                self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+                if not self.fleet.presences:
+                    return True
+            except VonkctlError:
+                pass
+            if self.clock.now() >= deadline:
+                return False
+            self.clock.sleep(self.cfg.poll_seconds)
 
     def _apply(self, placements: Sequence[policy.Placement], now: float) -> None:
         profile = self.cfg.sweep_profile
@@ -1532,6 +1560,57 @@ class Sweep:
         write_status(self, final=True)
         self.state.save()
 
+    def _own_key(self, kind: str, profile: int) -> str:
+        """A request key never used before: nonce, load kind, profile and a persisted sequence number.
+
+        The Controller answers a repeated request key with the application it already
+        made. For a clearing, stop or restore load that would be an old, finished
+        application and nothing would change, so every attempt gets a key of its own.
+        """
+        seq = int(self.state.data["own_seq"]) + 1
+        self.state.data["own_seq"] = seq
+        return request_key(kind, self.state.nonce, profile, seq)
+
+    def _known_applications(self) -> set[str]:
+        known = {
+            str(item["application_id"])
+            for item in self.state.data["own_loads"]
+            if item.get("application_id")
+        }
+        load = self.state.data["load"]
+        if load and load.get("app_id"):
+            known.add(str(load["app_id"]))
+        known |= {
+            item["id"]
+            for item in self.state.data["owner"]["baseline"].values()
+            if item.get("id")
+        }
+        return known
+
+    def _submit_fresh_load(
+        self, profile: int, kind: str, *, owner: bool = False
+    ) -> Any:
+        """Submit a load of our own and make sure the Controller started a *new* application.
+
+        An application that is not new (an id seen before, or a request key that is not ours)
+        is stale: nothing happened. Try again with another key, a few times.
+        """
+        for _ in range(CLEARING_ATTEMPTS):
+            known = self._known_applications()
+            key = self._own_key(kind, profile)
+            document = self._submit_load(profile, key, kind, owner=owner)
+            returned = dig(document, "request_key", default=key)
+            if dig(document, "id") not in known and returned == key:
+                return document
+            self.state.event(
+                f"the Controller returned an old application for the {kind} load "
+                f"({dig(document, 'id')}): trying again with a new request key"
+            )
+        raise RuntimeError(
+            f"the Controller keeps answering the {kind} load of profile {profile} with an "
+            "application that is not new; nothing was started"
+        )
+
     def _submit_load(
         self, profile: int, key: str, kind: str, *, owner: bool = False
     ) -> Any:
@@ -1572,25 +1651,15 @@ class Sweep:
         number = self.cfg.restore_owner
         if not self.state.data.get("dirty"):
             return  # the sweep never changed what the Sparks run
-        nonce = self.state.nonce
         try:
             if number is not None:
-                key = request_key(
-                    "restore-owner", nonce, number, self.state.data["load_seq"]
-                )
-                self._submit_load(number, key, "restore-owner", owner=True)
+                self._submit_fresh_load(number, "restore-owner", owner=True)
                 self.state.event(f"restored owner profile {number}")
                 self.state.data["dirty"] = False
             elif self.cfg.stop_at_end:
-                key = request_key(
-                    "sweep-stop",
-                    nonce,
-                    self.cfg.sweep_profile,
-                    self.state.data["load_seq"],
-                )
-                self._submit_load(self.cfg.sweep_profile, key, "stop")
+                self._submit_fresh_load(self.cfg.sweep_profile, "stop")
                 self.state.data["dirty"] = False
-        except VonkctlError as error:
+        except (VonkctlError, RuntimeError) as error:
             self.state.event(f"leaving the fleet failed: {str(error)[:150]}")
 
 

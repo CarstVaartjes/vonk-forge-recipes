@@ -211,6 +211,14 @@ process or the next. A later run that finds the previous run's restore still
 coming up waits for it ("our own load") but does not hold or requeue anything; only
 an application the sweep did not submit counts as the owner loading a profile.
 
+Clearing, stop and restore loads use a request key of their own for every attempt
+(nonce, kind, profile and a persisted sequence number), because the Controller
+answers a repeated key with the application it already made: a fixed takeover key
+returned an old, finished application and stopped nothing. After submitting, the sweep
+checks that the application is new (an id not seen before, carrying our key) and,
+for a clearing load, that the fleet really is idle; otherwise it tries again with a
+new key, three times, and then stops with an error instead of testing on a busy fleet.
+
 ## Evidence
 
 `results.jsonl` follows the platform campaign's log shape (`recorded_at`,
