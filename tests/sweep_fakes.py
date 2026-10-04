@@ -182,6 +182,9 @@ class FakeFleet:
         self.page_size = 2
         self.next_id = 1
         self.reject_pins = False
+        self.max_assignments: int | None = None  # the contract's $.assignments maxItems
+        self.flaky_fleet_reads = 0  # fleet reads that show the second Spark not online
+        self.fleet_reads = 0
         self.stale_loads = 0  # loads answered with the profile's previous application
         self.ignore_clearing = (
             0  # empty-profile loads that succeed without stopping anything
@@ -542,6 +545,8 @@ class FakeFleet:
 
     def _fleet(self) -> dict[str, Any]:
         nodes = []
+        self.fleet_reads += 1
+        flaky = self.fleet_reads <= self.flaky_fleet_reads
         for node_id, name in self.sparks:
             loaded = [
                 {
@@ -558,7 +563,11 @@ class FakeFleet:
                 {
                     "id": node_id,
                     "display_name": name,
-                    "connection": {"online_state": "online"},
+                    "connection": {
+                        "online_state": "reconnecting"
+                        if flaky and node_id == self.sparks[-1][0]
+                        else "online"
+                    },
                     "inventory": {
                         "host_memory_total_bytes": SPARK_MEMORY,
                         "disk_free_bytes": 10**12,
@@ -599,6 +608,15 @@ class FakeFleet:
             data["assignments"] = [
                 x for x in data["assignments"] if x["assignment_name"] != alias
             ]
+            if (
+                self.max_assignments is not None
+                and len(data["assignments"]) >= self.max_assignments
+            ):
+                return self._error(
+                    "control.api_error",
+                    "document does not match the canonical FleetProfileInput "
+                    f"contract: $.assignments: violates maxItems {self.max_assignments}",
+                )
             data["assignments"].append(
                 {
                     "recipe_selector": key,
