@@ -1,7 +1,7 @@
 FROM docker.io/vllm/vllm-openai@sha256:3b0e188ffceb3d07e09c3cb5215433a0020eacf02d7f882ed3a8bfd15454477e
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark" \
-      org.opencontainers.image.revision="7d0712dcb83cc58b467235e24d3a4429ed14518b" \
+      org.opencontainers.image.revision="b7c5da1a9e7448a14b480deee66eda3799b1eb43" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later AND Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
