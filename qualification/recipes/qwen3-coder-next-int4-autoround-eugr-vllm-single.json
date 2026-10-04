@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/qwen3-coder-next-int4-autoround-eugr-vllm-single",
   "service_recipes": {
-    "alias": "Qwen3-Coder-Next-INT4-AutoRound",
+    "alias": "qwen3-coder-next-int4-autoround",
     "smoke_cases": [
       "M0",
       "A323",

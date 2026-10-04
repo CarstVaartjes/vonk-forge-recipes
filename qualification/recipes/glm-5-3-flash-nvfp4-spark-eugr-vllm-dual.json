@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/glm-5-3-flash-nvfp4-spark-eugr-vllm-dual",
   "service_recipes": {
-    "alias": "GLM-5.3-Flash-NVFP4-Spark",
+    "alias": "glm-5.3-flash-nvfp4-spark",
     "smoke_cases": [
       "M0",
       "A391",

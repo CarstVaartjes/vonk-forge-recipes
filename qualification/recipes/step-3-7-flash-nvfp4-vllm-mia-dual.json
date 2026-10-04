@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/step-3-7-flash-nvfp4-vllm-mia-dual",
   "service_recipes": {
-    "alias": "stepfun-ai/Step-3.7-Flash-NVFP4",
+    "alias": "stepfun-ai-step-3.7-flash-nvfp4",
     "smoke_cases": [
       "M0",
       "A391",

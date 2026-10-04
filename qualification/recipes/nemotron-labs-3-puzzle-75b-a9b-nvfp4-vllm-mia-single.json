@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/nemotron-labs-3-puzzle-75b-a9b-nvfp4-vllm-mia-single",
   "service_recipes": {
-    "alias": "Nemotron-75b-Puzzle",
+    "alias": "nemotron-75b-puzzle",
     "smoke_cases": [
       "M0",
       "A391",

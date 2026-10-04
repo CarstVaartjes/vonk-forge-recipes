@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single",
   "service_recipes": {
-    "alias": "nvidia/nemotron-3-super",
+    "alias": "nvidia-nemotron-3-super",
     "smoke_cases": [
       "M0",
       "NEM_A391_OFF",

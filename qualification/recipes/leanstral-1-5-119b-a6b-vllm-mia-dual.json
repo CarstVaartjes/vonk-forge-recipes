@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/leanstral-1-5-119b-a6b-vllm-mia-dual",
   "service_recipes": {
-    "alias": "mistralai/Leanstral-1.5-119B-A6B",
+    "alias": "mistralai-leanstral-1.5-119b-a6b",
     "smoke_cases": [
       "M0",
       "A391",

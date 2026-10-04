@@ -12,6 +12,7 @@ with success and failure, and the fleet's loaded runs.
 from __future__ import annotations
 
 import json
+import re
 import threading
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
@@ -19,6 +20,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
+from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
+
+_ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
 SPARK_MEMORY = 130_663_231_488
 GB = 10**9
 
@@ -565,6 +569,24 @@ class FakeFleet:
         if verb == "add":
             key, alias = a[0], a[a.index("--as") + 1]
             names = [a[i + 1] for i, x in enumerate(a) if x == "--spark"]
+            # The Controller's own refusals of a profile edit, in the wording of
+            # its CLI contract check and its 422.
+            if not _ALIAS.fullmatch(alias):
+                return self._error(
+                    "control.api_error",
+                    "document does not match the canonical FleetProfileInput "
+                    "contract: $.assignments[0].assignment_name: violates pattern "
+                    f"{ENDPOINT_ALIAS_PATTERN!r}",
+                )
+            if any(
+                x["assignment_name"] == alias and x["recipe_selector"] != key
+                for x in data["assignments"]
+            ):
+                return self._error(
+                    "controller.invalid_request",
+                    "request is invalid: body: Value error, running profile "
+                    "assignment aliases must be unique",
+                )
             data["assignments"] = [
                 x for x in data["assignments"] if x["assignment_name"] != alias
             ]

@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/qwen3-8-flash-next-nvfp4-eugr-vllm-single",
   "service_recipes": {
-    "alias": "Qwen3.8-Flash-Next-NVFP4",
+    "alias": "qwen3.8-flash-next-nvfp4",
     "smoke_cases": [
       "M0",
       "A323",

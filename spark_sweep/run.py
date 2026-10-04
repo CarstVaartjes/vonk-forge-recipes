@@ -38,6 +38,7 @@ from .catalog import (
 from .definitions import Definitions
 from .owner import OwnerGuard, OwnerStatus
 from .prefetch import PrefetchConfig, Prefetcher
+from .profile_alias import profile_alias, unique_profile_alias
 from .report import write_status
 from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
 from .state import ResultsLog, State, StateLock
@@ -149,8 +150,12 @@ class SweepConfig:
 
 
 def alias_for(recipe: Recipe, definitions: Definitions) -> str:
-    """The name the lane serves under: the reviewed service alias, else the slug."""
-    return definitions.alias(recipe.key) or recipe.slug[:60]
+    """The name the lane serves under: the reviewed service alias, else the slug.
+
+    Always a valid profile alias, so a spelling the contract refuses (capitals,
+    a ``/``) never reaches the Controller.
+    """
+    return profile_alias(definitions.alias(recipe.key) or recipe.slug)
 
 
 class Sweep:
@@ -205,6 +210,7 @@ class Sweep:
         self.last_prefetch: dict[str, Any] = {}
         self.cached_models: set[str] = set()
         self.idle_ticks = 0
+        self._assigned: dict[str, str] = {}
 
     # ------------------------------------------------------------------ setup
 
@@ -1316,8 +1322,31 @@ class Sweep:
                 return False
             self.clock.sleep(self.cfg.poll_seconds)
 
+    def _alias(self, recipe: Recipe) -> str:
+        """The recipe's assignment name in the sweep profile, unique within it.
+
+        A lane keeps the name it was opened with. Another recipe that serves
+        under the same reviewed alias (the Inkling variants) gets a short
+        suffix, because a profile cannot hold two running assignments of one
+        name.
+        """
+        slot = self.state.slots.get(recipe.key)
+        if slot is not None:
+            return str(slot["alias"])
+        if recipe.key in self._assigned:
+            return self._assigned[recipe.key]
+        alias = alias_for(recipe, self.defs)
+        taken = {
+            str(s["alias"]) for k, s in self.state.slots.items() if k != recipe.key
+        } | {a for k, a in self._assigned.items() if k != recipe.key}
+        if alias in taken:
+            alias = unique_profile_alias(alias, recipe.key)
+        self._assigned[recipe.key] = alias
+        return alias
+
     def _apply(self, placements: Sequence[policy.Placement], now: float) -> None:
         profile = self.cfg.sweep_profile
+        self._assigned = {}
         added: list[policy.Placement] = []
         names = {s.id: s.name for s in self.sparks()}
         for placement in placements:
@@ -1327,7 +1356,7 @@ class Sweep:
                 args += ["--spark", names[spark_id]]
             args += [
                 "--as",
-                alias_for(recipe, self.defs),
+                self._alias(recipe),
                 "--state",
                 "running",
                 "--yes",
@@ -1335,7 +1364,24 @@ class Sweep:
             try:
                 self.vk.call("profile", *args, profile=profile)
                 added.append(placement)
+                self.clear_infra("profile-edit")
             except VonkctlError as error:
+                refused = policy.refused_profile_field(str(error))
+                if refused is not None and refused not in policy.RECIPE_PROFILE_FIELDS:
+                    # The Controller refused something the sweep itself sent (the
+                    # name, the Sparks, the state): nothing about this recipe.
+                    self._rollback(added, f"profile edit refused {refused}: {error}")
+                    self.note_infra("profile-edit", str(error))
+                    return
+                if refused is not None:
+                    self._record_failure(
+                        recipe.key,
+                        policy.classify(
+                            "profile-edit", error.code, str(error), klass="recipe-data"
+                        ),
+                        None,
+                    )
+                    continue
                 if error.infrastructure(reviewing=True):
                     # The client, protocol or transport failed: nothing about this recipe.
                     self._rollback(added, f"profile edit failed: {error}")
@@ -1346,7 +1392,7 @@ class Sweep:
                 )
         if not added:
             return
-        aliases = {alias_for(p.recipe, self.defs): p for p in added}
+        aliases = {self._alias(p.recipe): p for p in added}
         kept = {
             s["alias"] for s in self.state.slots.values() if s["phase"] == "smoking"
         }
@@ -1414,7 +1460,7 @@ class Sweep:
         )
         names = {s.id: s.name for s in self.sparks()}
         self.state.slots[recipe.key] = {
-            "alias": alias_for(recipe, self.defs),
+            "alias": self._alias(recipe),
             "node_ids": list(placement.spark_ids),
             "spark_names": [names.get(i, i) for i in placement.spark_ids],
             "phase": "loading",
@@ -1431,7 +1477,7 @@ class Sweep:
                 self.vk.call(
                     "profile",
                     "remove",
-                    alias_for(placement.recipe, self.defs),
+                    self._alias(placement.recipe),
                     "--yes",
                     profile=self.cfg.sweep_profile,
                 )
@@ -1466,7 +1512,7 @@ class Sweep:
             ]
             for placement in blocked:
                 reasons.setdefault(
-                    alias_for(placement.recipe, self.defs),
+                    self._alias(placement.recipe),
                     generic or [("review.blocked", "the review was not allowed")],
                 )
         self._rollback(
@@ -1483,7 +1529,7 @@ class Sweep:
             key = placement.recipe.key
             entry = self.state.entry(key)
             code, detail = reasons.get(
-                alias_for(placement.recipe, self.defs), [("review.blocked", "")]
+                self._alias(placement.recipe), [("review.blocked", "")]
             )[0]
             cache = "cache" in code or "not-cached" in detail or "not cached" in detail
             if cache and int(entry.get("review_defers", 0)) < MAX_REVIEW_DEFERS:

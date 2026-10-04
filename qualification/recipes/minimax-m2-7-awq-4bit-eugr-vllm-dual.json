@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/minimax-m2-7-awq-4bit-eugr-vllm-dual",
   "service_recipes": {
-    "alias": "MiniMax-M2.7-AWQ",
+    "alias": "minimax-m2.7-awq",
     "smoke_cases": [
       "M0",
       "A323",

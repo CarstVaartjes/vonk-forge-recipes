@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/qwen3-8-flash-next-exl3-3-05bpw-vcruz305-exllamav3-single",
   "service_recipes": {
-    "alias": "Qwen3.8-Flash-Next-EXL3",
+    "alias": "qwen3.8-flash-next-exl3",
     "smoke_cases": [
       "M0",
       "A391"

@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/ui-mate-27b-vllm-single",
   "service_recipes": {
-    "alias": "UI_Mate",
+    "alias": "ui_mate",
     "smoke_cases": [
       "M0",
       "UI_ACTION"

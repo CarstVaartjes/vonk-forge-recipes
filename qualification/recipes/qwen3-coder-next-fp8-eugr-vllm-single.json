@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/qwen3-coder-next-fp8-eugr-vllm-single",
   "service_recipes": {
-    "alias": "Qwen3-Coder-Next-FP8",
+    "alias": "qwen3-coder-next-fp8",
     "smoke_cases": [
       "M0",
       "A323",

@@ -15,6 +15,7 @@ ignore fields a newer minor release added, and identify a document by the
 from __future__ import annotations
 
 from .canonical import canonical_json, document_sha256, read_model, read_recipe
+from .endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 from .model import GitHubReleaseAsset, GitHubReleaseSource, ModelDefinition
 from .qualification_authority import (
     QualificationAuthority,
@@ -39,6 +40,8 @@ CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
 __all__ = [
     "CONTRACT_MAJOR",
     "CONTRACT_VERSION",
+    "ENDPOINT_ALIAS_PATTERN",
+    "EndpointAlias",
     "GitHubReleaseAsset",
     "GitHubReleaseSource",
     "ModelDefinition",
