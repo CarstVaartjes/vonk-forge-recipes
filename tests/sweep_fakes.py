@@ -169,6 +169,10 @@ class FakeFleet:
         self.page_size = 2
         self.next_id = 1
         self.reject_pins = False
+        self.stale_loads = 0  # loads answered with the profile's previous application
+        self.ignore_clearing = (
+            0  # empty-profile loads that succeed without stopping anything
+        )
         # One-shot injected errors: (command prefix, error code, detail), consumed on first match.
         self.faults: list[tuple[tuple[str, ...], str, str]] = []
         self.client_build: dict[str, Any] = {"version": "1.0", "source_sha": "a" * 40}
@@ -691,7 +695,15 @@ class FakeFleet:
         request = a[a.index("--request-key") + 1]
         if request in self.by_request:
             return 0, self._app_doc(self.apps[self.by_request[request]])
-        self.runs = [r for r in self.runs if r["alias"] in desired_aliases]
+        if self.stale_loads > 0 and data.get("latest"):
+            self.stale_loads -= (
+                1  # an old, finished application comes back for a new request
+            )
+            return 0, self._app_doc(self.apps[data["latest"]])
+        if self.ignore_clearing > 0 and not desired_aliases:
+            self.ignore_clearing -= 1  # a new application that stops nothing
+        else:
+            self.runs = [r for r in self.runs if r["alias"] in desired_aliases]
         app_id = self._id("app")
         assign = []
         for x in data["assignments"]:
