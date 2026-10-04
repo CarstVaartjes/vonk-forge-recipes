@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/gemma-4-26b-a4b-it-nvfp4-eugr-vllm-single",
   "service_recipes": {
-    "alias": "Gemma-4-26B-A4B-NVFP4",
+    "alias": "gemma-4-26b-a4b-nvfp4",
     "smoke_cases": [
       "M0",
       "A323",

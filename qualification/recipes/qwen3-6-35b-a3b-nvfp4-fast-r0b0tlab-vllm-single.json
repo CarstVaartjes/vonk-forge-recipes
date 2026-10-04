@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/qwen3-6-35b-a3b-nvfp4-fast-r0b0tlab-vllm-single",
   "service_recipes": {
-    "alias": "Qwen3.6-35B-A3B-NVFP4-Fast",
+    "alias": "qwen3.6-35b-a3b-nvfp4-fast",
     "smoke_cases": [
       "M0",
       "A323",

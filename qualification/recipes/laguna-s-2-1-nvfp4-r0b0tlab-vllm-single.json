@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/laguna-s-2-1-nvfp4-r0b0tlab-vllm-single",
   "service_recipes": {
-    "alias": "poolside/Laguna-S-2.1-NVFP4",
+    "alias": "poolside-laguna-s-2.1-nvfp4",
     "smoke_cases": [
       "M0",
       "A391",

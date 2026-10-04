@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/ornith-1-5-35b-a3b-nvfp4-sfxnz-vllm-single",
   "service_recipes": {
-    "alias": "ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
+    "alias": "ornith-ai-ornith-1.5-35b-a3b-nvfp4",
     "smoke_cases": [
       "M0",
       "A323",

@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/mimo-v2-5-omni-nvfp4-vllm-mia-dual",
   "service_recipes": {
-    "alias": "MiMo-V2.5-NVFP4",
+    "alias": "mimo-v2.5-nvfp4",
     "smoke_cases": [
       "M0",
       "A391",

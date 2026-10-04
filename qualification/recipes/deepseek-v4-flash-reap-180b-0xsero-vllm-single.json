@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/deepseek-v4-flash-reap-180b-0xsero-vllm-single",
   "service_recipes": {
-    "alias": "DeepSeek-V4-Flash-Spark",
+    "alias": "deepseek-v4-flash-spark",
     "smoke_cases": [
       "M0",
       "A391",

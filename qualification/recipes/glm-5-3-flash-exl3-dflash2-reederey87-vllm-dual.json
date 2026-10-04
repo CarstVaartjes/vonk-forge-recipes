@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",
   "service_recipes": {
-    "alias": "GLM-5.3-Flash-EXL3",
+    "alias": "glm-5.3-flash-exl3",
     "smoke_cases": [
       "M0",
       "A391",

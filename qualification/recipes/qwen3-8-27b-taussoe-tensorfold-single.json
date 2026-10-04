@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/qwen3-8-27b-taussoe-tensorfold-single",
   "service_recipes": {
-    "alias": "Qwen3.8-27B",
+    "alias": "qwen3.8-27b",
     "smoke_cases": [
       "M0",
       "A323",

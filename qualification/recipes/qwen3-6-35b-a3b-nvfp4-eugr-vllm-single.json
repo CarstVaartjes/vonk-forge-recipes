@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/qwen3-6-35b-a3b-nvfp4-eugr-vllm-single",
   "service_recipes": {
-    "alias": "Qwen3.6-35B-A3B-NVFP4",
+    "alias": "qwen3.6-35b-a3b-nvfp4",
     "smoke_cases": [
       "M0",
       "A323",
