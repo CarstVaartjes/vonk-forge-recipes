@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:5668e35e5ee021da4b9ce88a1964caf0e082e8ca01d81d1d64b6213a55c6add5",
+      "kind": "digest",
+      "ref": "sha256:5668e35e5ee021da4b9ce88a1964caf0e082e8ca01d81d1d64b6213a55c6add5",
+      "repo": "ghcr.io/0xsero/deepseek-v4.1-flash-spark"
+    }
+  },
+  "kit": {
+    "commit": "ee688184827e50f296bfdaf4215e04d3a4f942c3",
+    "repo": "0xSero/DeepSeek-V4.1-Flash-Two-Sparks"
+  }
+}
