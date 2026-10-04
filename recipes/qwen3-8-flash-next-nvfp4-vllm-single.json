@@ -802,11 +802,11 @@
       "Qwen contributors",
       "froggeric"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark/tree/7d0712dcb83cc58b467235e24d3a4429ed14518b"
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark/tree/b7c5da1a9e7448a14b480deee66eda3799b1eb43"
   },
   "release": {
-    "released_at": "2026-09-30",
-    "version": "1.0.2"
+    "released_at": "2026-10-04",
+    "version": "1.0.3"
   },
   "runtime": {
     "arguments": [

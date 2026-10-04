@@ -25,7 +25,7 @@
   },
   "source": {
     "repo": "MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark",
-    "commit": "7d0712dcb83cc58b467235e24d3a4429ed14518b"
+    "commit": "b7c5da1a9e7448a14b480deee66eda3799b1eb43"
   },
   "kit": {
     "dependencies": {
