@@ -11,19 +11,17 @@ from __future__ import annotations
 
 import hashlib
 import re
-from typing import Annotated, Any, Literal
+from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    SerializerFunctionWrapHandler,
     StrictBool,
     StrictInt,
     StrictStr,
     field_validator,
-    model_serializer,
     model_validator,
 )
 
@@ -201,8 +199,14 @@ class ModelFile(_ModelContract):
     roles: list[Annotated[StrictStr, Field(pattern=_TOKEN)]] = Field(
         min_length=1, max_length=16
     )
+    # Omitted means "published whole": a document without parts serializes
+    # exactly as it did before the field existed (no `"parts": null`), so
+    # digests and signed plans built from a dump do not change.
     parts: list[ModelFilePart] | None = Field(
-        default=None, min_length=2, max_length=1024
+        default=None,
+        min_length=2,
+        max_length=1024,
+        exclude_if=lambda value: value is None,
     )
 
     @field_validator("path")
@@ -222,16 +226,6 @@ class ModelFile(_ModelContract):
         if self.size_bytes == 0 and self.sha256 != hashlib.sha256(b"").hexdigest():
             raise ValueError("zero-byte files must use the empty-content SHA-256")
         return self
-
-    @model_serializer(mode="wrap")
-    def omit_absent_parts(self, handler: SerializerFunctionWrapHandler) -> Any:
-        # Omitted means "published whole": a document without parts serializes
-        # exactly as it did before the field existed (no `"parts": null`), so
-        # digests and signed plans built from a dump do not change.
-        data = handler(self)
-        if isinstance(data, dict) and data.get("parts") is None:
-            data.pop("parts", None)
-        return data
 
     @model_validator(mode="after")
     def parts_cover_the_file(self) -> ModelFile:
