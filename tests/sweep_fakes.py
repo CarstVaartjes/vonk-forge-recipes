@@ -67,6 +67,10 @@ class FakeRecipe:
     content: str = "c1"
     updated: str = "2026-10-01T00:00:00Z"
     load_seconds: float = 120.0
+    copy_seconds: float = (
+        0.0  # NAS to Spark distribution, before the install and start phases
+    )
+    copy_stalls: bool = False  # the copy stops making progress part-way
     fail_load: str | None = None  # status reason of a failed load
     fail_phase: str = "runtime-install"
     fail_download: str | None = None
@@ -745,7 +749,7 @@ class FakeFleet:
             assign.append(
                 {
                     "alias": alias,
-                    "at": self.clock.now() + recipe.load_seconds,
+                    "at": self.clock.now() + recipe.copy_seconds + recipe.load_seconds,
                     "fail": recipe.fail_load,
                     "phase": recipe.fail_phase,
                     "resolved": False,
@@ -758,12 +762,41 @@ class FakeFleet:
             "assign": assign,
             "state": "running",
             "request_key": request,
+            "copy": max(
+                (
+                    self.recipes[x["recipe_selector"]].copy_seconds
+                    for x in data["assignments"]
+                    if x["desired_state"] == "running"
+                    and x["assignment_name"] not in running
+                ),
+                default=0.0,
+            ),
+            "copy_stalls": any(
+                self.recipes[x["recipe_selector"]].copy_stalls
+                for x in data["assignments"]
+                if x["assignment_name"] not in running
+            ),
         }
         data["latest"] = app_id
         self.by_request[request] = app_id
         if not assign:
             self.apps[app_id]["state"] = "succeeded"
         return 0, self._app_doc(self.apps[app_id])
+
+    def _child_progress(self, app: dict[str, Any]) -> dict[str, Any]:
+        elapsed = self.clock.now() - app.get("created", 0)
+        copy = app.get("copy", 0.0)
+        if app["state"] in ("queued", "running") and 0 < copy and elapsed < copy:
+            done = int(318 * 2**30 * elapsed / copy)
+            if app.get("copy_stalls"):
+                done = min(done, int(318 * 2**30 * 0.2))  # frozen at 20 %
+            return {
+                "phase": "target-copy",
+                "bytes": done,
+                "total_bytes": 318 * 2**30,
+                "operation": {"phase": "copying", "completed_bytes": done},
+            }
+        return {"phase": app.get("phase")}
 
     def _app_doc(self, app: dict[str, Any]) -> dict[str, Any]:
         return {
@@ -773,7 +806,7 @@ class FakeFleet:
             "status_reason": app.get("reason"),
             "current_operation_id": app["id"],
             "progress": {
-                "child_progress": {"phase": app.get("phase")},
+                "child_progress": self._child_progress(app),
                 "switch_adapter": {"assignment_failures": []},
             },
             **(

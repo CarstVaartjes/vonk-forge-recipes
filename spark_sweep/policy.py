@@ -366,6 +366,41 @@ def learn(
 
 
 # --------------------------------------------------------------------------
+# Distribution: bytes moving to the Spark are watched for progress, not timed
+# --------------------------------------------------------------------------
+
+# Child phases of a profile application while bytes are still being put in place.
+DISTRIBUTION_PHASES = frozenset(
+    {"model-download", "container-download", "target-copy", "transfer"}
+)
+_COPYING = re.compile(r"cop(y|ying)|transfer|distribut|download|sync", re.IGNORECASE)
+# Bumped when the load-timeout rules change; results from older rules may be retried once.
+LOAD_RULES = 2
+
+
+@dataclass(frozen=True)
+class Distribution:
+    copying: bool
+    phase: str | None
+    # Changes whenever the transfer moves: completed bytes and the Controller's last-progress time.
+    signature: tuple[int, str] | None
+
+
+def distribution(document: Mapping[str, Any]) -> Distribution:
+    """Is this profile application still moving bytes, and has it moved since last looked?"""
+    child = (document.get("progress") or {}).get("child_progress") or {}
+    operation = child.get("operation") or {}
+    phase = child.get("phase")
+    op_phase = str(operation.get("phase") or "")
+    copying = phase in DISTRIBUTION_PHASES or bool(_COPYING.search(op_phase))
+    done = max(int(operation.get("completed_bytes") or 0), int(child.get("bytes") or 0))
+    signature = (done, str(operation.get("last_progress_at") or ""))
+    return Distribution(
+        copying, str(phase) if phase else None, signature if copying else None
+    )
+
+
+# --------------------------------------------------------------------------
 # Failure classes, retry, clusters
 # --------------------------------------------------------------------------
 
@@ -435,7 +470,7 @@ RECIPE_SIDE_CLASSES = frozenset(
         "smoke-timeout",
     }
 )
-TRANSIENT_CLASSES = frozenset({"network", "smoke-timeout"})
+TRANSIENT_CLASSES = frozenset({"network", "smoke-timeout", "copy-stalled"})
 MODEL_LEVEL_CLASSES = frozenset({"model-integrity"})
 
 
