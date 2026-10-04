@@ -154,6 +154,12 @@ def _parser() -> argparse.ArgumentParser:
         help="requeue failed recipes (limited by --only) before starting, whatever the cause",
     )
     run.add_argument(
+        "--copy-stall-minutes",
+        type=float,
+        default=10.0,
+        help="fail a load whose copy to the Spark makes no progress for this long (the load timeout does not count copying)",
+    )
+    run.add_argument(
         "--allow-version-skew",
         action="store_true",
         help="run even when vonkctl is not the accepted release (otherwise: vonkctl update --apply)",
@@ -239,6 +245,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         watch_seconds=args.watch,
         allow_version_skew=args.allow_version_skew,
         retry_failed=args.retry_failed,
+        copy_stall_seconds=args.copy_stall_minutes * 60,
     )
 
 
