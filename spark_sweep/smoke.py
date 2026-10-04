@@ -64,11 +64,20 @@ class SmokeResult:
     perf: dict[str, Any] | None = None
     failure: Failure | None = None
     seconds: float = 0.0
+    # Every quality check that ran: {case, expected, got, ok}. Information only.
+    quality: list[dict[str, Any]] = field(default_factory=list)
+
+    @property
+    def quality_notes(self) -> list[dict[str, Any]]:
+        """The quality checks the model missed: reported, never a failure."""
+        return [item for item in self.quality if not item["ok"]]
 
     def record(self) -> dict[str, Any]:
         value: dict[str, Any] = {"kind": self.kind, "cases": self.cases}
         if self.perf:
             value["perf"] = self.perf
+        if self.quality:
+            value["quality"] = self.quality
         return value
 
 
@@ -91,64 +100,91 @@ def _path(value: Any, path: str) -> Any:
     return current
 
 
-def check_assertions(response: Any, raw: str, assertions: list[dict[str, Any]]) -> None:
-    for assertion in assertions:
-        kind = assertion.get("kind")
-        if kind == "raw.not-contains":
-            hit = next(
-                (
-                    v
-                    for v in assertion.get("values", [])
-                    if isinstance(v, str) and v in raw
-                ),
-                None,
-            )
-            if hit is not None:
-                raise AssertionFailed(f"raw.not-contains: response contains {hit!r}")
-            continue
-        path = str(assertion.get("path", ""))
-        value = _path(response, path)
-        expected = assertion.get("value")
-        bad = False
-        if kind == "path.equals":
-            bad = value != expected
-        elif kind == "path.regex":
-            bad = (
-                not isinstance(value, str) or re.fullmatch(str(expected), value) is None
-            )
-        elif kind == "path.nonempty":
-            bad = not isinstance(value, (str, list, dict)) or len(value) == 0
-        elif kind == "path.empty":
-            bad = value not in (None, "", [], {})
-        elif kind == "path.count":
-            bad = not isinstance(value, (str, list, dict)) or len(value) != expected
-        elif kind == "path.lte":
-            bad = (
-                isinstance(value, bool)
-                or not isinstance(value, (int, float))
-                or not isinstance(expected, (int, float))
-                or value > expected
-            )
-        elif kind == "path.json-equals":
+def _evaluate(response: Any, raw: str, assertion: dict[str, Any]) -> tuple[bool, Any]:
+    """Whether one assertion holds, and the value it looked at."""
+    kind = assertion.get("kind")
+    if kind == "raw.not-contains":
+        hit = next(
+            (v for v in assertion.get("values", []) if isinstance(v, str) and v in raw),
+            None,
+        )
+        return hit is None, hit
+    path = str(assertion.get("path", ""))
+    value = _path(response, path)
+    expected = assertion.get("value")
+    bad = False
+    if kind == "path.equals":
+        bad = value != expected
+    elif kind == "path.regex":
+        bad = not isinstance(value, str) or re.fullmatch(str(expected), value) is None
+    elif kind == "path.nonempty":
+        bad = not isinstance(value, (str, list, dict)) or len(value) == 0
+    elif kind == "path.empty":
+        bad = value not in (None, "", [], {})
+    elif kind == "path.count":
+        bad = not isinstance(value, (str, list, dict)) or len(value) != expected
+    elif kind == "path.lte":
+        bad = (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not isinstance(expected, (int, float))
+            or value > expected
+        )
+    elif kind == "path.json-equals":
+        try:
+            bad = (json.loads(value) if isinstance(value, str) else None) != expected
+        except ValueError:
+            bad = True
+    elif kind == "array.path-count-equals":
+        item_path = str(assertion.get("item_path", ""))
+        count = 0
+        for item in value if isinstance(value, list) else []:
             try:
-                bad = (
-                    json.loads(value) if isinstance(value, str) else None
-                ) != expected
-            except ValueError:
-                bad = True
-        elif kind == "array.path-count-equals":
-            item_path = str(assertion.get("item_path", ""))
-            count = 0
-            for item in value if isinstance(value, list) else []:
-                try:
-                    count += _path(item, item_path) == expected
-                except AssertionFailed:
-                    continue
-            bad = count != assertion.get("count")
-        else:
-            raise AssertionFailed(f"unsupported assertion kind {kind!r}")
-        if bad:
-            raise AssertionFailed(f"{kind} failed at {path}: got {str(value)[:80]!r}")
+                count += _path(item, item_path) == expected
+            except AssertionFailed:
+                continue
+        bad = count != assertion.get("count")
+    else:
+        raise AssertionFailed(f"unsupported assertion kind {kind!r}")
+    return not bad, value
+
+
+def check_assertions(response: Any, raw: str, assertions: list[dict[str, Any]]) -> None:
+    """The functional assertions: the first one that does not hold fails the case."""
+    for assertion in assertions:
+        holds, value = _evaluate(response, raw, assertion)
+        if holds:
+            continue
+        if assertion.get("kind") == "raw.not-contains":
+            raise AssertionFailed(f"raw.not-contains: response contains {value!r}")
+        raise AssertionFailed(
+            f"{assertion.get('kind')} failed at {assertion.get('path', '')}: "
+            f"got {str(value)[:80]!r}"
+        )
+
+
+def check_quality(
+    case_id: str, response: Any, raw: str, assertions: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """The quality assertions as ``{case, expected, got, ok}``; a miss is information."""
+    notes: list[dict[str, Any]] = []
+    for assertion in assertions:
+        expected = assertion.get("expected")
+        if not isinstance(expected, str):
+            expected = str(assertion.get("value", assertion.get("values", "")))
+        try:
+            holds, value = _evaluate(response, raw, assertion)
+        except AssertionFailed as error:
+            holds, value = False, str(error)
+        notes.append(
+            {
+                "case": case_id,
+                "expected": expected[:120],
+                "got": str(value)[:120],
+                "ok": holds,
+            }
+        )
+    return notes
 
 
 # -- requests ---------------------------------------------------------------
@@ -290,8 +326,9 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     if len(raw) > limit:
         raise AssertionFailed("response exceeds its bound")
     text = raw.decode("utf-8", "replace")
-    check_assertions(json.loads(text), text, list(case.get("assertions", [])))
-    return {
+    document = json.loads(text)
+    check_assertions(document, text, list(case.get("assertions", [])))
+    record: dict[str, Any] = {
         "case_id": case.get("id"),
         "method": method,
         "path": case["path"],
@@ -299,6 +336,12 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
         "latency_ms": round((time.monotonic() - started) * 1000, 1),
         "response_bytes": len(raw),
     }
+    quality = check_quality(
+        str(case.get("id")), document, text, list(case.get("quality_assertions", []))
+    )
+    if quality:
+        record["quality"] = quality
+    return record
 
 
 def has_chat(recipe: Recipe, cases: list[dict[str, Any]]) -> bool:
@@ -325,7 +368,9 @@ def smoke_service(
     if result.failure is None:
         for case in cases:
             try:
-                result.cases.append(run_case(base, case, config))
+                record = run_case(base, case, config)
+                result.quality.extend(record.pop("quality", []))
+                result.cases.append(record)
             except AssertionFailed as error:
                 result.failure = classify(
                     "smoke", f"case.{case.get('id')}", str(error), "smoke-assertion"

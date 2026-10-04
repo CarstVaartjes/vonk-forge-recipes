@@ -21,6 +21,7 @@ REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 sys.path.insert(0, str(ROOT))
+from qualification.case_assertions import require_valid_case_assertions
 from qualification.definitions_loader import load_definitions
 from qualification.service_aliases import require_valid_service_aliases
 
@@ -750,6 +751,7 @@ def qualification_index(catalog: dict[str, Any]) -> dict[str, object]:
     """Bind only structurally converted recipes into qualification transport data."""
     definitions = load_definitions(QUALIFICATION_ROOT)
     require_valid_service_aliases(definitions)
+    require_valid_case_assertions(definitions)
     available = {
         f"{entry['document']['identity']['publisher']}/{entry['document']['identity']['slug']}": entry[
             "content_sha256"
