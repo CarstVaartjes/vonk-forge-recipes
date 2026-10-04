@@ -147,6 +147,7 @@ class SweepConfig:
     allow_version_skew: bool = False
     release_seconds: float = 300.0
     retry_failed: bool = False
+    copy_stall_seconds: float = 600.0
 
 
 def alias_for(recipe: Recipe, definitions: Definitions) -> str:
@@ -506,6 +507,33 @@ class Sweep:
             and self._selected(self.recipes[key])
         )
 
+    def adopt_in_flight(self) -> None:
+        """A restarted sweep carries on with a load it submitted itself instead of redoing it.
+
+        The application keeps running on the Controller whatever happens to this process; the
+        saved lane slots and the saved ``load`` pick it up on the next pass, and the clearing
+        step is skipped while a slot exists. The time this process was away is not load time
+        and not a stalled copy.
+        """
+        now = self.clock.now()
+        adopted = []
+        for key, slot in self.state.slots.items():
+            if slot["phase"] != "loading":
+                continue
+            gap = now - float(slot.get("last_tick", slot["started_at"]))
+            if gap > 2 * self.cfg.poll_seconds:
+                slot["deadline"] = float(slot["deadline"]) + gap
+                if "copy_progress_at" in slot:
+                    slot["copy_progress_at"] = now
+            slot["last_tick"] = now
+            adopted.append(key)
+        if adopted:
+            self.state.event(
+                "adopted an in-flight load of "
+                + ", ".join(adopted)
+                + " (time away not counted)"
+            )
+
     def start_takeover(self) -> None:
         """``run --yes`` means the sweep owns the fleet: clear it once, now, so reviews see idle Sparks."""
         while self.owner_status.paused:  # an owner load is in progress: wait for it
@@ -596,6 +624,19 @@ class Sweep:
             ):
                 self._requeue_failed(key, f"controller-release-changed ({current})")
 
+    def requeue_for_rules(self) -> None:
+        """Load timeouts recorded under the old rules (copy time counted) are tried once more."""
+        for key, entry in self.state.recipes.items():
+            if (
+                entry.get("status") == "failed"
+                and entry.get("failure_class") == "timeout"
+                and int(entry.get("rules", 1)) < policy.LOAD_RULES
+                and self._selected_key(key)
+            ):
+                self._requeue_failed(
+                    key, "load-timeout rules changed: copying no longer counts"
+                )
+
     def requeue_failed(self) -> int:
         """``--retry-failed``: every failed recipe (within ``--only``), whatever the cause."""
         keys = [
@@ -674,9 +715,11 @@ class Sweep:
         stuck = 0
         try:
             self.check_client()
+            self.requeue_for_rules()
             if self.cfg.retry_failed:
                 self.requeue_failed()
             self.preflight()
+            self.adopt_in_flight()
             self.start_takeover()
             while True:
                 self.tick()
@@ -807,6 +850,7 @@ class Sweep:
             cluster=failure.cluster,
             finished_at=now,
             release=self.release_sha,
+            rules=policy.LOAD_RULES,
             content_sha256=recipe.content_sha256
             if recipe
             else entry.get("content_sha256"),
@@ -933,6 +977,10 @@ class Sweep:
         load["app_id"] = document["id"]
         status = str(document.get("state", ""))
         load["state"] = status
+        moving = policy.distribution(document)
+        load["copying"] = moving.copying
+        load["phase"] = moving.phase
+        load["progress"] = list(moving.signature) if moving.signature else None
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
@@ -966,8 +1014,38 @@ class Sweep:
             elif slot["phase"] == "smoking":
                 self._advance_smoking(key, slot)
 
+    def _track_distribution(self, slot: dict[str, Any], now: float) -> bool:
+        """Is the slot's load still putting bytes in place? Those seconds are not load time.
+
+        Copying a few hundred GiB to a Spark can take longer than any sensible load timeout while
+        being perfectly healthy. The wall-clock limit therefore only runs while the application is
+        in the phases after the bytes are in place; while copying, only a copy that has stopped
+        moving counts against the load.
+        """
+        load = self.state.data["load"]
+        elapsed = now - float(slot.get("last_tick", slot["started_at"]))
+        slot["last_tick"] = now
+        copying = bool(
+            load
+            and load.get("request_key") == slot["request_key"]
+            and load.get("copying")
+        )
+        slot["copying"] = copying
+        if load and load.get("phase"):
+            slot["load_phase"] = load["phase"]
+        if not copying:
+            slot.pop("copy_progress_at", None)
+            return False
+        slot["copy_seconds"] = float(slot.get("copy_seconds", 0)) + elapsed
+        signature = load.get("progress") if load else None
+        if signature != slot.get("copy_signature") or "copy_progress_at" not in slot:
+            slot["copy_signature"] = signature
+            slot["copy_progress_at"] = now
+        return True
+
     def _advance_loading(self, key: str, slot: dict[str, Any], now: float) -> None:
         recipe = self.recipes[key]
+        copying = self._track_distribution(slot, now)
         run_id = serving_run(
             self.fleet, slot["alias"], slot["node_ids"], recipe.node_count
         )
@@ -977,7 +1055,7 @@ class Sweep:
                 self.state.data["learned"],
                 recipe.engine,
                 slot["model_bytes"],
-                now - slot["started_at"],
+                now - slot["started_at"] - float(slot.get("copy_seconds", 0)),
             )
             self._submit_smoke(key, slot)
             return
@@ -1009,10 +1087,26 @@ class Sweep:
                 app,
             )
             return
-        if now > slot["deadline"]:
+        if copying:
+            stalled = now - float(slot["copy_progress_at"])
+            if stalled > self.cfg.copy_stall_seconds:
+                self._timeout(
+                    key,
+                    slot,
+                    policy.classify(
+                        "install",
+                        "copy.stalled",
+                        f"the copy to the Spark made no progress for {round(stalled)}s "
+                        f"(phase {slot.get('load_phase')})",
+                        "copy-stalled",
+                    ),
+                )
+        elif now > slot["deadline"] + float(slot.get("copy_seconds", 0)):
             self._timeout(key, slot)
 
-    def _timeout(self, key: str, slot: dict[str, Any]) -> None:
+    def _timeout(
+        self, key: str, slot: dict[str, Any], failure: policy.Failure | None = None
+    ) -> None:
         load = self.state.data["load"]
         others = [
             k
@@ -1028,14 +1122,20 @@ class Sweep:
                 "--detach",
                 profile=self.cfg.sweep_profile,
             )
-        seconds = round(self.clock.now() - slot["started_at"])
+        seconds = round(
+            self.clock.now() - slot["started_at"] - float(slot.get("copy_seconds", 0))
+        )
         self._fail_slot(
             key,
             slot,
-            policy.classify(
+            failure
+            or policy.classify(
                 "timeout",
                 "load.timeout",
-                f"not serving after {seconds}s (limit {round(slot['deadline'] - slot['started_at'])}s)",
+                f"not serving {seconds}s after the bytes were in place "
+                f"(limit {round(slot['deadline'] - slot['started_at'])}s, "
+                f"{round(float(slot.get('copy_seconds', 0)))}s of copying not counted; "
+                f"last phase {slot.get('load_phase')})",
             ),
             load or {},
         )

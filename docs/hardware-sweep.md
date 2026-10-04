@@ -145,7 +145,17 @@ certificate).
 
 * Load timeouts are learned per engine from completed loads (seconds per GiB of
   model, times 3, between 20 minutes and 2 hours); before any sample, 60 minutes
-  allow a first-start compile.
+  allow a first-start compile. The limit only runs once the bytes are in place
+  (install, start, readiness): while the profile application is distributing or
+  copying (child phase `target-copy`, `transfer`, `model-download`,
+  `container-download`, or a copying operation) it does not count, and the learned
+  timings leave the copy out. During a copy only a lack of progress fails the
+  load: no change in the completed bytes for `--copy-stall-minutes` (default 10),
+  which is class `copy-stalled`, retried once and requeued on a platform change.
+  Load timeouts recorded before this rule (copy time counted) are retried once.
+* A restarted sweep adopts a load it submitted itself: the saved lane slot and the
+  saved application are picked up, nothing is cancelled or placed again, and the
+  time the sweep was away counts neither as load time nor as a stalled copy.
 * Failures carry a phase (download, review, build, install, start, readiness,
   smoke, timeout) and a class (network, oom, capacity, build-policy,
   model-integrity, …). Only network-like failures are retried, once. A

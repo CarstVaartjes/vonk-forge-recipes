@@ -93,7 +93,9 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             lanes.setdefault(name, []).append(
                 {
                     "recipe": key,
-                    "phase": slot["phase"],
+                    "phase": "loading (copying)"
+                    if slot.get("copying")
+                    else slot["phase"],
                     "elapsed_s": round(now - slot["started_at"]),
                     "limit_s": round(slot["deadline"] - slot["started_at"]),
                 }
