@@ -291,8 +291,12 @@
           }
         ],
         "temperature": 0,
-        "max_tokens": 16,
-        "stream": false
+        "max_tokens": 256,
+        "stream": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "thinking": false
+        }
       },
       "timeout_seconds": 180,
       "max_response_bytes": 262144,
@@ -335,9 +339,13 @@
           }
         ],
         "temperature": 0,
-        "max_tokens": 64,
+        "max_tokens": 256,
         "stream": false,
-        "seed": 42
+        "seed": 42,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "thinking": false
+        }
       },
       "timeout_seconds": 180,
       "max_response_bytes": 262144,
@@ -384,7 +392,7 @@
           }
         ],
         "temperature": 0,
-        "max_tokens": 128,
+        "max_tokens": 256,
         "stream": false,
         "tools": [
           {
@@ -411,6 +419,10 @@
           "function": {
             "name": "report_temperature"
           }
+        },
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "thinking": false
         }
       },
       "timeout_seconds": 180,
@@ -452,7 +464,7 @@
           }
         ],
         "temperature": 0,
-        "max_tokens": 128,
+        "max_tokens": 256,
         "stream": false,
         "seed": 42,
         "tools": [
@@ -483,7 +495,11 @@
             }
           }
         ],
-        "tool_choice": "auto"
+        "tool_choice": "auto",
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "thinking": false
+        }
       },
       "timeout_seconds": 180,
       "max_response_bytes": 262144,
@@ -539,8 +555,12 @@
           }
         ],
         "temperature": 0,
-        "max_tokens": 16,
-        "stream": false
+        "max_tokens": 256,
+        "stream": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "thinking": false
+        }
       },
       "timeout_seconds": 180,
       "max_response_bytes": 262144,
@@ -578,8 +598,12 @@
         ],
         "temperature": 0,
         "seed": 42,
-        "max_tokens": 16,
-        "stream": false
+        "max_tokens": 256,
+        "stream": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "thinking": false
+        }
       },
       "timeout_seconds": 180,
       "max_response_bytes": 262144,
