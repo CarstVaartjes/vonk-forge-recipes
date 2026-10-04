@@ -1090,11 +1090,11 @@
       "tonyd2wild",
       "vLLM contributors"
     ],
-    "source_reference": "https://github.com/tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe/tree/13621bb3cc6fd30a94d53609320599d1f1134686"
+    "source_reference": "https://github.com/tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe/tree/9c699a2d027c2bf072d130f935acdbeacb06f208"
   },
   "release": {
-    "released_at": "2026-09-22",
-    "version": "1.0.1"
+    "released_at": "2026-10-04",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [

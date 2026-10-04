@@ -1,7 +1,7 @@
 FROM ghcr.io/tonyd2wild/vllm-glm53-flash@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6
 
 LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe" \
-      org.opencontainers.image.revision="13621bb3cc6fd30a94d53609320599d1f1134686" \
+      org.opencontainers.image.revision="9c699a2d027c2bf072d130f935acdbeacb06f208" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
 # The stock image does not serve MiMo-V2.6-Flash-RL correctly on GB10. The
