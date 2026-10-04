@@ -4,7 +4,7 @@ FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
       org.opencontainers.image.revision="c4646171139ee8a3c38103eaa1699dad226ec12b" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      io.vonk.recipe-patches.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/1576746a04983b6eded0551dbf22512ee9e95654"
+      io.vonk.recipe-patches.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/a15282478bd0e58ea80c512c330df3f61af85f74"
 
 # NGC exports PIP_CONSTRAINT for its own stack; the hash-pinned lock below is resolved without it and leaves torch and numpy alone.
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
