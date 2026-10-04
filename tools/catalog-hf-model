@@ -91,7 +91,32 @@ def _arguments() -> argparse.Namespace:
         default=[],
         help="a capability name the model supports (repeatable)",
     )
+    parser.add_argument(
+        "--assembled-sha256",
+        action="append",
+        default=[],
+        metavar="PATH=DIGEST",
+        help=(
+            "the SHA-256 of a file Hugging Face publishes only as PATH.partNN "
+            "parts (repeatable); read from the repository's sha256-manifest.txt "
+            "when it lists the file"
+        ),
+    )
     return parser.parse_args()
+
+
+def _assembled_digests(values: list[str]) -> dict[str, str]:
+    digests: dict[str, str] = {}
+    for value in values:
+        path, separator, digest = value.rpartition("=")
+        digest = digest.lower()
+        if not separator or not path or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise SystemExit(
+                f"--assembled-sha256 expects PATH=<64 hex digits>: {value}"
+            )
+        if digests.setdefault(path, digest) != digest:
+            raise SystemExit(f"conflicting --assembled-sha256 for {path}")
+    return digests
 
 
 def _slug(value: str) -> str:
@@ -114,10 +139,79 @@ def _roles(path: str) -> list[str]:
     return ["metadata"]
 
 
+_PART_PATH = re.compile(r"^(?P<base>.+)\.part(?P<index>[0-9]{2,})$")
+_MANIFEST_PATH = "sha256-manifest.txt"
+_MANIFEST_LINE = re.compile(r"^(?P<digest>[0-9a-fA-F]{64})[ \t]+\*?(?P<path>.+?)\s*$")
+
+
+def _manifest_digests(text: str) -> dict[str, str]:
+    """``sha256sum``-format lines of a repository's ``sha256-manifest.txt``."""
+
+    digests: dict[str, str] = {}
+    for line in text.splitlines():
+        match = _MANIFEST_LINE.match(line)
+        if match is None:
+            continue
+        path = match["path"].removeprefix("./")
+        digests[path] = match["digest"].lower()
+    return digests
+
+
+def _split_sets(
+    entries: list[dict[str, Any]],
+) -> tuple[dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
+    """Group ``<name>.partNN`` entries into ordered sets, apart from whole files.
+
+    Hugging Face caps a file at 50 GB, so a larger file is published as
+    ``name.part00``, ``name.part01``, ... that are joined by concatenation. Fewer
+    than two parts is not a split set. A set that is not exactly
+    ``part00..partNN`` (a gap, mixed digit widths), or whose joined name is also
+    published whole, is ambiguous and refused instead of guessed.
+    """
+
+    candidates: dict[str, list[tuple[int, str, dict[str, Any]]]] = {}
+    for entry in entries:
+        match = _PART_PATH.match(entry["path"])
+        if match is not None:
+            candidates.setdefault(match["base"], []).append(
+                (int(match["index"]), match["index"], entry)
+            )
+    paths = {entry["path"] for entry in entries}
+    sets: dict[str, list[dict[str, Any]]] = {}
+    for base, found in candidates.items():
+        if len(found) < 2:
+            continue
+        found.sort(key=lambda item: item[0])
+        if [item[0] for item in found] != list(range(len(found))):
+            raise SystemExit(
+                f"split file {base} has missing or repeated parts "
+                f"(found {[item[1] for item in found]}); refusing to catalogue it"
+            )
+        if len({len(item[1]) for item in found}) != 1:
+            raise SystemExit(f"split file {base} mixes part number widths")
+        if base in paths:
+            raise SystemExit(
+                f"{base} is published both whole and as parts; refusing to guess"
+            )
+        sets[base] = [item[2] for item in found]
+    split_paths = {part["path"] for parts in sets.values() for part in parts}
+    return sets, [entry for entry in entries if entry["path"] not in split_paths]
+
+
 def inventory(
-    repository: str, revision: str, tree: list[object]
+    repository: str,
+    revision: str,
+    tree: list[object],
+    assembled_sha256: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
-    """Artifacts (path, digest, size, roles) of one snapshot's file entries."""
+    """Artifacts (path, digest, size, roles) of one snapshot's file entries.
+
+    A file published only as ``<name>.partNN`` becomes one artifact for ``<name>``
+    with ``parts`` (path, digest, size per part). Hugging Face knows each part's
+    digest but not the joined file's, so that digest comes from
+    ``assembled_sha256`` (path to digest) or from the snapshot's own
+    ``sha256-manifest.txt``; without one the inventory refuses.
+    """
 
     file_entries = [
         entry
@@ -125,57 +219,137 @@ def inventory(
         if isinstance(entry, dict) and entry.get("type") == "file"
     ]
 
-    artifacts: list[dict[str, Any]] = []
-    for entry in file_entries:
+    def resolve(entry: dict[str, Any]) -> dict[str, Any] | None:
         path = entry.get("path")
         size = entry.get("size")
         if not isinstance(path, str) or not isinstance(size, int) or size < 0:
-            continue
+            return None
         lfs = entry.get("lfs")
         if isinstance(lfs, dict) and isinstance(lfs.get("oid"), str):
-            sha256 = lfs["oid"]
-        else:
-            if size > MAX_INLINE_ARTIFACT_BYTES:
-                raise SystemExit(
-                    f"refusing to download non-LFS artifact larger than "
-                    f"{MAX_INLINE_ARTIFACT_BYTES} bytes: {path} ({size} bytes)"
-                )
+            return {"path": path, "size": size, "sha256": lfs["oid"]}
+        if size > MAX_INLINE_ARTIFACT_BYTES:
+            raise SystemExit(
+                f"refusing to download non-LFS artifact larger than "
+                f"{MAX_INLINE_ARTIFACT_BYTES} bytes: {path} ({size} bytes)"
+            )
+        try:
+            payload = _get_bytes(
+                f"https://huggingface.co/{repository}/resolve/{revision}/{quote(path, safe='/')}"
+            )
+        except HTTPError as error:
+            raise SystemExit(
+                "cannot inventory exact non-LFS artifact without access: "
+                f"{path} (HTTP {error.code}); authenticate to Hugging Face "
+                "and rerun"
+            ) from error
+        if len(payload) != size:
+            raise SystemExit(f"download size changed for {path}")
+        return {"path": path, "size": size, "sha256": _sha256(payload)}
+
+    resolved = [item for item in map(resolve, file_entries) if item is not None]
+    split_sets, whole = _split_sets(resolved)
+
+    assembled = dict(assembled_sha256 or {})
+    if split_sets:
+        manifest = {item["path"]: item for item in whole}.get(_MANIFEST_PATH)
+        if manifest is not None:
             try:
-                payload = _get_bytes(
-                    f"https://huggingface.co/{repository}/resolve/{revision}/{quote(path, safe='/')}"
+                declared = _manifest_digests(
+                    _get_bytes(
+                        f"https://huggingface.co/{repository}/resolve/{revision}/{_MANIFEST_PATH}"
+                    ).decode("utf-8", errors="replace")
                 )
             except HTTPError as error:
                 raise SystemExit(
-                    "cannot inventory exact non-LFS artifact without access: "
-                    f"{path} (HTTP {error.code}); authenticate to Hugging Face "
-                    "and rerun"
+                    f"cannot read {_MANIFEST_PATH} (HTTP {error.code}); pass "
+                    "--assembled-sha256 PATH=DIGEST for each split file"
                 ) from error
-            if len(payload) != size:
-                raise SystemExit(f"download size changed for {path}")
-            sha256 = _sha256(payload)
-        artifact_stem = _slug(path.rsplit("/", 1)[-1].rsplit(".", 1)[0])
-        path_sha256 = _sha256(path.encode())
+            for path in split_sets:
+                digest = declared.get(path)
+                if digest is None:
+                    continue
+                if assembled.setdefault(path, digest) != digest:
+                    raise SystemExit(
+                        f"--assembled-sha256 for {path} disagrees with "
+                        f"the repository's {_MANIFEST_PATH}"
+                    )
+        unknown = set(assembled) - set(split_sets)
+        if unknown:
+            raise SystemExit(
+                f"--assembled-sha256 names files that are not split sets: "
+                f"{sorted(unknown)}"
+            )
+    elif assembled_sha256:
+        raise SystemExit(
+            f"--assembled-sha256 names files that are not split sets: "
+            f"{sorted(assembled_sha256)}"
+        )
+
+    artifacts: list[dict[str, Any]] = []
+    for item in whole:
+        artifacts.append(_artifact(repository, revision, item, item["sha256"], None))
+    for path, parts in split_sets.items():
+        digest = assembled.get(path)
+        if digest is None:
+            raise SystemExit(
+                f"{path} is published only as {len(parts)} parts, and the digest of "
+                "the assembled file is not on Hugging Face: pass "
+                f"--assembled-sha256 {path}=<sha256> (or publish a {_MANIFEST_PATH} "
+                "in the repository); refusing to guess"
+            )
+        if not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise SystemExit(f"invalid assembled sha256 for {path}: {digest}")
         artifacts.append(
-            {
-                # Basenames and even basename/content pairs are not globally
-                # unique in a Hugging Face tree. Trace repositories commonly
-                # repeat byte-identical result files in different directories,
-                # so bind the readable id to both content and full-path digests.
-                "id": f"{artifact_stem[:39]}-{sha256[:12]}-{path_sha256[:10]}",
-                "path": path,
-                "kind": "huggingface.file",
-                "repository": f"https://huggingface.co/{repository}",
-                "revision": revision,
-                "sha256": sha256,
-                "download_bytes": size,
-                "installed_bytes": size,
-                "roles": _roles(path),
-            }
+            _artifact(
+                repository,
+                revision,
+                {"path": path, "size": sum(part["size"] for part in parts)},
+                digest,
+                [
+                    {
+                        "path": part["path"],
+                        "sha256": part["sha256"],
+                        "size_bytes": part["size"],
+                    }
+                    for part in parts
+                ],
+            )
         )
     artifacts.sort(key=lambda item: str(item["path"]))
     if not artifacts:
         raise SystemExit("Hugging Face model has no file artifacts")
     return artifacts
+
+
+def _artifact(
+    repository: str,
+    revision: str,
+    item: dict[str, Any],
+    sha256: str,
+    parts: list[dict[str, Any]] | None,
+) -> dict[str, Any]:
+    path = item["path"]
+    size = item["size"]
+    artifact_stem = _slug(path.rsplit("/", 1)[-1].rsplit(".", 1)[0])
+    path_sha256 = _sha256(path.encode())
+    artifact: dict[str, Any] = {
+        # Basenames and even basename/content pairs are not globally
+        # unique in a Hugging Face tree. Trace repositories commonly
+        # repeat byte-identical result files in different directories,
+        # so bind the readable id to both content and full-path digests.
+        "id": f"{artifact_stem[:39]}-{sha256[:12]}-{path_sha256[:10]}",
+        "path": path,
+        "kind": "huggingface.file",
+        "repository": f"https://huggingface.co/{repository}",
+        "revision": revision,
+        "sha256": sha256,
+        "download_bytes": size,
+        "installed_bytes": size,
+        "roles": _roles(path),
+    }
+    if parts is not None:
+        artifact["parts"] = parts
+    return artifact
 
 
 def main() -> int:
@@ -192,7 +366,12 @@ def main() -> int:
     if not tree:
         raise SystemExit("Hugging Face model tree is empty")
 
-    artifacts = inventory(args.repository, revision, tree)
+    artifacts = inventory(
+        args.repository,
+        revision,
+        tree,
+        _assembled_digests(args.assembled_sha256),
+    )
     total_bytes = sum(int(item["download_bytes"]) for item in artifacts)
 
     modality = {"language": "text", "multimodal": "text"}.get(
@@ -249,6 +428,7 @@ def main() -> int:
                 "sha256": item["sha256"],
                 "size_bytes": item["installed_bytes"],
                 "roles": item["roles"],
+                **({"parts": item["parts"]} if "parts" in item else {}),
             }
             for item in artifacts
         ],

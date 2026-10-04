@@ -11,6 +11,7 @@ The schema describes the structure. Adding a family, model, version or quantizat
 - A unique record identity, with family and logical model information for grouping, plus version and variant labels.
 - Modalities, precision and quantization.
 - Source identity and license. Git-backed sources bind an immutable revision; a GitHub release source binds a release ID and the asset IDs for the files below.
+- `files[].parts` (contract 2.2.0, optional): a file the source publishes only as split parts (Hugging Face caps files at 50 GB, so a large shard may exist only as `model.safetensors.part00`, `.part01`, ...). Each part has `path`, `sha256` and `size_bytes`; there are at least two, their paths are unique and differ from every file path, and their sizes add up to the file's `size_bytes`. The file's own `sha256` and `size_bytes` always describe the whole assembled file (the parts are joined, in list order, by byte concatenation), so the same bytes have the same identity split or not; omitting `parts` means the source publishes the file whole. Parts are a transport detail and are never installed. Readers that predate 2.2.0 ignore the field and would try to fetch the whole path, which the source does not host.
 - `requires_token`: whether downloading the files needs a provider account token (a gated repository). No credentials are stored in the document.
 - Exact companion Model references.
 - A canonical file manifest: file ID, relative path, SHA-256, exact byte length and purpose such as weights or tokenizer.
@@ -59,12 +60,12 @@ Preserve meaningful false, zero, empty values and engine-owned JSON values.
 
 ## Versions, identity and reading
 
-`CONTRACT_VERSION` (`2.1.0`) is the semantic version of these contracts and of
-the recipe library release that publishes the catalog (`v2.1.0`). Documents
+`CONTRACT_VERSION` (`2.2.0`) is the semantic version of these contracts and of
+the recipe library release that publishes the catalog (`v2.2.0`). Documents
 carry no schema version. Recipe and Model changes never change the library
 version; publication updates the release in place and records `updated_at`.
 An additive contract change (a new optional field) is a minor version and a
-new release (for example `v2.2.0`); a breaking change is a major version (`v3.0.0`).
+new release (for example `v2.3.0`); a breaking change is a major version (`v3.0.0`).
 
 A document's identity is `document_sha256`: the SHA-256 of its canonical JSON
 (sorted keys, compact separators, UTF-8) exactly as published, not of a
