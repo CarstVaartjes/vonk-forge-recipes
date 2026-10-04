@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
   "service_recipes": {
-    "alias": "DeepSeek-v4.1-Flash-EXL3",
+    "alias": "deepseek-v4.1-flash-exl3",
     "smoke_cases": [
       "M0",
       "A391",

@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/diffusiongemma-26b-a4b-it-eugr-vllm-single",
   "service_recipes": {
-    "alias": "DiffusionGemma-26B-A4B-it",
+    "alias": "diffusiongemma-26b-a4b-it",
     "smoke_cases": [
       "M0",
       "A323",

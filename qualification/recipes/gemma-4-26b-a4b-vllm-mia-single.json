@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/gemma-4-26b-a4b-vllm-mia-single",
   "service_recipes": {
-    "alias": "nvidia/Gemma-4-26B-A4B-NVFP4",
+    "alias": "nvidia-gemma-4-26b-a4b-nvfp4",
     "smoke_cases": [
       "M0",
       "A323",

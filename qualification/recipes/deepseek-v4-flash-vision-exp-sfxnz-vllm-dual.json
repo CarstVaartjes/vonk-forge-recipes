@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/deepseek-v4-flash-vision-exp-sfxnz-vllm-dual",
   "service_recipes": {
-    "alias": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+    "alias": "deepseek-ai-deepseek-v4-flash-vision-exp",
     "smoke_cases": [
       "M0",
       "A391",

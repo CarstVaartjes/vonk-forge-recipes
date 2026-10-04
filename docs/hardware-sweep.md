@@ -59,6 +59,19 @@ window (several cached duals back to back) rather than interleaved with
 singles. Two singles share a Spark when their declared `memory_bytes` plus the
 reserve fit, ports and aliases differ, and the review agrees.
 
+**Aliases.** `--as` is the assignment name, the lane's client-facing model name.
+The profile contract takes a lowercase identifier (`ENDPOINT_ALIAS_PATTERN` in
+the contracts package), so a reviewed `service_recipes.alias` in
+`qualification/recipes/*.json` must already be one: the index build and the
+tests reject any other spelling, and the sweep derives its name from it the way
+the Controller derives a default (lowercase, separators to `-`). A profile
+cannot hold two running assignments of one name, so a variant that shares its
+alias with a lane already in the profile (the Inkling duals) gets a short
+stable suffix. A profile edit the Controller refuses is named by its step
+(`profile-edit`): a refused sweep field (name, Sparks, state) pauses the sweep
+as an infrastructure problem, and only a refused recipe field (`recipe_selector`,
+`option_choices`, `model_variant`) fails the recipe, as `recipe-data`.
+
 ## Prefetch
 
 The next models are downloaded to the NAS while the Sparks test.

@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/minimax-m2-awq-eugr-vllm-dual",
   "service_recipes": {
-    "alias": "MiniMax-M2-AWQ",
+    "alias": "minimax-m2-awq",
     "smoke_cases": [
       "M0",
       "A323",

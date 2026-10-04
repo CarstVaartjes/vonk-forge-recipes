@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/nemotron-3-5-lightning-r0b0tlab-sglang-dflash-single",
   "service_recipes": {
-    "alias": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "alias": "nvidia-nemotron-3.5-lightning-30b-a3b",
     "smoke_cases": [
       "M0",
       "NEM_A391_OFF",

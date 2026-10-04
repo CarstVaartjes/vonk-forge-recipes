@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/qwen3-5-122b-a10b-fp8-eugr-vllm-dual",
   "service_recipes": {
-    "alias": "Qwen3.5-122B-A10B-FP8",
+    "alias": "qwen3.5-122b-a10b-fp8",
     "smoke_cases": [
       "M0",
       "A323",

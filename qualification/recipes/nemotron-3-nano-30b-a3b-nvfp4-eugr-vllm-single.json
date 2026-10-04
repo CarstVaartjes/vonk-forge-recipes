@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-eugr-vllm-single",
   "service_recipes": {
-    "alias": "Nemotron-3-Nano-NVFP4",
+    "alias": "nemotron-3-nano-nvfp4",
     "smoke_cases": [
       "M0",
       "A323",

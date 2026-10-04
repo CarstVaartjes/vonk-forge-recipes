@@ -481,6 +481,21 @@ def _normalise(detail: str) -> str:
     return " ".join(text.split())[:120].lower()
 
 
+# The assignment fields that carry the recipe's own data; the rest of a profile
+# edit (name, Sparks, state) is what the sweep chose.
+RECIPE_PROFILE_FIELDS = frozenset(
+    {"recipe_selector", "option_choices", "model_variant"}
+)
+_ASSIGNMENT_FIELD = re.compile(r"assignments(?:\[\d+\]|\.\d+)\.([a-z_]+)")
+_PROFILE_FIELD = re.compile(r"(?:\$|\bbody)\.([a-z_]+)")
+
+
+def refused_profile_field(text: str) -> str | None:
+    """The profile field a contract refusal names (``$.assignments[0].assignment_name``), if any."""
+    match = _ASSIGNMENT_FIELD.search(text) or _PROFILE_FIELD.search(text)
+    return match.group(1) if match else None
+
+
 def classify(phase: str, code: str = "", detail: str = "", klass: str = "") -> Failure:
     """Name a failure by where it happened and what it said; same cause, same cluster.
 

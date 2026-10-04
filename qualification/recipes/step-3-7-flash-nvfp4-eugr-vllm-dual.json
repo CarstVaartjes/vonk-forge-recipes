@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/step-3-7-flash-nvfp4-eugr-vllm-dual",
   "service_recipes": {
-    "alias": "Step-3.7-Flash-NVFP4",
+    "alias": "step-3.7-flash-nvfp4",
     "smoke_cases": [
       "M0",
       "A323",

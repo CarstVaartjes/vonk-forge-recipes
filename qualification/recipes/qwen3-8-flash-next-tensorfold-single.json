@@ -1,7 +1,7 @@
 {
   "id": "vonk-forge/qwen3-8-flash-next-tensorfold-single",
   "service_recipes": {
-    "alias": "Qwen3.8-Flash-Next",
+    "alias": "qwen3.8-flash-next",
     "smoke_cases": [
       "M0",
       "A323",
