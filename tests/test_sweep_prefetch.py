@@ -154,9 +154,8 @@ def test_pin_profile_trouble_does_not_stop_the_sweep(
     sweep.run()
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
     assert "assignment limit" in (sweep.prefetcher.pin_error or "")
-    assert (
-        sweep.prefetcher.pin_failures >= 3
-    )  # gave up after three, did not hammer the Controller
+    attempts = [c for p, c in fleet.calls if p == 13 and c[:2] == ("profile", "add")]
+    assert 1 <= len(attempts) <= 6  # backs off, never hammers, never gives up for good
 
 
 def test_nas_full_pauses_new_model_downloads(tmp_path: Path, gateway: Gateway) -> None:

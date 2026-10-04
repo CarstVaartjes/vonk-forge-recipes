@@ -50,6 +50,12 @@ class PrefetchConfig:
     pin_spark: str = ""  # a Spark to name in the (never loaded) pin profile
 
 
+# The Controller's FleetProfileInput contract: $.assignments maxItems. The contract schema is
+# not vendored in contracts/, so the limit is named here.
+PIN_PROFILE_MAX_ASSIGNMENTS = 64
+PIN_RETRY_MAX_SECONDS = 3600.0
+
+
 def pin_alias(key: str) -> str:
     return "pin-" + hashlib.sha1(key.encode()).hexdigest()[:12]
 
@@ -80,6 +86,7 @@ class Prefetcher:
         self.pressure_until = 0.0
         self.pin_error: str | None = None
         self.pin_failures = 0
+        self.pin_retry_at = 0.0
         self.last_plans: list[Any] = []
 
     # -- operations ---------------------------------------------------------
@@ -365,16 +372,25 @@ class Prefetcher:
         """Nothing is left to protect: empty the pin profile."""
         number = self.config.pin_profile
         for key in list(self.state.data["pins"]):
-            if number is None or self.pin_failures >= 3:
+            if number is None or self.clock() < self.pin_retry_at:
                 return
             try:
                 self.vk.call(
                     "profile", "remove", pin_alias(key), "--yes", profile=number
                 )
             except VonkctlError:
-                self.pin_failures += 1
+                self._pin_failed()
                 continue
             self.state.data["pins"].remove(key)
+
+    def _pin_failed(self) -> None:
+        """Back off (never give up for good): the next attempt is later, the sweep carries on."""
+        self.pin_failures += 1
+        delay = min(
+            self.config.retry_cooldown * 2 ** (self.pin_failures - 1),
+            PIN_RETRY_MAX_SECONDS,
+        )
+        self.pin_retry_at = self.clock() + delay
 
     def desired_pins(
         self,
@@ -410,7 +426,7 @@ class Prefetcher:
                 if (i == 0 and plan.digests not in covered)
                 or by_key[k].model_set != plan.digests
             ]
-        return wanted
+        return wanted[:PIN_PROFILE_MAX_ASSIGNMENTS]  # nearest in the queue first
 
     def _reconcile_pins(
         self,
@@ -421,7 +437,11 @@ class Prefetcher:
         present: set[str],
     ) -> None:
         number = self.config.pin_profile
-        if number is None or self.pin_failures >= 3 or not self.config.pin_spark:
+        if (
+            number is None
+            or self.clock() < self.pin_retry_at
+            or not self.config.pin_spark
+        ):
             return
         wanted = self.desired_pins(plans, by_key, models, sizes, present)
         current: list[str] = list(self.state.data["pins"])
@@ -433,7 +453,10 @@ class Prefetcher:
                 )
                 current.remove(key)
                 budget -= 1
-            for key in [k for k in wanted if k not in current][: max(budget, 0)]:
+            room = PIN_PROFILE_MAX_ASSIGNMENTS - len(current)
+            for key in [k for k in wanted if k not in current][
+                : max(min(budget, room), 0)
+            ]:
                 self.vk.call(
                     "profile",
                     "add",
@@ -451,7 +474,7 @@ class Prefetcher:
             self.pin_failures = 0
             self.pin_error = None
         except VonkctlError as error:
-            self.pin_failures += 1
+            self._pin_failed()
             self.pin_error = str(error)[:200]
             self.state.event(
                 f"pin profile {number} could not be updated: {self.pin_error}"

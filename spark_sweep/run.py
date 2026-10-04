@@ -112,6 +112,17 @@ class RealClock:
         time.sleep(seconds)
 
 
+FLEET_SKIP = "fleet"
+
+
+def _fleet_skip(entry: Mapping[str, Any]) -> bool:
+    """A skip that depends on the fleet (also the older state files, which only carry the reason)."""
+    return entry.get("status") == "skipped" and (
+        entry.get("reason_kind") == FLEET_SKIP
+        or str(entry.get("reason", "")).startswith("not testable on this fleet")
+    )
+
+
 @dataclass
 class SweepConfig:
     state_dir: Path
@@ -333,15 +344,37 @@ class Sweep:
         self._reconcile_all()
 
     def _reconcile_all(self) -> None:
-        if not self.fleet.sparks:
-            try:
-                self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
-            except VonkctlError:
+        # Fleet capacity is read fresh every time: a snapshot taken during a restart, a takeover or
+        # a dual load in flight must never decide a recipe's fate for longer than one pass.
+        try:
+            self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+        except VonkctlError:
+            if not self.fleet.sparks:
                 return
         self.sizes = policy.build_sizes(self.recipes.values(), self.models)
         usable = len(self.sparks())
         for recipe in list(self.recipes.values()):
             self._reconcile_entry(recipe, usable)
+
+    def fleet_capacity(self) -> int:
+        """Sparks that exist and are online, whatever they run: never lane occupancy."""
+        return len(self.sparks())
+
+    def heal_fleet_skips(self) -> None:
+        """Fleet-dependent skips are derived, not verdicts: re-evaluate them against the fleet now."""
+        if not any(_fleet_skip(e) for e in self.state.recipes.values()):
+            return
+        try:
+            self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+        except VonkctlError:
+            return
+        usable = self.fleet_capacity()
+        for key, entry in self.state.recipes.items():
+            recipe = self.recipes.get(key)
+            if recipe is None or not _fleet_skip(entry):
+                continue
+            if recipe.node_count <= usable:
+                self._reconcile_entry(recipe, usable)
 
     def _selected(self, recipe: Recipe) -> bool:
         return not self.cfg.only or any(word in recipe.key for word in self.cfg.only)
@@ -350,18 +383,21 @@ class Sweep:
         if not self._selected(recipe):
             return
         entry = self.state.entry(recipe.key)
-        if recipe.node_count > usable_sparks and entry.get("status") in (
-            "pending",
-            "skipped",
+        if recipe.node_count > usable_sparks and (
+            entry.get("status") == "pending" or _fleet_skip(entry)
         ):
             entry.update(
                 status="skipped",
                 reason=f"not testable on this fleet: needs {recipe.node_count} Sparks, {usable_sparks} usable",
+                reason_kind=FLEET_SKIP,
                 content_sha256=recipe.content_sha256,
             )
             return
-        if entry.get("status") == "skipped" and recipe.node_count <= usable_sparks:
+        if _fleet_skip(entry) and recipe.node_count <= usable_sparks:
             entry["status"] = "pending"
+            entry.pop("reason", None)
+            entry.pop("reason_kind", None)
+            self.state.event(f"{recipe.key} is testable on this fleet again: pending")
         if recipe.node_count > usable_sparks:
             return  # a Spark offline for a moment must not rewrite a recorded result
         why = policy.requeue_reason(entry, recipe)
@@ -436,6 +472,7 @@ class Sweep:
                 self.state.data["owner"]["seen_at"] = now
                 self.preempt("an owner profile was loaded")
         self.advance_slots(now)
+        self.heal_fleet_skips()
         pending = self.pending()
         for (
             key,
