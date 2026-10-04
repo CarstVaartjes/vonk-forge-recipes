@@ -59,7 +59,7 @@ of truth. Use the [examples](../contracts/src/vonk_forge_contracts/examples) for
 structure only; replace synthetic identities and data with verified inputs.
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v2.1.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v2.2.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -100,6 +100,18 @@ still supply identity, license, `--requires-token` for a gated repository and
 `--capability` names through its flags. Review the file list and roles, drop
 files the model does not need, and list only capabilities the model supports
 before you use the Model in a recipe.
+
+Hugging Face caps a file at 50 GB, so a larger shard may be published only as
+`<name>.part00`, `<name>.part01`, ... (joined by `cat`). The tool recognizes
+such a set and writes one file entry for `<name>` with `parts` (contract
+2.2.0): each part's LFS SHA-256 and size, while the entry's own `sha256` and
+`size_bytes` describe the joined file. Hugging Face cannot know the joined
+file's digest, so give it with `--assembled-sha256 <name>=<sha256>` (repeat per
+file) or let the tool read it from the repository's `sha256-manifest.txt` when
+that lists the file. Without one the tool refuses; it never guesses. A set with
+a gap, or whose joined name is also published whole, is refused. The platform
+downloads and verifies the parts, assembles the file and installs it as one
+ordinary file, so recipes select `<name>` like any other file.
 
 The curated library excludes provider-gated checkpoints, even when the
 authoring tool can represent their credential requirement with `requires_token`.

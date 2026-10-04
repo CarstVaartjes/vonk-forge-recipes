@@ -153,8 +153,42 @@ class GitHubReleaseSource(_ModelContract):
         return sorted(value, key=lambda asset: asset.file_id)
 
 
+def _safe_relative_path(value: str) -> str:
+    if value.startswith("/") or "\\" in value or "//" in value:
+        raise ValueError("file path must be relative and canonical")
+    segments = value.split("/")
+    if any(segment in {"", ".", ".."} for segment in segments):
+        raise ValueError("file path must not contain empty or traversal segments")
+    return value
+
+
+class ModelFilePart(_ModelContract):
+    """One published piece of a file the source can only host split.
+
+    A part is a transport detail: it exists only at the source (for example a
+    Hugging Face repository that caps files at 50 GB publishes
+    ``model.safetensors.part00``). It is never installed.
+    """
+
+    path: StrictStr = Field(min_length=1, max_length=512)
+    sha256: Sha256
+    size_bytes: StrictInt = Field(ge=1)
+
+    @field_validator("path")
+    @classmethod
+    def safe_relative_path(cls, value: str) -> str:
+        return _safe_relative_path(value)
+
+
 class ModelFile(_ModelContract):
-    """One entry in the complete immutable model file manifest."""
+    """One entry in the complete immutable model file manifest.
+
+    ``sha256`` and ``size_bytes`` always describe the whole installed file.
+    When the source publishes the file only as split parts, ``parts`` lists
+    them in joining order (byte concatenation yields the file). Omitted means
+    the source publishes the file whole, so the same bytes have the same
+    identity whether the source splits them or not.
+    """
 
     id: StrictStr = Field(
         min_length=1, max_length=64, pattern=r"^[a-z][a-z0-9_-]{0,63}$"
@@ -165,16 +199,20 @@ class ModelFile(_ModelContract):
     roles: list[Annotated[StrictStr, Field(pattern=_TOKEN)]] = Field(
         min_length=1, max_length=16
     )
+    # Omitted means "published whole": a document without parts serializes
+    # exactly as it did before the field existed (no `"parts": null`), so
+    # digests and signed plans built from a dump do not change.
+    parts: list[ModelFilePart] | None = Field(
+        default=None,
+        min_length=2,
+        max_length=1024,
+        exclude_if=lambda value: value is None,
+    )
 
     @field_validator("path")
     @classmethod
     def safe_relative_path(cls, value: str) -> str:
-        if value.startswith("/") or "\\" in value or "//" in value:
-            raise ValueError("file path must be relative and canonical")
-        parts = value.split("/")
-        if any(part in {"", ".", ".."} for part in parts):
-            raise ValueError("file path must not contain empty or traversal segments")
-        return value
+        return _safe_relative_path(value)
 
     @field_validator("roles")
     @classmethod
@@ -187,6 +225,19 @@ class ModelFile(_ModelContract):
     def empty_file_has_empty_digest(self) -> ModelFile:
         if self.size_bytes == 0 and self.sha256 != hashlib.sha256(b"").hexdigest():
             raise ValueError("zero-byte files must use the empty-content SHA-256")
+        return self
+
+    @model_validator(mode="after")
+    def parts_cover_the_file(self) -> ModelFile:
+        if self.parts is None:
+            return self
+        paths = [part.path for part in self.parts]
+        if len(paths) != len(set(paths)):
+            raise ValueError("file part paths must be unique")
+        if self.path in paths:
+            raise ValueError("a file part path must differ from the file path")
+        if sum(part.size_bytes for part in self.parts) != self.size_bytes:
+            raise ValueError("file part sizes must add up to the file size")
         return self
 
 
@@ -279,6 +330,17 @@ class ModelDefinition(_ModelContract):
         dependency_keys = [(item.publisher, item.slug) for item in self.dependencies]
         if len(dependency_keys) != len(set(dependency_keys)):
             raise ValueError("model dependencies must be unique")
+        if isinstance(self.source, GitHubReleaseSource) and any(
+            item.parts is not None for item in self.files
+        ):
+            raise ValueError(
+                "GitHub release sources publish whole assets; file parts are not allowed"
+            )
+        part_paths = [part.path for item in self.files for part in item.parts or []]
+        if len(part_paths) != len(set(part_paths)):
+            raise ValueError("file part paths must be unique across the manifest")
+        if set(part_paths) & set(paths):
+            raise ValueError("a file part path must differ from every file path")
         sizes: dict[str, int] = {}
         for item in self.files:
             previous = sizes.setdefault(item.sha256, item.size_bytes)
