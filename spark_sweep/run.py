@@ -379,7 +379,14 @@ class Sweep:
             revalidate=why.startswith("passed"),
             requeued_because=why,
         )
-        for stale in ("phase", "failure_class", "signature", "cluster", "error"):
+        for stale in (
+            "phase",
+            "failure_class",
+            "signature",
+            "cluster",
+            "error",
+            "quality",
+        ):
             entry.pop(stale, None)
         self.state.event(f"requeued {recipe.key}: {why}")
 
@@ -636,6 +643,17 @@ class Sweep:
                 self._requeue_failed(
                     key, "load-timeout rules changed: copying no longer counts"
                 )
+        for key, entry in self.state.recipes.items():
+            if (
+                entry.get("status") == "failed"
+                and entry.get("phase") == "smoke"
+                and entry.get("failure_class") == "smoke-assertion"
+                and int(entry.get("smoke_rules", 1)) < policy.SMOKE_RULES
+                and self._selected_key(key)
+            ):
+                self._requeue_failed(
+                    key, "smoke rules changed: answer quality no longer fails a recipe"
+                )
 
     def requeue_failed(self) -> int:
         """``--retry-failed``: every failed recipe (within ``--only``), whatever the cause."""
@@ -688,6 +706,7 @@ class Sweep:
             "not_before",
             "defer_until",
             "release",
+            "quality",
         ):
             entry.pop(stale, None)
         recipe = self.recipes.get(key)
@@ -851,6 +870,7 @@ class Sweep:
             finished_at=now,
             release=self.release_sha,
             rules=policy.LOAD_RULES,
+            smoke_rules=policy.SMOKE_RULES,
             content_sha256=recipe.content_sha256
             if recipe
             else entry.get("content_sha256"),
@@ -936,8 +956,13 @@ class Sweep:
             timings=timings,
             smoke=result.kind,
             perf=result.perf,
+            smoke_rules=policy.SMOKE_RULES,
             revalidate=False,
         )
+        if result.quality_notes:
+            entry["quality"] = result.quality_notes
+        else:
+            entry.pop("quality", None)
         for stale in (
             "phase",
             "failure_class",
@@ -957,7 +982,11 @@ class Sweep:
             result={"endpoint_alias": slot["alias"], **result.record()},
             **self._facts(key, entry, slot),
         )
-        self.state.event(f"passed {key}")
+        notes = len(result.quality_notes)
+        self.state.event(
+            f"passed {key}"
+            + (f" ({notes} quality note{'s' if notes != 1 else ''})" if notes else "")
+        )
 
     # ------------------------------------------------------------------ slots
 

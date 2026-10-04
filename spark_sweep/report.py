@@ -43,6 +43,15 @@ def counts(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, int]:
     return dict(tally)
 
 
+def quality_notes(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, list[Any]]:
+    """Recipes that ran but whose model missed an expected answer: information, not failures."""
+    return {
+        key: list(entry["quality"])
+        for key, entry in sorted(recipes.items())
+        if entry.get("status") == "passed" and entry.get("quality")
+    }
+
+
 def average_test_seconds(recipes: Mapping[str, Mapping[str, Any]]) -> float:
     totals = [
         float(e["timings"]["total_s"])
@@ -119,6 +128,9 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "paused": sweep.owner_status.reason or None,
         "mode": data["mode"],
         "counts": counts(data["recipes"]),
+        "quality_notes": {
+            key: len(notes) for key, notes in quality_notes(data["recipes"]).items()
+        },
         "lanes": lanes,
         "queue": [{"recipe": k, "cached": k in ready} for k in sweep.queue[:15]],
         "queue_length": len(sweep.queue),
@@ -170,7 +182,13 @@ def render_status(status: Mapping[str, Any]) -> str:
     lines = [
         "# Hardware sweep status",
         "",
-        f"passed {c.get('passed', 0)} - failed {c.get('failed', 0)} - pending {c.get('pending', 0)} - skipped {c.get('skipped', 0)}",
+        f"passed {c.get('passed', 0)}"
+        + (
+            f" ({len(status['quality_notes'])} with quality notes)"
+            if status.get("quality_notes")
+            else ""
+        )
+        + f" - failed {c.get('failed', 0)} - pending {c.get('pending', 0)} - skipped {c.get('skipped', 0)}",
         f"mode {status['mode']}"
         + (f" - PAUSED: {status['paused']}" if status["paused"] else ""),
         "",
@@ -220,6 +238,12 @@ def render_status(status: Mapping[str, Any]) -> str:
         lines += [
             f"- {k['count']} x {k['signature']}" for k in status["failure_clusters"]
         ]
+    if status.get("quality_notes"):
+        lines += ["", "## Quality notes (ran; the answer differed, not failures)"]
+        lines += [
+            f"- {key}: {count} quality note{'s' if count != 1 else ''}"
+            for key, count in status["quality_notes"].items()
+        ]
     if status["events"]:
         lines += ["", "## Recent"] + [f"- {m}" for m in status["events"]]
     return "\n".join(lines) + "\n"
@@ -246,6 +270,7 @@ def build_report(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
                 "tokens_per_second": perf.get("tokens_per_second"),
                 "content_sha256": entry.get("content_sha256"),
                 "evidence": entry.get("evidence"),
+                "quality": quality_notes({key: entry}).get(key, []),
             }
         )
     return {
@@ -281,8 +306,14 @@ def render_report(report: Mapping[str, Any]) -> str:
             else (row["smoke"] or "")
         )
         reason = str(row["reason"] or "").replace("|", "/").replace("\n", " ")[:140]
+        status = (
+            f"ran; {len(row['quality'])} quality note"
+            f"{'s' if len(row['quality']) != 1 else ''}"
+            if row["status"] == "passed" and row.get("quality")
+            else row["status"]
+        )
         lines.append(
-            f"| {row['recipe']} | {row['status']} | {where} | {reason} | {seconds(row['download_s'])} | "
+            f"| {row['recipe']} | {status} | {where} | {reason} | {seconds(row['download_s'])} | "
             f"{seconds(row['load_s'])} | {row['ttft_ms'] or ''} | {row['tokens_per_second'] or ''} |"
         )
     if report["failure_clusters"]:
@@ -291,6 +322,15 @@ def render_report(report: Mapping[str, Any]) -> str:
             lines.append(
                 f"- {len(cluster['recipes'])} x `{cluster['signature']}`: {', '.join(cluster['recipes'][:6])}"
             )
+    noted = [r for r in report["recipes"] if r.get("quality")]
+    if noted:
+        lines += ["", "## Quality notes (the recipe ran; information, not failures)"]
+        for row in noted:
+            for note in row["quality"]:
+                lines.append(
+                    f"- {row['recipe']} {note['case']}: expected {note['expected']}, "
+                    f"got {note['got']}"
+                )
     skipped = [r for r in report["recipes"] if r["status"] == "skipped"]
     if skipped:
         lines += ["", f"## Not testable on this fleet ({len(skipped)})"]
