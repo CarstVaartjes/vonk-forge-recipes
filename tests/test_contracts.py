@@ -152,6 +152,109 @@ def test_zero_byte_model_file_requires_the_empty_content_digest() -> None:
         ModelDefinition.model_validate(document)
 
 
+def _split_document() -> dict:
+    document = load("model-definition.json")
+    whole = document["files"][0]
+    whole["size_bytes"] = 30
+    whole["parts"] = [
+        {
+            "path": f"{whole['path']}.part{index:02d}",
+            "sha256": "a" * 64,
+            "size_bytes": 10,
+        }
+        for index in range(3)
+    ]
+    return document
+
+
+def test_model_file_parts_describe_one_whole_file_split_at_the_source() -> None:
+    document = _split_document()
+    parsed = ModelDefinition.model_validate(document)
+    assert parsed.files[0].parts is not None
+    assert [part.size_bytes for part in parsed.files[0].parts] == [10, 10, 10]
+    assert (
+        parsed.installed_bytes
+        == parsed.download_bytes
+        == 30 + sum(item.size_bytes for item in parsed.files[1:])
+    )
+    # Documents without parts are unchanged: the field is omitted, never null.
+    plain = load("model-definition.json")
+    assert "parts" not in plain["files"][0]
+    assert (
+        "parts"
+        not in ModelDefinition.model_validate(plain).model_dump(
+            mode="json", exclude_none=True
+        )["files"][0]
+    )
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda f: f.update(parts=f["parts"][:1]), "at least 2"),
+        (lambda f: f["parts"][1].update(path=f["parts"][0]["path"]), "unique"),
+        (lambda f: f["parts"][0].update(path=f["path"]), "differ from the file path"),
+        (lambda f: f["parts"][0].update(path="../escape"), "traversal"),
+        (lambda f: f["parts"][0].update(path="/abs"), "relative"),
+        (lambda f: f["parts"][0].update(size_bytes=11), "add up"),
+        (lambda f: f["parts"][0].update(size_bytes=0), "greater than or equal to 1"),
+        (lambda f: f["parts"][0].update(sha256="xyz"), "pattern"),
+        (lambda f: f["parts"][0].update(extra=1), "Extra inputs"),
+    ],
+)
+def test_model_file_parts_reject_invalid_shapes(mutate, message) -> None:
+    document = _split_document()
+    mutate(document["files"][0])
+    with pytest.raises(ValidationError, match=message):
+        ModelDefinition.model_validate(document)
+
+
+def test_github_release_sources_do_not_take_file_parts() -> None:
+    document = load("model-definition.json")
+    document["files"][0]["parts"] = [
+        {"path": "a.part00", "sha256": "a" * 64, "size_bytes": 1},
+        {
+            "path": "a.part01",
+            "sha256": "b" * 64,
+            "size_bytes": document["files"][0]["size_bytes"] - 1,
+        },
+    ]
+    document["source"] = {
+        "provider": "github-release",
+        "repository": "https://github.com/o/r",
+        "release_id": 1,
+        "assets": [{"file_id": document["files"][0]["id"], "asset_id": 2}],
+    }
+    document["requires_token"] = False
+    with pytest.raises(ValidationError, match="publish whole assets"):
+        ModelDefinition.model_validate(document)
+
+
+def test_model_file_part_paths_must_not_collide_across_the_manifest() -> None:
+    document = _split_document()
+    other = {
+        "id": "other",
+        "path": "other.bin",
+        "sha256": "c" * 64,
+        "size_bytes": 5,
+        "roles": ["weights"],
+    }
+    document["files"].append(other)
+    document["files"][0]["parts"][0]["path"] = other["path"]
+    with pytest.raises(ValidationError, match="differ from every file path"):
+        ModelDefinition.model_validate(document)
+    document = _split_document()
+    second = {
+        **document["files"][0],
+        "id": "second",
+        "path": "second.bin",
+        "sha256": "b" * 64,
+    }
+    document["files"].append(second)
+    with pytest.raises(ValidationError, match="unique across the manifest"):
+        ModelDefinition.model_validate(document)
+
+
 def test_model_selection_accepts_large_but_bounded_shard_manifests() -> None:
     recipe = load("recipe-source-build.json")
     recipe["models"][0]["files"] = [

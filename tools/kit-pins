@@ -1247,6 +1247,12 @@ def moved_model(
         fresh = by_path[entry["path"]]
         entry["sha256"] = fresh["sha256"]
         entry["size_bytes"] = fresh["installed_bytes"]
+        # Parts follow the snapshot: a file the source now publishes split (or whole)
+        # changes shape, and the whole file's digest above stays the identity.
+        if "parts" in fresh:
+            entry["parts"] = fresh["parts"]
+        else:
+            entry.pop("parts", None)
         entry["id"] = file_id(entry["path"], fresh["sha256"])
     document["files"] = sorted(files, key=lambda entry: entry["path"])
     ModelDefinition.model_validate(document)

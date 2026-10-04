@@ -191,6 +191,26 @@ class ModelTests(unittest.TestCase):
             new["files"][0]["id"], refresh.file_id("model.safetensors", "a" * 64)
         )
 
+    def test_refreshed_model_follows_the_source_between_split_and_whole(self) -> None:
+        old = model_with(("model.safetensors",))
+        target = refresh.Target(
+            "huggingface", "o/r", NEW, "2026-09-30", None, None, "u"
+        )
+        split = files("model.safetensors")
+        split[0]["installed_bytes"] = 20
+        split[0]["parts"] = [
+            {
+                "path": f"model.safetensors.part0{i}",
+                "sha256": "b" * 64,
+                "size_bytes": 10,
+            }
+            for i in range(2)
+        ]
+        moved = refresh.refreshed_model(old, split, target)
+        self.assertEqual(len(moved["files"][0]["parts"]), 2)
+        back = refresh.refreshed_model(moved, files("model.safetensors"), target)
+        self.assertNotIn("parts", back["files"][0])
+
     def test_provider_gate_change_creates_review_without_retargeting_model(
         self,
     ) -> None:
