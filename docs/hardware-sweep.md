@@ -133,6 +133,15 @@ The next models are downloaded to the NAS while the Sparks test.
   to first token and tokens per second, then the recipe's reviewed qualification
   cases run with their assertions (the image cases carry their small PNG). A
   recipe without reviewed cases runs its own declared `validation.serving` checks.
+  The sweep proves a recipe **runs**. A case's `assertions` are functional and
+  gate it: the server answers (HTTP 200), `model` is the alias, one choice, a
+  well-formed number, colour word or tool call, no leaked think or control tags.
+  Its `quality_assertions` name the exact expected answer (391, Amsterdam, red):
+  a miss is recorded as `quality: {case, expected, got, ok}` in the result and the
+  recipe still passes, reported as "ran; N quality notes" on the status page and
+  in the report, never filed as an issue. Answer quality, like speed, belongs to
+  the model and the recipe's creator. `export-evidence` keeps the notes. Results
+  that failed a smoke assertion under the older rules are requeued once.
 * generation and other non-OpenAI recipes (image, video, audio, 3D jobs):
   readiness only (the run is healthy and its route published), recorded as
   `readiness-only`. Their reviewed job fixtures are not submitted by the sweep yet.

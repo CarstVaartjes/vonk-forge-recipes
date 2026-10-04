@@ -314,7 +314,7 @@
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*391\\s*$"
+          "value": "^\\s*-?[0-9]+\\s*$"
         },
         {
           "kind": "raw.not-contains",
@@ -324,6 +324,14 @@
             "<think>",
             "</think>"
           ]
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*391\\s*$",
+          "expected": "391"
         }
       ]
     },
@@ -363,7 +371,7 @@
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*323\\s*$"
+          "value": "^\\s*-?[0-9]+\\s*$"
         },
         {
           "kind": "path.equals",
@@ -377,6 +385,14 @@
             "<think>",
             "</think>"
           ]
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*323\\s*$",
+          "expected": "323"
         }
       ]
     },
@@ -429,6 +445,16 @@
       "max_response_bytes": 262144,
       "assertions": [
         {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
           "kind": "path.count",
           "path": "choices.0.message.tool_calls",
           "value": 1
@@ -439,16 +465,24 @@
           "value": "report_temperature"
         },
         {
-          "kind": "path.json-equals",
+          "kind": "path.regex",
           "path": "choices.0.message.tool_calls.0.function.arguments",
-          "value": {
-            "city": "Amsterdam"
-          }
+          "value": "^\\s*\\{[\\s\\S]*\"city\"\\s*:\\s*\"[^\"]+\"[\\s\\S]*\\}\\s*$"
         },
         {
           "kind": "path.equals",
           "path": "choices.0.finish_reason",
           "value": "tool_calls"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.json-equals",
+          "path": "choices.0.message.tool_calls.0.function.arguments",
+          "value": {
+            "city": "Amsterdam"
+          },
+          "expected": "{\"city\": \"Amsterdam\"}"
         }
       ]
     },
@@ -505,6 +539,16 @@
       "max_response_bytes": 262144,
       "assertions": [
         {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
           "kind": "path.count",
           "path": "choices.0.message.tool_calls",
           "value": 1
@@ -515,18 +559,26 @@
           "value": "record_product"
         },
         {
+          "kind": "path.regex",
+          "path": "choices.0.message.tool_calls.0.function.arguments",
+          "value": "^\\s*(?=[\\s\\S]*\"left\"\\s*:\\s*-?[0-9]+\\b)(?=[\\s\\S]*\"right\"\\s*:\\s*-?[0-9]+\\b)(?=[\\s\\S]*\"product\"\\s*:\\s*-?[0-9]+\\b)\\{[\\s\\S]*\\}\\s*$"
+        },
+        {
+          "kind": "path.equals",
+          "path": "choices.0.finish_reason",
+          "value": "tool_calls"
+        }
+      ],
+      "quality_assertions": [
+        {
           "kind": "path.json-equals",
           "path": "choices.0.message.tool_calls.0.function.arguments",
           "value": {
             "left": 17,
             "right": 19,
             "product": 323
-          }
-        },
-        {
-          "kind": "path.equals",
-          "path": "choices.0.finish_reason",
-          "value": "tool_calls"
+          },
+          "expected": "{\"left\": 17, \"right\": 19, \"product\": 323}"
         }
       ]
     },
@@ -566,9 +618,27 @@
       "max_response_bytes": 262144,
       "assertions": [
         {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*red[.!]?\\s*$"
+          "value": "^\\s*[A-Za-z]+[.!]?\\s*$"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*red[.!]?\\s*$",
+          "expected": "red"
         }
       ]
     },
@@ -609,9 +679,27 @@
       "max_response_bytes": 262144,
       "assertions": [
         {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*7\\s*$"
+          "value": "^\\s*[0-9]\\s*$"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*7\\s*$",
+          "expected": "7"
         }
       ]
     },
@@ -637,9 +725,14 @@
       "max_response_bytes": 262144,
       "assertions": [
         {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*391\\s*$"
+          "value": "^\\s*-?[0-9]+\\s*$"
         },
         {
           "kind": "path.empty",
@@ -656,6 +749,14 @@
             "<think>",
             "</think>"
           ]
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*391\\s*$",
+          "expected": "391"
         }
       ]
     },
@@ -687,7 +788,7 @@
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*391\\s*$"
+          "value": "^\\s*-?[0-9]+\\s*$"
         },
         {
           "kind": "path.equals",
@@ -700,6 +801,14 @@
             "<think>",
             "</think>"
           ]
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*391\\s*$",
+          "expected": "391"
         }
       ]
     },
@@ -760,17 +869,25 @@
           "value": "multiply"
         },
         {
-          "kind": "path.json-equals",
+          "kind": "path.regex",
           "path": "choices.0.message.tool_calls.0.function.arguments",
-          "value": {
-            "a": 17,
-            "b": 23
-          }
+          "value": "^\\s*(?=[\\s\\S]*\"a\"\\s*:\\s*-?[0-9]+\\b)(?=[\\s\\S]*\"b\"\\s*:\\s*-?[0-9]+\\b)\\{[\\s\\S]*\\}\\s*$"
         },
         {
           "kind": "path.equals",
           "path": "choices.0.finish_reason",
           "value": "tool_calls"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.json-equals",
+          "path": "choices.0.message.tool_calls.0.function.arguments",
+          "value": {
+            "a": 17,
+            "b": 23
+          },
+          "expected": "{\"a\": 17, \"b\": 23}"
         }
       ]
     },
@@ -813,7 +930,7 @@
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*7\\s*$"
+          "value": "^\\s*[0-9A-Za-z]\\s*$"
         },
         {
           "kind": "path.lte",
@@ -827,6 +944,14 @@
             "<|im_end|>",
             "<|tool_call|>"
           ]
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*7\\s*$",
+          "expected": "7"
         }
       ]
     },
@@ -871,9 +996,8 @@
           "value": 1
         },
         {
-          "kind": "path.regex",
-          "path": "choices.0.message.content",
-          "value": "(?s)^\\s*<think>(?:(?!<tool_call>).)*</think>\\s*<action>(?:(?!<tool_call>).)+</action>\\s*<tool_call>\\s*<function=computer_use>\\s*<parameter=action>\\s*wait\\s*</parameter>\\s*<parameter=time>\\s*1(?:\\.0)?\\s*</parameter>\\s*</function>\\s*</tool_call>\\s*$"
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
         },
         {
           "kind": "path.lte",
@@ -887,6 +1011,14 @@
             "<|im_start|>",
             "<|im_end|>"
           ]
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "(?s)^\\s*<think>(?:(?!<tool_call>).)*</think>\\s*<action>(?:(?!<tool_call>).)+</action>\\s*<tool_call>\\s*<function=computer_use>\\s*<parameter=action>\\s*wait\\s*</parameter>\\s*<parameter=time>\\s*1(?:\\.0)?\\s*</parameter>\\s*</function>\\s*</tool_call>\\s*$",
+          "expected": "<think>, <action> and one computer_use wait 1 tool call"
         }
       ]
     }

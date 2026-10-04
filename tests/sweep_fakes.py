@@ -87,6 +87,8 @@ class Gateway:
 
     broken: set[str] = field(default_factory=set)
     requests: list[tuple[str, str]] = field(default_factory=list)
+    # Per alias, the assistant message to answer a chat completion with.
+    messages: dict[str, dict[str, Any]] = field(default_factory=dict)
     _server: ThreadingHTTPServer | None = None
 
     def start(self) -> str:
@@ -137,7 +139,10 @@ class Gateway:
                 reply = {
                     "model": alias,
                     "choices": [
-                        {"message": {"content": "391"}, "finish_reason": "stop"}
+                        {
+                            "message": gateway.messages.get(alias, {"content": "391"}),
+                            "finish_reason": "stop",
+                        }
                     ],
                 }
                 self._send(200, json.dumps(reply).encode())

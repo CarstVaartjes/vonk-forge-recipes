@@ -55,10 +55,10 @@ def test_a_generic_chat_case_can_still_pass_when_a_model_ignores_the_switch(
 
 
 @pytest.mark.parametrize("case", ["A391", "A323", "V_RED", "V7"])
-def test_the_answer_stays_strictly_matched(case: str) -> None:
+def test_the_expected_answer_stays_strictly_matched_as_quality(case: str) -> None:
     regexes = [
         a
-        for a in TEMPLATES[case]["assertions"]
+        for a in TEMPLATES[case]["quality_assertions"]
         if a["kind"] == "path.regex" and a["path"] == "choices.0.message.content"
     ]
     assert len(regexes) == 1 and regexes[0]["value"].startswith("^")
