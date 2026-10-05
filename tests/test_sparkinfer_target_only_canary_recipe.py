@@ -144,27 +144,17 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
             check=True,
         )
 
-    def test_target_only_smoke_exercises_the_tool_parser(self) -> None:
+    def test_target_only_smoke_does_not_ask_for_tools_the_kit_does_not_enable(
+        self,
+    ) -> None:
         definitions = cast(dict[str, Any], load_definitions(ROOT / "qualification"))
         services = definitions["service_recipes"]
         contract = services[
             "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single"
         ]
-        self.assertEqual(contract["smoke_cases"], ["M0", "A391", "T_REPORT"])
-        tool_case = definitions["service_case_templates"]["T_REPORT"]
-        self.assertEqual(len(tool_case["body"]["tools"]), 1)
-        self.assertEqual(
-            tool_case["body"]["tool_choice"]["function"]["name"],
-            "report_temperature",
-        )
-        self.assertEqual(
-            tool_case["assertions"][-1],
-            {
-                "kind": "path.equals",
-                "path": "choices.0.finish_reason",
-                "value": "tool_calls",
-            },
-        )
+        # 0xSero's launch passes no --tool-call-parser, so the recipe serves no
+        # tool calls and the sweep must not run a tool case against it.
+        self.assertEqual(contract["smoke_cases"], ["M0", "A391"])
 
     def test_catalog_package_digests_match_the_recipe(self) -> None:
         recipe = _document(RECIPE_PATH)

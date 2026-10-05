@@ -214,6 +214,24 @@ changing this shared contract, rebuild that wheel from the platform's
 `agent_protocol` source, replace all three adapter copies, and run the actual
 manifest-producer-to-adapter tests before rebuilding the catalog.
 
+### Tool calling, reasoning and images: claim only what the launch serves
+
+vLLM, SGLang and TensorRT-LLM parse tool calls and reasoning only when the
+launch passes the parser. A recipe follows its playbook or kit: if upstream
+passes the flags, carry them (`--enable-auto-tool-choice` with
+`--tool-call-parser` on vLLM, `--tool-call-parser` on SGLang, `tool_parser` on
+TensorRT-LLM; `--reasoning-parser` or `reasoning_parser` for reasoning); if it
+does not, the recipe must not tag `tool-use` and its `smoke_cases` must hold no
+tool case, because the engine answers HTTP 400 or returns the raw `<tool_call>`
+text in `content`. A reasoning model served without a reasoning parser uses the
+`A323_UNPARSED`/`A391_UNPARSED` case, which only requires a well-formed answer
+(thinking left in `content` is valid, reported as quality). Image cases need a
+multimodal recipe. When a kit's entrypoint injects the flags from inside its
+image, record them with their source in `qualification/kit-engine-flags.json`.
+`qualification/capabilities.py` derives all of this and
+`tests/test_recipe_capabilities.py` fails CI when a recipe's tags or smoke cases
+disagree with its launch.
+
 ### Options: user-selectable runtime variants
 
 When users can reasonably choose between ways to run the same weights, declare an

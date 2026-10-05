@@ -18,7 +18,16 @@ TEMPLATES: dict[str, Any] = json.loads(
     (ROOT / "qualification" / "shared.json").read_text(encoding="utf-8")
 )["service_case_templates"]
 
-GENERIC_CHAT_CASES = ("A391", "A323", "T_REPORT", "T_PRODUCT", "V_RED", "V7")
+GENERIC_CHAT_CASES = (
+    "A391",
+    "A323",
+    "A391_UNPARSED",
+    "A323_UNPARSED",
+    "T_REPORT",
+    "T_PRODUCT",
+    "V_RED",
+    "V7",
+)
 
 # Top-level request fields every serving engine accepts. TensorRT-LLM's server
 # rejects any other top-level field (its request model forbids extras), so the

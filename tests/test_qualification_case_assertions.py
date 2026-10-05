@@ -143,10 +143,10 @@ def test_every_shared_case_is_valid_and_quality_names_its_expectation() -> None:
             {
                 "assertions": [{"kind": "path.nonempty", "path": "x"}],
                 "quality_assertions": [
-                    {"kind": "raw.not-contains", "values": ["<think>"], "expected": "x"}
+                    {"kind": "raw.not-contains", "values": [], "expected": "x"}
                 ],
             },
-            "functional, not quality",
+            "must name the text",
         ),
         (
             {
@@ -171,3 +171,29 @@ def test_the_split_is_enforced(template: dict[str, Any], problem: str) -> None:
     assert any(problem in p for p in problems)
     with pytest.raises(ValueError):
         require_valid_case_assertions({"service_case_templates": {"X": template}})
+
+
+@pytest.mark.parametrize("case", ["A391_UNPARSED", "A323_UNPARSED"])
+def test_unparsed_thinking_in_content_is_valid_and_only_a_quality_note(
+    case: str,
+) -> None:
+    """A recipe without a reasoning parser serves the model's raw output."""
+    raw = _chat('<think>User asks: "What is 17 mult')
+    _functional(case, raw)
+    misses = [item for item in _quality(case, raw) if not item["ok"]]
+    assert {item["expected"] for item in misses} >= {
+        "only the integer in content",
+        "no reasoning tags in content",
+    }
+    answered = _chat("391" if case.startswith("A391") else "323")
+    _functional(case, answered)
+    assert all(item["ok"] for item in _quality(case, answered))
+
+
+@pytest.mark.parametrize("case", ["A391_UNPARSED", "A323_UNPARSED"])
+@pytest.mark.parametrize("broken", [_chat(""), _chat(None), _chat("3 <|im_end|>")])
+def test_unparsed_cases_still_fail_an_empty_or_leaking_reply(
+    case: str, broken: dict[str, Any]
+) -> None:
+    with pytest.raises(Exception, match="failed|contains|missing"):
+        _functional(case, broken)

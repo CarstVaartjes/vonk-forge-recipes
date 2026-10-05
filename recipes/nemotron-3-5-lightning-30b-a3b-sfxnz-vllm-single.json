@@ -45,7 +45,8 @@
       "dspark",
       "speculative-decoding",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DSpark sfxnz vLLM single Spark"
   },

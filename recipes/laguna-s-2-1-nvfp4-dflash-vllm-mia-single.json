@@ -52,7 +52,8 @@
       "agentic",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Laguna S 2.1 NVFP4 DFlash vLLM single Spark (Mia)"
   },

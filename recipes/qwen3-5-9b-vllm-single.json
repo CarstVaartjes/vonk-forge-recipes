@@ -45,7 +45,8 @@
       "vision-unproven",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Qwen3.5 9B vLLM single Spark"
   },

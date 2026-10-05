@@ -44,7 +44,8 @@
       "single",
       "sparkinfer",
       "spark",
-      "speculative-decoding"
+      "speculative-decoding",
+      "tool-use"
     ],
     "title": "DeepSeek V4 Flash 0731 Mia SparkInfer single Spark"
   },
