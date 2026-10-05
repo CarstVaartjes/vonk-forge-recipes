@@ -331,6 +331,16 @@ usable recipe from publishing.
 
 ## Automatic refresh (hourly)
 
+Self-healing: every run rebuilds each mechanical refresh branch on main against the
+newest upstream and force-pushes it when anything differs. A refresh PR whose checks
+failed or were cancelled is pushed again (the checks restart) even when its tree is
+unchanged; the failed runs are counted in the PR body (`refresh-failures`), and after
+`FAILURE_LIMIT` in a row the recipe's one needs-review issue carries the failed check's
+log. An open refresh PR whose recipe is current again, gone or no longer mechanical is
+closed with a comment (linking the issue). Recipes sharing a build context (one adapter)
+are refreshed together in one PR on the first recipe's branch, never one at a time; the
+detector's own checks run every data check of `validate.yml` (a test keeps them equal).
+
 `.github/workflows/refresh-upstream.yml` runs `tools/refresh-upstream` every hour
 (and on `workflow_dispatch`). It uses no AI. It applies the pinning rule to every
 recipe's source reference, adapter pin and Models: if the upstream publishes a release
