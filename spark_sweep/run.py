@@ -161,6 +161,9 @@ class SweepConfig:
     release_seconds: float = 300.0
     retry_failed: bool = False
     copy_stall_seconds: float = 600.0
+    # How long an application may sit behind its own admission blockers (capacity, stale
+    # inventory, a retried phase) before the lane fails as admission-stalled.
+    blocked_seconds: float = 900.0
 
 
 def alias_for(recipe: Recipe, definitions: Definitions) -> str:
@@ -1107,6 +1110,7 @@ class Sweep:
         load["copying"] = moving.copying
         load["phase"] = moving.phase
         load["progress"] = list(moving.signature) if moving.signature else None
+        load["blockers"] = policy.admission_blockers(document)
         replaced = policy.supersession(document) if status in SETTLED else None
         if replaced is not None and replaced.successor not in (None, document["id"]):
             # The Controller continued this application as another one: follow it.
@@ -1168,6 +1172,20 @@ class Sweep:
             and load.get("copying")
         )
         slot["copying"] = copying
+        blockers = (
+            load.get("blockers")
+            if load and load.get("request_key") == slot["request_key"] and not copying
+            else None
+        )
+        if blockers:
+            # The Controller is holding the application back, not the engine loading: those
+            # seconds are not load time, and a hold that never ends is its own failure.
+            slot["blocked_seconds"] = float(slot.get("blocked_seconds", 0)) + elapsed
+            slot.setdefault("blocked_since", now)
+            slot["blocked"] = blockers
+        else:
+            slot.pop("blocked_since", None)
+            slot.pop("blocked", None)
         if load and load.get("phase"):
             slot["load_phase"] = load["phase"]
         if not copying:
@@ -1228,7 +1246,23 @@ class Sweep:
                 app,
             )
             return
-        if copying:
+        if slot.get("blocked_since") is not None and (
+            now - float(slot["blocked_since"]) > self.cfg.blocked_seconds
+        ):
+            first = slot["blocked"][0]
+            self._timeout(
+                key,
+                slot,
+                policy.classify(
+                    "start",
+                    first["code"],
+                    f"the Controller held this application back for "
+                    f"{round(now - float(slot['blocked_since']))}s: {first['code']}: {first['detail']}",
+                    "admission-stalled",
+                    {"blockers": slot["blocked"]},
+                ),
+            )
+        elif copying:
             stalled = now - float(slot["copy_progress_at"])
             if stalled > self.cfg.copy_stall_seconds:
                 self._timeout(
@@ -1242,7 +1276,9 @@ class Sweep:
                         "copy-stalled",
                     ),
                 )
-        elif now > slot["deadline"] + float(slot.get("copy_seconds", 0)):
+        elif now > slot["deadline"] + float(slot.get("copy_seconds", 0)) + float(
+            slot.get("blocked_seconds", 0)
+        ):
             self._timeout(key, slot)
 
     def _timeout(
@@ -1264,7 +1300,10 @@ class Sweep:
                 profile=self.cfg.sweep_profile,
             )
         seconds = round(
-            self.clock.now() - slot["started_at"] - float(slot.get("copy_seconds", 0))
+            self.clock.now()
+            - slot["started_at"]
+            - float(slot.get("copy_seconds", 0))
+            - float(slot.get("blocked_seconds", 0))
         )
         self._fail_slot(
             key,
