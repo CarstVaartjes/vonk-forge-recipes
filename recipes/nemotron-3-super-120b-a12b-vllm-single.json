@@ -41,7 +41,8 @@
       "vllm",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark"
   },

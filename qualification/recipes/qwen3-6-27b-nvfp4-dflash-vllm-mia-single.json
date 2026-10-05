@@ -4,7 +4,8 @@
     "alias": "qwen36-27b-nvidia-nvfp4-dflash",
     "smoke_cases": [
       "M0",
-      "A391"
+      "A391",
+      "T_REPORT"
     ],
     "higher_tiers": {
       "stress": [

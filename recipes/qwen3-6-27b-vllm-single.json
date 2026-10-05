@@ -48,7 +48,8 @@
       "superseded",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Qwen3.6 27B vLLM single Spark"
   },

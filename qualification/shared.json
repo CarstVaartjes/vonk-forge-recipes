@@ -335,6 +335,79 @@
         }
       ]
     },
+    "A391_UNPARSED": {
+      "method": "POST",
+      "path": "/chat/completions",
+      "body": {
+        "model": "$ALIAS",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Return only the decimal integer equal to 17 multiplied by 23. No words or punctuation."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 256,
+        "stream": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "thinking": false
+        }
+      },
+      "timeout_seconds": 180,
+      "max_response_bytes": 262144,
+      "assertions": [
+        {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
+        },
+        {
+          "kind": "raw.not-contains",
+          "values": [
+            "<|channel>",
+            "<|tool_call>"
+          ]
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*-?[0-9]+\\s*$",
+          "expected": "only the integer in content"
+        },
+        {
+          "kind": "path.equals",
+          "path": "choices.0.finish_reason",
+          "value": "stop",
+          "expected": "finish_reason stop"
+        },
+        {
+          "kind": "raw.not-contains",
+          "values": [
+            "<think>",
+            "</think>"
+          ],
+          "expected": "no reasoning tags in content"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*391\\s*$",
+          "expected": "391"
+        }
+      ]
+    },
     "A323": {
       "method": "POST",
       "path": "/chat/completions",
@@ -388,6 +461,79 @@
         }
       ],
       "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*323\\s*$",
+          "expected": "323"
+        }
+      ]
+    },
+    "A323_UNPARSED": {
+      "method": "POST",
+      "path": "/chat/completions",
+      "body": {
+        "model": "$ALIAS",
+        "messages": [
+          {
+            "role": "user",
+            "content": "What is 17 multiplied by 19? Reply only with the base-10 integer."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 256,
+        "stream": false,
+        "seed": 42,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "thinking": false
+        }
+      },
+      "timeout_seconds": 180,
+      "max_response_bytes": 262144,
+      "assertions": [
+        {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
+        },
+        {
+          "kind": "raw.not-contains",
+          "values": [
+            "<|"
+          ]
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*-?[0-9]+\\s*$",
+          "expected": "only the integer in content"
+        },
+        {
+          "kind": "path.equals",
+          "path": "choices.0.finish_reason",
+          "value": "stop",
+          "expected": "finish_reason stop"
+        },
+        {
+          "kind": "raw.not-contains",
+          "values": [
+            "<think>",
+            "</think>"
+          ],
+          "expected": "no reasoning tags in content"
+        },
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",

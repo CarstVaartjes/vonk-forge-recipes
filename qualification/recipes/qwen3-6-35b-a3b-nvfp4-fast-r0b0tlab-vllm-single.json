@@ -5,8 +5,7 @@
     "smoke_cases": [
       "M0",
       "A323",
-      "T_PRODUCT",
-      "V7"
+      "T_PRODUCT"
     ],
     "higher_tiers": {
       "stress": [

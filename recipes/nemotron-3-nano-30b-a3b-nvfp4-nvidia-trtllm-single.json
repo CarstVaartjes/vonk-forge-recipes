@@ -44,7 +44,8 @@
       "nemotron",
       "nvfp4",
       "autodeploy",
-      "reasoning"
+      "reasoning",
+      "tool-use"
     ],
     "title": "Nemotron 3 Nano 30B-A3B NVFP4 TensorRT-LLM AutoDeploy single Spark (NVIDIA model card)"
   },

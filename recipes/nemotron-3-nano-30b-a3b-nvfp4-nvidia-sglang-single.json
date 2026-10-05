@@ -43,7 +43,8 @@
       "spark",
       "nemotron",
       "nvfp4",
-      "reasoning"
+      "reasoning",
+      "tool-use"
     ],
     "title": "Nemotron 3 Nano 30B-A3B NVFP4 SGLang single Spark (NVIDIA model card)"
   },

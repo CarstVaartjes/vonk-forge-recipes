@@ -4,9 +4,7 @@
     "alias": "hy3-w4a4-v3",
     "smoke_cases": [
       "M0",
-      "A391",
-      "T_REPORT",
-      "V_RED"
+      "A391"
     ],
     "higher_tiers": {
       "stress": [

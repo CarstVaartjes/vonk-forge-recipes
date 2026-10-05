@@ -4,7 +4,8 @@
     "alias": "deepseek-v4-flash-0731",
     "smoke_cases": [
       "M0",
-      "A391"
+      "A391",
+      "T_REPORT"
     ],
     "higher_tiers": {
       "stress": [

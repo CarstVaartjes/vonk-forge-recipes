@@ -43,7 +43,8 @@
       "vllm",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Nemotron 3 Nano 30B-A3B NVFP4 vLLM single Spark (superseded)"
   },

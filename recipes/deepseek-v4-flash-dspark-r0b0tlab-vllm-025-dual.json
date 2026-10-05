@@ -43,6 +43,7 @@
       "r0b0tlab",
       "reasoning",
       "spark",
+      "tool-use",
       "vllm"
     ],
     "title": "DeepSeek V4 Flash DSpark vLLM 0.25 dual Spark (r0b0tlab)"

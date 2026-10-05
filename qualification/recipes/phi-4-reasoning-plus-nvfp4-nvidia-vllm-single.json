@@ -4,7 +4,7 @@
     "alias": "phi-4-reasoning-plus",
     "smoke_cases": [
       "M0",
-      "A323"
+      "A323_UNPARSED"
     ],
     "higher_tiers": {
       "stress": [

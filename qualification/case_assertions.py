@@ -6,6 +6,12 @@ the exact answer the model is expected to give. Answer quality, like speed,
 belongs to the model and the recipe's creator, so a miss is reported as a
 quality note and never fails a recipe. Every quality assertion says what it
 ``expected`` in words, so the note is readable without the pattern.
+
+A leaked special token (``<|...``) is functional: the server broke its own
+protocol. Reasoning tags (``<think>``) in ``content`` are functional only for a
+recipe that enables a reasoning parser, whose job is to strip them (``A323``,
+``A391``). A recipe without one serves the model's raw output, which is valid
+but unparsed, so its ``*_UNPARSED`` variant reports leaked tags as quality.
 """
 
 from __future__ import annotations
@@ -48,8 +54,8 @@ def _assertion_problems(case: str, tier: str, assertion: object) -> list[str]:
         except re.error:
             problems.append(f"{where} has a regex that does not compile")
     if tier == "quality":
-        if kind == "raw.not-contains":
-            problems.append(f"{case}: a leaked tag is functional, not quality")
+        if kind == "raw.not-contains" and not assertion.get("values"):
+            problems.append(f"{where} must name the text that must not appear")
         if not isinstance(assertion.get("expected"), str) or not assertion["expected"]:
             problems.append(f"{where} must say what it expected")
     return problems

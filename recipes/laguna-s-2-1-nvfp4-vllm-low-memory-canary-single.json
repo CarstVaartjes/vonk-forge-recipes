@@ -49,7 +49,8 @@
       "agentic",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Laguna S 2.1 NVFP4 vLLM 32K low-memory canary single Spark"
   },

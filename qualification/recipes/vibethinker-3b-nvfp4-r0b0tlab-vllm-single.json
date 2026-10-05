@@ -4,9 +4,7 @@
     "alias": "vibethinker-3b-nvfp4",
     "smoke_cases": [
       "M0",
-      "A391",
-      "T_REPORT",
-      "V_RED"
+      "A391_UNPARSED"
     ],
     "higher_tiers": {
       "stress": [

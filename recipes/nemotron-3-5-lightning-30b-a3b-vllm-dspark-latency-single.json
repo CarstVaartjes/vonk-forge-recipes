@@ -49,7 +49,8 @@
       "memory-tight",
       "specialized",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Nemotron 3.5 Lightning 30B-A3B vLLM DSpark 1M latency single Spark (tight)"
   },

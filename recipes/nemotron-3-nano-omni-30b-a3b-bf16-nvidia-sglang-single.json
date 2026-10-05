@@ -48,7 +48,8 @@
       "omni",
       "bf16",
       "reasoning",
-      "multimodal"
+      "multimodal",
+      "tool-use"
     ],
     "title": "Nemotron 3 Nano Omni 30B-A3B BF16 SGLang single Spark (NVIDIA playbook)"
   },
