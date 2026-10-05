@@ -160,6 +160,12 @@ def _parser() -> argparse.ArgumentParser:
         help="fail a load whose copy to the Spark makes no progress for this long (the load timeout does not count copying)",
     )
     run.add_argument(
+        "--blocked-minutes",
+        type=float,
+        default=15.0,
+        help="fail a load whose application the Controller holds back (admission blockers) for this long; that time is not load time",
+    )
+    run.add_argument(
         "--allow-version-skew",
         action="store_true",
         help="run even when vonkctl is not the accepted release (otherwise: vonkctl update --apply)",
@@ -246,6 +252,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         allow_version_skew=args.allow_version_skew,
         retry_failed=args.retry_failed,
         copy_stall_seconds=args.copy_stall_minutes * 60,
+        blocked_seconds=args.blocked_minutes * 60,
     )
 
 
