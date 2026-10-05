@@ -1,0 +1,19 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/launch.sh",
+        "pattern": "^IMG=\\$\\{IMG:-(?P<repo>[^@}\"\\s]+)@(?P<version>sha256:[0-9a-f]{64})\\}$"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "source": {
+    "commit": "ee688184827e50f296bfdaf4215e04d3a4f942c3",
+    "repo": "0xSero/DeepSeek-V4.1-Flash-Two-Sparks"
+  }
+}
