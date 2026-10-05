@@ -68,6 +68,11 @@ APP_AUTH: Any = None
 SHA = re.compile(r"^[0-9a-f]{40}$")
 LABEL_NEEDS_REVIEW = "refresh:needs-review"
 LABEL_MECHANICAL = "refresh:mechanical"
+# A refresh PR whose checks fail is regenerated on every run; after this many failed
+# runs in a row the failure is made visible in the recipe's needs-review issue.
+FAILURE_LIMIT = 3
+FAILURES_MARKER = re.compile(r"<!-- refresh-failures: (\d+) -->")
+FAILED_CONCLUSIONS = {"FAILURE", "TIMED_OUT", "STARTUP_FAILURE", "ERROR"}
 # Full-suite verification takes minutes per recipe, so a run pushes (prepares) at most
 # this many new or updated PRs; the rest wait for the next run, which the publish
 # workflow chains. Arming is not bounded: every prepared PR is armed and GitHub merges
@@ -726,6 +731,11 @@ class Assessment:
     evidence: list[str] = field(default_factory=list)
     edits: dict[str, bytes | None] = field(default_factory=dict)
     version: tuple[str, str] | None = None  # (version, released_at) after refresh
+    members: list[str] = field(default_factory=list)  # recipes refreshed together
+
+    @property
+    def label(self) -> str:
+        return ", ".join(self.members) or self.recipe_id
 
     @property
     def drifted(self) -> bool:
@@ -2002,12 +2012,17 @@ def run(
     return result
 
 
-def verify(root: Path, recipe_id: str) -> str | None:
-    """Regenerate the README and run every check; returns a failure description."""
-    steps: list[tuple[str, list[str]]] = [
+def verify_steps() -> list[tuple[str, list[str]]]:
+    """The data checks of ``validate.yml`` (tests assert none is missing here)."""
+    return [
         ("README overview", [sys.executable, "tools/build-readme-overview"]),
         ("model references", [sys.executable, "tools/check-recipe-model-references"]),
+        (
+            "build context sources",
+            [sys.executable, "tools/check-build-context-sources"],
+        ),
         ("vendored upstream files", [sys.executable, "tools/check-vendored-upstream"]),
+        ("kit-declared pins", [sys.executable, "tools/kit-pins", "check"]),
         (
             "full test suite",
             [
@@ -2023,6 +2038,11 @@ def verify(root: Path, recipe_id: str) -> str | None:
             ],
         ),
     ]
+
+
+def verify(root: Path, recipe_id: str) -> str | None:
+    """Regenerate the README and run every check; returns a failure description."""
+    steps = verify_steps()
     for name, command in steps:
         result = run(command, cwd=root, check=False)
         if result.returncode != 0:
@@ -2081,11 +2101,11 @@ def render_pins(assessment: Assessment) -> str:
     return "\n".join(rows)
 
 
-def pr_body(assessment: Assessment) -> str:
+def pr_body(assessment: Assessment, failures: int = 0) -> str:
     version = assessment.version
     body = [
         (
-            f"Automatic refresh of `{assessment.recipe_id}` to the newest upstream pins "
+            f"Automatic refresh of `{assessment.label}` to the newest upstream pins "
             "(pinning rule: newest published version, else the latest commit; Model weights "
             "follow the newest revision)."
         ),
@@ -2107,6 +2127,7 @@ def pr_body(assessment: Assessment) -> str:
         *assessment.evidence,
         f"<!-- refresh-recipe: {assessment.recipe_id} -->",
         f"<!-- refresh-target: {assessment.fingerprint()} -->",
+        f"<!-- refresh-failures: {failures} -->",
         "",
         "🤖 Generated with [Claude Code](https://claude.com/claude-code)",
         "",
@@ -2333,19 +2354,90 @@ def has_publication_receipt(main_head: str, runs: list[dict[str, Any]]) -> bool:
     )
 
 
-def publish_mechanical(root: Path, assessment: Assessment, summary: Summary) -> None:
+def check_state(rollup: list[dict[str, Any]] | None) -> str:
+    """``failed`` | ``cancelled`` | ``pending`` | ``passed`` | ``none`` for a PR's checks."""
+    states = [
+        str(c.get("conclusion") or c.get("state") or c.get("status") or "").upper()
+        for c in rollup or []
+    ]
+    if any(state in FAILED_CONCLUSIONS for state in states):
+        return "failed"
+    if any(state == "CANCELLED" for state in states):
+        return "cancelled"
+    if any(
+        state in {"", "PENDING", "QUEUED", "IN_PROGRESS", "WAITING", "EXPECTED"}
+        for state in states
+    ):
+        return "pending"
+    return "passed" if states else "none"
+
+
+def failed_check_evidence(rollup: list[dict[str, Any]] | None) -> str:
+    """Names, links and the log tail of the failed checks (evidence, not instructions)."""
+    lines: list[str] = []
+    seen: set[str] = set()
+    for check in rollup or []:
+        if str(check.get("conclusion") or "").upper() not in FAILED_CONCLUSIONS:
+            continue
+        url = str(check.get("detailsUrl") or "")
+        lines.append(f"- `{check.get('name')}` {check.get('conclusion')}: {url}")
+        run_id = re.search(r"/runs/(\d+)", url)
+        if run_id and run_id.group(1) not in seen:
+            seen.add(run_id.group(1))
+            log = gh("run", "view", run_id.group(1), "--log-failed", check=False)
+            lines += ["", fence(clip(log.strip()[-2500:], 2500)), ""]
+    return "\n".join(lines)
+
+
+def previous_failures(body: str | None) -> int:
+    found = FAILURES_MARKER.search(body or "")
+    return int(found.group(1)) if found else 0
+
+
+def publish_mechanical(
+    root: Path, assessment: Assessment, summary: Summary
+) -> int | None:
+    """Prepare (or regenerate) the refresh PR on the newest upstream; returns its number.
+
+    Every run rebuilds the branch from main and force-pushes it when anything differs. A
+    PR whose checks failed or were cancelled is never left as it is: it is pushed again
+    (a fresh commit restarts the checks) and, once it failed ``FAILURE_LIMIT`` runs in a
+    row, the failure is reported in the recipe's one needs-review issue.
+    """
     recipe_id = assessment.recipe_id
     branch = f"refresh/{recipe_id}"
     marker = f"<!-- refresh-target: {assessment.fingerprint()} -->"
     existing = gh_json(
-        "pr", "list", "--head", branch, "--state", "all", "--json", "number,state,body"
+        "pr",
+        "list",
+        "--head",
+        branch,
+        "--state",
+        "all",
+        "--json",
+        "number,state,body,statusCheckRollup",
     )
     if any(pr["state"] == "CLOSED" and marker in (pr["body"] or "") for pr in existing):
         summary.deferred.append(
             f"{recipe_id}: a pull request for this exact target was closed unmerged"
         )
-        return
+        return None
     open_pr = next((pr for pr in existing if pr["state"] == "OPEN"), None)
+    state = check_state(open_pr.get("statusCheckRollup")) if open_pr else "none"
+    failures = previous_failures(open_pr["body"]) if open_pr else 0
+    if state == "failed":
+        failures += 1
+    elif state == "passed":
+        failures = 0
+    if open_pr and failures >= FAILURE_LIMIT:
+        assessment.reasons.append(
+            f"refresh PR #{open_pr['number']} failed its checks in {failures} runs in a "
+            "row and is regenerated every run; it needs a human look"
+        )
+        assessment.evidence.append(
+            f"### Failed checks of PR #{open_pr['number']}\n\n"
+            f"{failed_check_evidence(open_pr.get('statusCheckRollup'))}\n"
+        )
     git("switch", "--detach", "origin/main", cwd=root)
     git("reset", "--hard", "origin/main", cwd=root)
     git("clean", "-fdq", cwd=root)
@@ -2357,29 +2449,29 @@ def publish_mechanical(root: Path, assessment: Assessment, summary: Summary) -> 
         )
         git("reset", "--hard", "origin/main", cwd=root)
         git("clean", "-fdq", cwd=root)
-        return
+        return None
     git("add", "-A", cwd=root)
     git(
         "commit",
         "-q",
         "-m",
-        f"Refresh {recipe_id} to the newest upstream pins\n\n{render_pins(assessment)}",
+        f"Refresh {assessment.label} to the newest upstream pins\n\n{render_pins(assessment)}",
         cwd=root,
     )
     tree = git("rev-parse", "HEAD^{tree}", cwd=root)
     remote = git("ls-remote", "origin", f"refs/heads/{branch}", cwd=root)
-    if open_pr and remote:
+    if open_pr and remote and state not in {"failed", "cancelled"}:
         git("fetch", "-q", "origin", branch, cwd=root)
         if git("rev-parse", "FETCH_HEAD^{tree}", cwd=root) == tree:
             arm_mechanical_pr(open_pr["number"], recipe_id, summary)
             summary.mechanical.append(
                 f"{recipe_id}: PR #{open_pr['number']} already current"
             )
-            return
+            return int(open_pr["number"])
     git("push", "-q", "--force", "origin", f"HEAD:refs/heads/{branch}", cwd=root)
     summary.prepared += 1
-    title = f"Refresh {recipe_id} to the newest upstream pins"
-    body = pr_body(assessment)
+    title = f"Refresh {assessment.label} to the newest upstream pins"
+    body = pr_body(assessment, failures)
     if open_pr:
         number = open_pr["number"]
         gh("pr", "edit", str(number), "--title", title, "--body", body)
@@ -2402,6 +2494,165 @@ def publish_mechanical(root: Path, assessment: Assessment, summary: Summary) -> 
     arm_mechanical_pr(number, recipe_id, summary)
     # App-created PRs trigger normal pull_request validation without human approval.
     summary.mechanical.append(f"{recipe_id}: PR #{number}")
+    return int(number)
+
+
+def sharing_groups(catalog_: Catalog) -> dict[str, list[str]]:
+    """Recipe -> every recipe (itself included, sorted) built from the same context.
+
+    Recipes sharing an adapter share its pins, lock and Dockerfile, so a refresh edits
+    them all or none: a PR that moved the shared files for one recipe would leave the
+    others inconsistent (the kit lock check fails) and never merge.
+    """
+    by_context: dict[str, list[str]] = {}
+    for recipe_id, recipe in catalog_.recipes.items():
+        context = recipe["execution"]["build"]["context"]["path"].rstrip("/")
+        by_context.setdefault(context, []).append(recipe_id)
+    return {
+        recipe_id: sorted(ids)
+        for ids in by_context.values()
+        if len(ids) > 1
+        for recipe_id in ids
+    }
+
+
+def combine_group(
+    members: list[str], assessed: dict[str, Assessment]
+) -> Assessment | str:
+    """One assessment that refreshes all ``members`` together, or why that is not possible."""
+    parts: list[Assessment] = []
+    for member in members:
+        part = assessed.get(member)
+        if part is None or not part.mechanical:
+            return f"{member} sharing the build context is not mechanical right now"
+        parts.append(part)
+    edits: dict[str, bytes | None] = {}
+    for part in parts:
+        for name, data in part.edits.items():
+            if name in edits and edits[name] != data:
+                return f"{part.recipe_id} and another recipe edit {name} differently"
+            edits[name] = data
+    lead = parts[0]
+    return Assessment(
+        recipe_id=lead.recipe_id,
+        items=[item for part in parts for item in part.items],
+        evidence=[text for part in parts for text in part.evidence],
+        edits=edits,
+        version=lead.version,
+        members=list(members),
+    )
+
+
+def supersede_member_prs(
+    members: list[str], lead: str, number: int, summary: Summary
+) -> None:
+    """Close the separate refresh PRs of recipes now refreshed together with ``lead``."""
+    for member in members:
+        if member == lead:
+            continue
+        for pr in gh_json(
+            "pr",
+            "list",
+            "--head",
+            f"refresh/{member}",
+            "--state",
+            "open",
+            "--json",
+            "number",
+        ):
+            gh(
+                "pr",
+                "close",
+                str(pr["number"]),
+                "--delete-branch",
+                "--comment",
+                f"Superseded by #{number}: recipes that share a build context are "
+                "refreshed together in one pull request.",
+            )
+            summary.closed.append(
+                f"{member}: PR #{pr['number']} superseded by #{number}"
+            )
+
+
+def close_stale_refresh_prs(
+    assessed: dict[str, Assessment],
+    summary: Summary,
+    groups: dict[str, list[str]] | None = None,
+    published: set[str] | None = None,
+) -> None:
+    """Close open refresh PRs the detector no longer regenerates.
+
+    A refresh PR of a recipe that is current again, gone, or no longer mechanical (it
+    needs review) would otherwise sit on an old upstream commit forever. The review
+    issue, when there is one, is linked in the comment.
+    """
+    pulls = gh_json(
+        "pr",
+        "list",
+        "--state",
+        "open",
+        "--label",
+        LABEL_MECHANICAL,
+        "--limit",
+        "200",
+        "--json",
+        "number,headRefName,body",
+    )
+    issues: list[dict[str, Any]] = (
+        gh_json(
+            "issue",
+            "list",
+            "--label",
+            LABEL_NEEDS_REVIEW,
+            "--state",
+            "open",
+            "--limit",
+            "500",
+            "--json",
+            "number,title",
+        )
+        if pulls
+        else []
+    )
+    for pr in pulls:
+        branch = str(pr.get("headRefName", ""))
+        if not branch.startswith("refresh/"):
+            continue
+        recipe_id = branch.removeprefix("refresh/")
+        result = assessed.get(recipe_id)
+        together = (groups or {}).get(recipe_id)
+        if together is not None and together[0] != recipe_id:
+            note = (
+                f"it shares its build context with `{together[0]}`, whose pull request "
+                "refreshes them together; a pull request for one of them alone leaves "
+                "the shared pins inconsistent."
+            )
+        elif recipe_id in (published or set()) or (
+            result is not None and (result.unreachable or result.mechanical)
+        ):
+            continue
+        elif result is None:
+            note = "The recipe no longer exists."
+        elif not result.drifted:
+            note = "The recipe is current again."
+        else:
+            link = next(
+                (i for i in issues if i["title"] == issue_title(recipe_id)), None
+            )
+            note = "The refresh is no longer mechanical: " + (
+                f"see #{link['number']}."
+                if link
+                else f"{result.reasons[0][:200]} (an issue follows on the next run)."
+            )
+        gh(
+            "pr",
+            "close",
+            str(pr["number"]),
+            "--delete-branch",
+            "--comment",
+            f"Closed by the refresh detector, not regenerated: {note}",
+        )
+        summary.closed.append(f"{recipe_id}: PR #{pr['number']}")
 
 
 def sync_issue(assessment: Assessment, summary: Summary) -> None:
@@ -2786,6 +3037,9 @@ def command_run(arguments: argparse.Namespace) -> int:
     review_ids: set[str] = set()
     failed: set[str] = set()
     open_prs = foreign_open_prs()
+    groups = sharing_groups(catalog_)
+    grouped: set[str] = set()
+    published: set[str] = set()  # refresh PRs regenerated by this run
     for result in results:
         if result.drifted and (
             blockers := blocking_prs(
@@ -2812,7 +3066,39 @@ def command_run(arguments: argparse.Namespace) -> int:
                         f"{result.recipe_id}: mechanical, over this run's limit"
                     )
                     continue
-                publish_mechanical(root, result, summary)
+                members = groups.get(result.recipe_id)
+                if members is None:
+                    if publish_mechanical(root, result, summary) is not None:
+                        published.add(result.recipe_id)
+                elif result.recipe_id in grouped:
+                    continue
+                else:
+                    grouped.update(members)
+                    combined = combine_group(members, assessed)
+                    held = [
+                        m
+                        for m in members
+                        if blocking_prs(recipe_footprint(catalog_, m), open_prs)
+                    ]
+                    if held and not isinstance(combined, str):
+                        combined = f"{', '.join(held)} has an open pull request"
+                    if isinstance(combined, str):
+                        review_ids.add(result.recipe_id)
+                        summary.deferred.append(
+                            f"{result.recipe_id}: refreshed together with "
+                            f"{', '.join(m for m in members if m != result.recipe_id)} "
+                            f"or not at all: {combined}"
+                        )
+                    else:
+                        seen = sum(len(assessed[m].evidence) for m in members)
+                        number = publish_mechanical(root, combined, summary)
+                        result.reasons.extend(combined.reasons)
+                        result.evidence.extend(combined.evidence[seen:])
+                        if number is not None:
+                            published.add(combined.recipe_id)
+                            supersede_member_prs(
+                                members, combined.recipe_id, number, summary
+                            )
             if result.reasons:
                 review_ids.add(result.recipe_id)
                 sync_issue(result, summary)
@@ -2821,6 +3107,7 @@ def command_run(arguments: argparse.Namespace) -> int:
             summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
     try:
         close_current_issues(assessed, review_ids | failed, summary)
+        close_stale_refresh_prs(assessed, summary, groups, published)
         update_stale_prs(summary)
         publish_if_stale()
     except RuntimeError as error:

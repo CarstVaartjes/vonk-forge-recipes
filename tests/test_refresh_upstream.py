@@ -4,8 +4,10 @@ import importlib.machinery
 import importlib.util
 import json
 import os
+import re
 import sys
 import tempfile
+import types
 import unittest
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -1390,3 +1392,258 @@ class AppVerificationTests(unittest.TestCase):
         ):
             refresh.main()
         auth.close.assert_called_once()
+
+
+def failing(
+    url: str = "https://github.com/o/r/actions/runs/7/job/9",
+) -> list[dict[str, str]]:
+    return [
+        {
+            "name": "Validate producer contracts and packages",
+            "conclusion": "FAILURE",
+            "detailsUrl": url,
+        }
+    ]
+
+
+class SelfHealingTests(unittest.TestCase):
+    def test_check_state(self) -> None:
+        self.assertEqual(refresh.check_state(None), "none")
+        self.assertEqual(refresh.check_state(failing()), "failed")
+        self.assertEqual(
+            refresh.check_state(
+                [{"conclusion": "CANCELLED"}, {"conclusion": "SUCCESS"}]
+            ),
+            "cancelled",
+        )
+        self.assertEqual(
+            refresh.check_state([{"status": "IN_PROGRESS", "conclusion": ""}]),
+            "pending",
+        )
+        self.assertEqual(
+            refresh.check_state([{"conclusion": "SUCCESS"}, {"conclusion": "SKIPPED"}]),
+            "passed",
+        )
+
+    def test_verify_runs_every_data_check_of_validate_yml(self) -> None:
+        workflow = (ROOT / ".github/workflows/validate.yml").read_text()
+        ci = set(re.findall(r"python3 (tools/[\w-]+)", workflow))
+        # run elsewhere or needing a base ref / a built index, not data the refresh edits
+        skipped = {
+            "tools/build-catalog-index",
+            "tools/build-family-aware-coverage",
+            "tools/check-recipe-topology",
+            "tools/generate-contract-examples",
+            "tools/generate-contract-schemas",
+            "tools/build-release-bundle",
+        }
+        covered = {part for _, cmd in refresh.verify_steps() for part in cmd}
+        self.assertEqual(sorted(t for t in ci - skipped if t not in covered), [])
+        self.assertIn("check", dict(refresh.verify_steps())["kit-declared pins"])
+
+    def test_pr_body_carries_failure_count(self) -> None:
+        body = refresh.pr_body(refresh.Assessment("recipe"), 2)
+        self.assertEqual(refresh.previous_failures(body), 2)
+        self.assertEqual(refresh.previous_failures(None), 0)
+
+    def republish(self, rollup, body: str = "") -> tuple[list, str, str, object]:
+        assessment = refresh.Assessment("recipe", edits={"recipe.json": b"new pin\n"})
+        calls: list[tuple[str, ...]] = []
+        env = {
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_AUTHOR_NAME": "t",
+            "GIT_AUTHOR_EMAIL": "t@example.test",
+            "GIT_COMMITTER_NAME": "t",
+            "GIT_COMMITTER_EMAIL": "t@example.test",
+        }
+        with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, env):
+            root = Path(temporary)
+            refresh.git("init", "-q", "--initial-branch=main", cwd=root)
+            refresh.git("remote", "add", "origin", str(root), cwd=root)
+            (root / "recipe.json").write_bytes(b"old pin\n")
+            refresh.git("add", "recipe.json", cwd=root)
+            refresh.git("commit", "-qm", "Base", cwd=root)
+            main = refresh.git("rev-parse", "HEAD", cwd=root)
+            refresh.git("update-ref", "refs/remotes/origin/main", main, cwd=root)
+            refresh.git("switch", "-qc", "refresh/recipe", cwd=root)
+            refresh.apply_edits(root, assessment.edits)
+            refresh.git("commit", "-qam", "Prepared refresh", cwd=root)
+            before = refresh.git("rev-parse", "HEAD", cwd=root)
+
+            def github(*arguments: str, check: bool = True) -> str:
+                calls.append(arguments)
+                if arguments[:3] == ("pr", "list", "--head"):
+                    return json.dumps(
+                        [
+                            {
+                                "number": 9,
+                                "state": "OPEN",
+                                "body": body,
+                                "statusCheckRollup": rollup,
+                            }
+                        ]
+                    )
+                if arguments[:2] == ("run", "view"):
+                    return "line one\nBOOM: kit lock is stale\n"
+                if arguments[:2] == ("pr", "list"):
+                    return "[]"
+                if arguments[:2] == ("run", "list"):
+                    return "[]"
+                return main
+
+            with (
+                patch("refresh_upstream.gh", side_effect=github),
+                patch("refresh_upstream.verify", return_value=None),
+            ):
+                refresh.publish_mechanical(root, assessment, refresh.Summary())
+            after = refresh.git("rev-parse", "refs/heads/refresh/recipe", cwd=root)
+        return calls, before, after, assessment
+
+    def test_failed_checks_regenerate_even_when_the_tree_is_unchanged(self) -> None:
+        calls, before, after, _ = self.republish(failing())
+        self.assertNotEqual(before, after)
+        edit = next(c for c in calls if c[:2] == ("pr", "edit"))
+        self.assertIn("<!-- refresh-failures: 1 -->", edit[-1])
+
+    def test_cancelled_checks_regenerate(self) -> None:
+        _, before, after, _ = self.republish([{"conclusion": "CANCELLED"}])
+        self.assertNotEqual(before, after)
+
+    def test_passing_unchanged_pr_is_left_alone(self) -> None:
+        calls, before, after, _ = self.republish([{"conclusion": "SUCCESS"}])
+        self.assertEqual(before, after)
+        self.assertFalse([c for c in calls if c[:2] == ("pr", "edit")])
+
+    def test_repeated_failures_report_evidence_for_the_review_issue(self) -> None:
+        marker = f"<!-- refresh-failures: {refresh.FAILURE_LIMIT - 1} -->"
+        calls, _, _, _ = self.republish(failing(), marker)
+        self.assertTrue([c for c in calls if c[:2] == ("run", "view")])
+
+    def test_failure_evidence_has_the_log_tail(self) -> None:
+        with patch("refresh_upstream.gh", return_value="x\nBOOM: stale\n"):
+            text = refresh.failed_check_evidence(failing())
+        self.assertIn("BOOM: stale", text)
+        self.assertIn("actions/runs/7", text)
+
+
+class SharedContextTests(unittest.TestCase):
+    def catalog(self):
+        def recipe(path: str) -> dict:
+            return {"execution": {"build": {"context": {"path": path}}}}
+
+        return types.SimpleNamespace(
+            recipes={
+                "b": recipe("adapters/x/"),
+                "a": recipe("adapters/x"),
+                "c": recipe("adapters/y"),
+            }
+        )
+
+    def test_recipes_sharing_a_context_are_grouped_sorted(self) -> None:
+        self.assertEqual(
+            refresh.sharing_groups(self.catalog()), {"a": ["a", "b"], "b": ["a", "b"]}
+        )
+
+    def assessment(self, recipe_id: str, **kwargs):
+        item = refresh.Item(
+            "source",
+            "github",
+            "o/r",
+            OLD,
+            refresh.Target("github", "o/r", NEW, "d", None, None, "u"),
+        )
+        return refresh.Assessment(recipe_id, items=[item], **kwargs)
+
+    def test_group_is_one_assessment_with_all_edits(self) -> None:
+        assessed = {
+            "a": self.assessment("a", edits={"recipes/a.json": b"1", "lock": b"L"}),
+            "b": self.assessment("b", edits={"recipes/b.json": b"2", "lock": b"L"}),
+        }
+        combined = refresh.combine_group(["a", "b"], assessed)
+        assert not isinstance(combined, str)
+        self.assertEqual(combined.recipe_id, "a")
+        self.assertEqual(
+            set(combined.edits), {"recipes/a.json", "recipes/b.json", "lock"}
+        )
+        self.assertIn("a, b", refresh.pr_body(combined))
+
+    def test_group_waits_when_a_sibling_is_not_mechanical(self) -> None:
+        assessed = {
+            "a": self.assessment("a", edits={"lock": b"L"}),
+            "b": self.assessment("b", reasons=["needs review"]),
+        }
+        self.assertIsInstance(refresh.combine_group(["a", "b"], assessed), str)
+        self.assertIsInstance(
+            refresh.combine_group(["a", "b"], {"a": assessed["a"]}), str
+        )
+
+    def test_group_rejects_conflicting_shared_edits(self) -> None:
+        assessed = {
+            "a": self.assessment("a", edits={"lock": b"L1"}),
+            "b": self.assessment("b", edits={"lock": b"L2"}),
+        }
+        self.assertIsInstance(refresh.combine_group(["a", "b"], assessed), str)
+
+
+class StalePullRequestTests(unittest.TestCase):
+    def close(self, assessed, groups=None, published=None, issues=()):
+        pulls = [
+            {"number": 1, "headRefName": "refresh/a", "body": ""},
+            {"number": 2, "headRefName": "refresh/b", "body": ""},
+        ]
+        closed: list[tuple[str, ...]] = []
+
+        def github(*arguments: str, check: bool = True) -> str:
+            if arguments[0] == "pr" and arguments[1] == "close":
+                closed.append(arguments)
+            return ""
+
+        def github_json(*arguments: str):
+            return pulls if arguments[0] == "pr" else list(issues)
+
+        with (
+            patch("refresh_upstream.gh", side_effect=github),
+            patch("refresh_upstream.gh_json", side_effect=github_json),
+        ):
+            refresh.close_stale_refresh_prs(
+                assessed, refresh.Summary(), groups, published
+            )
+        return {c[2]: c[-1] for c in closed}
+
+    def item(self):
+        return refresh.Item(
+            "source",
+            "github",
+            "o/r",
+            OLD,
+            refresh.Target("github", "o/r", NEW, "d", None, None, "u"),
+        )
+
+    def test_current_gone_and_review_prs_are_closed_with_a_reason(self) -> None:
+        assessed = {
+            "a": refresh.Assessment("a"),
+            "b": refresh.Assessment("b", items=[self.item()], reasons=["why"]),
+        }
+        closed = self.close(
+            assessed, issues=[{"number": 77, "title": refresh.issue_title("b")}]
+        )
+        self.assertIn("current again", closed["1"])
+        self.assertIn("#77", closed["2"])
+        self.assertIn("no longer exists", self.close({})["1"])
+
+    def test_mechanical_published_and_unreachable_prs_stay(self) -> None:
+        mech = refresh.Assessment("a", items=[self.item()])
+        down = refresh.Assessment("b", items=[self.item()], unreachable=["x"])
+        self.assertEqual(self.close({"a": mech, "b": down}), {})
+        review = refresh.Assessment("a", items=[self.item()], reasons=["ci"])
+        self.assertEqual(self.close({"a": review, "b": down}, published={"a"}), {})
+
+    def test_a_sibling_pr_of_a_shared_context_is_closed(self) -> None:
+        mech = {
+            "a": refresh.Assessment("a", items=[self.item()]),
+            "b": refresh.Assessment("b", items=[self.item()]),
+        }
+        closed = self.close(mech, groups={"a": ["a", "b"], "b": ["a", "b"]})
+        self.assertEqual(list(closed), ["2"])
+        self.assertIn("shares its build context", closed["2"])
