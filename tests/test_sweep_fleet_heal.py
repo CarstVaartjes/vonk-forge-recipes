@@ -106,3 +106,51 @@ def test_more_pin_candidates_than_the_contract_allows_are_capped(
 
 def test_the_contract_limit_is_64() -> None:
     assert PIN_PROFILE_MAX_ASSIGNMENTS == 64
+
+
+def test_the_pin_profile_is_counted_on_the_real_document_not_on_our_bookkeeping(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Untracked leftovers (a timed-out add the Controller applied, a lost state) and foreign
+    assignments count against the contract limit: the submitted document never exceeds it."""
+    from spark_sweep.run import SWEEP_LABEL
+
+    limit = 6
+    monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
+    recipes = [FakeRecipe(f"r{i}", (f"m{i}",)) for i in range(10)]
+    models = [FakeModel(f"m{i}") for i in range(10)]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        models,
+        gateway=gateway,
+        prefetch=PrefetchConfig(
+            pin_profile=13, max_model_downloads=10, pins_per_tick=20
+        ),
+    )
+
+    def assignment(name: str, key: str) -> dict:
+        return {
+            "recipe_selector": key,
+            "spark_ids": ["spark-a"],
+            "assignment_name": name,
+            "desired_state": "installed",
+        }
+
+    fleet.max_assignments = limit
+    fleet.profiles[13] = {
+        "revision": 1,
+        "latest": None,
+        "labels": {SWEEP_LABEL[0]: SWEEP_LABEL[1]},
+        "assignments": [assignment(f"keep-{i}", "vonk-forge/r0") for i in range(2)]
+        + [assignment(f"pin-stale{i}", "vonk-forge/gone") for i in range(4)],
+    }  # full at the limit, and none of it in the sweep's state
+    sizes: list[int] = []
+    clock.hooks.append(lambda _t: sizes.append(len(fleet.profiles[13]["assignments"])))
+    sweep.run()
+    assert max(sizes) <= limit
+    assert sweep.prefetcher.pin_error is None
+    names = {a["assignment_name"] for a in fleet.profiles[13]["assignments"]}
+    assert {"keep-0", "keep-1"} <= names  # foreign assignments are never removed
+    assert not any(n.startswith("pin-stale") for n in names)
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
