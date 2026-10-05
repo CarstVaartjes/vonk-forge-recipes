@@ -162,6 +162,11 @@ certificate).
   load: no change in the completed bytes for `--copy-stall-minutes` (default 10),
   which is class `copy-stalled`, retried once and requeued on a platform change.
   Load timeouts recorded before this rule (copy time counted) are retried once.
+* While the Controller holds the application back with error blockers (capacity, stale
+  inventory, a phase it keeps retrying; `progress.blockers`), those seconds are not load time
+  either, and a hold that lasts `--blocked-minutes` (default 15) fails the lane as class
+  `admission-stalled` (phase start). It is the platform's, so a release change requeues it; it
+  is never recorded as an engine `load.timeout`.
 * A restarted sweep adopts a load it submitted itself: the saved lane slot and the
   saved application are picked up, nothing is cancelled or placed again, and the
   time the sweep was away counts neither as load time nor as a stalled copy.

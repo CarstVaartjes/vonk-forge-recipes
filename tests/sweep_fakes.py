@@ -71,6 +71,9 @@ class FakeRecipe:
         0.0  # NAS to Spark distribution, before the install and start phases
     )
     copy_stalls: bool = False  # the copy stops making progress part-way
+    blocked: bool = (
+        False  # the Controller holds the application back for ever (admission)
+    )
     fail_load: str | None = None  # status reason of a failed load
     fail_phase: str = "runtime-install"
     fail_download: str | None = None
@@ -808,7 +811,13 @@ class FakeFleet:
             assign.append(
                 {
                     "alias": alias,
-                    "at": self.clock.now() + recipe.copy_seconds + recipe.load_seconds,
+                    "at": (
+                        10**12
+                        if recipe.blocked
+                        else self.clock.now()
+                        + recipe.copy_seconds
+                        + recipe.load_seconds
+                    ),
                     "fail": recipe.fail_load,
                     "phase": recipe.fail_phase,
                     "resolved": False,
@@ -829,6 +838,11 @@ class FakeFleet:
                     and x["assignment_name"] not in running
                 ),
                 default=0.0,
+            ),
+            "blocked": any(
+                self.recipes[x["recipe_selector"]].blocked
+                for x in data["assignments"]
+                if x["assignment_name"] not in running
             ),
             "copy_stalls": any(
                 self.recipes[x["recipe_selector"]].copy_stalls
@@ -869,6 +883,17 @@ class FakeFleet:
             "progress": {
                 "child_progress": self._child_progress(app),
                 "switch_adapter": {"assignment_failures": []},
+                "blockers": (
+                    [
+                        {
+                            "code": "run-switch.resource.resident_usage_unknown",
+                            "detail": "1 exact active run claim(s) may retain 0..100000000000 bytes",
+                            "severity": "error",
+                        }
+                    ]
+                    if app.get("blocked") and app["state"] in ("queued", "running")
+                    else []
+                ),
             },
             **(
                 {"cancellation": {"cause": app.get("cause", "operator")}}

@@ -516,6 +516,28 @@ def platform_side(failure_class: str | None) -> bool:
     return failure_class not in RECIPE_SIDE_CLASSES
 
 
+def admission_blockers(document: Mapping[str, Any]) -> list[dict[str, str]]:
+    """What holds a profile application back: error blockers and a phase that keeps being retried.
+
+    A warning is a brief contention hold and never counts; the Controller raises ``phase-retry``
+    only once a phase has been repeated.
+    """
+    held = (
+        (document.get("progress") or {}).get("blockers")
+        or document.get("blockers")
+        or []
+    )
+    return [
+        {"code": str(item.get("code", "")), "detail": str(item.get("detail", ""))[:300]}
+        for item in held
+        if isinstance(item, Mapping)
+        and (
+            item.get("severity") == "error"
+            or item.get("code") == "run-switch.phase-retry"
+        )
+    ]
+
+
 def child_phase(name: str | None) -> str | None:
     return _CHILD_PHASE.get(name or "")
 

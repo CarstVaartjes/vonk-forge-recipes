@@ -153,6 +153,58 @@ def test_a_copy_that_stops_moving_fails_after_the_stall_window_and_is_retried_on
     )  # a platform fix may cure it: requeued on a release change
 
 
+def test_an_application_the_controller_holds_back_is_admission_stalled_not_a_load_timeout(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    held = FakeRecipe("big", blocked=True)
+    sweep, _, _ = make_sweep(
+        tmp_path,
+        [held],
+        [FakeModel("m1")],
+        gateway=gateway,
+        timeouts=_timeouts(600),
+        blocked_seconds=300,
+    )
+    sweep.run()
+    entry = _entry(sweep)
+    assert (entry["status"], entry["failure_class"]) == ("failed", "admission-stalled")
+    assert "held this application back" in entry["error"]
+    assert "resident_usage_unknown" in entry["error"]
+    assert policy.platform_side(
+        "admission-stalled"
+    )  # a platform fix may cure it: requeued on a release change
+
+
+def test_blocked_seconds_are_not_load_time() -> None:
+    document = {
+        "progress": {
+            "blockers": [
+                {
+                    "code": "run-switch.phase-retry",
+                    "detail": "run.capacity_busy",
+                    "severity": "warning",
+                },
+                {
+                    "code": "run-switch.inventory-stale",
+                    "detail": "old",
+                    "severity": "error",
+                },
+                {
+                    "code": "run-switch.something",
+                    "detail": "brief hold",
+                    "severity": "warning",
+                },
+            ]
+        }
+    }
+    assert [b["code"] for b in policy.admission_blockers(document)] == [
+        "run-switch.phase-retry",
+        "run-switch.inventory-stale",
+    ]
+    assert policy.admission_blockers({"progress": {"blockers": []}}) == []
+    assert policy.admission_blockers({}) == []
+
+
 def test_a_copy_that_keeps_moving_is_never_stalled(
     tmp_path: Path, gateway: Gateway
 ) -> None:
