@@ -191,7 +191,7 @@ def test_unparsed_thinking_in_content_is_valid_and_only_a_quality_note(
 
 
 @pytest.mark.parametrize("case", ["A391_UNPARSED", "A323_UNPARSED"])
-@pytest.mark.parametrize("broken", [_chat(""), _chat(None), _chat("3 <|im_end|>")])
+@pytest.mark.parametrize("broken", [_chat(""), _chat(None), _chat("3 <|channel>")])
 def test_unparsed_cases_still_fail_an_empty_or_leaking_reply(
     case: str, broken: dict[str, Any]
 ) -> None:
