@@ -186,6 +186,9 @@ class FakeFleet:
         self.flaky_fleet_reads = 0  # fleet reads that show the second Spark not online
         self.fleet_reads = 0
         self.stale_loads = 0  # loads answered with the profile's previous application
+        self.supersede: list[
+            str
+        ] = []  # modes: the next loads are replaced by the Controller
         self.ignore_clearing = (
             0  # empty-profile loads that succeed without stopping anything
         )
@@ -260,6 +263,9 @@ class FakeFleet:
                     app["state"] = "succeeded"
                 continue
             pending = [a for a in app["assign"] if not a["resolved"]]
+            if pending and self.supersede and not app.get("successor_of"):
+                self._supersede(app, self.supersede.pop(0))
+                continue
             for item in pending:
                 if now >= item["at"]:
                     item["resolved"] = True
@@ -276,6 +282,36 @@ class FakeFleet:
             if all(a["resolved"] for a in app["assign"]):
                 failed = any(a["fail"] for a in app["assign"])
                 app["state"] = "failed" if failed else "succeeded"
+
+    def _supersede(self, app: dict[str, Any], mode: str) -> None:
+        """The Controller replaces a running application, as an automatic retry or a later intent."""
+        if mode in ("retry", "legacy-retry"):
+            successor = dict(
+                app, id=self._id("app"), state="running", successor_of=app["id"]
+            )
+            successor["assign"] = [dict(a) for a in app["assign"]]
+            self.apps[successor["id"]] = successor
+            self.by_request[app["request_key"]] = successor["id"]
+        if mode == "retry":
+            app.update(
+                state="superseded",
+                superseded_by=successor["id"],
+                reason_code="superseded-by-retry",
+                reason="Superseded by profile retry",
+            )
+        elif mode == "legacy-retry":
+            app.update(
+                state="failed",
+                reason=f"Automatically reconciled by profile retry {successor['id']}",
+            )
+        else:
+            stopped = {a["alias"] for a in app["assign"]}
+            self.runs = [r for r in self.runs if r["alias"] not in stopped]
+            app.update(
+                state="superseded",
+                reason_code="effects-changed-during-admission",
+                reason="Profile workload effects changed during admission; review again",
+            )
 
     # -- the runner ----------------------------------------------------------------
 
@@ -827,6 +863,8 @@ class FakeFleet:
             "request_key": app.get("request_key", ""),
             "state": app["state"],
             "status_reason": app.get("reason"),
+            "superseded_by": app.get("superseded_by"),
+            "reason_code": app.get("reason_code"),
             "current_operation_id": app["id"],
             "progress": {
                 "child_progress": self._child_progress(app),
