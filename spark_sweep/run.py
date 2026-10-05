@@ -51,7 +51,9 @@ MAX_REVIEW_DEFERS = 3
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
 ACTIVE_APP = frozenset({"queued", "running"})
-SETTLED = frozenset({"succeeded", "failed", "cancelled", "waiting-for-operator"})
+SETTLED = frozenset(
+    {"succeeded", "failed", "cancelled", "superseded", "waiting-for-operator"}
+)
 
 
 class DaemonExecutor:
@@ -716,6 +718,23 @@ class Sweep:
                     key, "smoke rules changed: answer quality no longer fails a recipe"
                 )
 
+    def requeue_superseded_failures(self) -> None:
+        """A load the Controller replaced is not the recipe's failure: records of it are pending again."""
+        for key, entry in self.state.recipes.items():
+            evidence = entry.get("evidence")
+            reason = (
+                evidence.get("reason") if isinstance(evidence, Mapping) else None
+            ) or entry.get("error")
+            if (
+                entry.get("status") == "failed"
+                and (
+                    policy.superseded_text(reason)
+                    or policy.superseded_text(entry.get("error"))
+                )
+                and self._selected_key(key)
+            ):
+                self._requeue_failed(key, "load-superseded: not a recipe failure")
+
     def requeue_failed(self) -> int:
         """``--retry-failed``: every failed recipe (within ``--only``), whatever the cause."""
         keys = [
@@ -797,6 +816,7 @@ class Sweep:
         try:
             self.check_client()
             self.requeue_for_rules()
+            self.requeue_superseded_failures()
             if self.cfg.retry_failed:
                 self.requeue_failed()
             self._startup(self.preflight)
@@ -1087,10 +1107,21 @@ class Sweep:
         load["copying"] = moving.copying
         load["phase"] = moving.phase
         load["progress"] = list(moving.signature) if moving.signature else None
+        replaced = policy.supersession(document) if status in SETTLED else None
+        if replaced is not None and replaced.successor not in (None, document["id"]):
+            # The Controller continued this application as another one: follow it.
+            self.state.event(
+                f"application {document['id']} was superseded: following {replaced.successor}"
+            )
+            load["app_id"] = replaced.successor
+            load["state"] = "queued"
+            load["copying"] = False
+            return
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
                 "state": status,
+                "superseded": replaced is not None,
                 "reason": document.get("status_reason"),
                 "operation_id": document.get("current_operation_id") or document["id"],
                 "child_phase": child,
@@ -1167,7 +1198,11 @@ class Sweep:
             return
         app = self.state.data.get("apps", {}).get(slot["request_key"])
         if app is not None:
-            if app["state"] == "cancelled" and app.get("cause") == "superseded":
+            if (
+                app.get("superseded")
+                or policy.superseded_text(app.get("reason"))
+                or (app["state"] == "cancelled" and app.get("cause") == "superseded")
+            ):
                 self.requeue(key, "load superseded by another application")
                 return
             if app["state"] == "succeeded":
@@ -1524,6 +1559,14 @@ class Sweep:
                 profile=self.cfg.sweep_profile,
             )
             status = str(dig(reply.document, "state", default=""))
+            replaced = (
+                policy.supersession(reply.document)
+                if status in SETTLED and isinstance(reply.document, dict)
+                else None
+            )
+            if replaced is not None and replaced.successor:
+                application_id = replaced.successor
+                continue
             if status in SETTLED:
                 break
             self.clock.sleep(self.cfg.poll_seconds)
