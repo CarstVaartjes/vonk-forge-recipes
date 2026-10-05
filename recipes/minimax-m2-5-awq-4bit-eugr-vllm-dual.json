@@ -772,10 +772,10 @@
       "MiniMax (modified MIT)",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/cb51860d98e956d9df71431a8785cc0cf6f65b53"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/bb6ee761643f45eb84b14f7e39c41d7538d53890"
   },
   "release": {
-    "released_at": "2026-10-04",
+    "released_at": "2026-10-05",
     "version": "prebuilt-vllm-current"
   },
   "runtime": {
