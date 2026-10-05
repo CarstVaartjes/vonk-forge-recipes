@@ -111,8 +111,8 @@
     "source_reference": "https://huggingface.co/ggml-org/gemma-4-26B-A4B-it-GGUF/tree/bb4531cda34d1ea09d9814959ed4d5833cf2a4c8"
   },
   "release": {
-    "released_at": "2026-09-23",
-    "version": "0.5.0"
+    "released_at": "2026-10-05",
+    "version": "0.6.0"
   },
   "runtime": {
     "arguments": [
