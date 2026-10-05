@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "GLM-5.3-Flash on two DGX Sparks with the TensorFold engine (exact decoding, custom CUDA kernels JIT-compiled on first start), one rank per Spark over the ConnectX-7 link with RoCE all-gathers that use both PCIe links of the cabled QSFP port when the platform's fabric setup passes both RoCE devices (the engine takes up to two from NCCL_IB_HCA). Serves MiaAI-Lab's EXL3 4 bpw TensorFold checkpoint (EXL3 routed experts, BF16 elsewhere; Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold at the revision the kit pins) with a 1,048,576-token window, up to 4 concurrent requests sharing an FP8 KV pool (a drafter choice raises that to 8 at the cost of a smaller pool), DFlash2 and copy drafts, 4-bit dense weights, image and video input (up to 50 images and 4 videos a request), tool calling (a call is sent whole, never cut off) and structured outputs, smooth token streaming, earlier turns' reasoning kept in the prompt, a default reply budget of 32,768 tokens for requests that set none, and room for 32 kept prompt states. Based on MiaAI-Lab's two-Spark TensorFold kit v1.5 (1576746a, Apache-2.0) on TensorFold v0.6.0 (Apache-2.0; code written before 0.6.0 keeps its MIT notice) with her 70 patches, applied at fuzz 0; her published image v0.6.0-9f73cca659a1 (sha256:ef83797d791fef96c4605e8d37367aca6de5aeac7bb672792cb682e2e55d4237) is noted for information, this recipe builds its own from the vendored patches. A different engine from the vLLM two-Spark recipe. Memory per Spark, from the kit's README (KV pool and memory, rank 0, not measured here): startup estimate 88.09 GiB, about 10 GiB more at a 1M-token prompt, 14.5 GiB host reserve, unchanged at 4 requests since the previous kit. Upstream claims 60.4 tok/s for one request and 108.8 tok/s aggregate at 4, about 1,950 tok/s prefill and, for this checkpoint, GSM8K 98.8 percent / HumanEval 95.7 percent, all unmeasured here. Licences, for information: the quantization is Apache-2.0 per the kit's NOTICE, with Z.AI's MIT licence kept for the base model (the pinned checkpoint revision's own LICENSE and card still carry Z.AI's MIT text; the relicensing is a later upstream commit that changes no weights); the DFlash2 drafter is CC BY-NC-ND 4.0 (non-commercial) and is not used with the MTP drafter option. Thinking is on by default (the chat template's default) and is chosen per request: a request can set reasoning_effort or chat_template_kwargs.enable_thinking, and reasoning comes back in reasoning_content.",
+    "description": "GLM-5.3-Flash on two DGX Sparks with the TensorFold engine (exact decoding, custom CUDA kernels JIT-compiled on first start), one rank per Spark over the ConnectX-7 link with RoCE all-gathers that use both PCIe links of the cabled QSFP port when the platform's fabric setup passes both RoCE devices (the engine takes up to two from NCCL_IB_HCA). Serves MiaAI-Lab's EXL3 4 bpw TensorFold checkpoint (EXL3 routed experts, BF16 elsewhere; Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold at the revision the kit pins) with a 1,048,576-token window, up to 4 concurrent requests sharing an FP8 KV pool (a drafter choice raises that to 8 at the cost of a smaller pool), DFlash2 and copy drafts, 4-bit dense weights, image and video input (up to 50 images and 4 videos a request), tool calling (a call is sent whole, never cut off) and structured outputs, smooth token streaming, earlier turns' reasoning kept in the prompt, a default reply budget of 32,768 tokens for requests that set none, and room for 32 kept prompt states. Based on MiaAI-Lab's two-Spark TensorFold kit v1.7.1 (68ebd67b, Apache-2.0) on TensorFold v0.6.0 (Apache-2.0; code written before 0.6.0 keeps its MIT notice) with her 76 patches, applied at fuzz 0; her published image v0.6.0-1692d2df78d2 (sha256:a8067cd7e14c14fa83d1dbed60261428f6d1737cec4554445573354af040dd7c) is noted for information, this recipe builds its own from the vendored patches. A different engine from the vLLM two-Spark recipe. Memory per Spark, from the kit's README (KV pool and memory, rank 0, not measured here): startup estimate 88.09 GiB, about 10 GiB more at a 1M-token prompt, 14.5 GiB host reserve, unchanged at 4 requests since the previous kit. Upstream claims 60.4 tok/s for one request and 108.8 tok/s aggregate at 4, about 1,950 tok/s prefill and, for this checkpoint, GSM8K 98.8 percent / HumanEval 95.7 percent, all unmeasured here. Licences, for information: the quantization is Apache-2.0 per the kit's NOTICE, with Z.AI's MIT licence kept for the base model (the pinned checkpoint revision's own LICENSE and card still carry Z.AI's MIT text; the relicensing is a later upstream commit that changes no weights); the DFlash2 drafter is CC BY-NC-ND 4.0 (non-commercial) and is not used with the MTP drafter option. Thinking is on by default (the chat template's default) and is chosen per request: a request can set reasoning_effort or chat_template_kwargs.enable_thinking, and reasoning comes back in reasoning_content.",
     "tags": [
       "dflash2",
       "engine",
@@ -1245,11 +1245,11 @@
       "IncoAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/1576746a04983b6eded0551dbf22512ee9e95654"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/68ebd67b5326974b8004009e202268b1fa7c551d"
   },
   "release": {
-    "released_at": "2026-10-03",
-    "version": "1.5"
+    "released_at": "2026-10-05",
+    "version": "1.7.1"
   },
   "runtime": {
     "arguments": [
@@ -1339,6 +1339,10 @@
       {
         "name": "TF_ROCE_MAX_KB",
         "value": "512"
+      },
+      {
+        "name": "TF_ROCE_WAIT_S",
+        "value": "300"
       },
       {
         "name": "TF_GLM_COPY_DRAFTS",
