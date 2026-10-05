@@ -431,7 +431,7 @@
     "source_reference": "https://github.com/tonyd2wild/Inkling-Small-NVFP4-DSpark-BF16-KV-262K-2x-DGX-Spark/tree/7795dd3a6a476a544f43e84ea1bad072ea86648b"
   },
   "release": {
-    "released_at": "2026-10-04",
+    "released_at": "2026-10-05",
     "version": "prebuilt-vllm-current"
   },
   "runtime": {
