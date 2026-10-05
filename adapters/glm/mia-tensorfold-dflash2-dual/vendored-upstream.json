@@ -17,7 +17,7 @@
         "binds": "primary",
         "datasource": "hf-revision",
         "file": "scripts/config.sh",
-        "pattern": "^\\s*(?P<repo>[\\w.-]+/[\\w.-]+)\\) _rev=(?P<version>[0-9a-f]{40}) ;;$"
+        "pattern": "^\\s*(?P<repo>[\\w.-]+/[\\w.-]+(?<!-Ablit))\\) _rev=(?P<version>[0-9a-f]{40}) ;;$"
       }
     }
   },

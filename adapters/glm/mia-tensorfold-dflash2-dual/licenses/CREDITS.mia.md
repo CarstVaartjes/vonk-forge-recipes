@@ -90,6 +90,25 @@ checkpoint's ShapleyMcg attribution and the drafter's license).
   [SxMShaDoW](https://github.com/SxMShaDoW)), backported to v0.6.0.
 - `0060-glm-keep-thinking` (earlier turns keep their reasoning, `TF_GLM_CLEAR_THINKING`): by
   [kky42](https://github.com/kky42), pull request #23.
+- `0071-glm-shared-prefix-copy` (a shared system prompt's resume keeps the writer's kept prompt, issue #43): by
+  [ezoushen](https://github.com/ezoushen), [pull request #44](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/pull/44),
+  applied as contributed, with `tools/prompt_reuse.py`.
+- `0072-glm-display-kv` (`DISPLAY_KV_MIB`, the display reservation in the shared pool, issue #55): by
+  [ezoushen](https://github.com/ezoushen), [pull request #56](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/pull/56),
+  applied as contributed, with `tools/display_kv_check.py` (one review fix in its `start.sh` check, which ended a headless
+  Spark's start without a message). It applies to TensorFold's pool the display-reserve KV
+  technique that [gabewillen](https://github.com/gabewillen) proposed for the vLLM kit in
+  [MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks#234](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/pull/234).
+- `0073-glm-queued-cancellation` (requests waiting for a slot are dropped when their client leaves): by
+  [desy0305](https://github.com/desy0305), [pull request #51](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/pull/51),
+  applied as contributed, with `tools/test_queued_cancellation.py`; its delivery-failure handling comes from
+  [johnwhited](https://github.com/johnwhited)'s [pull request #48](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/pull/48).
+- `0074-glm-compact-before-evict` (the shared pool compacts before it evicts, issue #61): by
+  [ezoushen](https://github.com/ezoushen), [pull request #62](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/pull/62)
+  (contributed as 0073), applied as contributed, with `tools/pool_pressure.py` and `tools/pool_room_check.py`.
+- `0077-glm-kept-cap-shared-by-recency` (a new agent run keeps its system prompt's state once the kept-state cap is
+  full): the diagnosis, and the fix of evicting shared-prefix states by recency only, by
+  [meleesciony](https://github.com/meleesciony) in [issue #75](https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/issues/75); the code is our own.
 - Every patch, except the parts credited above: by MiaAI-Lab, developed with
   [Claude Code](https://claude.com/claude-code), under the Apache License 2.0; the TensorFold code the patches modify or
   quote as context stays under TensorFold's licenses (Apache 2.0, and MIT for code written before v0.6.0; see
