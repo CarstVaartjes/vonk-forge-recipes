@@ -42,10 +42,13 @@ def body_for(key: str, entry: Mapping[str, Any]) -> str:
             "",
             f"Not attempted separately: it shares a model with `{entry['inherited_from']}`, whose download failed.",
         ]
-    if entry.get("evidence"):
+    bundle = entry.get("evidence_bundle") or (
+        entry["evidence"] if isinstance(entry.get("evidence"), str) else None
+    )
+    if bundle:
         lines += [
             "",
-            f"Diagnostics bundle (local, from `vonkctl fleet evidence`): `{entry['evidence']}`",
+            f"Diagnostics bundle (local, from `vonkctl fleet evidence`): `{bundle}`",
         ]
     return "\n".join(lines) + "\n"
 

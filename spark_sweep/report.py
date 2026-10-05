@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import statistics
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -61,6 +61,24 @@ def average_test_seconds(recipes: Mapping[str, Mapping[str, Any]]) -> float:
     return statistics.mean(totals) if totals else DEFAULT_TEST_SECONDS
 
 
+def sample_evidence(
+    entries: Mapping[str, Mapping[str, Any]], recipes: Sequence[str]
+) -> str:
+    """One line of what the first failed recipe of a cluster saw: case, status, operation, response."""
+    for key in recipes:
+        proof = policy.evidence_of(entries.get(key) or {})
+        parts = [
+            f"{name}={proof[name]}"
+            for name in ("case", "http_status", "operation_id", "reason")
+            if proof.get(name) not in (None, "")
+        ]
+        if proof.get("body"):
+            parts.append("body=" + " ".join(str(proof["body"]).split())[:200])
+        if parts:
+            return f"{key}: " + ", ".join(parts)
+    return ""
+
+
 def failures_by_release(data: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Failed recipes grouped by the Controller release they failed under, newest release first."""
     versions = {h["sha"]: h.get("version") for h in data.get("release_history", [])}
@@ -85,6 +103,7 @@ def failures_by_release(data: Mapping[str, Any]) -> list[dict[str, Any]]:
                     "signature": c.signature,
                     "count": len(c.recipes),
                     "recipes": list(c.recipes[:6]),
+                    "evidence": sample_evidence(data["recipes"], c.recipes),
                 }
                 for c in policy.cluster(groups[sha])
             ],
@@ -163,6 +182,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                 "signature": c.signature,
                 "count": len(c.recipes),
                 "recipes": list(c.recipes[:8]),
+                "evidence": sample_evidence(data["recipes"], c.recipes),
             }
             for c in policy.cluster(data["recipes"])
         ],
@@ -232,12 +252,16 @@ def render_status(status: Mapping[str, Any]) -> str:
             lines.append(
                 f"- release {str(group['release'])[:12]}{version}{tag}: {group['failed']} failed"
             )
-            lines += [f"  - {c['count']} x {c['signature']}" for c in group["clusters"]]
+            for c in group["clusters"]:
+                lines.append(f"  - {c['count']} x {c['signature']}")
+                if c.get("evidence"):
+                    lines.append(f"    - evidence: {c['evidence']}")
     if status["failure_clusters"]:
         lines += ["", "## Failure clusters"]
-        lines += [
-            f"- {k['count']} x {k['signature']}" for k in status["failure_clusters"]
-        ]
+        for k in status["failure_clusters"]:
+            lines.append(f"- {k['count']} x {k['signature']}")
+            if k.get("evidence"):
+                lines.append(f"  - evidence: {k['evidence']}")
     if status.get("quality_notes"):
         lines += ["", "## Quality notes (ran; the answer differed, not failures)"]
         lines += [
@@ -269,7 +293,8 @@ def build_report(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
                 "ttft_ms": perf.get("ttft_ms"),
                 "tokens_per_second": perf.get("tokens_per_second"),
                 "content_sha256": entry.get("content_sha256"),
-                "evidence": entry.get("evidence"),
+                "evidence": policy.evidence_of(entry) or None,
+                "evidence_bundle": entry.get("evidence_bundle"),
                 "quality": quality_notes({key: entry}).get(key, []),
             }
         )
@@ -277,7 +302,12 @@ def build_report(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
         "summary": counts(recipes),
         "recipes": rows,
         "failure_clusters": [
-            {"id": c.id, "signature": c.signature, "recipes": list(c.recipes)}
+            {
+                "id": c.id,
+                "signature": c.signature,
+                "recipes": list(c.recipes),
+                "evidence": sample_evidence(recipes, c.recipes),
+            }
             for c in policy.cluster(recipes)
         ],
     }

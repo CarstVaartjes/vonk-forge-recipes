@@ -24,7 +24,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .catalog import Model, Recipe, dig
-from .policy import Boost, Failure, RateTracker, classify, plan_groups
+from .policy import Boost, Failure, RateTracker, classify, excerpt, plan_groups
 from .state import State
 from .vonkctl import Vonkctl, VonkctlError, request_key
 
@@ -155,7 +155,27 @@ class Prefetcher:
         code = str(failure_doc.get("code", ""))
         detail = str(failure_doc.get("detail", "") or document.get("detail", ""))
         actions = [str(a) for a in failure_doc.get("recovery_actions", [])]
-        failure = classify("download", code, detail)
+        failure = classify(
+            "download",
+            code,
+            detail,
+            evidence={
+                "operation_id": document.get("id"),
+                "state": document.get("state"),
+                "reason": excerpt(failure_doc.get("detail") or detail, 500),
+                "recovery_actions": actions,
+                "children": [
+                    {
+                        k: child.get(k)
+                        for k in ("kind", "state", "id")
+                        if child.get(k) is not None
+                    }
+                    for child in document.get("children", [])
+                    if isinstance(child, dict) and child.get("state") == "failed"
+                ][:8],
+                "failure": excerpt(failure_doc, 1000),
+            },
+        )
         if "free_space" in actions or failure.klass == "capacity":
             self.pressure_until = self.clock() + self.config.pressure_pause
             self.state.event(f"NAS pressure on {key}: new model downloads paused")
@@ -211,6 +231,11 @@ class Prefetcher:
                 "download",
                 str(document.get("code", "")),
                 str(document.get("detail", error)),
+                evidence={
+                    "request_key": key,
+                    "reason": excerpt(document.get("detail") or error, 500),
+                    "reply": excerpt(document, 1000),
+                },
             )
             self.state.downloads[recipe.key] = {
                 "request_key": key,

@@ -456,7 +456,31 @@ class Sweep:
             self._tick()
         except VonkctlError as error:
             self.state.event(f"vonkctl failed, will retry: {str(error)[:150]}")
+            self._save_quietly()
+        except Exception as error:  # noqa: BLE001 - an unattended sweep never dies of one bad pass
+            self.note_infra("tick", f"{type(error).__name__}: {error}")
+            self.state.event(
+                f"unexpected error in a pass, will retry: {type(error).__name__}: {str(error)[:150]}"
+            )
+            self._save_quietly()
+
+    def _save_quietly(self) -> None:
+        try:
             self.state.save()
+        except Exception as error:  # noqa: BLE001 - the next pass saves again
+            self.note_infra("state-save", f"{type(error).__name__}: {error}")
+
+    def _startup(self, step: Callable[[], None]) -> None:
+        """A startup step that only reads the fleet: a missing or failing vonkctl waits, never exits."""
+        while True:
+            try:
+                step()
+                self.clear_infra("startup")
+                return
+            except (VonkctlError, OSError) as error:
+                self.note_infra("startup", f"{type(error).__name__}: {error}")
+                until = self.state.data["infra"]["startup"]["until"]
+                self.clock.sleep(max(1.0, until - self.clock.now()))
 
     def _tick(self) -> None:
         now = self.clock.now()
@@ -739,6 +763,7 @@ class Sweep:
             "signature",
             "cluster",
             "evidence",
+            "evidence_bundle",
             "inherited_from",
             "not_before",
             "defer_until",
@@ -774,23 +799,31 @@ class Sweep:
             self.requeue_for_rules()
             if self.cfg.retry_failed:
                 self.requeue_failed()
-            self.preflight()
+            self._startup(self.preflight)
             self.adopt_in_flight()
-            self.start_takeover()
+            self._startup(self.start_takeover)
             while True:
-                self.tick()
-                if self.done():
-                    if self.cfg.watch_seconds <= 0:
+                try:
+                    self.tick()
+                    if self.done():
+                        if self.cfg.watch_seconds <= 0:
+                            break
+                        self.clock.sleep(self.cfg.watch_seconds)
+                        self.recipe_list.pass_done_at = (
+                            self.model_list.pass_done_at
+                        ) = -1e18
+                        continue
+                    stuck = stuck + 1 if self._nothing_moves() else 0
+                    if stuck >= 30:
+                        self.state.event(
+                            "nothing is runnable and nothing is downloading: stopping"
+                        )
                         break
-                    self.clock.sleep(self.cfg.watch_seconds)
-                    self.recipe_list.pass_done_at = self.model_list.pass_done_at = -1e18
-                    continue
-                stuck = stuck + 1 if self._nothing_moves() else 0
-                if stuck >= 30:
+                except Exception as error:  # noqa: BLE001 - only a stop or a signal ends the loop
+                    self.note_infra("loop", f"{type(error).__name__}: {error}")
                     self.state.event(
-                        "nothing is runnable and nothing is downloading: stopping"
+                        f"unexpected error in the loop, continuing: {type(error).__name__}: {str(error)[:150]}"
                     )
-                    break
                 self.clock.sleep(self.cfg.poll_seconds)
         except KeyboardInterrupt:
             self.interrupt()
@@ -891,17 +924,22 @@ class Sweep:
             self.state.event(f"retry {key}: {failure.klass} ({failure.phase})")
             return
         entry["evidence_seq"] = int(entry.get("evidence_seq", 0)) + 1
-        evidence = (
+        bundle = (
             self._evidence(key, op_id, entry["evidence_seq"])
             if inherited_from is None
             else None
         )
+        proof = dict(failure.evidence)
+        if op_id:
+            proof.setdefault("operation_id", op_id)
+            proof["evidence_command"] = f"vonkctl fleet evidence {op_id}"
         entry.update(
             status="failed",
             phase=failure.phase,
             failure_class=failure.klass,
             code=failure.code,
-            error=failure.detail,
+            error=failure.describe(),
+            evidence=proof,
             signature=failure.signature,
             cluster=failure.cluster,
             finished_at=now,
@@ -915,8 +953,8 @@ class Sweep:
         )
         if inherited_from:
             entry["inherited_from"] = inherited_from
-        if evidence:
-            entry["evidence"] = evidence
+        if bundle:
+            entry["evidence_bundle"] = bundle
         if failure.model_level and recipe is not None:
             for digest in recipe.model_digests:
                 self.state.data["model_failures"][digest] = failure.cluster
@@ -925,7 +963,7 @@ class Sweep:
             recipe=key,
             step="smoke",
             status="failed",
-            error=f"{failure.phase}/{failure.klass}: {failure.detail}"[:1024],
+            error=f"{failure.phase}/{failure.klass}: {failure.describe()}"[:1536],
             **self._facts(key, entry, slot),
         )
         self.state.event(f"FAILED {key}: {failure.phase}/{failure.klass}")
@@ -941,6 +979,7 @@ class Sweep:
             "cluster": entry.get("cluster"),
             "attempt": entry.get("attempts"),
             "evidence": entry.get("evidence"),
+            "evidence_bundle": entry.get("evidence_bundle"),
             "content_sha256": recipe.content_sha256
             if recipe
             else entry.get("content_sha256"),
@@ -1007,6 +1046,7 @@ class Sweep:
             "cluster",
             "error",
             "evidence",
+            "evidence_bundle",
             "inherited_from",
         ):
             entry.pop(stale, None)
@@ -1213,6 +1253,21 @@ class Sweep:
         failure: policy.Failure,
         app: Mapping[str, Any],
     ) -> None:
+        context = {
+            "application_state": app.get("state"),
+            "reason": app.get("reason"),
+            "child_phase": app.get("child_phase"),
+            "assignment_failures": policy.excerpt(app.get("failures") or "", 500)
+            or None,
+            "application_id": app.get("app_id"),
+        }
+        failure = replace(
+            failure,
+            evidence={
+                **{k: v for k, v in context.items() if v},
+                **failure.evidence,
+            },
+        )
         self._record_failure(key, failure, app.get("operation_id") or app.get("app_id"))
 
     def owner_overlapped(self, slot: Mapping[str, Any]) -> bool:
@@ -1717,7 +1772,9 @@ class Sweep:
             else ""
         )
         item["message"] = message[:300] + hint
-        item["until"] = now + min(INFRA_BASE * 2 ** (item["count"] - 1), INFRA_CAP)
+        item["until"] = now + min(
+            INFRA_BASE * 2 ** min(item["count"] - 1, 20), INFRA_CAP
+        )
         self.state.data["infra"][source] = item
         if source == "download":
             self.prefetcher.pause_until = item["until"]

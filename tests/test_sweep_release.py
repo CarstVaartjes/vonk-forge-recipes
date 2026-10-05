@@ -144,14 +144,14 @@ def test_evidence_of_a_requeued_failure_is_kept(
     sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
     fleet.release_sha = OLD
     sweep.run()
-    first = Path(_entry(sweep, "image-bug")["evidence"])
+    first = Path(_entry(sweep, "image-bug")["evidence_bundle"])
     assert first.exists()
     fleet.release_sha = (
         NEW  # a release that does not fix it: it fails again, under the new release
     )
     again, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
     again.run()
-    second = Path(_entry(again, "image-bug")["evidence"])
+    second = Path(_entry(again, "image-bug")["evidence_bundle"])
     assert second != first and first.exists() and second.exists()
     assert _entry(again, "image-bug")["release"] == NEW
 
