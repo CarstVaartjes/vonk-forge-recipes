@@ -56,8 +56,11 @@ PIN_PROFILE_MAX_ASSIGNMENTS = 64
 PIN_RETRY_MAX_SECONDS = 3600.0
 
 
+PIN_ALIAS_PREFIX = "pin-"
+
+
 def pin_alias(key: str) -> str:
-    return "pin-" + hashlib.sha1(key.encode()).hexdigest()[:12]
+    return PIN_ALIAS_PREFIX + hashlib.sha1(key.encode()).hexdigest()[:12]
 
 
 class Prefetcher:
@@ -393,20 +396,41 @@ class Prefetcher:
 
     # -- pins ---------------------------------------------------------------
 
+    def _live_assignments(self, number: int) -> list[str] | None:
+        """The assignment names the Controller really holds in the pin profile, or None if unreadable.
+
+        The sweep's own bookkeeping can drift from the profile (a timed-out add the Controller
+        still applied, a lost state file, an assignment someone else added), and the contract
+        limit applies to the real document, so every pin decision counts on this.
+        """
+        reply = self.vk.run("profile", "export", profile=number)
+        document = reply.document if reply.ok else None
+        if not isinstance(document, dict) or not isinstance(
+            document.get("assignments", []), list
+        ):
+            return None
+        return [
+            str(item.get("assignment_name") or "")
+            for item in document.get("assignments", [])
+            if isinstance(item, dict)
+        ]
+
     def release_pins(self) -> None:
         """Nothing is left to protect: empty the pin profile."""
         number = self.config.pin_profile
-        for key in list(self.state.data["pins"]):
-            if number is None or self.clock() < self.pin_retry_at:
-                return
+        if number is None or self.clock() < self.pin_retry_at:
+            return
+        live = self._live_assignments(number)
+        if live is None:
+            self._pin_failed()
+            return
+        for alias in [n for n in live if n.startswith(PIN_ALIAS_PREFIX)]:
             try:
-                self.vk.call(
-                    "profile", "remove", pin_alias(key), "--yes", profile=number
-                )
+                self.vk.call("profile", "remove", alias, "--yes", profile=number)
             except VonkctlError:
                 self._pin_failed()
-                continue
-            self.state.data["pins"].remove(key)
+                return
+        self.state.data["pins"] = []
 
     def _pin_failed(self) -> None:
         """Back off (never give up for good): the next attempt is later, the sweep carries on."""
@@ -468,20 +492,32 @@ class Prefetcher:
             or not self.config.pin_spark
         ):
             return
-        wanted = self.desired_pins(plans, by_key, models, sizes, present)
-        current: list[str] = list(self.state.data["pins"])
+        live = self._live_assignments(number)
+        if live is None:
+            self._pin_failed()
+            self.pin_error = "pin profile could not be read"
+            return
+        # Everything that is not one of our pins counts against the limit and is never removed.
+        foreign = [n for n in live if not n.startswith(PIN_ALIAS_PREFIX)]
+        cap = max(PIN_PROFILE_MAX_ASSIGNMENTS - len(foreign), 0)
+        wanted = self.desired_pins(plans, by_key, models, sizes, present)[:cap]
+        wanted_aliases = {pin_alias(k): k for k in wanted}
+        held = [n for n in live if n.startswith(PIN_ALIAS_PREFIX)]
         budget = self.config.pins_per_tick
         try:
-            for key in [k for k in current if k not in wanted][:budget]:
-                self.vk.call(
-                    "profile", "remove", pin_alias(key), "--yes", profile=number
-                )
-                current.remove(key)
+            stale = [n for n in held if n not in wanted_aliases]
+            # Over the limit (or at it): removals come first and are not rationed by the budget.
+            overflow = len(live) - PIN_PROFILE_MAX_ASSIGNMENTS
+            for alias in stale[: max(budget, overflow, 0)]:
+                self.vk.call("profile", "remove", alias, "--yes", profile=number)
+                held.remove(alias)
+                live.remove(alias)
                 budget -= 1
-            room = PIN_PROFILE_MAX_ASSIGNMENTS - len(current)
-            for key in [k for k in wanted if k not in current][
-                : max(min(budget, room), 0)
+            for key in [k for k in wanted if pin_alias(k) not in held][
+                : max(budget, 0)
             ]:
+                if len(live) + 1 > PIN_PROFILE_MAX_ASSIGNMENTS:
+                    break  # the document would break the contract: never submit it
                 self.vk.call(
                     "profile",
                     "add",
@@ -495,7 +531,8 @@ class Prefetcher:
                     "--yes",
                     profile=number,
                 )
-                current.append(key)
+                held.append(pin_alias(key))
+                live.append(pin_alias(key))
             self.pin_failures = 0
             self.pin_error = None
         except VonkctlError as error:
@@ -504,4 +541,5 @@ class Prefetcher:
             self.state.event(
                 f"pin profile {number} could not be updated: {self.pin_error}"
             )
+        current = [k for k in wanted if pin_alias(k) in held]
         self.state.data["pins"] = current
