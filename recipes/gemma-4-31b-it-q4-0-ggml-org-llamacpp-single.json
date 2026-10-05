@@ -110,8 +110,8 @@
     "source_reference": "https://huggingface.co/ggml-org/gemma-4-31B-it-GGUF/tree/4fa4fdf38bee237b5c9e8a5b4e72cf39404c9dcc"
   },
   "release": {
-    "released_at": "2026-09-23",
-    "version": "0.5.0"
+    "released_at": "2026-10-05",
+    "version": "0.6.0"
   },
   "runtime": {
     "arguments": [
