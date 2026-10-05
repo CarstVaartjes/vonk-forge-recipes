@@ -44,7 +44,8 @@
       "nemotron",
       "omni",
       "nvfp4",
-      "reasoning"
+      "reasoning",
+      "tool-use"
     ],
     "title": "Nemotron 3 Nano Omni 30B-A3B NVFP4 TensorRT-LLM single Spark (NVIDIA playbook)"
   },

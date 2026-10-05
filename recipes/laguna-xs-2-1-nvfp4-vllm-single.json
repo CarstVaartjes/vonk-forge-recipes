@@ -44,7 +44,8 @@
       "agentic",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Laguna XS 2.1 NVFP4 vLLM single Spark"
   },

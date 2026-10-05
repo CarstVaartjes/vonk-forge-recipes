@@ -43,7 +43,8 @@
       "spark",
       "gemma",
       "diffusion",
-      "nvfp4"
+      "nvfp4",
+      "tool-use"
     ],
     "title": "DiffusionGemma 26B-A4B IT NVFP4 vLLM single Spark (NVIDIA playbook)"
   },

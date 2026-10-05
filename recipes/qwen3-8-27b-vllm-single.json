@@ -48,7 +48,8 @@
       "vllm",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Qwen3.8 27B BF16 vLLM single Spark"
   },

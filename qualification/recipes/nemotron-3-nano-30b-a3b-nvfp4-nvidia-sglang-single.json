@@ -4,7 +4,8 @@
     "alias": "nemotron-3-nano",
     "smoke_cases": [
       "M0",
-      "A323"
+      "A323",
+      "T_PRODUCT"
     ],
     "higher_tiers": {
       "stress": [

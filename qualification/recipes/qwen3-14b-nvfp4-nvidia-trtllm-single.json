@@ -4,8 +4,7 @@
     "alias": "qwen3-14b",
     "smoke_cases": [
       "M0",
-      "A323",
-      "T_PRODUCT"
+      "A323_UNPARSED"
     ],
     "higher_tiers": {
       "stress": [

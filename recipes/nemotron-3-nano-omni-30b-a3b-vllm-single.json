@@ -44,7 +44,8 @@
       "single",
       "spark",
       "text",
-      "text-only"
+      "text-only",
+      "tool-use"
     ],
     "title": "Nemotron 3 Nano Omni 30B-A3B NVFP4 text-only vLLM single Spark"
   },

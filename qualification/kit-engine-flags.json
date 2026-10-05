@@ -1,0 +1,7 @@
+{
+  "qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single": {
+    "tool_parser": "auto",
+    "reasoning_parser": "auto",
+    "source": "r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang 1dc3c2f0796945b175b541076f036f7f21a145d8 runtime/entrypoint.py launches SGLang with --reasoning-parser auto --tool-call-parser auto"
+  }
+}

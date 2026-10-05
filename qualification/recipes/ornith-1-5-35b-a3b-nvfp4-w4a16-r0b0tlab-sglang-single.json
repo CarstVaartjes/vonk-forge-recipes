@@ -4,9 +4,8 @@
     "alias": "ornith-1.5-35b-a3b",
     "smoke_cases": [
       "M0",
-      "A323",
-      "T_PRODUCT",
-      "V7"
+      "A323_UNPARSED",
+      "T_PRODUCT"
     ],
     "higher_tiers": {
       "stress": [

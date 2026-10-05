@@ -46,7 +46,8 @@
       "agentic",
       "openai",
       "single",
-      "spark"
+      "spark",
+      "tool-use"
     ],
     "title": "Ornith 1.5 35B-A3B NVFP4 vLLM single Spark"
   },
