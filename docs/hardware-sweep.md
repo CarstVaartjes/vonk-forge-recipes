@@ -285,3 +285,15 @@ Not built: Spark-side staging of the next recipe ahead of its load (it would
 rely on the same unverified concurrent-load behaviour), submitting the reviewed
 job fixtures for generation recipes, and reading the NAS's free space (not
 exposed).
+
+## Failure evidence and tool outages
+
+Every failed result row carries a structured `evidence` object (phase, code, detail,
+plus: the smoke case id, HTTP status, a redacted response excerpt of at most 2 KB and the
+offending assertion value; or the Controller's reason and the operation id with the
+`vonkctl fleet evidence <op>` command for load, start, download and build failures).
+The `error` text summarises it and `status.md` shows one evidence line per failure
+cluster. The downloaded bundle path is `evidence_bundle`. A missing or unspawnable
+`vonkctl` (for example during `vonkctl update --apply`) is infrastructure: the sweep backs
+off and retries. An unexpected exception in a pass is logged as an infrastructure event
+and the loop continues; only an explicit stop, SIGINT or SIGTERM ends it.

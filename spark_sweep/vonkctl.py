@@ -196,6 +196,11 @@ class Vonkctl:
             code, out, err = self.runner(argv, timeout or self.timeout)
         except VonkctlTimeout as error:
             return Reply(tuple(argv), 124, None, str(error))
+        except OSError as error:
+            # The binary is missing (``vonkctl update --apply`` replaces it atomically) or
+            # cannot be spawned: infrastructure, like a timeout. No document, so the
+            # callers pause and retry.
+            return Reply(tuple(argv), 127, None, f"{type(error).__name__}: {error}")
         document = _parse(out)
         if document is None:
             document = _parse(err)

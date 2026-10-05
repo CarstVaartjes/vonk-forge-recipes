@@ -41,7 +41,7 @@ def test_failed_load_is_recorded_with_phase_class_and_evidence(
     assert failed["status"] == "failed"
     assert (failed["phase"], failed["failure_class"]) == ("start", "start")
     assert "unsupported kernel" in failed["error"]
-    assert Path(failed["evidence"]).exists()  # `fleet evidence` was downloaded
+    assert Path(failed["evidence_bundle"]).exists()  # `fleet evidence` was downloaded
     line = next(
         json.loads(x)
         for x in (tmp_path / "results.jsonl").read_text().splitlines()

@@ -24,7 +24,7 @@ from typing import Any
 
 from .catalog import Recipe
 from .definitions import Definitions
-from .policy import Failure, classify
+from .policy import Failure, classify, excerpt
 
 PERF_PROMPT = "Count from one to twenty in words, separated by commas."
 PERF_TOKENS = 64
@@ -85,7 +85,12 @@ class SmokeResult:
 
 
 class AssertionFailed(Exception):
-    pass
+    """A case that did not hold; ``value`` is what it looked at."""
+
+    def __init__(self, message: str, value: Any = None, kind: str | None = None):
+        super().__init__(message)
+        self.value = value
+        self.kind = kind
 
 
 def _path(value: Any, path: str) -> Any:
@@ -156,10 +161,16 @@ def check_assertions(response: Any, raw: str, assertions: list[dict[str, Any]]) 
         if holds:
             continue
         if assertion.get("kind") == "raw.not-contains":
-            raise AssertionFailed(f"raw.not-contains: response contains {value!r}")
+            raise AssertionFailed(
+                f"raw.not-contains: response contains {value!r}",
+                value,
+                "raw.not-contains",
+            )
         raise AssertionFailed(
             f"{assertion.get('kind')} failed at {assertion.get('path', '')}: "
-            f"got {str(value)[:80]!r}"
+            f"got {str(value)[:80]!r}",
+            value,
+            str(assertion.get("kind")),
         )
 
 
@@ -196,17 +207,70 @@ def _open(
     return urllib.request.urlopen(request, timeout=timeout, context=context)
 
 
-def _transport_failure(error: BaseException, case: str) -> Failure:
+def _secrets(config: HttpConfig | None) -> list[str]:
+    try:
+        if config is not None and config.key_file is not None:
+            return [config.key_file.read_text(encoding="utf-8").strip()]
+    except OSError:
+        pass
+    return []
+
+
+def _http_body(error: urllib.error.HTTPError, limit: int = 4096) -> str:
+    try:
+        return error.read(limit).decode("utf-8", "replace")
+    except (OSError, ValueError):
+        return ""
+
+
+def _transport_failure(
+    error: BaseException, case: str, config: HttpConfig | None = None
+) -> Failure:
+    """A request that failed: the case, the status and the response body travel with it."""
+    secrets = _secrets(config)
+    evidence: dict[str, Any] = {"case": case, "error": type(error).__name__}
+    body = getattr(error, "body", None)
     if isinstance(error, urllib.error.HTTPError):
         transient = error.code in (408, 429, 502, 503, 504)
+        evidence["http_status"] = error.code
+        evidence["body"] = excerpt(body or _http_body(error), secrets=secrets)
         return classify(
             "smoke",
             f"case.{case}",
             f"HTTP {error.code}",
             "smoke-timeout" if transient else "smoke-request",
+            evidence,
         )
+    if body is not None:  # a 200 whose body was not the JSON we expected
+        evidence["http_status"] = getattr(error, "http_status", None)
+        evidence["body"] = excerpt(body, secrets=secrets)
     return classify(
-        "smoke", f"case.{case}", f"{type(error).__name__}: {error}", "smoke-timeout"
+        "smoke",
+        f"case.{case}",
+        f"{type(error).__name__}: {error}",
+        "smoke-timeout",
+        {**evidence, "message": excerpt(error, 500, secrets)},
+    )
+
+
+def _assertion_failure(
+    error: AssertionFailed, case: str, config: HttpConfig | None = None
+) -> Failure:
+    secrets = _secrets(config)
+    return classify(
+        "smoke",
+        f"case.{case}",
+        str(error),
+        "smoke-assertion",
+        {
+            "case": case,
+            "assertion": error.kind,
+            "value": excerpt(error.value, 500, secrets)
+            if error.value is not None
+            else None,
+            "http_status": getattr(error, "http_status", None),
+            "body": excerpt(getattr(error, "body", ""), secrets=secrets),
+        },
     )
 
 
@@ -326,8 +390,13 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     if len(raw) > limit:
         raise AssertionFailed("response exceeds its bound")
     text = raw.decode("utf-8", "replace")
-    document = json.loads(text)
-    check_assertions(document, text, list(case.get("assertions", [])))
+    try:
+        document = json.loads(text)
+        check_assertions(document, text, list(case.get("assertions", [])))
+    except (AssertionFailed, ValueError) as error:
+        error.body = text  # type: ignore[attr-defined]  # evidence for the result row
+        error.http_status = status  # type: ignore[attr-defined]
+        raise
     record: dict[str, Any] = {
         "case_id": case.get("id"),
         "method": method,
@@ -362,9 +431,9 @@ def smoke_service(
         if has_chat(recipe, cases):
             result.perf = stream_probe(base, alias, config)
     except AssertionFailed as error:
-        result.failure = classify("smoke", "case.stream", str(error), "smoke-assertion")
+        result.failure = _assertion_failure(error, "stream", config)
     except (OSError, urllib.error.URLError, ValueError) as error:
-        result.failure = _transport_failure(error, "stream")
+        result.failure = _transport_failure(error, "stream", config)
     if result.failure is None:
         for case in cases:
             try:
@@ -372,11 +441,9 @@ def smoke_service(
                 result.quality.extend(record.pop("quality", []))
                 result.cases.append(record)
             except AssertionFailed as error:
-                result.failure = classify(
-                    "smoke", f"case.{case.get('id')}", str(error), "smoke-assertion"
-                )
+                result.failure = _assertion_failure(error, str(case.get("id")), config)
             except (OSError, urllib.error.URLError, ValueError) as error:
-                result.failure = _transport_failure(error, str(case.get("id")))
+                result.failure = _transport_failure(error, str(case.get("id")), config)
             if result.failure is not None:
                 break
     result.ok = result.failure is None
