@@ -487,6 +487,20 @@ class Failure:
     detail: str
     signature: str
     cluster: str
+    # What was seen when it failed (case, HTTP status, response excerpt, operation id, ...).
+    # ``classify`` always fills it: a failure nobody can diagnose later is a bug.
+    evidence: Mapping[str, Any] = field(default_factory=dict, compare=False)
+
+    def describe(self) -> str:
+        """The result row's error text: the detail plus the evidence that explains it."""
+        extra = []
+        for name in ("case", "http_status", "operation_id"):
+            if self.evidence.get(name) not in (None, ""):
+                extra.append(f"{name}={self.evidence[name]}")
+        body = self.evidence.get("body")
+        if body:
+            extra.append("body=" + " ".join(str(body).split())[:300])
+        return " ".join([self.detail, *(f"[{e}]" for e in extra)])[:1024]
 
     @property
     def transient(self) -> bool:
@@ -534,7 +548,37 @@ def refused_profile_field(text: str) -> str | None:
     return match.group(1) if match else None
 
 
-def classify(phase: str, code: str = "", detail: str = "", klass: str = "") -> Failure:
+EVIDENCE_BODY_LIMIT = 2048
+_BEARER = re.compile(r"(?i)(bearer\s+)[A-Za-z0-9._~+/=-]+")
+_SECRETS = re.compile(
+    r"(?i)((?:authorization|api[_-]?key|access[_-]?token|token|secret|password)"
+    r"[\"']?\s*[:=]\s*[\"']?)[^\s\"',}]+|\bsk-[A-Za-z0-9_-]{8,}"
+)
+
+
+def redact(text: str, secrets: Iterable[str] = ()) -> str:
+    """Remove bearer tokens, key-looking values and the given literal secrets."""
+    for secret in secrets:
+        if secret:
+            text = text.replace(secret, "<redacted>")
+    text = _BEARER.sub(r"\1<redacted>", text)
+    return _SECRETS.sub(lambda m: (m.group(1) or "") + "<redacted>", text)
+
+
+def excerpt(
+    text: Any, limit: int = EVIDENCE_BODY_LIMIT, secrets: Iterable[str] = ()
+) -> str:
+    """A redacted, bounded piece of a response body or value."""
+    return redact(str(text), secrets)[:limit]
+
+
+def classify(
+    phase: str,
+    code: str = "",
+    detail: str = "",
+    klass: str = "",
+    evidence: Mapping[str, Any] | None = None,
+) -> Failure:
     """Name a failure by where it happened and what it said; same cause, same cluster.
 
     ``klass`` fixes the class when the caller already knows it (an assertion
@@ -554,7 +598,21 @@ def classify(phase: str, code: str = "", detail: str = "", klass: str = "") -> F
         klass = {"smoke": "smoke", "review": "fit"}.get(phase, phase)
     signature = f"{phase}|{klass}|{code or '-'}|{_normalise(detail)}"
     cluster = hashlib.sha1(signature.encode()).hexdigest()[:10]
-    return Failure(phase, klass, code, detail[:500], signature, cluster)
+    proof: dict[str, Any] = {
+        k: v for k, v in (evidence or {}).items() if v not in (None, "", [], {})
+    }
+    proof.setdefault("phase", phase)
+    proof.setdefault("code", code or "-")
+    proof.setdefault("detail", excerpt(detail, 500))
+    return Failure(phase, klass, code, detail[:500], signature, cluster, proof)
+
+
+def evidence_of(entry: Mapping[str, Any]) -> dict[str, Any]:
+    """The structured evidence of a result row; a state file from an older run kept a bundle path."""
+    value = entry.get("evidence")
+    if isinstance(value, Mapping):
+        return dict(value)
+    return {"bundle": value} if value else {}
 
 
 @dataclass(frozen=True)
