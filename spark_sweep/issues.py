@@ -12,7 +12,9 @@ Gh = Callable[[Sequence[str]], tuple[int, str]]
 
 
 def gh_runner(argv: Sequence[str]) -> tuple[int, str]:
-    done = subprocess.run(["gh", *argv], capture_output=True, text=True, check=False)
+    done = subprocess.run(
+        ["gh", *argv], capture_output=True, text=True, check=False, timeout=60
+    )
     return done.returncode, done.stdout.strip() or done.stderr.strip()
 
 
@@ -75,7 +77,23 @@ def file_issues(
             ]
         )
     for key, entry in sorted(recipes.items()):
-        if entry.get("status") != "failed" or entry.get("issue"):
+        issue = entry.get("issue")
+        if issue and (
+            entry.get("status") in ("passed", "deferred") or entry.get("inherited_from")
+        ):
+            if dry_run:
+                filed.append({"recipe": key, "url": str(issue), "action": "close"})
+            else:
+                code, _ = gh(["issue", "close", str(issue), "--repo", repo])
+                if code == 0:
+                    entry.pop("issue", None)
+                    filed.append({"recipe": key, "url": str(issue), "action": "closed"})
+            continue
+        if (
+            entry.get("status") != "failed"
+            or entry.get("inherited_from")
+            or entry.get("issue")
+        ):
             continue
         title = title_for(key, entry)
         if dry_run:

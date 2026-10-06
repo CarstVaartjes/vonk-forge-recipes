@@ -123,7 +123,7 @@ def test_an_old_application_returned_for_a_new_request_is_stale_and_retried(
     assert all(r["alias"] != "owner-glm" for r in fleet.runs)
 
 
-def test_a_controller_that_never_starts_a_new_application_is_an_error_not_a_loop(
+def test_stale_application_exhausts_one_budget_then_a_fresh_operation_is_admitted(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
@@ -152,10 +152,15 @@ def test_a_controller_that_never_starts_a_new_application_is_an_error_not_a_loop
             "application_id": "app-0001",
         }
     )
-    fleet.stale_loads = 99
-    with pytest.raises(RuntimeError, match="not new; nothing was started"):
-        sweep.run()
-    assert len(_load_keys(fleet, 10)) == 3  # three attempts, each with its own key
+    fleet.stale_loads = 3  # one bounded cycle exhausts its observation budget
+    assert sweep.run() == 0
+    keys = _load_keys(fleet, 10)
+    assert len(keys) >= 5 and len(keys) == len(set(keys))
+    assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
+    assert any(
+        "not new; nothing was started" in event["message"]
+        for event in sweep.state.data["events"]
+    )
 
 
 def test_a_new_application_that_leaves_the_sparks_busy_is_retried(

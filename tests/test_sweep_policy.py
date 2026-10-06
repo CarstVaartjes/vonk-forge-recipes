@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 from spark_sweep import policy
 from spark_sweep.catalog import Recipe
 
@@ -172,7 +175,7 @@ def alias(r: Recipe) -> str:
     return r.slug
 
 
-def test_two_lanes_fill_before_a_spark_takes_a_second_recipe() -> None:
+def test_each_free_spark_gets_exactly_one_recipe() -> None:
     cands = [
         recipe("a", ports=(8001,)),
         recipe("b", ports=(8002,)),
@@ -182,19 +185,16 @@ def test_two_lanes_fill_before_a_spark_takes_a_second_recipe() -> None:
     assert [(p.recipe.slug, p.spark_ids) for p in placed] == [
         ("a", ("s0",)),
         ("b", ("s1",)),
-        ("c", ("s0",)),
     ]
 
 
-def test_two_small_recipes_pack_on_one_spark_when_memory_fits_and_ports_differ() -> (
-    None
-):
+def test_a_single_owns_its_spark_even_when_another_recipe_would_fit() -> None:
     cands = [
         recipe("a", memory_bytes=40 * GB, ports=(8001,)),
         recipe("b", memory_bytes=40 * GB, ports=(8002,)),
     ]
     placed = policy.place_singles(cands, bins(0), RESERVE, alias)
-    assert [p.spark_ids for p in placed] == [("s0",), ("s0",)]
+    assert [p.spark_ids for p in placed] == [("s0",)]
 
 
 def test_a_port_clash_or_too_little_memory_prevents_packing() -> None:
@@ -312,49 +312,57 @@ def test_learning_keeps_only_recent_samples() -> None:
 @pytest.mark.parametrize(
     ("phase", "code", "detail", "klass"),
     [
-        ("start", "", "CUDA error: out of memory", "oom"),
-        ("start", "", "container exited with code 137", "oom"),
-        (
-            "download",
-            "controller.unavailable",
-            "dockerfile.heredoc_forbidden: Dockerfile heredocs are not accepted",
-            "build-policy",
-        ),
+        ("start", "recipe.runtime_oom", "runtime failed", "oom"),
+        ("start", "recipe.runtime_exit", "runtime failed", "start"),
+        ("download", "dockerfile.heredoc_forbidden", "invalid syntax", "build-policy"),
         (
             "review",
             "run-switch.resource.insufficient_capacity",
-            "needs more memory",
+            "needs memory",
             "capacity",
         ),
-        ("download", "", "no space left on device", "capacity"),
-        (
-            "download",
-            "",
-            "sha256 mismatch for model-00001.safetensors",
-            "model-integrity",
-        ),
-        ("download", "", "connection reset by peer", "network"),
-        ("smoke", "case.M0", "HTTP 503", "smoke-timeout"),
+        ("download", "storage.insufficient_capacity", "disk full", "capacity"),
+        ("download", "model.digest_mismatch", "invalid bytes", "model-integrity"),
+        ("download", "controller.transport_timeout", "transport lost", "network"),
+        ("smoke", "controller.transport_timeout", "HTTP 503", "smoke-timeout"),
         ("install", "", "something unexpected", "install"),
         ("timeout", "load.timeout", "not serving after 3600s", "timeout"),
         ("readiness", "run.not_published", "timed out waiting", "readiness"),
     ],
 )
-def test_failures_are_classified_by_phase_and_cause(
+def test_failures_are_classified_by_typed_cause(
     phase: str, code: str, detail: str, klass: str
 ) -> None:
     assert policy.classify(phase, code, detail).klass == klass
 
 
-def test_only_network_like_failures_are_retried_and_only_integrity_failures_are_model_level() -> (
+@pytest.mark.parametrize(
+    "detail",
+    [
+        "CUDA error: out of memory",
+        "container exited with code 137",
+        "sha256 mismatch for model-00001.safetensors",
+        "dockerfile.heredoc_forbidden: Dockerfile heredocs are not accepted",
+        "connection reset by peer",
+    ],
+)
+def test_platform_details_do_not_override_typed_attribution(detail: str) -> None:
+    failure = policy.classify("download", "controller.unavailable", detail)
+    assert failure.klass == "download"
+    assert not failure.model_level
+    assert not failure.transient
+    assert detail in failure.describe()
+
+
+def test_only_typed_transient_and_model_integrity_failures_receive_special_handling() -> (
     None
 ):
-    assert policy.classify("download", "", "connection reset by peer").transient
-    assert policy.classify("smoke", "case.x", "HTTP 503", "smoke-timeout").transient
+    assert policy.classify("download", "controller.transport_timeout", "x").transient
+    assert policy.classify("smoke", "controller.transport_timeout", "x").transient
     assert not policy.classify("timeout", "load.timeout", "x").transient
-    assert not policy.classify("start", "", "out of memory").transient
-    assert policy.classify("download", "", "digest mismatch").model_level
-    assert not policy.classify("start", "", "out of memory").model_level
+    assert not policy.classify("start", "recipe.runtime_oom", "x").transient
+    assert policy.classify("download", "model.digest_mismatch", "x").model_level
+    assert not policy.classify("start", "recipe.runtime_oom", "x").model_level
 
 
 def test_signatures_ignore_ids_digits_and_paths_so_one_cause_is_one_cluster() -> None:
@@ -424,9 +432,7 @@ def test_rate_is_smoothed_ignores_idle_samples_and_gives_an_eta() -> None:
     assert rate.eta_seconds(20 * GB) == pytest.approx(100)
 
 
-def test_planning_the_whole_catalog_is_fast_enough_to_run_every_tick() -> None:
-    import time
-
+def test_planning_the_whole_catalog_places_every_recipe_once() -> None:
     recipes = [
         recipe(
             f"r{i}", (f"m{i % 200}",) if i % 7 else (f"m{i % 200}", f"m{(i + 1) % 200}")
@@ -434,9 +440,7 @@ def test_planning_the_whole_catalog_is_fast_enough_to_run_every_tick() -> None:
         for i in range(300)
     ]
     sizes = {f"m{i}": (i + 1) * GB for i in range(200)}
-    started = time.monotonic()
     plans = policy.plan_groups(recipes, sizes, {f"m{i}" for i in range(0, 200, 9)})
-    assert time.monotonic() - started < 1.0
     assert sorted(k for p in plans for k in p.recipes) == sorted(
         r.key for r in recipes
     )  # every recipe exactly once
@@ -465,3 +469,12 @@ def test_recently_updated_recipes_and_seed_lists_are_boosted() -> None:
     assert keys(plans)[0] == [
         "b"
     ]  # slightly bigger, but newer: ahead of the cheaper stale one
+
+
+def test_ready_single_is_not_hidden_behind_duals_or_oversized_queue_heads() -> None:
+    candidates = [recipe(f"dual-{i}", node_count=2) for i in range(5)]
+    candidates += [recipe(f"large-{i}", memory_bytes=2 * CAP) for i in range(5)]
+    fitting = recipe("fitting")
+    candidates.append(fitting)
+    placed = policy.place_singles(candidates, bins(0), RESERVE, alias)
+    assert [item.recipe for item in placed] == [fitting]

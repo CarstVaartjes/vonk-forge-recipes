@@ -5,6 +5,9 @@ from __future__ import annotations
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 from spark_sweep import policy
 from spark_sweep.policy import TimeoutPolicy
 
@@ -100,7 +103,7 @@ def test_a_stall_names_one_recipe_and_the_others_are_collateral(
     sweep, _, _ = _make_stalled(tmp_path, gateway, release=10**9)
     sweep.run()
     bad = _status(sweep, "bad")
-    assert (bad["status"], bad["failure_class"]) == ("failed", "admission-stalled")
+    assert (bad["status"], bad["failure_class"]) == ("deferred", "admission-stalled")
     for slug in ("good1", "good2"):
         entry = _status(sweep, slug)
         assert entry["status"] != "failed", slug
@@ -141,11 +144,13 @@ def test_a_blocker_that_names_nobody_requeues_all_without_blame(
     assert "failed" not in _results(sweep)
 
 
-def test_an_unnamed_blocker_never_requeues_for_ever(tmp_path, gateway) -> None:
+def test_an_unnamed_blocker_is_deferred_after_bounded_observation(
+    tmp_path, gateway
+) -> None:
     sweep, _, _ = _make_stalled(tmp_path, gateway, release=10**9, blocker_unnamed=True)
     sweep.run()
-    # the recipe that really holds the load is eventually failed; the others are not
-    assert _status(sweep, "bad")["status"] == "failed"
+    # Unknown attribution is deferred after bounded observation.
+    assert _status(sweep, "bad")["status"] == "deferred"
 
 
 def test_an_application_failure_names_the_failing_assignment(tmp_path, gateway) -> None:
@@ -159,6 +164,6 @@ def test_an_application_failure_names_the_failing_assignment(tmp_path, gateway) 
         ],
     )
     sweep.run()
-    assert _status(sweep, "bad")["status"] == "failed"
+    assert _status(sweep, "bad")["status"] == "deferred"
     assert _status(sweep, "good1")["status"] == "passed"
     assert _status(sweep, "good2")["status"] == "passed"

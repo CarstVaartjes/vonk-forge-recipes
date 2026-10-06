@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import signal
 import subprocess
 import uuid
@@ -53,40 +52,35 @@ class VonkctlError(RuntimeError):
         return is_infrastructure(self.reply, reviewing=reviewing)
 
 
-_STRUCTURED_REASON = re.compile(r"^\s*[a-z][a-z0-9_]*(\.[a-z0-9_]+)+\s*:")
+RECIPE_ERROR_CODES = frozenset(
+    {
+        "recipe.invalid_definition",
+        "recipe.invalid_document",
+        "recipe.invalid_option",
+        "dockerfile.heredoc_forbidden",
+        "recipe.digest_mismatch",
+    }
+)
 
 
 def is_infrastructure(reply: Reply | None, *, reviewing: bool = False) -> bool:
-    """Is this failure the client, the protocol or the transport, not anything about a recipe?
+    """Only an explicit recipe-data code attributes a CLI error to a recipe.
 
-    Those must never fail a recipe: the sweep pauses, backs off, and says so. A
-    ``controller.unavailable`` that carries a structured platform reason
-    (``dockerfile.heredoc_forbidden: ...``) is the Controller refusing that
-    recipe and stays a recipe failure. ``reviewing`` marks a call whose
-    only job is to ask the Controller for a verdict on a plan (review, profile
-    edits), where a generic ``controller.invalid_request`` means the request was
-    malformed, not the recipe.
+    HTTP failures, unknown outcomes and Controller codes remain infrastructure,
+    regardless of status or free-text detail. Re-read and retry without blame.
     """
     document = reply.document if reply is not None else None
     if not isinstance(document, dict):
-        return True  # a timeout, a crash, unreadable output
+        return True
     code = str(document.get("code") or "")
-    if document.get("error_type") in ("arguments", "update"):
-        return True  # the installed vonkctl does not speak this command
-    if code in ("http.502", "http.503", "http.504"):
-        return True  # a gateway or a restarting Controller in front of it
-    for field in ("status", "status_code", "http_status"):
-        if document.get(field) in (502, 503, 504, "502", "503", "504"):
-            return True  # a gateway or a restarting Controller in front of it
-    if code == "controller.protocol_invalid" or code.startswith(
-        "controller.transport_"
+    if code.startswith(("http.", "controller.")):
+        return True
+    if any(
+        document.get(field) is not None
+        for field in ("status", "status_code", "http_status")
     ):
         return True
-    if code == "controller.unavailable":
-        return not _STRUCTURED_REASON.match(str(document.get("detail") or ""))
-    if code == "controller.invalid_request":
-        return reviewing
-    return False
+    return code not in RECIPE_ERROR_CODES
 
 
 class VonkctlTimeout(VonkctlError):

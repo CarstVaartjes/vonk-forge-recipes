@@ -160,7 +160,10 @@ def test_pin_profile_trouble_does_not_stop_the_sweep(
 
 def test_nas_full_pauses_new_model_downloads(tmp_path: Path, gateway: Gateway) -> None:
     full = FakeRecipe(
-        "full", ("m1",), fail_download="insufficient free space on the NAS"
+        "full",
+        ("m1",),
+        fail_download="insufficient free space on the NAS",
+        fail_download_code="storage.insufficient_capacity",
     )
     sweep, _, _ = make_sweep(
         tmp_path,

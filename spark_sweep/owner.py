@@ -12,10 +12,9 @@ from __future__ import annotations
 from collections.abc import Collection
 from dataclasses import dataclass
 
+from .lifecycle import ACTIVE
 from .state import State
-from .vonkctl import OWNER_PROFILES, Vonkctl
-
-ACTIVE = frozenset({"queued", "running"})
+from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
 
 
 @dataclass(frozen=True)
@@ -51,7 +50,12 @@ class OwnerGuard:
                 str(document.get("state", "")),
                 str(document.get("request_key", "")),
             )
-        return None  # no application yet, or unreadable: nothing to defer to
+        if isinstance(document, dict) and document.get("code") in {
+            "not_found",
+            "profile.application_not_found",
+        }:
+            return None
+        raise VonkctlError(reply.argv, reply, "owner application is unreadable")
 
     def _is_ours(self, app_id: str, request: str) -> bool:
         return any(
@@ -65,7 +69,11 @@ class OwnerGuard:
         paused: list[str] = []
         new_activity = False
         for number in self.profiles:
-            latest = self._latest(number)
+            try:
+                latest = self._latest(number)
+            except VonkctlError:
+                paused.append(f"profile {number} ownership is unreadable")
+                continue
             known = baseline.get(str(number))
             if latest is None:
                 baseline.setdefault(

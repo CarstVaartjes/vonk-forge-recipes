@@ -233,12 +233,20 @@ jobs:
           done
           mapfile -t recipe_args < <(jq -r '.recipe_build_arguments[]' <<<"$image")
           start=$(date +%s)
-          sudo TMPDIR="$WORK/tmp" podman --runtime=/usr/bin/crun build --network=host \
+          build_with_retry() {
+            for attempt in 1 2 3; do
+              if "$@"; then return 0; fi
+              echo "Build attempt $attempt failed; retaining layer cache for retry" >&2
+              if [ "$attempt" -lt 3 ]; then sleep "$((attempt * 15))"; fi
+            done
+            return 1
+          }
+          build_with_retry sudo TMPDIR="$WORK/tmp" podman --runtime=/usr/bin/crun build --network=host \
             "${recipe_args[@]}" --tag localhost/vonk/recipe-build context
           mkdir -p adapter
           jq -r '.adapter_containerfile' <<<"$image" > adapter/Containerfile
           mapfile -t adapter_args < <(jq -r '.adapter_build_arguments[]' <<<"$image")
-          sudo TMPDIR="$WORK/tmp" podman --runtime=/usr/bin/crun build \
+          build_with_retry sudo TMPDIR="$WORK/tmp" podman --runtime=/usr/bin/crun build \
             "${adapter_args[@]}" \
             --build-arg "$(jq -r '.adapter_build_argument' <<<"$image")=localhost/vonk/recipe-build" \
             --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \

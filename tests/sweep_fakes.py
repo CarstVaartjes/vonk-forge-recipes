@@ -11,6 +11,7 @@ with success and failure, and the fleet's loaded runs.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import threading
@@ -19,6 +20,7 @@ from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+from uuid import NAMESPACE_URL, uuid5
 
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
@@ -80,7 +82,9 @@ class FakeRecipe:
     )
     fail_load: str | None = None  # status reason of a failed load
     fail_phase: str = "runtime-install"
+    fail_code: str = "application.failed"
     fail_download: str | None = None
+    fail_download_code: str = "model.download_failed"
     alias: str | None = None
 
     @property
@@ -201,6 +205,8 @@ class FakeFleet:
         )
         # One-shot injected errors: (command prefix, error code, detail), consumed on first match.
         self.faults: list[tuple[tuple[str, ...], str, str]] = []
+        # Typed lifecycle/HTTP table tests inject exact wire observations.
+        self.observations: list[tuple[tuple[str, ...], int, dict[str, Any]]] = []
         self.client_build: dict[str, Any] = {"version": "1.0", "source_sha": "a" * 40}
         self.accepted_version = "1.0"
         self.release_sha = "a" * 40  # the accepted Controller release
@@ -215,6 +221,8 @@ class FakeFleet:
 
     def _id(self, prefix: str) -> str:
         self.next_id += 1
+        if prefix in ("app", "assignment"):
+            return str(uuid5(NAMESPACE_URL, f"vonk-sweep-fake/{prefix}/{self.next_id}"))
         return f"{prefix}-{self.next_id:04d}"
 
     def writes(self, number: int) -> list[tuple[str, ...]]:
@@ -284,7 +292,11 @@ class FakeFleet:
                         ]
                         app["reason"] = item["fail"]
                         app.setdefault("failures", []).append(
-                            {"alias": item["alias"], "reason": item["fail"]}
+                            {
+                                "alias": item["alias"],
+                                "reason": item["fail"],
+                                "code": item["fail_code"],
+                            }
                         )
                         app["phase"] = item["phase"]
                     else:
@@ -367,6 +379,10 @@ class FakeFleet:
         self.calls.append((profile, tuple(clean)))
         self.call_times.append(self.clock.now())
         self._tick()
+        for index, (prefix, status, document) in enumerate(self.observations):
+            if profile != 13 and tuple(clean[: len(prefix)]) == prefix:
+                del self.observations[index]
+                return status, json.dumps(document), ""
         for index, (prefix, code, detail) in enumerate(self.faults):
             # Pin-profile edits are best effort and have their own tests: faults aim at the sweep.
             if profile != 13 and tuple(clean[: len(prefix)]) == prefix:
@@ -376,6 +392,11 @@ class FakeFleet:
         if clean[:1] == ["--version"]:
             return 0, json.dumps(self.client_build), ""
         if clean[:1] == ["update"]:
+            if "--apply" in clean:
+                self.client_build = {
+                    **self.client_build,
+                    "version": self.accepted_version,
+                }
             drift = self.accepted_version != self.client_build["version"]
             return (
                 0,
@@ -557,7 +578,7 @@ class FakeFleet:
         recipe = self.recipes[key]
         if recipe.fail_download == "policy":
             return self._error(
-                "controller.unavailable",
+                "dockerfile.heredoc_forbidden",
                 "dockerfile.heredoc_forbidden: Dockerfile heredocs are not accepted",
             )
         model_missing = any(self.models[d].local != "cached" for d in recipe.digests)
@@ -596,7 +617,7 @@ class FakeFleet:
         }
         if op["state"] == "failed":
             doc["failure"] = {
-                "code": "model.download_failed",
+                "code": recipe.fail_download_code,
                 "detail": recipe.fail_download,
                 "recovery_actions": [],
             }
@@ -789,10 +810,44 @@ class FakeFleet:
             if x["desired_state"] == "running"
         }
         if "--review" in a:
+            adopted = []
+            for x in data["assignments"]:
+                existing = running.get(x["assignment_name"])
+                if (
+                    existing is None
+                    or existing["ready"]
+                    or existing["recipe"] != x["recipe_selector"]
+                    or existing["node_ids"] != [names[s] for s in x["spark_ids"]]
+                ):
+                    continue
+                for app in self.apps.values():
+                    if app["state"] not in ("queued", "running"):
+                        continue
+                    child = next(
+                        (
+                            item
+                            for item in app["assign"]
+                            if item["alias"] == x["assignment_name"]
+                            and not item["resolved"]
+                        ),
+                        None,
+                    )
+                    if child is not None:
+                        adopted.append(
+                            {
+                                "application_id": app["id"],
+                                "plan_digest": app["plan_digest"],
+                                "workload_intent_ordinal": child["ordinal"],
+                                "node_ids": sorted(existing["node_ids"]),
+                                "assignment_ids": child["assignment_ids"],
+                            }
+                        )
+                        break
             doc = {
                 "allowed": not blocked,
                 "waits_for_preparation": False,
                 "effects": {
+                    "adopted": adopted,
                     "runs": [
                         {
                             "alias": r["alias"],
@@ -803,7 +858,7 @@ class FakeFleet:
                             else "stop",
                         }
                         for r in self.runs
-                    ]
+                    ],
                 },
                 "admission_decisions": [
                     {"alias": alias, "allowed": False, "blockers": found}
@@ -829,8 +884,34 @@ class FakeFleet:
         held_by: list[dict[str, str]] = []
         for x in data["assignments"]:
             alias = x["assignment_name"]
-            if x["desired_state"] != "running" or alias in running:
+            if x["desired_state"] != "running":
                 continue
+            existing = running.get(alias)
+            exact = (
+                existing is not None
+                and existing["recipe"] == x["recipe_selector"]
+                and existing["node_ids"] == [names[s] for s in x["spark_ids"]]
+            )
+            if exact:
+                assert existing is not None
+                if not existing["ready"]:
+                    # The new whole-fleet snapshot waits on the unchanged child;
+                    # the original application keeps owning and reporting it.
+                    child = next(
+                        (
+                            item
+                            for app in reversed(list(self.apps.values()))
+                            if app["state"] in ("queued", "running")
+                            for item in app["assign"]
+                            if item["alias"] == alias and not item["resolved"]
+                        ),
+                        None,
+                    )
+                    if child is not None:
+                        assign.append(child)
+                continue
+            if existing is not None:
+                self.runs = [run for run in self.runs if run["alias"] != alias]
             recipe = self.recipes[x["recipe_selector"]]
             self.runs.append(
                 {
@@ -853,6 +934,8 @@ class FakeFleet:
             assign.append(
                 {
                     "alias": alias,
+                    "ordinal": len(assign) + 1,
+                    "assignment_ids": [self._id("assignment")],
                     "at": (
                         10**12
                         if recipe.blocked
@@ -861,6 +944,7 @@ class FakeFleet:
                         + recipe.load_seconds
                     ),
                     "fail": recipe.fail_load,
+                    "fail_code": recipe.fail_code,
                     "phase": recipe.fail_phase,
                     "resolved": False,
                 }
@@ -868,6 +952,9 @@ class FakeFleet:
         self.apps[app_id] = {
             "id": app_id,
             "profile": n,
+            "plan_digest": hashlib.sha256(
+                json.dumps(data["assignments"], sort_keys=True).encode()
+            ).hexdigest(),
             "created": self.clock.now(),
             "assign": assign,
             "state": "running",
