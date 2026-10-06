@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "README.md",
+        "pattern": "^\\s*docker\\ pull\\ ghcr\\.io/tonyd2wild/vllm\\-m3\\-chthonic:(?P<version>[A-Za-z0-9_][\\w.-]*)\\ \\ \\ \\#\\ full\\ NCCL/RoCE\\ build\\ \\(recommended\\)\\s*$",
+        "repo": "ghcr.io/tonyd2wild/vllm-m3-chthonic"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "verify-runtime.py",
     "vllm-wrapper.py"
@@ -7,7 +18,7 @@
     "upstream-README.md": "README.md"
   },
   "source": {
-    "repo": "tonyd2wild/Minimax-M3-NVFP-3x-DGX-Sparks-TP-3",
-    "commit": "e29e14595086d0251109d22aa219eb089d24a988"
+    "commit": "e29e14595086d0251109d22aa219eb089d24a988",
+    "repo": "tonyd2wild/Minimax-M3-NVFP-3x-DGX-Sparks-TP-3"
   }
 }

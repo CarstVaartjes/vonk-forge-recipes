@@ -1,12 +1,23 @@
 {
-  "source": {
-    "repo": "r0b0tlab/agents-a1-nvfp4-sm121-vllm",
-    "commit": "fda20c0526e387da1446c8880a69cbda227fc851"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker/Dockerfile",
+        "pattern": "^\\s*FROM\\ ghcr\\.io/r0b0tlab/vllm\\-laguna\\-m1\\-nvfp4\\-sm121:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/r0b0tlab/vllm-laguna-m1-nvfp4-sm121"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "strip_fa_check.py"
   ],
   "renamed": {
     "Dockerfile.upstream": "docker/Dockerfile"
+  },
+  "source": {
+    "commit": "fda20c0526e387da1446c8880a69cbda227fc851",
+    "repo": "r0b0tlab/agents-a1-nvfp4-sm121-vllm"
   }
 }

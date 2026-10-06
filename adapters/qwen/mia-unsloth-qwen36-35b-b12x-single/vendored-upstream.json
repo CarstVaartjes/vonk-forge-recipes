@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "start.sh",
+        "pattern": "^\\s*IMAGE=\"ghcr\\.io/miaai\\-lab/mia\\-vllm\\-gb10\\-linear\\-b12x:(?P<version>[A-Za-z0-9_][\\w.-]*)\"\\s*$",
+        "repo": "ghcr.io/miaai-lab/mia-vllm-gb10-linear-b12x"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "vllm"
   ],

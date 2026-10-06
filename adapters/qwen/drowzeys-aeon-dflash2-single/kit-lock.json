@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:fd31bd450510bebbb6d28623eb88ff8a86a6ac6c8db2a9009f21fafe8ff1eff9",
+      "kind": "tag",
+      "ref": "latest",
+      "repo": "ghcr.io/drowzeys/keys-qwen38-27b-nvfp4-dflash2-ablit-cyber-unlock-1m-yarn-single-dgxspark"
+    }
+  },
+  "kit": {
+    "commit": "fca3d18bcab52b65e4a428b883cbcbcb0a7a3443",
+    "repo": "drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark"
+  }
+}

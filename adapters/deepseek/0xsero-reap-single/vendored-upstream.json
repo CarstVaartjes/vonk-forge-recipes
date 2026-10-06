@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "runtime/install.sh",
+        "pattern": "^\\s*IMAGE_REF=\\$\\{IMAGE_REF:\\-ghcr\\.io/0xsero/deepseek\\-v4\\-flash\\-spark\\-vllm:(?P<version>[A-Za-z0-9_][\\w.-]*)\\}\\s*$",
+        "repo": "ghcr.io/0xsero/deepseek-v4-flash-spark-vllm"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "vllm-wrapper.sh"
   ],

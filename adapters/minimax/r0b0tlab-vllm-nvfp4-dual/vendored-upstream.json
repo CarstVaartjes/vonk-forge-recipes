@@ -1,9 +1,20 @@
 {
-  "source": {
-    "repo": "r0b0tlab/minimax-m27-nvfp4-gb10-benchmark",
-    "commit": "32c395f75ff44f744e6b27991d17775623de071a"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker/README.md",
+        "pattern": "^\\s*docker\\ run\\ \\-\\-rm\\ \\-\\-gpus\\ all\\ \\-\\-ipc=host\\ \\-\\-network=host\\ \\ \\ \\-\\-entrypoint\\ python3\\ \\ \\ ghcr\\.io/r0b0tlab/vllm\\-minimax\\-m27\\-nvfp4\\-blackwell:(?P<version>[A-Za-z0-9_][\\w.-]*)\\ \\-\\ <<'PY'\\s*$",
+        "repo": "ghcr.io/r0b0tlab/vllm-minimax-m27-nvfp4-blackwell"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
-  ]
+  ],
+  "source": {
+    "commit": "32c395f75ff44f744e6b27991d17775623de071a",
+    "repo": "r0b0tlab/minimax-m27-nvfp4-gb10-benchmark"
+  }
 }

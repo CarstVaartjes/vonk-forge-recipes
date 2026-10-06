@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:85cb3fa86d31a781b94dcf10ee168adf096cfeaac14d2f1e6c560504e58e4eed",
+      "kind": "digest",
+      "ref": "sha256:85cb3fa86d31a781b94dcf10ee168adf096cfeaac14d2f1e6c560504e58e4eed",
+      "repo": "ghcr.io/0xsero/glm53-flash-exl3-plain"
+    }
+  },
+  "kit": {
+    "commit": "248dbaa00fffab296f255c16546c21621a4b2d89",
+    "repo": "0xSero/glm-5.3-flash-spark-mosaic"
+  }
+}

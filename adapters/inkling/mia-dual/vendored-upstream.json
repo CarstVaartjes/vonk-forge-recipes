@@ -1,11 +1,22 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "start_sglang.sh",
+        "pattern": "^\\s*UPSTREAM_IMAGE=\"\\$\\{UPSTREAM_IMAGE:\\-ghcr\\.io/drowzeys/inkling\\-sglang\\-gb10:(?P<version>[A-Za-z0-9_][\\w.-]*)\\}\"\\s*$",
+        "repo": "ghcr.io/drowzeys/inkling-sglang-gb10"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "NOTICE.upstream",
     "sglang-serve",
     "verify-runtime.py"
   ],
   "source": {
-    "repo": "MiaAI-Lab/Inkling-Small-NVFP4-Dual-DGX-Sparks",
-    "commit": "ce6bfbe90d6e680e7b8172ebd1922fa148158e26"
+    "commit": "ce6bfbe90d6e680e7b8172ebd1922fa148158e26",
+    "repo": "MiaAI-Lab/Inkling-Small-NVFP4-Dual-DGX-Sparks"
   }
 }

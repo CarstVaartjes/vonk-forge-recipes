@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:cdeae56d23d0d3f35a21c67c9f3e47979725a1ef9cd65faa6134b91871497be2",
+      "kind": "tag",
+      "ref": "nccl230u1",
+      "repo": "ghcr.io/tonyd2wild/vllm-m3-chthonic"
+    }
+  },
+  "kit": {
+    "commit": "e29e14595086d0251109d22aa219eb089d24a988",
+    "repo": "tonyd2wild/Minimax-M3-NVFP-3x-DGX-Sparks-TP-3"
+  }
+}

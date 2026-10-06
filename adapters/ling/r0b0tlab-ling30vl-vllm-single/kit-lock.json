@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:912f416de254f0a20562a1e33d2d6b20a379cc38884764839df09d66fbf945ee",
+      "kind": "tag",
+      "ref": "e2e5751",
+      "repo": "ghcr.io/r0b0tlab/ling30vl-nvfp4-mp-sm121"
+    }
+  },
+  "kit": {
+    "commit": "739081ce45a3128afb136d8249566fb013d4e0cd",
+    "repo": "r0b0tlab/ling30vl-nvfp4-mp-sm121"
+  }
+}

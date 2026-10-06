@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "oneshot.sh",
+        "pattern": "^\\s*IMAGE=\"ghcr\\.io/drowzeys/eugr\\-gb10\\-nvfp4kv:(?P<version>[A-Za-z0-9_][\\w.-]*)\"\\ \\ \\ \\ \\ \\ \\ \\ \\ \\ \\ \\ \\#\\ full\\ stack:\\ eugr\\ 0\\.27\\ GB10\\ \\+\\ NVFP4\\-KV\\ \\+\\ A4Q\\s*$",
+        "repo": "ghcr.io/drowzeys/eugr-gb10-nvfp4kv"
+      }
+    },
+    "whole": false
+  },
   "ours": [],
   "source": {
     "commit": "31f6197a4c59049431feda7b291ada63d92c22a5",
