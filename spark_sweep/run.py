@@ -900,6 +900,7 @@ class Sweep:
         previous = {
             name: entry.get(name)
             for name in (
+                "status",
                 "phase",
                 "failure_class",
                 "cluster",
