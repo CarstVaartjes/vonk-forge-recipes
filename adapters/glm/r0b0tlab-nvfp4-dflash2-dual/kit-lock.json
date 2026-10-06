@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:b9edc8e0c3642a553f9178dd3139cf22b7b4bd4553a37d53f8fd49ac80ee06b0",
+      "kind": "tag",
+      "ref": "overlay-v2",
+      "repo": "ghcr.io/r0b0tlab/glm53-flash-nvfp4-sm121"
+    }
+  },
+  "kit": {
+    "commit": "222697317a4a165767ab8ef17b44cf969a5ece09",
+    "repo": "r0b0tlab/glm53-flash-nvfp4-sm121"
+  }
+}
