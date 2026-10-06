@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:9fcb3b11818b035605783471c10cd169aaa3ffd62eafd9f1c647e9dce40d2dda",
+      "kind": "tag",
+      "ref": "sm121-mtp1",
+      "repo": "ghcr.io/r0b0tlab/nemotron-lightning-repro-runtime"
+    }
+  },
+  "kit": {
+    "commit": "024bb77b60482ef833e85376260ccb5d4b767225",
+    "repo": "r0b0tlab/nemotron-3.5-lightning-sm121-nvfp4"
+  }
+}
