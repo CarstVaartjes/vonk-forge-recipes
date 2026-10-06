@@ -1,22 +1,22 @@
-FROM docker.io/vllm/vllm-openai@sha256:b0501f99fec5136f248f78d5850977a2ec32d55cd9a665f4a9ffef24cbdf7fe5
+# r0b0tlab's published image of his glm53-flash-nvfp4-sm121 kit (22269731, MIT): vLLM 0.28.1rc1.dev580 (vllm/vllm-openai
+# sha256:b0501f99..., arm64, CUDA 13.0, FlashInfer 0.6.18) with the kit's four anchored SM121/GLM patches (SM90 NoPE MLA on
+# capability 12, indexer top-k SM-count gate, DFlash2 aux capture, drafter KV group) applied, tag overlay-v2. The kit
+# publishes and documents it (README "Run the published image"); this recipe runs that image as published, pinned by
+# digest (the tag is mutable; it was resolved once to the digest below), and does not rebuild it from the kit's patches.
+# This layer only adds the Controller placement wrapper at the platform's launcher path, the licence text and the
+# non-root user. Base: the linux/arm64 image ghcr.io/r0b0tlab/glm53-flash-nvfp4-sm121, by digest.
+FROM ghcr.io/r0b0tlab/glm53-flash-nvfp4-sm121:overlay-v2@sha256:b9edc8e0c3642a553f9178dd3139cf22b7b4bd4553a37d53f8fd49ac80ee06b0
 
 LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/glm53-flash-nvfp4-sm121" \
       org.opencontainers.image.revision="222697317a4a165767ab8ef17b44cf969a5ece09" \
-      org.opencontainers.image.licenses="MIT AND Apache-2.0"
+      org.opencontainers.image.licenses="MIT AND Apache-2.0" \
+      ai.vonkforge.runtime-interface="v1"
 
-# Base: vLLM 0.28.1rc1.dev580 (arm64, CUDA 13.0, FlashInfer 0.6.18). The four
-# anchored SM121/GLM patches below are the upstream overlay (container/Dockerfile.overlay
-# at the pinned commit); each is idempotent and fails closed on anchor drift.
-COPY patches/ /opt/vonk/build/patches/
-RUN python3 /opt/vonk/build/patches/0001-sm90-nope-mla-sm121.py \
- && python3 /opt/vonk/build/patches/0002-indexer-persistent-topk-sm121.py \
- && python3 /opt/vonk/build/patches/0003-glm-dflash2-aux-capture.py \
- && python3 /opt/vonk/build/patches/0004-glm-dflash2-drafter-group.py \
- && rm -rf /opt/vonk/build
-
+COPY LICENSE.upstream /opt/vonk/licenses/LICENSE.upstream
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
-RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
+RUN { test -x /opt/vllm/.venv/bin/vllm || test -x /usr/local/bin/vllm; } \
+    && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache /outputs/cache/triton
 
