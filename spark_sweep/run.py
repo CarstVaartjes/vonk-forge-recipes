@@ -815,7 +815,7 @@ class Sweep:
             return
         for key, entry in self.state.recipes.items():
             if (
-                entry.get("status") == "failed"
+                entry.get("status") in ("failed", "deferred")
                 and entry.get("release") != current
                 and policy.platform_side(entry.get("failure_class"))
                 and self._selected_key(key)
@@ -885,7 +885,7 @@ class Sweep:
         keys = [
             key
             for key, entry in self.state.recipes.items()
-            if entry.get("status") == "failed" and self._selected_key(key)
+            if entry.get("status") in ("failed", "deferred") and self._selected_key(key)
         ]
         for key in keys:
             self._requeue_failed(key, "operator: --retry-failed")
@@ -917,7 +917,7 @@ class Sweep:
             controller_release=self.release_sha,
             previous=previous,
         )
-        entry["previous"] = {"status": "failed", **previous}
+        entry["previous"] = {"status": entry.get("status"), **previous}
         entry.update(status="pending", attempts=0, requeued_because=why)
         for stale in (
             "phase",
@@ -1583,7 +1583,7 @@ class Sweep:
                                 str(item["code"])
                                 for item in app.get("failures") or []
                                 if isinstance(item, Mapping)
-                                and item.get("code") in policy.RECIPE_FAILURE_CODES
+                                and isinstance(item.get("code"), str)
                                 and member in policy.blamed([item], self._lanes(group))
                             ),
                             app.get("failure_code") or f"application.{app['state']}",
@@ -1683,18 +1683,6 @@ class Sweep:
             )
             self.requeue(key, why)
 
-    def _cancel_load(self) -> None:
-        load = self.state.data["load"]
-        if load and load.get("app_id"):
-            self.vk.run(
-                "profile",
-                "cancel",
-                load["app_id"],
-                "--yes",
-                "--detach",
-                profile=self.cfg.sweep_profile,
-            )
-
     def _stalled(self, slot: Mapping[str, Any], now: float) -> None:
         """The Controller held a load back for good: only the recipes it names fail."""
         blockers = list(slot["blocked"])
@@ -1708,7 +1696,9 @@ class Sweep:
         )
         self._requeue_collateral(collateral, culprits, "the Controller held it back")
         if not culprits:
-            self._cancel_load()
+            load = self.state.data["loads"].get(slot["request_key"])
+            if load:
+                self._cancel_load(load)
         lanes = self._lanes(culprits)
         for key in culprits:
             own = [b for b in blockers if policy.blamed([b], {key: lanes[key]})]
@@ -1763,7 +1753,8 @@ class Sweep:
         except VonkctlError:
             return False  # leave it to the stall handling
         lanes = self._lanes(culprits)
-        self._cancel_load()
+        previous = self.state.data["loads"].get(slot["request_key"], {})
+        self._cancel_load(previous)
         for key in culprits:
             own = [b for b in blockers if policy.blamed([b], {key: lanes[key]})]
             first = (own or blockers)[0]
@@ -1780,34 +1771,31 @@ class Sweep:
                     "admission-stalled",
                     {"blockers": blockers},
                 ),
-                self.state.data["load"] or {},
+                previous,
             )
-        self.state.data["load"] = None
-        try:
-            seq = int(self.state.data["load_seq"]) + 1
-            request = request_key(
-                "sweep-load", self.state.nonce, self.cfg.sweep_profile, seq
-            )
-            self.state.data["load_seq"] = seq
-            self.state.data["load"] = {
-                "request_key": request,
-                "app_id": None,
-                "seq": seq,
-                "submitted_at": now,
-            }
-            submitted = self._submit_load(profile, request, "release")
-        except VonkctlError as error:
-            self.state.data["load"] = None
-            self._requeue_collateral(
-                survivors, culprits, f"release failed: {str(error)[:100]}"
-            )
-            return True
-        self.state.data["load"]["app_id"] = dig(submitted, "id")
+        self.state.data["loads"].pop(slot["request_key"], None)
+        seq = int(self.state.data["load_seq"]) + 1
+        request = request_key("sweep-load", self.state.nonce, profile, seq)
+        self.state.data["load_seq"] = seq
+        self.state.data["loads"][request] = {
+            "request_key": request,
+            "app_id": None,
+            "seq": seq,
+            "submitted_at": now,
+        }
         for key in survivors:
             lane = self.state.slots[key]
             lane["request_key"] = request
             for stale in ("blocked_since", "blocked"):
                 lane.pop(stale, None)
+        self.state.save()
+        try:
+            submitted = self._submit_load(profile, request, "release")
+        except VonkctlError as error:
+            self.state.data["loads"][request]["state"] = "observing"
+            self.note_infra("review", f"release outcome unknown: {str(error)[:100]}")
+            return True
+        self.state.data["loads"][request]["app_id"] = submitted.get("id")
         self.state.event(
             "released " + ", ".join(survivors) + " without " + ", ".join(culprits)
         )
