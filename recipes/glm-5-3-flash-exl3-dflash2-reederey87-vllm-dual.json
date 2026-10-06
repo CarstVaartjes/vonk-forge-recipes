@@ -1730,8 +1730,8 @@
     "source_reference": "https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark/tree/2b5dfdc616ea5f3dfa4271f98475eea9cb0ee8b1"
   },
   "release": {
-    "released_at": "2026-10-01",
-    "version": "1.5.3"
+    "released_at": "2026-10-06",
+    "version": "1.5.4"
   },
   "runtime": {
     "arguments": [
@@ -2098,7 +2098,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 126000000000,
+            "peak_bytes": 123200000000,
             "reserve_bytes": 4000000000
           }
         }
@@ -2115,7 +2115,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 126000000000,
+            "peak_bytes": 123200000000,
             "reserve_bytes": 4000000000
           }
         }
