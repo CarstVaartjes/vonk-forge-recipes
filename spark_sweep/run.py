@@ -48,6 +48,7 @@ CLEAR_TIMEOUT_SECONDS = 900.0
 IDLE_WAIT_SECONDS = 120.0
 CLEARING_ATTEMPTS = 3
 MAX_REVIEW_DEFERS = 3
+SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
 ACTIVE_APP = frozenset({"queued", "running"})
@@ -205,6 +206,8 @@ class Sweep:
         self.owner_at = -1e18
         self.owner_status = OwnerStatus()
         self.backoff_until = 0.0
+        self.blind = False  # this tick could not observe the Controller
+        self._skew_checked_at = float("-inf")
         self.library_commit = ""
         self.rate = policy.RateTracker()
         self.rate.rate = float(state.data["rate"].get("ema", 0.0))
@@ -1090,10 +1093,11 @@ class Sweep:
 
     # ------------------------------------------------------------------ slots
 
-    def poll_application(self) -> None:
+    def poll_application(self) -> bool:
+        """Refresh the load's application; False when the Controller could not be observed."""
         load = self.state.data["load"]
         if not load:
-            return
+            return True
         args = ["progress"]
         if load.get("app_id"):
             args += ["--application", load["app_id"]]
@@ -1101,8 +1105,11 @@ class Sweep:
             args += ["--request-key", load["request_key"]]
         reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
         document = reply.document
+        if not reply.ok and is_infrastructure(reply):
+            self._blind(reply.error_text, reply)
+            return False
         if not isinstance(document, dict) or not isinstance(document.get("id"), str):
-            return
+            return True
         load["app_id"] = document["id"]
         status = str(document.get("state", ""))
         load["state"] = status
@@ -1120,7 +1127,7 @@ class Sweep:
             load["app_id"] = replaced.successor
             load["state"] = "queued"
             load["copying"] = False
-            return
+            return True
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
@@ -1139,16 +1146,46 @@ class Sweep:
                 ),
             }
             self.state.data["load"] = None
+        return True
+
+    def _blind(self, message: str, reply: Any = None) -> None:
+        """The sweep cannot observe the Controller (outage, 502/503, protocol or version skew)."""
+        self.blind = True
+        self.note_infra("observe", message)
+        if "protocol_invalid" in message or "OpenAPI" in message:
+            self._diagnose_skew()
+
+    def _diagnose_skew(self) -> None:
+        """protocol_invalid means vonkctl is older than the Controller: say so, loudly, once in a while."""
+        now = self.clock.now()
+        if now < self._skew_checked_at + SKEW_CHECK_INTERVAL:
+            return
+        self._skew_checked_at = now
+        check = self.vk.run("update", timeout=60)  # read-only: never --apply
+        document = check.document if isinstance(check.document, dict) else {}
+        current = dig(document, "current", "version", default="unknown")
+        accepted = document.get("accepted_version", "unknown")
+        self.state.event(
+            "WARNING: the Controller answers in a protocol this vonkctl does not speak "
+            f"(vonkctl {current}, accepted release {accepted}): the CLIENT MUST BE UPDATED, "
+            "run `vonkctl update --apply`. Not a recipe failure: loads are paused, not timed."
+        )
 
     def advance_slots(self, now: float) -> None:
+        self.blind = False
         if not self.state.slots:
             self.poll_application()
+            if not self.blind:
+                self.clear_infra("observe")
             return
         try:
             self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
-        except VonkctlError:
-            pass
+        except VonkctlError as error:
+            if error.infrastructure():
+                self._blind(str(error), error.reply)
         self.poll_application()
+        if not self.blind:
+            self.clear_infra("observe")
         for key, slot in list(self.state.slots.items()):
             if slot["phase"] == "loading":
                 self._advance_loading(key, slot, now)
@@ -1166,6 +1203,17 @@ class Sweep:
         load = self.state.data["load"]
         elapsed = now - float(slot.get("last_tick", slot["started_at"]))
         slot["last_tick"] = now
+        if self.blind or slot.pop("blind_tick", False):
+            # The sweep could not see the Controller (this tick, or the one before, so the gap
+            # between them was blind too): those seconds are never load time, and nothing that
+            # was waiting (a stalled copy, a held application) ages while we are blind.
+            slot["blind_seconds"] = float(slot.get("blind_seconds", 0)) + elapsed
+            for waiting in ("copy_progress_at", "blocked_since"):
+                if waiting in slot:
+                    slot[waiting] = float(slot[waiting]) + elapsed
+            if self.blind:
+                slot["blind_tick"] = True
+            return bool(slot.get("copying"))
         copying = bool(
             load
             and load.get("request_key") == slot["request_key"]
@@ -1201,6 +1249,8 @@ class Sweep:
     def _advance_loading(self, key: str, slot: dict[str, Any], now: float) -> None:
         recipe = self.recipes[key]
         copying = self._track_distribution(slot, now)
+        if self.blind:
+            return  # no verdict, serving or not, on a Controller we cannot see
         run_id = serving_run(
             self.fleet, slot["alias"], slot["node_ids"], recipe.node_count
         )
@@ -1278,7 +1328,7 @@ class Sweep:
                 )
         elif now > slot["deadline"] + float(slot.get("copy_seconds", 0)) + float(
             slot.get("blocked_seconds", 0)
-        ):
+        ) + float(slot.get("blind_seconds", 0)):
             self._timeout(key, slot)
 
     def _timeout(
@@ -1304,6 +1354,7 @@ class Sweep:
             - slot["started_at"]
             - float(slot.get("copy_seconds", 0))
             - float(slot.get("blocked_seconds", 0))
+            - float(slot.get("blind_seconds", 0))
         )
         self._fail_slot(
             key,
