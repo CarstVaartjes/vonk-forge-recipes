@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "one-shot.sh",
+        "pattern": "^\\s*KEYS_IMAGE=\"\\$\\{KEYS_IMAGE:\\-ghcr\\.io/drowzeys/keys\\-qwen38\\-27b\\-nvfp4\\-dflash2\\-ablit\\-cyber\\-unlock\\-1m\\-yarn\\-single\\-dgxspark:(?P<version>[A-Za-z0-9_][\\w.-]*)\\}\"\\s*$",
+        "repo": "ghcr.io/drowzeys/keys-qwen38-27b-nvfp4-dflash2-ablit-cyber-unlock-1m-yarn-single-dgxspark"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "vllm-wrapper.py"
   ],

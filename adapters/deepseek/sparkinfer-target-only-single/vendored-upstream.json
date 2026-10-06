@@ -1,6 +1,12 @@
 {
   "kit": {
     "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "compose.yaml",
+        "pattern": "^\\s*image:\\ ghcr\\.io/0xsero/deepseek\\-v4\\-flash\\-0731\\-spark\\-sparkinfer@(?P<version>sha256:[0-9a-f]{64})\\s*$",
+        "repo": "ghcr.io/0xsero/deepseek-v4-flash-0731-spark-sparkinfer"
+      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",

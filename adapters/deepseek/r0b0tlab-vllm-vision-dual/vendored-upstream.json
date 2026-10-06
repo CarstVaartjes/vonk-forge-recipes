@@ -1,9 +1,20 @@
 {
-  "source": {
-    "repo": "r0b0tlab/dsv4-flash-vision-exp-vllm-sm121",
-    "commit": "d956795219d7eac63b3c3f2e30b7c36c9ed0b685"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "README.md",
+        "pattern": "^\\s*docker\\ pull\\ ghcr\\.io/r0b0tlab/dsv4\\-flash\\-vision\\-exp\\-vllm\\-sm121:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/r0b0tlab/dsv4-flash-vision-exp-vllm-sm121"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
-  ]
+  ],
+  "source": {
+    "commit": "d956795219d7eac63b3c3f2e30b7c36c9ed0b685",
+    "repo": "r0b0tlab/dsv4-flash-vision-exp-vllm-sm121"
+  }
 }

@@ -1,6 +1,12 @@
 {
   "kit": {
     "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "CONTAINER.md",
+        "pattern": "^\\s*docker\\ pull\\ ghcr\\.io/r0b0tlab/deepseek\\-v4\\-flash\\-dspark\\-v026\\-sm121@(?P<version>sha256:[0-9a-f]{64})\\s*$",
+        "repo": "ghcr.io/r0b0tlab/deepseek-v4-flash-dspark-v026-sm121"
+      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",

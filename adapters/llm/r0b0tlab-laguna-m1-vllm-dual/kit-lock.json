@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:6e2dfa4c48ac73965890a864dc1510017f42981e743b3f2834b4b189ad7712a8",
+      "kind": "tag",
+      "ref": "cu130-sm121-arm64-dda4668b",
+      "repo": "ghcr.io/r0b0tlab/vllm-laguna-m1-nvfp4-sm121"
+    }
+  },
+  "kit": {
+    "commit": "3446af5bf5cdaffb37eb51487c6d570bc84a7f7f",
+    "repo": "r0b0tlab/laguna-m1-nvfp4-sm121-vllm"
+  }
+}

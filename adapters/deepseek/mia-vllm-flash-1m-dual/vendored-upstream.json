@@ -1,10 +1,21 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker-compose.yml",
+        "pattern": "^\\s*image:\\ aidendle94/sparkrun\\-vllm\\-ds4\\-gb10:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "docker.io/aidendle94/sparkrun-vllm-ds4-gb10"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "NOTICE.upstream",
     "vllm-wrapper.py"
   ],
   "source": {
-    "repo": "MiaAI-Lab/DeepSeek-V4-Flash-Dual-DGX-Spark-1M-Context",
-    "commit": "d84319952b41df812603830cd13ae921c39860f7"
+    "commit": "d84319952b41df812603830cd13ae921c39860f7",
+    "repo": "MiaAI-Lab/DeepSeek-V4-Flash-Dual-DGX-Spark-1M-Context"
   }
 }

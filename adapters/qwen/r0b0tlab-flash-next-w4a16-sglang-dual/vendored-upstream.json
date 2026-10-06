@@ -1,6 +1,12 @@
 {
   "kit": {
     "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/click_run_tp2.sh",
+        "pattern": "^\\s*IMAGE_REF=\"ghcr\\.io/r0b0tlab/qwen38\\-flash\\-next\\-w4a16\\-sm121\\-sglang@(?P<version>sha256:[0-9a-f]{64})\"\\s*$",
+        "repo": "ghcr.io/r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang"
+      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",

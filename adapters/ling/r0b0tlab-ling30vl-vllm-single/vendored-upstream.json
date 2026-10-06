@@ -1,12 +1,23 @@
 {
-  "source": {
-    "repo": "r0b0tlab/ling30vl-nvfp4-mp-sm121",
-    "commit": "739081ce45a3128afb136d8249566fb013d4e0cd"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker-compose.pro6000.yml",
+        "pattern": "^\\s*image:\\ ghcr\\.io/r0b0tlab/ling30vl\\-nvfp4\\-mp\\-sm121:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/r0b0tlab/ling30vl-nvfp4-mp-sm121"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
   ],
   "renamed": {
     "LICENSE.upstream": "LICENSE"
+  },
+  "source": {
+    "commit": "739081ce45a3128afb136d8249566fb013d4e0cd",
+    "repo": "r0b0tlab/ling30vl-nvfp4-mp-sm121"
   }
 }

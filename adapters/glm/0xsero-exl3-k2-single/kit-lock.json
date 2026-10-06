@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:1193a2e92d59f99257592f06ccf233cda4da019179fff7c02ac21eac242e0230",
+      "kind": "tag",
+      "ref": "b12x-mtp-1xspark-v2",
+      "repo": "ghcr.io/0xsero/glm53-b12x-exl3"
+    }
+  },
+  "kit": {
+    "commit": "6ff8595aa271f2eac49579fbf5e90cde9e90674e",
+    "repo": "0xSero/GLM-5.3-Flash-EXL3-1x-DGX-Spark"
+  }
+}

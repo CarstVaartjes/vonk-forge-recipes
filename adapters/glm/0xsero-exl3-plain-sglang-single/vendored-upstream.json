@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "e216/run-census.sh",
+        "pattern": "^\\s*IMG=ghcr\\.io/0xsero/glm53\\-flash\\-exl3\\-plain@(?P<version>sha256:[0-9a-f]{64})\\s*$",
+        "repo": "ghcr.io/0xsero/glm53-flash-exl3-plain"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "sglang-serve"
   ],

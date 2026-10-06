@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "examples/tech2wild-fleet/mimo_node.sh",
+        "pattern": "^\\s*IMAGE=\\$\\{IMAGE:\\-ghcr\\.io/tonyd2wild/vllm\\-glm53\\-flash:(?P<version>[A-Za-z0-9_][\\w.-]*)\\}\\s*$",
+        "repo": "ghcr.io/tonyd2wild/vllm-glm53-flash"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "NOTICE.upstream",
     "requirements-audio.txt",
@@ -11,7 +22,7 @@
     "patches/triton_attn_diffkv.py": "patches/files/triton_attn_diffkv.py"
   },
   "source": {
-    "repo": "tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe",
-    "commit": "9c699a2d027c2bf072d130f935acdbeacb06f208"
+    "commit": "9c699a2d027c2bf072d130f935acdbeacb06f208",
+    "repo": "tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe"
   }
 }

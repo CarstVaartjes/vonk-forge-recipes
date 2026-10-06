@@ -1,6 +1,12 @@
 {
   "kit": {
     "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "recipe/Dockerfile.production",
+        "pattern": "^\\s*ARG\\ BASE_IMAGE=ghcr\\.io/anemll/dspark\\-vllm\\-gx10@(?P<version>sha256:[0-9a-f]{64})\\s*$",
+        "repo": "ghcr.io/anemll/dspark-vllm-gx10"
+      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",

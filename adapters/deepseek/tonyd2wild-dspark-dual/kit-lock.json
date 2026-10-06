@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:d8492e7677cf1b9aaa3344e0e6865efc468454013eee5ebabac85be90af027be",
+      "kind": "tag",
+      "ref": "unholy-fusion-prod-ready",
+      "repo": "ghcr.io/bjk110/vllm-spark"
+    }
+  },
+  "kit": {
+    "commit": "43201d1c2f281d238b8fd65f0f7168118f83169c",
+    "repo": "tonyd2wild/DeepSeek-v4-Flash-Vision-Exp-DSpark-1M-NVFP4-KV-2x-DGX-Spark"
+  }
+}

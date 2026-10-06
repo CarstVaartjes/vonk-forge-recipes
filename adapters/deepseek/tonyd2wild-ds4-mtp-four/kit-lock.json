@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:f869281d869b2a1d418cade7dcbabe65216cb8f54891d5e2e50718c3dc8b630f",
+      "kind": "tag",
+      "ref": "production-ready",
+      "repo": "docker.io/aidendle94/sparkrun-vllm-ds4-gb10"
+    }
+  },
+  "kit": {
+    "commit": "2dd40b9d33dcbb7a827380b94b7aa80e72805fdf",
+    "repo": "tonyd2wild/Deepseek-V4-Flash-TP4-4x-DGX-Spark"
+  }
+}

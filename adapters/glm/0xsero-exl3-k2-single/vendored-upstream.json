@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": ".env.example",
+        "pattern": "^\\s*IMAGE=ghcr\\.io/0xsero/glm53\\-b12x\\-exl3:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/0xsero/glm53-b12x-exl3"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "vllm-wrapper.sh"
   ],

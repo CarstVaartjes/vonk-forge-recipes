@@ -1,9 +1,20 @@
 {
-  "source": {
-    "repo": "r0b0tlab/laguna-m1-nvfp4-sm121-vllm",
-    "commit": "3446af5bf5cdaffb37eb51487c6d570bc84a7f7f"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/serve.sh",
+        "pattern": "^\\s*IMAGE=\\$\\{IMAGE:\\-ghcr\\.io/r0b0tlab/vllm\\-laguna\\-m1\\-nvfp4\\-sm121:(?P<version>[A-Za-z0-9_][\\w.-]*)\\}\\s*$",
+        "repo": "ghcr.io/r0b0tlab/vllm-laguna-m1-nvfp4-sm121"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
-  ]
+  ],
+  "source": {
+    "commit": "3446af5bf5cdaffb37eb51487c6d570bc84a7f7f",
+    "repo": "r0b0tlab/laguna-m1-nvfp4-sm121-vllm"
+  }
 }

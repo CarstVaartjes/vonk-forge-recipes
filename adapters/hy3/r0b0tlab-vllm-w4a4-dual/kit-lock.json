@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:2d144fafe3f330fa17fa1facf4f589eee49b75bdf539ac69d1fe002b5b5bb0a5",
+      "kind": "tag",
+      "ref": "v0.25.0-cu130-sm121-arm64-702f4814-r2",
+      "repo": "ghcr.io/r0b0tlab/vllm-v0250-cu130-sm121"
+    }
+  },
+  "kit": {
+    "commit": "c134975aa465140064fee138e56d7dd221b28c2c",
+    "repo": "r0b0tlab/hy3-295b-nvfp4-gb10-benchmark"
+  }
+}

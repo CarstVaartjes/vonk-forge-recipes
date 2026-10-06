@@ -1,12 +1,23 @@
 {
-  "source": {
-    "repo": "r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang",
-    "commit": "6d0a25d9cc8b8963161cde085a83768b6bc545e0"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker-compose.yml",
+        "pattern": "^\\s*image:\\ ghcr\\.io/r0b0tlab/ornith\\-15\\-35b\\-nvfp4\\-w4a16\\-sm121\\-sglang:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "sglang-serve"
   ],
   "renamed": {
     "LICENSE.upstream": "LICENSE"
+  },
+  "source": {
+    "commit": "6d0a25d9cc8b8963161cde085a83768b6bc545e0",
+    "repo": "r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang"
   }
 }

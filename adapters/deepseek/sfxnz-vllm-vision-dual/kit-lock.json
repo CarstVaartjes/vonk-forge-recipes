@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:7dc02f162929943ba2e14514066ed2a04bb7e9ed3592d4eb460ebcbb1f8376bd",
+      "kind": "digest",
+      "ref": "sha256:7dc02f162929943ba2e14514066ed2a04bb7e9ed3592d4eb460ebcbb1f8376bd",
+      "repo": "docker.io/eugr/spark-vllm-b12x"
+    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",

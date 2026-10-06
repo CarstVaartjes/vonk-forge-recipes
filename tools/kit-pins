@@ -315,9 +315,11 @@ class Registry:
     def split(repo: str) -> tuple[str, str]:
         """``(registry host, repository path)`` of an image repository name."""
         first, _, rest = repo.partition("/")
-        if rest and ("." in first or ":" in first or first == "localhost"):
-            return first, rest
         host = "registry-1.docker.io"
+        if rest and first in {"docker.io", "index.docker.io", host}:
+            repo = rest  # Docker Hub spelled with its registry host
+        elif rest and ("." in first or ":" in first or first == "localhost"):
+            return first, rest
         return host, repo if "/" in repo else f"library/{repo}"
 
     def resolve(self, repo: str, ref: str) -> str:

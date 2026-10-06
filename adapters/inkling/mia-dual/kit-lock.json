@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:079775a8deb415d16b89a505df0795987add3395e6e63a42a885a712ccb1ddc3",
+      "kind": "tag",
+      "ref": "kvquant",
+      "repo": "ghcr.io/drowzeys/inkling-sglang-gb10"
+    }
+  },
+  "kit": {
+    "commit": "ce6bfbe90d6e680e7b8172ebd1922fa148158e26",
+    "repo": "MiaAI-Lab/Inkling-Small-NVFP4-Dual-DGX-Sparks"
+  }
+}

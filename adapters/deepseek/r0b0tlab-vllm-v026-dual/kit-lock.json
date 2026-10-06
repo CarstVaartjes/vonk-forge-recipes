@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:ef852781efd6278cb3d908a4298874fb8b34fe84f0e1a03181ed415ec233a9d4",
+      "kind": "digest",
+      "ref": "sha256:ef852781efd6278cb3d908a4298874fb8b34fe84f0e1a03181ed415ec233a9d4",
+      "repo": "ghcr.io/r0b0tlab/deepseek-v4-flash-dspark-v026-sm121"
+    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",

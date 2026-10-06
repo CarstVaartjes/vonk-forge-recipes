@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:079775a8deb415d16b89a505df0795987add3395e6e63a42a885a712ccb1ddc3",
+      "kind": "tag",
+      "ref": "kvquant",
+      "repo": "ghcr.io/drowzeys/inkling-sglang-gb10"
+    }
+  },
+  "kit": {
+    "commit": "539a7747d030233e9ed845dab682a948ff0cbfb2",
+    "repo": "drowzeys/keys-1M-CTX-Inkling-Small-NVFP4-Dspark-NVFP4-KV-Cache-SGlang-SM121-optimized-on-Two-DGX-Sparks"
+  }
+}

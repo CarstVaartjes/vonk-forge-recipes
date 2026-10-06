@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:a859a90363d1fee9a4ea37ce507b082fa353e6ac0fb2ddab2fc3295dbd37fe8d",
+      "kind": "tag",
+      "ref": "fi614",
+      "repo": "ghcr.io/drowzeys/vllm-024-puzzle-a4q"
+    }
+  },
+  "kit": {
+    "commit": "c8432f7909eaa9128f8ad15d951a9e49625e7e88",
+    "repo": "drowzeys/vLLM-0.24-optimized-NVIDIA-Nemotron-Lab-Puzzle-75B-A9B-A4Q-MTP3-NVFP4-KV-2.7M-Pool-Single-DGX-Spark"
+  }
+}

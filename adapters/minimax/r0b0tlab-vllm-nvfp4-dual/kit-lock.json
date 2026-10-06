@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:9ee93af94a508bf7ef6125f6bf655c27b9082a892296d9db20ecdee6e360cb03",
+      "kind": "tag",
+      "ref": "cu130-sm120-arm64-v0.21.1",
+      "repo": "ghcr.io/r0b0tlab/vllm-minimax-m27-nvfp4-blackwell"
+    }
+  },
+  "kit": {
+    "commit": "32c395f75ff44f744e6b27991d17775623de071a",
+    "repo": "r0b0tlab/minimax-m27-nvfp4-gb10-benchmark"
+  }
+}
