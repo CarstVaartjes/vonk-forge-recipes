@@ -515,12 +515,29 @@ repository's newest revision or an image repository's newest tag.
   declared model to another revision of the same Hugging Face repository whose files, apart
   from metadata, are the catalogued bytes (weights, configuration and tokenizer) moves the
   recipe's Model, its lock and the kit commit together. A different repository, different
-  weights, a changed configuration or tokenizer, another image tag or a tag that now names
-  another digest is a review. A kit move that keeps every declared value moves the recipe's
+  weights, a changed configuration or tokenizer is a review. A kit that moves its image, or
+  a declared tag that now names another digest, of the same image repository moves the
+  recipe mechanically (the lock, the Dockerfile's `FROM` and `base_image` digest; the thin
+  layer on top is rebuilt on it); another image repository is a review. A kit move that keeps every declared value moves the recipe's
   source reference, the Dockerfile's kit label and the lock together. Recipes whose kit
   declares nothing machine-readable (or only a floating tag such as `latest`) keep explicit
   pins in the manifest or the Dockerfile and the scanner's newest-upstream rule: there is no
   duplicate to derive.
+- **Prebuilt image rule.** If a creator's kit provides a prebuilt image, the recipe runs
+  that image, pinned by digest, and does not rebuild it from the kit's sources: the
+  adapter's Dockerfile is `FROM <image>@sha256:...` plus, at most, a thin layer (the
+  Controller's launcher wrapper, licence texts, the non-root user). Declare the image as an
+  `oci-image` dependency, and the image scanning, Trivy and supply-chain path that already
+  covers every recipe image covers it. Self-building stays only for kits that publish no
+  image. `tools/kit-pins check` scans every cited kit at its pinned commit for the container
+  images it runs or pulls (Dockerfile `FROM`/`ARG` image defaults, `IMG=`/`IMAGE=`
+  assignments, `docker run|pull|create`, compose `image:`; docs, tests and CI files are not
+  scanned; engine and base images such as `vllm/vllm-openai`, `lmsysorg/sglang`, `nvcr.io/*`
+  are not creator images) and fails when the recipe builds `FROM` none of them. A recipe that
+  must not run the kit's image records why in `kit-image-exceptions.json`
+  (`{"<recipe id>": "reason"}`); the check names an entry the recipe no longer needs (it runs
+  a kit image, or the kit references none) so it is removed. `tools/kit-pins images [<recipe>...]` shows what
+  the scan finds.
 - **Judging kit changes.** An adapter built from a whole kit (declared, or one whose files
   cite `github.com/<kit>/tree/<commit>`) is judged by every changed kit file, not only by
   files named by URL. Not runtime: READMEs, changelogs, notices, docs, tests and client-side
