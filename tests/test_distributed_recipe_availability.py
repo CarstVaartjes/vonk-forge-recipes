@@ -62,9 +62,13 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
             "https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/tree/2ac4e8dd661b12e6a1d7e69df711707abd6b9cd4",
         )
         self.assertEqual(
-            recipe["execution"]["build"]["base_image"]["digest"],
-            "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
+            recipe["execution"]["build"]["base_image"],
+            {
+                "digest": "4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6",
+                "repository": "ghcr.io/tonyd2wild/vllm-glm53-flash",
+            },
         )
+        self.assertEqual(recipe["execution"]["build"]["network"]["hosts"], [])
         self.assertEqual(arguments["tensor-parallel-size"], 4)
         self.assertEqual(arguments["max-model-len"], 1048576)
         self.assertEqual(arguments["max-num-seqs"], 64)
@@ -98,13 +102,18 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
             {"/models/drafter"},
         )
         self.assertIn('ai.vonkforge.runtime-interface="v1"', dockerfile)
-        self.assertIn("COPY overlay-dflash2/qwen3_dflash2.py", dockerfile)
-        self.assertIn("COPY overlay-dflash2/dflash2/", dockerfile)
-        self.assertTrue((adapter / "upstream-Dockerfile.glm53-sm121-v9").is_file())
+        # The kit's prebuilt image, by digest; the kit's patch stack is not rebuilt here.
+        self.assertIn(
+            "FROM ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2@sha256:4def0ef6",
+            dockerfile,
+        )
+        self.assertNotIn("patch_v7", dockerfile)
+        self.assertNotIn("pip install", dockerfile)
+        self.assertTrue((adapter / "sparse_attn_indexer_kpool_sm121.py").is_file())
         self.assertTrue((adapter / "upstream-launch-tp4-24g.sh").is_file())
         operational = "\n".join(
             (adapter / name).read_text(errors="ignore")
-            for name in ("Dockerfile", "vllm-wrapper.py", "verify-runtime.py")
+            for name in ("Dockerfile", "vllm-wrapper.py")
         )
         self.assertNotIn("ssh -", operational.lower())
         self.assertNotIn("nfs", operational.lower())
