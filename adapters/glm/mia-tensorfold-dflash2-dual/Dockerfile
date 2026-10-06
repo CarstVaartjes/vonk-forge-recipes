@@ -7,7 +7,7 @@
 FROM ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold@sha256:a8067cd7e14c14fa83d1dbed60261428f6d1737cec4554445573354af040dd7c
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold" \
-      org.opencontainers.image.revision="68ebd67b5326974b8004009e202268b1fa7c551d" \
+      org.opencontainers.image.revision="0cbe026146852df68516aa4482b6376f69cca1b9" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
