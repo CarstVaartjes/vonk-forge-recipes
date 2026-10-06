@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.source="https://github.com/vllm-project/vllm" \
       org.opencontainers.image.version="26.05.post1" \
       io.vonk.upstream-image="vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3)"
 
-COPY --chmod=0755 vllm /opt/vonk/bin/vllm
+COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 COPY verify-runtime.py /opt/vonk/verify-runtime.py
 RUN python3 /opt/vonk/verify-runtime.py
 
