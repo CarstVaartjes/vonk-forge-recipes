@@ -177,7 +177,7 @@ def test_a_new_application_that_leaves_the_sparks_busy_is_retried(
     assert [x["kind"] for x in sweep.state.data["own_loads"]].count("takeover") == 2
 
 
-def test_sparks_that_never_go_idle_raise_instead_of_testing_on_a_busy_fleet(
+def test_sparks_that_never_go_idle_are_reported_instead_of_testing_on_a_busy_fleet(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
@@ -185,10 +185,14 @@ def test_sparks_that_never_go_idle_raise_instead_of_testing_on_a_busy_fleet(
     )
     fleet.runs.append(dict(OWNER))
     fleet.ignore_clearing = 99
-    with pytest.raises(
-        RuntimeError, match=r"still run workloads after 3 clearing loads: owner-glm"
-    ):
-        sweep.run()
+    sweep.refresh_catalog()
+    assert (
+        sweep._take_over(sweep.clock.now()) is False
+    )  # bounded: reports, never raises or hangs
+    assert (
+        "still run workloads after 3 clearing loads: owner-glm"
+        in (sweep.state.data["infra"]["clearing"]["message"])
+    )
     assert not [
         c for p, c in fleet.calls if p == 10 and c[:2] == ("profile", "add")
     ]  # nothing was placed
