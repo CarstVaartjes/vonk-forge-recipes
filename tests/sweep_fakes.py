@@ -893,6 +893,7 @@ class FakeFleet:
                 and existing["node_ids"] == [names[s] for s in x["spark_ids"]]
             )
             if exact:
+                assert existing is not None
                 if not existing["ready"]:
                     # The new whole-fleet snapshot waits on the unchanged child;
                     # the original application keeps owning and reporting it.

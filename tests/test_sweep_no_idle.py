@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -151,9 +152,9 @@ def test_free_lane_starts_only_with_bound_unchanged_effects(
     original_run = []
     actual_load = fleet._load
 
-    def load(number, data, args):
-        code, document = actual_load(number, data, args)
-        if "--review" in args and not adoption_bound:
+    def load(n: int, data: dict[str, Any], a: list[str]) -> tuple[int, Any]:
+        code, document = actual_load(n, data, a)
+        if "--review" in a and not adoption_bound:
             document["effects"].pop("adopted", None)
         return code, document
 
