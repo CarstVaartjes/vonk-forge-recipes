@@ -4,7 +4,7 @@
 # rebuild it from the kit's sources. This layer only adds the Controller placement wrapper at the platform's launcher
 # path, the licence texts and the non-root user. Base: the linux/arm64 image
 # ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold, by digest.
-FROM ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold@sha256:a8067cd7e14c14fa83d1dbed60261428f6d1737cec4554445573354af040dd7c
+FROM ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold@sha256:cbb4b3c66273e2965dd40a7227e7a5243db333fe250113fb3987462ad4f12588
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold" \
       org.opencontainers.image.revision="0cbe026146852df68516aa4482b6376f69cca1b9" \
