@@ -3306,11 +3306,11 @@
       "drowzeys",
       "vLLM contributors"
     ],
-    "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Int4-Int8Mix-TP4-4x-DGX-Spark/tree/a1806cb82493aa6f28709f77acf59c1937bdf756"
+    "source_reference": "https://github.com/tonyd2wild/GLM-5.3-Int4-Int8Mix-TP4-4x-DGX-Spark/tree/f5440eff7f80ae1b7f30898871a50707ba17d115"
   },
   "release": {
-    "released_at": "2026-08-29",
-    "version": "1.0.0"
+    "released_at": "2026-10-06",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
