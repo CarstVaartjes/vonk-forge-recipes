@@ -169,6 +169,8 @@ class State:
                 raise TypeError("unreadable owner observations")
             if any(
                 not isinstance(value, dict)
+                or not isinstance(value.get("id"), str)
+                or not isinstance(value.get("state"), str)
                 for value in owner.get("baseline", {}).values()
             ):
                 raise ValueError("unreadable owner observation")
@@ -188,7 +190,11 @@ class State:
             )
             return recovered
         merged = _fresh()
-        merged.update(data)
+        for name, value in data.items():
+            if isinstance(value, dict) and isinstance(merged.get(name), dict):
+                merged[name].update(value)
+            else:
+                merged[name] = value
         return cls(path, merged, clock)
 
     def save(self) -> None:
