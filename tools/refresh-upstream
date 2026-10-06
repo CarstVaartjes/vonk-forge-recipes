@@ -836,17 +836,7 @@ def check_kit_dependencies(
             )
             continue
         if pin.datasource == "oci-image":
-            result.reasons.append(
-                f"the kit's image {pin.repo} is `{pin.ref}` (`{pin.immutable}`) at "
-                f"{kit_head[:12]}, but the recipe is locked to `{locked.get('ref', '?')}` "
-                f"(`{locked.get('digest', '?')}`): a moved tag or another tag is a new "
-                f"image; review it, then run `tools/kit-pins lock {slug}`"
-            )
-            result.evidence.append(
-                f"### Kit dependency `{pin.name}` (image) moved\n\n- locked: "
-                f"`{locked.get('ref', '?')}` `{locked.get('digest', '?')}`\n- declared now: "
-                f"`{pin.ref}` `{pin.immutable}`\n- {info}\n"
-            )
+            kit_image_moved(recipe, pin, locked, info, result)
             continue
         if pin.kind == "branch" and locked.get("ref") == pin.ref:
             # the kit still names the same branch; its head moved since the lock
@@ -876,6 +866,53 @@ def check_kit_dependencies(
             f"### Kit dependency `{pin.name}` moved\n\n- locked: `{locked.get('ref', '?')}`"
             f"\n- declared now: `{pin.ref}` (`{pin.immutable}`)\n- {info}\n"
         )
+
+
+def kit_image_moved(
+    recipe: dict[str, Any],
+    pin: Any,
+    locked: dict[str, Any],
+    info: str,
+    result: Assessment,
+) -> None:
+    """The image the kit declares is another digest than the lock holds.
+
+    The recipe runs the kit's prebuilt image as published, so a creator who republishes
+    it (a moved tag, or a kit that pins a newer digest) moves the recipe to the new digest
+    of the same repository mechanically: the lock, the Dockerfile's ``FROM`` and the
+    recipe's ``base_image`` follow, and the thin layer on top is rebuilt on it. Another
+    repository is a review.
+    """
+    slug = recipe["identity"]["slug"]
+    result.evidence.append(
+        f"### Kit dependency `{pin.name}` (image) moved\n\n- locked: "
+        f"`{locked.get('ref', '?')}` `{locked.get('digest', '?')}`\n- declared now: "
+        f"`{pin.ref}` `{pin.immutable}`\n- {info}\n"
+    )
+    if str(locked.get("repo", "")).lower() != pin.repo.lower():
+        result.reasons.append(
+            f"the kit now runs the image {pin.repo} instead of {locked.get('repo', '?')}: "
+            f"another image repository is a review, then run `tools/kit-pins lock {slug}`"
+        )
+        return
+    result.items.append(
+        Item(
+            "image",
+            "oci",
+            pin.repo,
+            str(locked.get("digest", "")),
+            Target(
+                provider="oci",
+                repo=pin.repo,
+                sha=pin.immutable,
+                date=datetime.now(UTC).date().isoformat(),
+                ref=None,
+                version=None,
+                url=f"https://{pin.repo}",
+            ),
+            kit_pin=pin,
+        )
+    )
 
 
 def kit_model_moved(
@@ -1621,6 +1658,8 @@ class Assessor:
             try:
                 if item.kind == "model":
                     self._model(item, recipe, new_recipe, result, edits)
+                elif item.kind == "image":
+                    self._image(item, recipe, new_recipe, result, edits)
                 elif item.provider == "github":
                     self._github(item, recipe, new_recipe, result, edits)
                 else:
@@ -1829,6 +1868,50 @@ class Assessor:
         self, directory: Path, lock: Any, edits: dict[str, bytes | None]
     ) -> None:
         edits[self._lock_path(directory)] = kit_pins.lock_text(lock).encode()
+
+    def _image(
+        self,
+        item: Item,
+        recipe: dict[str, Any],
+        new_recipe: dict[str, Any],
+        result: Assessment,
+        edits: dict[str, bytes | None],
+    ) -> None:
+        """Move the lock, the Dockerfile's FROM and the recorded base to the new digest."""
+        pin = item.kit_pin
+        directory = self.catalog.root / recipe["execution"]["build"]["context"]["path"]
+        lock = self._lock(directory, edits)
+        if lock is not None:
+            lock["dependencies"][pin.name] = kit_pins.lock_document(
+                lock["kit"]["repo"], lock["kit"]["commit"], [pin]
+            )["dependencies"][pin.name]
+            self._write_lock(directory, lock, edits)
+        dockerfile = directory / "Dockerfile"
+        if dockerfile.is_file():
+            text = dockerfile.read_text(encoding="utf-8")
+
+            def move(match: re.Match[str]) -> str:
+                image = match["image"]
+                if (
+                    "$" in image
+                    or kit_pins.split_image(image)[0].lower() != pin.repo.lower()
+                ):
+                    return match[0]
+                return match["lead"] + kit_pins.image_reference(pin, image)
+
+            moved = kit_pins.FROM_LINE.sub(move, text)
+            if moved != text:
+                edits[dockerfile.relative_to(self.catalog.root).as_posix()] = (
+                    moved.encode()
+                )
+        base = new_recipe["execution"]["build"].get("base_image")
+        if base and str(base.get("repository", "")).lower() == pin.repo.lower():
+            base["digest"] = pin.immutable.removeprefix("sha256:")
+        result.evidence.append(
+            f"The recipe runs the kit's published image {pin.repo}; it moves to "
+            f"`{pin.immutable}` (the kit's declaration), and the thin layer on top is "
+            "rebuilt on it. Review the Dockerfile's header comment.\n"
+        )
 
     def _model(
         self,
