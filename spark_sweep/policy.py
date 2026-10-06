@@ -527,11 +527,31 @@ def platform_side(failure_class: str | None) -> bool:
     return failure_class not in RECIPE_SIDE_CLASSES
 
 
-def admission_blockers(document: Mapping[str, Any]) -> list[dict[str, str]]:
+_NOT_REFS = frozenset({"code", "detail", "message", "severity"})
+
+
+def _leaves(value: Any, skip: frozenset[str] = frozenset()) -> list[str]:
+    """Every string in a nested document (the identifiers a blocker or failure carries)."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, Mapping):
+        return [
+            leaf
+            for name, item in value.items()
+            if name not in skip
+            for leaf in _leaves(item)
+        ]
+    if isinstance(value, (list, tuple)):
+        return [leaf for item in value for leaf in _leaves(item)]
+    return []
+
+
+def admission_blockers(document: Mapping[str, Any]) -> list[dict[str, Any]]:
     """What holds a profile application back: error blockers and a phase that keeps being retried.
 
     A warning is a brief contention hold and never counts; the Controller raises ``phase-retry``
-    only once a phase has been repeated.
+    only once a phase has been repeated. ``refs`` carries what else the blocker names (its
+    assignment, alias, node or recipe), whatever the field is called.
     """
     held = (
         (document.get("progress") or {}).get("blockers")
@@ -539,7 +559,11 @@ def admission_blockers(document: Mapping[str, Any]) -> list[dict[str, str]]:
         or []
     )
     return [
-        {"code": str(item.get("code", "")), "detail": str(item.get("detail", ""))[:300]}
+        {
+            "code": str(item.get("code", "")),
+            "detail": str(item.get("detail", ""))[:300],
+            "refs": _leaves(item, _NOT_REFS)[:20],
+        }
         for item in held
         if isinstance(item, Mapping)
         and (
@@ -547,6 +571,36 @@ def admission_blockers(document: Mapping[str, Any]) -> list[dict[str, str]]:
             or item.get("code") == "run-switch.phase-retry"
         )
     ]
+
+
+def _mentions(text: str, name: str) -> bool:
+    return len(name) >= 3 and (
+        re.search(rf"(?<![\w.-]){re.escape(name)}(?![\w.-])", text) is not None
+    )
+
+
+def blamed(
+    items: Iterable[Mapping[str, Any]], lanes: Mapping[str, Mapping[str, Sequence[str]]]
+) -> set[str]:
+    """The lanes the blockers or assignment failures name; empty when they name none.
+
+    ``lanes`` maps a recipe key to ``names`` (its alias, key and slug: a match is the recipe)
+    and ``places`` (its node ids and Spark names: a match only says where it was placed).
+    A recipe named outright wins; a Spark is only evidence when nothing names a recipe.
+    """
+    named: set[str] = set()
+    placed: set[str] = set()
+    for item in items:
+        refs = {r for r in (item.get("refs") or _leaves(item, _NOT_REFS))}
+        text = " ".join(
+            str(item.get(f, "")) for f in ("detail", "message", "reason", "error")
+        )
+        for key, lane in lanes.items():
+            if any(n in refs or _mentions(text, n) for n in lane.get("names", ())):
+                named.add(key)
+            if any(n in refs or _mentions(text, n) for n in lane.get("places", ())):
+                placed.add(key)
+    return named or placed
 
 
 def child_phase(name: str | None) -> str | None:

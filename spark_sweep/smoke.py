@@ -207,6 +207,61 @@ def _open(
     return urllib.request.urlopen(request, timeout=timeout, context=context)
 
 
+# Request fields that steer sampling. A model family may not accept them (diffusion models
+# reject temperature, seed, ...); sampling is per-request and never the recipe's business, so
+# the harness retries without them rather than failing the recipe.
+SAMPLING_PARAMS = frozenset(
+    {
+        "temperature",
+        "top_p",
+        "top_k",
+        "min_p",
+        "seed",
+        "min_tokens",
+        "logit_bias",
+        "bad_words",
+        "allowed_token_ids",
+        "frequency_penalty",
+        "presence_penalty",
+        "repetition_penalty",
+    }
+)
+
+
+def unsupported_sampling(text: str) -> bool:
+    """Does an error body say a sampling parameter is not supported?"""
+    lowered = text.lower()
+    named = any(name in lowered for name in SAMPLING_PARAMS) or "sampling" in lowered
+    return named and any(
+        word in lowered
+        for word in ("not supported", "unsupported", "not yet supported")
+    )
+
+
+def open_with_body(
+    url: str,
+    body: dict[str, Any],
+    headers: dict[str, str],
+    timeout: float,
+    context: ssl.SSLContext | None,
+) -> Any:
+    """POST a JSON body; when the server refuses a sampling parameter, send it without them."""
+    for attempt in (0, 1):
+        request = urllib.request.Request(
+            url, json.dumps(body).encode(), headers, method="POST"
+        )
+        try:
+            return _open(request, timeout, context)
+        except urllib.error.HTTPError as error:
+            text = _http_body(error)
+            error.body = text  # type: ignore[attr-defined]  # the body is read once
+            stripped = {k: v for k, v in body.items() if k not in SAMPLING_PARAMS}
+            if attempt or stripped == body or not unsupported_sampling(text):
+                raise
+            body = stripped
+    raise AssertionError("unreachable")
+
+
 def _secrets(config: HttpConfig | None) -> list[str]:
     try:
         if config is not None and config.key_file is not None:
@@ -280,7 +335,6 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
         "model": alias,
         "messages": [{"role": "user", "content": PERF_PROMPT}],
         "max_tokens": PERF_TOKENS,
-        "temperature": 0,
         "stream": True,
         "stream_options": {"include_usage": True},
     }
@@ -289,17 +343,17 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
         "Content-Type": "application/json",
         "Accept": "text/event-stream",
     }
-    request = urllib.request.Request(
-        base.rstrip("/") + "/chat/completions",
-        json.dumps(body).encode(),
-        headers,
-        method="POST",
-    )
     started = time.monotonic()
     first = last = None
     pieces = 0
     usage_tokens: int | None = None
-    with _open(request, config.case_timeout, config.context()) as response:
+    with open_with_body(
+        base.rstrip("/") + "/chat/completions",
+        body,
+        headers,
+        config.case_timeout,
+        config.context(),
+    ) as response:
         for raw in response:
             line = raw.decode("utf-8", "replace").strip()
             if not line.startswith("data:"):
@@ -378,13 +432,16 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     if method == "POST":
         data = json.dumps(body).encode()
         headers["Content-Type"] = "application/json"
-    request = urllib.request.Request(
-        base.rstrip("/") + str(case["path"]), data, headers, method=method
-    )
+    url = base.rstrip("/") + str(case["path"])
     limit = int(case.get("max_response_bytes", 262144))
     timeout = min(float(case.get("timeout_seconds", 180)), config.case_timeout)
     started = time.monotonic()
-    with _open(request, timeout, config.context()) as response:
+    if method == "POST" and isinstance(body, dict):
+        opened = open_with_body(url, body, headers, timeout, config.context())
+    else:
+        request = urllib.request.Request(url, data, headers, method=method)
+        opened = _open(request, timeout, config.context())
+    with opened as response:
         status = int(getattr(response, "status", 200))
         raw = response.read(limit + 1)
     if len(raw) > limit:
