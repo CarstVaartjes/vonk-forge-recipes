@@ -646,17 +646,10 @@ class Sweep:
                 self._download_done(key)
         self.cached_models = self._cached_models()
         self.prefetcher.library_fresh_since = self.recipe_list.complete_started_at
-        self.last_prefetch = self.prefetcher.tick(
-            self.recipes,
-            self.models,
-            pending,
-            self.sizes,
-            self._present(),
-            self.boost,
-            self.cached_models,
-        )
+        present = self._present()
+        plans = self.prefetcher.plan_queue(pending, self.sizes, present, self.boost)
         self.queue = policy.order_queue(
-            self.prefetcher.last_plans,
+            plans,
             self.recipes,
             revalidate={
                 k for k, e in self.state.recipes.items() if e.get("revalidate")
@@ -666,8 +659,19 @@ class Sweep:
         )
         if not self.owner_status.paused:
             self.cleanup_finished()
-            self.schedule(now)
-        self.check_idle(now)
+            self.schedule(self.clock.now())
+        # Ready cached placements and their durable request receipts come first.
+        # Download observation, preparation and pin maintenance may wait on the API.
+        self.last_prefetch = self.prefetcher.tick(
+            self.recipes,
+            self.models,
+            self.pending(),
+            self.sizes,
+            present,
+            self.boost,
+            self.cached_models,
+        )
+        self.check_idle(self.clock.now())
         self.state.data["rate"] = {"ema": self.rate.rate, "samples": self.rate.samples}
         if now - self.status_at >= self.cfg.status_seconds:
             self.status_at = now

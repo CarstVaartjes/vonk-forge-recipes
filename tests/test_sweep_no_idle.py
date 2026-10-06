@@ -193,3 +193,76 @@ def test_free_lane_starts_only_with_bound_unchanged_effects(
             sweep.state.data["events"]
         )
     assert original_run
+
+
+@pytest.mark.parametrize("previous_lane", ["finished", "loading"])
+def test_cached_lane_starts_before_blocked_preparation_maintenance(
+    tmp_path: Path,
+    gateway: Gateway,
+    monkeypatch: pytest.MonkeyPatch,
+    previous_lane: str,
+) -> None:
+    from spark_sweep.vonkctl import VonkctlError
+
+    recipes = [
+        FakeRecipe("slow", ("m1",), local="cached", load_seconds=1200),
+        FakeRecipe("ready", ("m2",), local="cached", load_seconds=60),
+    ]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        [FakeModel("m1", local="cached"), FakeModel("m2", local="cached")],
+        gateway=gateway,
+    )
+    sweep.preflight()
+    sweep.start_takeover()
+    sweep.refresh_catalog()
+    original_request = None
+    original_application = None
+    if previous_lane == "loading":
+        sweep.cfg.only = ("slow",)
+        sweep.tick()
+        original_request = sweep.state.slots[recipes[0].key]["request_key"]
+        original_application = sweep.state.data["loads"][original_request]["app_id"]
+        sweep.cfg.only = ()
+    else:
+        sweep.state.slots["retired"] = {
+            "request_key": "old-request",
+            "phase": "finished",
+            "alias": "already-absent",
+            "node_ids": ["spk_a"],
+            "started_at": clock.now(),
+        }
+    tracked = {
+        "request_key": "00000000-0000-4000-8000-000000000001",
+        "operation_id": "00000000-0000-4000-8000-000000000002",
+        "state": "queued",
+    }
+    sweep.state.downloads[recipes[1].key] = dict(tracked)
+    before = clock.now()
+    observed = []
+
+    def blocked_maintenance(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        observed.append([run["recipe"] for run in fleet.runs])
+        clock.sleep(240)
+        raise VonkctlError(("recipe", "progress"), None, "controller.transport_timeout")
+
+    monkeypatch.setattr(sweep.prefetcher, "tick", blocked_maintenance)
+    sweep.tick()
+    assert observed and recipes[1].key in observed[0]
+    slot = sweep.state.slots[recipes[1].key]
+    request = slot["request_key"]
+    load = sweep.state.data["loads"][request]
+    assert fleet.apps[load["app_id"]]["created"] == before
+    assert fleet.apps[load["app_id"]]["request_key"] == request
+    assert sweep.state.downloads[recipes[1].key] == tracked
+    assert "retired" not in sweep.state.slots
+    assert sweep.state.data["cleanup"] == {}
+    if original_request is not None:
+        assert original_application is not None
+        assert sweep.state.slots[recipes[0].key]["request_key"] == original_request
+        assert (
+            sweep.state.data["loads"][original_request]["app_id"]
+            == original_application
+        )
+        assert fleet.apps[original_application]["state"] == "running"
