@@ -2,18 +2,15 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
-        "repository": "docker.io/vllm/vllm-openai"
+        "digest": "376f11dfd61abb06731d2d542b53c8c2954ffbcf1846ccd3af564d507ec5436f",
+        "repository": "ghcr.io/miaai-lab/glm53-flash-spark"
       },
       "context": {
         "path": "adapters/glm/glm53-sm121"
       },
       "dockerfile": "adapters/glm/glm53-sm121/Dockerfile",
       "network": {
-        "hosts": [
-          "files.pythonhosted.org",
-          "pypi.org"
-        ]
+        "hosts": []
       },
       "patches": []
     }
@@ -35,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate Ray TP2 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. It applies MiaAI-Lab's public SM121 sparse-MLA fix on stable vLLM v0.30.0 with FlashInfer 0.6.18.post1 and reproduces its 262K profile, FP8 KV cache, MTP4, and conservative 0.84 unified-memory budget; the calibrated per-projection input scales replace the underflowing 1.0 placeholders, and Vonk physical acceptance plus long-context repetition regression remain pending.",
+    "description": "Executable Candidate Ray TP2 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint. It runs MiaAI-Lab's published image ghcr.io/miaai-lab/glm53-flash-spark:mm-ray-v1 (sha256:376f11dfd61abb06731d2d542b53c8c2954ffbcf1846ccd3af564d507ec5436f; her SM121 sparse-MLA kernel layer on a development vLLM build with a FlashInfer 0.6.18 nightly and NCCL 2.30.7, plus Ray 2.58.0) as the kit gives it, not rebuilt from the kit's sources, with a thin layer for the Controller's launcher, the multimodal chat template and the non-root user, and reproduces its 262K profile, FP8 KV cache, MTP4, and conservative 0.84 unified-memory budget; the calibrated per-projection input scales replace the underflowing 1.0 placeholders, and Vonk physical acceptance plus long-context repetition regression remain pending.",
     "tags": [
       "executable",
       "candidate",
