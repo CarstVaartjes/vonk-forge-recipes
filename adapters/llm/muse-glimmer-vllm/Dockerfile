@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.source="https://github.com/vllm-project/vllm" \
       org.opencontainers.image.licenses="Apache-2.0" \
       io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"
 
-RUN install --directory --mode=0755 /opt/vonk/bin \
+RUN install --directory --mode=0755 /opt/vonk/bin /inputs \
     && printf '%s\n' '#!/bin/sh' 'exec vllm "$@"' > /opt/vonk/bin/vllm \
     && chmod 0755 /opt/vonk/bin/vllm
 
