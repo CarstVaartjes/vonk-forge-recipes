@@ -180,12 +180,13 @@ certificate).
   `container-download`, or a copying operation) it does not count, and the learned
   timings leave the copy out. During a copy only a lack of progress fails the
   load: no change in the completed bytes for `--copy-stall-minutes` (default 10),
-  which is class `copy-stalled`, retried once and requeued on a platform change.
+  which is class `copy-stalled`, deferred and requeued on a platform change or the
+  watch cooldown.
   Load timeouts recorded before this rule (copy time counted) are retried once.
 * While the Controller holds the application back with error blockers (capacity, stale
   inventory, a phase it keeps retrying; `progress.blockers`), those seconds are not load time
-  either, and a hold that lasts `--blocked-minutes` (default 15) fails the lane as class
-  `admission-stalled` (phase start). It is the platform's, so a release change requeues it; it
+  either, and a hold that lasts `--blocked-minutes` (default 15) defers the lane as class
+  `admission-stalled` (phase start). A release change or watch cooldown requeues it; it
   is never recorded as an engine `load.timeout`.
 * A restarted sweep adopts a load it submitted itself: the saved lane slot and the
   saved application are picked up, nothing is cancelled or placed again, and the
@@ -193,8 +194,9 @@ certificate).
 * Failures carry a phase (download, review, build, install, start, readiness,
   smoke, timeout) and a class (network, oom, capacity, build-policy,
   model-integrity, …). Only network-like failures are retried, once. A
-  model-integrity download failure fails the lead; its siblings are recorded as
-  inheriting it, not attempted. Failures with the same normalised signature form
+  typed model-integrity download failure fails the current attempt; every sibling
+  receives its own attempt and evidence. Unknown platform outcomes are deferred.
+  Failures with the same normalised signature form
   one cluster in the report, so a fix lands for all of them.
 * Each result is bound to the recipe document digest (`content_sha256`). When a
   recipe's digest changes (the hourly refresh, a fix), a failed recipe is
@@ -299,15 +301,16 @@ download progress, pin edits), so the real cadence is 15-30 seconds, not
 `--poll-seconds`.
 
 The tests use a fake `vonkctl` modelled on the Controller's OpenAPI schemas and
-on real library and fleet output. Not yet seen on a real fleet: that a load
-submitted while another lane's workload is up reports `keep` for it; that the
+on real library and fleet output. Bound adoption links and staggered lanes are
+covered by the fake; their physical acceptance still requires the companion
+Controller deployment. Also not yet seen on a real fleet: that the
 Controller accepts many `--state installed` assignments in the pin profile; and
 the exact gateway `api_base` and key handling (the key is sent as
 `Authorization: Bearer`, the usual OpenAI-compatible form; the platform's own
 campaign smoke sends no header).
 
-Not built: Spark-side staging of the next recipe ahead of its load (it would
-rely on the same unverified concurrent-load behaviour), submitting the reviewed
+Not built: Spark-side staging of a queued recipe before its lane is free,
+submitting the reviewed
 job fixtures for generation recipes, and reading the NAS's free space (not
 exposed).
 
