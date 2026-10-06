@@ -283,10 +283,10 @@
       "Qwen (Apache-2.0)",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/bb6ee761643f45eb84b14f7e39c41d7538d53890"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/73f01ceea6369b8d4451462f094c20cb10559c11"
   },
   "release": {
-    "released_at": "2026-10-05",
+    "released_at": "2026-10-06",
     "version": "prebuilt-vllm-current"
   },
   "runtime": {
