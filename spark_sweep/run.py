@@ -2075,6 +2075,8 @@ class Sweep:
             self._release_orphan_load(load)
 
     def _release_orphan_load(self, load: dict[str, Any]) -> None:
+        if self._adopted_slots_live(load):
+            return  # selected aggregate still owns an active borrowed lane
         key = load.get("request_key")
         if any(
             s.get("request_key") == key and s["phase"] != "finished"
