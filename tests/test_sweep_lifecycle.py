@@ -95,7 +95,7 @@ def test_ctrl_c_cancels_the_lane_load_and_requeues(
     )
     state = json.loads((tmp_path / "state.json").read_text())
     assert state["recipes"]["vonk-forge/a"]["status"] == "pending"  # not blamed
-    assert state["slots"] == {} and state["load"] is None
+    assert state["slots"] == {} and state["loads"] == {}
     assert fleet.profiles[10]["assignments"] == []
 
 

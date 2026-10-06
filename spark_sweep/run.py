@@ -15,6 +15,7 @@ under a fake clock and a fake ``vonkctl``:
 
 from __future__ import annotations
 
+import itertools
 import signal
 import threading
 import time
@@ -36,6 +37,9 @@ from .catalog import (
     serving_run,
 )
 from .definitions import Definitions
+from .lifecycle import ACTIVE as ACTIVE_APP
+from .lifecycle import TERMINAL as SETTLED
+from .lifecycle import WAITING
 from .owner import OwnerGuard, OwnerStatus
 from .prefetch import PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
@@ -63,10 +67,17 @@ MAX_REVIEW_FREEING = 2
 SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
-ACTIVE_APP = frozenset({"queued", "running"})
-SETTLED = frozenset(
-    {"succeeded", "failed", "cancelled", "superseded", "waiting-for-operator"}
-)
+RETEST_SECONDS = 24 * 3600.0
+LOAD_WALL_SECONDS = 24 * 3600.0
+SMOKE_WALL_SECONDS = 1800.0
+
+
+class SweepOwnerIntentSuperseded(RuntimeError):
+    """An owner intent ends the sweep's bounded observation period."""
+
+
+class SweepProfileOwnershipError(RuntimeError):
+    """Destructive profile edits may not adopt another requester's assignments."""
 
 
 class DaemonExecutor:
@@ -267,7 +278,9 @@ class Sweep:
         """Read-only facts before anything is changed: fleet, owner baseline, owner profile export."""
         self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
         if not any(s.online for s in self.fleet.sparks):
-            raise RuntimeError("no Spark is online")
+            raise VonkctlError(
+                ("fleet",), None, "no Spark is online; observing enrollment"
+            )
         usable = self.sparks()
         if usable and not self.prefetcher.config.pin_spark:
             self.prefetcher.config = replace(
@@ -289,14 +302,16 @@ class Sweep:
     def claim_profile(self, number: int, name: str) -> None:
         """Use a profile only if it is empty or already ours: never adopt someone's saved profile."""
         reply = self.vk.run("profile", "export", profile=number)
-        definition = (
-            reply.document if reply.ok and isinstance(reply.document, dict) else {}
-        )
+        if not reply.ok or not isinstance(reply.document, dict):
+            raise VonkctlError(
+                reply.argv, reply, "profile ownership is unreadable; retry observation"
+            )
+        definition = reply.document
         labels = definition.get("labels") or {}
         if labels.get(SWEEP_LABEL[0]) == SWEEP_LABEL[1]:
             return
         if definition.get("assignments"):
-            raise RuntimeError(
+            raise SweepProfileOwnershipError(
                 f"profile {number} already holds assignments that are not the sweep's; "
                 "choose another number"
             )
@@ -514,6 +529,8 @@ class Sweep:
         self._tick_started = self.clock.now()
         try:
             self._tick()
+        except SweepOwnerIntentSuperseded:
+            raise
         except TickStuck as error:
             self.note_infra("watchdog", str(error))
             self.state.event(
@@ -539,15 +556,16 @@ class Sweep:
         except Exception as error:  # noqa: BLE001 - the next pass saves again
             self.note_infra("state-save", f"{type(error).__name__}: {error}")
 
-    def _startup(self, step: Callable[[], None]) -> None:
+    def _startup(self, step: Callable[[], None]) -> bool:
         """A startup step that only reads the fleet: a missing or failing vonkctl waits, never exits."""
         started = self.clock.now()
-        while True:
+        deadline = started + STARTUP_WAIT_SECONDS
+        while self.clock.now() < deadline:
             try:
                 step()
                 self.clear_infra("startup")
                 self.done_waiting()
-                return
+                return True
             except (VonkctlError, OSError) as error:
                 self.note_infra("startup", f"{type(error).__name__}: {error}")
                 until = self.state.data["infra"]["startup"]["until"]
@@ -558,10 +576,23 @@ class Sweep:
                     max(1.0, min(until - self.clock.now(), self.cfg.poll_seconds * 6))
                 )
 
+        self.state.event(
+            "startup observation budget exhausted; retrying in the next cycle"
+        )
+        return False
+
     def _tick(self) -> None:
         now = self.clock.now()
         self.advance_catalog(now)
         self.check_release(now)
+        if self.cfg.watch_seconds > 0:
+            for key, entry in list(self.state.recipes.items()):
+                if (
+                    entry.get("status") in ("failed", "deferred")
+                    and now >= float(entry.get("finished_at", now)) + RETEST_SECONDS
+                    and self._selected_key(key)
+                ):
+                    self._requeue_failed(key, "scheduled-retest")
         if now - self.owner_at >= self.cfg.owner_poll_seconds:
             self.owner_at = now
             self.owner_status = self.guard.check(now)
@@ -571,6 +602,16 @@ class Sweep:
                 )
                 self.state.data["owner"]["seen_at"] = now
                 self.preempt("an owner profile was loaded")
+        if self.owner_status.paused:
+            paused_at = self.state.data["owner"].setdefault("paused_at", now)
+            if now - float(paused_at) >= OWNER_WAIT_SECONDS:
+                self.state.data["end"] = {
+                    "code": "sweep.owner_intent_superseded",
+                    "reason": self.owner_status.reason,
+                }
+                raise SweepOwnerIntentSuperseded(self.owner_status.reason)
+        else:
+            self.state.data["owner"].pop("paused_at", None)
         self.advance_slots(now)
         self.heal_fleet_skips()
         pending = self.pending()
@@ -637,10 +678,7 @@ class Sweep:
     def done(self) -> bool:
         if not self.catalog_loaded or self.state.slots:
             return False
-        if any(
-            r.get("state") in ("queued", "running", "partial")
-            for r in self.state.downloads.values()
-        ):
+        if any(r.get("state") in ACTIVE_APP for r in self.state.downloads.values()):
             return False
         return not any(self._open(k) for k in self.recipes)
 
@@ -682,18 +720,17 @@ class Sweep:
     def start_takeover(self) -> None:
         """``run --yes`` means the sweep owns the fleet: clear it once, now, so reviews see idle Sparks."""
         started = self.clock.now()
-        while self.owner_status.paused:  # an owner load is in progress: wait for it
-            if self.clock.now() - started > OWNER_WAIT_SECONDS:
-                self.note_infra(
-                    "owner-wait", f"still paused: {self.owner_status.reason}"
-                )
-                break  # the pass loop keeps honouring the pause; startup moves on
+        deadline = started + OWNER_WAIT_SECONDS
+        while self.owner_status.paused and self.clock.now() < deadline:
             self.waiting(
                 f"an owner load ({self.owner_status.reason})", started, watch=False
             )
             self.clock.sleep(self.cfg.poll_seconds)
             self.owner_status = self.guard.check(self.clock.now())
         self.done_waiting()
+        if self.owner_status.paused:
+            self.note_infra("owner-wait", f"still paused: {self.owner_status.reason}")
+            return
         self._take_over(self.clock.now())
 
     def check_client(self) -> None:
@@ -722,13 +759,21 @@ class Sweep:
             return
         current = dig(document, "current", "version", default="unknown")
         accepted = document.get("accepted_version", "unknown")
-        message = (
-            f"vonkctl {current} differs from the accepted release {accepted}: "
-            "run `vonkctl update --apply`"
-        )
-        if not self.cfg.allow_version_skew:
-            raise RuntimeError(message + " (or pass --allow-version-skew)")
-        self.state.event(f"WARNING: {message}; continuing as asked")
+        message = f"vonkctl {current} differs from the accepted release {accepted}"
+        if self.cfg.allow_version_skew:
+            self.state.event(f"WARNING: {message}; continuing as asked")
+            return
+        upgraded = self.vk.run("update", "--apply", timeout=120)
+        if upgraded.ok:
+            self.state.event(f"{message}; accepted client update applied")
+            version = self.vk.run("--version")
+            if isinstance(version.document, dict):
+                self.state.data["client"] = {
+                    k: version.document.get(k) for k in ("version", "source_sha")
+                }
+            self.clear_infra("client-update")
+        else:
+            self.note_infra("client-update", f"{message}; update will be retried")
 
     @property
     def release_sha(self) -> str | None:
@@ -761,9 +806,7 @@ class Sweep:
         if now - self.release_at < self.cfg.release_seconds:
             return
         self.release_at = now
-        reply = self.vk.run("update", timeout=60)
-        if reply.ok and isinstance(reply.document, dict):
-            self.observe_release(reply.document)
+        self.check_client()
 
     def requeue_for_release(self) -> None:
         """Failures from another Controller release, of a platform-side class, are tried again."""
@@ -923,13 +966,20 @@ class Sweep:
             self.requeue_unfreed_capacity_failures()
             if self.cfg.retry_failed:
                 self.requeue_failed()
-            self._startup(self.preflight)
-            self.adopt_in_flight()
-            self._startup(self.start_takeover)
-            while True:
+            started = False
+            for _ in itertools.count():
                 try:
+                    if not started:
+                        if not self._startup(self.preflight):
+                            continue
+                        self.adopt_in_flight()
+                        if not self._startup(self.start_takeover):
+                            continue
+                        started = True
                     self.tick()
                     if self.done():
+                        self.state.data.pop("pending_idle", None)
+                        self.state.data["alerts"] = []
                         if self.cfg.watch_seconds <= 0:
                             break
                         self.clock.sleep(self.cfg.watch_seconds)
@@ -937,12 +987,26 @@ class Sweep:
                             self.model_list.pass_done_at
                         ) = -1e18
                         continue
-                    stuck = stuck + 1 if self._nothing_moves() else 0
+                    idle = self._nothing_moves()
+                    stuck = stuck + 1 if idle else 0
+                    if not idle:
+                        self.state.data.pop("pending_idle", None)
                     if stuck >= 30:
                         self.state.event(
-                            "nothing is runnable and nothing is downloading: stopping"
+                            "IDLE: pending work has no runnable lane; observing and retrying"
                         )
-                        break
+                        self.state.data["pending_idle"] = (
+                            "IDLE: pending work; sweep remains active"
+                        )
+                        self.state.data["alerts"] = [self.state.data["pending_idle"]]
+                        self._save_quietly()
+                        stuck = 0
+                except SweepOwnerIntentSuperseded:
+                    self.interrupt()
+                    self.finish(interrupted=True)
+                    return 0
+                except SweepProfileOwnershipError:
+                    raise  # authorization boundary: never adopt foreign saved assignments
                 except Exception as error:  # noqa: BLE001 - only a stop or a signal ends the loop
                     self.note_infra("loop", f"{type(error).__name__}: {error}")
                     self.state.event(
@@ -966,7 +1030,7 @@ class Sweep:
         if not self.catalog_loaded:
             return False  # the Controller has not answered yet: keep trying
         busy = bool(self.state.slots) or any(
-            r.get("state") in ("queued", "running", "partial", "accepted")
+            r.get("state") in ACTIVE_APP
             or (r.get("retry_at") and r.get("state") == "failed")
             for r in self.state.downloads.values()
         )
@@ -997,7 +1061,11 @@ class Sweep:
         recipe = self.recipes.get(key)
         # The prefetcher already retried what is worth retrying: this one is final.
         self._record_failure(key, failure, op_id, retryable=False)
-        if model_level and recipe is not None:
+        if (
+            model_level
+            and failure.code in policy.RECIPE_FAILURE_CODES
+            and recipe is not None
+        ):
             for digest in recipe.model_digests:
                 self.state.data["model_failures"][digest] = failure.cluster
             for other in self.recipes.values():
@@ -1057,8 +1125,13 @@ class Sweep:
         if op_id:
             proof.setdefault("operation_id", op_id)
             proof["evidence_command"] = f"vonkctl fleet evidence {op_id}"
+        attributable = (
+            failure.code in policy.RECIPE_FAILURE_CODES
+            or failure.klass == "smoke-assertion"
+        )
+        status = "failed" if attributable else "deferred"
         entry.update(
-            status="failed",
+            status=status,
             phase=failure.phase,
             failure_class=failure.klass,
             code=failure.code,
@@ -1079,18 +1152,18 @@ class Sweep:
             entry["inherited_from"] = inherited_from
         if bundle:
             entry["evidence_bundle"] = bundle
-        if failure.model_level and recipe is not None:
+        if failure.model_level and attributable and recipe is not None:
             for digest in recipe.model_digests:
                 self.state.data["model_failures"][digest] = failure.cluster
         self.log.append(
             batch="sweep",
             recipe=key,
             step="smoke",
-            status="failed",
+            status=status,
             error=f"{failure.phase}/{failure.klass}: {failure.describe()}"[:1536],
             **self._facts(key, entry, slot),
         )
-        self.state.event(f"FAILED {key}: {failure.phase}/{failure.klass}")
+        self.state.event(f"{status.upper()} {key}: {failure.phase}/{failure.klass}")
 
     def _facts(
         self, key: str, entry: Mapping[str, Any], slot: Mapping[str, Any] | None
@@ -1193,9 +1266,12 @@ class Sweep:
 
     def poll_application(self) -> bool:
         """Refresh the load's application; False when the Controller could not be observed."""
-        load = self.state.data["load"]
-        if not load:
-            return True
+        observed = True
+        for load in list(self.state.data["loads"].values()):
+            observed = self._poll_application(load) and observed
+        return observed
+
+    def _poll_application(self, load: dict[str, Any]) -> bool:
         args = ["progress"]
         if load.get("app_id"):
             args += ["--application", load["app_id"]]
@@ -1203,11 +1279,28 @@ class Sweep:
             args += ["--request-key", load["request_key"]]
         reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
         document = reply.document
-        if not reply.ok and is_infrastructure(reply):
+        if (
+            not reply.ok
+            and not load.get("app_id")
+            and isinstance(document, dict)
+            and document.get("code") in {"not_found", "profile.application_not_found"}
+        ):
+            # An exact fresh lookup proved there is no receipt. Replay the same request.
+            try:
+                document = self._submit_load(
+                    self.cfg.sweep_profile, load["request_key"], "placement"
+                )
+            except VonkctlError as error:
+                self._blind(str(error), error.reply)
+                return False
+        elif not reply.ok and is_infrastructure(reply):
             self._blind(reply.error_text, reply)
             return False
         if not isinstance(document, dict) or not isinstance(document.get("id"), str):
-            return True
+            self._blind("application observation is unreadable")
+            return False
+        self.clear_infra("review")
+        load["observed_at"] = self.clock.now()
         load["app_id"] = document["id"]
         status = str(document.get("state", ""))
         load["state"] = status
@@ -1216,6 +1309,24 @@ class Sweep:
         load["phase"] = moving.phase
         load["progress"] = list(moving.signature) if moving.signature else None
         load["blockers"] = policy.admission_blockers(document)
+        failure = document.get("failure") or {}
+        failure_code = str(failure.get("code") or document.get("code") or "")
+        gate = next(
+            (
+                b["code"]
+                for b in load["blockers"]
+                if b["code"]
+                .lower()
+                .endswith(("deletion_in_progress", "gate_held", "needs_operator"))
+            ),
+            None,
+        )
+        if gate or (
+            status == "failed"
+            and failure_code.startswith(("controller.", "http.", "profile."))
+        ):
+            self._end_load(load, gate or failure_code)
+            return True
         replaced = policy.supersession(document) if status in SETTLED else None
         if replaced is not None and replaced.successor not in (None, document["id"]):
             # The Controller continued this application as another one: follow it.
@@ -1239,12 +1350,16 @@ class Sweep:
                 load["state"] = "queued"
                 load["copying"] = False
                 return True
+        if status in WAITING:
+            self._end_load(load, f"application.{status}")
+            return True
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
                 "state": status,
                 "superseded": replaced is not None,
                 "reason": document.get("status_reason"),
+                "failure_code": failure_code,
                 "operation_id": document.get("current_operation_id") or document["id"],
                 "child_phase": child,
                 "cause": dig(document, "cancellation", "cause"),
@@ -1256,8 +1371,25 @@ class Sweep:
                     default=[],
                 ),
             }
-            self.state.data["load"] = None
+            self.state.data["loads"].pop(load["request_key"], None)
         return True
+
+    def _end_load(self, load: dict[str, Any], reason: str) -> None:
+        self._cancel_load(load)
+        self.state.data["loads"].pop(load["request_key"], None)
+        for key, slot in list(self.state.slots.items()):
+            if (
+                slot.get("request_key") == load["request_key"]
+                and slot["phase"] == "loading"
+            ):
+                self.requeue(key, reason)
+                self.state.entry(key)["not_before"] = (
+                    self.clock.now() + self.cfg.retry_delay
+                )
+                slot["phase"] = "finished"
+        self.state.event(
+            f"released application {load.get('app_id')}: {reason}; retry queued"
+        )
 
     def _retry_successor(self, document: Mapping[str, Any]) -> str | None:
         """The application that continues a failed one the Controller is still retrying, if any.
@@ -1331,7 +1463,7 @@ class Sweep:
         in the phases after the bytes are in place; while copying, only a copy that has stopped
         moving counts against the load.
         """
-        load = self.state.data["load"]
+        load = self.state.data["loads"].get(slot["request_key"])
         elapsed = now - float(slot.get("last_tick", slot["started_at"]))
         slot["last_tick"] = now
         if self.blind or slot.pop("blind_tick", False):
@@ -1381,7 +1513,13 @@ class Sweep:
         recipe = self.recipes[key]
         copying = self._track_distribution(slot, now)
         if self.blind:
-            return  # no verdict, serving or not, on a Controller we cannot see
+            if now >= float(
+                slot.get("wall_deadline", slot["started_at"] + LOAD_WALL_SECONDS)
+            ):
+                load = self.state.data["loads"].get(slot["request_key"])
+                if load:
+                    self._end_load(load, "application.observation_budget_exhausted")
+            return  # no recipe verdict on an unreadable Controller
         run_id = serving_run(
             self.fleet, slot["alias"], slot["node_ids"], recipe.node_count
         )
@@ -1394,6 +1532,17 @@ class Sweep:
                 now - slot["started_at"] - float(slot.get("copy_seconds", 0)),
             )
             self._submit_smoke(key, slot)
+            return
+        if now >= float(
+            slot.get("wall_deadline", slot["started_at"] + LOAD_WALL_SECONDS)
+        ):
+            load = self.state.data["loads"].get(slot["request_key"])
+            if load:
+                self._end_load(load, "application.observation_budget_exhausted")
+            else:
+                self.requeue(key, "application.observation_budget_exhausted")
+                self.state.entry(key)["not_before"] = now + self.cfg.retry_delay
+                slot["phase"] = "finished"
             return
         app = self.state.data.get("apps", {}).get(slot["request_key"])
         if app is not None:
@@ -1436,7 +1585,20 @@ class Sweep:
                 self._fail_slot(
                     member,
                     self.state.slots[member],
-                    policy.classify(phase, f"application.{app['state']}", detail),
+                    policy.classify(
+                        phase,
+                        next(
+                            (
+                                str(item["code"])
+                                for item in app.get("failures") or []
+                                if isinstance(item, Mapping)
+                                and item.get("code") in policy.RECIPE_FAILURE_CODES
+                                and member in policy.blamed([item], self._lanes(group))
+                            ),
+                            app.get("failure_code") or f"application.{app['state']}",
+                        ),
+                        detail,
+                    ),
                     app,
                 )
             return
@@ -1663,11 +1825,13 @@ class Sweep:
     def _timeout(
         self, key: str, slot: dict[str, Any], failure: policy.Failure | None = None
     ) -> None:
-        load = self.state.data["load"]
+        load = self.state.data["loads"].get(slot["request_key"])
         others = [
             k
             for k, s in self.state.slots.items()
-            if k != key and s["phase"] == "loading"
+            if k != key
+            and s["phase"] == "loading"
+            and s.get("request_key") == slot["request_key"]
         ]
         if load and load.get("app_id") and not others:
             self.vk.run(
@@ -1774,6 +1938,7 @@ class Sweep:
                 {},
             )
             return
+        slot["smoke_deadline"] = self.clock.now() + SMOKE_WALL_SECONDS
         self.futures[key] = self.executor.submit(
             smoke_service, recipe, self.defs, base, slot["alias"], self.cfg.http
         )
@@ -1786,6 +1951,16 @@ class Sweep:
             self._submit_smoke(key, slot)
             return
         if not future.done():
+            if self.clock.now() >= float(
+                slot.get("smoke_deadline", slot["ready_at"] + SMOKE_WALL_SECONDS)
+            ):
+                future.cancel()
+                del self.futures[key]
+                self.requeue(key, "smoke.observation_budget_exhausted")
+                self.state.entry(key)["not_before"] = (
+                    self.clock.now() + self.cfg.retry_delay
+                )
+                slot["phase"] = "finished"
             return
         del self.futures[key]
         try:
@@ -1809,29 +1984,52 @@ class Sweep:
                 future.cancel()
             self.requeue(key, why)
             slot["phase"] = "finished"
-        self.state.data["load"] = None
+        self.state.data["loads"].clear()
 
     # ------------------------------------------------------------- scheduling
 
     def cleanup_finished(self) -> None:
+        pending = self.state.data.setdefault("cleanup", {})
         for key, slot in list(self.state.slots.items()):
             if slot["phase"] != "finished":
                 continue
-            try:
-                self.vk.call(
-                    "profile",
-                    "remove",
-                    slot["alias"],
-                    "--yes",
-                    profile=self.cfg.sweep_profile,
-                )
-            except VonkctlError as error:
-                if "absent" not in str(error):
-                    self.state.event(
-                        f"could not remove {slot['alias']} from the sweep profile: {str(error)[:100]}"
-                    )
-                    continue
+            pending.setdefault(slot["alias"], {"attempts": 0, "next_check": 0.0})
+            self.futures.pop(key, None)
             del self.state.slots[key]
+        for alias, record in list(pending.items()):
+            if self.clock.now() < record["next_check"]:
+                continue
+            reply = self.vk.run(
+                "profile", "remove", alias, "--yes", profile=self.cfg.sweep_profile
+            )
+            removed = reply.ok
+            if not removed:
+                # "absent or ambiguous" is not evidence of absence: read the exact names.
+                exported = self.vk.run(
+                    "profile", "export", profile=self.cfg.sweep_profile
+                )
+                document = exported.document
+                assignments = (
+                    document.get("assignments") if isinstance(document, dict) else None
+                )
+                removed = (
+                    exported.ok
+                    and isinstance(assignments, list)
+                    and all(
+                        isinstance(item, dict) and item.get("assignment_name") != alias
+                        for item in assignments
+                    )
+                )
+            if removed:
+                del pending[alias]
+            else:
+                record["attempts"] += 1
+                record["next_check"] = self.clock.now() + min(
+                    self.cfg.retry_delay * 2 ** min(record["attempts"], 5), INFRA_CAP
+                )
+                self.state.event(
+                    f"assignment cleanup deferred: {alias}; lane released, retry queued"
+                )
 
     def ready(self, recipe: Recipe) -> bool:
         """The exact NAS assets are there (the download finished).
@@ -1881,7 +2079,13 @@ class Sweep:
                         b.ports | frozenset(recipe.ports),
                         b.aliases | {slot["alias"]},
                     )
-        return list(bins.values())
+        busy = {
+            node
+            for slot in self.state.slots.values()
+            if slot["phase"] != "finished"
+            for node in slot["node_ids"]
+        }
+        return [bin_ for bin_ in bins.values() if bin_.id not in busy]
 
     def release_orphan_load(self) -> None:
         """Forget a load whose lanes have all ended: nothing of ours waits on it any more.
@@ -1891,9 +2095,10 @@ class Sweep:
         admission), the load record would otherwise stay forever and no lane would ever be
         scheduled again.
         """
-        load = self.state.data["load"]
-        if load is None:
-            return
+        for load in list(self.state.data["loads"].values()):
+            self._release_orphan_load(load)
+
+    def _release_orphan_load(self, load: dict[str, Any]) -> None:
         key = load.get("request_key")
         if any(
             s.get("request_key") == key and s["phase"] != "finished"
@@ -1912,7 +2117,7 @@ class Sweep:
                 profile=self.cfg.sweep_profile,
             )
         self.state.event(f"released load {app or key}: its lanes have ended")
-        self.state.data["load"] = None
+        self.state.data["loads"].pop(key, None)
 
     def check_idle(self, now: float) -> None:
         """Alert when a free lane has had ready work for too long (the sweep must never idle)."""
@@ -1925,7 +2130,8 @@ class Sweep:
         )
         if not waiting:
             self.idle_since = None
-            self.state.data["alerts"] = []
+            pending_idle = self.state.data.get("pending_idle")
+            self.state.data["alerts"] = [pending_idle] if pending_idle else []
             return
         if self.idle_since is None:
             self.idle_since = now
@@ -1935,7 +2141,7 @@ class Sweep:
         message = (
             f"IDLE WITH READY WORK: {len(free)} free lane(s) for {round(idle)}s "
             f"while recipes are ready (load record: "
-            f"{'set' if self.state.data['load'] is not None else 'none'})"
+            f"{len(self.state.data['loads'])})"
         )
         if not self.state.data.get("alerts"):
             self.state.event(message)
@@ -1943,7 +2149,10 @@ class Sweep:
 
     def schedule(self, now: float) -> None:
         self.release_orphan_load()
-        if self.state.data["load"] is not None or now < self.backoff_until:
+        # Current profile loads fence the whole fleet, even for an incremental edit.
+        # A second application would cancel the copying lane. Scoped admission must
+        # be added to the Controller before this safety interlock can be removed.
+        if self.state.data["loads"] or now < self.backoff_until:
             return
         if any(
             s["phase"] in ("loading", "finished") for s in self.state.slots.values()
@@ -2014,7 +2223,7 @@ class Sweep:
                 if error.infrastructure(reviewing=True):
                     self.note_infra("review", str(error))
                 return False
-            application = str(dig(submitted, "id"))
+            application = str(submitted.get("id"))
             status = self._await_application(application, self.clock.now())
             if status not in SETTLED:
                 # Bounded: the clearing load never settled. It is ours: cancel it and start over.
@@ -2099,7 +2308,7 @@ class Sweep:
         """Did the load really empty the Sparks? Look at the fleet, not at the application."""
         started = self.clock.now()
         deadline = started + IDLE_WAIT_SECONDS
-        while True:
+        while self.clock.now() < deadline:
             try:
                 self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
                 if not self.fleet.presences:
@@ -2112,6 +2321,9 @@ class Sweep:
                 return False
             self.waiting("the Sparks to become idle", started)
             self.clock.sleep(self.cfg.poll_seconds)
+
+        self.done_waiting()
+        return False
 
     def _alias(self, recipe: Recipe) -> str:
         """The recipe's assignment name in the sweep profile, unique within it.
@@ -2157,6 +2369,10 @@ class Sweep:
                 added.append(placement)
                 self.clear_infra("profile-edit")
             except VonkctlError as error:
+                if error.infrastructure(reviewing=True):
+                    self._rollback(added, f"profile edit failed: {error}")
+                    self.note_infra("profile-edit", str(error))
+                    return
                 refused = policy.refused_profile_field(str(error))
                 if refused is not None and refused not in policy.RECIPE_PROFILE_FIELDS:
                     # The Controller refused something the sweep itself sent (the
@@ -2185,7 +2401,9 @@ class Sweep:
             return
         aliases = {self._alias(p.recipe): p for p in added}
         kept = {
-            s["alias"] for s in self.state.slots.values() if s["phase"] == "smoking"
+            s["alias"]
+            for s in self.state.slots.values()
+            if s["phase"] in ("loading", "smoking")
         }
         review = self.vk.run("profile", "load", "--review", profile=profile)
         document = review.document if isinstance(review.document, dict) else {}
@@ -2219,25 +2437,33 @@ class Sweep:
             seq,
         )
         self.state.data["load_seq"] = seq
-        self.state.data["load"] = {
+        self.state.data["loads"][key] = {
             "request_key": key,
             "app_id": None,
             "seq": seq,
             "submitted_at": now,
         }
+        for placement in added:
+            self._open_slot(placement, key, now)
+        self.state.data["dirty"] = (
+            True  # the submitted effect may be accepted even if its reply is lost
+        )
         self.state.save()
         try:
             submitted = self._submit_load(profile, key, "placement")
         except VonkctlError as error:
-            self.state.data["load"] = None
-            self._rollback(added, f"load refused: {error}")
             if error.infrastructure(reviewing=True):
                 self.note_infra("review", str(error))
+                # Unknown admission is resolved by request UUID before any edit or replay.
+                self.state.data["loads"][key]["state"] = "observing"
+                return
+            self.state.data["loads"].pop(key, None)
+            for placement in added:
+                self.state.slots.pop(placement.recipe.key, None)
+            self._rollback(added, f"load refused: {error}")
             return
-        self.state.data["load"]["app_id"] = dig(submitted, "id")
+        self.state.data["loads"][key]["app_id"] = submitted.get("id")
         self.state.data["dirty"] = True
-        for placement in added:
-            self._open_slot(placement, key, now)
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
 
     def _open_slot(self, placement: policy.Placement, request: str, now: float) -> None:
@@ -2263,6 +2489,7 @@ class Sweep:
             "request_key": request,
             "started_at": now,
             "deadline": now + timeout,
+            "wall_deadline": now + LOAD_WALL_SECONDS,
             "model_bytes": model_bytes,
             "digests": list(recipe.model_digests),
         }
@@ -2278,7 +2505,13 @@ class Sweep:
                     profile=self.cfg.sweep_profile,
                 )
             except VonkctlError:
-                pass
+                self.state.data.setdefault("cleanup", {}).setdefault(
+                    self._alias(placement.recipe),
+                    {
+                        "attempts": 0,
+                        "next_check": self.clock.now() + self.cfg.retry_delay,
+                    },
+                )
         self.backoff_until = self.clock.now() + self.cfg.retry_delay
         self.state.event(why[:200])
 
@@ -2291,7 +2524,7 @@ class Sweep:
     ) -> None:
         """Attribute a blocked review to the new recipes; defer them while a lane is busy, else fail them."""
         reasons: dict[str, list[tuple[str, str]]] = {}
-        for decision in dig(document, "admission_decisions", default=[]):
+        for decision in document.get("admission_decisions", []):
             if isinstance(decision, dict) and decision.get("allowed") is False:
                 for blocker in decision.get("blockers", []):
                     reasons.setdefault(str(decision.get("alias")), []).append(
@@ -2303,7 +2536,7 @@ class Sweep:
             blocked = list(added)
             generic = [
                 (str(r.get("code", "")), str(r.get("detail", "")))
-                for r in dig(document, "reasons", default=[])
+                for r in document.get("reasons", [])
                 if isinstance(r, dict) and r.get("severity") == "error"
             ]
             for placement in blocked:
@@ -2421,8 +2654,16 @@ class Sweep:
 
     def interrupt(self) -> None:
         """Ctrl-C: cancel the lane's current load and give its recipes back to the queue."""
-        load = self.state.data["load"]
-        if load and load.get("app_id"):
+        for load in list(self.state.data["loads"].values()):
+            self._cancel_load(load)
+        for key in list(self.state.slots):
+            self.futures.pop(key, None)
+        self.state.event("interrupted: lane loads cancelled, recipes requeued")
+        self.preempt("sweep interrupted")
+        self.cleanup_finished()
+
+    def _cancel_load(self, load: Mapping[str, Any]) -> None:
+        if load.get("app_id"):
             self.vk.run(
                 "profile",
                 "cancel",
@@ -2431,12 +2672,6 @@ class Sweep:
                 "--detach",
                 profile=self.cfg.sweep_profile,
             )
-        for key in list(self.state.slots):
-            self.futures.pop(key, None)
-        self.state.event("interrupted: lane loads cancelled, recipes requeued")
-        self.preempt("sweep interrupted")
-        self.state.data["load"] = None
-        self.cleanup_finished()
 
     def finish(self, interrupted: bool = False) -> None:
         self.executor.shutdown(wait=False, cancel_futures=True)
@@ -2465,9 +2700,11 @@ class Sweep:
             for item in self.state.data["own_loads"]
             if item.get("application_id")
         }
-        load = self.state.data["load"]
-        if load and load.get("app_id"):
-            known.add(str(load["app_id"]))
+        known |= {
+            str(load["app_id"])
+            for load in self.state.data["loads"].values()
+            if load.get("app_id")
+        }
         known |= {
             item["id"]
             for item in self.state.data["owner"]["baseline"].values()
@@ -2488,7 +2725,7 @@ class Sweep:
             key = self._own_key(kind, profile)
             document = self._submit_load(profile, key, kind, owner=owner)
             returned = dig(document, "request_key", default=key)
-            if dig(document, "id") not in known and returned == key:
+            if document.get("id") not in known and returned == key:
                 return document
             self.state.event(
                 f"the Controller returned an old application for the {kind} load "
@@ -2530,7 +2767,7 @@ class Sweep:
             profile=profile,
             allow_owner_write=owner,
         )
-        if isinstance(dig(document, "id"), str):
+        if isinstance(document.get("id"), str):
             record["application_id"] = document["id"]
             self.state.save()
         return document

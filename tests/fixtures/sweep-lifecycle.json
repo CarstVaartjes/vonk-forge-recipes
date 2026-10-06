@@ -1,0 +1,19 @@
+{
+  "source": "https://github.com/CarstVaartjes/vonk-forge/blob/63e82e9642c0c2b439646c2c6bc9315cd27ff3ad/src/cluster_profiles/schemas/control-openapi.json",
+  "LifecycleState": {
+    "description": "The nine lifecycle states: the one vocabulary a stored ``state`` speaks.\n\n``superseded`` is a definite, non-failed end: a newer request replaced the\nwork, so nothing is left for anyone to do.  The legacy spellings\n(``waiting``, ``partial``, ``cancelling``, ``expired``,\n``waiting-for-operator``) are *aliases*: see :data:`STATE_ALIASES`, the one\ntable that says what each of them means, per subject.",
+    "enum": [
+      "queued",
+      "running",
+      "observing",
+      "backoff",
+      "succeeded",
+      "failed",
+      "cancelled",
+      "superseded",
+      "needs-operator"
+    ],
+    "title": "LifecycleState",
+    "type": "string"
+  }
+}

@@ -133,7 +133,7 @@ def test_a_refusal_of_recipe_data_fails_the_recipe_at_the_profile_edit(
     fleet.faults = [
         (
             ("profile", "add"),
-            "controller.invalid_request",
+            "recipe.invalid_option",
             (
                 "request is invalid: body.assignments.0.option_choices: Input "
                 "should be a valid dictionary"

@@ -56,8 +56,24 @@ no `stop` effect for a lane that is still running; then `profile load --yes
 lane's smoke test runs beside it. The planner keeps unchanged assignments, so
 a swap never restarts the other lane. Duals use both Sparks and run as a
 window (several cached duals back to back) rather than interleaved with
-singles. Two singles share a Spark when their declared `memory_bytes` plus the
-reserve fit, ports and aliases differ, and the review agrees.
+singles. Each single recipe owns one Spark; dual recipes are scheduled only when
+both Sparks are free.
+
+In-flight applications are persisted in a `loads` map keyed by request UUID.
+Old state files with one `load` are adopted without changing that UUID. Admission
+and progress replies in `observing` or `backoff` keep being polled. Operator waits
+and removal gates end the owned load and requeue its recipes without blame.
+Downloads and lane observations have a 24-hour total budget; an unreadable or
+stalled download has a one-hour observation budget. Budget exhaustion releases
+sweep bookkeeping and schedules a fresh attempt after cooldown.
+
+Independent concurrent profile loads require a Controller change. The current
+Controller fences the whole fleet whenever a fresh application is accepted with
+another profile application in flight (`fleet_profiles.py`, `whole_fleet_intent`
+and `fenced_nodes`). Keeping assignments in the edited profile protects running
+lanes from stop effects, but does not prevent supersession of a copying lane.
+The sweep therefore keeps the submission interlock until a scoped admission API
+is available; separate profiles alone cannot safely solve this.
 
 **Aliases.** `--as` is the assignment name, the lane's client-facing model name.
 The profile contract takes a lowercase identifier (`ENDPOINT_ALIAS_PATTERN` in

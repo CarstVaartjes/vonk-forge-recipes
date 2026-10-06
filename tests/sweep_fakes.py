@@ -80,7 +80,9 @@ class FakeRecipe:
     )
     fail_load: str | None = None  # status reason of a failed load
     fail_phase: str = "runtime-install"
+    fail_code: str = "application.failed"
     fail_download: str | None = None
+    fail_download_code: str = "model.download_failed"
     alias: str | None = None
 
     @property
@@ -201,6 +203,8 @@ class FakeFleet:
         )
         # One-shot injected errors: (command prefix, error code, detail), consumed on first match.
         self.faults: list[tuple[tuple[str, ...], str, str]] = []
+        # Typed lifecycle/HTTP table tests inject exact wire observations.
+        self.observations: list[tuple[tuple[str, ...], int, dict[str, Any]]] = []
         self.client_build: dict[str, Any] = {"version": "1.0", "source_sha": "a" * 40}
         self.accepted_version = "1.0"
         self.release_sha = "a" * 40  # the accepted Controller release
@@ -284,7 +288,11 @@ class FakeFleet:
                         ]
                         app["reason"] = item["fail"]
                         app.setdefault("failures", []).append(
-                            {"alias": item["alias"], "reason": item["fail"]}
+                            {
+                                "alias": item["alias"],
+                                "reason": item["fail"],
+                                "code": item["fail_code"],
+                            }
                         )
                         app["phase"] = item["phase"]
                     else:
@@ -367,6 +375,10 @@ class FakeFleet:
         self.calls.append((profile, tuple(clean)))
         self.call_times.append(self.clock.now())
         self._tick()
+        for index, (prefix, status, document) in enumerate(self.observations):
+            if profile != 13 and tuple(clean[: len(prefix)]) == prefix:
+                del self.observations[index]
+                return status, json.dumps(document), ""
         for index, (prefix, code, detail) in enumerate(self.faults):
             # Pin-profile edits are best effort and have their own tests: faults aim at the sweep.
             if profile != 13 and tuple(clean[: len(prefix)]) == prefix:
@@ -376,6 +388,11 @@ class FakeFleet:
         if clean[:1] == ["--version"]:
             return 0, json.dumps(self.client_build), ""
         if clean[:1] == ["update"]:
+            if "--apply" in clean:
+                self.client_build = {
+                    **self.client_build,
+                    "version": self.accepted_version,
+                }
             drift = self.accepted_version != self.client_build["version"]
             return (
                 0,
@@ -557,7 +574,7 @@ class FakeFleet:
         recipe = self.recipes[key]
         if recipe.fail_download == "policy":
             return self._error(
-                "controller.unavailable",
+                "dockerfile.heredoc_forbidden",
                 "dockerfile.heredoc_forbidden: Dockerfile heredocs are not accepted",
             )
         model_missing = any(self.models[d].local != "cached" for d in recipe.digests)
@@ -596,7 +613,7 @@ class FakeFleet:
         }
         if op["state"] == "failed":
             doc["failure"] = {
-                "code": "model.download_failed",
+                "code": recipe.fail_download_code,
                 "detail": recipe.fail_download,
                 "recovery_actions": [],
             }
@@ -861,6 +878,7 @@ class FakeFleet:
                         + recipe.load_seconds
                     ),
                     "fail": recipe.fail_load,
+                    "fail_code": recipe.fail_code,
                     "phase": recipe.fail_phase,
                     "resolved": False,
                 }

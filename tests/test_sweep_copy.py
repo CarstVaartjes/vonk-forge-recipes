@@ -131,7 +131,7 @@ def test_the_limit_still_applies_once_the_bytes_are_in_place(
 def test_a_copy_that_stops_moving_fails_after_the_stall_window_and_is_retried_once(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    stuck = FakeRecipe("big", copy_seconds=10**5, copy_stalls=True)
+    stuck = FakeRecipe("big", copy_seconds=1000, copy_stalls=True)
     sweep, _, _ = make_sweep(
         tmp_path,
         [stuck],
@@ -323,9 +323,9 @@ def test_a_sweep_killed_mid_copy_adopts_its_load_on_restart_and_passes(
     saved = json.loads((tmp_path / "state.json").read_text())
     assert (
         saved["slots"]["vonk-forge/big"]["phase"] == "loading"
-        and saved["load"]["app_id"]
+        and next(iter(saved["loads"].values()))["app_id"]
     )
-    application = saved["load"]["app_id"]
+    application = next(iter(saved["loads"].values()))["app_id"]
     assert (
         fleet.apps[application]["state"] == "running"
     )  # still copying on the Controller

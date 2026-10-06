@@ -75,7 +75,11 @@ def file_issues(
             ]
         )
     for key, entry in sorted(recipes.items()):
-        if entry.get("status") != "failed" or entry.get("issue"):
+        if (
+            entry.get("status") != "failed"
+            or entry.get("inherited_from")
+            or entry.get("issue")
+        ):
             continue
         title = title_for(key, entry)
         if dry_run:

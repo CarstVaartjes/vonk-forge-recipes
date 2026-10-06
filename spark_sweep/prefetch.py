@@ -23,13 +23,15 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from .catalog import Model, Recipe, dig
+from .catalog import Model, Recipe
+from .lifecycle import TERMINAL, WAITING, active
 from .policy import Boost, Failure, RateTracker, classify, excerpt, plan_groups
 from .state import State
 from .vonkctl import Vonkctl, VonkctlError, request_key
 
 TIB = 1024**4
-ACTIVE_OPERATION = frozenset({"accepted", "queued", "running", "partial", "cancelling"})
+DOWNLOAD_WALL_SECONDS = 24 * 3600.0
+DOWNLOAD_STALL_SECONDS = 3600.0
 FailureHandler = Callable[[str, Failure, str | None, bool], None]
 DoneHandler = Callable[[str], None]
 MAX_REREQUESTS = (
@@ -97,35 +99,77 @@ class Prefetcher:
     def _poll(self) -> float:
         """Refresh our operations; returns the summed live throughput."""
         total_rate = 0.0
+        now = self.clock()
         for key, record in list(self.state.downloads.items()):
-            if record.get("state") not in ACTIVE_OPERATION:
+            if (
+                record.get("state") in ("external", "retired")
+                or record.get("state") in TERMINAL
+            ):
+                continue
+            record.setdefault("started_at", now)
+            record.setdefault("progress_at", now)
+            deadline = min(
+                float(record["started_at"]) + DOWNLOAD_WALL_SECONDS,
+                float(record["progress_at"]) + DOWNLOAD_STALL_SECONDS,
+            )
+            if now >= deadline:
+                self._retire(key, record, "download.observation_budget_exhausted")
+                continue
+            if now < float(record.get("next_check", 0)):
                 continue
             reply = self.vk.run("recipe", "progress", *self._progress_args(record))
             document = reply.document
+            record["next_check"] = now + min(self.config.retry_cooldown, 60.0)
             if not reply.ok or not isinstance(document, dict):
                 continue  # keep the last truthful state; try again next tick
+            record["observed_at"] = now
+            record["next_check"] = (
+                now  # normal polling cadence; backoff is for unreadable replies
+            )
+            old_bytes = record.get("bytes_done")
             record["operation_id"] = document.get("id", record.get("operation_id"))
-            record["state"] = document.get("state", record.get("state"))
+            observed_state = document.get("state")
+            record["state"] = (
+                observed_state if isinstance(observed_state, str) else "observing"
+            )
             progress = document.get("progress") or {}
             record["bytes_done"] = progress.get("completed_bytes", 0)
             record["bytes_total"] = progress.get("total_bytes")
+            if record["bytes_done"] != old_bytes:
+                record["progress_at"] = now
             speed = (
                 progress.get("smoothed_bytes_per_second")
                 or progress.get("bytes_per_second")
                 or 0
             )
             record["bps"] = speed
-            if record["state"] in ACTIVE_OPERATION:
+            if record["state"] in WAITING:
+                self._retire(key, record, f"download.{record['state']}")
+            elif active(record["state"]):
                 total_rate += float(speed)
             elif record["state"] == "failed":
                 self._failed(key, record, document)
-            elif record["state"] == "cancelled":
-                record["state"] = "cancelled"
+            elif record["state"] in ("cancelled", "superseded"):
+                self._retire(key, record, f"download.{record['state']}")
             if record["state"] == "succeeded" and not record.get("done_at"):
                 record["done_at"] = self.clock()
                 self.on_done(key)
         self.rate.add(total_rate)
         return total_rate
+
+    def _retire(self, key: str, record: dict[str, Any], reason: str) -> None:
+        # Cancel only our own receipt. External operations belong to their requester.
+        if record.get("operation_id") and record.get("request_key"):
+            self.vk.run(
+                "recipe", "cancel", str(record["operation_id"]), "--yes", "--detach"
+            )
+        record.update(
+            state="retired",
+            reason=reason,
+            retry_at=self.clock() + self.config.retry_cooldown,
+        )
+        self.on_infra("download", f"{key}: {reason}; observing and retrying")
+        self.state.event(f"download released: {key}: {reason}")
 
     def _track_external(self, recipes: Mapping[str, Recipe], now: float) -> None:
         """Follow downloads someone else started until they land.
@@ -142,6 +186,10 @@ class Prefetcher:
                 if recipe.local == "cached":
                     record.update(state="succeeded", done_at=now)
                     self.on_done(key)
+                elif now >= float(record["started_at"]) + DOWNLOAD_WALL_SECONDS:
+                    self._retire(
+                        key, record, "download.external_observation_budget_exhausted"
+                    )
                 elif recipe.local in ("failed", "not_cached"):
                     del self.state.downloads[key]  # it did not land: ours to ask for
 
@@ -157,6 +205,12 @@ class Prefetcher:
         failure_doc = document.get("failure") or {}
         code = str(failure_doc.get("code", ""))
         detail = str(failure_doc.get("detail", "") or document.get("detail", ""))
+        if code.startswith(("controller.", "http.", "profile.")) or any(
+            failure_doc.get(field) is not None
+            for field in ("status", "status_code", "http_status")
+        ):
+            self._retire(key, record, code or "download.http_error")
+            return
         actions = [str(a) for a in failure_doc.get("recovery_actions", [])]
         failure = classify(
             "download",
@@ -255,9 +309,9 @@ class Prefetcher:
                 self.on_failure(recipe.key, failure, None, failure.model_level)
             return
         self.on_ok("download")
-        op_state = str(dig(document, "state", default="queued"))
+        op_state = str(document.get("state", "queued"))
         self.state.downloads[recipe.key] = {
-            "operation_id": dig(document, "id"),
+            "operation_id": document.get("id"),
             "request_key": key,
             "state": op_state,
             "kind": kind,
@@ -275,7 +329,9 @@ class Prefetcher:
         model_ops = image_ops = 0
         counted: set[str] = set()
         for key, record in self.state.downloads.items():
-            if record.get("state") in ACTIVE_OPERATION:
+            if record.get("state") not in ("retired", "external") and active(
+                record.get("state")
+            ):
                 counted.add(key)
                 if record.get("kind") == "model":
                     model_ops += 1
@@ -285,7 +341,11 @@ class Prefetcher:
             key,
             recipe,
         ) in recipes.items():  # started by someone else: do not re-request, do count
-            if recipe.local == "preparing" and key not in counted:
+            if (
+                recipe.local == "preparing"
+                and key not in counted
+                and self.state.downloads.get(key, {}).get("state") != "retired"
+            ):
                 missing = any(
                     models.get(d, Model("", d, 0, "unknown")).local != "cached"
                     for d in recipe.model_digests
@@ -328,7 +388,15 @@ class Prefetcher:
             leads = [by_key[k] for k in plan.recipes if k in by_key]
             if plan.digests - cached:
                 # The model is not on the NAS yet: one lead recipe fetches it; siblings wait for it.
-                if any(self._active(r.key) or r.local == "preparing" for r in leads):
+                if any(
+                    self._active(r.key)
+                    or (
+                        r.local == "preparing"
+                        and self.state.downloads.get(r.key, {}).get("state")
+                        != "retired"
+                    )
+                    for r in leads
+                ):
                     continue
                 lead = next((r for r in leads if self._can_request(r, now)), None)
                 if (
@@ -346,7 +414,11 @@ class Prefetcher:
                 continue
             for recipe in leads:  # model cached: only the runtime image is missing
                 if (
-                    recipe.local not in ("cached", "preparing")
+                    (
+                        recipe.local not in ("cached", "preparing")
+                        or self.state.downloads.get(recipe.key, {}).get("state")
+                        == "retired"
+                    )
                     and not recipe.cache_ready
                     and image_ops < self.config.max_image_pulls
                     and self._can_request(recipe, now)
@@ -367,7 +439,12 @@ class Prefetcher:
         return key in self.state.downloads
 
     def _active(self, key: str) -> bool:
-        return self.state.downloads.get(key, {}).get("state") in ACTIVE_OPERATION
+        record = self.state.downloads.get(key)
+        return (
+            record is not None
+            and record.get("state") != "retired"
+            and active(record.get("state"))
+        )
 
     def _can_request(self, recipe: Recipe, now: float) -> bool:
         if self.state.status(recipe.key) in ("passed", "failed", "skipped"):
@@ -375,10 +452,10 @@ class Prefetcher:
         record = self.state.downloads.get(recipe.key)
         if record is None:
             return True
-        if record.get("state") in ACTIVE_OPERATION:
+        if active(record.get("state")) and record.get("state") != "retired":
             return False
         if record.get("state") == "retired":
-            return True
+            return now >= float(record.get("retry_at", 0))
         if recipe.cache_ready:
             return False
         if record.get("state") == "succeeded":

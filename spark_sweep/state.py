@@ -34,7 +34,8 @@ def _fresh() -> dict[str, Any]:
         "nonce": uuid.uuid4().hex,
         "recipes": {},  # key -> result entry
         "slots": {},  # key -> a recipe currently loading, serving or smoking
-        "load": None,  # the sweep profile's in-flight application
+        "cleanup": {},  # assignment alias -> retry metadata; never occupies a lane
+        "loads": {},  # request key -> in-flight profile application
         "load_seq": 0,
         "downloads": {},  # key -> {operation_id, request_key, ...}
         "pins": [],  # recipe keys in the pin profile
@@ -121,19 +122,50 @@ class State:
         self.path = path
         self.data = data if data is not None else _fresh()
         self.clock = clock
+        legacy = self.data.pop("load", None)
+        self.data.setdefault("loads", {})
+        if legacy:
+            self.data["loads"].setdefault(legacy["request_key"], legacy)
 
     @classmethod
     def load(cls, path: Path, clock: Callable[[], float] = time.time) -> State:
         if not path.exists():
             return cls(path, None, clock)
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if data.get("schema") != SCHEMA:
-            raise ValueError(f"{path}: unsupported state schema {data.get('schema')!r}")
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(data, dict) or data.get("schema") != SCHEMA:
+                raise ValueError("unreadable state schema")
+            for name, fresh in _fresh().items():
+                if (
+                    name in data
+                    and isinstance(fresh, (dict, list))
+                    and not isinstance(data[name], type(fresh))
+                ):
+                    raise ValueError(f"unreadable state field: {name}")
+        except (ValueError, UnicodeError) as error:
+            # Preserve unreadable bytes, then rebuild disposable sweep bookkeeping.
+            backup = path.with_name(f"{path.name}.unreadable-{uuid.uuid4().hex}")
+            path.replace(backup)
+            recovered = cls(path, None, clock)
+            recovered.event(
+                f"state rebuilt after {type(error).__name__}: {backup.name}"
+            )
+            return recovered
         merged = _fresh()
         merged.update(data)
         return cls(path, merged, clock)
 
     def save(self) -> None:
+        live = {
+            slot.get("request_key")
+            for slot in self.slots.values()
+            if slot.get("phase") != "finished"
+        }
+        if "apps" in self.data:
+            self.data["apps"] = {
+                key: app for key, app in self.data["apps"].items() if key in live
+            }
+        del self.data["release_history"][:-EVENT_LIMIT]
         self.data["updated_at"] = self.clock()
         write_atomic(self.path, json.dumps(self.data, indent=1, sort_keys=True))
 

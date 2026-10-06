@@ -87,9 +87,7 @@ def parse_recipe(row: dict[str, Any]) -> Recipe | None:
     if not isinstance(key, str) or not isinstance(document, dict):
         return None
     interfaces = [
-        item
-        for item in dig(document, "interfaces", default=[])
-        if isinstance(item, dict)
+        item for item in document.get("interfaces", []) if isinstance(item, dict)
     ]
     roles = [
         item
@@ -98,7 +96,7 @@ def parse_recipe(row: dict[str, Any]) -> Recipe | None:
     ]
     models = [
         item["model"]
-        for item in dig(document, "models", default=[])
+        for item in document.get("models", [])
         if isinstance(item, dict) and isinstance(item.get("model"), dict)
     ]
     aliases: list[str] = []
@@ -299,7 +297,9 @@ class Fleet:
 def parse_fleet(document: Any, default_memory: int) -> Fleet:
     sparks: list[Spark] = []
     presences: list[Presence] = []
-    for node in dig(document, "nodes", default=[]):
+    if not isinstance(document, dict):
+        return Fleet((), ())
+    for node in document.get("nodes", []):
         if not isinstance(node, dict):
             continue
         node_id = str(node.get("id", ""))

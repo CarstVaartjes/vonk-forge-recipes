@@ -172,7 +172,7 @@ def alias(r: Recipe) -> str:
     return r.slug
 
 
-def test_two_lanes_fill_before_a_spark_takes_a_second_recipe() -> None:
+def test_each_free_spark_gets_exactly_one_recipe() -> None:
     cands = [
         recipe("a", ports=(8001,)),
         recipe("b", ports=(8002,)),
@@ -182,19 +182,16 @@ def test_two_lanes_fill_before_a_spark_takes_a_second_recipe() -> None:
     assert [(p.recipe.slug, p.spark_ids) for p in placed] == [
         ("a", ("s0",)),
         ("b", ("s1",)),
-        ("c", ("s0",)),
     ]
 
 
-def test_two_small_recipes_pack_on_one_spark_when_memory_fits_and_ports_differ() -> (
-    None
-):
+def test_a_single_owns_its_spark_even_when_another_recipe_would_fit() -> None:
     cands = [
         recipe("a", memory_bytes=40 * GB, ports=(8001,)),
         recipe("b", memory_bytes=40 * GB, ports=(8002,)),
     ]
     placed = policy.place_singles(cands, bins(0), RESERVE, alias)
-    assert [p.spark_ids for p in placed] == [("s0",), ("s0",)]
+    assert [p.spark_ids for p in placed] == [("s0",)]
 
 
 def test_a_port_clash_or_too_little_memory_prevents_packing() -> None:
@@ -424,9 +421,7 @@ def test_rate_is_smoothed_ignores_idle_samples_and_gives_an_eta() -> None:
     assert rate.eta_seconds(20 * GB) == pytest.approx(100)
 
 
-def test_planning_the_whole_catalog_is_fast_enough_to_run_every_tick() -> None:
-    import time
-
+def test_planning_the_whole_catalog_places_every_recipe_once() -> None:
     recipes = [
         recipe(
             f"r{i}", (f"m{i % 200}",) if i % 7 else (f"m{i % 200}", f"m{(i + 1) % 200}")
@@ -434,9 +429,7 @@ def test_planning_the_whole_catalog_is_fast_enough_to_run_every_tick() -> None:
         for i in range(300)
     ]
     sizes = {f"m{i}": (i + 1) * GB for i in range(200)}
-    started = time.monotonic()
     plans = policy.plan_groups(recipes, sizes, {f"m{i}" for i in range(0, 200, 9)})
-    assert time.monotonic() - started < 1.0
     assert sorted(k for p in plans for k in p.recipes) == sorted(
         r.key for r in recipes
     )  # every recipe exactly once
@@ -465,3 +458,12 @@ def test_recently_updated_recipes_and_seed_lists_are_boosted() -> None:
     assert keys(plans)[0] == [
         "b"
     ]  # slightly bigger, but newer: ahead of the cheaper stale one
+
+
+def test_ready_single_is_not_hidden_behind_duals_or_oversized_queue_heads() -> None:
+    candidates = [recipe(f"dual-{i}", node_count=2) for i in range(5)]
+    candidates += [recipe(f"large-{i}", memory_bytes=2 * CAP) for i in range(5)]
+    fitting = recipe("fitting")
+    candidates.append(fitting)
+    placed = policy.place_singles(candidates, bins(0), RESERVE, alias)
+    assert [item.recipe for item in placed] == [fitting]

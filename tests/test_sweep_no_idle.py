@@ -22,7 +22,7 @@ def gateway():
 
 
 def _orphan(sweep) -> None:
-    sweep.state.data["load"] = {
+    sweep.state.data["loads"]["stale-request"] = {
         "request_key": "stale-request",
         "app_id": "app-stale",
         "seq": 0,
@@ -41,7 +41,7 @@ def test_a_load_whose_lanes_ended_does_not_block_scheduling(
     _orphan(sweep)
     assert sweep.run() == 0
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
-    assert sweep.state.data["load"] is None
+    assert sweep.state.data["loads"] == {}
     cancels = [c for _, c in fleet.calls if c[:2] == ("profile", "cancel")]
     assert any("app-stale" in c for c in cancels)  # ours, unsettled: released
 
@@ -57,7 +57,7 @@ def test_a_load_with_a_live_lane_is_kept(tmp_path: Path, gateway: Gateway) -> No
         "node_ids": [],
     }
     sweep.release_orphan_load()
-    assert sweep.state.data["load"] is not None
+    assert sweep.state.data["loads"]
 
 
 def test_idle_with_ready_work_raises_an_alert(tmp_path: Path, gateway: Gateway) -> None:

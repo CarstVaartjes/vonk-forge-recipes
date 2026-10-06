@@ -1,15 +1,8 @@
-"""Every recipe's declared peak memory must be admissible on an idle Spark.
+"""Memory envelopes describe demand; exceeding idle capacity is a warning.
 
-The Controller admits a role when its ``peak_bytes`` is at most the Spark's observed
-available memory minus the platform floor (2 GB). ``reserve_bytes`` is informational
-and is not added. An idle DGX Spark reports about 126.0 GB available (130.66 GB
-physical minus the operating system), so the idle-admissible peak is 124 GB. A recipe
-above it can never be admitted; above the physical memory the Controller refuses it
-with ``resource.envelope_exceeds_capacity``. Override the limit with
-``VONK_SPARK_ADMISSIBLE_PEAK_BYTES``.
-
-Recipes above the limit are listed with a kit-sourced reason in
-``memory-envelope-exceptions.json``; a listed recipe that now fits must be removed.
+The Controller attempts the recipe even when the declared envelope exceeds the
+idle Spark estimate. The declaration must still be internally consistent; this
+producer check must not turn an informational warning into an admission ban.
 """
 
 from __future__ import annotations
@@ -47,21 +40,12 @@ def envelopes() -> dict[str, tuple[int, int, int]]:
 
 
 class MemoryEnvelopeTests(unittest.TestCase):
-    def test_every_envelope_fits_the_spark(self) -> None:
-        offenders = [
-            f"{slug}: declared peak {peak} bytes exceeds the {ADMISSIBLE_PEAK_BYTES}-byte "
-            f"idle-admissible peak by {peak - ADMISSIBLE_PEAK_BYTES} "
-            f"(Spark physical memory {PHYSICAL_MEMORY_BYTES})"
-            for slug, (_total, peak, _reserve) in envelopes().items()
-            if peak > ADMISSIBLE_PEAK_BYTES and slug not in EXCEPTIONS
-        ]
-        self.assertEqual(
-            offenders,
-            [],
-            "declared peak exceeds what an idle Spark can admit; derive peak_bytes "
-            "from the kit (gpu-memory-utilization, its measured memory and its "
-            "startup overhead)",
-        )
+    def test_every_envelope_is_consistent(self) -> None:
+        for slug, (_total, peak, reserve) in envelopes().items():
+            with self.subTest(recipe=slug):
+                self.assertGreater(peak, 0)
+                self.assertGreaterEqual(reserve, 0)
+                self.assertLessEqual(reserve, peak)
 
     def test_exceptions_are_current(self) -> None:
         known = envelopes()

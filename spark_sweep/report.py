@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from . import policy
+from .lifecycle import ACTIVE
 from .state import write_atomic
 
 if TYPE_CHECKING:
@@ -164,7 +165,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     "bps": r.get("bps"),
                 }
                 for k, r in data["downloads"].items()
-                if r.get("state") in ("queued", "running", "partial", "accepted")
+                if r.get("state") in ACTIVE
             ],
             "rate_bps": round(sweep.rate.rate),
             "remaining_unique_bytes": remaining_bytes,
@@ -209,7 +210,7 @@ def render_status(status: Mapping[str, Any]) -> str:
             if status.get("quality_notes")
             else ""
         )
-        + f" - failed {c.get('failed', 0)} - pending {c.get('pending', 0)} - skipped {c.get('skipped', 0)}",
+        + f" - failed {c.get('failed', 0)} - deferred {c.get('deferred', 0)} - pending {c.get('pending', 0)} - skipped {c.get('skipped', 0)}",
         f"mode {status['mode']}"
         + (f" - PAUSED: {status['paused']}" if status["paused"] else ""),
         "",
