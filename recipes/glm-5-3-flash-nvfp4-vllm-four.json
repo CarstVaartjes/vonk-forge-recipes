@@ -2,20 +2,15 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce",
-        "repository": "docker.io/vllm/vllm-openai"
+        "digest": "4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6",
+        "repository": "ghcr.io/tonyd2wild/vllm-glm53-flash"
       },
       "context": {
         "path": "adapters/glm/tonyd2wild-glm53-tp4-current"
       },
       "dockerfile": "adapters/glm/tonyd2wild-glm53-tp4-current/Dockerfile",
       "network": {
-        "hosts": [
-          "docker.io",
-          "files.pythonhosted.org",
-          "flashinfer.ai",
-          "pypi.org"
-        ]
+        "hosts": []
       },
       "patches": []
     }
@@ -37,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint, built from tonyd2wild's current public 2ac4e8d v1-v8 SM121 and DFlash2 source stack on the digest-pinned vLLM CUDA 13 base. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary; the source profile is 1M context, 64 sequences, 16K batched tokens, 24 GiB FP8 E4M3 KV, Marlin, DFlash2 K7, and FULL_AND_PIECEWISE graphs. This is upstream's retained 1M-context fp8/marlin lane with the LibertAI Model; the upstream README's default is now a locally built nvidia-based 500K lane that needs local weight quantization and patched vLLM files, and is not packaged here.",
+    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint, running tonyd2wild's published image ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 (the v1-v9 SM121 patch stack and DFlash2 overlay of his 2ac4e8d kit on the vLLM CUDA 13 day-0 image), the tag the kit's own 1M-context launcher runs, pinned by digest and not rebuilt from the kit's sources; a thin layer adds the Controller's launcher, the kit's SM121 indexer patch (which its launcher bind-mounts at run time) and its multimodal chat template. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary; the source profile is 1M context, 64 sequences, 16K batched tokens, 24 GiB FP8 E4M3 KV, Marlin, DFlash2 K7, and FULL_AND_PIECEWISE graphs. This is upstream's retained 1M-context fp8/marlin lane with the LibertAI Model; the upstream README's default is now a locally built nvidia-based 500K lane that needs local weight quantization and patched vLLM files, and is not packaged here.",
     "tags": [
       "executable",
       "candidate",

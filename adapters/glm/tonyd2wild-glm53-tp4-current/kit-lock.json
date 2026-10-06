@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6",
+      "kind": "tag",
+      "ref": "sm121-v11-dflash2",
+      "repo": "ghcr.io/tonyd2wild/vllm-glm53-flash"
+    }
+  },
+  "kit": {
+    "commit": "2ac4e8dd661b12e6a1d7e69df711707abd6b9cd4",
+    "repo": "tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark"
+  }
+}

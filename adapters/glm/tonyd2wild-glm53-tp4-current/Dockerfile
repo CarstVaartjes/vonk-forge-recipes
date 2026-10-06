@@ -1,63 +1,24 @@
-FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
+# tonyd2wild's published image of his GLM-5.3-Flash NVFP4 4x DGX Spark kit (2ac4e8dd): vLLM glm53 day-0 image with the
+# kit's v1-v9 SM121 patch stack and the DFlash2 overlay, tag sm121-v11-dflash2. The kit's 1M-context fp8/marlin
+# launcher (launch-glm53-tp4-24g.sh) runs exactly this tag; this recipe runs that image, pinned by digest, and does not
+# rebuild it from the kit's sources. This layer adds what that launcher mounts at run time (the kit's SM121 indexer
+# patch, which the kit says the engine dies without past ~24K context, and its multimodal chat template), the
+# Controller placement wrapper at the platform's launcher path, and the non-root user. Base: the linux/arm64 image
+# ghcr.io/tonyd2wild/vllm-glm53-flash, by digest.
+FROM ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2@sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6
 
-LABEL ai.vonkforge.runtime-interface="v1"
+LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark" \
+      org.opencontainers.image.revision="2ac4e8dd661b12e6a1d7e69df711707abd6b9cd4" \
+      ai.vonkforge.runtime-interface="v1"
 
-# GLM-5.3-Flash (glm5_next, NoPE MLA: qk_rope_head_dim=0) on DGX Spark SM121.
-# The day-0 image's only capability-12 sparse-MLA backend is
-# FLASHINFER_MLA_SPARSE_SM120, whose packed fp8_ds_mla cache layout hard-requires
-# DeepSeek's pe_dim=64 and dies in warmup ("pe_dim must be 64 for fp8_ds_mla").
-# The SM90 NoPE backend (FlashInfer BatchMLAPagedAttentionWrapper, plain bf16
-# cache) supports kpe=0, and its FA2 path passed a direct probe on SM121 with
-# GLM's real shape (32 heads/rank, ckv 512, kpe 0, page_size 1). Extend it to
-# capability 12, select FA2 off-Hopper, and scope the FlashInfer>=0.6.18
-# feature gate to the fp8-cache path it actually protects.
-COPY patch_sm121_nope_mla.py /tmp/patch_sm121_nope_mla.py
-RUN python3 /tmp/patch_sm121_nope_mla.py && rm /tmp/patch_sm121_nope_mla.py
-
-# Exact upstream v3-v5 dependency corrections, kept in the source build rather
-# than relying on an intermediate radixark image: FlashInfer 0.6.18 nightly,
-# NCCL 2.30.7 for Spark RoCE, and Cutlass DSL 4.6.2.
-RUN pip install -q --pre \
-      flashinfer-python==0.6.18.dev20260819 \
-      flashinfer-cubin==0.6.18.dev20260819 \
-      --extra-index-url https://flashinfer.ai/whl/nightly/ \
-    && pip uninstall -q -y flashinfer-jit-cache \
-    && pip install -q nvidia-nccl-cu13==2.30.7 \
-    && pip install -q nvidia-cutlass-dsl==4.6.2 \
-    && pip show nvidia-nccl-cu13 | grep -q "Version: 2.30.7" \
-    && pip show nvidia-cutlass-dsl | grep -q "Version: 4.6.2"
-
-# Continue the public current v1 -> v8 source stack.  These are the exact
-# upstream v6/v7/v8 transformations, rebased onto the digest-pinned day-0
-# image above so the Controller owns the complete build closure.
-COPY patch_sm121_pdl.py /tmp/patch_sm121_pdl.py
-RUN python3 /tmp/patch_sm121_pdl.py && rm /tmp/patch_sm121_pdl.py
-
-COPY patch_v7.py /tmp/patch_v7.py
-RUN python3 /tmp/patch_v7.py && rm /tmp/patch_v7.py
-
-COPY patch_v8_fp8.py /tmp/patch_v8_fp8.py
-RUN python3 /tmp/patch_v8_fp8.py && rm /tmp/patch_v8_fp8.py
-
-# Apply the public current DFlash2 overlay after the v8 runtime fixes.
-ARG VLLM=/usr/local/lib/python3.12/dist-packages/vllm
-COPY overlay-dflash2/qwen3_dflash2.py ${VLLM}/model_executor/models/qwen3_dflash2.py
-COPY overlay-dflash2/dflash2/ ${VLLM}/v1/worker/gpu/spec_decode/dflash2/
-COPY overlay-dflash2/patch_registry_and_select.py /tmp/patch_registry_and_select.py
-COPY overlay-dflash2/patch_glm_aux_capture.py /tmp/patch_glm_aux_capture.py
-COPY overlay-dflash2/patch_kv_page_lcm2.py /tmp/patch_kv_page_lcm2.py
-COPY overlay-dflash2/patch_glm5_drafter_group.py /tmp/patch_glm5_drafter_group.py
-RUN python3 /tmp/patch_registry_and_select.py \
-    && python3 /tmp/patch_glm_aux_capture.py \
-    && python3 /tmp/patch_kv_page_lcm2.py \
-    && python3 /tmp/patch_glm5_drafter_group.py \
-    && python3 -c "from vllm.model_executor.models.registry import ModelRegistry; assert 'DFlash2DraftModel' in ModelRegistry.get_supported_archs()"
-
+# The kit bind-mounts this file over vLLM's kpool indexer (-v $HOME/patches/sparse_attn_indexer_kpool.py:...:ro).
+COPY sparse_attn_indexer_kpool_sm121.py /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
-COPY verify-runtime.py /opt/vonk/verify-runtime.py
 COPY chat_template_mm.jinja /opt/vonk/templates/glm53-chat-template-mm.jinja
 
-RUN python3 /opt/vonk/verify-runtime.py \
+RUN chmod 0644 /usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py \
+    && { test -x /opt/vllm/.venv/bin/vllm || test -x /usr/local/bin/vllm; } \
+    && python3 -c "import ast, pathlib; ast.parse(pathlib.Path('/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/sparse_attn_indexer_kpool.py').read_text())" \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache /outputs/cache/triton
