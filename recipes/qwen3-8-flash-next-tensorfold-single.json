@@ -2,18 +2,15 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
-        "repository": "nvcr.io/nvidia/pytorch"
+        "digest": "a503c88acdcfaab6231cf0089d747dac794cb5a7d1b121e566b180f35f8b02c6",
+        "repository": "ghcr.io/miaai-lab/qwen3.8-flash-next-single-dgx-spark-tensorfold"
       },
       "context": {
         "path": "adapters/qwen/flash-next-tensorfold-single"
       },
       "dockerfile": "adapters/qwen/flash-next-tensorfold-single/Dockerfile",
       "network": {
-        "hosts": [
-          "files.pythonhosted.org",
-          "pypi.org"
-        ]
+        "hosts": []
       },
       "patches": []
     }
@@ -35,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v0.6.1 (exactly verified speculative decoding, custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and native MTP head. Serves five concurrent 262,144-token streams with an int8 KV cache, SSD-resident n-gram tables, and optional image/video input. Follows MiaAI-Lab's kit (4c0dea8e): its TensorFold v0.6.1 base (17c73e18, the version the kit's scripts/config.sh declares) with the kit's patch that extends TensorFold's image input with video and many images per request (up to 50 images sharing 16,384 image tokens, and a 16,384-token video budget), prompt-piece rows of 2,048, prompt-lookup copy drafts and a 2 GiB startup memory reserve. Replies without max_tokens get up to 32,768 tokens. Chinese and Japanese draft vocabularies are opt-in and affect draft coverage only; exact verification preserves output semantics. Upstream performance claims have not been measured on this deployment. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default, Qwen thinking-mode sampling).",
+    "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v0.6.1 (exactly verified speculative decoding, custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and native MTP head. Serves five concurrent 262,144-token streams with an int8 KV cache, SSD-resident n-gram tables, and optional image/video input. Runs MiaAI-Lab's published image of her kit (4c0dea8e), v0.6.1-f8a0b4cb702b (sha256:a503c88acdcfaab6231cf0089d747dac794cb5a7d1b121e566b180f35f8b02c6; the kit's tag for her patches including the optional draft languages), as published and not rebuilt, with only a thin layer for the Controller's launcher. It is TensorFold v0.6.1 (17c73e18) with the kit's patch that extends TensorFold's image input with video and many images per request (up to 50 images sharing 16,384 image tokens, and a 16,384-token video budget), prompt-piece rows of 2,048, prompt-lookup copy drafts and a 2 GiB startup memory reserve. Replies without max_tokens get up to 32,768 tokens. Chinese and Japanese draft vocabularies are opt-in and affect draft coverage only; exact verification preserves output semantics. Upstream performance claims have not been measured on this deployment. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default, Qwen thinking-mode sampling).",
     "tags": [
       "engine",
       "image-input",

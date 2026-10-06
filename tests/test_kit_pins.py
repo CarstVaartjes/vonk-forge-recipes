@@ -1000,7 +1000,6 @@ class DeclaredRepositoryTests(unittest.TestCase):
 
 
 FOLLOWING_RECIPES = {
-    "qwen3-8-flash-next-tensorfold-single": ("tag", "v0.6.1"),
     "qwen3-8-27b-taussoe-tensorfold-single": ("branch", "glm-long-context"),
     "swift-1-5-flash-next-nvfp4-tournierjc-tensorfold-single": (
         "commit",
