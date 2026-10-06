@@ -7,6 +7,13 @@
       "repo": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DFlash",
       "revision": "7fc1f1ff4b82b917efbd0710df0872c2bb89caa5"
     },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:b868b726ce08fcb771501336f1c096a3820da575cfc04c8ee40cacf7adfabe61",
+      "kind": "tag",
+      "ref": "v0.1.0-sm121-dflash",
+      "repo": "ghcr.io/r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121"
+    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",

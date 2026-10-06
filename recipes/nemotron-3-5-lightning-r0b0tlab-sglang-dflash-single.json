@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "a04d9a1a7ffe371b05230aecab001d4ba2bfa0e5c137bc56409ecc4cbc3ac864",
-        "repository": "docker.io/lmsysorg/sglang"
+        "digest": "b868b726ce08fcb771501336f1c096a3820da575cfc04c8ee40cacf7adfabe61",
+        "repository": "ghcr.io/r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121"
       },
       "context": {
         "path": "adapters/nvidia/r0b0tlab-lightning-sglang-dflash-single"
@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SGLang SM121 profile for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 (e8f3c7c4; NVIDIA OpenMDW-1.1) with NVIDIA's official DFlash draft head (7fc1f1ff), from r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121 at 3baf136c (MIT). Runs the pinned day-0 lmsysorg/sglang Lightning image unchanged (arm64 image ID sha256:323c95b7, the one upstream's evidence used; upstream's own recorded arm64 manifest digest was an attestation manifest, so this recipe pins the multi-arch index that resolves to it) with Marlin W4A16_NVFP4 MoE, FP8 KV, FlashInfer attention and Mamba, float16 SSM state, DFlash block size 4, 50,016-token context (the evaluation window), 6 running requests and CUDA graphs to batch 8. The option lifts the SGLang context cap for upstream's 1,000,000-token capacity run, which upstream marks as a capacity row, not a quality window. Upstream claims (not measured here): 11-lane r0b0bench core-subset results in its results/evidence, and a 1M-token needle capacity pass. Physical Spark acceptance is pending.",
+    "description": "r0b0tlab's SGLang SM121 profile for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 (e8f3c7c4; NVIDIA OpenMDW-1.1) with NVIDIA's official DFlash draft head (7fc1f1ff), from r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121 at 3baf136c (MIT). Runs the kit's published image ghcr.io/r0b0tlab/nemotron-3.5-lightning-sglang-dflash-sm121:v0.1.0-sm121-dflash (sha256:b868b726..., pinned by digest, not rebuilt): the pinned day-0 lmsysorg/sglang Lightning image (arm64 image ID sha256:323c95b7, the one upstream's evidence used, whose 71 layers are the image's first 71) plus the kit's entrypoint and ready-gate scripts, which this recipe's launch arguments replace, and a thin Controller layer with Marlin W4A16_NVFP4 MoE, FP8 KV, FlashInfer attention and Mamba, float16 SSM state, DFlash block size 4, 50,016-token context (the evaluation window), 6 running requests and CUDA graphs to batch 8. The option lifts the SGLang context cap for upstream's 1,000,000-token capacity run, which upstream marks as a capacity row, not a quality window. Upstream claims (not measured here): 11-lane r0b0bench core-subset results in its results/evidence, and a 1M-token needle capacity pass. Physical Spark acceptance is pending.",
     "tags": [
       "candidate",
       "dflash",
