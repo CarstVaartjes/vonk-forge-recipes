@@ -135,7 +135,7 @@ def test_a_load_the_sweep_started_is_recognised_by_request_key_even_without_its_
         return (
             (0, json.dumps(answers), "")
             if number == "2"
-            else (2, json.dumps({"error_type": "x"}), "")
+            else (2, json.dumps({"code": "not_found", "detail": "no application"}), "")
         )
 
     guard = OwnerGuard(Vonkctl("vonkctl", runner=run), state, hold_seconds=1800)

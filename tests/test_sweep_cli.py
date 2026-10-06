@@ -124,7 +124,13 @@ def test_a_full_run_writes_state_results_status_and_report(
 ) -> None:
     recipes = [
         FakeRecipe("a", ("m1",)),
-        FakeRecipe("b", ("m2",), fail_load="driver mismatch", fail_phase="start"),
+        FakeRecipe(
+            "b",
+            ("m2",),
+            fail_load="container exited with code 1",
+            fail_phase="start",
+            fail_code="recipe.runtime_exit",
+        ),
     ]
     fleet = _fleet(recipes, [FakeModel("m1"), FakeModel("m2")], gateway.start())
     code = _run(
