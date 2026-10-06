@@ -637,6 +637,8 @@ class Sweep:
             self.state.data["owner"].pop("paused_at", None)
         self.advance_slots(now)
         self.heal_fleet_skips()
+        if not self.owner_status.paused:
+            self.enqueue_finished_cleanup()
         pending = self.pending()
         for (
             key,
@@ -646,17 +648,10 @@ class Sweep:
                 self._download_done(key)
         self.cached_models = self._cached_models()
         self.prefetcher.library_fresh_since = self.recipe_list.complete_started_at
-        self.last_prefetch = self.prefetcher.tick(
-            self.recipes,
-            self.models,
-            pending,
-            self.sizes,
-            self._present(),
-            self.boost,
-            self.cached_models,
-        )
+        present = self._present()
+        plans = self.prefetcher.plan_queue(pending, self.sizes, present, self.boost)
         self.queue = policy.order_queue(
-            self.prefetcher.last_plans,
+            plans,
             self.recipes,
             revalidate={
                 k for k, e in self.state.recipes.items() if e.get("revalidate")
@@ -665,9 +660,20 @@ class Sweep:
             variants_last=self.cfg.variants_last,
         )
         if not self.owner_status.paused:
+            self.schedule(self.clock.now())
             self.cleanup_finished()
-            self.schedule(now)
-        self.check_idle(now)
+        # Ready cached placements and their durable request receipts come first.
+        # Download observation, preparation and pin maintenance may wait on the API.
+        self.last_prefetch = self.prefetcher.tick(
+            self.recipes,
+            self.models,
+            self.pending(),
+            self.sizes,
+            present,
+            self.boost,
+            self.cached_models,
+        )
+        self.check_idle(self.clock.now())
         self.state.data["rate"] = {"ema": self.rate.rate, "samples": self.rate.samples}
         if now - self.status_at >= self.cfg.status_seconds:
             self.status_at = now
@@ -1988,16 +1994,26 @@ class Sweep:
 
     # ------------------------------------------------------------- scheduling
 
-    def cleanup_finished(self) -> None:
+    def enqueue_finished_cleanup(self) -> None:
+        """Durably release finished lane occupancy without waiting on cleanup I/O."""
         pending = self.state.data.setdefault("cleanup", {})
+        changed = False
         for key, slot in list(self.state.slots.items()):
             if slot["phase"] != "finished":
                 continue
             pending.setdefault(slot["alias"], {"attempts": 0, "next_check": 0.0})
             self.futures.pop(key, None)
             del self.state.slots[key]
+            changed = True
+        if changed:
+            self.state.save()
+
+    def cleanup_finished(self) -> None:
+        self.enqueue_finished_cleanup()
+        pending = self.state.data.setdefault("cleanup", {})
+        live_aliases = {slot["alias"] for slot in self.state.slots.values()}
         for alias, record in list(pending.items()):
-            if self.clock.now() < record["next_check"]:
+            if alias in live_aliases or self.clock.now() < record["next_check"]:
                 continue
             reply = self.vk.run(
                 "profile", "remove", alias, "--yes", profile=self.cfg.sweep_profile
@@ -2470,6 +2486,7 @@ class Sweep:
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
         self.state.data["dirty"] = True
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
+        self.state.save()
 
     def _adopted_requests(self, review: Mapping[str, Any]) -> list[str] | None:
         """Require bound whole-assignment adoption before overlapping accepted snapshots."""
