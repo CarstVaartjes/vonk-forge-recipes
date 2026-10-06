@@ -56,6 +56,8 @@ STARTUP_WAIT_SECONDS = (
 )
 TICK_WATCHDOG_SECONDS = 1800.0  # a pass that has not finished in this long is abandoned
 MAX_REVIEW_DEFERS = 3
+# Clearing the fleet and reviewing again, for a capacity refusal, before it counts against the recipe.
+MAX_REVIEW_FREEING = 2
 SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
@@ -809,6 +811,23 @@ class Sweep:
             ):
                 self._requeue_failed(key, "load-superseded: not a recipe failure")
 
+    def requeue_unfreed_capacity_failures(self) -> None:
+        """A capacity refusal recorded before the fleet was cleared and reviewed again is tried again."""
+        for key, entry in self.state.recipes.items():
+            evidence = entry.get("evidence")
+            if (
+                entry.get("status") == "failed"
+                and entry.get("phase") == "review"
+                and entry.get("failure_class") == "capacity"
+                and not (
+                    isinstance(evidence, Mapping) and evidence.get("freeing_attempts")
+                )
+                and self._selected_key(key)
+            ):
+                self._requeue_failed(
+                    key, "review capacity refusal: the fleet was not cleared first"
+                )
+
     def requeue_failed(self) -> int:
         """``--retry-failed``: every failed recipe (within ``--only``), whatever the cause."""
         keys = [
@@ -860,6 +879,7 @@ class Sweep:
             "inherited_from",
             "not_before",
             "defer_until",
+            "review_freeing",
             "release",
             "quality",
         ):
@@ -891,6 +911,7 @@ class Sweep:
             self.check_client()
             self.requeue_for_rules()
             self.requeue_superseded_failures()
+            self.requeue_unfreed_capacity_failures()
             if self.cfg.retry_failed:
                 self.requeue_failed()
             self._startup(self.preflight)
@@ -1196,6 +1217,19 @@ class Sweep:
             load["state"] = "queued"
             load["copying"] = False
             return True
+        if status == "failed" and replaced is None:
+            retry = self._retry_successor(document)
+            if retry is not None:
+                # The Controller is still retrying this load by itself: a newer retry
+                # application continues it, and only its ending is the recipe's.
+                self.state.event(
+                    f"application {document['id']} failed but the Controller retries it: "
+                    f"following {retry}"
+                )
+                load["app_id"] = retry
+                load["state"] = "queued"
+                load["copying"] = False
+                return True
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
@@ -1215,6 +1249,26 @@ class Sweep:
             }
             self.state.data["load"] = None
         return True
+
+    def _retry_successor(self, document: Mapping[str, Any]) -> str | None:
+        """The application that continues a failed one the Controller is still retrying, if any.
+
+        A failed application ends for good with the Controller's typed ``profile.failure_repeated``
+        blocker or a terminal assignment failure; otherwise a later application of the profile
+        that names this one as the application it retries is its continuation.
+        """
+        if policy.retry_ended(document):
+            return None
+        reply = self.vk.run("profile", "progress", profile=self.cfg.sweep_profile)
+        latest = reply.document if reply.ok else None
+        if (
+            isinstance(latest, dict)
+            and isinstance(latest.get("id"), str)
+            and latest["id"] != document.get("id")
+            and latest.get("retry_of_application_id") == document.get("id")
+        ):
+            return latest["id"]
+        return None
 
     def _blind(self, message: str, reply: Any = None) -> None:
         """The sweep cannot observe the Controller (outage, 502/503, protocol or version skew)."""
@@ -2017,7 +2071,27 @@ class Sweep:
             elif busy:
                 entry["defer_until"] = now + self.cfg.defer_delay
             else:
-                self._record_failure(key, policy.classify("review", code, detail), None)
+                failure = policy.classify("review", code, detail)
+                freeing = int(entry.get("review_freeing", 0))
+                if policy.freeable_refusal(failure) and freeing < MAX_REVIEW_FREEING:
+                    # Not a terminal verdict yet: stop what holds the room, evict, and
+                    # review again. Bounded, so a recipe that really does not fit is
+                    # still recorded (with the attempts in its evidence).
+                    entry["review_freeing"] = freeing + 1
+                    entry["defer_until"] = now + self.cfg.defer_delay
+                    self.state.data["took_over"] = False
+                    self.backoff_until = now
+                    self.state.event(
+                        f"review refused {key} ({code}): clearing the fleet and trying "
+                        f"again ({freeing + 1}/{MAX_REVIEW_FREEING})"
+                    )
+                    continue
+                if freeing:
+                    failure = replace(
+                        failure,
+                        evidence={**failure.evidence, "freeing_attempts": freeing},
+                    )
+                self._record_failure(key, failure, None)
 
     def note_infra(self, source: str, message: str) -> None:
         """A client, protocol or transport problem: pause that kind of work, back off, show it."""
