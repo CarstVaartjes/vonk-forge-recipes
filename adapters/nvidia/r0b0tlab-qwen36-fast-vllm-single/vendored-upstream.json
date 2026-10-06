@@ -1,12 +1,23 @@
 {
-  "source": {
-    "repo": "r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm",
-    "commit": "b5c2dd2ff156040d696b93d7b0f6ed9eeefe7496"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "README.md",
+        "pattern": "^\\s*docker\\ pull\\ ghcr\\.io/r0b0tlab/qwen36\\-35b\\-a3b\\-nvfp4\\-fast\\-sm121\\-vllm@(?P<version>sha256:[0-9a-f]{64})\\s*$",
+        "repo": "ghcr.io/r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-api"
   ],
   "renamed": {
     "LICENSE.upstream": "LICENSE"
+  },
+  "source": {
+    "commit": "b5c2dd2ff156040d696b93d7b0f6ed9eeefe7496",
+    "repo": "r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm"
   }
 }

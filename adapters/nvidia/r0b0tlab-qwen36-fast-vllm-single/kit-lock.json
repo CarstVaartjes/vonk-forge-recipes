@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:3361f68b966ae84940c068aa7fd522078fd7f3cb087c506edee93041ce031892",
+      "kind": "digest",
+      "ref": "sha256:3361f68b966ae84940c068aa7fd522078fd7f3cb087c506edee93041ce031892",
+      "repo": "ghcr.io/r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm"
+    }
+  },
+  "kit": {
+    "commit": "b5c2dd2ff156040d696b93d7b0f6ed9eeefe7496",
+    "repo": "r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm"
+  }
+}

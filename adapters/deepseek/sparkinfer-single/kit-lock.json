@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4",
+      "kind": "digest",
+      "ref": "sha256:2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4",
+      "repo": "ghcr.io/0xsero/deepseek-v4-flash-0731-spark-sparkinfer"
+    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",

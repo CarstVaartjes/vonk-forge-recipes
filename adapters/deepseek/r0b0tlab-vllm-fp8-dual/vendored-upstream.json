@@ -1,9 +1,20 @@
 {
-  "source": {
-    "repo": "r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark",
-    "commit": "cd0b670fc84be39c76065d72ac1f58244e702f32"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/run-dsv4-gb10.sh",
+        "pattern": "^\\s*IMAGE=\"ghcr\\.io/r0b0tlab/vllm\\-dsv4\\-flash\\-gb10:(?P<version>[A-Za-z0-9_][\\w.-]*)\"\\s*$",
+        "repo": "ghcr.io/r0b0tlab/vllm-dsv4-flash-gb10"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
-  ]
+  ],
+  "source": {
+    "commit": "cd0b670fc84be39c76065d72ac1f58244e702f32",
+    "repo": "r0b0tlab/deepseek-v4-flash-nvfp4-gb10-benchmark"
+  }
 }

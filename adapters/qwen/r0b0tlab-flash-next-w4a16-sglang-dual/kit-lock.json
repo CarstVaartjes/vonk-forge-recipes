@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:9d7406a4f2b5d829c2646e8408ce0d02ccd20d7b98f5d7a3198af3c6a81854e0",
+      "kind": "digest",
+      "ref": "sha256:9d7406a4f2b5d829c2646e8408ce0d02ccd20d7b98f5d7a3198af3c6a81854e0",
+      "repo": "ghcr.io/r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang"
+    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",

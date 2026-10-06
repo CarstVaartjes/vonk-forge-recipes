@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:6e2dfa4c48ac73965890a864dc1510017f42981e743b3f2834b4b189ad7712a8",
+      "kind": "tag",
+      "ref": "latest",
+      "repo": "ghcr.io/r0b0tlab/vllm-laguna-m1-nvfp4-sm121"
+    }
+  },
+  "kit": {
+    "commit": "fda20c0526e387da1446c8880a69cbda227fc851",
+    "repo": "r0b0tlab/agents-a1-nvfp4-sm121-vllm"
+  }
+}

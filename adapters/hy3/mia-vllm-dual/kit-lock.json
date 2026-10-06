@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:9017669d03d30831973a44dd4ae330a5ddb710397b08eee3177fd077e1b5598f",
+      "kind": "tag",
+      "ref": "vllm-probe-modded",
+      "repo": "ghcr.io/miaai-lab/hy3-dual-dgx-spark"
+    }
+  },
+  "kit": {
+    "commit": "d7510b52b234569b66e6263c5ead982a4eb62756",
+    "repo": "MiaAI-Lab/Hy3-Dual-DGX-Spark"
+  }
+}

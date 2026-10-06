@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "start.sh",
+        "pattern": "^\\s*IMAGE=\"\\$\\{IMAGE:\\-ghcr\\.io/miaai\\-lab/hy3\\-dual\\-dgx\\-spark:(?P<version>[A-Za-z0-9_][\\w.-]*)\\}\"\\s*$",
+        "repo": "ghcr.io/miaai-lab/hy3-dual-dgx-spark"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "NOTICE",
     "patch-opensource-tokens.sh",

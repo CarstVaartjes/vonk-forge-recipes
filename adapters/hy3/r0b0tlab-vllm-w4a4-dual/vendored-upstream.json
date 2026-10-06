@@ -1,9 +1,20 @@
 {
-  "source": {
-    "repo": "r0b0tlab/hy3-295b-nvfp4-gb10-benchmark",
-    "commit": "c134975aa465140064fee138e56d7dd221b28c2c"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/launch_v025_profile.sh",
+        "pattern": "^\\s*IMAGE='ghcr\\.io/r0b0tlab/vllm\\-v0250\\-cu130\\-sm121:(?P<version>[A-Za-z0-9_][\\w.-]*)'\\s*$",
+        "repo": "ghcr.io/r0b0tlab/vllm-v0250-cu130-sm121"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
-  ]
+  ],
+  "source": {
+    "commit": "c134975aa465140064fee138e56d7dd221b28c2c",
+    "repo": "r0b0tlab/hy3-295b-nvfp4-gb10-benchmark"
+  }
 }

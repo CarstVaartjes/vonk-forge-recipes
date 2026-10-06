@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "recipe/Dockerfile.dspark-runtime-overlay",
+        "pattern": "^\\s*FROM\\ ghcr\\.io/bjk110/vllm\\-spark:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/bjk110/vllm-spark"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "NOTICE.upstream",
     "verify-runtime.py",
@@ -8,7 +19,7 @@
     "LICENSE.upstream": "LICENSE"
   },
   "source": {
-    "repo": "tonyd2wild/DeepSeek-v4-Flash-Vision-Exp-DSpark-1M-NVFP4-KV-2x-DGX-Spark",
-    "commit": "43201d1c2f281d238b8fd65f0f7168118f83169c"
+    "commit": "43201d1c2f281d238b8fd65f0f7168118f83169c",
+    "repo": "tonyd2wild/DeepSeek-v4-Flash-Vision-Exp-DSpark-1M-NVFP4-KV-2x-DGX-Spark"
   }
 }

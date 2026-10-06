@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:84857252a1a9b4196702154ae38eb3cfafdf4cd832795eba18ac2772f8a83f1e",
+      "kind": "tag",
+      "ref": "20260922-582389ce-mtp-mm",
+      "repo": "ghcr.io/r0b0tlab/sglang-mimo26-env"
+    }
+  },
+  "kit": {
+    "commit": "2852795bf05a2e6f7c4a830ac26e551cdf94d745",
+    "repo": "r0b0tlab/mimo26-nvfp4-sm121"
+  }
+}

@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "README.md",
+        "pattern": "^\\s*docker\\ pull\\ ghcr\\.io/drowzeys/inkling\\-sglang\\-gb10:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/drowzeys/inkling-sglang-gb10"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "sglang-serve"
   ],

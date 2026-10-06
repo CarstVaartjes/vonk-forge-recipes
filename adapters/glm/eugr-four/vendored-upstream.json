@@ -1,0 +1,13 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "recipe/cluster.env.example",
+        "pattern": "^\\s*GHCR_IMAGE=ghcr\\.io/drowzeys/vllm\\-node\\-tf5\\-glm52\\-b12x:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/drowzeys/vllm-node-tf5-glm52-b12x"
+      }
+    },
+    "whole": false
+  }
+}

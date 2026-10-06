@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:5bd3f329c531da4cd5f41f2c32d4ed9527b2131b88032b737364fb582e6b775f",
+      "kind": "tag",
+      "ref": "v0.27.2rc0-sm121",
+      "repo": "ghcr.io/r0b0tlab/qwen38-27b-nvfp4-sm121"
+    }
+  },
+  "kit": {
+    "commit": "a96186f8973023365bddb34b6b34fa889d4c40ae",
+    "repo": "r0b0tlab/qwen38-27b-nvfp4-sm121-vllm"
+  }
+}

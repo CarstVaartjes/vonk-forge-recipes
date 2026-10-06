@@ -1,7 +1,14 @@
 {
-  "source": {
-    "repo": "r0b0tlab/qwen38-27b-nvfp4-sm121-vllm",
-    "commit": "a96186f8973023365bddb34b6b34fa889d4c40ae"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker/Dockerfile.dflash2",
+        "pattern": "^\\s*FROM\\ ghcr\\.io/r0b0tlab/qwen38\\-27b\\-nvfp4\\-sm121:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/r0b0tlab/qwen38-27b-nvfp4-sm121"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "vllm-wrapper.py"
@@ -11,5 +18,9 @@
   },
   "renamed_dirs": {
     "overlay/": "docker/overlay/"
+  },
+  "source": {
+    "commit": "a96186f8973023365bddb34b6b34fa889d4c40ae",
+    "repo": "r0b0tlab/qwen38-27b-nvfp4-sm121-vllm"
   }
 }

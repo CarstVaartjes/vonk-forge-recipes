@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:d9010635c22a34694000447f96bf12622210494578be670b2a9e953ca04b29af",
+      "kind": "tag",
+      "ref": "a4q2",
+      "repo": "ghcr.io/drowzeys/eugr-gb10-nvfp4kv"
+    }
+  },
+  "kit": {
+    "commit": "31f6197a4c59049431feda7b291ada63d92c22a5",
+    "repo": "drowzeys/keys-vLLm.0.27-Qwen3.8-27B-ADay777Ablit-NVFP4-A4Q-NVFP4-KV-4M-KV-token-pool-MTP3-Single-DGX-Spark"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:e006935eb4f8266705f213c369de1eac8de7d20417254c5f234601a2fd56d481",
+      "kind": "tag",
+      "ref": "speed1-c1-30-128k",
+      "repo": "ghcr.io/drowzeys/vllm-node-tf5-glm52-b12x"
+    }
+  },
+  "kit": {
+    "commit": "296699b44e024de938cb8b3251d49d4b1306a507",
+    "repo": "drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks"
+  }
+}

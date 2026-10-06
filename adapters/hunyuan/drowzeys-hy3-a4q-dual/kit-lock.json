@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:a859a90363d1fee9a4ea37ce507b082fa353e6ac0fb2ddab2fc3295dbd37fe8d",
+      "kind": "tag",
+      "ref": "fi614",
+      "repo": "ghcr.io/drowzeys/vllm-024-puzzle-a4q"
+    }
+  },
+  "kit": {
+    "commit": "7f9e9d82365bbb8b3dc5ec151c3689755153edb2",
+    "repo": "drowzeys/vLLm-0.24-optimized-Tencent-Hy3-295B-A21B-NVFP4-A4Q-MTP2-4bit-KV-256K-ctx-2x-DGX-Spark"
+  }
+}

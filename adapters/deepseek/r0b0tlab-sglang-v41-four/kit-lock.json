@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:537a7bc04a1de6cdaf2086556984a9ee26d15f479dbb2e7799f88bd52a321740",
+      "kind": "digest",
+      "ref": "sha256:537a7bc04a1de6cdaf2086556984a9ee26d15f479dbb2e7799f88bd52a321740",
+      "repo": "ghcr.io/r0b0tlab/dsv41-flash-tp4-sglang-sm121"
+    }
+  },
+  "kit": {
+    "commit": "430c812cf5e69b69e740756ea72fecdc1944db29",
+    "repo": "r0b0tlab/dsv41-flash-tp4-sglang-sm121"
+  }
+}

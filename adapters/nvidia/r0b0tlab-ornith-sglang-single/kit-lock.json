@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:3da6bf4220b511b309818d3af1560e8eabc4e91e008cef4347b4dfdff76ccbd3",
+      "kind": "tag",
+      "ref": "latest",
+      "repo": "ghcr.io/r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang"
+    }
+  },
+  "kit": {
+    "commit": "6d0a25d9cc8b8963161cde085a83768b6bc545e0",
+    "repo": "r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang"
+  }
+}

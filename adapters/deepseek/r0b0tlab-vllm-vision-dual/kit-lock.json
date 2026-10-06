@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:78eb0a105a3b4cfc9e28da477d1c5285ffc76e3fb1e621d26799906976c8fbcc",
+      "kind": "tag",
+      "ref": "vision-54631-fi512b-k5adapt",
+      "repo": "ghcr.io/r0b0tlab/dsv4-flash-vision-exp-vllm-sm121"
+    }
+  },
+  "kit": {
+    "commit": "d956795219d7eac63b3c3f2e30b7c36c9ed0b685",
+    "repo": "r0b0tlab/dsv4-flash-vision-exp-vllm-sm121"
+  }
+}

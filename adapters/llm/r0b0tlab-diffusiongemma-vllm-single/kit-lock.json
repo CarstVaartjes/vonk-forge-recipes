@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:2b79eabe322cef7c80c61910f2c9a349f99050a58b9ca8459eb63a66e7557fb7",
+      "kind": "tag",
+      "ref": "spark-dgemma-patched",
+      "repo": "ghcr.io/r0b0tlab/vllm-diffusiongemma-26b-nvfp4-sm121"
+    }
+  },
+  "kit": {
+    "commit": "c255963962e71c0cb9d7a4baed4ab5c410459988",
+    "repo": "r0b0tlab/diffusiongemma-26b-nvfp4-sm121-vllm"
+  }
+}

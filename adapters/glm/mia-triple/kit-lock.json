@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:f8f350d46b33858eda4f0c0a5c39a7f0b27005111d393098baaaacae18c10fdb",
+      "kind": "tag",
+      "ref": "k12l1-vision",
+      "repo": "ghcr.io/miaai-lab/glm-5.2-nvfp4-triple-dgx-sparks"
+    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",

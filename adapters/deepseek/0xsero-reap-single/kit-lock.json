@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:e4462a915ba56026f9c7b5ed195180e07986983ac1aa26a8bb0160d7a031f396",
+      "kind": "tag",
+      "ref": "cutlass451-g27",
+      "repo": "ghcr.io/0xsero/deepseek-v4-flash-spark-vllm"
+    }
+  },
+  "kit": {
+    "commit": "97fd6f02e26870416d3c6b450d4fa3217d9db124",
+    "repo": "0xSero/deepseek-spark"
+  }
+}

@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:2d144fafe3f330fa17fa1facf4f589eee49b75bdf539ac69d1fe002b5b5bb0a5",
+      "kind": "digest",
+      "ref": "sha256:2d144fafe3f330fa17fa1facf4f589eee49b75bdf539ac69d1fe002b5b5bb0a5",
+      "repo": "ghcr.io/r0b0tlab/vllm-v0250-cu130-sm121"
+    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",

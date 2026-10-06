@@ -1,6 +1,12 @@
 {
   "kit": {
     "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "docker/Dockerfile.b12x-vision",
+        "pattern": "^\\s*FROM\\ eugr/spark\\-vllm\\-b12x:latest@(?P<version>sha256:[0-9a-f]{64})\\s*$",
+        "repo": "docker.io/eugr/spark-vllm-b12x"
+      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",

@@ -1,6 +1,12 @@
 {
   "kit": {
     "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": ".env.example",
+        "pattern": "^\\s*IMAGE=ghcr\\.io/miaai\\-lab/glm\\-5\\.2\\-nvfp4\\-triple\\-dgx\\-sparks:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/miaai-lab/glm-5.2-nvfp4-triple-dgx-sparks"
+      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",

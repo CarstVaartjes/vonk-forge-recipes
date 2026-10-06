@@ -1,9 +1,20 @@
 {
-  "source": {
-    "repo": "r0b0tlab/mimo26-nvfp4-sm121",
-    "commit": "2852795bf05a2e6f7c4a830ac26e551cdf94d745"
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "profiles/MTP-500k-mm.env",
+        "pattern": "^\\s*IMG=ghcr\\.io/r0b0tlab/sglang\\-mimo26\\-env:(?P<version>[A-Za-z0-9_][\\w.-]*)\\s*$",
+        "repo": "ghcr.io/r0b0tlab/sglang-mimo26-env"
+      }
+    },
+    "whole": false
   },
   "ours": [
     "sglang-serve"
-  ]
+  ],
+  "source": {
+    "commit": "2852795bf05a2e6f7c4a830ac26e551cdf94d745",
+    "repo": "r0b0tlab/mimo26-nvfp4-sm121"
+  }
 }

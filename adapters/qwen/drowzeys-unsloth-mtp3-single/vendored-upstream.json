@@ -1,4 +1,15 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "oneshot.sh",
+        "pattern": "^\\s*IMAGE=\"ghcr\\.io/drowzeys/keys\\-vllm\\-027\\-gb10\\-qwen38:(?P<version>[A-Za-z0-9_][\\w.-]*)\"\\ \\ \\ \\#\\ mirror\\ of\\ eugr's\\ GB10\\ nightly\\ \\(credit\\ @eugr\\)\\s*$",
+        "repo": "ghcr.io/drowzeys/keys-vllm-027-gb10-qwen38"
+      }
+    },
+    "whole": false
+  },
   "ours": [],
   "source": {
     "commit": "047aa237efa334fde70427629e59b6f9606ec21d",

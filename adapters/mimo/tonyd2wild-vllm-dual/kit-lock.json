@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:4def0ef644cb2e9814136dcffd5e385e21bc594f48f3b292234051904abe85a6",
+      "kind": "tag",
+      "ref": "sm121-v11-dflash2",
+      "repo": "ghcr.io/tonyd2wild/vllm-glm53-flash"
+    }
+  },
+  "kit": {
+    "commit": "9c699a2d027c2bf072d130f935acdbeacb06f208",
+    "repo": "tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe"
+  }
+}

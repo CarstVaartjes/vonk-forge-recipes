@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:19627342e1da2607f4db50745dca30e57d7dd0ebff06062f03fd69b43a252931",
+      "kind": "tag",
+      "ref": "latest",
+      "repo": "ghcr.io/miaai-lab/mia-vllm-gb10-linear-b12x"
+    }
+  },
+  "kit": {
+    "commit": "79c9e6f359f6101cdacd0dfd6fe9861ae2493a4d",
+    "repo": "MiaAI-Lab/Unsloth-Qwen3.6-35b-NVFP4-DGX-Spark"
+  }
+}
