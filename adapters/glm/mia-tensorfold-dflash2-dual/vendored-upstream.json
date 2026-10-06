@@ -1,17 +1,17 @@
 {
   "kit": {
     "dependencies": {
-      "base": {
-        "datasource": "git-ref",
-        "file": "scripts/config.sh",
-        "pattern": "^TF_VERSION=\"\\$\\{TF_VERSION:-(?P<version>[^}\"]+)\\}\"",
-        "repo": "ashhart/TensorFold"
-      },
       "drafter": {
         "binds": "drafter",
         "datasource": "hf-revision",
         "file": "scripts/config.sh",
-        "pattern": "^_rev=\"\"; \\[\\[ \"\\$DFLASH2_ID\" == (?P<repo>[\\w.-]+/[\\w.-]+) \\]\\] && _rev=(?P<version>[0-9a-f]{40})$"
+        "pattern": "^_rev=\\\"\\\"; \\[\\[ \\\"\\$DFLASH2_ID\\\" == (?P<repo>[\\w.-]+/[\\w.-]+) \\]\\] && _rev=(?P<version>[0-9a-f]{40})$"
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/config.sh",
+        "pattern": "^IMAGE_DIGEST=\\\"\\$\\{IMAGE_DIGEST:-(?P<version>sha256:[0-9a-f]{64})\\}\\\"$",
+        "repo_pattern": "^GHCR_IMAGE=\\\"\\$\\{GHCR_IMAGE:-(?P<repo>[^}\\\"\\s]+)\\}\\\"$"
       },
       "model": {
         "binds": "primary",
@@ -23,9 +23,10 @@
   },
   "ours": [
     "licenses/",
-    "patches/",
-    "requirements.lock",
-    "tensorfold-serve",
-    "vendor/"
-  ]
+    "tensorfold-serve"
+  ],
+  "source": {
+    "commit": "68ebd67b5326974b8004009e202268b1fa7c551d",
+    "repo": "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold"
+  }
 }
