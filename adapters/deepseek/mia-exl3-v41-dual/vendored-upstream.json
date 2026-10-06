@@ -1,11 +1,24 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "start.sh",
+        "pattern": "^IMAGE=\"\\$\\{IMAGE:-[^:}\"\\s]+:(?P<version>[^}\"\\s]+)\\}\"$",
+        "repo_pattern": "^IMAGE=\"\\$\\{IMAGE:-(?P<repo>[^:}\"\\s]+):[^}\"\\s]+\\}\"$"
+      }
+    },
+    "whole": false
+  },
   "ours": [
-    "overlay/install_exl3_overlay.py",
-    "overlay/register_exl3_quantization.py",
     "verify-runtime.py",
     "vllm-wrapper.py"
   ],
   "renamed": {
     "upstream-LICENSE-MIT": "LICENSE.MIT"
+  },
+  "source": {
+    "commit": "6f7d1590ad49a2b8995188e45d7b9db31e677452",
+    "repo": "MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks"
   }
 }

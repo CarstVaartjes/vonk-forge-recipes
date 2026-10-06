@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:2f0cf3adc0f989c1d446be274df864eb799630175f604c3b22b71b7205971dce",
+      "kind": "tag",
+      "ref": "2.9bpw",
+      "repo": "ghcr.io/miaai-lab/deepseek-v4.1-flash-exl3-2x-dgx-sparks"
+    }
+  },
+  "kit": {
+    "commit": "6f7d1590ad49a2b8995188e45d7b9db31e677452",
+    "repo": "MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks"
+  }
+}
