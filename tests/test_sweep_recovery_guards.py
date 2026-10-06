@@ -370,3 +370,65 @@ def test_unreadable_state_is_preserved_and_fresh_request_can_be_recorded(
     state.data["loads"]["fresh"] = {"request_key": "fresh", "state": "queued"}
     state.save()
     assert State.load(path).data["loads"]["fresh"]["state"] == "queued"
+
+
+def test_unknown_platform_failure_ends_without_recipe_blame_and_releases_lane(
+    tmp_path: Path,
+) -> None:
+    from spark_sweep import policy
+
+    sweep, _, clock = _loading(tmp_path)
+    key = next(iter(sweep.state.slots))
+    sweep._record_failure(
+        key,
+        policy.classify("start", "application.failed", "network timeout out of memory"),
+        None,
+    )
+    assert sweep.state.status(key) == "deferred"
+    assert sweep.state.entry(key)["failure_class"] == "start"
+    sweep.cleanup_finished()
+    sweep.release_orphan_load()
+    assert not sweep.state.slots and not sweep.state.data["loads"]
+    sweep._requeue_failed(key, "fresh-request")
+    sweep.backoff_until = 0
+    sweep.schedule(clock.now())
+    assert sweep.state.data["loads"]
+
+
+def test_watch_retests_deferred_outcome_with_a_fresh_request(tmp_path: Path) -> None:
+    from spark_sweep import policy
+    from spark_sweep.run import RETEST_SECONDS
+
+    sweep, _, clock = _loading(tmp_path)
+    key = next(iter(sweep.state.slots))
+    original = sweep.state.slots[key]["request_key"]
+    sweep._record_failure(
+        key, policy.classify("start", "application.failed", "unknown"), None
+    )
+    sweep.cleanup_finished()
+    sweep.release_orphan_load()
+    sweep.cfg.watch_seconds = 60
+    clock.t += RETEST_SECONDS
+    sweep.tick()
+    assert sweep.state.status(key) == "pending"
+    assert next(iter(sweep.state.data["loads"])) != original
+
+
+def test_unreadable_owner_never_looks_like_absent_owner(tmp_path: Path) -> None:
+    sweep, fleet, clock = _loading(tmp_path)
+    fleet.observations.append((("profile", "progress"), 2, {"code": "http.503"}))
+    status = sweep.guard.check(clock.now())
+    assert status.paused and "unreadable" in status.reason
+
+
+def test_stuck_owner_ends_with_owned_holds_released(tmp_path: Path) -> None:
+    from spark_sweep.owner import OwnerStatus
+    from spark_sweep.run import OWNER_WAIT_SECONDS
+
+    sweep, _, clock = _loading(tmp_path)
+    sweep.owner_status = OwnerStatus(True, "owner intent is running")
+    sweep.guard.check = lambda now: sweep.owner_status
+    sweep.state.data["owner"]["paused_at"] = clock.now() - OWNER_WAIT_SECONDS
+    assert sweep.run() == 0
+    assert sweep.state.data["end"]["code"] == "sweep.owner_intent_superseded"
+    assert not sweep.state.slots and not sweep.state.data["loads"]
