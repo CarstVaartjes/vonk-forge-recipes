@@ -1297,8 +1297,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/Hy3-Dual-DGX-Spark/tree/d7510b52b234569b66e6263c5ead982a4eb62756"
   },
   "release": {
-    "released_at": "2026-07-07",
-    "version": "1.0.0"
+    "released_at": "2026-10-06",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -1450,7 +1450,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 127300000000,
             "reserve_bytes": 8000000000
           }
         }
@@ -1467,7 +1467,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 127300000000,
             "reserve_bytes": 8000000000
           }
         }

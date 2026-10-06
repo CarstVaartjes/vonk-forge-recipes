@@ -1,1 +1,3 @@
-{}
+{
+  "hy3-295b-nvfp4-vllm-mia-dual": "The Mia kit (Hy3-Dual-DGX-Spark d7510b52) runs gpu-memory-utilization 0.90, a 117.6 GB budget; with about 9 GiB of initialization outside it the peak is 127.3 GB, above the 124 GB an idle Spark can admit. It runs only if the owner accepts a lower utilization than the kit's."
+}
