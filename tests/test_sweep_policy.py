@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 from spark_sweep import policy
 from spark_sweep.catalog import Recipe
 
@@ -309,49 +312,57 @@ def test_learning_keeps_only_recent_samples() -> None:
 @pytest.mark.parametrize(
     ("phase", "code", "detail", "klass"),
     [
-        ("start", "", "CUDA error: out of memory", "oom"),
-        ("start", "", "container exited with code 137", "oom"),
-        (
-            "download",
-            "controller.unavailable",
-            "dockerfile.heredoc_forbidden: Dockerfile heredocs are not accepted",
-            "build-policy",
-        ),
+        ("start", "recipe.runtime_oom", "runtime failed", "oom"),
+        ("start", "recipe.runtime_exit", "runtime failed", "start"),
+        ("download", "dockerfile.heredoc_forbidden", "invalid syntax", "build-policy"),
         (
             "review",
             "run-switch.resource.insufficient_capacity",
-            "needs more memory",
+            "needs memory",
             "capacity",
         ),
-        ("download", "", "no space left on device", "capacity"),
-        (
-            "download",
-            "",
-            "sha256 mismatch for model-00001.safetensors",
-            "model-integrity",
-        ),
-        ("download", "", "connection reset by peer", "network"),
-        ("smoke", "case.M0", "HTTP 503", "smoke-timeout"),
+        ("download", "storage.insufficient_capacity", "disk full", "capacity"),
+        ("download", "model.digest_mismatch", "invalid bytes", "model-integrity"),
+        ("download", "controller.transport_timeout", "transport lost", "network"),
+        ("smoke", "controller.transport_timeout", "HTTP 503", "smoke-timeout"),
         ("install", "", "something unexpected", "install"),
         ("timeout", "load.timeout", "not serving after 3600s", "timeout"),
         ("readiness", "run.not_published", "timed out waiting", "readiness"),
     ],
 )
-def test_failures_are_classified_by_phase_and_cause(
+def test_failures_are_classified_by_typed_cause(
     phase: str, code: str, detail: str, klass: str
 ) -> None:
     assert policy.classify(phase, code, detail).klass == klass
 
 
-def test_only_network_like_failures_are_retried_and_only_integrity_failures_are_model_level() -> (
+@pytest.mark.parametrize(
+    "detail",
+    [
+        "CUDA error: out of memory",
+        "container exited with code 137",
+        "sha256 mismatch for model-00001.safetensors",
+        "dockerfile.heredoc_forbidden: Dockerfile heredocs are not accepted",
+        "connection reset by peer",
+    ],
+)
+def test_platform_details_do_not_override_typed_attribution(detail: str) -> None:
+    failure = policy.classify("download", "controller.unavailable", detail)
+    assert failure.klass == "download"
+    assert not failure.model_level
+    assert not failure.transient
+    assert detail in failure.describe()
+
+
+def test_only_typed_transient_and_model_integrity_failures_receive_special_handling() -> (
     None
 ):
-    assert policy.classify("download", "", "connection reset by peer").transient
-    assert policy.classify("smoke", "case.x", "HTTP 503", "smoke-timeout").transient
+    assert policy.classify("download", "controller.transport_timeout", "x").transient
+    assert policy.classify("smoke", "controller.transport_timeout", "x").transient
     assert not policy.classify("timeout", "load.timeout", "x").transient
-    assert not policy.classify("start", "", "out of memory").transient
-    assert policy.classify("download", "", "digest mismatch").model_level
-    assert not policy.classify("start", "", "out of memory").model_level
+    assert not policy.classify("start", "recipe.runtime_oom", "x").transient
+    assert policy.classify("download", "model.digest_mismatch", "x").model_level
+    assert not policy.classify("start", "recipe.runtime_oom", "x").model_level
 
 
 def test_signatures_ignore_ids_digits_and_paths_so_one_cause_is_one_cluster() -> None:

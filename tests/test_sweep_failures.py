@@ -8,6 +8,9 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 from spark_sweep.policy import TimeoutPolicy
 
 
@@ -31,6 +34,7 @@ def test_failed_load_is_recorded_with_phase_class_and_evidence(
         ("m2",),
         fail_load="container exited with code 1: unsupported kernel",
         fail_phase="start",
+        fail_code="recipe.runtime_exit",
     )
     sweep, fleet, _ = make_sweep(
         tmp_path, [good, bad], [FakeModel("m1"), FakeModel("m2")], gateway=gateway
@@ -63,16 +67,22 @@ def test_transient_failure_is_retried_once_then_final(
         "flaky",
         fail_load="connection reset by peer while pulling",
         fail_phase="container-download",
+        fail_code="controller.transport_timeout",
     )
     sweep, _, _ = make_sweep(tmp_path, [flaky], [FakeModel("m1")], gateway=gateway)
     sweep.run()
     entry = _entry(sweep, "flaky")
-    assert entry["status"] == "failed" and entry["attempts"] == 2
+    assert entry["status"] == "deferred" and entry["attempts"] == 2
     assert entry["failure_class"] == "network"
 
 
 def test_non_transient_failure_is_not_retried(tmp_path: Path, gateway: Gateway) -> None:
-    oom = FakeRecipe("oom", fail_load="CUDA error: out of memory", fail_phase="start")
+    oom = FakeRecipe(
+        "oom",
+        fail_load="CUDA error: out of memory",
+        fail_phase="start",
+        fail_code="recipe.runtime_oom",
+    )
     sweep, _, _ = make_sweep(tmp_path, [oom], [FakeModel("m1")], gateway=gateway)
     sweep.run()
     assert (
@@ -92,7 +102,7 @@ def test_load_timeout_cancels_the_application(tmp_path: Path, gateway: Gateway) 
     )
     sweep.run()
     entry = _entry(sweep, "slow")
-    assert (entry["status"], entry["phase"]) == ("failed", "timeout")
+    assert (entry["status"], entry["phase"]) == ("deferred", "timeout")
     assert any(c[:2] == ("profile", "cancel") for p, c in fleet.calls if p == 10)
 
 
@@ -106,7 +116,7 @@ def test_smoke_failure_is_a_smoke_phase_failure(
     sweep.run()
     entry = _entry(sweep, "broken")
     assert (entry["status"], entry["phase"], entry["failure_class"]) == (
-        "failed",
+        "deferred",
         "smoke",
         "smoke-request",
     )
@@ -119,7 +129,7 @@ def test_declared_demand_beyond_a_spark_fails_at_review(
     sweep, _, _ = make_sweep(tmp_path, [huge], [FakeModel("m1")], gateway=gateway)
     sweep.run()
     entry = _entry(sweep, "huge")
-    assert (entry["status"], entry["phase"]) == ("failed", "review")
+    assert (entry["status"], entry["phase"]) == ("deferred", "review")
     assert "insufficient_capacity" in entry["code"]
 
 
@@ -138,11 +148,14 @@ def test_recipes_needing_more_sparks_are_skipped_not_tested(
     )
 
 
-def test_model_level_download_failure_fails_siblings_without_trying_them(
+def test_model_level_download_failure_still_tests_siblings_independently(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     lead = FakeRecipe(
-        "lead", ("m1",), fail_download="sha256 mismatch for model-00001.safetensors"
+        "lead",
+        ("m1",),
+        fail_download="sha256 mismatch for model-00001.safetensors",
+        fail_download_code="model.digest_mismatch",
     )
     sibling = FakeRecipe("sibling", ("m1",), engine="sglang")
     other = FakeRecipe("other", ("m2",))
@@ -154,10 +167,11 @@ def test_model_level_download_failure_fails_siblings_without_trying_them(
     )
     sweep.run()
     assert _entry(sweep, "lead")["failure_class"] == "model-integrity"
-    assert _entry(sweep, "sibling")["inherited_from"] == "vonk-forge/lead"
+    assert _entry(sweep, "sibling")["status"] == "passed"
+    assert "inherited_from" not in _entry(sweep, "sibling")
     assert _entry(sweep, "other")["status"] == "passed"
     downloads = [c[2] for _, c in fleet.calls if c[:2] == ("recipe", "download")]
-    assert "vonk-forge/sibling" not in downloads
+    assert "vonk-forge/sibling" in downloads
 
 
 def test_build_policy_failure_does_not_condemn_siblings(
@@ -180,14 +194,22 @@ def test_same_root_cause_forms_one_cluster(tmp_path: Path, gateway: Gateway) -> 
             ("m1",),
             fail_load="kernel image 123 not found for device 7",
             fail_phase="start",
+            fail_code="recipe.runtime_exit",
         ),
         FakeRecipe(
             "b",
             ("m2",),
             fail_load="kernel image 456 not found for device 9",
             fail_phase="start",
+            fail_code="recipe.runtime_exit",
         ),
-        FakeRecipe("c", ("m3",), fail_load="driver mismatch", fail_phase="start"),
+        FakeRecipe(
+            "c",
+            ("m3",),
+            fail_load="driver mismatch",
+            fail_phase="start",
+            fail_code="recipe.runtime_exit",
+        ),
     ]
     sweep, _, _ = make_sweep(
         tmp_path,
@@ -209,6 +231,7 @@ def test_a_bad_checkpoint_found_at_start_pushes_its_siblings_to_the_back_but_sti
         ("m1",),
         fail_load="invalid model: corrupt safetensors header",
         fail_phase="start",
+        fail_code="model.digest_mismatch",
     )
     sibling = FakeRecipe("sibling", ("m1",), engine="sglang")
     others = [FakeRecipe(f"other{i}", (f"m{i + 2}",)) for i in range(3)]
@@ -230,21 +253,32 @@ def test_a_bad_checkpoint_found_at_start_pushes_its_siblings_to_the_back_but_sti
     )  # still tested, not condemned
 
 
-def test_a_download_that_fails_the_same_transient_way_twice_is_a_final_failure(
+def test_a_transport_unknown_download_recovers_without_recipe_blame(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    flaky = FakeRecipe("flaky", fail_download="connection reset by peer")
-    sweep, fleet, _ = make_sweep(tmp_path, [flaky], [FakeModel("m1")], gateway=gateway)
+    flaky = FakeRecipe(
+        "flaky",
+        fail_download="connection reset by peer",
+        fail_download_code="controller.transport_timeout",
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [flaky], [FakeModel("m1")], gateway=gateway
+    )
+
+    def repair(now: float) -> None:
+        if now >= 1_000_000 + 200:
+            fleet.recipes[flaky.key].fail_download = None
+
+    clock.hooks.append(repair)
     assert sweep.run() == 0
     entry = _entry(sweep, "flaky")
-    assert (entry["status"], entry["phase"], entry["failure_class"]) == (
-        "failed",
-        "download",
-        "network",
-    )
-    assert (
-        len([c for _, c in fleet.calls if c[:2] == ("recipe", "download")]) == 2
-    )  # asked once more, then gave up
+    assert entry["status"] == "passed"
+    assert not sweep.state.data["model_failures"]
+    assert not [
+        json.loads(line)
+        for line in (tmp_path / "results.jsonl").read_text().splitlines()
+        if json.loads(line)["status"] == "failed"
+    ]
 
 
 def test_a_controller_that_stops_answering_costs_a_pass_not_the_sweep(
@@ -269,3 +303,34 @@ def test_a_controller_that_stops_answering_costs_a_pass_not_the_sweep(
     assert any(
         "library page failed" in e["message"] for e in sweep.state.data["events"]
     )
+
+
+@pytest.mark.parametrize(
+    "detail",
+    ["CUDA error: out of memory", "sha256 mismatch for model-00001.safetensors"],
+)
+def test_generic_platform_fault_never_blames_recipe_or_siblings(
+    tmp_path: Path, gateway: Gateway, detail: str
+) -> None:
+    lead = FakeRecipe("lead", fail_download=detail)
+    sibling = FakeRecipe("sibling", engine="sglang")
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [lead, sibling], [FakeModel("m1")], gateway=gateway
+    )
+
+    def bounded(_now: float) -> None:
+        assert clock.sleeps < 200, (
+            "platform fault must finish this pass without a terminal loop"
+        )
+
+    clock.hooks.append(bounded)
+    assert sweep.run() == 0
+    entry = _entry(sweep, "lead")
+    assert entry["status"] == "deferred"
+    assert entry["failure_class"] == "download"
+    assert detail in entry["error"]
+    assert _entry(sweep, "sibling")["status"] == "passed"
+    assert not sweep.state.data["model_failures"]
+    assert "vonk-forge/sibling" in [
+        c[2] for _, c in fleet.calls if c[:2] == ("recipe", "download")
+    ]

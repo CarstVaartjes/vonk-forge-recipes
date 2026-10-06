@@ -337,3 +337,58 @@ def test_dry_run_files_nothing() -> None:
         dry_run=True,
     )
     assert called == [] and filed[0]["url"] == "(dry run)"
+
+
+def test_reclassified_platform_and_inherited_issues_close_without_new_recipe_blame() -> (
+    None
+):
+    recipes = {
+        "vonk-forge/platform": {
+            "status": "deferred",
+            "issue": "https://github.com/o/r/issues/10",
+        },
+        "vonk-forge/recovered": {
+            "status": "passed",
+            "issue": "https://github.com/o/r/issues/11",
+        },
+        "vonk-forge/inherited": {
+            "status": "failed",
+            "inherited_from": "vonk-forge/platform",
+            "issue": "https://github.com/o/r/issues/12",
+        },
+        "vonk-forge/untried": {
+            "status": "failed",
+            "inherited_from": "vonk-forge/platform",
+        },
+    }
+    calls = []
+
+    def gh(argv):
+        calls.append(list(argv))
+        return 0, ""
+
+    filed = file_issues(recipes, "o/r", gh)
+    assert len(filed) == 3
+    assert {row["action"] for row in filed} == {"closed"}
+    assert len([call for call in calls if call[:2] == ["issue", "close"]]) == 3
+    assert not any(
+        call[:2] in (["issue", "create"], ["issue", "comment"]) for call in calls
+    )
+    assert not any(entry.get("issue") for entry in recipes.values())
+
+
+def test_unknown_issue_close_keeps_identity_for_later_reconciliation() -> None:
+    recipes = {
+        "vonk-forge/recovered": {
+            "status": "passed",
+            "issue": "https://github.com/o/r/issues/11",
+        }
+    }
+
+    def gh(argv):
+        return (
+            (1, "transport unavailable") if argv[:2] == ["issue", "close"] else (0, "")
+        )
+
+    assert file_issues(recipes, "o/r", gh) == []
+    assert recipes["vonk-forge/recovered"]["issue"].endswith("/11")

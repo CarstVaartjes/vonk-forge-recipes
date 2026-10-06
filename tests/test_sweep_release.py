@@ -8,6 +8,9 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 from spark_sweep import policy
 from spark_sweep.cli import main
 
@@ -39,10 +42,15 @@ def _failing_set() -> tuple[list[FakeRecipe], list[FakeModel]]:
             "corrupt",
             ("m2",),
             fail_download="sha256 mismatch for model-00001.safetensors",
+            fail_download_code="model.digest_mismatch",
         ),
         FakeRecipe("policy", ("m3",), fail_download="policy"),
         FakeRecipe(
-            "oom", ("m4",), fail_load="CUDA error: out of memory", fail_phase="start"
+            "oom",
+            ("m4",),
+            fail_load="CUDA error: out of memory",
+            fail_phase="start",
+            fail_code="recipe.runtime_oom",
         ),
         FakeRecipe("fine", ("m5",)),
     ]
@@ -84,7 +92,7 @@ def test_a_new_controller_release_requeues_platform_failures_only_and_keeps_the_
     fleet.release_sha = OLD
     sweep.run()
     assert {k.split("/")[1]: e["status"] for k, e in sweep.state.recipes.items()} == {
-        "image-bug": "failed",
+        "image-bug": "deferred",
         "corrupt": "failed",
         "policy": "failed",
         "oom": "failed",
@@ -125,7 +133,7 @@ def test_a_new_controller_release_requeues_platform_failures_only_and_keeps_the_
         if x["recipe"] == "vonk-forge/image-bug"
     ]
     assert mine == [
-        ("smoke", "failed", OLD),
+        ("smoke", "deferred", OLD),
         ("requeue", "requeued", NEW),
         ("smoke", "passed", NEW),
     ]
@@ -167,7 +175,7 @@ def test_the_same_release_does_not_requeue_again_so_there_is_no_loop(
         again, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
         again.run()
     assert not [x for x in _lines(tmp_path / "results.jsonl") if x["step"] == "requeue"]
-    assert _entry(sweep, "image-bug")["status"] == "failed"
+    assert _entry(sweep, "image-bug")["status"] == "deferred"
 
 
 def test_failures_recorded_before_releases_were_known_are_retried_once(
@@ -201,7 +209,10 @@ def test_a_release_change_while_the_sweep_runs_requeues_without_a_restart(
     fleet.release_sha = OLD
 
     def deploy_fix(_now: float) -> None:
-        if _entry_or_none(sweep).get("status") == "failed" and fleet.release_sha == OLD:
+        if (
+            _entry_or_none(sweep).get("status") == "deferred"
+            and fleet.release_sha == OLD
+        ):
             fleet.release_sha = NEW
             fleet.recipes["vonk-forge/image-bug"].fail_load = None
         if _entry_or_none(sweep).get("status") == "passed":
@@ -255,7 +266,7 @@ def test_retry_failed_can_be_limited_to_a_selector(
     assert _entry(again, "oom")["status"] == "passed"
     assert (
         _entry(again, "corrupt")["status"] == "failed"
-        and _entry(again, "image-bug")["status"] == "failed"
+        and _entry(again, "image-bug")["status"] == "deferred"
     )
     assert [
         x["recipe"]
@@ -304,6 +315,7 @@ def test_failures_are_grouped_by_controller_release_on_the_status_page(
 ) -> None:
     recipes, models = _failing_set()
     sweep, fleet, _ = make_sweep(tmp_path, recipes, models, gateway=gateway)
+    fleet.recipes["vonk-forge/image-bug"].fail_code = "recipe.runtime_exit"
     fleet.release_sha = OLD
     sweep.run()
     fleet.release_sha = NEW
@@ -326,3 +338,35 @@ def test_failures_are_grouped_by_controller_release_on_the_status_page(
         and f"release {NEW[:12]}" in page
         and "(current)" in page
     )
+
+
+def test_watch_retests_after_bounded_cooldown_without_new_release_or_recipe(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipe = FakeRecipe("recovering", fail_load=IMAGE_BUG)
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [recipe], [FakeModel("m1")], gateway=gateway, watch_seconds=3600
+    )
+    fleet.release_sha = OLD
+    first_finished = []
+
+    def repair_and_stop(now: float) -> None:
+        assert clock.sleeps < 100, "watch recovery must converge after cooldown"
+        entry = sweep.state.recipes.get(recipe.key, {})
+        if entry.get("status") == "deferred" and not first_finished:
+            first_finished.append(entry["finished_at"])
+            fleet.recipes[recipe.key].fail_load = None
+        if entry.get("status") == "passed":
+            assert now >= first_finished[0] + 24 * 3600
+            raise KeyboardInterrupt
+
+    clock.hooks.append(repair_and_stop)
+    assert sweep.run() == 130
+    assert _entry(sweep, "recovering")["status"] == "passed"
+    assert fleet.release_sha == OLD
+    requeues = [
+        row for row in _lines(tmp_path / "results.jsonl") if row["step"] == "requeue"
+    ]
+    assert len(requeues) == 1
+    assert requeues[0]["reason"] == "scheduled-retest"
+    assert requeues[0]["previous"]["status"] == "deferred"

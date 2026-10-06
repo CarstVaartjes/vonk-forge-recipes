@@ -5,6 +5,9 @@ from __future__ import annotations
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 from spark_sweep import policy
 from spark_sweep.run import MAX_REVIEW_FREEING
 
@@ -64,7 +67,7 @@ def test_a_capacity_refusal_that_clearing_undoes_is_requeued_not_failed(
     assert "clearing the fleet and trying again" in str(sweep.state.data["events"])
 
 
-def test_a_capacity_refusal_that_survives_clearing_is_the_recipes_and_says_so(
+def test_a_capacity_refusal_that_survives_clearing_is_deferred_with_evidence(
     tmp_path, gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
@@ -74,7 +77,7 @@ def test_a_capacity_refusal_that_survives_clearing_is_the_recipes_and_says_so(
     sweep.run()
     entry = _entry(sweep, "a")
     assert (entry["status"], entry["phase"], entry["failure_class"]) == (
-        "failed",
+        "deferred",
         "review",
         "capacity",
     )
@@ -129,7 +132,7 @@ def test_a_failed_application_the_controller_gave_up_on_is_recorded(
     fleet.supersede = ["failed-repeated"]
     sweep.run()
     entry = _entry(sweep, "a")
-    assert (entry["status"], entry["phase"]) == ("failed", "start")
+    assert (entry["status"], entry["phase"]) == ("deferred", "start")
 
 
 def test_the_controllers_typed_ending_is_what_stops_the_following() -> None:

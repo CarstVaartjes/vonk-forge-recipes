@@ -8,6 +8,9 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 from spark_sweep import policy
 from spark_sweep.policy import TimeoutPolicy
 
@@ -110,7 +113,7 @@ def test_the_limit_still_applies_once_the_bytes_are_in_place(
     sweep.run()
     entry = _entry(sweep)
     assert (entry["status"], entry["phase"], entry["failure_class"]) == (
-        "failed",
+        "deferred",
         "timeout",
         "timeout",
     )
@@ -143,7 +146,7 @@ def test_a_copy_that_stops_moving_fails_after_the_stall_window_and_is_retried_on
     sweep.run()
     entry = _entry(sweep)
     assert (entry["status"], entry["failure_class"], entry["attempts"]) == (
-        "failed",
+        "deferred",
         "copy-stalled",
         2,
     )
@@ -167,7 +170,10 @@ def test_an_application_the_controller_holds_back_is_admission_stalled_not_a_loa
     )
     sweep.run()
     entry = _entry(sweep)
-    assert (entry["status"], entry["failure_class"]) == ("failed", "admission-stalled")
+    assert (entry["status"], entry["failure_class"]) == (
+        "deferred",
+        "admission-stalled",
+    )
     assert "held this application back" in entry["error"]
     assert "resident_usage_unknown" in entry["error"]
     assert policy.platform_side(
