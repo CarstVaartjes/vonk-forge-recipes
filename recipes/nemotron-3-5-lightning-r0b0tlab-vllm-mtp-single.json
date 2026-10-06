@@ -2,18 +2,15 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "3af90144a0926e5c5fe46ee16e5201e763dd854538b9d7ce433755f11dadaf78",
-        "repository": "docker.io/vllm/vllm-openai"
+        "digest": "9fcb3b11818b035605783471c10cd169aaa3ffd62eafd9f1c647e9dce40d2dda",
+        "repository": "ghcr.io/r0b0tlab/nemotron-lightning-repro-runtime"
       },
       "context": {
         "path": "adapters/nvidia/r0b0tlab-lightning-vllm-mtp-single"
       },
       "dockerfile": "adapters/nvidia/r0b0tlab-lightning-vllm-mtp-single/Dockerfile",
       "network": {
-        "hosts": [
-          "files.pythonhosted.org",
-          "pypi.org"
-        ]
+        "hosts": []
       },
       "patches": []
     }
@@ -35,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's vLLM SM121 profile for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 (NVIDIA OpenMDW-1.1) with the checkpoint's native MTP head (K=1, Triton drafter MoE), from r0b0tlab/nemotron-3.5-lightning-sm121-nvfp4 at 024bb77b (MIT). Builds on the NVIDIA vLLM image pinned by upstream (vllm/vllm-openai@sha256:3af90144, vLLM 0.23.1rc1, PyTorch 2.11 cu129, FlashInfer 0.6.14) plus the fastokens 0.3.1 package upstream's Dockerfile installs, with Marlin target MoE, FP8 KV, prefix caching, FlashInfer Mamba backend with float16 SSM state and stochastic rounding (5 Philox rounds), memory utilisation 0.70, a 50,016-token evaluation window, 6 sequences and upstream's CUDA graph capture list. Upstream's repository pins no model revision (weights are local); this recipe binds e8f3c7c4, the revision its sibling r0b0tlab repository names for the same suite. Upstream publishes its GHCR image privately, so the recipe rebuilds it from upstream's Dockerfile. Upstream's results are its own r0b0bench evidence (11 lanes) and a 1M-window needle probe; none measured here. Physical Spark acceptance is pending.",
+    "description": "r0b0tlab's vLLM SM121 profile for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 (NVIDIA OpenMDW-1.1) with the checkpoint's native MTP head (K=1, Triton drafter MoE), from r0b0tlab/nemotron-3.5-lightning-sm121-nvfp4 at 024bb77b (MIT). Runs upstream's published runtime image ghcr.io/r0b0tlab/nemotron-lightning-repro-runtime:sm121-mtp1 (sha256:9fcb3b11..., the registry digest upstream records, pinned by digest and not rebuilt): the NVIDIA vLLM image upstream pins (vllm/vllm-openai@sha256:3af90144, vLLM 0.23.1rc1, PyTorch 2.11 cu129, FlashInfer 0.6.14) plus the fastokens 0.3.1 package, with a thin Controller layer on top, with Marlin target MoE, FP8 KV, prefix caching, FlashInfer Mamba backend with float16 SSM state and stochastic rounding (5 Philox rounds), memory utilisation 0.70, a 50,016-token evaluation window, 6 sequences and upstream's CUDA graph capture list. Upstream's repository pins no model revision (weights are local); this recipe binds e8f3c7c4, the revision its sibling r0b0tlab repository names for the same suite. Upstream's README calls the GHCR package private, but it pulls anonymously (checked when this recipe was switched to it). Upstream's results are its own r0b0bench evidence (11 lanes) and a 1M-window needle probe; none measured here. Physical Spark acceptance is pending.",
     "tags": [
       "candidate",
       "executable",
