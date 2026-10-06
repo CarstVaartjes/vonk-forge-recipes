@@ -1775,7 +1775,8 @@ class Sweep:
                 ),
                 previous,
             )
-        self.state.data["loads"].pop(slot["request_key"], None)
+        if not self._adopted_slots_live(previous):
+            self.state.data["loads"].pop(slot["request_key"], None)
         seq = int(self.state.data["load_seq"]) + 1
         request = request_key("sweep-load", self.state.nonce, profile, seq)
         self.state.data["load_seq"] = seq
@@ -1784,6 +1785,7 @@ class Sweep:
             "app_id": None,
             "seq": seq,
             "submitted_at": now,
+            "adopted_requests": list(previous.get("adopted_requests") or []),
         }
         for key in survivors:
             lane = self.state.slots[key]
