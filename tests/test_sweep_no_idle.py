@@ -111,6 +111,13 @@ def test_incremental_profile_fake_preserves_and_waits_for_exact_running_child(
             },
         ]
     }
+    _, review = fleet._load(10, second_profile, ["--review"])
+    adopted = review["effects"]["adopted"]
+    assert len(adopted) == 1
+    assert adopted[0]["application_id"] == original["id"]
+    assert adopted[0]["plan_digest"] == original["plan_digest"]
+    assert adopted[0]["assignment_ids"] == child["assignment_ids"]
+    assert adopted[0]["node_ids"] == fleet.runs[0]["node_ids"]
     _, second = fleet._load(10, second_profile, ["--yes", "--request-key", "second"])
     incremental = fleet.apps[second["id"]]
     assert incremental["assign"][0] is child
@@ -126,8 +133,9 @@ def test_incremental_profile_fake_preserves_and_waits_for_exact_running_child(
     assert fleet.runs[0]["run_id"] == run_id
 
 
-def test_free_lane_starts_next_recipe_while_other_lane_keeps_loading(
-    tmp_path: Path, gateway: Gateway
+@pytest.mark.parametrize("adoption_bound", [True, False])
+def test_free_lane_starts_only_with_bound_unchanged_effects(
+    tmp_path: Path, gateway: Gateway, adoption_bound: bool
 ) -> None:
     recipes = [
         FakeRecipe("a-slow", ("m1",), local="cached", load_seconds=1200),
@@ -141,6 +149,15 @@ def test_free_lane_starts_next_recipe_while_other_lane_keeps_loading(
         gateway=gateway,
     )
     original_run = []
+    actual_load = fleet._load
+
+    def load(number, data, args):
+        code, document = actual_load(number, data, args)
+        if "--review" in args and not adoption_bound:
+            document["effects"].pop("adopted", None)
+        return code, document
+
+    fleet._load = load
 
     def observe(_now: float) -> None:
         running = [run for run in fleet.runs if run["recipe"] == recipes[0].key]
@@ -163,7 +180,15 @@ def test_free_lane_starts_next_recipe_while_other_lane_keeps_loading(
         for app in fleet.apps.values()
         if any(item["alias"] == "c-next" for item in app.get("assign", []))
     )
-    assert next_started < slow_child["at"], (
-        "the free lane must run work before the slow lane finishes"
-    )
+    if adoption_bound:
+        assert next_started < slow_child["at"], (
+            "a bound unchanged child permits free-lane work"
+        )
+    else:
+        assert next_started >= slow_child["at"], (
+            "an unbound child must not be cancelled by overlap"
+        )
+        assert "unchanged loading effects are not bound for adoption" in str(
+            sweep.state.data["events"]
+        )
     assert original_run

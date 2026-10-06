@@ -11,6 +11,7 @@ with success and failure, and the fleet's loaded runs.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import threading
@@ -19,6 +20,7 @@ from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
+from uuid import NAMESPACE_URL, uuid5
 
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
@@ -219,6 +221,8 @@ class FakeFleet:
 
     def _id(self, prefix: str) -> str:
         self.next_id += 1
+        if prefix in ("app", "assignment"):
+            return str(uuid5(NAMESPACE_URL, f"vonk-sweep-fake/{prefix}/{self.next_id}"))
         return f"{prefix}-{self.next_id:04d}"
 
     def writes(self, number: int) -> list[tuple[str, ...]]:
@@ -806,10 +810,44 @@ class FakeFleet:
             if x["desired_state"] == "running"
         }
         if "--review" in a:
+            adopted = []
+            for x in data["assignments"]:
+                existing = running.get(x["assignment_name"])
+                if (
+                    existing is None
+                    or existing["ready"]
+                    or existing["recipe"] != x["recipe_selector"]
+                    or existing["node_ids"] != [names[s] for s in x["spark_ids"]]
+                ):
+                    continue
+                for app in self.apps.values():
+                    if app["state"] not in ("queued", "running"):
+                        continue
+                    child = next(
+                        (
+                            item
+                            for item in app["assign"]
+                            if item["alias"] == x["assignment_name"]
+                            and not item["resolved"]
+                        ),
+                        None,
+                    )
+                    if child is not None:
+                        adopted.append(
+                            {
+                                "application_id": app["id"],
+                                "plan_digest": app["plan_digest"],
+                                "workload_intent_ordinal": child["ordinal"],
+                                "node_ids": sorted(existing["node_ids"]),
+                                "assignment_ids": child["assignment_ids"],
+                            }
+                        )
+                        break
             doc = {
                 "allowed": not blocked,
                 "waits_for_preparation": False,
                 "effects": {
+                    "adopted": adopted,
                     "runs": [
                         {
                             "alias": r["alias"],
@@ -820,7 +858,7 @@ class FakeFleet:
                             else "stop",
                         }
                         for r in self.runs
-                    ]
+                    ],
                 },
                 "admission_decisions": [
                     {"alias": alias, "allowed": False, "blockers": found}
@@ -895,6 +933,8 @@ class FakeFleet:
             assign.append(
                 {
                     "alias": alias,
+                    "ordinal": len(assign) + 1,
+                    "assignment_ids": [self._id("assignment")],
                     "at": (
                         10**12
                         if recipe.blocked
@@ -911,6 +951,9 @@ class FakeFleet:
         self.apps[app_id] = {
             "id": app_id,
             "profile": n,
+            "plan_digest": hashlib.sha256(
+                json.dumps(data["assignments"], sort_keys=True).encode()
+            ).hexdigest(),
             "created": self.clock.now(),
             "assign": assign,
             "state": "running",
