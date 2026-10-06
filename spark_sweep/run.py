@@ -56,6 +56,8 @@ STARTUP_WAIT_SECONDS = (
 )
 TICK_WATCHDOG_SECONDS = 1800.0  # a pass that has not finished in this long is abandoned
 MAX_REVIEW_DEFERS = 3
+# A shared load that ended with no blocker naming a recipe requeues its lanes unblamed this often.
+MAX_UNATTRIBUTED_REQUEUES = 2
 # Clearing the fleet and reviewing again, for a capacity refusal, before it counts against the recipe.
 MAX_REVIEW_FREEING = 2
 SKEW_CHECK_INTERVAL = 300.0
@@ -176,6 +178,10 @@ class SweepConfig:
     # How long an application may sit behind its own admission blockers (capacity, stale
     # inventory, a retried phase) before the lane fails as admission-stalled.
     blocked_seconds: float = 900.0
+    # How long a load may sit behind a *preparation* blocker that names only some of its
+    # recipes before the others are released: the blocked one leaves the profile and the
+    # rest are loaded without it.
+    blocked_release_seconds: float = 300.0
 
 
 def alias_for(recipe: Recipe, definitions: Definitions) -> str:
@@ -1412,31 +1418,37 @@ class Sweep:
                         app,
                     )
                 return
+            group = self._lane_group(slot)
+            if len(group) > 1:
+                failures = [
+                    f for f in app.get("failures") or [] if isinstance(f, Mapping)
+                ]
+                culprits, collateral = self._split(
+                    group, policy.blamed(failures, self._lanes(group)), now
+                )
+                self._requeue_collateral(collateral, culprits, "its application failed")
+                group = culprits
+            else:
+                group = [key]
             phase = policy.child_phase(app.get("child_phase")) or "start"
             detail = f"{app.get('reason') or app['state']} {app.get('failures') or ''}".strip()
-            self._fail_slot(
-                key,
-                slot,
-                policy.classify(phase, f"application.{app['state']}", detail),
-                app,
-            )
+            for member in group:
+                self._fail_slot(
+                    member,
+                    self.state.slots[member],
+                    policy.classify(phase, f"application.{app['state']}", detail),
+                    app,
+                )
             return
-        if slot.get("blocked_since") is not None and (
-            now - float(slot["blocked_since"]) > self.cfg.blocked_seconds
+        held = slot.get("blocked_since")
+        if held is not None and now - float(held) > self.cfg.blocked_seconds:
+            self._stalled(slot, now)
+        elif (
+            held is not None
+            and now - float(held) > self.cfg.blocked_release_seconds
+            and self._release_prepared(slot, now)
         ):
-            first = slot["blocked"][0]
-            self._timeout(
-                key,
-                slot,
-                policy.classify(
-                    "start",
-                    first["code"],
-                    f"the Controller held this application back for "
-                    f"{round(now - float(slot['blocked_since']))}s: {first['code']}: {first['detail']}",
-                    "admission-stalled",
-                    {"blockers": slot["blocked"]},
-                ),
-            )
+            return
         elif copying:
             stalled = now - float(slot["copy_progress_at"])
             if stalled > self.cfg.copy_stall_seconds:
@@ -1455,6 +1467,198 @@ class Sweep:
             slot.get("blocked_seconds", 0)
         ) + float(slot.get("blind_seconds", 0)):
             self._timeout(key, slot)
+
+    def _lane_group(self, slot: Mapping[str, Any]) -> list[str]:
+        """The lanes still loading in the same application as this one."""
+        return [
+            k
+            for k, s in self.state.slots.items()
+            if s["phase"] == "loading"
+            and s["request_key"] == slot["request_key"]
+            and not serving_run(
+                self.fleet, s["alias"], s["node_ids"], self.recipes[k].node_count
+            )  # a lane that already serves goes on to its smoke
+        ]
+
+    def _lanes(self, group: Sequence[str]) -> dict[str, dict[str, list[str]]]:
+        lanes: dict[str, dict[str, list[str]]] = {}
+        for key in group:
+            slot = self.state.slots[key]
+            lanes[key] = {
+                "names": [slot["alias"], key, key.rsplit("/", 1)[-1]],
+                "places": [*slot["node_ids"], *slot.get("spark_names", [])],
+            }
+        return lanes
+
+    def _split(
+        self, group: Sequence[str], blamed: set[str], now: float
+    ) -> tuple[list[str], list[str]]:
+        """Who of a load that ended or stalled carries the failure, and who is collateral.
+
+        Only the lanes the Controller's blockers or failures name are the recipes' own. When
+        nothing names a lane of a shared load, none is blamed (it is retried in a later load)
+        unless it was already left unblamed too often, so a recipe that really fails is
+        never retried for ever.
+        """
+        culprits = [k for k in group if k in blamed]
+        if culprits:
+            return culprits, [k for k in group if k not in blamed]
+        if len(group) < 2:
+            return list(group), []
+        exhausted = [
+            k
+            for k in group
+            if int(self.state.entry(k).get("unattributed_requeues", 0))
+            >= MAX_UNATTRIBUTED_REQUEUES
+        ]
+        for key in group:
+            if key not in exhausted:
+                entry = self.state.entry(key)
+                entry["unattributed_requeues"] = (
+                    int(entry.get("unattributed_requeues", 0)) + 1
+                )
+        return exhausted, [k for k in group if k not in exhausted]
+
+    def _requeue_collateral(
+        self, collateral: Sequence[str], culprits: Sequence[str], cause: str
+    ) -> None:
+        for key in collateral:
+            why = (
+                "collateral of " + ", ".join(culprits)
+                if culprits
+                else f"collateral: {cause}, and no blocker names a recipe"
+            )
+            self.requeue(key, why)
+
+    def _cancel_load(self) -> None:
+        load = self.state.data["load"]
+        if load and load.get("app_id"):
+            self.vk.run(
+                "profile",
+                "cancel",
+                load["app_id"],
+                "--yes",
+                "--detach",
+                profile=self.cfg.sweep_profile,
+            )
+
+    def _stalled(self, slot: Mapping[str, Any], now: float) -> None:
+        """The Controller held a load back for good: only the recipes it names fail."""
+        blockers = list(slot["blocked"])
+        group = self._lane_group(slot)
+        culprits, collateral = self._split(
+            group,
+            policy.blamed(blockers, self._lanes(group))
+            if len(group) > 1
+            else set(group),
+            now,
+        )
+        self._requeue_collateral(collateral, culprits, "the Controller held it back")
+        if not culprits:
+            self._cancel_load()
+        lanes = self._lanes(culprits)
+        for key in culprits:
+            own = [b for b in blockers if policy.blamed([b], {key: lanes[key]})]
+            first = (own or blockers)[0]
+            held = round(now - float(self.state.slots[key]["blocked_since"]))
+            self._timeout(
+                key,
+                self.state.slots[key],
+                policy.classify(
+                    "start",
+                    first["code"],
+                    f"the Controller held this application back for {held}s: "
+                    f"{first['code']}: {first['detail']}",
+                    "admission-stalled",
+                    {"blockers": blockers},
+                ),
+            )
+
+    def _release_prepared(self, slot: Mapping[str, Any], now: float) -> bool:
+        """A load stalled on the preparation of some recipes: load the others without them.
+
+        The blocked recipes fail (they are the ones named), leave the profile, and the load is
+        submitted again for the rest, so ready recipes do not wait out the whole deadline.
+        Returns False when nothing was done (nothing names a subset of the load).
+        """
+        blockers = [
+            b
+            for b in slot["blocked"]
+            if any(
+                w in b["code"] for w in ("preparation", "build-unavailable", "cache")
+            )
+        ]
+        group = self._lane_group(slot)
+        if len(group) < 2 or not blockers:
+            return False
+        culprits = [
+            k for k in group if k in policy.blamed(blockers, self._lanes(group))
+        ]
+        survivors = [k for k in group if k not in culprits]
+        if not culprits or not survivors:
+            return False
+        profile = self.cfg.sweep_profile
+        try:
+            for key in culprits:
+                self.vk.call(
+                    "profile",
+                    "remove",
+                    self.state.slots[key]["alias"],
+                    "--yes",
+                    profile=profile,
+                )
+        except VonkctlError:
+            return False  # leave it to the stall handling
+        lanes = self._lanes(culprits)
+        self._cancel_load()
+        for key in culprits:
+            own = [b for b in blockers if policy.blamed([b], {key: lanes[key]})]
+            first = (own or blockers)[0]
+            held = round(now - float(self.state.slots[key]["blocked_since"]))
+            self._fail_slot(
+                key,
+                self.state.slots[key],
+                policy.classify(
+                    "start",
+                    first["code"],
+                    f"the Controller held this application back for {held}s: "
+                    f"{first['code']}: {first['detail']}; the other recipes of the load "
+                    "were released without it",
+                    "admission-stalled",
+                    {"blockers": blockers},
+                ),
+                self.state.data["load"] or {},
+            )
+        self.state.data["load"] = None
+        try:
+            seq = int(self.state.data["load_seq"]) + 1
+            request = request_key(
+                "sweep-load", self.state.nonce, self.cfg.sweep_profile, seq
+            )
+            self.state.data["load_seq"] = seq
+            self.state.data["load"] = {
+                "request_key": request,
+                "app_id": None,
+                "seq": seq,
+                "submitted_at": now,
+            }
+            submitted = self._submit_load(profile, request, "release")
+        except VonkctlError as error:
+            self.state.data["load"] = None
+            self._requeue_collateral(
+                survivors, culprits, f"release failed: {str(error)[:100]}"
+            )
+            return True
+        self.state.data["load"]["app_id"] = dig(submitted, "id")
+        for key in survivors:
+            lane = self.state.slots[key]
+            lane["request_key"] = request
+            for stale in ("blocked_since", "blocked"):
+                lane.pop(stale, None)
+        self.state.event(
+            "released " + ", ".join(survivors) + " without " + ", ".join(culprits)
+        )
+        return True
 
     def _timeout(
         self, key: str, slot: dict[str, Any], failure: policy.Failure | None = None
