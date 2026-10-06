@@ -511,6 +511,17 @@ class Failure:
         return self.klass in MODEL_LEVEL_CLASSES
 
 
+def freeable_refusal(failure: Failure) -> bool:
+    """A review refusal that stopping or evicting something may undo, not a verdict on the recipe.
+
+    The sweep only reviews a recipe whose declared demand fits an empty Spark, so a capacity,
+    memory or disk refusal means something else still holds the room (a retained run, cached
+    bytes, a workload that is not ours). Clearing the fleet and reviewing again settles it;
+    only a refusal that survives that is the recipe's.
+    """
+    return failure.phase == "review" and failure.klass == "capacity"
+
+
 def platform_side(failure_class: str | None) -> bool:
     """Could a platform fix have changed this failure? Unknown classes count as the platform's."""
     return failure_class not in RECIPE_SIDE_CLASSES
@@ -722,6 +733,27 @@ def superseded_text(reason: object) -> bool:
     """Legacy rows carry the supersession only as text (older Controllers ended them failed/cancelled)."""
     text = str(reason or "").lower()
     return any(marker in text for marker in _SUPERSEDED_TEXT)
+
+
+REPEATED_FAILURE_CODE = "profile.failure_repeated"
+
+
+def retry_ended(document: Mapping[str, Any]) -> bool:
+    """Did the Controller stop retrying this failed application (a definite, typed failure)?"""
+    blockers = document.get("blockers") or (document.get("progress") or {}).get(
+        "blockers"
+    )
+    if any(
+        isinstance(item, Mapping) and item.get("code") == REPEATED_FAILURE_CODE
+        for item in blockers or []
+    ):
+        return True
+    failures = ((document.get("progress") or {}).get("switch_adapter") or {}).get(
+        "assignment_failures"
+    ) or []
+    return any(
+        isinstance(item, Mapping) and item.get("terminal") is True for item in failures
+    )
 
 
 @dataclass(frozen=True)

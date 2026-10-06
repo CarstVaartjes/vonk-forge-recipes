@@ -288,19 +288,42 @@ class FakeFleet:
 
     def _supersede(self, app: dict[str, Any], mode: str) -> None:
         """The Controller replaces a running application, as an automatic retry or a later intent."""
-        if mode in ("retry", "legacy-retry"):
+        if mode in ("retry", "legacy-retry", "failed-retry", "failed-repeated"):
             successor = dict(
                 app, id=self._id("app"), state="running", successor_of=app["id"]
             )
             successor["assign"] = [dict(a) for a in app["assign"]]
             self.apps[successor["id"]] = successor
             self.by_request[app["request_key"]] = successor["id"]
+            if mode == "failed-repeated":
+                # The Controller gave up: no successor continues this failure.
+                del self.apps[successor["id"]]
+                self.by_request[app["request_key"]] = app["id"]
+            for profile in self.profiles.values():
+                if profile.get("latest") == app["id"] and mode != "failed-repeated":
+                    profile["latest"] = successor["id"]
         if mode == "retry":
             app.update(
                 state="superseded",
                 superseded_by=successor["id"],
                 reason_code="superseded-by-retry",
                 reason="Superseded by profile retry",
+            )
+        elif mode == "failed-retry":
+            # An older Controller's still-retrying application: failed, no supersession
+            # marker, and the retry names it as its parent.
+            app.update(state="failed", reason="1 assignment(s) need reconciliation")
+        elif mode == "failed-repeated":
+            app.update(
+                state="failed",
+                reason="Failed the same way 5 times in a row; not retrying",
+                blockers=[
+                    {
+                        "code": "profile.failure_repeated",
+                        "detail": "Failed the same way 5 times in a row",
+                        "severity": "error",
+                    }
+                ],
             )
         elif mode == "legacy-retry":
             app.update(
@@ -879,6 +902,8 @@ class FakeFleet:
             "status_reason": app.get("reason"),
             "superseded_by": app.get("superseded_by"),
             "reason_code": app.get("reason_code"),
+            "retry_of_application_id": app.get("successor_of"),
+            "blockers": app.get("blockers", []),
             "current_operation_id": app["id"],
             "progress": {
                 "child_progress": self._child_progress(app),
