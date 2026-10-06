@@ -1,11 +1,21 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "README.md",
+        "pattern": "^docker pull (?P<repo>ghcr\\.io/[^:\\s]+):(?P<version>[^\\s]+)$"
+      }
+    },
+    "whole": false
+  },
   "ours": [
-    "vllm-wrapper.py",
-    "install-nccl.py",
+    "chat_template_mm.jinja",
     "verify-runtime.py",
-    "chat_template_mm.jinja"
+    "vllm-wrapper.py"
   ],
-  "renamed": {
-    "glm53-flash_SM121.py": "files/glm53-flash_SM121.py"
+  "source": {
+    "commit": "aed98a13ca75140d2691cc5c651ea5817d9a3e44",
+    "repo": "MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark"
   }
 }
