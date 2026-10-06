@@ -73,8 +73,10 @@ def is_infrastructure(reply: Reply | None, *, reviewing: bool = False) -> bool:
     code = str(document.get("code") or "")
     if document.get("error_type") in ("arguments", "update"):
         return True  # the installed vonkctl does not speak this command
+    if code in ("http.502", "http.503", "http.504"):
+        return True  # a gateway or a restarting Controller in front of it
     for field in ("status", "status_code", "http_status"):
-        if document.get(field) in (502, 503, "502", "503"):
+        if document.get(field) in (502, 503, 504, "502", "503", "504"):
             return True  # a gateway or a restarting Controller in front of it
     if code == "controller.protocol_invalid" or code.startswith(
         "controller.transport_"

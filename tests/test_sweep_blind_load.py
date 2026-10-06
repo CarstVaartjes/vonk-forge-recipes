@@ -58,6 +58,23 @@ def _run(sweep, fleet):
     return sweep.state.recipes["vonk-forge/a"]
 
 
+@pytest.mark.parametrize("code", ["http.502", "http.503", "http.504"])
+def test_the_real_http_gateway_error_shape_is_infrastructure(code: str) -> None:
+    reply = Reply(
+        (),
+        2,
+        {
+            "error_type": "control_api",
+            "code": code,
+            "detail": "control API request failed",
+            "http_status": int(code[-3:]),
+            "source": "remote_rejection",
+        },
+        "",
+    )
+    assert is_infrastructure(reply)
+
+
 def test_http_502_and_503_are_infrastructure() -> None:
     for status in (502, 503):
         reply = Reply(
