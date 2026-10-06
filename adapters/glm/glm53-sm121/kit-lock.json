@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:376f11dfd61abb06731d2d542b53c8c2954ffbcf1846ccd3af564d507ec5436f",
+      "kind": "tag",
+      "ref": "mm-ray-v1",
+      "repo": "ghcr.io/miaai-lab/glm53-flash-spark"
+    }
+  },
+  "kit": {
+    "commit": "aed98a13ca75140d2691cc5c651ea5817d9a3e44",
+    "repo": "MiaAI-Lab/GLM-5.3-Flash-NVFP4-Dual-DGX-Spark"
+  }
+}
