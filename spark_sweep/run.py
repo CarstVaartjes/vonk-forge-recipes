@@ -148,6 +148,7 @@ class SweepConfig:
     poll_seconds: float = 10.0
     catalog_seconds: float = 60.0
     status_seconds: float = 15.0
+    idle_alert_seconds: float = 600.0
     owner_hold_seconds: float = 1800.0
     owner_poll_seconds: float = 15.0
     readiness_grace: float = 180.0
@@ -220,6 +221,7 @@ class Sweep:
         self.owner_at = -1e18
         self.owner_status = OwnerStatus()
         self.backoff_until = 0.0
+        self.idle_since: float | None = None
         self.blind = False  # this tick could not observe the Controller
         self._skew_checked_at = float("-inf")
         self.library_commit = ""
@@ -595,6 +597,7 @@ class Sweep:
         if not self.owner_status.paused:
             self.cleanup_finished()
             self.schedule(now)
+        self.check_idle(now)
         self.state.data["rate"] = {"ema": self.rate.rate, "samples": self.rate.samples}
         if now - self.status_at >= self.cfg.status_seconds:
             self.status_at = now
@@ -1676,7 +1679,66 @@ class Sweep:
                     )
         return list(bins.values())
 
+    def release_orphan_load(self) -> None:
+        """Forget a load whose lanes have all ended: nothing of ours waits on it any more.
+
+        A lane fails on its own deadline (admission stalled, load timeout) and cancels the
+        application detached; if the Controller keeps holding that application (a retried
+        admission), the load record would otherwise stay forever and no lane would ever be
+        scheduled again.
+        """
+        load = self.state.data["load"]
+        if load is None:
+            return
+        key = load.get("request_key")
+        if any(
+            s.get("request_key") == key and s["phase"] != "finished"
+            for s in self.state.slots.values()
+        ):
+            return
+        app = load.get("app_id")
+        if app and load.get("state") not in SETTLED:
+            # Ours (the sweep's own request key): cancel it so it releases what it holds.
+            self.vk.run(
+                "profile",
+                "cancel",
+                app,
+                "--yes",
+                "--detach",
+                profile=self.cfg.sweep_profile,
+            )
+        self.state.event(f"released load {app or key}: its lanes have ended")
+        self.state.data["load"] = None
+
+    def check_idle(self, now: float) -> None:
+        """Alert when a free lane has had ready work for too long (the sweep must never idle)."""
+        busy = {n for s in self.state.slots.values() for n in s.get("node_ids", [])}
+        free = [s for s in self.sparks() if s.id not in busy]
+        waiting = (
+            bool(free)
+            and not self.owner_status.paused
+            and bool(self.ready_candidates())
+        )
+        if not waiting:
+            self.idle_since = None
+            self.state.data["alerts"] = []
+            return
+        if self.idle_since is None:
+            self.idle_since = now
+        idle = now - self.idle_since
+        if idle < self.cfg.idle_alert_seconds:
+            return
+        message = (
+            f"IDLE WITH READY WORK: {len(free)} free lane(s) for {round(idle)}s "
+            f"while recipes are ready (load record: "
+            f"{'set' if self.state.data['load'] is not None else 'none'})"
+        )
+        if not self.state.data.get("alerts"):
+            self.state.event(message)
+        self.state.data["alerts"] = [message]
+
     def schedule(self, now: float) -> None:
+        self.release_orphan_load()
         if self.state.data["load"] is not None or now < self.backoff_until:
             return
         if any(
@@ -1698,6 +1760,11 @@ class Sweep:
         if mode == "dual":
             dual = policy.place_dual(candidates, bins, self.cfg.reserve_bytes)
             placements = [dual] if dual else []
+            if not placements:
+                # No dual fits now: free lanes run ready singles instead of idling.
+                placements = policy.place_singles(
+                    candidates, bins, self.cfg.reserve_bytes, alias_of
+                )
         else:
             placements = policy.place_singles(
                 candidates, bins, self.cfg.reserve_bytes, alias_of

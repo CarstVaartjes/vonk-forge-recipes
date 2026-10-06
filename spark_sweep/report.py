@@ -151,6 +151,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             key: len(notes) for key, notes in quality_notes(data["recipes"]).items()
         },
         "lanes": lanes,
+        "alerts": list(data.get("alerts") or []),
         "queue": [{"recipe": k, "cached": k in ready} for k in sweep.queue[:15]],
         "queue_length": len(sweep.queue),
         "downloads": {
@@ -212,8 +213,10 @@ def render_status(status: Mapping[str, Any]) -> str:
         f"mode {status['mode']}"
         + (f" - PAUSED: {status['paused']}" if status["paused"] else ""),
         "",
-        "## Lanes",
     ]
+    if status.get("alerts"):
+        lines += ["## ALERTS", *(f"- {a}" for a in status["alerts"]), ""]
+    lines.append("## Lanes")
     for spark, items in status["lanes"].items():
         text = ", ".join(
             f"{i['recipe']} [{i['phase']} {_duration(i['elapsed_s'])}/{_duration(i['limit_s'])}]"
