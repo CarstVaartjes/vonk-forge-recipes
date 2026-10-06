@@ -74,6 +74,10 @@ class FakeRecipe:
     blocked: bool = (
         False  # the Controller holds the application back for ever (admission)
     )
+    blocker_code: str = "run-switch.resource.resident_usage_unknown"
+    blocker_unnamed: bool = (
+        False  # the blocker does not say which assignment it is about
+    )
     fail_load: str | None = None  # status reason of a failed load
     fail_phase: str = "runtime-install"
     fail_download: str | None = None
@@ -266,6 +270,8 @@ class FakeFleet:
                     app["state"] = "succeeded"
                 continue
             pending = [a for a in app["assign"] if not a["resolved"]]
+            if app.get("blocked"):
+                continue  # the Controller holds the whole application back
             if pending and self.supersede and not app.get("successor_of"):
                 self._supersede(app, self.supersede.pop(0))
                 continue
@@ -277,6 +283,9 @@ class FakeFleet:
                             r for r in self.runs if r["alias"] != item["alias"]
                         ]
                         app["reason"] = item["fail"]
+                        app.setdefault("failures", []).append(
+                            {"alias": item["alias"], "reason": item["fail"]}
+                        )
                         app["phase"] = item["phase"]
                     else:
                         for run in self.runs:
@@ -817,6 +826,7 @@ class FakeFleet:
             self.runs = [r for r in self.runs if r["alias"] in desired_aliases]
         app_id = self._id("app")
         assign = []
+        held_by: list[dict[str, str]] = []
         for x in data["assignments"]:
             alias = x["assignment_name"]
             if x["desired_state"] != "running" or alias in running:
@@ -831,6 +841,15 @@ class FakeFleet:
                     "ready": False,
                 }
             )
+            if recipe.blocked:
+                held_by.append(
+                    {
+                        "code": recipe.blocker_code,
+                        "detail": "1 exact active run claim(s) may retain 0..100000000000 bytes",
+                        "severity": "error",
+                        **({} if recipe.blocker_unnamed else {"assignment": alias}),
+                    }
+                )
             assign.append(
                 {
                     "alias": alias,
@@ -867,6 +886,7 @@ class FakeFleet:
                 for x in data["assignments"]
                 if x["assignment_name"] not in running
             ),
+            "held_by": held_by,
             "copy_stalls": any(
                 self.recipes[x["recipe_selector"]].copy_stalls
                 for x in data["assignments"]
@@ -907,15 +927,9 @@ class FakeFleet:
             "current_operation_id": app["id"],
             "progress": {
                 "child_progress": self._child_progress(app),
-                "switch_adapter": {"assignment_failures": []},
+                "switch_adapter": {"assignment_failures": app.get("failures", [])},
                 "blockers": (
-                    [
-                        {
-                            "code": "run-switch.resource.resident_usage_unknown",
-                            "detail": "1 exact active run claim(s) may retain 0..100000000000 bytes",
-                            "severity": "error",
-                        }
-                    ]
+                    app.get("held_by", [])
                     if app.get("blocked") and app["state"] in ("queued", "running")
                     else []
                 ),
