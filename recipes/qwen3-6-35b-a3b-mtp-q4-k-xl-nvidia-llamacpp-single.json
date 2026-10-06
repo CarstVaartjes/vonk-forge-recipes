@@ -141,8 +141,8 @@
     "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/c3c7324c49145814eb2674e1162ece12aaa9d0b4/nvidia/llama-cpp/README.md"
   },
   "release": {
-    "released_at": "2026-10-01",
-    "version": "0.5.1"
+    "released_at": "2026-10-05",
+    "version": "0.6.0"
   },
   "runtime": {
     "arguments": [
