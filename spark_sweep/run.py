@@ -47,6 +47,14 @@ from .vonkctl import Vonkctl, VonkctlError, is_infrastructure, request_key
 CLEAR_TIMEOUT_SECONDS = 900.0
 IDLE_WAIT_SECONDS = 120.0
 CLEARING_ATTEMPTS = 3
+WAIT_EVENT_SECONDS = 60.0  # a wait says what it waits for at least this often
+OWNER_WAIT_SECONDS = (
+    3600.0  # an owner load is waited for this long, then it is an infra event
+)
+STARTUP_WAIT_SECONDS = (
+    1800.0  # a startup step that keeps failing is an infra event after this
+)
+TICK_WATCHDOG_SECONDS = 1800.0  # a pass that has not finished in this long is abandoned
 MAX_REVIEW_DEFERS = 3
 SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
@@ -176,6 +184,10 @@ def alias_for(recipe: Recipe, definitions: Definitions) -> str:
     return profile_alias(definitions.alias(recipe.key) or recipe.slug)
 
 
+class TickStuck(RuntimeError):
+    """The watchdog abandons a pass that has not finished in time."""
+
+
 class Sweep:
     def __init__(
         self,
@@ -231,6 +243,8 @@ class Sweep:
         self.cached_models: set[str] = set()
         self.idle_ticks = 0
         self._assigned: dict[str, str] = {}
+        self._tick_started: float | None = None
+        self._wait_event_at = -1e18
 
     # ------------------------------------------------------------------ setup
 
@@ -458,10 +472,44 @@ class Sweep:
 
     # ------------------------------------------------------------------ tick
 
+    def waiting(self, what: str, since: float, *, watch: bool = True) -> None:
+        """Called on every poll of a wait: save state and status, say what is awaited and since when.
+
+        A wait is never silent: the state file's ``updated_at`` and the status page move on every
+        poll. When the pass the wait is part of exceeds the watchdog limit, the step is abandoned.
+        """
+        now = self.clock.now()
+        self.state.data["waiting"] = {"what": what, "since": since, "at": now}
+        if now - self._wait_event_at >= WAIT_EVENT_SECONDS:
+            self._wait_event_at = now
+            self.state.event(f"waiting for {what} since {int((now - since) // 60)} min")
+        self._save_quietly()
+        try:
+            write_status(self)
+        except Exception as error:  # noqa: BLE001 - a status page never stops a wait
+            self.note_infra("status", f"{type(error).__name__}: {error}")
+        if (
+            watch
+            and self._tick_started is not None
+            and now - self._tick_started > TICK_WATCHDOG_SECONDS
+        ):
+            raise TickStuck(f"the pass is stuck waiting for {what}")
+
+    def done_waiting(self) -> None:
+        self.state.data.pop("waiting", None)
+        self._wait_event_at = -1e18
+
     def tick(self) -> None:
         """One pass. A Controller that stops answering costs a pass, never the sweep."""
+        self._tick_started = self.clock.now()
         try:
             self._tick()
+        except TickStuck as error:
+            self.note_infra("watchdog", str(error))
+            self.state.event(
+                f"watchdog: abandoned a stuck pass, continuing: {str(error)[:150]}"
+            )
+            self._save_quietly()
         except VonkctlError as error:
             self.state.event(f"vonkctl failed, will retry: {str(error)[:150]}")
             self._save_quietly()
@@ -471,6 +519,9 @@ class Sweep:
                 f"unexpected error in a pass, will retry: {type(error).__name__}: {str(error)[:150]}"
             )
             self._save_quietly()
+        finally:
+            self._tick_started = None
+            self.done_waiting()
 
     def _save_quietly(self) -> None:
         try:
@@ -480,15 +531,22 @@ class Sweep:
 
     def _startup(self, step: Callable[[], None]) -> None:
         """A startup step that only reads the fleet: a missing or failing vonkctl waits, never exits."""
+        started = self.clock.now()
         while True:
             try:
                 step()
                 self.clear_infra("startup")
+                self.done_waiting()
                 return
             except (VonkctlError, OSError) as error:
                 self.note_infra("startup", f"{type(error).__name__}: {error}")
                 until = self.state.data["infra"]["startup"]["until"]
-                self.clock.sleep(max(1.0, until - self.clock.now()))
+                self.waiting(
+                    "the Controller to answer at startup", started, watch=False
+                )
+                self.clock.sleep(
+                    max(1.0, min(until - self.clock.now(), self.cfg.poll_seconds * 6))
+                )
 
     def _tick(self) -> None:
         now = self.clock.now()
@@ -612,9 +670,19 @@ class Sweep:
 
     def start_takeover(self) -> None:
         """``run --yes`` means the sweep owns the fleet: clear it once, now, so reviews see idle Sparks."""
+        started = self.clock.now()
         while self.owner_status.paused:  # an owner load is in progress: wait for it
+            if self.clock.now() - started > OWNER_WAIT_SECONDS:
+                self.note_infra(
+                    "owner-wait", f"still paused: {self.owner_status.reason}"
+                )
+                break  # the pass loop keeps honouring the pause; startup moves on
+            self.waiting(
+                f"an owner load ({self.owner_status.reason})", started, watch=False
+            )
             self.clock.sleep(self.cfg.poll_seconds)
             self.owner_status = self.guard.check(self.clock.now())
+        self.done_waiting()
         self._take_over(self.clock.now())
 
     def check_client(self) -> None:
@@ -1621,23 +1689,57 @@ class Sweep:
                 if error.infrastructure(reviewing=True):
                     self.note_infra("review", str(error))
                 return False
-            status = self._await_application(str(dig(submitted, "id")), now)
-            if status != "succeeded":
-                raise RuntimeError(
-                    f"clearing the Sparks did not succeed (last state {status or 'unknown'})"
+            application = str(dig(submitted, "id"))
+            status = self._await_application(application, self.clock.now())
+            if status not in SETTLED:
+                # Bounded: the clearing load never settled. It is ours: cancel it and start over.
+                self.state.event(
+                    f"the clearing load {application} did not settle in time: cancelling it"
                 )
+                self.note_infra(
+                    "clearing",
+                    f"clearing load {application} stuck ({status or 'unknown'})",
+                )
+                try:
+                    self.vk.run(
+                        "profile",
+                        "cancel",
+                        application,
+                        "--yes",
+                        "--detach",
+                        profile=self.cfg.sweep_profile,
+                    )
+                except VonkctlError as error:
+                    self.state.event(
+                        f"could not cancel the clearing load: {str(error)[:150]}"
+                    )
+                self.backoff_until = self.clock.now() + self.cfg.retry_delay
+                return False
+            if status != "succeeded":
+                self.state.event(
+                    f"clearing the Sparks did not succeed (last state {status})"
+                )
+                self.note_infra("clearing", f"clearing load ended {status}")
+                self.backoff_until = self.clock.now() + self.cfg.retry_delay
+                return False
             if self._wait_idle():
+                self.clear_infra("clearing")
                 self.state.data["took_over"] = True
                 return True
             self.state.event(
                 f"the Sparks still run something after clearing load {attempt}: trying again"
             )
-        raise RuntimeError(
-            f"the Sparks still run workloads after {CLEARING_ATTEMPTS} clearing loads: "
-            + ", ".join(sorted({p.alias for p in self.fleet.presences}))
+        # Bounded: read the fleet again. Whatever still runs is reported; the next pass retries.
+        names = ", ".join(sorted({p.alias for p in self.fleet.presences})) or "nothing"
+        self.note_infra(
+            "clearing",
+            f"the Sparks still run workloads after {CLEARING_ATTEMPTS} clearing loads: {names}",
         )
+        self.backoff_until = self.clock.now() + self.cfg.retry_delay
+        return False
 
     def _await_application(self, application_id: str, started: float) -> str:
+        """Wait for an application to settle; bounded, and never silent. Returns its last state."""
         status = ""
         deadline = started + CLEAR_TIMEOUT_SECONDS
         while self.clock.now() < deadline:
@@ -1656,24 +1758,34 @@ class Sweep:
             )
             if replaced is not None and replaced.successor:
                 application_id = replaced.successor
+                self.waiting(f"application {application_id}", started)
+                self.clock.sleep(self.cfg.poll_seconds)
                 continue
             if status in SETTLED:
-                break
+                self.done_waiting()
+                return status
+            self.waiting(
+                f"application {application_id} ({status or 'unknown'})", started
+            )
             self.clock.sleep(self.cfg.poll_seconds)
-        return status
+        return status if status in SETTLED else ""
 
     def _wait_idle(self) -> bool:
         """Did the load really empty the Sparks? Look at the fleet, not at the application."""
-        deadline = self.clock.now() + IDLE_WAIT_SECONDS
+        started = self.clock.now()
+        deadline = started + IDLE_WAIT_SECONDS
         while True:
             try:
                 self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
                 if not self.fleet.presences:
+                    self.done_waiting()
                     return True
             except VonkctlError:
                 pass
             if self.clock.now() >= deadline:
+                self.done_waiting()
                 return False
+            self.waiting("the Sparks to become idle", started)
             self.clock.sleep(self.cfg.poll_seconds)
 
     def _alias(self, recipe: Recipe) -> str:
@@ -1813,8 +1925,13 @@ class Sweep:
             self.state.data["learned"], recipe.engine, model_bytes, self.cfg.timeouts
         )
         names = {s.id: s.name for s in self.sparks()}
+        alias = self._alias(recipe)
+        own = self.state.data["own_aliases"]
+        if alias not in own:
+            own.append(alias)
+            del own[:-500]
         self.state.slots[recipe.key] = {
-            "alias": self._alias(recipe),
+            "alias": alias,
             "node_ids": list(placement.spark_ids),
             "spark_names": [names.get(i, i) for i in placement.spark_ids],
             "phase": "loading",
@@ -1872,12 +1989,20 @@ class Sweep:
         self._rollback(
             blocked, "review blocked: " + ", ".join(p.recipe.key for p in blocked)
         )
-        if not busy and self._foreign_runs():
-            # Someone else's workload is back on the Sparks (the owner loaded a profile):
-            # that is the fit problem, not the recipe's. Clear the fleet again, then retry.
+        foreign, leftover = self._fleet_runs() if not busy else ([], [])
+        if foreign or leftover:
+            # Something is on the Sparks that no lane needs: that is the fit problem, not the
+            # recipe's. Clear the fleet again, then retry. A passed lane's workload keeps
+            # running after its slot is released: that one is ours, not an owner's.
             self.state.data["took_over"] = False
             self.backoff_until = now
-            self.state.event("review blocked by a workload that is not ours: clearing")
+            self.state.event(
+                "review blocked by a workload that is not ours: clearing"
+                if foreign
+                else "review blocked by our own finished workload "
+                + ", ".join(leftover)
+                + ": clearing"
+            )
             return
         for placement in blocked:
             key = placement.recipe.key
@@ -1923,13 +2048,29 @@ class Sweep:
         if self.state.data["infra"].pop(source, None) is not None:
             self.state.event(f"infrastructure problem cleared ({source})")
 
-    def _foreign_runs(self) -> bool:
+    def _own_aliases(self) -> set[str]:
+        """Every workload name the sweep has ever put in its profile (lanes come and go, the
+        workload of a released lane runs until the next load replaces it)."""
+        # (also the names the catalog would give: a state file from before own_aliases existed)
+        return (
+            {str(a) for a in self.state.data["own_aliases"]}
+            | {str(s["alias"]) for s in self.state.slots.values()}
+            | {alias_for(r, self.defs) for r in self.recipes.values()}
+        )
+
+    def _fleet_runs(self) -> tuple[list[str], list[str]]:
+        """What runs on the Sparks that no live lane accounts for: (not ours, ours but released)."""
         try:
             self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
         except VonkctlError:
-            return False
-        ours = {s["alias"] for s in self.state.slots.values()}
-        return any(p.alias not in ours for p in self.fleet.presences)
+            return [], []
+        lanes = {str(s["alias"]) for s in self.state.slots.values()}
+        own = self._own_aliases()
+        names = sorted({p.alias for p in self.fleet.presences} - lanes)
+        return [a for a in names if a not in own], [a for a in names if a in own]
+
+    def _foreign_runs(self) -> bool:
+        return bool(self._fleet_runs()[0])
 
     # ---------------------------------------------------------- end of a run
 
