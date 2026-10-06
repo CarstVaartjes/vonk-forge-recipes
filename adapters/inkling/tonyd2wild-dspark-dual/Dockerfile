@@ -1,7 +1,7 @@
 FROM docker.io/eugr/spark-vllm@sha256:adc80460cea286f1f9bf96d399530096b491c27d8a153558f961a90fb7b655f0
 
 LABEL org.opencontainers.image.source="https://github.com/eugr/spark-vllm-docker" \
-      org.opencontainers.image.revision="bb6ee761643f45eb84b14f7e39c41d7538d53890" \
+      org.opencontainers.image.revision="73f01ceea6369b8d4451462f094c20cb10559c11" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
 # tonyd2wild's Inkling DSpark recipe runs eugr's published image (digest above, built from
