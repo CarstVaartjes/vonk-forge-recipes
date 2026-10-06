@@ -12,14 +12,8 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
-import stat
-import subprocess
-import sys
-import tempfile
 import unittest
 from pathlib import Path
-from typing import ClassVar
 
 ROOT = Path(__file__).resolve().parents[1]
 NVIDIA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual"
@@ -46,7 +40,7 @@ def context_files(recipe: dict) -> list[Path]:
 
 class RayVllmLauncherTest(unittest.TestCase):
     def test_the_class_is_not_empty(self) -> None:
-        self.assertIn(NVIDIA_405B, {slug for slug, _ in ray_vllm_recipes()})
+        self.assertTrue(ray_vllm_recipes())
 
     def test_every_ray_recipe_ships_a_launcher_that_consumes_the_placement_options(
         self,
@@ -84,80 +78,28 @@ class RayVllmLauncherTest(unittest.TestCase):
         self.assertGreaterEqual(arguments["max-num-batched-tokens"]["value"], context)
 
 
-class Llama405bWrapperTest(unittest.TestCase):
-    wrapper = ROOT / "adapters/nvidia" / NVIDIA_405B / "vllm-wrapper.py"
+class Llama405bNativeLaunchTest(unittest.TestCase):
+    """The NGC vLLM image ships no Ray, so the 405B pair must not ask for it.
 
-    def run_wrapper(self, arguments: list[str], environment: dict[str, str]):
-        with tempfile.TemporaryDirectory() as directory:
-            bin_dir = Path(directory)
-            log = bin_dir / "calls.log"
-            for name in ("ray", "vllm"):
-                stub = bin_dir / name
-                stub.write_text(f'#!/bin/sh\necho "{name} $@" >> "{log}"\n')
-                stub.chmod(stub.stat().st_mode | stat.S_IEXEC)
-            env = {
-                "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
-                **environment,
-            }
-            result = subprocess.run(
-                [sys.executable, str(self.wrapper), *arguments],
-                env=env,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            calls = log.read_text().splitlines() if log.exists() else []
-            return result, calls
+    The image's layers hold no ray package and no ray executable; a recipe that
+    declares the Ray backend there fails its build-time image check (and, before
+    that check existed, died at launch).  The native multi-node launch needs no
+    Ray: the platform's --nnodes/--node-rank options go straight to vLLM.
+    """
 
-    placement: ClassVar[dict[str, str]] = {
-        "VONK_LOCAL_ADDR": "10.0.0.2",
-        "VONK_MASTER_ADDR": "10.0.0.1",
-        "VONK_MASTER_PORT": "6379",
-    }
+    def test_it_uses_the_native_multi_node_launch(self) -> None:
+        recipe = json.loads((ROOT / "recipes" / f"{NVIDIA_405B}.json").read_text())
+        self.assertEqual(recipe["topology"]["parallelism"]["backend"], "mp")
+        self.assertNotIn(NVIDIA_405B, {slug for slug, _ in ray_vllm_recipes()})
 
-    def test_a_worker_joins_the_head_instead_of_serving(self) -> None:
-        result, calls = self.run_wrapper(
-            [
-                "serve",
-                "/models",
-                "--distributed-executor-backend",
-                "ray",
-                "--nnodes",
-                "2",
-                "--node-rank",
-                "1",
-                "--headless",
-            ],
-            self.placement,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(len(calls), 1)
-        self.assertTrue(calls[0].startswith("ray start --address 10.0.0.1:6379"))
-        self.assertTrue(all(not call.startswith("vllm") for call in calls))
-
-    def test_a_launch_without_the_placement_is_refused(self) -> None:
-        result, calls = self.run_wrapper(
-            [
-                "serve",
-                "/models",
-                "--distributed-executor-backend",
-                "ray",
-                "--nnodes",
-                "2",
-                "--node-rank",
-                "0",
-            ],
-            {},
-        )
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(calls, [])
-
-    def test_the_wrapper_is_executable_and_shipped_as_the_entrypoint(self) -> None:
-        dockerfile = (self.wrapper.parent / "Dockerfile").read_text()
+    def test_its_image_check_does_not_require_ray(self) -> None:
+        context = ROOT / "adapters/nvidia" / NVIDIA_405B
+        self.assertNotIn("ray", (context / "verify-runtime.py").read_text())
         self.assertIn(
-            "COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm", dockerfile
+            "COPY --chmod=0755 vllm /opt/vonk/bin/vllm",
+            (context / "Dockerfile").read_text(),
         )
-        self.assertTrue(shutil.which("python3"))
+        self.assertTrue(os.access(context / "vllm", os.X_OK))
 
 
 if __name__ == "__main__":
