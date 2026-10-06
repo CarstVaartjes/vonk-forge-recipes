@@ -1,11 +1,12 @@
 {
   "dependencies": {
-    "base": {
-      "commit": "17c73e189f5e6a5304cda7ea37f086f9c49b4788",
-      "datasource": "git-ref",
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:a503c88acdcfaab6231cf0089d747dac794cb5a7d1b121e566b180f35f8b02c6",
       "kind": "tag",
-      "ref": "v0.6.1",
-      "repo": "ashhart/TensorFold"
+      "overridden": "the kit derives the tag it pulls (scripts/prepare.sh: $GHCR_IMAGE:<TF_VERSION>-<patches hash>, scripts/config.sh patches_hash) instead of writing it in a file, and the kit pins no digest; v0.6.1-f8a0b4cb702b is that tag for patches/*.patch plus patches/languages/*.patch at the kit commit (sha256 of their concatenation, first 12 hex digits; the image's tf.patches label agrees), the patch set the recipe offers its draft-language options on",
+      "ref": "v0.6.1-f8a0b4cb702b",
+      "repo": "ghcr.io/miaai-lab/qwen3.8-flash-next-single-dgx-spark-tensorfold"
     }
   },
   "kit": {

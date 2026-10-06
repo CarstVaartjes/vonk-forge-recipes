@@ -1,19 +1,24 @@
 {
   "kit": {
     "dependencies": {
-      "base": {
-        "datasource": "git-ref",
+      "image": {
+        "datasource": "oci-image",
         "file": "scripts/config.sh",
-        "pattern": "^TF_VERSION=\"\\$\\{TF_VERSION:-(?P<version>[^}\"]+)\\}\"",
-        "repo": "ashhart/TensorFold"
+        "override": {
+          "reason": "the kit derives the tag it pulls (scripts/prepare.sh: $GHCR_IMAGE:<TF_VERSION>-<patches hash>, scripts/config.sh patches_hash) instead of writing it in a file, and the kit pins no digest; v0.6.1-f8a0b4cb702b is that tag for patches/*.patch plus patches/languages/*.patch at the kit commit (sha256 of their concatenation, first 12 hex digits; the image's tf.patches label agrees), the patch set the recipe offers its draft-language options on",
+          "ref": "v0.6.1-f8a0b4cb702b"
+        },
+        "pattern": "^TF_VERSION=\\\"\\$\\{TF_VERSION:-(?P<version>[^}\\\"]+)\\}\\\"",
+        "repo_pattern": "^GHCR_IMAGE=\\\"\\$\\{GHCR_IMAGE:-(?P<repo>[^}\\\"\\s]+)\\}\\\"$"
       }
     }
   },
   "ours": [
     "licenses/",
-    "patches/",
-    "requirements.lock",
-    "tensorfold-serve",
-    "vendor/"
-  ]
+    "tensorfold-serve"
+  ],
+  "source": {
+    "commit": "4c0dea8ebe93a1d445d6a716b5a38995ff6e9362",
+    "repo": "MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold"
+  }
 }
