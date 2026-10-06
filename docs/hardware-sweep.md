@@ -52,12 +52,32 @@ would therefore stop the other lane. The sweep uses **one profile** (default
 `profile remove <old>` plus `profile add <new> --spark X --as <alias> --state
 running`, then `profile load --review`. Before loading, the review must show
 no `stop` effect for a lane that is still running; then `profile load --yes
---detach`. Applications are serialised (one load in flight), while the other
-lane's smoke test runs beside it. The planner keeps unchanged assignments, so
-a swap never restarts the other lane. Duals use both Sparks and run as a
+--detach`. A fresh whole-fleet application adopts equivalent unchanged loading
+assignments and fills a free Spark while the other lane copies or smokes. The
+review must bind each borrowed application, plan digest, ordinal and complete
+assignment/node scope; a missing binding defers the new admission. A swap never
+restarts the other lane. Duals use both Sparks and run as a
 window (several cached duals back to back) rather than interleaved with
-singles. Two singles share a Spark when their declared `memory_bytes` plus the
-reserve fit, ports and aliases differ, and the review agrees.
+singles. Each single recipe owns one Spark; dual recipes are scheduled only when
+both Sparks are free.
+
+In-flight applications are persisted in a `loads` map keyed by request UUID.
+Old state files with one `load` are adopted without changing that UUID. Admission
+and progress replies in `observing` or `backoff` keep being polled. Operator waits
+and removal gates end the owned load and requeue its recipes without blame.
+Downloads and lane observations have a 24-hour total budget; an unreadable or
+stalled download has a one-hour observation budget. Budget exhaustion releases
+sweep bookkeeping and schedules a fresh attempt after cooldown.
+
+Concurrent accepted snapshots use the Controller's bound whole-assignment
+adoption contract (`effects.adopted`), while original applications keep their
+children and progress. The sweep observes each original request independently.
+An application whose own lane has ended still retains its observation receipt
+while an adopted lane is active: cancelling that aggregate application would
+also stop its adopted effects. These observer receipts never occupy a Spark or
+prevent scheduling. This coordinator must run after the companion Controller
+adoption change is deployed; without its preview bindings, it safely defers an
+overlapping load.
 
 **Aliases.** `--as` is the assignment name, the lane's client-facing model name.
 The profile contract takes a lowercase identifier (`ENDPOINT_ALIAS_PATTERN` in
@@ -160,12 +180,13 @@ certificate).
   `container-download`, or a copying operation) it does not count, and the learned
   timings leave the copy out. During a copy only a lack of progress fails the
   load: no change in the completed bytes for `--copy-stall-minutes` (default 10),
-  which is class `copy-stalled`, retried once and requeued on a platform change.
+  which is class `copy-stalled`, deferred and requeued on a platform change or the
+  watch cooldown.
   Load timeouts recorded before this rule (copy time counted) are retried once.
 * While the Controller holds the application back with error blockers (capacity, stale
   inventory, a phase it keeps retrying; `progress.blockers`), those seconds are not load time
-  either, and a hold that lasts `--blocked-minutes` (default 15) fails the lane as class
-  `admission-stalled` (phase start). It is the platform's, so a release change requeues it; it
+  either, and a hold that lasts `--blocked-minutes` (default 15) defers the lane as class
+  `admission-stalled` (phase start). A release change or watch cooldown requeues it; it
   is never recorded as an engine `load.timeout`.
 * A restarted sweep adopts a load it submitted itself: the saved lane slot and the
   saved application are picked up, nothing is cancelled or placed again, and the
@@ -173,8 +194,9 @@ certificate).
 * Failures carry a phase (download, review, build, install, start, readiness,
   smoke, timeout) and a class (network, oom, capacity, build-policy,
   model-integrity, …). Only network-like failures are retried, once. A
-  model-integrity download failure fails the lead; its siblings are recorded as
-  inheriting it, not attempted. Failures with the same normalised signature form
+  typed model-integrity download failure fails the current attempt; every sibling
+  receives its own attempt and evidence. Unknown platform outcomes are deferred.
+  Failures with the same normalised signature form
   one cluster in the report, so a fix lands for all of them.
 * Each result is bound to the recipe document digest (`content_sha256`). When a
   recipe's digest changes (the hourly refresh, a fix), a failed recipe is
@@ -279,15 +301,16 @@ download progress, pin edits), so the real cadence is 15-30 seconds, not
 `--poll-seconds`.
 
 The tests use a fake `vonkctl` modelled on the Controller's OpenAPI schemas and
-on real library and fleet output. Not yet seen on a real fleet: that a load
-submitted while another lane's workload is up reports `keep` for it; that the
+on real library and fleet output. Bound adoption links and staggered lanes are
+covered by the fake; their physical acceptance still requires the companion
+Controller deployment. Also not yet seen on a real fleet: that the
 Controller accepts many `--state installed` assignments in the pin profile; and
 the exact gateway `api_base` and key handling (the key is sent as
 `Authorization: Bearer`, the usual OpenAI-compatible form; the platform's own
 campaign smoke sends no header).
 
-Not built: Spark-side staging of the next recipe ahead of its load (it would
-rely on the same unverified concurrent-load behaviour), submitting the reviewed
+Not built: Spark-side staging of a queued recipe before its lane is free,
+submitting the reviewed
 job fixtures for generation recipes, and reading the NAS's free space (not
 exposed).
 
@@ -302,3 +325,15 @@ cluster. The downloaded bundle path is `evidence_bundle`. A missing or unspawnab
 `vonkctl` (for example during `vonkctl update --apply`) is infrastructure: the sweep backs
 off and retries. An unexpected exception in a pass is logged as an infrastructure event
 and the loop continues; only an explicit stop, SIGINT or SIGTERM ends it.
+
+### Recovery outcomes
+
+A typed recipe-data failure or failed output assertion records `failed`. Unknown
+Controller, transport, HTTP and process outcomes record `deferred` with evidence;
+they never count as a recipe defect or inherit a sibling defect. `--watch SECONDS`
+keeps the coordinator alive after a pass and retests deferred/failed results after
+24 hours. With `--watch 0` (the default) one pass ends after its owned attempts
+settle. A stuck owner intent ends the sweep after its observation budget, leaving
+its owned lanes released for a new operation. Unreadable state is preserved beside
+`state.json` and disposable bookkeeping is rebuilt. Client skew applies the
+accepted CLI update automatically and retries a failed update with backoff.

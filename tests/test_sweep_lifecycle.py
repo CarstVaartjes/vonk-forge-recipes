@@ -95,7 +95,7 @@ def test_ctrl_c_cancels_the_lane_load_and_requeues(
     )
     state = json.loads((tmp_path / "state.json").read_text())
     assert state["recipes"]["vonk-forge/a"]["status"] == "pending"  # not blamed
-    assert state["slots"] == {} and state["load"] is None
+    assert state["slots"] == {} and state["loads"] == {}
     assert fleet.profiles[10]["assignments"] == []
 
 
@@ -146,7 +146,13 @@ def test_a_changed_recipe_document_requeues_only_that_recipe(
 ) -> None:
     recipes = [
         FakeRecipe("good"),
-        FakeRecipe("bad", ("m2",), fail_load="driver mismatch", fail_phase="start"),
+        FakeRecipe(
+            "bad",
+            ("m2",),
+            fail_load="driver mismatch",
+            fail_phase="start",
+            fail_code="recipe.runtime_exit",
+        ),
         FakeRecipe("same", ("m3",)),
     ]
     models = [FakeModel("m1"), FakeModel("m2"), FakeModel("m3")]
@@ -198,7 +204,13 @@ def test_the_status_files_describe_lanes_queue_throughput_and_clusters(
 ) -> None:
     recipes = [
         FakeRecipe("a", ("m1",)),
-        FakeRecipe("b", ("m2",), fail_load="driver mismatch", fail_phase="start"),
+        FakeRecipe(
+            "b",
+            ("m2",),
+            fail_load="driver mismatch",
+            fail_phase="start",
+            fail_code="recipe.runtime_exit",
+        ),
     ]
     sweep, _, clock = make_sweep(
         tmp_path,

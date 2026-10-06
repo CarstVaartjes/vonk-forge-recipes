@@ -8,6 +8,9 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 from spark_sweep.policy import TimeoutPolicy
 from spark_sweep.vonkctl import Reply, is_infrastructure
 
@@ -122,5 +125,5 @@ def test_a_genuine_not_serving_for_the_full_observed_limit_still_fails(
         fleet, clock, "controller.transport_unavailable", "down", start=100, length=2000
     )
     entry = _run(sweep, fleet)
-    assert (entry["status"], entry["failure_class"]) == ("failed", "timeout")
+    assert (entry["status"], entry["failure_class"]) == ("deferred", "timeout")
     assert entry["phase"] == "timeout"

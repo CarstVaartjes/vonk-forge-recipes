@@ -60,18 +60,18 @@ def _error(code: str, detail: str = "x", error_type: str = "control_api") -> Rep
         (_error("controller.transport_unavailable"), False, True),
         (_error("controller.unavailable", "control API unavailable"), False, True),
         (_error("controller.invalid_request", "bad request"), True, True),
-        (_error("controller.invalid_request", "bad request"), False, False),
+        (_error("controller.invalid_request", "bad request"), False, True),
         (_error("", "unknown command", error_type="arguments"), False, True),
-        # The Controller refusing *this recipe* with a structured platform reason is the recipe's.
+        # Controller error prose cannot attribute infrastructure failure to a recipe.
         (
             _error(
                 "controller.unavailable",
                 "dockerfile.heredoc_forbidden: Dockerfile heredocs are not accepted",
             ),
             False,
-            False,
+            True,
         ),
-        (_error("recipe.not_found", "no such recipe"), True, False),
+        (_error("recipe.not_found", "no such recipe"), True, True),
         (Reply((), 124, None, "timed out"), False, True),
     ],
 )
@@ -197,21 +197,16 @@ def test_a_recipe_specific_refusal_still_fails_the_recipe(
 # -- the client version ----------------------------------------------------------------------
 
 
-def test_a_vonkctl_that_is_not_the_accepted_release_refuses_to_start(
+def test_a_skewed_client_updates_and_admits_work(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
     )
     fleet.accepted_version = "1.1"
-    with pytest.raises(
-        RuntimeError,
-        match=r"vonkctl 1\.0 differs from the accepted release 1\.1: run `vonkctl update --apply`",
-    ):
-        sweep.run()
-    assert not [
-        c for _, c in fleet.calls if c[0] == "profile"
-    ]  # nothing touched the fleet
+    assert sweep.run() == 0
+    assert sweep.state.data["client"]["version"] == "1.1"
+    assert _entry(sweep, "a")["status"] == "passed"
 
 
 def test_version_skew_can_be_accepted_loudly(tmp_path: Path, gateway: Gateway) -> None:
@@ -244,7 +239,7 @@ def test_an_unanswered_version_check_warns_but_does_not_block(
     )
 
 
-def test_the_cli_names_the_fix_for_a_skewed_client(
+def test_the_cli_updates_a_skewed_client(
     tmp_path: Path, gateway: Gateway, capsys
 ) -> None:
     from sweep_fakes import make_definitions
@@ -262,7 +257,7 @@ def test_the_cli_names_the_fix_for_a_skewed_client(
         clock=clock,
         definitions=make_definitions(recipes),
     )
-    assert code == 2 and "vonkctl update --apply" in capsys.readouterr().err
+    assert code == 0 and fleet.client_build["version"] == "1.1"
 
 
 # -- one sweep per state directory -------------------------------------------------------------
@@ -368,15 +363,27 @@ def test_sigint_kills_a_blocked_vonkctl_and_returns_promptly(tmp_path: Path) -> 
         tmp_path,
         f"import os, time\nopen({str(pidfile)!r}, 'w').write(str(os.getpid()))\ntime.sleep(60)\n",
     )
-    threading.Timer(0.5, lambda: os.kill(os.getpid(), signal.SIGINT)).start()
-    started = time.monotonic()
+    interrupted_at: list[float] = []
+
+    def interrupt_started_child() -> None:
+        deadline = time.monotonic() + 10
+        while not pidfile.exists() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        interrupted_at.append(time.monotonic())
+        os.kill(os.getpid(), signal.SIGINT)
+
+    interrupter = threading.Thread(target=interrupt_started_child)
+    interrupter.start()
     with pytest.raises(KeyboardInterrupt):
         subprocess_runner([command], 60)
-    assert time.monotonic() - started < 5
+    interrupter.join(timeout=1)
+    assert interrupted_at and time.monotonic() - interrupted_at[0] < 5
     time.sleep(0.2)
     assert not _alive(
         int(pidfile.read_text())
     )  # the child did not outlive the interrupt
+    code, stdout, _ = subprocess_runner([sys.executable, "-c", "print('fresh')"], 5)
+    assert code == 0 and stdout.strip() == "fresh"
 
 
 def test_a_vonkctl_that_ignores_sigint_and_hangs_is_killed_at_the_timeout(

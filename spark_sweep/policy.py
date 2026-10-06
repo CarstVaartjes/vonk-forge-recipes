@@ -129,7 +129,9 @@ def plan_groups(
     def cost(digests: frozenset[str]) -> int:
         return sum(sizes.get(digest, 0) for digest in digests - have)
 
-    while unclaimed:
+    for _ in range(len(unclaimed)):
+        if not unclaimed:
+            break
         own_by_set: dict[frozenset[str], list[Recipe]] = defaultdict(list)
         for recipe in unclaimed.values():
             own_by_set[recipe.model_set].append(recipe)
@@ -242,6 +244,8 @@ def never_fits(recipe: Recipe, capacity: int, reserve: int) -> bool:
 
 
 def _fits(recipe: Recipe, spark: SparkBin, reserve: int, alias: str) -> bool:
+    if spark.used or spark.aliases:
+        return False  # a single recipe owns its Spark for the entire attempt
     if alias in spark.aliases:
         return False
     if spark.ports & set(recipe.ports):
@@ -257,15 +261,19 @@ def place_singles(
     reserve: int,
     alias_of: Callable[[Recipe], str],
 ) -> list[Placement]:
-    """First-fit-decreasing over the head of the queue; every Spark is a lane.
+    """One single recipe per free Spark, largest first within the queue window.
 
-    ``bins`` carry what already runs. A recipe goes to the emptiest Spark it
-    fits (declared ``memory_bytes`` plus reserve, disjoint ports and aliases),
-    so two lanes fill before any Spark takes a second recipe. ``profile load
-    --review`` still has the last word.
+    Memory fit is advisory; the Controller's review remains authoritative.
+    A busy Spark never takes a second recipe, even with spare declared memory.
     """
-    window = list(candidates[: max(4, 2 * len(bins))])
-    window.sort(key=lambda r: -r.memory_bytes)  # stable: queue order breaks ties
+    # A queue window containing only duals or oversized singles must not hide
+    # a ready single that fits the free Spark farther down the queue.
+    singles = [recipe for recipe in candidates if recipe.node_count == 1]
+    head = max(4, 2 * len(bins))
+    window = sorted(singles[:head], key=lambda r: -r.memory_bytes)
+    window.extend(
+        singles[head:]
+    )  # keep scanning while any free Spark can run ready work
     state = {b.id: b for b in bins}
     placed: list[Placement] = []
     for recipe in window:
@@ -375,10 +383,10 @@ DISTRIBUTION_PHASES = frozenset(
 )
 _COPYING = re.compile(r"cop(y|ying)|transfer|distribut|download|sync", re.IGNORECASE)
 # Bumped when the load-timeout rules change; results from older rules may be retried once.
-LOAD_RULES = 2
+LOAD_RULES = 3
 # Bumped when the smoke assertions change what fails a recipe. 2: a model's answer
 # (the exact value) is a quality note, only a functional miss fails a recipe.
-SMOKE_RULES = 2
+SMOKE_RULES = 3
 
 
 @dataclass(frozen=True)
@@ -420,42 +428,23 @@ _CHILD_PHASE = {
     "final_verify": "start",
     "verify": "start",
 }
-_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
-    (
-        "oom",
-        re.compile(
-            r"out of memory|\boom\b|exit(ed)? (with )?(code|status) 137|oom-?kill",
-            re.IGNORECASE,
-        ),
-    ),
-    (
-        "build-policy",
-        re.compile(r"dockerfile\.|heredoc|build_source|source policy", re.IGNORECASE),
-    ),
-    (
-        "capacity",
-        re.compile(
-            r"storage\.|insufficient|resource\.|no space|free_space|shortfall|disk full",
-            re.IGNORECASE,
-        ),
-    ),
-    (
-        "model-integrity",
-        re.compile(
-            r"digest mismatch|sha256 mismatch|checksum|corrupt|safetensors|unsupported (model )?architecture"
-            r"|invalid model|incompatible checkpoint|state_dict|no such model file",
-            re.IGNORECASE,
-        ),
-    ),
-    (
-        "network",
-        re.compile(
-            r"timed out|timeout|connection (reset|refused|aborted)|temporar|unavailable|\b50[234]\b|\b429\b"
-            r"|rate limit|name resolution|dns|ssl|network|eof occurred|broken pipe",
-            re.IGNORECASE,
-        ),
-    ),
-)
+# Attribution follows typed codes; platform detail text is evidence only.
+RECIPE_FAILURE_CODES = {
+    "recipe.invalid_definition": "build-policy",
+    "recipe.invalid_document": "build-policy",
+    "recipe.invalid_option": "build-policy",
+    "recipe.digest_mismatch": "model-integrity",
+    "model.digest_mismatch": "model-integrity",
+    "dockerfile.heredoc_forbidden": "build-policy",
+    "recipe.runtime_oom": "oom",
+    "recipe.runtime_exit": "start",
+}
+_CODE_CLASSES = {
+    **RECIPE_FAILURE_CODES,
+    "run-switch.resource.insufficient_capacity": "capacity",
+    "storage.insufficient_capacity": "capacity",
+    "controller.transport_timeout": "network",
+}
 _FIXED_CLASS = {"timeout": "timeout", "readiness": "readiness"}
 # Failures that say something about the recipe or its model, not the platform: a new Controller
 # release does not change them. Everything else (install, start, publication, review, admission,
@@ -671,14 +660,11 @@ def classify(
     ``klass`` fixes the class when the caller already knows it (an assertion
     failure quotes model output, which must not be pattern-matched).
     """
-    text = f"{code} {detail}"
     if (
         phase in _FIXED_CLASS
     ):  # our own wording, not the platform's: never pattern-match it
         klass = klass or _FIXED_CLASS[phase]
-    klass = klass or next(
-        (name for name, pattern in _RULES if pattern.search(text)), ""
-    )
+    klass = klass or _CODE_CLASSES.get(code, "")
     if phase == "smoke" and klass == "network":
         klass = "smoke-timeout"
     if not klass:
@@ -733,14 +719,10 @@ def cluster(entries: Mapping[str, Mapping[str, Any]]) -> list[Cluster]:
 
 def requeue_reason(entry: Mapping[str, Any] | None, recipe: Recipe) -> str | None:
     """Why a recorded result no longer stands: the recipe document changed under it."""
-    if not entry or entry.get("status") not in ("passed", "failed"):
+    if not entry or entry.get("status") not in ("passed", "failed", "deferred"):
         return None
     if entry.get("content_sha256") and entry["content_sha256"] != recipe.content_sha256:
-        return (
-            "failed-on-older-revision"
-            if entry["status"] == "failed"
-            else "passed-on-older-revision"
-        )
+        return f"{entry['status']}-on-older-revision"
     return None
 
 
