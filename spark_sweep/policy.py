@@ -719,14 +719,10 @@ def cluster(entries: Mapping[str, Mapping[str, Any]]) -> list[Cluster]:
 
 def requeue_reason(entry: Mapping[str, Any] | None, recipe: Recipe) -> str | None:
     """Why a recorded result no longer stands: the recipe document changed under it."""
-    if not entry or entry.get("status") not in ("passed", "failed"):
+    if not entry or entry.get("status") not in ("passed", "failed", "deferred"):
         return None
     if entry.get("content_sha256") and entry["content_sha256"] != recipe.content_sha256:
-        return (
-            "failed-on-older-revision"
-            if entry["status"] == "failed"
-            else "passed-on-older-revision"
-        )
+        return f"{entry['status']}-on-older-revision"
     return None
 
 
