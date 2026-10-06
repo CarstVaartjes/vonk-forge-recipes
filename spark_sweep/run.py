@@ -982,6 +982,7 @@ class Sweep:
             lock.release()
 
     def _run(self) -> int:
+        self.state.data.pop("end", None)
         stuck = 0
         try:
             self.check_client()

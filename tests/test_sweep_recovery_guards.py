@@ -442,6 +442,14 @@ def test_stuck_owner_ends_with_owned_holds_released(tmp_path: Path) -> None:
     assert sweep.run() == 0
     assert sweep.state.data["end"]["code"] == "sweep.owner_intent_superseded"
     assert not sweep.state.slots and not sweep.state.data["loads"]
+    old_requests = {item["request_key"] for item in sweep.state.data["own_loads"]}
+    sweep.owner_status = OwnerStatus()
+    assert sweep.run() == 0
+    assert "end" not in sweep.state.data
+    assert any(
+        item["request_key"] not in old_requests
+        for item in sweep.state.data["own_loads"]
+    )
 
 
 def test_removed_catalog_recipe_releases_lane_and_fresh_recipe_is_admitted(
