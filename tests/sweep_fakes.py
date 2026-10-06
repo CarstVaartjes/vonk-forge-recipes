@@ -846,8 +846,33 @@ class FakeFleet:
         held_by: list[dict[str, str]] = []
         for x in data["assignments"]:
             alias = x["assignment_name"]
-            if x["desired_state"] != "running" or alias in running:
+            if x["desired_state"] != "running":
                 continue
+            existing = running.get(alias)
+            exact = (
+                existing is not None
+                and existing["recipe"] == x["recipe_selector"]
+                and existing["node_ids"] == [names[s] for s in x["spark_ids"]]
+            )
+            if exact:
+                if not existing["ready"]:
+                    # The new whole-fleet snapshot waits on the unchanged child;
+                    # the original application keeps owning and reporting it.
+                    child = next(
+                        (
+                            item
+                            for app in reversed(list(self.apps.values()))
+                            if app["state"] in ("queued", "running")
+                            for item in app["assign"]
+                            if item["alias"] == alias and not item["resolved"]
+                        ),
+                        None,
+                    )
+                    if child is not None:
+                        assign.append(child)
+                continue
+            if existing is not None:
+                self.runs = [run for run in self.runs if run["alias"] != alias]
             recipe = self.recipes[x["recipe_selector"]]
             self.runs.append(
                 {
