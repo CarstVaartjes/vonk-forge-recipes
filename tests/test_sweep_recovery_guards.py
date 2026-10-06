@@ -359,7 +359,17 @@ def test_unknown_load_receipt_is_observed_without_rolling_back_accepted_work(
         gateway.stop()
 
 
-@pytest.mark.parametrize("contents", ["{broken", "[]", '{"schema": 1, "slots": []}'])
+@pytest.mark.parametrize(
+    "contents",
+    [
+        "{broken",
+        "[]",
+        '{"schema": 1, "slots": []}',
+        '{"schema": 1, "slots": {"bad": "broken"}}',
+        '{"schema": 1, "load": "broken"}',
+        '{"schema": 1, "owner": {"baseline": []}}',
+    ],
+)
 def test_unreadable_state_is_preserved_and_fresh_request_can_be_recorded(
     tmp_path: Path, contents: str
 ) -> None:

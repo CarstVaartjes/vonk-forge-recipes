@@ -143,7 +143,42 @@ class State:
                     and not isinstance(data[name], type(fresh))
                 ):
                     raise ValueError(f"unreadable state field: {name}")
-        except (ValueError, UnicodeError) as error:
+            legacy = data.get("load")
+            if legacy is not None and (
+                not isinstance(legacy, dict)
+                or not isinstance(legacy.get("request_key"), str)
+            ):
+                raise ValueError("unreadable legacy request")
+            for name in ("slots", "recipes", "downloads", "loads", "infra"):
+                if any(
+                    not isinstance(value, dict) for value in data.get(name, {}).values()
+                ):
+                    raise ValueError(f"unreadable state entry: {name}")
+            for slot in data.get("slots", {}).values():
+                if (
+                    slot.get("phase") not in ("loading", "smoking", "finished")
+                    or not isinstance(slot.get("request_key"), str)
+                    or not isinstance(slot.get("alias"), str)
+                    or not isinstance(slot.get("node_ids"), list)
+                    or any(not isinstance(node, str) for node in slot["node_ids"])
+                    or not isinstance(slot.get("started_at"), (int, float))
+                ):
+                    raise ValueError("unreadable lane record")
+            owner = data.get("owner", {})
+            if not isinstance(owner.get("baseline", {}), dict):
+                raise TypeError("unreadable owner observations")
+            if any(
+                not isinstance(value, dict)
+                for value in owner.get("baseline", {}).values()
+            ):
+                raise ValueError("unreadable owner observation")
+            if any(
+                not isinstance(value, dict)
+                or not isinstance(value.get("request_key"), str)
+                for value in data.get("own_loads", [])
+            ):
+                raise ValueError("unreadable owned request")
+        except (TypeError, ValueError, UnicodeError) as error:
             # Preserve unreadable bytes, then rebuild disposable sweep bookkeeping.
             backup = path.with_name(f"{path.name}.unreadable-{uuid.uuid4().hex}")
             path.replace(backup)
