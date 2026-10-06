@@ -9,9 +9,9 @@
     },
     "image": {
       "datasource": "oci-image",
-      "digest": "sha256:a8067cd7e14c14fa83d1dbed60261428f6d1737cec4554445573354af040dd7c",
+      "digest": "sha256:cbb4b3c66273e2965dd40a7227e7a5243db333fe250113fb3987462ad4f12588",
       "kind": "digest",
-      "ref": "sha256:a8067cd7e14c14fa83d1dbed60261428f6d1737cec4554445573354af040dd7c",
+      "ref": "sha256:cbb4b3c66273e2965dd40a7227e7a5243db333fe250113fb3987462ad4f12588",
       "repo": "ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold"
     },
     "model": {
@@ -23,7 +23,7 @@
     }
   },
   "kit": {
-    "commit": "0cbe026146852df68516aa4482b6376f69cca1b9",
+    "commit": "33b50fde06fd7ea604cbc6a663880068ab1e2ee4",
     "repo": "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold"
   }
 }
