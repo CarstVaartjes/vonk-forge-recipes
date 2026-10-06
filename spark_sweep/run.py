@@ -398,6 +398,29 @@ class Sweep:
         except VonkctlError:
             if not self.fleet.sparks:
                 return
+        if self.recipe_list.passes and not self.recipe_list.in_pass:
+            # A complete authoritative catalog pass can retire disappeared work.
+            for key in set(self.state.recipes) - self.recipes.keys():
+                slot = self.state.slots.get(key)
+                if slot and slot["phase"] != "finished":
+                    future = self.futures.pop(key, None)
+                    if future:
+                        future.cancel()
+                    self._record_failure(
+                        key,
+                        policy.classify(
+                            "catalog",
+                            "catalog.recipe_removed",
+                            "recipe is absent from the complete catalog",
+                        ),
+                        None,
+                        retryable=False,
+                    )
+                if key not in self.state.slots:
+                    self.state.recipes.pop(key, None)
+                record = self.state.downloads.pop(key, None)
+                if record and record.get("state") not in SETTLED:
+                    self.prefetcher._retire(key, record, "catalog.recipe_removed")
         self.sizes = policy.build_sizes(self.recipes.values(), self.models)
         usable = len(self.sparks())
         for recipe in list(self.recipes.values()):

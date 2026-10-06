@@ -24,6 +24,7 @@ from typing import Any
 
 SCHEMA = 1
 EVENT_LIMIT = 60
+RESULT_LIMIT = 2000
 TERMINAL = frozenset({"passed", "failed", "deferred", "skipped"})
 
 
@@ -222,6 +223,19 @@ class ResultsLog:
             stream.write(json.dumps(record, sort_keys=True, default=str) + "\n")
             stream.flush()
             os.fsync(stream.fileno())
+        # Retain bounded current evidence; results are bookkeeping, not a permanent audit.
+        if self.path.stat().st_size > 4 * 1024 * 1024:
+            with self.path.open("rb") as stream:
+                stream.seek(max(0, self.path.stat().st_size - 4 * 1024 * 1024))
+                tail = stream.read().decode("utf-8", "replace").splitlines()
+            valid = []
+            for line in tail[-RESULT_LIMIT:]:
+                try:
+                    json.loads(line)
+                except ValueError:
+                    continue
+                valid.append(line)
+            write_atomic(self.path, "\n".join(valid) + "\n")
         return record
 
     def entries(self) -> list[dict[str, Any]]:

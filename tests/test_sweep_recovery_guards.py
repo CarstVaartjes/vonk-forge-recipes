@@ -432,3 +432,37 @@ def test_stuck_owner_ends_with_owned_holds_released(tmp_path: Path) -> None:
     assert sweep.run() == 0
     assert sweep.state.data["end"]["code"] == "sweep.owner_intent_superseded"
     assert not sweep.state.slots and not sweep.state.data["loads"]
+
+
+def test_removed_catalog_recipe_releases_lane_and_fresh_recipe_is_admitted(
+    tmp_path: Path,
+) -> None:
+    sweep, fleet, clock = _loading(tmp_path)
+    key = next(iter(sweep.state.slots))
+    fleet.recipes.clear()
+    sweep.refresh_catalog()
+    assert sweep.state.status(key) == "deferred"
+    sweep.cleanup_finished()
+    sweep.release_orphan_load()
+    assert not sweep.state.slots and not sweep.state.data["loads"]
+    fresh = FakeRecipe("fresh", local="cached")
+    fleet.recipes[fresh.key] = fresh
+    sweep.refresh_catalog()
+    sweep.queue = list(sweep.recipes)
+    sweep.backoff_until = 0
+    sweep.schedule(clock.now())
+    assert sweep.state.slots and sweep.state.data["loads"]
+
+
+def test_results_growth_is_bounded_without_losing_latest_outcome(
+    tmp_path: Path,
+) -> None:
+    from spark_sweep.state import ResultsLog
+
+    path = tmp_path / "results.jsonl"
+    line = json.dumps({"authority_id": "auth", "recipe": "old", "padding": "x" * 5000})
+    path.write_text((line + "\n") * 1000)
+    log = ResultsLog(path, "auth")
+    log.append(recipe="fresh", status="passed")
+    assert path.stat().st_size <= 4 * 1024 * 1024
+    assert log.entries()[-1]["recipe"] == "fresh"
