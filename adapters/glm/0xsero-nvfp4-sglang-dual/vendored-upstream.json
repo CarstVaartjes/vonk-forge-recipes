@@ -1,6 +1,11 @@
 {
   "kit": {
     "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "manifest.json",
+        "pattern": "^[ \\t]*\"published\":\\ \"(?P<repo>[^@\"\\s]+)@(?P<version>sha256:[0-9a-f]{64})\",?$"
+      },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",

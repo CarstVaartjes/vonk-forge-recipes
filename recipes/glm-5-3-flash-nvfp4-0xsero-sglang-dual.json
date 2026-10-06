@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "3a97bd50034ca60c6e6c86b8e36a73675d261f6a5eb71197796aee5175409290",
-        "repository": "docker.io/lmsysorg/sglang"
+        "digest": "7aff51ea7050480dc47137055b5201b73e23e7803d9439233742cab65e3e5609",
+        "repository": "ghcr.io/0xsero/glm-5.3-flash-sglang-sm121"
       },
       "context": {
         "path": "adapters/glm/0xsero-nvfp4-sglang-dual"
@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "0xSero's two-Spark SGLang profile for the LibertAIDAI/GLM-5.3-Flash-NVFP4 checkpoint at the revision upstream hash-locks (9e0d74e3, the one its SGLang patches were written against; the repository's newer caca4e6a changed per-expert input scales and configuration and is not used), from glm-5.3-flash-sglang-sm121 at dfb1bb7e. Tensor and expert parallel 2 over the Spark fabric with upstream's six GLM/SGLang SM121 patches applied to the digest-pinned lmsysorg/sglang glm-5.3-flash image: DSA attention with flashinfer sparse MLA, FP8 E4M3 KV cache, flashinfer_cutlass MoE, NEXTN multi-token-prediction speculation (5 steps, 6 draft tokens, adaptive), image and video input, glm45 reasoning and glm47 tool parsing, CUDA graphs. Defaults are upstream's conservative tp2 profile (131072 tokens, 2 requests); upstream's tp4 profile (four Sparks) is not packaged. Upstream claims, not measured here: 17.49 tok/s at one request and 30.72 tok/s at two on two Sparks, 992128 KV tokens per rank. Licences are informational: the checkpoint is MIT; the source repository carries no licence file. Physical Spark acceptance is pending.",
+    "description": "0xSero's two-Spark SGLang profile for the LibertAIDAI/GLM-5.3-Flash-NVFP4 checkpoint at the revision upstream hash-locks (9e0d74e3, the one its SGLang patches were written against; the repository's newer caca4e6a changed per-expert input scales and configuration and is not used), from glm-5.3-flash-sglang-sm121 at dfb1bb7e. Tensor and expert parallel 2 over the Spark fabric on 0xSero's published image (ghcr.io/0xsero/glm-5.3-flash-sglang-sm121, the digest the kit pins: upstream's six GLM/SGLang SM121 patches on the digest-pinned lmsysorg/sglang glm-5.3-flash image), run as published with only a thin layer for the Controller's launcher and not rebuilt from the kit's sources: DSA attention with flashinfer sparse MLA, FP8 E4M3 KV cache, flashinfer_cutlass MoE, NEXTN multi-token-prediction speculation (5 steps, 6 draft tokens, adaptive), image and video input, glm45 reasoning and glm47 tool parsing, CUDA graphs. Defaults are upstream's conservative tp2 profile (131072 tokens, 2 requests); upstream's tp4 profile (four Sparks) is not packaged. Upstream claims, not measured here: 17.49 tok/s at one request and 30.72 tok/s at two on two Sparks, 992128 KV tokens per rank. Licences are informational: the checkpoint is MIT; the source repository carries no licence file. Physical Spark acceptance is pending.",
     "tags": [
       "0xsero",
       "candidate",

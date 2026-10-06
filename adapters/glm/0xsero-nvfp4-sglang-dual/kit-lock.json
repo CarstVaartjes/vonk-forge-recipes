@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:7aff51ea7050480dc47137055b5201b73e23e7803d9439233742cab65e3e5609",
+      "kind": "digest",
+      "ref": "sha256:f9ac60ba4071f8acd64f0f3c074aca308f6d659405fee46fc8031489a1e8b19b",
+      "repo": "ghcr.io/0xsero/glm-5.3-flash-sglang-sm121"
+    },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",
