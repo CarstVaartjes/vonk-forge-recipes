@@ -1099,7 +1099,13 @@ def image_recipe(kit_commit: str, digest: str) -> dict[str, Any]:
 
 class ImageWorld:
     def __init__(
-        self, root: Path, kit_commit: str, digest: str, *, locked: str | None
+        self,
+        root: Path,
+        kit_commit: str,
+        digest: str,
+        *,
+        locked: str | None,
+        locked_repo: str = IMAGE,
     ) -> None:
         self.root = root
         self.directory = root / "adapters/trt"
@@ -1119,7 +1125,7 @@ class ImageWorld:
                         "dependencies": {
                             "image": {
                                 "datasource": "oci-image",
-                                "repo": IMAGE,
+                                "repo": locked_repo,
                                 "ref": locked,
                                 "kind": "tag",
                                 "digest": digest,
@@ -1294,13 +1300,21 @@ class _ReadmeApi(FakeApi):
 
 
 class ImageAssessmentTests(unittest.TestCase):
-    """A kit's image that moves is a review; so is a tag that now names another digest."""
+    """A kit's image that moves (or a tag that now names another digest) moves the recipe."""
 
-    def assess(self, kit_pinned: str, kit_head: str, registry: FakeRegistry) -> Any:
+    def assess(
+        self,
+        kit_pinned: str,
+        kit_head: str,
+        registry: FakeRegistry,
+        locked_repo: str = IMAGE,
+    ) -> Any:
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         root = Path(tmp.name)
-        world = ImageWorld(root, kit_pinned, ARM_RC13, locked="1.3.0rc13")
+        world = ImageWorld(
+            root, kit_pinned, ARM_RC13, locked="1.3.0rc13", locked_repo=locked_repo
+        )
         catalog = refresh.Catalog(root, recipes={"trt": world.recipe})
         api = _ReadmeApi(README)
         api.compare[(kit_pinned, kit_head)] = {
@@ -1327,21 +1341,42 @@ class ImageAssessmentTests(unittest.TestCase):
         result = self.assess(KIT_RC13, KIT_RC13, registry_for())
         self.assertFalse(result.drifted, result.reasons)
 
-    def test_a_kit_that_names_another_tag_is_a_review(self) -> None:
+    def test_a_kit_that_names_another_tag_moves_the_image(self) -> None:
         result = self.assess(KIT_RC13, KIT_RC12, registry_for())
-        self.assertFalse(result.mechanical)
-        self.assertTrue(
-            any(ARM_RC12 in r and "new image" in r for r in result.reasons),
-            result.reasons,
+        self.assertTrue(result.mechanical, result.reasons)
+        self.assertEqual([i.kind for i in result.items if i.kind == "image"], ["image"])
+        dockerfile = result.edits["adapters/trt/Dockerfile"].decode()
+        self.assertIn(f"{IMAGE}@{ARM_RC12}", dockerfile)
+        self.assertNotIn(ARM_RC13, dockerfile)
+        lock = json.loads(result.edits["adapters/trt/kit-lock.json"])
+        self.assertEqual(lock["dependencies"]["image"]["digest"], ARM_RC12)
+        recipe = json.loads(result.edits["recipes/trt.json"])
+        self.assertEqual(
+            recipe["execution"]["build"]["base_image"]["digest"],
+            ARM_RC12.removeprefix("sha256:"),
         )
 
-    def test_a_tag_that_moved_to_a_new_digest_is_a_review(self) -> None:
+    def test_a_tag_that_moved_to_a_new_digest_moves_the_image(self) -> None:
         registry = registry_for()
         moved = "sha256:" + "cc" * 32
         registry.manifests["1.3.0rc13"] = index((moved, "linux", "arm64"))
         result = self.assess(KIT_RC13, KIT_RC13, registry)
+        self.assertTrue(result.mechanical, result.reasons)
+        self.assertIn(moved, result.edits["adapters/trt/Dockerfile"].decode())
+        lock = json.loads(result.edits["adapters/trt/kit-lock.json"])
+        self.assertEqual(lock["dependencies"]["image"]["digest"], moved)
+
+    def test_another_image_repository_is_a_review(self) -> None:
+        registry = registry_for()
+        moved = "sha256:" + "dd" * 32
+        registry.manifests["1.3.0rc13"] = index((moved, "linux", "arm64"))
+        result = self.assess(
+            KIT_RC13, KIT_RC13, registry, locked_repo="ghcr.io/other/engine"
+        )
         self.assertFalse(result.mechanical)
-        self.assertTrue(any(moved in r for r in result.reasons), result.reasons)
+        self.assertTrue(
+            any("another image repository" in r for r in result.reasons), result.reasons
+        )
 
 
 class KitOnlyManifestTests(unittest.TestCase):
