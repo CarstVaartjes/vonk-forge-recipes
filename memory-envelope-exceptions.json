@@ -1,0 +1,6 @@
+{
+  "glm-5-3-flash-nvfp4-vllm-dual": "Mia kit at gpu-memory-utilization 0.84. The declared 124 GB peak plus 8 GB reserve was never derived from the kit and exceeds the Spark. Needs a kit-derived envelope.",
+  "hy3-295b-nvfp4-vllm-mia-dual": "Mia kit at gpu-memory-utilization 0.90 (117.6 GB budget). The declared 124 GB peak plus 8 GB reserve exceeds the Spark, and the kit's own budget leaves little headroom. Needs a kit-derived envelope or a lower utilization.",
+  "leanstral-1-5-119b-a6b-vllm-mia-dual": "Mia kit at gpu-memory-utilization 0.85. The declared 124 GB peak plus 8 GB reserve was never derived from the kit and exceeds the Spark. Needs a kit-derived envelope.",
+  "mimo-v2-5-omni-nvfp4-vllm-mia-dual": "Mia kit at gpu-memory-utilization 0.83. The declared 124 GB peak plus 8 GB reserve was never derived from the kit and exceeds the Spark. Needs a kit-derived envelope."
+}
