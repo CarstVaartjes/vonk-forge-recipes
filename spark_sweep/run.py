@@ -1368,7 +1368,8 @@ class Sweep:
 
     def _end_load(self, load: dict[str, Any], reason: str) -> None:
         self._cancel_load(load)
-        self.state.data["loads"].pop(load["request_key"], None)
+        if not self._adopted_slots_live(load):
+            self.state.data["loads"].pop(load["request_key"], None)
         for key, slot in list(self.state.slots.items()):
             if (
                 slot.get("request_key") == load["request_key"]
@@ -1814,21 +1815,7 @@ class Sweep:
             and s.get("request_key") == slot["request_key"]
         ]
         if load and load.get("app_id") and not others:
-            self.vk.run(
-                "profile",
-                "cancel",
-                load["app_id"],
-                "--yes",
-                "--detach",
-                profile=self.cfg.sweep_profile,
-            )
-        seconds = round(
-            self.clock.now()
-            - slot["started_at"]
-            - float(slot.get("copy_seconds", 0))
-            - float(slot.get("blocked_seconds", 0))
-            - float(slot.get("blind_seconds", 0))
-        )
+            self._cancel_load(load)
         self._fail_slot(
             key,
             slot,
@@ -2129,15 +2116,8 @@ class Sweep:
 
     def schedule(self, now: float) -> None:
         self.release_orphan_load()
-        # Current profile loads fence the whole fleet, even for an incremental edit.
-        # A second application would cancel the copying lane. Scoped admission must
-        # be added to the Controller before this safety interlock can be removed.
-        if self.state.data["loads"] or now < self.backoff_until:
+        if now < self.backoff_until:
             return
-        if any(
-            s["phase"] in ("loading", "finished") for s in self.state.slots.values()
-        ):
-            return  # settling: a lane is between its load and its smoke
         candidates = self.ready_candidates()
         if not candidates:
             return
@@ -2403,6 +2383,15 @@ class Sweep:
         if stopped:
             self._rollback(added, f"review would stop running lanes {stopped}")
             return
+        adopted_requests = self._adopted_requests(document)
+        if adopted_requests is None:
+            self._rollback(
+                added, "unchanged loading effects are not bound for adoption"
+            )
+            self.note_infra(
+                "review", "observing unchanged loading effects before overlap"
+            )
+            return
         if not (
             document.get("allowed") is True
             or document.get("waits_for_preparation") is True
@@ -2422,6 +2411,7 @@ class Sweep:
             "app_id": None,
             "seq": seq,
             "submitted_at": now,
+            "adopted_requests": adopted_requests,
         }
         for placement in added:
             self._open_slot(placement, key, now)
@@ -2445,6 +2435,49 @@ class Sweep:
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
         self.state.data["dirty"] = True
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
+
+    def _adopted_requests(self, review: Mapping[str, Any]) -> list[str] | None:
+        """Require bound whole-assignment adoption before overlapping accepted snapshots."""
+        adopted = (review.get("effects") or {}).get("adopted") or []
+        requests = []
+        for slot in self.state.slots.values():
+            if slot["phase"] != "loading":
+                continue
+            request = slot["request_key"]
+            original = self.state.data["loads"].get(request, {})
+            match = next(
+                (
+                    item
+                    for item in adopted
+                    if isinstance(item, Mapping)
+                    and isinstance(original.get("app_id"), str)
+                    and item.get("application_id") == original["app_id"]
+                    and set(item.get("node_ids") or []) == set(slot["node_ids"])
+                    and isinstance(item.get("plan_digest"), str)
+                    and len(item["plan_digest"]) == 64
+                    and all(c in "0123456789abcdef" for c in item["plan_digest"])
+                    and type(item.get("workload_intent_ordinal")) is int
+                    and item["workload_intent_ordinal"] > 0
+                    and isinstance(item.get("assignment_ids"), list)
+                    and item["assignment_ids"]
+                    and all(
+                        isinstance(value, str) and value
+                        for value in item["assignment_ids"]
+                    )
+                ),
+                None,
+            )
+            if match is None:
+                return None
+            requests.append(request)
+        return sorted(set(requests))
+
+    def _adopted_slots_live(self, load: Mapping[str, Any]) -> bool:
+        requests = set(load.get("adopted_requests") or [])
+        return any(
+            slot.get("request_key") in requests and slot["phase"] != "finished"
+            for slot in self.state.slots.values()
+        )
 
     def _open_slot(self, placement: policy.Placement, request: str, now: float) -> None:
         recipe = placement.recipe
@@ -2635,14 +2668,16 @@ class Sweep:
     def interrupt(self) -> None:
         """Ctrl-C: cancel the lane's current load and give its recipes back to the queue."""
         for load in list(self.state.data["loads"].values()):
-            self._cancel_load(load)
+            self._cancel_load(load, force=True)
         for key in list(self.state.slots):
             self.futures.pop(key, None)
         self.state.event("interrupted: lane loads cancelled, recipes requeued")
         self.preempt("sweep interrupted")
         self.cleanup_finished()
 
-    def _cancel_load(self, load: Mapping[str, Any]) -> None:
+    def _cancel_load(self, load: Mapping[str, Any], *, force: bool = False) -> None:
+        if not force and self._adopted_slots_live(load):
+            return  # root cancellation also owns adopted effects, so preserve their observer
         if load.get("app_id"):
             self.vk.run(
                 "profile",
