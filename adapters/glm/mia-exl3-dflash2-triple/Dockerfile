@@ -356,6 +356,7 @@ RUN find /usr/local/lib/python3.12/dist-packages/vllm -type f ! -perm -o=r -exec
     && python3 /opt/vonk/verify-runtime.py \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
+    && install --directory --mode=0755 /inputs \
     && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache /outputs/cache/triton /outputs/cache/tilelang
 
 ENV HF_HUB_OFFLINE=1 \

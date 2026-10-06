@@ -16,7 +16,7 @@ COPY verify-speculative-config.py /opt/vonk/verify-speculative-config.py
 # Exercise the pinned vLLM CLI parser without creating an engine or loading a model.
 RUN python3 /opt/vonk/verify-speculative-config.py
 
-RUN install --directory --mode=0755 /opt/vonk/bin \
+RUN install --directory --mode=0755 /opt/vonk/bin /inputs \
     && printf '%s\n' '#!/bin/sh' 'exec vllm "$@"' > /opt/vonk/bin/vllm \
     && chmod 0755 /opt/vonk/bin/vllm
 
