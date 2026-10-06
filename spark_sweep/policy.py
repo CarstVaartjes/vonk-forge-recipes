@@ -383,10 +383,10 @@ DISTRIBUTION_PHASES = frozenset(
 )
 _COPYING = re.compile(r"cop(y|ying)|transfer|distribut|download|sync", re.IGNORECASE)
 # Bumped when the load-timeout rules change; results from older rules may be retried once.
-LOAD_RULES = 2
+LOAD_RULES = 3
 # Bumped when the smoke assertions change what fails a recipe. 2: a model's answer
 # (the exact value) is a quality note, only a functional miss fails a recipe.
-SMOKE_RULES = 2
+SMOKE_RULES = 3
 
 
 @dataclass(frozen=True)
