@@ -1473,7 +1473,11 @@ class Sweep:
         return [
             k
             for k, s in self.state.slots.items()
-            if s["phase"] == "loading" and s["request_key"] == slot["request_key"]
+            if s["phase"] == "loading"
+            and s["request_key"] == slot["request_key"]
+            and not serving_run(
+                self.fleet, s["alias"], s["node_ids"], self.recipes[k].node_count
+            )  # a lane that already serves goes on to its smoke
         ]
 
     def _lanes(self, group: Sequence[str]) -> dict[str, dict[str, list[str]]]:
@@ -1627,11 +1631,15 @@ class Sweep:
             )
         self.state.data["load"] = None
         try:
-            request = self._own_key("sweep-load", profile)
+            seq = int(self.state.data["load_seq"]) + 1
+            request = request_key(
+                "sweep-load", self.state.nonce, self.cfg.sweep_profile, seq
+            )
+            self.state.data["load_seq"] = seq
             self.state.data["load"] = {
                 "request_key": request,
                 "app_id": None,
-                "seq": int(self.state.data["load_seq"]),
+                "seq": seq,
                 "submitted_at": now,
             }
             submitted = self._submit_load(profile, request, "release")
