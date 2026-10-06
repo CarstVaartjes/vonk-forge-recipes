@@ -728,8 +728,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/MiMo-V2.5-vLLM-Dual-DGX-Sparks/tree/eb9c5fa61ed183a085f622dbb4c67f9fcb065a47"
   },
   "release": {
-    "released_at": "2026-07-15",
-    "version": "1.0.0"
+    "released_at": "2026-10-06",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -1041,7 +1041,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 118200000000,
             "reserve_bytes": 8000000000
           }
         }
@@ -1058,7 +1058,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 118200000000,
             "reserve_bytes": 8000000000
           }
         }
