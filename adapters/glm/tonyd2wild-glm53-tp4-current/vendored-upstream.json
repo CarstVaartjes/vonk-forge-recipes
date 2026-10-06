@@ -1,0 +1,22 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "launch-glm53-tp4-24g.sh",
+        "pattern": "^IMAGE=\"(?P<repo>[^:\"]+):(?P<version>[^\"]+)\"$"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "vllm-wrapper.py"
+  ],
+  "renamed": {
+    "sparse_attn_indexer_kpool_sm121.py": "docker/sparse_attn_indexer_kpool_sm121.py"
+  },
+  "source": {
+    "commit": "2ac4e8dd661b12e6a1d7e69df711707abd6b9cd4",
+    "repo": "tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark"
+  }
+}
