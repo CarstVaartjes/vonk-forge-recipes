@@ -10,10 +10,13 @@
     "whole": false
   },
   "ours": [
+    "upstream-license-status.md",
     "vllm-wrapper.py"
   ],
   "renamed": {
-    "sparse_attn_indexer_kpool_sm121.py": "docker/sparse_attn_indexer_kpool_sm121.py"
+    "sparse_attn_indexer_kpool_sm121.py": "docker/sparse_attn_indexer_kpool_sm121.py",
+    "upstream-launch-tp4-24g.sh": "launch-glm53-tp4-24g.sh",
+    "upstream-launch-tp4-dflash2-topkfix.sh": "launch-glm53-tp4-dflash2-topkfix.sh"
   },
   "source": {
     "commit": "2ac4e8dd661b12e6a1d7e69df711707abd6b9cd4",
