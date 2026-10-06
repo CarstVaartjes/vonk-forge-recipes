@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "b0501f99fec5136f248f78d5850977a2ec32d55cd9a665f4a9ffef24cbdf7fe5",
-        "repository": "docker.io/vllm/vllm-openai"
+        "digest": "b9edc8e0c3642a553f9178dd3139cf22b7b4bd4553a37d53f8fd49ac80ee06b0",
+        "repository": "ghcr.io/r0b0tlab/glm53-flash-nvfp4-sm121"
       },
       "context": {
         "path": "adapters/glm/r0b0tlab-nvfp4-dflash2-dual"
@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SM121 vLLM overlay serving the official nvidia/GLM-5.3-Flash-NVFP4 ModelOpt checkpoint (MIT) with the incoai DFlash2 K7 block-diffusion drafter (CC-BY-NC-ND-4.0, non-commercial, no derivatives). TP2 over two Sparks, using the da920bb0 NVIDIA Model revision whose config adds layer-45 quantization ignore rules (weight shards unchanged; native-MTP load remains unverified). 126,720-token window, bf16 KV, FULL_DECODE_ONLY CUDA graphs, thinking at reasoning_effort max, image and video input. Same checkpoint is used by tonyd2wild abb38bb0 and sfxnz 072c3f68; this recipe follows r0b0tlab 22269731. Performance figures are upstream claims until measured here; Vonk physical two-Spark acceptance is pending.",
+    "description": "r0b0tlab's SM121 vLLM overlay serving the official nvidia/GLM-5.3-Flash-NVFP4 ModelOpt checkpoint (MIT) with the incoai DFlash2 K7 block-diffusion drafter (CC-BY-NC-ND-4.0, non-commercial, no derivatives). TP2 over two Sparks, using the da920bb0 NVIDIA Model revision whose config adds layer-45 quantization ignore rules (weight shards unchanged; native-MTP load remains unverified). 126,720-token window, bf16 KV, FULL_DECODE_ONLY CUDA graphs, thinking at reasoning_effort max, image and video input. Same checkpoint is used by tonyd2wild abb38bb0 and sfxnz 072c3f68; this recipe follows r0b0tlab 22269731. Runs the kit's published image ghcr.io/r0b0tlab/glm53-flash-nvfp4-sm121:overlay-v2 (its four SM121/GLM patches already applied on vllm/vllm-openai b0501f99), pinned by digest and not rebuilt from the kit's patches; a thin layer adds the Controller's launcher and the non-root user. Performance figures are upstream claims until measured here; Vonk physical two-Spark acceptance is pending.",
     "tags": [
       "candidate",
       "dflash2",

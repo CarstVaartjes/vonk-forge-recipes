@@ -1,5 +1,22 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "README.md",
+        "pattern": "^docker pull (?P<repo>[^:\\s]+):(?P<version>[^\\s]+)$"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "vllm-wrapper.py"
-  ]
+  ],
+  "renamed": {
+    "LICENSE.upstream": "LICENSE"
+  },
+  "source": {
+    "commit": "222697317a4a165767ab8ef17b44cf969a5ece09",
+    "repo": "r0b0tlab/glm53-flash-nvfp4-sm121"
+  }
 }
