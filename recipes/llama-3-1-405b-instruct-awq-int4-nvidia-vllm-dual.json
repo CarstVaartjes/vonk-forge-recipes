@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Llama 3.1 405B Instruct AWQ INT4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes are estimates from vLLM's default 0.9 GPU memory utilization, not measurements; physical Spark acceptance is pending.",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Llama 3.1 405B Instruct AWQ INT4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). The playbook's hand-started Ray cluster is reproduced by the image's launcher, which consumes the platform's placement options (vLLM rejects `--nnodes` with the Ray executor). Deviation from the playbook: the context is 256 tokens (batched tokens 256) instead of 64, so the bounded 64-token chat check fits the context. Resource envelopes are estimates from vLLM's default 0.9 GPU memory utilization, not measurements; physical Spark acceptance is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -731,7 +731,7 @@
       {
         "name": "max-num-batched-tokens",
         "setting": null,
-        "value": 64
+        "value": 256
       }
     ],
     "engine": "vllm",
@@ -761,7 +761,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 64
+      "value": 256
     },
     "kind": "generation",
     "knobs": {},
