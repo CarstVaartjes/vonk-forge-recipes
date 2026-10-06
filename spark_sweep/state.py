@@ -24,7 +24,7 @@ from typing import Any
 
 SCHEMA = 1
 EVENT_LIMIT = 60
-TERMINAL = frozenset({"passed", "failed", "skipped"})
+TERMINAL = frozenset({"passed", "failed", "deferred", "skipped"})
 
 
 def _fresh() -> dict[str, Any]:

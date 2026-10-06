@@ -72,8 +72,8 @@ Controller fences the whole fleet whenever a fresh application is accepted with
 another profile application in flight (`fleet_profiles.py`, `whole_fleet_intent`
 and `fenced_nodes`). Keeping assignments in the edited profile protects running
 lanes from stop effects, but does not prevent supersession of a copying lane.
-The sweep therefore keeps the submission interlock until a scoped admission API
-is available; separate profiles alone cannot safely solve this.
+The sweep therefore keeps the submission interlock until the Controller adopts equivalent unchanged effects
+into newer whole-fleet snapshots; separate profiles alone cannot safely solve this.
 
 **Aliases.** `--as` is the assignment name, the lane's client-facing model name.
 The profile contract takes a lowercase identifier (`ENDPOINT_ALIAS_PATTERN` in
@@ -318,3 +318,15 @@ cluster. The downloaded bundle path is `evidence_bundle`. A missing or unspawnab
 `vonkctl` (for example during `vonkctl update --apply`) is infrastructure: the sweep backs
 off and retries. An unexpected exception in a pass is logged as an infrastructure event
 and the loop continues; only an explicit stop, SIGINT or SIGTERM ends it.
+
+### Recovery outcomes
+
+A typed recipe-data failure or failed output assertion records `failed`. Unknown
+Controller, transport, HTTP and process outcomes record `deferred` with evidence;
+they never count as a recipe defect or inherit a sibling defect. `--watch SECONDS`
+keeps the coordinator alive after a pass and retests deferred/failed results after
+24 hours. With `--watch 0` (the default) one pass ends after its owned attempts
+settle. A stuck owner intent ends the sweep after its observation budget, leaving
+its owned lanes released for a new operation. Unreadable state is preserved beside
+`state.json` and disposable bookkeeping is rebuilt. Client skew applies the
+accepted CLI update automatically and retries a failed update with backoff.

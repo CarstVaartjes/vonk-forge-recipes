@@ -1068,15 +1068,6 @@ class Sweep:
         ):
             for digest in recipe.model_digests:
                 self.state.data["model_failures"][digest] = failure.cluster
-            for other in self.recipes.values():
-                if (
-                    other.key != key
-                    and other.model_set == recipe.model_set
-                    and self.state.status(other.key) == "pending"
-                ):
-                    self._record_failure(
-                        other.key, failure, op_id, inherited_from=key, retryable=False
-                    )
 
     def _record_failure(
         self,
