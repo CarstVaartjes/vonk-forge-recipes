@@ -1816,6 +1816,13 @@ class Sweep:
         ]
         if load and load.get("app_id") and not others:
             self._cancel_load(load)
+        seconds = round(
+            self.clock.now()
+            - slot["started_at"]
+            - float(slot.get("copy_seconds", 0))
+            - float(slot.get("blocked_seconds", 0))
+            - float(slot.get("blind_seconds", 0))
+        )
         self._fail_slot(
             key,
             slot,
@@ -2452,7 +2459,9 @@ class Sweep:
                     if isinstance(item, Mapping)
                     and isinstance(original.get("app_id"), str)
                     and item.get("application_id") == original["app_id"]
-                    and set(item.get("node_ids") or []) == set(slot["node_ids"])
+                    and isinstance(item.get("node_ids"), list)
+                    and all(isinstance(node, str) for node in item["node_ids"])
+                    and set(item["node_ids"]) == set(slot["node_ids"])
                     and isinstance(item.get("plan_digest"), str)
                     and len(item["plan_digest"]) == 64
                     and all(c in "0123456789abcdef" for c in item["plan_digest"])

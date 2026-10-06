@@ -52,9 +52,11 @@ would therefore stop the other lane. The sweep uses **one profile** (default
 `profile remove <old>` plus `profile add <new> --spark X --as <alias> --state
 running`, then `profile load --review`. Before loading, the review must show
 no `stop` effect for a lane that is still running; then `profile load --yes
---detach`. Applications are serialised (one load in flight), while the other
-lane's smoke test runs beside it. The planner keeps unchanged assignments, so
-a swap never restarts the other lane. Duals use both Sparks and run as a
+--detach`. A fresh whole-fleet application adopts equivalent unchanged loading
+assignments and fills a free Spark while the other lane copies or smokes. The
+review must bind each borrowed application, plan digest, ordinal and complete
+assignment/node scope; a missing binding defers the new admission. A swap never
+restarts the other lane. Duals use both Sparks and run as a
 window (several cached duals back to back) rather than interleaved with
 singles. Each single recipe owns one Spark; dual recipes are scheduled only when
 both Sparks are free.
@@ -67,13 +69,15 @@ Downloads and lane observations have a 24-hour total budget; an unreadable or
 stalled download has a one-hour observation budget. Budget exhaustion releases
 sweep bookkeeping and schedules a fresh attempt after cooldown.
 
-Independent concurrent profile loads require a Controller change. The current
-Controller fences the whole fleet whenever a fresh application is accepted with
-another profile application in flight (`fleet_profiles.py`, `whole_fleet_intent`
-and `fenced_nodes`). Keeping assignments in the edited profile protects running
-lanes from stop effects, but does not prevent supersession of a copying lane.
-The sweep therefore keeps the submission interlock until the Controller adopts equivalent unchanged effects
-into newer whole-fleet snapshots; separate profiles alone cannot safely solve this.
+Concurrent accepted snapshots use the Controller's bound whole-assignment
+adoption contract (`effects.adopted`), while original applications keep their
+children and progress. The sweep observes each original request independently.
+An application whose own lane has ended still retains its observation receipt
+while an adopted lane is active: cancelling that aggregate application would
+also stop its adopted effects. These observer receipts never occupy a Spark or
+prevent scheduling. This coordinator must run after the companion Controller
+adoption change is deployed; without its preview bindings, it safely defers an
+overlapping load.
 
 **Aliases.** `--as` is the assignment name, the lane's client-facing model name.
 The profile contract takes a lowercase identifier (`ENDPOINT_ALIAS_PATTERN` in
