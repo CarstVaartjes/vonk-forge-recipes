@@ -637,6 +637,8 @@ class Sweep:
             self.state.data["owner"].pop("paused_at", None)
         self.advance_slots(now)
         self.heal_fleet_skips()
+        if not self.owner_status.paused:
+            self.enqueue_finished_cleanup()
         pending = self.pending()
         for (
             key,
@@ -658,8 +660,8 @@ class Sweep:
             variants_last=self.cfg.variants_last,
         )
         if not self.owner_status.paused:
-            self.cleanup_finished()
             self.schedule(self.clock.now())
+            self.cleanup_finished()
         # Ready cached placements and their durable request receipts come first.
         # Download observation, preparation and pin maintenance may wait on the API.
         self.last_prefetch = self.prefetcher.tick(
@@ -1992,16 +1994,26 @@ class Sweep:
 
     # ------------------------------------------------------------- scheduling
 
-    def cleanup_finished(self) -> None:
+    def enqueue_finished_cleanup(self) -> None:
+        """Durably release finished lane occupancy without waiting on cleanup I/O."""
         pending = self.state.data.setdefault("cleanup", {})
+        changed = False
         for key, slot in list(self.state.slots.items()):
             if slot["phase"] != "finished":
                 continue
             pending.setdefault(slot["alias"], {"attempts": 0, "next_check": 0.0})
             self.futures.pop(key, None)
             del self.state.slots[key]
+            changed = True
+        if changed:
+            self.state.save()
+
+    def cleanup_finished(self) -> None:
+        self.enqueue_finished_cleanup()
+        pending = self.state.data.setdefault("cleanup", {})
+        live_aliases = {slot["alias"] for slot in self.state.slots.values()}
         for alias, record in list(pending.items()):
-            if self.clock.now() < record["next_check"]:
+            if alias in live_aliases or self.clock.now() < record["next_check"]:
                 continue
             reply = self.vk.run(
                 "profile", "remove", alias, "--yes", profile=self.cfg.sweep_profile
@@ -2474,6 +2486,7 @@ class Sweep:
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
         self.state.data["dirty"] = True
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
+        self.state.save()
 
     def _adopted_requests(self, review: Mapping[str, Any]) -> list[str] | None:
         """Require bound whole-assignment adoption before overlapping accepted snapshots."""

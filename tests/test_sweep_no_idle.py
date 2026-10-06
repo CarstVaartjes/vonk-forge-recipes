@@ -266,3 +266,60 @@ def test_cached_lane_starts_before_blocked_preparation_maintenance(
             == original_application
         )
         assert fleet.apps[original_application]["state"] == "running"
+
+
+def test_cached_lane_starts_before_blocked_cleanup_and_reused_alias_is_retained(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from collections.abc import Sequence
+
+    from spark_sweep.vonkctl import VonkctlTimeout
+
+    recipe = FakeRecipe("ready", local="cached", load_seconds=60)
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [recipe], [FakeModel("m1", local="cached")], gateway=gateway
+    )
+    sweep.preflight()
+    sweep.start_takeover()
+    sweep.refresh_catalog()
+    for key, alias in (("old-reused", "ready"), ("old-unused", "old-unused")):
+        sweep.state.slots[key] = {
+            "request_key": "old-request",
+            "phase": "finished",
+            "alias": alias,
+            "node_ids": [],
+            "started_at": clock.now(),
+        }
+    original_runner = sweep.vk.runner
+    observed = []
+
+    def cleanup_wait(argv: Sequence[str], timeout: float) -> tuple[int, str, str]:
+        if "profile" in argv:
+            command = list(argv)[list(argv).index("profile") :]
+            if command[:2] == ["profile", "remove"]:
+                observed.append(command[2])
+                if command[2] == "old-unused":
+                    # The receipt and released occupancy are on disk before this wait.
+                    import json
+
+                    saved = json.loads(sweep.state.path.read_text())
+                    slot = saved["slots"][recipe.key]
+                    request = slot["request_key"]
+                    assert saved["loads"][request]["app_id"] in fleet.apps
+                    assert "old-reused" not in saved["slots"]
+                    clock.sleep(240)
+                    raise VonkctlTimeout(argv, None, "controller.transport_timeout")
+        return original_runner(argv, timeout)
+
+    monkeypatch.setattr(sweep.vk, "runner", cleanup_wait)
+    before = clock.now()
+    sweep.tick()
+    assert observed == ["old-unused"]  # never remove the reused live assignment
+    slot = sweep.state.slots[recipe.key]
+    load = sweep.state.data["loads"][slot["request_key"]]
+    assert fleet.apps[load["app_id"]]["created"] == before
+    assert sweep.state.data["cleanup"][slot["alias"]] == {
+        "attempts": 0,
+        "next_check": 0.0,
+    }
+    assert "old-unused" not in sweep.state.data["cleanup"]

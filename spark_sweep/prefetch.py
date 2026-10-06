@@ -25,7 +25,15 @@ from typing import Any
 
 from .catalog import Model, Recipe
 from .lifecycle import TERMINAL, WAITING, active
-from .policy import Boost, Failure, RateTracker, classify, excerpt, plan_groups
+from .policy import (
+    Boost,
+    Failure,
+    GroupPlan,
+    RateTracker,
+    classify,
+    excerpt,
+    plan_groups,
+)
 from .state import State
 from .vonkctl import Vonkctl, VonkctlError, request_key
 
@@ -92,7 +100,7 @@ class Prefetcher:
         self.pin_error: str | None = None
         self.pin_failures = 0
         self.pin_retry_at = 0.0
-        self.last_plans: list[Any] = []
+        self.last_plans: list[GroupPlan] = []
 
     # -- operations ---------------------------------------------------------
 
@@ -362,7 +370,7 @@ class Prefetcher:
         sizes: Mapping[str, int],
         present: set[str],
         boost: Boost,
-    ) -> list[Any]:
+    ) -> list[GroupPlan]:
         """Plan cached ready work without observing or changing preparation operations."""
         self.last_plans = plan_groups(pending, sizes, present, boost)
         return self.last_plans
