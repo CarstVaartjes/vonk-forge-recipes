@@ -1063,9 +1063,18 @@ class Sweep:
             self.state.data["model_failures"].pop(digest, None)
         record = self.state.downloads.get(key)
         if record is not None and record.get("state") in ("failed", "cancelled"):
-            # Ask again with the next attempt number (a new request key: the old key would
-            # replay the failed operation). A finished download stands.
-            record["state"] = "retired"
+            if record.get("operation_id") or record.get("request_key"):
+                # Explicit operator intent qualifies a retest, not a terminal
+                # receipt. Keep the accepted parent unchanged until fresh exact
+                # failure proof permits the canonical parent-bound retry.
+                if why == "operator: --retry-failed":
+                    entry["retest"] = {
+                        "reason": why,
+                        "at": self.clock.now(),
+                        "previous": previous,
+                    }
+            else:
+                record["state"] = "retired"  # genuinely unaccepted failure
         self.state.event(f"requeued {key}: {why}")
 
     def run(self) -> int:

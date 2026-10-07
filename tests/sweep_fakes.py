@@ -289,7 +289,7 @@ class FakeFleet:
                 recipe.local = "cached"
                 for digest in recipe.digests:
                     self.models[digest].local = "cached"
-        for app in self.apps.values():
+        for app in list(self.apps.values()):
             if app["state"] not in ("queued", "running"):
                 continue
             if app.get("owner"):
@@ -446,7 +446,7 @@ class FakeFleet:
                         "accepted_version": self.accepted_version,
                         "accepted_source_sha": self.release_sha,
                         "update_available": drift,
-                        "updated": False,
+                        "updated": "--apply" in clean,
                     }
                 ),
                 "",
@@ -620,11 +620,6 @@ class FakeFleet:
         if request in self.by_request:
             return 0, self._op_doc(self.ops[self.by_request[request]])
         recipe = self.recipes[key]
-        if recipe.fail_download == "policy":
-            return self._error(
-                "dockerfile.heredoc_forbidden",
-                "dockerfile.heredoc_forbidden: Dockerfile heredocs are not accepted",
-            )
         model_missing = any(self.models[d].local != "cached" for d in recipe.digests)
         op_id = self._id("op")
         self.ops[op_id] = {
@@ -695,7 +690,11 @@ class FakeFleet:
         }
         if op["state"] == "failed":
             doc["failure"] = {
-                "code": recipe.fail_download_code,
+                "code": (
+                    "dockerfile.heredoc_forbidden"
+                    if recipe.fail_download == "policy"
+                    else recipe.fail_download_code
+                ),
                 "detail": recipe.fail_download,
                 "recovery_actions": [],
             }

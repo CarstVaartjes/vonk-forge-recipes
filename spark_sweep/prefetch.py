@@ -586,7 +586,9 @@ class Prefetcher:
                 and now - done_at > 600
                 and self.library_fresh_since > done_at
             )
-        if record.get("state") == "failed" and record.get("operation_id"):
+        if record.get("state") in ("failed", "cancelled", "superseded") and record.get(
+            "operation_id"
+        ):
             # Accepted parents always need a fresh exact terminal receipt. An old
             # retry timer must never override an active or unreadable observation.
             return self._terminal_retest(recipe, record, now)
@@ -603,7 +605,11 @@ class Prefetcher:
             and isinstance(retest, Mapping)
             and retest.get("at") != entry.get("download_retest_consumed_at")
             and retest.get("reason")
-            in ("scheduled-retest", "observed-fault-owner-changed")
+            in (
+                "scheduled-retest",
+                "observed-fault-owner-changed",
+                "operator: --retry-failed",
+            )
             and entry.get("content_sha256") == recipe.content_sha256
             and entry.get("revision_id") == recipe.revision_id
         )

@@ -325,7 +325,7 @@ def test_watch_retests_after_bounded_cooldown_without_new_release_or_recipe(
     assert _entry(sweep, "recovering")["status"] == "passed"
     assert fleet.release_sha == OLD
     requeues = [
-        row for row in _lines(tmp_path / "results.jsonl") if row["step"] == "requeue"
+        row for row in _lines(tmp_path / "results.jsonl") if row["step"] == "retest"
     ]
     assert len(requeues) == 1
     assert requeues[0]["reason"] == "scheduled-retest"
