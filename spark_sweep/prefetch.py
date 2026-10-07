@@ -110,7 +110,8 @@ class Prefetcher:
         now = self.clock()
         for key, record in list(self.state.downloads.items()):
             if (
-                record.get("state") in ("external", "retired")
+                record.get("state") == "external"
+                or (record.get("state") == "retired" and not record.get("request_key"))
                 or record.get("state") in TERMINAL
             ):
                 continue
@@ -120,7 +121,8 @@ class Prefetcher:
                 float(record["started_at"]) + DOWNLOAD_WALL_SECONDS,
                 float(record["progress_at"]) + DOWNLOAD_STALL_SECONDS,
             )
-            if now >= deadline:
+            if now >= deadline and not record.get("observation_budget_exhausted_at"):
+                record["observation_budget_exhausted_at"] = now
                 self._retire(key, record, "download.observation_budget_exhausted")
                 continue
             if now < float(record.get("next_check", 0)):
@@ -166,11 +168,17 @@ class Prefetcher:
         return total_rate
 
     def _retire(self, key: str, record: dict[str, Any], reason: str) -> None:
-        # Cancel only our own receipt. External operations belong to their requester.
-        if record.get("operation_id") and record.get("request_key"):
-            self.vk.run(
-                "recipe", "cancel", str(record["operation_id"]), "--yes", "--detach"
+        if record.get("request_key"):
+            # A read budget or waiting condition is not terminal proof. Preserve
+            # the exact request and re-observe it without cancelling its effects.
+            record.update(
+                state="observing",
+                reason=reason,
+                next_check=self.clock() + self.config.retry_cooldown,
             )
+            self.on_infra("download", f"{key}: {reason}; observing original request")
+            self.state.event(f"download observation deferred: {key}: {reason}")
+            return
         record.update(
             state="retired",
             reason=reason,
@@ -213,12 +221,6 @@ class Prefetcher:
         failure_doc = document.get("failure") or {}
         code = str(failure_doc.get("code", ""))
         detail = str(failure_doc.get("detail", "") or document.get("detail", ""))
-        if code.startswith(("controller.", "http.", "profile.")) or any(
-            failure_doc.get(field) is not None
-            for field in ("status", "status_code", "http_status")
-        ):
-            self._retire(key, record, code or "download.http_error")
-            return
         actions = [str(a) for a in failure_doc.get("recovery_actions", [])]
         failure = classify(
             "download",
@@ -518,6 +520,8 @@ class Prefetcher:
         if active(record.get("state")) and record.get("state") != "retired":
             return False
         if record.get("state") == "retired":
+            if record.get("request_key"):
+                return self._terminal_retest(recipe, record, now)
             return now >= float(record.get("retry_at", 0))
         if recipe.cache_ready:
             return False
@@ -532,31 +536,41 @@ class Prefetcher:
                 and now - done_at > 600
                 and self.library_fresh_since > done_at
             )
-        if self._terminal_retest(recipe, record, now):
-            return True
+        if record.get("state") == "failed" and record.get("operation_id"):
+            # Accepted parents always need a fresh exact terminal receipt. An old
+            # retry timer must never override an active or unreadable observation.
+            return self._terminal_retest(recipe, record, now)
         return bool(record.get("retry_at")) and now >= float(record["retry_at"])
 
     def _terminal_retest(
         self, recipe: Recipe, record: dict[str, Any], now: float
     ) -> bool:
-        """Normal retest may replace only an observed terminal exact owned parent."""
+        """Every accepted-parent retry needs an observed terminal exact receipt."""
         entry = self.state.entry(recipe.key)
         retest = entry.get("retest")
+        scheduled = (
+            entry.get("status") == "pending"
+            and isinstance(retest, Mapping)
+            and retest.get("at") != entry.get("download_retest_consumed_at")
+            and retest.get("reason")
+            in ("scheduled-retest", "observed-fault-owner-changed")
+            and entry.get("content_sha256") == recipe.content_sha256
+            and entry.get("revision_id") == recipe.revision_id
+        )
+        bounded_retry = (
+            bool(record.get("retry_at"))
+            and int(record.get("attempt", 1)) < 2
+            and isinstance(record.get("request_intent"), Mapping)
+        )
         if (
-            entry.get("status") != "pending"
-            or not isinstance(retest, Mapping)
-            or retest.get("at") == entry.get("download_retest_consumed_at")
-            or retest.get("reason")
-            not in ("scheduled-retest", "observed-fault-owner-changed")
-            or record.get("state") != "failed"
+            not (scheduled or bounded_retry)
+            or record.get("state") not in ("failed", "retired")
             or not record.get("operation_id")
             or not record.get("request_key")
             or now < float(record.get("retry_at", 0))
             or now < float(entry.get("finished_at", 0)) + self.config.retry_cooldown
             or now < float(entry.get("not_before", 0))
             or now < float(entry.get("defer_until", 0))
-            or entry.get("content_sha256") != recipe.content_sha256
-            or entry.get("revision_id") != recipe.revision_id
         ):
             return False
         intent = record.get("request_intent")
@@ -602,6 +616,7 @@ class Prefetcher:
             return False
         record["terminal_receipt"] = dict(document)
         record["terminal_verified_at"] = now
+        record["state"] = "failed"
         return True
 
     # -- pins ---------------------------------------------------------------
