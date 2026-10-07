@@ -50,10 +50,7 @@ class OwnerGuard:
                 str(document.get("state", "")),
                 str(document.get("request_key", "")),
             )
-        if isinstance(document, dict) and document.get("code") in {
-            "not_found",
-            "profile.application_not_found",
-        }:
+        if reply.is_not_found:
             return None
         raise VonkctlError(reply.argv, reply, "owner application is unreadable")
 

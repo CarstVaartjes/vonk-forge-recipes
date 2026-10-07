@@ -66,8 +66,9 @@ Old state files with one `load` are adopted without changing that UUID. Admissio
 and progress replies in `observing` or `backoff` keep being polled. Operator waits
 and removal gates end the owned load and requeue its recipes without blame.
 Downloads and lane observations have a 24-hour total budget; an unreadable or
-stalled download has a one-hour observation budget. Budget exhaustion releases
-sweep bookkeeping and schedules a fresh attempt after cooldown.
+stalled download has a one-hour observation budget. An owned download exceeding
+that budget keeps its original request and resumes paced observation after
+cooldown. The read budget never authorizes cancellation or a replacement download.
 
 Concurrent accepted snapshots use the Controller's bound whole-assignment
 adoption contract (`effects.adopted`), while original applications keep their
@@ -186,7 +187,7 @@ certificate).
 * While the Controller holds the application back with error blockers (capacity, stale
   inventory, a phase it keeps retrying; `progress.blockers`), those seconds are not load time
   either, and a hold that lasts `--blocked-minutes` (default 15) defers the lane as class
-  `admission-stalled` (phase start). A release change or watch cooldown requeues it; it
+  `admission-stalled` (phase start). A proven change to the typed fault owner or watch cooldown schedules a retest; it
   is never recorded as an engine `load.timeout`.
 * A restarted sweep adopts a load it submitted itself: the saved lane slot and the
   saved application are picked up, nothing is cancelled or placed again, and the
@@ -201,17 +202,21 @@ certificate).
 * Each result is bound to the recipe document digest (`content_sha256`). When a
   recipe's digest changes (the hourly refresh, a fix), a failed recipe is
   requeued and a passed one is retested last (`--no-revalidate` keeps old passes).
-* Each result records the accepted Controller release it ran under
-  (`controller_release` in `results.jsonl`, `release` in the state). The
-  release is re-read every five minutes (`vonkctl update`, the same read-only
-  check as above). When it changes, failures of a platform-side class
-  (install, start, readiness, review, fit, capacity, and an unclassified
-  download or build error) are requeued at normal priority; failures that say
-  something about the recipe or its model (model integrity, a build refused by
-  policy, out of memory, network, timeout, smoke assertions) are not. Failures
-  recorded before releases were tracked are retried once. The requeue is a new
-  line in `results.jsonl` (`step: "requeue"`, with the previous failure); the
-  file is only ever appended to, and each failure keeps its own evidence bundle.
+* Each new result records the authenticated deployed API source when known
+  (`controller_release` in `results.jsonl`, `release` and `release_authority`
+  in state). `vonkctl platform` reports packaged API and fresh worker identities;
+  signed publication and installed CLI facts are recorded separately. A signed
+  publication alone never proves deployment or resets a deferred result. Historical
+  results recorded from a publication proxy remain unverified and group as unknown.
+* Automatic recovery requires an exact typed fault with a proven changed owner
+  (source and contract fingerprint). Generic capacity, application and preparation
+  faults retain their normal scheduled retest; missing, stale or mixed provenance
+  cannot manufacture a recovery trigger. Retests append history and preserve
+  cumulative attempts, cause, evidence, cooldowns and existing request identities.
+  Active preparations reconnect with their original UUID. A new download attempt
+  requires a cooldown-qualified retest (or the bounded transient retry) and a fresh
+  exact terminal-failure receipt;
+  the complete previous attempt remains in download history and cache bytes are reused.
 * `run --retry-failed [--only SELECTOR]` requeues failed recipes (all of them, or
   those whose selector contains the text), whatever the cause. The status
   page groups failures by Controller release, newest first.
@@ -246,12 +251,12 @@ someone else started (library state `preparing`) are waited for, not repeated.
   shows the problem on the status page until the Controller answers. A
   structured refusal such as `dockerfile.heredoc_forbidden: ...` still fails
   its recipe.
-* At start `vonkctl --version` is recorded and `vonkctl update` (a read-only
-  check) compares the installed build with the accepted signed release the
-  Controller is deployed from; the Controller has no version endpoint of its
-  own. If they differ the sweep refuses with "run `vonkctl update --apply`"
-  (`--allow-version-skew` runs anyway with a warning). An unanswered check only
-  warns.
+* At start `vonkctl --version`, `vonkctl platform` and `vonkctl update` record
+  installed, deployed and signed-publication facts independently. The signed
+  updater installs only a client whose packaged contract matches the observed API;
+  unknown or different compatibility remains pending. `--allow-version-skew`
+  keeps the installed client with a warning. Unknown provenance does not pause
+  otherwise valid Controller scheduling.
 * A state directory has an exclusive lock (`run.lock`, an `flock` that names the
   holder's pid and host and disappears with the process). A second `run` on the
   same directory refuses to start.
@@ -270,13 +275,20 @@ process or the next. A later run that finds the previous run's restore still
 coming up waits for it ("our own load") but does not hold or requeue anything; only
 an application the sweep did not submit counts as the owner loading a profile.
 
-Clearing, stop and restore loads use a request key of their own for every attempt
-(nonce, kind, profile and a persisted sequence number), because the Controller
-answers a repeated key with the application it already made: a fixed takeover key
-returned an old, finished application and stopped nothing. After submitting, the sweep
-checks that the application is new (an id not seen before, carrying our key) and,
-for a clearing load, that the fleet really is idle; otherwise it tries again with a
-new key, three times, and then stops with an error instead of testing on a busy fleet.
+Cleanup observes the original accepted application's canonical per-effect graph.
+An observation timeout never cancels it or invents a new clearing request. Each
+full stop scope remains occupied until its exact successful typed stop receipt;
+absence from `fleet.loaded` is not proof. A healthy independent lane can then
+receive a fresh whole-fleet admission that explicitly adopts every remaining
+pending cleanup. Borrowed cleanup retains its original root, plan, ordinal,
+request and child operation, and keeps the aggregate observer alive. A dual stop
+scope remains atomic even when one member is healthy.
+
+A genuinely terminal failed or cancelled cleanup retains its physical-claim
+history. Normal admission may accept a new stop only for the exact residual run
+and topology; only its matching successful stop receipt reconciles the older
+unconfirmed effect. Unreadable or changed bindings defer safely. Stop and restore
+loads remain ordinary authorized whole-fleet intents with durable request keys.
 
 ## Evidence
 

@@ -1,9 +1,4 @@
-"""Clearing, stop and restore loads use a fresh request key per attempt and are verified.
-
-The Controller answers a repeated request key with the application it already made. A
-takeover with a fixed key therefore returned yesterday's finished application, stopped
-nothing, and the sweep looped on "clearing" while the owner's workload kept running.
-"""
+"""New authorized intents use fresh keys; uncertain owned requests keep theirs."""
 
 from __future__ import annotations
 
@@ -12,6 +7,9 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 OWNER = {
     "alias": "owner-glm",
@@ -79,7 +77,7 @@ def test_every_attempt_has_its_own_key_recorded_in_own_loads(
     assert len(keys) == 12 and sweep.state.data["own_seq"] == 12
 
 
-def test_an_old_application_returned_for_a_new_request_is_stale_and_retried(
+def test_an_unknown_owned_application_keeps_its_identity_without_new_loads(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
@@ -108,22 +106,22 @@ def test_an_old_application_returned_for_a_new_request_is_stale_and_retried(
         "latest": "app-0001",
         "labels": {"purpose": "hardware-sweep"},
     }
-    fleet.stale_loads = (
-        2  # the Controller answers the first two attempts with the old application
-    )
-    assert sweep.run() == 0
-    assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
-    assert (
-        sum(
-            "returned an old application" in e["message"]
-            for e in sweep.state.data["events"]
-        )
-        == 2
-    )
-    assert all(r["alias"] != "owner-glm" for r in fleet.runs)
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep.start_takeover()
+    for _ in range(6):
+        sweep.tick()
+        sweep.clock.sleep(300)
+    original = sweep.state.data["cleanup_loads"]["old"]
+    assert original["app_id"] == "app-0001"
+    assert original["observation_unknown"]
+    assert not _load_keys(fleet, 10)
+    assert len(sweep.state.data["own_loads"]) == 1
+    assert any(r["alias"] == "owner-glm" for r in fleet.runs)
+    assert sweep.state.recipes["vonk-forge/a"]["status"] == "pending"
 
 
-def test_stale_application_exhausts_one_budget_then_a_fresh_operation_is_admitted(
+def test_foreign_acceptance_reconciles_only_the_original_owned_request(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
@@ -144,26 +142,36 @@ def test_stale_application_exhausts_one_budget_then_a_fresh_operation_is_admitte
         "latest": "app-0001",
         "labels": {"purpose": "hardware-sweep"},
     }
-    sweep.state.data["own_loads"].append(
-        {
-            "request_key": "old",
-            "kind": "takeover",
-            "profile": 10,
-            "application_id": "app-0001",
-        }
-    )
-    fleet.stale_loads = 3  # one bounded cycle exhausts its observation budget
-    assert sweep.run() == 0
-    keys = _load_keys(fleet, 10)
-    assert len(keys) >= 5 and len(keys) == len(set(keys))
-    assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
-    assert any(
-        "not new; nothing was started" in event["message"]
-        for event in sweep.state.data["events"]
-    )
+    fleet.stale_loads = 1
+    sweep.preflight()
+    sweep.refresh_catalog()
+    with pytest.raises(RuntimeError, match="acceptance does not match"):
+        sweep.start_takeover()
+    original = sweep.state.data["own_loads"][-1]
+    request = original["request_key"]
+    assert original.get("application_id") is None
+    assert _load_keys(fleet, 10) == [request]
+    sweep.clock.sleep(1800)
+    for malformed in (
+        {"code": "controller.not_found"},
+        {"error_type": "arguments", "code": "controller.not_found"},
+    ):
+        fleet.observations.append((("profile", "progress"), 2, malformed))
+        sweep.observe_cleanup()
+        assert _load_keys(fleet, 10) == [request]
+        assert original.get("application_id") is None
+    # A canonical not-found receipt and unchanged allowed review authorize only
+    # reentry with the same request, never a timer-generated replacement key.
+    sweep.observe_cleanup()
+    sweep.observe_cleanup()
+    assert _load_keys(fleet, 10) == [request, request]
+    assert len(sweep.state.data["own_loads"]) == 1
+    assert sweep.state.data["cleanup_loads"][request]["projection_known"]
+    assert not sweep._cleanup_nodes()
+    assert not [c for _, c in fleet.calls if c[:2] == ("profile", "cancel")]
 
 
-def test_a_new_application_that_leaves_the_sparks_busy_is_retried(
+def test_empty_aggregate_success_without_reviewed_stop_receipts_stays_unresolved(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
@@ -173,34 +181,36 @@ def test_a_new_application_that_leaves_the_sparks_busy_is_retried(
     fleet.ignore_clearing = (
         1  # the first clearing load "succeeds" but the owner's workload keeps running
     )
-    assert sweep.run() == 0
-    assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
-    assert any(
-        "still run something after clearing load 1" in e["message"]
-        for e in sweep.state.data["events"]
-    )
-    assert [x["kind"] for x in sweep.state.data["own_loads"]].count("takeover") == 2
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep.start_takeover()
+    original = dict(sweep.state.data["own_loads"][-1])
+    for _ in range(6):
+        sweep.tick()
+        sweep.clock.sleep(300)
+    assert sweep.state.data["own_loads"] == [original]
+    assert sweep._cleanup_nodes() == {"spk_a", "spk_b"}
+    assert sweep.state.recipes["vonk-forge/a"]["status"] == "pending"
+    assert any(r["alias"] == "owner-glm" for r in fleet.runs)
 
 
-def test_sparks_that_never_go_idle_are_reported_instead_of_testing_on_a_busy_fleet(
+def test_unknown_stop_projection_keeps_claims_without_testing_on_busy_fleet(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
     )
     fleet.runs.append(dict(OWNER))
-    fleet.ignore_clearing = 99
+    fleet.cleanup_projection = False
+    fleet.cleanup_stop_seconds["owner-glm"] = 10**6
     sweep.refresh_catalog()
-    assert (
-        sweep._take_over(sweep.clock.now()) is False
-    )  # bounded: reports, never raises or hangs
-    assert (
-        "still run workloads after 3 clearing loads: owner-glm"
-        in (sweep.state.data["infra"]["clearing"]["message"])
-    )
-    assert not [
-        c for p, c in fleet.calls if p == 10 and c[:2] == ("profile", "add")
-    ]  # nothing was placed
+    assert sweep._take_over(sweep.clock.now()) is False
+    original = dict(sweep.state.data["own_loads"][-1])
+    sweep.clock.sleep(1800)
+    sweep.observe_cleanup()
+    assert sweep.state.data["own_loads"] == [original]
+    assert sweep._cleanup_nodes() == {"spk_a", "spk_b"}
+    assert not [c for p, c in fleet.calls if p == 10 and c[:2] == ("profile", "add")]
 
 
 def test_restores_after_resumed_runs_never_reuse_a_key(
