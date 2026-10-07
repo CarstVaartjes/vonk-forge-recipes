@@ -218,7 +218,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "$RECIPE_TEST_PYTHON" -m pytest -q
+          # Keep the active test visible and dump stacks for a stalled test;
+          # neither option changes production retry or observation deadlines.
+          "$RECIPE_TEST_PYTHON" -m pytest -vv -o faulthandler_timeout=20
 
       - name: Lint the repository with pinned Ruff
         if: steps.scope.outputs.full == 'true'
