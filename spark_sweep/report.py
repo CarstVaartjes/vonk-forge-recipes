@@ -87,7 +87,12 @@ def failures_by_release(data: Mapping[str, Any]) -> list[dict[str, Any]]:
     groups: dict[str, dict[str, Mapping[str, Any]]] = defaultdict(dict)
     for key, entry in data["recipes"].items():
         if entry.get("status") == "failed":
-            groups[str(entry.get("release") or "unknown")][key] = entry
+            sha = (
+                entry.get("release")
+                if entry.get("release_authority") == "deployed-controller"
+                else None
+            )
+            groups[str(sha or "unknown")][key] = entry
     order = [h["sha"] for h in reversed(data.get("release_history", []))]
     ranked = sorted(
         groups, key=lambda sha: order.index(sha) if sha in order else len(order)

@@ -446,22 +446,6 @@ _CODE_CLASSES = {
     "controller.transport_timeout": "network",
 }
 _FIXED_CLASS = {"timeout": "timeout", "readiness": "readiness"}
-# Failures that say something about the recipe or its model, not the platform: a new Controller
-# release does not change them. Everything else (install, start, publication, review, admission,
-# an unclassified download or build error) may have been the platform's.
-RECIPE_SIDE_CLASSES = frozenset(
-    {
-        "model-integrity",
-        "build-policy",
-        "oom",
-        "network",
-        "timeout",
-        "smoke",
-        "smoke-assertion",
-        "smoke-request",
-        "smoke-timeout",
-    }
-)
 TRANSIENT_CLASSES = frozenset({"network", "smoke-timeout", "copy-stalled"})
 MODEL_LEVEL_CLASSES = frozenset({"model-integrity"})
 
@@ -509,11 +493,6 @@ def freeable_refusal(failure: Failure) -> bool:
     only a refusal that survives that is the recipe's.
     """
     return failure.phase == "review" and failure.klass == "capacity"
-
-
-def platform_side(failure_class: str | None) -> bool:
-    """Could a platform fix have changed this failure? Unknown classes count as the platform's."""
-    return failure_class not in RECIPE_SIDE_CLASSES
 
 
 _NOT_REFS = frozenset({"code", "detail", "message", "severity"})

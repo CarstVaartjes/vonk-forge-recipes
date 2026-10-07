@@ -4,13 +4,13 @@ Profiles cover the whole fleet (an unassigned Spark is idle and its workload is
 stopped by a load), so the lanes are *assignments of one sweep profile*, not
 one profile per lane. A lane swap edits that profile and loads it; the planner
 keeps every unchanged assignment (``--review`` is checked to prove it).
-Applications are serialised: one load in flight at a time, while smoke tests of
-the other lane run beside it.
+Unchanged running and cleanup effects are carried by canonical adoption links,
+so an independent lane can progress while another exact child remains pending.
 
 ``Sweep.tick`` is a small state machine, so the whole sweep is deterministic
 under a fake clock and a fake ``vonkctl``:
 
-    refresh catalog -> owner guard -> advance slots -> prefetch -> schedule -> status
+    refresh catalog -> owner guard -> advance slots/receipts -> schedule -> prefetch -> status
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Protocol
 
-from . import policy
+from . import cleanup, policy, recovery
 from .catalog import (
     Fleet,
     Model,
@@ -48,8 +48,6 @@ from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
 from .state import ResultsLog, State, StateLock
 from .vonkctl import Vonkctl, VonkctlError, is_infrastructure, request_key
 
-CLEAR_TIMEOUT_SECONDS = 900.0
-IDLE_WAIT_SECONDS = 120.0
 CLEARING_ATTEMPTS = 3
 WAIT_EVENT_SECONDS = 60.0  # a wait says what it waits for at least this often
 OWNER_WAIT_SECONDS = (
@@ -615,7 +613,7 @@ class Sweep:
                     and now >= float(entry.get("finished_at", now)) + RETEST_SECONDS
                     and self._selected_key(key)
                 ):
-                    self._requeue_failed(key, "scheduled-retest")
+                    self._schedule_retest(key, "scheduled-retest")
         if now - self.owner_at >= self.cfg.owner_poll_seconds:
             self.owner_at = now
             self.owner_status = self.guard.check(now)
@@ -635,6 +633,7 @@ class Sweep:
                 raise SweepOwnerIntentSuperseded(self.owner_status.reason)
         else:
             self.state.data["owner"].pop("paused_at", None)
+        self.observe_platform()
         self.advance_slots(now)
         self.heal_fleet_skips()
         if not self.owner_status.paused:
@@ -662,6 +661,9 @@ class Sweep:
         if not self.owner_status.paused:
             self.schedule(self.clock.now())
             self.cleanup_finished()
+        # Previously confirmed immutable stop receipts may feed a fresh canonical
+        # admission before optional progress reads of an offline borrowed child.
+        self.observe_cleanup()
         # Ready cached placements and their durable request receipts come first.
         # Download observation, preparation and pin maintenance may wait on the API.
         self.last_prefetch = self.prefetcher.tick(
@@ -706,6 +708,8 @@ class Sweep:
 
     def done(self) -> bool:
         if not self.catalog_loaded or self.state.slots:
+            return False
+        if self._cleanup_nodes():
             return False
         if any(r.get("state") in ACTIVE_APP for r in self.state.downloads.values()):
             return False
@@ -763,73 +767,118 @@ class Sweep:
         self._take_over(self.clock.now())
 
     def check_client(self) -> None:
-        """Refuse to run with a vonkctl that is not the accepted release.
-
-        The Controller exposes no version of its own; the accepted signed release is what it
-        is deployed from, so ``vonkctl update`` (a read-only check) tells whether this client
-        has drifted. An older client fails at runtime with protocol errors that look like
-        every recipe failing.
-        """
+        """Observe deployment and let the signed CLI updater select a compatible client."""
         version = self.vk.run("--version")
-        if isinstance(version.document, dict):
+        if version.ok and isinstance(version.document, dict):
             self.state.data["client"] = {
-                k: version.document.get(k) for k in ("version", "source_sha")
+                k: version.document.get(k)
+                for k in ("version", "source_sha", "control_contract_sha256")
             }
+        self.observe_platform()
         check = self.vk.run("update", timeout=60)
         document = check.document if isinstance(check.document, dict) else {}
         if not check.ok or "update_available" not in document:
             self.state.event(
-                "could not compare vonkctl with the accepted release: "
+                "could not compare vonkctl with the signed publication: "
                 f"{check.error_text[:120]}"
             )
             return
-        self.observe_release(document)
+        self.observe_publication(document)
         if document["update_available"] is not True:
+            self.requeue_for_changed_owner()
             return
         current = dig(document, "current", "version", default="unknown")
         accepted = document.get("accepted_version", "unknown")
-        message = f"vonkctl {current} differs from the accepted release {accepted}"
+        message = f"vonkctl {current} differs from the signed publication {accepted}"
         if self.cfg.allow_version_skew:
             self.state.event(f"WARNING: {message}; continuing as asked")
             return
+        # The installed updater owns signed artifact verification and the actual
+        # deployed API compatibility check. No publication/source-label shortcut.
         upgraded = self.vk.run("update", "--apply", timeout=120)
+        update_document = (
+            upgraded.document if isinstance(upgraded.document, Mapping) else {}
+        )
+        if upgraded.ok and update_document.get("updated") is not True:
+            self.state.event(
+                f"{message}; signed client update pending: "
+                f"{update_document.get('compatibility') or 'not applied'}"
+            )
+            return
         if upgraded.ok:
-            self.state.event(f"{message}; accepted client update applied")
+            self.state.event(f"{message}; compatible signed client update applied")
             version = self.vk.run("--version")
-            if isinstance(version.document, dict):
+            if version.ok and isinstance(version.document, dict):
                 self.state.data["client"] = {
-                    k: version.document.get(k) for k in ("version", "source_sha")
+                    k: version.document.get(k)
+                    for k in ("version", "source_sha", "control_contract_sha256")
                 }
             self.clear_infra("client-update")
+            self.requeue_for_changed_owner()
         else:
             self.note_infra("client-update", f"{message}; update will be retried")
 
     @property
     def release_sha(self) -> str | None:
-        value = self.state.data["release"].get("sha")
-        return value if isinstance(value, str) else None
+        """Current deployed API source, never an old publication proxy."""
+        identity = self._component_observations().get("api")
+        return identity.source_sha if identity is not None else None
 
-    def observe_release(self, document: Mapping[str, Any]) -> None:
-        """Note the accepted Controller release; a change requeues failures a fix may have cured.
+    def _component_observations(
+        self,
+    ) -> dict[recovery.Owner, recovery.Fingerprint | None]:
+        return recovery.fingerprints(
+            self.state.data["platform"],
+            self.state.data.get("client", {}),
+            self.clock.now(),
+        )
 
-        The Controller has no version endpoint, so the accepted signed release (the source it
-        is deployed from) stands in for it, as in the client check.
-        """
-        version = document.get("accepted_version")
-        identity = document.get("accepted_source_sha") or version
-        if not isinstance(identity, str) or not identity:
-            return
+    def observe_platform(self) -> None:
+        reply = self.vk.run("platform", timeout=30)
+        document = (
+            reply.document if reply.ok and isinstance(reply.document, dict) else {}
+        )
+        self.state.data["platform"] = document
+        identity = self._component_observations().get("api")
         release = self.state.data["release"]
-        if release.get("sha") != identity:
-            if release:
-                self.state.event(
-                    f"Controller release changed: {release.get('sha')} -> {identity}"
-                )
-            release.update(sha=identity, version=version, seen_at=self.clock.now())
+        observed = {
+            "sha": identity.source_sha if identity else None,
+            "control_contract_sha256": identity.contract_sha256 if identity else None,
+            "authority": "deployed-controller",
+        }
+        if any(release.get(k) != value for k, value in observed.items()):
             self.state.data["release_history"].append(
-                {"sha": identity, "version": version, "seen_at": self.clock.now()}
+                {**observed, "seen_at": self.clock.now()}
             )
-        self.requeue_for_release()
+            self.state.event(
+                "deployed Controller observed: " + (observed["sha"] or "unknown")
+            )
+        if release and release.get("authority") != "deployed-controller":
+            self.state.data["release_history"].append(
+                {**release, "authority": "legacy-unverified-publication-proxy"}
+            )
+        release.clear()
+        release.update(**observed, seen_at=self.clock.now())
+        # Unknown provenance does not pause otherwise valid canonical scheduling.
+        self.state.data["platform_issue"] = (
+            None
+            if identity is not None
+            else "deployed component provenance unavailable"
+        )
+        self.requeue_for_changed_owner()
+
+    def observe_publication(self, document: Mapping[str, Any]) -> None:
+        """Record signed publication facts without changing fault eligibility."""
+        publication = {
+            "source_sha": document.get("accepted_source_sha"),
+            "version": document.get("accepted_version"),
+        }
+        previous = self.state.data["publication"]
+        if any(previous.get(k) != value for k, value in publication.items()):
+            self.state.data["publication_history"].append(
+                {**publication, "seen_at": self.clock.now()}
+            )
+        previous.update(**publication, seen_at=self.clock.now())
 
     def check_release(self, now: float) -> None:
         if now - self.release_at < self.cfg.release_seconds:
@@ -837,19 +886,63 @@ class Sweep:
         self.release_at = now
         self.check_client()
 
-    def requeue_for_release(self) -> None:
-        """Failures from another Controller release, of a platform-side class, are tried again."""
-        current = self.release_sha
-        if current is None:
-            return
+    def requeue_for_changed_owner(self) -> None:
+        observations = self._component_observations()
         for key, entry in self.state.recipes.items():
-            if (
-                entry.get("status") in ("failed", "deferred")
-                and entry.get("release") != current
-                and policy.platform_side(entry.get("failure_class"))
-                and self._selected_key(key)
-            ):
-                self._requeue_failed(key, f"controller-release-changed ({current})")
+            if entry.get("status") not in (
+                "failed",
+                "deferred",
+            ) or not self._selected_key(key):
+                continue
+            basis = recovery.changed_owner(entry, observations)
+            if basis is not None:
+                self._schedule_retest(key, "observed-fault-owner-changed", basis=basis)
+
+    def _schedule_retest(
+        self, key: str, reason: str, *, basis: Mapping[str, str] | None = None
+    ) -> None:
+        """Schedule an automatic retest without erasing its cause or retry history."""
+        entry = self.state.entry(key)
+        previous = {
+            k: entry.get(k)
+            for k in (
+                "status",
+                "attempts",
+                "phase",
+                "failure_class",
+                "code",
+                "error",
+                "evidence",
+                "evidence_bundle",
+                "finished_at",
+                "release",
+                "recovery_basis",
+                "release_authority",
+                "defer_until",
+                "not_before",
+                "content_sha256",
+                "revision_id",
+            )
+        }
+        event = {"reason": reason, "at": self.clock.now(), "previous": previous}
+        if basis is not None:
+            event["basis"] = dict(basis)
+        history = entry.setdefault("recovery_history", [])
+        history.append(event)
+        del history[:-60]
+        # Exact existing request/download identities, attempts and cooldowns stay.
+        entry.update(status="pending", retest=event, requeued_because=reason)
+        self.log.append(
+            batch="sweep",
+            recipe=key,
+            step="retest",
+            status="scheduled",
+            reason=reason,
+            previous=previous,
+            recovery_basis=basis,
+            controller_release=self.release_sha,
+        )
+        self.state.event(f"scheduled retest {key}: {reason}")
 
     def requeue_for_rules(self) -> None:
         """Load timeouts recorded under the old rules (copy time counted) are tried once more."""
@@ -1163,6 +1256,10 @@ class Sweep:
             cluster=failure.cluster,
             finished_at=now,
             release=self.release_sha,
+            release_authority="deployed-controller" if self.release_sha else None,
+            recovery_basis=recovery.failure_basis(
+                failure.code, self._component_observations()
+            ),
             rules=policy.LOAD_RULES,
             smoke_rules=policy.SMOKE_RULES,
             content_sha256=recipe.content_sha256
@@ -1246,6 +1343,7 @@ class Sweep:
             attempts=int(entry.get("attempts", 0)) + 1,
             finished_at=now,
             release=self.release_sha,
+            release_authority="deployed-controller" if self.release_sha else None,
             content_sha256=recipe.content_sha256,
             revision_id=recipe.revision_id,
             timings=timings,
@@ -1816,6 +1914,9 @@ class Sweep:
             "seq": seq,
             "submitted_at": now,
             "adopted_requests": list(previous.get("adopted_requests") or []),
+            "adopted_cleanup_requests": list(
+                previous.get("adopted_cleanup_requests") or []
+            ),
         }
         for key in survivors:
             lane = self.state.slots[key]
@@ -2101,6 +2202,7 @@ class Sweep:
             if slot["phase"] != "finished"
             for node in slot["node_ids"]
         }
+        busy |= self._cleanup_nodes()
         return [bin_ for bin_ in bins.values() if bin_.id not in busy]
 
     def release_orphan_load(self) -> None:
@@ -2172,6 +2274,8 @@ class Sweep:
         candidates = self.ready_candidates()
         if not candidates:
             return
+        if not self._take_over(now):
+            return
         bins = self._bins()
         mode = policy.choose_mode(
             self.state.data["mode"],
@@ -2200,141 +2304,257 @@ class Sweep:
             spark_ids = tuple(b.id for b in bins[:width])
             if len(spark_ids) == width:
                 placements = [policy.Placement(head, spark_ids)]
-        if placements and self._take_over(now):
+        if placements:
             self._apply(placements, now)
 
-    def _take_over(self, now: float) -> bool:
-        """Stop whatever else the Sparks run, once (again after an owner load).
+    def _cleanup_confirmed(self) -> set[str]:
+        return {
+            cleanup.stop_signature(row["stop_effect"])
+            for load in self.state.data["cleanup_loads"].values()
+            for row in load.get("effects", [])
+            if cleanup.stopped(row)
+        }
 
-        A profile load replaces the whole fleet's workloads anyway; doing it as
-        its own step (an empty sweep profile) means every review sees idle
-        Sparks instead of arguing about someone else's workload. ``run --yes``
-        is the operator's consent. Returns False to try again on the next tick.
-        """
+    def _cleanup_pending(self, load: Mapping[str, Any]) -> list[dict[str, Any]]:
+        confirmed = self._cleanup_confirmed()
+        return [
+            row
+            for row in load.get("effects", [])
+            if cleanup.stop_signature(row["stop_effect"]) not in confirmed
+        ]
+
+    def _cleanup_nodes(self) -> set[str]:
+        """Unconfirmed exact stop scopes remain occupied, including whole gangs."""
+        occupied: set[str] = set()
+        for load in self.state.data["cleanup_loads"].values():
+            if not load.get("projection_known"):
+                # Before the current projection is known no lane may be inferred free.
+                occupied.update(s.id for s in self.sparks())
+                continue
+            for row in self._cleanup_pending(load):
+                occupied.update(row["node_ids"])
+        return occupied
+
+    def observe_cleanup(self) -> None:
+        """Observe original stop receipts once; never replace intent after a read timeout."""
+        for load in self.state.data["cleanup_loads"].values():
+            if load.get("projection_known") and not self._cleanup_pending(load):
+                continue  # immutable successful receipt/history needs no repeated I/O
+            args = ["progress"]
+            if load.get("app_id"):
+                args += ["--application", load["app_id"]]
+            else:
+                args += ["--request-key", load["request_key"]]
+            reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
+            document = reply.document
+            if (
+                not load.get("app_id")
+                and not reply.ok
+                and reply.code in {"not_found", "profile.application_not_found"}
+                and load.get("reviewed_stops") is not None
+            ):
+                review = self.vk.run(
+                    "profile", "load", "--review", profile=self.cfg.sweep_profile
+                )
+                current = review.document
+                if not review.ok or not isinstance(current, Mapping):
+                    continue
+                stops = [
+                    row
+                    for row in dig(current, "effects", "runs", default=[])
+                    if isinstance(row, Mapping) and row.get("action") == "stop"
+                ]
+                if (
+                    current.get("allowed") is not True
+                    or sorted(cleanup.stop_signature(row) for row in stops)
+                    != load["reviewed_stops"]
+                    or self._adopted_requests(current) is None
+                ):
+                    load["observation_unknown"] = True
+                    continue
+                try:
+                    document = self._submit_load(
+                        self.cfg.sweep_profile, load["request_key"], "takeover"
+                    )
+                except VonkctlError:
+                    continue
+                # Exactly absent receipt permits same-key reentry, never a new UUID.
+                load["app_id"] = document.get("id")
+                self.state.save()
+                continue
+            if not reply.ok or not isinstance(document, Mapping):
+                load["observation_unknown"] = True
+                self.state.event(
+                    "exact cleanup receipt observation unavailable; retaining its original identity"
+                )
+                continue
+            app = document.get("id")
+            if (
+                not isinstance(app, str)
+                or document.get("request_key") != load["request_key"]
+                or (load.get("app_id") and app != load["app_id"])
+            ):
+                load["observation_unknown"] = True
+                continue
+            rows = cleanup.stop_effects(document)
+            expected = load.get("reviewed_stops")
+            if rows is not None and (
+                (not rows and expected != [])
+                or (
+                    isinstance(expected, list)
+                    and not set(expected)
+                    <= {cleanup.stop_signature(row["stop_effect"]) for row in rows}
+                )
+            ):
+                # Acceptance can precede adapter initialization. An empty or partial
+                # projection never erases the reviewed stops or invents free lanes.
+                load["observation_unknown"] = True
+                continue
+            previous = {row["effect_id"]: row for row in load.get("effects", [])}
+            if (
+                rows is None
+                or (
+                    load.get("projection_known")
+                    and set(previous) != {row["effect_id"] for row in rows}
+                )
+                or any(
+                    row["effect_id"] not in {item["effect_id"] for item in rows}
+                    for row in previous.values()
+                )
+                or any(
+                    row["effect_id"] in previous
+                    and (
+                        not cleanup.same_effect(previous[row["effect_id"]], row)
+                        or (
+                            cleanup.stopped(previous[row["effect_id"]])
+                            and not cleanup.stopped(row)
+                        )
+                    )
+                    for row in rows or []
+                )
+            ):
+                load["observation_unknown"] = True
+                self.state.event(
+                    "canonical cleanup effect projection unavailable or changed; retaining original scopes"
+                )
+                continue
+            load.update(
+                app_id=app,
+                state=document.get("state"),
+                effects=rows,
+                projection_known=True,
+                observation_unknown=False,
+                observed_at=self.clock.now(),
+            )
+            self.state.save()
+
+    def _take_over(self, now: float) -> bool:
+        """Begin one durable whole-fleet cleanup, then admit lanes from exact receipts."""
+        loads = self.state.data["cleanup_loads"]
+        if loads:
+            if not all(load.get("projection_known") for load in loads.values()):
+                return False
+            unresolved = [
+                load for load in loads.values() if self._cleanup_pending(load)
+            ]
+            if unresolved and any(
+                load.get("state") not in SETTLED for load in unresolved
+            ):
+                return True
+            if not unresolved and self.state.data.get("took_over"):
+                return True
+            # Only observed terminal intent or an explicit new clearing decision may
+            # enter normal admission again. A read timeout never reaches this branch.
+            return self._renew_cleanup(now)
         if self.state.data.get("took_over") or self.state.slots:
             return True
+        # Recover the latest canonical owned cleanup before creating any new intent.
+        original = next(
+            (
+                item
+                for item in reversed(self.state.data["own_loads"])
+                if item.get("kind") in ("takeover", "stop")
+                and item.get("profile") == self.cfg.sweep_profile
+            ),
+            None,
+        )
+        if original is not None:
+            key = original["request_key"]
+            self.state.data["took_over"] = True
+            loads[key] = {"request_key": key, "app_id": original.get("application_id")}
+            self.state.save()
+            self.observe_cleanup()
+            return bool(loads[key].get("projection_known"))
         try:
             self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
         except VonkctlError:
             return False
         if not self.fleet.presences:
+            # This permits a fresh review, not a claim that an old stop succeeded.
             self.state.data["took_over"] = True
             return True
-        self.state.event(
-            "stopping what the Sparks run: loading the empty sweep profile"
+        return self._renew_cleanup(now)
+
+    def _renew_cleanup(self, now: float) -> bool:
+        loads = self.state.data["cleanup_loads"]
+        review = self.vk.run(
+            "profile", "load", "--review", profile=self.cfg.sweep_profile
         )
+        document = review.document
+        if not review.ok or not isinstance(document, Mapping):
+            return False
+        if document.get("allowed") is not True:
+            return False
+        runs = dig(document, "effects", "runs", default=[])
+        stops = [
+            row
+            for row in runs
+            if isinstance(row, Mapping) and row.get("action") == "stop"
+        ]
+        kept = {
+            slot["alias"]
+            for slot in self.state.slots.values()
+            if slot["phase"] in ("loading", "smoking")
+        }
+        if any(row.get("alias") in kept for row in stops):
+            return False
+        if self._adopted_requests(document) is None:
+            return False
+        residual = [
+            row for load in loads.values() for row in self._cleanup_pending(load)
+        ]
+        if any(
+            not any(
+                cleanup.stop_signature(stop)
+                == cleanup.stop_signature(row["stop_effect"])
+                for stop in stops
+            )
+            for row in residual
+        ):
+            self.state.event(
+                "fresh cleanup admission does not bind every exact residual stop"
+            )
+            return False
+        key = self._own_key("takeover", self.cfg.sweep_profile)
+        loads[key] = {
+            "request_key": key,
+            "app_id": None,
+            "predecessor_effects": [row["effect_id"] for row in residual],
+            "reviewed_stops": sorted(cleanup.stop_signature(row) for row in stops),
+        }
+        self.state.data["took_over"] = True
         self.state.data["dirty"] = True
         self.state.save()
-        for attempt in range(1, CLEARING_ATTEMPTS + 1):
-            try:
-                submitted = self._submit_fresh_load(self.cfg.sweep_profile, "takeover")
-            except VonkctlError as error:
-                self.state.event(f"could not clear the Sparks: {str(error)[:150]}")
-                self.backoff_until = now + self.cfg.retry_delay
-                if error.infrastructure(reviewing=True):
-                    self.note_infra("review", str(error))
-                return False
-            application = str(submitted.get("id"))
-            status = self._await_application(application, self.clock.now())
-            if status not in SETTLED:
-                # Bounded: the clearing load never settled. It is ours: cancel it and start over.
-                self.state.event(
-                    f"the clearing load {application} did not settle in time: cancelling it"
-                )
-                self.note_infra(
-                    "clearing",
-                    f"clearing load {application} stuck ({status or 'unknown'})",
-                )
-                try:
-                    self.vk.run(
-                        "profile",
-                        "cancel",
-                        application,
-                        "--yes",
-                        "--detach",
-                        profile=self.cfg.sweep_profile,
-                    )
-                except VonkctlError as error:
-                    self.state.event(
-                        f"could not cancel the clearing load: {str(error)[:150]}"
-                    )
-                self.backoff_until = self.clock.now() + self.cfg.retry_delay
-                return False
-            if status != "succeeded":
-                self.state.event(
-                    f"clearing the Sparks did not succeed (last state {status})"
-                )
-                self.note_infra("clearing", f"clearing load ended {status}")
-                self.backoff_until = self.clock.now() + self.cfg.retry_delay
-                return False
-            if self._wait_idle():
-                self.clear_infra("clearing")
-                self.state.data["took_over"] = True
-                return True
-            self.state.event(
-                f"the Sparks still run something after clearing load {attempt}: trying again"
-            )
-        # Bounded: read the fleet again. Whatever still runs is reported; the next pass retries.
-        names = ", ".join(sorted({p.alias for p in self.fleet.presences})) or "nothing"
-        self.note_infra(
-            "clearing",
-            f"the Sparks still run workloads after {CLEARING_ATTEMPTS} clearing loads: {names}",
-        )
-        self.backoff_until = self.clock.now() + self.cfg.retry_delay
-        return False
-
-    def _await_application(self, application_id: str, started: float) -> str:
-        """Wait for an application to settle; bounded, and never silent. Returns its last state."""
-        status = ""
-        deadline = started + CLEAR_TIMEOUT_SECONDS
-        while self.clock.now() < deadline:
-            reply = self.vk.run(
-                "profile",
-                "progress",
-                "--application",
-                application_id,
-                profile=self.cfg.sweep_profile,
-            )
-            status = str(dig(reply.document, "state", default=""))
-            replaced = (
-                policy.supersession(reply.document)
-                if status in SETTLED and isinstance(reply.document, dict)
-                else None
-            )
-            if replaced is not None and replaced.successor:
-                application_id = replaced.successor
-                self.waiting(f"application {application_id}", started)
-                self.clock.sleep(self.cfg.poll_seconds)
-                continue
-            if status in SETTLED:
-                self.done_waiting()
-                return status
-            self.waiting(
-                f"application {application_id} ({status or 'unknown'})", started
-            )
-            self.clock.sleep(self.cfg.poll_seconds)
-        return status if status in SETTLED else ""
-
-    def _wait_idle(self) -> bool:
-        """Did the load really empty the Sparks? Look at the fleet, not at the application."""
-        started = self.clock.now()
-        deadline = started + IDLE_WAIT_SECONDS
-        while self.clock.now() < deadline:
-            try:
-                self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
-                if not self.fleet.presences:
-                    self.done_waiting()
-                    return True
-            except VonkctlError:
-                pass
-            if self.clock.now() >= deadline:
-                self.done_waiting()
-                return False
-            self.waiting("the Sparks to become idle", started)
-            self.clock.sleep(self.cfg.poll_seconds)
-
-        self.done_waiting()
-        return False
+        try:
+            document = self._submit_load(self.cfg.sweep_profile, key, "takeover")
+            loads[key]["app_id"] = document.get("id")
+        except VonkctlError as error:
+            self.note_infra("clearing", str(error))
+            # The same request is observed on reentry; unknown acceptance is not replayed.
+            return False
+        self.state.save()
+        self.observe_cleanup()
+        return bool(loads[key].get("projection_known"))
 
     def _alias(self, recipe: Recipe) -> str:
         """The recipe's assignment name in the sweep profile, unique within it.
@@ -2434,6 +2654,13 @@ class Sweep:
         if stopped:
             self._rollback(added, f"review would stop running lanes {stopped}")
             return
+        cleanup_requests = self._adopted_cleanup_requests(document)
+        if cleanup_requests is None:
+            self._rollback(
+                added, "pending original cleanup effects are not bound for adoption"
+            )
+            self.note_infra("review", "waiting for exact original cleanup adoption")
+            return
         adopted_requests = self._adopted_requests(document)
         if adopted_requests is None:
             self._rollback(
@@ -2463,6 +2690,7 @@ class Sweep:
             "seq": seq,
             "submitted_at": now,
             "adopted_requests": adopted_requests,
+            "adopted_cleanup_requests": cleanup_requests,
         }
         for placement in added:
             self._open_slot(placement, key, now)
@@ -2526,7 +2754,46 @@ class Sweep:
             requests.append(request)
         return sorted(set(requests))
 
+    def _cleanup_reaccepted(self, original: Mapping[str, Any]) -> bool:
+        return any(
+            original["effect_id"] in load.get("predecessor_effects", [])
+            and load.get("projection_known")
+            and load.get("state") not in SETTLED
+            and any(
+                cleanup.stop_signature(row["stop_effect"])
+                == cleanup.stop_signature(original["stop_effect"])
+                for row in load.get("effects", [])
+            )
+            for load in self.state.data["cleanup_loads"].values()
+        )
+
+    def _adopted_cleanup_requests(self, review: Mapping[str, Any]) -> list[str] | None:
+        requests = []
+        for key, load in self.state.data["cleanup_loads"].items():
+            if not load.get("projection_known"):
+                return None
+            pending = self._cleanup_pending(load)
+            if load.get("state") in SETTLED:
+                # Historical cancelled claims stay occupied. A newer accepted exact
+                # stop may own that residual effect; never try to adopt terminal work.
+                if any(not self._cleanup_reaccepted(row) for row in pending):
+                    return None
+                continue
+            if any(not cleanup.adopted(review, row) for row in pending):
+                return None
+            if pending:
+                requests.append(key)
+        return sorted(requests)
+
     def _adopted_slots_live(self, load: Mapping[str, Any]) -> bool:
+        if any(
+            bool(self._cleanup_pending(original))
+            or not original.get("projection_known")
+            or original.get("observation_unknown")
+            for key in load.get("adopted_cleanup_requests", [])
+            if (original := self.state.data["cleanup_loads"].get(key)) is not None
+        ):
+            return True
         requests = set(load.get("adopted_requests") or [])
         return any(
             slot.get("request_key") in requests and slot["phase"] != "finished"
@@ -2824,7 +3091,16 @@ class Sweep:
                 "at": self.clock.now(),
             }
             own.append(record)
-            del own[:-200]
+            protected = set(self.state.data["loads"]) | set(
+                self.state.data["cleanup_loads"]
+            )
+            inactive = [item for item in own if item["request_key"] not in protected]
+            keep = {item["request_key"] for item in inactive[-200:]} | protected
+            own[:] = [item for item in own if item["request_key"] in keep]
+        if kind in ("takeover", "stop"):
+            self.state.data["cleanup_loads"].setdefault(
+                key, {"request_key": key, "app_id": record.get("application_id")}
+            )
         self.state.save()
         document = self.vk.call(
             "profile",
@@ -2838,6 +3114,8 @@ class Sweep:
         )
         if isinstance(document.get("id"), str):
             record["application_id"] = document["id"]
+            if kind in ("takeover", "stop"):
+                self.state.data["cleanup_loads"][key]["app_id"] = document["id"]
             self.state.save()
         return document
 

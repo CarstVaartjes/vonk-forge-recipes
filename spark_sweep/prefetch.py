@@ -272,11 +272,44 @@ class Prefetcher:
         key = request_key(
             "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
         )
+        retry_of = (
+            record.get("operation_id") if record.get("state") == "failed" else None
+        )
+        requested_intent = (
+            {"kind": "retry", "operation_id": retry_of}
+            if retry_of
+            else {"kind": "selector", "selector": recipe.key, "force": False}
+        )
+        if record:
+            history = self.state.data["download_history"].setdefault(recipe.key, [])
+            if not history or history[-1] != record:
+                history.append(dict(record))
+        # Persist the next request before effects. An interrupted reply reconnects
+        # this same UUID rather than losing it or creating a different attempt.
+        self.state.downloads[recipe.key] = {
+            "request_key": key,
+            "state": "observing",
+            "kind": kind,
+            "attempt": attempt,
+            "requested_intent": requested_intent,
+            "retry_of_operation_id": retry_of,
+            "started_at": self.clock(),
+            "request_intent": {
+                "recipe_key": recipe.key,
+                "content_sha256": recipe.content_sha256,
+                "revision_id": recipe.revision_id,
+            },
+        }
+        entry = self.state.entry(recipe.key)
+        retest = entry.get("retest")
+        if isinstance(retest, Mapping):
+            entry["download_retest_consumed_at"] = retest.get("at")
+        self.state.save()
+        action = ["retry", str(retry_of)] if retry_of else ["download", recipe.key]
         try:
             document = self.vk.call(
                 "recipe",
-                "download",
-                recipe.key,
+                *action,
                 "--yes",
                 "--detach",
                 "--request-key",
@@ -294,7 +327,7 @@ class Prefetcher:
             )
             failure = classify(
                 "download",
-                str(document.get("code", "")),
+                error.code,
                 str(document.get("detail", error)),
                 evidence={
                     "request_key": key,
@@ -308,6 +341,11 @@ class Prefetcher:
                 "kind": kind,
                 "attempt": attempt,
                 "failure": failure.signature,
+                "request_intent": {
+                    "recipe_key": recipe.key,
+                    "content_sha256": recipe.content_sha256,
+                    "revision_id": recipe.revision_id,
+                },
             }
             if failure.transient and attempt < 2:
                 self.state.downloads[recipe.key]["retry_at"] = (
@@ -325,6 +363,13 @@ class Prefetcher:
             "kind": kind,
             "attempt": attempt,
             "rerequests": rerequests,
+            "accepted_intent": document.get("request"),
+            "retry_of_operation_id": retry_of,
+            "request_intent": {
+                "recipe_key": recipe.key,
+                "content_sha256": recipe.content_sha256,
+                "revision_id": recipe.revision_id,
+            },
             "started_at": self.clock(),
         }
         self.state.event(f"download {kind}: {recipe.key}")
@@ -487,7 +532,77 @@ class Prefetcher:
                 and now - done_at > 600
                 and self.library_fresh_since > done_at
             )
+        if self._terminal_retest(recipe, record, now):
+            return True
         return bool(record.get("retry_at")) and now >= float(record["retry_at"])
+
+    def _terminal_retest(
+        self, recipe: Recipe, record: dict[str, Any], now: float
+    ) -> bool:
+        """Normal retest may replace only an observed terminal exact owned parent."""
+        entry = self.state.entry(recipe.key)
+        retest = entry.get("retest")
+        if (
+            entry.get("status") != "pending"
+            or not isinstance(retest, Mapping)
+            or retest.get("at") == entry.get("download_retest_consumed_at")
+            or retest.get("reason")
+            not in ("scheduled-retest", "observed-fault-owner-changed")
+            or record.get("state") != "failed"
+            or not record.get("operation_id")
+            or not record.get("request_key")
+            or now < float(record.get("retry_at", 0))
+            or now < float(entry.get("finished_at", 0)) + self.config.retry_cooldown
+            or now < float(entry.get("not_before", 0))
+            or now < float(entry.get("defer_until", 0))
+            or entry.get("content_sha256") != recipe.content_sha256
+            or entry.get("revision_id") != recipe.revision_id
+        ):
+            return False
+        intent = record.get("request_intent")
+        if isinstance(intent, Mapping) and (
+            intent.get("recipe_key") != recipe.key
+            or intent.get("content_sha256") != recipe.content_sha256
+            or intent.get("revision_id") != recipe.revision_id
+        ):
+            return False
+        # A request lookup binds the saved UUID to its actual terminal receipt.
+        # Absence, permission errors, client timeouts and active states cannot
+        # authorize a replacement request or erase its cache/ownership history.
+        reply = self.vk.run(
+            "recipe", "progress", "--request-key", str(record["request_key"])
+        )
+        document = reply.document
+        if (
+            not reply.ok
+            or not isinstance(document, Mapping)
+            or document.get("id") != record["operation_id"]
+            or document.get("request_id") != record["request_key"]
+            or document.get("recipe_revision_id") != recipe.revision_id
+            or document.get("recipe_content_sha256") != recipe.content_sha256
+            or not isinstance(document.get("failure"), Mapping)
+            or not isinstance(document.get("request"), Mapping)
+            or document.get("state") != "failed"
+        ):
+            return False
+        original_intent = record.get("accepted_intent")
+        observed_intent = document["request"]
+        if isinstance(original_intent, Mapping):
+            # Deterministic identity comparison after installed-CLI wire validation;
+            # this is not another parser or a reconstruction of execution parameters.
+            if observed_intent != original_intent:
+                return False
+        elif (
+            observed_intent.get("kind") != "selector"
+            or observed_intent.get("selector") != recipe.key
+            or observed_intent.get("force", False) is not False
+        ):
+            # An older owned selector receipt can be bound by its original request
+            # UUID plus frozen revision/content; unknown other intent is not guessed.
+            return False
+        record["terminal_receipt"] = dict(document)
+        record["terminal_verified_at"] = now
+        return True
 
     # -- pins ---------------------------------------------------------------
 

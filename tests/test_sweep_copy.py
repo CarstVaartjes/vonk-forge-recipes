@@ -151,9 +151,7 @@ def test_a_copy_that_stops_moving_fails_after_the_stall_window_and_is_retried_on
         2,
     )
     assert "no progress" in entry["error"] and "target-copy" in entry["error"]
-    assert policy.platform_side(
-        "copy-stalled"
-    )  # a platform fix may cure it: requeued on a release change
+    assert entry["recovery_basis"] is None  # no fault owner follows from copy-stalled
 
 
 def test_an_application_the_controller_holds_back_is_admission_stalled_not_a_load_timeout(
@@ -176,9 +174,7 @@ def test_an_application_the_controller_holds_back_is_admission_stalled_not_a_loa
     )
     assert "held this application back" in entry["error"]
     assert "resident_usage_unknown" in entry["error"]
-    assert policy.platform_side(
-        "admission-stalled"
-    )  # a platform fix may cure it: requeued on a release change
+    assert entry["recovery_basis"] is None  # admission class does not identify software
 
 
 def test_blocked_seconds_are_not_load_time() -> None:
