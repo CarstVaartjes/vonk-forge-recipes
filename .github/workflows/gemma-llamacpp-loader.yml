@@ -1,0 +1,92 @@
+name: Gemma llama.cpp native loader proof
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/gemma-llamacpp-loader.yml
+      - adapters/nvidia/gemma-4-e4b-it-q8-0-ggml-org-llamacpp-single/**
+      - adapters/nvidia/gemma-4-31b-it-q4-0-ggml-org-llamacpp-single/**
+      - adapters/nvidia/gemma-4-e2b-it-q8-0-ggml-org-llamacpp-single/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gemma-loader-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-loader:
+    name: Actual immutable ARM image before and after loader repair
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Reproduce the missing library then run all repaired packages
+        shell: bash
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = aarch64
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_SHA"
+          prefix="vonk-gemma-loader-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          owned_containers=("$prefix-before")
+          cleanup() {
+            for container in "${owned_containers[@]}"; do
+              [[ "$container" == "$prefix-"* ]] || return 1
+              docker rm --force "$container" >/dev/null 2>&1 || true
+            done
+          }
+          trap cleanup EXIT
+          mkdir -p artifacts/gemma-loader
+          git rev-parse HEAD > artifacts/gemma-loader/source-sha.txt
+          slugs=(
+            gemma-4-e4b-it-q8-0-ggml-org-llamacpp-single
+            gemma-4-31b-it-q4-0-ggml-org-llamacpp-single
+            gemma-4-e2b-it-q8-0-ggml-org-llamacpp-single
+          )
+          base=$(awk '$1 == "FROM" {print $2; exit}' "adapters/nvidia/${slugs[0]}/Dockerfile")
+          [[ "$base" =~ @sha256:[0-9a-f]{64}$ ]]
+          timeout 300s docker pull "$base"
+          test "$(docker image inspect "$base" --format '{{.Architecture}}')" = arm64
+          docker image inspect "$base" --format '{{json .RootFS.Layers}}' > artifacts/gemma-loader/base-layers.json
+          # Same immutable binary and runtime working directory. The original
+          # base loader path must fail before we add its actual /app libraries.
+          set +e
+          timeout 20s docker run --rm --name "$prefix-before" --network none --read-only \
+            --user 10001:10001 --workdir /tmp --entrypoint /app/llama-server \
+            "$base" --help > artifacts/gemma-loader/before.stdout 2> artifacts/gemma-loader/before.stderr
+          status=$?
+          set -e
+          test "$status" -ne 0
+          test "$status" -ne 124
+          grep -F 'libllama-server-impl.so: cannot open shared object file' artifacts/gemma-loader/before.stderr
+          for slug in "${slugs[@]}"; do
+            context="adapters/nvidia/$slug"
+            test "$(awk '$1 == "FROM" {print $2; exit}' "$context/Dockerfile")" = "$base"
+            image="vonk-gemma-loader:$slug"
+            owned_containers+=("$prefix-$slug")
+            # The owning Dockerfile executes the real wrapper during build.
+            timeout 300s docker build --tag "$image" "$context" > "artifacts/gemma-loader/$slug.build.log" 2>&1
+            # Its actual packaged non-root runtime also resolves the libraries
+            # with a read-only root and no network or model/GPU requirement.
+            timeout 20s docker run --rm --name "$prefix-$slug" --network none --read-only \
+              --workdir /tmp --entrypoint /opt/vonk/bin/llama-server \
+              "$image" --help > "artifacts/gemma-loader/$slug.help" 2> "artifacts/gemma-loader/$slug.stderr"
+            grep -F -- '--model' "artifacts/gemma-loader/$slug.help"
+            printf '%s\n' "$slug: actual packaged --help passed" >> artifacts/gemma-loader/results.txt
+          done
+      - name: Preserve actual loader proof and source provenance
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gemma-loader-${{ github.event.pull_request.head.sha || github.sha }}
+          path: artifacts/gemma-loader
+          if-no-files-found: error
+          retention-days: 14
