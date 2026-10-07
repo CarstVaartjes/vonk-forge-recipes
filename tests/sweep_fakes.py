@@ -708,7 +708,7 @@ class FakeFleet:
         else:
             op_id = a[2]
         if op_id not in self.ops:
-            return self._error("not_found", "unknown operation")
+            return self._error("controller.not_found", "unknown operation")
         return 0, self._op_doc(self.ops[op_id])
 
     # -- fleet ---------------------------------------------------------------------
@@ -1239,7 +1239,7 @@ class FakeFleet:
         else:
             app = self.apps.get(data.get("latest") or "")
         if app is None:
-            return self._error("not_found", "no application")
+            return self._error("controller.not_found", "no application")
         return 0, self._app_doc(app)
 
 

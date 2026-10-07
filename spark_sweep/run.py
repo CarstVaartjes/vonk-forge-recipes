@@ -48,7 +48,6 @@ from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
 from .state import ResultsLog, State, StateLock
 from .vonkctl import Vonkctl, VonkctlError, is_infrastructure, request_key
 
-CLEARING_ATTEMPTS = 3
 WAIT_EVENT_SECONDS = 60.0  # a wait says what it waits for at least this often
 OWNER_WAIT_SECONDS = (
     3600.0  # an owner load is waited for this long, then it is an infra event
@@ -1399,12 +1398,7 @@ class Sweep:
             args += ["--request-key", load["request_key"]]
         reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
         document = reply.document
-        if (
-            not reply.ok
-            and not load.get("app_id")
-            and isinstance(document, dict)
-            and document.get("code") in {"not_found", "profile.application_not_found"}
-        ):
+        if reply.is_not_found and not load.get("app_id"):
             # An exact fresh lookup proved there is no receipt. Replay the same request.
             try:
                 document = self._submit_load(
@@ -2365,8 +2359,7 @@ class Sweep:
             document = reply.document
             if (
                 not load.get("app_id")
-                and not reply.ok
-                and reply.code in {"not_found", "profile.application_not_found"}
+                and reply.is_not_found
                 and load.get("reviewed_stops") is not None
             ):
                 review = self.vk.run(
@@ -3048,47 +3041,37 @@ class Sweep:
         self.state.data["own_seq"] = seq
         return request_key(kind, self.state.nonce, profile, seq)
 
-    def _known_applications(self) -> set[str]:
-        known = {
-            str(item["application_id"])
-            for item in self.state.data["own_loads"]
-            if item.get("application_id")
-        }
-        known |= {
-            str(load["app_id"])
-            for load in self.state.data["loads"].values()
-            if load.get("app_id")
-        }
-        known |= {
-            item["id"]
-            for item in self.state.data["owner"]["baseline"].values()
-            if item.get("id")
-        }
-        return known
-
-    def _submit_fresh_load(
+    def _submit_reviewed_load(
         self, profile: int, kind: str, *, owner: bool = False
     ) -> Any:
-        """Submit a load of our own and make sure the Controller started a *new* application.
-
-        An application that is not new (an id seen before, or a request key that is not ours)
-        is stale: nothing happened. Try again with another key, a few times.
-        """
-        for _ in range(CLEARING_ATTEMPTS):
-            known = self._known_applications()
-            key = self._own_key(kind, profile)
-            document = self._submit_load(profile, key, kind, owner=owner)
-            returned = dig(document, "request_key", default=key)
-            if document.get("id") not in known and returned == key:
-                return document
-            self.state.event(
-                f"the Controller returned an old application for the {kind} load "
-                f"({dig(document, 'id')}): trying again with a new request key"
-            )
-        raise RuntimeError(
-            f"the Controller keeps answering the {kind} load of profile {profile} with an "
-            "application that is not new; nothing was started"
+        """Persist reviewed stop intent, including an empty scope, before effects."""
+        review = self.vk.call(
+            "profile",
+            "load",
+            "--review",
+            profile=profile,
+            allow_owner_write=owner,
         )
+        if review.get("allowed") is not True:
+            raise RuntimeError(f"the {kind} load has no allowed canonical review")
+        key = self._own_key(kind, profile)
+        if kind == "stop":
+            runs = dig(review, "effects", "runs")
+            adopted = self._adopted_cleanup_requests(review)
+            if not isinstance(runs, list) or adopted is None:
+                raise RuntimeError("final stop review cannot bind pending cleanup")
+            self.state.data["cleanup_loads"][key] = {
+                "request_key": key,
+                "app_id": None,
+                "reviewed_stops": sorted(
+                    cleanup.stop_signature(row)
+                    for row in runs
+                    if isinstance(row, Mapping) and row.get("action") == "stop"
+                ),
+                "adopted_cleanup_requests": adopted,
+            }
+            self.state.save()
+        return self._submit_load(profile, key, kind, owner=owner)
 
     def _submit_load(
         self, profile: int, key: str, kind: str, *, owner: bool = False
@@ -3130,6 +3113,10 @@ class Sweep:
             profile=profile,
             allow_owner_write=owner,
         )
+        if document.get("request_key") != key:
+            raise RuntimeError(
+                "profile acceptance does not match the owned request; observing original request"
+            )
         if isinstance(document.get("id"), str):
             record["application_id"] = document["id"]
             if kind in ("takeover", "stop"):
@@ -3143,11 +3130,11 @@ class Sweep:
             return  # the sweep never changed what the Sparks run
         try:
             if number is not None:
-                self._submit_fresh_load(number, "restore-owner", owner=True)
+                self._submit_reviewed_load(number, "restore-owner", owner=True)
                 self.state.event(f"restored owner profile {number}")
                 self.state.data["dirty"] = False
             elif self.cfg.stop_at_end:
-                self._submit_fresh_load(self.cfg.sweep_profile, "stop")
+                self._submit_reviewed_load(self.cfg.sweep_profile, "stop")
                 self.state.data["dirty"] = False
         except (VonkctlError, RuntimeError) as error:
             self.state.event(f"leaving the fleet failed: {str(error)[:150]}")
