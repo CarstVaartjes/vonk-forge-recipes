@@ -275,12 +275,26 @@ process or the next. A later run that finds the previous run's restore still
 coming up waits for it ("our own load") but does not hold or requeue anything; only
 an application the sweep did not submit counts as the owner loading a profile.
 
+The sweep places only on online Sparks. Empty takeover loads whose preview
+would stop an offline or unselected Spark are skipped. Clearing admission gets
+three attempts spaced by 30 seconds; the budget survives restart. After that,
+free online lanes are selected from a fresh fleet observation and submitted
+through the normal Controller review. Unknown cleanup bookkeeping cannot reserve
+every lane forever. Idle alerts include the clearing blocker and offline Spark names.
+
+The current CLI applies profiles to the whole fleet and offers no node-scoped
+load. Placement loads can therefore still carry stops for offline workloads;
+excluding those effects requires a Controller/CLI scope contract. The sweep
+neither waits for offline-only cleanup adoption nor counts it as lane occupancy.
+
 Cleanup observes the original accepted application's canonical per-effect graph.
 An observation timeout never cancels it or invents a new clearing request. Each
-full stop scope remains occupied until its exact successful typed stop receipt;
-absence from `fleet.loaded` is not proof. A healthy independent lane can then
+online stop scope remains occupied until its exact successful typed stop receipt
+while clearing observation is within its budget; absence from `fleet.loaded`
+never rewrites a receipt. After budget exhaustion, observed fleet occupancy and
+a fresh Controller review govern placement. A healthy independent lane can then
 receive a fresh whole-fleet admission that explicitly adopts every remaining
-pending cleanup. Borrowed cleanup retains its original root, plan, ordinal,
+pending cleanup on online lanes. Borrowed cleanup retains its original root, plan, ordinal,
 request and child operation, and keeps the aggregate observer alive. A dual stop
 scope remains atomic even when one member is healthy.
 
