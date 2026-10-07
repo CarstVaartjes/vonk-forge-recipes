@@ -67,49 +67,73 @@ def test_a_review_blocked_by_our_own_finished_workload_clears_it_as_ours(
     assert sweep.state.status(recipe.key) != "failed"
 
 
-def test_a_wait_that_exceeds_its_bound_ends_as_an_infra_event(
-    tmp_path: Path, gateway: Gateway
+def test_pending_cleanup_does_not_replace_intent_after_an_aggregate_wait_budget(
+    tmp_path: Path,
 ) -> None:
-    sweep, fleet, clock = make_sweep(
-        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
-    )
-    sweep.refresh_catalog()
+    sweep, fleet, clock = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
     fleet.runs.append(_run("stubborn"))
-    fleet.ignore_clearing = 99
+    fleet.offline_nodes.add("spk_a")
+    sweep.preflight()
+    sweep.refresh_catalog()
     start = clock.now()
-    assert sweep._take_over(start) is False
-    assert "clearing" in sweep.state.data["infra"]
-    assert clock.now() - start < 3 * (900 + 120) + 60  # bounded, not for ever
-    assert sweep.backoff_until > start
+    assert sweep._take_over(start)
+    assert clock.now() == start  # Acceptance/observation returns to the main loop.
+    key, original = next(iter(sweep.state.data["cleanup_loads"].items()))
+    identity = [
+        (row["effect_id"], row["operation_id"], row["request_key"])
+        for row in original["effects"]
+    ]
+    for _ in range(4):
+        clock.sleep(300)
+        sweep.observe_cleanup()
+        assert sweep._take_over(clock.now())
+    assert original["request_key"] == key
+    assert [
+        (row["effect_id"], row["operation_id"], row["request_key"])
+        for row in original["effects"]
+    ] == identity
+    assert (
+        len(
+            [
+                command
+                for profile, command in fleet.calls
+                if profile == sweep.cfg.sweep_profile
+                and command[:2] == ("profile", "load")
+                and "--review" not in command
+            ]
+        )
+        == 1
+    )
+    assert not any(command[:2] == ("profile", "cancel") for _, command in fleet.calls)
+    assert sweep._cleanup_nodes() == {"spk_a"}
+    assert sweep.state.status("vonk-forge/a") != "failed"
 
 
-def test_status_and_state_stay_fresh_while_waiting(
-    tmp_path: Path, gateway: Gateway
+def test_status_and_state_stay_fresh_while_original_cleanup_is_pending(
+    tmp_path: Path,
 ) -> None:
     sweep, fleet, clock = make_sweep(
-        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], only=("unselected",)
     )
-    sweep.refresh_catalog()
     fleet.runs.append(_run("stubborn"))
-    fleet.ignore_clearing = 99
+    fleet.offline_nodes.add("spk_a")
+    sweep.preflight()
+    sweep.refresh_catalog()
+    assert sweep._take_over(clock.now())
+    key, original = next(iter(sweep.state.data["cleanup_loads"].items()))
     seen: list[float] = []
-    waiting: list[str] = []
-
-    def hook(_now: float) -> None:
+    for _ in range(4):
+        clock.sleep(300)
+        sweep.tick()
         saved = json.loads((tmp_path / "state.json").read_text())
         seen.append(saved["updated_at"])
-        if "waiting" in saved:
-            waiting.append(saved["waiting"]["what"])
-
-    clock.hooks.append(hook)
-    sweep._wait_idle()
-    assert len(set(seen)) >= 10  # every poll saved
-    assert all(a <= b for a, b in itertools.pairwise(seen))
-    assert waiting and all("idle" in w for w in waiting)
-    assert any(
-        "waiting for the Sparks to become idle" in e["message"]
-        for e in sweep.state.data["events"]
-    )
+        assert saved["cleanup_loads"][key]["app_id"] == original["app_id"]
+        assert saved["cleanup_loads"][key]["effects"][0]["state"] == "pending"
+        assert (tmp_path / "status.json").exists()
+        assert (tmp_path / "status.md").exists()
+    assert len(set(seen)) == 4
+    assert all(a < b for a, b in itertools.pairwise(seen))
+    assert not any(command[:2] == ("profile", "cancel") for _, command in fleet.calls)
 
 
 def test_the_watchdog_abandons_a_stuck_pass_and_the_sweep_continues(

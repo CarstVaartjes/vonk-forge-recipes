@@ -17,6 +17,7 @@ import re
 import threading
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -207,7 +208,25 @@ class FakeFleet:
         self.faults: list[tuple[tuple[str, ...], str, str]] = []
         # Typed lifecycle/HTTP table tests inject exact wire observations.
         self.observations: list[tuple[tuple[str, ...], int, dict[str, Any]]] = []
-        self.client_build: dict[str, Any] = {"version": "1.0", "source_sha": "a" * 40}
+        self.client_build: dict[str, Any] = {
+            "version": "1.0",
+            "source_sha": "a" * 40,
+            "control_contract_sha256": "c" * 64,
+        }
+        # Actual process observations are independent of accepted publication.
+        self.api_source_sha: str | None = "a" * 40
+        self.api_contract_sha256: str | None = "c" * 64
+        self.worker_source_sha: str | None = "a" * 40
+        self.worker_contract_sha256: str | None = "d" * 64
+        self.worker_instance = "e" * 64
+        self.platform_observation_age = 0.0
+        self.worker_observation_age = 0.0
+        self.worker_issue: str | None = None
+        self.offline_nodes: set[str] = set()
+        self.cleanup_stop_seconds: dict[str, float] = {}
+        self.cleanup_projection = True
+        self.cleanup_adoption = True
+        self.reviewed_cleanup_effects: list[list[dict[str, Any]]] = []
         self.accepted_version = "1.0"
         self.release_sha = "a" * 40  # the accepted Controller release
         # Scripted library trouble, consumed one library call at a time: "timeout", "cursor" or None.
@@ -277,6 +296,25 @@ class FakeFleet:
                 if now >= app["created"] + app["duration"]:
                     app["state"] = "succeeded"
                 continue
+            for effect in app.get("effects", []):
+                if (
+                    effect["state"] != "pending"
+                    or now < effect["finish_at"]
+                    or set(effect["node_ids"]) & self.offline_nodes
+                ):
+                    continue
+                effect["state"] = "succeeded"
+                effect["result"] = {
+                    "run_switch_operation_id": effect["operation_id"],
+                    "run_switch": {
+                        "phase_results": [
+                            {"phase": "stop", "run_id": effect["target_id"]}
+                        ]
+                    },
+                }
+                self.runs = [
+                    run for run in self.runs if run["run_id"] != effect["target_id"]
+                ]
             pending = [a for a in app["assign"] if not a["resolved"]]
             if app.get("blocked"):
                 continue  # the Controller holds the whole application back
@@ -303,7 +341,9 @@ class FakeFleet:
                         for run in self.runs:
                             if run["alias"] == item["alias"]:
                                 run["ready"] = True
-            if all(a["resolved"] for a in app["assign"]):
+            if all(a["resolved"] for a in app["assign"]) and all(
+                effect["state"] == "succeeded" for effect in app.get("effects", [])
+            ):
                 failed = any(a["fail"] for a in app["assign"])
                 app["state"] = "failed" if failed else "succeeded"
 
@@ -424,6 +464,8 @@ class FakeFleet:
 
     def _dispatch(self, profile: int | None, a: list[str]) -> tuple[int, Any]:
         noun, verb = a[0], a[1] if len(a) > 1 else ""
+        if noun == "platform":
+            return 0, self._platform()
         if noun == "fleet" and not verb:
             return 0, self._fleet()
         if noun == "fleet" and verb == "evidence":
@@ -635,6 +677,27 @@ class FakeFleet:
 
     # -- fleet ---------------------------------------------------------------------
 
+    def _platform(self) -> dict[str, Any]:
+        observed = self.clock.now() - self.platform_observation_age
+        timestamp = lambda value: datetime.fromtimestamp(value, UTC).isoformat()
+        return {
+            "observed_at": timestamp(observed),
+            "api": {
+                "source_sha": self.api_source_sha,
+                "control_contract_sha256": self.api_contract_sha256,
+            },
+            "workers": [
+                {
+                    "source_sha": self.worker_source_sha,
+                    "worker_contract_sha256": self.worker_contract_sha256,
+                    "process_instance_id": self.worker_instance,
+                    "loop_sequence": 1,
+                    "completed_at": timestamp(observed - self.worker_observation_age),
+                }
+            ],
+            "worker_issue": self.worker_issue,
+        }
+
     def _fleet(self) -> dict[str, Any]:
         nodes = []
         self.fleet_reads += 1
@@ -657,7 +720,8 @@ class FakeFleet:
                     "display_name": name,
                     "connection": {
                         "online_state": "reconnecting"
-                        if flaky and node_id == self.sparks[-1][0]
+                        if node_id in self.offline_nodes
+                        or (flaky and node_id == self.sparks[-1][0])
                         else "online"
                     },
                     "inventory": {
@@ -843,6 +907,40 @@ class FakeFleet:
                             }
                         )
                         break
+            if self.cleanup_adoption:
+                for original in self.apps.values():
+                    pending_stops = [
+                        row
+                        for row in original.get("effects", [])
+                        if row["state"] == "pending"
+                        and row["application_id"] == original["id"]
+                    ]
+                    if pending_stops:
+                        adopted.append(
+                            {
+                                "application_id": original["id"],
+                                "plan_digest": original["plan_digest"],
+                                "workload_intent_ordinal": 1,
+                                "node_ids": sorted(
+                                    {
+                                        node
+                                        for row in pending_stops
+                                        for node in row["node_ids"]
+                                    }
+                                ),
+                                "assignment_ids": [],
+                                "stops": [
+                                    {
+                                        "effect": row["stop_effect"],
+                                        "queue_index": row["queue_index"],
+                                        "operation_id": row["operation_id"],
+                                        "request_key": row["request_key"],
+                                    }
+                                    for row in pending_stops
+                                ],
+                            }
+                        )
+            self.reviewed_cleanup_effects.append(adopted)
             doc = {
                 "allowed": not blocked,
                 "waits_for_preparation": False,
@@ -852,6 +950,8 @@ class FakeFleet:
                         {
                             "alias": r["alias"],
                             "run_id": r["run_id"],
+                            "installation_id": r.get("installation_id")
+                            or str(uuid5(NAMESPACE_URL, r["run_id"])),
                             "node_ids": r["node_ids"],
                             "action": "keep"
                             if r["alias"] in desired_aliases
@@ -875,11 +975,62 @@ class FakeFleet:
                 1  # an old, finished application comes back for a new request
             )
             return 0, self._app_doc(self.apps[data["latest"]])
+        app_id = self._id("app")
+        plan_digest = hashlib.sha256(
+            json.dumps(data["assignments"], sort_keys=True).encode()
+        ).hexdigest()
+        borrowed_effects = [
+            row
+            for original in self.apps.values()
+            for row in original.get("effects", [])
+            if row["state"] == "pending" and row["application_id"] == original["id"]
+        ]
+        # A newer whole-fleet observer retains original effects, never takes ownership.
+        effects = []
+        pending_targets = {
+            row["target_id"]
+            for original in self.apps.values()
+            for row in original.get("effects", [])
+            if row["state"] == "pending"
+        }
+        for run in self.runs:
+            if run["alias"] in desired_aliases or run["run_id"] in pending_targets:
+                continue
+            index = len(effects)
+            scope = {
+                "run_id": run["run_id"],
+                "installation_id": run.get("installation_id")
+                or str(uuid5(NAMESPACE_URL, run["run_id"])),
+                "alias": run["alias"],
+                "node_ids": sorted(run["node_ids"]),
+                "action": "stop",
+            }
+            effects.append(
+                {
+                    "effect_id": f"{app_id}:queue:{index}:stop:{run['run_id']}",
+                    "application_id": app_id,
+                    "plan_digest": plan_digest,
+                    "workload_intent_ordinal": 1,
+                    "queue_index": index,
+                    "kind": "stop",
+                    "target_id": run["run_id"],
+                    "node_ids": scope["node_ids"],
+                    "request_key": str(uuid5(NAMESPACE_URL, f"{request}/stop/{index}")),
+                    "operation_id": str(uuid5(NAMESPACE_URL, f"{app_id}/stop/{index}")),
+                    "original_operation_id": None,
+                    "state": "pending",
+                    "result": None,
+                    "stop_effect": scope,
+                    "finish_at": self.clock.now()
+                    + self.cleanup_stop_seconds.get(run["alias"], 0.0),
+                }
+            )
         if self.ignore_clearing > 0 and not desired_aliases:
             self.ignore_clearing -= 1  # a new application that stops nothing
+            effects = []
         else:
-            self.runs = [r for r in self.runs if r["alias"] in desired_aliases]
-        app_id = self._id("app")
+            # Stop receipts, rather than this apply acceptance, remove physical runs.
+            pass
         assign = []
         held_by: list[dict[str, str]] = []
         for x in data["assignments"]:
@@ -952,9 +1103,8 @@ class FakeFleet:
         self.apps[app_id] = {
             "id": app_id,
             "profile": n,
-            "plan_digest": hashlib.sha256(
-                json.dumps(data["assignments"], sort_keys=True).encode()
-            ).hexdigest(),
+            "plan_digest": plan_digest,
+            "effects": effects + borrowed_effects,
             "created": self.clock.now(),
             "assign": assign,
             "state": "running",
@@ -982,7 +1132,8 @@ class FakeFleet:
         }
         data["latest"] = app_id
         self.by_request[request] = app_id
-        if not assign:
+        self._tick()
+        if not assign and not effects and not borrowed_effects:
             self.apps[app_id]["state"] = "succeeded"
         return 0, self._app_doc(self.apps[app_id])
 
@@ -1013,6 +1164,20 @@ class FakeFleet:
             "blockers": app.get("blockers", []),
             "current_operation_id": app["id"],
             "progress": {
+                **(
+                    {
+                        "effects": [
+                            {
+                                key: value
+                                for key, value in row.items()
+                                if key != "finish_at"
+                            }
+                            for row in app.get("effects", [])
+                        ]
+                    }
+                    if self.cleanup_projection
+                    else {}
+                ),
                 "child_progress": self._child_progress(app),
                 "switch_adapter": {"assignment_failures": app.get("failures", [])},
                 "blockers": (
