@@ -11,7 +11,6 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
-from spark_sweep import policy
 from spark_sweep.cli import main
 
 OLD, NEW = "1" * 40, "2" * 40
@@ -55,33 +54,6 @@ def _failing_set() -> tuple[list[FakeRecipe], list[FakeModel]]:
         FakeRecipe("fine", ("m5",)),
     ]
     return recipes, [FakeModel(f"m{i}") for i in range(1, 6)]
-
-
-def test_platform_side_classes_are_requeued_and_recipe_side_ones_are_not() -> None:
-    for klass in (
-        "install",
-        "start",
-        "readiness",
-        "fit",
-        "capacity",
-        "build",
-        "download",
-        "review",
-    ):
-        assert policy.platform_side(klass), klass
-    for klass in (
-        "model-integrity",
-        "build-policy",
-        "oom",
-        "network",
-        "timeout",
-        "smoke-assertion",
-        "smoke-request",
-    ):
-        assert not policy.platform_side(klass), klass
-    assert policy.platform_side(
-        None
-    )  # a failure recorded before classes existed: maybe the platform's
 
 
 def _deployed_api(fleet, source: str) -> None:

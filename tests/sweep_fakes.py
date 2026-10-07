@@ -495,6 +495,8 @@ class FakeFleet:
             )
         if noun == "recipe" and verb == "download":
             return self._download(a)
+        if noun == "recipe" and verb == "retry":
+            return self._retry_download(a)
         if noun == "recipe" and verb == "progress":
             return self._op_progress(a)
         if noun == "profile":
@@ -632,10 +634,40 @@ class FakeFleet:
             "started": self.clock.now(),
             "duration": self.download_seconds if model_missing else 5.0,
             "request": request,
+            "intent": {"kind": "selector", "selector": key, "force": False},
+            "recipe_revision_id": f"rev-{recipe.content}",
+            "recipe_content_sha256": recipe.content,
             "bytes": sum(self.models[d].bytes for d in recipe.digests),
         }
         self.by_request[request] = op_id
         return 0, self._op_doc(self.ops[op_id])
+
+    def _retry_download(self, a: list[str]) -> tuple[int, Any]:
+        original = self.ops.get(a[2])
+        if original is None or original["state"] != "failed":
+            return self._error(
+                "recipe_image.retry_not_supported",
+                "original parent is not terminal failed",
+            )
+        recipe = self.recipes[original["recipe"]]
+        if (
+            original.get("recipe_revision_id") != f"rev-{recipe.content}"
+            or original.get("recipe_content_sha256") != recipe.content
+        ):
+            return self._error(
+                "recipe_image.retry_identity_changed", "frozen recipe identity changed"
+            )
+        request = a[a.index("--request-key") + 1]
+        if request in self.by_request:
+            return 0, self._op_doc(self.ops[self.by_request[request]])
+        code, document = self._download(
+            ["recipe", "download", original["recipe"], *a[3:]]
+        )
+        if code == 0:
+            created = self.ops[document["id"]]
+            created["intent"] = {"kind": "retry", "operation_id": original["id"]}
+            document = self._op_doc(created)
+        return code, document
 
     def _op_doc(self, op: dict[str, Any]) -> dict[str, Any]:
         recipe = self.recipes[op["recipe"]]
@@ -647,6 +679,10 @@ class FakeFleet:
         )
         doc: dict[str, Any] = {
             "id": op["id"],
+            "request_id": op.get("request"),
+            "request": op.get("intent"),
+            "recipe_revision_id": op.get("recipe_revision_id"),
+            "recipe_content_sha256": op.get("recipe_content_sha256"),
             "state": op["state"],
             "progress": {
                 "completed_bytes": done,
