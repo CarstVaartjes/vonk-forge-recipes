@@ -519,12 +519,12 @@ class Prefetcher:
             return True
         if active(record.get("state")) and record.get("state") != "retired":
             return False
+        if recipe.cache_ready:
+            return False
         if record.get("state") == "retired":
             if record.get("request_key"):
                 return self._terminal_retest(recipe, record, now)
             return now >= float(record.get("retry_at", 0))
-        if recipe.cache_ready:
-            return False
         if record.get("state") == "succeeded":
             # A finished download stands. Ask again only if a library read made *after*
             # it still says the cache is empty (evicted), and only a couple of times: a
