@@ -103,6 +103,17 @@ class Reply:
         return self.exit_code == 0 and not self.is_error_document
 
     @property
+    def is_not_found(self) -> bool:
+        """The installed CLI's declared Controller absence, never a read error guess."""
+        document = self.document
+        return (
+            self.exit_code != 0
+            and isinstance(document, dict)
+            and document.get("error_type") == "control_api"
+            and document.get("code") == "controller.not_found"
+        )
+
+    @property
     def error_text(self) -> str:
         if isinstance(self.document, dict):
             parts = [

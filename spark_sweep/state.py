@@ -39,6 +39,7 @@ def _fresh() -> dict[str, Any]:
         "loads": {},  # request key -> in-flight profile application
         "load_seq": 0,
         "downloads": {},  # key -> {operation_id, request_key, ...}
+        "download_history": {},  # key -> complete prior accepted attempt records
         "pins": [],  # recipe keys in the pin profile
         "learned": {},  # engine -> [[model bytes, load seconds]]
         "rate": {"ema": 0.0, "samples": 0},
@@ -46,8 +47,12 @@ def _fresh() -> dict[str, Any]:
         "models_done": [],  # digests whose download finished, whatever a lagging listing says
         "took_over": False,
         "model_failures": {},  # model digest -> failure cluster
-        "release": {},  # the accepted Controller release last seen: sha, version, seen_at
+        "release": {},  # authenticated deployed API identity; publication is separate
         "release_history": [],
+        "publication": {},  # accepted signed publication, not a deployed component
+        "publication_history": [],
+        "platform": {},  # latest authenticated API/worker observation (unknowns retained)
+        "cleanup_loads": {},  # original cleanup request -> per-effect observation
         # Every load the sweep submitted itself (request key, application id): never an owner's load.
         "own_loads": [],
         "own_aliases": [],  # workload names the sweep put in its profile: never an owner's
@@ -149,7 +154,14 @@ class State:
                 or not isinstance(legacy.get("request_key"), str)
             ):
                 raise ValueError("unreadable legacy request")
-            for name in ("slots", "recipes", "downloads", "loads", "infra"):
+            for name in (
+                "slots",
+                "recipes",
+                "downloads",
+                "loads",
+                "cleanup_loads",
+                "infra",
+            ):
                 if any(
                     not isinstance(value, dict) for value in data.get(name, {}).values()
                 ):
@@ -195,6 +207,9 @@ class State:
                 merged[name].update(value)
             else:
                 merged[name] = value
+        for entry in merged["recipes"].values():
+            if entry.get("release") and "release_authority" not in entry:
+                entry["release_authority"] = "legacy-unverified-publication-proxy"
         return cls(path, merged, clock)
 
     def save(self) -> None:
@@ -208,6 +223,7 @@ class State:
                 key: app for key, app in self.data["apps"].items() if key in live
             }
         del self.data["release_history"][:-EVENT_LIMIT]
+        del self.data["publication_history"][:-EVENT_LIMIT]
         self.data["updated_at"] = self.clock()
         write_atomic(self.path, json.dumps(self.data, indent=1, sort_keys=True))
 

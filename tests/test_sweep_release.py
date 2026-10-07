@@ -1,4 +1,4 @@
-"""A platform fix requeues the failures it may have cured; --retry-failed requeues on request."""
+"""Observed owner changes schedule scoped recovery; publication owns no runtime fact."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
-from spark_sweep import policy
 from spark_sweep.cli import main
 
 OLD, NEW = "1" * 40, "2" * 40
@@ -57,176 +56,140 @@ def _failing_set() -> tuple[list[FakeRecipe], list[FakeModel]]:
     return recipes, [FakeModel(f"m{i}") for i in range(1, 6)]
 
 
-def test_platform_side_classes_are_requeued_and_recipe_side_ones_are_not() -> None:
-    for klass in (
-        "install",
-        "start",
-        "readiness",
-        "fit",
-        "capacity",
-        "build",
-        "download",
-        "review",
-    ):
-        assert policy.platform_side(klass), klass
-    for klass in (
-        "model-integrity",
-        "build-policy",
-        "oom",
-        "network",
-        "timeout",
-        "smoke-assertion",
-        "smoke-request",
-    ):
-        assert not policy.platform_side(klass), klass
-    assert policy.platform_side(
-        None
-    )  # a failure recorded before classes existed: maybe the platform's
+def _deployed_api(fleet, source: str) -> None:
+    fleet.api_source_sha = source
 
 
-def test_a_new_controller_release_requeues_platform_failures_only_and_keeps_the_history(
+def test_accepted_publication_is_not_a_deployed_fix_or_a_retest(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    recipes, models = _failing_set()
-    sweep, fleet, _ = make_sweep(tmp_path, recipes, models, gateway=gateway)
+    recipe = FakeRecipe("image-bug", fail_load=IMAGE_BUG)
+    sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
+    _deployed_api(fleet, OLD)
     fleet.release_sha = OLD
     sweep.run()
-    assert {k.split("/")[1]: e["status"] for k, e in sweep.state.recipes.items()} == {
-        "image-bug": "deferred",
-        "corrupt": "failed",
-        "policy": "failed",
-        "oom": "failed",
-        "fine": "passed",
-    }
-    assert all(e["release"] == OLD for e in sweep.state.recipes.values())
-    old_lines = (tmp_path / "results.jsonl").read_text()
-    assert all(
-        line["controller_release"] == OLD for line in _lines(tmp_path / "results.jsonl")
-    )
-
-    # The fix is deployed: the accepted release changes, and the recipe no longer fails.
+    previous = dict(_entry(sweep, "image-bug"))
     fleet.release_sha = NEW
-    fleet.recipes["vonk-forge/image-bug"].fail_load = None
-    again, _, _ = make_sweep(tmp_path, recipes, models, fleet=fleet)
-    assert again.run() == 0
-    assert (
-        _entry(again, "image-bug")["status"] == "passed"
-        and _entry(again, "image-bug")["release"] == NEW
-    )
-    for slug in (
-        "corrupt",
-        "policy",
-        "oom",
-    ):  # recipe-side: a platform change cannot have cured them
-        assert (
-            _entry(again, slug)["status"] == "failed"
-            and _entry(again, slug)["release"] == OLD
-        )
-    assert _entry(again, "fine")["release"] == OLD  # untouched, not retested
-
-    # results.jsonl only grew: the old failure, a requeue line naming why, then the new pass.
-    lines = _lines(tmp_path / "results.jsonl")
-    assert (tmp_path / "results.jsonl").read_text().startswith(old_lines)
-    mine = [
-        (x["step"], x["status"], x.get("controller_release"))
-        for x in lines
-        if x["recipe"] == "vonk-forge/image-bug"
-    ]
-    assert mine == [
-        ("smoke", "deferred", OLD),
-        ("requeue", "requeued", NEW),
-        ("smoke", "passed", NEW),
-    ]
-    requeue = next(x for x in lines if x["step"] == "requeue")
-    assert (
-        requeue["reason"].startswith("controller-release-changed")
-        and requeue["previous"]["release"] == OLD
-    )
-    assert requeue["previous"]["error"] and IMAGE_BUG in requeue["previous"]["error"]
-
-
-def test_evidence_of_a_requeued_failure_is_kept(
-    tmp_path: Path, gateway: Gateway
-) -> None:
-    recipe = FakeRecipe("image-bug", fail_load=IMAGE_BUG, fail_phase="runtime-install")
-    sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
-    fleet.release_sha = OLD
-    sweep.run()
-    first = Path(_entry(sweep, "image-bug")["evidence_bundle"])
-    assert first.exists()
-    fleet.release_sha = (
-        NEW  # a release that does not fix it: it fails again, under the new release
-    )
+    fleet.recipes[recipe.key].fail_load = None
     again, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
     again.run()
-    second = Path(_entry(again, "image-bug")["evidence_bundle"])
-    assert second != first and first.exists() and second.exists()
-    assert _entry(again, "image-bug")["release"] == NEW
+    current = _entry(again, "image-bug")
+    assert current["status"] == "deferred"
+    assert current["attempts"] == previous["attempts"]
+    assert current["evidence_bundle"] == previous["evidence_bundle"]
+    assert current["release"] == OLD
+    assert again.release_sha == OLD
+    assert again.state.data["publication"]["source_sha"] == NEW
+    assert not [
+        row for row in _lines(tmp_path / "results.jsonl") if row["step"] == "retest"
+    ]
 
 
-def test_the_same_release_does_not_requeue_again_so_there_is_no_loop(
+def test_a_new_api_process_does_not_attribute_a_generic_application_fault(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    recipe = FakeRecipe("image-bug", fail_load=IMAGE_BUG, fail_phase="runtime-install")
+    recipe = FakeRecipe("image-bug", fail_load=IMAGE_BUG)
     sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
-    fleet.release_sha = OLD
+    _deployed_api(fleet, OLD)
     sweep.run()
-    for _ in range(2):
-        again, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
-        again.run()
-    assert not [x for x in _lines(tmp_path / "results.jsonl") if x["step"] == "requeue"]
-    assert _entry(sweep, "image-bug")["status"] == "deferred"
-
-
-def test_failures_recorded_before_releases_were_known_are_retried_once(
-    tmp_path: Path, gateway: Gateway
-) -> None:
-    recipe = FakeRecipe("image-bug", fail_load=IMAGE_BUG, fail_phase="runtime-install")
-    sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
-    sweep.run()
-    for entry in sweep.state.recipes.values():  # as an older sweep wrote them
-        entry.pop("release", None)
-    sweep.state.data["release"] = {}
-    sweep.state.save()
-    fleet.recipes["vonk-forge/image-bug"].fail_load = None
+    previous = dict(_entry(sweep, "image-bug"))
+    fleet.api_source_sha = NEW
+    fleet.recipes[recipe.key].fail_load = None
     again, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
     again.run()
-    assert _entry(again, "image-bug")["status"] == "passed"
+    assert again.release_sha == NEW
+    assert _entry(again, "image-bug")["status"] == "deferred"
+    assert _entry(again, "image-bug")["attempts"] == previous["attempts"]
+    assert _entry(again, "image-bug")["evidence_bundle"] == previous["evidence_bundle"]
+    assert _entry(again, "image-bug").get("recovery_basis") is None
 
 
-def test_a_release_change_while_the_sweep_runs_requeues_without_a_restart(
-    tmp_path: Path, gateway: Gateway
+def _record_local_argument_fault(sweep, fleet, recipe):
+    # This fault is owned by the local CLI argument parser, not an application.
+    fleet.api_source_sha = OLD
+    fleet.client_build["source_sha"] = OLD
+    sweep.check_client()
+    basis = sweep._component_observations()["client"]
+    assert basis is not None
+    entry = sweep.state.entry(recipe.key)
+    entry.update(
+        status="deferred",
+        code="arguments",
+        error="local argument parse rejected",
+        attempts=3,
+        not_before=sweep.clock.now() + 120,
+        defer_until=sweep.clock.now() + 240,
+        finished_at=sweep.clock.now(),
+        recovery_basis=basis.record(),
+        evidence={"producer": "local-cli"},
+    )
+    return entry
+
+
+def test_only_observed_fault_owner_change_schedules_once_without_resetting_history(
+    tmp_path: Path,
 ) -> None:
-    recipe = FakeRecipe("image-bug", fail_load=IMAGE_BUG, fail_phase="runtime-install")
-    sweep, fleet, clock = make_sweep(
-        tmp_path,
-        [recipe],
-        [FakeModel("m1")],
-        gateway=gateway,
-        release_seconds=20,
-        watch_seconds=30,
+    recipe = FakeRecipe("argument-recovery")
+    sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")])
+    entry = _record_local_argument_fault(sweep, fleet, recipe)
+    previous = dict(entry)
+    fleet.release_sha = NEW
+    fleet.api_source_sha = NEW
+    sweep.check_client()
+    assert entry["status"] == "deferred"  # API/publication is not this fault's owner.
+    fleet.client_build["source_sha"] = NEW
+    sweep.check_client()
+    assert entry["status"] == "pending"
+    for key in (
+        "attempts",
+        "not_before",
+        "defer_until",
+        "finished_at",
+        "evidence",
+        "recovery_basis",
+    ):
+        assert entry[key] == previous[key]
+    assert len(entry["recovery_history"]) == 1
+    assert entry["recovery_history"][0]["reason"] == "observed-fault-owner-changed"
+    entry["status"] = "deferred"
+    sweep.check_client()
+    assert entry["status"] == "deferred"
+    assert len(entry["recovery_history"]) == 1
+
+
+def test_stale_or_contract_mismatched_observation_cannot_trigger_a_retest(
+    tmp_path: Path,
+) -> None:
+    recipe = FakeRecipe("argument-recovery")
+    sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")])
+    entry = _record_local_argument_fault(sweep, fleet, recipe)
+    fleet.client_build["source_sha"] = NEW
+    fleet.platform_observation_age = 90
+    sweep.check_client()
+    assert entry["status"] == "deferred"
+    fleet.platform_observation_age = 0
+    fleet.api_contract_sha256 = "f" * 64
+    sweep.check_client()
+    assert entry["status"] == "deferred"
+    fleet.api_contract_sha256 = fleet.client_build["control_contract_sha256"]
+    sweep.check_client()
+    assert entry["status"] == "pending" and entry["attempts"] == 3
+
+
+def test_historical_publication_only_failure_is_not_retried_as_a_known_owner(
+    tmp_path: Path,
+) -> None:
+    recipe = FakeRecipe("historic")
+    sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")])
+    entry = sweep.state.entry(recipe.key)
+    entry.update(
+        status="deferred", code="arguments", attempts=7, release=OLD, finished_at=0
     )
-    fleet.release_sha = OLD
-
-    def deploy_fix(_now: float) -> None:
-        if (
-            _entry_or_none(sweep).get("status") == "deferred"
-            and fleet.release_sha == OLD
-        ):
-            fleet.release_sha = NEW
-            fleet.recipes["vonk-forge/image-bug"].fail_load = None
-        if _entry_or_none(sweep).get("status") == "passed":
-            raise KeyboardInterrupt  # the watching sweep has done its job
-
-    def _entry_or_none(s) -> dict:
-        return s.state.recipes.get("vonk-forge/image-bug", {})
-
-    clock.hooks.append(deploy_fix)
-    assert sweep.run() == 130
-    assert _entry(sweep, "image-bug")["status"] == "passed"
-    assert any(
-        "Controller release changed" in e["message"] for e in sweep.state.data["events"]
-    )
+    fleet.api_source_sha = fleet.release_sha = NEW
+    fleet.client_build["source_sha"] = NEW
+    sweep.check_client()
+    assert entry["status"] == "deferred" and entry["attempts"] == 7
+    assert not entry.get("recovery_history")
 
 
 # -- --retry-failed ------------------------------------------------------------------------------
@@ -317,8 +280,10 @@ def test_failures_are_grouped_by_controller_release_on_the_status_page(
     sweep, fleet, _ = make_sweep(tmp_path, recipes, models, gateway=gateway)
     fleet.recipes["vonk-forge/image-bug"].fail_code = "recipe.runtime_exit"
     fleet.release_sha = OLD
+    fleet.api_source_sha = OLD
     sweep.run()
     fleet.release_sha = NEW
+    fleet.api_source_sha = NEW
     fleet.accepted_version = "1.0"
     for recipe in ("image-bug",):
         fleet.recipes[
@@ -329,15 +294,10 @@ def test_failures_are_grouped_by_controller_release_on_the_status_page(
     status = json.loads((tmp_path / "status.json").read_text())
     groups = {g["release"]: g for g in status["failures_by_release"]}
     assert status["release"] == NEW
-    assert groups[NEW]["current"] and groups[NEW]["failed"] == 1
-    assert groups[OLD]["failed"] == 3 and not groups[OLD]["current"]
-    assert status["failures_by_release"][0]["release"] == NEW  # newest release first
+    assert NEW not in groups  # A new process does not rewrite old failure provenance.
+    assert groups[OLD]["failed"] == 4 and not groups[OLD]["current"]
     page = (tmp_path / "status.md").read_text()
-    assert (
-        "## Failures by Controller release" in page
-        and f"release {NEW[:12]}" in page
-        and "(current)" in page
-    )
+    assert "## Failures by Controller release" in page and f"release {OLD[:12]}" in page
 
 
 def test_watch_retests_after_bounded_cooldown_without_new_release_or_recipe(
@@ -365,7 +325,7 @@ def test_watch_retests_after_bounded_cooldown_without_new_release_or_recipe(
     assert _entry(sweep, "recovering")["status"] == "passed"
     assert fleet.release_sha == OLD
     requeues = [
-        row for row in _lines(tmp_path / "results.jsonl") if row["step"] == "requeue"
+        row for row in _lines(tmp_path / "results.jsonl") if row["step"] == "retest"
     ]
     assert len(requeues) == 1
     assert requeues[0]["reason"] == "scheduled-retest"

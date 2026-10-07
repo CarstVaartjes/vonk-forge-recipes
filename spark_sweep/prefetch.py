@@ -110,7 +110,8 @@ class Prefetcher:
         now = self.clock()
         for key, record in list(self.state.downloads.items()):
             if (
-                record.get("state") in ("external", "retired")
+                record.get("state") == "external"
+                or (record.get("state") == "retired" and not record.get("request_key"))
                 or record.get("state") in TERMINAL
             ):
                 continue
@@ -120,16 +121,67 @@ class Prefetcher:
                 float(record["started_at"]) + DOWNLOAD_WALL_SECONDS,
                 float(record["progress_at"]) + DOWNLOAD_STALL_SECONDS,
             )
-            if now >= deadline:
+            if now >= deadline and not record.get("observation_budget_exhausted_at"):
+                record["observation_budget_exhausted_at"] = now
                 self._retire(key, record, "download.observation_budget_exhausted")
                 continue
             if now < float(record.get("next_check", 0)):
                 continue
             reply = self.vk.run("recipe", "progress", *self._progress_args(record))
+            if reply.is_not_found and not record.get("operation_id"):
+                # Only a canonical absence before any accepted parent permits
+                # replay. Keep the persisted intent and request UUID unchanged.
+                intent = record.get("requested_intent")
+                action: list[str] | None = None
+                if isinstance(intent, Mapping):
+                    if (
+                        intent.get("kind") == "selector"
+                        and isinstance(intent.get("selector"), str)
+                        and intent.get("force") is False
+                    ):
+                        action = ["download", intent["selector"]]
+                    elif intent.get("kind") == "retry" and isinstance(
+                        intent.get("operation_id"), str
+                    ):
+                        action = ["retry", intent["operation_id"]]
+                if action is not None:
+                    reply = self.vk.run(
+                        "recipe",
+                        *action,
+                        "--yes",
+                        "--detach",
+                        "--request-key",
+                        str(record["request_key"]),
+                    )
             document = reply.document
             record["next_check"] = now + min(self.config.retry_cooldown, 60.0)
             if not reply.ok or not isinstance(document, dict):
                 continue  # keep the last truthful state; try again next tick
+            if not record.get("operation_id"):
+                intent = record.get("requested_intent")
+                accepted = document.get("request")
+                if (
+                    not isinstance(document.get("id"), str)
+                    or document.get("request_id") != record.get("request_key")
+                    or not isinstance(intent, Mapping)
+                    or not isinstance(accepted, Mapping)
+                    or accepted.get("kind") != intent.get("kind")
+                    or (
+                        intent.get("kind") == "selector"
+                        and (
+                            accepted.get("selector") != intent.get("selector")
+                            or accepted.get("force", False) is not False
+                        )
+                    )
+                    or (
+                        intent.get("kind") == "retry"
+                        and accepted.get("operation_id") != intent.get("operation_id")
+                    )
+                    or intent.get("kind") not in ("selector", "retry")
+                ):
+                    continue
+                record["accepted_intent"] = dict(accepted)
+                self.on_ok("download")
             record["observed_at"] = now
             record["next_check"] = (
                 now  # normal polling cadence; backoff is for unreadable replies
@@ -166,11 +218,17 @@ class Prefetcher:
         return total_rate
 
     def _retire(self, key: str, record: dict[str, Any], reason: str) -> None:
-        # Cancel only our own receipt. External operations belong to their requester.
-        if record.get("operation_id") and record.get("request_key"):
-            self.vk.run(
-                "recipe", "cancel", str(record["operation_id"]), "--yes", "--detach"
+        if record.get("request_key"):
+            # A read budget or waiting condition is not terminal proof. Preserve
+            # the exact request and re-observe it without cancelling its effects.
+            record.update(
+                state="observing",
+                reason=reason,
+                next_check=self.clock() + self.config.retry_cooldown,
             )
+            self.on_infra("download", f"{key}: {reason}; observing original request")
+            self.state.event(f"download observation deferred: {key}: {reason}")
+            return
         record.update(
             state="retired",
             reason=reason,
@@ -213,12 +271,6 @@ class Prefetcher:
         failure_doc = document.get("failure") or {}
         code = str(failure_doc.get("code", ""))
         detail = str(failure_doc.get("detail", "") or document.get("detail", ""))
-        if code.startswith(("controller.", "http.", "profile.")) or any(
-            failure_doc.get(field) is not None
-            for field in ("status", "status_code", "http_status")
-        ):
-            self._retire(key, record, code or "download.http_error")
-            return
         actions = [str(a) for a in failure_doc.get("recovery_actions", [])]
         failure = classify(
             "download",
@@ -272,11 +324,44 @@ class Prefetcher:
         key = request_key(
             "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
         )
+        retry_of = (
+            record.get("operation_id") if record.get("state") == "failed" else None
+        )
+        requested_intent = (
+            {"kind": "retry", "operation_id": retry_of}
+            if retry_of
+            else {"kind": "selector", "selector": recipe.key, "force": False}
+        )
+        if record:
+            history = self.state.data["download_history"].setdefault(recipe.key, [])
+            if not history or history[-1] != record:
+                history.append(dict(record))
+        # Persist the next request before effects. An interrupted reply reconnects
+        # this same UUID rather than losing it or creating a different attempt.
+        self.state.downloads[recipe.key] = {
+            "request_key": key,
+            "state": "observing",
+            "kind": kind,
+            "attempt": attempt,
+            "requested_intent": requested_intent,
+            "retry_of_operation_id": retry_of,
+            "started_at": self.clock(),
+            "request_intent": {
+                "recipe_key": recipe.key,
+                "content_sha256": recipe.content_sha256,
+                "revision_id": recipe.revision_id,
+            },
+        }
+        entry = self.state.entry(recipe.key)
+        retest = entry.get("retest")
+        if isinstance(retest, Mapping):
+            entry["download_retest_consumed_at"] = retest.get("at")
+        self.state.save()
+        action = ["retry", str(retry_of)] if retry_of else ["download", recipe.key]
         try:
             document = self.vk.call(
                 "recipe",
-                "download",
-                recipe.key,
+                *action,
                 "--yes",
                 "--detach",
                 "--request-key",
@@ -294,7 +379,7 @@ class Prefetcher:
             )
             failure = classify(
                 "download",
-                str(document.get("code", "")),
+                error.code,
                 str(document.get("detail", error)),
                 evidence={
                     "request_key": key,
@@ -308,6 +393,11 @@ class Prefetcher:
                 "kind": kind,
                 "attempt": attempt,
                 "failure": failure.signature,
+                "request_intent": {
+                    "recipe_key": recipe.key,
+                    "content_sha256": recipe.content_sha256,
+                    "revision_id": recipe.revision_id,
+                },
             }
             if failure.transient and attempt < 2:
                 self.state.downloads[recipe.key]["retry_at"] = (
@@ -325,6 +415,13 @@ class Prefetcher:
             "kind": kind,
             "attempt": attempt,
             "rerequests": rerequests,
+            "accepted_intent": document.get("request"),
+            "retry_of_operation_id": retry_of,
+            "request_intent": {
+                "recipe_key": recipe.key,
+                "content_sha256": recipe.content_sha256,
+                "revision_id": recipe.revision_id,
+            },
             "started_at": self.clock(),
         }
         self.state.event(f"download {kind}: {recipe.key}")
@@ -472,10 +569,12 @@ class Prefetcher:
             return True
         if active(record.get("state")) and record.get("state") != "retired":
             return False
-        if record.get("state") == "retired":
-            return now >= float(record.get("retry_at", 0))
         if recipe.cache_ready:
             return False
+        if record.get("state") == "retired":
+            if record.get("request_key"):
+                return self._terminal_retest(recipe, record, now)
+            return now >= float(record.get("retry_at", 0))
         if record.get("state") == "succeeded":
             # A finished download stands. Ask again only if a library read made *after*
             # it still says the cache is empty (evicted), and only a couple of times: a
@@ -487,7 +586,94 @@ class Prefetcher:
                 and now - done_at > 600
                 and self.library_fresh_since > done_at
             )
+        if record.get("state") in ("failed", "cancelled", "superseded") and record.get(
+            "operation_id"
+        ):
+            # Accepted parents always need a fresh exact terminal receipt. An old
+            # retry timer must never override an active or unreadable observation.
+            return self._terminal_retest(recipe, record, now)
         return bool(record.get("retry_at")) and now >= float(record["retry_at"])
+
+    def _terminal_retest(
+        self, recipe: Recipe, record: dict[str, Any], now: float
+    ) -> bool:
+        """Every accepted-parent retry needs an observed terminal exact receipt."""
+        entry = self.state.entry(recipe.key)
+        retest = entry.get("retest")
+        scheduled = (
+            entry.get("status") == "pending"
+            and isinstance(retest, Mapping)
+            and retest.get("at") != entry.get("download_retest_consumed_at")
+            and retest.get("reason")
+            in (
+                "scheduled-retest",
+                "observed-fault-owner-changed",
+                "operator: --retry-failed",
+            )
+            and entry.get("content_sha256") == recipe.content_sha256
+            and entry.get("revision_id") == recipe.revision_id
+        )
+        bounded_retry = (
+            bool(record.get("retry_at"))
+            and int(record.get("attempt", 1)) < 2
+            and isinstance(record.get("request_intent"), Mapping)
+        )
+        if (
+            not (scheduled or bounded_retry)
+            or record.get("state") not in ("failed", "retired")
+            or not record.get("operation_id")
+            or not record.get("request_key")
+            or now < float(record.get("retry_at", 0))
+            or now < float(entry.get("finished_at", 0)) + self.config.retry_cooldown
+            or now < float(entry.get("not_before", 0))
+            or now < float(entry.get("defer_until", 0))
+        ):
+            return False
+        intent = record.get("request_intent")
+        if isinstance(intent, Mapping) and (
+            intent.get("recipe_key") != recipe.key
+            or intent.get("content_sha256") != recipe.content_sha256
+            or intent.get("revision_id") != recipe.revision_id
+        ):
+            return False
+        # A request lookup binds the saved UUID to its actual terminal receipt.
+        # Absence, permission errors, client timeouts and active states cannot
+        # authorize a replacement request or erase its cache/ownership history.
+        reply = self.vk.run(
+            "recipe", "progress", "--request-key", str(record["request_key"])
+        )
+        document = reply.document
+        if (
+            not reply.ok
+            or not isinstance(document, Mapping)
+            or document.get("id") != record["operation_id"]
+            or document.get("request_id") != record["request_key"]
+            or document.get("recipe_revision_id") != recipe.revision_id
+            or document.get("recipe_content_sha256") != recipe.content_sha256
+            or not isinstance(document.get("failure"), Mapping)
+            or not isinstance(document.get("request"), Mapping)
+            or document.get("state") != "failed"
+        ):
+            return False
+        original_intent = record.get("accepted_intent")
+        observed_intent = document["request"]
+        if isinstance(original_intent, Mapping):
+            # Deterministic identity comparison after installed-CLI wire validation;
+            # this is not another parser or a reconstruction of execution parameters.
+            if observed_intent != original_intent:
+                return False
+        elif (
+            observed_intent.get("kind") != "selector"
+            or observed_intent.get("selector") != recipe.key
+            or observed_intent.get("force", False) is not False
+        ):
+            # An older owned selector receipt can be bound by its original request
+            # UUID plus frozen revision/content; unknown other intent is not guessed.
+            return False
+        record["terminal_receipt"] = dict(document)
+        record["terminal_verified_at"] = now
+        record["state"] = "failed"
+        return True
 
     # -- pins ---------------------------------------------------------------
 

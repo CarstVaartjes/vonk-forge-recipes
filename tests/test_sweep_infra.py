@@ -16,6 +16,8 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+pytest_plugins = ["sweep_bounds"]
+
 from spark_sweep.state import StateLock, StateLocked
 from spark_sweep.vonkctl import (
     Reply,
@@ -120,6 +122,7 @@ def _entry(sweep, slug: str) -> dict:
         ),
     ],
 )
+@pytest.mark.usefixtures("bounded_clock")
 def test_an_infrastructure_error_pauses_and_retries_but_fails_no_recipe(
     tmp_path: Path, gateway: Gateway, prefix: tuple[str, ...], code: str, detail: str
 ) -> None:
@@ -459,3 +462,77 @@ def test_a_hung_smoke_request_does_not_keep_an_interrupted_sweep_alive() -> None
     assert thread.daemon  # the interpreter will not wait for it at exit
     release.set()
     assert future.result(timeout=5) is True
+
+
+@pytest.mark.parametrize("accepted_then_lost", [False, True])
+def test_download_reconnect_preserves_the_original_request(
+    tmp_path: Path, accepted_then_lost: bool
+) -> None:
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [FakeRecipe("reconnect")], [FakeModel("m1")]
+    )
+    sweep.refresh_catalog()
+    recipe = sweep.recipes["vonk-forge/reconnect"]
+    original = sweep.vk.runner
+    lost = False
+
+    def run(argv, timeout):
+        nonlocal lost
+        if "download" in argv and not lost:
+            lost = True
+            if accepted_then_lost:
+                original(argv, timeout)
+            return (
+                2,
+                json.dumps(
+                    {"error_type": "control_api", "code": "controller.protocol_invalid"}
+                ),
+                "",
+            )
+        return original(argv, timeout)
+
+    sweep.vk.runner = run
+    sweep.prefetcher._request(recipe, "model")
+    before = dict(sweep.state.downloads[recipe.key])
+    assert before["state"] == "observing" and not before.get("operation_id")
+    clock.sleep(60)
+    sweep.prefetcher._poll()
+    after = sweep.state.downloads[recipe.key]
+    assert after["operation_id"]
+    assert after["request_key"] == before["request_key"]
+    assert after["started_at"] == before["started_at"]
+    assert after["attempt"] == before["attempt"] == 1
+    assert after["accepted_intent"] == before["requested_intent"]
+    calls = [call for _, call in fleet.calls if call[:2] == ("recipe", "download")]
+    assert len(calls) == 1
+    assert calls[0][-1] == before["request_key"]
+    assert not sweep.state.data["download_history"]
+
+
+def test_accepted_download_absence_keeps_unknown_parent_without_replay(
+    tmp_path: Path,
+) -> None:
+    sweep, fleet, _clock = make_sweep(
+        tmp_path, [FakeRecipe("accepted")], [FakeModel("m1")]
+    )
+    sweep.refresh_catalog()
+    recipe = sweep.recipes["vonk-forge/accepted"]
+    sweep.prefetcher._request(recipe, "model")
+    before = dict(sweep.state.downloads[recipe.key])
+    fleet.observations.append(
+        (
+            ("recipe", "progress"),
+            2,
+            {"error_type": "control_api", "code": "controller.not_found"},
+        )
+    )
+    sweep.prefetcher._poll()
+    after = sweep.state.downloads[recipe.key]
+    assert after["operation_id"] == before["operation_id"]
+    assert after["request_key"] == before["request_key"]
+    assert after["attempt"] == before["attempt"]
+    assert (
+        len([call for _, call in fleet.calls if call[:2] == ("recipe", "download")])
+        == 1
+    )
+    assert not sweep.state.data["download_history"]

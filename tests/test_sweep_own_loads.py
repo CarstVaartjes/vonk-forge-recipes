@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -135,7 +136,17 @@ def test_a_load_the_sweep_started_is_recognised_by_request_key_even_without_its_
         return (
             (0, json.dumps(answers), "")
             if number == "2"
-            else (2, json.dumps({"code": "not_found", "detail": "no application"}), "")
+            else (
+                2,
+                json.dumps(
+                    {
+                        "error_type": "control_api",
+                        "code": "controller.not_found",
+                        "detail": "no application",
+                    }
+                ),
+                "",
+            )
         )
 
     guard = OwnerGuard(Vonkctl("vonkctl", runner=run), state, hold_seconds=1800)
@@ -176,3 +187,39 @@ def test_every_load_the_sweep_submits_is_remembered(
     ]
     assert keys == [x["request_key"] for x in sweep.state.data["own_loads"]]
     assert all(x.get("application_id") for x in sweep.state.data["own_loads"])
+
+
+@pytest.mark.parametrize(
+    ("document", "exit_code", "paused"),
+    [
+        ({"error_type": "control_api", "code": "controller.not_found"}, 2, False),
+        ({"code": "controller.not_found"}, 2, True),
+        ({"error_type": "arguments", "code": "controller.not_found"}, 2, True),
+        ({"error_type": "control_api", "code": "controller.forbidden"}, 2, True),
+        ({"error_type": "control_api", "code": "controller.unauthorized"}, 2, True),
+        ({"error_type": "control_api", "code": "controller.not_found"}, 0, True),
+        ({"error_type": "control_api", "code": "not_found"}, 2, True),
+        (None, 2, True),
+    ],
+)
+def test_owner_absence_requires_native_declared_rejection(
+    tmp_path: Path, document: object, exit_code: int, paused: bool
+) -> None:
+    state = State.load(tmp_path / "state.json")
+
+    def run(argv: Sequence[str], timeout: float) -> tuple[int, str, str]:
+        return exit_code, json.dumps(document), ""
+
+    guard = OwnerGuard(
+        Vonkctl("vonkctl", runner=run), state, hold_seconds=1800, profiles=[1]
+    )
+    status = guard.check(100.0)
+    assert status.paused is paused
+    assert not status.new_activity
+    assert not state.data["own_loads"]
+    assert state.data["owner"]["hold_until"] == 0
+    if paused:
+        assert state.data["owner"]["baseline"] == {}
+        assert "ownership is unreadable" in status.reason
+    else:
+        assert state.data["owner"]["baseline"]["1"] == {"id": "", "state": ""}
