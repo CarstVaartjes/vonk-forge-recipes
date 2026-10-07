@@ -12,6 +12,9 @@ from pathlib import Path
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 OWNER = {
     "alias": "owner-glm",
     "recipe": "x",
@@ -104,7 +107,11 @@ def test_a_review_blocked_by_a_workload_that_is_back_clears_the_fleet_instead_of
     real = fleet._load
 
     def blocking_load(n, data, a):  # the review sees the foreign 120 GB and refuses
-        if "--review" in a and any(r["alias"] == "owner-glm" for r in fleet.runs):
+        if (
+            "--review" in a
+            and any(i["desired_state"] == "running" for i in data["assignments"])
+            and any(r["alias"] == "owner-glm" for r in fleet.runs)
+        ):
             return 2, {
                 "allowed": False,
                 "effects": {"runs": []},
