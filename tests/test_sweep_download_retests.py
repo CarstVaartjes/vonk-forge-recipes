@@ -273,3 +273,21 @@ def test_cache_arriving_during_retest_reuses_assets_without_download(
         == 1
     )
     assert recipe.key not in sweep.state.data["download_history"]
+
+
+@pytest.mark.parametrize("state", ["cancelled", "superseded"])
+def test_operator_retest_cannot_replace_unconfirmed_cancelled_parent(
+    tmp_path: Path, state: str
+) -> None:
+    sweep, fleet, clock, recipe = _failed_download(tmp_path)
+    record = sweep.state.downloads[recipe.key]
+    record["state"] = state
+    fleet.ops[record["operation_id"]]["state"] = state
+    record["retry_at"] = clock.now() - 1
+    before = copy.deepcopy(record)
+    sweep._requeue_failed(recipe.key, "operator: --retry-failed")
+    clock.sleep(sweep.prefetcher.config.retry_cooldown)
+    assert not sweep.prefetcher._can_request(recipe, clock.now())
+    assert sweep.state.downloads[recipe.key] == before
+    assert not [call for _, call in fleet.calls if call[:2] == ("recipe", "retry")]
+    assert not sweep.state.data["download_history"]
