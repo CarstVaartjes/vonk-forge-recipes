@@ -214,3 +214,29 @@ def test_terminal_cleanup_may_reenter_fresh_admission_but_changed_topology_may_n
         original["effects"][0]["state"] == "cancelled"
     )  # historical observation survives.
     assert sweep._cleanup_nodes() == set()
+
+
+def test_older_successful_stop_receipt_cannot_release_newer_stop_intent(
+    tmp_path: Path,
+) -> None:
+    sweep, _fleet, _clock, _recipe, _key, original, _app = scenario(tmp_path)
+    older = original["effects"][0]
+    assert cleanup.stopped(older)
+    newer = copy.deepcopy(older)
+    newer.update(
+        effect_id="new-owner:queue:0:stop:run-healthy",
+        application_id="new-owner",
+        workload_intent_ordinal=older["workload_intent_ordinal"] + 1,
+        request_key="new-request",
+        operation_id="new-operation",
+        state="pending",
+        result=None,
+    )
+    sweep.state.data["cleanup_loads"]["new-request"] = {
+        "request_key": "new-request",
+        "app_id": "new-owner",
+        "projection_known": True,
+        "state": "running",
+        "effects": [newer],
+    }
+    assert sweep._cleanup_nodes() == {"spk_a", "spk_b"}

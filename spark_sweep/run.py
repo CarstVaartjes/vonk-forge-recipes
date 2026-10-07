@@ -2319,20 +2319,24 @@ class Sweep:
         if placements:
             self._apply(placements, now)
 
-    def _cleanup_confirmed(self) -> set[str]:
-        return {
-            cleanup.stop_signature(row["stop_effect"])
-            for load in self.state.data["cleanup_loads"].values()
-            for row in load.get("effects", [])
-            if cleanup.stopped(row)
-        }
+    def _cleanup_confirmed(self) -> dict[str, int]:
+        confirmed: dict[str, int] = {}
+        for load in self.state.data["cleanup_loads"].values():
+            for row in load.get("effects", []):
+                if cleanup.stopped(row):
+                    signature = cleanup.stop_signature(row["stop_effect"])
+                    confirmed[signature] = max(
+                        confirmed.get(signature, 0), row["workload_intent_ordinal"]
+                    )
+        return confirmed
 
     def _cleanup_pending(self, load: Mapping[str, Any]) -> list[dict[str, Any]]:
         confirmed = self._cleanup_confirmed()
         return [
             row
             for row in load.get("effects", [])
-            if cleanup.stop_signature(row["stop_effect"]) not in confirmed
+            if confirmed.get(cleanup.stop_signature(row["stop_effect"]), 0)
+            < row["workload_intent_ordinal"]
         ]
 
     def _cleanup_nodes(self) -> set[str]:
