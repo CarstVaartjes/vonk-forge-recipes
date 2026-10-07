@@ -249,6 +249,9 @@ def test_cache_arriving_during_retest_reuses_assets_without_download(
     sweep._schedule_retest(recipe.key, "scheduled-retest")
     clock.sleep(sweep.prefetcher.config.retry_cooldown)
     original = copy.deepcopy(sweep.state.downloads[recipe.key])
+    fleet.assessments = (
+        True  # publish canonical exact-assets readiness, not only local cache state
+    )
     fleet.recipes[recipe.key].local = "cached"
     fleet.models["m1"].local = "cached"
     sweep.refresh_catalog()

@@ -128,10 +128,60 @@ class Prefetcher:
             if now < float(record.get("next_check", 0)):
                 continue
             reply = self.vk.run("recipe", "progress", *self._progress_args(record))
+            if reply.is_not_found and not record.get("operation_id"):
+                # Only a canonical absence before any accepted parent permits
+                # replay. Keep the persisted intent and request UUID unchanged.
+                intent = record.get("requested_intent")
+                action: list[str] | None = None
+                if isinstance(intent, Mapping):
+                    if (
+                        intent.get("kind") == "selector"
+                        and isinstance(intent.get("selector"), str)
+                        and intent.get("force") is False
+                    ):
+                        action = ["download", intent["selector"]]
+                    elif intent.get("kind") == "retry" and isinstance(
+                        intent.get("operation_id"), str
+                    ):
+                        action = ["retry", intent["operation_id"]]
+                if action is not None:
+                    reply = self.vk.run(
+                        "recipe",
+                        *action,
+                        "--yes",
+                        "--detach",
+                        "--request-key",
+                        str(record["request_key"]),
+                    )
             document = reply.document
             record["next_check"] = now + min(self.config.retry_cooldown, 60.0)
             if not reply.ok or not isinstance(document, dict):
                 continue  # keep the last truthful state; try again next tick
+            if not record.get("operation_id"):
+                intent = record.get("requested_intent")
+                accepted = document.get("request")
+                if (
+                    not isinstance(document.get("id"), str)
+                    or document.get("request_id") != record.get("request_key")
+                    or not isinstance(intent, Mapping)
+                    or not isinstance(accepted, Mapping)
+                    or accepted.get("kind") != intent.get("kind")
+                    or (
+                        intent.get("kind") == "selector"
+                        and (
+                            accepted.get("selector") != intent.get("selector")
+                            or accepted.get("force", False) is not False
+                        )
+                    )
+                    or (
+                        intent.get("kind") == "retry"
+                        and accepted.get("operation_id") != intent.get("operation_id")
+                    )
+                    or intent.get("kind") not in ("selector", "retry")
+                ):
+                    continue
+                record["accepted_intent"] = dict(accepted)
+                self.on_ok("download")
             record["observed_at"] = now
             record["next_check"] = (
                 now  # normal polling cadence; backoff is for unreadable replies
