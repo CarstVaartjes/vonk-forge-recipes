@@ -1882,9 +1882,25 @@ class Sweep:
                 )
         except VonkctlError:
             return False  # leave it to the stall handling
+        review = self.vk.run("profile", "load", "--review", profile=profile)
+        document = review.document
+        if not review.ok or not isinstance(document, Mapping):
+            return False
+        if not (
+            document.get("allowed") is True
+            or document.get("waits_for_preparation") is True
+        ):
+            return False
+        cleanup_requests = self._adopted_cleanup_requests(document)
+        adopted_requests = self._adopted_requests(
+            document, excluded=frozenset(culprits)
+        )
+        if cleanup_requests is None or adopted_requests is None:
+            return False
         lanes = self._lanes(culprits)
         previous = self.state.data["loads"].get(slot["request_key"], {})
-        self._cancel_load(previous)
+        # Fresh canonical admission supersedes only changed effects. Cancelling
+        # this original root first would also abort the unchanged survivor.
         for key in culprits:
             own = [b for b in blockers if policy.blamed([b], {key: lanes[key]})]
             first = (own or blockers)[0]
@@ -1903,8 +1919,6 @@ class Sweep:
                 ),
                 previous,
             )
-        if not self._adopted_slots_live(previous):
-            self.state.data["loads"].pop(slot["request_key"], None)
         seq = int(self.state.data["load_seq"]) + 1
         request = request_key("sweep-load", self.state.nonce, profile, seq)
         self.state.data["load_seq"] = seq
@@ -1913,14 +1927,12 @@ class Sweep:
             "app_id": None,
             "seq": seq,
             "submitted_at": now,
-            "adopted_requests": list(previous.get("adopted_requests") or []),
-            "adopted_cleanup_requests": list(
-                previous.get("adopted_cleanup_requests") or []
-            ),
+            "adopted_requests": adopted_requests,
+            "adopted_cleanup_requests": cleanup_requests,
         }
         for key in survivors:
             lane = self.state.slots[key]
-            lane["request_key"] = request
+            # Observation stays bound to the original accepted child/root.
             for stale in ("blocked_since", "blocked"):
                 lane.pop(stale, None)
         self.state.save()
@@ -2716,12 +2728,14 @@ class Sweep:
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
         self.state.save()
 
-    def _adopted_requests(self, review: Mapping[str, Any]) -> list[str] | None:
+    def _adopted_requests(
+        self, review: Mapping[str, Any], *, excluded: frozenset[str] = frozenset()
+    ) -> list[str] | None:
         """Require bound whole-assignment adoption before overlapping accepted snapshots."""
         adopted = (review.get("effects") or {}).get("adopted") or []
         requests = []
-        for slot in self.state.slots.values():
-            if slot["phase"] != "loading":
+        for key, slot in self.state.slots.items():
+            if slot["phase"] != "loading" or key in excluded:
                 continue
             request = slot["request_key"]
             original = self.state.data["loads"].get(request, {})
