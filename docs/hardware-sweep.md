@@ -66,8 +66,9 @@ Old state files with one `load` are adopted without changing that UUID. Admissio
 and progress replies in `observing` or `backoff` keep being polled. Operator waits
 and removal gates end the owned load and requeue its recipes without blame.
 Downloads and lane observations have a 24-hour total budget; an unreadable or
-stalled download has a one-hour observation budget. Budget exhaustion releases
-sweep bookkeeping and schedules a fresh attempt after cooldown.
+stalled download has a one-hour observation budget. An owned download exceeding
+that budget keeps its original request and resumes paced observation after
+cooldown. The read budget never authorizes cancellation or a replacement download.
 
 Concurrent accepted snapshots use the Controller's bound whole-assignment
 adoption contract (`effects.adopted`), while original applications keep their
@@ -213,7 +214,8 @@ certificate).
   cannot manufacture a recovery trigger. Retests append history and preserve
   cumulative attempts, cause, evidence, cooldowns and existing request identities.
   Active preparations reconnect with their original UUID. A new download attempt
-  requires a cooldown-qualified retest and a fresh exact terminal-failure receipt;
+  requires a cooldown-qualified retest (or the bounded transient retry) and a fresh
+  exact terminal-failure receipt;
   the complete previous attempt remains in download history and cache bytes are reused.
 * `run --retry-failed [--only SELECTOR]` requeues failed recipes (all of them, or
   those whose selector contains the text), whatever the cause. The status

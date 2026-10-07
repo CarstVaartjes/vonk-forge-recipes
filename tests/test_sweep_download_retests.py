@@ -98,21 +98,40 @@ def test_active_and_unknown_receipts_keep_exact_download_identity(
     sweep, fleet, clock, recipe = _failed_download(tmp_path)
     sweep._schedule_retest(recipe.key, "scheduled-retest")
     clock.sleep(sweep.prefetcher.config.retry_cooldown)
+    sweep.state.downloads[recipe.key]["retry_at"] = clock.now() - 1
     original = copy.deepcopy(sweep.state.downloads[recipe.key])
-    for state in ("queued", "running", "observing", "unexpected-state"):
-        fleet.observations.append(
-            (
-                ("recipe", "progress"),
-                0,
-                {"id": original["operation_id"], "state": state},
+    canonical = fleet._op_doc(fleet.ops[original["operation_id"]])
+    for saved_state in ("failed", "retired"):
+        sweep.state.downloads[recipe.key]["state"] = saved_state
+        unchanged = copy.deepcopy(sweep.state.downloads[recipe.key])
+        for state in ("queued", "running", "observing", "unexpected-state"):
+            fleet.observations.append(
+                (("recipe", "progress"), 0, {**canonical, "state": state})
             )
-        )
-        assert not sweep.prefetcher._can_request(recipe, clock.now())
-        assert sweep.state.downloads[recipe.key] == original
+            assert not sweep.prefetcher._can_request(recipe, clock.now())
+            assert sweep.state.downloads[recipe.key] == unchanged
     assert (
         len([call for _, call in fleet.calls if call[:2] == ("recipe", "download")])
         == 1
     )
+
+
+def test_bounded_transient_retry_still_requires_exact_terminal_receipt(
+    tmp_path: Path,
+) -> None:
+    sweep, fleet, clock, recipe = _failed_download(tmp_path)
+    entry = sweep.state.entry(recipe.key)
+    entry.clear()
+    entry["status"] = "pending"
+    record = sweep.state.downloads[recipe.key]
+    record["retry_at"] = clock.now() + sweep.prefetcher.config.retry_cooldown
+    assert not sweep.prefetcher._can_request(recipe, clock.now())
+    clock.sleep(sweep.prefetcher.config.retry_cooldown)
+    assert sweep.prefetcher._can_request(recipe, clock.now())
+    assert record["terminal_receipt"] == fleet._op_doc(
+        fleet.ops[record["operation_id"]]
+    )
+    assert not entry.get("retest")
 
 
 def test_foreign_or_unreadable_terminal_receipt_cannot_authorize_new_attempt(
@@ -121,6 +140,7 @@ def test_foreign_or_unreadable_terminal_receipt_cannot_authorize_new_attempt(
     sweep, fleet, clock, recipe = _failed_download(tmp_path)
     sweep._schedule_retest(recipe.key, "scheduled-retest")
     clock.sleep(sweep.prefetcher.config.retry_cooldown)
+    sweep.state.downloads[recipe.key]["retry_at"] = clock.now() - 1
     original = copy.deepcopy(sweep.state.downloads[recipe.key])
     for status, document in (
         (0, {"id": "another-operation", "state": "failed"}),

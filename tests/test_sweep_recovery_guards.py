@@ -96,7 +96,7 @@ def test_all_active_download_states_keep_polling(tmp_path: Path, word: str) -> N
 
 
 @pytest.mark.parametrize("reason", ["needs-operator", "unreadable"])
-def test_download_wait_releases_budget_and_admits_fresh_request(
+def test_download_wait_preserves_owned_request_without_cancellation(
     tmp_path: Path, reason: str
 ) -> None:
     sweep, fleet, clock = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
@@ -117,13 +117,18 @@ def test_download_wait_releases_budget_and_admits_fresh_request(
     else:
         record["progress_at"] = clock.now() - DOWNLOAD_STALL_SECONDS
         sweep.prefetcher._poll()
-    assert record["state"] == "retired"
+    assert record["state"] == "observing"
     assert sweep.state.status(recipe.key) == "pending"
     clock.t += sweep.prefetcher.config.retry_cooldown
     sweep.prefetcher.pause_until = 0
-    assert sweep.prefetcher._can_request(recipe, clock.now())
-    sweep.prefetcher._request(recipe, "model")
-    assert sweep.state.downloads[recipe.key]["request_key"] != old_key
+    assert not sweep.prefetcher._can_request(recipe, clock.now())
+    fleet.observations.append(
+        (("recipe", "progress"), 0, {"id": record["operation_id"], "state": "running"})
+    )
+    sweep.prefetcher._poll()
+    assert record["state"] == "running"
+    assert record["request_key"] == old_key
+    assert not any(call[:2] == ("recipe", "cancel") for _, call in fleet.calls)
 
 
 def _loading(tmp_path: Path):
