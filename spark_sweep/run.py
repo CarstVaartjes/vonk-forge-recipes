@@ -61,6 +61,8 @@ MAX_REVIEW_DEFERS = 3
 MAX_UNATTRIBUTED_REQUEUES = 2
 # Clearing the fleet and reviewing again, for a capacity refusal, before it counts against the recipe.
 MAX_REVIEW_FREEING = 2
+MAX_TAKEOVER_ATTEMPTS = 3
+TAKEOVER_RETRY_SECONDS = 30.0
 SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
@@ -2276,7 +2278,8 @@ class Sweep:
         message = (
             f"IDLE WITH READY WORK: {len(free)} free lane(s) for {round(idle)}s "
             f"while recipes are ready (load record: "
-            f"{len(self.state.data['loads'])})"
+            f"{len(self.state.data['loads'])}; "
+            f"blocking reason: {self.state.data.get('clearing_reason', 'placement review or lane admission')})"
         )
         if not self.state.data.get("alerts"):
             self.state.event(message)
@@ -2352,7 +2355,15 @@ class Sweep:
                 continue
             for row in self._cleanup_pending(load):
                 occupied.update(row["node_ids"])
-        return occupied
+        online = {s.id for s in self.sparks()}
+        if self.state.data.get("takeover_fallback"):
+            # Bookkeeping is not occupancy. A fresh review still owns admission;
+            # this observation never rewrites or declares an old receipt successful.
+            own = self._own_aliases()
+            return {
+                p.node_id for p in self.fleet.presences if p.alias not in own
+            } & online
+        return occupied & online
 
     def observe_cleanup(self) -> None:
         """Observe original stop receipts once; never replace intent after a read timeout."""
@@ -2467,7 +2478,54 @@ class Sweep:
             self.state.save()
 
     def _take_over(self, now: float) -> bool:
-        """Begin one durable whole-fleet cleanup, then admit lanes from exact receipts."""
+        """Bound clearing admission; fresh fleet facts keep independent lanes moving."""
+        try:
+            self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+        except VonkctlError:
+            self.state.data["clearing_reason"] = "clearing waits on fleet observation"
+            return False  # no stale fleet may authorize placement
+        budget = self.state.data.setdefault(
+            "takeover_budget", {"attempts": 0, "next_check": 0.0}
+        )
+        offline = [s.name for s in self.fleet.sparks if not s.online]
+        reason = (
+            "clearing waits on offline " + ", ".join(offline)
+            if offline
+            else "clearing waits on cleanup receipt or admission"
+        )
+        self.state.data["clearing_reason"] = reason
+        if budget["attempts"] >= MAX_TAKEOVER_ATTEMPTS:
+            self.state.data["takeover_fallback"] = True
+            return True
+        if self.state.data.get("took_over") and all(
+            load.get("projection_known") and load.get("state") not in SETTLED
+            for load in self.state.data["cleanup_loads"].values()
+        ):
+            self.state.data.pop("clearing_reason", None)
+            return True
+        if now < budget["next_check"]:
+            return False
+        budget["attempts"] += 1
+        budget["next_check"] = now + TAKEOVER_RETRY_SECONDS
+        self.state.save()
+        try:
+            admitted = self._attempt_takeover(now)
+        except VonkctlError:
+            admitted = False
+        if admitted:
+            budget.update(attempts=0, next_check=0.0)
+            self.state.data.pop("clearing_reason", None)
+            return True
+        if budget["attempts"] >= MAX_TAKEOVER_ATTEMPTS:
+            self.state.data["takeover_fallback"] = True
+            self.state.event(
+                f"{reason}: clearing budget exhausted; reviewing free online lanes"
+            )
+            return True
+        return False
+
+    def _attempt_takeover(self, now: float) -> bool:
+        """Begin one durable cleanup, then admit lanes from exact receipts."""
         loads = self.state.data["cleanup_loads"]
         if loads:
             if not all(load.get("projection_known") for load in loads.values()):
@@ -2529,6 +2587,9 @@ class Sweep:
             for row in runs
             if isinstance(row, Mapping) and row.get("action") == "stop"
         ]
+        online = {s.id for s in self.sparks()}
+        if any(not set(row.get("node_ids", [])) <= online for row in stops):
+            return False  # an empty whole-fleet load would clear an offline Spark
         kept = {
             slot["alias"]
             for slot in self.state.slots.values()
@@ -2791,8 +2852,15 @@ class Sweep:
         requests = []
         for key, load in self.state.data["cleanup_loads"].items():
             if not load.get("projection_known"):
+                if self.state.data.get("takeover_fallback"):
+                    continue  # fleet occupancy and the fresh review govern new work
                 return None
-            pending = self._cleanup_pending(load)
+            online = {s.id for s in self.sparks()}
+            pending = [
+                row
+                for row in self._cleanup_pending(load)
+                if set(row["node_ids"]) & online
+            ]
             if load.get("state") in SETTLED:
                 # Historical cancelled claims stay occupied. A newer accepted exact
                 # stop may own that residual effect; never try to adopt terminal work.
@@ -2998,7 +3066,10 @@ class Sweep:
             return [], []
         lanes = {str(s["alias"]) for s in self.state.slots.values()}
         own = self._own_aliases()
-        names = sorted({p.alias for p in self.fleet.presences} - lanes)
+        online = {s.id for s in self.sparks()}
+        names = sorted(
+            {p.alias for p in self.fleet.presences if p.node_id in online} - lanes
+        )
         return [a for a in names if a not in own], [a for a in names if a in own]
 
     def _foreign_runs(self) -> bool:

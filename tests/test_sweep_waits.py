@@ -72,12 +72,14 @@ def test_pending_cleanup_does_not_replace_intent_after_an_aggregate_wait_budget(
 ) -> None:
     sweep, fleet, clock = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
     fleet.runs.append(_run("stubborn"))
-    fleet.offline_nodes.add("spk_a")
+    fleet.cleanup_stop_seconds["stubborn"] = 3600
     sweep.preflight()
     sweep.refresh_catalog()
     start = clock.now()
     assert sweep._take_over(start)
     assert clock.now() == start  # Acceptance/observation returns to the main loop.
+    fleet.offline_nodes.add("spk_a")
+    sweep._take_over(clock.now())
     key, original = next(iter(sweep.state.data["cleanup_loads"].items()))
     identity = [
         (row["effect_id"], row["operation_id"], row["request_key"])
@@ -105,7 +107,7 @@ def test_pending_cleanup_does_not_replace_intent_after_an_aggregate_wait_budget(
         == 1
     )
     assert not any(command[:2] == ("profile", "cancel") for _, command in fleet.calls)
-    assert sweep._cleanup_nodes() == {"spk_a"}
+    assert sweep._cleanup_nodes() == set()
     assert sweep.state.status("vonk-forge/a") != "failed"
 
 
@@ -116,10 +118,12 @@ def test_status_and_state_stay_fresh_while_original_cleanup_is_pending(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], only=("unselected",)
     )
     fleet.runs.append(_run("stubborn"))
-    fleet.offline_nodes.add("spk_a")
+    fleet.cleanup_stop_seconds["stubborn"] = 3600
     sweep.preflight()
     sweep.refresh_catalog()
     assert sweep._take_over(clock.now())
+    fleet.offline_nodes.add("spk_a")
+    sweep._take_over(clock.now())
     key, original = next(iter(sweep.state.data["cleanup_loads"].items()))
     seen: list[float] = []
     for _ in range(4):

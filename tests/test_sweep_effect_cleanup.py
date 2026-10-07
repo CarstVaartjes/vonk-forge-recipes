@@ -34,12 +34,16 @@ def scenario(tmp_path: Path, *, dual: bool = False):
         fleet.cleanup_stop_seconds["gang"] = 3600
     else:
         fleet.runs.extend([run("healthy", ["spk_a"]), run("offline", ["spk_b"])])
-        fleet.offline_nodes.add("spk_b")
+        # Recover an older whole-fleet clearing accepted while both nodes were online.
+        fleet.cleanup_stop_seconds["offline"] = 3600
     sweep.preflight()
     sweep.refresh_catalog()
     assert sweep._take_over(clock.now())
     key, original = next(iter(sweep.state.data["cleanup_loads"].items()))
     app = fleet.apps[original["app_id"]]
+    if not dual:
+        fleet.offline_nodes.add("spk_b")
+        sweep._take_over(clock.now())
     return sweep, fleet, clock, recipe, key, original, app
 
 
@@ -57,18 +61,18 @@ def apply_healthy(sweep, clock, recipe) -> None:
     sweep._apply([policy.Placement(sweep.recipes[recipe.key], ("spk_a",))], clock.now())
 
 
-def test_healthy_exact_stop_frees_lane_only_with_original_offline_cleanup_adopted(
+def test_healthy_lane_does_not_require_offline_cleanup_adoption(
     tmp_path: Path,
 ) -> None:
-    sweep, fleet, clock, recipe, key, original, app = scenario(tmp_path)
-    assert sweep._cleanup_nodes() == {"spk_b"}
+    sweep, fleet, clock, recipe, _key, original, app = scenario(tmp_path)
+    assert sweep._cleanup_nodes() == set()
     stopped, pending = original["effects"]
     assert cleanup.stopped(stopped)
     assert pending["state"] == "pending" and pending["target_id"] == "run-offline"
     apply_healthy(sweep, clock, recipe)
     slot = sweep.state.slots[recipe.key]
     current = sweep.state.data["loads"][slot["request_key"]]
-    assert current["adopted_cleanup_requests"] == [key]
+    assert current["adopted_cleanup_requests"] == []
     links = fleet.reviewed_cleanup_effects[-1]
     assert any(cleanup.adopted({"effects": {"adopted": links}}, pending) for _ in [0])
     assert app["state"] == "running"
@@ -84,17 +88,17 @@ def test_healthy_exact_stop_frees_lane_only_with_original_offline_cleanup_adopte
     )
 
 
-def test_missing_cleanup_adoption_blocks_fresh_load_without_blaming_recipe(
+def test_missing_offline_cleanup_adoption_admits_fresh_load_without_blaming_recipe(
     tmp_path: Path,
 ) -> None:
     sweep, fleet, clock, recipe, _key, _original, _app = scenario(tmp_path)
     before = len(mutations(fleet))
     fleet.cleanup_adoption = False
     apply_healthy(sweep, clock, recipe)
-    assert len(mutations(fleet)) == before
-    assert recipe.key not in sweep.state.slots
+    assert len(mutations(fleet)) == before + 1
+    assert recipe.key in sweep.state.slots
     assert sweep.state.status(recipe.key) != "failed"
-    assert sweep._cleanup_nodes() == {"spk_b"}
+    assert sweep._cleanup_nodes() == set()
 
 
 def test_fresh_capacity_review_can_refuse_a_locally_cached_free_lane(
@@ -111,20 +115,21 @@ def test_fresh_capacity_review_can_refuse_a_locally_cached_free_lane(
     assert fleet.reviewed_cleanup_effects[-1]
 
 
-def test_borrowed_cleanup_observer_is_not_orphan_cancelled_when_its_own_lane_finishes(
+def test_offline_cleanup_does_not_hold_finished_lane_observer(
     tmp_path: Path,
 ) -> None:
-    sweep, fleet, clock, recipe, key, _original, app = scenario(tmp_path)
+    sweep, _fleet, clock, recipe, _key, _original, app = scenario(tmp_path)
     apply_healthy(sweep, clock, recipe)
     slot = sweep.state.slots[recipe.key]
     request = slot["request_key"]
     current = sweep.state.data["loads"][request]
     slot["phase"] = "finished"
     sweep._release_orphan_load(current)
-    assert request in sweep.state.data["loads"]
-    assert current["adopted_cleanup_requests"] == [key]
+    assert request not in sweep.state.data["loads"]
+    assert current["adopted_cleanup_requests"] == []
     assert app["state"] == "running"
-    assert not any(command[:2] == ("profile", "cancel") for _, command in fleet.calls)
+    apply_healthy(sweep, clock, recipe)
+    assert recipe.key in sweep.state.slots
 
 
 def test_pending_root_keeps_exact_child_identity_beyond_old_wait_budget_and_restart(
@@ -207,6 +212,7 @@ def test_terminal_cleanup_may_reenter_fresh_admission_but_changed_topology_may_n
     assert len(mutations(fleet)) == before
     assert sweep._cleanup_nodes() == {"spk_a", "spk_b"}
     fleet.runs[0]["node_ids"] = ["spk_a", "spk_b"]
+    clock.sleep(30)
     fleet.cleanup_stop_seconds["gang"] = 0
     assert sweep._take_over(clock.now())
     assert len(mutations(fleet)) == before + 1
@@ -239,4 +245,4 @@ def test_older_successful_stop_receipt_cannot_release_newer_stop_intent(
         "state": "running",
         "effects": [newer],
     }
-    assert sweep._cleanup_nodes() == {"spk_a", "spk_b"}
+    assert sweep._cleanup_nodes() == {"spk_a"}
