@@ -4,22 +4,33 @@ The recipe-authoring contracts do not export Controller lifecycle states.
 Unknown observations stay active: observe again instead of inventing a failure.
 """
 
-from typing import Literal, get_args
+from enum import StrEnum
 
-LifecycleState = Literal[
-    "queued",
-    "running",
-    "observing",
-    "backoff",
-    "succeeded",
-    "failed",
-    "cancelled",
-    "superseded",
-    "needs-operator",
-]
-STATES = frozenset(get_args(LifecycleState))
-TERMINAL = frozenset({"succeeded", "failed", "cancelled", "superseded"})
-WAITING = frozenset({"needs-operator"})
+
+class LifecycleState(StrEnum):
+    """Consumer vocabulary from the published Controller Pydantic schema."""
+
+    QUEUED = "queued"
+    RUNNING = "running"
+    OBSERVING = "observing"
+    BACKOFF = "backoff"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    SUPERSEDED = "superseded"
+    NEEDS_OPERATOR = "needs-operator"
+
+
+STATES = frozenset(LifecycleState)
+TERMINAL = frozenset(
+    {
+        LifecycleState.SUCCEEDED,
+        LifecycleState.FAILED,
+        LifecycleState.CANCELLED,
+        LifecycleState.SUPERSEDED,
+    }
+)
+WAITING = frozenset({LifecycleState.NEEDS_OPERATOR})
 ACTIVE = STATES - TERMINAL - WAITING
 
 

@@ -41,8 +41,14 @@ def test_bounded_clearing_admits_ready_online_work(
         )
         assert sweep.run() == 0
         assert {entry["status"] for entry in sweep.state.recipes.values()} == {"passed"}
-        assert sweep.state.data["takeover_budget"]["attempts"] == MAX_TAKEOVER_ATTEMPTS
-        assert sweep.state.data["takeover_fallback"]
+        if offline:
+            assert (
+                sweep.state.data["takeover_budget"]["attempts"] == MAX_TAKEOVER_ATTEMPTS
+            )
+            assert sweep.state.data["takeover_fallback"]
+        else:
+            assert sweep.state.data["takeover_budget"]["attempts"] == 0
+            assert not sweep.state.data.get("takeover_fallback")
         assert not alerts
         placements = [
             item for app in fleet.apps.values() for item in app.get("assign", [])
