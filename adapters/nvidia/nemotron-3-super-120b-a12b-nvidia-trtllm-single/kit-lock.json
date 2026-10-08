@@ -9,7 +9,7 @@
     }
   },
   "kit": {
-    "commit": "c3c7324c49145814eb2674e1162ece12aaa9d0b4",
+    "commit": "863cfb2c2075db57a203ded10ac65e1d606aad16",
     "repo": "NVIDIA/dgx-spark-playbooks"
   }
 }
