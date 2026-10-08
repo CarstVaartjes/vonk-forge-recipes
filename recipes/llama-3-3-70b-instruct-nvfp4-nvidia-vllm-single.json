@@ -256,10 +256,10 @@
       "NVIDIA Corporation",
       "Meta Platforms"
     ],
-    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/c3c7324c49145814eb2674e1162ece12aaa9d0b4/nvidia/vllm/README.md"
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/863cfb2c2075db57a203ded10ac65e1d606aad16/nvidia/vllm/README.md"
   },
   "release": {
-    "released_at": "2026-10-01",
+    "released_at": "2026-10-07",
     "version": "26.05.post1"
   },
   "runtime": {
