@@ -25,6 +25,15 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Protocol
 
+from pydantic import ValidationError
+from vonk_forge_contracts.sweep import (
+    CleanupEnd,
+    CleanupEndReason,
+    CleanupFleetObservation,
+    CleanupObservationBudget,
+    FleetOnlineState,
+)
+
 from . import cleanup, policy, recovery
 from .catalog import (
     Fleet,
@@ -2337,6 +2346,8 @@ class Sweep:
         return confirmed
 
     def _cleanup_pending(self, load: Mapping[str, Any]) -> list[dict[str, Any]]:
+        if load.get("end"):
+            return []
         confirmed = self._cleanup_confirmed()
         return [
             row
@@ -2349,6 +2360,8 @@ class Sweep:
         """Unconfirmed exact stop scopes remain occupied, including whole gangs."""
         occupied: set[str] = set()
         for load in self.state.data["cleanup_loads"].values():
+            if load.get("end"):
+                continue
             if load.get("terminal_receipt"):
                 if load.get("projection_known") and not self._cleanup_pending(load):
                     continue
@@ -2375,13 +2388,56 @@ class Sweep:
             } & online
         return occupied & online
 
+    def _cleanup_target_absent(self, load: Mapping) -> bool:
+        """An exact absent receipt plus fresh online fleet facts ends bookkeeping."""
+        reply = self.vk.run("fleet")
+        if not reply.ok:
+            return False
+        try:
+            observed = CleanupFleetObservation.model_validate(reply.document)
+        except ValidationError:
+            return False
+        # Offline or incomplete facts cannot certify the absence of an old run.
+        expected_nodes = {
+            node for row in load.get("effects", []) for node in row["node_ids"]
+        }
+        expected_runs = {row["target_id"] for row in load.get("effects", [])}
+        for signature in load.get("reviewed_stops", []):
+            stop = cleanup.reviewed_stop(signature)
+            if stop is None:
+                return False
+            expected_nodes.update(stop.node_ids)
+            expected_runs.add(stop.run_id)
+        nodes = {node.id for node in observed.nodes}
+        if not nodes or not expected_nodes <= nodes:
+            return False
+        relevant = [
+            node
+            for node in observed.nodes
+            if not expected_nodes or node.id in expected_nodes
+        ]
+        if any(
+            node.connection.online_state != FleetOnlineState.ONLINE for node in relevant
+        ):
+            return False
+        present = {run.run_id for node in observed.nodes for run in node.loaded}
+        return not (expected_runs & present) if expected_runs else not present
+
     def observe_cleanup(self) -> None:
         """Observe original stop receipts once; never replace intent after a read timeout."""
         for load in self.state.data["cleanup_loads"].values():
+            if load.get("end"):
+                continue
             if load.get("terminal_receipt"):
                 continue
             if load.get("projection_known") and not self._cleanup_pending(load):
                 continue  # immutable successful receipt/history needs no repeated I/O
+            now = self.clock.now()
+            budget = CleanupObservationBudget.model_validate(
+                load.get("observation_budget", {})
+            )
+            if now < budget.next_check:
+                continue
             args = ["progress"]
             if load.get("app_id"):
                 args += ["--application", load["app_id"]]
@@ -2389,6 +2445,37 @@ class Sweep:
                 args += ["--request-key", load["request_key"]]
             reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
             document = reply.document
+            if reply.is_not_found and self._cleanup_target_absent(load):
+                load["end"] = CleanupEnd(
+                    reason=CleanupEndReason.TARGET_ABSENT, observed_at=now
+                ).model_dump(mode="json")
+                load["observation_unknown"] = False
+                load.pop("observation_budget", None)
+                self.clear_infra("clearing")
+                self.backoff_until = max(
+                    (
+                        item["until"]
+                        for source, item in self.state.data["infra"].items()
+                        if source != "download"
+                    ),
+                    default=0.0,
+                )
+                self.state.save()
+                continue
+            if not reply.ok:
+                budget.attempts += 1
+                budget.next_check = now + min(
+                    INFRA_BASE * 2 ** min(budget.attempts - 1, 20), INFRA_CAP
+                )
+                load["observation_budget"] = budget.model_dump(mode="json")
+                # Legacy status entries describe the next actual observation, not
+                # an expired submission retry. This does not pause other lanes.
+                if item := self.state.data["infra"].get("clearing"):
+                    item["count"] += 1
+                    item["until"] = budget.next_check
+            else:
+                load.pop("observation_budget", None)
+                self.clear_infra("clearing")
             if (
                 not load.get("app_id")
                 and reply.is_not_found
@@ -2421,6 +2508,7 @@ class Sweep:
                     continue
                 # Exactly absent receipt permits same-key reentry, never a new UUID.
                 load["app_id"] = document.get("id")
+                load.pop("observation_budget", None)
                 self.state.save()
                 continue
             if not reply.ok or not isinstance(document, Mapping):
@@ -2550,19 +2638,26 @@ class Sweep:
         """Begin one durable cleanup, then admit lanes from exact receipts."""
         loads = self.state.data["cleanup_loads"]
         if loads:
-            if all(load.get("terminal_receipt") for load in loads.values()):
+            if all(
+                load.get("terminal_receipt") or load.get("end")
+                for load in loads.values()
+            ):
                 if not self.fleet.presences:
                     return True
                 return self._renew_cleanup(now)
             if not all(
-                load.get("projection_known") or load.get("terminal_receipt")
+                load.get("projection_known")
+                or load.get("terminal_receipt")
+                or load.get("end")
                 for load in loads.values()
             ):
                 return False
             unresolved = [
                 load
                 for load in loads.values()
-                if not load.get("terminal_receipt") and self._cleanup_pending(load)
+                if not load.get("terminal_receipt")
+                and not load.get("end")
+                and self._cleanup_pending(load)
             ]
             if unresolved and any(
                 load.get("state") not in SETTLED for load in unresolved
@@ -2891,7 +2986,7 @@ class Sweep:
     def _adopted_cleanup_requests(self, review: Mapping[str, Any]) -> list[str] | None:
         requests = []
         for key, load in self.state.data["cleanup_loads"].items():
-            if load.get("terminal_receipt"):
+            if load.get("terminal_receipt") or load.get("end"):
                 continue
             if not load.get("projection_known"):
                 if self.state.data.get("takeover_fallback"):

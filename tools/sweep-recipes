@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --no-project --python 3.14 --with pydantic==2.13.4 python
 """Qualify as many recipes as possible on the real Sparks, fast and unattended.
 
 Drives the fleet only through ``vonkctl`` (JSON mode): prefetches models onto the
@@ -12,7 +12,9 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "contracts/src"))
 
 from spark_sweep.cli import main
 
