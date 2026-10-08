@@ -11,6 +11,9 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
+from pydantic import ValidationError
+from vonk_forge_contracts.sweep import ReviewedCleanupStop
+
 STATES = frozenset(
     {"not-issued", "pending", "succeeded", "failed", "cancelled", "unknown"}
 )
@@ -147,3 +150,11 @@ def adopted(review: Mapping[str, Any], row: Mapping[str, Any]) -> bool:
             ):
                 return True
     return False
+
+
+def reviewed_stop(signature: str) -> ReviewedCleanupStop | None:
+    """Recover the reviewed target identities from the durable canonical signature."""
+    try:
+        return ReviewedCleanupStop.model_validate_json(signature)
+    except ValidationError:
+        return None
