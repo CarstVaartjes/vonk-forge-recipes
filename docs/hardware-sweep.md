@@ -3,8 +3,9 @@
 `tools/sweep-recipes` tests as many recipes as possible on the real Sparks,
 fast and unattended, and records what it finds. It drives the fleet only
 through `vonkctl` (JSON mode), needs no Controller credentials of its own, and
-runs from the operator's machine. The code is `spark_sweep/` (stdlib only);
-`tests/test_sweep_*.py` run it against a fake `vonkctl` and never touch a fleet.
+runs from the operator's machine. The entry point uses `uv` to supply Python
+3.14 and pinned Pydantic for the shared sweep observation contracts; the code
+is `spark_sweep/`. `tests/test_sweep_*.py` run it against a fake `vonkctl` and never touch a fleet.
 
 It lives in this repository because what to test is already here: the
 reviewed smoke cases and fixtures in `qualification/shared.json` and
@@ -363,3 +364,21 @@ settle. A stuck owner intent ends the sweep after its observation budget, leavin
 its owned lanes released for a new operation. Unreadable state is preserved beside
 `state.json` and disposable bookkeeping is rebuilt. Client skew applies the
 accepted CLI update automatically and retries a failed update with backoff.
+
+### Gone cleanup reconciliation
+
+An exact Controller not-found receipt is reconciled against a fresh, structurally
+validated fleet observation. If the target runs are absent and their nodes are
+online, the local clearing record ends with `CleanupEndReason.TARGET_ABSENT`.
+The shared Pydantic consumer models live in
+`contracts/src/vonk_forge_contracts/sweep.py`; these local records do not change
+the public Model/Recipe document contract or assert a successful Controller stop.
+Ended records survive restart and contribute neither occupancy nor required
+cleanup adoption to a fresh load. Unavailable observations retain the original
+request and use persisted exponential delays of 30 to 600 seconds. A new load
+still requires the Controller's current admission review.
+
+The former clearing counter was an infrastructure submission-error counter,
+not an observation counter. Progress observation kept running without updating
+or clearing that old entry. Reconciliation now removes the stale entry and its
+backoff; the local observation budget records successive unavailable reads.

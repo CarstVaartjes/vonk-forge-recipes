@@ -162,6 +162,7 @@ def test_foreign_acceptance_reconciles_only_the_original_owned_request(
         sweep.observe_cleanup()
         assert _load_keys(fleet, 10) == [request]
         assert original.get("application_id") is None
+        sweep.clock.sleep(60)
     # A canonical not-found receipt and unchanged allowed review authorize only
     # reentry with the same request, never a timer-generated replacement key.
     sweep.observe_cleanup()
