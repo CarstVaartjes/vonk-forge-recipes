@@ -153,7 +153,6 @@ def test_foreign_or_unreadable_terminal_receipt_cannot_authorize_new_attempt(
     canonical = fleet._op_doc(fleet.ops[original["operation_id"]])
     for field, wrong in (
         ("request_id", "another-request"),
-        ("recipe_revision_id", "another-revision"),
         ("recipe_content_sha256", "another-content"),
         ("failure", None),
         (
@@ -276,7 +275,7 @@ def test_cache_arriving_during_retest_reuses_assets_without_download(
 
 
 @pytest.mark.parametrize("state", ["cancelled", "superseded"])
-def test_operator_retest_cannot_replace_unconfirmed_cancelled_parent(
+def test_operator_retest_replaces_confirmed_cancelled_parent(
     tmp_path: Path, state: str
 ) -> None:
     sweep, fleet, clock, recipe = _failed_download(tmp_path)
@@ -284,10 +283,25 @@ def test_operator_retest_cannot_replace_unconfirmed_cancelled_parent(
     record["state"] = state
     fleet.ops[record["operation_id"]]["state"] = state
     record["retry_at"] = clock.now() - 1
-    before = copy.deepcopy(record)
+    old_key = record["request_key"]
     sweep._requeue_failed(recipe.key, "operator: --retry-failed")
-    clock.sleep(sweep.prefetcher.config.retry_cooldown)
     assert not sweep.prefetcher._can_request(recipe, clock.now())
-    assert sweep.state.downloads[recipe.key] == before
+    sweep.prefetcher._poll()
+    clock.sleep(sweep.prefetcher.config.retry_cooldown)
+    assert sweep.prefetcher._can_request(recipe, clock.now())
+    sweep.prefetcher._request(recipe, "model")
+    assert sweep.state.downloads[recipe.key]["request_key"] != old_key
     assert not [call for _, call in fleet.calls if call[:2] == ("recipe", "retry")]
-    assert not sweep.state.data["download_history"]
+    assert sweep.state.data["download_history"][recipe.key]
+
+
+def test_terminal_retry_uses_content_identity_despite_changed_revision(
+    tmp_path: Path,
+) -> None:
+    from dataclasses import replace
+
+    sweep, _, clock, recipe = _failed_download(tmp_path)
+    sweep._schedule_retest(recipe.key, "scheduled-retest")
+    clock.sleep(sweep.prefetcher.config.retry_cooldown)
+    current = replace(recipe, revision_id="new-provenance-same-content")
+    assert sweep.prefetcher._can_request(current, clock.now())

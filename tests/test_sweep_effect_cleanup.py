@@ -199,7 +199,7 @@ def test_gang_claim_occupies_full_topology_until_same_exact_stop_receipt(
     assert sweep._cleanup_nodes() == set()
 
 
-def test_terminal_cleanup_may_reenter_fresh_admission_but_changed_topology_may_not(
+def test_terminal_cleanup_reenters_fresh_admission_from_current_topology(
     tmp_path: Path,
 ) -> None:
     sweep, fleet, clock, _recipe, _key, original, app = scenario(tmp_path, dual=True)
@@ -207,18 +207,15 @@ def test_terminal_cleanup_may_reenter_fresh_admission_but_changed_topology_may_n
     app["effects"][0]["state"] = "cancelled"
     sweep.observe_cleanup()
     fleet.runs[0]["node_ids"] = ["spk_a"]
-    before = len(mutations(fleet))
-    assert sweep._take_over(clock.now()) is False
-    assert len(mutations(fleet)) == before
-    assert sweep._cleanup_nodes() == {"spk_a", "spk_b"}
-    fleet.runs[0]["node_ids"] = ["spk_a", "spk_b"]
-    clock.sleep(30)
     fleet.cleanup_stop_seconds["gang"] = 0
+    before = len(mutations(fleet))
     assert sweep._take_over(clock.now())
     assert len(mutations(fleet)) == before + 1
-    assert (
-        original["effects"][0]["state"] == "cancelled"
-    )  # historical observation survives.
+    assert mutations(fleet)[-1][-1] != mutations(fleet)[0][-1]
+    assert original["effects"][0]["state"] == "cancelled"
+    latest = next(reversed(sweep.state.data["cleanup_loads"].values()))
+    assert latest["effects"][0]["node_ids"] == ["spk_a"]
+    assert cleanup.stopped(latest["effects"][0])
     assert sweep._cleanup_nodes() == set()
 
 

@@ -41,7 +41,7 @@ from .lifecycle import ACTIVE as ACTIVE_APP
 from .lifecycle import TERMINAL as SETTLED
 from .lifecycle import WAITING
 from .owner import OwnerGuard, OwnerStatus
-from .prefetch import PrefetchConfig, Prefetcher
+from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
 from .report import write_status
 from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
@@ -2349,6 +2349,16 @@ class Sweep:
         """Unconfirmed exact stop scopes remain occupied, including whole gangs."""
         occupied: set[str] = set()
         for load in self.state.data["cleanup_loads"].values():
+            if load.get("terminal_receipt"):
+                if load.get("projection_known") and not self._cleanup_pending(load):
+                    continue
+                # Terminal bookkeeping is not a physical occupancy certificate.
+                # Current fleet facts and the fresh Controller review own admission.
+                kept = self._own_aliases()
+                occupied.update(
+                    p.node_id for p in self.fleet.presences if p.alias not in kept
+                )
+                continue
             if not load.get("projection_known"):
                 # Before the current projection is known no lane may be inferred free.
                 occupied.update(s.id for s in self.sparks())
@@ -2368,6 +2378,8 @@ class Sweep:
     def observe_cleanup(self) -> None:
         """Observe original stop receipts once; never replace intent after a read timeout."""
         for load in self.state.data["cleanup_loads"].values():
+            if load.get("terminal_receipt"):
+                continue
             if load.get("projection_known") and not self._cleanup_pending(load):
                 continue  # immutable successful receipt/history needs no repeated I/O
             args = ["progress"]
@@ -2425,6 +2437,16 @@ class Sweep:
             ):
                 load["observation_unknown"] = True
                 continue
+            if document.get("state") in SETTLED:
+                load.update(
+                    app_id=app,
+                    state=document["state"],
+                    terminal_receipt=dict(document),
+                    observation_unknown=False,
+                )
+                # A terminal parent may lack its final child projection. That
+                # cannot keep the old request at the head of fresh admission.
+                self.state.save()
             rows = cleanup.stop_effects(document)
             expected = load.get("reviewed_stops")
             if rows is not None and (
@@ -2528,10 +2550,19 @@ class Sweep:
         """Begin one durable cleanup, then admit lanes from exact receipts."""
         loads = self.state.data["cleanup_loads"]
         if loads:
-            if not all(load.get("projection_known") for load in loads.values()):
+            if all(load.get("terminal_receipt") for load in loads.values()):
+                if not self.fleet.presences:
+                    return True
+                return self._renew_cleanup(now)
+            if not all(
+                load.get("projection_known") or load.get("terminal_receipt")
+                for load in loads.values()
+            ):
                 return False
             unresolved = [
-                load for load in loads.values() if self._cleanup_pending(load)
+                load
+                for load in loads.values()
+                if not load.get("terminal_receipt") and self._cleanup_pending(load)
             ]
             if unresolved and any(
                 load.get("state") not in SETTLED for load in unresolved
@@ -2572,6 +2603,9 @@ class Sweep:
         return self._renew_cleanup(now)
 
     def _renew_cleanup(self, now: float) -> bool:
+        # Every new clear starts from current physical facts, including after
+        # a terminal receipt with an absent or incomplete child projection.
+        self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
         loads = self.state.data["cleanup_loads"]
         review = self.vk.run(
             "profile", "load", "--review", profile=self.cfg.sweep_profile
@@ -2600,7 +2634,10 @@ class Sweep:
         if self._adopted_requests(document) is None:
             return False
         residual = [
-            row for load in loads.values() for row in self._cleanup_pending(load)
+            row
+            for load in loads.values()
+            if not load.get("terminal_receipt")
+            for row in self._cleanup_pending(load)
         ]
         if any(
             not any(
@@ -2633,7 +2670,10 @@ class Sweep:
             return False
         self.state.save()
         self.observe_cleanup()
-        return bool(loads[key].get("projection_known"))
+        self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+        return bool(
+            loads[key].get("projection_known") or loads[key].get("terminal_receipt")
+        )
 
     def _alias(self, recipe: Recipe) -> str:
         """The recipe's assignment name in the sweep profile, unique within it.
@@ -2851,6 +2891,8 @@ class Sweep:
     def _adopted_cleanup_requests(self, review: Mapping[str, Any]) -> list[str] | None:
         requests = []
         for key, load in self.state.data["cleanup_loads"].items():
+            if load.get("terminal_receipt"):
+                continue
             if not load.get("projection_known"):
                 if self.state.data.get("takeover_fallback"):
                     continue  # fleet occupancy and the fresh review govern new work
@@ -3221,7 +3263,6 @@ class Sweep:
 
 
 OWNER_PROFILES_READ = (1, 2, 3)
-SWEEP_LABEL = ("purpose", "hardware-sweep")
 
 
 def _done_future(result: SmokeResult) -> Future[SmokeResult]:
