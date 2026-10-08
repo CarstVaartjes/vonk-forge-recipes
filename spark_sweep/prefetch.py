@@ -24,7 +24,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .catalog import Model, Recipe
-from .lifecycle import TERMINAL, WAITING, active
+from .lifecycle import TERMINAL, WAITING, LifecycleState, active
 from .policy import (
     Boost,
     Failure,
@@ -66,6 +66,7 @@ PIN_PROFILE_MAX_ASSIGNMENTS = 64
 PIN_RETRY_MAX_SECONDS = 3600.0
 
 
+SWEEP_LABEL = ("purpose", "hardware-sweep")
 PIN_ALIAS_PREFIX = "pin-"
 
 
@@ -112,7 +113,11 @@ class Prefetcher:
             if (
                 record.get("state") == "external"
                 or (record.get("state") == "retired" and not record.get("request_key"))
-                or record.get("state") in TERMINAL
+                or (
+                    record.get("state") in TERMINAL
+                    and record.get("state")
+                    not in (LifecycleState.CANCELLED, LifecycleState.SUPERSEDED)
+                )
             ):
                 continue
             record.setdefault("started_at", now)
@@ -182,6 +187,18 @@ class Prefetcher:
                     continue
                 record["accepted_intent"] = dict(accepted)
                 self.on_ok("download")
+            if document.get("state") in (
+                LifecycleState.CANCELLED,
+                LifecycleState.SUPERSEDED,
+            ) and (
+                (
+                    record.get("operation_id")
+                    and document.get("id") != record["operation_id"]
+                )
+                or document.get("request_id") != record.get("request_key")
+            ):
+                record["state"] = LifecycleState.OBSERVING
+                continue
             record["observed_at"] = now
             record["next_check"] = (
                 now  # normal polling cadence; backoff is for unreadable replies
@@ -209,8 +226,23 @@ class Prefetcher:
                 total_rate += float(speed)
             elif record["state"] == "failed":
                 self._failed(key, record, document)
-            elif record["state"] in ("cancelled", "superseded"):
-                self._retire(key, record, f"download.{record['state']}")
+            elif record["state"] in (
+                LifecycleState.CANCELLED,
+                LifecycleState.SUPERSEDED,
+            ):
+                # An exact terminal receipt ends the current intent. Preserve its
+                # identity for audit, but never reconnect a new intent to this key.
+                record["terminal_receipt"] = dict(document)
+                record["terminal_verified_at"] = now
+                record["previous_request_key"] = record.pop("request_key")
+                self._retire(key, record, str(record["state"]))
+                record["retry_at"] = now + min(
+                    self.config.retry_cooldown
+                    * 2 ** min(int(record.get("attempt", 1)) - 1, 5),
+                    PIN_RETRY_MAX_SECONDS,
+                )
+                self.state.event(f"download intent ended: {key}")
+                self.state.save()
             if record["state"] == "succeeded" and not record.get("done_at"):
                 record["done_at"] = self.clock()
                 self.on_done(key)
@@ -611,7 +643,6 @@ class Prefetcher:
                 "operator: --retry-failed",
             )
             and entry.get("content_sha256") == recipe.content_sha256
-            and entry.get("revision_id") == recipe.revision_id
         )
         bounded_retry = (
             bool(record.get("retry_at"))
@@ -633,7 +664,6 @@ class Prefetcher:
         if isinstance(intent, Mapping) and (
             intent.get("recipe_key") != recipe.key
             or intent.get("content_sha256") != recipe.content_sha256
-            or intent.get("revision_id") != recipe.revision_id
         ):
             return False
         # A request lookup binds the saved UUID to its actual terminal receipt.
@@ -648,7 +678,6 @@ class Prefetcher:
             or not isinstance(document, Mapping)
             or document.get("id") != record["operation_id"]
             or document.get("request_id") != record["request_key"]
-            or document.get("recipe_revision_id") != recipe.revision_id
             or document.get("recipe_content_sha256") != recipe.content_sha256
             or not isinstance(document.get("failure"), Mapping)
             or not isinstance(document.get("request"), Mapping)
@@ -685,10 +714,31 @@ class Prefetcher:
         limit applies to the real document, so every pin decision counts on this.
         """
         reply = self.vk.run("profile", "export", profile=number)
+        if reply.is_not_found:
+            # Canonical absence permits rebuilding only our never-loaded pins.
+            # A transport/auth failure cannot authorize replacement of a profile.
+            try:
+                self.vk.call(
+                    "profile",
+                    "configure",
+                    "--name",
+                    "Hardware sweep pins (never loaded)",
+                    "--label",
+                    "=".join(SWEEP_LABEL),
+                    "--yes",
+                    profile=number,
+                )
+            except VonkctlError as error:
+                self.pin_error = str(error)[:200]
+                return None
+            reply = self.vk.run("profile", "export", profile=number)
         document = reply.document if reply.ok else None
         if not isinstance(document, dict) or not isinstance(
-            document.get("assignments", []), list
+            document.get("assignments"), list
         ):
+            self.pin_error = (
+                reply.error_text if not reply.ok else "invalid pin assignments"
+            )
             return None
         return [
             str(item.get("assignment_name") or "")
@@ -712,15 +762,21 @@ class Prefetcher:
                 self._pin_failed()
                 return
         self.state.data["pins"] = []
+        self.pin_failures = 0
+        self.pin_error = None
+        self.pin_retry_at = 0.0
 
     def _pin_failed(self) -> None:
         """Back off (never give up for good): the next attempt is later, the sweep carries on."""
         self.pin_failures += 1
         delay = min(
-            self.config.retry_cooldown * 2 ** (self.pin_failures - 1),
+            self.config.retry_cooldown * 2 ** min(self.pin_failures - 1, 5),
             PIN_RETRY_MAX_SECONDS,
         )
         self.pin_retry_at = self.clock() + delay
+        self.state.event(
+            f"pin observation deferred: {self.pin_error}; next check at {self.pin_retry_at}"
+        )
 
     def desired_pins(
         self,
@@ -776,7 +832,6 @@ class Prefetcher:
         live = self._live_assignments(number)
         if live is None:
             self._pin_failed()
-            self.pin_error = "pin profile could not be read"
             return
         # Everything that is not one of our pins counts against the limit and is never removed.
         foreign = [n for n in live if not n.startswith(PIN_ALIAS_PREFIX)]
@@ -815,10 +870,11 @@ class Prefetcher:
                 held.append(pin_alias(key))
                 live.append(pin_alias(key))
             self.pin_failures = 0
+            self.pin_retry_at = 0.0
             self.pin_error = None
         except VonkctlError as error:
-            self._pin_failed()
             self.pin_error = str(error)[:200]
+            self._pin_failed()
             self.state.event(
                 f"pin profile {number} could not be updated: {self.pin_error}"
             )

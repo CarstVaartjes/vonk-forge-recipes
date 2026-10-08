@@ -77,7 +77,7 @@ def test_every_attempt_has_its_own_key_recorded_in_own_loads(
     assert len(keys) == 12 and sweep.state.data["own_seq"] == 12
 
 
-def test_an_unknown_owned_application_keeps_its_identity_without_new_loads(
+def test_ended_owned_application_keeps_audit_identity_and_admits_new_loads(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
@@ -115,10 +115,12 @@ def test_an_unknown_owned_application_keeps_its_identity_without_new_loads(
     original = sweep.state.data["cleanup_loads"]["old"]
     assert original["app_id"] == "app-0001"
     assert original["observation_unknown"]
-    assert not _load_keys(fleet, 10)
-    assert len(sweep.state.data["own_loads"]) == 1
-    assert any(r["alias"] == "owner-glm" for r in fleet.runs)
-    assert sweep.state.recipes["vonk-forge/a"]["status"] == "pending"
+    assert original["terminal_receipt"]["id"] == "app-0001"
+    assert _load_keys(fleet, 10) and "old" not in _load_keys(fleet, 10)
+    assert len(sweep.state.data["own_loads"]) > 1
+    assert not any(r["alias"] == "owner-glm" for r in fleet.runs)
+    assert sweep.state.recipes["vonk-forge/a"]["status"] != "failed"
+    assert any(item["kind"] == "placement" for item in sweep.state.data["own_loads"])
 
 
 def test_foreign_acceptance_reconciles_only_the_original_owned_request(
@@ -171,7 +173,7 @@ def test_foreign_acceptance_reconciles_only_the_original_owned_request(
     assert not [c for _, c in fleet.calls if c[:2] == ("profile", "cancel")]
 
 
-def test_empty_aggregate_success_without_reviewed_stop_receipts_stays_unresolved(
+def test_empty_aggregate_success_reobserves_fleet_and_admits_new_clear(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
@@ -188,10 +190,13 @@ def test_empty_aggregate_success_without_reviewed_stop_receipts_stays_unresolved
     for _ in range(6):
         sweep.tick()
         sweep.clock.sleep(300)
-    assert sweep.state.data["own_loads"] == [original]
-    assert sweep._cleanup_nodes() == {"spk_a", "spk_b"}
-    assert sweep.state.recipes["vonk-forge/a"]["status"] == "pending"
-    assert any(r["alias"] == "owner-glm" for r in fleet.runs)
+    assert sweep.state.data["own_loads"][0] == original
+    assert len(sweep.state.data["own_loads"]) > 1
+    assert len(set(_load_keys(fleet, 10))) == len(_load_keys(fleet, 10))
+    assert not sweep._cleanup_nodes()
+    assert sweep.state.recipes["vonk-forge/a"]["status"] != "failed"
+    assert any(item["kind"] == "placement" for item in sweep.state.data["own_loads"])
+    assert not any(r["alias"] == "owner-glm" for r in fleet.runs)
 
 
 def test_unknown_stop_projection_keeps_claims_without_testing_on_busy_fleet(
