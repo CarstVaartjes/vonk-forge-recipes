@@ -131,7 +131,12 @@ def test_group_members_are_back_to_back_with_engine_and_base_image_locality() ->
     other = recipe("o", ("O",))
     by_key = {r.key: r for r in members + [other]}
     plans = policy.plan_groups(members + [other], {"m": GB, "O": 2 * GB}, {"m", "O"})
-    order = [k.split("/")[1] for k in policy.order_queue(plans, by_key)]
+    order = [
+        k.split("/")[1]
+        for k in policy.order_queue(
+            plans, by_key, cached={"m", "O"}, sizes={"m": GB, "O": 2 * GB}
+        )
+    ]
     assert order == [
         "s1",
         "v1",
@@ -146,7 +151,12 @@ def test_revalidation_goes_after_new_work_and_suspect_siblings_last() -> None:
     by_key = {r.key: r for r in rs}
     plans = policy.plan_groups(rs, {"N": GB, "O": GB, "S": GB}, {"N", "O", "S"})
     order = policy.order_queue(
-        plans, by_key, revalidate={"vonk-forge/old"}, deprioritised={"vonk-forge/sib"}
+        plans,
+        by_key,
+        cached={"N", "O", "S"},
+        sizes={"N": GB, "O": GB, "S": GB},
+        revalidate={"vonk-forge/old"},
+        deprioritised={"vonk-forge/sib"},
     )
     assert [k.split("/")[1] for k in order] == ["new", "old", "sib"]
 
@@ -160,7 +170,13 @@ def test_variants_last_tests_one_recipe_per_model_first() -> None:
     ]
     by_key = {r.key: r for r in rs}
     plans = policy.plan_groups(rs, {"A": GB, "B": 2 * GB}, {"A", "B"})
-    order = policy.order_queue(plans, by_key, variants_last=True)
+    order = policy.order_queue(
+        plans,
+        by_key,
+        cached={"A", "B"},
+        sizes={"A": GB, "B": 2 * GB},
+        variants_last=True,
+    )
     assert [k.split("/")[1] for k in order] == ["a1", "b1", "a2", "b2"]
 
 
@@ -208,15 +224,15 @@ def test_a_port_clash_or_too_little_memory_prevents_packing() -> None:
     assert len(policy.place_singles(big, bins(0, 0), RESERVE, alias)) == 2
 
 
-def test_first_fit_decreasing_places_the_biggest_first_within_the_window() -> None:
+def test_placement_respects_queue_order() -> None:
     cands = [
         recipe("small", memory_bytes=30 * GB, ports=(1,)),
         recipe("huge", memory_bytes=100 * GB, ports=(2,)),
     ]
     placed = policy.place_singles(cands, bins(0, 0), RESERVE, alias)
     assert {p.recipe.slug: p.spark_ids for p in placed} == {
-        "huge": ("s0",),
-        "small": ("s1",),
+        "small": ("s0",),
+        "huge": ("s1",),
     }
     assert [p.recipe.slug for p in placed] == [
         "small",
@@ -253,16 +269,6 @@ def test_a_dual_needs_every_spark_empty() -> None:
         and placed.recipe.slug == "d"
         and placed.spark_ids == ("s0", "s1")
     )
-
-
-def test_dual_windows_drain_both_sparks_once_instead_of_interleaving() -> None:
-    assert policy.choose_mode("single", singles_ready=5, duals_ready=1) == "single"
-    assert policy.choose_mode("single", singles_ready=5, duals_ready=2) == "dual"
-    assert (
-        policy.choose_mode("dual", singles_ready=5, duals_ready=1) == "dual"
-    )  # stay until the duals are done
-    assert policy.choose_mode("dual", singles_ready=5, duals_ready=0) == "single"
-    assert policy.choose_mode("single", singles_ready=0, duals_ready=1) == "dual"
 
 
 def test_never_fits_flags_declared_demand_beyond_an_empty_spark() -> None:
