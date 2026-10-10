@@ -531,7 +531,10 @@ class Prefetcher:
 
         if cached is None:
             cached = {d for d, model in models.items() if model.local == "cached"}
-        for plan in plans[: self.config.group_window]:
+        needs_model = [plan for plan in plans if plan.digests - cached]
+        model_ready = [plan for plan in plans if not plan.digests - cached]
+        window = self.config.group_window
+        for plan in needs_model[:window] + model_ready[:window]:
             leads = [by_key[k] for k in plan.recipes if k in by_key]
             if plan.digests - cached:
                 # The model is not on the NAS yet: one lead recipe fetches it; siblings wait for it.
