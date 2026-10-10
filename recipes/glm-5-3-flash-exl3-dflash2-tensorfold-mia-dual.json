@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "bc34d7d63f978cf601f42863b284bc95a567c50c10e9adb0866a635be568bf5f",
+        "digest": "14b5072e8e9918f1080153f57321415a387bc7d78cf9c9b44a7aeae2d4399ccf",
         "repository": "ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold"
       },
       "context": {
@@ -1242,11 +1242,11 @@
       "IncoAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/11619a191999398c6392e8079fe4dcc545cc3f1a"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/b5808ac620c795ec9c0640f3ca2a2f7be21aaa63"
   },
   "release": {
     "released_at": "2026-10-10",
-    "version": "1.7.7"
+    "version": "1.7.8"
   },
   "runtime": {
     "arguments": [
