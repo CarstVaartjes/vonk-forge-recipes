@@ -23,7 +23,7 @@
     }
   },
   "kit": {
-    "commit": "7d42f905388a8d7fa91e2dc9458e0a4a68001540",
+    "commit": "05397e24ee1fa0a60df11ff5dcb7a68f45cff6cd",
     "repo": "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold"
   }
 }
