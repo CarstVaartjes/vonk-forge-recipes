@@ -30,7 +30,12 @@ def make_plan(
     sizes = policy.build_sizes(testable, models)
     present = policy.present_models(models)
     plans = policy.plan_groups(pending, sizes, present, boost)
-    queue = policy.order_queue(plans, {r.key: r for r in recipes})
+    queue = policy.order_queue(
+        plans,
+        {r.key: r for r in recipes},
+        cached={d for d, m in models.items() if m.local == "cached"},
+        sizes=sizes,
+    )
     unique = {d for r in testable for d in r.model_digests}
     unique_bytes = sum(sizes.get(d, 0) for d in unique)
     cached_bytes = sum(sizes.get(d, 0) for d in unique if d in present)

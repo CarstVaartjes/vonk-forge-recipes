@@ -4,7 +4,7 @@ Nothing here talks to the fleet or the clock, so each rule is unit-testable:
 
 * ``plan_groups``      which model to download and test next (value per byte);
 * ``order_queue``      test order (cached first, shared models back to back);
-* ``choose_mode`` and ``place_*``  single/dual windows and first-fit-decreasing packing;
+* ``place_*``        single/dual placement in queue order;
 * ``load_timeout``     adaptive first-start timeouts learned per engine;
 * ``classify`` and ``cluster``     failure classes, retry rules and root-cause clusters;
 * ``RateTracker``      the measured download rate and the ETA built on it.
@@ -181,11 +181,18 @@ def order_queue(
     plans: Sequence[GroupPlan],
     recipes: Mapping[str, Recipe],
     *,
+    cached: Collection[str],
+    sizes: Mapping[str, int],
     revalidate: Collection[str] = (),
     deprioritised: Collection[str] = (),
     variants_last: bool = False,
 ) -> list[str]:
-    """Test order: group by group; within a group by engine and base image (cache reuse)."""
+    """Cached singles, cached duals, then downloads; smallest models first.
+
+    Explicit cache facts avoid treating greedy plans' projected reuse as NAS cache.
+    Engine/image locality breaks ties between equally sized recipes.
+    """
+    cached_models = set(cached)
     head: list[str] = []
     tail: list[str] = []
     for plan in plans:
@@ -203,23 +210,21 @@ def order_queue(
             return 2
         return 1 if key in revalidate else 0
 
-    return sorted(ordered, key=lambda key: (tier(key), ordered.index(key)))
+    positions = {key: index for index, key in enumerate(ordered)}
+
+    def priority(key: str) -> tuple[int, int, int, int, int]:
+        recipe = recipes[key]
+        ready = recipe.model_set <= cached_models
+        category = (0 if recipe.node_count == 1 else 1) if ready else 2
+        size = sum(sizes.get(d, 0) for d in recipe.model_set)
+        return tier(key), category, int(key in tail), size, positions[key]
+
+    return sorted(ordered, key=priority)
 
 
 # --------------------------------------------------------------------------
-# Placement: windows, bins, first-fit-decreasing
+# Placement: one recipe per Spark, in queue order
 # --------------------------------------------------------------------------
-
-
-def choose_mode(
-    previous: str, singles_ready: int, duals_ready: int, min_dual_batch: int = 2
-) -> str:
-    """Run duals as a window (both Sparks drained once), not interleaved with singles."""
-    if duals_ready == 0:
-        return "single"
-    if singles_ready == 0 or previous == "dual":
-        return "dual"
-    return "dual" if duals_ready >= min_dual_batch else "single"
 
 
 @dataclass(frozen=True)
@@ -261,7 +266,7 @@ def place_singles(
     reserve: int,
     alias_of: Callable[[Recipe], str],
 ) -> list[Placement]:
-    """One single recipe per free Spark, largest first within the queue window.
+    """One single recipe per free Spark, in queue order.
 
     Memory fit is advisory; the Controller's review remains authoritative.
     A busy Spark never takes a second recipe, even with spare declared memory.
@@ -269,14 +274,9 @@ def place_singles(
     # A queue window containing only duals or oversized singles must not hide
     # a ready single that fits the free Spark farther down the queue.
     singles = [recipe for recipe in candidates if recipe.node_count == 1]
-    head = max(4, 2 * len(bins))
-    window = sorted(singles[:head], key=lambda r: -r.memory_bytes)
-    window.extend(
-        singles[head:]
-    )  # keep scanning while any free Spark can run ready work
     state = {b.id: b for b in bins}
     placed: list[Placement] = []
-    for recipe in window:
+    for recipe in singles:
         if recipe.node_count != 1:
             continue
         alias = alias_of(recipe)

@@ -176,7 +176,6 @@ class SweepConfig:
     retry_delay: float = 60.0
     defer_delay: float = 120.0
     max_attempts: int = 2
-    dual_batch_min: int = 2
     http: HttpConfig = field(default_factory=HttpConfig)
     prefetch: PrefetchConfig = field(default_factory=PrefetchConfig)
     timeouts: policy.TimeoutPolicy = field(default_factory=policy.TimeoutPolicy)
@@ -662,6 +661,8 @@ class Sweep:
         self.queue = policy.order_queue(
             plans,
             self.recipes,
+            cached=self.cached_models,
+            sizes=self.sizes,
             revalidate={
                 k for k, e in self.state.recipes.items() if e.get("revalidate")
             },
@@ -2304,25 +2305,25 @@ class Sweep:
         if not self._take_over(now):
             return
         bins = self._bins()
-        mode = policy.choose_mode(
-            self.state.data["mode"],
-            sum(1 for r in candidates if r.node_count == 1),
-            sum(1 for r in candidates if r.node_count == 2),
-            self.cfg.dual_batch_min,
-        )
-        self.state.data["mode"] = mode
-        alias_of = lambda r: alias_for(r, self.defs)
-        if mode == "dual":
-            dual = policy.place_dual(candidates, bins, self.cfg.reserve_bytes)
+        # A dual at the head drains both lanes; do not refill one with later singles.
+        if candidates[0].node_count == 2:
+            if len(bins) < 2:
+                return
+            self.state.data["mode"] = "dual"
+            dual = policy.place_dual(candidates[:1], bins, self.cfg.reserve_bytes)
             placements = [dual] if dual else []
-            if not placements:
-                # No dual fits now: free lanes run ready singles instead of idling.
-                placements = policy.place_singles(
-                    candidates, bins, self.cfg.reserve_bytes, alias_of
-                )
         else:
+            self.state.data["mode"] = "single"
+            singles = []
+            for recipe in candidates:
+                if recipe.node_count == 2:
+                    break
+                singles.append(recipe)
             placements = policy.place_singles(
-                candidates, bins, self.cfg.reserve_bytes, alias_of
+                singles,
+                bins,
+                self.cfg.reserve_bytes,
+                lambda r: alias_for(r, self.defs),
             )
         if not placements and not self.state.slots:
             # Declared demand beyond one Spark: let the platform's review decide.
