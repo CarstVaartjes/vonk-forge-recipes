@@ -26,7 +26,7 @@
     "tensorfold-serve"
   ],
   "source": {
-    "commit": "11619a191999398c6392e8079fe4dcc545cc3f1a",
+    "commit": "b5808ac620c795ec9c0640f3ca2a2f7be21aaa63",
     "repo": "MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold"
   }
 }
