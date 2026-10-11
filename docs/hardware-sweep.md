@@ -178,10 +178,18 @@ a working key (`vonkctl key roll NAME --output NEW`, then move `NEW` over the ke
 
 ## Timeouts, failures, fixes
 
-* Load timeouts are learned per engine from completed loads (seconds per GiB of
-  model, times 3, between 20 minutes and 2 hours); before any sample, 60 minutes
-  allow a first-start compile. The limit only runs once the bytes are in place
-  (install, start, readiness): while the profile application is distributing or
+* A load is judged by its progress, not by the clock. The learned limit below (per
+  engine from completed loads: seconds per GiB of model, times 3, between 20 minutes
+  and 2 hours; before any sample, 60 minutes allow a first-start compile) is a
+  stall window: it runs from the last change the Controller shows (phase,
+  sub-phase, completed bytes or items, last-progress time, attempt counters of a
+  platform that retries with backoff) and every change restarts it. A load that
+  keeps progressing is never given up before the 24 hour ceiling; one that stalls
+  while the platform is only queueing or admitting it (`queued`, `admission_pending`)
+  is an infrastructure note (`load-stall`), cancelled and retried, not a recipe verdict.
+  A load the sweep gives up is cancelled again until the Spark no longer shows its
+  workload (at most the longest load timeout); only those lanes wait for it.
+* The window does not run while the profile application is distributing or
   copying (child phase `target-copy`, `transfer`, `model-download`,
   `container-download`, or a copying operation) it does not count, and the learned
   timings leave the copy out. During a copy only a lack of progress fails the

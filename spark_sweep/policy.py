@@ -411,6 +411,38 @@ def distribution(document: Mapping[str, Any]) -> Distribution:
     )
 
 
+def activity(document: Mapping[str, Any]) -> tuple[Any, ...]:
+    """Everything the Controller shows moving on a load; it changes whenever the load progresses.
+
+    Phase and sub-phase, completed bytes and items, the Controller's own last-progress time, and
+    the attempt counters of a platform that retries with backoff. Never a poll time: that moves
+    on every observation and would make a stalled load look alive.
+    """
+    progress = document.get("progress") or {}
+    child = progress.get("child_progress") or {}
+    operation = child.get("operation") or {}
+    return (
+        document.get("state"),
+        progress.get("attempt"),
+        progress.get("admission_attempt"),
+        progress.get("retry_due_at"),
+        progress.get("completed_steps"),
+        progress.get("current_label"),
+        child.get("phase"),
+        child.get("bytes"),
+        operation.get("phase"),
+        operation.get("completed_bytes"),
+        operation.get("completed_items"),
+        operation.get("last_progress_at"),
+    )
+
+
+def platform_wait(document: Mapping[str, Any]) -> bool:
+    """The application is waiting in the platform's queue or admission, not on the recipe's engine."""
+    progress = document.get("progress") or {}
+    return document.get("state") == "queued" or bool(progress.get("admission_pending"))
+
+
 # --------------------------------------------------------------------------
 # Failure classes, retry, clusters
 # --------------------------------------------------------------------------

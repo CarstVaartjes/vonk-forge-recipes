@@ -1443,6 +1443,8 @@ class Sweep:
         load["copying"] = moving.copying
         load["phase"] = moving.phase
         load["progress"] = list(moving.signature) if moving.signature else None
+        load["activity"] = list(policy.activity(document))
+        load["platform_wait"] = policy.platform_wait(document)
         load["blockers"] = policy.admission_blockers(document)
         failure = document.get("failure") or {}
         failure_code = str(failure.get("code") or document.get("code") or "")
@@ -1607,7 +1609,7 @@ class Sweep:
             # between them was blind too): those seconds are never load time, and nothing that
             # was waiting (a stalled copy, a held application) ages while we are blind.
             slot["blind_seconds"] = float(slot.get("blind_seconds", 0)) + elapsed
-            for waiting in ("copy_progress_at", "blocked_since"):
+            for waiting in ("copy_progress_at", "blocked_since", "progress_at"):
                 if waiting in slot:
                     slot[waiting] = float(slot[waiting]) + elapsed
             if self.blind:
@@ -1635,6 +1637,11 @@ class Sweep:
             slot.pop("blocked", None)
         if load and load.get("phase"):
             slot["load_phase"] = load["phase"]
+        # Any change the Controller shows resets the stall clock; held back is not stalled.
+        seen = load.get("activity") if load else None
+        if blockers or seen != slot.get("activity") or "progress_at" not in slot:
+            slot["activity"] = seen
+            slot["progress_at"] = now
         if not copying:
             slot.pop("copy_progress_at", None)
             return False
@@ -1661,6 +1668,7 @@ class Sweep:
         )
         if run_id:
             slot.update(phase="smoking", run_id=run_id, ready_at=now)
+            self.clear_infra("load-stall")
             policy.learn(
                 self.state.data["learned"],
                 recipe.engine,
@@ -1761,10 +1769,21 @@ class Sweep:
                         "copy-stalled",
                     ),
                 )
-        elif now > slot["deadline"] + float(slot.get("copy_seconds", 0)) + float(
-            slot.get("blocked_seconds", 0)
-        ) + float(slot.get("blind_seconds", 0)):
-            self._timeout(key, slot)
+        elif (
+            now - float(slot.get("progress_at", now))
+            > slot["deadline"] - slot["started_at"]
+        ):
+            # No sign of life for the whole stall window (the clock restarts on every change).
+            load = self.state.data["loads"].get(slot["request_key"])
+            if load and load.get("platform_wait"):
+                self.note_infra(
+                    "load-stall",
+                    f"{key} waited {round(now - float(slot['progress_at']))}s in the "
+                    "platform's queue or admission without progress",
+                )
+                self._end_load(load, "application.waiting_on_platform")
+            else:
+                self._timeout(key, slot)
 
     def _lane_group(self, slot: Mapping[str, Any]) -> list[str]:
         """The lanes still loading in the same application as this one."""
@@ -1977,11 +1996,7 @@ class Sweep:
         if load and load.get("app_id") and not others:
             self._cancel_load(load)
         seconds = round(
-            self.clock.now()
-            - slot["started_at"]
-            - float(slot.get("copy_seconds", 0))
-            - float(slot.get("blocked_seconds", 0))
-            - float(slot.get("blind_seconds", 0))
+            self.clock.now() - float(slot.get("progress_at", slot["started_at"]))
         )
         self._fail_slot(
             key,
@@ -1990,8 +2005,8 @@ class Sweep:
             or policy.classify(
                 "timeout",
                 "load.timeout",
-                f"not serving {seconds}s after the bytes were in place "
-                f"(limit {round(slot['deadline'] - slot['started_at'])}s, "
+                f"not serving and no progress for {seconds}s "
+                f"(stall window {round(slot['deadline'] - slot['started_at'])}s, "
                 f"{round(float(slot.get('copy_seconds', 0)))}s of copying not counted; "
                 f"last phase {slot.get('load_phase')})",
             ),
@@ -2243,8 +2258,75 @@ class Sweep:
             if slot["phase"] != "finished"
             for node in slot["node_ids"]
         }
-        busy |= self._cleanup_nodes()
+        busy |= self._cleanup_nodes() | self._held_nodes()
         return [bin_ for bin_ in bins.values() if bin_.id not in busy]
+
+    def _held_nodes(self) -> set[str]:
+        """Sparks whose given-up load of ours still shows a workload: not reused until it is gone."""
+        return {
+            n for r in self.state.data.get("released", {}).values() for n in r["nodes"]
+        }
+
+    def _hold_lanes(self, load: Mapping[str, Any]) -> None:
+        """Remember the Sparks and workload names of a load the sweep gives up."""
+        lanes = [
+            s
+            for s in self.state.slots.values()
+            if s.get("request_key") == load["request_key"]
+        ]
+        if not (load.get("app_id") and lanes) or load.get("state") in SETTLED:
+            return  # a settled application holds nothing
+        now = self.clock.now()
+        record = self.state.data.setdefault("released", {}).setdefault(
+            load["request_key"],
+            {
+                "app_id": load["app_id"],
+                "since": now,
+                "cancel_at": now + self.cfg.retry_delay,
+            },
+        )
+        record["nodes"] = sorted(
+            {n for s in lanes for n in s["node_ids"]} | set(record.get("nodes", ()))
+        )
+        record["aliases"] = sorted(
+            {s["alias"] for s in lanes} | set(record.get("aliases", ()))
+        )
+
+    def release_given_up(self, now: float) -> None:
+        """A load the sweep gave up is cancelled until the Spark shows none of its workloads.
+
+        Left alone, the platform's start child keeps retrying and holds the Spark, and every later
+        load of the lane is refused. Only the lanes of that load wait; the other lane carries on,
+        and nothing waits for ever (the hold ends at the longest load timeout).
+        """
+        held = self.state.data.get("released")
+        if not held:
+            return
+        try:
+            fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
+        except VonkctlError:
+            return  # unreadable: keep holding, look again
+        for key, record in list(held.items()):
+            shown = any(
+                p.alias in record["aliases"] and p.node_id in record["nodes"]
+                for p in fleet.presences
+            )
+            if not shown or now - record["since"] > self.cfg.timeouts.cap_seconds:
+                del held[key]
+                self.state.event(
+                    f"released {record['aliases']} on {record['nodes']}: lane free again"
+                )
+            elif now >= record["cancel_at"]:
+                self.vk.run(
+                    "profile",
+                    "cancel",
+                    record["app_id"],
+                    "--yes",
+                    "--detach",
+                    profile=self.cfg.sweep_profile,
+                )
+                record["cancel_at"] = now + self.cfg.retry_delay
+        self.state.save()
 
     def release_orphan_load(self) -> None:
         """Forget a load whose lanes have all ended: nothing of ours waits on it any more.
@@ -2283,6 +2365,7 @@ class Sweep:
     def check_idle(self, now: float) -> None:
         """Alert when a free lane has had ready work for too long (the sweep must never idle)."""
         busy = {n for s in self.state.slots.values() for n in s.get("node_ids", [])}
+        busy |= self._held_nodes()
         free = [s for s in self.sparks() if s.id not in busy]
         waiting = (
             bool(free)
@@ -2310,6 +2393,7 @@ class Sweep:
         self.state.data["alerts"] = [message]
 
     def schedule(self, now: float) -> None:
+        self.release_given_up(now)
         self.release_orphan_load()
         if now < self.backoff_until:
             return
@@ -3243,6 +3327,7 @@ class Sweep:
         if not force and self._adopted_slots_live(load):
             return  # root cancellation also owns adopted effects, so preserve their observer
         if load.get("app_id"):
+            self._hold_lanes(load)
             self.vk.run(
                 "profile",
                 "cancel",
