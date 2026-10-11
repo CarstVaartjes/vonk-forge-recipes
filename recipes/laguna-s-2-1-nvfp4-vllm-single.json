@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna S 2.1 NVFP4 checkpoint.",
+    "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. GB10 fit: GPU utilization 0.80 → 0.78 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "executable",
       "candidate",
@@ -702,7 +702,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.80"
+        "value": "0.78"
       },
       {
         "name": "reasoning-parser",
@@ -775,7 +775,7 @@
             "working_bytes": 203434559724
           },
           "memory": {
-            "peak_bytes": 122000000000,
+            "peak_bytes": 119386735371,
             "reserve_bytes": 8000000000
           }
         }

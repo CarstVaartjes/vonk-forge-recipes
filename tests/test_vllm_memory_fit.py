@@ -9,6 +9,8 @@ from vonk_forge_contracts import RecipeDefinition
 ROOT = Path(__file__).resolve().parents[1]
 # Physical GB10 unified memory, not aggregate memory across the topology.
 SPARK_MEMORY_BYTES = 130_663_231_488
+# Lowest idle MemAvailable observed on a Spark; admission keeps the floor above it.
+SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
 OVERHEAD_BYTES = 8_000_000_000
 OS_FLOOR_BYTES = 6_000_000_000
 VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
@@ -34,8 +36,8 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
             f"{label}: peak {memory.peak_bytes} understates GPU budget plus overhead "
             f"{required_peak}"
         )
-        assert memory.peak_bytes + OS_FLOOR_BYTES <= SPARK_MEMORY_BYTES, (
-            f"{label}: peak plus OS floor exceeds per-node unified memory"
+        assert memory.peak_bytes + OS_FLOOR_BYTES <= SPARK_IDLE_AVAILABLE_BYTES, (
+            f"{label}: peak plus OS floor exceeds an idle Spark's available memory"
         )
 
 
@@ -80,7 +82,7 @@ def test_guard_rejects_unsafe_envelopes(defect: str) -> None:
     if defect == "torch-only":
         recipe.topology.roles[0].resources.memory.peak_bytes = 118_000_000_000
     elif defect == "os-floor":
-        recipe.topology.roles[0].resources.memory.peak_bytes = 125_000_000_000
+        recipe.topology.roles[0].resources.memory.peak_bytes = 121_000_000_000
     elif defect == "worker":
         recipe.topology.roles[1].resources.memory.peak_bytes = 118_000_000_000
     else:

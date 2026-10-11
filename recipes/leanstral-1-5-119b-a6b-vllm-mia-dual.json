@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Mistral Leanstral 1.5 119B A6B (Lean 4 code agent, 128-expert MoE, FP8, Apache-2.0) on two Sparks with stock vLLM v0.24.0, Ray, tensor parallel 2, 262144-token context, up to 7 concurrent sequences, text and image input, Mistral tool-call and reasoning parsers, eager mode. Basis: MiaAI-Lab's dual-Spark start.sh (no licence file upstream). Optional EAGLE draft (off by default; upstream reports it unstable). Upstream advises reasoning_effort none for general use and a context of 200k or less; Vonk physical two-Spark acceptance is pending.",
+    "description": "Mistral Leanstral 1.5 119B A6B (Lean 4 code agent, 128-expert MoE, FP8, Apache-2.0) on two Sparks with stock vLLM v0.24.0, Ray, tensor parallel 2, 262144-token context, up to 7 concurrent sequences, text and image input, Mistral tool-call and reasoning parsers, eager mode. Basis: MiaAI-Lab's dual-Spark start.sh (no licence file upstream). Optional EAGLE draft (off by default; upstream reports it unstable). Upstream advises reasoning_effort none for general use and a context of 200k or less; Vonk physical two-Spark acceptance is pending. GB10 fit: GPU utilization 0.85 → 0.84 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "eagle",
       "leanstral",
@@ -387,7 +387,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.85"
+        "value": "0.84"
       },
       {
         "name": "max-model-len",
@@ -498,7 +498,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120800000000,
+            "peak_bytes": 119493367686,
             "reserve_bytes": 8000000000
           }
         }
@@ -515,7 +515,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120800000000,
+            "peak_bytes": 119493367686,
             "reserve_bytes": 8000000000
           }
         }

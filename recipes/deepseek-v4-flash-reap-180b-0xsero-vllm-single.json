@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "0xSero's DeepSeek V4 Flash REAP 180B (K160, 160 experts per layer, MXFP4, about 103 GB) on one Spark with vLLM, from 0xSero/deepseek-spark at 97fd6f02 (runtime/ configs and launcher; the vLLM Studio controller in the same repository is not packaged). Runs on upstream's public arm64 cutlass451-g27 vLLM image (pinned by digest) with upstream's GB10 REAP patcher applied at build time instead of at each start: router fallback for non-standard expert counts, per-layer MXFP4 memory hygiene, CUDA-IPC fix. 200000-token context, FP8 KV cache (fixed KV budget), one sequence, thinking on by default, DeepSeek V4 tokenizer, tool-call and reasoning parsers, CUDA graphs (FULL_AND_PIECEWISE), prefix caching. DeepSeek MTP speculation with 2 draft tokens is on (the k160-mtp2-200k profile, the upstream default; upstream also has a no-speculation k160 profile with a larger KV budget that is not packaged, since an option cannot remove the speculative config). Upstream claims, not measured here: model load 96.66 GiB, 537516 KV tokens, about 33 tok/s median decode and 550 tok/s prefill on a 136k prompt with MTP acceptance about 70 percent. Licences are informational: weights repository and DeepSeek V4 are MIT; the source repository carries no licence file. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "0xSero's DeepSeek V4 Flash REAP 180B (K160, 160 experts per layer, MXFP4, about 103 GB) on one Spark with vLLM, from 0xSero/deepseek-spark at 97fd6f02 (runtime/ configs and launcher; the vLLM Studio controller in the same repository is not packaged). Runs on upstream's public arm64 cutlass451-g27 vLLM image (pinned by digest) with upstream's GB10 REAP patcher applied at build time instead of at each start: router fallback for non-standard expert counts, per-layer MXFP4 memory hygiene, CUDA-IPC fix. 200000-token context, FP8 KV cache (fixed KV budget), one sequence, thinking on by default, DeepSeek V4 tokenizer, tool-call and reasoning parsers, CUDA graphs (FULL_AND_PIECEWISE), prefix caching. DeepSeek MTP speculation with 2 draft tokens is on (the k160-mtp2-200k profile, the upstream default; upstream also has a no-speculation k160 profile with a larger KV budget that is not packaged, since an option cannot remove the speculative config). Upstream claims, not measured here: model load 96.66 GiB, 537516 KV tokens, about 33 tok/s median decode and 550 tok/s prefill on a 136k prompt with MTP acceptance about 70 percent. Licences are informational: weights repository and DeepSeek V4 are MIT; the source repository carries no licence file. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.88 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "0xsero",
       "candidate",
@@ -860,7 +860,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.88"
+        "value": "0.86"
       },
       {
         "name": "distributed-executor-backend",
@@ -1029,7 +1029,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 122983643710,
+            "peak_bytes": 120370379081,
             "reserve_bytes": 8000000000
           }
         }

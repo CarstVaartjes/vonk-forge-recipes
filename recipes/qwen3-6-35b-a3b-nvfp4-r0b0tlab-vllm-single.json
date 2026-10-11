@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's native-SM121 vLLM 0.25.0 profile for NVIDIA's Qwen3.6-35B-A3B-NVFP4 (ModelOpt; Apache-2.0) with MTP K=2 on one Spark, from r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm at 106fb533 (MIT), bound to checkpoint revision 491c2f1e as upstream recorded. Builds on r0b0tlab's digest-pinned vllm-v0250-cu130-sm121 image (vLLM release commit 702f4814) and applies upstream's Dockerfile.v025 patch that routes W4A16 ModelOpt checkpoints onto the native W4A4 path. Profile: FlashInfer attention, FlashInfer B12X MoE, FlashInfer CUTLASS linear, modelopt_mixed quantization, FP8 KV, memory utilisation 0.88, 65,536-token context (upstream validated the full 262,144 tokens at c1 with a separate explicit-KV launch), 32 sequences, 32,768 batched tokens, text-only (language-model-only), qwen3_xml tool parser and MTP with a Triton drafter MoE. Options expose upstream's env switches for MTP and language-model-only. Upstream claims (not measured here): GSM8K 86.50%, MTP acceptance 78.56%, 93.05 tok/s at c1, 287.18 at c8 and 397.98 at c32 (2,048-token inputs). Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "r0b0tlab's native-SM121 vLLM 0.25.0 profile for NVIDIA's Qwen3.6-35B-A3B-NVFP4 (ModelOpt; Apache-2.0) with MTP K=2 on one Spark, from r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm at 106fb533 (MIT), bound to checkpoint revision 491c2f1e as upstream recorded. Builds on r0b0tlab's digest-pinned vllm-v0250-cu130-sm121 image (vLLM release commit 702f4814) and applies upstream's Dockerfile.v025 patch that routes W4A16 ModelOpt checkpoints onto the native W4A4 path. Profile: FlashInfer attention, FlashInfer B12X MoE, FlashInfer CUTLASS linear, modelopt_mixed quantization, FP8 KV, memory utilisation 0.88, 65,536-token context (upstream validated the full 262,144 tokens at c1 with a separate explicit-KV launch), 32 sequences, 32,768 batched tokens, text-only (language-model-only), qwen3_xml tool parser and MTP with a Triton drafter MoE. Options expose upstream's env switches for MTP and language-model-only. Upstream claims (not measured here): GSM8K 86.50%, MTP acceptance 78.56%, 93.05 tok/s at c1, 287.18 at c8 and 397.98 at c32 (2,048-token inputs). Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.88 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "candidate",
       "executable",
@@ -330,7 +330,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.88"
+        "value": "0.86"
       },
       {
         "name": "max-model-len",
@@ -442,7 +442,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 122983643710,
+            "peak_bytes": 120370379081,
             "reserve_bytes": 8000000000
           }
         }
