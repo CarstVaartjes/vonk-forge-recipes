@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding for the exact multimodal Qwen3.6 27B checkpoint. This older dense profile is superseded by Qwen3.8 27B FP8 as the preferred dense default. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
+    "description": "Candidate single-Spark vLLM binding for the exact multimodal Qwen3.6 27B checkpoint. This older dense profile is superseded by Qwen3.8 27B FP8 as the preferred dense default. Current qualification proves bounded text chat only; vision serving remains unproven on Spark. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "executable",
       "candidate",
@@ -469,7 +469,7 @@
             "working_bytes": 115172215880
           },
           "memory": {
-            "peak_bytes": 95000000000,
+            "peak_bytes": 112530585191,
             "reserve_bytes": 8000000000
           }
         }

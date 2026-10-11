@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Gemma 4 31B IT: vllm/vllm-openai:gemma4-cu130 (Gemma 4 custom container named by the playbook), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes are estimates from vLLM's default 0.9 GPU memory utilization, not measurements; physical Spark acceptance is pending.",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Gemma 4 31B IT: vllm/vllm-openai:gemma4-cu130 (Gemma 4 custom container named by the playbook), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "executable",
       "candidate",
@@ -202,6 +202,10 @@
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "value": "0.85"
       }
     ],
     "engine": "vllm",
@@ -256,7 +260,7 @@
             "working_bytes": 31289343128
           },
           "memory": {
-            "peak_bytes": 112000000000,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's native Blackwell benchmark serve of the official DeepSeek V4 Flash checkpoint on two GB10 Sparks: prebuilt vLLM (dda4668b, torch 2.11 cu130) image, tensor parallel 2 with expert parallel over RoCE, fp8 KV cache, DeepGEMM block-scaled FP8 and MXFP4 MoE, MTP speculative decoding with 2 tokens, FULL_AND_PIECEWISE CUDA graphs. Upstream latency profile by default: 200,000 token context, 2 sequences, 4096 batched tokens, 0.85 memory utilization (its throughput profile is 65,536 context, 16 sequences, 8192 batched tokens). Upstream's optional DeepGEMM SM121 and MoE-padding mods are not applied. The upstream repository declares no licence file; the model is MIT (information only). Upstream reports 38 tok/s at c=1 on driver 580.142 and a throughput regression on driver 580.159; figures are upstream claims. The model revision is not named upstream and is pinned to the newest one at its benchmark date.",
+    "description": "r0b0tlab's native Blackwell benchmark serve of the official DeepSeek V4 Flash checkpoint on two GB10 Sparks: prebuilt vLLM (dda4668b, torch 2.11 cu130) image, tensor parallel 2 with expert parallel over RoCE, fp8 KV cache, DeepGEMM block-scaled FP8 and MXFP4 MoE, MTP speculative decoding with 2 tokens, FULL_AND_PIECEWISE CUDA graphs. Upstream latency profile by default: 200,000 token context, 2 sequences, 4096 batched tokens, 0.85 memory utilization (its throughput profile is 65,536 context, 16 sequences, 8192 batched tokens). Upstream's optional DeepGEMM SM121 and MoE-padding mods are not applied. The upstream repository declares no licence file; the model is MIT (information only). Upstream reports 38 tok/s at c=1 on driver 580.142 and a throughput regression on driver 580.159; figures are upstream claims. The model revision is not named upstream and is pinned to the newest one at its benchmark date. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "deepseek",
@@ -1057,7 +1057,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }
@@ -1074,7 +1074,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }

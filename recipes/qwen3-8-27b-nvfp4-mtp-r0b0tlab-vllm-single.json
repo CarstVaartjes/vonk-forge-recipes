@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SM121 vLLM profiles for its own Qwen3.8 27B NVFP4 (W4A16 NVFP4 linear layers, BF16 MTP head merged into the checkpoint, 4 shards, Apache-2.0 card) on one Spark, from r0b0tlab/qwen38-27b-nvfp4-sm121-vllm at a96186f8 (MIT). Runs on r0b0tlab's published vLLM 0.27.2rc0 SM121 wheel image (source-built for the FP4 GEMM tune) with upstream's DFlash2 overlay, FP8 KV, eager mode, prefix caching off, 32K context, qwen3_xml tool parser. Default is MTP K=3 (upstream's quickest profile, best at c8 and above); the option switches to the z-lab DFlash2 K=8 draft (Apache-2.0), which upstream measures as the best choice at c1 to c6 and for 262K needle-in-a-haystack. Upstream's DSpark and no-speculation profiles are not offered: DSpark needs the RadixArk draft rewritten on the host (scripts/adapt_dspark_draft.py), which a pinned model file cannot express. Upstream claims (not measured here): MTP K=3 27.8 tok/s at c1 (2.45x over 11.35 tok/s AR), 82.9 tok/s at c8; DFlash2 K=8 67.1 / 121.5 / 211.5 / 279.2 aggregate tok/s at c1 / c2 / c4 / c6. The upstream repository declares an MIT licence and the checkpoint card Apache-2.0; the Qwen base licence terms apply to the weights. Physical Spark acceptance is pending.",
+    "description": "r0b0tlab's SM121 vLLM profiles for its own Qwen3.8 27B NVFP4 (W4A16 NVFP4 linear layers, BF16 MTP head merged into the checkpoint, 4 shards, Apache-2.0 card) on one Spark, from r0b0tlab/qwen38-27b-nvfp4-sm121-vllm at a96186f8 (MIT). Runs on r0b0tlab's published vLLM 0.27.2rc0 SM121 wheel image (source-built for the FP4 GEMM tune) with upstream's DFlash2 overlay, FP8 KV, eager mode, prefix caching off, 32K context, qwen3_xml tool parser. Default is MTP K=3 (upstream's quickest profile, best at c8 and above); the option switches to the z-lab DFlash2 K=8 draft (Apache-2.0), which upstream measures as the best choice at c1 to c6 and for 262K needle-in-a-haystack. Upstream's DSpark and no-speculation profiles are not offered: DSpark needs the RadixArk draft rewritten on the host (scripts/adapt_dspark_draft.py), which a pinned model file cannot express. Upstream claims (not measured here): MTP K=3 27.8 tok/s at c1 (2.45x over 11.35 tok/s AR), 82.9 tok/s at c8; DFlash2 K=8 67.1 / 121.5 / 211.5 / 279.2 aggregate tok/s at c1 / c2 / c4 / c6. The upstream repository declares an MIT licence and the checkpoint card Apache-2.0; the Qwen base licence terms apply to the weights. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "dflash2",
@@ -449,7 +449,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 92000000000,
+            "peak_bytes": 99464262042,
             "reserve_bytes": 8000000000
           }
         }

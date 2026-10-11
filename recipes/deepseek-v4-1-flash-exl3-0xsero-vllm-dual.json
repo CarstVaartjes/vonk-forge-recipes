@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "0xSero's two-DGX-Spark vLLM TP2 kit (head ee688184, 2026-10-03, no upstream release tag) for its EXL3 pack of DeepSeek V4.1 Flash (HF 0xSero/DeepSeek-V4.1-Flash-Spark, revision 9e3bbeab, 462 GB): every backbone routed expert re-encoded as EXL3 trellis at a per-expert K2/K3/K5 mix, 2.77 bpw average, with attention, shared experts, routers, Engram tables, DSpark/MTP draft layers, vision tower, embeddings and head kept byte for byte. Runs the kit's prebuilt image ghcr.io/0xsero/deepseek-v4.1-flash-spark (vLLM with the EXL3 MoE path and B12X Spark kernels) pinned by the digest scripts/launch.sh defaults to (5668e35e); the README's CI-built candidate 3cbc8ec0 is not used. Upstream defaults reproduced: DSpark with 7 draft tokens and adaptive verification, fp8 KV pinned to 2.7 GB, FULL_DECODE_ONLY CUDA graphs, Engram tables read from disk, 262,144-token context, two sequences, 2048-token prefill chunks, one image per prompt, deepseek_v41 reasoning and tool-call parsers, B12X RoCE all-reduce over the fabric. The two Engram shards (model-00005/00006) are published on Hugging Face as .partNN pieces; the Model declares them as parts and the platform assembles and verifies them. Thinking, reasoning effort and sampling are per-request. Upstream claims (measured on its own two Sparks with the historical host-built image, not measured here): about 39-41 tok/s single-stream code decode, about 29 tok/s prose, 2,050 tok/s prefill at 8k, mean KLD 0.0742 nats against the native checkpoint, about 12 minute first boot. Memory: the 119 GB per-node peak is derived from upstream's 2-3 GiB MemAvailable at steady state on a 128 GB Spark, not measured here. Not exposed: upstream's host-side memory guard, the SSH/docker orchestration, the API key (platform auth), the Pi client bundle and its bench/smoke scripts. Licences are information only: kit scripts MIT, DeepSeek weights MIT. Vonk physical acceptance is pending.",
+    "description": "0xSero's two-DGX-Spark vLLM TP2 kit (head ee688184, 2026-10-03, no upstream release tag) for its EXL3 pack of DeepSeek V4.1 Flash (HF 0xSero/DeepSeek-V4.1-Flash-Spark, revision 9e3bbeab, 462 GB): every backbone routed expert re-encoded as EXL3 trellis at a per-expert K2/K3/K5 mix, 2.77 bpw average, with attention, shared experts, routers, Engram tables, DSpark/MTP draft layers, vision tower, embeddings and head kept byte for byte. Runs the kit's prebuilt image ghcr.io/0xsero/deepseek-v4.1-flash-spark (vLLM with the EXL3 MoE path and B12X Spark kernels) pinned by the digest scripts/launch.sh defaults to (5668e35e); the README's CI-built candidate 3cbc8ec0 is not used. Upstream defaults reproduced: DSpark with 7 draft tokens and adaptive verification, fp8 KV pinned to 2.7 GB, FULL_DECODE_ONLY CUDA graphs, Engram tables read from disk, 262,144-token context, two sequences, 2048-token prefill chunks, one image per prompt, deepseek_v41 reasoning and tool-call parsers, B12X RoCE all-reduce over the fabric. The two Engram shards (model-00005/00006) are published on Hugging Face as .partNN pieces; the Model declares them as parts and the platform assembles and verifies them. Thinking, reasoning effort and sampling are per-request. Upstream claims (measured on its own two Sparks with the historical host-built image, not measured here): about 39-41 tok/s single-stream code decode, about 29 tok/s prose, 2,050 tok/s prefill at 8k, mean KLD 0.0742 nats against the native checkpoint, about 12 minute first boot. Previous memory estimate: the 119 GB per-node peak was derived from upstream's 2-3 GiB MemAvailable at steady state on a 128 GB Spark, not measured here. Not exposed: upstream's host-side memory guard, the SSH/docker orchestration, the API key (platform auth), the Pi client bundle and its bench/smoke scripts. Licences are information only: kit scripts MIT, DeepSeek weights MIT. Vonk physical acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.88 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "0xsero",
       "deepseek",
@@ -3264,7 +3264,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.88"
+        "value": "0.86"
       },
       {
         "name": "max-model-len",
@@ -3526,8 +3526,8 @@
             "working_bytes": 20000000000
           },
           "memory": {
-            "peak_bytes": 119000000000,
-            "reserve_bytes": 6000000000
+            "peak_bytes": 120370379081,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -3543,8 +3543,8 @@
             "working_bytes": 20000000000
           },
           "memory": {
-            "peak_bytes": 119000000000,
-            "reserve_bytes": 6000000000
+            "peak_bytes": 120370379081,
+            "reserve_bytes": 8000000000
           }
         }
       }

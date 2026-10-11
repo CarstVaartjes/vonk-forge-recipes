@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate reproducing sfxnz's Nemotron-3.5-Lightning-vLLM-DGX-Spark kit (MIT; commit 0214edfd, last commit 2026-09-02, no version tag) on one DGX Spark: stock vLLM v0.27.1 (ARM64 manifest digest-pinned), NVIDIA's Nemotron 3.5 Lightning 30B-A3B NVFP4 target (ModelOpt mixed quantization, Marlin MoE, FP8 KV cache, FlashInfer Mamba backend with align cache mode, prefix caching) with the official DSpark drafter (3 draft tokens), 262,144 context, 4 sequences, GPU memory utilization 0.8, nemotron_v3 reasoning and qwen3_coder tool parsers. The kit's own choice of 0.8 is safer than the model card's 0.91 on a shared Spark. Upstream measured on its L.A.I.L lab (not measured here, run 20260812T131332Z_d0f7ae): about 93 tok/s decode, 678 tok/s prefill, TTFT p50 246 ms, 20/20 mixed agent bench, about 15 GiB system RAM left after load. Not exposed: the kit's ENABLE_DSPARK=0 switch, because a choice cannot remove the speculative-config argument (the drafter Model is still mounted). Thinking is on by default; the validation chat disables it. Kit licence MIT; model weights NVIDIA OpenMDW-1.1 (see the Models). Physical Spark acceptance remains pending.",
+    "description": "Executable Candidate reproducing sfxnz's Nemotron-3.5-Lightning-vLLM-DGX-Spark kit (MIT; commit 0214edfd, last commit 2026-09-02, no version tag) on one DGX Spark: stock vLLM v0.27.1 (ARM64 manifest digest-pinned), NVIDIA's Nemotron 3.5 Lightning 30B-A3B NVFP4 target (ModelOpt mixed quantization, Marlin MoE, FP8 KV cache, FlashInfer Mamba backend with align cache mode, prefix caching) with the official DSpark drafter (3 draft tokens), 262,144 context, 4 sequences, GPU memory utilization 0.8, nemotron_v3 reasoning and qwen3_coder tool parsers. The kit's own choice of 0.8 is safer than the model card's 0.91 on a shared Spark. Upstream measured on its L.A.I.L lab (not measured here, run 20260812T131332Z_d0f7ae): about 93 tok/s decode, 678 tok/s prefill, TTFT p50 246 ms, 20/20 mixed agent bench, about 15 GiB system RAM left after load. Not exposed: the kit's ENABLE_DSPARK=0 switch, because a choice cannot remove the speculative-config argument (the drafter Model is still mounted). Thinking is on by default; the validation chat disables it. Kit licence MIT; model weights NVIDIA OpenMDW-1.1 (see the Models). Physical Spark acceptance remains pending. GB10 memory correction: gpu_memory/util-0-91 utilization 0.91 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "candidate",
       "executable",
@@ -860,11 +860,11 @@
             {
               "name": "gpu-memory-utilization",
               "setting": null,
-              "value": "0.91"
+              "value": "0.85"
             }
           ],
-          "help": "The model card's value; the kit reports free RAM falling to about 1 GiB with swap use on its lab box.",
-          "label": "0.91",
+          "help": "GPU utilization 0.85 for GB10 unified-memory headroom; smaller KV pool than the upstream memory profile; other choice flags retained.",
+          "label": "0.85",
           "value": "util-0-91"
         }
       ],

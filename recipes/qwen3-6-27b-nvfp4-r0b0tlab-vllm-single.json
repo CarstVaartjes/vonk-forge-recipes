@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SM121 vLLM production profile for NVIDIA's Qwen3.6-27B-NVFP4 (ModelOpt, Apache-2.0) with MTP K=2 on one Spark, from r0b0tlab/nvidia-qwen-3.6-27B-sm121-nvfp4 release v0.25.1-production-mtp2 (d0343b43, MIT). Runs upstream's public production image (source-built vLLM v0.25.1 with the native calibrated W4A4 reroute, FlashInfer 0.6.13, PyTorch 2.11 cu130) pinned by the immutable digest in upstream's own sparkrun recipe, and starts through upstream's fail-closed runtime audit. Profile from that recipe: FlashInfer attention, FP8 KV, bfloat16, text-only, qwen3 reasoning parser, qwen3_xml tool parser, 8,192-token context, 32 sequences, 8,192 batched tokens, memory utilisation 0.75. Upstream rejects NVFP4 KV in this image (it stays experimental), so it is not offered; upstream's own MTP-depth screen prefers K=2 as the mixed-concurrency default, and the option exposes K=1, K=3 and K=4. Upstream claims (not measured here): 26.57 tok/s at c1, 92.95 at c4, 400.89 at c32, MTP acceptance 83.46%, GSM8K 87.49%, FP8 KV capacity about 700k tokens. Physical Spark acceptance is pending.",
+    "description": "r0b0tlab's SM121 vLLM production profile for NVIDIA's Qwen3.6-27B-NVFP4 (ModelOpt, Apache-2.0) with MTP K=2 on one Spark, from r0b0tlab/nvidia-qwen-3.6-27B-sm121-nvfp4 release v0.25.1-production-mtp2 (d0343b43, MIT). Runs upstream's public production image (source-built vLLM v0.25.1 with the native calibrated W4A4 reroute, FlashInfer 0.6.13, PyTorch 2.11 cu130) pinned by the immutable digest in upstream's own sparkrun recipe, and starts through upstream's fail-closed runtime audit. Profile from that recipe: FlashInfer attention, FP8 KV, bfloat16, text-only, qwen3 reasoning parser, qwen3_xml tool parser, 8,192-token context, 32 sequences, 8,192 batched tokens, memory utilisation 0.75. Upstream rejects NVFP4 KV in this image (it stays experimental), so it is not offered; upstream's own MTP-depth screen prefers K=2 as the mixed-concurrency default, and the option exposes K=1, K=3 and K=4. Upstream claims (not measured here): 26.57 tok/s at c1, 92.95 at c4, 400.89 at c32, MTP acceptance 83.46%, GSM8K 87.49%, FP8 KV capacity about 700k tokens. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "executable",
@@ -434,7 +434,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 100000000000,
+            "peak_bytes": 105997423616,
             "reserve_bytes": 8000000000
           }
         }

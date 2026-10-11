@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.30.0, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads.",
+    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.30.0, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "executable",
       "candidate",
@@ -530,7 +530,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.90"
+        "value": "0.85"
       },
       {
         "name": "trust-remote-code",
@@ -656,7 +656,7 @@
             "working_bytes": 176501147302
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }
