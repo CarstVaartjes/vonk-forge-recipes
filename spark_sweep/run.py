@@ -2082,7 +2082,8 @@ class Sweep:
         if (
             future is None
         ):  # resumed after a restart: the smoke is idempotent, run it again
-            self._submit_smoke(key, slot)
+            if self.clock.now() >= float(slot.get("smoke_not_before", 0)):
+                self._submit_smoke(key, slot)
             return
         if not future.done():
             if self.clock.now() >= float(
@@ -2106,7 +2107,20 @@ class Sweep:
                 failure=policy.classify("smoke", "smoke.crash", repr(error)),
             )
         if result.ok:
+            self.clear_infra("client-key")
             self._record_pass(key, slot, result)
+        elif result.failure is not None and result.failure.klass == (
+            policy.CLIENT_CREDENTIAL
+        ):
+            # The gateway refused the sweep's own key, so the recipe was never judged:
+            # keep the lane, back off, and smoke again. The key file is read on every
+            # request, so a renewed key in it heals this without any other action.
+            self.note_infra(
+                "client-key",
+                "the gateway refused the sweep's client key "
+                f"({result.failure.describe()}); renew it in the --client-key-file",
+            )
+            slot["smoke_not_before"] = self.state.data["infra"]["client-key"]["until"]
         else:
             assert result.failure is not None
             self._record_failure(key, result.failure, slot.get("operation_id"))

@@ -24,7 +24,7 @@ from typing import Any
 
 from .catalog import Recipe
 from .definitions import Definitions
-from .policy import Failure, classify, excerpt
+from .policy import CLIENT_CREDENTIAL, Failure, classify, excerpt
 
 PERF_PROMPT = "Count from one to twenty in words, separated by commas."
 PERF_TOKENS = 64
@@ -289,13 +289,10 @@ def _transport_failure(
         transient = error.code in (408, 429, 502, 503, 504)
         evidence["http_status"] = error.code
         evidence["body"] = excerpt(body or _http_body(error), secrets=secrets)
-        return classify(
-            "smoke",
-            f"case.{case}",
-            f"HTTP {error.code}",
-            "smoke-timeout" if transient else "smoke-request",
-            evidence,
-        )
+        klass = "smoke-timeout" if transient else "smoke-request"
+        if error.code in (401, 403):
+            klass = CLIENT_CREDENTIAL
+        return classify("smoke", f"case.{case}", f"HTTP {error.code}", klass, evidence)
     if body is not None:  # a 200 whose body was not the JSON we expected
         evidence["http_status"] = getattr(error, "http_status", None)
         evidence["body"] = excerpt(body, secrets=secrets)
