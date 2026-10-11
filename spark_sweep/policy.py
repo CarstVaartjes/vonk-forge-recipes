@@ -446,6 +446,9 @@ _CODE_CLASSES = {
     "controller.transport_timeout": "network",
 }
 _FIXED_CLASS = {"timeout": "timeout", "readiness": "readiness"}
+# The gateway refused the sweep's own key (expired, revoked, not allowed): the recipe was never
+# judged. Never a verdict on it, never counted as an attempt.
+CLIENT_CREDENTIAL = "client-credential"
 TRANSIENT_CLASSES = frozenset({"network", "smoke-timeout", "copy-stalled"})
 MODEL_LEVEL_CLASSES = frozenset({"model-integrity"})
 

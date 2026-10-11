@@ -101,6 +101,9 @@ class Gateway:
     requests: list[tuple[str, str]] = field(default_factory=list)
     # Per alias, the assistant message to answer a chat completion with.
     messages: dict[str, dict[str, Any]] = field(default_factory=dict)
+    # When set, only this bearer key is served; any other gets LiteLLM's expired-key 401.
+    key: str | None = None
+    refused: int = 0
     _server: ThreadingHTTPServer | None = None
 
     def start(self) -> str:
@@ -119,9 +122,24 @@ class Gateway:
                 self.end_headers()
                 self.wfile.write(body)
 
+            def _refuses(self) -> bool:
+                if gateway.key is None:
+                    return False
+                if self.headers.get("Authorization") == f"Bearer {gateway.key}":
+                    return False
+                gateway.refused += 1
+                self._send(
+                    401,
+                    b'{"error":{"message":"Authentication Error - Expired Key.",'
+                    b'"type":"expired_key","param":"sk-...c215","code":"401"}}',
+                )
+                return True
+
             def do_GET(self) -> None:
                 alias = self.path.split("/")[1]
                 gateway.requests.append(("GET", self.path))
+                if self._refuses():
+                    return
                 if alias in gateway.broken:
                     self._send(500, b'{"error":"boom"}')
                     return
@@ -132,6 +150,8 @@ class Gateway:
                 body = json.loads(self.rfile.read(length) or b"{}")
                 alias = self.path.split("/")[1]
                 gateway.requests.append(("POST", self.path))
+                if self._refuses():
+                    return
                 if alias in gateway.broken:
                     self._send(500, b'{"error":"boom"}')
                     return

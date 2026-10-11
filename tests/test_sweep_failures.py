@@ -122,6 +122,38 @@ def test_smoke_failure_is_a_smoke_phase_failure(
     )
 
 
+def test_an_expired_gateway_key_is_not_the_recipes_fault_and_heals_with_a_new_key(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    from spark_sweep.smoke import HttpConfig
+
+    key_file = tmp_path / "sweep.key"
+    key_file.write_text("sk-expired\n")
+    gateway.key = "sk-renewed"
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        [FakeRecipe("good", ("m1",))],
+        [FakeModel("m1")],
+        gateway=gateway,
+        http=HttpConfig(key_file=key_file),
+    )
+    seen: list[str] = []
+
+    def operator(_: float) -> None:
+        # Once the gateway has refused the key, the recipe carries no verdict;
+        # the operator then puts a renewed key in the file.
+        if gateway.refused and not seen:
+            seen.append(sweep.state.recipes["vonk-forge/good"]["status"])
+            key_file.write_text("sk-renewed\n")
+
+    clock.hooks.append(operator)
+    sweep.run()
+
+    assert gateway.refused and seen and seen[0] not in ("failed", "deferred")
+    assert _entry(sweep, "good")["status"] == "passed"
+    assert not sweep.state.data["infra"]
+
+
 def test_declared_demand_beyond_a_spark_fails_at_review(
     tmp_path: Path, gateway: Gateway
 ) -> None:

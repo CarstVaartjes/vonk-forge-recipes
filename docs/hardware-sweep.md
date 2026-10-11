@@ -170,7 +170,11 @@ The next models are downloaded to the NAS while the Sparks test.
 
 Requests go to the endpoint `vonkctl profile endpoint` reports, with the key in
 `--client-key-file` (`--ca-file` or `--insecure-tls` for the gateway's
-certificate).
+certificate). The key file is read on every request. A request the gateway
+refuses with 401 or 403 is the sweep's own key failing (for example an expired
+one), never the recipe: the sweep keeps the lane, reports an infrastructure
+problem and smokes again with backoff, and carries on as soon as the file holds
+a working key (`vonkctl key roll NAME --output NEW`, then move `NEW` over the key file).
 
 ## Timeouts, failures, fixes
 
