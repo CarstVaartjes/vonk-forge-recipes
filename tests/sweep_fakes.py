@@ -74,6 +74,10 @@ class FakeRecipe:
         0.0  # NAS to Spark distribution, before the install and start phases
     )
     copy_stalls: bool = False  # the copy stops making progress part-way
+    start_progress: bool = False  # the start keeps reporting progress (it is just slow)
+    orphan_seconds: float = (
+        0.0  # after a cancel its run keeps showing on the Spark this long
+    )
     blocked: bool = (
         False  # the Controller holds the application back for ever (admission)
     )
@@ -205,6 +209,9 @@ class FakeFleet:
         self.sparks = [("spk_a", "spark-a"), ("spk_b", "spark-b")]
         self.profiles: dict[int, dict[str, Any]] = {}
         self.apps: dict[str, dict[str, Any]] = {}
+        self.orphans: dict[
+            str, float
+        ] = {}  # alias -> when the cancelled run finally goes
         self.ops: dict[str, dict[str, Any]] = {}
         self.by_request: dict[str, str] = {}
         self.runs: list[dict[str, Any]] = []
@@ -296,6 +303,10 @@ class FakeFleet:
 
     def _tick(self) -> None:
         now = self.clock.now()
+        for alias, until in list(self.orphans.items()):
+            if now >= until:
+                del self.orphans[alias]
+                self.runs = [r for r in self.runs if r["alias"] != alias]
         for op in self.ops.values():
             if (
                 op["state"] in ("queued", "running")
@@ -888,7 +899,15 @@ class FakeFleet:
                 stopping = {
                     item["alias"] for item in app["assign"] if not item["resolved"]
                 }
-                self.runs = [r for r in self.runs if r["alias"] not in stopping]
+                for run in [r for r in self.runs if r["alias"] in stopping]:
+                    recipe = self.recipes.get(run["recipe"])
+                    if lag := recipe.orphan_seconds if recipe else 0:
+                        self.orphans[run["alias"]] = self.clock.now() + lag
+                self.runs = [
+                    r
+                    for r in self.runs
+                    if r["alias"] not in stopping or r["alias"] in self.orphans
+                ]
             return 0, self._app_doc(app) if app else {}
         if verb == "load":
             return self._load(n, data, a)
@@ -1179,6 +1198,11 @@ class FakeFleet:
                 if x["assignment_name"] not in running
             ),
             "held_by": held_by,
+            "start_progress": any(
+                self.recipes[x["recipe_selector"]].start_progress
+                for x in data["assignments"]
+                if x["assignment_name"] not in running
+            ),
             "copy_stalls": any(
                 self.recipes[x["recipe_selector"]].copy_stalls
                 for x in data["assignments"]
@@ -1204,6 +1228,14 @@ class FakeFleet:
                 "bytes": done,
                 "total_bytes": 318 * 2**30,
                 "operation": {"phase": "copying", "completed_bytes": done},
+            }
+        if app.get("start_progress") and app["state"] in ("queued", "running"):
+            return {
+                "phase": "start",
+                "operation": {
+                    "phase": "start",
+                    "completed_items": int(elapsed // 60),
+                },
             }
         return {"phase": app.get("phase")}
 
