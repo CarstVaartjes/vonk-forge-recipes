@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding from MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark at c9b07101: NVIDIA's exact Qwen3.6 27B NVFP4 checkpoint with the z-lab Qwen3.6-27B-DFlash draft (10 speculative tokens), TP1, bf16 KV cache, flash_attn, 256K context, 4 sequences, Qwen3 reasoning and qwen3_coder tool parsing, and upstream's froggeric v20 chat template with thinking on and preserved. Upstream runs the mutable vllm/vllm-openai:nightly-aarch64 tag; this recipe pins the arm64 image current on 2026-09-29 (vLLM build 36768d1b), so behaviour can differ from upstream's measurement. Upstream claims (not measured here): about 45.6 tok/s single stream and 102 tok/s aggregate at 4 streams. The upstream README's language-model-only line is not in its start.sh and is not applied; vision serving is unproven. Physical Spark acceptance is pending.",
+    "description": "Candidate single-Spark vLLM binding from MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark at c9b07101: NVIDIA's exact Qwen3.6 27B NVFP4 checkpoint with the z-lab Qwen3.6-27B-DFlash draft (10 speculative tokens), TP1, bf16 KV cache, flash_attn, 256K context, 4 sequences, Qwen3 reasoning and qwen3_coder tool parsing, and upstream's froggeric v20 chat template with thinking on and preserved. Upstream runs the mutable vllm/vllm-openai:nightly-aarch64 tag; this recipe pins the arm64 image current on 2026-09-29 (vLLM build 36768d1b), so behaviour can differ from upstream's measurement. Upstream claims (not measured here): about 45.6 tok/s single stream and 102 tok/s aggregate at 4 streams. The upstream README's language-model-only line is not in its start.sh and is not applied; vision serving is unproven. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "dflash",
@@ -496,7 +496,7 @@
             "working_bytes": 50804935102
           },
           "memory": {
-            "peak_bytes": 108000000000,
+            "peak_bytes": 117757114450,
             "reserve_bytes": 8000000000
           }
         }
