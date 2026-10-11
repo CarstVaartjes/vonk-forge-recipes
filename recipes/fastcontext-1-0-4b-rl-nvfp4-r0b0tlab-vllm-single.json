@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's vLLM serve of its NVIDIA ModelOpt NVFP4 checkpoint of Microsoft FastContext-1.0-4B-RL, the async repository-exploration subagent model: fp8 KV cache, FlashInfer attention, chunked prefill, hermes tool-call parser, 131,072 context, 16 sequences, 0.40 memory utilization (a small model that leaves room for a second workload). Upstream requires only vLLM >= 0.23 with --quantization modelopt and publishes no image, so the engine here is the catalog's digest-pinned vLLM base (0.28.x), not an upstream-validated build. Licence: MIT (repository and model card; information only). Upstream reports with-vs-without-NVFP4 comparisons against the BF16 model; not measured here.",
+    "description": "r0b0tlab's vLLM serve of its NVIDIA ModelOpt NVFP4 checkpoint of Microsoft FastContext-1.0-4B-RL, the async repository-exploration subagent model: fp8 KV cache, FlashInfer attention, chunked prefill, hermes tool-call parser, 131,072 context, 16 sequences, 0.40 memory utilization (a small model that leaves room for a second workload). Upstream requires only vLLM >= 0.23 with --quantization modelopt and publishes no image, so the engine here is the catalog's digest-pinned vLLM base (0.28.x), not an upstream-validated build. Licence: MIT (repository and model card; information only). Upstream reports with-vs-without-NVFP4 comparisons against the BF16 model; not measured here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "agentic",
       "candidate",
@@ -302,7 +302,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 40000000000,
+            "peak_bytes": 60265292596,
             "reserve_bytes": 8000000000
           }
         }

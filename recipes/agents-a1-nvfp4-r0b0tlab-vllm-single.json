@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's SM121 vLLM serve of its NVIDIA ModelOpt NVFP4 quantization of InternScience Agents-A1 (Qwen3.5 MoE agentic model; MLP/MoE experts in NVFP4, attention, vision tower and embeddings kept BF16) on one GB10: FlashInfer attention, FlashInfer-CUTLASS MoE, fp8 KV, text only (language model only), qwen3_coder tool parser and qwen3 reasoning parser, MTP off. Upstream image defaults: 4,096 context, 32 sequences, 0.70 memory utilization (raise the context setting for longer windows; not validated upstream). The upstream registry image is not public, so the runtime is rebuilt from upstream's Dockerfile steps on the public laguna-m1 image digest that its mutable :latest base pointed to. Licences: Apache-2.0 for the model and package per the HF card and Dockerfile label (information only). Performance figures are upstream claims.",
+    "description": "r0b0tlab's SM121 vLLM serve of its NVIDIA ModelOpt NVFP4 quantization of InternScience Agents-A1 (Qwen3.5 MoE agentic model; MLP/MoE experts in NVFP4, attention, vision tower and embeddings kept BF16) on one GB10: FlashInfer attention, FlashInfer-CUTLASS MoE, fp8 KV, text only (language model only), qwen3_coder tool parser and qwen3 reasoning parser, MTP off. Upstream image defaults: 4,096 context, 32 sequences, 0.70 memory utilization (raise the context setting for longer windows; not validated upstream). The upstream registry image is not public, so the runtime is rebuilt from upstream's Dockerfile steps on the public laguna-m1 image digest that its mutable :latest base pointed to. Licences: Apache-2.0 for the model and package per the HF card and Dockerfile label (information only). Performance figures are upstream claims. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "agentic",
       "agents-a1",
@@ -384,7 +384,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 60000000000,
+            "peak_bytes": 99464262042,
             "reserve_bytes": 8000000000
           }
         }

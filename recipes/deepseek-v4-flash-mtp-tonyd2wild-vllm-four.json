@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) on four Sparks as one tensor-parallel group: vLLM TP4 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 300,000-token default context (upstream: about a 6M-token KV pool that can serve single requests to about 1M if the context setting is raised) on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Needs a switched RoCE fabric so all four nodes reach each other (128 attention heads: TP must divide 128, so TP3 is not valid). Upstream states its own production stack (DSpark k=5) is private and that its published numbers are not from this MTP configuration unless noted. Same-creator alternatives: the two-Spark MTP recipe and the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 87 to 120 tok/s single stream on code and count prompts) are claims until measured here; Vonk physical four-Spark acceptance is pending.",
+    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) on four Sparks as one tensor-parallel group: vLLM TP4 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 300,000-token default context (upstream: about a 6M-token KV pool that can serve single requests to about 1M if the context setting is raised) on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Needs a switched RoCE fabric so all four nodes reach each other (128 attention heads: TP must divide 128, so TP3 is not valid). Upstream states its own production stack (DSpark k=5) is private and that its published numbers are not from this MTP configuration unless noted. Same-creator alternatives: the two-Spark MTP recipe and the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 87 to 120 tok/s single stream on code and count prompts) are claims until measured here; Vonk physical four-Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "deepseek",
       "distributed",
@@ -1092,7 +1092,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 100000000000,
+            "peak_bytes": 109917320561,
             "reserve_bytes": 8000000000
           }
         }
@@ -1109,7 +1109,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 100000000000,
+            "peak_bytes": 109917320561,
             "reserve_bytes": 8000000000
           }
         }

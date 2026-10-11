@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "drowzeys' single-Spark launch of NVIDIA's Nemotron-Labs-3 Puzzle 75B-A9B NVFP4 checkpoint (53.5 GB, modelopt mixed precision, MTP head): vLLM 0.24 (aeon lineage) with jethac's FlashInfer A4Q attention and an NVFP4 KV cache, expert parallel, flashinfer Mamba SSU, MTP k=3, qwen3_coder tool parser and nemotron_v3 reasoning parser. Defaults follow upstream's puzzle-nvfp4-serve.sh long-context profile (131072 context, 32 sequences, 8192 batched tokens, GPU memory 0.85, eager). Upstream reports (not measured here): 2.71M-token KV pool, C1 25.8 tok/s and C32 220 tok/s, and 1M context (MAXLEN=1048576) with a 3.27M-token pool. Upstream notes: flashinfer_cutlass is the only MoE backend accepted by both the NVFP4 and unquantized layers of this checkpoint; with thinking on the reasoning trace is returned in message.reasoning; coding agents should send chat_template_kwargs force_nonempty_content. Licences: NVIDIA checkpoint OpenMDW-1.1; drowzeys launchers MIT. Not gated. upstream's separate throughput catch-up profile uses another (mutable) image and is not included.",
+    "description": "drowzeys' single-Spark launch of NVIDIA's Nemotron-Labs-3 Puzzle 75B-A9B NVFP4 checkpoint (53.5 GB, modelopt mixed precision, MTP head): vLLM 0.24 (aeon lineage) with jethac's FlashInfer A4Q attention and an NVFP4 KV cache, expert parallel, flashinfer Mamba SSU, MTP k=3, qwen3_coder tool parser and nemotron_v3 reasoning parser. Defaults follow upstream's puzzle-nvfp4-serve.sh long-context profile (131072 context, 32 sequences, 8192 batched tokens, GPU memory 0.85, eager). Upstream reports (not measured here): 2.71M-token KV pool, C1 25.8 tok/s and C32 220 tok/s, and 1M context (MAXLEN=1048576) with a 3.27M-token pool. Upstream notes: flashinfer_cutlass is the only MoE backend accepted by both the NVFP4 and unquantized layers of this checkpoint; with thinking on the reasoning trace is returned in message.reasoning; coding agents should send chat_template_kwargs force_nonempty_content. Licences: NVIDIA checkpoint OpenMDW-1.1; drowzeys launchers MIT. Not gated. upstream's separate throughput catch-up profile uses another (mutable) image and is not included. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "a4q",
       "candidate",
@@ -522,7 +522,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112000000000,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }

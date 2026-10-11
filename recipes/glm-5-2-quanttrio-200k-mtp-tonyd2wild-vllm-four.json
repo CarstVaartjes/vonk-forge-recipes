@@ -34,7 +34,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Unpruned GLM-5.2 (744B total, 40B active; QuantTrio Int4-Int8Mix, compressed-tensors) on four Sparks with vLLM tensor parallel 4 over the native multi-node launcher, a 200,000-token context, FP8 DeepSeek-MLA KV in a fixed 10.95 GB pool, MTP with four drafted tokens, FLASHMLA_SPARSE attention with the Triton sparse-MLA kernels and b12x, and full CUDA graphs. Basis: tonyd2wild's recipe (Apache-2.0; kernels from CosmicRaisins/glm-5.2-gb10, mods from ciprianveg, decode-aware scheduler by penguinchang, all Apache-2.0) on drowzeys' published probe-modded vLLM ab666069 image, which carries the same tag name upstream builds locally; upstream's run-time kernel bind mounts are copied into the image at build time. Related recipes for this model and Spark count: glm-5-2-quanttrio-vllm-four (drowzeys kit) and the same creator's NVFP4-KV variant. Upstream figures (32.5 tok/s mean, 36 peak single stream) are claims until measured here; Vonk physical four-Spark acceptance is pending.",
+    "description": "Unpruned GLM-5.2 (744B total, 40B active; QuantTrio Int4-Int8Mix, compressed-tensors) on four Sparks with vLLM tensor parallel 4 over the native multi-node launcher, a 200,000-token context, FP8 DeepSeek-MLA KV in a fixed 10.95 GB pool, MTP with four drafted tokens, FLASHMLA_SPARSE attention with the Triton sparse-MLA kernels and b12x, and full CUDA graphs. Basis: tonyd2wild's recipe (Apache-2.0; kernels from CosmicRaisins/glm-5.2-gb10, mods from ciprianveg, decode-aware scheduler by penguinchang, all Apache-2.0) on drowzeys' published probe-modded vLLM ab666069 image, which carries the same tag name upstream builds locally; upstream's run-time kernel bind mounts are copied into the image at build time. Related recipes for this model and Spark count: glm-5-2-quanttrio-vllm-four (drowzeys kit) and the same creator's NVFP4-KV variant. Upstream figures (32.5 tok/s mean, 36 peak single stream) are claims until measured here; Vonk physical four-Spark acceptance is pending. GB10 memory correction: GPU utilization 0.91 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced.",
     "tags": [
       "chat",
       "distributed",
@@ -1758,7 +1758,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.91"
+        "value": "0.85"
       },
       {
         "name": "kv-cache-memory-bytes",
@@ -1900,7 +1900,7 @@
           },
           "memory": {
             "peak_bytes": 120000000000,
-            "reserve_bytes": 6000000000
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1917,7 +1917,7 @@
           },
           "memory": {
             "peak_bytes": 120000000000,
-            "reserve_bytes": 6000000000
+            "reserve_bytes": 8000000000
           }
         }
       }

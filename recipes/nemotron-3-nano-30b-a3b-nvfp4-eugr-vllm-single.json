@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker nemotron-3-nano-nvfp4 recipe for NVIDIA's NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4 (NVIDIA Nemotron Open Model License; checkpoint revision 6efb4a2a) served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: CUTLASS MoE backend, FP8 KV cache, fastsafetensors loading, prefix caching, qwen3_coder tool-call parser, nano_v3 reasoning parser, 262,144-token context and memory utilisation 0.7 (upstream defaults); the sequence limit is left to vLLM's default. Upstream's nemotron-nano mod only downloads nano_v3_reasoning_parser.py from the model repository's main branch at start; that file is part of the pinned model checkpoint, so the recipe loads it from the mounted model directory (--reasoning-parser-plugin /models/nano_v3_reasoning_parser.py) and the mod is not applied. The recipe is solo-only upstream. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker nemotron-3-nano-nvfp4 recipe for NVIDIA's NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4 (NVIDIA Nemotron Open Model License; checkpoint revision 6efb4a2a) served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: CUTLASS MoE backend, FP8 KV cache, fastsafetensors loading, prefix caching, qwen3_coder tool-call parser, nano_v3 reasoning parser, 262,144-token context and memory utilisation 0.7 (upstream defaults); the sequence limit is left to vLLM's default. Upstream's nemotron-nano mod only downloads nano_v3_reasoning_parser.py from the model repository's main branch at start; that file is part of the pinned model checkpoint, so the recipe loads it from the mounted model directory (--reasoning-parser-plugin /models/nano_v3_reasoning_parser.py) and the mod is not applied. The recipe is solo-only upstream. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "eugr",
@@ -363,7 +363,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 98000000000,
+            "peak_bytes": 99464262042,
             "reserve_bytes": 8000000000
           }
         }

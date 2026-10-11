@@ -29,7 +29,7 @@ XGRAMMAR_VERSION = "0.2.3"
 XGRAMMAR_WHEEL_SHA256 = (
     "11255f184971489fc72b948b096e2917f482ba2dca975177f5411562cedb9c6d"
 )
-LOWER_SPARK_BASELINE_BYTES = 126_946_283_520
+SPARK_MEMORY_BYTES = 130_663_231_488
 
 
 def _document(path: Path) -> dict[str, object]:
@@ -76,16 +76,16 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         self.assertEqual(_document(RECIPE_PATH)["settings"]["concurrency"]["value"], 4)
         self.assertEqual(arguments["max-num-batched-tokens"], 8_192)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
-        self.assertEqual(arguments["gpu-memory-utilization"], "0.95")
+        self.assertEqual(arguments["gpu-memory-utilization"], "0.85")
         self.assertEqual(arguments["kv-cache-dtype"], "nvfp4_ds_mla")
 
-    def test_declared_envelope_fits_the_lower_live_baseline(self) -> None:
+    def test_declared_envelope_covers_overhead_and_fits_the_node(self) -> None:
         memory = _document(RECIPE_PATH)["topology"]["roles"][0]["resources"]["memory"]
-        admission = memory["peak_bytes"] + memory["reserve_bytes"]
-
-        self.assertEqual(memory["peak_bytes"], 119_000_000_000)
-        self.assertEqual(admission, 126_000_000_000)
-        self.assertEqual(LOWER_SPARK_BASELINE_BYTES - admission, 946_283_520)
+        self.assertGreaterEqual(
+            memory["peak_bytes"], SPARK_MEMORY_BYTES * 0.85 + 8_000_000_000
+        )
+        self.assertEqual(memory["reserve_bytes"], 8_000_000_000)
+        self.assertLessEqual(memory["peak_bytes"] + 6_000_000_000, SPARK_MEMORY_BYTES)
 
     def test_adapter_selects_target_only_mode_and_never_builds_a_draft(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")

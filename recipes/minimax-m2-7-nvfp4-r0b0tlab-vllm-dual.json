@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's dual-GB10 vLLM 0.21.1 (SM120/SM121 FP4 source build) serving of NVIDIA's ModelOpt NVFP4 checkpoint of MiniMax M2.7: tensor parallel 2 over Ray, FlashInfer-CUTLASS NVFP4 GEMM and MoE, FP8 KV, torch.compile mode 3 with CUDA graphs disabled (upstream found graph replay deadlocks the cross-node shared-memory broadcast). Text and tool calling (minimax_m2 parsers), 196,608 token context, 4 sequences (upstream launch script). Licences: r0b0tlab package MIT, vLLM Apache-2.0; the NVIDIA checkpoint is under the NVIDIA Software and Model Evaluation License (information only; upstream README asks users to accept the model licence). Upstream claims about 25 tok/s single-stream decode (tg128) on two GB10; not measured here.",
+    "description": "r0b0tlab's dual-GB10 vLLM 0.21.1 (SM120/SM121 FP4 source build) serving of NVIDIA's ModelOpt NVFP4 checkpoint of MiniMax M2.7: tensor parallel 2 over Ray, FlashInfer-CUTLASS NVFP4 GEMM and MoE, FP8 KV, torch.compile mode 3 with CUDA graphs disabled (upstream found graph replay deadlocks the cross-node shared-memory broadcast). Text and tool calling (minimax_m2 parsers), 196,608 token context, 4 sequences (upstream launch script). Licences: r0b0tlab package MIT, vLLM Apache-2.0; the NVIDIA checkpoint is under the NVIDIA Software and Model Evaluation License (information only; upstream README asks users to accept the model licence). Upstream claims about 25 tok/s single-stream decode (tg128) on two GB10; not measured here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "distributed",
@@ -587,7 +587,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 112000000000,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }
@@ -604,7 +604,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 112000000000,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate legacy single-Spark profile for the exact NVIDIA Nemotron 3 Nano NVFP4 checkpoint. It remains installable for reproducibility, but Nemotron 3.5 Lightning is the preferred default for new text deployments. The immutable snapshot supplies the reviewed nano_v3 reasoning plugin, while FP8 KV and FlashInfer NVFP4 MoE follow NVIDIA's launch contract.",
+    "description": "Executable Candidate legacy single-Spark profile for the exact NVIDIA Nemotron 3 Nano NVFP4 checkpoint. It remains installable for reproducibility, but Nemotron 3.5 Lightning is the preferred default for new text deployments. The immutable snapshot supplies the reviewed nano_v3 reasoning plugin, while FP8 KV and FlashInfer NVFP4 MoE follow NVIDIA's launch contract. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "executable",
       "candidate",
@@ -379,7 +379,7 @@
             "working_bytes": 36000000000
           },
           "memory": {
-            "peak_bytes": 90000000000,
+            "peak_bytes": 112530585191,
             "reserve_bytes": 8000000000
           }
         }

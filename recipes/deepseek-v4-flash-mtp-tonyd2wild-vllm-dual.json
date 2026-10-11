@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 1,000,000-token context on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Upstream's 500K rollback profile is a memory option plus the context and concurrency settings (500000 and 8). Same-creator alternatives for this Spark count with the 0731 checkpoint are the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 45.5 tok/s single stream at MTP 2, 2.84M-token KV pool at 1M context) are claims until measured here; Vonk physical two-Spark acceptance is pending. The first request after boot can time out while autotune and warmup finish.",
+    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 1,000,000-token context on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Upstream's 500K rollback profile is a memory option plus the context and concurrency settings (500000 and 8). Same-creator alternatives for this Spark count with the 0731 checkpoint are the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 45.5 tok/s single stream at MTP 2, 2.84M-token KV pool at 1M context) are claims until measured here; Vonk physical two-Spark acceptance is pending. The first request after boot can time out while autotune and warmup finish. GB10 fit: GPU utilization 0.80, 0.82 → 0.79 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "deepseek",
       "distributed",
@@ -875,11 +875,11 @@
             {
               "name": "gpu-memory-utilization",
               "setting": null,
-              "value": "0.80"
+              "value": "0.79"
             }
           ],
           "help": "Upstream 500K rollback baseline (set the context setting to 500000 and concurrency to 8).",
-          "label": "0.80",
+          "label": "0.79",
           "value": "profile-500k"
         }
       ],
@@ -976,7 +976,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.82"
+        "value": "0.79"
       },
       {
         "name": "enable-prefix-caching",
@@ -1113,7 +1113,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 120080103056,
             "reserve_bytes": 6000000000
           }
         }
@@ -1130,7 +1130,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 120080103056,
             "reserve_bytes": 6000000000
           }
         }

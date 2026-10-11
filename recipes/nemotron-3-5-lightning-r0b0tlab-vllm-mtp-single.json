@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's vLLM SM121 profile for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 (NVIDIA OpenMDW-1.1) with the checkpoint's native MTP head (K=1, Triton drafter MoE), from r0b0tlab/nemotron-3.5-lightning-sm121-nvfp4 at 024bb77b (MIT). Runs upstream's published runtime image ghcr.io/r0b0tlab/nemotron-lightning-repro-runtime:sm121-mtp1 (sha256:9fcb3b11..., the registry digest upstream records, pinned by digest and not rebuilt): the NVIDIA vLLM image upstream pins (vllm/vllm-openai@sha256:3af90144, vLLM 0.23.1rc1, PyTorch 2.11 cu129, FlashInfer 0.6.14) plus the fastokens 0.3.1 package, with a thin Controller layer on top, with Marlin target MoE, FP8 KV, prefix caching, FlashInfer Mamba backend with float16 SSM state and stochastic rounding (5 Philox rounds), memory utilisation 0.70, a 50,016-token evaluation window, 6 sequences and upstream's CUDA graph capture list. Upstream's repository pins no model revision (weights are local); this recipe binds e8f3c7c4, the revision its sibling r0b0tlab repository names for the same suite. Upstream's README calls the GHCR package private, but it pulls anonymously (checked when this recipe was switched to it). Upstream's results are its own r0b0bench evidence (11 lanes) and a 1M-window needle probe; none measured here. Physical Spark acceptance is pending.",
+    "description": "r0b0tlab's vLLM SM121 profile for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 (NVIDIA OpenMDW-1.1) with the checkpoint's native MTP head (K=1, Triton drafter MoE), from r0b0tlab/nemotron-3.5-lightning-sm121-nvfp4 at 024bb77b (MIT). Runs upstream's published runtime image ghcr.io/r0b0tlab/nemotron-lightning-repro-runtime:sm121-mtp1 (sha256:9fcb3b11..., the registry digest upstream records, pinned by digest and not rebuilt): the NVIDIA vLLM image upstream pins (vllm/vllm-openai@sha256:3af90144, vLLM 0.23.1rc1, PyTorch 2.11 cu129, FlashInfer 0.6.14) plus the fastokens 0.3.1 package, with a thin Controller layer on top, with Marlin target MoE, FP8 KV, prefix caching, FlashInfer Mamba backend with float16 SSM state and stochastic rounding (5 Philox rounds), memory utilisation 0.70, a 50,016-token evaluation window, 6 sequences and upstream's CUDA graph capture list. Upstream's repository pins no model revision (weights are local); this recipe binds e8f3c7c4, the revision its sibling r0b0tlab repository names for the same suite. Upstream's README calls the GHCR package private, but it pulls anonymously (checked when this recipe was switched to it). Upstream's results are its own r0b0bench evidence (11 lanes) and a 1M-window needle probe; none measured here. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "executable",
@@ -925,7 +925,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 90000000000,
+            "peak_bytes": 99464262042,
             "reserve_bytes": 8000000000
           }
         }

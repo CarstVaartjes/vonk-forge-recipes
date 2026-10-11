@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker recipe for NVIDIA's Qwen3.6-35B-A3B-NVFP4 (ModelOpt NVFP4, Apache-2.0; checkpoint revision 1355db6a) served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: Marlin MoE backend (VLLM_MARLIN_USE_ATOMIC_ADD=1), FlashInfer attention, FP8 KV cache, fastsafetensors loading, chunked prefill, async scheduling, prefix caching, qwen3 reasoning and qwen3_xml tool parsing, 262,144-token context, four sequences, 8,192 batched tokens and memory utilisation 0.4 (upstream defaults). MTP with three speculative tokens is the default; an option selects eugr's no-MTP recipe instead. This is upstream's recipe as written (tensor parallel 2); the Controller runs it as native multi-node vLLM (eugr's default no-Ray cluster mode). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker recipe for NVIDIA's Qwen3.6-35B-A3B-NVFP4 (ModelOpt NVFP4, Apache-2.0; checkpoint revision 1355db6a) served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: Marlin MoE backend (VLLM_MARLIN_USE_ATOMIC_ADD=1), FlashInfer attention, FP8 KV cache, fastsafetensors loading, chunked prefill, async scheduling, prefix caching, qwen3 reasoning and qwen3_xml tool parsing, 262,144-token context, four sequences, 8,192 batched tokens and memory utilisation 0.4 (upstream defaults). MTP with three speculative tokens is the default; an option selects eugr's no-MTP recipe instead. This is upstream's recipe as written (tensor parallel 2); the Controller runs it as native multi-node vLLM (eugr's default no-Ray cluster mode). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "dual",
@@ -431,7 +431,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 60000000000,
+            "peak_bytes": 60265292596,
             "reserve_bytes": 8000000000
           }
         }
@@ -448,7 +448,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 60000000000,
+            "peak_bytes": 60265292596,
             "reserve_bytes": 8000000000
           }
         }

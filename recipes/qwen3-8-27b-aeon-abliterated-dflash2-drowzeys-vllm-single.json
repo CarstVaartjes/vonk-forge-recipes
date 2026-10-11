@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "abliterated",
-    "description": "drowzeys' community compile for one Spark: sakamakismile's uniform NVFP4 quantization of AEON-7's uncensored (abliterated) Qwen3.8 27B, IncoAI's DFlash2 draft at n=7, a cybersecurity-unlock chat template, and a 1,048,576-token window by YaRN x4 (nested rope hf-overrides plus a YaRN-extended drafter config, because vLLM does not stretch the draft rope past 262144). Runs AEON-7's aeon-vllm-ultimate as retagged by drowzeys. Defaults follow upstream's 1M seat (serve_b5_on_4.sh): 2 sequences, GPU memory 0.70, 8192 batched tokens, FP8 KV, Triton attention, no prefix caching, sampling temperature 0.6 top-p 0.95 top-k 20 repetition penalty 1.05. Upstream reports (not measured here): needle hit at 999,714 tokens, 1,113,770-token KV pool, cyber 8/8 and refusal 32/32, prose decode about 20 and code about 42 tok/s. Uncensored weights and an unlock template: users supply their own guardrails; upstream ships a Responsible Use agreement (RESPONSIBLE_USE.md, vendored). Licences: weights and draft Apache-2.0 per their model cards, drowzeys repository Apache-2.0 (LICENSE vendored). Not gated. Upstream's second seat (16k, 64 sequences) is available as an option; set the context and concurrency settings to 16384 and 64 with it.",
+    "description": "drowzeys' community compile for one Spark: sakamakismile's uniform NVFP4 quantization of AEON-7's uncensored (abliterated) Qwen3.8 27B, IncoAI's DFlash2 draft at n=7, a cybersecurity-unlock chat template, and a 1,048,576-token window by YaRN x4 (nested rope hf-overrides plus a YaRN-extended drafter config, because vLLM does not stretch the draft rope past 262144). Runs AEON-7's aeon-vllm-ultimate as retagged by drowzeys. Defaults follow upstream's 1M seat (serve_b5_on_4.sh): 2 sequences, GPU memory 0.70, 8192 batched tokens, FP8 KV, Triton attention, no prefix caching, sampling temperature 0.6 top-p 0.95 top-k 20 repetition penalty 1.05. Upstream reports (not measured here): needle hit at 999,714 tokens, 1,113,770-token KV pool, cyber 8/8 and refusal 32/32, prose decode about 20 and code about 42 tok/s. Uncensored weights and an unlock template: users supply their own guardrails; upstream ships a Responsible Use agreement (RESPONSIBLE_USE.md, vendored). Licences: weights and draft Apache-2.0 per their model cards, drowzeys repository Apache-2.0 (LICENSE vendored). Not gated. Upstream's second seat (16k, 64 sequences) is available as an option; set the context and concurrency settings to 16384 and 64 with it. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "abliterated",
       "candidate",
@@ -479,7 +479,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 98000000000,
+            "peak_bytes": 105997423616,
             "reserve_bytes": 8000000000
           }
         }

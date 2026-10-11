@@ -104,8 +104,9 @@ class UIMateExecutableRecipeTests(unittest.TestCase):
         self.assertEqual(recipe["topology"]["node_count"], 1)
         self.assertEqual(recipe["topology"]["parallelism"]["tensor"], 1)
         self.assertLessEqual(
-            recipe["topology"]["roles"][0]["resources"]["memory"]["peak_bytes"],
-            100_000_000_000,
+            recipe["topology"]["roles"][0]["resources"]["memory"]["peak_bytes"]
+            + 6_000_000_000,
+            130_663_231_488,
         )
 
     def test_adapter_build_is_offline_and_never_executes_actions(self) -> None:

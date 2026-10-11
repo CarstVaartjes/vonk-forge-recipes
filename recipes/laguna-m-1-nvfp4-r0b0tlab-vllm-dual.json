@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's dual-GB10 vLLM serve of Poolside Laguna M.1 NVFP4 (225B total, 23B active, coding model): tensor parallel 2 over Ray (a single Spark runs out of memory during MoE init), FlashInfer-CUTLASS NVFP4 GEMM and MoE, nvfp4 KV cache, Poolside tool and reasoning parsers, eager execution. Upstream quick start: 8192 token context, 4 sequences, 0.82 memory utilization; it reports 11.4 tok/s at c=1 and 49 tok/s at c=8 with the nvfp4 KV cache (upstream claims, not measured here). Licences: model Apache-2.0 per its Hugging Face card; the upstream repository declares no licence file (information only).",
+    "description": "r0b0tlab's dual-GB10 vLLM serve of Poolside Laguna M.1 NVFP4 (225B total, 23B active, coding model): tensor parallel 2 over Ray (a single Spark runs out of memory during MoE init), FlashInfer-CUTLASS NVFP4 GEMM and MoE, nvfp4 KV cache, Poolside tool and reasoning parsers, eager execution. Upstream quick start: 8192 token context, 4 sequences, 0.82 memory utilization; it reports 11.4 tok/s at c=1 and 49 tok/s at c=8 with the nvfp4 KV cache (upstream claims, not measured here). Licences: model Apache-2.0 per its Hugging Face card; the upstream repository declares no licence file (information only). GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "distributed",
@@ -766,7 +766,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 112000000000,
+            "peak_bytes": 115143849821,
             "reserve_bytes": 8000000000
           }
         }
@@ -783,7 +783,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 112000000000,
+            "peak_bytes": 115143849821,
             "reserve_bytes": 8000000000
           }
         }

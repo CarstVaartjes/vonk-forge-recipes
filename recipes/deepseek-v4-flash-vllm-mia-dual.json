@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "MiaAI-Lab's DeepSeek-V4-Flash (base checkpoint, pre-0731) 1M-context profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and FlashInfer autotune on aidendle94's published vLLM fork image (digest-pinned, used unmodified), with upstream's coding-tuned sampling default (temperature 0.6, top_p 0.95), thinking on and reasoning effort high. Upstream marks this kit OLD in favour of its DSpark kit; the current Mia dual recipe is the Vision Experimental one. Licences (information only): recipe repository has no licence file (its README states MIT), model MIT. Upstream states no throughput figures; Vonk physical two-Spark acceptance is pending. The first start compiles and autotunes for several minutes (upstream allows about 20 minutes). Default sampling is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream's coding-tuned default.",
+    "description": "MiaAI-Lab's DeepSeek-V4-Flash (base checkpoint, pre-0731) 1M-context profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and FlashInfer autotune on aidendle94's published vLLM fork image (digest-pinned, used unmodified), with upstream's coding-tuned sampling default (temperature 0.6, top_p 0.95), thinking on and reasoning effort high. Upstream marks this kit OLD in favour of its DSpark kit; the current Mia dual recipe is the Vision Experimental one. Licences (information only): recipe repository has no licence file (its README states MIT), model MIT. Upstream states no throughput figures; Vonk physical two-Spark acceptance is pending. The first start compiles and autotunes for several minutes (upstream allows about 20 minutes). Default sampling is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream's coding-tuned default. GB10 fit: GPU utilization 0.83 → 0.80 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "deepseek",
       "distributed",
@@ -952,7 +952,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.83"
+        "value": "0.80"
       },
       {
         "name": "enable-prefix-caching",
@@ -1112,7 +1112,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 120080103056,
             "reserve_bytes": 6000000000
           }
         }
@@ -1129,7 +1129,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 120080103056,
             "reserve_bytes": 6000000000
           }
         }

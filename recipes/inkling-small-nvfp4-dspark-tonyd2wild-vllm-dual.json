@@ -36,7 +36,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's DSpark Inkling Small profile on two Sparks: thinkingmachines/Inkling-Small-NVFP4 on vLLM tensor parallel 2 (mp, as eugr's launcher does by default) with RadixArk's BF16 Inkling-Small-DSpark-Preview draft (seven speculative tokens, draft TP 2), InstantTensor loading for the target and lazy safetensors for the draft, a 262,144-token context, BF16 KV cache and CUDA graphs disabled (upstream hit an illegal memory access in Inkling short-convolution metadata during graph capture). Image: eugr's published spark-vllm image (digest-pinned, built from eugr/spark-vllm-docker 60dee5b4) with upstream's mods applied at build time: eugr's inkling-sm12-paged-kv and instanttensor-hybrid-draft-loader, and tonyd2wild's parser fix, audio dependencies (four pinned wheels), DSpark hidden-state exposure, warmup cap and prefill-admission cap. The draft's vLLM config overlay is generated at build time by upstream's own prepare script from the pinned config.json. Upstream caps concurrency at five: C1 to C5 passed its sustained benchmarks and C6 reproducibly deadlocks the worker in sample_tokens on this vLLM build. Same-creator alternative for this model and Spark count: the MTP recipe. Licences (information only): model Apache-2.0; the draft repository declares no licence (research preview); eugr's runtime and mods MIT with a bundled FA4 package under its own licence; tonyd2wild's repository states that no licence has been selected. Upstream figures (about 25 tok/s at C1 and 62 tok/s aggregate at C5 on its Bluey and Spark4 pair, DSpark acceptance about 13 percent) are claims until measured here; Vonk physical two-Spark acceptance is pending.",
+    "description": "tonyd2wild's DSpark Inkling Small profile on two Sparks: thinkingmachines/Inkling-Small-NVFP4 on vLLM tensor parallel 2 (mp, as eugr's launcher does by default) with RadixArk's BF16 Inkling-Small-DSpark-Preview draft (seven speculative tokens, draft TP 2), InstantTensor loading for the target and lazy safetensors for the draft, a 262,144-token context, BF16 KV cache and CUDA graphs disabled (upstream hit an illegal memory access in Inkling short-convolution metadata during graph capture). Image: eugr's published spark-vllm image (digest-pinned, built from eugr/spark-vllm-docker 60dee5b4) with upstream's mods applied at build time: eugr's inkling-sm12-paged-kv and instanttensor-hybrid-draft-loader, and tonyd2wild's parser fix, audio dependencies (four pinned wheels), DSpark hidden-state exposure, warmup cap and prefill-admission cap. The draft's vLLM config overlay is generated at build time by upstream's own prepare script from the pinned config.json. Upstream caps concurrency at five: C1 to C5 passed its sustained benchmarks and C6 reproducibly deadlocks the worker in sample_tokens on this vLLM build. Same-creator alternative for this model and Spark count: the MTP recipe. Licences (information only): model Apache-2.0; the draft repository declares no licence (research preview); eugr's runtime and mods MIT with a bundled FA4 package under its own licence; tonyd2wild's repository states that no licence has been selected. Upstream figures (about 25 tok/s at C1 and 62 tok/s aggregate at C5 on its Bluey and Spark4 pair, DSpark acceptance about 13 percent) are claims until measured here; Vonk physical two-Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "distributed",
       "dspark",
@@ -605,7 +605,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 110000000000,
+            "peak_bytes": 112530585191,
             "reserve_bytes": 8000000000
           }
         }
@@ -622,7 +622,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 110000000000,
+            "peak_bytes": 112530585191,
             "reserve_bytes": 8000000000
           }
         }
