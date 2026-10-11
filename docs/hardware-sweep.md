@@ -185,7 +185,7 @@ a working key (`vonkctl key roll NAME --output NEW`, then move `NEW` over the ke
   sub-phase, completed bytes or items, last-progress time, attempt counters of a
   platform that retries with backoff) and every change restarts it. A load that
   keeps progressing is never given up before the 24 hour ceiling; one that stalls
-  while the platform is only queueing or admitting it (`queued`, `admission_pending`)
+  while the platform is only queueing or admitting it (`queued`, `backoff`, `admission_pending`)
   is an infrastructure note (`load-stall`), cancelled and retried, not a recipe verdict.
   A load the sweep gives up is cancelled again until the Spark no longer shows its
   workload (at most the longest load timeout); only those lanes wait for it.

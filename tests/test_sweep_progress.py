@@ -108,4 +108,5 @@ def test_progress_is_what_the_controller_shows_moving_not_when_it_was_asked() ->
     assert len({policy.activity(d) for d in (base, moved, retried)}) == 3
     assert policy.platform_wait(application(admission_pending=True))
     assert policy.platform_wait({"state": "queued"})
+    assert policy.platform_wait({"state": "backoff"})
     assert not policy.platform_wait(base)

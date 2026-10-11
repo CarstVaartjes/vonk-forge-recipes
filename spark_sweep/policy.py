@@ -438,9 +438,11 @@ def activity(document: Mapping[str, Any]) -> tuple[Any, ...]:
 
 
 def platform_wait(document: Mapping[str, Any]) -> bool:
-    """The application is waiting in the platform's queue or admission, not on the recipe's engine."""
+    """The application waits in the platform's queue, admission or retry backoff, not on the recipe's engine."""
     progress = document.get("progress") or {}
-    return document.get("state") == "queued" or bool(progress.get("admission_pending"))
+    return document.get("state") in ("queued", "backoff") or bool(
+        progress.get("admission_pending")
+    )
 
 
 # --------------------------------------------------------------------------
