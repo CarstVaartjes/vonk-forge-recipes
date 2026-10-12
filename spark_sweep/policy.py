@@ -412,28 +412,22 @@ def distribution(document: Mapping[str, Any]) -> Distribution:
 
 
 def activity(document: Mapping[str, Any]) -> tuple[Any, ...]:
-    """Everything the Controller shows moving on a load; it changes whenever the load progresses.
+    """Forward movement of a load: it changes only when the load really advances.
 
-    Phase and sub-phase, completed bytes and items, the Controller's own last-progress time, and
-    the attempt counters of a platform that retries with backoff. Never a poll time: that moves
-    on every observation and would make a stalled load look alive.
+    Phase and sub-phase, completed steps, bytes and items. Never retries: attempt counters,
+    retry times, backoff state or label and update times change while a load is stuck, and a
+    poll time moves on every observation; counting them would keep a dead load alive forever.
     """
     progress = document.get("progress") or {}
     child = progress.get("child_progress") or {}
     operation = child.get("operation") or {}
     return (
-        document.get("state"),
-        progress.get("attempt"),
-        progress.get("admission_attempt"),
-        progress.get("retry_due_at"),
         progress.get("completed_steps"),
-        progress.get("current_label"),
         child.get("phase"),
         child.get("bytes"),
         operation.get("phase"),
         operation.get("completed_bytes"),
         operation.get("completed_items"),
-        operation.get("last_progress_at"),
     )
 
 

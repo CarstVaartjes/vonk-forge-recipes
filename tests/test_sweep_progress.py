@@ -103,10 +103,35 @@ def test_progress_is_what_the_controller_shows_moving_not_when_it_was_asked() ->
     moved = application(
         child_progress={"phase": "start", "operation": {"completed_items": 3}}
     )
-    retried = application(attempt=2, child_progress={"phase": "start"})
     assert policy.activity(base) == policy.activity(later)
-    assert len({policy.activity(d) for d in (base, moved, retried)}) == 3
+    assert policy.activity(base) != policy.activity(moved)
     assert policy.platform_wait(application(admission_pending=True))
     assert policy.platform_wait({"state": "queued"})
     assert policy.platform_wait({"state": "backoff"})
     assert not policy.platform_wait(base)
+
+
+def test_retries_and_timestamps_are_not_progress_but_bytes_are() -> None:
+    from spark_sweep import policy
+
+    def application(attempt, **operation):
+        return {
+            "state": "backoff" if attempt % 2 else "running",
+            "updated_at": f"t{attempt}",
+            "status_text": f"workload preparation is temporarily unavailable ({attempt})",
+            "progress": {
+                "attempt": attempt,
+                "admission_attempt": attempt,
+                "retry_due_at": f"t{attempt}",
+                "current_label": f"retry {attempt}",
+                "child_progress": {
+                    "phase": "start",
+                    "operation": {"last_progress_at": f"t{attempt}", **operation},
+                },
+            },
+        }
+
+    stuck = {policy.activity(application(n)) for n in range(1, 35)}
+    assert len(stuck) == 1  # 34 retries: the stall window runs out
+    moving = {policy.activity(application(n, completed_bytes=n)) for n in range(1, 4)}
+    assert len(moving) == 3  # bytes advance: the clock keeps restarting
