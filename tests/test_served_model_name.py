@@ -71,4 +71,6 @@ def test_openai_aliases_are_gateway_model_names(path: Path) -> None:
         if interface["adapter"] != "openai":
             continue
         for alias in interface.get("model_aliases", []):
-            assert _GATEWAY_MODEL_NAME.fullmatch(alias), f"{alias!r} is not a model name"
+            assert _GATEWAY_MODEL_NAME.fullmatch(alias), (
+                f"{alias!r} is not a model name"
+            )
