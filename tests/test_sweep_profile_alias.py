@@ -15,6 +15,7 @@ from pydantic import TypeAdapter
 from sweep_fakes import FakeFleet, FakeModel, FakeRecipe, Gateway, make_sweep
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 
+from spark_sweep.catalog import Fleet, Presence, serving_run
 from spark_sweep.policy import refused_profile_field
 from spark_sweep.profile_alias import profile_alias, unique_profile_alias
 
@@ -162,3 +163,36 @@ def test_a_refusal_of_recipe_data_fails_the_recipe_at_the_profile_edit(
 )
 def test_the_refused_field_is_read_from_the_error(text: str, field: str | None) -> None:
     assert refused_profile_field(text) == field
+
+
+def _up(alias: str, run_id: str) -> Presence:
+    return Presence("spk_a", alias, run_id, True, "published", "running")
+
+
+def test_an_alias_still_up_from_a_finished_sibling_is_not_reused(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, _, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", alias="llama"), FakeRecipe("b", alias="llama")],
+        [FakeModel("m1")],
+        gateway=gateway,
+    )
+    sweep.run()
+    sweep.state.slots.clear()
+    sweep._assigned.clear()
+    recipe = sweep.recipes["vonk-forge/b"]
+    sweep.fleet = Fleet(sweep.fleet.sparks, ())
+    assert sweep._alias(recipe) == "llama"
+    sweep._assigned.clear()
+    sweep.fleet = Fleet(sweep.fleet.sparks, (_up("llama", "run-old"),))
+    assert sweep._alias(recipe) != "llama"
+
+
+def test_a_run_that_existed_at_submit_is_not_the_loads_serving_run() -> None:
+    old = _up("llama", "run-old")
+    fleet = Fleet((), (old,))
+    assert serving_run(fleet, "llama", ["spk_a"], 1) == "run-old"
+    assert serving_run(fleet, "llama", ["spk_a"], 1, ["run-old"]) is None
+    fleet = Fleet((), (old, _up("llama", "run-new")))
+    assert serving_run(fleet, "llama", ["spk_a"], 1, ["run-old"]) == "run-new"
