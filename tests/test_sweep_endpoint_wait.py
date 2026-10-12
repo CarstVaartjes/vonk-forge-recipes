@@ -8,8 +8,6 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep.run import SMOKE_WALL_SECONDS
 
-UNPUBLISHED = {"assignments": [{"alias": "x", "state": "unavailable"}]}
-
 
 def _smoking(tmp_path: Path):
     sweep, fleet, clock = make_sweep(
