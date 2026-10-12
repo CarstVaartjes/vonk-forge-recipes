@@ -24,7 +24,7 @@
     "LICENSE.upstream": "LICENSE"
   },
   "source": {
-    "commit": "73f01ceea6369b8d4451462f094c20cb10559c11",
+    "commit": "a4c172976a5f9f8669b356a0891bf972cae14fd4",
     "repo": "eugr/spark-vllm-docker"
   }
 }
