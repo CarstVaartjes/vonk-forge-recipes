@@ -382,7 +382,7 @@
       {
         "name": "served-model-name",
         "setting": null,
-        "value": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+        "value": "qwen3.8-flash-next"
       },
       {
         "name": "tensor-parallel-size",
@@ -627,7 +627,7 @@
                   "role": "user"
                 }
               ],
-              "model": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+              "model": "qwen3.8-flash-next"
             },
             "method": "POST",
             "path": "/v1/chat/completions",

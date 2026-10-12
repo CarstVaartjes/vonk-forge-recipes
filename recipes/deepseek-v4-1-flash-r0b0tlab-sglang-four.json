@@ -1200,6 +1200,11 @@
         "name": "enable-metrics",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "deepseek-v4-1-flash"
       }
     ],
     "engine": "sglang",
