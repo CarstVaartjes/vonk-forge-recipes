@@ -1,0 +1,109 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "license-8a0c5e232551-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8a0c5e232551abcb102d1bd39a34866ef4520361b613bd6405d55b36562e4d88",
+      "size_bytes": 2618
+    },
+    {
+      "id": "readme-a61513135575-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a615131355756d411f712678c0c7f58f713b6fa7dd235adeeff52c40da1bb388",
+      "size_bytes": 13979
+    },
+    {
+      "id": "config-e390ae49aaf2-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e390ae49aaf2137b4bf3009c229cba852c44032163bb151b20bbc2376d3a6125",
+      "size_bytes": 1995
+    },
+    {
+      "id": "hf-quant-config-5b4eea93e73f-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5b4eea93e73f8b14ac5a8ec98369c8100fb9911e25fe030afe87a82d44e68887",
+      "size_bytes": 280
+    },
+    {
+      "id": "model-8eef955ebc57-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8eef955ebc5742513a76390cd745fb5fe4c132961a40254a4861f21764353311",
+      "size_bytes": 1349057504
+    }
+  ],
+  "format": {
+    "precision": "nvfp4",
+    "quantization": "w4a16-nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "nemotron-3-5-lightning-30b-a3b-dspark",
+      "title": "Nemotron 3.5 Lightning 30B-A3B DSpark companion"
+    },
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-6d127b50",
+    "variant": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DSpark companion",
+    "version": "nvfp4-dspark-6d127b50"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA Corporation"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/license/1-1/"
+  },
+  "metadata": {
+    "description": "Official NVIDIA six-layer DSpark speculative-decoding companion for the exact Nemotron 3.5 Lightning 30B-A3B NVFP4 target.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "reasoning",
+      "nvfp4",
+      "dspark",
+      "speculative-decoding",
+      "spark"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark",
+    "revision": "6d127b50ecd98562cea85d0087680b7d86091fb0"
+  }
+}

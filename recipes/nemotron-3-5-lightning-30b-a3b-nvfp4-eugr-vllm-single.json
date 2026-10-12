@@ -765,8 +765,8 @@
     {
       "files": [
         {
-          "file_id": "metadata-gitattributes",
-          "id": "draft-metadata-gitattributes",
+          "file_id": "metadata-11ad7efa2497-618cd5b83d",
+          "id": "draft-metadata-11ad7efa2497-618cd5b83d",
           "mount": {
             "target": "/models/draft"
           },
@@ -775,8 +775,8 @@
           ]
         },
         {
-          "file_id": "metadata-license",
-          "id": "draft-metadata-license",
+          "file_id": "license-8a0c5e232551-c693279643",
+          "id": "draft-license-8a0c5e232551-c693279643",
           "mount": {
             "target": "/models/draft"
           },
@@ -785,8 +785,8 @@
           ]
         },
         {
-          "file_id": "metadata-readme",
-          "id": "draft-metadata-readme",
+          "file_id": "readme-a61513135575-b335630551",
+          "id": "draft-readme-a61513135575-b335630551",
           "mount": {
             "target": "/models/draft"
           },
@@ -795,8 +795,8 @@
           ]
         },
         {
-          "file_id": "configuration",
-          "id": "draft-configuration",
+          "file_id": "config-e390ae49aaf2-587cb980af",
+          "id": "draft-config-e390ae49aaf2-587cb980af",
           "mount": {
             "target": "/models/draft"
           },
@@ -805,8 +805,8 @@
           ]
         },
         {
-          "file_id": "quantization-config",
-          "id": "draft-quantization-config",
+          "file_id": "hf-quant-config-5b4eea93e73f-a481ad90fa",
+          "id": "draft-hf-quant-config-5b4eea93e73f-a481ad90fa",
           "mount": {
             "target": "/models/draft"
           },
@@ -815,8 +815,8 @@
           ]
         },
         {
-          "file_id": "weights",
-          "id": "draft-weights",
+          "file_id": "model-8eef955ebc57-9d75c1098f",
+          "id": "draft-model-8eef955ebc57-9d75c1098f",
           "mount": {
             "target": "/models/draft"
           },
@@ -827,10 +827,10 @@
       ],
       "id": "draft",
       "model": {
-        "content_sha256": "54b07fa26f4a09e7fad6b26e3997dc83e2d514f91d15f5a503e5627a0ff0df94",
+        "content_sha256": "86cac517fafd82ff540c87d51d9cea62857ab5dd7a3a543b9c993a9a017717a6",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"
+        "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-6d127b50"
       }
     }
   ],
@@ -843,7 +843,7 @@
     "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/a4c172976a5f9f8669b356a0891bf972cae14fd4"
   },
   "release": {
-    "released_at": "2026-10-11",
+    "released_at": "2026-10-12",
     "version": "prebuilt-vllm-current"
   },
   "runtime": {
