@@ -141,6 +141,8 @@ def test_controller_last_progress_time_counts_as_progress() -> None:
     from spark_sweep import policy
 
     def application(stamp):
-        return {"progress": {"child_progress": {"operation": {"last_progress_at": stamp}}}}
+        return {
+            "progress": {"child_progress": {"operation": {"last_progress_at": stamp}}}
+        }
 
     assert policy.activity(application("t1")) != policy.activity(application("t2"))
