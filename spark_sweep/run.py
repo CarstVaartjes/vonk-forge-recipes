@@ -78,6 +78,7 @@ INFRA_CAP = 600.0
 RETEST_SECONDS = 24 * 3600.0
 LOAD_WALL_SECONDS = 24 * 3600.0
 SMOKE_WALL_SECONDS = 1800.0
+ENDPOINT_RECHECK_SECONDS = 20.0
 
 
 class SweepOwnerIntentSuperseded(RuntimeError):
@@ -2077,20 +2078,29 @@ class Sweep:
                 key, slot, policy.classify("readiness", "endpoint", str(error)), {}
             )
             return
-        base = next(
+        item = next(
             (
-                dig(item, "endpoint", "api_base")
+                item
                 for item in dig(endpoints, "assignments", default=[])
                 if isinstance(item, dict) and item.get("alias") == slot["alias"]
             ),
-            None,
+            {},
         )
+        base = dig(item, "endpoint", "api_base")
         if not isinstance(base, str):
+            now = self.clock.now()
+            if now < float(slot["ready_at"]) + SMOKE_WALL_SECONDS:
+                # The platform may still be publishing the route: look again later.
+                slot["smoke_not_before"] = now + ENDPOINT_RECHECK_SECONDS
+                return
             self._fail_slot(
                 key,
                 slot,
                 policy.classify(
-                    "readiness", "endpoint.unpublished", "no published API endpoint"
+                    "readiness",
+                    "endpoint.unpublished",
+                    "no published API endpoint",
+                    evidence={"assignment_state": item.get("state")},
                 ),
                 {},
             )
