@@ -126,7 +126,7 @@ def test_retries_and_timestamps_are_not_progress_but_bytes_are() -> None:
                 "current_label": f"retry {attempt}",
                 "child_progress": {
                     "phase": "start",
-                    "operation": {"last_progress_at": f"t{attempt}", **operation},
+                    "operation": {"last_progress_at": "t0", **operation},
                 },
             },
         }
@@ -135,3 +135,12 @@ def test_retries_and_timestamps_are_not_progress_but_bytes_are() -> None:
     assert len(stuck) == 1  # 34 retries: the stall window runs out
     moving = {policy.activity(application(n, completed_bytes=n)) for n in range(1, 4)}
     assert len(moving) == 3  # bytes advance: the clock keeps restarting
+
+
+def test_controller_last_progress_time_counts_as_progress() -> None:
+    from spark_sweep import policy
+
+    def application(stamp):
+        return {"progress": {"child_progress": {"operation": {"last_progress_at": stamp}}}}
+
+    assert policy.activity(application("t1")) != policy.activity(application("t2"))
