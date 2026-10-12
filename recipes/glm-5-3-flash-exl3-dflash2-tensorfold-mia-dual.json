@@ -1242,11 +1242,11 @@
       "IncoAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/b5808ac620c795ec9c0640f3ca2a2f7be21aaa63"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/3fd60dfc836fab0f1ed0fd4f0afaf2a1d62b2aab"
   },
   "release": {
-    "released_at": "2026-10-10",
-    "version": "1.7.8"
+    "released_at": "2026-10-12",
+    "version": "1.7.9"
   },
   "runtime": {
     "arguments": [
