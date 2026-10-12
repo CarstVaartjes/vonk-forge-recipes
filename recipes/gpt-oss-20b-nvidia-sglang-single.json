@@ -206,11 +206,11 @@
       "SGLang contributors",
       "OpenAI"
     ],
-    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/09e077d8299e58df5df0202e3411d54d7211d523/nvidia/sglang/README.md"
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/98b3a473f30916ec05eef3e7a01b781aaf4daa8a/nvidia/sglang/README.md"
   },
   "release": {
-    "released_at": "2026-10-08",
-    "version": "0.5.23"
+    "released_at": "2026-10-12",
+    "version": "0.5.24"
   },
   "runtime": {
     "arguments": [
