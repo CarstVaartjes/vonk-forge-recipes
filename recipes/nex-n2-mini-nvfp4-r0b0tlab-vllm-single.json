@@ -299,6 +299,11 @@
         "name": "chat-template",
         "setting": null,
         "value": "/models/chat_template.jinja"
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "nex-n2-mini-nvfp4"
       }
     ],
     "engine": "vllm",

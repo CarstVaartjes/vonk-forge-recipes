@@ -229,6 +229,11 @@
         "name": "trust-remote-code",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "vibethinker-3b-nvfp4"
       }
     ],
     "engine": "vllm",

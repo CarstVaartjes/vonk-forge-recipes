@@ -932,7 +932,7 @@
       {
         "name": "served-model-name",
         "setting": null,
-        "value": "deepseek-ai/DeepSeek-V4.1-Flash"
+        "value": "deepseek-v4.1-flash-exl3-sfxnz"
       },
       {
         "name": "trust-remote-code",
@@ -1353,7 +1353,7 @@
                   "role": "user"
                 }
               ],
-              "model": "deepseek-ai/DeepSeek-V4.1-Flash"
+              "model": "deepseek-v4.1-flash-exl3-sfxnz"
             },
             "method": "POST",
             "path": "/v1/chat/completions",
@@ -1387,7 +1387,7 @@
                   "role": "user"
                 }
               ],
-              "model": "deepseek-ai/DeepSeek-V4.1-Flash"
+              "model": "deepseek-v4.1-flash-exl3-sfxnz"
             },
             "method": "POST",
             "path": "/v1/chat/completions",
