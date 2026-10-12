@@ -163,3 +163,39 @@ def test_the_watchdog_abandons_a_stuck_pass_and_the_sweep_continues(
     with pytest.raises(TickStuck):
         sweep._tick_started = clock.now() - TICK_WATCHDOG_SECONDS - 1
         sweep.waiting("x", clock.now())
+
+
+def test_a_missing_build_beside_another_lanes_disk_blocker_is_a_wait_not_a_verdict(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        [FakeRecipe("a"), FakeRecipe("b")],
+        [FakeModel("m1")],
+        gateway=gateway,
+    )
+    sweep.refresh_catalog()
+    lane_a, lane_b = (
+        policy.Placement(r, ("spk_a",)) for r in list(sweep.recipes.values())[:2]
+    )
+    aliases = {sweep._alias(p.recipe): p for p in (lane_a, lane_b)}
+    document = {
+        "admission_decisions": [
+            {
+                "alias": sweep._alias(lane_a.recipe),
+                "allowed": False,
+                "blockers": [{"code": "run-switch.recipe-build-unavailable"}],
+            },
+            {
+                "alias": sweep._alias(lane_b.recipe),
+                "allowed": False,
+                "blockers": [{"code": "run-switch.insufficient-disk"}],
+            },
+        ]
+    }
+    sweep._blocked(document, aliases, [lane_a, lane_b], clock.now())
+    entry_a = sweep.state.entry(lane_a.recipe.key)
+    assert sweep.state.status(lane_a.recipe.key) != "failed"
+    assert entry_a["defer_until"] > clock.now()
+    assert sweep.state.entry(lane_b.recipe.key)["attempts"] == 1  # as before: recorded
+    assert entry_a.get("attempts", 0) == 0
