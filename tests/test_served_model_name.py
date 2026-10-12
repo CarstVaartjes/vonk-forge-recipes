@@ -8,6 +8,7 @@ a 404 while `/v1/models` still passes readiness.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -56,3 +57,18 @@ def test_openai_aliases_are_served_names(path: Path) -> None:
         assert all(body.get("model") in aliases for body in bodies)
         return
     assert aliases <= served, f"aliases {sorted(aliases - served)} are not served"
+
+
+# Mirrors vonk-forge control/src/vonk_control/litellm.py `_UPSTREAM_MODEL`:
+# the gateway rejects any other upstream model name (a path is not a name).
+_GATEWAY_MODEL_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/+-]{0,119}")
+
+
+@pytest.mark.parametrize("path", RECIPES, ids=lambda path: path.stem)
+def test_openai_aliases_are_gateway_model_names(path: Path) -> None:
+    recipe = json.loads(path.read_text(encoding="utf-8"))
+    for interface in recipe["interfaces"]:
+        if interface["adapter"] != "openai":
+            continue
+        for alias in interface.get("model_aliases", []):
+            assert _GATEWAY_MODEL_NAME.fullmatch(alias), f"{alias!r} is not a model name"
