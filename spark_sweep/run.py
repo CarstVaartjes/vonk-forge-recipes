@@ -3226,7 +3226,15 @@ class Sweep:
             code, detail = reasons.get(
                 self._alias(placement.recipe), [("review.blocked", "")]
             )[0]
-            cache = "cache" in code or "not-cached" in detail or "not cached" in detail
+            # A build or preparation that was never requested is a wait, never a verdict: the
+            # next review (alone, or with lanes that fit) takes the wait-for-preparation path.
+            cache = (
+                "cache" in code
+                or "build-unavailable" in code
+                or "preparation-unavailable" in code
+                or "not-cached" in detail
+                or "not cached" in detail
+            )
             if cache and int(entry.get("review_defers", 0)) < MAX_REVIEW_DEFERS:
                 entry["review_defers"] = int(entry.get("review_defers", 0)) + 1
                 entry["defer_until"] = now + self.cfg.defer_delay
