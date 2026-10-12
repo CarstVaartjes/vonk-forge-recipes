@@ -1,7 +1,7 @@
 FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://github.com/OpenMOSS/MOSS-VL" \
-      org.opencontainers.image.revision="f4ffcd3658fa9cc3a288d05ff9a705fbc7778c28" \
+      org.opencontainers.image.revision="703ab2454a5be51ed2a7aba5b860d7a7d42c92e3" \
       org.opencontainers.image.licenses="Apache-2.0" \
       io.vonk.media.adapter="moss-vl-realtime-session-v1"
 
