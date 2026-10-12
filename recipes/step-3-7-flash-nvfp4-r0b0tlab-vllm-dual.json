@@ -24,7 +24,7 @@
       "adapter": "openai",
       "health_path": "/v1/models",
       "model_aliases": [
-        "/models/Step-3.7-Flash-NVFP4"
+        "Step-3.7-Flash-NVFP4"
       ],
       "port": 8888
     }
@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's plug-and-play dual-GB10 vLLM serve of StepFun Step 3.7 Flash NVFP4 (198B sparse MoE vision-language model, ModelOpt NVFP4, fp8 KV): a vLLM dev build (0.1.dev16944) with Ray 2.55.1 and FlashInfer 0.6.11, tensor parallel 2 over Ray, native FlashInfer-CUTLASS NVFP4 (no Marlin or emulation), step3p5 reasoning and tool parsers, eager execution. Upstream README profile: 65,536 token context, 4 sequences, 0.90 memory utilization; it validated 32K context and reports about 16.5 tok/s single-stream decode (upstream claims, not measured here). Licences: Apache-2.0 for the model and the package (information only). The image serves the model under the name /models/Step-3.7-Flash-NVFP4, as upstream's examples do. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
+    "description": "r0b0tlab's plug-and-play dual-GB10 vLLM serve of StepFun Step 3.7 Flash NVFP4 (198B sparse MoE vision-language model, ModelOpt NVFP4, fp8 KV): a vLLM dev build (0.1.dev16944) with Ray 2.55.1 and FlashInfer 0.6.11, tensor parallel 2 over Ray, native FlashInfer-CUTLASS NVFP4 (no Marlin or emulation), step3p5 reasoning and tool parsers, eager execution. Upstream README profile: 65,536 token context, 4 sequences, 0.90 memory utilization; it validated 32K context and reports about 16.5 tok/s single-stream decode (upstream claims, not measured here). Licences: Apache-2.0 for the model and the package (information only). The image serves the model under the name Step-3.7-Flash-NVFP4 via served-model-name (upstream's examples use the path /models/Step-3.7-Flash-NVFP4, which is not a valid model name). GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "candidate",
       "distributed",
@@ -399,7 +399,7 @@
       {
         "name": "served-model-name",
         "setting": null,
-        "value": "/models/Step-3.7-Flash-NVFP4"
+        "value": "Step-3.7-Flash-NVFP4"
       },
       {
         "name": "trust-remote-code",
@@ -604,7 +604,7 @@
                   "role": "user"
                 }
               ],
-              "model": "/models/Step-3.7-Flash-NVFP4"
+              "model": "Step-3.7-Flash-NVFP4"
             },
             "method": "POST",
             "path": "/v1/chat/completions",
