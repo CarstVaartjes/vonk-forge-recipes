@@ -330,11 +330,24 @@ def parse_fleet(document: Any, default_memory: int) -> Fleet:
 
 
 def serving_run(
-    fleet: Fleet, alias: str, node_ids: Iterable[str], node_count: int
+    fleet: Fleet,
+    alias: str,
+    node_ids: Iterable[str],
+    node_count: int,
+    ignore: Iterable[str] = (),
 ) -> str | None:
-    """The run id once every rank is healthy and published, else None."""
+    """The run id once every rank is healthy and published, else None.
+
+    `ignore` holds runs that already existed when the load was submitted: a
+    sibling's old run under the same alias is not this load's run.
+    """
     wanted = set(node_ids)
-    found = [p for p in fleet.presences if p.alias == alias and p.node_id in wanted]
+    skip = set(ignore)
+    found = [
+        p
+        for p in fleet.presences
+        if p.alias == alias and p.node_id in wanted and p.run_id not in skip
+    ]
     run_ids = {p.run_id for p in found}
     if (
         len(found) != node_count

@@ -1664,7 +1664,11 @@ class Sweep:
                     self._end_load(load, "application.observation_budget_exhausted")
             return  # no recipe verdict on an unreadable Controller
         run_id = serving_run(
-            self.fleet, slot["alias"], slot["node_ids"], recipe.node_count
+            self.fleet,
+            slot["alias"],
+            slot["node_ids"],
+            recipe.node_count,
+            slot.get("prior_runs", ()),
         )
         if run_id:
             slot.update(phase="smoking", run_id=run_id, ready_at=now)
@@ -1793,7 +1797,11 @@ class Sweep:
             if s["phase"] == "loading"
             and s["request_key"] == slot["request_key"]
             and not serving_run(
-                self.fleet, s["alias"], s["node_ids"], self.recipes[k].node_count
+                self.fleet,
+                s["alias"],
+                s["node_ids"],
+                self.recipes[k].node_count,
+                s.get("prior_runs", ()),
             )  # a lane that already serves goes on to its smoke
         ]
 
@@ -2883,9 +2891,11 @@ class Sweep:
         if recipe.key in self._assigned:
             return self._assigned[recipe.key]
         alias = alias_for(recipe, self.defs)
-        taken = {
-            str(s["alias"]) for k, s in self.state.slots.items() if k != recipe.key
-        } | {a for k, a in self._assigned.items() if k != recipe.key}
+        taken = (
+            {str(s["alias"]) for k, s in self.state.slots.items() if k != recipe.key}
+            | {a for k, a in self._assigned.items() if k != recipe.key}
+            | {p.alias for p in self.fleet.presences}  # a finished sibling still up
+        )
         if alias in taken:
             alias = unique_profile_alias(alias, recipe.key)
         self._assigned[recipe.key] = alias
@@ -3150,6 +3160,11 @@ class Sweep:
             "wall_deadline": now + LOAD_WALL_SECONDS,
             "model_bytes": model_bytes,
             "digests": list(recipe.model_digests),
+            "prior_runs": sorted(  # runs of this alias that are not this load's
+                p.run_id
+                for p in self.fleet.presences
+                if p.alias == alias and p.node_id in placement.spark_ids
+            ),
         }
 
     def _rollback(self, placements: Sequence[policy.Placement], why: str) -> None:
