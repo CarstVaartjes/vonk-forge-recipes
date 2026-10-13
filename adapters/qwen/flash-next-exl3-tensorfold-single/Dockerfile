@@ -1,16 +1,16 @@
-# TensorFold v0.6.0 (Apache-2.0, commit c4646171) on NVIDIA's PyTorch container (arm64), stock upstream source.
+# TensorFold v0.6.6 (Apache-2.0, commit cb2ebf05) on NVIDIA's PyTorch container (arm64), stock upstream source.
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 
 LABEL org.opencontainers.image.source="https://github.com/ashhart/TensorFold" \
-      org.opencontainers.image.revision="c4646171139ee8a3c38103eaa1699dad226ec12b" \
+      org.opencontainers.image.revision="cb2ebf0540f42604e2759b2ddef497861e928248" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 # NGC exports PIP_CONSTRAINT for its own stack; the hash-pinned lock below is resolved without it and leaves torch and numpy alone.
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
 
-COPY vendor/tensorfold-c4646171139ee8a3c38103eaa1699dad226ec12b.tar.gz /tmp/tensorfold.tar.gz
+COPY vendor/tensorfold-cb2ebf0540f42604e2759b2ddef497861e928248.tar.gz /tmp/tensorfold.tar.gz
 COPY requirements.lock /tmp/requirements.lock
-RUN echo "bfaec2d02944f8ddf576ef0fed67f5cca23dbc252caeb0b558154a968d001641  /tmp/tensorfold.tar.gz" | sha256sum -c - \
+RUN echo "575ad3745d4a92ef097f43c5796a78ec16a1fafb789265bf14301b12dfb2bd42  /tmp/tensorfold.tar.gz" | sha256sum -c - \
     && mkdir /tmp/tensorfold-src \
     && tar -xzf /tmp/tensorfold.tar.gz -C /tmp/tensorfold-src --strip-components=1 \
     && PIP_CONSTRAINT= python -m pip install --ignore-installed --no-deps --no-cache-dir --require-hashes --requirement /tmp/requirements.lock \
