@@ -767,13 +767,13 @@
       "size_bytes": 85516
     },
     {
-      "id": "preprocessor-config-b269e51bdc1c-36afccab5d",
+      "id": "preprocessor-config-fbe073ccca94-36afccab5d",
       "path": "preprocessor_config.json",
       "roles": [
         "configuration"
       ],
-      "sha256": "b269e51bdc1c53ef7c82522984378513f462869cf83c4c75ec3f98bd92aa7972",
-      "size_bytes": 350
+      "sha256": "fbe073ccca943767c92ce3774f535dc8037e126f1594056f397ad3a4b1a1a7a4",
+      "size_bytes": 320
     },
     {
       "id": "tokenizer-ff15eb925890-224931eb13",
@@ -819,9 +819,9 @@
       "title": "MiMo V2.6 Flash RL"
     },
     "publisher": "xiaomimimo",
-    "slug": "mimo-v2-6-flash-rl-5711b268",
-    "variant": "MiMo V2.6 Flash RL 5711b268",
-    "version": "MiMo V2.6 Flash RL 5711b268"
+    "slug": "mimo-v2-6-flash-rl-dcd3fd83",
+    "variant": "MiMo V2.6 Flash RL dcd3fd83",
+    "version": "MiMo V2.6 Flash RL dcd3fd83"
   },
   "kind": "model",
   "license": {
@@ -850,6 +850,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL",
-    "revision": "5711b268169967567844e1e560e8a3966da959b1"
+    "revision": "dcd3fd83fb181622fbc606fbb1709901982a62c2"
   }
 }
