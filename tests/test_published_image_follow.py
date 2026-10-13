@@ -16,6 +16,7 @@ import importlib.machinery
 import importlib.util
 import io
 import json
+import os
 import sys
 import tarfile
 import tempfile
@@ -296,3 +297,111 @@ class GuardTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+PLAYBOOKS = "NVIDIA/dgx-spark-playbooks"
+
+
+class PlaybookMoveTests(unittest.TestCase):
+    """#1326-#1328: a playbook commit moved; the recipe uses none of its files."""
+
+    def test_a_playbook_commit_move_with_a_semver_release_is_not_a_refresh(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            adapter = root / "adapters/nvidia/x"
+            adapter.mkdir(parents=True)
+            (adapter / "Dockerfile").write_text(
+                f"FROM docker.io/lmsysorg/sglang@{PINNED}\n"
+                'LABEL org.opencontainers.image.source="https://github.com/sgl-project/sglang"\n'
+            )
+            (root / "recipes").mkdir()
+            reference = (
+                f"https://github.com/{PLAYBOOKS}/blob/{OLD}/nvidia/llama-cpp/README.md"
+            )
+            (root / "recipes/recipe.json").write_text(
+                json.dumps(
+                    {
+                        "identity": {"slug": "recipe"},
+                        "provenance": {"source_reference": reference},
+                        "release": {"version": "0.6.2", "released_at": "2026-10-08"},
+                        "models": [],
+                        "execution": {
+                            "build": {"context": {"path": "adapters/nvidia/x"}}
+                        },
+                    }
+                )
+            )
+            assessor = refresh.Assessor(
+                refresh.Catalog.load(root), object(), None, {"recipes": []}
+            )
+            newest = refresh.Target(
+                "github", PLAYBOOKS, BUILT, "2026-10-12", None, None, "u"
+            )
+            assessor.target = lambda *_: newest
+            readme = refresh.Comparison(
+                "ahead",
+                [],
+                [{"filename": "nvidia/playbook-llms/README.md", "status": "modified"}],
+                False,
+                "u",
+            )
+
+            def offline(*_: Any) -> Any:
+                raise RuntimeError("no upstream tree is needed for a recipe using none")
+
+            with (
+                patch.object(refresh, "compare_commits", lambda *_: readme),
+                patch.object(refresh.vendored, "fetch_tree", offline),
+            ):
+                result = assessor.assess("recipe")
+        self.assertFalse(result.drifted, result.reasons)
+        self.assertEqual(result.edits, {})  # no source_reference, date or 0.6.3 bump
+
+
+class StaleRunTests(unittest.TestCase):
+    """#1325/#1326: a run started before the rule changed kept preparing for an hour."""
+
+    def test_a_refresh_whose_files_or_rules_changed_on_main_is_deferred(self) -> None:
+        env = {
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_AUTHOR_NAME": "t",
+            "GIT_AUTHOR_EMAIL": "t@example.test",
+            "GIT_COMMITTER_NAME": "t",
+            "GIT_COMMITTER_EMAIL": "t@example.test",
+        }
+        with tempfile.TemporaryDirectory() as tmp, patch.dict(os.environ, env):
+            root = Path(tmp)
+            remote = root / "remote"
+            work = root / "work"
+            refresh.git("init", "-q", "--initial-branch=main", str(remote), cwd=root)
+            (remote / "recipe.json").write_text("old pin\n")
+            (remote / "tools").mkdir()
+            (remote / "tools/refresh-upstream").write_text("rules v1\n")
+            refresh.git("add", "-A", cwd=remote)
+            refresh.git("commit", "-qm", "Base", cwd=remote)
+            refresh.git("clone", "-q", str(remote), str(work), cwd=root)
+            started = refresh.git("rev-parse", "HEAD", cwd=work)
+            assessment = refresh.Assessment(
+                "recipe", edits={"recipe.json": b"new pin\n"}
+            )
+            calls: list[tuple[str, ...]] = []
+
+            def github(*arguments: str, check: bool = True) -> str:
+                calls.append(arguments)
+                return "[]"
+
+            for changed in ("tools/refresh-upstream", "recipe.json"):
+                (remote / changed).write_text(f"changed on main: {changed}\n")
+                refresh.git("commit", "-qam", f"Change {changed}", cwd=remote)
+                summary = refresh.Summary(started=started)
+                with patch.object(refresh, "gh", github):
+                    self.assertIsNone(
+                        refresh.publish_mechanical(work, assessment, summary)
+                    )
+                self.assertIn(changed, summary.deferred[0])
+                self.assertEqual(summary.prepared, 0)
+                refresh.git("reset", "-q", "--hard", f"{started}", cwd=remote)
+            self.assertFalse([c for c in calls if c[:2] == ("pr", "create")])

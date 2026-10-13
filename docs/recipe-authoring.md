@@ -336,7 +336,9 @@ newest upstream and force-pushes it when anything differs. A refresh PR whose ch
 failed or were cancelled is pushed again (the checks restart) even when its tree is
 unchanged; the failed runs are counted in the PR body (`refresh-failures`), and after
 `FAILURE_LIMIT` in a row the recipe's one needs-review issue carries the failed check's
-log. An open refresh PR whose recipe is current again, gone or no longer mechanical is
+log. Before preparing each PR a run fetches main; when main has changed the refresher
+(`tools/`) or a file that refresh rewrites since the run started, the PR is deferred to the
+next run, which assesses afresh. An open refresh PR whose recipe is current again, gone or no longer mechanical is
 closed with a comment (linking the issue). Recipes sharing a build context (one adapter)
 are refreshed together in one PR on the first recipe's branch, never one at a time; the
 detector's own checks run every data check of `validate.yml` (a test keeps them equal).
