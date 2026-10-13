@@ -181,6 +181,39 @@ class ModelTests(unittest.TestCase):
             )
         )
 
+    def curated(self, old_paths, before, after):
+        old = model_with(old_paths)
+        item = refresh.Item(
+            "model",
+            "huggingface",
+            "o/r",
+            OLD,
+            refresh.Target("huggingface", "o/r", NEW, "2026-09-30", None, None, "u"),
+        )
+        assessor = refresh.Assessor(refresh.Catalog(Path(".")), object(), None, {})
+        with patch.object(refresh.Assessor, "_inventory", return_value=files(*before)):
+            kept = assessor._curated(old, item, files(*after))
+        return old, kept
+
+    def test_files_the_document_left_out_are_not_new(self) -> None:
+        # #620: LTX-2.3's Model catalogues one checkpoint of eight; a README-only
+        # revision is not "six new weights files".
+        repository = ("a.safetensors", "b.safetensors", "README.md")
+        old, kept = self.curated(("a.safetensors",), repository, repository)
+        self.assertEqual([f["path"] for f in kept], ["a.safetensors"])
+        self.assertEqual(refresh.model_shape_problems(old, kept), [])
+
+    def test_files_added_upstream_are_still_new(self) -> None:
+        old, kept = self.curated(
+            ("a.safetensors",),
+            ("a.safetensors", "b.safetensors"),
+            ("a.safetensors", "b.safetensors", "c.safetensors"),
+        )
+        self.assertEqual([f["path"] for f in kept], ["a.safetensors", "c.safetensors"])
+        self.assertIn(
+            "new weights file", " ".join(refresh.model_shape_problems(old, kept))
+        )
+
     def test_refreshed_model_renames_and_remaps_ids(self) -> None:
         old = model_with(("model.safetensors",))
         target = refresh.Target(
