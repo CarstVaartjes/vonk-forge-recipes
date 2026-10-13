@@ -19,5 +19,13 @@ def test_oci_runtime_metadata_and_entrypoint_are_declared() -> None:
 
 def test_upstream_overlays_are_baked_at_the_vllm_paths() -> None:
     dockerfile = (Path(__file__).parent / "Dockerfile").read_text()
-    assert "COPY docker/ple_layer.py " in dockerfile
-    assert "COPY docker/modelopt.py " in dockerfile
+    for name in (
+        "flashinfer_cutlass_moe",
+        "gdn_lazy_attn",
+        "gdn_lazy_linear_attn",
+        "qsa_indexer",
+        "serving",
+        "mtp",
+        "modelopt",
+    ):
+        assert f"COPY docker/v030/{name}.py " in dockerfile
