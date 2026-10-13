@@ -72,6 +72,7 @@ class FakeRegistry:
             {"schemaVersion": 2, "config": {"digest": sha(config)}, "layers": layers}
         ).encode()
         self.digest = sha(manifest)
+        self.calls = 0
         self.objects = {
             "latest": manifest,
             self.digest: manifest,
@@ -81,6 +82,7 @@ class FakeRegistry:
             self.objects[sha(layer)] = layer
 
     def __call__(self, url: str, _headers: dict[str, str]):
+        self.calls += 1
         body = self.objects.get(url.rsplit("/", 1)[1])
         if body is None:
             return 404, {}, b""
@@ -99,8 +101,14 @@ def eugr_registry(commit: str = BUILT) -> FakeRegistry:
 class ProvenanceTests(unittest.TestCase):
     def test_build_metadata_of_the_last_layer_names_the_commit(self) -> None:
         fake = eugr_registry()
-        found = kit_pins.Registry(fake).provenance(IMAGE, fake.digest, SOURCE)
+        registry = kit_pins.Registry(fake)
+        found = registry.provenance(IMAGE, fake.digest, SOURCE)
         self.assertEqual(found, (BUILT, "2026-10-13"))
+        # Recipes sharing an image read it once a run (anonymous pulls are limited).
+        calls = fake.calls
+        registry.provenance(IMAGE, fake.digest, SOURCE)
+        registry.resolve(IMAGE, fake.digest)
+        self.assertEqual(fake.calls, calls)
 
     def test_an_oci_revision_label_of_the_source_names_the_commit(self) -> None:
         fake = FakeRegistry(

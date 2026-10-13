@@ -86,20 +86,18 @@ def check(root: Path, changed: set[str], registry: Any) -> tuple[list[str], list
             name.startswith(context + "/") for name in changed
         )
         kit = kit_pins.kit_of(recipe)
-        adapter = root / context
-        followed = (
-            None
-            if not touched or kit is None
-            else kit_pins.followed_image(root, adapter, kit[0])
-        )
+        if not touched or kit is None:
+            continue
+        source, adapter = kit[0], root / context
+        followed = kit_pins.followed_image(root, adapter, source)
         if followed is None:
             continue
         repository, _, digest = followed
-        found = registry.provenance(repository, digest, kit[0])
+        found = registry.provenance(repository, digest, source)
         if found is None:
             notes.append(
                 f"{path.name}: {repository}@{digest} records no build commit of "
-                f"{kit[0]}; its revision cannot be checked"
+                f"{source}; its revision cannot be checked"
             )
             continue
         wrong = [
@@ -109,7 +107,7 @@ def check(root: Path, changed: set[str], registry: Any) -> tuple[list[str], list
         ]
         if wrong:
             problems.append(
-                f"{path.name} runs {repository}@{digest}, built from {kit[0]} "
+                f"{path.name} runs {repository}@{digest}, built from {source} "
                 f"`{found[0]}`, but states another revision: {', '.join(wrong)}"
             )
     return problems, notes

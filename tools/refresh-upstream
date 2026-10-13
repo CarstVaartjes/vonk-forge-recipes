@@ -167,6 +167,7 @@ class Http:
         self.cache_path = cache_path
         self.lock = threading.Lock()
         self.memo: dict[str, object] = {}
+        self.kit_source: Any = None  # kit_upstream: one per run
         self.requests = 0
         self.not_modified = 0
         self.cache: dict[str, dict[str, Any]] = {}
@@ -243,16 +244,23 @@ class Http:
 
 
 def kit_upstream(http: Http) -> Any:
-    """Where a kit's declared dependencies are resolved: GitHub, Hugging Face, registries."""
-    return kit_pins.Upstream(
-        kit_pins.GitHub(http.github),
-        kit_pins.HuggingFace(
-            lambda path: http.json(
-                f"https://huggingface.co/api/{path}", "huggingface", anonymous=True
-            )
-        ),
-        kit_pins.Registry(kit_pins.fetch),
-    )
+    """Where a kit's declared dependencies are resolved: GitHub, Hugging Face, registries.
+
+    One per run (kept on ``http``), so a registry answer is fetched once for every recipe.
+    """
+    found = getattr(http, "kit_source", None)
+    if found is None:
+        found = kit_pins.Upstream(
+            kit_pins.GitHub(http.github),
+            kit_pins.HuggingFace(
+                lambda path: http.json(
+                    f"https://huggingface.co/api/{path}", "huggingface", anonymous=True
+                )
+            ),
+            kit_pins.Registry(kit_pins.fetch),
+        )
+        http.kit_source = found
+    return found
 
 
 # ---------------------------------------------------------------------------
