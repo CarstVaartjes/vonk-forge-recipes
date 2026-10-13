@@ -6,8 +6,6 @@ from pathlib import Path
 
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
-from spark_sweep.run import SMOKE_WALL_SECONDS
-
 
 def _smoking(tmp_path: Path):
     sweep, fleet, clock = make_sweep(
@@ -45,15 +43,17 @@ def test_endpoint_published_later_proceeds_to_smoke(tmp_path: Path) -> None:
     assert slot["phase"] == "smoking"
 
 
-def test_endpoint_never_published_fails_with_state_after_budget(
+def test_an_endpoint_the_controller_has_not_published_is_waited_for_not_failed(
     tmp_path: Path,
 ) -> None:
     sweep, fleet, clock, key, slot = _smoking(tmp_path)
-    clock.t += SMOKE_WALL_SECONDS
+    clock.t += 24 * 3600.0  # past the old 1800 s publication cap
     fleet.observations.append((("profile", "endpoint"), 0, _unpublished(slot)))
     sweep._submit_smoke(key, slot)
     assert key not in sweep.futures
-    assert slot["phase"] == "finished"
-    assert sweep.state.entry(key)["attempts"] == 1
-    assert "endpoint.unpublished" in str(sweep.state.entry(key))
-    assert "unavailable" in str(sweep.state.entry(key))
+    assert slot["phase"] == "smoking"
+    assert not sweep.state.entry(key).get("attempts")
+    assert "unavailable" in slot["waiting_on"]
+    clock.t = slot["smoke_not_before"]
+    sweep._advance_smoking(key, slot)  # published now: the smoke starts
+    assert key in sweep.futures

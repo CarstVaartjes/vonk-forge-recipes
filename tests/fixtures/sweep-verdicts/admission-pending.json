@@ -1,0 +1,41 @@
+{
+  "attempt": 1,
+  "blockers": [],
+  "cancellation": null,
+  "created_at": "2026-10-13T08:00:00Z",
+  "current_operation_id": null,
+  "current_step": 0,
+  "id": "7f0c6c1e-4b8a-5d43-9a65-3f9b8a0e2d11",
+  "next_attempt_at": null,
+  "plan_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "profile_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "profile_id": "5a2b9c4d-1e3f-5a6b-8c7d-9e0f1a2b3c4d",
+  "progress": {
+    "admission_attempt": 4,
+    "admission_pending": true,
+    "attempt": 1,
+    "blockers": [
+      {
+        "code": "run-switch.resource.insufficient_capacity",
+        "detail": "spark-a lacks 12 GiB",
+        "node_ids": [
+          "spk_a"
+        ],
+        "severity": "error"
+      }
+    ],
+    "completed_steps": 0,
+    "effects": [],
+    "total_steps": 2
+  },
+  "projection_issue": null,
+  "reason_code": null,
+  "request_key": "0b6d1f7e-2c4a-5e8b-9d3f-6a1c2e4b8d90",
+  "result": null,
+  "retry_of_application_id": null,
+  "state": "running",
+  "status_reason": null,
+  "superseded_by": null,
+  "total_steps": 2,
+  "updated_at": "2026-10-13T08:00:05Z"
+}

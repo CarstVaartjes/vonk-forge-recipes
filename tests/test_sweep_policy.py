@@ -7,7 +7,7 @@ import pytest
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
-from spark_sweep import policy
+from spark_sweep import policy, verdict
 from spark_sweep.catalog import Recipe
 
 GB = 10**9
@@ -356,17 +356,29 @@ def test_platform_details_do_not_override_typed_attribution(detail: str) -> None
     failure = policy.classify("download", "controller.unavailable", detail)
     assert failure.klass == "download"
     assert not failure.model_level
-    assert not failure.transient
+    # Platform prose never makes a wait or a recipe verdict: a definite, unattributed end.
+    assert verdict.disposition(failure) is verdict.Disposition.FAIL
     assert detail in failure.describe()
 
 
 def test_only_typed_transient_and_model_integrity_failures_receive_special_handling() -> (
     None
 ):
-    assert policy.classify("download", "controller.transport_timeout", "x").transient
-    assert policy.classify("smoke", "controller.transport_timeout", "x").transient
-    assert not policy.classify("timeout", "load.timeout", "x").transient
-    assert not policy.classify("start", "recipe.runtime_oom", "x").transient
+    def outcome(phase: str, code: str) -> verdict.Disposition:
+        return verdict.disposition(policy.classify(phase, code, "x"))
+
+    assert (
+        outcome("download", "controller.transport_timeout")
+        is verdict.Disposition.OBSERVE
+    )
+    assert (
+        outcome("download", "storage.insufficient_capacity") is verdict.Disposition.WAIT
+    )
+    assert (
+        outcome("smoke", "controller.transport_timeout") is verdict.Disposition.OBSERVE
+    )
+    assert outcome("timeout", "load.timeout") is verdict.Disposition.FAIL
+    assert outcome("start", "recipe.runtime_oom") is verdict.Disposition.FAIL
     assert policy.classify("download", "model.digest_mismatch", "x").model_level
     assert not policy.classify("start", "recipe.runtime_oom", "x").model_level
 

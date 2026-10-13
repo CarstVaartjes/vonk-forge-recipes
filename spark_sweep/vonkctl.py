@@ -48,43 +48,22 @@ class VonkctlError(RuntimeError):
             return str(document.get("code") or document.get("error_type") or "")
         return ""
 
-    def infrastructure(self, *, reviewing: bool = False) -> bool:
-        return is_infrastructure(self.reply, reviewing=reviewing)
-
-
-RECIPE_ERROR_CODES = frozenset(
-    {
-        "recipe.invalid_definition",
-        "recipe.invalid_document",
-        "recipe.invalid_option",
-        "dockerfile.heredoc_forbidden",
-        "recipe.digest_mismatch",
-    }
-)
-
-
-def is_infrastructure(reply: Reply | None, *, reviewing: bool = False) -> bool:
-    """Only an explicit recipe-data code attributes a CLI error to a recipe.
-
-    HTTP failures, unknown outcomes and Controller codes remain infrastructure,
-    regardless of status or free-text detail. Re-read and retry without blame.
-    """
-    document = reply.document if reply is not None else None
-    if not isinstance(document, dict):
-        return True
-    code = str(document.get("code") or "")
-    if code.startswith(("http.", "controller.")):
-        return True
-    if any(
-        document.get(field) is not None
-        for field in ("status", "status_code", "http_status")
-    ):
-        return True
-    return code not in RECIPE_ERROR_CODES
-
 
 class VonkctlTimeout(VonkctlError):
-    """The command did not finish within its time limit."""
+    """The command did not finish within its time limit; what it had printed is kept."""
+
+    def __init__(
+        self,
+        argv: Sequence[str],
+        reply: Reply | None,
+        message: str,
+        *,
+        stdout: str = "",
+        stderr: str = "",
+    ) -> None:
+        super().__init__(argv, reply, message)
+        self.stdout = stdout
+        self.stderr = stderr
 
 
 @dataclass(frozen=True)
@@ -151,9 +130,13 @@ def subprocess_runner(argv: Sequence[str], timeout: float) -> tuple[int, str, st
         out, err = process.communicate(timeout=timeout)
     except subprocess.TimeoutExpired as error:
         _kill_group(process)
-        process.communicate()
+        out, err = process.communicate()
         raise VonkctlTimeout(
-            argv, None, f"{argv[0]} timed out after {timeout}s"
+            argv,
+            None,
+            f"{argv[0]} timed out after {timeout}s",
+            stdout=out or "",
+            stderr=err or "",
         ) from error
     except BaseException:
         _kill_group(process)
@@ -205,7 +188,9 @@ class Vonkctl:
         try:
             code, out, err = self.runner(argv, timeout or self.timeout)
         except VonkctlTimeout as error:
-            return Reply(tuple(argv), 124, None, str(error))
+            # Evidence is never lost: what the command printed before the limit stays.
+            stderr = "\n".join(part for part in (str(error), error.stderr) if part)
+            return Reply(tuple(argv), 124, _parse(error.stdout), stderr)
         except OSError as error:
             # The binary is missing (``vonkctl update --apply`` replaces it atomically) or
             # cannot be spawned: infrastructure, like a timeout. No document, so the

@@ -1,0 +1,8 @@
+{
+  "code": "recipe.invalid_option",
+  "detail": "request is invalid: body.assignments.0.option_choices: Input should be a valid dictionary",
+  "error": "recipe option is invalid",
+  "error_type": "control_api",
+  "recovery_actions": [],
+  "retryable": false
+}

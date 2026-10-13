@@ -105,10 +105,15 @@ def test_progress_is_what_the_controller_shows_moving_not_when_it_was_asked() ->
     )
     assert policy.activity(base) == policy.activity(later)
     assert policy.activity(base) != policy.activity(moved)
-    assert policy.platform_wait(application(admission_pending=True))
-    assert policy.platform_wait({"state": "queued"})
-    assert policy.platform_wait({"state": "backoff"})
-    assert not policy.platform_wait(base)
+    from spark_sweep import verdict
+
+    def waiting(document):
+        return verdict.application_signal(document).waiting_on is not None
+
+    assert waiting(application(admission_pending=True))
+    assert waiting({"state": "queued"})
+    assert waiting({"state": "backoff"})
+    assert not waiting(base)
 
 
 def test_retries_and_timestamps_are_not_progress_but_bytes_are() -> None:

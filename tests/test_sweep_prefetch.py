@@ -158,26 +158,35 @@ def test_pin_profile_trouble_does_not_stop_the_sweep(
     assert 1 <= len(attempts) <= 6  # backs off, never hammers, never gives up for good
 
 
-def test_nas_full_pauses_new_model_downloads(tmp_path: Path, gateway: Gateway) -> None:
+def test_nas_full_pauses_new_model_downloads_and_is_a_wait(
+    tmp_path: Path, gateway: Gateway
+) -> None:
     full = FakeRecipe(
         "full",
         ("m1",),
         fail_download="insufficient free space on the NAS",
         fail_download_code="storage.insufficient_capacity",
     )
-    sweep, _, _ = make_sweep(
+    sweep, _, clock = make_sweep(
         tmp_path,
         [full, FakeRecipe("next", ("m2",))],
         [FakeModel("m1"), FakeModel("m2")],
         gateway=gateway,
         prefetch=PrefetchConfig(max_model_downloads=1, pin_profile=None),
     )
+    start = clock.now()
+
+    def collector_frees_space(now: float) -> None:
+        if now - start > 3600:
+            full.fail_download = None
+
+    clock.hooks.append(collector_frees_space)
     sweep.run()
-    assert sweep.state.recipes["vonk-forge/full"]["failure_class"] == "capacity"
     assert any("NAS pressure" in e["message"] for e in sweep.state.data["events"])
-    assert (
-        sweep.state.recipes["vonk-forge/next"]["status"] == "passed"
-    )  # resumed after the pause
+    # A full NAS is a wait, never a verdict: once there is room the recipe is tested.
+    assert sweep.state.recipes["vonk-forge/full"]["status"] == "passed"
+    assert not sweep.state.recipes["vonk-forge/full"].get("failure_class")
+    assert sweep.state.recipes["vonk-forge/next"]["status"] == "passed"
 
 
 def test_throughput_is_measured_from_the_operations(
