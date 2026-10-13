@@ -2081,7 +2081,9 @@ class Assessor:
         declared = item.kit_pin is not None
         new_files: list[dict[str, Any]] | None = None
         if fresh is None:
-            new_files = self._inventory(item.repo, item.target.sha)
+            new_files = self._curated(
+                old, item, self._inventory(item.repo, item.target.sha)
+            )
             problems = model_shape_problems(old, new_files)
             if declared and not problems and not payload_identical(old, new_files):
                 problems = [KIT_MODEL_FILES_CHANGED]
@@ -2129,6 +2131,22 @@ class Assessor:
         ]
         if not remaining:
             edits[f"models/{old['identity']['slug']}.json"] = None
+
+    def _curated(
+        self, old: dict[str, Any], item: Item, new_files: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """The new snapshot's files the Model document is about.
+
+        A document may catalogue only some files of its repository (one checkpoint of
+        several); a file it left out that the catalogued revision already had is neither
+        new nor part of the move. Files the repository added since are judged as new.
+        """
+        known = {entry["path"] for entry in old["files"]}
+        try:
+            before = {f["path"] for f in self._inventory(item.repo, item.current)}
+        except (RuntimeError, SystemExit, KeyError, ValueError, OSError):
+            return new_files  # unknown history: judge every file
+        return [f for f in new_files if f["path"] in known or f["path"] not in before]
 
     def _inventory(self, repo: str, revision: str) -> list[dict[str, Any]]:
         cache = (
