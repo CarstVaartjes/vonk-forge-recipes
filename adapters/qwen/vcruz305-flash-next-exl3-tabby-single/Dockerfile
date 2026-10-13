@@ -4,23 +4,24 @@
 # Upstream (vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe, exllamav3-tabby/)
 # ships no container: setup.sh builds a venv on the host, installs torch 2.13.0
 # from the cu130 index, compiles the fork's CUDA extension for sm_121 and
-# installs the latest TabbyAPI main. This image performs the same installation
-# on a digest-pinned CUDA 13.4.1 devel base, with the fork and TabbyAPI pinned
-# by commit (upstream tracks TabbyAPI main). The upstream launch scripts are not
+# installs the latest vcruz305/tabbyAPI main. This image performs the same
+# installation on a digest-pinned CUDA 13.4.1 devel base, with the engine fork
+# and the TabbyAPI fork pinned by commit (upstream tracks the TabbyAPI fork's
+# main; the pinned commit is the one its VALIDATION_2026-10-09.md records). The upstream launch scripts are not
 # run; tabby-serve replaces serve.sh and renders the vendored tabby-config.yml
 # the same way.
 FROM nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37
 
 LABEL org.opencontainers.image.source="https://github.com/vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe" \
-      org.opencontainers.image.revision="6fbc0a2f1a0a8ee3d94830bb607ec36aa370ea49" \
+      org.opencontainers.image.revision="fa461b798941acacde2454ea6021da78a18a77e9" \
       org.opencontainers.image.licenses="MIT AND AGPL-3.0-only" \
       io.vonk.exllamav3.source="https://github.com/vcruz305/exllamav3" \
-      io.vonk.exllamav3.revision="94ba01d50a13fa9ff672473f2d0eef8b51a71e99" \
-      io.vonk.tabbyapi.source="https://github.com/theroyallab/tabbyAPI" \
-      io.vonk.tabbyapi.revision="be74bf0a00bcb3a518e6feb7606f150c189be637"
+      io.vonk.exllamav3.revision="24f0dece34f09c8d1e2359d6b3b3f7befef7331b" \
+      io.vonk.tabbyapi.source="https://github.com/vcruz305/tabbyAPI" \
+      io.vonk.tabbyapi.revision="f391c96beea0bcd21cbae3c929f75bb98136ff32"
 
-ARG EXLLAMAV3_COMMIT=94ba01d50a13fa9ff672473f2d0eef8b51a71e99
-ARG TABBYAPI_COMMIT=be74bf0a00bcb3a518e6feb7606f150c189be637
+ARG EXLLAMAV3_COMMIT=24f0dece34f09c8d1e2359d6b3b3f7befef7331b
+ARG TABBYAPI_COMMIT=f391c96beea0bcd21cbae3c929f75bb98136ff32
 ARG TORCH_SPEC=torch==2.13.0
 ARG TORCH_INDEX_URL=https://download.pytorch.org/whl/cu130
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -55,7 +56,7 @@ RUN set -eux; \
 # on aarch64. A stock exllamav3 pulled in by TabbyAPI would shadow the fork.
 RUN set -eux; \
     mkdir -p /opt/tabbyAPI; \
-    curl -fsSL "https://codeload.github.com/theroyallab/tabbyAPI/tar.gz/${TABBYAPI_COMMIT}" \
+    curl -fsSL "https://codeload.github.com/vcruz305/tabbyAPI/tar.gz/${TABBYAPI_COMMIT}" \
       | tar -xz -C /opt/tabbyAPI --strip-components=1; \
     cd /opt/tabbyAPI; \
     pip install --no-cache-dir .; \
