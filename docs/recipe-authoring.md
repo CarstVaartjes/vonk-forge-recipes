@@ -396,7 +396,9 @@ A refresh is **mechanical** only when all of these hold:
 - a Model keeps its file set: no new weights, tokenizer or configuration files, and no
   removed ones other than metadata (README, licence, `.gitattributes`), which are dropped
   from the catalogued Model and noted. Paths and digests are compared, never our own file
-  id format. A changed digest on a configuration, tokenizer or runtime file blocks; a
+  id format. A Model that catalogues only some files of its repository (one checkpoint of
+  several) is judged on those files and on files the repository added since; a file it
+  left out that the catalogued revision already had is neither new nor moved. A changed digest on a configuration, tokenizer or runtime file blocks; a
   changed weights or metadata digest does not. New digests come from
   `tools/catalog-hf-model`'s inventory, verified at ingress only, and the recipe's file ids
   and content digest follow. If the newest revision is already
