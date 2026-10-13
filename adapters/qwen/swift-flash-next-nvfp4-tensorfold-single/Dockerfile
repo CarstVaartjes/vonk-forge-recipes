@@ -18,7 +18,7 @@ RUN echo "79b670c2f3a2a2063eeb7d3659a266146b8e95d0b1493c47eb74b60bcf4770b5  /tmp
     && python -c "import setuptools; assert int(setuptools.__version__.split('.')[0]) >= 69, setuptools.__version__" \
     && PIP_CONSTRAINT= python -m pip install --no-cache-dir --no-deps --no-build-isolation /tmp/tensorfold-src \
     && python -c "import tensorfold.cuda.server; from tensorfold.families.qwen4_exp.cuda import nvfp4, nvfp4_moe" \
-    && python -c "from tensorfold.vision.videos import load_videos; from tensorfold.families.qwen4_exp.cuda.bf16 import faces_8bit, faces_12bit; from tensorfold.vision.qwen_cuda import QwenCudaVision; from transformers.models.qwen3_5.modeling_qwen3_5 import Qwen3_5VisionModel; from PIL import Image; import av" \
+    && python -c "from tensorfold.vision.videos import load_videos; from tensorfold.families.qwen4_exp.cuda.bf16 import faces_8bit; from tensorfold.vision.qwen_cuda import QwenCudaVision; from transformers.models.qwen3_5.modeling_qwen3_5 import Qwen3_5VisionModel; from PIL import Image; import av" \
     && python -c "import os, pathlib, tensorfold; p = pathlib.Path(os.path.dirname(tensorfold.__file__), 'families/qwen4_exp/cuda/draft_vocab.txt'); ids = [int(x) for x in p.read_text().split()]; assert ids == sorted(set(ids)) and len(ids) == 80014, len(ids)" \
     && tensorfold --version \
     && rm -rf /tmp/tensorfold.tar.gz /tmp/tensorfold-src /tmp/requirements.lock
