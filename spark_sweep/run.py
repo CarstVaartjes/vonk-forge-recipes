@@ -3064,9 +3064,22 @@ class Sweep:
             if isinstance(row, Mapping) and row.get("action") == "stop"
         ]
         online = {s.id for s in self.sparks()}
-        if any(not set(row.get("node_ids", [])) <= online for row in stops):
-            # an empty whole-fleet load would clear an offline Spark
-            return self._clearing_refused("a reviewed stop reaches an offline Spark")
+        enrolled = {s.id for s in self.enrolled()}
+        own = self._own_aliases()
+        if any(
+            not set(row.get("node_ids", [])) <= online
+            and not (
+                set(row.get("node_ids", [])) <= enrolled and row.get("alias") in own
+            )
+            for row in stops
+        ):
+            # An empty whole-fleet load would clear someone else's workload on an offline
+            # (or unselected) Spark. Our own workload there is stopped by the Controller
+            # once the Spark answers: an undeliverable stop of ours never holds the
+            # clearing of the online lanes.
+            return self._clearing_refused(
+                "a reviewed stop reaches a workload that is not ours on an offline Spark"
+            )
         kept = {
             slot["alias"]
             for slot in self.state.slots.values()
@@ -3538,6 +3551,7 @@ class Sweep:
                         reason=f"review blocked by {', '.join(holders)}; their clearing "
                         f"was not submitted ({why}): clearing again",
                         disposition=Disposition.WAIT.value,
+                        document=document,
                     )
                 return
             # The same workloads outlived a submitted clearing: their owner keeps them. Wait
@@ -3552,6 +3566,7 @@ class Sweep:
                     reason="review blocked by workloads that outlived a clearing: "
                     + ", ".join(holders),
                     disposition=Disposition.WAIT.value,
+                    document=document,
                 )
             return
         self.state.data.pop("cleared_for", None)

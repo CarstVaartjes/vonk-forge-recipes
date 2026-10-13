@@ -17,6 +17,7 @@ from pathlib import Path
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
+from spark_sweep import policy
 from spark_sweep.report import build_status, render_status
 
 pytest_plugins = ["sweep_bounds"]
@@ -197,3 +198,90 @@ def test_a_spark_that_is_not_enrolled_is_a_topology_verdict(
         if r.get("status") == "skipped" and r.get("step") == "reconcile"
     ]
     assert skips and all("controller_document" in r for r in skips)
+
+
+# -- 22:29Z: the online lane idled behind a clearing refused for the offline Spark ----------
+
+LATER = FIXTURE["at_22_29"]
+
+
+def test_an_undeliverable_stop_of_ours_does_not_hold_the_online_lane(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    """Recorded at 22:29Z: our leftover on spark-2297 blocked the next review; every clearing
+    was refused because its whole-fleet stops also reached our orphan run on the offline
+    spark-3542, and the online lane idled ("IDLE WITH READY WORK") behind it."""
+    offline, online = LATER["nodes"]
+    orphan, leftover = offline["loaded"][0], online["loaded"][0]
+    blocked = LATER["blocked_recipe"].partition("/")[2]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [FakeRecipe(blocked, local="cached", memory=20 * GB)],
+        [FakeModel("m1", local="cached")],
+        gateway=gateway,
+        only=(blocked,),
+    )
+    fleet.sparks = [(n["id"], n["display_name"]) for n in (offline, online)]
+    fleet.offline_nodes = {offline["id"]}
+    fleet.offline_facts = {offline["id"]: dict(offline["connection"])}
+    for node, run in ((offline, orphan), (online, leftover)):
+        selector = f"vonk-forge/{run['alias'].replace('.', '-')}-recorded"
+        fleet.recipes[selector] = FakeRecipe(
+            selector.partition("/")[2], alias=run["alias"]
+        )
+        fleet.runs.append(
+            {
+                "alias": run["alias"],
+                "recipe": selector,
+                "run_id": run["run_id"],
+                "node_ids": [node["id"]],
+                "ready": run["run_state"] == "running",
+            }
+        )
+    fleet.profiles[10] = {
+        "revision": 1,
+        "latest": None,
+        "labels": {"purpose": "hardware-sweep"},
+        "assignments": list(LATER["profile_10_assignments"]),
+    }
+    sweep.state.data.update(
+        own_aliases=[orphan["alias"], leftover["alias"]],
+        cleared_for=LATER["cleared_for"],
+        clearing_refusal=LATER["clearing_refusal"],
+        takeover_budget={**LATER["takeover_budget"], "next_check": 0.0},
+    )
+    sweep.state.save()
+    sweep.preflight()
+    sweep.refresh_catalog()
+    # The recorded block: the review of the next single on spark-2297 names our leftover.
+    recipe = sweep.recipes[LATER["blocked_recipe"]]
+    sweep._blocked({}, {}, [policy.Placement(recipe, (online["id"],))], clock.now())
+    waits = [r for r in _results(tmp_path) if r.get("status") == "waiting"]
+    assert waits and "clearing again" in waits[-1]["reason"]
+    # The clearing is submitted: its stop on the offline Spark is queued, not a refusal.
+    sweep._take_over(clock.now())
+    assert sweep.state.data.get("cleared_by")
+    assert "clearing_refusal" not in sweep.state.data
+    assert sweep.state.data["takeover_budget"]["attempts"] == 0
+
+    alerts: list[str] = []
+    clock.hooks.append(lambda _t: alerts.extend(sweep.state.data.get("alerts", [])))
+    assert sweep.run() == 0
+
+    assert sweep.state.recipes[LATER["blocked_recipe"]]["status"] == "passed"
+    assert not [a for a in alerts if a.startswith("IDLE WITH READY WORK")]
+    assert not any(run["run_id"] == leftover["run_id"] for run in fleet.runs)
+    # The stop of our orphan waits on the Spark; it is never a reason to refuse the clearing.
+    assert any(run["run_id"] == orphan["run_id"] for run in fleet.runs)
+    assert not any("offline Spark" in str(r.get("reason")) for r in _results(tmp_path))
+    queued = [
+        effect
+        for app in fleet.apps.values()
+        for effect in app.get("effects", [])
+        if effect["target_id"] == orphan["run_id"]
+    ]
+    assert queued and all(effect["state"] == "pending" for effect in queued)
+    fleet.offline_nodes.clear()  # the Spark answers: the queued stop is delivered
+    clock.sleep(600)
+    sweep.vk.run("fleet")
+    assert not any(run["run_id"] == orphan["run_id"] for run in fleet.runs)
