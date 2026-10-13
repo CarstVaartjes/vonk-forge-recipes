@@ -1594,6 +1594,108 @@ class SharedContextTests(unittest.TestCase):
         self.assertIsInstance(refresh.combine_group(["a", "b"], assessed), str)
 
 
+class ReviewIssueLifecycleTests(unittest.TestCase):
+    """One issue per recipe for life, showing the current assessment (#1282, #1283)."""
+
+    TARGET = refresh.Target("github", "o/r", NEW, "2026-09-30", None, None, "u")
+
+    def assessment(self, recipe_id: str, *, item=False, reason="", unreachable=""):
+        result = refresh.Assessment(recipe_id)
+        if item:
+            result.items.append(
+                refresh.Item("source", "github", "o/r", OLD, self.TARGET)
+            )
+        if reason:
+            result.reasons.append(reason)
+        if unreachable:
+            result.unreachable.append(unreachable)
+        return result
+
+    def run_gh(self, issues: dict[str, list[dict]], call, *arguments):
+        calls: list[tuple[str, ...]] = []
+
+        def gh_json(*args: str):
+            return issues[args[args.index("--state") + 1]]
+
+        def gh(*args: str, check: bool = True):
+            calls.append(args)
+            return ""
+
+        with (
+            patch("refresh_upstream.gh_json", side_effect=gh_json),
+            patch("refresh_upstream.gh", side_effect=gh),
+        ):
+            call(*arguments)
+        return calls
+
+    def test_only_current_gone_or_handled_recipes_close(self) -> None:
+        names = ["current", "deferred", "handled", "waiting", "gone"]
+        issues = {
+            "open": [
+                {"number": n, "title": refresh.issue_title(name)}
+                for n, name in enumerate(names, start=1)
+            ]
+        }
+        assessed = {
+            "current": self.assessment("current"),
+            "deferred": self.assessment("deferred", item=True),
+            "handled": self.assessment("handled", item=True),
+            "waiting": self.assessment("waiting", unreachable="x not found"),
+        }
+        summary = refresh.Summary()
+        calls = self.run_gh(
+            issues, refresh.close_current_issues, assessed, {"handled"}, summary
+        )
+        closed = [c[2] for c in calls if c[:2] == ("issue", "close")]
+        self.assertEqual(closed, ["1", "3", "5"])
+
+    def test_a_recipe_that_needs_review_again_reopens_its_issue(self) -> None:
+        title = refresh.issue_title("recipe")
+        issues = {
+            "open": [],
+            "closed": [
+                {"number": 7, "title": title, "body": "old"},
+                {"number": 9, "title": title, "body": "older"},
+            ],
+        }
+        result = self.assessment("recipe", item=True, reason="run.sh changed")
+        calls = self.run_gh(issues, refresh.sync_issue, result, refresh.Summary())
+        self.assertEqual(calls[0], ("issue", "reopen", "9"))
+        self.assertEqual(calls[1][:3], ("issue", "edit", "9"))
+        self.assertFalse([c for c in calls if c[:2] == ("issue", "create")])
+
+    def test_first_review_creates_one_issue(self) -> None:
+        result = self.assessment("recipe", item=True, reason="run.sh changed")
+        calls = self.run_gh(
+            {"open": [], "closed": []}, refresh.sync_issue, result, refresh.Summary()
+        )
+        self.assertEqual([c[:2] for c in calls], [("issue", "create")])
+
+    def test_a_waiting_recipe_updates_only_an_open_issue(self) -> None:
+        result = self.assessment("recipe", unreachable="commit not on GitHub")
+        title = refresh.issue_title("recipe")
+        none = self.run_gh(
+            {"open": [], "closed": [{"number": 3, "title": title, "body": ""}]},
+            refresh.sync_issue,
+            result,
+            refresh.Summary(),
+            False,
+        )
+        self.assertEqual(none, [])
+        calls = self.run_gh(
+            {"open": [{"number": 4, "title": title, "body": "stale reason"}]},
+            refresh.sync_issue,
+            result,
+            refresh.Summary(),
+            False,
+        )
+        self.assertEqual(calls[0][:3], ("issue", "edit", "4"))
+        body = calls[0][4]
+        self.assertIn("waits for an upstream", body)
+        self.assertIn("## Why it waits", body)
+        self.assertIn("- commit not on GitHub", body)
+
+
 class StalePullRequestTests(unittest.TestCase):
     def close(self, assessed, groups=None, published=None, issues=()):
         pulls = [
