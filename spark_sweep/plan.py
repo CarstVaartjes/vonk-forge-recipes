@@ -14,14 +14,14 @@ RATES_MB_S = (100, 250, 500, 1000)
 def make_plan(
     recipes: Sequence[Recipe],
     models: Mapping[str, Model],
-    usable_sparks: int,
+    enrolled_sparks: int,
     done: Mapping[str, Mapping[str, Any]],
     boost: policy.Boost,
     measured_rate: float = 0.0,
     top: int = 25,
 ) -> dict[str, Any]:
-    testable = [r for r in recipes if r.node_count <= usable_sparks]
-    skipped = [r.key for r in recipes if r.node_count > usable_sparks]
+    testable = [r for r in recipes if r.node_count <= enrolled_sparks]
+    skipped = [r.key for r in recipes if r.node_count > enrolled_sparks]
     pending = [
         r
         for r in testable

@@ -261,6 +261,8 @@ class FakeFleet:
         self.worker_observation_age = 0.0
         self.worker_issue: str | None = None
         self.offline_nodes: set[str] = set()
+        # The Controller's connection facts of an offline node (offline_reason, last_seen_at).
+        self.offline_facts: dict[str, dict[str, Any]] = {}
         self.cleanup_stop_seconds: dict[str, float] = {}
         self.cleanup_projection = True
         self.cleanup_adoption = True
@@ -803,7 +805,12 @@ class FakeFleet:
                         "online_state": "reconnecting"
                         if node_id in self.offline_nodes
                         or (flaky and node_id == self.sparks[-1][0])
-                        else "online"
+                        else "online",
+                        **(
+                            self.offline_facts.get(node_id, {})
+                            if node_id in self.offline_nodes
+                            else {}
+                        ),
                     },
                     "inventory": {
                         "host_memory_total_bytes": SPARK_MEMORY,

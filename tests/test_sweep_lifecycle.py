@@ -333,7 +333,7 @@ def test_a_spark_offline_for_a_moment_does_not_rewrite_recorded_results(
     sweep, _, _ = make_sweep(tmp_path, [dual], [FakeModel("m1")], gateway=gateway)
     sweep.run()
     assert sweep.state.recipes["vonk-forge/dual"]["status"] == "passed"
-    sweep._reconcile_entry(sweep.recipes["vonk-forge/dual"], usable_sparks=1)
+    sweep._reconcile_entry(sweep.recipes["vonk-forge/dual"], enrolled_sparks=1)
     assert sweep.state.recipes["vonk-forge/dual"]["status"] == "passed"
 
 

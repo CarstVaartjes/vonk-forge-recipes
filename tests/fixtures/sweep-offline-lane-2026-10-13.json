@@ -1,0 +1,95 @@
+{
+ "_source": "hardware sweep 2026-10-13: vonkctl fleet --json at 21:58:30Z, profile 10 export and profile load --profile 10 --review (read-only), sweep state/results.jsonl",
+ "fleet_generated_at": "2026-10-13T21:58:30.247383Z",
+ "nodes": [
+  {
+   "id": "spk_2818d189042b4c77aefa7796f4befd23",
+   "display_name": "spark-3542",
+   "connection": {
+    "online_state": "offline",
+    "offline_reason": "stale",
+    "last_seen_at": "2026-10-13T21:53:10.842298Z"
+   },
+   "loaded": [
+    {
+     "alias": "qwen3.8-27b-nvfp4",
+     "run_id": "1bf4162e-d4d9-4997-a8b6-e0f0baedf584",
+     "run_state": "starting",
+     "route_state": "withdrawn",
+     "healthy": false,
+     "degraded_reason": "run-not-running",
+     "installation_id": "24c4221f-48e9-412b-b330-9762cfb6ffee"
+    }
+   ]
+  },
+  {
+   "id": "spk_9a86fdbab116442ab6707bf4181a3c1c",
+   "display_name": "spark-2297",
+   "connection": {
+    "online_state": "online",
+    "offline_reason": null,
+    "last_seen_at": "2026-10-13T21:58:30.075717Z"
+   },
+   "loaded": [
+    {
+     "alias": "fastcontext-1.0-4b-rl-nvfp4",
+     "run_id": "6829ebf7-20bc-4163-b9e2-148fd2258968",
+     "run_state": "running",
+     "route_state": "published",
+     "healthy": true,
+     "degraded_reason": null,
+     "installation_id": "2fa2231c-2b09-4adf-8362-b01900e035e6"
+    }
+   ]
+  }
+ ],
+ "deferred": {
+  "recipe": "vonk-forge/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single",
+  "recorded_at": "2026-10-13T21:53:30.054733Z",
+  "code": "application.failed",
+  "error": "1 assignment(s) need reconciliation: run-switch.final-verification-timeout",
+  "alias": "qwen3.8-27b-nvfp4"
+ },
+ "profile_10_assignments_after": [
+  "hunyuanocr-1-5-vllm-dflash-single"
+ ],
+ "review_stops": [
+  {
+   "action": "stop",
+   "alias": "qwen3.8-27b-nvfp4",
+   "run_id": "1bf4162e-d4d9-4997-a8b6-e0f0baedf584",
+   "node_ids": [
+    "spk_2818d189042b4c77aefa7796f4befd23"
+   ]
+  },
+  {
+   "action": "stop",
+   "alias": "fastcontext-1.0-4b-rl-nvfp4",
+   "run_id": "6829ebf7-20bc-4163-b9e2-148fd2258968",
+   "node_ids": [
+    "spk_9a86fdbab116442ab6707bf4181a3c1c"
+   ]
+  }
+ ],
+ "skipped_at": "2026-10-13T21:55:45Z",
+ "skip_reasons": {
+  "not testable on this fleet: needs 2 Sparks, 1 usable": 62,
+  "not testable on this fleet: needs 4 Sparks, 1 usable": 11,
+  "not testable on this fleet: needs 3 Sparks, 1 usable": 5,
+  "not testable on this fleet: needs 8 Sparks, 1 usable": 1
+ },
+ "skipped_examples": [
+  {
+   "recipe": "vonk-forge/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-dual",
+   "node_count": 2
+  },
+  {
+   "recipe": "vonk-forge/inkling-small-nvfp4-sglang-dual",
+   "node_count": 2
+  },
+  {
+   "recipe": "vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight",
+   "node_count": 8
+  }
+ ]
+}
