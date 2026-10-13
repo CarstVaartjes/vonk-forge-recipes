@@ -149,6 +149,40 @@ def _api(path: str, token: str | None) -> Any:
         raise RuntimeError(f"GitHub API request failed for {path}: {error}") from error
 
 
+def unverified_mark(repo: str, commit: str) -> str:
+    """The provenance mark of a pin whose commit GitHub does not serve.
+
+    A recipe that runs a published image follows the image's digest; when the build
+    commit the image records is not on GitHub, ``vendored-upstream.json`` states the
+    commit with ``"unverified": unverified_mark(repo, commit)`` beside it, so the claim
+    is explicit rather than silent (tools/check-image-provenance, tools/refresh-upstream).
+    """
+    return f"commit {commit} not on github.com/{repo}"
+
+
+def commit_on_github(repo: str, commit: str) -> bool | None:
+    """Whether GitHub serves ``commit`` of ``repo``: ``None`` when it cannot be told.
+
+    Only a definitive answer counts: 200 is present, 404 or 422 ("No commit found") is
+    absent; rate limits, server errors and network failures are unknown.
+    """
+    token = _token()
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "vonk-forge-recipes",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    url = f"https://api.github.com/repos/{repo}/commits/{commit}"
+    try:
+        with urlopen(Request(url, headers=headers), timeout=60):
+            return True
+    except HTTPError as error:
+        return False if error.code in {404, 422} else None
+    except OSError:  # unreachable, timed out
+        return None
+
+
 def fetch_tree(repo: str, commit: str) -> Tree:
     cache_dir = Path(
         os.environ.get(
@@ -239,6 +273,16 @@ def check_adapter(adapter: Path, root: Path, load_tree: TreeLoader) -> Report:
         return report
     repo, commit = source
     report.source = f"{repo}@{commit[:12]}"
+    mark = (manifest.get("source") or {}).get("unverified")
+    if mark is not None:
+        if mark != unverified_mark(repo, commit):
+            report.problems.append(
+                f"{label}: {MANIFEST} source.unverified must read "
+                f"'{unverified_mark(repo, commit)}', not '{mark}'"
+            )
+        else:
+            report.note = f"provenance unverified ({mark}): vendored files not judged"
+        return report
     try:
         tree = load_tree(repo, commit)
     except RuntimeError as error:

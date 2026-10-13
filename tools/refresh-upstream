@@ -851,6 +851,10 @@ class Item:
         None  # a kit-declared dependency's pin: the target is the kit's, not the newest
     )
     image: tuple[str, str] | None = None  # (repository, digest) of a followed image
+    # The image's build commit is not on GitHub: the move is prepared with this
+    # provenance mark (vendored-upstream.json source.unverified) and goes to review.
+    unverified: str | None = None
+    unmark: bool = False  # the marked commit is on GitHub now: only the mark goes
 
     @property
     def label(self) -> str:
@@ -865,6 +869,10 @@ class Assessment:
     reasons: list[str] = field(default_factory=list)
     evidence: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)  # newer release lines: never a move
+    # Why a prepared move still needs a person (an image whose build commit GitHub does
+    # not serve): the edits are made, the pull request is not armed.
+    held: list[str] = field(default_factory=list)
+    pull_request: int | None = None  # the prepared pull request, when there is one
     edits: dict[str, bytes | None] = field(default_factory=dict)
     version: tuple[str, str] | None = None  # (version, released_at) after refresh
     members: list[str] = field(default_factory=list)  # recipes refreshed together
@@ -879,7 +887,18 @@ class Assessment:
 
     @property
     def mechanical(self) -> bool:
-        return self.drifted and not self.reasons and not self.unreachable
+        return (
+            self.drifted and not self.reasons and not self.unreachable and not self.held
+        )
+
+    @property
+    def for_review(self) -> bool:
+        """A move prepared as a pull request that a person merges (not armed)."""
+        return bool(self.held) and not self.reasons and not self.unreachable
+
+    @property
+    def prepared(self) -> bool:
+        return self.mechanical or self.for_review
 
     def fingerprint(self) -> str:
         text = "|".join(sorted(f"{i.kind}:{i.repo}:{i.target.sha}" for i in self.items))
@@ -1115,6 +1134,7 @@ def follow_image(
     current: str,
     image: tuple[str, str, str],
     source: Any,
+    marked: str | None = None,
 ) -> None:
     """The source pin of a recipe that runs its source's published image.
 
@@ -1123,6 +1143,12 @@ def follow_image(
     repository's newest commit or release, which the image may not contain). An image
     that records no build commit is a review: the recipe would claim a revision it does
     not run.
+
+    An image built from a commit GitHub does not serve is still followed by its digest
+    (the digest is the identity, the commit provenance): the move is prepared with the
+    commit marked unverified (``marked``, the adapter's ``source.unverified``) and goes to
+    review, since what changed in the files the recipe uses cannot be judged. Once GitHub
+    serves the commit the mark goes, and a later move is judged as any other.
     """
     repository, tag, pinned = image
     try:
@@ -1140,6 +1166,17 @@ def follow_image(
             f"### Published image {repository}:{tag}\n\n- unchanged at `{digest}`; the "
             f"recipe runs that image, so {repo} commits alone move nothing\n"
         )
+        if marked is not None and commit_on_github(http, repo, current) is True:
+            result.items.append(
+                Item(
+                    "source",
+                    "github",
+                    repo,
+                    current,
+                    _commit_target(repo, current, ""),
+                    unmark=True,
+                )
+            )
         return
     if found is None:
         result.reasons.append(
@@ -1152,14 +1189,33 @@ def follow_image(
     try:
         comparison = compare_commits(http, repo, current, commit)
     except (RuntimeError, KeyError, TypeError) as error:
-        # An image built from a commit GitHub does not serve (not pushed yet) cannot be
-        # stated or checked; it is retried until upstream publishes it or a newer image.
+        if commit_on_github(http, repo, commit) is False:
+            unverified_image(
+                result, repo, current, commit, built, repository, digest, source
+            )
+            return
+        # GitHub could not be asked (rate limit, outage): retried on the next run.
         result.unreachable.append(
             f"{repository}@{digest} records {repo} `{commit[:12]}`, which cannot be "
             f"compared upstream: {str(error)[:200]}"
         )
         return
-    target = Target(
+    result.items.append(
+        Item(
+            "source",
+            "github",
+            repo,
+            current,
+            _commit_target(repo, commit, built),
+            None,
+            comparison,
+            image=(repository, digest),
+        )
+    )
+
+
+def _commit_target(repo: str, commit: str, built: str) -> Target:
+    return Target(
         provider="github",
         repo=repo,
         sha=commit,
@@ -1168,17 +1224,61 @@ def follow_image(
         version=None,
         url=f"https://github.com/{repo}/commit/{commit}",
     )
+
+
+def commit_on_github(http: Http, repo: str, commit: str) -> bool | None:
+    """Whether GitHub serves the commit; ``None`` when it cannot be told (404/422: no)."""
+    try:
+        http.github(f"repos/{repo}/commits/{commit}")
+    except NotFound:
+        return False
+    except RuntimeError as error:
+        return False if str(error).startswith("HTTP 422") else None
+    return True
+
+
+def unverified_image(
+    result: Assessment,
+    repo: str,
+    current: str,
+    commit: str,
+    built: str,
+    repository: str,
+    digest: str,
+    source: Any,
+) -> None:
+    """Follow an image whose build commit GitHub does not serve, for review."""
+    mark = vendored.unverified_mark(repo, commit)
     result.items.append(
         Item(
             "source",
             "github",
             repo,
             current,
-            target,
-            None,
-            comparison,
+            _commit_target(repo, commit, built),
             image=(repository, digest),
+            unverified=mark,
         )
+    )
+    result.held.append(
+        f"{repository}@{digest} records {repo} `{commit[:12]}`, which is not on GitHub: "
+        "the pull request follows the image by digest with its provenance marked "
+        f"unverified ({mark}); what changed in the files the recipe uses cannot be "
+        "judged until upstream publishes that commit"
+    )
+    try:
+        metadata = source.oci().build_metadata(repository, digest)
+    except (kit_pins.KitError, RuntimeError, KeyError, ValueError):
+        metadata = None
+    result.evidence.append(
+        f"### What the image {repository}@{digest} shows\n\n"
+        + (
+            "Its `build-metadata.yaml` (image data, evidence only):\n\n"
+            + fence(clip(metadata, 4000), "yaml")
+            if metadata
+            else "The image carries no readable `build-metadata.yaml` beyond its build commit."
+        )
+        + "\n"
     )
 
 
@@ -1320,6 +1420,7 @@ def collect_items(
             source[2],
             followed,
             kit_source or kit_upstream(http),
+            (adapter_manifest(context).get("source") or {}).get("unverified"),
         )
     elif source is not None:
         same = pin is not None and pin.repo.lower() == source[1].lower()
@@ -1918,7 +2019,9 @@ class Assessor:
         new_recipe = json.loads(json.dumps(recipe))
         for item in result.items:
             try:
-                if item.kind == "model":
+                if item.unverified is not None or item.unmark:
+                    self._mark(item, recipe, new_recipe, result, edits)
+                elif item.kind == "model":
                     self._model(item, recipe, new_recipe, result, edits)
                 elif item.kind == "image":
                     self._image(item, recipe, new_recipe, result, edits)
@@ -1939,13 +2042,77 @@ class Assessor:
                     f"{item.label}: could not be assessed: {str(error)[:300]}"
                 )
         result.items = [item for item in result.items if not item.noop]
-        if result.mechanical:
-            version, date = released(recipe, result.items)
-            new_recipe["release"] = {"version": version, "released_at": date}
-            result.version = (version, date)
-            edits[f"recipes/{recipe_id}.json"] = canonical(new_recipe)
+        if result.prepared:
+            moves = [item for item in result.items if not item.unmark]
+            if moves:  # dropping a provenance mark alone is no new release
+                version, date = released(recipe, moves)
+                new_recipe["release"] = {"version": version, "released_at": date}
+                result.version = (version, date)
+            if new_recipe != recipe:
+                edits[f"recipes/{recipe_id}.json"] = canonical(new_recipe)
             result.edits = edits
         return result
+
+    def _mark(
+        self,
+        item: Item,
+        recipe: dict[str, Any],
+        new_recipe: dict[str, Any],
+        result: Assessment,
+        edits: dict[str, bytes | None],
+    ) -> None:
+        """Follow an image whose build commit is not on GitHub, or drop that mark.
+
+        The image moves by digest and every place that states the commit states the
+        recorded one, with ``source.unverified`` beside it in ``vendored-upstream.json``.
+        No changed file is judged: the commit cannot be read (the move goes to review).
+        """
+        pin = adapter_pin(self.catalog.root, recipe)
+        if pin is None or not (pin.directory / vendored.MANIFEST).is_file():
+            raise RuntimeError(f"no {vendored.MANIFEST} source to carry the mark")
+        if item.unverified is not None:
+            assert item.image is not None
+            repository, digest = item.image
+            self._retarget_reference(new_recipe, item)
+            self._retarget_adapter(pin, item, edits, result)
+            self._move_image(
+                pin.directory,
+                repository,
+                digest,
+                lambda written: _pinned(written, digest),
+                new_recipe,
+                edits,
+            )
+            result.evidence.append(
+                f"The recipe runs {repository} as published; it moves to `{digest}`, "
+                f"which records {item.repo} at `{item.target.sha}` (not on GitHub: "
+                "provenance marked unverified).\n"
+            )
+        else:
+            result.evidence.append(
+                f"- {item.repo} `{item.current[:12]}` is on GitHub now: the "
+                "`source.unverified` mark goes; the image is unchanged.\n"
+            )
+        self._set_mark(pin.directory, item.unverified, edits)
+
+    def _set_mark(
+        self, directory: Path, mark: str | None, edits: dict[str, bytes | None]
+    ) -> None:
+        """Write (or, with ``None``, drop) ``source.unverified`` in the adapter manifest."""
+        path = directory / vendored.MANIFEST
+        if not path.is_file():
+            return
+        document = json.loads(self._pending(path, edits))
+        source = document.get("source")
+        if not isinstance(source, dict) or source.get("unverified") == mark:
+            return
+        if mark is None:
+            del source["unverified"]
+        else:
+            source["unverified"] = mark
+        edits[path.relative_to(self.catalog.root).as_posix()] = (
+            json.dumps(document, indent=2) + "\n"
+        ).encode()
 
     # A source_reference names "<repo>/tree/<sha>"; move only the commit.
     @staticmethod
@@ -2132,6 +2299,8 @@ class Assessor:
                 changed = changed or relabelled
             if changed:
                 edits[path.relative_to(root).as_posix()] = text.encode()
+        if item.unverified is None:
+            self._set_mark(pin.directory, None, edits)
 
     def _retarget_kit(
         self, directory: Path, item: Item, edits: dict[str, bytes | None]
@@ -2617,6 +2786,9 @@ def pr_body(assessment: Assessment, failures: int = 0) -> str:
             "Why this is mechanical: the new commit is a descendant of the pin; no vendored file, "
             "launch script, configuration, patch target or README changed; Model files keep their "
             "paths and roles; the full test suite and `tools/check-vendored-upstream` passed."
+            if not assessment.held
+            else "Needs review, not merged automatically:\n\n"
+            + "\n".join(f"- {text}" for text in assessment.held)
         ),
         "",
         *[f"> {note}\n" for note in assessment.notes],
@@ -2687,6 +2859,11 @@ def issue_body(assessment: Assessment, previous: str | None = None) -> str:
             "The recipe is unchanged; every run assesses it again, and this issue closes "
             "itself once the recipe is current or its refresh pull request is open."
             if waiting
+            else f"`{assessment.recipe_id}` follows its image by digest in pull request "
+            f"#{assessment.pull_request}, which is not merged automatically: the image's "
+            "build commit is not on GitHub, so its provenance is marked unverified and "
+            "what the image changed must be judged from what it shows (below)."
+            if assessment.for_review and assessment.pull_request is not None
             else f"`{assessment.recipe_id}` is behind its upstream and a script cannot "
             "refresh it safely. The recipe is unchanged."
         ),
@@ -2701,7 +2878,10 @@ def issue_body(assessment: Assessment, previous: str | None = None) -> str:
         "",
         "## Why it waits" if waiting else "## Why this is not mechanical",
         "",
-        *[f"- {reason}" for reason in assessment.unreachable + assessment.reasons],
+        *[
+            f"- {reason}"
+            for reason in assessment.unreachable + assessment.reasons + assessment.held
+        ],
         "",
         *[f"> {note}\n" for note in assessment.notes],
         "## Evidence",
@@ -2905,6 +3085,15 @@ def previous_failures(body: str | None) -> int:
 def publish_mechanical(
     root: Path, assessment: Assessment, summary: Summary
 ) -> int | None:
+    """Prepare the refresh PR; a move held for review is prepared but never armed."""
+    number = _publish(root, assessment, summary, arm=not assessment.held)
+    assessment.pull_request = number
+    return number
+
+
+def _publish(
+    root: Path, assessment: Assessment, summary: Summary, *, arm: bool
+) -> int | None:
     """Prepare (or regenerate) the refresh PR on the newest upstream; returns its number.
 
     Every run rebuilds the branch from main and force-pushes it when anything differs. A
@@ -2994,18 +3183,37 @@ def publish_mechanical(
     if open_pr and remote and state not in {"failed", "cancelled"}:
         git("fetch", "-q", "origin", branch, cwd=root)
         if git("rev-parse", "FETCH_HEAD^{tree}", cwd=root) == tree:
-            arm_mechanical_pr(open_pr["number"], recipe_id, summary)
+            if arm:
+                arm_mechanical_pr(open_pr["number"], recipe_id, summary)
             summary.mechanical.append(
                 f"{recipe_id}: PR #{open_pr['number']} already current"
+                + ("" if arm else " (review, not armed)")
             )
             return int(open_pr["number"])
     git("push", "-q", "--force", "origin", f"HEAD:refs/heads/{branch}", cwd=root)
     summary.prepared += 1
     title = f"Refresh {assessment.label} to the newest upstream pins"
     body = pr_body(assessment, failures)
+    label, other = (
+        (LABEL_MECHANICAL, LABEL_NEEDS_REVIEW)
+        if arm
+        else (LABEL_NEEDS_REVIEW, LABEL_MECHANICAL)
+    )
     if open_pr:
         number = open_pr["number"]
-        gh("pr", "edit", str(number), "--title", title, "--body", body)
+        gh(
+            "pr",
+            "edit",
+            str(number),
+            "--add-label",
+            label,
+            "--remove-label",
+            other,
+            "--title",
+            title,
+            "--body",
+            body,
+        )
     else:
         url = gh(
             "pr",
@@ -3019,12 +3227,15 @@ def publish_mechanical(
             "--body",
             body,
             "--label",
-            LABEL_MECHANICAL,
+            label,
         ).strip()
         number = int(url.rsplit("/", 1)[-1])
-    arm_mechanical_pr(number, recipe_id, summary)
+    if arm:
+        arm_mechanical_pr(number, recipe_id, summary)
     # App-created PRs trigger normal pull_request validation without human approval.
-    summary.mechanical.append(f"{recipe_id}: PR #{number}")
+    summary.mechanical.append(
+        f"{recipe_id}: PR #{number}" + ("" if arm else " (review, not armed)")
+    )
     return int(number)
 
 
@@ -3054,7 +3265,7 @@ def combine_group(
     parts: list[Assessment] = []
     for member in members:
         part = assessed.get(member)
-        if part is None or not part.mechanical:
+        if part is None or not part.prepared:
             return f"{member} sharing the build context is not mechanical right now"
         parts.append(part)
     edits: dict[str, bytes | None] = {}
@@ -3069,6 +3280,7 @@ def combine_group(
         items=[item for part in parts for item in part.items],
         evidence=[text for part in parts for text in part.evidence],
         notes=list(dict.fromkeys(note for part in parts for note in part.notes)),
+        held=list(dict.fromkeys(text for part in parts for text in part.held)),
         edits=edits,
         version=lead.version,
         members=list(members),
@@ -3118,18 +3330,22 @@ def close_stale_refresh_prs(
     needs review) would otherwise sit on an old upstream commit forever. The review
     issue, when there is one, is linked in the comment.
     """
-    pulls = gh_json(
-        "pr",
-        "list",
-        "--state",
-        "open",
-        "--label",
-        LABEL_MECHANICAL,
-        "--limit",
-        "200",
-        "--json",
-        "number,headRefName,body",
-    )
+    pulls = [
+        pr
+        for label in (LABEL_MECHANICAL, LABEL_NEEDS_REVIEW)  # held moves are PRs too
+        for pr in gh_json(
+            "pr",
+            "list",
+            "--state",
+            "open",
+            "--label",
+            label,
+            "--limit",
+            "200",
+            "--json",
+            "number,headRefName,body",
+        )
+    ]
     issues: list[dict[str, Any]] = (
         gh_json(
             "issue",
@@ -3160,7 +3376,7 @@ def close_stale_refresh_prs(
                 "the shared pins inconsistent."
             )
         elif recipe_id in (published or set()) or (
-            result is not None and (result.unreachable or result.mechanical)
+            result is not None and (result.unreachable or result.prepared)
         ):
             continue
         elif result is None:
@@ -3600,6 +3816,7 @@ def command_run(arguments: argparse.Namespace) -> int:
     grouped: set[str] = set()
     published: set[str] = set()  # refresh PRs regenerated by this run
     handled: set[str] = set()  # recipes (group members too) an open refresh PR covers
+    prepared_prs: dict[str, int | None] = {}  # group member -> the group's PR
     for result in results:
         if result.drifted and (
             blockers := blocking_prs(
@@ -3625,7 +3842,7 @@ def command_run(arguments: argparse.Namespace) -> int:
         if not result.drifted:
             continue
         try:
-            if result.mechanical:
+            if result.prepared:
                 if summary.prepared >= MAX_MECHANICAL_PER_RUN:
                     summary.deferred.append(
                         f"{result.recipe_id}: mechanical, over this run's limit"
@@ -3637,6 +3854,10 @@ def command_run(arguments: argparse.Namespace) -> int:
                         published.add(result.recipe_id)
                         handled.add(result.recipe_id)
                 elif result.recipe_id in grouped:
+                    if result.held:  # its own issue says where the move is
+                        result.pull_request = prepared_prs.get(result.recipe_id)
+                        review_ids.add(result.recipe_id)
+                        sync_issue(result, summary)
                     continue
                 else:
                     grouped.update(members)
@@ -3658,6 +3879,8 @@ def command_run(arguments: argparse.Namespace) -> int:
                     else:
                         seen = sum(len(assessed[m].evidence) for m in members)
                         number = publish_mechanical(root, combined, summary)
+                        result.pull_request = number
+                        prepared_prs.update(dict.fromkeys(members, number))
                         result.reasons.extend(combined.reasons)
                         result.evidence.extend(combined.evidence[seen:])
                         if number is not None:
@@ -3666,7 +3889,7 @@ def command_run(arguments: argparse.Namespace) -> int:
                             supersede_member_prs(
                                 members, combined.recipe_id, number, summary
                             )
-            if result.reasons:
+            if result.reasons or result.held:
                 review_ids.add(result.recipe_id)
                 sync_issue(result, summary)
         except (RuntimeError, OSError, KeyError) as error:
