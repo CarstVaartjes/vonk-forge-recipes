@@ -3799,12 +3799,14 @@ def command_run(arguments: argparse.Namespace) -> int:
                     if result.unreachable
                     else "mechanical"
                     if result.mechanical
+                    else "review-pr"  # prepared, never armed
+                    if result.for_review
                     else "review"
                 )
                 print(
                     state,
                     result.recipe_id,
-                    "; ".join(result.unreachable + result.reasons)[:300],
+                    "; ".join(result.unreachable + result.reasons + result.held)[:300],
                 )
         return 0
     ensure_labels()
