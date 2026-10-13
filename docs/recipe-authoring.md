@@ -432,10 +432,21 @@ publishes as current. When that tag names another digest, the Dockerfile's `FROM
 to that digest and to the build commit the image records (its
 `org.opencontainers.image.revision` label, or the `build_script_commit` of its
 `build-metadata.yaml`); vendored files are checked at that commit as above. An unchanged
-image proposes nothing; an image built from a commit GitHub does not serve waits
-(unreachable); one that records no build commit is a review.
+image proposes nothing; one that records no build commit is a review. An image built from a
+commit GitHub does not serve (404/422; a rate limit or outage only waits) is still followed
+by its digest, since the digest is the identity and the commit provenance: the pull request
+moves `FROM`, `base_image`, the revision label, `source_reference` and `vendored-upstream.json`
+to the recorded commit with `"unverified": "commit <sha> not on github.com/<repo>"` beside
+it, is labelled `refresh:needs-review` and is never armed, and the recipe's issue shows what
+the image records (its `build-metadata.yaml`: vLLM version and commit, build date) for a person
+to judge, because the files the recipe uses cannot be compared. Once GitHub serves the commit,
+the next run drops the mark (a mechanical pull request) or, before merge, judges the move as
+any other. A later image that moves a marked pin to a published commit is held for review the
+same way (the old side cannot be compared) and drops the mark.
 `tools/check-image-provenance` holds every changed recipe of this kind to the commit its
-image records.
+image records, and accepts a commit GitHub does not serve only with that explicit mark (a
+mark on a commit GitHub serves is stale and fails too); `tools/check-vendored-upstream` does
+not judge vendored files of a correctly marked pin.
 
 Then a bounded set of pull requests (branch `refresh/<recipe-id>`, label
 `refresh:mechanical`) is opened or updated using a repository-scoped GitHub App.
