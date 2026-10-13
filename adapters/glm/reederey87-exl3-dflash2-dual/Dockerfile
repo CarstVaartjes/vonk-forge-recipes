@@ -1,5 +1,5 @@
-# Vonk Forge packaging of Reederey87/glm53-flash-exl3-2x-dgx-spark v1.5.1
-# (commit fd87969c). Everything above the "Vonk Controller entrypoint" section is
+# Vonk Forge packaging of Reederey87/glm53-flash-exl3-2x-dgx-spark v1.6.0
+# (commit aad6481c). Everything above the "Vonk Controller entrypoint" section is
 # upstream's Dockerfile: the digest-pinned GLM-5.3 day-0 arm64 vLLM image, the
 # exllamav3 source build with the fat-expert kernels and ticket scheduler, and
 # the build-time patches. Upstream's start.sh additionally applies a second
@@ -101,8 +101,8 @@
 FROM docker.io/vllm/vllm-openai@sha256:905c02933be6021301db2dc284e24e3727467aa3a0f63b41d609885778a07bce
 
 LABEL org.opencontainers.image.source="https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark" \
-      org.opencontainers.image.revision="fd87969cb43a5ba66573bd2508bc05651fc1579c" \
-      org.opencontainers.image.version="1.5.1" \
+      org.opencontainers.image.revision="aad6481c94b20ef4853ea07819f3f4ea2ec18f33" \
+      org.opencontainers.image.version="1.6.0" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 COPY vonk-patches/patch_sm120_sparse_mla_nope.py /opt/glm53/vonk-patches/patch_sm120_sparse_mla_nope.py
@@ -227,8 +227,13 @@ RUN EXL3_SELFCHECK_GPU=0 python3 /opt/glm53/test_exl3_overlay.py \
 # when start.sh re-runs them on a container started from the built image.
 # GLM53_FINE_GRAINED_APC=1 is upstream's production setting and gates that patch
 # at patch time; patch_spinwait_gb10.py is upstream's opt-in (GLM53_SPINWAIT_2MS,
-# off in env.example) and is not applied. Every other patch reads its knob at run
-# time from the recipe environment.
+# off in env.example) and is not applied. v1.6.0's production image
+# (e3-armc-shm50, per its release notes) also bakes the 50 ms SHM recheck
+# (Dockerfile.shm-recheck-layer) and runs with GLM53_PREFIX_ADMIT=1 and
+# GLM53_RESIDENT_TAIL=1; those three patches gate at patch time, so they are
+# set here, in start.sh's order (shm recheck after kpool tail, prefix admit and
+# resident tail last). Every other patch reads its knob at run time from the
+# recipe environment.
 COPY overlay/patch_apc_per_group_retention.py /opt/glm53/patch_apc_per_group_retention.py
 COPY overlay/patch_router_gemm_gb10.py /opt/glm53/patch_router_gemm_gb10.py
 COPY overlay/patch_fine_grained_apc.py /opt/glm53/patch_fine_grained_apc.py
@@ -241,8 +246,11 @@ COPY overlay/patch_w28_correctness.py /opt/glm53/patch_w28_correctness.py
 COPY overlay/patch_indexer_workspace.py /opt/glm53/patch_indexer_workspace.py
 COPY overlay/patch_mamba_null_gap_retirement.py /opt/glm53/patch_mamba_null_gap_retirement.py
 COPY overlay/patch_kv_merge_assert.py /opt/glm53/patch_kv_merge_assert.py
+COPY overlay/patch_shm_recheck.py /opt/glm53/patch_shm_recheck.py
+COPY overlay/patch_prefix_admit.py /opt/glm53/patch_prefix_admit.py
+COPY overlay/patch_resident_tail.py /opt/glm53/patch_resident_tail.py
 RUN set -eux; \
-    export GLM53_FINE_GRAINED_APC=1; \
+    export GLM53_FINE_GRAINED_APC=1 GLM53_SHM_RECHECK_50MS=1 GLM53_PREFIX_ADMIT=1 GLM53_RESIDENT_TAIL=1; \
     for patch in \
         patch_glm_video_placeholders \
         patch_suppress_stops_in_reasoning \
@@ -254,6 +262,7 @@ RUN set -eux; \
         patch_cache_reset \
         patch_router_gemm_gb10 \
         patch_kpool_tail_slotmap \
+        patch_shm_recheck \
         patch_fine_grained_apc \
         patch_align_floor \
         patch_adaptive_k \
@@ -263,7 +272,9 @@ RUN set -eux; \
         patch_w28_correctness \
         patch_indexer_workspace \
         patch_mamba_null_gap_retirement \
-        patch_kv_merge_assert; \
+        patch_kv_merge_assert \
+        patch_prefix_admit \
+        patch_resident_tail; \
     do python3 -S "/opt/glm53/${patch}.py"; done
 
 # Vonk Controller entrypoint: upstream's SSH/docker launcher (start.sh) is not
