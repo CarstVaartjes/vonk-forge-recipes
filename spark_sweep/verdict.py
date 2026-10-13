@@ -109,7 +109,8 @@ class Signal:
     waiting_on: str | None = None
 
 
-def _blocker_codes(document: Mapping[str, Any]) -> list[str]:
+def _blocker_codes(document: Mapping[str, Any], *, holding: bool = False) -> list[str]:
+    """The blocker codes; ``holding`` keeps only error severity (a warning is a brief hold)."""
     progress = document.get("progress")
     held = document.get("blockers") or (
         progress.get("blockers") if isinstance(progress, Mapping) else None
@@ -117,7 +118,9 @@ def _blocker_codes(document: Mapping[str, Any]) -> list[str]:
     return [
         str(item.get("code") or "")
         for item in held or []
-        if isinstance(item, Mapping) and item.get("code")
+        if isinstance(item, Mapping)
+        and item.get("code")
+        and (not holding or item.get("severity") == "error")
     ]
 
 
@@ -126,7 +129,9 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
     progress = document.get("progress")
     progress = progress if isinstance(progress, Mapping) else {}
     state = str(document.get("state") or "")
-    held = [code for code in _blocker_codes(document) if code != PHASE_RETRY]
+    held = [
+        code for code in _blocker_codes(document, holding=True) if code != PHASE_RETRY
+    ]
     waiting_on: str | None = None
     if state in ("queued", "backoff"):
         waiting_on = f"application {state}"

@@ -82,6 +82,14 @@ def test_the_works_own_silence_for_a_window_is_stalled(name: str) -> None:
     )
 
 
+def test_a_warning_blocker_is_a_brief_hold_not_a_wait() -> None:
+    document = _document("running-silent")
+    document["progress"]["blockers"] = [
+        {"code": "run-switch.something", "detail": "brief", "severity": "warning"}
+    ]
+    assert verdict.application_signal(document).waiting_on is None
+
+
 def test_movement_restarts_the_window_and_a_wait_never_ages_it() -> None:
     watch: dict[str, Any] = {}
     silent = verdict.application_signal(_document("running-silent"))
