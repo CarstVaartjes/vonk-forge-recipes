@@ -1369,10 +1369,12 @@ def archive_sha256(repo: str, commit: str) -> str:
 
 
 def retarget_archive_labels(dockerfile: str, item: Item) -> tuple[str, bool]:
-    """Move ``*archive-sha256`` labels that digest the pinned commit's archive.
+    """Move the pinned commit's archive digest wherever the Dockerfile states it.
 
-    Only a label whose value equals the archive digest of the old pin belongs to this
-    repository; others (other sources, wheels) are left alone.
+    An ``*archive-sha256`` label whose value equals the archive digest of the old pin
+    marks the Dockerfile as fetching that archive; every occurrence of that digest (the
+    label and the ``sha256sum --check`` line that verifies the download) then moves to
+    the new archive's digest. Other digests (other sources, wheels) are left alone.
     """
     matches = list(ARCHIVE_LABEL.finditer(dockerfile))
     if not matches:
@@ -1381,15 +1383,7 @@ def retarget_archive_labels(dockerfile: str, item: Item) -> tuple[str, bool]:
     if not any(m.group(2) == old for m in matches):
         return dockerfile, False
     new = archive_sha256(item.repo, item.target.sha)
-    return (
-        ARCHIVE_LABEL.sub(
-            lambda m: (
-                m.group(1) + new + m.group(3) if m.group(2) == old else m.group(0)
-            ),
-            dockerfile,
-        ),
-        True,
-    )
+    return dockerfile.replace(old, new), True
 
 
 def patch_targets(adapter: Path) -> set[str]:

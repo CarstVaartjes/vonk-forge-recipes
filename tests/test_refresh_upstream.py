@@ -1016,6 +1016,22 @@ class ArchiveLabelTests(unittest.TestCase):
         self.assertIn(f'a.archive-sha256="{self.NEW_DIGEST}"', moved)
         self.assertIn(f'mia-source-archive-sha256="{self.OTHER}"', moved)
 
+    def test_the_download_check_moves_with_the_label(self) -> None:
+        # The LTX adapters state the digest twice; moving only the label left the
+        # sha256sum check on the old archive and the build would fail.
+        text = (
+            f'LABEL a.archive-sha256="{self.OLD_DIGEST}"\n'
+            f"RUN curl -o /tmp/s.tar.gz https://codeload.github.com/o/r/tar.gz/{OLD} \\\n"
+            f"    && printf '%s  %s\\n' {self.OLD_DIGEST} /tmp/s.tar.gz | sha256sum -c\n"
+            f"    && printf '%s  %s\\n' {self.OTHER} /tmp/wheel.whl | sha256sum -c\n"
+        )
+        with patch("refresh_upstream.archive_sha256", self.digest):
+            moved, changed = refresh.retarget_archive_labels(text, self.item())
+        self.assertTrue(changed)
+        self.assertNotIn(self.OLD_DIGEST, moved)
+        self.assertEqual(moved.count(self.NEW_DIGEST), 2)
+        self.assertIn(self.OTHER, moved)
+
     def test_unrelated_archive_labels_are_left_alone(self) -> None:
         text = f'LABEL b.archive-sha256="{self.OTHER}"\n'
         with patch("refresh_upstream.archive_sha256", self.digest):
