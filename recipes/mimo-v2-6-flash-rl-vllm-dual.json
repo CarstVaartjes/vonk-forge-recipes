@@ -978,8 +978,8 @@
           ]
         },
         {
-          "file_id": "preprocessor-config-b269e51bdc1c-36afccab5d",
-          "id": "primary-preprocessor-config-b269e51bdc1c-36afccab5d",
+          "file_id": "preprocessor-config-fbe073ccca94-36afccab5d",
+          "id": "primary-preprocessor-config-fbe073ccca94-36afccab5d",
           "mount": {
             "target": "/models/target"
           },
@@ -1024,10 +1024,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9be7415f3247ea80377bad4c9b01e8c3833dfd5a6bc2d7e36d097a757acc040f",
+        "content_sha256": "6e7a6e8fffe749fdd91a6f4332b12f124c737f05a9a8328bae6a684e54142091",
         "kind": "model",
         "publisher": "xiaomimimo",
-        "slug": "mimo-v2-6-flash-rl-5711b268"
+        "slug": "mimo-v2-6-flash-rl-dcd3fd83"
       }
     }
   ],
@@ -1093,8 +1093,8 @@
     "source_reference": "https://github.com/tonyd2wild/MiMo-V2.6-Flash-DGX-Spark-Recipe/tree/9c699a2d027c2bf072d130f935acdbeacb06f208"
   },
   "release": {
-    "released_at": "2026-10-04",
-    "version": "1.0.2"
+    "released_at": "2026-10-09",
+    "version": "1.0.3"
   },
   "runtime": {
     "arguments": [
@@ -1296,7 +1296,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 177764192101,
+            "artifact_bytes": 177764192071,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000
@@ -1313,7 +1313,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 177764192101,
+            "artifact_bytes": 177764192071,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 65000000000
