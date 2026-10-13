@@ -109,10 +109,12 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import io
 import json
 import os
 import re
 import sys
+import tarfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -125,6 +127,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = "vendored-upstream.json"
 LOCK = "kit-lock.json"
+PUBLISHED_IMAGES = "published-images.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 ABBREVIATED_SHA = re.compile(r"^[0-9a-f]{7,40}$")
 IMAGE_DIGEST = re.compile(r"^sha256:[0-9a-f]{64}$")
@@ -141,6 +144,7 @@ GITHUB_REFERENCE = re.compile(
     r"/(?:tree|blob)/([0-9a-f]{40})(?:/.*)?$"
 )
 MAX_ARCHIVE_BYTES = 400_000_000
+MAX_METADATA_LAYER = 1_000_000  # a layer that only adds a build-metadata file
 MAX_SELECTION_ID = 64  # the contract bounds a selected file's id
 OVERRIDE_VALUES = ("ref", "commit", "revision", "digest")
 
@@ -310,6 +314,9 @@ class Registry:
         self, fetch: Callable[[str, dict[str, str]], tuple[int, dict[str, str], bytes]]
     ) -> None:
         self.fetch = fetch
+        # Answers within one run: many recipes run the same image, and anonymous pulls
+        # are rate limited (a tag is read once per run; digests never change).
+        self.answers: dict[tuple[str, str, str], tuple[int, dict[str, str], bytes]] = {}
 
     @staticmethod
     def split(repo: str) -> tuple[str, str]:
@@ -322,15 +329,25 @@ class Registry:
             return first, rest
         return host, repo if "/" in repo else f"library/{repo}"
 
-    def resolve(self, repo: str, ref: str) -> str:
-        """The ``linux/arm64`` manifest digest of ``repo:ref`` (or ``repo@digest``)."""
+    def _get(self, repo: str, kind: str, ref: str) -> tuple[int, dict[str, str], bytes]:
+        """``GET /v2/<path>/<kind>/<ref>`` with an anonymous pull token when asked for."""
+        key = (repo.lower(), kind, ref)
+        if key in self.answers:
+            return self.answers[key]
         host, path = self.split(repo)
-        url = f"https://{host}/v2/{path}/manifests/{urllib.parse.quote(ref, safe=':')}"
+        url = f"https://{host}/v2/{path}/{kind}/{urllib.parse.quote(ref, safe=':')}"
         headers = {"Accept": self.ACCEPT}
         status, answer, body = self.fetch(url, headers)
         if status == 401:
             token = self._token(answer.get("www-authenticate", ""), path)
             status, answer, body = self.fetch(url, {**headers, "Authorization": token})
+        if status == 200:
+            self.answers[key] = (status, answer, body)
+        return status, answer, body
+
+    def resolve(self, repo: str, ref: str) -> str:
+        """The ``linux/arm64`` manifest digest of ``repo:ref`` (or ``repo@digest``)."""
+        status, answer, body = self._get(repo, "manifests", ref)
         if status != 200:
             raise KitError(f"cannot resolve {repo}:{ref}: HTTP {status}")
         try:
@@ -353,6 +370,60 @@ class Registry:
         if len(arm64) != 1 or not IMAGE_DIGEST.match(arm64[0]):
             raise KitError(f"{repo}:{ref} has no single linux/arm64 manifest")
         return arm64[0]
+
+    def _document(self, repo: str, kind: str, ref: str) -> bytes:
+        status, _, body = self._get(repo, kind, ref)
+        if status != 200:
+            raise KitError(f"cannot read {repo} {kind} {ref}: HTTP {status}")
+        return body
+
+    def provenance(self, repo: str, digest: str, source: str) -> tuple[str, str] | None:
+        """``(commit, build date)`` of the GitHub ``source`` that ``repo@digest`` records.
+
+        An image states what it was built from in its OCI labels
+        (``org.opencontainers.image.revision``, its ``.source`` naming ``source`` when
+        set) or, as eugr's images do, in the ``build-metadata.yaml`` its last layer adds
+        (``build_script_commit``, ``build_date``). ``None`` when it records neither: a
+        build commit is read, never guessed.
+        """
+        manifest = json.loads(self._document(repo, "manifests", digest))
+        config = json.loads(self._document(repo, "blobs", manifest["config"]["digest"]))
+        labels = (config.get("config") or {}).get("Labels") or {}
+        revision = str(labels.get("org.opencontainers.image.revision", ""))
+        named = str(labels.get("org.opencontainers.image.source", ""))
+        if SHA.match(revision) and named.removesuffix(".git").rstrip("/").lower() in {
+            "",
+            f"https://github.com/{source}".lower(),
+        }:
+            created = labels.get("org.opencontainers.image.created") or config.get(
+                "created", ""
+            )
+            return revision, str(created)[:10]
+        layers = manifest.get("layers") or []
+        if not layers or int(layers[-1].get("size", 0)) > MAX_METADATA_LAYER:
+            return None
+        try:
+            data = self._document(repo, "blobs", layers[-1]["digest"])
+            with tarfile.open(fileobj=io.BytesIO(data), mode="r:*") as archive:
+                member = next(
+                    (
+                        m
+                        for m in archive.getmembers()
+                        if m.isfile() and m.name.endswith("build-metadata.yaml")
+                    ),
+                    None,
+                )
+                handle = None if member is None else archive.extractfile(member)
+                text = "" if handle is None else handle.read().decode()
+        except (tarfile.TarError, OSError, UnicodeDecodeError):
+            return None
+        commit = re.search(
+            r"^build_script_commit:\s*([0-9a-f]{40})\s*$", text, re.MULTILINE
+        )
+        if commit is None:
+            return None
+        built = re.search(r"^build_date:\s*(\d{4}-\d{2}-\d{2})", text, re.MULTILINE)
+        return commit.group(1), "" if built is None else built.group(1)
 
     def _token(self, challenge: str, path: str) -> str:
         fields = dict(re.findall(r'(\w+)="([^"]*)"', challenge))
@@ -963,6 +1034,29 @@ def image_reference(pin: Pin, written: str) -> str:
     if tag is not None and pin.kind == "tag":
         return f"{repo}:{pin.ref}@{pin.immutable}"
     return f"{repo}@{pin.immutable}"
+
+
+def followed_image(
+    root: Path, adapter: Path, source: str
+) -> tuple[str, str, str] | None:
+    """``(image repository, tag, pinned digest)`` when the adapter runs ``source``'s image.
+
+    ``published-images.json`` names the images a GitHub repository publishes and the tag
+    it publishes as current. An adapter whose Dockerfile builds ``FROM`` such an image,
+    for a recipe whose source is that repository, runs what the image is: the image is
+    the pin, and the source commit is the one the image records (``Registry.provenance``).
+    """
+    path = root / PUBLISHED_IMAGES
+    dockerfile = adapter / "Dockerfile"
+    if not path.is_file() or not dockerfile.is_file():
+        return None
+    images = json.loads(path.read_text(encoding="utf-8"))["images"]
+    for match in FROM_LINE.finditer(dockerfile.read_text(encoding="utf-8")):
+        repo, _, digest = split_image(match["image"])
+        entry = images.get(repo.lower())
+        if digest and entry and entry["source"].lower() == source.lower():
+            return repo, entry["tag"], digest
+    return None
 
 
 def image_consumers(adapter: Path, recipe: dict[str, Any], pin: Pin) -> list[str]:

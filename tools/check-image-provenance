@@ -1,0 +1,143 @@
+#!/usr/bin/env python3
+"""Require a recipe that runs its source's published image to claim the commit it runs.
+
+A recipe whose adapter builds ``FROM`` an image its source repository publishes
+(``published-images.json``; see ``tools/kit-pins followed_image``) runs that image, so
+the revision it states (``provenance.source_reference``, the Dockerfile's
+``org.opencontainers.image.revision`` label, ``vendored-upstream.json``'s
+``source.commit``) must be the build commit the image records about itself
+(``Registry.provenance``: its OCI revision label or its ``build-metadata.yaml``). An
+image that records none is reported as unreadable, not failed.
+
+Only recipes changed against ``--base`` (the recipe file or a file of its build context)
+are checked: the refresher rewrites a recipe from its image's provenance whenever the
+image moves, so older claims heal on that move rather than in an unrelated change.
+"""
+
+from __future__ import annotations
+
+import argparse
+import importlib.machinery
+import importlib.util
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+LABEL_REVISION = re.compile(r'org\.opencontainers\.image\.revision="([^"]+)"')
+
+
+def _load(name: str) -> Any:
+    loader = importlib.machinery.SourceFileLoader(
+        name.replace("-", "_"), str(ROOT / "tools" / name)
+    )
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[loader.name] = module
+    loader.exec_module(module)
+    return module
+
+
+kit_pins = _load("kit-pins")
+
+
+def changed_paths(root: Path, base: str) -> set[str]:
+    completed = subprocess.run(
+        ["git", "-C", str(root), "diff", "--name-only", f"{base}...HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return set(completed.stdout.split())
+
+
+def claims(root: Path, recipe: dict[str, Any], adapter: Path) -> dict[str, str]:
+    """Where the recipe states its source revision -> the revision stated there."""
+    found: dict[str, str] = {}
+    kit = kit_pins.kit_of(recipe)
+    if kit is not None:
+        found["provenance.source_reference"] = kit[1]
+    label = LABEL_REVISION.search((adapter / "Dockerfile").read_text(encoding="utf-8"))
+    if label is not None:
+        found[f"{(adapter / 'Dockerfile').relative_to(root)} revision label"] = (
+            label.group(1)
+        )
+    manifest = adapter / kit_pins.MANIFEST
+    if manifest.is_file():
+        source = json.loads(manifest.read_text(encoding="utf-8")).get("source") or {}
+        if "commit" in source:
+            found[f"{manifest.relative_to(root)} source.commit"] = source["commit"]
+    return found
+
+
+def check(root: Path, changed: set[str], registry: Any) -> tuple[list[str], list[str]]:
+    """``(problems, notes)`` for the changed recipes that run their source's image."""
+    problems: list[str] = []
+    notes: list[str] = []
+    for path in sorted((root / "recipes").glob("*.json")):
+        recipe = json.loads(path.read_text(encoding="utf-8"))
+        context = recipe["execution"]["build"]["context"]["path"].rstrip("/")
+        touched = path.relative_to(root).as_posix() in changed or any(
+            name.startswith(context + "/") for name in changed
+        )
+        kit = kit_pins.kit_of(recipe)
+        if not touched or kit is None:
+            continue
+        source, adapter = kit[0], root / context
+        followed = kit_pins.followed_image(root, adapter, source)
+        if followed is None:
+            continue
+        repository, _, digest = followed
+        found = registry.provenance(repository, digest, source)
+        if found is None:
+            notes.append(
+                f"{path.name}: {repository}@{digest} records no build commit of "
+                f"{source}; its revision cannot be checked"
+            )
+            continue
+        wrong = [
+            f"{place} `{revision[:12]}`"
+            for place, revision in claims(root, recipe, adapter).items()
+            if revision != found[0]
+        ]
+        if wrong:
+            problems.append(
+                f"{path.name} runs {repository}@{digest}, built from {source} "
+                f"`{found[0]}`, but states another revision: {', '.join(wrong)}"
+            )
+    return problems, notes
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--base", default="origin/main")
+    arguments = parser.parse_args(argv)
+    try:
+        changed = changed_paths(arguments.root, arguments.base)
+        problems, notes = check(
+            arguments.root, changed, kit_pins.Registry(kit_pins.fetch)
+        )
+    except (subprocess.CalledProcessError, kit_pins.KitError, RuntimeError) as error:
+        print(f"Cannot check image provenance: {error}", file=sys.stderr)
+        return 2
+    actions = os.environ.get("GITHUB_ACTIONS") == "true"
+    for note in notes:
+        print(f"::notice::{note}" if actions else note)
+    for problem in problems:
+        print(f"::error::{problem}" if actions else problem, file=sys.stderr)
+    if problems:
+        return 1
+    print(
+        "Every changed recipe that runs its source's image claims the commit it runs."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

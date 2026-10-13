@@ -885,6 +885,8 @@ class AdapterUsageTests(unittest.TestCase):
         clone = "RUN git clone https://github.com/o/Repo /src\n"
         self.assertTrue(self.usage({"Dockerfile": clone})[1])
         self.assertTrue(self.usage({f"tensorfold-{OLD}.tar.gz": ""})[1])
+        codeload = f"ADD https://codeload.github.com/o/Repo/tar.gz/{OLD} /src.tgz\n"
+        self.assertTrue(self.usage({"Dockerfile": codeload})[1])
 
 
 class DivergedReleaseTests(unittest.TestCase):
@@ -1433,6 +1435,7 @@ class SelfHealingTests(unittest.TestCase):
             "tools/build-catalog-index",
             "tools/build-family-aware-coverage",
             "tools/check-recipe-topology",
+            "tools/check-image-provenance",
             "tools/generate-contract-examples",
             "tools/generate-contract-schemas",
             "tools/build-release-bundle",
