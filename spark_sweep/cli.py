@@ -297,15 +297,12 @@ def main(
     if args.command == "plan":
         recipes, _ = fetch_recipes(vk)
         fleet = fetch_fleet(vk, 130_663_231_488)
-        usable = (
-            len([s for s in fleet.sparks if s.online])
-            if not args.spark
-            else len(args.spark)
-        )
+        # Testable is the enrolled topology, never how many Sparks are online right now.
+        enrolled = len(fleet.sparks) if not args.spark else len(args.spark)
         state = State.load(state_path)
         rate = args.rate_mb_s * 1e6 or float(state.data["rate"].get("ema", 0.0))
         plan = make_plan(
-            recipes, fetch_models(vk), usable, state.recipes, _boost(args), rate
+            recipes, fetch_models(vk), enrolled, state.recipes, _boost(args), rate
         )
         print(json.dumps(plan, indent=1) if args.json else render_plan(plan))
         return 0

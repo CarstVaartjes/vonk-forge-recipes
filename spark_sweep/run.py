@@ -320,12 +320,20 @@ class Sweep:
 
     # ---------------------------------------------------------------- catalog
 
-    def sparks(self) -> list[Any]:
-        chosen = [s for s in self.fleet.sparks if s.online]
+    def enrolled(self) -> list[Any]:
+        """The Sparks the fleet listing enrolls (the chosen ones), online or not: the topology."""
         if self.cfg.sparks:
             picked = [self.fleet.by_ref(ref) for ref in self.cfg.sparks]
-            chosen = [s for s in picked if s is not None and s.online]
-        return chosen
+            return [s for s in picked if s is not None]
+        return list(self.fleet.sparks)
+
+    def sparks(self) -> list[Any]:
+        """The lanes that can take a placement now: enrolled and online."""
+        return [s for s in self.enrolled() if s.online]
+
+    def lanes_short(self, recipe: Recipe) -> int:
+        """How many more online lanes a recipe waits for (0: it can be placed now)."""
+        return max(0, recipe.node_count - len(self.sparks()))
 
     @property
     def catalog_loaded(self) -> bool:
@@ -415,13 +423,62 @@ class Sweep:
                 if record and record.get("state") not in SETTLED:
                     self.prefetcher._retire(key, record, "catalog.recipe_removed")
         self.sizes = policy.build_sizes(self.recipes.values(), self.models)
-        usable = len(self.sparks())
+        enrolled = self.fleet_capacity()
+        if not enrolled:
+            return  # a listing without Sparks decides nothing about the topology
         for recipe in list(self.recipes.values()):
-            self._reconcile_entry(recipe, usable)
+            self._reconcile_entry(recipe, enrolled)
 
     def fleet_capacity(self) -> int:
-        """Sparks that exist and are online, whatever they run: never lane occupancy."""
-        return len(self.sparks())
+        """Sparks the fleet enrolls, online or not: never how many are online or free now."""
+        return len(self.enrolled())
+
+    def _fleet_evidence(self) -> dict[str, Any]:
+        """The fleet listing's facts behind a fleet-derived decision (P6)."""
+        return {
+            "fleet": [
+                {
+                    "id": s.id,
+                    "name": s.name,
+                    "online": s.online,
+                    "offline_reason": s.offline_reason or None,
+                    "last_seen_at": s.last_seen_at or None,
+                    "loaded": [
+                        {"alias": p.alias, "run_id": p.run_id, "run_state": p.run_state}
+                        for p in self.fleet.presences
+                        if p.node_id == s.id
+                    ],
+                }
+                for s in self.enrolled()
+            ]
+        }
+
+    def observe_lanes(self) -> None:
+        """An enrolled Spark keeps its lane: going offline is a wait, written once per change."""
+        seen = self.state.data.setdefault("lane_state", {})
+        for spark in self.enrolled():
+            state = "online" if spark.online else "offline"
+            before = seen.get(spark.id)
+            seen[spark.id] = state
+            if before == state or (before is None and spark.online):
+                continue
+            reason = (
+                f"lane {spark.name} offline ({spark.offline_reason}, last seen "
+                f"{spark.last_seen_at or 'unknown'}): kept, waiting for the Spark"
+                if not spark.online
+                else f"lane {spark.name} online again"
+            )
+            self.record_result(
+                None,
+                "lane",
+                "waiting" if not spark.online else "available",
+                reason=reason,
+                spark=spark.name,
+                spark_id=spark.id,
+                waiting_recipes=sum(1 for r in self.pending() if self.lanes_short(r)),
+                document=self._fleet_evidence(),
+            )
+            self.state.event(reason)
 
     def heal_fleet_skips(self) -> None:
         """Fleet-dependent skips are derived, not verdicts: re-evaluate them against the fleet now."""
@@ -432,27 +489,34 @@ class Sweep:
         except VonkctlError as error:
             self.state.event(f"fleet unreadable: {str(error)[:120]}")
             return
-        usable = self.fleet_capacity()
+        enrolled = self.fleet_capacity()
         for key, entry in self.state.recipes.items():
             recipe = self.recipes.get(key)
             if recipe is None or not _fleet_skip(entry):
                 continue
-            if recipe.node_count <= usable:
-                self._reconcile_entry(recipe, usable)
+            if recipe.node_count <= enrolled:
+                self._reconcile_entry(recipe, enrolled)
 
     def _selected(self, recipe: Recipe) -> bool:
         return not self.cfg.only or any(word in recipe.key for word in self.cfg.only)
 
-    def _reconcile_entry(self, recipe: Recipe, usable_sparks: int) -> None:
+    def _reconcile_entry(self, recipe: Recipe, enrolled_sparks: int) -> None:
+        """Testable is the enrolled topology; fewer lanes online now is a wait, never a skip."""
         if not self._selected(recipe):
             return
         entry = self.state.entry(recipe.key)
-        if recipe.node_count > usable_sparks and (
+        if recipe.node_count > enrolled_sparks and (
             entry.get("status") == "pending" or _fleet_skip(entry)
         ):
-            reason = f"not testable on this fleet: needs {recipe.node_count} Sparks, {usable_sparks} usable"
+            reason = f"not testable on this fleet: needs {recipe.node_count} Sparks, {enrolled_sparks} enrolled"
             if entry.get("status") != "skipped" or entry.get("reason") != reason:
-                self.record_result(recipe.key, "reconcile", "skipped", reason=reason)
+                self.record_result(
+                    recipe.key,
+                    "reconcile",
+                    "skipped",
+                    reason=reason,
+                    document=self._fleet_evidence(),
+                )
             entry.update(
                 status="skipped",
                 reason=reason,
@@ -460,19 +524,24 @@ class Sweep:
                 content_sha256=recipe.content_sha256,
             )
             return
-        if _fleet_skip(entry) and recipe.node_count <= usable_sparks:
+        if _fleet_skip(entry) and recipe.node_count <= enrolled_sparks:
             entry["status"] = "pending"
             entry.pop("reason", None)
             entry.pop("reason_kind", None)
+            short = self.lanes_short(recipe)
+            why = f"testable on this fleet: needs {recipe.node_count} Sparks, {enrolled_sparks} enrolled"
+            if short:
+                why += f"; waiting for {short} more lane{'s' if short > 1 else ''}"
             self.record_result(
                 recipe.key,
                 "reconcile",
                 "pending",
-                reason="testable on this fleet again",
+                reason=why,
+                document=self._fleet_evidence(),
             )
-            self.state.event(f"{recipe.key} is testable on this fleet again: pending")
-        if recipe.node_count > usable_sparks:
-            return  # a Spark offline for a moment must not rewrite a recorded result
+            self.state.event(f"{recipe.key} is {why}: pending")
+        if recipe.node_count > enrolled_sparks:
+            return  # a Spark leaving the fleet must not rewrite a recorded result
         why = policy.requeue_reason(entry, recipe)
         if why is None:
             return
@@ -616,6 +685,7 @@ class Sweep:
     def _tick(self) -> None:
         now = self.clock.now()
         self.advance_catalog(now)
+        self.observe_lanes()
         self.check_release(now)
         if self.cfg.watch_seconds > 0:
             for key, entry in list(self.state.recipes.items()):
@@ -1331,7 +1401,7 @@ class Sweep:
 
     def record_result(
         self,
-        key: str,
+        key: str | None,
         step: str,
         status: str,
         *,
@@ -1343,20 +1413,16 @@ class Sweep:
 
         The row carries the recipe's facts and the Controller document its load was last
         seen in, so the evidence of a wait, a retry or a requeue is never only in the
-        bounded event ring.
+        bounded event ring. A lane's own row (``key`` None) names its Spark instead.
         """
-        entry = self.state.entry(key)
-        slot = slot if slot is not None else self.state.slots.get(key)
-        if document is None and slot is not None:
-            document = self.documents.get(str(slot.get("request_key", "")))
-        row: dict[str, Any] = {
-            "batch": "sweep",
-            "recipe": key,
-            "step": step,
-            "status": status,
-            **self._facts(key, entry, slot),
-            **{k: v for k, v in fields.items() if v is not None},
-        }
+        row: dict[str, Any] = {"batch": "sweep", "step": step, "status": status}
+        if key is not None:
+            entry = self.state.entry(key)
+            slot = slot if slot is not None else self.state.slots.get(key)
+            if document is None and slot is not None:
+                document = self.documents.get(str(slot.get("request_key", "")))
+            row.update(recipe=key, **self._facts(key, entry, slot))
+        row.update({k: v for k, v in fields.items() if v is not None})
         if document:
             row["controller_document"] = _bounded_document(document)
         try:
@@ -2310,6 +2376,8 @@ class Sweep:
             entry = self.state.recipes.get(key, {})
             if recipe is None or not self.ready(recipe) or key in self.state.slots:
                 continue
+            if self.lanes_short(recipe):
+                continue  # waits for its lanes to come online; the online ones carry on
             if now < float(entry.get("not_before", 0)) or now < float(
                 entry.get("defer_until", 0)
             ):

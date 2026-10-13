@@ -121,7 +121,13 @@ def failures_by_release(data: Mapping[str, Any]) -> list[dict[str, Any]]:
 def build_status(sweep: Sweep) -> dict[str, Any]:
     data = sweep.state.data
     now = sweep.clock.now()
-    lanes: dict[str, list[dict[str, Any]]] = {s.name: [] for s in sweep.sparks()}
+    # Every enrolled Spark keeps its lane; an offline one is shown waiting, never dropped.
+    lanes: dict[str, list[dict[str, Any]]] = {s.name: [] for s in sweep.enrolled()}
+    offline = {
+        s.name: {"reason": s.offline_reason, "last_seen_at": s.last_seen_at or None}
+        for s in sweep.enrolled()
+        if not s.online
+    }
     for key, slot in data["slots"].items():
         for name in slot.get("spark_names", []):
             lanes.setdefault(name, []).append(
@@ -161,8 +167,23 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             key: len(notes) for key, notes in quality_notes(data["recipes"]).items()
         },
         "lanes": lanes,
+        "offline_lanes": offline,
+        "waiting_for_lanes": sum(
+            1
+            for k in sweep.queue
+            if k in sweep.recipes and sweep.lanes_short(sweep.recipes[k])
+        ),
         "alerts": list(data.get("alerts") or []),
-        "queue": [{"recipe": k, "cached": k in ready} for k in sweep.queue[:15]],
+        "queue": [
+            {
+                "recipe": k,
+                "cached": k in ready,
+                "lanes_short": sweep.lanes_short(sweep.recipes[k])
+                if k in sweep.recipes
+                else 0,
+            }
+            for k in sweep.queue[:15]
+        ],
         "queue_length": len(sweep.queue),
         "downloads": {
             "in_flight": [
@@ -233,7 +254,17 @@ def render_status(status: Mapping[str, Any]) -> str:
             + (f" waiting on {i['waiting_on']}" if i.get("waiting_on") else "")
             for i in items
         )
+        down = status.get("offline_lanes", {}).get(spark)
+        if down and not text:
+            text = (
+                f"offline ({down['reason']}, last seen {down['last_seen_at'] or 'unknown'}): "
+                "lane kept, waiting for the Spark"
+            )
         lines.append(f"- {spark}: {text or 'idle'}")
+    if status.get("waiting_for_lanes"):
+        lines.append(
+            f"- {status['waiting_for_lanes']} queued recipe(s) waiting for more lanes online"
+        )
     if status.get("infrastructure"):
         lines += ["", "## Infrastructure problems (not recipe failures; retrying)"]
         lines += [
@@ -256,6 +287,11 @@ def render_status(status: Mapping[str, Any]) -> str:
     ]
     lines += [
         f"- {q['recipe']}{'' if q['cached'] else ' (downloading)'}"
+        + (
+            f" (waiting for {q['lanes_short']} more lane{'s' if q['lanes_short'] > 1 else ''})"
+            if q.get("lanes_short")
+            else ""
+        )
         for q in status["queue"]
     ]
     if status.get("failures_by_release"):

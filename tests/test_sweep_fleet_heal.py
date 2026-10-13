@@ -35,17 +35,19 @@ def test_restart_with_a_spark_not_online_in_the_snapshot_keeps_duals_pending(
     assert _status(sweep, "one") == "passed"
 
 
-def test_a_fleet_skip_is_not_persisted_as_a_verdict(
+def test_a_spark_not_online_in_the_snapshot_is_a_wait_not_a_skip(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     dual = FakeRecipe("dual", node_count=2)
     sweep, fleet, _ = make_sweep(tmp_path, [dual], [FakeModel("m1")], gateway=gateway)
     fleet.flaky_fleet_reads = 2  # preflight reads once, the first pass reads again
     sweep.preflight()
-    sweep.refresh_catalog()  # the snapshot shows 1 online: skipped for now
-    assert _status(sweep, "dual") == "skipped"
-    sweep.refresh_catalog()  # the fleet is whole again: pending again
+    sweep.refresh_catalog()  # the snapshot shows 1 of 2 enrolled online: a wait
     assert _status(sweep, "dual") == "pending"
+    assert sweep.lanes_short(sweep.recipes["vonk-forge/dual"]) == 1
+    sweep.refresh_catalog()  # the fleet is whole again: placeable
+    assert _status(sweep, "dual") == "pending"
+    assert sweep.lanes_short(sweep.recipes["vonk-forge/dual"]) == 0
     assert "reason" not in sweep.state.recipes["vonk-forge/dual"]
 
 
