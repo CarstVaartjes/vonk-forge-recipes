@@ -1,0 +1,116 @@
+{
+  "_recorded": "Live hardware sweep, 2026-10-13T20:43Z, Controller 8ff89e829, sweep tool at recipes 731d4b72. Spark ids mapped to the fake fleet: spark-3542 (spk_2818d189...) -> spk_a, spark-2297 (spk_9a86fdba...) -> spk_b. The clearing budget was exhausted on 2026-10-07 and never reset; the sweep profile still held three assignments no lane accounted for, one of them (llama) running after the 16:09 stop load started it.",
+  "declared_memory_bytes": {
+    "vonk-forge/llama-3-1-8b-instruct-nvfp4-nvidia-trtllm-single": 115000000000
+  },
+  "profile_assignments": [
+    {
+      "assignment_name": "llama-3.1-8b-instruct",
+      "desired_state": "running",
+      "recipe_selector": "vonk-forge/llama-3-1-8b-instruct-nvfp4-nvidia-trtllm-single",
+      "spark_ids": [
+        "spark-a"
+      ]
+    },
+    {
+      "assignment_name": "gemma-4-26b-a4b-nvfp4",
+      "desired_state": "running",
+      "recipe_selector": "vonk-forge/gemma-4-26b-a4b-it-nvfp4-eugr-vllm-single",
+      "spark_ids": [
+        "spark-b"
+      ]
+    },
+    {
+      "assignment_name": "gemma-4-e2b-it",
+      "desired_state": "running",
+      "recipe_selector": "vonk-forge/gemma-4-e2b-it-q8-0-ggml-org-llamacpp-single",
+      "spark_ids": [
+        "spark-b"
+      ]
+    }
+  ],
+  "review_blocker": {
+    "code": "run-switch.resource.insufficient_capacity",
+    "detail": "Observed free capacity less definite claims and selected demand leaves -91910499840 bytes before the required 6000000000-byte reserve, even if retained runs use zero bytes."
+  },
+  "runs": [
+    {
+      "alias": "llama-3.1-8b-instruct",
+      "installation_id": "ecf6706d-f87b-471b-b329-e99dc1b3cbd5",
+      "node_ids": [
+        "spk_a"
+      ],
+      "ready": true,
+      "recipe": "vonk-forge/llama-3-1-8b-instruct-nvfp4-nvidia-trtllm-single",
+      "run_id": "c6682d64-a93f-401c-a48c-dc5d6ad1c3fd"
+    }
+  ],
+  "state": {
+    "cleanup": {},
+    "cleanup_loads": {
+      "d5cb485f-a36f-50ed-a420-9435f78aa089": {
+        "adopted_cleanup_requests": [],
+        "app_id": "3295c044-c927-46ff-ba94-3eb6be8d62e7",
+        "effects": [
+          {
+            "application_id": "3295c044-c927-46ff-ba94-3eb6be8d62e7",
+            "effect_id": "3295c044-c927-46ff-ba94-3eb6be8d62e7:queue:1:stop:ffbf8a79-521e-4afa-903b-df230b352fef",
+            "kind": "stop",
+            "node_ids": [
+              "spk_a"
+            ],
+            "plan_digest": "be45c3d889ce7fb5e5fcc5a208578d3d7cc962bbc06c05d5eaafabf838c2e29a",
+            "queue_index": 1,
+            "request_key": "668547c5-3ac9-584e-89f2-13442d60856a",
+            "state": "unknown",
+            "stop_effect": {
+              "action": "stop",
+              "alias": "vibethinker-3b-nvfp4",
+              "installation_id": "26c256d2-a574-4466-bed6-ce0361adabb9",
+              "node_ids": [
+                "spk_a"
+              ],
+              "run_id": "ffbf8a79-521e-4afa-903b-df230b352fef"
+            },
+            "target_id": "ffbf8a79-521e-4afa-903b-df230b352fef",
+            "workload_intent_ordinal": 443
+          }
+        ],
+        "observation_unknown": false,
+        "observed_at": 1791923343.276327,
+        "projection_known": true,
+        "request_key": "d5cb485f-a36f-50ed-a420-9435f78aa089",
+        "reviewed_stops": [
+          "{\"action\":\"stop\",\"alias\":\"vibethinker-3b-nvfp4\",\"installation_id\":\"26c256d2-a574-4466-bed6-ce0361adabb9\",\"node_ids\":[\"spk_a\"],\"profile_stop_scope\":null,\"run_id\":\"ffbf8a79-521e-4afa-903b-df230b352fef\"}"
+        ],
+        "state": "succeeded",
+        "terminal_receipt": {
+          "created_at": "2026-10-13T16:09:44.250731Z",
+          "id": "3295c044-c927-46ff-ba94-3eb6be8d62e7",
+          "profile_id": "7a3acd01-ff2e-4c54-92a9-e28a8f66627c",
+          "request_key": "d5cb485f-a36f-50ed-a420-9435f78aa089",
+          "state": "succeeded",
+          "updated_at": "2026-10-13T16:14:56.091235Z"
+        }
+      }
+    },
+    "cleared_for": [
+      "llama-3.1-8b-instruct"
+    ],
+    "clearing_reason": "clearing waits on cleanup receipt or admission",
+    "loads": {},
+    "own_aliases": [
+      "gemma-4-e2b-it",
+      "gemma-4-26b-a4b-nvfp4",
+      "vibethinker-3b-nvfp4",
+      "llama-3.1-8b-instruct"
+    ],
+    "slots": {},
+    "takeover_budget": {
+      "attempts": 3,
+      "next_check": 0.0
+    },
+    "takeover_fallback": true,
+    "took_over": false
+  }
+}
