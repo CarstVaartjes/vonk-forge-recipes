@@ -1548,6 +1548,28 @@ def model_shape_problems(
     return problems
 
 
+def mounted_paths(recipe: dict[str, Any], old: dict[str, Any]) -> set[str] | None:
+    """Paths of the Model ``old`` that the recipe mounts; ``None`` when it mounts all."""
+    by_id = {f["id"]: f["path"] for f in old["files"]}
+    mounted = {
+        by_id[selected["file_id"]]
+        for reference in recipe["models"]
+        if reference["model"]["slug"] == old["identity"]["slug"]
+        for selected in reference["files"]
+        if selected["file_id"] in by_id
+    }
+    return None if mounted == set(by_id.values()) else mounted
+
+
+def mounted_unchanged(
+    old: dict[str, Any], new_files: list[dict[str, Any]], mounted: set[str]
+) -> bool:
+    """Whether every file a recipe mounts is the same bytes at the same path."""
+    before = {f["path"]: f["sha256"] for f in old["files"] if f["path"] in mounted}
+    after = {f["path"]: f["sha256"] for f in new_files if f["path"] in mounted}
+    return before == after
+
+
 def payload_identical(old: dict[str, Any], new_files: list[dict[str, Any]]) -> bool:
     """Whether every non-metadata file is the same bytes at the same path."""
     before = {
@@ -2136,11 +2158,15 @@ class Assessor:
         old = self.catalog.models[str(item.model_slug)]
         fresh = self.catalog.catalogued(item.repo, item.target.sha)
         declared = item.kit_pin is not None
+        mounted = None if declared else mounted_paths(recipe, old)
         new_files: list[dict[str, Any]] | None = None
         if fresh is None:
             new_files = self._curated(
                 old, item, self._inventory(item.repo, item.target.sha)
             )
+            if mounted is not None and mounted_unchanged(old, new_files, mounted):
+                self._mounted_noop(item, result)
+                return
             problems = model_shape_problems(old, new_files)
             if declared and not problems and not payload_identical(old, new_files):
                 problems = [KIT_MODEL_FILES_CHANGED]
@@ -2160,6 +2186,9 @@ class Assessor:
             fresh = refreshed_model(old, new_files, item.target)
             edits[f"models/{fresh['identity']['slug']}.json"] = canonical(fresh)
         else:
+            if mounted is not None and mounted_unchanged(old, fresh["files"], mounted):
+                self._mounted_noop(item, result)
+                return
             result.evidence.append(
                 model_evidence(item, old, None)
                 + "\nThe newest revision is already catalogued; reusing it.\n"
@@ -2205,6 +2234,16 @@ class Assessor:
             return new_files  # unknown history: judge every file
         return [f for f in new_files if f["path"] in known or f["path"] not in before]
 
+    @staticmethod
+    def _mounted_noop(item: Item, result: Assessment) -> None:
+        # The recipe mounts some files of the Model and none of them changed: the move
+        # would only relabel identical inputs (other files concern other recipes).
+        item.noop = True
+        result.evidence.append(
+            f"- {item.label}: every file this recipe mounts is the same bytes at "
+            f"`{item.target.sha[:12]}`, so this move alone is not a refresh.\n"
+        )
+
     def _inventory(self, repo: str, revision: str) -> list[dict[str, Any]]:
         cache = (
             None
@@ -2236,6 +2275,9 @@ class Assessor:
         by_old_id = {
             f["id"]: new_ids[path] for path, f in old_ids.items() if path in new_ids
         }
+        new_ids_by_id = {f["id"] for f in fresh["files"]} - {
+            f["id"] for f in old["files"]
+        }
         content = document_sha256(fresh)
         old_total = new_total = 0
         for reference in new_recipe["models"]:
@@ -2244,8 +2286,51 @@ class Assessor:
                 continue
             model["slug"] = fresh["identity"]["slug"]
             model["content_sha256"] = content
+            # A recipe that mounts every file of the Model mounts every file of the new
+            # one: a file the revision adds (a chat template) reaches it, one it drops
+            # (a README) leaves it.
+            everything = {s["file_id"] for s in reference["files"]} == {
+                f["id"] for f in old["files"]
+            }
+            if everything:
+                template = reference["files"][0]
+                shapes = {
+                    json.dumps([s.get("mount"), s.get("roles")], sort_keys=True)
+                    for s in reference["files"]
+                }
+                if len(shapes) != 1:
+                    result.reasons.append(
+                        "the recipe mounts every file of the Model, but not all the "
+                        "same way; rebind it by hand"
+                    )
+                    return
+                for selected in list(reference["files"]):
+                    if selected["file_id"] not in by_old_id:
+                        reference["files"].remove(selected)
+                        old_total += next(
+                            f["size_bytes"]
+                            for f in old["files"]
+                            if f["id"] == selected["file_id"]
+                        )
+                kept = {f["path"] for f in old["files"]}
+                for entry in fresh["files"]:
+                    if entry["path"] in kept:
+                        continue
+                    reference["files"].append(
+                        {
+                            "file_id": entry["id"],
+                            "id": kit_pins.selection_id(
+                                reference["id"], template, entry["id"]
+                            ),
+                            "mount": template["mount"],
+                            "roles": template["roles"],
+                        }
+                    )
+                    new_total += entry["size_bytes"]
             for selected in reference["files"]:
                 before = selected["file_id"]
+                if before in new_ids_by_id:
+                    continue  # added above for a recipe that mounts everything
                 if before not in by_old_id:
                     result.reasons.append(
                         f"the recipe selects a file the newest revision no longer has "
@@ -2260,6 +2345,12 @@ class Assessor:
                     reference["id"], selected, replacement["id"]
                 )
                 selected["file_id"] = replacement["id"]
+            if len({s["id"] for s in reference["files"]}) != len(reference["files"]):
+                result.reasons.append(
+                    f"selected file ids of Model '{reference['id']}' collide once cut "
+                    "to 64 characters; rebind it by hand"
+                )
+                return
         if old_total != new_total:
             delta = new_total - old_total
             roles = new_recipe["topology"]["roles"]
