@@ -1216,8 +1216,11 @@ class ArchiveLabelTests(unittest.TestCase):
 
 
 class EnvelopeTests(unittest.TestCase):
-    def retarget(self, artifact_bytes: int, old_size: int, new_size: int):
+    def retarget(
+        self, artifact_bytes: int, old_size: int, new_size: int, prefix: str = "sel-"
+    ):
         old = model_with(("model.safetensors",))
+        selection = prefix + old["files"][0]["id"]
         old["files"][0]["size_bytes"] = old_size
         fresh = json.loads(json.dumps(old))
         fresh["identity"]["slug"] = "demo-" + NEW[:8]
@@ -1227,10 +1230,11 @@ class EnvelopeTests(unittest.TestCase):
         recipe = {
             "models": [
                 {
+                    "id": "primary",
                     "model": {"slug": old["identity"]["slug"], "content_sha256": "x"},
                     "files": [
                         {
-                            "id": "sel-" + old["files"][0]["id"],
+                            "id": selection,
                             "file_id": old["files"][0]["id"],
                         }
                     ],
@@ -1245,7 +1249,22 @@ class EnvelopeTests(unittest.TestCase):
             refresh.Catalog(Path(".")), object(), None, {"recipes": []}
         )
         assessor._retarget_model(recipe, recipe, old, fresh, result)
+        self.selected = recipe["models"][0]["files"][0]
         return recipe["topology"]["roles"][0]["resources"]["disk"], result
+
+    def test_selected_file_id_follows_the_new_file_within_the_contract_bound(
+        self,
+    ) -> None:
+        # #1290: a long model-reference prefix plus the new file id overflowed 64.
+        prefix = "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-"
+        _disk, result = self.retarget(10_000_000, 10_000_000, 10_000_000, prefix)
+        self.assertFalse(result.reasons)
+        new_id = refresh.file_id("model.safetensors", "d" * 64)
+        self.assertEqual(self.selected["file_id"], new_id)
+        self.assertLessEqual(len(self.selected["id"]), 64)
+        self.assertTrue(self.selected["id"].startswith(prefix + new_id[:5]))
+        _disk, _result = self.retarget(10_000_000, 10_000_000, 10_000_000)
+        self.assertEqual(self.selected["id"], "sel-" + new_id)
 
     def test_small_size_change_shifts_a_derived_envelope(self) -> None:
         disk, result = self.retarget(10_000_000, 10_000_000, 9_999_600)
