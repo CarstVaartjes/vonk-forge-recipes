@@ -404,11 +404,16 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
             "https://github.com/example/recipe/commit/new",
         )
         assessor.target = lambda _provider, _repo: target
-        with patch(
-            "refresh_upstream.compare_commits",
-            return_value=refresh.Comparison(
-                "ahead", [], [], False, "https://github.com/example/recipe/compare"
+        # The recipe uses the whole repository, so the move is a refresh (a move that
+        # changes no used file is not one; see test_published_image_follow).
+        with (
+            patch(
+                "refresh_upstream.compare_commits",
+                return_value=refresh.Comparison(
+                    "ahead", [], [], False, "https://github.com/example/recipe/compare"
+                ),
             ),
+            patch.object(refresh.Assessor, "_used_changes", return_value=None),
         ):
             result = assessor.assess("recipe")
 
