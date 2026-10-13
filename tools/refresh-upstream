@@ -1913,15 +1913,17 @@ class Assessor:
                 "(clone, archive or commit-named file); every changed file is judged.\n"
             )
             return None
-        try:
-            old = vendored.fetch_tree(item.repo, item.current)
-            new = vendored.fetch_tree(item.repo, item.target.sha)
-        except RuntimeError:
-            return None
-        if not (old.complete and new.complete):
-            return None
         used = named | patched
-        changed = sorted(p for p in used if old.blobs.get(p) != new.blobs.get(p))
+        changed: list[str] = []
+        if used:  # nothing named needs no upstream tree to know nothing changed
+            try:
+                old = vendored.fetch_tree(item.repo, item.current)
+                new = vendored.fetch_tree(item.repo, item.target.sha)
+            except RuntimeError:
+                return None
+            if not (old.complete and new.complete):
+                return None
+            changed = sorted(p for p in used if old.blobs.get(p) != new.blobs.get(p))
         result.evidence.append(
             f"- {item.label}: {len(used)} referenced upstream file(s) checked by blob, "
             f"{len(changed)} changed; vendored files are compared byte for byte; other "
@@ -2463,6 +2465,7 @@ class Summary:
     armed: list[int] = field(default_factory=list)
     prepared: int = 0
     healthy: bool | None = None  # publication health, looked up once per run
+    started: str | None = None  # the main commit this run assessed (and runs as)
 
 
 def publication_healthy(runs: list[dict[str, Any]]) -> bool:
@@ -2674,6 +2677,29 @@ def publish_mechanical(
             f"### Failed checks of PR #{open_pr['number']}\n\n"
             f"{failed_check_evidence(open_pr.get('statusCheckRollup'))}\n"
         )
+    if summary.started is not None:
+        # A run assesses main as it was when the run started, with that commit's code,
+        # and prepares PRs for up to two hours. When main has since changed the refresher
+        # itself or a file this refresh rewrites (an identical refresh merged, a fix to
+        # the rules), this run's result is stale: the next run (chained to every
+        # publication) assesses afresh.
+        git("fetch", "-q", "origin", "+main:refs/remotes/origin/main", cwd=root)
+        moved = git(
+            "diff",
+            "--name-only",
+            summary.started,
+            "origin/main",
+            "--",
+            "tools/",
+            *assessment.edits,
+            cwd=root,
+        ).split()
+        if moved:
+            summary.deferred.append(
+                f"{recipe_id}: main changed {', '.join(moved[:5])} since this run "
+                "started; the next run assesses it afresh"
+            )
+            return None
     git("switch", "--detach", "origin/main", cwd=root)
     git("reset", "--hard", "origin/main", cwd=root)
     git("clean", "-fdq", cwd=root)
@@ -3236,7 +3262,7 @@ def command_run(arguments: argparse.Namespace) -> int:
     )
     if cache_dir is not None:
         os.environ.setdefault("VONK_UPSTREAM_CACHE", str(cache_dir / "github-trees"))
-    summary = Summary()
+    summary = Summary(started=git("rev-parse", "HEAD", cwd=root))
     if not arguments.dry_run:
         try:
             arm_open_mechanical_prs(summary)
