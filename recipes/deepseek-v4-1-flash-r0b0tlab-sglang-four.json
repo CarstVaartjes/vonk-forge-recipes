@@ -119,6 +119,17 @@
           ]
         },
         {
+          "file_id": "chat-template-d959d804d510-00824420d1",
+          "id": "primary-chat-template-d959d804d510-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
           "file_id": "config-8be45ce04760-587cb980af",
           "id": "primary-config-8be45ce04760-587cb980af",
           "mount": {
@@ -416,8 +427,8 @@
           ]
         },
         {
-          "file_id": "model-4e9ae23620ed-8aa37e8d7b",
-          "id": "primary-model-4e9ae23620ed-8aa37e8d7b",
+          "file_id": "model-e5decd76fe70-8aa37e8d7b",
+          "id": "primary-model-e5decd76fe70-8aa37e8d7b",
           "mount": {
             "target": "/models"
           },
@@ -427,8 +438,8 @@
           ]
         },
         {
-          "file_id": "requirements-171eebfbfb7a-95abf76140",
-          "id": "primary-requirements-171eebfbfb7a-95abf76140",
+          "file_id": "requirements-be82bcd5775c-95abf76140",
+          "id": "primary-requirements-be82bcd5775c-95abf76140",
           "mount": {
             "target": "/models"
           },
@@ -1023,10 +1034,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771",
+        "content_sha256": "cb97ebb50e5a8bff6ac6e2f33e2008a430501b6c2ef0662d5e6daf8d2f98a928",
         "kind": "model",
         "publisher": "deepseek-ai",
-        "slug": "deepseek-v4-1-flash-dba1be0a"
+        "slug": "deepseek-v4-1-flash-52544481"
       }
     }
   ],
@@ -1096,8 +1107,8 @@
     "source_reference": "https://github.com/r0b0tlab/dsv41-flash-tp4-sglang-sm121/tree/430c812cf5e69b69e740756ea72fecdc1944db29"
   },
   "release": {
-    "released_at": "2026-09-16",
-    "version": "1.0.0"
+    "released_at": "2026-10-12",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -1326,7 +1337,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 510313353565,
+            "artifact_bytes": 510313369034,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 50000000000,
             "working_bytes": 60000000000
@@ -1343,7 +1354,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 510313353565,
+            "artifact_bytes": 510313369034,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 50000000000,
             "working_bytes": 60000000000
