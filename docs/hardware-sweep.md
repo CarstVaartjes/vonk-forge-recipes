@@ -164,6 +164,11 @@ The next models are downloaded to the NAS while the Sparks test.
   in the report, never filed as an issue. Answer quality, like speed, belongs to
   the model and the recipe's creator. `export-evidence` keeps the notes. Results
   that failed a smoke assertion under the older rules are requeued once.
+  Every pass also records `memory: {declared_bytes, nodes: [{node_id, used_bytes,
+  alone}]}` from the fleet telemetry while the run serves (total less available,
+  the OS included). A run alone on its Spark that holds more than its declared
+  envelope plus a 6 GB OS allowance gets a `memory-envelope` quality note: the
+  envelope is judged by what the run holds, not by the engine's settings.
 * generation and other non-OpenAI recipes (image, video, audio, 3D jobs):
   readiness only (the run is healthy and its route published), recorded as
   `readiness-only`. Their reviewed job fixtures are not submitted by the sweep yet.

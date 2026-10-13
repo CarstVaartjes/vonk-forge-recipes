@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
 from spark_sweep.issues import file_issues
@@ -55,6 +55,34 @@ def test_a_wrong_but_well_formed_answer_runs_with_a_quality_note(
     assert line["result"]["quality"] == [
         {"case": "A391", "expected": "391", "got": "305", "ok": False}
     ]
+
+
+@pytest.mark.parametrize(
+    ("observed", "noted"),
+    [(105 * GB, False), (40 * GB + 2 * GB, False), (60 * GB, True)],
+    ids=["under-envelope", "within-os-allowance", "over-envelope"],
+)
+def test_memory_beyond_the_declared_envelope_is_a_quality_note(
+    tmp_path: Path, gateway: Gateway, observed: int, noted: bool
+) -> None:
+    """Decided by what the run holds once serving, never by the engine's settings."""
+    declared = 115 * GB if observed == 105 * GB else 40 * GB
+    sweep, _, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", memory=declared, observed_memory=observed)],
+        [FakeModel("m1")],
+        gateway=gateway,
+    )
+    sweep.run()
+    entry = _entry(sweep)
+    assert entry["status"] == "passed"
+    notes = [n for n in entry.get("quality", []) if n["case"] == "memory-envelope"]
+    assert bool(notes) is noted
+    memory = _smoke_line(tmp_path)["memory"]
+    assert memory["declared_bytes"] == declared
+    [node] = memory["nodes"]
+    assert node["alone"] is True
+    assert node["used_bytes"] == observed + 4 * GB  # the fake Spark's OS share
 
 
 def test_the_expected_answer_leaves_no_note(tmp_path: Path, gateway: Gateway) -> None:
