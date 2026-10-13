@@ -3,7 +3,7 @@
     "vllm-wrapper.py"
   ],
   "source": {
-    "commit": "ef086aea1252dc2db59ceef2f2db805656fc9ac5",
+    "commit": "eadf57da73953fe71326dbd10ef45fc793625cf2",
     "repo": "eugr/spark-vllm-docker"
   }
 }
