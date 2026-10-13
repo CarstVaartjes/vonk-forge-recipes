@@ -25,6 +25,7 @@ from typing import Any
 from .catalog import Recipe
 from .definitions import Definitions
 from .policy import CLIENT_CREDENTIAL, Failure, classify, excerpt
+from .verdict import SMOKE_BUSY, http_wait
 
 PERF_PROMPT = "Count from one to twenty in words, separated by commas."
 PERF_TOKENS = 64
@@ -286,10 +287,10 @@ def _transport_failure(
     evidence: dict[str, Any] = {"case": case, "error": type(error).__name__}
     body = getattr(error, "body", None)
     if isinstance(error, urllib.error.HTTPError):
-        transient = error.code in (408, 429, 502, 503, 504)
         evidence["http_status"] = error.code
         evidence["body"] = excerpt(body or _http_body(error), secrets=secrets)
-        klass = "smoke-timeout" if transient else "smoke-request"
+        # A temporary answer (busy, overloaded, a gateway in between) is a wait, never a verdict.
+        klass = SMOKE_BUSY if http_wait(error.code) else "smoke-request"
         if error.code in (401, 403):
             klass = CLIENT_CREDENTIAL
         return classify("smoke", f"case.{case}", f"HTTP {error.code}", klass, evidence)

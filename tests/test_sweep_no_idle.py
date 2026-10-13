@@ -46,8 +46,10 @@ def test_a_load_whose_lanes_ended_does_not_block_scheduling(
     assert sweep.run() == 0
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
     assert sweep.state.data["loads"] == {}
-    cancels = [c for _, c in fleet.calls if c[:2] == ("profile", "cancel")]
-    assert any("app-stale" in c for c in cancels)  # ours, unsettled: released
+    # The Controller has no such application (by id or by request key): it is forgotten,
+    # there is nothing to cancel.
+    reads = [c for _, c in fleet.calls if "stale-request" in c]
+    assert reads and not [c for c in reads if c[:2] == ("profile", "cancel")]
 
 
 def test_a_load_with_a_live_lane_is_kept(tmp_path: Path, gateway: Gateway) -> None:

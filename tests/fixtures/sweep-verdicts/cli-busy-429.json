@@ -1,0 +1,12 @@
+{
+  "code": "http.429",
+  "decision": "defer",
+  "detail": "rate limited",
+  "error": "control API request failed",
+  "error_type": "control_api",
+  "http_status": 429,
+  "recovery_actions": [],
+  "retry_after_seconds": 17,
+  "retryable": true,
+  "source": "remote_rejection"
+}

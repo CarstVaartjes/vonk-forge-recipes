@@ -19,11 +19,11 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 pytest_plugins = ["sweep_bounds"]
 
 from spark_sweep.state import StateLock, StateLocked
+from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import (
     Reply,
     Vonkctl,
     VonkctlTimeout,
-    is_infrastructure,
     subprocess_runner,
 )
 
@@ -80,7 +80,7 @@ def _error(code: str, detail: str = "x", error_type: str = "control_api") -> Rep
 def test_client_protocol_and_transport_errors_are_infrastructure(
     reply: Reply, reviewing: bool, expected: bool
 ) -> None:
-    assert is_infrastructure(reply, reviewing=reviewing) is expected
+    assert (reply_disposition(reply) is Disposition.WAIT) is expected
 
 
 # -- they never fail a recipe ----------------------------------------------------------------
