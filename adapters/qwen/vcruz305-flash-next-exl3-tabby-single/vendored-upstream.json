@@ -7,7 +7,7 @@
     "tabby-config.yml": "exllamav3-tabby/tabby-config.yml"
   },
   "source": {
-    "commit": "6fbc0a2f1a0a8ee3d94830bb607ec36aa370ea49",
+    "commit": "fa461b798941acacde2454ea6021da78a18a77e9",
     "repo": "vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe"
   }
 }

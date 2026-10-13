@@ -42,7 +42,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Candidate one-DGX Spark Qwen3.8 Flash Next (hybrid gated-DeltaNet MoE with its own MTP layer) as turboderp's EXL3 3.05 bpw pack (branch 3.05bpw_h5_ng5, about 84 GB with the 32.6 GB n-gram table) on TabbyAPI over vcruz305's exllamav3 fork (aarch64 guards, GB10 decode kernels, mixed-K MoE and dynamic MTP drafting), as in vcruz305's exllamav3-tabby lane (MIT). Upstream runs its default concurrent profile: 262,144 tokens per request, one shared 1,048,576-token 8-bit KV pool (four full-length sessions at once), four concurrent jobs, the n-gram table streamed from disk (about 30 GB less resident memory), MTP drafting of up to 5 tokens cut by confidence 0.6, and Qwen3.x tool-call and reasoning parsing. Upstream has no container: its setup.sh builds a host venv with torch 2.13.0 and TabbyAPI main; this recipe performs the same installation in its own image with the fork pinned to 94ba01d5 and TabbyAPI pinned to be74bf0a (upstream tracks main), and drops upstream's host-specific big-core pinning. The upstream single profile (one job, 262,144-token pool, n-gram table in RAM) is not offered because it needs about 30 GB more memory than this recipe declares. Upstream's vLLM route, beta shim and legacy stock build are not packaged. TabbyAPI is AGPL-3.0; the model pack is under the Qwen community licence; both are shown for information. Upstream figures (about 79 tok/s single-stream code decode, 47 s cold load) are claims until measured here; Vonk physical Spark acceptance is pending.",
+    "description": "Candidate one-DGX Spark Qwen3.8 Flash Next (hybrid gated-DeltaNet MoE with its own MTP layer) as turboderp's EXL3 3.05 bpw pack (branch 3.05bpw_h5_ng5, about 84 GB with the 32.6 GB n-gram table) on TabbyAPI over vcruz305's exllamav3 fork (aarch64 guards, GB10 decode kernels, mixed-K MoE and dynamic MTP drafting), as in vcruz305's exllamav3-tabby lane (MIT). Upstream runs its default concurrent profile: 262,144 tokens per request, one shared 1,048,576-token 8-bit KV pool (four full-length sessions at once), four concurrent jobs, the n-gram table streamed from disk (about 30 GB less resident memory), MTP drafting of up to 5 tokens cut by confidence 0.6, and Qwen3.x tool-call and reasoning parsing. Upstream has no container: its setup.sh builds a host venv with torch 2.13.0 and TabbyAPI main; this recipe performs the same installation in its own image with the fork pinned to 24f0dece (1.6.0.post1) and vcruz305's TabbyAPI fork pinned to f391c96b (upstream tracks the fork's main), and drops upstream's host-specific big-core pinning. The upstream single profile (one job, 262,144-token pool, n-gram table in RAM) is not offered because it needs about 30 GB more memory than this recipe declares. Upstream's vLLM route, beta shim and legacy stock build are not packaged. TabbyAPI is AGPL-3.0; the model pack is under the Qwen community licence; both are shown for information. Upstream figures (about 79 tok/s single-stream code decode, 47 s cold load) are claims until measured here; Vonk physical Spark acceptance is pending.",
     "tags": [
       "candidate",
       "executable",
@@ -316,11 +316,11 @@
       "Qwen",
       "TabbyAPI contributors"
     ],
-    "source_reference": "https://github.com/vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe/tree/6fbc0a2f1a0a8ee3d94830bb607ec36aa370ea49"
+    "source_reference": "https://github.com/vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe/tree/fa461b798941acacde2454ea6021da78a18a77e9"
   },
   "release": {
-    "released_at": "2026-09-29",
-    "version": "1.0.1"
+    "released_at": "2026-10-09",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -398,6 +398,38 @@
       {
         "name": "EXL3_DRAFT_CONFIDENCE",
         "value": "0.6"
+      },
+      {
+        "name": "EXL3_GDN_PROJ_FP32",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_GDN_CONV_TOKEN_MAJOR",
+        "value": "0"
+      },
+      {
+        "name": "EXL3_GDN_CONV_BF16_PRODUCT",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_ATTN_DECODE_LEGACY_SPLITS",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_GEMM_LEGACY_TILES",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_MOE_COOP_KSPLIT",
+        "value": "1"
+      },
+      {
+        "name": "EXL3_MOE_COOP_MIXEDK",
+        "value": "0"
+      },
+      {
+        "name": "EXL3_MOE_MIXEDK_NOSYNC",
+        "value": "1"
       }
     ],
     "lifecycle": {
