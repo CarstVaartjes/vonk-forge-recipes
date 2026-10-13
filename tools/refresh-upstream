@@ -716,6 +716,7 @@ class Item:
     kit_pin: Any = (
         None  # a kit-declared dependency's pin: the target is the kit's, not the newest
     )
+    image: tuple[str, str] | None = None  # (repository, digest) of a followed image
 
     @property
     def label(self) -> str:
@@ -972,6 +973,86 @@ def kit_model_moved(
     )
 
 
+def follow_image(
+    result: Assessment,
+    http: Http,
+    repo: str,
+    current: str,
+    image: tuple[str, str, str],
+    source: Any,
+) -> None:
+    """The source pin of a recipe that runs its source's published image.
+
+    What runs is the image, so the pin moves only when the tag upstream publishes as
+    current names another digest, and then to the commit that image records (never the
+    repository's newest commit or release, which the image may not contain). An image
+    that records no build commit is a review: the recipe would claim a revision it does
+    not run.
+    """
+    repository, tag, pinned = image
+    try:
+        digest = source.oci().resolve(repository, tag)
+        found = (
+            None
+            if digest == pinned
+            else source.oci().provenance(repository, digest, repo)
+        )
+    except (kit_pins.KitError, RuntimeError, KeyError, ValueError) as error:
+        result.unreachable.append(f"oci:{repository}:{tag}: {str(error)[:200]}")
+        return
+    if digest == pinned:
+        result.evidence.append(
+            f"### Published image {repository}:{tag}\n\n- unchanged at `{digest}`; the "
+            f"recipe runs that image, so {repo} commits alone move nothing\n"
+        )
+        return
+    if found is None:
+        result.reasons.append(
+            f"{repository}:{tag} moved to `{digest}`, but that image records no build "
+            f"commit of {repo} (no org.opencontainers.image.revision label, no "
+            "build-metadata.yaml); review which revision it runs"
+        )
+        return
+    commit, built = found
+    try:
+        comparison = compare_commits(http, repo, current, commit)
+    except (RuntimeError, KeyError, TypeError) as error:
+        # An image built from a commit GitHub does not serve (not pushed yet) cannot be
+        # stated or checked; it is retried until upstream publishes it or a newer image.
+        result.unreachable.append(
+            f"{repository}@{digest} records {repo} `{commit[:12]}`, which cannot be "
+            f"compared upstream: {str(error)[:200]}"
+        )
+        return
+    target = Target(
+        provider="github",
+        repo=repo,
+        sha=commit,
+        date=built or datetime.now(UTC).date().isoformat(),
+        ref=None,
+        version=None,
+        url=f"https://github.com/{repo}/commit/{commit}",
+    )
+    result.items.append(
+        Item(
+            "source",
+            "github",
+            repo,
+            current,
+            target,
+            None,
+            comparison,
+            image=(repository, digest),
+        )
+    )
+
+
+def _pinned(written: str, digest: str) -> str:
+    """``written`` (``repo[:tag]@digest``) at another digest, keeping any tag it names."""
+    repository, tag, _ = kit_pins.split_image(written)
+    return f"{repository}{'' if tag is None else ':' + tag}@{digest}"
+
+
 def collect_items(
     catalog_: Catalog,
     recipe_id: str,
@@ -1076,7 +1157,24 @@ def collect_items(
         result.items.append(Item(kind, provider, repo, current, target, slug, compared))
 
     source = source_pin(recipe)
-    if source is not None:
+    context = catalog_.root / recipe["execution"]["build"]["context"]["path"]
+    followed = (
+        None
+        if source is None or source[0] != "github"
+        else kit_pins.followed_image(catalog_.root, context, source[1])
+    )
+    if followed is not None:
+        assert source is not None
+        seen.add(("github", source[1].lower()))
+        follow_image(
+            result,
+            http,
+            source[1],
+            source[2],
+            followed,
+            kit_source or kit_upstream(http),
+        )
+    elif source is not None:
         consider("source", *source)
     pin = adapter_pin(catalog_.root, recipe)
     kit_dir = kit_directory(catalog_.root, recipe)
@@ -1196,6 +1294,7 @@ WHOLE_REPO = (
     r"git\s+(clone|fetch|checkout)\b",
     r"git\+https?://",
     r"/archive/",
+    r"codeload\.github\.com/",
     r"/releases/download/",
 )
 
@@ -1739,16 +1838,24 @@ class Assessor:
             )
         else:
             used_changes = self._used_changes(item, recipe, pin, patched, result)
-        result.reasons.extend(
-            classify_changes(
-                comparison,
-                patched=patched,
-                vendor_problems=problems,
-                used_changes=used_changes,
-                mirrored=mirrored,
-            )
+        reasons = classify_changes(
+            comparison,
+            patched=patched,
+            vendor_problems=problems,
+            used_changes=used_changes,
+            mirrored=mirrored,
         )
+        result.reasons.extend(reasons)
         result.evidence.append(github_evidence(item, comparison, patched))
+        if used_changes == [] and not reasons and item.image is None:
+            # Nothing the recipe takes from the repository changed: the move would only
+            # rewrite commit references (a new build for identical content). It rides
+            # along with a change that does run, and is never proposed on its own.
+            item.noop = True
+            result.evidence.append(
+                f"- {item.label}: no file this recipe uses changed, so this move alone "
+                "is not a refresh.\n"
+            )
         self._retarget_reference(new_recipe, item)
         if owns_adapter:
             assert pin is not None
@@ -1757,6 +1864,20 @@ class Assessor:
             self._retarget_kit(context, item, edits)
         if declared_kit is not None and item.kind == "source":
             self._retarget_lock(declared_kit, item, edits)
+        if item.image is not None:
+            repository, digest = item.image
+            self._move_image(
+                context,
+                repository,
+                digest,
+                lambda written: _pinned(written, digest),
+                new_recipe,
+                edits,
+            )
+            result.evidence.append(
+                f"The recipe runs {repository} as published; it moves to `{digest}`, "
+                f"which records {item.repo} at `{item.target.sha}`.\n"
+            )
 
     def _used_changes(
         self,
@@ -1886,18 +2007,42 @@ class Assessor:
                 lock["kit"]["repo"], lock["kit"]["commit"], [pin]
             )["dependencies"][pin.name]
             self._write_lock(directory, lock, edits)
+        self._move_image(
+            directory,
+            pin.repo,
+            pin.immutable,
+            lambda written: kit_pins.image_reference(pin, written),
+            new_recipe,
+            edits,
+        )
+        result.evidence.append(
+            f"The recipe runs the kit's published image {pin.repo}; it moves to "
+            f"`{pin.immutable}` (the kit's declaration), and the thin layer on top is "
+            "rebuilt on it. Review the Dockerfile's header comment.\n"
+        )
+
+    def _move_image(
+        self,
+        directory: Path,
+        repository: str,
+        digest: str,
+        reference: Callable[[str], str],
+        new_recipe: dict[str, Any],
+        edits: dict[str, bytes | None],
+    ) -> None:
+        """Move the Dockerfile's FROM of ``repository`` and the recorded base image."""
         dockerfile = directory / "Dockerfile"
         if dockerfile.is_file():
-            text = dockerfile.read_text(encoding="utf-8")
+            text = self._pending(dockerfile, edits)
 
             def move(match: re.Match[str]) -> str:
                 image = match["image"]
                 if (
                     "$" in image
-                    or kit_pins.split_image(image)[0].lower() != pin.repo.lower()
+                    or kit_pins.split_image(image)[0].lower() != repository.lower()
                 ):
                     return match[0]
-                return match["lead"] + kit_pins.image_reference(pin, image)
+                return match["lead"] + reference(image)
 
             moved = kit_pins.FROM_LINE.sub(move, text)
             if moved != text:
@@ -1905,13 +2050,13 @@ class Assessor:
                     moved.encode()
                 )
         base = new_recipe["execution"]["build"].get("base_image")
-        if base and str(base.get("repository", "")).lower() == pin.repo.lower():
-            base["digest"] = pin.immutable.removeprefix("sha256:")
-        result.evidence.append(
-            f"The recipe runs the kit's published image {pin.repo}; it moves to "
-            f"`{pin.immutable}` (the kit's declaration), and the thin layer on top is "
-            "rebuilt on it. Review the Dockerfile's header comment.\n"
-        )
+        if base and str(base.get("repository", "")).lower() == repository.lower():
+            base["digest"] = digest.removeprefix("sha256:")
+
+    def _pending(self, path: Path, edits: dict[str, bytes | None]) -> str:
+        """A file's text with the edits already prepared for it."""
+        pending = edits.get(path.relative_to(self.catalog.root).as_posix())
+        return path.read_text(encoding="utf-8") if pending is None else pending.decode()
 
     def _model(
         self,

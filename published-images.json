@@ -1,0 +1,15 @@
+{
+  "_comment": "Images a GitHub repository publishes, and the tag it publishes as current (upstream's own statement). A recipe whose source is that repository and whose adapter builds FROM the image follows the tag's digest; the source commit is the one the image records. See tools/refresh-upstream and tools/check-image-provenance.",
+  "images": {
+    "docker.io/eugr/spark-vllm": {
+      "evidence": "https://github.com/eugr/spark-vllm-docker/blob/main/build-and-copy.sh: PREBUILT_RUNNER_IMAGE=\"eugr/spark-vllm:latest\"",
+      "source": "eugr/spark-vllm-docker",
+      "tag": "latest"
+    },
+    "docker.io/eugr/spark-vllm-b12x": {
+      "evidence": "https://github.com/eugr/spark-vllm-docker/blob/main/build-and-copy.sh: PREBUILT_B12X_RUNNER_IMAGE=\"eugr/spark-vllm-b12x:latest\"",
+      "source": "eugr/spark-vllm-docker",
+      "tag": "latest"
+    }
+  }
+}
