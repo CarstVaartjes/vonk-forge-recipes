@@ -12,15 +12,19 @@ on Hugging Face follow the newest revision. Recipes are refreshed in place (same
 * anything else      -> the recipe is left alone and one issue per recipe records why.
 
 A refresh is mechanical only when everything below holds (see ``classify_changes``):
-the new commit is a descendant of the pin; no vendored file differs (the
-``tools/check-vendored-upstream`` comparison passes at the new commit); no patch target,
-launch script, configuration, Dockerfile or README changed; Model file sets keep their
-shape (same paths, same roles, no new weights); and the whole test suite still passes.
+the new commit is a descendant of the pin; every vendored file is upstream's at the
+new commit (a creator's changed file is carried over when the adapter vendors it verbatim
+and every flag, env var and entrypoint the recipe references in it is still there); no
+patch target, launch script, configuration, Dockerfile or README changed; every Model file
+the recipe mounts by name still exists (a re-export of the same repository is the newest
+revision); and the whole test suite still passes.
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
+import difflib
 import hashlib
 import importlib.machinery
 import importlib.util
@@ -1664,6 +1668,88 @@ def patch_targets(adapter: Path) -> set[str]:
     return targets
 
 
+# A creator's own vendored file that changed upstream is followed mechanically when the
+# adapter carries it verbatim and nothing the recipe references in it disappeared; the
+# sweep proves on hardware that the recipe still runs.
+EDIT_COMMAND = re.compile(r"\b(sed|perl|awk|patch)\b|\bgit\s+apply\b")
+DOCKERFILE_ENV = re.compile(r"\b([A-Z][A-Z0-9_]*)=")
+DOCKERFILE_ENTRY = re.compile(r"^\s*(?:ENTRYPOINT|CMD)\s+(.*)$", re.IGNORECASE)
+
+
+def mentions(text: str, token: str) -> bool:
+    """Whether ``token`` (a flag, env var or name) occurs in ``text`` as a whole word."""
+    return re.search(rf"(?<![\w-]){re.escape(token)}(?![\w-])", text) is not None
+
+
+def recipe_references(recipe: dict[str, Any], directory: Path) -> set[str]:
+    """Every flag, env var and entrypoint name the recipe and its adapter rely on.
+
+    Launch flags (``--name`` of the runtime arguments and of every option choice), env
+    var names (the recipe's and those the Dockerfile sets), entrypoint words (the
+    recipe's and the Dockerfile's ENTRYPOINT/CMD) and the file names of path-valued
+    arguments (a chat template a mod writes).
+    """
+    runtime = recipe.get("runtime", {})
+    arguments = list(runtime.get("arguments", []))
+    for option in recipe.get("options", []):
+        for choice in option.get("choices", []):
+            arguments += choice.get("args", [])
+    tokens = {f"--{argument['name']}" for argument in arguments}
+    tokens |= {entry["name"] for entry in runtime.get("environment", [])}
+    words = [str(word) for word in runtime.get("entrypoint", [])]
+    words += [
+        argument["value"]
+        for argument in arguments
+        if isinstance(argument.get("value"), str) and argument["value"].startswith("/")
+    ]
+    dockerfile = directory / "Dockerfile"
+    if dockerfile.is_file():
+        for line in dockerfile.read_text(encoding="utf-8").splitlines():
+            if line.lstrip().startswith("#"):
+                continue
+            tokens |= set(DOCKERFILE_ENV.findall(line))
+            entry = DOCKERFILE_ENTRY.match(line)
+            if entry:
+                words += re.findall(r"[\w./-]+", entry.group(1))
+    tokens |= {PurePosixPath(word).name for word in words}
+    return {token for token in tokens if token}
+
+
+def edited_locally(
+    directory: Path, local: str, upstream: str, patched: set[str]
+) -> str | None:
+    """How the adapter changes a vendored file (a patch, an overlay, sed), if it does."""
+    if local in patched or upstream in patched:
+        return "an adapter patch edits it"
+    name = PurePosixPath(local).name
+    ours = [str(entry) for entry in adapter_manifest(directory).get("ours", [])]
+    for entry in ours:
+        if entry != local and PurePosixPath(entry).name == name:
+            return f"the adapter's own `{entry}` overlays it"
+    redirect = re.compile(rf">>?\s*\S*{re.escape(name)}(?![\w.-])")
+    for owned in ["Dockerfile", *ours]:
+        path = directory / owned
+        if not path.is_file():
+            continue
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        text = "\n".join(line for line in lines if not line.lstrip().startswith("#"))
+        for command in re.split(r"&&|\|\||;|\n", text.replace("\\\n", " ")):
+            if mentions(command, name) and (
+                EDIT_COMMAND.search(command) or redirect.search(command)
+            ):
+                return f"`{owned}` edits it: `{clip(command.strip(), 160)}`"
+    return None
+
+
+def upstream_blob(http: Http, repo: str, sha: str) -> bytes:
+    """One upstream file's bytes by git blob sha, verified against that sha (ingress)."""
+    document = http.github(f"repos/{repo}/git/blobs/{sha}")
+    data = base64.b64decode(document["content"])
+    if vendored.git_blob_sha(data) != sha:
+        raise RuntimeError(f"{repo} blob {sha[:12]} does not hash to its sha")
+    return data
+
+
 def classify_changes(
     comparison: Comparison,
     *,
@@ -1788,6 +1874,32 @@ def mounted_unchanged(
     before = {f["path"]: f["sha256"] for f in old["files"] if f["path"] in mounted}
     after = {f["path"]: f["sha256"] for f in new_files if f["path"] in mounted}
     return before == after
+
+
+def model_problems(
+    old: dict[str, Any],
+    new_files: list[dict[str, Any]],
+    mounted: set[str] | None,
+    *,
+    declared: bool,
+) -> list[str]:
+    """Why a recipe cannot follow its Model's newest revision; empty means it follows.
+
+    A re-export of the same repository (re-sharded weights, an added ``HYBRID.json``,
+    changed configuration) is the newest revision: a recipe that mounts every file mounts
+    the new set, one that mounts some moves unless a file it mounts by name is gone. A
+    kit-declared revision keeps the stricter shape rule: the kit names the payload.
+    """
+    if declared:
+        problems = model_shape_problems(old, new_files)
+        if not problems and not payload_identical(old, new_files):
+            problems = [KIT_MODEL_FILES_CHANGED]
+        return problems
+    present = {f["path"] for f in new_files}
+    return [
+        f"file this recipe mounts is gone upstream: `{path}`"
+        for path in sorted((mounted or set()) - present)
+    ]
 
 
 def payload_identical(old: dict[str, Any], new_files: list[dict[str, Any]]) -> bool:
@@ -2169,6 +2281,7 @@ class Assessor:
         patched: set[str] = set()
         problems: list[str] = []
         stale_docs: list[str] = []  # vendored copies of files no recipe runs (a README)
+        followed = False  # a vendored file the recipe runs moves with the pin
         if owns_adapter:
             assert pin is not None
             patched = patch_targets(pin.directory)
@@ -2176,10 +2289,31 @@ class Assessor:
             report = vendored.check_adapter(
                 pin.directory, self.catalog.root, lambda _repo, _commit: tree
             )
-            docs = {problem for problem, upstream in report.stale if not runs(upstream)}
+            stale = {problem: (local, up) for problem, local, up in report.stale}
             for p in report.problems:
-                (stale_docs if p in docs else problems).append(
+                why = None
+                if p in stale:
+                    local, upstream = stale[p]
+                    why = self._follow_vendored(
+                        pin,
+                        item,
+                        recipe,
+                        local,
+                        upstream,
+                        tree.blobs[upstream],
+                        patched,
+                        result,
+                        edits,
+                    )
+                    if why is None:
+                        followed = followed or runs(upstream)
+                        continue
+                    upstream_runs = runs(upstream)
+                else:
+                    upstream_runs = True
+                (problems if upstream_runs else stale_docs).append(
                     f"vendored file check at the new commit: {p}"
+                    + ("" if why is None else f" ({why})")
                 )
         context = self.catalog.root / recipe["execution"]["build"]["context"]["path"]
         declared_kit = kit_directory(self.catalog.root, recipe)
@@ -2215,6 +2349,7 @@ class Assessor:
         if (
             not reasons
             and item.image is None
+            and not followed
             and (
                 used_changes == []
                 or (used_changes is None and nothing_runs(comparison, mirrored))
@@ -2299,6 +2434,70 @@ class Assessor:
             "upstream changes are not mirrored by this recipe.\n"
         )
         return changed
+
+    def _follow_vendored(
+        self,
+        pin: AdapterPin,
+        item: Item,
+        recipe: dict[str, Any],
+        local: str,
+        upstream: str,
+        blob: str,
+        patched: set[str],
+        result: Assessment,
+        edits: dict[str, bytes | None],
+    ) -> str | None:
+        """Carry the creator's new version of a vendored file; why not, when it cannot be.
+
+        Mechanical when the adapter vendors the file verbatim (no patch, overlay or sed
+        over it) and every flag, env var and entrypoint name the recipe references that
+        the old file states is still in the new one. The diff and the names checked go
+        into the evidence.
+        """
+        edited = edited_locally(pin.directory, local, upstream, patched)
+        if edited is not None:
+            return f"not vendored verbatim: {edited}"
+        path = pin.directory / local
+        old = path.read_text(encoding="utf-8", errors="replace")
+        data = upstream_blob(self.http, item.repo, blob)
+        new = data.decode("utf-8", errors="replace")
+        checked = sorted(
+            token
+            for token in recipe_references(recipe, pin.directory)
+            if mentions(old, token)
+        )
+        missing = [token for token in checked if not mentions(new, token)]
+        if missing:
+            return (
+                "the recipe references "
+                + ", ".join(f"`{token}`" for token in missing)
+                + f", which upstream `{upstream}` no longer has"
+            )
+        diff = "".join(
+            difflib.unified_diff(
+                old.splitlines(keepends=True),
+                new.splitlines(keepends=True),
+                f"a/{upstream}",
+                f"b/{upstream}",
+            )
+        )
+        result.evidence.append(
+            f"### Vendored `{local}` follows its creator\n\n"
+            f"`{upstream}` changed upstream ({item.repo} `{item.current[:12]}` -> "
+            f"`{item.target.sha[:12]}`). The adapter carries it verbatim (no patch, "
+            "overlay or sed over it); the recipe references "
+            + (
+                ", ".join(f"`{token}`" for token in checked)
+                + " in it, all still present"
+                if checked
+                else "no flag, env var or entrypoint name in it"
+            )
+            + ". The sweep proves the recipe runs.\n\n"
+            + fence(clip(diff, 4000), "diff")
+            + "\n"
+        )
+        edits[path.relative_to(self.catalog.root).as_posix()] = data
+        return None
 
     def _retarget_adapter(
         self,
@@ -2459,9 +2658,7 @@ class Assessor:
             if mounted is not None and mounted_unchanged(old, new_files, mounted):
                 self._mounted_noop(item, result)
                 return
-            problems = model_shape_problems(old, new_files)
-            if declared and not problems and not payload_identical(old, new_files):
-                problems = [KIT_MODEL_FILES_CHANGED]
+            problems = model_problems(old, new_files, mounted, declared=declared)
             result.reasons.extend(f"{item.label}: {p}" for p in problems)
             result.evidence.append(model_evidence(item, old, new_files))
             if problems:
@@ -2485,9 +2682,7 @@ class Assessor:
                 model_evidence(item, old, None)
                 + "\nThe newest revision is already catalogued; reusing it.\n"
             )
-            problems = model_shape_problems(old, fresh["files"])
-            if declared and not problems and not payload_identical(old, fresh["files"]):
-                problems = [KIT_MODEL_FILES_CHANGED]
+            problems = model_problems(old, fresh["files"], mounted, declared=declared)
             if problems:
                 result.reasons.extend(f"{item.label}: {p}" for p in problems)
                 return
@@ -2812,9 +3007,12 @@ def pr_body(assessment: Assessment, failures: int = 0) -> str:
         f"Release: `{version[0]}` ({version[1]})." if version else "",
         "",
         (
-            "Why this is mechanical: the new commit is a descendant of the pin; no vendored file, "
-            "launch script, configuration, patch target or README changed; Model files keep their "
-            "paths and roles; the full test suite and `tools/check-vendored-upstream` passed."
+            "Why this is mechanical: the new commit is a descendant of the pin; a changed "
+            "vendored file is the creator's own, carried verbatim with every flag, env var and "
+            "entrypoint the recipe references still in it (its diff is below); no launch script, "
+            "configuration or patch target the recipe uses changed otherwise; every Model file "
+            "the recipe mounts by name is still there; the full test suite and "
+            "`tools/check-vendored-upstream` passed. The sweep proves the recipe runs."
             if not assessment.held
             else "Needs review, not merged automatically:\n\n"
             + "\n".join(f"- {text}" for text in assessment.held)
