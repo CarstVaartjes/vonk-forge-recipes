@@ -132,7 +132,7 @@ class LtxSyncAuthorityTests(unittest.TestCase):
                 module["_load_prompt"]()
         self.assertEqual(len(module["GEMMA_FILES"]), 22)
 
-    def test_all_native_runners_match_the_ltx_141_output_contract(self) -> None:
+    def test_all_native_runners_match_the_ltx_output_contract(self) -> None:
         expected = ("video", "audio", "num_frames", "tiling_config")
         adapters = (
             "adapters/video/ltx2-pytorch/pipelines/run.py",
@@ -141,12 +141,14 @@ class LtxSyncAuthorityTests(unittest.TestCase):
         )
         for relative in adapters:
             module = runpy.run_path(str(ROOT / relative))
-            self.assertEqual(module["LTX_PIPELINES_VERSION"], "1.4.1")
+            self.assertRegex(module["LTX_PIPELINES_VERSION"], r"^\d+\.\d+\.\d+$")
             self.assertEqual(module["PIPELINE_OUTPUT_FIELDS"], expected)
             pipeline = types.SimpleNamespace(_fields=expected)
             with (
                 mock.patch.object(
-                    module["importlib"].metadata, "version", return_value="1.4.1"
+                    module["importlib"].metadata,
+                    "version",
+                    return_value=module["LTX_PIPELINES_VERSION"],
                 ),
                 mock.patch.object(
                     module["importlib"],
@@ -158,7 +160,9 @@ class LtxSyncAuthorityTests(unittest.TestCase):
             pipeline._fields = (*expected, "video_latent")
             with (
                 mock.patch.object(
-                    module["importlib"].metadata, "version", return_value="1.4.1"
+                    module["importlib"].metadata,
+                    "version",
+                    return_value=module["LTX_PIPELINES_VERSION"],
                 ),
                 mock.patch.object(
                     module["importlib"],

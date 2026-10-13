@@ -149,7 +149,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             mock.patch.object(
                 self.adapter.importlib.metadata,
                 "version",
-                return_value="1.4.1",
+                return_value=self.adapter.LTX_PIPELINES_VERSION,
             ),
             mock.patch.object(
                 self.adapter.importlib, "import_module", return_value=imported
@@ -168,7 +168,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             mock.patch.object(
                 self.adapter.importlib.metadata,
                 "version",
-                return_value="1.4.1",
+                return_value=self.adapter.LTX_PIPELINES_VERSION,
             ),
             mock.patch.object(
                 self.adapter.importlib, "import_module", return_value=imported

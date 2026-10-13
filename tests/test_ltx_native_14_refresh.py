@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import runpy
 import unittest
 from pathlib import Path
@@ -55,11 +56,17 @@ class LtxNative14RefreshTests(unittest.TestCase):
                 root
                 / ("pipelines/run.py" if adapter.endswith("ltx2-pytorch") else "run.py")
             ).read_text(encoding="utf-8")
-            self.assertIn("2d6e71c88be37b55a2dd698c2dff447edfbe5898", dockerfile)
-            self.assertIn(
-                "25466ea6d7aad0500fb0bb3abd3f7480cac70e79013582e14b0bb86195b31651",
-                dockerfile,
+            # The archive fetched is the commit the labels claim, and the digest the
+            # label records is the one the download is checked against.
+            commit = re.search(r"LTX-2/tar\.gz/([0-9a-f]{40})", dockerfile)
+            digest = re.search(
+                r'ltx2\.source-archive-sha256="([0-9a-f]{64})"', dockerfile
             )
+            self.assertIsNotNone(commit, slug)
+            self.assertIsNotNone(digest, slug)
+            assert commit is not None and digest is not None
+            self.assertEqual(dockerfile.count(commit.group(1)), 2, slug)
+            self.assertEqual(dockerfile.count(digest.group(1)), 2, slug)
             self.assertIn("sha256sum --check --strict", dockerfile)
             self.assertIn("e6de69b20c098d4df2eb9e0294cede8acc552a3c", dockerfile)
             self.assertIn(
@@ -70,7 +77,12 @@ class LtxNative14RefreshTests(unittest.TestCase):
                 "colour-science==0.4.7", (root / "requirements.lock").read_text()
             )
             self.assertIn("_verify_ltx_runtime_contract()", runner, slug)
-            self.assertIn('LTX_PIPELINES_VERSION = "1.4.1"', runner, slug)
+            # The runner refuses any ltx-pipelines but the one the recipe releases.
+            self.assertIn(
+                f'LTX_PIPELINES_VERSION = "{load(ROOT / "recipes" / f"{slug}.json")["release"]["version"]}"',
+                runner,
+                slug,
+            )
             self.assertIn('"tiling_config",\n)', runner, slug)
             self.assertNotIn('"video_latent"', runner, slug)
 
