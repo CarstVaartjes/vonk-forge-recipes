@@ -561,9 +561,14 @@ class NothingRunsTests(unittest.TestCase):
             patches += [
                 patch("refresh_upstream.adapter_pin", return_value=pin),
                 patch("refresh_upstream.patch_targets", return_value=set()),
-                patch.object(refresh.vendored, "fetch_tree", return_value=object()),
+                patch.object(
+                    refresh.vendored,
+                    "fetch_tree",
+                    return_value=refresh.vendored.Tree({"README.md": "b" * 40}, True),
+                ),
                 patch.object(refresh.vendored, "check_adapter", return_value=report),
                 patch.object(refresh.Assessor, "_retarget_adapter"),
+                patch.object(refresh.Assessor, "_follow_vendored", return_value=None),
             ]
         for active in patches:
             active.start()
@@ -585,21 +590,9 @@ class NothingRunsTests(unittest.TestCase):
         message = "adapters/x: upstream-README.md: differs from upstream README.md at f"
         report = refresh.vendored.Report("adapters/x")
         report.problems.append(message)
-        report.stale.append((message, "README.md"))
+        report.stale.append((message, "upstream-README.md", "README.md"))
         result = self.assess(comparison(files=("README.md",)), used=[], report=report)
         self.assertFalse(result.drifted)
-
-    def test_stale_vendored_code_copy_still_needs_review(self) -> None:
-        message = (
-            "adapters/x: modelopt.py: differs from upstream docker/modelopt.py at f"
-        )
-        report = refresh.vendored.Report("adapters/x")
-        report.problems.append(message)
-        report.stale.append((message, "docker/modelopt.py"))
-        result = self.assess(
-            comparison(files=("docker/modelopt.py",)), used=[], report=report
-        )
-        self.assertIn("modelopt.py", " ".join(result.reasons))
 
     def test_huggingface_source_reference_alone_is_current(self) -> None:
         catalog = single_recipe_catalog(
@@ -1178,6 +1171,222 @@ class ModelScopeTests(unittest.TestCase):
         ]
         (entry,) = refresh.catalog.inventory("o/r", NEW, tree)
         self.assertEqual(entry["id"], refresh.file_id(entry["path"], "e" * 64))
+
+
+OLD_YAML = """defaults:
+  max_num_batched_tokens: 8192
+env:
+  VLLM_MARLIN_USE_ATOMIC_ADD: 1
+command: |
+  vllm serve org/model \\
+    --trust-remote-code \\
+    --max-num-batched-tokens {max_num_batched_tokens}
+"""
+
+
+class VendoredCreatorMoveTests(unittest.TestCase):
+    """A vendored file the recipe's own creator changed follows when nothing it
+    references in it is gone (the 15 eugr recipes of refresh run 38469862398)."""
+
+    def assess(self, new_yaml: str, *, dockerfile: str = "", ours=(), extra=None):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        adapter = root / "adapters/x"
+        (adapter / "recipes").mkdir(parents=True)
+        (adapter / "recipes/r.yaml").write_text(OLD_YAML)
+        (adapter / "vllm-wrapper.py").write_text("print('wrapper')\n")
+        (adapter / "Dockerfile").write_text(
+            "FROM example/engine@sha256:" + "a" * 64 + "\nENTRYPOINT []\n" + dockerfile
+        )
+        for name, text in (extra or {}).items():
+            (adapter / name).write_text(text)
+        (adapter / "vendored-upstream.json").write_text(
+            json.dumps(
+                {
+                    "ours": ["vllm-wrapper.py", *ours],
+                    "source": {"repo": "example/recipe", "commit": OLD},
+                }
+            )
+        )
+        recipe = {
+            "identity": {"slug": "recipe"},
+            "provenance": {
+                "attribution": ["Example"],
+                "source_reference": f"https://github.com/example/recipe/tree/{OLD}",
+            },
+            "release": {"version": "1.0.0", "released_at": "2026-01-01"},
+            "models": [],
+            "execution": {"build": {"context": {"path": "adapters/x"}}},
+            "runtime": {
+                "arguments": [
+                    {"name": "trust-remote-code", "setting": None, "value": True},
+                    {"name": "served-model-name", "setting": None, "value": "m"},
+                ],
+                "environment": [{"name": "VLLM_MARLIN_USE_ATOMIC_ADD", "value": "1"}],
+                "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
+            },
+        }
+        catalog = refresh.Catalog(root, recipes={"recipe": recipe})
+        assessor = refresh.Assessor(catalog, object(), None, {})
+        assessor.target = lambda _provider, _repo: refresh.Target(
+            "github", "example/recipe", NEW, "2026-10-13", None, None, "u"
+        )
+        data = new_yaml.encode()
+        tree = refresh.vendored.Tree(
+            {"recipes/r.yaml": refresh.vendored.git_blob_sha(data)}, True
+        )
+        for active in (
+            patch(
+                "refresh_upstream.compare_commits",
+                return_value=comparison(files=("recipes/r.yaml",)),
+            ),
+            patch.object(refresh.vendored, "fetch_tree", return_value=tree),
+            patch("refresh_upstream.upstream_blob", return_value=data),
+        ):
+            active.start()
+            self.addCleanup(active.stop)
+        return assessor.assess("recipe")
+
+    def test_verbatim_file_with_its_flags_intact_is_mechanical(self) -> None:
+        new_yaml = OLD_YAML.replace("8192", "4096")
+        result = self.assess(new_yaml)
+        self.assertTrue(result.mechanical, result.reasons)
+        self.assertEqual(result.edits["adapters/x/recipes/r.yaml"], new_yaml.encode())
+        self.assertIn(NEW, result.edits["adapters/x/vendored-upstream.json"].decode())
+        body = refresh.pr_body(result)
+        self.assertIn("-  max_num_batched_tokens: 8192", body)
+        self.assertIn("+  max_num_batched_tokens: 4096", body)
+        for checked in ("`--trust-remote-code`", "`VLLM_MARLIN_USE_ATOMIC_ADD`"):
+            self.assertIn(checked, body)
+        # A flag the creator's file never stated is not checked against it.
+        self.assertNotIn("`--served-model-name`", body)
+
+    def test_a_patched_or_edited_file_stays_a_review(self) -> None:
+        new_yaml = OLD_YAML.replace("8192", "4096")
+        cases = {
+            "sed": {"dockerfile": "RUN sed -i 's/a/b/' \\\n    /app/recipes/r.yaml\n"},
+            "patch": {
+                "ours": ("local.patch",),
+                "extra": {
+                    "local.patch": "--- a/recipes/r.yaml\n+++ b/recipes/r.yaml\n"
+                },
+            },
+        }
+        for name, case in cases.items():
+            with self.subTest(name=name):
+                result = self.assess(new_yaml, **case)
+                self.assertFalse(result.mechanical)
+                self.assertIn("not vendored verbatim", " ".join(result.reasons))
+                self.assertNotIn("adapters/x/recipes/r.yaml", result.edits)
+
+    def test_running_the_file_is_not_editing_it(self) -> None:
+        result = self.assess(
+            OLD_YAML.replace("8192", "4096"),
+            dockerfile="RUN cd /app && bash ./recipes/r.yaml 2>/dev/null\n",
+        )
+        self.assertTrue(result.mechanical, result.reasons)
+
+    def test_a_referenced_flag_gone_upstream_stays_a_review_naming_it(self) -> None:
+        result = self.assess(OLD_YAML.replace("    --trust-remote-code \\\n", ""))
+        self.assertFalse(result.mechanical)
+        reasons = " ".join(result.reasons)
+        self.assertIn("`--trust-remote-code`", reasons)
+        self.assertIn("no longer has", reasons)
+
+
+class ModelReExportTests(unittest.TestCase):
+    """A re-export of the same Model repository is its newest revision (#566)."""
+
+    def shards(self, count: int) -> tuple[str, ...]:
+        return tuple(
+            f"model-{i:05d}-of-{count:05d}.safetensors" for i in range(1, count + 1)
+        )
+
+    def move(self, mounted: tuple[str, ...] | None):
+        old = model_with(("config.json", "tokenizer.json", *self.shards(36)))
+        old["source"]["repository"] = "https://huggingface.co/o/r"
+        new = files("config.json", "HYBRID.json", *self.shards(41), sha="e" * 64)
+        new += files("tokenizer.json")
+        selected = [f for f in old["files"] if mounted is None or f["path"] in mounted]
+        mount = {"target": "/models"}
+        recipe = {
+            "identity": {"slug": "recipe"},
+            "models": [
+                {
+                    "id": "primary",
+                    "model": {"slug": old["identity"]["slug"], "content_sha256": "x"},
+                    "files": [
+                        {
+                            "id": "primary-" + f["id"][:40],
+                            "file_id": f["id"],
+                            "mount": mount,
+                            "roles": ["entrypoint"],
+                        }
+                        for f in selected
+                    ],
+                }
+            ],
+            "topology": {
+                "roles": [{"resources": {"disk": {"artifact_bytes": 1_000_000}}}]
+            },
+        }
+        catalog = refresh.Catalog(
+            Path("."),
+            recipes={"recipe": recipe},
+            models={old["identity"]["slug"]: old},
+        )
+        assessor = refresh.Assessor(catalog, object(), None, {})
+        item = refresh.Item(
+            "model",
+            "huggingface",
+            "o/r",
+            OLD,
+            refresh.Target("huggingface", "o/r", NEW, "2026-10-06", None, None, "u"),
+            old["identity"]["slug"],
+        )
+        inventories = {OLD: files(*(f["path"] for f in old["files"])), NEW: new}
+        result = refresh.Assessment("recipe", items=[item])
+        new_recipe = json.loads(json.dumps(recipe))
+        edits: dict[str, bytes | None] = {}
+        with patch.object(
+            refresh.Assessor,
+            "_inventory",
+            side_effect=lambda _repo, revision: inventories[revision],
+        ):
+            assessor._model(item, recipe, new_recipe, result, edits)
+        return result, new_recipe, edits
+
+    def test_resharded_re_export_moves_a_recipe_mounting_everything(self) -> None:
+        result, new_recipe, edits = self.move(None)
+        self.assertEqual(result.reasons, [])
+        self.assertFalse(result.items[0].noop)
+        written = edits[f"models/demo-{NEW[:8]}.json"]
+        assert written is not None
+        moved = json.loads(written)
+        paths = {f["path"] for f in moved["files"]}
+        self.assertIn("HYBRID.json", paths)
+        self.assertIn("model-00041-of-00041.safetensors", paths)
+        self.assertNotIn("model-00036-of-00036.safetensors", paths)
+        mounted = {s["file_id"] for s in new_recipe["models"][0]["files"]}
+        self.assertEqual(mounted, {f["id"] for f in moved["files"]})
+
+    def test_a_named_mounted_file_gone_stays_a_review_naming_it(self) -> None:
+        result, _, edits = self.move(
+            ("config.json", "model-00036-of-00036.safetensors")
+        )
+        self.assertIn(
+            "file this recipe mounts is gone upstream: "
+            "`model-00036-of-00036.safetensors`",
+            result.reasons[0],
+        )
+        self.assertFalse(edits)
+
+    def test_a_kit_declared_revision_keeps_its_file_set(self) -> None:
+        old = model_with(("config.json", *self.shards(2)))
+        new = files("config.json", *self.shards(3))
+        self.assertTrue(refresh.model_problems(old, new, None, declared=True))
+        self.assertEqual(refresh.model_problems(old, new, None, declared=False), [])
 
 
 class ArchiveLabelTests(unittest.TestCase):

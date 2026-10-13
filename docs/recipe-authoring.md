@@ -389,8 +389,18 @@ A refresh is **mechanical** only when all of these hold:
   release is current, never downgraded). Diverged histories are not a reason on their
   own: what matters is the next rule;
 - `tools/check-vendored-upstream` passes for the adapter at the new commit, so every
-  vendored file is byte-identical;
-- no upstream file the recipe uses changed. Used files are the adapter's vendored files
+  vendored file is byte-identical. A vendored file the recipe's own creator changed (the
+  upstream the recipe already follows: an eugr `recipes/*.yaml`, a mod's `run.sh`) moves
+  with the pin, carrying upstream's new bytes, when (a) the adapter vendors it verbatim (no
+  adapter patch targets it, no file of ours overlays it, no `sed`/`perl`/`awk`/`patch`/
+  redirect in the Dockerfile or our own files edits it) and (b) every flag, env var and
+  entrypoint name the recipe references that the old file states is still in the new one:
+  the runtime arguments and option choices (`--name`), the recipe's and the Dockerfile's
+  env vars, the recipe's and the Dockerfile's entrypoint words, and the file names of
+  path-valued arguments. The pull request shows the file's upstream diff and the names
+  checked; the sweep proves on hardware that the recipe runs. A patched or overlaid file,
+  or one that lost a referenced flag (the issue names it), stays a review;
+- no other upstream file the recipe uses changed. Used files are the adapter's vendored files
   (compared byte for byte), files it fetches by explicit `raw.githubusercontent.com` or
   `github.com/.../blob|raw/` URL, and the targets of its patches, compared by blob at both
   commits (so a truncated 300-file comparison does not matter). Other upstream changes,
@@ -400,16 +410,19 @@ A refresh is **mechanical** only when all of these hold:
   every changed launch script, Dockerfile, configuration, dependency list or patch blocks.
   Labels and build args in the adapter Dockerfile that embed the old pin (for example an
   archive digest) are refreshed with it, or the refresh goes to review;
-- a Model keeps its file set: no new weights, tokenizer or configuration files, and no
-  removed ones other than metadata (README, licence, `.gitattributes`), which are dropped
-  from the catalogued Model and noted. Paths and digests are compared, never our own file
-  id format. A Model that catalogues only some files of its repository (one checkpoint of
-  several) is judged on those files and on files the repository added since; a file it
-  left out that the catalogued revision already had is neither new nor moved. A recipe
-  that mounts only some files of a Model moves only when one of those files changes; a
-  recipe that mounts every file mounts every file of the new revision (an added chat
-  template reaches it, a dropped README leaves it). A changed digest on a configuration, tokenizer or runtime file blocks; a
-  changed weights or metadata digest does not. New digests come from
+- every Model file the recipe mounts by name still exists. A Model's newest revision is
+  followed, re-exports included (re-sharded weights, an added `HYBRID.json`, changed
+  configuration or tokenizer): a recipe that mounts every file mounts every file of the
+  new revision (added files reach it, dropped ones leave it), and a recipe that mounts only
+  some files moves only when one of those files changes, and goes to review only when one
+  of them is gone (the issue names it). Metadata files (README, licence, `.gitattributes`)
+  the revision dropped leave the catalogued Model and are noted. Paths and digests are
+  compared, never our own file id format. A Model that catalogues only some files of its
+  repository (one checkpoint of several) is judged on those files and on files the
+  repository added since; a file it left out that the catalogued revision already had is
+  neither new nor moved. A kit-declared Model revision keeps the stricter rule (same file
+  set; only weights or metadata digests may change), since the kit names the payload.
+  New digests come from
   `tools/catalog-hf-model`'s inventory, verified at ingress only, and the recipe's file ids
   and content digest follow. If the newest revision is already
   catalogued it is reused; the old Model document is deleted once no recipe uses it;
