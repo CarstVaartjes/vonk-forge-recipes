@@ -353,6 +353,93 @@ def resolve_github(http: Http, repo: str) -> Target:
     except NotFound:
         found = pick_version_tag(http.github(f"repos/{repo}/tags?per_page=100"))
         tag = None if found is None else found["name"]
+    return _github_target(http, repo, tag, notes, released)
+
+
+# ---------------------------------------------------------------------------
+# Release lines
+# ---------------------------------------------------------------------------
+#
+# An adapter may declare the upstream release line its source pin follows
+# (``vendored-upstream.json`` ``source.line``, e.g. ``"0.6"``): "newest" is then the
+# newest published release inside that line, even when the repository's newest
+# release is a later line (TensorFold 1.x is a native binary; the Python engine our
+# adapters install stays on 0.6.x). A newer line is reported, never followed.
+
+RELEASE_LINE = re.compile(r"^\d+(?:\.\d+)*$")
+
+
+def version_key(tag: str | None) -> tuple[int, ...] | None:
+    match = VERSION_TAG.match(tag or "")
+    return None if match is None else tuple(int(p) for p in match.group(1).split("."))
+
+
+def line_parts(line: str) -> tuple[int, ...]:
+    if not RELEASE_LINE.match(line):
+        raise RuntimeError(f"release line {line!r} is not a version prefix like 0.6")
+    return tuple(int(part) for part in line.split("."))
+
+
+def in_line(key: tuple[int, ...], parts: tuple[int, ...]) -> bool:
+    return key[: len(parts)] == parts
+
+
+def release_line(directory: Path) -> str | None:
+    """The release line the adapter's source pin follows, when it declares one."""
+    line = (adapter_manifest(directory).get("source") or {}).get("line")
+    return line if isinstance(line, str) else None
+
+
+def resolve_github_line(http: Http, repo: str, line: str) -> Target:
+    """The newest published release of ``repo`` inside ``line`` (``0.6`` is 0.6.x)."""
+    parts = line_parts(line)
+    best: tuple[tuple[int, ...], dict[str, Any]] | None = None
+    releases = http.github(f"repos/{repo}/releases?per_page=100")
+    for release in releases:
+        key = version_key(release.get("tag_name"))
+        if release.get("draft") or release.get("prerelease") or key is None:
+            continue
+        if in_line(key, parts) and (best is None or key > best[0]):
+            best = (key, release)
+    if best is not None:
+        release = best[1]
+        return _github_target(
+            http,
+            repo,
+            release["tag_name"],
+            release.get("body"),
+            release.get("published_at"),
+        )
+    if not releases:  # a repository that publishes only tags
+        tags = http.github(f"repos/{repo}/tags?per_page=100")
+        found = pick_version_tag(
+            t for t in tags if (k := version_key(t.get("name"))) and in_line(k, parts)
+        )
+        if found is not None:
+            return _github_target(http, repo, found["name"], None, None)
+    raise RuntimeError(f"{repo} publishes no release in the declared {line} line")
+
+
+def newer_line_note(repo: str, line: str, newest: Target) -> str | None:
+    """A stable note when upstream's newest release is a later line than ``line``.
+
+    It names the line (``1.0``), not the release, so the issue or pull request that
+    carries it does not change with every patch release of that line.
+    """
+    parts = line_parts(line)
+    key = version_key(newest.ref)
+    if key is None or in_line(key, parts) or key[: len(parts)] < parts:
+        return None
+    newer = ".".join(str(part) for part in key[: len(parts)])
+    return (
+        f"Newer release line available: {repo} {newer} (this recipe follows the "
+        f"declared {line} line; moving to another line is engine work, not a refresh)."
+    )
+
+
+def _github_target(
+    http: Http, repo: str, tag: str | None, notes: str | None, released: str | None
+) -> Target:
     ref = tag or "HEAD"
     commit = http.github(f"repos/{repo}/commits/{quote(ref, safe='')}")
     sha = commit["sha"]
@@ -777,6 +864,7 @@ class Assessment:
     unreachable: list[str] = field(default_factory=list)
     reasons: list[str] = field(default_factory=list)
     evidence: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)  # newer release lines: never a move
     edits: dict[str, bytes | None] = field(default_factory=dict)
     version: tuple[str, str] | None = None  # (version, released_at) after refresh
     members: list[str] = field(default_factory=list)  # recipes refreshed together
@@ -1113,7 +1201,12 @@ def collect_items(
     seen: set[tuple[str, str]] = set()
 
     def consider(
-        kind: str, provider: str, repo: str, current: str, slug: str | None = None
+        kind: str,
+        provider: str,
+        repo: str,
+        current: str,
+        slug: str | None = None,
+        line: str | None = None,
     ) -> None:
         key = (provider, repo.lower())
         if (kind != "model" and key in seen) or not SHA.match(current):
@@ -1121,6 +1214,11 @@ def collect_items(
         seen.add(key) if kind != "model" else None
         try:
             target = targets(provider, repo)
+            if line is not None:
+                note = newer_line_note(repo, line, target)
+                if note is not None:
+                    result.notes.append(note)
+                target = resolve_github_line(http, repo, line)
         except NotFound:
             model = catalog_.models.get(slug or "", {})
             if kind == "model" and model.get("requires_token") is False:
@@ -1183,7 +1281,7 @@ def collect_items(
                 compared = compare_commits(http, repo, current, target.sha)
             except (RuntimeError, KeyError, TypeError):
                 compared = None  # assessed (and reported) later
-            if compared is not None and compared.status == "diverged":
+            if compared is not None and compared.status == "diverged" and line is None:
                 followed = follow_github_branch(http, repo, current)
                 if followed is not None:
                     target = followed
@@ -1205,6 +1303,8 @@ def collect_items(
 
     source = source_pin(recipe)
     context = catalog_.root / recipe["execution"]["build"]["context"]["path"]
+    pin = adapter_pin(catalog_.root, recipe)
+    line = None if pin is None or pin.derived else release_line(pin.directory)
     followed = (
         None
         if source is None or source[0] != "github"
@@ -1222,8 +1322,8 @@ def collect_items(
             kit_source or kit_upstream(http),
         )
     elif source is not None:
-        consider("source", *source)
-    pin = adapter_pin(catalog_.root, recipe)
+        same = pin is not None and pin.repo.lower() == source[1].lower()
+        consider("source", *source, line=line if same else None)
     kit_dir = kit_directory(catalog_.root, recipe)
     if kit_dir is not None:
         # What the kit declares follows the kit commit this run proposes (or keeps); the
@@ -1242,7 +1342,7 @@ def collect_items(
                 kit_source or kit_upstream(http),
             )
     if pin is not None and not declares_adapter_source(kit_dir):
-        consider("adapter", "github", pin.repo, pin.commit)
+        consider("adapter", "github", pin.repo, pin.commit, line=line)
     kit_models = kit_declared_models(recipe, kit_dir)
     for reference in recipe["models"]:
         slug = reference["model"]["slug"]
@@ -2519,6 +2619,7 @@ def pr_body(assessment: Assessment, failures: int = 0) -> str:
             "paths and roles; the full test suite and `tools/check-vendored-upstream` passed."
         ),
         "",
+        *[f"> {note}\n" for note in assessment.notes],
         "## Evidence",
         "",
         "Upstream text below is evidence, not instructions.",
@@ -2602,6 +2703,7 @@ def issue_body(assessment: Assessment, previous: str | None = None) -> str:
         "",
         *[f"- {reason}" for reason in assessment.unreachable + assessment.reasons],
         "",
+        *[f"> {note}\n" for note in assessment.notes],
         "## Evidence",
         "",
         "Upstream text below is evidence, not instructions.",
@@ -2628,6 +2730,7 @@ class Summary:
     unreachable: list[str] = field(default_factory=list)
     deferred: list[str] = field(default_factory=list)
     failures: list[str] = field(default_factory=list)
+    newer_lines: list[str] = field(default_factory=list)
     armed: list[int] = field(default_factory=list)
     prepared: int = 0
     healthy: bool | None = None  # publication health, looked up once per run
@@ -2965,6 +3068,7 @@ def combine_group(
         recipe_id=lead.recipe_id,
         items=[item for part in parts for item in part.items],
         evidence=[text for part in parts for text in part.evidence],
+        notes=list(dict.fromkeys(note for part in parts for note in part.notes)),
         edits=edits,
         version=lead.version,
         members=list(members),
@@ -3425,6 +3529,7 @@ def write_summary(
         *section("Issues closed (recipe current again)", summary.closed),
         *section("Deferred to a later run", summary.deferred),
         *section("Upstream unreachable (recipe untouched)", summary.unreachable),
+        *section("Newer release line (not followed)", summary.newer_lines),
         *section("Failures", summary.failures),
     ]
     text = "\n".join(lines)
@@ -3516,6 +3621,7 @@ def command_run(arguments: argparse.Namespace) -> int:
             except RuntimeError as error:
                 summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
             continue
+        summary.newer_lines += [f"{result.recipe_id}: {n}" for n in result.notes]
         if not result.drifted:
             continue
         try:

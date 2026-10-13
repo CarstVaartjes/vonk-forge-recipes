@@ -372,6 +372,13 @@ head is the pinned commit or, when the branch has moved on, the only branch whos
 contains it (a pin the default branch's history contains follows the default branch). The
 refresh then compares with that branch's head, and for GitHub with its newest version tag
 when that tag lies inside the branch; the issue and pull request name the branch.
+An adapter whose engine forked into release lines declares the line its source pin
+follows in `vendored-upstream.json` (`"source": {"repo", "commit", "line": "0.6"}`, a
+version prefix): the newest published (non-draft, non-prerelease) release inside that line
+is then the target, never a later line and never a branch head. A newer line upstream is
+reported as "Newer release line available" in the recipe's issue or pull request (naming the
+line, not the release, so it does not change with every patch release) and in the run
+summary; it never opens an issue on its own. Moving to another line is a new variant.
 `release.version` becomes upstream's version when one
 is published, otherwise the recipe's patch version is bumped; `released_at` is the pinned
 release or commit date.

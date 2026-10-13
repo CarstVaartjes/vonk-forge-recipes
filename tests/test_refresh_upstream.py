@@ -1544,6 +1544,121 @@ class BranchFollowingTests(unittest.TestCase):
         self.assertIsNone(result.items[0].target.branch)
 
 
+class ReleaseLineTests(unittest.TestCase):
+    """An adapter that declares ``source.line`` follows the newest release in that line."""
+
+    REPO = "example/engine"
+    V066 = "6" * 40
+    V109 = "9" * 40
+    BETA = "b" * 40
+    RELEASES: ClassVar[list[dict[str, object]]] = [
+        {"tag_name": "v1.0.0-beta.5", "prerelease": True, "draft": False},
+        {"tag_name": "v1.0.9", "prerelease": False, "draft": False},
+        {"tag_name": "v0.60.1", "prerelease": False, "draft": False},
+        {"tag_name": "v0.6.6", "prerelease": False, "draft": False, "body": "0.6.6"},
+        {"tag_name": "v0.6.0", "prerelease": False, "draft": False},
+    ]
+    SHAS: ClassVar[dict[str, str]] = {
+        "v1.0.9": V109,
+        "v1.0.0-beta.5": BETA,
+        "v0.6.6": V066,
+        "v0.6.0": OLD,
+        "v0.60.1": "a" * 40,
+    }
+
+    def collect(self, pin: str, line: str | None = "0.6"):
+        releases, shas, repo = self.RELEASES, self.SHAS, self.REPO
+
+        class FakeHttp:
+            def github(self, path: str):
+                if path == f"repos/{repo}/releases/latest":
+                    return releases[1]
+                if path == f"repos/{repo}/releases?per_page=100":
+                    return releases
+                ref = path.rsplit("/", 1)[1]
+                return {
+                    "sha": shas.get(ref, ref),
+                    "html_url": "u/" + ref,
+                    "commit": {"committer": {"date": "2026-10-06T00:00:00Z"}},
+                }
+
+        http = FakeHttp()
+        with tempfile.TemporaryDirectory() as tmp:
+            adapter = Path(tmp) / "adapter"
+            adapter.mkdir()
+            (adapter / "Dockerfile").write_text("FROM scratch\n")
+            source = {"repo": repo, "commit": pin} | ({"line": line} if line else {})
+            (adapter / "vendored-upstream.json").write_text(
+                json.dumps({"ours": [], "source": source})
+            )
+            catalog = refresh.Catalog(
+                Path(tmp),
+                recipes={
+                    "recipe": {
+                        "identity": {"slug": "recipe"},
+                        "provenance": {
+                            "attribution": ["Example"],
+                            "source_reference": f"https://github.com/{repo}/tree/{pin}",
+                        },
+                        "release": {"version": "0.6.0", "released_at": "2026-09-30"},
+                        "models": [],
+                        "execution": {"build": {"context": {"path": "adapter"}}},
+                    }
+                },
+            )
+            with patch(
+                "refresh_upstream.compare_commits",
+                side_effect=lambda _h, _r, _old, _new: comparison("ahead"),
+            ):
+                return refresh.collect_items(
+                    catalog,
+                    "recipe",
+                    http,
+                    lambda _p, r: refresh.resolve_github(http, r),
+                )
+
+    def test_newest_release_inside_the_line_is_the_target(self) -> None:
+        result = self.collect(OLD)
+        self.assertEqual([i.target.sha for i in result.items], [self.V066])
+        self.assertEqual(result.items[0].target.version, "0.6.6")
+        self.assertEqual(len(result.notes), 1)
+        self.assertIn("example/engine 1.0", result.notes[0])
+
+    def test_pin_at_the_newest_of_its_line_is_current(self) -> None:
+        result = self.collect(self.V066)
+        self.assertFalse(result.items)
+        self.assertFalse(result.drifted)
+        self.assertEqual(len(result.notes), 1)  # reported, never a move
+
+    def test_without_a_line_the_newest_release_wins(self) -> None:
+        result = self.collect(OLD, line=None)
+        self.assertEqual([i.target.sha for i in result.items], [self.V109])
+        self.assertFalse(result.notes)
+
+    def test_newer_line_is_reported_once_and_stays_stable(self) -> None:
+        result = self.collect(OLD)
+        first = refresh.issue_body(result)
+        self.assertEqual(first.count("Newer release line available"), 1)
+        self.assertEqual(refresh.issue_body(result, first), first)
+        self.assertNotIn("Upstream moved", refresh.issue_body(result, first))
+        later = refresh.Target(
+            "github", self.REPO, "c" * 40, "", "v1.0.10", "1.0.10", "u"
+        )
+        newest = refresh.Target(
+            "github", self.REPO, self.V109, "", "v1.0.9", "1.0.9", "u"
+        )
+        self.assertEqual(
+            refresh.newer_line_note(self.REPO, "0.6", later),
+            refresh.newer_line_note(self.REPO, "0.6", newest),
+        )
+
+    def test_a_line_is_a_version_prefix_not_a_string_prefix(self) -> None:
+        self.assertFalse(refresh.in_line((0, 60, 1), refresh.line_parts("0.6")))
+        self.assertTrue(refresh.in_line((0, 6, 6), refresh.line_parts("0.6")))
+        with self.assertRaises(RuntimeError):
+            refresh.line_parts("0.6.x")
+
+
 class AppCommandBoundaryTests(unittest.TestCase):
     def test_renewed_app_token_reaches_both_gh_and_git(self) -> None:
         from unittest.mock import Mock
