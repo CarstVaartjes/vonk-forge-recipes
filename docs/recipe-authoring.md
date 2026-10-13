@@ -402,6 +402,22 @@ A refresh is **mechanical** only when all of these hold:
 - the README overview, `tools/check-vendored-upstream`, the model-reference check and
   the whole test suite pass on the result.
 
+A pin move that changes no file the recipe uses (and no image, Model or kit declaration)
+is not a refresh on its own: it would only rewrite commit references and rebuild
+identical content. It rides along with a move that does change what runs.
+
+A recipe that runs its source's published image follows the image, not the commits.
+`published-images.json` names such an image, its source repository and the tag upstream
+publishes as current. When that tag names another digest, the Dockerfile's `FROM`,
+`base_image`, the revision label, `vendored-upstream.json` and `source_reference` move
+to that digest and to the build commit the image records (its
+`org.opencontainers.image.revision` label, or the `build_script_commit` of its
+`build-metadata.yaml`); vendored files are checked at that commit as above. An unchanged
+image proposes nothing; an image built from a commit GitHub does not serve waits
+(unreachable); one that records no build commit is a review.
+`tools/check-image-provenance` holds every changed recipe of this kind to the commit its
+image records.
+
 Then a bounded set of pull requests (branch `refresh/<recipe-id>`, label
 `refresh:mechanical`) is opened or updated using a repository-scoped GitHub App.
 Its pushes and PRs trigger normal `pull_request` validation without GitHub's built-in Actions-token approval gate.
