@@ -95,6 +95,8 @@ def eugr_registry(commit: str = BUILT) -> FakeRegistry:
         {"org.opencontainers.image.version": "24.04"},
         metadata_layer(
             f"build_date: 2026-10-13T00:40:45Z\nbuild_script_commit: {commit}\n"
+            "vllm_version: 0.31.1rc1.dev380+g6202d0fb1.d20261013\n"
+            "vllm_commit: 6202d0fb148b1f639c0d3e809d0012ed42af54bf\n"
         ),
     )
 
@@ -139,7 +141,13 @@ class ProvenanceTests(unittest.TestCase):
         )
 
 
-def write_recipe(root: Path, source: str, digest: str = PINNED) -> dict[str, Any]:
+def write_recipe(
+    root: Path,
+    source: str,
+    digest: str = PINNED,
+    pinned: str = OLD,
+    mark: str | None = None,
+) -> dict[str, Any]:
     (root / "published-images.json").write_text(
         json.dumps({"images": {IMAGE: {"source": SOURCE, "tag": "latest"}}})
     )
@@ -148,13 +156,19 @@ def write_recipe(root: Path, source: str, digest: str = PINNED) -> dict[str, Any
     (adapter / "Dockerfile").write_text(
         f"FROM {IMAGE}@{digest}\n\n"
         f'LABEL org.opencontainers.image.source="https://github.com/{source}" \\\n'
-        f'      org.opencontainers.image.revision="{OLD}"\n'
+        f'      org.opencontainers.image.revision="{pinned}"\n'
+    )
+    manifest_source = {"commit": pinned, "repo": source}
+    if mark is not None:
+        manifest_source["unverified"] = mark
+    (adapter / "vendored-upstream.json").write_text(
+        json.dumps({"ours": [], "source": manifest_source}, indent=2) + "\n"
     )
     recipe = {
         "identity": {"slug": "recipe"},
         "provenance": {
             "attribution": ["eugr"],
-            "source_reference": f"https://github.com/{source}/tree/{OLD}",
+            "source_reference": f"https://github.com/{source}/tree/{pinned}",
         },
         "release": {"version": "prebuilt-vllm-current", "released_at": "2026-10-01"},
         "models": [],
@@ -231,15 +245,96 @@ class RefreshTests(unittest.TestCase):
         )
         self.assertEqual(recipe["release"]["version"], "prebuilt-vllm-current")
 
-    def test_an_image_built_from_an_unpublished_commit_waits(self) -> None:
-        def missing(*_: Any) -> Any:
-            raise RuntimeError("HTTP 422: No commit found")
+    @staticmethod
+    def missing(*_: Any) -> Any:
+        raise RuntimeError("HTTP 422: No commit found")
 
-        result = self.assess(eugr_registry(), missing)
+    def test_github_unreadable_for_an_image_commit_waits(self) -> None:
+        with patch.object(refresh, "commit_on_github", lambda *_: None):
+            result = self.assess(eugr_registry(), self.missing)
         self.assertFalse(result.mechanical)
         self.assertFalse(result.reasons)
         self.assertTrue(result.unreachable)
         self.assertEqual(result.edits, {})
+
+    def test_an_image_built_from_an_unpublished_commit_moves_for_review(self) -> None:
+        fake = eugr_registry()
+        with patch.object(refresh, "commit_on_github", lambda *_: False):
+            result = self.assess(fake, self.missing)
+        # Followed by digest, provenance marked, held for a person (never armed).
+        self.assertTrue(result.for_review, result.reasons)
+        self.assertFalse(result.mechanical)
+        dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()
+        self.assertIn(f"FROM {IMAGE}@{fake.digest}", dockerfile)
+        self.assertIn(f'revision="{BUILT}"', dockerfile)
+        recipe = json.loads(result.edits["recipes/recipe.json"])
+        self.assertTrue(recipe["provenance"]["source_reference"].endswith(BUILT))
+        manifest = json.loads(result.edits["adapters/eugr/x/vendored-upstream.json"])
+        self.assertEqual(manifest["source"]["commit"], BUILT)
+        self.assertEqual(
+            manifest["source"]["unverified"],
+            f"commit {BUILT} not on github.com/{SOURCE}",
+        )
+        result.pull_request = 7
+        body = refresh.issue_body(result)
+        self.assertIn("#7", body)
+        self.assertIn("not on GitHub", body)
+        self.assertIn("vllm_version: 0.31.1rc1", body)  # what the image itself shows
+        self.assertIn("Needs review", refresh.pr_body(result))
+
+    def test_a_move_off_an_unpublished_pin_is_held_and_drops_the_mark(self) -> None:
+        fake = eugr_registry("c" * 40)  # the new image's commit is published
+        mark = f"commit {BUILT} not on github.com/{SOURCE}"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_recipe(root, SOURCE, pinned=BUILT, mark=mark)
+            assessor = refresh.Assessor(
+                refresh.Catalog.load(root), object(), None, {"recipes": []}
+            )
+            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))  # type: ignore[arg-type]
+            with (
+                patch.object(refresh, "kit_upstream", lambda _http: source),
+                patch.object(refresh, "compare_commits", self.missing),
+                patch.object(refresh, "commit_on_github", lambda *_: True),
+            ):
+                result = assessor.assess("recipe")
+            result.edits = {
+                k: v for k, v in result.edits.items() if v != (root / k).read_bytes()
+            }
+        self.assertTrue(result.for_review, result.reasons)
+        self.assertIn("never published", result.held[0])
+        dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()
+        self.assertIn(f"FROM {IMAGE}@{fake.digest}", dockerfile)
+        manifest = json.loads(result.edits["adapters/eugr/x/vendored-upstream.json"])
+        self.assertEqual(manifest["source"], {"commit": "c" * 40, "repo": SOURCE})
+
+    def test_the_mark_goes_once_github_serves_the_commit(self) -> None:
+        fake = eugr_registry()
+        mark = f"commit {BUILT} not on github.com/{SOURCE}"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_recipe(root, SOURCE, fake.digest, pinned=BUILT, mark=mark)
+            assessor = refresh.Assessor(
+                refresh.Catalog.load(root), object(), None, {"recipes": []}
+            )
+            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))  # type: ignore[arg-type]
+            for served in (False, True):
+                with (
+                    patch.object(refresh, "kit_upstream", lambda _http: source),
+                    patch.object(refresh, "commit_on_github", lambda *_, s=served: s),
+                ):
+                    result = assessor.assess("recipe")
+                if not served:
+                    self.assertFalse(result.drifted)  # still unpublished: nothing to do
+                    continue
+                self.assertTrue(result.mechanical, result.reasons)
+                self.assertEqual(
+                    sorted(result.edits), ["adapters/eugr/x/vendored-upstream.json"]
+                )
+                manifest = json.loads(
+                    result.edits["adapters/eugr/x/vendored-upstream.json"]
+                )
+                self.assertEqual(manifest["source"], {"commit": BUILT, "repo": SOURCE})
 
     def test_an_image_without_a_build_record_is_a_review(self) -> None:
         result = self.assess(FakeRegistry({}, None), self.identical)
@@ -269,12 +364,74 @@ class RefreshTests(unittest.TestCase):
         self.assertEqual(result.edits, {})
 
 
+class SharedContextTests(unittest.TestCase):
+    def test_single_and_dual_held_for_review_are_prepared_together(self) -> None:
+        target = refresh.Target("github", SOURCE, BUILT, "2026-10-13", None, None, "u")
+        parts = {}
+        for name in ("x-dual", "x-single"):
+            item = refresh.Item("source", "github", SOURCE, OLD, target, unverified="m")
+            parts[name] = refresh.Assessment(
+                name, items=[item], held=["not on GitHub"], edits={"a": b"1"}
+            )
+        combined = refresh.combine_group(["x-dual", "x-single"], parts)
+        assert not isinstance(combined, str), combined
+        self.assertTrue(combined.for_review)
+        self.assertFalse(combined.mechanical)  # never armed
+        self.assertEqual(combined.held, ["not on GitHub"])
+
+
 class GuardTests(unittest.TestCase):
-    def check(self, changed: set[str], fake: Any) -> tuple[list[str], list[str]]:
+    def check(
+        self,
+        changed: set[str],
+        fake: Any,
+        served: bool | None = True,
+        pinned: str = OLD,
+        mark: str | None = None,
+    ) -> tuple[list[str], list[str]]:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            write_recipe(root, SOURCE, fake.digest)
-            return guard.check(root, changed, kit_pins.Registry(fake))
+            write_recipe(root, SOURCE, fake.digest, pinned=pinned, mark=mark)
+            return guard.check(
+                root, changed, kit_pins.Registry(fake), lambda *_: served
+            )
+
+    def test_an_unpublished_build_commit_is_accepted_only_when_marked(self) -> None:
+        mark = f"commit {BUILT} not on github.com/{SOURCE}"
+        changed = {"recipes/recipe.json"}
+        problems, _ = self.check(changed, eugr_registry(), False, BUILT)
+        self.assertIn("source.unverified", problems[0])
+        self.assertEqual(
+            self.check(changed, eugr_registry(), False, BUILT, mark), ([], [])
+        )
+        problems, _ = self.check(changed, eugr_registry(), True, BUILT, mark)
+        self.assertIn("remove source.unverified", problems[0])  # stale mark
+        problems, _ = self.check(changed, eugr_registry(), False, BUILT, "unverified")
+        self.assertIn("must read", problems[0])
+        problems, notes = self.check(changed, eugr_registry(), None, BUILT)
+        self.assertEqual(problems, [])
+        self.assertIn("could not tell", notes[0])
+
+    def test_the_vendored_check_skips_only_a_correctly_marked_pin(self) -> None:
+        vendored = guard.vendored
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            mark = f"commit {BUILT} not on github.com/{SOURCE}"
+            write_recipe(root, SOURCE, pinned=BUILT, mark=mark)
+
+            def unreadable(*_: Any) -> Any:
+                raise RuntimeError("No commit found")
+
+            adapter = root / "adapters/eugr/x"
+            report = vendored.check_adapter(adapter, root, unreadable)
+            self.assertEqual(report.problems, [])
+            self.assertIn("unverified", report.note)
+            manifest = adapter / "vendored-upstream.json"
+            document = json.loads(manifest.read_text())
+            document["source"]["unverified"] = "trust me"
+            manifest.write_text(json.dumps(document))
+            report = vendored.check_adapter(adapter, root, unreadable)
+            self.assertIn("must read", report.problems[0])
 
     def test_a_changed_recipe_must_claim_its_images_build_commit(self) -> None:
         problems, _ = self.check({"adapters/eugr/x/Dockerfile"}, eugr_registry())

@@ -9,6 +9,12 @@ the revision it states (``provenance.source_reference``, the Dockerfile's
 (``Registry.provenance``: its OCI revision label or its ``build-metadata.yaml``). An
 image that records none is reported as unreadable, not failed.
 
+An image built from a commit GitHub does not serve is still followed by its digest (the
+digest is the identity; the commit is provenance), but never silently: the recipe's
+``vendored-upstream.json`` must then carry ``source.unverified`` naming that commit, and
+must drop the mark once GitHub serves the commit. Whether GitHub serves it is read from
+the API (404 or 422 is absent); an answer that cannot be had is noted, not failed.
+
 Only recipes changed against ``--base`` (the recipe file or a file of its build context)
 are checked: the refresher rewrites a recipe from its image's provenance whenever the
 image moves, so older claims heal on that move rather than in an unrelated change.
@@ -24,6 +30,7 @@ import os
 import re
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +51,7 @@ def _load(name: str) -> Any:
 
 
 kit_pins = _load("kit-pins")
+vendored = _load("check-vendored-upstream")
 
 
 def changed_paths(root: Path, base: str) -> set[str]:
@@ -75,7 +83,12 @@ def claims(root: Path, recipe: dict[str, Any], adapter: Path) -> dict[str, str]:
     return found
 
 
-def check(root: Path, changed: set[str], registry: Any) -> tuple[list[str], list[str]]:
+def check(
+    root: Path,
+    changed: set[str],
+    registry: Any,
+    on_github: Callable[[str, str], bool | None] = vendored.commit_on_github,
+) -> tuple[list[str], list[str]]:
     """``(problems, notes)`` for the changed recipes that run their source's image."""
     problems: list[str] = []
     notes: list[str] = []
@@ -110,7 +123,51 @@ def check(root: Path, changed: set[str], registry: Any) -> tuple[list[str], list
                 f"{path.name} runs {repository}@{digest}, built from {source} "
                 f"`{found[0]}`, but states another revision: {', '.join(wrong)}"
             )
+        problems += unverified_problems(
+            path.name, adapter, source, found[0], notes, on_github
+        )
     return problems, notes
+
+
+def unverified_problems(
+    name: str,
+    adapter: Path,
+    source: str,
+    commit: str,
+    notes: list[str],
+    on_github: Callable[[str, str], bool | None],
+) -> list[str]:
+    """Whether the ``source.unverified`` mark says what GitHub says about ``commit``."""
+    manifest = adapter / kit_pins.MANIFEST
+    document = (
+        json.loads(manifest.read_text(encoding="utf-8")) if manifest.is_file() else {}
+    )
+    mark = (document.get("source") or {}).get("unverified")
+    expected = vendored.unverified_mark(source, commit)
+    if mark is not None and mark != expected:
+        return [f"{name}: source.unverified must read '{expected}', not '{mark}'"]
+    served = on_github(source, commit)
+    if served is None:
+        notes.append(
+            f"{name}: could not tell whether GitHub serves {source} `{commit[:12]}`"
+        )
+        return []
+    if not served and mark is None:
+        return [
+            (
+                f"{name}: its image's build commit {source} `{commit[:12]}` is not on "
+                f"GitHub; state it with source.unverified '{expected}' in "
+                f"{kit_pins.MANIFEST}"
+            )
+        ]
+    if served and mark is not None:
+        return [
+            (
+                f"{name}: {source} `{commit[:12]}` is on GitHub now; remove "
+                f"source.unverified from {kit_pins.MANIFEST}"
+            )
+        ]
+    return []
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -217,6 +217,8 @@ jobs:
       # this change touches.
       - name: Require recipes that run their source's image to claim its commit
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           python3 tools/check-image-provenance --base origin/main

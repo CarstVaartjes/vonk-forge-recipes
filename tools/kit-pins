@@ -399,6 +399,23 @@ class Registry:
                 "created", ""
             )
             return revision, str(created)[:10]
+        text = self.build_metadata(repo, digest)
+        if text is None:
+            return None
+        commit = re.search(
+            r"^build_script_commit:\s*([0-9a-f]{40})\s*$", text, re.MULTILINE
+        )
+        if commit is None:
+            return None
+        built = re.search(r"^build_date:\s*(\d{4}-\d{2}-\d{2})", text, re.MULTILINE)
+        return commit.group(1), "" if built is None else built.group(1)
+
+    def build_metadata(self, repo: str, digest: str) -> str | None:
+        """The ``build-metadata.yaml`` the image's last layer adds, as eugr's images do.
+
+        ``None`` when the last layer is not a small metadata layer or carries no such file.
+        """
+        manifest = json.loads(self._document(repo, "manifests", digest))
         layers = manifest.get("layers") or []
         if not layers or int(layers[-1].get("size", 0)) > MAX_METADATA_LAYER:
             return None
@@ -414,16 +431,9 @@ class Registry:
                     None,
                 )
                 handle = None if member is None else archive.extractfile(member)
-                text = "" if handle is None else handle.read().decode()
+                return None if handle is None else handle.read().decode()
         except (tarfile.TarError, OSError, UnicodeDecodeError):
             return None
-        commit = re.search(
-            r"^build_script_commit:\s*([0-9a-f]{40})\s*$", text, re.MULTILINE
-        )
-        if commit is None:
-            return None
-        built = re.search(r"^build_date:\s*(\d{4}-\d{2}-\d{2})", text, re.MULTILINE)
-        return commit.group(1), "" if built is None else built.group(1)
 
     def _token(self, challenge: str, path: str) -> str:
         fields = dict(re.findall(r'(\w+)="([^"]*)"', challenge))
