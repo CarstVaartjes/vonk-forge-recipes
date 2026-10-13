@@ -1942,6 +1942,8 @@ class Sweep:
         except VonkctlError as error:
             self.note_infra("review", f"re-plan without a preparing recipe: {error}")
             return False
+        if not self._prune_profile():
+            return False
         review = self.vk.run("profile", "load", "--review", profile=profile)
         document = review.document
         if not review.ok or not isinstance(document, Mapping):
@@ -2775,14 +2777,21 @@ class Sweep:
             "takeover_budget", {"attempts": 0, "next_check": 0.0}
         )
         offline = [s.name for s in self.fleet.sparks if not s.online]
+        refusal = self.state.data.get("clearing_refusal")
         reason = (
             "clearing waits on offline " + ", ".join(offline)
             if offline
+            else f"clearing refused: {refusal}"
+            if refusal
             else "clearing waits on cleanup receipt or admission"
         )
         self.state.data["clearing_reason"] = reason
         if budget["attempts"] >= MAX_TAKEOVER_ATTEMPTS:
+            # Spent on this decision: review free online lanes, and say so (not a wait).
             self.state.data["takeover_fallback"] = True
+            self.state.data["clearing_reason"] = (
+                f"{reason}; clearing budget spent, reviewing free online lanes"
+            )
             return True
         if self.state.data.get("took_over") and all(
             load.get("projection_known") and load.get("state") not in SETTLED
@@ -2803,6 +2812,7 @@ class Sweep:
         if admitted:
             budget.update(attempts=0, next_check=0.0)
             self.state.data.pop("clearing_reason", None)
+            self.state.data.pop("clearing_refusal", None)
             return True
         if budget["attempts"] >= MAX_TAKEOVER_ATTEMPTS:
             self.state.data["takeover_fallback"] = True
@@ -2875,19 +2885,82 @@ class Sweep:
             return True
         return self._renew_cleanup(now)
 
+    def _clearing_refused(self, why: str) -> bool:
+        """A clearing that is not submitted says why: in the status, once in the events."""
+        if self.state.data.get("clearing_refusal") != why:
+            self.state.event(f"clearing refused: {why}"[:300])
+        self.state.data["clearing_refusal"] = why
+        self.state.data["clearing_reason"] = f"clearing refused: {why}"
+        return False
+
+    def _request_clearing(self, now: float) -> None:
+        """A new clearing decision gets its own bounded budget, never an old one's exhaustion."""
+        self.state.data["took_over"] = False
+        self.state.data["takeover_budget"] = {"attempts": 0, "next_check": 0.0}
+        self.state.data.pop("takeover_fallback", None)
+        self.state.data.pop("cleared_by", None)
+        self.backoff_until = now
+
+    def _prune_profile(self) -> bool:
+        """Before any load of the sweep profile, it holds only what live lanes need.
+
+        A load applies the whole profile. An assignment no lane accounts for (a lost cleanup
+        record, an edit the Controller applied after a timeout) is kept or started by every
+        later load, so a clearing or stop load would run the very workload it should end.
+        The exact export decides; only names the sweep itself uses are removed.
+        """
+        reply = self.vk.run("profile", "export", profile=self.cfg.sweep_profile)
+        document = reply.document
+        assignments = (
+            document.get("assignments") if isinstance(document, dict) else None
+        )
+        if not reply.ok or not isinstance(assignments, list):
+            self.note_infra(
+                "profile-edit", f"sweep profile unreadable: {reply.error_text[:200]}"
+            )
+            return False
+        live = {
+            str(s["alias"])
+            for s in self.state.slots.values()
+            if s["phase"] != "finished"
+        }
+        own = self._own_aliases()
+        stale = {
+            str(item.get("assignment_name"))
+            for item in assignments
+            if isinstance(item, dict)
+            and item.get("assignment_name") in own
+            and item.get("assignment_name") not in live
+        }
+        if not stale:
+            return True
+        pending = self.state.data.setdefault("cleanup", {})
+        for name in stale:
+            pending.setdefault(name, {"attempts": 0, "next_check": 0.0})
+        self.cleanup_finished()
+        return not stale & set(pending)
+
     def _renew_cleanup(self, now: float) -> bool:
         # Every new clear starts from current physical facts, including after
         # a terminal receipt with an absent or incomplete child projection.
         self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
         loads = self.state.data["cleanup_loads"]
+        if not self._prune_profile():
+            return self._clearing_refused(
+                "the sweep profile still holds assignments no lane needs"
+            )
         review = self.vk.run(
             "profile", "load", "--review", profile=self.cfg.sweep_profile
         )
         document = review.document
-        if not review.ok or not isinstance(document, Mapping):
-            return False
-        if document.get("allowed") is not True:
-            return False
+        if not review.ok and not isinstance(document, Mapping):
+            return self._clearing_refused(
+                f"clearing review unanswered: {review.error_text[:200]}"
+            )
+        if not isinstance(document, Mapping) or document.get("allowed") is not True:
+            return self._clearing_refused(
+                "clearing review not allowed: " + _blocker_text(document)
+            )
         runs = dig(document, "effects", "runs", default=[])
         stops = [
             row
@@ -2896,16 +2969,19 @@ class Sweep:
         ]
         online = {s.id for s in self.sparks()}
         if any(not set(row.get("node_ids", [])) <= online for row in stops):
-            return False  # an empty whole-fleet load would clear an offline Spark
+            # an empty whole-fleet load would clear an offline Spark
+            return self._clearing_refused("a reviewed stop reaches an offline Spark")
         kept = {
             slot["alias"]
             for slot in self.state.slots.values()
             if slot["phase"] in ("loading", "smoking")
         }
         if any(row.get("alias") in kept for row in stops):
-            return False
+            return self._clearing_refused("the clearing would stop a live lane")
         if self._adopted_requests(document) is None:
-            return False
+            return self._clearing_refused(
+                "pending cleanup effects are not bound for adoption"
+            )
         residual = [
             row
             for load in loads.values()
@@ -2920,10 +2996,9 @@ class Sweep:
             )
             for row in residual
         ):
-            self.state.event(
+            return self._clearing_refused(
                 "fresh cleanup admission does not bind every exact residual stop"
             )
-            return False
         key = self._own_key("takeover", self.cfg.sweep_profile)
         loads[key] = {
             "request_key": key,
@@ -2941,6 +3016,9 @@ class Sweep:
             self.note_infra("clearing", str(error))
             # The same request is observed on reentry; unknown acceptance is not replayed.
             return False
+        # Submitted: a review still blocked by the same holders now waits on their owner.
+        self.state.data["cleared_by"] = key
+        self.state.data.pop("clearing_refusal", None)
         self.state.save()
         self.observe_cleanup()
         self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
@@ -2974,6 +3052,8 @@ class Sweep:
 
     def _apply(self, placements: Sequence[policy.Placement], now: float) -> None:
         profile = self.cfg.sweep_profile
+        if not self._prune_profile():
+            return  # a load now would also start what no lane needs; the next pass retries
         self._assigned = {}
         added: list[policy.Placement] = []
         names = {s.id: s.name for s in self.sparks()}
@@ -3317,8 +3397,7 @@ class Sweep:
             holders = sorted({*foreign, *leftover})
             if self.state.data.get("cleared_for") != holders:
                 self.state.data["cleared_for"] = holders
-                self.state.data["took_over"] = False
-                self.backoff_until = now
+                self._request_clearing(now)
                 self.state.event(
                     "review blocked by a workload that is not ours: clearing"
                     if foreign
@@ -3327,8 +3406,23 @@ class Sweep:
                     + ": clearing"
                 )
                 return
-            # The same workloads outlived a clearing: their owner keeps them. Wait while
-            # they run (bounded by their owner, never by a count), no attempt spent.
+            if not self.state.data.get("cleared_by"):
+                # Decided, never submitted: nothing has outlived anything. The refusal is
+                # the evidence; decide the clearing again with a budget of its own.
+                why = self.state.data.get("clearing_reason") or "not submitted"
+                self._request_clearing(now)
+                for placement in blocked:
+                    self.record_result(
+                        placement.recipe.key,
+                        "review",
+                        "waiting",
+                        reason=f"review blocked by {', '.join(holders)}; their clearing "
+                        f"was not submitted ({why}): clearing again",
+                        disposition=Disposition.WAIT.value,
+                    )
+                return
+            # The same workloads outlived a submitted clearing: their owner keeps them. Wait
+            # while they run (bounded by their owner, never by a count), no attempt spent.
             for placement in blocked:
                 key = placement.recipe.key
                 self.state.entry(key)["defer_until"] = now + self.cfg.defer_delay
@@ -3373,8 +3467,7 @@ class Sweep:
                 # attempts in its evidence).
                 entry["review_freeing"] = freeing + 1
                 entry["defer_until"] = now + self.cfg.defer_delay
-                self.state.data["took_over"] = False
-                self.backoff_until = now
+                self._request_clearing(now)
                 self.record_result(
                     key,
                     "review",
@@ -3504,6 +3597,8 @@ class Sweep:
         self, profile: int, kind: str, *, owner: bool = False
     ) -> Any:
         """Persist reviewed stop intent, including an empty scope, before effects."""
+        if profile == self.cfg.sweep_profile and not self._prune_profile():
+            raise RuntimeError("the sweep profile holds assignments no lane needs")
         review = self.vk.call(
             "profile",
             "load",
@@ -3600,6 +3695,27 @@ class Sweep:
 
 
 OWNER_PROFILES_READ = (1, 2, 3)
+
+
+def _blocker_text(document: Any) -> str:
+    """The codes and details a refused review gives, as one line of evidence."""
+    if not isinstance(document, Mapping):
+        return "no review document"
+    found = [
+        f"{r.get('code', '')}: {r.get('detail', '')}"
+        for r in document.get("reasons", [])
+        if isinstance(r, Mapping) and r.get("severity") == "error"
+    ]
+    found += [
+        f"{b.get('code', '')}: {b.get('detail', '')}"
+        for d in document.get("admission_decisions", [])
+        if isinstance(d, Mapping) and d.get("allowed") is False
+        for b in d.get("blockers", [])
+        if isinstance(b, Mapping)
+    ]
+    if not found and (error := document.get("error") or document.get("code")):
+        found.append(str(error))
+    return "; ".join(found)[:400] or "no blocker named"
 
 
 def _bounded_document(document: Mapping[str, Any]) -> Any:

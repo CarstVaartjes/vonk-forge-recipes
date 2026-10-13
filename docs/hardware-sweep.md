@@ -311,6 +311,17 @@ free online lanes are selected from a fresh fleet observation and submitted
 through the normal Controller review. Unknown cleanup bookkeeping cannot reserve
 every lane forever. Idle alerts include the clearing blocker and offline Spark names.
 
+A load applies the whole sweep profile, so before any load (placement, clearing,
+final stop) the sweep removes every assignment of its own that no live lane needs,
+judged by the exact profile export rather than its bookkeeping: a lost cleanup
+record can never make a clearing keep, or a stop start, a workload. Each new
+clearing decision (a review blocked by a different set of workloads, or a capacity
+refusal) gets a fresh three-attempt budget. A clearing that is not submitted
+records why (`clearing refused: …` in the status and once in the events, with the
+review's blocker codes); a review still blocked by the same workloads is a wait on
+their owner only after a clearing load was actually submitted for them, otherwise
+the clearing is decided again and the waiting result names the refusal.
+
 The current CLI applies profiles to the whole fleet and offers no node-scoped
 load. Placement loads can therefore still carry stops for offline workloads;
 excluding those effects requires a Controller/CLI scope contract. The sweep
