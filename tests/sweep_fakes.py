@@ -94,6 +94,8 @@ class FakeRecipe:
     fail_download: str | None = None
     fail_download_code: str = "model.download_failed"
     alias: str | None = None
+    # What its run really holds on a Spark once serving (the node telemetry shows it).
+    observed_memory: int = 0
 
     @property
     def key(self) -> str:
@@ -808,6 +810,19 @@ class FakeFleet:
                         "disk_free_bytes": 10**12,
                     },
                     "loaded": loaded,
+                    "telemetry": {
+                        "sample": {
+                            "memory_total_bytes": SPARK_MEMORY,
+                            "memory_available_bytes": SPARK_MEMORY
+                            - 4 * GB
+                            - sum(
+                                self.recipes[run["recipe"]].observed_memory
+                                for run in self.runs
+                                if node_id in run["node_ids"]
+                                and run["recipe"] in self.recipes
+                            ),
+                        }
+                    },
                 }
             )
         return {"nodes": nodes}

@@ -35,7 +35,7 @@ from vonk_forge_contracts.sweep import (
     FleetOnlineState,
 )
 
-from . import cleanup, policy, recovery, verdict
+from . import cleanup, memory, policy, recovery, verdict
 from .catalog import (
     Fleet,
     Model,
@@ -1433,8 +1433,16 @@ class Sweep:
             smoke_rules=policy.SMOKE_RULES,
             revalidate=False,
         )
-        if result.quality_notes:
-            entry["quality"] = result.quality_notes
+        fleet = self.vk.run("fleet")
+        observed = memory.observe(
+            fleet.document if fleet.ok else None,
+            slot["node_ids"],
+            str(slot["alias"]),
+            recipe.memory_bytes,
+        )
+        quality = result.quality_notes + memory.notes(observed)
+        if quality:
+            entry["quality"] = quality
         else:
             entry.pop("quality", None)
         for stale in (
@@ -1454,9 +1462,10 @@ class Sweep:
             "smoke",
             "passed",
             result={"endpoint_alias": slot["alias"], **result.record()},
+            memory=observed,
             slot=slot,
         )
-        notes = len(result.quality_notes)
+        notes = len(quality)
         self.state.event(
             f"passed {key}"
             + (f" ({notes} quality note{'s' if notes != 1 else ''})" if notes else "")
