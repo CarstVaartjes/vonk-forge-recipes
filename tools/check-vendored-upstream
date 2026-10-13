@@ -106,6 +106,8 @@ class Report:
     problems: list[str] = field(default_factory=list)
     checked: int = 0
     note: str = ""
+    # (problem, upstream path) of every vendored copy that differs from upstream
+    stale: list[tuple[str, str]] = field(default_factory=list)
 
 
 def git_blob_sha(data: bytes) -> str:
@@ -282,6 +284,7 @@ def check_adapter(adapter: Path, root: Path, load_tree: TreeLoader) -> Report:
             if not any(tree.blobs[c] == local_sha for c in present):
                 message = f"{label}: {rel}: differs from upstream {present[0]} at {commit[:12]}"
                 (weak_problems if weak else report.problems).append(message)
+                report.stale.append((message, present[0]))
             continue
         if tree.complete and local_sha in by_sha:
             vendored = True
