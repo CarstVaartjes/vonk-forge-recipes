@@ -404,13 +404,18 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
             "https://github.com/example/recipe/commit/new",
         )
         assessor.target = lambda _provider, _repo: target
-        # The recipe uses the whole repository, so the move is a refresh (a move that
-        # changes no used file is not one; see test_published_image_follow).
+        # The recipe uses the whole repository and code changed, so the move is a
+        # refresh (a move that changes nothing that runs is not one; see
+        # NothingRunsTests and test_published_image_follow).
         with (
             patch(
                 "refresh_upstream.compare_commits",
                 return_value=refresh.Comparison(
-                    "ahead", [], [], False, "https://github.com/example/recipe/compare"
+                    "ahead",
+                    [],
+                    [{"filename": "src/model.py", "status": "modified"}],
+                    False,
+                    "https://github.com/example/recipe/compare",
                 ),
             ),
             patch.object(refresh.Assessor, "_used_changes", return_value=None),
@@ -426,6 +431,131 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
             "review evidence, not a configured upgrade channel", result.evidence[0]
         )
         self.assertIn(NEW, result.edits["recipes/recipe.json"].decode())
+
+
+def single_recipe_catalog(source_reference: str) -> object:
+    return refresh.Catalog(
+        Path(tempfile.gettempdir()),
+        recipes={
+            "recipe": {
+                "identity": {"slug": "recipe"},
+                "provenance": {
+                    "attribution": ["Example"],
+                    "source_reference": source_reference,
+                },
+                "release": {"version": "1.0.0", "released_at": "2026-01-01"},
+                "models": [],
+                "execution": {"build": {"context": {"path": "missing"}}},
+            }
+        },
+    )
+
+
+class NothingRunsTests(unittest.TestCase):
+    """A move that changes nothing a recipe runs is not a refresh (#1085, #848, #1282)."""
+
+    TARGET = refresh.Target(
+        "github", "example/recipe", NEW, "2026-09-30", None, None, "u"
+    )
+
+    def test_docs_benchmarks_tests_and_licences_do_not_run(self) -> None:
+        for name in (
+            "README.md",
+            "VALIDATION_2026-10-08.md",
+            "bench/requirements-sdk.txt",
+            "bench/results/2026-10-08/run/result.json",
+            "benchmarks/x.sh",
+            "tests/test_a.py",
+            "docs/guide.rst",
+            "LICENSE",
+            "NOTICE.txt",
+            ".gitignore",
+            "assets/chart.svg",
+        ):
+            with self.subTest(name=name):
+                self.assertFalse(refresh.runs(name))
+        for name in ("src/model.py", "requirements.txt", "run.sh", "Makefile", "a.c"):
+            with self.subTest(name=name):
+                self.assertTrue(refresh.runs(name))
+
+    def test_only_complete_docs_comparisons_change_nothing(self) -> None:
+        docs = comparison(files=("README.md", "bench/results/a.json", "LICENSE"))
+        self.assertTrue(refresh.nothing_runs(docs, frozenset()))
+        self.assertFalse(refresh.nothing_runs(docs, {"README.md"}))  # adapter copies it
+        self.assertFalse(
+            refresh.nothing_runs(comparison(files=("README.md", "src/a.py")), set())
+        )
+        self.assertFalse(
+            refresh.nothing_runs(
+                comparison(files=("README.md",), truncated=True), set()
+            )
+        )
+
+    def assess(self, comparison_, *, used=None, report=None):
+        catalog = single_recipe_catalog(f"https://github.com/example/recipe/tree/{OLD}")
+        assessor = refresh.Assessor(catalog, object(), None, {})
+        assessor.target = lambda _provider, _repo: self.TARGET
+        patches = [
+            patch("refresh_upstream.compare_commits", return_value=comparison_),
+            patch.object(refresh.Assessor, "_used_changes", return_value=used),
+        ]
+        if report is not None:
+            pin = refresh.AdapterPin("example/recipe", OLD, Path("missing"))
+            patches += [
+                patch("refresh_upstream.adapter_pin", return_value=pin),
+                patch("refresh_upstream.patch_targets", return_value=set()),
+                patch.object(refresh.vendored, "fetch_tree", return_value=object()),
+                patch.object(refresh.vendored, "check_adapter", return_value=report),
+                patch.object(refresh.Assessor, "_retarget_adapter"),
+            ]
+        for active in patches:
+            active.start()
+            self.addCleanup(active.stop)
+        return assessor.assess("recipe")
+
+    def test_whole_repository_move_of_docs_and_benchmarks_is_current(self) -> None:
+        result = self.assess(
+            comparison(files=("README.md", "bench/results/a.json", "AGENTS.md"))
+        )
+        self.assertFalse(result.drifted)
+        self.assertFalse(result.reasons)
+
+    def test_whole_repository_code_move_is_still_a_refresh(self) -> None:
+        result = self.assess(comparison(files=("README.md", "src/engine.py")))
+        self.assertTrue(result.mechanical)
+
+    def test_stale_vendored_readme_copy_alone_is_current(self) -> None:
+        message = "adapters/x: upstream-README.md: differs from upstream README.md at f"
+        report = refresh.vendored.Report("adapters/x")
+        report.problems.append(message)
+        report.stale.append((message, "README.md"))
+        result = self.assess(comparison(files=("README.md",)), used=[], report=report)
+        self.assertFalse(result.drifted)
+
+    def test_stale_vendored_code_copy_still_needs_review(self) -> None:
+        message = (
+            "adapters/x: modelopt.py: differs from upstream docker/modelopt.py at f"
+        )
+        report = refresh.vendored.Report("adapters/x")
+        report.problems.append(message)
+        report.stale.append((message, "docker/modelopt.py"))
+        result = self.assess(
+            comparison(files=("docker/modelopt.py",)), used=[], report=report
+        )
+        self.assertIn("modelopt.py", " ".join(result.reasons))
+
+    def test_huggingface_source_reference_alone_is_current(self) -> None:
+        catalog = single_recipe_catalog(
+            f"https://huggingface.co/example/model/tree/{OLD}"
+        )
+        assessor = refresh.Assessor(catalog, object(), None, {})
+        assessor.target = lambda _provider, _repo: refresh.Target(
+            "huggingface", "example/model", NEW, "2026-09-30", None, None, "u"
+        )
+        with patch("refresh_upstream.follow_huggingface_branch", return_value=None):
+            result = assessor.assess("recipe")
+        self.assertFalse(result.drifted)
+        self.assertFalse(result.edits)
 
 
 class MergeGateTests(unittest.TestCase):

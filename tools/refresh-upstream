@@ -94,7 +94,18 @@ OWN_VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 # dependency lists and patches. READMEs, docs and licence texts are not judged: a recipe
 # carries its own launch commands. Everything else in an upstream repository is not mirrored by a
 # recipe, unless an adapter vendors it (that is checked byte for byte separately).
-HARMLESS_DIRS = {".github", "docs", "doc", "tests", "test", "assets", "images", "img"}
+HARMLESS_DIRS = {
+    ".github",
+    "docs",
+    "doc",
+    "tests",
+    "test",
+    "assets",
+    "images",
+    "img",
+    "bench",
+    "benchmarks",
+}
 BLOCKING_SUFFIXES = {
     ".sh",
     ".bash",
@@ -123,6 +134,12 @@ LAUNCH_SCRIPT = re.compile(
     re.IGNORECASE,
 )
 LOCK_FILES = {"package-lock.json", "composer.lock", "tsconfig.json"}
+# What a recipe never runs, wherever it sits: documentation, pictures and licence texts.
+DOC_SUFFIXES = {".md", ".rst", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"}
+DOC_NAMES = re.compile(
+    r"^((licen[cs]e|notice|copying|authors|changelog)([.-].*)?|\.gitignore)$",
+    re.IGNORECASE,
+)
 
 
 def is_blocking(path: str) -> bool:
@@ -137,6 +154,28 @@ def is_blocking(path: str) -> bool:
         pure.suffix.lower() in BLOCKING_SUFFIXES
         or BLOCKING_NAMES.match(name)
         or LAUNCH_SCRIPT.match(name)
+    )
+
+
+def runs(path: str) -> bool:
+    """Whether a changed upstream file can change what a recipe runs.
+
+    Documentation, benchmarks, tests, CI, pictures and licence texts cannot: a move that
+    changes only those is not a refresh, however the adapter uses the repository.
+    """
+    pure = PurePosixPath(path)
+    if pure.parts and pure.parts[0].lower() in HARMLESS_DIRS:
+        return False
+    return not (pure.suffix.lower() in DOC_SUFFIXES or DOC_NAMES.match(pure.name))
+
+
+def nothing_runs(comparison: Comparison, mirrored: set[str] | frozenset[str]) -> bool:
+    """Whether a complete comparison changed only files no recipe runs."""
+    names = {f["filename"] for f in comparison.files} | {
+        f["previous_filename"] for f in comparison.files if "previous_filename" in f
+    }
+    return not comparison.truncated and not any(
+        runs(name) or name in mirrored for name in names
     )
 
 
@@ -1770,9 +1809,13 @@ class Assessor:
                 elif item.provider == "github":
                     self._github(item, recipe, new_recipe, result, edits)
                 else:
+                    # A Hugging Face source reference is a label: what runs is the Model,
+                    # judged as its own item. It rides along with a move that runs.
+                    item.noop = True
                     result.evidence.append(
                         f"### {item.label}\n\n- pinned `{item.current}`\n- newest `{item.target.sha}`"
                         f" ({item.target.date}) - {item.target.url}\n"
+                        "- the source reference alone is not a refresh.\n"
                     )
                     self._retarget_reference(new_recipe, item)
             except (RuntimeError, SystemExit, KeyError, ValueError, OSError) as error:
@@ -1813,6 +1856,7 @@ class Assessor:
         owns_adapter = pin is not None and pin.repo.lower() == item.repo.lower()
         patched: set[str] = set()
         problems: list[str] = []
+        stale_docs: list[str] = []  # vendored copies of files no recipe runs (a README)
         if owns_adapter:
             assert pin is not None
             patched = patch_targets(pin.directory)
@@ -1820,9 +1864,11 @@ class Assessor:
             report = vendored.check_adapter(
                 pin.directory, self.catalog.root, lambda _repo, _commit: tree
             )
-            problems = [
-                f"vendored file check at the new commit: {p}" for p in report.problems
-            ]
+            docs = {problem for problem, upstream in report.stale if not runs(upstream)}
+            for p in report.problems:
+                (stale_docs if p in docs else problems).append(
+                    f"vendored file check at the new commit: {p}"
+                )
         context = self.catalog.root / recipe["execution"]["build"]["context"]["path"]
         declared_kit = kit_directory(self.catalog.root, recipe)
         is_kit = (
@@ -1853,17 +1899,28 @@ class Assessor:
             used_changes=used_changes,
             mirrored=mirrored,
         )
-        result.reasons.extend(reasons)
         result.evidence.append(github_evidence(item, comparison, patched))
-        if used_changes == [] and not reasons and item.image is None:
-            # Nothing the recipe takes from the repository changed: the move would only
-            # rewrite commit references (a new build for identical content). It rides
-            # along with a change that does run, and is never proposed on its own.
+        if (
+            not reasons
+            and item.image is None
+            and (
+                used_changes == []
+                or (used_changes is None and nothing_runs(comparison, mirrored))
+            )
+        ):
+            # Nothing the recipe runs changed (only docs, benchmarks, tests or a vendored
+            # README copy): the move would only rewrite commit references (a new build
+            # for identical content). It rides along with a change that does run, and is
+            # never proposed on its own.
             item.noop = True
             result.evidence.append(
-                f"- {item.label}: no file this recipe uses changed, so this move alone "
+                f"- {item.label}: no file this recipe runs changed, so this move alone "
                 "is not a refresh.\n"
             )
+        else:
+            # A move that does happen must keep every vendored copy byte-identical.
+            reasons += stale_docs
+        result.reasons.extend(reasons)
         self._retarget_reference(new_recipe, item)
         if owns_adapter:
             assert pin is not None
