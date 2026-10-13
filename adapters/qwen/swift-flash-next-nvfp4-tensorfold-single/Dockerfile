@@ -1,17 +1,17 @@
-# tournierjc/TensorFold branch integration/0.6.1 at 808767fd (Apache-2.0; TensorFold v0.6.1 plus video input, 8-bit decode faces, the 80,014-id MTP draft vocabulary and PLE row prefetch) with the NVFP4 Flash Next reader and vision, on NVIDIA's PyTorch container (arm64).
+# tournierjc/TensorFold branch integration/0.6.4 at 53ceb126 (Apache-2.0; TensorFold v0.6.4 plus the rig's changes, among them the 8-bit decode faces and the 80,014-id MTP draft vocabulary) with the NVFP4 Flash Next reader and vision, on NVIDIA's PyTorch container (arm64).
 FROM nvcr.io/nvidia/pytorch:26.07-py3@sha256:7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3
 
 LABEL org.opencontainers.image.source="https://github.com/tournierjc/TensorFold" \
-      org.opencontainers.image.revision="808767fd479c6bd8dbb2eb68f2a3537f75e6d520" \
+      org.opencontainers.image.revision="53ceb126d5d54e9193245bcc74130fc1d81cf46f" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      io.vonk.recipe.source="https://github.com/tournierjc/Swift-1.5-TensorFold-Single-DGX-Spark/tree/d956df5fea1db1fc9b5ffcd46f627d88a1be0b68"
+      io.vonk.recipe.source="https://github.com/tournierjc/Swift-1.5-TensorFold-Single-DGX-Spark/tree/70c561394e6e955e369b135b5edfd70c1dfe9efb"
 
 # NGC exports PIP_CONSTRAINT for its own stack; the hash-pinned lock below is resolved without it and leaves torch and numpy alone.
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PYTHONUNBUFFERED=1
 
-COPY vendor/tensorfold-808767fd479c6bd8dbb2eb68f2a3537f75e6d520.tar.gz /tmp/tensorfold.tar.gz
+COPY vendor/tensorfold-53ceb126d5d54e9193245bcc74130fc1d81cf46f.tar.gz /tmp/tensorfold.tar.gz
 COPY requirements.lock /tmp/requirements.lock
-RUN echo "8f2653b24365ea3d01c29802992f17b467a7a1d0f31f00393eec679c15ae9990  /tmp/tensorfold.tar.gz" | sha256sum -c - \
+RUN echo "79b670c2f3a2a2063eeb7d3659a266146b8e95d0b1493c47eb74b60bcf4770b5  /tmp/tensorfold.tar.gz" | sha256sum -c - \
     && mkdir /tmp/tensorfold-src \
     && tar -xzf /tmp/tensorfold.tar.gz -C /tmp/tensorfold-src --strip-components=1 \
     && PIP_CONSTRAINT= python -m pip install --ignore-installed --no-deps --no-cache-dir --require-hashes --requirement /tmp/requirements.lock \

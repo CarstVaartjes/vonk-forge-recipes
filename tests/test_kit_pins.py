@@ -1003,7 +1003,7 @@ FOLLOWING_RECIPES = {
     "qwen3-8-27b-taussoe-tensorfold-single": ("branch", "glm-long-context"),
     "swift-1-5-flash-next-nvfp4-tournierjc-tensorfold-single": (
         "commit",
-        "808767fd479c",
+        "53ceb126d5d5",
     ),
     "qwen3-8-flash-next-taussoe-tensorfold-single": (
         "branch",
