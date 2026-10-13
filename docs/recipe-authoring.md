@@ -406,7 +406,12 @@ A refresh is **mechanical** only when all of these hold:
 
 A pin move that changes no file the recipe uses (and no image, Model or kit declaration)
 is not a refresh on its own: it would only rewrite commit references and rebuild
-identical content. It rides along with a move that does change what runs.
+identical content. It rides along with a move that does change what runs. The same holds
+when the adapter uses the whole repository (or is built from a kit) and every changed
+file is one no recipe runs: documentation (`*.md`, `*.rst`, `docs/`), benchmarks
+(`bench/`, `benchmarks/`), tests, CI, pictures and licence texts; when the only vendored
+copy that differs is such a file (an `upstream-README.md`); and for a Hugging Face
+`source_reference`, which is a label (the Model is judged as its own item).
 
 A recipe that runs its source's published image follows the image, not the commits.
 `published-images.json` names such an image, its source repository and the tag upstream
