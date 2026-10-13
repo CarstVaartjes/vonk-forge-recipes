@@ -91,5 +91,81 @@
    "recipe": "vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight",
    "node_count": 8
   }
- ]
+ ],
+ "at_22_29": {
+  "_source": "vonkctl fleet --json, profile export --profile 10, profile load --profile 10 --review (read-only) at 22:30Z; sweep state.json/results.jsonl",
+  "nodes": [
+   {
+    "id": "spk_2818d189042b4c77aefa7796f4befd23",
+    "display_name": "spark-3542",
+    "connection": {
+     "online_state": "offline",
+     "offline_reason": "stale",
+     "last_seen_at": "2026-10-13T21:53:10.842298Z"
+    },
+    "loaded": [
+     {
+      "alias": "qwen3.8-27b-nvfp4",
+      "run_id": "1bf4162e-d4d9-4997-a8b6-e0f0baedf584",
+      "run_state": "stopping",
+      "route_state": "withdrawn",
+      "healthy": false,
+      "installation_id": "24c4221f-48e9-412b-b330-9762cfb6ffee"
+     }
+    ]
+   },
+   {
+    "id": "spk_9a86fdbab116442ab6707bf4181a3c1c",
+    "display_name": "spark-2297",
+    "connection": {
+     "online_state": "online",
+     "offline_reason": null,
+     "last_seen_at": "2026-10-13T22:30:06.248329Z"
+    },
+    "loaded": [
+     {
+      "alias": "llama-3.1-8b-instruct",
+      "run_id": "f42cbd5d-6748-4ab3-928b-9d04c125a272",
+      "run_state": "running",
+      "route_state": "published",
+      "healthy": true,
+      "installation_id": "7df3b196-4f7c-4a47-b18a-5614df64528e"
+     }
+    ]
+   }
+  ],
+  "profile_10_assignments": [],
+  "review_stops": [
+   {
+    "action": "stop",
+    "alias": "qwen3.8-27b-nvfp4",
+    "run_id": "1bf4162e-d4d9-4997-a8b6-e0f0baedf584",
+    "node_ids": [
+     "spk_2818d189042b4c77aefa7796f4befd23"
+    ]
+   },
+   {
+    "action": "stop",
+    "alias": "llama-3.1-8b-instruct",
+    "run_id": "f42cbd5d-6748-4ab3-928b-9d04c125a272",
+    "node_ids": [
+     "spk_9a86fdbab116442ab6707bf4181a3c1c"
+    ]
+   }
+  ],
+  "takeover_budget": {
+   "attempts": 1
+  },
+  "clearing_refusal": "a reviewed stop reaches an offline Spark",
+  "cleared_for": [
+   "llama-3.1-8b-instruct"
+  ],
+  "blocked_recipe": "vonk-forge/llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single",
+  "waiting_reason": "review blocked by llama-3.1-8b-instruct; their clearing was not submitted (clearing refused: a reviewed stop reaches an offline Spark): clearing again",
+  "events_every_90s": [
+   "clearing waits on offline spark-3542: clearing budget exhausted; reviewing free online lanes",
+   "review blocked: vonk-forge/llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
+  ],
+  "alert": "IDLE WITH READY WORK: 1 free lane(s) for 935s while recipes are ready (load record: 0; blocking reason: clearing waits on offline spark-3542)"
+ }
 }

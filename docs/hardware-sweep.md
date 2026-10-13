@@ -322,7 +322,10 @@ application left behind on that Spark is stopped by the next sweep-profile load 
 the Spark answers (its assignment is already gone from the profile).
 
 The sweep places only on online Sparks. Empty takeover loads whose preview
-would stop an offline or unselected Spark are skipped. Clearing admission gets
+would stop someone else's workload on an offline or unselected Spark are skipped.
+A stop of the sweep's own workload on an offline enrolled Spark does not hold the
+clearing: the Controller queues it and delivers it when the Spark answers, while
+the clearing frees the online lanes. Clearing admission gets
 three attempts spaced by 30 seconds; the budget survives restart. After that,
 free online lanes are selected from a fresh fleet observation and submitted
 through the normal Controller review. Unknown cleanup bookkeeping cannot reserve
