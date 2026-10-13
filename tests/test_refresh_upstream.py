@@ -214,6 +214,30 @@ class ModelTests(unittest.TestCase):
             "new weights file", " ".join(refresh.model_shape_problems(old, kept))
         )
 
+    def test_a_recipe_is_moved_only_by_files_it_mounts(self) -> None:
+        # #530: the EXL3 recipe mounts config and two shards of the official
+        # checkpoint; a new chat template and reference code concern other recipes.
+        old = model_with(("config.json", "model.safetensors", "inference/model.py"))
+        recipe = {
+            "models": [
+                {
+                    "model": {"slug": old["identity"]["slug"]},
+                    "files": [{"file_id": old["files"][0]["id"]}],
+                }
+            ]
+        }
+        self.assertEqual(refresh.mounted_paths(recipe, old), {"config.json"})
+        new = files("config.json", "model.safetensors", "inference/model.py")
+        for entry in new:
+            entry["sha256"] = "c" * 64 if entry["path"] == "config.json" else "e" * 64
+        new += files("chat_template.jinja")
+        self.assertTrue(refresh.mounted_unchanged(old, new, {"config.json"}))
+        new[0]["sha256"] = "f" * 64
+        self.assertFalse(refresh.mounted_unchanged(old, new, {"config.json"}))
+        everything = [{"file_id": f["id"]} for f in old["files"]]
+        recipe["models"][0]["files"] = everything
+        self.assertIsNone(refresh.mounted_paths(recipe, old))
+
     def test_refreshed_model_renames_and_remaps_ids(self) -> None:
         old = model_with(("model.safetensors",))
         target = refresh.Target(
@@ -1267,6 +1291,58 @@ class EnvelopeTests(unittest.TestCase):
         assessor._retarget_model(recipe, recipe, old, fresh, result)
         self.selected = recipe["models"][0]["files"][0]
         return recipe["topology"]["roles"][0]["resources"]["disk"], result
+
+    def test_a_recipe_mounting_every_file_mounts_the_new_ones(self) -> None:
+        # #531: the official checkpoint gained chat_template.jinja; an SGLang recipe
+        # that mounts the whole Model must mount it too, and a dropped README leaves.
+        old = model_with(("model.safetensors", "README.md"))
+        fresh = json.loads(json.dumps(old))
+        fresh["identity"]["slug"] = "demo-" + NEW[:8]
+        fresh["files"] = [
+            dict(old["files"][0]),
+            {
+                "id": refresh.file_id("chat_template.jinja", "e" * 64),
+                "path": "chat_template.jinja",
+                "roles": ["tokenizer"],
+                "sha256": "e" * 64,
+                "size_bytes": 7,
+            },
+        ]
+        mount = {"target": "/models"}
+        recipe = {
+            "models": [
+                {
+                    "id": "primary",
+                    "model": {"slug": old["identity"]["slug"], "content_sha256": "x"},
+                    "files": [
+                        {
+                            "id": "primary-" + f["id"],
+                            "file_id": f["id"],
+                            "mount": mount,
+                            "roles": ["entrypoint"],
+                        }
+                        for f in old["files"]
+                    ],
+                }
+            ],
+            "topology": {
+                "roles": [{"resources": {"disk": {"artifact_bytes": 1_000_000}}}]
+            },
+        }
+        result = refresh.Assessment("recipe")
+        assessor = refresh.Assessor(
+            refresh.Catalog(Path(".")), object(), None, {"recipes": []}
+        )
+        assessor._retarget_model(recipe, recipe, old, fresh, result)
+        self.assertFalse(result.reasons)
+        selected = recipe["models"][0]["files"]
+        self.assertEqual(
+            sorted(s["file_id"] for s in selected),
+            sorted(f["id"] for f in fresh["files"]),
+        )
+        self.assertTrue(all(s["mount"] == mount for s in selected))
+        disk = recipe["topology"]["roles"][0]["resources"]["disk"]
+        self.assertEqual(disk["artifact_bytes"], 1_000_000 - 10 + 7)
 
     def test_selected_file_id_follows_the_new_file_within_the_contract_bound(
         self,
