@@ -434,14 +434,6 @@ def activity(document: Mapping[str, Any]) -> tuple[Any, ...]:
     )
 
 
-def platform_wait(document: Mapping[str, Any]) -> bool:
-    """The application waits in the platform's queue, admission or retry backoff, not on the recipe's engine."""
-    progress = document.get("progress") or {}
-    return document.get("state") in ("queued", "backoff") or bool(
-        progress.get("admission_pending")
-    )
-
-
 # --------------------------------------------------------------------------
 # Failure classes, retry, clusters
 # --------------------------------------------------------------------------
@@ -459,7 +451,8 @@ _CHILD_PHASE = {
     "final_verify": "start",
     "verify": "start",
 }
-# Attribution follows typed codes; platform detail text is evidence only.
+# The one table of recipe-data codes, for CLI errors and Controller failures alike:
+# attribution follows typed codes; platform detail text is evidence only.
 RECIPE_FAILURE_CODES = {
     "recipe.invalid_definition": "build-policy",
     "recipe.invalid_document": "build-policy",
@@ -480,7 +473,6 @@ _FIXED_CLASS = {"timeout": "timeout", "readiness": "readiness"}
 # The gateway refused the sweep's own key (expired, revoked, not allowed): the recipe was never
 # judged. Never a verdict on it, never counted as an attempt.
 CLIENT_CREDENTIAL = "client-credential"
-TRANSIENT_CLASSES = frozenset({"network", "smoke-timeout", "copy-stalled"})
 MODEL_LEVEL_CLASSES = frozenset({"model-integrity"})
 
 
@@ -510,23 +502,8 @@ class Failure:
         return " ".join([self.detail, *(f"[{e}]" for e in extra)])[:1024]
 
     @property
-    def transient(self) -> bool:
-        return self.klass in TRANSIENT_CLASSES
-
-    @property
     def model_level(self) -> bool:
         return self.klass in MODEL_LEVEL_CLASSES
-
-
-def freeable_refusal(failure: Failure) -> bool:
-    """A review refusal that stopping or evicting something may undo, not a verdict on the recipe.
-
-    The sweep only reviews a recipe whose declared demand fits an empty Spark, so a capacity,
-    memory or disk refusal means something else still holds the room (a retained run, cached
-    bytes, a workload that is not ours). Clearing the fleet and reviewing again settles it;
-    only a refusal that survives that is the recipe's.
-    """
-    return failure.phase == "review" and failure.klass == "capacity"
 
 
 _NOT_REFS = frozenset({"code", "detail", "message", "severity"})
@@ -620,21 +597,6 @@ def _normalise(detail: str) -> str:
     text = re.sub(r"(/[\w.\-]+){2,}", "<path>", text)
     text = re.sub(r"\d+", "N", text)
     return " ".join(text.split())[:120].lower()
-
-
-# The assignment fields that carry the recipe's own data; the rest of a profile
-# edit (name, Sparks, state) is what the sweep chose.
-RECIPE_PROFILE_FIELDS = frozenset(
-    {"recipe_selector", "option_choices", "model_variant"}
-)
-_ASSIGNMENT_FIELD = re.compile(r"assignments(?:\[\d+\]|\.\d+)\.([a-z_]+)")
-_PROFILE_FIELD = re.compile(r"(?:\$|\bbody)\.([a-z_]+)")
-
-
-def refused_profile_field(text: str) -> str | None:
-    """The profile field a contract refusal names (``$.assignments[0].assignment_name``), if any."""
-    match = _ASSIGNMENT_FIELD.search(text) or _PROFILE_FIELD.search(text)
-    return match.group(1) if match else None
 
 
 EVIDENCE_BODY_LIMIT = 2048
@@ -782,27 +744,6 @@ def superseded_text(reason: object) -> bool:
     """Legacy rows carry the supersession only as text (older Controllers ended them failed/cancelled)."""
     text = str(reason or "").lower()
     return any(marker in text for marker in _SUPERSEDED_TEXT)
-
-
-REPEATED_FAILURE_CODE = "profile.failure_repeated"
-
-
-def retry_ended(document: Mapping[str, Any]) -> bool:
-    """Did the Controller stop retrying this failed application (a definite, typed failure)?"""
-    blockers = document.get("blockers") or (document.get("progress") or {}).get(
-        "blockers"
-    )
-    if any(
-        isinstance(item, Mapping) and item.get("code") == REPEATED_FAILURE_CODE
-        for item in blockers or []
-    ):
-        return True
-    failures = ((document.get("progress") or {}).get("switch_adapter") or {}).get(
-        "assignment_failures"
-    ) or []
-    return any(
-        isinstance(item, Mapping) and item.get("terminal") is True for item in failures
-    )
 
 
 @dataclass(frozen=True)

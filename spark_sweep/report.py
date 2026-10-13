@@ -131,7 +131,11 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     if slot.get("copying")
                     else slot["phase"],
                     "elapsed_s": round(now - slot["started_at"]),
+                    # The stall window: it restarts on every movement and never runs
+                    # while the lane waits on the Controller (``waiting_on``).
                     "limit_s": round(slot["deadline"] - slot["started_at"]),
+                    "waiting_on": (slot.get("watch") or {}).get("waiting_on")
+                    or slot.get("waiting_on"),
                 }
             )
     present = policy.present_models(sweep.models)
@@ -226,6 +230,7 @@ def render_status(status: Mapping[str, Any]) -> str:
     for spark, items in status["lanes"].items():
         text = ", ".join(
             f"{i['recipe']} [{i['phase']} {_duration(i['elapsed_s'])}/{_duration(i['limit_s'])}]"
+            + (f" waiting on {i['waiting_on']}" if i.get("waiting_on") else "")
             for i in items
         )
         lines.append(f"- {spark}: {text or 'idle'}")

@@ -35,10 +35,18 @@ from .policy import (
     plan_groups,
 )
 from .state import State
+from .verdict import (
+    Disposition,
+    Progress,
+    disposition,
+    download_signal,
+    progress_verdict,
+    reply_disposition,
+)
 from .vonkctl import Vonkctl, VonkctlError, request_key
 
 TIB = 1024**4
-DOWNLOAD_WALL_SECONDS = 24 * 3600.0
+# The stall window of a download: no bytes, items, phase or last-progress change for this long.
 DOWNLOAD_STALL_SECONDS = 3600.0
 FailureHandler = Callable[[str, Failure, str | None, bool], None]
 DoneHandler = Callable[[str], None]
@@ -121,15 +129,6 @@ class Prefetcher:
             ):
                 continue
             record.setdefault("started_at", now)
-            record.setdefault("progress_at", now)
-            deadline = min(
-                float(record["started_at"]) + DOWNLOAD_WALL_SECONDS,
-                float(record["progress_at"]) + DOWNLOAD_STALL_SECONDS,
-            )
-            if now >= deadline and not record.get("observation_budget_exhausted_at"):
-                record["observation_budget_exhausted_at"] = now
-                self._retire(key, record, "download.observation_budget_exhausted")
-                continue
             if now < float(record.get("next_check", 0)):
                 continue
             reply = self.vk.run("recipe", "progress", *self._progress_args(record))
@@ -160,8 +159,11 @@ class Prefetcher:
                     )
             document = reply.document
             record["next_check"] = now + min(self.config.retry_cooldown, 60.0)
+            watch = record.setdefault("watch", {})
             if not reply.ok or not isinstance(document, dict):
-                continue  # keep the last truthful state; try again next tick
+                # Unknown: keep the last truthful state, wait, and try again next tick.
+                progress_verdict(None, watch, window=DOWNLOAD_STALL_SECONDS, now=now)
+                continue
             if not record.get("operation_id"):
                 intent = record.get("requested_intent")
                 accepted = document.get("request")
@@ -214,6 +216,12 @@ class Prefetcher:
             record["bytes_total"] = progress.get("total_bytes")
             if record["bytes_done"] != old_bytes:
                 record["progress_at"] = now
+            moving = progress_verdict(
+                download_signal(document),
+                watch,
+                window=DOWNLOAD_STALL_SECONDS,
+                now=now,
+            )
             speed = (
                 progress.get("smoothed_bytes_per_second")
                 or progress.get("bytes_per_second")
@@ -222,6 +230,11 @@ class Prefetcher:
             record["bps"] = speed
             if record["state"] in WAITING:
                 self._retire(key, record, f"download.{record['state']}")
+            elif active(record["state"]) and moving is Progress.STALLED:
+                # The work's own progress was silent for a whole window: show it and keep
+                # observing the original request (never cancelled, never replaced).
+                watch["progressed_at"] = now
+                self._retire(key, record, "download.stalled")
             elif active(record["state"]):
                 total_rate += float(speed)
             elif record["state"] == "failed":
@@ -270,7 +283,7 @@ class Prefetcher:
         self.state.event(f"download released: {key}: {reason}")
 
     def _track_external(self, recipes: Mapping[str, Recipe], now: float) -> None:
-        """Follow downloads someone else started until they land.
+        """Follow downloads someone else started until they land (a wait on their owner).
 
         The library lists models and recipes separately and a page at a time, so right
         after an external download finishes a stale model row can still say "missing".
@@ -284,10 +297,6 @@ class Prefetcher:
                 if recipe.local == "cached":
                     record.update(state="succeeded", done_at=now)
                     self.on_done(key)
-                elif now >= float(record["started_at"]) + DOWNLOAD_WALL_SECONDS:
-                    self._retire(
-                        key, record, "download.external_observation_budget_exhausted"
-                    )
                 elif recipe.local in ("failed", "not_cached"):
                     del self.state.downloads[key]  # it did not land: ours to ask for
 
@@ -334,10 +343,17 @@ class Prefetcher:
             if isinstance(child, dict)
         )
         record["failure"] = failure.signature
-        retry = failure.transient and record.get("attempt", 1) < 2
-        if retry:
+        outcome = disposition(failure)
+        if outcome is Disposition.WAIT:
+            # NAS space, a network blip: wait and ask again, spending nothing.
+            record["retry_at"] = self.clock() + self.config.retry_cooldown
+            self.state.event(f"download waits: {key}: {failure.klass}")
+            return
+        if outcome is Disposition.OBSERVE and not record.get("observe_failures"):
+            record["observe_failures"] = int(record.get("observe_failures", 0)) + 1
             record["retry_at"] = self.clock() + self.config.retry_cooldown
             return
+        record.pop("retry_at", None)
         self.on_failure(
             key,
             failure,
@@ -375,6 +391,7 @@ class Prefetcher:
             "state": "observing",
             "kind": kind,
             "attempt": attempt,
+            "observe_failures": int(record.get("observe_failures", 0)),
             "requested_intent": requested_intent,
             "retry_of_operation_id": retry_of,
             "started_at": self.clock(),
@@ -401,7 +418,7 @@ class Prefetcher:
                 tolerate=(1, 2),
             )
         except VonkctlError as error:
-            if error.infrastructure():
+            if reply_disposition(error.reply) is Disposition.WAIT:
                 self.on_infra("download", str(error))
                 return
             document = (
@@ -424,6 +441,7 @@ class Prefetcher:
                 "state": "failed",
                 "kind": kind,
                 "attempt": attempt,
+                "observe_failures": int(record.get("observe_failures", 0)),
                 "failure": failure.signature,
                 "request_intent": {
                     "recipe_key": recipe.key,
@@ -431,10 +449,17 @@ class Prefetcher:
                     "revision_id": recipe.revision_id,
                 },
             }
-            if failure.transient and attempt < 2:
+            outcome = disposition(failure)
+            if outcome is Disposition.WAIT or (
+                outcome is Disposition.OBSERVE and not record.get("observe_failures")
+            ):
                 self.state.downloads[recipe.key]["retry_at"] = (
                     self.clock() + self.config.retry_cooldown
                 )
+                if outcome is Disposition.OBSERVE:
+                    self.state.downloads[recipe.key]["observe_failures"] = (
+                        int(record.get("observe_failures", 0)) + 1
+                    )
             else:
                 self.on_failure(recipe.key, failure, None, failure.model_level)
             return
@@ -446,6 +471,7 @@ class Prefetcher:
             "state": op_state,
             "kind": kind,
             "attempt": attempt,
+            "observe_failures": int(record.get("observe_failures", 0)),
             "rerequests": rerequests,
             "accepted_intent": document.get("request"),
             "retry_of_operation_id": retry_of,
@@ -647,10 +673,10 @@ class Prefetcher:
             )
             and entry.get("content_sha256") == recipe.content_sha256
         )
-        bounded_retry = (
-            bool(record.get("retry_at"))
-            and int(record.get("attempt", 1)) < 2
-            and isinstance(record.get("request_intent"), Mapping)
+        # ``retry_at`` is set only where ``disposition`` allowed another request: a wait
+        # (no budget) or the first observation of an uncertain outcome.
+        bounded_retry = bool(record.get("retry_at")) and isinstance(
+            record.get("request_intent"), Mapping
         )
         if (
             not (scheduled or bounded_retry)

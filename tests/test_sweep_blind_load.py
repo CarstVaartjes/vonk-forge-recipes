@@ -12,7 +12,8 @@ pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 from spark_sweep.policy import TimeoutPolicy
-from spark_sweep.vonkctl import Reply, is_infrastructure
+from spark_sweep.verdict import Disposition, reply_disposition
+from spark_sweep.vonkctl import Reply
 
 
 @pytest.fixture
@@ -62,7 +63,7 @@ def _run(sweep, fleet):
 
 
 @pytest.mark.parametrize("code", ["http.502", "http.503", "http.504"])
-def test_the_real_http_gateway_error_shape_is_infrastructure(code: str) -> None:
+def test_the_real_http_gateway_error_shape_is_a_wait(code: str) -> None:
     reply = Reply(
         (),
         2,
@@ -75,7 +76,7 @@ def test_the_real_http_gateway_error_shape_is_infrastructure(code: str) -> None:
         },
         "",
     )
-    assert is_infrastructure(reply)
+    assert reply_disposition(reply) is Disposition.WAIT
 
 
 def test_http_502_and_503_are_infrastructure() -> None:
@@ -83,7 +84,7 @@ def test_http_502_and_503_are_infrastructure() -> None:
         reply = Reply(
             (), 2, {"error_type": "control_api", "code": "x", "status": status}, ""
         )
-        assert is_infrastructure(reply)
+        assert reply_disposition(reply) is Disposition.WAIT
 
 
 @pytest.mark.parametrize(

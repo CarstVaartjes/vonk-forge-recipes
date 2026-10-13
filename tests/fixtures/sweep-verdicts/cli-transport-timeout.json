@@ -1,0 +1,12 @@
+{
+  "code": "controller.transport_timeout",
+  "decision": "retry",
+  "detail": "timed out",
+  "error": "control API unavailable",
+  "error_type": "control_api",
+  "operation": "profile.load",
+  "recovery_actions": [],
+  "retryable": true,
+  "source": "transport",
+  "transport": "timeout"
+}

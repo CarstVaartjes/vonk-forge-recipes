@@ -168,9 +168,9 @@ def test_a_missing_vonkctl_is_infrastructure_not_a_crash() -> None:
 
     reply = Vonkctl("vonkctl", runner=missing).run("fleet", "show")
     assert reply.document is None and "FileNotFoundError" in reply.error_text
-    from spark_sweep.vonkctl import is_infrastructure
+    from spark_sweep.verdict import Disposition, reply_disposition
 
-    assert is_infrastructure(reply)
+    assert reply_disposition(reply) is Disposition.WAIT
 
 
 def test_the_sweep_waits_out_a_missing_binary_at_start_and_mid_run(

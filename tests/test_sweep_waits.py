@@ -1,4 +1,4 @@
-"""No silent or unbounded waits: ownership of leftovers, bounded clearing, fresh status, watchdog."""
+"""No silent waits: ownership of leftovers, bounded clearing, fresh status; a wait never expires."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
-from spark_sweep.run import TICK_WATCHDOG_SECONDS, TickStuck
 
 
 @pytest.fixture
@@ -140,29 +139,24 @@ def test_status_and_state_stay_fresh_while_original_cleanup_is_pending(
     assert not any(command[:2] == ("profile", "cancel") for _, command in fleet.calls)
 
 
-def test_the_watchdog_abandons_a_stuck_pass_and_the_sweep_continues(
+def test_a_wait_is_shown_on_every_poll_and_never_expires(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, _, clock = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
     )
-
-    def stuck() -> None:
-        started = clock.now()
-        while True:
-            sweep.waiting("something that never happens", started)
-            clock.sleep(10)
-
-    sweep._tick = stuck  # type: ignore[method-assign]
-    sweep.tick()  # returns instead of hanging
-    assert "watchdog" in sweep.state.data["infra"]
+    started = clock.now()
+    for _ in range(30):  # 30 hours: no watchdog turns the wait into an abandoned pass
+        clock.t += 3600
+        sweep.waiting("the Controller's admission", started)
+        assert sweep.state.data["waiting"]["at"] == clock.now()
+    assert "watchdog" not in sweep.state.data["infra"]
     assert any(
-        "watchdog: abandoned" in e["message"] for e in sweep.state.data["events"]
+        "waiting for the Controller's admission" in e["message"]
+        for e in sweep.state.data["events"]
     )
+    sweep.done_waiting()
     assert "waiting" not in sweep.state.data
-    with pytest.raises(TickStuck):
-        sweep._tick_started = clock.now() - TICK_WATCHDOG_SECONDS - 1
-        sweep.waiting("x", clock.now())
 
 
 def test_a_missing_build_beside_another_lanes_disk_blocker_is_a_wait_not_a_verdict(

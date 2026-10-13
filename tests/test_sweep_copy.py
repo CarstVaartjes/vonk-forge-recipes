@@ -154,27 +154,23 @@ def test_a_copy_that_stops_moving_fails_after_the_stall_window_and_is_retried_on
     assert entry["recovery_basis"] is None  # no fault owner follows from copy-stalled
 
 
-def test_an_application_the_controller_holds_back_is_admission_stalled_not_a_load_timeout(
+def test_an_application_the_controller_holds_back_is_waited_for_not_a_load_timeout(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    held = FakeRecipe("big", blocked=True)
+    # Held for five load windows: a wait on the Controller never ages into a verdict.
+    held = FakeRecipe("big", blocked=True, blocked_for=3000)
     sweep, _, _ = make_sweep(
         tmp_path,
         [held],
         [FakeModel("m1")],
         gateway=gateway,
         timeouts=_timeouts(600),
-        blocked_seconds=300,
     )
     sweep.run()
     entry = _entry(sweep)
-    assert (entry["status"], entry["failure_class"]) == (
-        "deferred",
-        "admission-stalled",
-    )
-    assert "held this application back" in entry["error"]
-    assert "resident_usage_unknown" in entry["error"]
-    assert entry["recovery_basis"] is None  # admission class does not identify software
+    assert entry["status"] == "passed"
+    assert not entry.get("failure_class")
+    assert entry["attempts"] == 1  # the pass; the wait spent nothing
 
 
 def test_blocked_seconds_are_not_load_time() -> None:

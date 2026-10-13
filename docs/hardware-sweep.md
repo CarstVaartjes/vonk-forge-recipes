@@ -64,12 +64,12 @@ both Sparks are free.
 
 In-flight applications are persisted in a `loads` map keyed by request UUID.
 Old state files with one `load` are adopted without changing that UUID. Admission
-and progress replies in `observing` or `backoff` keep being polled. Operator waits
-and removal gates end the owned load and requeue its recipes without blame.
-Downloads and lane observations have a 24-hour total budget; an unreadable or
-stalled download has a one-hour observation budget. An owned download exceeding
-that budget keeps its original request and resumes paced observation after
-cooldown. The read budget never authorizes cancellation or a replacement download.
+and progress replies in `observing` or `backoff` keep being polled. Operator waits,
+removal gates and every other wait the Controller reports are waited for: the lane
+keeps its load and shows what it waits on. A download whose own progress (bytes,
+items, phase, last-progress time) is silent for an hour is shown as stalled and keeps
+its original request; nothing cancels or replaces it, and a download someone else
+started is followed until it lands.
 
 Concurrent accepted snapshots use the Controller's bound whole-assignment
 adoption contract (`effects.adopted`), while original applications keep their
@@ -178,36 +178,52 @@ a working key (`vonkctl key roll NAME --output NEW`, then move `NEW` over the ke
 
 ## Timeouts, failures, fixes
 
-* A load is judged by its progress, not by the clock. The learned limit below (per
-  engine from completed loads: seconds per GiB of model, times 3, between 20 minutes
-  and 2 hours; before any sample, 60 minutes allow a first-start compile) is a
-  stall window: it runs from the last change the Controller shows (phase,
-  sub-phase, completed bytes or items, last-progress time, attempt counters of a
-  platform that retries with backoff) and every change restarts it. A load that
-  keeps progressing is never given up before the 24 hour ceiling; one that stalls
-  while the platform is only queueing or admitting it (`queued`, `backoff`, `admission_pending`)
-  is an infrastructure note (`load-stall`), cancelled and retried, not a recipe verdict.
+* The sweep follows the Controller's verdicts (`spark_sweep/verdict.py`): it records
+  what the platform does and never turns a wait into a verdict. A lane ends a load
+  only on the Controller's own terminal state or on a `STALLED` verdict of the work's
+  own progress (`progress_verdict`). The learned limit below (per engine from completed
+  loads: seconds per GiB of model, times 3, between 20 minutes and 2 hours; before any
+  sample, 60 minutes allow a first-start compile) is that stall window: it runs from
+  the last change the Controller shows (phase, sub-phase, completed bytes or items,
+  last-progress time; never retries or attempt counters) and every change restarts
+  it. A load that keeps progressing is never given up. While the Controller reports
+  the application queued, in backoff, pending admission, held by a blocker, retrying
+  or waiting on an operator, the lane is `WAITING`: the window restarts and never
+  expires, and nothing is cancelled. An unreadable Controller is unknown and waits too.
   A load the sweep gives up is cancelled again until the Spark no longer shows its
-  workload (at most the longest load timeout); only those lanes wait for it.
+  workload; only those lanes wait for it.
 * The window does not run while the profile application is distributing or
   copying (child phase `target-copy`, `transfer`, `model-download`,
   `container-download`, or a copying operation) it does not count, and the learned
-  timings leave the copy out. During a copy only a lack of progress fails the
+  timings leave the copy out. During a copy only a lack of progress stalls the
   load: no change in the completed bytes for `--copy-stall-minutes` (default 10),
-  which is class `copy-stalled`, deferred and requeued on a platform change or the
-  watch cooldown.
+  which is class `copy-stalled`, observed once more and then deferred, and requeued
+  on a platform change or the watch cooldown.
   Load timeouts recorded before this rule (copy time counted) are retried once.
-* While the Controller holds the application back with error blockers (capacity, stale
-  inventory, a phase it keeps retrying; `progress.blockers`), those seconds are not load time
-  either, and a hold that lasts `--blocked-minutes` (default 15) defers the lane as class
-  `admission-stalled` (phase start). A proven change to the typed fault owner or watch cooldown schedules a retest; it
-  is never recorded as an engine `load.timeout`.
+* While the Controller holds the application back with blockers (capacity, stale
+  inventory, a preparation; `progress.blockers`), those seconds are not load time
+  either and the lane waits for as long as the Controller holds it; the Controller's
+  own typed end of that hold is what is recorded. Only `run-switch.phase-retry` (the
+  load's own phase being retried) counts against the stall window. When a preparation
+  blocker names only some recipes of a shared load, the load is re-planned without
+  them after `blocked_release_seconds`: they wait for their preparation (no attempt,
+  no verdict) while the others load.
+* After the load succeeded, a healthy run whose route the Controller has not
+  published yet, and an endpoint not yet published, are waits; a run that is missing
+  or unhealthy is the recipe's own work and stalls after the window (`run.not_published`).
 * A restarted sweep adopts a load it submitted itself: the saved lane slot and the
   saved application are picked up, nothing is cancelled or placed again, and the
   time the sweep was away counts neither as load time nor as a stalled copy.
 * Failures carry a phase (download, review, build, install, start, readiness,
   smoke, timeout) and a class (network, oom, capacity, build-policy,
-  model-integrity, …). Only network-like failures are retried, once. A
+  model-integrity, …). `disposition` decides what an outcome spends: a `WAIT` (a
+  busy 429/503 smoke, a refused client key, a full NAS, any vonkctl error that is not
+  an explicit recipe-data code) spends no attempt and the recipe is asked again; an
+  `OBSERVE` (an uncertain outcome: a stalled copy, a transport failure, a smoke socket
+  timeout, a shared load whose failure names no recipe) is retried once; a `FAIL` is
+  recorded at once with its evidence. A refused load is recorded, never resubmitted
+  with the same plan. Every outcome, wait and requeue writes a `results.jsonl` row
+  with the Controller document it ended on; the log is rotated, never trimmed. A
   typed model-integrity download failure fails the current attempt; every sibling
   receives its own attempt and evidence. Unknown platform outcomes are deferred.
   Failures with the same normalised signature form
@@ -372,8 +388,8 @@ Controller, transport, HTTP and process outcomes record `deferred` with evidence
 they never count as a recipe defect or inherit a sibling defect. `--watch SECONDS`
 keeps the coordinator alive after a pass and retests deferred/failed results after
 24 hours. With `--watch 0` (the default) one pass ends after its owned attempts
-settle. A stuck owner intent ends the sweep after its observation budget, leaving
-its owned lanes released for a new operation. Unreadable state is preserved beside
+settle. An owner load (or ownership the sweep cannot read) is waited for while it
+lasts; it never ends the sweep. Unreadable state is preserved beside
 `state.json` and disposable bookkeeping is rebuilt. Client skew applies the
 accepted CLI update automatically and retries a failed update with backoff.
 

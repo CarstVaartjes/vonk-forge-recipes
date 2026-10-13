@@ -24,7 +24,8 @@ from typing import Any
 
 SCHEMA = 1
 EVENT_LIMIT = 60
-RESULT_LIMIT = 2000
+# The live results log is rotated (never trimmed) once it is this large.
+RESULT_ROTATE_BYTES = 4 * 1024 * 1024
 TERMINAL = frozenset({"passed", "failed", "deferred", "skipped"})
 
 
@@ -263,7 +264,11 @@ class State:
 
 
 class ResultsLog:
-    """One JSON line per outcome, in the platform campaign's results-log shape."""
+    """One JSON line per outcome, in the platform campaign's results-log shape.
+
+    Append-only: a large log is rotated to ``results.jsonl.<UTC stamp>`` and a new one
+    begins, so no outcome or its evidence is ever dropped. ``entries`` reads them all.
+    """
 
     def __init__(self, path: Path, authority_id: str) -> None:
         self.path = path
@@ -280,26 +285,23 @@ class ResultsLog:
             stream.write(json.dumps(record, sort_keys=True, default=str) + "\n")
             stream.flush()
             os.fsync(stream.fileno())
-        # Retain bounded current evidence; results are bookkeeping, not a permanent audit.
-        if self.path.stat().st_size > 4 * 1024 * 1024:
-            with self.path.open("rb") as stream:
-                stream.seek(max(0, self.path.stat().st_size - 4 * 1024 * 1024))
-                tail = stream.read().decode("utf-8", "replace").splitlines()
-            valid = []
-            for line in tail[-RESULT_LIMIT:]:
-                try:
-                    json.loads(line)
-                except ValueError:
-                    continue
-                valid.append(line)
-            write_atomic(self.path, "\n".join(valid) + "\n")
+        if self.path.stat().st_size > RESULT_ROTATE_BYTES:
+            stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
+            os.replace(self.path, self.path.with_name(f"{self.path.name}.{stamp}"))
         return record
 
+    def files(self) -> list[Path]:
+        """The rotated logs, oldest first, then the live one."""
+        rotated = sorted(self.path.parent.glob(f"{self.path.name}.*"))
+        return [*rotated, self.path]
+
     def entries(self) -> list[dict[str, Any]]:
-        try:
-            lines = self.path.read_text(encoding="utf-8").splitlines()
-        except FileNotFoundError:
-            return []
+        lines: list[str] = []
+        for path in self.files():
+            try:
+                lines += path.read_text(encoding="utf-8").splitlines()
+            except FileNotFoundError:
+                continue
         records: list[dict[str, Any]] = []
         for line in lines:
             try:

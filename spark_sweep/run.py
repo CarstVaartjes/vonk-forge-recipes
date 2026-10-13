@@ -16,6 +16,7 @@ under a fake clock and a fake ``vonkctl``:
 from __future__ import annotations
 
 import itertools
+import json
 import signal
 import threading
 import time
@@ -34,7 +35,7 @@ from vonk_forge_contracts.sweep import (
     FleetOnlineState,
 )
 
-from . import cleanup, policy, recovery
+from . import cleanup, policy, recovery, verdict
 from .catalog import (
     Fleet,
     Model,
@@ -48,41 +49,30 @@ from .catalog import (
 from .definitions import Definitions
 from .lifecycle import ACTIVE as ACTIVE_APP
 from .lifecycle import TERMINAL as SETTLED
-from .lifecycle import WAITING
 from .owner import OwnerGuard, OwnerStatus
 from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
 from .report import write_status
 from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
 from .state import ResultsLog, State, StateLock
-from .vonkctl import Vonkctl, VonkctlError, is_infrastructure, request_key
+from .verdict import Disposition, Progress
+from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 
 WAIT_EVENT_SECONDS = 60.0  # a wait says what it waits for at least this often
-OWNER_WAIT_SECONDS = (
-    3600.0  # an owner load is waited for this long, then it is an infra event
-)
-STARTUP_WAIT_SECONDS = (
-    1800.0  # a startup step that keeps failing is an infra event after this
-)
-TICK_WATCHDOG_SECONDS = 1800.0  # a pass that has not finished in this long is abandoned
-MAX_REVIEW_DEFERS = 3
-# A shared load that ended with no blocker naming a recipe requeues its lanes unblamed this often.
-MAX_UNATTRIBUTED_REQUEUES = 2
-# Clearing the fleet and reviewing again, for a capacity refusal, before it counts against the recipe.
+# Clearing the fleet and reviewing again, for a capacity refusal (an OBSERVE outcome),
+# before it counts against the recipe.
 MAX_REVIEW_FREEING = 2
+# Clearing attempts before placement re-plans onto the online lanes that are free now.
+# A re-plan, never a verdict: nothing is ended or recorded against a recipe.
 MAX_TAKEOVER_ATTEMPTS = 3
 TAKEOVER_RETRY_SECONDS = 30.0
 SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
 RETEST_SECONDS = 24 * 3600.0
-LOAD_WALL_SECONDS = 24 * 3600.0
-SMOKE_WALL_SECONDS = 1800.0
 ENDPOINT_RECHECK_SECONDS = 20.0
-
-
-class SweepOwnerIntentSuperseded(RuntimeError):
-    """An owner intent ends the sweep's bounded observation period."""
+# A results row carries the Controller document it ended on, bounded.
+DOCUMENT_EVIDENCE_LIMIT = 65536
 
 
 class SweepProfileOwnershipError(RuntimeError):
@@ -173,7 +163,6 @@ class SweepConfig:
     idle_alert_seconds: float = 600.0
     owner_hold_seconds: float = 1800.0
     owner_poll_seconds: float = 15.0
-    readiness_grace: float = 180.0
     retry_delay: float = 60.0
     defer_delay: float = 120.0
     max_attempts: int = 2
@@ -193,13 +182,11 @@ class SweepConfig:
     allow_version_skew: bool = False
     release_seconds: float = 300.0
     retry_failed: bool = False
+    # The stall window while bytes are copied to a Spark (the learned window covers the rest).
     copy_stall_seconds: float = 600.0
-    # How long an application may sit behind its own admission blockers (capacity, stale
-    # inventory, a retried phase) before the lane fails as admission-stalled.
-    blocked_seconds: float = 900.0
-    # How long a load may sit behind a *preparation* blocker that names only some of its
-    # recipes before the others are released: the blocked one leaves the profile and the
-    # rest are loaded without it.
+    # How long a load may wait on a *preparation* that names only some of its recipes before
+    # it is re-planned without them: they leave the profile and wait for their preparation
+    # (no attempt, no verdict) while the rest load. A re-plan delay, not a deadline.
     blocked_release_seconds: float = 300.0
 
 
@@ -210,10 +197,6 @@ def alias_for(recipe: Recipe, definitions: Definitions) -> str:
     a ``/``) never reaches the Controller.
     """
     return profile_alias(definitions.alias(recipe.key) or recipe.slug)
-
-
-class TickStuck(RuntimeError):
-    """The watchdog abandons a pass that has not finished in time."""
 
 
 class Sweep:
@@ -272,8 +255,9 @@ class Sweep:
         self.cached_models: set[str] = set()
         self.idle_ticks = 0
         self._assigned: dict[str, str] = {}
-        self._tick_started: float | None = None
         self._wait_event_at = -1e18
+        # The latest Controller document of each load (by request key): evidence for its rows.
+        self.documents: dict[str, Mapping[str, Any]] = {}
 
     # ------------------------------------------------------------------ setup
 
@@ -403,7 +387,8 @@ class Sweep:
         # a dual load in flight must never decide a recipe's fate for longer than one pass.
         try:
             self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
-        except VonkctlError:
+        except VonkctlError as error:
+            self.state.event(f"fleet unreadable: {str(error)[:120]}")
             if not self.fleet.sparks:
                 return
         if self.recipe_list.passes and not self.recipe_list.in_pass:
@@ -422,7 +407,7 @@ class Sweep:
                             "recipe is absent from the complete catalog",
                         ),
                         None,
-                        retryable=False,
+                        final=True,
                     )
                 if key not in self.state.slots:
                     self.state.recipes.pop(key, None)
@@ -444,7 +429,8 @@ class Sweep:
             return
         try:
             self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
-        except VonkctlError:
+        except VonkctlError as error:
+            self.state.event(f"fleet unreadable: {str(error)[:120]}")
             return
         usable = self.fleet_capacity()
         for key, entry in self.state.recipes.items():
@@ -464,9 +450,12 @@ class Sweep:
         if recipe.node_count > usable_sparks and (
             entry.get("status") == "pending" or _fleet_skip(entry)
         ):
+            reason = f"not testable on this fleet: needs {recipe.node_count} Sparks, {usable_sparks} usable"
+            if entry.get("status") != "skipped" or entry.get("reason") != reason:
+                self.record_result(recipe.key, "reconcile", "skipped", reason=reason)
             entry.update(
                 status="skipped",
-                reason=f"not testable on this fleet: needs {recipe.node_count} Sparks, {usable_sparks} usable",
+                reason=reason,
                 reason_kind=FLEET_SKIP,
                 content_sha256=recipe.content_sha256,
             )
@@ -475,6 +464,12 @@ class Sweep:
             entry["status"] = "pending"
             entry.pop("reason", None)
             entry.pop("reason_kind", None)
+            self.record_result(
+                recipe.key,
+                "reconcile",
+                "pending",
+                reason="testable on this fleet again",
+            )
             self.state.event(f"{recipe.key} is testable on this fleet again: pending")
         if recipe.node_count > usable_sparks:
             return  # a Spark offline for a moment must not rewrite a recorded result
@@ -487,6 +482,27 @@ class Sweep:
             k: entry.get(k)
             for k in ("status", "content_sha256", "revision_id", "cluster")
         }
+        # The evidence about to be cleared is kept in the log first.
+        self.record_result(
+            recipe.key,
+            "requeue",
+            "requeued",
+            reason=why,
+            previous={
+                k: entry.get(k)
+                for k in (
+                    "status",
+                    "phase",
+                    "failure_class",
+                    "code",
+                    "error",
+                    "evidence",
+                    "cluster",
+                    "content_sha256",
+                    "revision_id",
+                )
+            },
+        )
         entry.update(
             status="pending",
             attempts=0,
@@ -500,6 +516,7 @@ class Sweep:
             "cluster",
             "error",
             "quality",
+            "review_freeing",
         ):
             entry.pop(stale, None)
         self.state.event(f"requeued {recipe.key}: {why}")
@@ -528,11 +545,11 @@ class Sweep:
 
     # ------------------------------------------------------------------ tick
 
-    def waiting(self, what: str, since: float, *, watch: bool = True) -> None:
+    def waiting(self, what: str, since: float) -> None:
         """Called on every poll of a wait: save state and status, say what is awaited and since when.
 
         A wait is never silent: the state file's ``updated_at`` and the status page move on every
-        poll. When the pass the wait is part of exceeds the watchdog limit, the step is abandoned.
+        poll. A wait never expires into a verdict.
         """
         now = self.clock.now()
         self.state.data["waiting"] = {"what": what, "since": since, "at": now}
@@ -544,12 +561,6 @@ class Sweep:
             write_status(self)
         except Exception as error:  # noqa: BLE001 - a status page never stops a wait
             self.note_infra("status", f"{type(error).__name__}: {error}")
-        if (
-            watch
-            and self._tick_started is not None
-            and now - self._tick_started > TICK_WATCHDOG_SECONDS
-        ):
-            raise TickStuck(f"the pass is stuck waiting for {what}")
 
     def done_waiting(self) -> None:
         self.state.data.pop("waiting", None)
@@ -557,17 +568,8 @@ class Sweep:
 
     def tick(self) -> None:
         """One pass. A Controller that stops answering costs a pass, never the sweep."""
-        self._tick_started = self.clock.now()
         try:
             self._tick()
-        except SweepOwnerIntentSuperseded:
-            raise
-        except TickStuck as error:
-            self.note_infra("watchdog", str(error))
-            self.state.event(
-                f"watchdog: abandoned a stuck pass, continuing: {str(error)[:150]}"
-            )
-            self._save_quietly()
         except VonkctlError as error:
             self.state.event(f"vonkctl failed, will retry: {str(error)[:150]}")
             self._save_quietly()
@@ -578,7 +580,6 @@ class Sweep:
             )
             self._save_quietly()
         finally:
-            self._tick_started = None
             self.done_waiting()
 
     def _save_quietly(self) -> None:
@@ -588,29 +589,29 @@ class Sweep:
             self.note_infra("state-save", f"{type(error).__name__}: {error}")
 
     def _startup(self, step: Callable[[], None]) -> bool:
-        """A startup step that only reads the fleet: a missing or failing vonkctl waits, never exits."""
-        started = self.clock.now()
-        deadline = started + STARTUP_WAIT_SECONDS
-        while self.clock.now() < deadline:
-            try:
-                step()
-                self.clear_infra("startup")
-                self.done_waiting()
-                return True
-            except (VonkctlError, OSError) as error:
-                self.note_infra("startup", f"{type(error).__name__}: {error}")
-                until = self.state.data["infra"]["startup"]["until"]
-                self.waiting(
-                    "the Controller to answer at startup", started, watch=False
-                )
-                self.clock.sleep(
-                    max(1.0, min(until - self.clock.now(), self.cfg.poll_seconds * 6))
-                )
+        """One try of a startup step that only reads the fleet: a failing vonkctl waits, never exits.
 
-        self.state.event(
-            "startup observation budget exhausted; retrying in the next cycle"
-        )
-        return False
+        The caller tries again on its next pass; the wait has no deadline and backs off.
+        """
+        try:
+            step()
+        except (VonkctlError, OSError) as error:
+            self.note_infra("startup", f"{type(error).__name__}: {error}")
+            item = self.state.data["infra"]["startup"]
+            self.waiting("the Controller to answer at startup", float(item["since"]))
+            self.clock.sleep(
+                max(
+                    1.0,
+                    min(
+                        float(item["until"]) - self.clock.now(),
+                        self.cfg.poll_seconds * 6,
+                    ),
+                )
+            )
+            return False
+        self.clear_infra("startup")
+        self.done_waiting()
+        return True
 
     def _tick(self) -> None:
         now = self.clock.now()
@@ -634,13 +635,9 @@ class Sweep:
                 self.state.data["owner"]["seen_at"] = now
                 self.preempt("an owner profile was loaded")
         if self.owner_status.paused:
-            paused_at = self.state.data["owner"].setdefault("paused_at", now)
-            if now - float(paused_at) >= OWNER_WAIT_SECONDS:
-                self.state.data["end"] = {
-                    "code": "sweep.owner_intent_superseded",
-                    "reason": self.owner_status.reason,
-                }
-                raise SweepOwnerIntentSuperseded(self.owner_status.reason)
+            # An owner's load (or ownership we cannot read: unknown) is waited for while it
+            # lasts; it never ends the sweep.
+            self.state.data["owner"].setdefault("paused_at", now)
         else:
             self.state.data["owner"].pop("paused_at", None)
         self.observe_platform()
@@ -750,9 +747,10 @@ class Sweep:
                 continue
             gap = now - float(slot.get("last_tick", slot["started_at"]))
             if gap > 2 * self.cfg.poll_seconds:
-                slot["deadline"] = float(slot["deadline"]) + gap
-                if "copy_progress_at" in slot:
-                    slot["copy_progress_at"] = now
+                for name in ("watch", "ready_watch", "smoke_watch"):
+                    watch = slot.get(name)
+                    if isinstance(watch, dict) and "progressed_at" in watch:
+                        watch["progressed_at"] = float(watch["progressed_at"]) + gap
             slot["last_tick"] = now
             adopted.append(key)
         if adopted:
@@ -763,18 +761,15 @@ class Sweep:
             )
 
     def start_takeover(self) -> None:
-        """``run --yes`` means the sweep owns the fleet: clear it once, now, so reviews see idle Sparks."""
-        started = self.clock.now()
-        deadline = started + OWNER_WAIT_SECONDS
-        while self.owner_status.paused and self.clock.now() < deadline:
-            self.waiting(
-                f"an owner load ({self.owner_status.reason})", started, watch=False
-            )
-            self.clock.sleep(self.cfg.poll_seconds)
-            self.owner_status = self.guard.check(self.clock.now())
-        self.done_waiting()
+        """``run --yes`` means the sweep owns the fleet: clear it once, now, so reviews see idle Sparks.
+
+        While an owner load runs the clearing waits for it (``schedule`` clears once the owner
+        is done); the wait never ends the sweep.
+        """
         if self.owner_status.paused:
-            self.note_infra("owner-wait", f"still paused: {self.owner_status.reason}")
+            self.state.event(
+                f"waiting for an owner load before clearing: {self.owner_status.reason}"
+            )
             return
         self._take_over(self.clock.now())
 
@@ -944,11 +939,10 @@ class Sweep:
         del history[:-60]
         # Exact existing request/download identities, attempts and cooldowns stay.
         entry.update(status="pending", retest=event, requeued_because=reason)
-        self.log.append(
-            batch="sweep",
-            recipe=key,
-            step="retest",
-            status="scheduled",
+        self.record_result(
+            key,
+            "retest",
+            "scheduled",
             reason=reason,
             previous=previous,
             recovery_basis=basis,
@@ -1043,11 +1037,10 @@ class Sweep:
                 "content_sha256",
             )
         }
-        self.log.append(
-            batch="sweep",
-            recipe=key,
-            step="requeue",
-            status="requeued",
+        self.record_result(
+            key,
+            "requeue",
+            "requeued",
             reason=why,
             controller_release=self.release_sha,
             previous=previous,
@@ -1146,10 +1139,6 @@ class Sweep:
                         self.state.data["alerts"] = [self.state.data["pending_idle"]]
                         self._save_quietly()
                         stuck = 0
-                except SweepOwnerIntentSuperseded:
-                    self.interrupt()
-                    self.finish(interrupted=True)
-                    return 0
                 except SweepProfileOwnershipError:
                     raise  # authorization boundary: never adopt foreign saved assignments
                 except Exception as error:  # noqa: BLE001 - only a stop or a signal ends the loop
@@ -1204,8 +1193,8 @@ class Sweep:
         self, key: str, failure: policy.Failure, op_id: str | None, model_level: bool
     ) -> None:
         recipe = self.recipes.get(key)
-        # The prefetcher already retried what is worth retrying: this one is final.
-        self._record_failure(key, failure, op_id, retryable=False)
+        # The prefetcher already waited out what is a wait: this one is final.
+        self._record_failure(key, failure, op_id, final=True)
         if (
             model_level
             and failure.code in policy.RECIPE_FAILURE_CODES
@@ -1221,8 +1210,14 @@ class Sweep:
         op_id: str | None,
         *,
         inherited_from: str | None = None,
-        retryable: bool = True,
+        final: bool = False,
     ) -> None:
+        """Record what an attempt came to; only an OBSERVE outcome spends an attempt.
+
+        WAIT (the platform or a dependency is not ready) puts the recipe back without an
+        attempt; OBSERVE retries until ``max_attempts``; FAIL records at once. Every outcome
+        writes a results row with its evidence.
+        """
         now = self.clock.now()
         entry = self.state.entry(key)
         recipe = self.recipes.get(key)
@@ -1233,21 +1228,50 @@ class Sweep:
             and self.owner_overlapped(slot)
         ):
             self.requeue(
-                key, f"{failure.phase} failure overlapped an owner profile load"
+                key,
+                f"{failure.phase} failure overlapped an owner profile load",
+                failure=failure,
             )
             return
-        entry["attempts"] = int(entry.get("attempts", 0)) + 1
+        outcome = Disposition.FAIL if final else verdict.disposition(failure)
         if slot is not None:
             slot["phase"] = "finished"
-        if (
-            retryable
-            and failure.transient
-            and entry["attempts"] < self.cfg.max_attempts
-        ):
+        if outcome is Disposition.WAIT:
             entry.update(
                 status="pending",
                 not_before=now + self.cfg.retry_delay,
                 last_failure=failure.signature,
+            )
+            self.record_result(
+                key,
+                failure.phase,
+                "waiting",
+                reason=failure.describe(),
+                disposition=outcome.value,
+                failure_class=failure.klass,
+                code=failure.code,
+                evidence=dict(failure.evidence),
+                slot=slot,
+            )
+            self.state.event(f"wait {key}: {failure.klass} ({failure.phase})")
+            return
+        entry["attempts"] = int(entry.get("attempts", 0)) + 1
+        if outcome is Disposition.OBSERVE and entry["attempts"] < self.cfg.max_attempts:
+            entry.update(
+                status="pending",
+                not_before=now + self.cfg.retry_delay,
+                last_failure=failure.signature,
+            )
+            self.record_result(
+                key,
+                failure.phase,
+                "retry",
+                reason=failure.describe(),
+                disposition=outcome.value,
+                failure_class=failure.klass,
+                code=failure.code,
+                evidence=dict(failure.evidence),
+                slot=slot,
             )
             self.state.event(f"retry {key}: {failure.klass} ({failure.phase})")
             return
@@ -1261,9 +1285,9 @@ class Sweep:
         if op_id:
             proof.setdefault("operation_id", op_id)
             proof["evidence_command"] = f"vonkctl fleet evidence {op_id}"
-        attributable = (
+        attributable = failure.klass != verdict.UNATTRIBUTED and (
             failure.code in policy.RECIPE_FAILURE_CODES
-            or failure.klass == "smoke-assertion"
+            or failure.klass in verdict.FAIL_CLASSES
         )
         status = "failed" if attributable else "deferred"
         entry.update(
@@ -1295,15 +1319,51 @@ class Sweep:
         if failure.model_level and attributable and recipe is not None:
             for digest in recipe.model_digests:
                 self.state.data["model_failures"][digest] = failure.cluster
-        self.log.append(
-            batch="sweep",
-            recipe=key,
-            step="smoke",
-            status=status,
+        self.record_result(
+            key,
+            "smoke",
+            status,
             error=f"{failure.phase}/{failure.klass}: {failure.describe()}"[:1536],
-            **self._facts(key, entry, slot),
+            disposition=outcome.value,
+            slot=slot,
         )
         self.state.event(f"{status.upper()} {key}: {failure.phase}/{failure.klass}")
+
+    def record_result(
+        self,
+        key: str,
+        step: str,
+        status: str,
+        *,
+        slot: Mapping[str, Any] | None = None,
+        document: Mapping[str, Any] | None = None,
+        **fields: Any,
+    ) -> None:
+        """The one writer of ``results.jsonl``: every lane exit leaves a row.
+
+        The row carries the recipe's facts and the Controller document its load was last
+        seen in, so the evidence of a wait, a retry or a requeue is never only in the
+        bounded event ring.
+        """
+        entry = self.state.entry(key)
+        slot = slot if slot is not None else self.state.slots.get(key)
+        if document is None and slot is not None:
+            document = self.documents.get(str(slot.get("request_key", "")))
+        row: dict[str, Any] = {
+            "batch": "sweep",
+            "recipe": key,
+            "step": step,
+            "status": status,
+            **self._facts(key, entry, slot),
+            **{k: v for k, v in fields.items() if v is not None},
+        }
+        if document:
+            row["controller_document"] = _bounded_document(document)
+        try:
+            self.log.append(**row)
+        except OSError as error:
+            # The log is the evidence; a full disk is an infrastructure fact to show.
+            self.note_infra("results-log", f"{type(error).__name__}: {error}")
 
     def _facts(
         self, key: str, entry: Mapping[str, Any], slot: Mapping[str, Any] | None
@@ -1389,13 +1449,12 @@ class Sweep:
         ):
             entry.pop(stale, None)
         slot["phase"] = "finished"
-        self.log.append(
-            batch="sweep",
-            recipe=key,
-            step="smoke",
-            status="passed",
+        self.record_result(
+            key,
+            "smoke",
+            "passed",
             result={"endpoint_alias": slot["alias"], **result.record()},
-            **self._facts(key, entry, slot),
+            slot=slot,
         )
         notes = len(result.quality_notes)
         self.state.event(
@@ -1429,13 +1488,31 @@ class Sweep:
             except VonkctlError as error:
                 self._blind(str(error), error.reply)
                 return False
-        elif not reply.ok and is_infrastructure(reply):
+        elif reply.is_not_found:
+            # A known application the Controller does not find: ask by our own request key,
+            # which names the same intent, before concluding anything.
+            by_key = self.vk.run(
+                "profile",
+                "progress",
+                "--request-key",
+                load["request_key"],
+                profile=self.cfg.sweep_profile,
+            )
+            if by_key.is_not_found:
+                self._load_absent(load, by_key)
+                return True
+            if not by_key.ok:
+                self._blind(by_key.error_text, by_key)
+                return False
+            document = by_key.document
+        elif not reply.ok:
             self._blind(reply.error_text, reply)
             return False
         if not isinstance(document, dict) or not isinstance(document.get("id"), str):
             self._blind("application observation is unreadable")
             return False
         self.clear_infra("review")
+        self.documents[load["request_key"]] = document
         load["observed_at"] = self.clock.now()
         load["app_id"] = document["id"]
         status = str(document.get("state", ""))
@@ -1443,28 +1520,14 @@ class Sweep:
         moving = policy.distribution(document)
         load["copying"] = moving.copying
         load["phase"] = moving.phase
-        load["progress"] = list(moving.signature) if moving.signature else None
-        load["activity"] = list(policy.activity(document))
-        load["platform_wait"] = policy.platform_wait(document)
         load["blockers"] = policy.admission_blockers(document)
+        signal = verdict.application_signal(document)
+        load["signal"] = {
+            "signature": list(signal.signature),
+            "waiting_on": signal.waiting_on,
+        }
         failure = document.get("failure") or {}
         failure_code = str(failure.get("code") or document.get("code") or "")
-        gate = next(
-            (
-                b["code"]
-                for b in load["blockers"]
-                if b["code"]
-                .lower()
-                .endswith(("deletion_in_progress", "gate_held", "needs_operator"))
-            ),
-            None,
-        )
-        if gate or (
-            status == "failed"
-            and failure_code.startswith(("controller.", "http.", "profile."))
-        ):
-            self._end_load(load, gate or failure_code)
-            return True
         replaced = policy.supersession(document) if status in SETTLED else None
         if replaced is not None and replaced.successor not in (None, document["id"]):
             # The Controller continued this application as another one: follow it.
@@ -1476,7 +1539,12 @@ class Sweep:
             load["copying"] = False
             return True
         if status == "failed" and replaced is None:
-            retry = self._retry_successor(document)
+            try:
+                retry = self._retry_successor(document)
+            except VonkctlError as error:
+                # Unknown is not "ended": keep observing the failed application.
+                self._blind(str(error), error.reply)
+                return False
             if retry is not None:
                 # The Controller is still retrying this load by itself: a newer retry
                 # application continues it, and only its ending is the recipe's.
@@ -1488,9 +1556,6 @@ class Sweep:
                 load["state"] = "queued"
                 load["copying"] = False
                 return True
-        if status in WAITING:
-            self._end_load(load, f"application.{status}")
-            return True
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
@@ -1512,38 +1577,46 @@ class Sweep:
             self.state.data["loads"].pop(load["request_key"], None)
         return True
 
-    def _end_load(self, load: dict[str, Any], reason: str) -> None:
-        self._cancel_load(load)
-        if not self._adopted_slots_live(load):
-            self.state.data["loads"].pop(load["request_key"], None)
+    def _load_absent(self, load: dict[str, Any], reply: Reply) -> None:
+        """The Controller has no application for this load, by id or by request key.
+
+        That is its answer, not a wait: the lanes are requeued without blame or attempt,
+        each with a results row carrying the not-found document.
+        """
+        evidence = reply.document if isinstance(reply.document, Mapping) else None
+        self.state.data["loads"].pop(load["request_key"], None)
         for key, slot in list(self.state.slots.items()):
             if (
                 slot.get("request_key") == load["request_key"]
                 and slot["phase"] == "loading"
             ):
-                self.requeue(key, reason)
+                self.requeue(
+                    key,
+                    f"application.absent: the Controller has no application {load.get('app_id')}",
+                    document=evidence,
+                )
                 self.state.entry(key)["not_before"] = (
                     self.clock.now() + self.cfg.retry_delay
                 )
-                slot["phase"] = "finished"
-        self.state.event(
-            f"released application {load.get('app_id')}: {reason}; retry queued"
-        )
 
     def _retry_successor(self, document: Mapping[str, Any]) -> str | None:
         """The application that continues a failed one the Controller is still retrying, if any.
 
         A failed application ends for good with the Controller's typed ``profile.failure_repeated``
         blocker or a terminal assignment failure; otherwise a later application of the profile
-        that names this one as the application it retries is its continuation.
+        that names this one as the application it retries is its continuation. An unreadable
+        answer raises: unknown is never "it ended".
         """
-        if policy.retry_ended(document):
+        if verdict.retry_ended(document):
             return None
         reply = self.vk.run("profile", "progress", profile=self.cfg.sweep_profile)
-        latest = reply.document if reply.ok else None
+        latest = reply.document
+        if not reply.ok or not isinstance(latest, dict):
+            raise VonkctlError(
+                reply.argv, reply, "the profile's latest application is unreadable"
+            )
         if (
-            isinstance(latest, dict)
-            and isinstance(latest.get("id"), str)
+            isinstance(latest.get("id"), str)
             and latest["id"] != document.get("id")
             and latest.get("retry_of_application_id") == document.get("id")
         ):
@@ -1583,8 +1656,8 @@ class Sweep:
         try:
             self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
         except VonkctlError as error:
-            if error.infrastructure():
-                self._blind(str(error), error.reply)
+            # An unreadable fleet is unknown: nothing is judged on it this pass.
+            self._blind(str(error), error.reply)
         self.poll_application()
         if not self.blind:
             self.clear_infra("observe")
@@ -1594,76 +1667,91 @@ class Sweep:
             elif slot["phase"] == "smoking":
                 self._advance_smoking(key, slot)
 
-    def _track_distribution(self, slot: dict[str, Any], now: float) -> bool:
-        """Is the slot's load still putting bytes in place? Those seconds are not load time.
+    def _load_window(self, slot: Mapping[str, Any]) -> float:
+        """The lane's stall window: learned per engine, or the copy window while bytes move."""
+        if slot.get("copying"):
+            return float(self.cfg.copy_stall_seconds)
+        return float(slot["deadline"]) - float(slot["started_at"])
+
+    def _observe_load(self, slot: dict[str, Any], now: float) -> Progress:
+        """What the slot's load is doing: PROGRESSING, WAITING or STALLED (``progress_verdict``).
 
         Copying a few hundred GiB to a Spark can take longer than any sensible load timeout while
-        being perfectly healthy. The wall-clock limit therefore only runs while the application is
-        in the phases after the bytes are in place; while copying, only a copy that has stopped
-        moving counts against the load.
+        being perfectly healthy, so copy seconds are not load time and only a copy that stops
+        moving for the copy window stalls. While the Controller holds the application (queue,
+        admission, a blocker, its own retry, an operator) or cannot be read, the lane waits
+        and the window restarts: a wait never ages into a verdict.
         """
         load = self.state.data["loads"].get(slot["request_key"])
         elapsed = now - float(slot.get("last_tick", slot["started_at"]))
         slot["last_tick"] = now
-        if self.blind or slot.pop("blind_tick", False):
-            # The sweep could not see the Controller (this tick, or the one before, so the gap
-            # between them was blind too): those seconds are never load time, and nothing that
-            # was waiting (a stalled copy, a held application) ages while we are blind.
-            slot["blind_seconds"] = float(slot.get("blind_seconds", 0)) + elapsed
-            for waiting in ("copy_progress_at", "blocked_since", "progress_at"):
-                if waiting in slot:
-                    slot[waiting] = float(slot[waiting]) + elapsed
+        watch = slot.setdefault("watch", {})
+        if self.blind or load is None or not isinstance(load.get("signal"), Mapping):
             if self.blind:
-                slot["blind_tick"] = True
-            return bool(slot.get("copying"))
-        copying = bool(
-            load
-            and load.get("request_key") == slot["request_key"]
-            and load.get("copying")
-        )
+                slot["blind_seconds"] = float(slot.get("blind_seconds", 0)) + elapsed
+            return verdict.progress_verdict(
+                None, watch, window=self._load_window(slot), now=now
+            )
+        copying = bool(load.get("copying"))
         slot["copying"] = copying
-        blockers = (
-            load.get("blockers")
-            if load and load.get("request_key") == slot["request_key"] and not copying
-            else None
-        )
+        if copying:
+            slot["copy_seconds"] = float(slot.get("copy_seconds", 0)) + elapsed
+        blockers = None if copying else load.get("blockers")
         if blockers:
-            # The Controller is holding the application back, not the engine loading: those
-            # seconds are not load time, and a hold that never ends is its own failure.
             slot["blocked_seconds"] = float(slot.get("blocked_seconds", 0)) + elapsed
             slot.setdefault("blocked_since", now)
             slot["blocked"] = blockers
         else:
             slot.pop("blocked_since", None)
             slot.pop("blocked", None)
-        if load and load.get("phase"):
+        if load.get("phase"):
             slot["load_phase"] = load["phase"]
-        # Any change the Controller shows resets the stall clock; held back is not stalled.
-        seen = load.get("activity") if load else None
-        if blockers or seen != slot.get("activity") or "progress_at" not in slot:
-            slot["activity"] = seen
-            slot["progress_at"] = now
-        if not copying:
-            slot.pop("copy_progress_at", None)
-            return False
-        slot["copy_seconds"] = float(slot.get("copy_seconds", 0)) + elapsed
-        signature = load.get("progress") if load else None
-        if signature != slot.get("copy_signature") or "copy_progress_at" not in slot:
-            slot["copy_signature"] = signature
-            slot["copy_progress_at"] = now
-        return True
+        signal = verdict.Signal(
+            tuple(load["signal"].get("signature") or ()),
+            load["signal"].get("waiting_on"),
+        )
+        if signal.waiting_on is not None:
+            slot["waited_seconds"] = float(slot.get("waited_seconds", 0)) + elapsed
+        return verdict.progress_verdict(
+            signal, watch, window=self._load_window(slot), now=now
+        )
+
+    def _observe_readiness(self, slot: dict[str, Any], now: float) -> Progress:
+        """After the load succeeded: the run turning healthy and its route being published.
+
+        A healthy run whose route is not published yet waits on the Controller's route
+        publication; a run that is missing or unhealthy is the recipe's own work and stalls
+        after the lane's window without any change.
+        """
+        prior = set(slot.get("prior_runs", ()))
+        found = [
+            p
+            for p in self.fleet.presences
+            if p.alias == slot["alias"]
+            and p.node_id in slot["node_ids"]
+            and p.run_id not in prior
+        ]
+        signature = tuple(
+            sorted(
+                (p.node_id, p.run_id, p.run_state, p.healthy, p.route_state)
+                for p in found
+            )
+        )
+        publishing = bool(found) and all(
+            p.healthy and p.run_state == "running" for p in found
+        )
+        return verdict.progress_verdict(
+            verdict.Signal(signature, "route publication" if publishing else None),
+            slot.setdefault("ready_watch", {}),
+            window=float(slot["deadline"]) - float(slot["started_at"]),
+            now=now,
+        )
 
     def _advance_loading(self, key: str, slot: dict[str, Any], now: float) -> None:
         recipe = self.recipes[key]
-        copying = self._track_distribution(slot, now)
         if self.blind:
-            if now >= float(
-                slot.get("wall_deadline", slot["started_at"] + LOAD_WALL_SECONDS)
-            ):
-                load = self.state.data["loads"].get(slot["request_key"])
-                if load:
-                    self._end_load(load, "application.observation_budget_exhausted")
-            return  # no recipe verdict on an unreadable Controller
+            self._observe_load(slot, now)
+            return  # no recipe verdict on an unreadable Controller: unknown keeps waiting
         run_id = serving_run(
             self.fleet,
             slot["alias"],
@@ -1682,17 +1770,6 @@ class Sweep:
             )
             self._submit_smoke(key, slot)
             return
-        if now >= float(
-            slot.get("wall_deadline", slot["started_at"] + LOAD_WALL_SECONDS)
-        ):
-            load = self.state.data["loads"].get(slot["request_key"])
-            if load:
-                self._end_load(load, "application.observation_budget_exhausted")
-            else:
-                self.requeue(key, "application.observation_budget_exhausted")
-                self.state.entry(key)["not_before"] = now + self.cfg.retry_delay
-                slot["phase"] = "finished"
-            return
         app = self.state.data.get("apps", {}).get(slot["request_key"])
         if app is not None:
             if (
@@ -1703,92 +1780,84 @@ class Sweep:
                 self.requeue(key, "load superseded by another application")
                 return
             if app["state"] == "succeeded":
-                slot.setdefault("settled_at", now)
-                if now - slot["settled_at"] > self.cfg.readiness_grace:
+                if self._observe_readiness(slot, now) is Progress.STALLED:
+                    silent = verdict.silent_seconds(slot["ready_watch"], now)
                     self._fail_slot(
                         key,
                         slot,
                         policy.classify(
                             "readiness",
                             "run.not_published",
-                            "the load succeeded but the run never became healthy and published",
+                            "the load succeeded but the run never became healthy and "
+                            f"published (no change for {round(silent)}s)",
                         ),
                         app,
                     )
                 return
             group = self._lane_group(slot)
+            unattributed = False
             if len(group) > 1:
                 failures = [
                     f for f in app.get("failures") or [] if isinstance(f, Mapping)
                 ]
-                culprits, collateral = self._split(
-                    group, policy.blamed(failures, self._lanes(group)), now
-                )
+                blamed = policy.blamed(failures, self._lanes(group))
+                culprits, collateral = self._split(group, blamed)
                 self._requeue_collateral(collateral, culprits, "its application failed")
+                unattributed = not blamed
                 group = culprits
             else:
                 group = [key]
             phase = policy.child_phase(app.get("child_phase")) or "start"
             detail = f"{app.get('reason') or app['state']} {app.get('failures') or ''}".strip()
             for member in group:
-                self._fail_slot(
-                    member,
-                    self.state.slots[member],
-                    policy.classify(
-                        phase,
-                        next(
-                            (
-                                str(item["code"])
-                                for item in app.get("failures") or []
-                                if isinstance(item, Mapping)
-                                and isinstance(item.get("code"), str)
-                                and member in policy.blamed([item], self._lanes(group))
-                            ),
-                            app.get("failure_code") or f"application.{app['state']}",
+                failure = policy.classify(
+                    phase,
+                    next(
+                        (
+                            str(item["code"])
+                            for item in app.get("failures") or []
+                            if isinstance(item, Mapping)
+                            and isinstance(item.get("code"), str)
+                            and member in policy.blamed([item], self._lanes(group))
                         ),
-                        detail,
+                        app.get("failure_code") or f"application.{app['state']}",
                     ),
-                    app,
+                    detail,
                 )
+                if unattributed:
+                    # Nothing the Controller said names this lane: an uncertain outcome,
+                    # observed again (one attempt each), never a verdict on one of them.
+                    failure = replace(failure, klass=verdict.UNATTRIBUTED)
+                self._fail_slot(member, self.state.slots[member], failure, app)
             return
+        progress = self._observe_load(slot, now)
         held = slot.get("blocked_since")
-        if held is not None and now - float(held) > self.cfg.blocked_seconds:
-            self._stalled(slot, now)
-        elif (
+        if (
             held is not None
             and now - float(held) > self.cfg.blocked_release_seconds
             and self._release_prepared(slot, now)
         ):
             return
-        elif copying:
-            stalled = now - float(slot["copy_progress_at"])
-            if stalled > self.cfg.copy_stall_seconds:
-                self._timeout(
-                    key,
-                    slot,
-                    policy.classify(
-                        "install",
-                        "copy.stalled",
-                        f"the copy to the Spark made no progress for {round(stalled)}s "
-                        f"(phase {slot.get('load_phase')})",
-                        "copy-stalled",
-                    ),
-                )
-        elif (
-            now - float(slot.get("progress_at", now))
-            > slot["deadline"] - slot["started_at"]
-        ):
-            # No sign of life for the whole stall window (the clock restarts on every change).
-            load = self.state.data["loads"].get(slot["request_key"])
-            if load and load.get("platform_wait"):
-                self.note_infra(
-                    "load-stall",
-                    f"{key} waited {round(now - float(slot['progress_at']))}s in the "
-                    "platform's queue or admission without progress",
-                )
-                self._end_load(load, "application.waiting_on_platform")
-            else:
-                self._timeout(key, slot)
+        if progress is Progress.STALLED:
+            self._stalled(key, slot, now)
+
+    def _stalled(self, key: str, slot: dict[str, Any], now: float) -> None:
+        """The load's own progress was silent for a whole window: the one verdict that ends it."""
+        silent = round(verdict.silent_seconds(slot.get("watch", {}), now))
+        if slot.get("copying"):
+            self._timeout(
+                key,
+                slot,
+                policy.classify(
+                    "install",
+                    "copy.stalled",
+                    f"the copy to the Spark made no progress for {silent}s "
+                    f"(phase {slot.get('load_phase')})",
+                    "copy-stalled",
+                ),
+            )
+            return
+        self._timeout(key, slot)
 
     def _lane_group(self, slot: Mapping[str, Any]) -> list[str]:
         """The lanes still loading in the same application as this one."""
@@ -1817,33 +1886,19 @@ class Sweep:
         return lanes
 
     def _split(
-        self, group: Sequence[str], blamed: set[str], now: float
+        self, group: Sequence[str], blamed: set[str]
     ) -> tuple[list[str], list[str]]:
-        """Who of a load that ended or stalled carries the failure, and who is collateral.
+        """Who of a load that ended carries the failure, and who is collateral.
 
-        Only the lanes the Controller's blockers or failures name are the recipes' own. When
-        nothing names a lane of a shared load, none is blamed (it is retried in a later load)
-        unless it was already left unblamed too often, so a recipe that really fails is
-        never retried for ever.
+        Only the lanes the Controller's failures name are the recipes' own. When nothing names
+        a lane of a shared load, every lane is observed again (an uncertain outcome that
+        spends one attempt each), so a recipe that really fails is still recorded and none
+        is blamed for another's failure on one load.
         """
         culprits = [k for k in group if k in blamed]
         if culprits:
             return culprits, [k for k in group if k not in blamed]
-        if len(group) < 2:
-            return list(group), []
-        exhausted = [
-            k
-            for k in group
-            if int(self.state.entry(k).get("unattributed_requeues", 0))
-            >= MAX_UNATTRIBUTED_REQUEUES
-        ]
-        for key in group:
-            if key not in exhausted:
-                entry = self.state.entry(key)
-                entry["unattributed_requeues"] = (
-                    int(entry.get("unattributed_requeues", 0)) + 1
-                )
-        return exhausted, [k for k in group if k not in exhausted]
+        return list(group), []
 
     def _requeue_collateral(
         self, collateral: Sequence[str], culprits: Sequence[str], cause: str
@@ -1856,54 +1911,15 @@ class Sweep:
             )
             self.requeue(key, why)
 
-    def _stalled(self, slot: Mapping[str, Any], now: float) -> None:
-        """The Controller held a load back for good: only the recipes it names fail."""
-        blockers = list(slot["blocked"])
-        group = self._lane_group(slot)
-        culprits, collateral = self._split(
-            group,
-            policy.blamed(blockers, self._lanes(group))
-            if len(group) > 1
-            else set(group),
-            now,
-        )
-        self._requeue_collateral(collateral, culprits, "the Controller held it back")
-        if not culprits:
-            load = self.state.data["loads"].get(slot["request_key"])
-            if load:
-                self._cancel_load(load)
-        lanes = self._lanes(culprits)
-        for key in culprits:
-            own = [b for b in blockers if policy.blamed([b], {key: lanes[key]})]
-            first = (own or blockers)[0]
-            held = round(now - float(self.state.slots[key]["blocked_since"]))
-            self._timeout(
-                key,
-                self.state.slots[key],
-                policy.classify(
-                    "start",
-                    first["code"],
-                    f"the Controller held this application back for {held}s: "
-                    f"{first['code']}: {first['detail']}",
-                    "admission-stalled",
-                    {"blockers": blockers},
-                ),
-            )
-
     def _release_prepared(self, slot: Mapping[str, Any], now: float) -> bool:
-        """A load stalled on the preparation of some recipes: load the others without them.
+        """A load waiting on the preparation of some recipes: re-plan it without them.
 
-        The blocked recipes fail (they are the ones named), leave the profile, and the load is
-        submitted again for the rest, so ready recipes do not wait out the whole deadline.
-        Returns False when nothing was done (nothing names a subset of the load).
+        The recipes a preparation blocker names leave the profile and wait for their
+        preparation (requeued: no attempt, no verdict; the Controller keeps preparing), and
+        the load is submitted again for the rest, so ready recipes do not wait for them.
+        Returns False when nothing was done (no preparation names a subset of the load).
         """
-        blockers = [
-            b
-            for b in slot["blocked"]
-            if any(
-                w in b["code"] for w in ("preparation", "build-unavailable", "cache")
-            )
-        ]
+        blockers = verdict.preparation_blockers(slot["blocked"])
         group = self._lane_group(slot)
         if len(group) < 2 or not blockers:
             return False
@@ -1923,8 +1939,9 @@ class Sweep:
                     "--yes",
                     profile=profile,
                 )
-        except VonkctlError:
-            return False  # leave it to the stall handling
+        except VonkctlError as error:
+            self.note_infra("review", f"re-plan without a preparing recipe: {error}")
+            return False
         review = self.vk.run("profile", "load", "--review", profile=profile)
         document = review.document
         if not review.ok or not isinstance(document, Mapping):
@@ -1941,27 +1958,18 @@ class Sweep:
         if cleanup_requests is None or adopted_requests is None:
             return False
         lanes = self._lanes(culprits)
-        previous = self.state.data["loads"].get(slot["request_key"], {})
         # Fresh canonical admission supersedes only changed effects. Cancelling
         # this original root first would also abort the unchanged survivor.
         for key in culprits:
             own = [b for b in blockers if policy.blamed([b], {key: lanes[key]})]
             first = (own or blockers)[0]
-            held = round(now - float(self.state.slots[key]["blocked_since"]))
-            self._fail_slot(
+            self.requeue(
                 key,
-                self.state.slots[key],
-                policy.classify(
-                    "start",
-                    first["code"],
-                    f"the Controller held this application back for {held}s: "
-                    f"{first['code']}: {first['detail']}; the other recipes of the load "
-                    "were released without it",
-                    "admission-stalled",
-                    {"blockers": blockers},
-                ),
-                previous,
+                f"waiting on its preparation ({first['code']}): re-planned without it, "
+                "the other recipes of the load go on",
+                blockers=list(blockers),
             )
+            self.state.entry(key)["not_before"] = now + self.cfg.defer_delay
         seq = int(self.state.data["load_seq"]) + 1
         request = request_key("sweep-load", self.state.nonce, profile, seq)
         self.state.data["load_seq"] = seq
@@ -2004,9 +2012,7 @@ class Sweep:
         ]
         if load and load.get("app_id") and not others:
             self._cancel_load(load)
-        seconds = round(
-            self.clock.now() - float(slot.get("progress_at", slot["started_at"]))
-        )
+        seconds = round(verdict.silent_seconds(slot.get("watch", {}), self.clock.now()))
         self._fail_slot(
             key,
             slot,
@@ -2017,7 +2023,8 @@ class Sweep:
                 f"not serving and no progress for {seconds}s "
                 f"(stall window {round(slot['deadline'] - slot['started_at'])}s, "
                 f"{round(float(slot.get('copy_seconds', 0)))}s of copying not counted; "
-                f"last phase {slot.get('load_phase')})",
+                f"{round(float(slot.get('waited_seconds', 0)))}s of waiting on the "
+                f"Controller not counted; last phase {slot.get('load_phase')})",
             ),
             load or {},
         )
@@ -2052,11 +2059,34 @@ class Sweep:
             slot["started_at"]
         )
 
-    def requeue(self, key: str, why: str) -> None:
-        """Back to pending without blame: the recipe did not get a fair run."""
+    def requeue(
+        self,
+        key: str,
+        why: str,
+        *,
+        failure: policy.Failure | None = None,
+        document: Mapping[str, Any] | None = None,
+        **evidence: Any,
+    ) -> None:
+        """Back to pending without blame or attempt: the recipe did not get a fair run.
+
+        Every requeue leaves a results row with the Controller document it was last seen in.
+        """
         entry = self.state.entry(key)
-        entry["status"] = "pending"
         slot = self.state.slots.get(key)
+        self.record_result(
+            key,
+            "requeue",
+            "requeued",
+            reason=why,
+            slot=slot,
+            document=document,
+            failure_class=failure.klass if failure else None,
+            code=failure.code if failure else None,
+            evidence={**(dict(failure.evidence) if failure else {}), **evidence}
+            or None,
+        )
+        entry["status"] = "pending"
         if slot is not None:
             slot["phase"] = "finished"
         self.state.event(f"requeued {key}: {why}")
@@ -2071,8 +2101,9 @@ class Sweep:
                 "profile", "endpoint", slot["alias"], profile=self.cfg.sweep_profile
             )
         except VonkctlError as error:
-            if error.infrastructure():
+            if verdict.reply_disposition(error.reply) is Disposition.WAIT:
                 self.note_infra("endpoint", str(error))
+                slot["smoke_not_before"] = self.clock.now() + ENDPOINT_RECHECK_SECONDS
                 return  # the run is up: look the endpoint up again on the next pass
             self._fail_slot(
                 key, slot, policy.classify("readiness", "endpoint", str(error)), {}
@@ -2088,24 +2119,13 @@ class Sweep:
         )
         base = dig(item, "endpoint", "api_base")
         if not isinstance(base, str):
-            now = self.clock.now()
-            if now < float(slot["ready_at"]) + SMOKE_WALL_SECONDS:
-                # The platform may still be publishing the route: look again later.
-                slot["smoke_not_before"] = now + ENDPOINT_RECHECK_SECONDS
-                return
-            self._fail_slot(
-                key,
-                slot,
-                policy.classify(
-                    "readiness",
-                    "endpoint.unpublished",
-                    "no published API endpoint",
-                    evidence={"assignment_state": item.get("state")},
-                ),
-                {},
+            # The Controller publishes the route: a wait on it never expires. Look again.
+            slot["smoke_not_before"] = self.clock.now() + ENDPOINT_RECHECK_SECONDS
+            slot["waiting_on"] = (
+                f"endpoint publication (assignment state {item.get('state')})"
             )
             return
-        slot["smoke_deadline"] = self.clock.now() + SMOKE_WALL_SECONDS
+        slot.pop("waiting_on", None)
         self.futures[key] = self.executor.submit(
             smoke_service, recipe, self.defs, base, slot["alias"], self.cfg.http
         )
@@ -2119,16 +2139,8 @@ class Sweep:
                 self._submit_smoke(key, slot)
             return
         if not future.done():
-            if self.clock.now() >= float(
-                slot.get("smoke_deadline", slot["ready_at"] + SMOKE_WALL_SECONDS)
-            ):
-                future.cancel()
-                del self.futures[key]
-                self.requeue(key, "smoke.observation_budget_exhausted")
-                self.state.entry(key)["not_before"] = (
-                    self.clock.now() + self.cfg.retry_delay
-                )
-                slot["phase"] = "finished"
+            # Each request has its own inactivity bound (the socket timeout); the smoke as a
+            # whole has no wall clock to expire.
             return
         del self.futures[key]
         try:
@@ -2142,21 +2154,64 @@ class Sweep:
         if result.ok:
             self.clear_infra("client-key")
             self._record_pass(key, slot, result)
-        elif result.failure is not None and result.failure.klass == (
-            policy.CLIENT_CREDENTIAL
-        ):
-            # The gateway refused the sweep's own key, so the recipe was never judged:
-            # keep the lane, back off, and smoke again. The key file is read on every
-            # request, so a renewed key in it heals this without any other action.
+            return
+        assert result.failure is not None
+        failure = result.failure
+        if verdict.disposition(failure) is Disposition.WAIT:
+            self._smoke_wait(key, slot, failure)
+            return
+        self._record_failure(key, failure, slot.get("operation_id"))
+
+    def _smoke_wait(
+        self, key: str, slot: dict[str, Any], failure: policy.Failure
+    ) -> None:
+        """A busy gateway or engine (429/503) or a refused client key: no attempt, smoke again.
+
+        The lane is kept. A refused key waits on its renewal (the key file is read on every
+        request); a busy answer that never changes for the lane's whole window is the
+        engine's own stall and is observed (one attempt).
+        """
+        now = self.clock.now()
+        if failure.klass == policy.CLIENT_CREDENTIAL:
             self.note_infra(
                 "client-key",
                 "the gateway refused the sweep's client key "
-                f"({result.failure.describe()}); renew it in the --client-key-file",
+                f"({failure.describe()}); renew it in the --client-key-file",
             )
-            slot["smoke_not_before"] = self.state.data["infra"]["client-key"]["until"]
+            until = float(self.state.data["infra"]["client-key"]["until"])
+            waiting_on: str | None = "client key renewal"
         else:
-            assert result.failure is not None
-            self._record_failure(key, result.failure, slot.get("operation_id"))
+            until = now + self.cfg.retry_delay
+            waiting_on = None
+        progress = verdict.progress_verdict(
+            verdict.Signal((failure.signature,), waiting_on),
+            slot.setdefault("smoke_watch", {}),
+            window=float(slot["deadline"]) - float(slot["started_at"]),
+            now=now,
+        )
+        if progress is Progress.STALLED:
+            silent = round(verdict.silent_seconds(slot["smoke_watch"], now))
+            self._record_failure(
+                key,
+                replace(
+                    failure,
+                    klass="smoke-timeout",
+                    detail=f"{failure.detail}; busy without change for {silent}s",
+                ),
+                slot.get("operation_id"),
+            )
+            return
+        slot["smoke_not_before"] = until
+        self.record_result(
+            key,
+            "smoke",
+            "waiting",
+            reason=failure.describe(),
+            disposition=Disposition.WAIT.value,
+            failure_class=failure.klass,
+            evidence=dict(failure.evidence),
+            slot=slot,
+        )
 
     def preempt(self, why: str) -> None:
         for key, slot in list(self.state.slots.items()):
@@ -2315,21 +2370,23 @@ class Sweep:
 
         Left alone, the platform's start child keeps retrying and holds the Spark, and every later
         load of the lane is refused. Only the lanes of that load wait; the other lane carries on,
-        and nothing waits for ever (the hold ends at the longest load timeout).
+        and the hold lasts exactly as long as the Controller shows the workload.
         """
         held = self.state.data.get("released")
         if not held:
             return
         try:
             fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
-        except VonkctlError:
+        except VonkctlError as error:
+            self.state.event(f"held lanes unreadable, still held: {str(error)[:120]}")
             return  # unreadable: keep holding, look again
         for key, record in list(held.items()):
             shown = any(
                 p.alias in record["aliases"] and p.node_id in record["nodes"]
                 for p in fleet.presences
             )
-            if not shown or now - record["since"] > self.cfg.timeouts.cap_seconds:
+            # The Spark is occupied for as long as the Controller shows the workload.
+            if not shown:
                 del held[key]
                 self.state.event(
                     f"released {record['aliases']} on {record['nodes']}: lane free again"
@@ -2621,7 +2678,10 @@ class Sweep:
                     document = self._submit_load(
                         self.cfg.sweep_profile, load["request_key"], "takeover"
                     )
-                except VonkctlError:
+                except VonkctlError as error:
+                    self.state.event(
+                        f"cleanup re-entry unanswered, observing: {str(error)[:120]}"
+                    )
                     continue
                 # Exactly absent receipt permits same-key reentry, never a new UUID.
                 load["app_id"] = document.get("id")
@@ -2737,7 +2797,8 @@ class Sweep:
         self.state.save()
         try:
             admitted = self._attempt_takeover(now)
-        except VonkctlError:
+        except VonkctlError as error:
+            self.state.event(f"clearing attempt unanswered: {str(error)[:120]}")
             admitted = False
         if admitted:
             budget.update(attempts=0, next_check=0.0)
@@ -2933,34 +2994,26 @@ class Sweep:
                 added.append(placement)
                 self.clear_infra("profile-edit")
             except VonkctlError as error:
-                if error.infrastructure(reviewing=True):
+                if verdict.reply_disposition(error.reply) is Disposition.WAIT:
+                    # The client, protocol or transport failed, or the Controller refused
+                    # something the sweep itself sent (the name, the Sparks, the state):
+                    # nothing about this recipe. The next pass reviews afresh.
                     self._rollback(added, f"profile edit failed: {error}")
                     self.note_infra("profile-edit", str(error))
                     return
-                refused = policy.refused_profile_field(str(error))
-                if refused is not None and refused not in policy.RECIPE_PROFILE_FIELDS:
-                    # The Controller refused something the sweep itself sent (the
-                    # name, the Sparks, the state): nothing about this recipe.
-                    self._rollback(added, f"profile edit refused {refused}: {error}")
-                    self.note_infra("profile-edit", str(error))
-                    return
-                if refused is not None:
-                    self._record_failure(
-                        recipe.key,
-                        policy.classify(
-                            "profile-edit", error.code, str(error), klass="recipe-data"
-                        ),
-                        None,
-                    )
-                    continue
-                if error.infrastructure(reviewing=True):
-                    # The client, protocol or transport failed: nothing about this recipe.
-                    self._rollback(added, f"profile edit failed: {error}")
-                    self.note_infra("review", str(error))
-                    return
+                # An explicit recipe-data code on the recipe's own data.
+                refused = verdict.refused_field(str(error))
                 self._record_failure(
-                    recipe.key, policy.classify("review", error.code, str(error)), None
+                    recipe.key,
+                    policy.classify(
+                        "profile-edit" if refused else "review",
+                        error.code,
+                        str(error),
+                        klass="recipe-data" if refused else "",
+                    ),
+                    None,
                 )
+                continue
         if not added:
             return
         aliases = {self._alias(p.recipe): p for p in added}
@@ -2973,8 +3026,19 @@ class Sweep:
         document = review.document if isinstance(review.document, dict) else {}
         if review.is_error_document or not document:
             self._rollback(added, f"review failed: {review.error_text}")
-            if is_infrastructure(review, reviewing=True):
+            if verdict.reply_disposition(review) is Disposition.WAIT:
                 self.note_infra("review", review.error_text)
+                return
+            # A recipe-data refusal of the review: a deterministic verdict, recorded once,
+            # never the same plan reviewed again and again.
+            failure = policy.classify(
+                "review",
+                str(document.get("code") or ""),
+                review.error_text,
+                evidence={"reply": policy.excerpt(document, 1000)},
+            )
+            for placement in added:
+                self._record_failure(placement.recipe.key, failure, None)
             return
         self.clear_infra("review")
         stopped = [
@@ -3034,17 +3098,29 @@ class Sweep:
         try:
             submitted = self._submit_load(profile, key, "placement")
         except VonkctlError as error:
-            if error.infrastructure(reviewing=True):
+            if verdict.reply_disposition(error.reply) is Disposition.WAIT:
                 self.note_infra("review", str(error))
                 # Unknown admission is resolved by request UUID before any edit or replay.
                 self.state.data["loads"][key]["state"] = "observing"
                 return
+            # A recipe-data refusal of the reviewed load: record the verdict with the
+            # refusal as evidence; the same placement is never resubmitted unchanged.
             self.state.data["loads"].pop(key, None)
+            reply = error.reply.document if error.reply else None
+            failure = policy.classify(
+                "review",
+                error.code,
+                str(error),
+                evidence={"reply": policy.excerpt(reply, 1000) if reply else None},
+            )
             for placement in added:
+                self._record_failure(placement.recipe.key, failure, None)
                 self.state.slots.pop(placement.recipe.key, None)
             self._rollback(added, f"load refused: {error}")
             return
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
+        if isinstance(submitted, Mapping):
+            self.documents[key] = submitted
         self.state.data["dirty"] = True
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
         self.state.save()
@@ -3167,7 +3243,6 @@ class Sweep:
             "request_key": request,
             "started_at": now,
             "deadline": now + timeout,
-            "wall_deadline": now + LOAD_WALL_SECONDS,
             "model_bytes": model_bytes,
             "digests": list(recipe.model_digests),
             "prior_runs": sorted(  # runs of this alias that are not this load's
@@ -3187,7 +3262,10 @@ class Sweep:
                     "--yes",
                     profile=self.cfg.sweep_profile,
                 )
-            except VonkctlError:
+            except VonkctlError as error:
+                self.state.event(
+                    f"rollback of {self._alias(placement.recipe)} deferred: {str(error)[:120]}"
+                )
                 self.state.data.setdefault("cleanup", {}).setdefault(
                     self._alias(placement.recipe),
                     {
@@ -3233,60 +3311,90 @@ class Sweep:
         foreign, leftover = self._fleet_runs() if not busy else ([], [])
         if foreign or leftover:
             # Something is on the Sparks that no lane needs: that is the fit problem, not the
-            # recipe's. Clear the fleet again, then retry. A passed lane's workload keeps
-            # running after its slot is released: that one is ours, not an owner's.
-            self.state.data["took_over"] = False
-            self.backoff_until = now
-            self.state.event(
-                "review blocked by a workload that is not ours: clearing"
-                if foreign
-                else "review blocked by our own finished workload "
-                + ", ".join(leftover)
-                + ": clearing"
-            )
+            # recipe's. Re-plan with that blocker as input: clear the fleet once for it. A
+            # passed lane's workload keeps running after its slot is released: that one is
+            # ours, not an owner's.
+            holders = sorted({*foreign, *leftover})
+            if self.state.data.get("cleared_for") != holders:
+                self.state.data["cleared_for"] = holders
+                self.state.data["took_over"] = False
+                self.backoff_until = now
+                self.state.event(
+                    "review blocked by a workload that is not ours: clearing"
+                    if foreign
+                    else "review blocked by our own finished workload "
+                    + ", ".join(leftover)
+                    + ": clearing"
+                )
+                return
+            # The same workloads outlived a clearing: their owner keeps them. Wait while
+            # they run (bounded by their owner, never by a count), no attempt spent.
+            for placement in blocked:
+                key = placement.recipe.key
+                self.state.entry(key)["defer_until"] = now + self.cfg.defer_delay
+                self.record_result(
+                    key,
+                    "review",
+                    "waiting",
+                    reason="review blocked by workloads that outlived a clearing: "
+                    + ", ".join(holders),
+                    disposition=Disposition.WAIT.value,
+                )
             return
+        self.state.data.pop("cleared_for", None)
         for placement in blocked:
             key = placement.recipe.key
             entry = self.state.entry(key)
             code, detail = reasons.get(
                 self._alias(placement.recipe), [("review.blocked", "")]
             )[0]
-            # A build or preparation that was never requested is a wait, never a verdict: the
-            # next review (alone, or with lanes that fit) takes the wait-for-preparation path.
-            cache = (
-                "cache" in code
-                or "build-unavailable" in code
-                or "preparation-unavailable" in code
-                or "not-cached" in detail
-                or "not cached" in detail
-            )
-            if cache and int(entry.get("review_defers", 0)) < MAX_REVIEW_DEFERS:
-                entry["review_defers"] = int(entry.get("review_defers", 0)) + 1
+            # A preparation (build, image, download) the Controller has not finished is a
+            # wait, never a verdict: the next review (alone, or with lanes that fit) takes the
+            # wait-for-preparation path. A busy lane may hold the room: wait for it too.
+            if code in verdict.PREPARATION_CODES or busy:
                 entry["defer_until"] = now + self.cfg.defer_delay
-            elif busy:
+                self.record_result(
+                    key,
+                    "review",
+                    "waiting",
+                    reason=f"{code}: {detail}".strip(": "),
+                    disposition=Disposition.WAIT.value,
+                )
+                continue
+            failure = policy.classify("review", code, detail)
+            freeing = int(entry.get("review_freeing", 0))
+            if (
+                verdict.disposition(failure) is Disposition.OBSERVE
+                and failure.klass == "capacity"
+                and freeing < MAX_REVIEW_FREEING
+            ):
+                # Not a verdict yet: stop what holds the room, evict, and review again.
+                # Bounded, so a recipe that really does not fit is still recorded (with the
+                # attempts in its evidence).
+                entry["review_freeing"] = freeing + 1
                 entry["defer_until"] = now + self.cfg.defer_delay
-            else:
-                failure = policy.classify("review", code, detail)
-                freeing = int(entry.get("review_freeing", 0))
-                if policy.freeable_refusal(failure) and freeing < MAX_REVIEW_FREEING:
-                    # Not a terminal verdict yet: stop what holds the room, evict, and
-                    # review again. Bounded, so a recipe that really does not fit is
-                    # still recorded (with the attempts in its evidence).
-                    entry["review_freeing"] = freeing + 1
-                    entry["defer_until"] = now + self.cfg.defer_delay
-                    self.state.data["took_over"] = False
-                    self.backoff_until = now
-                    self.state.event(
-                        f"review refused {key} ({code}): clearing the fleet and trying "
-                        f"again ({freeing + 1}/{MAX_REVIEW_FREEING})"
-                    )
-                    continue
-                if freeing:
-                    failure = replace(
-                        failure,
-                        evidence={**failure.evidence, "freeing_attempts": freeing},
-                    )
-                self._record_failure(key, failure, None)
+                self.state.data["took_over"] = False
+                self.backoff_until = now
+                self.record_result(
+                    key,
+                    "review",
+                    "waiting",
+                    reason=f"review refused ({code}): clearing the fleet and trying again "
+                    f"({freeing + 1}/{MAX_REVIEW_FREEING})",
+                    disposition=Disposition.OBSERVE.value,
+                )
+                self.state.event(
+                    f"review refused {key} ({code}): clearing the fleet and trying "
+                    f"again ({freeing + 1}/{MAX_REVIEW_FREEING})"
+                )
+                continue
+            if freeing:
+                failure = replace(
+                    failure,
+                    evidence={**failure.evidence, "freeing_attempts": freeing},
+                )
+            # The clearings were this outcome's observations: once spent, it is recorded.
+            self._record_failure(key, failure, None, final=freeing > 0)
 
     def note_infra(self, source: str, message: str) -> None:
         """A client, protocol or transport problem: pause that kind of work, back off, show it."""
@@ -3331,7 +3439,8 @@ class Sweep:
         """What runs on the Sparks that no live lane accounts for: (not ours, ours but released)."""
         try:
             self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
-        except VonkctlError:
+        except VonkctlError as error:
+            self.state.event(f"fleet runs unreadable: {str(error)[:120]}")
             return [], []
         lanes = {str(s["alias"]) for s in self.state.slots.values()}
         own = self._own_aliases()
@@ -3491,6 +3600,14 @@ class Sweep:
 
 
 OWNER_PROFILES_READ = (1, 2, 3)
+
+
+def _bounded_document(document: Mapping[str, Any]) -> Any:
+    """A Controller document as evidence: whole when small, else a bounded excerpt."""
+    text = json.dumps(document, sort_keys=True, default=str)
+    if len(text) <= DOCUMENT_EVIDENCE_LIMIT:
+        return document
+    return {"excerpt": text[:DOCUMENT_EVIDENCE_LIMIT], "truncated_bytes": len(text)}
 
 
 def _done_future(result: SmokeResult) -> Future[SmokeResult]:

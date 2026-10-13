@@ -1,4 +1,4 @@
-"""A load that carries several recipes is held back or fails for one of them: only that one is blamed."""
+"""A load that carries several recipes waits or fails for one of them: only that one is blamed."""
 
 from __future__ import annotations
 
@@ -97,60 +97,60 @@ def test_blamed_prefers_the_recipe_over_its_spark() -> None:
     assert policy.blamed([{"refs": [], "detail": "nothing here"}], lanes) == set()
 
 
-def test_a_stall_names_one_recipe_and_the_others_are_collateral(
-    tmp_path, gateway
-) -> None:
-    sweep, _, _ = _make_stalled(tmp_path, gateway, release=10**9)
-    sweep.run()
-    bad = _status(sweep, "bad")
-    assert (bad["status"], bad["failure_class"]) == ("deferred", "admission-stalled")
-    for slug in ("good1", "good2"):
-        entry = _status(sweep, slug)
-        assert entry["status"] != "failed", slug
-        assert not entry.get("failure_class")
-    assert "collateral of vonk-forge/bad" in _events(sweep)
-
-
-def _make_stalled(tmp_path, gateway, release, **held):
+def _make_held(tmp_path, gateway, release, **held):
     return _make(
         tmp_path,
         gateway,
         _trio(blocked=True, blocker_code=PREP, **held),
-        blocked_seconds=300,
         blocked_release_seconds=release,
     )
 
 
-def test_the_ready_recipes_are_released_early_and_pass(tmp_path, gateway) -> None:
-    sweep, _, _ = _make_stalled(tmp_path, gateway, release=60)
+def test_a_hold_is_waited_for_and_every_recipe_then_passes(tmp_path, gateway) -> None:
+    sweep, _, _ = _make_held(tmp_path, gateway, release=10**9, blocked_for=3000)
     sweep.run()
-    assert _status(sweep, "bad")["failure_class"] == "admission-stalled"
-    # In the profile the blocked recipe was not loaded again, and the others ran in one load.
+    assert _results(sweep) == ["passed", "passed", "passed"]
+    assert not any(e.get("failure_class") for e in sweep.state.recipes.values())
+
+
+def test_the_ready_recipes_are_released_early_and_pass(tmp_path, gateway) -> None:
+    sweep, _, _ = _make_held(tmp_path, gateway, release=60, blocked_for=3000)
+    sweep.run()
+    # Re-planned without the preparing recipe: the others ran in one load, and the held
+    # one waited for its preparation (no attempt, no verdict) and passed afterwards.
     assert "released" in _events(sweep)
     assert _status(sweep, "good1")["status"] == "passed"
     assert _status(sweep, "good2")["status"] == "passed"
+    bad = _status(sweep, "bad")
+    assert bad["status"] == "passed" and bad["attempts"] == 1
+    rows = [r for r in sweep.log.entries() if r["recipe"] == "vonk-forge/bad"]
+    assert any(
+        r["step"] == "requeue" and "waiting on its preparation" in r["reason"]
+        for r in rows
+    )
 
 
-def test_a_blocker_that_names_nobody_requeues_all_without_blame(
-    tmp_path, gateway
-) -> None:
-    sweep, _, _ = _make_stalled(tmp_path, gateway, release=10**9, blocker_unnamed=True)
-    for _ in range(2000):
-        sweep.tick()
-        sweep.clock.sleep(sweep.cfg.poll_seconds)
-        if "no blocker names a recipe" in _events(sweep):
-            break
-    assert "no blocker names a recipe" in _events(sweep)
-    assert "failed" not in _results(sweep)
-
-
-def test_an_unnamed_blocker_is_deferred_after_bounded_observation(
-    tmp_path, gateway
-) -> None:
-    sweep, _, _ = _make_stalled(tmp_path, gateway, release=10**9, blocker_unnamed=True)
+def test_an_unnamed_hold_blames_nobody_and_everyone_waits(tmp_path, gateway) -> None:
+    sweep, _, _ = _make_held(
+        tmp_path, gateway, release=10**9, blocker_unnamed=True, blocked_for=3000
+    )
     sweep.run()
-    # Unknown attribution is deferred after bounded observation.
+    assert _results(sweep) == ["passed", "passed", "passed"]
+
+
+def test_the_controllers_own_end_of_a_hold_names_the_recipe(tmp_path, gateway) -> None:
+    sweep, _, _ = _make_held(
+        tmp_path,
+        gateway,
+        release=10**9,
+        blocked_for=3000,
+        blocked_then="admission refused: does not fit",
+    )
+    sweep.run()
     assert _status(sweep, "bad")["status"] == "deferred"
+    assert "admission refused" in _status(sweep, "bad")["error"]
+    assert _status(sweep, "good1")["status"] == "passed"
+    assert _status(sweep, "good2")["status"] == "passed"
 
 
 def test_an_application_failure_names_the_failing_assignment(tmp_path, gateway) -> None:

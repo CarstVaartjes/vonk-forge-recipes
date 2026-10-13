@@ -9,9 +9,11 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep.lifecycle import ACTIVE
-from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS, DOWNLOAD_WALL_SECONDS
+from spark_sweep.policy import RECIPE_FAILURE_CODES
+from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS
 from spark_sweep.state import State
-from spark_sweep.vonkctl import RECIPE_ERROR_CODES, Reply, is_infrastructure
+from spark_sweep.verdict import Disposition, reply_disposition
+from spark_sweep.vonkctl import Reply
 
 
 @pytest.mark.parametrize("status", range(100, 600))
@@ -58,8 +60,11 @@ def test_every_http_error_preserves_the_request_until_canonical_recovery(
 @pytest.mark.parametrize("field", ["status", "status_code", "http_status"])
 @pytest.mark.parametrize("status", [401, 403, 404, 409, 429, 500, 502, 503, 504])
 def test_http_status_overrides_recipe_code(field: str, status: int) -> None:
-    for code in RECIPE_ERROR_CODES:
-        assert is_infrastructure(Reply((), 2, {"code": code, field: str(status)}, ""))
+    for code in RECIPE_FAILURE_CODES:
+        assert (
+            reply_disposition(Reply((), 2, {"code": code, field: str(status)}, ""))
+            is Disposition.WAIT
+        )
 
 
 @pytest.mark.parametrize(
@@ -74,11 +79,10 @@ def test_http_status_overrides_recipe_code(field: str, status: int) -> None:
     ],
 )
 def test_platform_codes_do_not_become_recipe_faults(code: str) -> None:
-    assert is_infrastructure(
-        Reply(
-            (), 2, {"code": code, "detail": "dockerfile.heredoc_forbidden: prose"}, ""
-        )
+    reply = Reply(
+        (), 2, {"code": code, "detail": "dockerfile.heredoc_forbidden: prose"}, ""
     )
+    assert reply_disposition(reply) is Disposition.WAIT
 
 
 def test_legacy_load_adopted_without_changing_request_identity(tmp_path: Path) -> None:
@@ -133,7 +137,17 @@ def test_download_wait_preserves_owned_request_without_cancellation(
         )
         sweep.prefetcher._poll()
     else:
-        record["progress_at"] = clock.now() - DOWNLOAD_STALL_SECONDS
+        # The same progress twice, a whole stall window apart: the work itself is silent.
+        stuck = {
+            "id": record["operation_id"],
+            "state": "running",
+            "progress": {"completed_bytes": 7},
+        }
+        fleet.observations.append((("recipe", "progress"), 0, dict(stuck)))
+        sweep.prefetcher._poll()
+        clock.t += DOWNLOAD_STALL_SECONDS + 1
+        record["next_check"] = 0
+        fleet.observations.append((("recipe", "progress"), 0, dict(stuck)))
         sweep.prefetcher._poll()
     assert record["state"] == "observing"
     assert sweep.state.status(recipe.key) == "pending"
@@ -163,46 +177,45 @@ def _loading(tmp_path: Path):
     return sweep, fleet, clock
 
 
-@pytest.mark.parametrize("reason", ["needs-operator", "wall-budget", "gate"])
-def test_application_wait_ends_without_blame_and_fresh_load_is_admitted(
+@pytest.mark.parametrize("reason", ["needs-operator", "queued", "gate"])
+def test_an_application_the_controller_holds_is_waited_for_never_ended(
     tmp_path: Path, reason: str
 ) -> None:
     sweep, fleet, clock = _loading(tmp_path)
     load = next(iter(sweep.state.data["loads"].values()))
-    old_key = load["request_key"]
-    if reason == "needs-operator":
-        fleet.observations.append(
-            (("profile", "progress"), 0, {"id": load["app_id"], "state": reason})
-        )
-    elif reason == "gate":
-        fleet.observations.append(
-            (
-                ("profile", "progress"),
-                0,
+    _hold(fleet, load)
+    held = {
+        "needs-operator": {"state": "needs-operator", "status_reason": "operator"},
+        "queued": {"state": "queued", "next_attempt_at": "2026-10-13T00:00:00Z"},
+        "gate": {
+            "state": "backoff",
+            "blockers": [
                 {
-                    "id": load["app_id"],
-                    "state": "backoff",
-                    "blockers": [
-                        {
-                            "code": "model.deletion_in_progress",
-                            "severity": "error",
-                            "detail": "gate held",
-                        }
-                    ],
-                },
-            )
+                    "code": "model.deletion_in_progress",
+                    "severity": "error",
+                    "detail": "gate held",
+                }
+            ],
+        },
+    }[reason]
+    # Held for 30 hours: past the old 24 h wall, 900 s blocked and 1800 s platform caps.
+    for _ in range(30):
+        clock.t += 3600
+        fleet.observations.append(
+            (("profile", "progress"), 0, {"id": load["app_id"], **held})
         )
-    else:
-        sweep.state.slots["vonk-forge/a"]["wall_deadline"] = clock.now()
-    sweep.advance_slots(clock.now())
-    assert sweep.state.data["loads"] == {}
-    assert all(e["status"] == "pending" for e in sweep.state.recipes.values())
-    sweep.cleanup_finished()
-    assert not sweep.state.slots
-    clock.t += sweep.cfg.retry_delay
-    sweep.backoff_until = 0
-    sweep.schedule(clock.now())
-    assert next(iter(sweep.state.data["loads"])) != old_key
+        sweep.advance_slots(clock.now())
+    assert load["request_key"] in sweep.state.data["loads"]
+    assert sweep.state.slots["vonk-forge/a"]["phase"] == "loading"
+    assert sweep.state.status("vonk-forge/a") == "pending"
+    assert not any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
+    assert not [r for r in sweep.log.entries() if r["recipe"] == "vonk-forge/a"]
+
+
+def _hold(fleet, load) -> None:
+    """The Controller keeps the application's assignments from resolving."""
+    for item in fleet.apps[load["app_id"]]["assign"]:
+        item["at"] = 10**12
 
 
 def test_pending_work_does_not_exit_after_thirty_idle_ticks(tmp_path: Path) -> None:
@@ -222,7 +235,7 @@ def test_pending_work_does_not_exit_after_thirty_idle_ticks(tmp_path: Path) -> N
     )
 
 
-def test_external_download_wait_is_bounded_without_cancelling_foreign_work(
+def test_external_download_is_waited_for_and_lands_without_cancelling_it(
     tmp_path: Path,
 ) -> None:
     sweep, fleet, clock = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
@@ -232,18 +245,21 @@ def test_external_download_wait_is_bounded_without_cancelling_foreign_work(
 
     recipes = {recipe.key: replace(recipe, local="preparing")}
     sweep.prefetcher._track_external(recipes, clock.now())
-    clock.t += DOWNLOAD_WALL_SECONDS
+    clock.t += 48 * 3600.0  # someone else's download: its owner decides, never a clock
     sweep.prefetcher._track_external(recipes, clock.now())
-    assert sweep.state.downloads[recipe.key]["state"] == "retired"
+    assert sweep.state.downloads[recipe.key]["state"] == "external"
     assert not [c for _, c in fleet.calls if c[:2] == ("recipe", "cancel")]
-    clock.t += sweep.prefetcher.config.retry_cooldown
-    assert sweep.prefetcher._can_request(recipe, clock.now())
+    sweep.prefetcher._track_external(
+        {recipe.key: replace(recipe, local="cached")}, clock.now()
+    )
+    assert sweep.state.downloads[recipe.key]["state"] == "succeeded"
 
 
 def test_cleanup_error_never_retains_busy_lane_and_is_retried(tmp_path: Path) -> None:
     sweep, fleet, clock = _loading(tmp_path)
     load = next(iter(sweep.state.data["loads"].values()))
-    sweep._end_load(load, "application.needs-operator")
+    sweep._cancel_load(load)
+    sweep.requeue("vonk-forge/a", "operator intent replaced the load")
     fleet.observations.append(
         (("profile", "remove"), 2, {"code": "http.503", "error_type": "control_api"})
     )
@@ -300,28 +316,26 @@ def test_dual_does_not_use_a_busy_spark_and_singles_get_distinct_sparks(
     )
 
 
-def test_smoke_future_has_total_budget_and_does_not_block_a_fresh_load(
+def test_a_running_smoke_has_no_wall_clock_and_its_outcome_is_recorded(
     tmp_path: Path,
 ) -> None:
     from concurrent.futures import Future
 
-    from spark_sweep.run import SMOKE_WALL_SECONDS
+    from spark_sweep.smoke import SmokeResult
 
     sweep, _, clock = _loading(tmp_path)
     key = next(iter(sweep.state.slots))
     slot = sweep.state.slots[key]
-    old_key = slot["request_key"]
-    slot.update(phase="smoking", ready_at=clock.now())
-    sweep.futures[key] = Future()
-    clock.t += SMOKE_WALL_SECONDS
+    slot.update(phase="smoking", ready_at=clock.now(), run_id="run-1")
+    future: Future[SmokeResult] = Future()
+    sweep.futures[key] = future
+    clock.t += 30 * 3600.0  # each request has its own socket inactivity bound
     sweep._advance_smoking(key, slot)
-    assert slot["phase"] == "finished"
-    assert sweep.state.status(key) == "pending"
-    assert not sweep.futures
-    sweep.cleanup_finished()
-    clock.t += sweep.cfg.retry_delay
-    sweep.schedule(clock.now())
-    assert next(iter(sweep.state.data["loads"])) != old_key
+    assert slot["phase"] == "smoking" and sweep.futures[key] is future
+    future.set_result(SmokeResult(ok=True, kind="readiness"))
+    sweep._advance_smoking(key, slot)
+    assert sweep.state.status(key) == "passed"
+    assert sweep.log.entries()[-1]["status"] == "passed"
 
 
 def test_request_map_observes_each_lane_independently(tmp_path: Path) -> None:
@@ -454,25 +468,20 @@ def test_unreadable_owner_never_looks_like_absent_owner(tmp_path: Path) -> None:
     assert status.paused and "unreadable" in status.reason
 
 
-def test_stuck_owner_ends_with_owned_holds_released(tmp_path: Path) -> None:
+def test_an_owner_load_is_waited_for_and_never_ends_the_sweep(tmp_path: Path) -> None:
     from spark_sweep.owner import OwnerStatus
-    from spark_sweep.run import OWNER_WAIT_SECONDS
 
     sweep, _, clock = _loading(tmp_path)
     sweep.owner_status = OwnerStatus(True, "owner intent is running")
     sweep.guard.check = lambda now: sweep.owner_status
-    sweep.state.data["owner"]["paused_at"] = clock.now() - OWNER_WAIT_SECONDS
-    assert sweep.run() == 0
-    assert sweep.state.data["end"]["code"] == "sweep.owner_intent_superseded"
-    assert not sweep.state.slots and not sweep.state.data["loads"]
-    old_requests = {item["request_key"] for item in sweep.state.data["own_loads"]}
+    for _ in range(12):  # six hours of an owner load (or unreadable ownership)
+        clock.t += 1800
+        sweep.tick()
+    assert "end" not in sweep.state.data
+    assert "paused_at" in sweep.state.data["owner"]
     sweep.owner_status = OwnerStatus()
     assert sweep.run() == 0
-    assert "end" not in sweep.state.data
-    assert any(
-        item["request_key"] not in old_requests
-        for item in sweep.state.data["own_loads"]
-    )
+    assert sweep.state.status("vonk-forge/a") != "pending"
 
 
 def test_removed_catalog_recipe_releases_lane_and_fresh_recipe_is_admitted(
@@ -495,7 +504,7 @@ def test_removed_catalog_recipe_releases_lane_and_fresh_recipe_is_admitted(
     assert sweep.state.slots and sweep.state.data["loads"]
 
 
-def test_results_growth_is_bounded_without_losing_latest_outcome(
+def test_results_log_rotates_and_keeps_every_outcome(
     tmp_path: Path,
 ) -> None:
     from spark_sweep.state import ResultsLog
@@ -505,5 +514,10 @@ def test_results_growth_is_bounded_without_losing_latest_outcome(
     path.write_text((line + "\n") * 1000)
     log = ResultsLog(path, "auth")
     log.append(recipe="fresh", status="passed")
+    log.append(recipe="newest", status="passed")
     assert path.stat().st_size <= 4 * 1024 * 1024
-    assert log.entries()[-1]["recipe"] == "fresh"
+    rotated = list(tmp_path.glob("results.jsonl.*"))
+    assert len(rotated) == 1
+    entries = log.entries()
+    assert len(entries) == 1002  # appended, never trimmed
+    assert [e["recipe"] for e in entries[-2:]] == ["fresh", "newest"]

@@ -1,56 +1,384 @@
-"""Class guards: published vocabulary, bounded waits and falling untyped access."""
+"""Class guards: published vocabulary, Controller-led waits, evidence and untyped access.
+
+The sweep follows the Controller's verdicts (``spark_sweep/verdict.py``). These guards are
+AST-based and whole-tree over ``spark_sweep`` (it is small):
+
+* a wait is bounded by the work's own progress, never by a fixed cap that ends work;
+* a recipe's attempt counter moves only after ``disposition(...)`` decided the outcome;
+* every lane exit writes a results row, through the one writer ``record_result``.
+"""
 
 from __future__ import annotations
 
 import ast
 import json
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
 
+from spark_sweep import verdict
 from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING
 
 ROOT = Path(__file__).resolve().parents[1]
+SWEEP = [*sorted((ROOT / "spark_sweep").glob("*.py")), ROOT / "tools/sweep-recipes"]
+
+
+def _functions(tree: ast.AST) -> Iterator[ast.FunctionDef | ast.AsyncFunctionDef]:
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            yield node
+
+
+def _name(node: ast.AST) -> str | None:
+    """The name a call, attribute, subscript key or variable refers to."""
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    if isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant):
+        return str(node.slice.value)
+    return None
+
+
+def _calls(node: ast.AST, names: frozenset[str] | set[str]) -> list[ast.Call]:
+    return [
+        item
+        for item in ast.walk(node)
+        if isinstance(item, ast.Call) and _name(item.func) in names
+    ]
+
+
+# -- P1: a wait is not a failure; only a stall ends progressing work ------------------
+
+#: Calls that end a lane's work or put a verdict on it.
+ENDING = frozenset(
+    {
+        "_cancel_load",
+        "_end_load",
+        "_fail_slot",
+        "_record_failure",
+        "_retire",
+        "_stalled",
+        "_timeout",
+        "cancel",
+        "requeue",
+    }
+)
 
 
 def unbounded_whiles(source: str) -> list[int]:
-    """A wait's deadline must be in its condition and must not advance in its body."""
+    """A loop waits on progress: it asks ``progress_verdict`` or its bound advances in its body."""
     bad = []
     for node in ast.walk(ast.parse(source)):
         if not isinstance(node, ast.While):
             continue
-        deadline = any(
-            isinstance(item, ast.Compare)
-            and any(
-                isinstance(n, ast.Name) and n.id == "deadline" for n in ast.walk(item)
-            )
+        if _calls(node, {"progress_verdict"}):
+            continue
+        bounds = {
+            name
             for item in ast.walk(node.test)
-        )
-        extended = any(
-            isinstance(item, ast.Name)
-            and isinstance(item.ctx, ast.Store)
-            and item.id == "deadline"
+            if isinstance(item, ast.Compare)
+            for part in ast.walk(item)
+            if (name := _name(part)) is not None
+        }
+        advancing = any(
+            _name(target) in bounds
             for statement in node.body
             for item in ast.walk(statement)
+            if isinstance(item, (ast.Assign, ast.AugAssign, ast.AnnAssign))
+            for target in (
+                item.targets if isinstance(item, ast.Assign) else [item.target]
+            )
         )
-        if not deadline or extended:
+        if not advancing:
             bad.append(node.lineno)
     return bad
 
 
-def test_loop_guard_rejects_unbounded_and_moving_deadlines() -> None:
+def _is_clock(node: ast.AST) -> bool:
+    if isinstance(node, ast.Name) and node.id == "now":
+        return True
+    return isinstance(node, ast.Call) and _name(node.func) in {
+        "now",
+        "clock",
+        "monotonic",
+        "time",
+    }
+
+
+def fixed_caps_ending_work(source: str) -> list[int]:
+    """A clock compared with a fixed offset (``now - since > CAP``) never ends work.
+
+    Waits restart a stall window (``progress_verdict``); a fixed cap may pace a poll or a
+    backoff, but a branch that ends a lane, records a verdict or raises on it fails CI.
+    """
+    bad = []
+    for function in _functions(ast.parse(source)):
+        if _calls(function, {"progress_verdict"}):
+            continue
+        timed: set[str] = set()  # names assigned from the clock
+        capped: set[str] = set()  # names assigned from an offset (a cap)
+        for item in ast.walk(function):
+            if isinstance(item, ast.Assign):
+                names = {_name(t) for t in item.targets} - {None}
+                if any(_is_clock(part) for part in ast.walk(item.value)):
+                    timed |= names  # type: ignore[arg-type]
+                if any(isinstance(part, ast.BinOp) for part in ast.walk(item.value)):
+                    capped |= names  # type: ignore[arg-type]
+        for item in ast.walk(function):
+            if not isinstance(item, ast.If):
+                continue
+            compares = [c for c in ast.walk(item.test) if isinstance(c, ast.Compare)]
+            for compare in compares:
+                parts = list(ast.walk(compare))
+                clock = any(
+                    _is_clock(p) or (isinstance(p, ast.Name) and p.id in timed)
+                    for p in parts
+                )
+                cap = any(
+                    isinstance(p, ast.BinOp)
+                    or (isinstance(p, ast.Name) and p.id in capped)
+                    for p in parts
+                )
+                ends = any(
+                    _calls(statement, ENDING)
+                    or any(isinstance(s, ast.Raise) for s in ast.walk(statement))
+                    for statement in item.body
+                )
+                if clock and cap and ends:
+                    bad.append(item.lineno)
+                    break
+    return bad
+
+
+def test_wait_guard_accepts_progress_and_rejects_fixed_caps() -> None:
     assert unbounded_whiles("while True:\n    poll()") == [1]
-    assert unbounded_whiles("while now() < deadline:\n    deadline += 1") == [1]
+    assert unbounded_whiles(
+        "deadline = now() + 60\nwhile now() < deadline:\n    poll()"
+    ) == [2]
+    # A stall window: the bound advances when the work moves.
+    assert unbounded_whiles("while now() < deadline:\n    deadline = now() + 60") == []
     assert (
-        unbounded_whiles("deadline = now() + 60\nwhile now() < deadline:\n    poll()")
+        unbounded_whiles(
+            "while progress_verdict(s, w, window=1, now=now()) is not STALLED:\n"
+            "    poll()"
+        )
         == []
     )
+    capped = (
+        "def f(self, slot, now):\n"
+        "    if now - slot['since'] > self.cfg.blocked_seconds:\n"
+        "        self._end_load(slot, 'x')\n"
+    )
+    assert fixed_caps_ending_work(capped) == [2]
+    derived = (
+        "def f(self, slot, now):\n"
+        "    stalled = now - slot['at']\n"
+        "    if stalled > self.cfg.copy_stall_seconds:\n"
+        "        self._timeout(slot)\n"
+    )
+    assert fixed_caps_ending_work(derived) == [3]
+    paced = (
+        "def f(self, now):\n"
+        "    if now - self.owner_at >= self.cfg.owner_poll_seconds:\n"
+        "        self.check()\n"
+    )
+    assert fixed_caps_ending_work(paced) == []
+    judged = (
+        "def f(self, slot, now):\n"
+        "    progress = progress_verdict(signal, slot, window=1, now=now)\n"
+        "    if now - slot['at'] > 5:\n"
+        "        self._timeout(slot)\n"
+    )
+    assert fixed_caps_ending_work(judged) == []
 
 
-def test_every_sweep_while_has_a_fixed_deadline() -> None:
-    paths = [*sorted((ROOT / "spark_sweep").glob("*.py")), ROOT / "tools/sweep-recipes"]
-    for path in paths:
-        assert unbounded_whiles(path.read_text()) == [], str(path)
+@pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)
+def test_every_sweep_wait_follows_progress_not_a_fixed_cap(path: Path) -> None:
+    source = path.read_text()
+    assert unbounded_whiles(source) == [], str(path)
+    assert fixed_caps_ending_work(source) == [], str(path)
+
+
+# -- P2: attempts are spent only on OBSERVE outcomes -----------------------------------
+
+#: Counters that decide a recipe's fate.
+FATE_COUNTERS = frozenset(
+    {
+        "attempts",
+        "observe_failures",
+        "review_defers",
+        "review_freeing",
+        "unattributed_requeues",
+    }
+)
+#: Counters of the same name that pace a retry or re-plan and never decide a recipe's fate.
+CADENCE = {
+    ("cleanup_finished", "attempts"): "backoff exponent of an assignment removal retry",
+    (
+        "observe_cleanup",
+        "attempts",
+    ): "backoff exponent of an unreadable cleanup receipt",
+    (
+        "_take_over",
+        "attempts",
+    ): "re-plan trigger: place on free online lanes; ends nothing",
+    (
+        "_record_pass",
+        "attempts",
+    ): "a pass is a definite outcome; no budget is consulted",
+}
+
+
+def _increments(function: ast.AST) -> list[tuple[int, str]]:
+    found = []
+    for item in ast.walk(function):
+        if isinstance(item, ast.AugAssign) and isinstance(item.op, ast.Add):
+            if (name := _name(item.target)) in FATE_COUNTERS:
+                found.append((item.lineno, name))
+        elif isinstance(item, ast.Assign) and any(
+            isinstance(part, ast.BinOp) and isinstance(part.op, ast.Add)
+            for part in ast.walk(item.value)
+        ):
+            for target in item.targets:
+                if (name := _name(target)) in FATE_COUNTERS:
+                    found.append((item.lineno, name))
+        elif isinstance(item, ast.Call):
+            for keyword in item.keywords:
+                if keyword.arg in FATE_COUNTERS and any(
+                    isinstance(part, ast.BinOp) and isinstance(part.op, ast.Add)
+                    for part in ast.walk(keyword.value)
+                ):
+                    found.append((item.lineno, keyword.arg))
+    return found
+
+
+def counted_before_disposition(source: str) -> list[tuple[str, int, str]]:
+    bad = []
+    for function in _functions(ast.parse(source)):
+        decided = [call.lineno for call in _calls(function, {"disposition"})]
+        for line, name in _increments(function):
+            if (function.name, name) in CADENCE:
+                continue
+            if not any(at <= line for at in decided):
+                bad.append((function.name, line, name))
+    return bad
+
+
+def test_attempt_guard_requires_a_disposition_first() -> None:
+    early = (
+        "def f(self, entry, failure):\n"
+        "    entry['attempts'] = entry.get('attempts', 0) + 1\n"
+        "    if failure.transient:\n"
+        "        return\n"
+    )
+    assert counted_before_disposition(early) == [("f", 2, "attempts")]
+    decided = (
+        "def f(self, entry, failure):\n"
+        "    outcome = verdict.disposition(failure)\n"
+        "    if outcome is WAIT:\n"
+        "        return\n"
+        "    entry['attempts'] = entry.get('attempts', 0) + 1\n"
+    )
+    assert counted_before_disposition(decided) == []
+    assert counted_before_disposition("def g(e):\n    e.update(attempts=e['n'] + 1)\n")
+
+
+@pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)
+def test_attempts_are_counted_only_after_a_disposition(path: Path) -> None:
+    assert counted_before_disposition(path.read_text()) == [], str(path)
+
+
+def test_cadence_exemptions_name_real_functions() -> None:
+    names = {
+        function.name
+        for path in SWEEP
+        for function in _functions(ast.parse(path.read_text()))
+    }
+    assert {function for function, _ in CADENCE} <= names
+
+
+# -- P6: evidence is never lost --------------------------------------------------------
+
+#: The lane exits: each writes its own row.
+LANE_EXITS = frozenset(
+    {
+        "requeue",
+        "_record_failure",
+        "_record_pass",
+        "_requeue_failed",
+        "_schedule_retest",
+    }
+)
+
+
+def _sets_status(function: ast.AST) -> bool:
+    for item in ast.walk(function):
+        if isinstance(item, ast.Assign) and any(
+            isinstance(t, ast.Subscript) and _name(t) == "status" for t in item.targets
+        ):
+            return True
+        if (
+            isinstance(item, ast.Call)
+            and _name(item.func) == "update"
+            and any(k.arg == "status" for k in item.keywords)
+        ):
+            return True
+    return False
+
+
+def silent_lane_exits(source: str) -> list[str]:
+    """Functions that move a recipe's result without writing a results row."""
+    bad = []
+    for function in _functions(ast.parse(source)):
+        writes = bool(_calls(function, {"record_result"}))
+        exit_without_row = function.name in LANE_EXITS and not writes
+        silent_reset = _sets_status(function) and not (
+            writes or _calls(function, LANE_EXITS)
+        )
+        if exit_without_row or silent_reset:
+            bad.append(function.name)
+    return bad
+
+
+def stray_log_writers(source: str) -> list[str]:
+    """``record_result`` is the one writer of results.jsonl."""
+    return [
+        function.name
+        for function in _functions(ast.parse(source))
+        if function.name != "record_result"
+        and any(
+            isinstance(call.func, ast.Attribute) and _name(call.func.value) == "log"
+            for call in _calls(function, {"append"})
+        )
+    ]
+
+
+def test_evidence_guard_finds_a_silent_requeue() -> None:
+    silent = "def requeue(self, key, why):\n    self.entry(key)['status'] = 'pending'\n"
+    assert silent_lane_exits(silent) == ["requeue"]
+    reset = "def heal(self, entry):\n    entry.update(status='pending')\n"
+    assert silent_lane_exits(reset) == ["heal"]
+    via_exit = "def end(self, key):\n    self.requeue(key, 'x')\n"
+    assert silent_lane_exits(via_exit) == []
+    assert stray_log_writers("def f(self):\n    self.log.append(x=1)\n") == ["f"]
+
+
+@pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)
+def test_every_lane_exit_writes_a_results_row(path: Path) -> None:
+    source = path.read_text()
+    assert silent_lane_exits(source) == [], str(path)
+    assert stray_log_writers(source) == [], str(path)
+
+
+def test_the_lane_exits_exist() -> None:
+    source = (ROOT / "spark_sweep/run.py").read_text()
+    names = {function.name for function in _functions(ast.parse(source))}
+    assert LANE_EXITS | {"record_result"} <= names
+
+
+# -- published vocabulary ----------------------------------------------------------------
 
 
 def test_vocabulary_matches_published_controller_contract() -> None:
@@ -60,6 +388,23 @@ def test_vocabulary_matches_published_controller_contract() -> None:
     assert not ACTIVE & TERMINAL
     assert not WAITING & TERMINAL
     assert "backoff" in ACTIVE and "observing" in ACTIVE
+
+
+def test_verdict_codes_match_the_published_enums() -> None:
+    published = json.loads((ROOT / "tests/fixtures/sweep-vocabulary.json").read_text())
+    words = {
+        word
+        for name, values in published.items()
+        if name != "source"
+        for word in values
+    }
+    used = {
+        verdict.PHASE_RETRY,
+        verdict.FAILURE_REPEATED,
+        *verdict.PREPARATION_CODES,
+        *verdict.CLIENT_WAIT_DECISIONS,
+    }
+    assert used <= words, sorted(used - words)
 
 
 def dig_counts() -> dict[str, int]:

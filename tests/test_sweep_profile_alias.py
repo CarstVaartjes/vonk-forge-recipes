@@ -16,8 +16,8 @@ from sweep_fakes import FakeFleet, FakeModel, FakeRecipe, Gateway, make_sweep
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 
 from spark_sweep.catalog import Fleet, Presence, serving_run
-from spark_sweep.policy import refused_profile_field
 from spark_sweep.profile_alias import profile_alias, unique_profile_alias
+from spark_sweep.verdict import refused_field
 
 _CONTRACT = TypeAdapter(EndpointAlias)
 _CONTRACT_PATTERN = re.compile(ENDPOINT_ALIAS_PATTERN)
@@ -162,7 +162,7 @@ def test_a_refusal_of_recipe_data_fails_the_recipe_at_the_profile_edit(
     ],
 )
 def test_the_refused_field_is_read_from_the_error(text: str, field: str | None) -> None:
-    assert refused_profile_field(text) == field
+    assert refused_field(text) == field
 
 
 def _up(alias: str, run_id: str) -> Presence:

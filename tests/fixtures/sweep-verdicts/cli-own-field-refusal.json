@@ -1,0 +1,8 @@
+{
+  "code": "recipe.invalid_option",
+  "detail": "request is invalid: body.assignments.0.assignment_name: String should match pattern",
+  "error": "recipe option is invalid",
+  "error_type": "control_api",
+  "recovery_actions": [],
+  "retryable": false
+}

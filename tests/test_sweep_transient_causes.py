@@ -8,7 +8,7 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
-from spark_sweep import policy
+from spark_sweep import verdict
 from spark_sweep.run import MAX_REVIEW_FREEING
 
 
@@ -136,12 +136,12 @@ def test_a_failed_application_the_controller_gave_up_on_is_recorded(
 
 
 def test_the_controllers_typed_ending_is_what_stops_the_following() -> None:
-    assert policy.retry_ended(
+    assert verdict.retry_ended(
         {"blockers": [{"code": "profile.failure_repeated", "detail": "x"}]}
     )
-    assert policy.retry_ended(
+    assert verdict.retry_ended(
         {"progress": {"switch_adapter": {"assignment_failures": [{"terminal": True}]}}}
     )
-    assert not policy.retry_ended(
+    assert not verdict.retry_ended(
         {"progress": {"switch_adapter": {"assignment_failures": [{"terminal": False}]}}}
     )

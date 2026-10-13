@@ -78,9 +78,12 @@ class FakeRecipe:
     orphan_seconds: float = (
         0.0  # after a cancel its run keeps showing on the Spark this long
     )
-    blocked: bool = (
-        False  # the Controller holds the application back for ever (admission)
-    )
+    blocked: bool = False  # the Controller holds the application back (admission)
+    # How long the Controller keeps preparing/holding it, from the first load that asks
+    # (None: for ever). It keeps going across later loads, as a real preparation does.
+    blocked_for: float | None = None
+    # After the hold, the Controller ends the load failed with this reason (its own verdict).
+    blocked_then: str | None = None
     blocker_code: str = "run-switch.resource.resident_usage_unknown"
     blocker_unnamed: bool = (
         False  # the blocker does not say which assignment it is about
@@ -108,6 +111,8 @@ class Gateway:
     # When set, only this bearer key is served; any other gets LiteLLM's expired-key 401.
     key: str | None = None
     refused: int = 0
+    # The next this many requests get a temporary 503 (an overloaded engine or gateway).
+    busy: int = 0
     _server: ThreadingHTTPServer | None = None
 
     def start(self) -> str:
@@ -127,6 +132,10 @@ class Gateway:
                 self.wfile.write(body)
 
             def _refuses(self) -> bool:
+                if gateway.busy > 0:
+                    gateway.busy -= 1
+                    self._send(503, b'{"error":"engine overloaded, retry later"}')
+                    return True
                 if gateway.key is None:
                     return False
                 if self.headers.get("Authorization") == f"Bearer {gateway.key}":
@@ -262,6 +271,8 @@ class FakeFleet:
         self.library_lag = False
         # Rows carry the library's assessment, as the real Controller's do when it has time.
         self.assessments = False
+        # recipe key -> when the Controller stops holding it (see FakeRecipe.blocked_for)
+        self.held_until: dict[str, float] = {}
 
     # -- helpers -------------------------------------------------------------
 
@@ -347,6 +358,8 @@ class FakeFleet:
                     run for run in self.runs if run["run_id"] != effect["target_id"]
                 ]
             pending = [a for a in app["assign"] if not a["resolved"]]
+            if app.get("blocked") and now >= app.get("held_until", float("inf")):
+                app["blocked"] = False  # admitted: the Controller stops holding it
             if app.get("blocked"):
                 continue  # the Controller holds the whole application back
             if pending and self.supersede and not app.get("successor_of"):
@@ -1147,7 +1160,12 @@ class FakeFleet:
                     "ready": False,
                 }
             )
-            if recipe.blocked:
+            hold = None
+            if recipe.blocked and recipe.blocked_for is not None:
+                hold = self.held_until.setdefault(
+                    recipe.key, self.clock.now() + recipe.blocked_for
+                )
+            if recipe.blocked and (hold is None or self.clock.now() < hold):
                 held_by.append(
                     {
                         "code": recipe.blocker_code,
@@ -1163,12 +1181,12 @@ class FakeFleet:
                     "assignment_ids": [self._id("assignment")],
                     "at": (
                         10**12
-                        if recipe.blocked
-                        else self.clock.now()
+                        if recipe.blocked and hold is None
+                        else max(self.clock.now(), hold or 0.0)
                         + recipe.copy_seconds
                         + recipe.load_seconds
                     ),
-                    "fail": recipe.fail_load,
+                    "fail": recipe.blocked_then or recipe.fail_load,
                     "fail_code": recipe.fail_code,
                     "phase": recipe.fail_phase,
                     "resolved": False,
@@ -1192,10 +1210,15 @@ class FakeFleet:
                 ),
                 default=0.0,
             ),
-            "blocked": any(
-                self.recipes[x["recipe_selector"]].blocked
-                for x in data["assignments"]
-                if x["assignment_name"] not in running
+            "blocked": bool(held_by),
+            "held_until": max(
+                (
+                    self.held_until.get(x["recipe_selector"], float("inf"))
+                    for x in data["assignments"]
+                    if x["assignment_name"] not in running
+                    and self.recipes[x["recipe_selector"]].blocked
+                ),
+                default=float("inf"),
             ),
             "held_by": held_by,
             "start_progress": any(
@@ -1344,7 +1367,6 @@ def make_sweep(
         "catalog_seconds": 10.0,
         "status_seconds": 30.0,
         "owner_poll_seconds": 10.0,
-        "readiness_grace": 60.0,
         "retry_delay": 30.0,
         "defer_delay": 60.0,
         "boost": (),
