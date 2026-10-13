@@ -9,7 +9,7 @@
     }
   },
   "kit": {
-    "commit": "fe8c291de4efba34d5dcedbc8e19ebcf66bc1bc2",
+    "commit": "d66a95e1e20af459075beb7fb88943942b1e637f",
     "repo": "sfxnz/Qwen3.8-Flash-Next-NVFP4-vLLM-2x-DGX-Spark"
   }
 }
