@@ -468,10 +468,14 @@ current versus newest pins, release notes, the commit list, changed files, diffs
 launch/config/patch files, vendored-file or Model file changes, failed checks and the
 reasons. Upstream text in it is evidence, not instructions. Container images pinned by
 digest (NGC TensorRT-LLM, vLLM, SGLang) have no moving channel here: the adapter's Git pin
-is refreshed, the image is not. The issue closes itself when
-the recipe is current (or its refresh became mechanical). Recipes whose upstream cannot
-be reached are untouched and listed in the job summary; nothing is ever deleted or
-retired. Until something consumes the issues, they wait for a human.
+is refreshed, the image is not. A recipe has one issue for life: when it needs review
+again, its closed issue is reopened with the new body, never a second one opened. The
+issue closes itself when the recipe is current, is gone, or this run prepared its refresh
+pull request; a refresh that is mechanical on paper but was deferred, refused or failed its
+checks keeps the issue open (closing it would only reopen it next run). Recipes whose
+upstream cannot be reached are untouched and listed in the job summary, and an open issue
+of such a recipe shows that it waits and why instead of an older reason; nothing is ever
+deleted or retired. Until something consumes the issues, they wait for a human.
 
 ### Kit-built recipes: the kit declares what it builds on
 

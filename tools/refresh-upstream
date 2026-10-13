@@ -2417,11 +2417,16 @@ def issue_body(assessment: Assessment, previous: str | None = None) -> str:
             moved = f"{recorded.group(1) or 'none'} -> {heads or 'none'}"
         elif carried is not None:
             moved = carried.group(1)
+    waiting = bool(assessment.unreachable)
     body = [
         *([f"> Upstream moved since the last check: {moved}", ""] if moved else []),
         (
-            f"`{assessment.recipe_id}` is behind its upstream and a script cannot refresh it safely. "
-            "The recipe is unchanged."
+            f"`{assessment.recipe_id}` waits for an upstream the refresh cannot read. "
+            "The recipe is unchanged; every run assesses it again, and this issue closes "
+            "itself once the recipe is current or its refresh pull request is open."
+            if waiting
+            else f"`{assessment.recipe_id}` is behind its upstream and a script cannot "
+            "refresh it safely. The recipe is unchanged."
         ),
         "",
         "## Computed from",
@@ -2432,9 +2437,9 @@ def issue_body(assessment: Assessment, previous: str | None = None) -> str:
         "",
         render_pins(assessment),
         "",
-        "## Why this is not mechanical",
+        "## Why it waits" if waiting else "## Why this is not mechanical",
         "",
-        *[f"- {reason}" for reason in assessment.reasons],
+        *[f"- {reason}" for reason in assessment.unreachable + assessment.reasons],
         "",
         "## Evidence",
         "",
@@ -2917,21 +2922,38 @@ def close_stale_refresh_prs(
         summary.closed.append(f"{recipe_id}: PR #{pr['number']}")
 
 
-def sync_issue(assessment: Assessment, summary: Summary) -> None:
-    title = issue_title(assessment.recipe_id)
+def review_issue(title: str, state: str) -> dict[str, Any] | None:
+    """The newest ``refresh:needs-review`` issue titled ``title`` in ``state``."""
     issues = gh_json(
         "issue",
         "list",
         "--label",
         LABEL_NEEDS_REVIEW,
         "--state",
-        "open",
+        state,
         "--limit",
-        "500",
+        "1000",
         "--json",
         "number,title,body",
     )
-    existing = next((i for i in issues if i["title"] == title), None)
+    found = [i for i in issues if i["title"] == title]
+    return max(found, key=lambda i: int(i["number"])) if found else None
+
+
+def sync_issue(assessment: Assessment, summary: Summary, create: bool = True) -> None:
+    """Keep the recipe's one review issue showing the current assessment.
+
+    A recipe has one issue for life: when it needs review again, its closed issue is
+    reopened with the new body rather than a second issue opened. ``create=False``
+    only updates an open issue (a recipe that waits for an unreachable upstream).
+    """
+    title = issue_title(assessment.recipe_id)
+    existing = review_issue(title, "open")
+    if existing is None and create and (closed := review_issue(title, "closed")):
+        gh("issue", "reopen", str(closed["number"]))
+        existing = closed
+    if existing is None and not create:
+        return
     body = issue_body(assessment, None if existing is None else existing["body"])
     if existing is None:
         gh(
@@ -2946,13 +2968,20 @@ def sync_issue(assessment: Assessment, summary: Summary) -> None:
         )
     elif (existing["body"] or "").strip() != body.strip():
         gh("issue", "edit", str(existing["number"]), "--body", body)
-    summary.review.append(f"{assessment.recipe_id}: {assessment.reasons[0][:140]}")
+    if assessment.reasons:
+        summary.review.append(f"{assessment.recipe_id}: {assessment.reasons[0][:140]}")
 
 
 def close_current_issues(
-    assessed: dict[str, Assessment], keep: set[str], summary: Summary
+    assessed: dict[str, Assessment], handled: set[str], summary: Summary
 ) -> None:
-    """Close the review issue of every recipe that no longer needs review."""
+    """Close the review issue of every recipe that no longer needs review.
+
+    That is a recipe that is current or gone, or whose refresh pull request this run
+    prepared (``handled``). A drifted recipe without one keeps its issue: a refresh
+    that is mechanical on paper but was deferred, refused or failed its checks has not
+    been handled, and closing its issue would only reopen it next run.
+    """
     issues = gh_json(
         "issue",
         "list",
@@ -2971,16 +3000,18 @@ def close_current_issues(
             continue
         recipe_id = issue["title"][len(prefix) :]
         result = assessed.get(recipe_id)
-        if recipe_id in keep or (result is not None and result.unreachable):
-            continue
         if result is None:
             note = "The recipe no longer exists."
-        elif result.drifted:
+        elif result.unreachable:
+            continue
+        elif recipe_id in handled:
             note = (
                 "The refresh is mechanical now; an automatic pull request handles it."
             )
-        else:
+        elif not result.drifted:
             note = "The recipe is current again."
+        else:
+            continue
         gh(
             "issue",
             "close",
@@ -3302,6 +3333,7 @@ def command_run(arguments: argparse.Namespace) -> int:
     groups = sharing_groups(catalog_)
     grouped: set[str] = set()
     published: set[str] = set()  # refresh PRs regenerated by this run
+    handled: set[str] = set()  # recipes (group members too) an open refresh PR covers
     for result in results:
         if result.drifted and (
             blockers := blocking_prs(
@@ -3318,6 +3350,10 @@ def command_run(arguments: argparse.Namespace) -> int:
             summary.unreachable.append(
                 f"{result.recipe_id}: {'; '.join(result.unreachable)}"
             )
+            try:
+                sync_issue(result, summary, create=False)
+            except RuntimeError as error:
+                summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
             continue
         if not result.drifted:
             continue
@@ -3332,6 +3368,7 @@ def command_run(arguments: argparse.Namespace) -> int:
                 if members is None:
                     if publish_mechanical(root, result, summary) is not None:
                         published.add(result.recipe_id)
+                        handled.add(result.recipe_id)
                 elif result.recipe_id in grouped:
                     continue
                 else:
@@ -3358,6 +3395,7 @@ def command_run(arguments: argparse.Namespace) -> int:
                         result.evidence.extend(combined.evidence[seen:])
                         if number is not None:
                             published.add(combined.recipe_id)
+                            handled.update(members)
                             supersede_member_prs(
                                 members, combined.recipe_id, number, summary
                             )
@@ -3368,7 +3406,7 @@ def command_run(arguments: argparse.Namespace) -> int:
             failed.add(result.recipe_id)
             summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
     try:
-        close_current_issues(assessed, review_ids | failed, summary)
+        close_current_issues(assessed, handled - review_ids - failed, summary)
         close_stale_refresh_prs(assessed, summary, groups, published)
         update_stale_prs(summary)
         publish_if_stale()
