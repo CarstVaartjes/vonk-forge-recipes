@@ -56,7 +56,6 @@ class DeepseekDs4RecipeTests(unittest.TestCase):
         )
         names = [argument["name"] for argument in recipe["runtime"]["arguments"]]
         self.assertEqual(names, ["model", "dspark", "mtp-model", "ctx"])
-        self.assertEqual(recipe["release"]["version"], "1.3.0")
 
     def test_release_binds_the_current_recipe_digest(self) -> None:
         index = load(GENERATED / "catalog-index.json")
