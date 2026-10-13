@@ -1,7 +1,7 @@
 # Credits
 
 - **[tournierjc/Swift-1.5-TensorFold-Single-DGX-Spark](https://github.com/tournierjc/Swift-1.5-TensorFold-Single-DGX-Spark)**
-  (MIT, commit d956df5fea1db1fc9b5ffcd46f627d88a1be0b68): the single-Spark rig this recipe follows. It supplied the
+  (MIT, commit 70c561394e6e955e369b135b5edfd70c1dfe9efb): the single-Spark rig this recipe follows. It supplied the
   serve flags and their measured defaults (three lanes, the full window, `--vision`, `--kv-dtype int8`, `--mtp-confidence 0.60`,
   `TENSORFOLD_FACES_FP8=all`, `TENSORFOLD_VISION_WORKSPACE_MIB=1280`) and the finding that `--ple-on-ssd` is refused for an NVFP4 checkpoint. The repository's
   Dockerfile and scripts are not reused: the platform builds its own image from the vendored TensorFold source.

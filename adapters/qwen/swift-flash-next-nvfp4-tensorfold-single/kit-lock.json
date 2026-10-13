@@ -1,15 +1,15 @@
 {
   "dependencies": {
     "base": {
-      "commit": "808767fd479c6bd8dbb2eb68f2a3537f75e6d520",
+      "commit": "53ceb126d5d54e9193245bcc74130fc1d81cf46f",
       "datasource": "git-ref",
       "kind": "commit",
-      "ref": "808767fd479c6bd8dbb2eb68f2a3537f75e6d520",
+      "ref": "53ceb126d5d54e9193245bcc74130fc1d81cf46f",
       "repo": "tournierjc/TensorFold"
     }
   },
   "kit": {
-    "commit": "d956df5fea1db1fc9b5ffcd46f627d88a1be0b68",
+    "commit": "70c561394e6e955e369b135b5edfd70c1dfe9efb",
     "repo": "tournierjc/Swift-1.5-TensorFold-Single-DGX-Spark"
   }
 }
