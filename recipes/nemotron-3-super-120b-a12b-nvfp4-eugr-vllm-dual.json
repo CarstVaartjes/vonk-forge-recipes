@@ -464,10 +464,10 @@
       "NVIDIA (Nemotron Open Model License)",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/a4c172976a5f9f8669b356a0891bf972cae14fd4"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/ef086aea1252dc2db59ceef2f2db805656fc9ac5"
   },
   "release": {
-    "released_at": "2026-10-11",
+    "released_at": "2026-10-13",
     "version": "prebuilt-vllm-current"
   },
   "runtime": {
