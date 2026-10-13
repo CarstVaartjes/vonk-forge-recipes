@@ -309,6 +309,18 @@ process or the next. A later run that finds the previous run's restore still
 coming up waits for it ("our own load") but does not hold or requeue anything; only
 an application the sweep did not submit counts as the owner loading a profile.
 
+**Testable is the enrolled topology; an offline lane is a wait.** "Not testable on
+this fleet" is decided from the Sparks the `fleet` listing enrolls (online or not):
+a recipe needing more Sparks than are enrolled is skipped, with the listing as its
+evidence. A recipe needing N Sparks with N enrolled but fewer online stays pending
+("waiting for 1 more lane" in the queue) while the online lanes carry on with work
+that fits them. An enrolled Spark that goes offline keeps its lane in the status,
+shown with the Controller's reason and last-seen time; each offline/online change
+writes one `lane` row with the fleet facts. Skips an older sweep wrote from a
+momentary online count heal to pending on the next pass. A run its failed
+application left behind on that Spark is stopped by the next sweep-profile load once
+the Spark answers (its assignment is already gone from the profile).
+
 The sweep places only on online Sparks. Empty takeover loads whose preview
 would stop an offline or unselected Spark are skipped. Clearing admission gets
 three attempts spaced by 30 seconds; the budget survives restart. After that,

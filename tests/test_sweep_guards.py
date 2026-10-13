@@ -436,3 +436,45 @@ def test_fake_can_emit_every_lifecycle_word(tmp_path: Path, word: str) -> None:
     sweep, fleet, _ = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
     fleet.observations.append((("recipe", "progress"), 0, {"id": "op", "state": word}))
     assert sweep.vk.call("recipe", "progress", "op")["state"] == word
+
+
+# -- Testable is the enrolled topology, never the momentary online count ------------------
+
+TOPOLOGY = frozenset(
+    {
+        "enrolled",
+        "fleet_capacity",
+        "_reconcile_all",
+        "_reconcile_entry",
+        "heal_fleet_skips",
+    }
+)
+
+
+def online_reads(source: str, functions: frozenset[str] | None = None) -> list[str]:
+    """Functions that decide from online Sparks: a ``sparks()`` call or an ``.online`` read."""
+    return [
+        function.name
+        for function in _functions(ast.parse(source))
+        if (functions is None or function.name in functions)
+        and (
+            _calls(function, {"sparks"})
+            or any(
+                isinstance(node, ast.Attribute) and node.attr == "online"
+                for node in ast.walk(function)
+            )
+        )
+    ]
+
+
+def test_the_online_guard_finds_a_skip_from_the_online_count() -> None:
+    bad = "def _reconcile_all(self):\n    usable = len(self.sparks())\n"
+    assert online_reads(bad, TOPOLOGY) == ["_reconcile_all"]
+    filtered = "def main(fleet):\n    return [s for s in fleet.sparks if s.online]\n"
+    assert online_reads(filtered) == ["main"]
+
+
+def test_testable_is_decided_from_enrolled_sparks_only() -> None:
+    run = (ROOT / "spark_sweep/run.py").read_text()
+    assert online_reads(run, TOPOLOGY) == []
+    assert online_reads((ROOT / "spark_sweep/cli.py").read_text()) == []

@@ -271,6 +271,9 @@ class Spark:
     memory_total: int
     disk_free: int
     online: bool
+    # The Controller's own words when it is not online: evidence for the lane's wait.
+    offline_reason: str = ""
+    last_seen_at: str = ""
 
 
 @dataclass(frozen=True)
@@ -303,6 +306,10 @@ def parse_fleet(document: Any, default_memory: int) -> Fleet:
         if not isinstance(node, dict):
             continue
         node_id = str(node.get("id", ""))
+        connection = dig(node, "connection", default={})
+        if not isinstance(connection, dict):
+            connection = {}
+        online = connection.get("online_state") == "online"
         sparks.append(
             Spark(
                 id=node_id,
@@ -311,7 +318,15 @@ def parse_fleet(document: Any, default_memory: int) -> Fleet:
                     dig(node, "inventory", "host_memory_total_bytes"), default_memory
                 ),
                 disk_free=as_int(dig(node, "inventory", "disk_free_bytes")),
-                online=dig(node, "connection", "online_state") == "online",
+                online=online,
+                offline_reason=""
+                if online
+                else str(
+                    connection.get("offline_reason")
+                    or connection.get("online_state")
+                    or "unknown"
+                ),
+                last_seen_at=str(connection.get("last_seen_at") or ""),
             )
         )
         for item in dig(node, "loaded", default=[]):
