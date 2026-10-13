@@ -855,6 +855,8 @@ class Item:
     # provenance mark (vendored-upstream.json source.unverified) and goes to review.
     unverified: str | None = None
     unmark: bool = False  # the marked commit is on GitHub now: only the mark goes
+    # Moving off a never-published pin to a published commit: nothing to compare with.
+    uncompared: bool = False
 
     @property
     def label(self) -> str:
@@ -1189,9 +1191,20 @@ def follow_image(
     try:
         comparison = compare_commits(http, repo, current, commit)
     except (RuntimeError, KeyError, TypeError) as error:
-        if commit_on_github(http, repo, commit) is False:
+        served = commit_on_github(http, repo, commit)
+        if served is False or (served is True and marked is not None):
+            # The new commit is unpublished, or the pin it moves from never was (its
+            # mark says so): either way the changed files cannot be compared.
             unverified_image(
-                result, repo, current, commit, built, repository, digest, source
+                result,
+                repo,
+                current,
+                commit,
+                built,
+                repository,
+                digest,
+                source,
+                published=served is True,
             )
             return
         # GitHub could not be asked (rate limit, outage): retried on the next run.
@@ -1246,9 +1259,15 @@ def unverified_image(
     repository: str,
     digest: str,
     source: Any,
+    published: bool = False,
 ) -> None:
-    """Follow an image whose build commit GitHub does not serve, for review."""
-    mark = vendored.unverified_mark(repo, commit)
+    """Follow an image for review when its commit cannot be compared with the pin.
+
+    Either GitHub does not serve the image's build commit (the move carries the
+    unverified mark) or the pin it moves from was never published (``published``: the
+    new commit is served, so the mark goes, but there is no old side to compare).
+    """
+    mark = None if published else vendored.unverified_mark(repo, commit)
     result.items.append(
         Item(
             "source",
@@ -1258,13 +1277,19 @@ def unverified_image(
             _commit_target(repo, commit, built),
             image=(repository, digest),
             unverified=mark,
+            uncompared=published,
         )
     )
     result.held.append(
-        f"{repository}@{digest} records {repo} `{commit[:12]}`, which is not on GitHub: "
-        "the pull request follows the image by digest with its provenance marked "
-        f"unverified ({mark}); what changed in the files the recipe uses cannot be "
-        "judged until upstream publishes that commit"
+        f"{repository}@{digest} records {repo} `{commit[:12]}`, but the pinned "
+        f"`{current[:12]}` was never published on GitHub: the pull request follows the "
+        "image by digest and drops the unverified mark; what changed in the files the "
+        "recipe uses cannot be compared"
+        if published
+        else f"{repository}@{digest} records {repo} `{commit[:12]}`, which is not on "
+        "GitHub: the pull request follows the image by digest with its provenance "
+        f"marked unverified ({mark}); what changed in the files the recipe uses cannot "
+        "be judged until upstream publishes that commit"
     )
     try:
         metadata = source.oci().build_metadata(repository, digest)
@@ -2019,7 +2044,7 @@ class Assessor:
         new_recipe = json.loads(json.dumps(recipe))
         for item in result.items:
             try:
-                if item.unverified is not None or item.unmark:
+                if item.unverified is not None or item.unmark or item.uncompared:
                     self._mark(item, recipe, new_recipe, result, edits)
                 elif item.kind == "model":
                     self._model(item, recipe, new_recipe, result, edits)
@@ -2070,7 +2095,7 @@ class Assessor:
         pin = adapter_pin(self.catalog.root, recipe)
         if pin is None or not (pin.directory / vendored.MANIFEST).is_file():
             raise RuntimeError(f"no {vendored.MANIFEST} source to carry the mark")
-        if item.unverified is not None:
+        if not item.unmark:
             assert item.image is not None
             repository, digest = item.image
             self._retarget_reference(new_recipe, item)
@@ -2085,8 +2110,12 @@ class Assessor:
             )
             result.evidence.append(
                 f"The recipe runs {repository} as published; it moves to `{digest}`, "
-                f"which records {item.repo} at `{item.target.sha}` (not on GitHub: "
-                "provenance marked unverified).\n"
+                f"which records {item.repo} at `{item.target.sha}`"
+                + (
+                    " (not on GitHub: provenance marked unverified).\n"
+                    if item.unverified
+                    else " (on GitHub; the unpublished pin it leaves is not compared).\n"
+                )
             )
         else:
             result.evidence.append(

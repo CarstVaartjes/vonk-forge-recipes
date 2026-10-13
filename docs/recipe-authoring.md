@@ -441,7 +441,8 @@ it, is labelled `refresh:needs-review` and is never armed, and the recipe's issu
 the image records (its `build-metadata.yaml`: vLLM version and commit, build date) for a person
 to judge, because the files the recipe uses cannot be compared. Once GitHub serves the commit,
 the next run drops the mark (a mechanical pull request) or, before merge, judges the move as
-any other.
+any other. A later image that moves a marked pin to a published commit is held for review the
+same way (the old side cannot be compared) and drops the mark.
 `tools/check-image-provenance` holds every changed recipe of this kind to the commit its
 image records, and accepts a commit GitHub does not serve only with that explicit mark (a
 mark on a commit GitHub serves is stale and fails too); `tools/check-vendored-upstream` does

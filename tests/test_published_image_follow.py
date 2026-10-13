@@ -282,6 +282,32 @@ class RefreshTests(unittest.TestCase):
         self.assertIn("vllm_version: 0.31.1rc1", body)  # what the image itself shows
         self.assertIn("Needs review", refresh.pr_body(result))
 
+    def test_a_move_off_an_unpublished_pin_is_held_and_drops_the_mark(self) -> None:
+        fake = eugr_registry("c" * 40)  # the new image's commit is published
+        mark = f"commit {BUILT} not on github.com/{SOURCE}"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_recipe(root, SOURCE, pinned=BUILT, mark=mark)
+            assessor = refresh.Assessor(
+                refresh.Catalog.load(root), object(), None, {"recipes": []}
+            )
+            source = kit_pins.Upstream(None, None, kit_pins.Registry(fake))  # type: ignore[arg-type]
+            with (
+                patch.object(refresh, "kit_upstream", lambda _http: source),
+                patch.object(refresh, "compare_commits", self.missing),
+                patch.object(refresh, "commit_on_github", lambda *_: True),
+            ):
+                result = assessor.assess("recipe")
+            result.edits = {
+                k: v for k, v in result.edits.items() if v != (root / k).read_bytes()
+            }
+        self.assertTrue(result.for_review, result.reasons)
+        self.assertIn("never published", result.held[0])
+        dockerfile = result.edits["adapters/eugr/x/Dockerfile"].decode()
+        self.assertIn(f"FROM {IMAGE}@{fake.digest}", dockerfile)
+        manifest = json.loads(result.edits["adapters/eugr/x/vendored-upstream.json"])
+        self.assertEqual(manifest["source"], {"commit": "c" * 40, "repo": SOURCE})
+
     def test_the_mark_goes_once_github_serves_the_commit(self) -> None:
         fake = eugr_registry()
         mark = f"commit {BUILT} not on github.com/{SOURCE}"
