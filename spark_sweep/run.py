@@ -1788,6 +1788,19 @@ class Sweep:
             ):
                 self.requeue(key, "load superseded by another application")
                 return
+            if app["state"] == "cancelled":
+                # A cancel is an ending somebody requested (the operator, the sweep itself,
+                # a superseding load), never the recipe's outcome. A child the cancel could
+                # not confirm keeps its own lifecycle: the next load's admission waits on it.
+                self.requeue(
+                    key,
+                    f"application cancelled (cause {app.get('cause') or 'unknown'}): "
+                    "a cancel is no verdict on the recipe",
+                    status_reason=app.get("reason"),
+                    operation_id=app.get("operation_id"),
+                )
+                self.state.entry(key)["not_before"] = now + self.cfg.retry_delay
+                return
             if app["state"] == "succeeded":
                 if self._observe_readiness(slot, now) is Progress.STALLED:
                     silent = verdict.silent_seconds(slot["ready_watch"], now)
@@ -2402,7 +2415,9 @@ class Sweep:
                 self.state.event(
                     f"released {record['aliases']} on {record['nodes']}: lane free again"
                 )
-            elif now >= record["cancel_at"]:
+            elif now >= record["cancel_at"] and not self._ridden_by_live_lane(
+                record["app_id"], key
+            ):
                 self.vk.run(
                     "profile",
                     "cancel",
@@ -2435,7 +2450,11 @@ class Sweep:
         ):
             return
         app = load.get("app_id")
-        if app and load.get("state") not in SETTLED:
+        if (
+            app
+            and load.get("state") not in SETTLED
+            and not self._ridden_by_live_lane(app, key)
+        ):
             # Ours (the sweep's own request key): cancel it so it releases what it holds.
             self.vk.run(
                 "profile",
@@ -3294,6 +3313,29 @@ class Sweep:
                 requests.append(key)
         return sorted(requests)
 
+    def _ridden_by_live_lane(self, app_id: Any, besides: Any) -> bool:
+        """Does a live lane of another of the sweep's loads follow this application?
+
+        Following a supersession or a retry can bind two load records to one application.
+        The sweep never cancels an application that a lane of its own still rides: a load
+        whose lanes ended only forgets it (the live lane's own ending decides).
+        """
+        if not app_id:
+            return False
+        return any(
+            other.get("app_id") == app_id
+            and other.get("request_key") != besides
+            and (
+                self._adopted_slots_live(other)
+                or any(
+                    slot.get("request_key") == other.get("request_key")
+                    and slot["phase"] != "finished"
+                    for slot in self.state.slots.values()
+                )
+            )
+            for other in self.state.data["loads"].values()
+        )
+
     def _adopted_slots_live(self, load: Mapping[str, Any]) -> bool:
         if any(
             bool(self._cleanup_pending(original))
@@ -3570,6 +3612,10 @@ class Sweep:
     def _cancel_load(self, load: Mapping[str, Any], *, force: bool = False) -> None:
         if not force and self._adopted_slots_live(load):
             return  # root cancellation also owns adopted effects, so preserve their observer
+        if not force and self._ridden_by_live_lane(
+            load.get("app_id"), load.get("request_key")
+        ):
+            return
         if load.get("app_id"):
             self._hold_lanes(load)
             self.vk.run(

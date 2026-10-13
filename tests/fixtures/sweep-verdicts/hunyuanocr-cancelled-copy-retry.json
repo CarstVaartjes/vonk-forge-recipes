@@ -1,0 +1,781 @@
+{
+  "attempt": 1,
+  "blockers": [],
+  "cancellation": {
+    "actor": "admin",
+    "cancelled_effects": [
+      {
+        "effect_id": "queue:1:stop:6829ebf7-20bc-4163-b9e2-148fd2258968",
+        "kind": "stop",
+        "label": "Not issued stop effect 6829ebf7-20bc-4163-b9e2-148fd2258968",
+        "outcome": "not-issued"
+      }
+    ],
+    "cause": "operator",
+    "completed_effects": [],
+    "dependency": "4ebeeffd-b9fc-411e-9df1-c08d65ba6012",
+    "owner": "run-switch",
+    "pending_effects": [
+      {
+        "effect_id": "4ebeeffd-b9fc-411e-9df1-c08d65ba6012",
+        "kind": "run",
+        "label": "Pending Run/Switch child",
+        "operation_id": "4ebeeffd-b9fc-411e-9df1-c08d65ba6012",
+        "outcome": "pending"
+      },
+      {
+        "effect_id": "92a3b369-65b7-478d-8751-aa90efeb7202",
+        "kind": "agent-operation",
+        "label": "Issued agent effect awaiting its receipt",
+        "operation_id": "92a3b369-65b7-478d-8751-aa90efeb7202",
+        "outcome": "pending"
+      }
+    ],
+    "request_key": "851a0f86-3ca7-4981-9526-c41818469241",
+    "requested_at": "2026-10-13T21:53:32.152523Z",
+    "state": "cancelled"
+  },
+  "created_at": "2026-10-13T21:44:20.696831Z",
+  "current_operation_id": null,
+  "current_step": 0,
+  "id": "b2d9d139-852c-49b9-bd2e-f92a533cc6c4",
+  "plan_digest": "554dd91d96f64de5dc2efe31a068df0b5f97aa4ef6e040f79b58ff889bb6d7cd",
+  "profile_digest": "e5d3edacd046c41901751a2b44086490dd5b4b3741b6b2c86006e681b0743aff",
+  "profile_id": "7a3acd01-ff2e-4c54-92a9-e28a8f66627c",
+  "progress": {
+    "admission_attempt": 0,
+    "admission_pending": false,
+    "attempt": 1,
+    "blockers": [
+      {
+        "code": "run-switch.phase-retry",
+        "detail": "DistributionUnknown: assignment model objects do not match a verified cache manifest; next attempt at 2026-10-13T21:53:36.692929+00:00",
+        "node_ids": [
+          "spk_9a86fdbab116442ab6707bf4181a3c1c"
+        ],
+        "severity": "warning"
+      }
+    ],
+    "cancellation": {
+      "actor": "admin",
+      "cause": "operator",
+      "pending_operation_ids": [
+        "92a3b369-65b7-478d-8751-aa90efeb7202"
+      ],
+      "request_key": "851a0f86-3ca7-4981-9526-c41818469241",
+      "requested_at": "2026-10-13T21:53:32.152523Z",
+      "state": "cancelled",
+      "workload_intent_ordinal": 447
+    },
+    "child_progress": {
+      "bytes": 0,
+      "node_ids": [
+        "spk_9a86fdbab116442ab6707bf4181a3c1c"
+      ],
+      "operation": {
+        "completed_bytes": 0,
+        "elapsed_seconds": 328.62554,
+        "last_progress_at": "2026-10-13T21:44:21.763503+00:00",
+        "members": [],
+        "observed_at": "2026-10-13T21:49:50.389043+00:00",
+        "phase": "transfer",
+        "total_bytes_known": false
+      },
+      "phase": "target-copy",
+      "total_bytes": 12542587978
+    },
+    "child_source": "switch-adapter",
+    "completed_steps": 0,
+    "current_label": "Switch profile Hardware sweep",
+    "effects": [
+      {
+        "application_id": "b2d9d139-852c-49b9-bd2e-f92a533cc6c4",
+        "effect_id": "b2d9d139-852c-49b9-bd2e-f92a533cc6c4:queue:0:run:038d4b85-c001-5188-a915-da81be584b05",
+        "kind": "run",
+        "node_ids": [
+          "spk_9a86fdbab116442ab6707bf4181a3c1c"
+        ],
+        "operation_id": "4ebeeffd-b9fc-411e-9df1-c08d65ba6012",
+        "plan_digest": "554dd91d96f64de5dc2efe31a068df0b5f97aa4ef6e040f79b58ff889bb6d7cd",
+        "progress": {
+          "completed_bytes": 0,
+          "members": [
+            {
+              "completed_bytes": 0,
+              "node_id": "spk_9a86fdbab116442ab6707bf4181a3c1c",
+              "phase": "prepare",
+              "state": "pending",
+              "total_bytes": 12542587978
+            }
+          ],
+          "operation": {
+            "completed_bytes": 0,
+            "elapsed_seconds": 328.62554,
+            "last_progress_at": "2026-10-13T21:44:21.763503+00:00",
+            "members": [],
+            "observed_at": "2026-10-13T21:49:50.389043+00:00",
+            "phase": "transfer",
+            "total_bytes_known": false
+          },
+          "phase": "transfer",
+          "phase_count": 8,
+          "phase_index": 2,
+          "state": "cancelled",
+          "subphase": "target-copy",
+          "total_bytes": 12542587978,
+          "total_bytes_known": true
+        },
+        "queue_index": 0,
+        "request_key": "264f0432-5f35-544b-a343-aa960ed686bc",
+        "state": "pending",
+        "target_id": "038d4b85-c001-5188-a915-da81be584b05",
+        "workload_intent_ordinal": 446
+      },
+      {
+        "application_id": "b2d9d139-852c-49b9-bd2e-f92a533cc6c4",
+        "effect_id": "b2d9d139-852c-49b9-bd2e-f92a533cc6c4:queue:1:stop:6829ebf7-20bc-4163-b9e2-148fd2258968",
+        "kind": "stop",
+        "node_ids": [
+          "spk_9a86fdbab116442ab6707bf4181a3c1c"
+        ],
+        "plan_digest": "554dd91d96f64de5dc2efe31a068df0b5f97aa4ef6e040f79b58ff889bb6d7cd",
+        "queue_index": 1,
+        "request_key": "8ace852c-eae7-5e98-9944-a8e965138de8",
+        "state": "not-issued",
+        "stop_effect": {
+          "action": "stop",
+          "alias": "fastcontext-1.0-4b-rl-nvfp4",
+          "installation_id": "2fa2231c-2b09-4adf-8362-b01900e035e6",
+          "node_ids": [
+            "spk_9a86fdbab116442ab6707bf4181a3c1c"
+          ],
+          "run_id": "6829ebf7-20bc-4163-b9e2-148fd2258968"
+        },
+        "target_id": "6829ebf7-20bc-4163-b9e2-148fd2258968",
+        "workload_intent_ordinal": 446
+      },
+      {
+        "application_id": "05d4497e-d8f7-4aa4-a761-e96295052fed",
+        "effect_id": "05d4497e-d8f7-4aa4-a761-e96295052fed:queue:0:run:2be89db2-8e17-53bd-8729-540ee06e49c0",
+        "kind": "run",
+        "node_ids": [
+          "spk_2818d189042b4c77aefa7796f4befd23"
+        ],
+        "operation_id": "aa6e2cda-2789-4014-b230-f55e899a0ef2",
+        "plan_digest": "8549b5c48248b84b73aada95536b2ddfb12c0915b5300e118b96e4a1b834c951",
+        "progress": {
+          "completed_bytes": 37256200098,
+          "members": [
+            {
+              "completed_bytes": 37256200098,
+              "error": "run-switch.final-verification-timeout",
+              "node_id": "spk_2818d189042b4c77aefa7796f4befd23",
+              "phase": "transfer",
+              "state": "running",
+              "total_bytes": 37256200098
+            }
+          ],
+          "operation": {
+            "completed_bytes": 0,
+            "completed_items": 18,
+            "elapsed_seconds": 200.667407,
+            "last_progress_at": "2026-10-13T21:44:01.086285+00:00",
+            "members": [
+              {
+                "activity": "waiting",
+                "completed_bytes": 0,
+                "completed_items": 18,
+                "elapsed_seconds": 200.667407,
+                "kind": "recipe.start",
+                "last_progress_at": "2026-10-13T21:44:01.086285+00:00",
+                "member_id": "spk_2818d189042b4c77aefa7796f4befd23",
+                "observed_at": "2026-10-13T21:44:01.086285+00:00",
+                "phase": "starting",
+                "state": "running"
+              }
+            ],
+            "observed_at": "2026-10-13T21:44:01.086285+00:00",
+            "phase": "start",
+            "total_bytes_known": false
+          },
+          "phase": "start",
+          "phase_count": 8,
+          "phase_index": 6,
+          "state": "failed",
+          "total_bytes": 37256200098,
+          "total_bytes_known": true
+        },
+        "queue_index": 0,
+        "request_key": "18298dde-572f-5158-937f-a9dd6ffb0b03",
+        "result": {
+          "run_switch": {
+            "blockers": [],
+            "child_operation_id": "8eb0cd33-6e20-4b9a-9e10-f51edfb6c168",
+            "completed_bytes": 37256200098,
+            "completed_phases": [
+              "prepare",
+              "prepare",
+              "transfer",
+              "verify",
+              "prepare",
+              "stop"
+            ],
+            "failed_phase": "start",
+            "failure_code": "run-switch.final-verification-timeout",
+            "final_verify_started_at": 1791927488.168591,
+            "force_replan": false,
+            "item_index": 0,
+            "members": [
+              {
+                "cached": false,
+                "completed_bytes": 37256200098,
+                "node_id": "spk_2818d189042b4c77aefa7796f4befd23",
+                "phase": "transfer",
+                "state": "running",
+                "total_bytes": 37256200098
+              }
+            ],
+            "observation_deadline_at": "2026-10-13T21:53:08.168591Z",
+            "operation": {
+              "activity": "waiting",
+              "completed_bytes": 0,
+              "completed_items": 18,
+              "elapsed_seconds": 200.667407,
+              "last_progress_at": "2026-10-13T21:44:01.086285+00:00",
+              "members": [
+                {
+                  "activity": "waiting",
+                  "completed_bytes": 0,
+                  "completed_items": 18,
+                  "elapsed_seconds": 200.667407,
+                  "kind": "recipe.start",
+                  "last_progress_at": "2026-10-13T21:44:01.086285+00:00",
+                  "member_id": "spk_2818d189042b4c77aefa7796f4befd23",
+                  "observed_at": "2026-10-13T21:44:01.086285+00:00",
+                  "phase": "starting",
+                  "state": "running"
+                }
+              ],
+              "observed_at": "2026-10-13T21:44:01.086285+00:00",
+              "phase": "starting",
+              "total_bytes_known": false
+            },
+            "operation_phase_index": 6,
+            "phase": "start",
+            "phase_index": 6,
+            "phase_results": [
+              {
+                "build_id": "4cefd04a-1fe2-410f-bd1b-9495a03a0ebd",
+                "effective_execution_key": "d3a34ac7f517ab7e3b10c503b9a35ed5b608a399a8565efb3918b8192bf1f986",
+                "image_bytes": 11461795366,
+                "image_digest": "sha256:db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+                "oci_layout_sha256": "db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+                "phase": "prepare",
+                "runtime_image": {
+                  "architecture": "linux-arm64",
+                  "archive_path": "/state/agent-artifacts/image-cache/oci/blobs/sha256/db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+                  "build_id": "4cefd04a-1fe2-410f-bd1b-9495a03a0ebd",
+                  "build_input_sha256": "37276a497cb83bc1108395ddaf772dba078fb0a5af6aa8b16fa5e4ce1410e345",
+                  "distribution_content_sha256": "c365837565add4af2f0cc2cde47ec3a193d94f8095aa102ac8d9b05b3e5716e1",
+                  "distribution_publisher": "vonk-forge",
+                  "distribution_slug": "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-dual",
+                  "image_bytes": 11461795366,
+                  "image_digest": "sha256:db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+                  "local_image_config_id": "sha256:fdf67645f445541e6910c85992c5edd03affa371c3ec3546564efbfbdbae653d",
+                  "oci_archive_sha256": "db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+                  "recorded_at": "2026-10-12T09:14:28.230172+00:00",
+                  "runtime_adapter": "vonk.runtime-contract.vllm.v1",
+                  "runtime_adapter_sha256": "4538e83a53e5098102dffd407584c81eb17c7b2b24179b1e186e469eb1d6c1be",
+                  "runtime_interface": "vonk.runtime.v1",
+                  "runtime_interface_label": "v1",
+                  "schema_version": 2
+                },
+                "subphase": "runtime-image"
+              },
+              {
+                "compiled_plan_persisted": true,
+                "install_plan_digest": "09b19652c6e4d92b201592200fe222031f5e05da33462fd8ec0e886d1ca1218c",
+                "installation_id": "24c4221f-48e9-412b-b330-9762cfb6ffee",
+                "mapping_id": "725cef8a-71f2-465d-b31a-449c4078934d",
+                "model_artifact_set_bytes": 25794404732,
+                "model_artifact_set_sha256": "40a530848b7b980251cd0caa92fc11739c1a583b05fe9ae712314b77a95e6cef",
+                "phase": "prepare",
+                "subphase": "runtime-plan"
+              },
+              {
+                "assignments": {
+                  "spk_2818d189042b4c77aefa7796f4befd23": {
+                    "assignment_id": "9319c768-2efd-4c7a-8bfd-dc9cc85f929d",
+                    "expires_at": "2026-10-13T22:37:15.881606Z",
+                    "generation": 1,
+                    "model_artifact_set_sha256": "40a530848b7b980251cd0caa92fc11739c1a583b05fe9ae712314b77a95e6cef",
+                    "node_id": "spk_2818d189042b4c77aefa7796f4befd23",
+                    "objects": [
+                      {
+                        "bytes": 1970287672,
+                        "kind": "model",
+                        "name": "model-00003-of-00003.safetensors",
+                        "sha256": "0506ad35dc21469708e7813bd76c592cef08bd0317b4a1fe899745ebe2435271"
+                      },
+                      {
+                        "bytes": 12809320,
+                        "kind": "model",
+                        "name": "tokenizer.json",
+                        "sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3"
+                      },
+                      {
+                        "bytes": 5397,
+                        "kind": "model",
+                        "name": "README.md",
+                        "sha256": "0c06405ffff835f4da26115114a6dd7bb4a8b8a6881c17edd3a1086a99281269"
+                      },
+                      {
+                        "bytes": 318035,
+                        "kind": "model",
+                        "name": ".quant_summary.txt",
+                        "sha256": "0f8818b69fa46381899bdc72833805409e6ca9771f9c34e5f3dcf4674da9a3a1"
+                      },
+                      {
+                        "bytes": 390,
+                        "kind": "model",
+                        "name": "preprocessor_config.json",
+                        "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+                      },
+                      {
+                        "bytes": 9578,
+                        "kind": "model",
+                        "name": "README.md",
+                        "sha256": "2dc5368ce2dda4393818fc3c6e587d588ec7b7f599b1f3a326d97dc271e3866d"
+                      },
+                      {
+                        "bytes": 1570,
+                        "kind": "model",
+                        "name": ".gitattributes",
+                        "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930"
+                      },
+                      {
+                        "bytes": 53760,
+                        "kind": "model",
+                        "name": "hf_quant_config.json",
+                        "sha256": "5f4aaa9e462ddb26a9790ab459eee69d100b9ade7541f0c86038e925c013f80b"
+                      },
+                      {
+                        "bytes": 3848817896,
+                        "kind": "model",
+                        "name": "model.safetensors",
+                        "sha256": "67fc76d68dc5a9415511a4f394ef744d67510cd20e93b37cc2cc7d28e4bab65c"
+                      },
+                      {
+                        "bytes": 286889,
+                        "kind": "model",
+                        "name": "assets/dflash2-figure.png",
+                        "sha256": "6d8dcc9a9472bddb644c881fe83050b5343d09bf5ffb0912e5598e55fe671e99"
+                      },
+                      {
+                        "bytes": 87506,
+                        "kind": "model",
+                        "name": "config.json",
+                        "sha256": "71fa01bb64de20971045cd82a82c0ebb25a54e1b0a3f09ef23cf5479e9c54df8"
+                      },
+                      {
+                        "bytes": 385,
+                        "kind": "model",
+                        "name": "video_preprocessor_config.json",
+                        "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13"
+                      },
+                      {
+                        "bytes": 214866,
+                        "kind": "model",
+                        "name": "model.safetensors.index.json",
+                        "sha256": "7aa103a2582b7d26631988de33dea19e8a308ee9c239e8e14feb374af30905e2"
+                      },
+                      {
+                        "bytes": 9965652544,
+                        "kind": "model",
+                        "name": "model-00001-of-00003.safetensors",
+                        "sha256": "7d0fd155118901373eb0fd13ed3aae68f95be747bc205be72ebc41739c25ee80"
+                      },
+                      {
+                        "bytes": 1239,
+                        "kind": "model",
+                        "name": "config.json",
+                        "sha256": "873e3556509b0da06e29654ba00d4944888d4b5e8a33afde25f7eb27d321e980"
+                      },
+                      {
+                        "bytes": 214,
+                        "kind": "model",
+                        "name": "generation_config.json",
+                        "sha256": "8a3a817a9d330f6f9e62f048fe62a48594946c4a5c4cb314a8011316d5094986"
+                      },
+                      {
+                        "bytes": 1581,
+                        "kind": "model",
+                        "name": ".gitattributes",
+                        "sha256": "8e63f02a5caa4dbc92838d44dddcfa2c1b76f355503fcbeaa3d6512f7fe132ef"
+                      },
+                      {
+                        "bytes": 9985757064,
+                        "kind": "model",
+                        "name": "model-00002-of-00003.safetensors",
+                        "sha256": "98a7e9486baa860c792c9463a770cb9d017696bdd17606300a5b9334149f4c27"
+                      },
+                      {
+                        "bytes": 3353259,
+                        "kind": "model",
+                        "name": "merges.txt",
+                        "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d"
+                      },
+                      {
+                        "bytes": 11544,
+                        "kind": "model",
+                        "name": "LICENSE",
+                        "sha256": "bbedc3fda3305820b977265f01b8619d87570a6739de3a5582c3464840f1e57a"
+                      },
+                      {
+                        "bytes": 8952,
+                        "kind": "model",
+                        "name": "chat_template.jinja",
+                        "sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041"
+                      },
+                      {
+                        "bytes": 6722759,
+                        "kind": "model",
+                        "name": "vocab.json",
+                        "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+                      },
+                      {
+                        "bytes": 1191,
+                        "kind": "model",
+                        "name": "processor_config.json",
+                        "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1"
+                      },
+                      {
+                        "bytes": 1121,
+                        "kind": "model",
+                        "name": "tokenizer_config.json",
+                        "sha256": "e5d078b00e6c1223b32444db8c1001dc71d86ceef8ee706b5bf084c3a43a1f9c"
+                      }
+                    ],
+                    "oci_archive_sha256": "db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+                    "oci_image_config_digest": "sha256:fdf67645f445541e6910c85992c5edd03affa371c3ec3546564efbfbdbae653d",
+                    "oci_image_digest": "sha256:db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+                    "plan_digest": "9465c296164356816299677dd01fbb8675d35938930cb201529254285d4461e7"
+                  }
+                },
+                "cached_nodes": [],
+                "phase": "transfer",
+                "subphase": "target-copy"
+              },
+              {
+                "downloaded_bytes": 25794404732,
+                "node_id": "spk_2818d189042b4c77aefa7796f4befd23",
+                "phase": "transfer",
+                "subphase": "target-copy",
+                "uncertain": false
+              },
+              {
+                "cached_nodes": [],
+                "cached_target_totals": {},
+                "evidence": [
+                  {
+                    "downloaded_bytes": 25794404732,
+                    "node_id": "spk_2818d189042b4c77aefa7796f4befd23",
+                    "uncertain": false
+                  }
+                ],
+                "phase": "verify",
+                "skipped": false,
+                "subphase": "target-copy",
+                "verified": true,
+                "verified_build_id": "4cefd04a-1fe2-410f-bd1b-9495a03a0ebd",
+                "verified_digests": [
+                  "0506ad35dc21469708e7813bd76c592cef08bd0317b4a1fe899745ebe2435271",
+                  "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+                  "0c06405ffff835f4da26115114a6dd7bb4a8b8a6881c17edd3a1086a99281269",
+                  "0f8818b69fa46381899bdc72833805409e6ca9771f9c34e5f3dcf4674da9a3a1",
+                  "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+                  "2dc5368ce2dda4393818fc3c6e587d588ec7b7f599b1f3a326d97dc271e3866d",
+                  "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+                  "5f4aaa9e462ddb26a9790ab459eee69d100b9ade7541f0c86038e925c013f80b",
+                  "67fc76d68dc5a9415511a4f394ef744d67510cd20e93b37cc2cc7d28e4bab65c",
+                  "6d8dcc9a9472bddb644c881fe83050b5343d09bf5ffb0912e5598e55fe671e99",
+                  "71fa01bb64de20971045cd82a82c0ebb25a54e1b0a3f09ef23cf5479e9c54df8",
+                  "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+                  "7aa103a2582b7d26631988de33dea19e8a308ee9c239e8e14feb374af30905e2",
+                  "7d0fd155118901373eb0fd13ed3aae68f95be747bc205be72ebc41739c25ee80",
+                  "873e3556509b0da06e29654ba00d4944888d4b5e8a33afde25f7eb27d321e980",
+                  "8a3a817a9d330f6f9e62f048fe62a48594946c4a5c4cb314a8011316d5094986",
+                  "8e63f02a5caa4dbc92838d44dddcfa2c1b76f355503fcbeaa3d6512f7fe132ef",
+                  "98a7e9486baa860c792c9463a770cb9d017696bdd17606300a5b9334149f4c27",
+                  "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+                  "bbedc3fda3305820b977265f01b8619d87570a6739de3a5582c3464840f1e57a",
+                  "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+                  "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+                  "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+                  "e5d078b00e6c1223b32444db8c1001dc71d86ceef8ee706b5bf084c3a43a1f9c"
+                ],
+                "verified_image_digest": "sha256:db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+                "verified_oci_layout_sha256": "db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f"
+              },
+              {
+                "installation_id": "24c4221f-48e9-412b-b330-9762cfb6ffee",
+                "phase": "prepare",
+                "subphase": "runtime-install"
+              },
+              {
+                "phase": "stop",
+                "run_id": "c6682d64-a93f-401c-a48c-dc5d6ad1c3fd"
+              },
+              {
+                "phase": "start",
+                "run_id": "1bf4162e-d4d9-4997-a8b6-e0f0baedf584"
+              }
+            ],
+            "phase_retry_generation": 0,
+            "preflight": {
+              "attempts": {},
+              "phase_index": 6,
+              "receipts": {
+                "spk_2818d189042b4c77aefa7796f4befd23": {
+                  "findings": [
+                    {
+                      "capability": "architecture",
+                      "code": "preflight_finding.available",
+                      "status": "passed"
+                    },
+                    {
+                      "capability": "controller_reachable",
+                      "code": "preflight_finding.available",
+                      "status": "passed"
+                    },
+                    {
+                      "capability": "cache_writable",
+                      "code": "preflight_finding.available",
+                      "status": "passed"
+                    },
+                    {
+                      "capability": "staging_writable",
+                      "code": "preflight_finding.available",
+                      "status": "passed"
+                    },
+                    {
+                      "capability": "temporary_directory",
+                      "code": "preflight_finding.available",
+                      "status": "passed"
+                    },
+                    {
+                      "capability": "disk_reserve",
+                      "code": "preflight_finding.available",
+                      "status": "passed"
+                    },
+                    {
+                      "capability": "signed_helper_run",
+                      "code": "preflight_finding.available",
+                      "status": "passed"
+                    }
+                  ],
+                  "fingerprint": "c7194f207fa1cb6a8832dcc095de3c63c93a78706811c0df1c333da28f7b93a4",
+                  "observed_at": 1791927420
+                }
+              }
+            },
+            "profile_application_id": "05d4497e-d8f7-4aa4-a761-e96295052fed",
+            "recovery_deadline_at": "2026-10-13T22:44:01.809828Z",
+            "retryable": true,
+            "runtime_image_reference_intent": {
+              "actor": "admin",
+              "archive_sha256": "db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+              "build_id": "4cefd04a-1fe2-410f-bd1b-9495a03a0ebd",
+              "build_input_sha256": "37276a497cb83bc1108395ddaf772dba078fb0a5af6aa8b16fa5e4ce1410e345",
+              "execution_keys": [
+                "d3a34ac7f517ab7e3b10c503b9a35ed5b608a399a8565efb3918b8192bf1f986"
+              ],
+              "image_bytes": 11461795366,
+              "image_digest": "sha256:db10e712b13f8942836ee5a77eebad341ef77b92623d03197f50506763e7bb2f",
+              "item_index": 0,
+              "operation_id": "aa6e2cda-2789-4014-b230-f55e899a0ef2",
+              "owner_kind": "run-switch-job",
+              "phase_index": 0,
+              "plan_digest": "9465c296164356816299677dd01fbb8675d35938930cb201529254285d4461e7",
+              "profile_application_id": "05d4497e-d8f7-4aa4-a761-e96295052fed",
+              "recipe_revision_id": "2ef0426b-bbca-4ab4-b208-aee0228c2fbe",
+              "request_key": "18298dde-572f-5158-937f-a9dd6ffb0b03",
+              "schema_version": 2,
+              "workload_intent_ordinal": 444
+            },
+            "total_bytes": 37256200098,
+            "total_bytes_known": true,
+            "workload_intent_ordinal": 444
+          },
+          "run_switch_operation_id": "aa6e2cda-2789-4014-b230-f55e899a0ef2"
+        },
+        "state": "failed",
+        "target_id": "2be89db2-8e17-53bd-8729-540ee06e49c0",
+        "workload_intent_ordinal": 444
+      },
+      {
+        "application_id": "05d4497e-d8f7-4aa4-a761-e96295052fed",
+        "effect_id": "05d4497e-d8f7-4aa4-a761-e96295052fed:queue:2:stop:c6682d64-a93f-401c-a48c-dc5d6ad1c3fd",
+        "kind": "stop",
+        "node_ids": [
+          "spk_2818d189042b4c77aefa7796f4befd23"
+        ],
+        "plan_digest": "8549b5c48248b84b73aada95536b2ddfb12c0915b5300e118b96e4a1b834c951",
+        "queue_index": 2,
+        "request_key": "427a93f2-05c2-5089-b3f5-23fcac146f21",
+        "state": "unknown",
+        "stop_effect": {
+          "action": "stop",
+          "alias": "llama-3.1-8b-instruct",
+          "installation_id": "ecf6706d-f87b-471b-b329-e99dc1b3cbd5",
+          "node_ids": [
+            "spk_2818d189042b4c77aefa7796f4befd23"
+          ],
+          "run_id": "c6682d64-a93f-401c-a48c-dc5d6ad1c3fd"
+        },
+        "target_id": "c6682d64-a93f-401c-a48c-dc5d6ad1c3fd",
+        "workload_intent_ordinal": 444
+      }
+    ],
+    "intended_profile": {
+      "assignments": [
+        {
+          "alias": "hunyuanocr-1-5-vllm-dflash-single",
+          "desired_state": "running",
+          "id": "038d4b85-c001-5188-a915-da81be584b05",
+          "model_title": "HunyuanOCR 1.5",
+          "nodes": [
+            {
+              "endpoint_owner": true,
+              "node_id": "spk_9a86fdbab116442ab6707bf4181a3c1c",
+              "rank": 0,
+              "role": "entrypoint"
+            }
+          ],
+          "option_choices": {},
+          "recipe_id": "89bcd4ee-7169-49fc-a4d7-cc503ab244b4",
+          "recipe_revision_id": "46b09bdc-14a8-4e27-89da-f2850cd1907f",
+          "recipe_title": "HunyuanOCR 1.5 vLLM DFlash single Spark",
+          "topology_name": "solo"
+        },
+        {
+          "alias": "qwen3.8-27b-nvfp4",
+          "desired_state": "running",
+          "id": "2be89db2-8e17-53bd-8729-540ee06e49c0",
+          "model_title": "Qwen3.8 27B NVFP4 (ModelOpt)",
+          "nodes": [
+            {
+              "endpoint_owner": true,
+              "node_id": "spk_2818d189042b4c77aefa7796f4befd23",
+              "rank": 0,
+              "role": "entrypoint"
+            }
+          ],
+          "option_choices": {},
+          "recipe_id": "fc348ed1-591e-4a71-9ede-615a8a97530a",
+          "recipe_revision_id": "2ef0426b-bbca-4ab4-b208-aee0228c2fbe",
+          "recipe_title": "Qwen3.8 27B NVFP4 DFlash2 vLLM single Spark (eugr)",
+          "topology_name": "solo"
+        }
+      ],
+      "installation_policy": "keep-cached",
+      "profile_digest": "e5d3edacd046c41901751a2b44086490dd5b4b3741b6b2c86006e681b0743aff",
+      "reviewed_application_id": "b2d9d139-852c-49b9-bd2e-f92a533cc6c4",
+      "reviewed_plan_digest": "282f2512a719722f218ada43cdb9557da4a467b56ea42c42813b56fe88e5ac29",
+      "scope": {
+        "node_ids": [
+          "spk_2818d189042b4c77aefa7796f4befd23",
+          "spk_9a86fdbab116442ab6707bf4181a3c1c"
+        ]
+      }
+    },
+    "operation_kind": "fleet-profile.apply",
+    "retry_due_at": "2026-10-13T21:53:31.879825Z",
+    "step_results": {},
+    "switch_adapter": {
+      "actor": "admin",
+      "assignment_failures": [],
+      "assignment_ids": [
+        "038d4b85-c001-5188-a915-da81be584b05"
+      ],
+      "assignments": [
+        {
+          "alias": "hunyuanocr-1-5-vllm-dflash-single",
+          "desired_state": "running",
+          "id": "038d4b85-c001-5188-a915-da81be584b05",
+          "model_title": "HunyuanOCR 1.5",
+          "nodes": [
+            {
+              "endpoint_owner": true,
+              "node_id": "spk_9a86fdbab116442ab6707bf4181a3c1c",
+              "rank": 0,
+              "role": "entrypoint"
+            }
+          ],
+          "option_choices": {},
+          "recipe_id": "89bcd4ee-7169-49fc-a4d7-cc503ab244b4",
+          "recipe_revision_id": "46b09bdc-14a8-4e27-89da-f2850cd1907f",
+          "recipe_title": "HunyuanOCR 1.5 vLLM DFlash single Spark",
+          "topology_name": "solo"
+        }
+      ],
+      "child_id": "b2d9d139-852c-49b9-bd2e-f92a533cc6c4",
+      "child_progress": {
+        "bytes": 0,
+        "node_ids": [
+          "spk_9a86fdbab116442ab6707bf4181a3c1c"
+        ],
+        "operation": {
+          "completed_bytes": 0,
+          "elapsed_seconds": 328.62554,
+          "last_progress_at": "2026-10-13T21:44:21.763503+00:00",
+          "members": [],
+          "observed_at": "2026-10-13T21:49:50.389043+00:00",
+          "phase": "transfer",
+          "total_bytes_known": false
+        },
+        "phase": "target-copy",
+        "total_bytes": 12542587978
+      },
+      "children": [],
+      "pending_children": [
+        {
+          "kind": "run",
+          "operation_id": "4ebeeffd-b9fc-411e-9df1-c08d65ba6012",
+          "queue_index": 0
+        }
+      ],
+      "pending_operation_ids": [],
+      "position": 1,
+      "queue": [
+        {
+          "id": "038d4b85-c001-5188-a915-da81be584b05",
+          "kind": "run"
+        },
+        {
+          "id": "6829ebf7-20bc-4163-b9e2-148fd2258968",
+          "kind": "stop"
+        }
+      ],
+      "request_id": "4c2ccc6e-d333-59bb-9271-18ab75fc7408",
+      "schema_version": 2,
+      "scope_node_ids": [
+        "spk_9a86fdbab116442ab6707bf4181a3c1c"
+      ],
+      "skipped_indices": [],
+      "state": "cancelled",
+      "stop_reissue_attempt": 0
+    },
+    "total_steps": 1,
+    "workload_intent_ordinal": 446
+  },
+  "request_key": "d12c5893-5e6d-5f5c-aae6-6c4d2f02ed25",
+  "result": {
+    "changed": false,
+    "completed_steps": 0
+  },
+  "state": "cancelled",
+  "status_reason": "Profile application cancelled; the stop of its children could not be confirmed in time; cancelled with their effect unknown (their own lifecycle keeps them): 92a3b369-65b7-478d-8751-aa90efeb7202",
+  "total_steps": 1,
+  "updated_at": "2026-10-13T22:04:33.471867Z"
+}
