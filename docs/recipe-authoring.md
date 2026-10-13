@@ -398,7 +398,10 @@ A refresh is **mechanical** only when all of these hold:
   from the catalogued Model and noted. Paths and digests are compared, never our own file
   id format. A Model that catalogues only some files of its repository (one checkpoint of
   several) is judged on those files and on files the repository added since; a file it
-  left out that the catalogued revision already had is neither new nor moved. A changed digest on a configuration, tokenizer or runtime file blocks; a
+  left out that the catalogued revision already had is neither new nor moved. A recipe
+  that mounts only some files of a Model moves only when one of those files changes; a
+  recipe that mounts every file mounts every file of the new revision (an added chat
+  template reaches it, a dropped README leaves it). A changed digest on a configuration, tokenizer or runtime file blocks; a
   changed weights or metadata digest does not. New digests come from
   `tools/catalog-hf-model`'s inventory, verified at ingress only, and the recipe's file ids
   and content digest follow. If the newest revision is already
