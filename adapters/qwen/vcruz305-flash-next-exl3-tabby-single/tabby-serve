@@ -78,6 +78,14 @@ values = {
     "NGRAM_RAM": options.ngram_ram,
     "VISION": options.vision,
     "DRAFT_NUM_TOKENS": options.draft_num_tokens,
+    # serve.sh defaults (concurrent profile, 3.05 bpw pack).
+    "PROMPT_TEMPLATE": "null",  # keep the pack's own template
+    "CHUNK_SIZE": 2048,
+    "TOOL_FORMAT": "qwen3_5",
+    "REASONING": "true",
+    "DRAFT_MODE": "mtp",
+    "DYNAMIC_DRAFT": "true",
+    "SYSMEM_RECURRENT_CACHE": 4096,
 }
 config = state / "config.yml"
 config.write_text(
