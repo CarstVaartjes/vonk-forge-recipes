@@ -2181,9 +2181,10 @@ class Assessor:
                 old_entry = next(f for f in old["files"] if f["id"] == before)
                 old_total += old_entry["size_bytes"]
                 new_total += replacement["size_bytes"]
+                selected["id"] = kit_pins.selection_id(
+                    reference["id"], selected, replacement["id"]
+                )
                 selected["file_id"] = replacement["id"]
-                if selected["id"].endswith(before):
-                    selected["id"] = selected["id"][: -len(before)] + replacement["id"]
         if old_total != new_total:
             delta = new_total - old_total
             roles = new_recipe["topology"]["roles"]
