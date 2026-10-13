@@ -237,10 +237,10 @@
       "NVIDIA Corporation",
       "Alibaba Qwen"
     ],
-    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/09e077d8299e58df5df0202e3411d54d7211d523/nvidia/vllm/README.md"
+    "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/98b3a473f30916ec05eef3e7a01b781aaf4daa8a/nvidia/vllm/README.md"
   },
   "release": {
-    "released_at": "2026-10-08",
+    "released_at": "2026-10-12",
     "version": "26.05.post1"
   },
   "runtime": {
