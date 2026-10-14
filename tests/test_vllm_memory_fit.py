@@ -24,8 +24,9 @@ VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
 DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 # Draft-model recipes whose weights leave no KV room once the draft overhead is
 # counted on a fitting envelope: each needs its creator (more Sparks, a smaller
-# context or drafter). They keep their current envelope until then; the entry
-# goes stale, and fails, as soon as the recipe fits.
+# context or drafter). Until then only the draft term is waived for them: the
+# plain GPU budget and the OS floor still apply, and the entry goes stale, and
+# fails, as soon as the recipe fits with the term counted.
 PENDING_CREATOR = frozenset(
     {
         "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",
@@ -62,14 +63,16 @@ def loads_draft_model(recipe: RecipeDefinition) -> bool:
     return False
 
 
-def non_utilization_bytes(recipe: RecipeDefinition) -> int:
+def non_utilization_bytes(
+    recipe: RecipeDefinition, count_draft_model: bool = True
+) -> int:
     """Memory a vLLM node holds beside its `gpu-memory-utilization` budget."""
-    if loads_draft_model(recipe):
+    if count_draft_model and loads_draft_model(recipe):
         return OVERHEAD_BYTES + DRAFT_MODEL_OVERHEAD_BYTES
     return OVERHEAD_BYTES
 
 
-def assert_memory_fit(recipe: RecipeDefinition) -> None:
+def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) -> None:
     arguments = [
         argument
         for argument in recipe.runtime.arguments
@@ -81,7 +84,9 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
         assert argument.setting is None, "Memory utilization must be a fixed budget"
         utilization = Decimal(str(argument.value))
     assert 0 < utilization <= 1
-    required_peak = utilization * SPARK_MEMORY_BYTES + non_utilization_bytes(recipe)
+    required_peak = utilization * SPARK_MEMORY_BYTES + non_utilization_bytes(
+        recipe, count_draft_model
+    )
     for role in recipe.topology.roles:
         memory = role.resources.memory
         label = f"{recipe.identity.slug}/{role.name} at utilization {utilization}"
@@ -99,14 +104,17 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
 )
 def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
     recipe = RecipeDefinition.model_validate_json(path.read_text())
-    if recipe.runtime.engine != "vllm" or path.stem in PENDING_CREATOR:
+    if recipe.runtime.engine != "vllm":
         return
-    assert_memory_fit(recipe)
+    count = path.stem not in PENDING_CREATOR
+    assert_memory_fit(recipe, count)
     # Options cannot share an argument name, so each utilization override is
     # independent. Resolve each choice through the actual contract merger.
     for option in recipe.options:
         for choice in option.choices:
-            assert_memory_fit(recipe.with_option_choices({option.name: choice.value}))
+            assert_memory_fit(
+                recipe.with_option_choices({option.name: choice.value}), count
+            )
 
 
 def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
@@ -154,8 +162,20 @@ def test_pending_creator_recipes_still_need_their_creator(slug: str) -> None:
     assert path.exists(), f"{slug} is gone; remove it from PENDING_CREATOR"
     recipe = RecipeDefinition.model_validate_json(path.read_text())
     assert loads_draft_model(recipe)
+    assert_memory_fit(recipe, count_draft_model=False)
     with pytest.raises(AssertionError):
         assert_memory_fit(recipe)
+
+
+def test_pending_creator_still_meets_the_os_floor() -> None:
+    """Waiving the draft term never waives the OS floor."""
+    slug = min(PENDING_CREATOR)
+    recipe = RecipeDefinition.model_validate_json(
+        (ROOT / "recipes" / f"{slug}.json").read_text()
+    )
+    recipe.topology.roles[0].resources.memory.peak_bytes = 125_000_000_000
+    with pytest.raises(AssertionError):
+        assert_memory_fit(recipe, count_draft_model=False)
 
 
 def _incident_recipe() -> RecipeDefinition:

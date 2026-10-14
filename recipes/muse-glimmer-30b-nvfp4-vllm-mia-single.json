@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B NVFP4 (RedHatAI W4A4) with the official Meta DFlash drafter, FP8 KV cache and the muse_glimmer reasoning/tool parsers, following the MiaAI-Lab DGX Spark launch profile on the official vLLM 0.30.0 ARM64 image. Context defaults to the model's native 131072 (upstream's 262144 needs an unmerged RoPE-cache patch on a vLLM fork). Chat, vision, reasoning, tool calling and DFlash speedup remain Candidate capabilities; upstream throughput figures are its own claims. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.42) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
+    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B NVFP4 (RedHatAI W4A4) with the official Meta DFlash drafter, FP8 KV cache and the muse_glimmer reasoning/tool parsers, following the MiaAI-Lab DGX Spark launch profile on the official vLLM 0.30.0 ARM64 image. Context defaults to the model's native 131072 (upstream's 262144 needs an unmerged RoPE-cache patch on a vLLM fork). Chat, vision, reasoning, tool calling and DFlash speedup remain Candidate capabilities; upstream throughput figures are its own claims. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so the peak budgets the unchanged 0.42 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
     "tags": [
       "executable",
       "candidate",
@@ -346,7 +346,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.6"
+        "value": "0.42"
       },
       {
         "name": "tensor-parallel-size",
@@ -454,7 +454,7 @@
             "working_bytes": 57042539156
           },
           "memory": {
-            "peak_bytes": 103397938893,
+            "peak_bytes": 79878557225,
             "reserve_bytes": 8000000000
           }
         }

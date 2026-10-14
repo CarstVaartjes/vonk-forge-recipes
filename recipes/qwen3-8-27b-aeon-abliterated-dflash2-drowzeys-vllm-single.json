@@ -270,7 +270,7 @@
       "choices": [
         {
           "default": true,
-          "help": "Upstream default: YaRN x4 to 1,048,576, YaRN-extended drafter config, GPU memory 0.70, 8192 batched tokens.",
+          "help": "Upstream default: YaRN x4 to 1,048,576, YaRN-extended drafter config, GPU memory 0.70, 8192 batched tokens. This recipe runs it at gpu-memory-utilization 0.6: a separate draft model holds memory outside that budget.",
           "label": "1M YaRN, 2 sequences",
           "value": "yarn-1m"
         },

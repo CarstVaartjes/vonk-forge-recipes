@@ -839,7 +839,7 @@
       "choices": [
         {
           "default": true,
-          "help": "Upstream default: about 15 GiB of system RAM left after load in the kit's tests.",
+          "help": "Upstream default: about 15 GiB of system RAM left after load in the kit's tests. This recipe runs it at gpu-memory-utilization 0.6: a separate draft model holds memory outside that budget.",
           "label": "0.8",
           "value": "util-0-8"
         },
