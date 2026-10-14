@@ -160,7 +160,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
     ready = {k for k in sweep.queue if sweep.ready(sweep.recipes[k])}
     return {
         "updated_at": now,
-        "paused": sweep.owner_status.reason or None,
+        "paused": sweep.pause_reason or None,
         "mode": data["mode"],
         "counts": counts(data["recipes"]),
         "quality_notes": {

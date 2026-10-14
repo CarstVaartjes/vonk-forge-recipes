@@ -239,6 +239,8 @@ class Sweep:
         self.status_at = -1e18
         self.owner_at = -1e18
         self.owner_status = OwnerStatus()
+        # The Controller reports stalled work (``progress.stalled``): a platform problem.
+        self.stall_reason = ""
         self.backoff_until = 0.0
         self.idle_since: float | None = None
         self.blind = False  # this tick could not observe the Controller
@@ -699,6 +701,44 @@ class Sweep:
         except Exception as error:  # noqa: BLE001 - a status page never stops a wait
             self.note_infra("status", f"{type(error).__name__}: {error}")
 
+    @property
+    def paused(self) -> bool:
+        """No new loads or cleanups: an owner's load, or work the Controller reports stalled."""
+        return self.owner_status.paused or bool(self.stall_reason)
+
+    @property
+    def pause_reason(self) -> str:
+        return "; ".join(r for r in (self.owner_status.reason, self.stall_reason) if r)
+
+    def observe_stalls(self) -> None:
+        """Pause while the Controller reports stalled work; resume once it reports none.
+
+        Read from the followed applications' ``progress.stalled`` blocker and from
+        ``/api/platform.stalled_applications``. Both are additive: absent means no stall.
+        A condition the Controller states, re-read every pass, never a timed backoff.
+        """
+        stalled = [
+            f"{load.get('app_id')} {load['stalled']}"
+            for load in self.state.data["loads"].values()
+            if load.get("stalled")
+        ]
+        listed = self.state.data["platform"].get("stalled_applications")
+        stalled += [
+            f"{item.get('application_id')} {item.get('detail') or ''}".strip()
+            for item in listed or []
+            if isinstance(item, Mapping)
+        ]
+        reason = (
+            f"Controller reports stalled work: {stalled[0]}"[:300] if stalled else ""
+        )
+        if bool(reason) != bool(self.stall_reason):
+            self.state.event(
+                f"paused: {reason}"
+                if reason
+                else "resumed: the Controller reports no stalled work"
+            )
+        self.stall_reason = reason
+
     def done_waiting(self) -> None:
         self.state.data.pop("waiting", None)
         self._wait_event_at = -1e18
@@ -780,8 +820,9 @@ class Sweep:
             self.state.data["owner"].pop("paused_at", None)
         self.observe_platform()
         self.advance_slots(now)
+        self.observe_stalls()
         self.heal_fleet_skips()
-        if not self.owner_status.paused:
+        if not self.paused:
             self.enqueue_finished_cleanup()
         pending = self.pending()
         for (
@@ -805,7 +846,7 @@ class Sweep:
             deprioritised=self._deprioritised(pending),
             variants_last=self.cfg.variants_last,
         )
-        if not self.owner_status.paused:
+        if not self.paused:
             self.schedule(self.clock.now())
             self.cleanup_finished()
         # Previously confirmed immutable stop receipts may feed a fresh canonical
@@ -1315,7 +1356,7 @@ class Sweep:
         )  # downloads started by someone else still deliver
         waiting = (
             external
-            or self.owner_status.paused
+            or self.paused
             or bool(self.state.data["infra"])
             or self.clock.now()
             < max(
@@ -1689,6 +1730,7 @@ class Sweep:
             "signature": list(signal.signature),
             "waiting_on": signal.waiting_on,
         }
+        load["stalled"] = verdict.stalled_detail(document)
         failure = document.get("failure") or {}
         failure_code = str(failure.get("code") or document.get("code") or "")
         replaced = policy.supersession(document) if status in SETTLED else None
@@ -2008,16 +2050,43 @@ class Sweep:
                     failure = replace(failure, klass=verdict.UNATTRIBUTED)
                 self._fail_slot(member, self.state.slots[member], failure, app)
             return
+        load = self.state.data["loads"].get(slot["request_key"]) or {}
+        if load.get("stalled"):
+            self._controller_stalled(key, slot, load)
+            return
         progress = self._observe_load(slot, now)
         held = slot.get("blocked_since")
         if (
             held is not None
             and now - float(held) > self.cfg.blocked_release_seconds
+            and not self.paused  # a re-plan submits a load: never while paused
             and self._release_prepared(slot, now)
         ):
             return
         if progress is Progress.STALLED:
             self._stalled(key, slot, now)
+
+    def _controller_stalled(
+        self, key: str, slot: dict[str, Any], load: dict[str, Any]
+    ) -> None:
+        """The Controller reports the lane's application stalled: a platform problem.
+
+        The lane is released and the recipe requeued: an ``observe`` row that spends no
+        attempt, so a stall never ends a recipe. Nothing is cancelled, now or once its
+        lanes are gone: the application stays the Controller's, and the sweep pauses on
+        it (``observe_stalls``) until the Controller stops reporting it.
+        """
+        load["stall_released"] = True
+        detail = str(load["stalled"])
+        self.requeue(
+            key,
+            f"the Controller reports the load stalled: {detail}",
+            failure=policy.classify(
+                "load", "platform.stalled", detail, verdict.PLATFORM_STALLED
+            ),
+            disposition=verdict.Disposition.OBSERVE.value,
+            application_id=load.get("app_id"),
+        )
 
     def _stalled(self, key: str, slot: dict[str, Any], now: float) -> None:
         """The load's own progress was silent for a whole window: the one verdict that ends it."""
@@ -2246,6 +2315,7 @@ class Sweep:
         *,
         failure: policy.Failure | None = None,
         document: Mapping[str, Any] | None = None,
+        disposition: str | None = None,
         **evidence: Any,
     ) -> None:
         """Back to pending without blame or attempt: the recipe did not get a fair run.
@@ -2261,6 +2331,7 @@ class Sweep:
             reason=why,
             slot=slot,
             document=document,
+            disposition=disposition,
             failure_class=failure.klass if failure else None,
             code=failure.code if failure else None,
             evidence={**(dict(failure.evidence) if failure else {}), **evidence}
@@ -2622,6 +2693,8 @@ class Sweep:
         if (
             app
             and load.get("state") not in SETTLED
+            # A stalled application released by its lane is the Controller's to heal.
+            and not load.get("stall_released")
             and not self._ridden_by_live_lane(app, key)
         ):
             # Ours (the sweep's own request key): cancel it so it releases what it holds.
@@ -2641,11 +2714,7 @@ class Sweep:
         busy = {n for s in self.state.slots.values() for n in s.get("node_ids", [])}
         busy |= self._held_nodes()
         free = [s for s in self.sparks() if s.id not in busy]
-        waiting = (
-            bool(free)
-            and not self.owner_status.paused
-            and bool(self.ready_candidates())
-        )
+        waiting = bool(free) and not self.paused and bool(self.ready_candidates())
         if not waiting:
             self.idle_since = None
             pending_idle = self.state.data.get("pending_idle")
