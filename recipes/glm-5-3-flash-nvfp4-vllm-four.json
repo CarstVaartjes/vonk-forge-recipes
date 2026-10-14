@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint, running tonyd2wild's published image ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 (the v1-v9 SM121 patch stack and DFlash2 overlay of his 2ac4e8d kit on the vLLM CUDA 13 day-0 image), the tag the kit's own 1M-context launcher runs, pinned by digest and not rebuilt from the kit's sources; a thin layer adds the Controller's launcher, the kit's SM121 indexer patch (which its launcher bind-mounts at run time) and its multimodal chat template. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary; the source profile is 1M context, 64 sequences, 16K batched tokens, 24 GiB FP8 E4M3 KV, Marlin, DFlash2 K7, and FULL_AND_PIECEWISE graphs. This is upstream's retained 1M-context fp8/marlin lane with the LibertAI Model; the upstream README's default is now a locally built nvidia-based 500K lane that needs local weight quantization and patched vLLM files, and is not packaged here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint, running tonyd2wild's published image ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 (the v1-v9 SM121 patch stack and DFlash2 overlay of his 2ac4e8d kit on the vLLM CUDA 13 day-0 image), the tag the kit's own 1M-context launcher runs, pinned by digest and not rebuilt from the kit's sources; a thin layer adds the Controller's launcher, the kit's SM121 indexer patch (which its launcher bind-mounts at run time) and its multimodal chat template. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary; the source profile is 1M context, 64 sequences, 16K batched tokens, 24 GiB FP8 E4M3 KV, Marlin, DFlash2 K7, and FULL_AND_PIECEWISE graphs. This is upstream's retained 1M-context fp8/marlin lane with the LibertAI Model; the upstream README's default is now a locally built nvidia-based 500K lane that needs local weight quantization and patched vLLM files, and is not packaged here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.85) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
     "tags": [
       "executable",
       "candidate",
@@ -1607,7 +1607,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.85"
+        "value": "0.6"
       },
       {
         "name": "max-model-len",
@@ -1803,7 +1803,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 103397938893,
             "reserve_bytes": 8000000000
           }
         }
@@ -1820,7 +1820,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 103397938893,
             "reserve_bytes": 8000000000
           }
         }
