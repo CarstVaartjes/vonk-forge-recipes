@@ -2,12 +2,11 @@
 
 ``qualification/recipes/<slug>.json`` says what a job's result must be: how many
 files, their names, media types, sizes and formats, and for some kinds what is
-inside them. The sweep checks every kind it can decide with the standard library,
-the same way the platform's qualification does. The kinds that need a media
-toolchain (``video-metadata`` decodes with ffprobe, ``glb-structure`` walks the
-mesh) are not decided here: they are listed as not evaluated, never passed and
-never failed. ``tests/test_sweep_job_smoke.py`` keeps every kind the definitions
-use in exactly one of the two sets.
+inside them. The sweep checks every kind the same way the platform's qualification
+does (the media kinds in ``job_media``). What the sweep host cannot observe (a
+``video-metadata`` without ``ffprobe`` installed) is reported as not evaluated with
+its reason, never passed and never failed. ``tests/test_sweep_job_smoke.py`` keeps
+every kind the definitions use in exactly one of the two sets.
 """
 
 from __future__ import annotations
@@ -22,6 +21,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, NoReturn
 
+from .job_media import NotObserved, glb_structure, realtime_transcript, video_metadata
 from .smoke import AssertionFailed
 
 
@@ -44,10 +44,19 @@ EVALUATED = frozenset(
         "image-metadata",
         "audio-metadata",
         "document-archive",
+        "video-metadata",
+        "glb-structure",
+        "realtime-transcript",
     }
 )
-#: Need a media toolchain the sweep does not carry: recorded as not evaluated.
-NOT_EVALUATED = frozenset({"video-metadata", "glb-structure", "realtime-transcript"})
+#: Kinds the sweep has no evaluator for: recorded as not evaluated, never passed.
+NOT_EVALUATED: frozenset[str] = frozenset()
+#: The media kinds, each checking one selected output's content.
+MEDIA = {
+    "video-metadata": video_metadata,
+    "glb-structure": glb_structure,
+    "realtime-transcript": realtime_transcript,
+}
 
 
 def _fail(assertion: Mapping[str, Any], message: str, value: Any = None) -> NoReturn:
@@ -190,13 +199,13 @@ def _document_archive(content: bytes, assertion: Mapping[str, Any]) -> None:
 
 def evaluate(
     assertions: Sequence[Mapping[str, Any]], outputs: Sequence[Output]
-) -> list[str]:
-    """Raise :class:`AssertionFailed` on the first miss; return the kinds not evaluated."""
-    skipped: list[str] = []
+) -> dict[str, str]:
+    """Raise :class:`AssertionFailed` on the first miss; return each kind not evaluated, with why."""
+    skipped: dict[str, str] = {}
     for assertion in assertions:
         kind = str(assertion.get("kind"))
         if kind not in EVALUATED:
-            skipped.append(kind)
+            skipped[kind] = "no-evaluator"
             continue
         wanted = assertion.get("media_type")
         selected = [o for o in outputs if wanted is None or o.media_type == wanted]
@@ -249,4 +258,10 @@ def evaluate(
         elif kind == "document-archive":
             for output in selected:
                 _document_archive(output.content, assertion)
+        elif kind in MEDIA:
+            try:
+                for output in selected:
+                    MEDIA[kind](output.content, assertion)
+            except NotObserved as unobserved:
+                skipped[kind] = unobserved.reason
     return skipped

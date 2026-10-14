@@ -119,6 +119,23 @@ def test_run_refuses_without_yes_and_never_accepts_owner_profile_numbers(
     assert fleet.calls == []  # not one vonkctl call before the arguments were accepted
 
 
+def test_job_recipes_without_ffprobe_warn_once_at_startup(
+    tmp_path: Path, capsys, monkeypatch
+) -> None:
+    from spark_sweep import job_media
+
+    monkeypatch.setattr(job_media.shutil, "which", lambda name: None)
+    fleet = _fleet([], [FakeModel("m1")])
+    argv = ["run", "--yes", "--state-dir", str(tmp_path)]
+    assert _run(argv, fleet, []) == 0
+    assert "ffprobe" not in capsys.readouterr().err
+    assert _run([*argv, "--job-recipes"], fleet, []) == 0
+    warnings = [
+        line for line in capsys.readouterr().err.splitlines() if "ffprobe" in line
+    ]
+    assert len(warnings) == 1 and "brew install ffmpeg" in warnings[0]
+
+
 def test_a_full_run_writes_state_results_status_and_report(
     tmp_path: Path, gateway: Gateway
 ) -> None:

@@ -91,4 +91,4 @@ def test_with_job_recipes_on_a_job_recipe_passes_through_one_artifact_job(
     (case,) = row["result"]["cases"]
     assert row["result"]["kind"] == "job"
     assert case["outputs"][0]["name"] == "out.png"
-    assert case["not_evaluated"] == ["video-metadata"]
+    assert "not_evaluated" not in case
