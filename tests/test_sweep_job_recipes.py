@@ -55,3 +55,40 @@ def test_job_recipe_in_a_live_lane_is_left_to_finish(tmp_path: Path) -> None:
     sweep.refresh_catalog()
     assert sweep.state.status(job.key) == "pending"
     assert job.key not in [r.key for r in sweep.pending()]
+
+
+def test_with_job_recipes_on_a_job_recipe_is_pending_and_a_skip_heals(
+    tmp_path: Path,
+) -> None:
+    job = FakeRecipe("ocr", adapter="artifact-job")
+    sweep, _, _ = make_sweep(tmp_path, [job], [FakeModel("m1")])
+    sweep.refresh_catalog()
+    assert sweep.state.status(job.key) == "skipped"
+    sweep.state.save()
+
+    # The Controller can load job recipes now: the flag is flipped, no code reverted.
+    sweep, _, _ = make_sweep(
+        tmp_path, [job], [FakeModel("m1")], job_recipes_loadable=True
+    )
+    sweep.refresh_catalog()
+    entry = sweep.state.recipes[job.key]
+    assert entry["status"] == "pending"
+    assert "reason_kind" not in entry
+    assert [r.key for r in sweep.pending()] == [job.key]
+
+
+def test_with_job_recipes_on_a_job_recipe_passes_through_one_artifact_job(
+    tmp_path: Path,
+) -> None:
+    job = FakeRecipe("ocr", adapter="artifact-job")
+    sweep, fleet, _ = make_sweep(
+        tmp_path, [job], [FakeModel("m1")], job_recipes_loadable=True
+    )
+    assert sweep.run() == 0
+    assert sweep.state.status(job.key) == "passed"
+    assert [step for step, _ in fleet.job_calls] == ["create", "submit", "download"]
+    (row,) = [r for r in _rows(tmp_path, job.key) if r["status"] == "passed"]
+    (case,) = row["result"]["cases"]
+    assert row["result"]["kind"] == "job"
+    assert case["outputs"][0]["name"] == "out.png"
+    assert case["not_evaluated"] == ["video-metadata"]

@@ -160,6 +160,12 @@ def _parser() -> argparse.ArgumentParser:
         help="the stall window while bytes are copied to a Spark: a copy with no progress for this long is observed again (the load window does not count copying)",
     )
     run.add_argument(
+        "--job-recipes",
+        action="store_true",
+        help="test job recipes (one artifact job each); only once the deployed Controller "
+        "loads them as profile members (vonk-forge #1491, #1494), otherwise they are skipped",
+    )
+    run.add_argument(
         "--allow-version-skew",
         action="store_true",
         help="run even when vonkctl is not the accepted release (otherwise: vonkctl update --apply)",
@@ -245,6 +251,7 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         watch_seconds=args.watch,
         allow_version_skew=args.allow_version_skew,
         retry_failed=args.retry_failed,
+        job_recipes_loadable=args.job_recipes,
         copy_stall_seconds=args.copy_stall_minutes * 60,
     )
 

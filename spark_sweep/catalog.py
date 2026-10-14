@@ -77,6 +77,11 @@ class Recipe:
         return self.adapter == "openai"
 
     @property
+    def is_job(self) -> bool:
+        """A job recipe: one ``*-job`` interface (``settings.kind == "job"`` in the contract)."""
+        return self.adapter.endswith("-job")
+
+    @property
     def slug(self) -> str:
         return self.key.partition("/")[2]
 
@@ -350,12 +355,18 @@ def serving_run(
     node_ids: Iterable[str],
     node_count: int,
     ignore: Iterable[str] = (),
+    *,
+    job: bool = False,
 ) -> str | None:
-    """The run id once every rank is healthy and published, else None.
+    """The run id once every rank is healthy and serving, else None.
 
-    `ignore` holds runs that already existed when the load was submitted: a
-    sibling's old run under the same alias is not this load's run.
+    A service run serves once its route is published. A job run serves by holding its
+    reservation: its route stays withdrawn by design and the Controller reports it
+    healthy while it holds (vonk-forge ``run_readiness``). `ignore` holds runs that
+    already existed when the load was submitted: a sibling's old run under the same
+    alias is not this load's run.
     """
+    route = "withdrawn" if job else "published"
     wanted = set(node_ids)
     skip = set(ignore)
     found = [
@@ -368,9 +379,7 @@ def serving_run(
         len(found) != node_count
         or len(run_ids) != 1
         or any(
-            not (
-                p.healthy and p.route_state == "published" and p.run_state == "running"
-            )
+            not (p.healthy and p.route_state == route and p.run_state == "running")
             for p in found
         )
     ):
