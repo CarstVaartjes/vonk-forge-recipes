@@ -138,6 +138,8 @@ class RealClock:
 
 
 FLEET_SKIP = "fleet"
+#: Skipped because the recipe left the complete catalog; undone when it comes back.
+CATALOG_SKIP = "catalog"
 #: Skipped because the platform cannot load this kind of recipe through a fleet profile yet:
 #: the sweep's own decision, neither a recipe verdict nor a platform fault. It heals by itself
 #: once ``_platform_cannot_load`` no longer holds for the recipe.
@@ -428,13 +430,21 @@ class Sweep:
                             "recipe is absent from the complete catalog",
                         ),
                         None,
-                        final=True,
                     )
-                if key not in self.state.slots:
+                elif key not in self.state.slots:
+                    if self.state.status(key) == "pending":
+                        self.record_result(
+                            key,
+                            "catalog",
+                            "skipped",
+                            reason="recipe is absent from the complete catalog",
+                            code="catalog.recipe_removed",
+                        )
                     self.state.recipes.pop(key, None)
                 record = self.state.downloads.pop(key, None)
                 if record and record.get("state") not in SETTLED:
-                    self.prefetcher._retire(key, record, "catalog.recipe_removed")
+                    # A deterministic answer, not an infrastructure problem: no backoff.
+                    self.state.event(f"download dropped: {key}: catalog.recipe_removed")
         self.sizes = policy.build_sizes(self.recipes.values(), self.models)
         enrolled = self.fleet_capacity()
         if not enrolled:
@@ -518,6 +528,15 @@ class Sweep:
         if not self._selected(recipe):
             return
         entry = self.state.entry(recipe.key)
+        # A recipe that left the catalog is decided in _reconcile_all; here it is back.
+        if entry.get("reason_kind") == CATALOG_SKIP:
+            entry["status"] = "pending"
+            entry.pop("reason", None)
+            entry.pop("reason_kind", None)
+            self.record_result(
+                recipe.key, "reconcile", "pending", reason="back in the catalog"
+            )
+            self.state.event(f"{recipe.key} is back in the catalog: pending")
         if entry.get("reason_kind") == PLATFORM_SKIP and not _platform_cannot_load(
             recipe
         ):
@@ -1369,6 +1388,25 @@ class Sweep:
                 slot=slot,
             )
             self.state.event(f"wait {key}: {failure.klass} ({failure.phase})")
+            return
+        if outcome is Disposition.SKIP:
+            entry.update(
+                status="skipped",
+                reason=failure.describe(),
+                reason_kind=CATALOG_SKIP,
+            )
+            self.record_result(
+                key,
+                failure.phase,
+                "skipped",
+                reason=failure.describe(),
+                disposition=outcome.value,
+                failure_class=failure.klass,
+                code=failure.code,
+                evidence=dict(failure.evidence),
+                slot=slot,
+            )
+            self.state.event(f"skipped {key}: {failure.describe()[:160]}")
             return
         entry["attempts"] = int(entry.get("attempts", 0)) + 1
         if outcome is Disposition.OBSERVE and entry["attempts"] < self.cfg.max_attempts:

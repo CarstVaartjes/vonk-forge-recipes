@@ -7,7 +7,8 @@ Rule: the sweep records what the platform does; it never turns a wait into a ver
 * A wait on something the Controller reports as owned, queued or in progress
   (``WAITING``) never expires: it restarts the stall window instead of ageing it.
 * Attempts are spent only on ``OBSERVE`` outcomes (``disposition``); a ``WAIT`` spends
-  nothing and a ``FAIL`` ends at once with its evidence.
+  nothing, a ``FAIL`` ends at once with its evidence and a ``SKIP`` (the recipe is no
+  longer the sweep's to test) is recorded at once with its reason, never a verdict.
 
 The vocabulary is what actually reaches ``vonkctl --json``: the application's
 ``LifecycleState``, its typed blocker codes, ``next_attempt_at`` and admission flags,
@@ -41,6 +42,7 @@ class Disposition(StrEnum):
     )
     OBSERVE = "observe"  # an uncertain outcome: look again, spending one attempt
     FAIL = "fail"  # a definite outcome: record it now, with its evidence
+    SKIP = "skip"  # not the sweep's to test any more: record the reason now, no verdict
 
 
 # -- vendored published vocabulary (tests/fixtures/sweep-vocabulary.json) -----------
@@ -80,6 +82,9 @@ WAIT_CLASSES = frozenset({SMOKE_BUSY, CLIENT_CREDENTIAL})
 #: error after its own retries: the cause is uncertain, so it is observed once more.
 OBSERVE_CLASSES = frozenset({"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED})
 FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data"})
+#: The recipe left the complete catalog (``catalog.recipe_removed``): deterministic, so it is
+#: skipped at once; a recipe that comes back is picked up like any new one.
+SKIP_CLASSES = frozenset({"catalog"})
 #: The profile fields that carry the recipe's own data; the rest the sweep chose itself.
 RECIPE_PROFILE_FIELDS = frozenset(
     {"recipe_selector", "option_choices", "model_variant"}
@@ -217,6 +222,8 @@ def silent_seconds(watch: Mapping[str, Any], now: float) -> float:
 
 def disposition(failure: Failure) -> Disposition:
     """What an outcome the sweep observed means for the recipe's attempt budget."""
+    if failure.klass in SKIP_CLASSES:
+        return Disposition.SKIP
     if failure.klass == UNATTRIBUTED:
         # Even a recipe code is nobody's verdict while nothing names whose it is.
         return Disposition.OBSERVE
