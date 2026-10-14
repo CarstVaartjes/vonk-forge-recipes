@@ -105,10 +105,38 @@ def test_a_correct_answer_in_prose_runs_with_a_format_note() -> None:
     ]
 
 
+# (case, a correct answer in prose, the answer, the format note)
+PROSE = [
+    ("A391", "The answer is 391.", "391", "only the integer in content"),
+    ("NEM_A391_OFF", "17 x 23 = 391", "391", "only the integer in content"),
+    ("NEM_REASON", "So the result is 391.", "391", "only the integer in content"),
+    ("V7", "The digit is 7.", "7", "only the digit in content"),
+    ("V_RED", "The color is red.", "red", "only one word in content"),
+    ("LFM_OCR", "The text says 7", "7", "only one character in content"),
+]
+
+
+@pytest.mark.parametrize(("case", "content", "answer", "format_note"), PROSE)
+def test_an_answer_in_the_wrong_format_runs_with_a_format_note(
+    case: str, content: str, answer: str, format_note: str
+) -> None:
+    """The format of the answer belongs to the creator: a quality note, not a failure."""
+    reasoning = {"NEM_REASON": "thinking", "NEM_A391_OFF": None}
+    message = {"reasoning_content": reasoning[case]} if case in reasoning else {}
+    reply = _chat(content, **message)
+    if case == "LFM_OCR":
+        reply["usage"] = {"completion_tokens": 5}
+    _functional(case, reply)
+    notes = _quality(case, reply)
+    assert [(n["expected"], n["ok"]) for n in notes] == [
+        (answer, True),
+        (format_note, False),
+    ]
+
+
 @pytest.mark.parametrize(
     ("case", "broken"),
     [
-        ("A391", _chat("The answer is 391")),
         ("A391", _chat("")),
         ("A391", _chat(None)),
         ("A391", _chat("391", reasoning_content="<think>x</think>")),
@@ -116,8 +144,16 @@ def test_a_correct_answer_in_prose_runs_with_a_format_note() -> None:
         ("A323", _chat("")),
         ("A323", _chat(None)),
         ("A323", _chat("323", reasoning_content="<think>x</think>")),
-        ("V_RED", _chat("it is red and green")),
-        ("V7", _chat("seven")),
+        ("NEM_A391_OFF", _chat("")),
+        ("NEM_A391_OFF", _chat("391", reasoning_content="x")),
+        ("NEM_REASON", _chat("", reasoning_content="x")),
+        ("NEM_REASON", _chat("391")),
+        ("V_RED", _chat("")),
+        ("V_RED", _chat(None)),
+        ("V7", _chat("")),
+        ("V7", _chat(None)),
+        ("LFM_OCR", _chat("")),
+        ("LFM_OCR", _chat("7 <|im_end|>")),
         ("T_REPORT", _tool_call("report_temperature", "{}")),
         ("T_REPORT", _tool_call("other_tool", '{"city": "Amsterdam"}')),
         ("T_REPORT", _tool_call("report_temperature", "not json")),

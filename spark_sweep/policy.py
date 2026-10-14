@@ -386,7 +386,8 @@ _COPYING = re.compile(r"cop(y|ying)|transfer|distribut|download|sync", re.IGNORE
 LOAD_RULES = 3
 # Bumped when the smoke assertions change what fails a recipe. 2: a model's answer
 # (the exact value) is a quality note, only a functional miss fails a recipe.
-SMOKE_RULES = 3
+# 4: an answer's format (a bare integer, one word) is a quality note too.
+SMOKE_RULES = 4
 
 
 @dataclass(frozen=True)

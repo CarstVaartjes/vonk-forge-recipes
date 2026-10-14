@@ -312,9 +312,8 @@
           "value": 1
         },
         {
-          "kind": "path.regex",
-          "path": "choices.0.message.content",
-          "value": "^\\s*-?[0-9]+\\s*$"
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
         },
         {
           "kind": "raw.not-contains",
@@ -330,8 +329,14 @@
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*391\\s*$",
+          "value": "[\\s\\S]*(?<![-0-9])391(?![0-9])[\\s\\S]*",
           "expected": "391"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*-?[0-9]+\\s*$",
+          "expected": "only the integer in content"
         }
       ]
     },
@@ -779,17 +784,22 @@
           "value": 1
         },
         {
-          "kind": "path.regex",
-          "path": "choices.0.message.content",
-          "value": "^\\s*[A-Za-z]+[.!]?\\s*$"
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
         }
       ],
       "quality_assertions": [
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*red[.!]?\\s*$",
+          "value": "[\\s\\S]*\\bred\\b[\\s\\S]*",
           "expected": "red"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*[A-Za-z]+[.!]?\\s*$",
+          "expected": "only one word in content"
         }
       ]
     },
@@ -840,17 +850,22 @@
           "value": 1
         },
         {
-          "kind": "path.regex",
-          "path": "choices.0.message.content",
-          "value": "^\\s*[0-9]\\s*$"
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
         }
       ],
       "quality_assertions": [
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*7\\s*$",
+          "value": "[\\s\\S]*(?<![-0-9])7(?![0-9])[\\s\\S]*",
           "expected": "7"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*[0-9]\\s*$",
+          "expected": "only the digit in content"
         }
       ]
     },
@@ -881,9 +896,8 @@
           "value": 1
         },
         {
-          "kind": "path.regex",
-          "path": "choices.0.message.content",
-          "value": "^\\s*-?[0-9]+\\s*$"
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
         },
         {
           "kind": "path.empty",
@@ -906,8 +920,14 @@
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*391\\s*$",
+          "value": "[\\s\\S]*(?<![-0-9])391(?![0-9])[\\s\\S]*",
           "expected": "391"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*-?[0-9]+\\s*$",
+          "expected": "only the integer in content"
         }
       ]
     },
@@ -937,9 +957,8 @@
           "path": "choices.0.message.reasoning_content"
         },
         {
-          "kind": "path.regex",
-          "path": "choices.0.message.content",
-          "value": "^\\s*-?[0-9]+\\s*$"
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
         },
         {
           "kind": "path.equals",
@@ -958,8 +977,14 @@
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*391\\s*$",
+          "value": "[\\s\\S]*(?<![-0-9])391(?![0-9])[\\s\\S]*",
           "expected": "391"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*-?[0-9]+\\s*$",
+          "expected": "only the integer in content"
         }
       ]
     },
@@ -1079,9 +1104,8 @@
           "value": 1
         },
         {
-          "kind": "path.regex",
-          "path": "choices.0.message.content",
-          "value": "^\\s*[0-9A-Za-z]\\s*$"
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
         },
         {
           "kind": "path.lte",
@@ -1101,8 +1125,14 @@
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*7\\s*$",
+          "value": "[\\s\\S]*(?<![-0-9])7(?![0-9])[\\s\\S]*",
           "expected": "7"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*[0-9A-Za-z]\\s*$",
+          "expected": "only one character in content"
         }
       ]
     },
