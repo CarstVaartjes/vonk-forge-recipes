@@ -1641,7 +1641,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bc77ab7c09b2e758b370f0ae22f1f385dea009d1f0a142116a69dbae82668600",
+        "content_sha256": "86726829a9fdf0d3623f7c8da1867da30a0a1b47bc86ad846499c90922e407da",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "qwen3-8-flash-next-nvfp4-w4a16-sm121-8b73dc60"

@@ -244,7 +244,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1a05f7bc60945509c869e52450d1e64f993174c684f90dbf101c5ef2c7f72e80",
+        "content_sha256": "189db3c742ab18bfff4007b99166f83acc5e076130d6e2ee4b1e344ccdfb4a41",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "llama-3-3-70b-instruct-nvfp4-f792b707"
@@ -385,7 +385,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "9e7c3beccf9fc4c07636e1e48c0b4b07ff67bf0649b744c540bee1bfbee9bd95",
+        "content_sha256": "06e87a022cce41677b21499753d9b0b647cb084c89150ed3194ec17a5ef15055",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "llama-3-1-8b-instruct-nvfp4-bdb54e24"

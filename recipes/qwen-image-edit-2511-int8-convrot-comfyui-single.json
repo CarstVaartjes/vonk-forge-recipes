@@ -138,7 +138,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4db341ea4e55efff2bf6c520accdcbd056d27df9887a6d2eb29076d551c54d75",
+        "content_sha256": "5c50d7ed3f63ce83f5e4ba940b59f0981b099fdad6a6628cd08e559ce7fa3ba3",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-comfyui-int8-convrot-f68ace85"

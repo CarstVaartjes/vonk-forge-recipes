@@ -176,9 +176,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
-      "slug": "qwen2-5-vl",
-      "title": "Alibaba Qwen2.5-VL"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "nvidia",

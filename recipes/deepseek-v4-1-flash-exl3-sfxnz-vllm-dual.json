@@ -668,7 +668,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1d9e7ceb3392171e36d7c8d6667160fc7ac07ab6677815ce143e659ee1bef35d",
+        "content_sha256": "e32329911140300872cd575579a42480b797a1c16faf6cf32f4ee67406f6953e",
         "kind": "model",
         "publisher": "sfxnz",
         "slug": "deepseek-v4-1-flash-exl3-2bpw-mcg-viterbi-982b7045"

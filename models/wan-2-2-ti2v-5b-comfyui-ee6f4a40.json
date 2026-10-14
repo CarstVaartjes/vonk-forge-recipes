@@ -40,8 +40,8 @@
   "identity": {
     "family": {
       "publisher": "wan-ai",
-      "slug": "wan-2-2",
-      "title": "Wan 2.2"
+      "slug": "wan",
+      "title": "Wan"
     },
     "model": {
       "publisher": "wan-ai",

@@ -257,9 +257,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "0xsero",
-      "slug": "glm-5-3-0xsero",
-      "title": "GLM 5.3 0xSero"
+      "publisher": "zai-org",
+      "slug": "glm",
+      "title": "GLM"
     },
     "model": {
       "publisher": "0xsero",

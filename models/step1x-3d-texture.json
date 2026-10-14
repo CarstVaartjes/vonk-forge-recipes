@@ -10,7 +10,7 @@
       "slug": "stable-diffusion-xl-base-1-0"
     },
     {
-      "content_sha256": "86ac7f82435be864fd9691fcbaa33ca3153e64247f615fc2cde5c550ead0c227",
+      "content_sha256": "8461ba39b80cb27b8bf7b6409d020b5124b89b0c9c21a05d6519ca7147788eb9",
       "kind": "model",
       "publisher": "madebyollin",
       "slug": "sdxl-vae-fp16-fix"

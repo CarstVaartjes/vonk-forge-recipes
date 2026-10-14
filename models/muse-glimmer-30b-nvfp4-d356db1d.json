@@ -167,9 +167,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "r0b0tlab",
-      "slug": "muse-glimmer-r0b0tlab",
-      "title": "Muse Glimmer r0b0tlab"
+      "publisher": "meta",
+      "slug": "muse-glimmer",
+      "title": "Muse Glimmer"
     },
     "model": {
       "publisher": "r0b0tlab",

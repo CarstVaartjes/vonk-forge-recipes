@@ -122,9 +122,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
-      "slug": "gemma-4-26b-a4b",
-      "title": "Gemma 4 26B-A4B"
+      "publisher": "google",
+      "slug": "gemma",
+      "title": "Google Gemma"
     },
     "model": {
       "publisher": "nvidia",

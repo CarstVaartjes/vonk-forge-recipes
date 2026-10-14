@@ -527,9 +527,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "drowzeys",
-      "slug": "deepseek-v4-1-flash",
-      "title": "DeepSeek V4.1 Flash"
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
     },
     "model": {
       "publisher": "drowzeys",

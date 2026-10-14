@@ -130,9 +130,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "unsloth",
-      "slug": "qwen3-8-unsloth",
-      "title": "Qwen3.8 Unsloth quantizations"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "unsloth",

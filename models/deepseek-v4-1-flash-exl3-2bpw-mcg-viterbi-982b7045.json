@@ -518,9 +518,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "sfxnz",
-      "slug": "deepseek-v4-1-flash-sfxnz",
-      "title": "DeepSeek V4.1 Flash sfxnz"
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
     },
     "model": {
       "publisher": "sfxnz",

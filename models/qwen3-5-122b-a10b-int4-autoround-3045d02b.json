@@ -238,9 +238,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "intel",
-      "slug": "qwen3-5-intel",
-      "title": "Intel Qwen3.5"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "intel",

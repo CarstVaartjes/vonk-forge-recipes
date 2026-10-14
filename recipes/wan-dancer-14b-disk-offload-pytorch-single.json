@@ -408,7 +408,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bf2addb55762f8782551bf3b6d1872ba119bff64362f514734bc1f545a9c133e",
+        "content_sha256": "a3db4842689df3cdea59a14fea3bf6f601e3bb0b00baad5fe1ebada0b2e1f60a",
         "kind": "model",
         "publisher": "wan-ai",
         "slug": "wan-dancer-14b"

@@ -297,7 +297,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "553e3447c998be22b0ce4b96586ad704436c5da7fa21891788402572d5160fe4",
+        "content_sha256": "eb7f5a4a852106ba701e35fa1b734b60600405cca58b666681639517e3505a13",
         "kind": "model",
         "publisher": "intel",
         "slug": "qwen3-coder-next-int4-autoround-79c8a6bb"

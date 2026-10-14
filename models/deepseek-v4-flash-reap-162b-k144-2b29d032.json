@@ -708,9 +708,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "0xsero",
-      "slug": "deepseek-v4-flash-reap-0xsero",
-      "title": "DeepSeek V4 Flash REAP 0xSero"
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
     },
     "model": {
       "publisher": "0xsero",

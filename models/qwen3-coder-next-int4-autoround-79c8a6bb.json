@@ -228,9 +228,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "intel",
-      "slug": "qwen3-coder-next-intel",
-      "title": "Intel Qwen3-Coder-Next"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "intel",

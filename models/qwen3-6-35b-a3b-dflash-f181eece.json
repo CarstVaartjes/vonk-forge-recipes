@@ -65,9 +65,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "z-lab",
-      "slug": "qwen3-6-z-lab",
-      "title": "Qwen3.6 z-lab"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "z-lab",

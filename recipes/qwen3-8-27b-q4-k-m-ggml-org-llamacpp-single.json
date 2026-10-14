@@ -95,7 +95,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bfa8830198121f2eae83637f9f248c677cd8194eea2f0f380f9b18d65fceb324",
+        "content_sha256": "66fb4ed014b1caa55b35e707e5411043403eea10c5bcbddcbc9dd2a13057ba36",
         "kind": "model",
         "publisher": "ggml-org",
         "slug": "qwen3-8-27b-q4-k-m-71bc7b62"

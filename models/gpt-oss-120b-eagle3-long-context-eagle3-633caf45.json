@@ -65,7 +65,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
+      "publisher": "openai",
       "slug": "gpt-oss",
       "title": "OpenAI gpt-oss"
     },

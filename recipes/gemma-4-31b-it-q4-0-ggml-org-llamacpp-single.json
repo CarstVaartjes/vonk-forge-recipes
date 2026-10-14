@@ -93,7 +93,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "02a2a5a3074373a59f78ca607a9ee2393a9282d08750a0d446d633bc09696f9e",
+        "content_sha256": "5854f206fda07112e551c8cdb6d66278c8baa6bba8454aa90a4a46965eb730e9",
         "kind": "model",
         "publisher": "ggml-org",
         "slug": "gemma-4-31b-it-q4-0-4fa4fdf3"

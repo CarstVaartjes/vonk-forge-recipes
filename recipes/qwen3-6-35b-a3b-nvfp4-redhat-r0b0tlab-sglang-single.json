@@ -186,7 +186,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6ac052486d3eb4d37f05429d60448c2833e09d86729527d4156babf32acb5669",
+        "content_sha256": "8389ff1cb221e9490d5e6d431e6445a6807bb875db033c29c0bf66559857fca1",
         "kind": "model",
         "publisher": "redhatai",
         "slug": "qwen3-6-35b-a3b-nvfp4-redhatai-e94a930c"
