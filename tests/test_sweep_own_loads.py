@@ -223,3 +223,109 @@ def test_owner_absence_requires_native_declared_rejection(
         assert "ownership is unreadable" in status.reason
     else:
         assert state.data["owner"]["baseline"]["1"] == {"id": "", "state": ""}
+
+
+def _lineage_guard(state: State, latest: dict, ancestors: dict) -> OwnerGuard:
+    """Profile 2 answers ``latest``; ``--application X`` answers ``ancestors[X]``."""
+
+    def run(argv: Sequence[str], timeout: float) -> tuple[int, str, str]:
+        if "--application" in argv:
+            found = ancestors.get(argv[argv.index("--application") + 1])
+            if found is not None:
+                return 0, json.dumps(found), ""
+            return (
+                2,
+                json.dumps(
+                    {"error_type": "control_api", "code": "controller.not_found"}
+                ),
+                "",
+            )
+        if argv[argv.index("--profile") + 1] == "2":
+            return 0, json.dumps(latest), ""
+        return (
+            2,
+            json.dumps({"error_type": "control_api", "code": "controller.not_found"}),
+            "",
+        )
+
+    return OwnerGuard(
+        Vonkctl("vonkctl", runner=run), state, hold_seconds=1800, profiles=[2]
+    )
+
+
+def test_a_controller_continuation_of_an_own_restore_is_our_own_load(
+    tmp_path: Path,
+) -> None:
+    state = State.load(tmp_path / "state.json")
+    state.data["own_loads"].append(
+        {
+            "request_key": "our-key",
+            "application_id": "restore",
+            "kind": "restore-owner",
+            "profile": 2,
+        }
+    )
+    state.data["owner"]["baseline"]["2"] = {"id": "restore", "state": "failed"}
+    # Two continuations deep: retry-2 continues retry-1, which continues our restore.
+    ancestors = {
+        "retry-1": {
+            "id": "retry-1",
+            "state": "failed",
+            "request_key": "ctl-1",
+            "retry_of_application_id": "restore",
+        }
+    }
+    latest = {
+        "id": "retry-2",
+        "state": "running",
+        "request_key": "ctl-2",
+        "retry_of_application_id": "retry-1",
+    }
+    status = _lineage_guard(state, latest, ancestors).check(100.0)
+    assert status.paused and "our own load" in status.reason
+    assert not status.new_activity
+    latest["state"] = "succeeded"
+    state.save()
+    # A fresh guard (the next process) knows the continuation without walking the lineage.
+    fresh = State.load(tmp_path / "state.json")
+    status = _lineage_guard(fresh, latest, {}).check(200.0)
+    assert not status.paused and not status.new_activity
+    assert fresh.data["owner"]["hold_until"] == 0
+    recorded = [x for x in fresh.data["own_loads"] if x.get("continuation_of")]
+    assert recorded == [
+        {
+            "request_key": "ctl-2",
+            "application_id": "retry-2",
+            "kind": "restore-owner",
+            "profile": 2,
+            "at": 100.0,
+            "continuation_of": "restore",
+        }
+    ]
+
+
+def test_an_application_continuing_someone_elses_load_still_holds(
+    tmp_path: Path,
+) -> None:
+    state = State.load(tmp_path / "state.json")
+    state.data["own_loads"].append(
+        {
+            "request_key": "our-key",
+            "application_id": "restore",
+            "kind": "restore-owner",
+            "profile": 2,
+        }
+    )
+    state.data["owner"]["baseline"]["2"] = {"id": "theirs", "state": "failed"}
+    ancestors = {
+        "theirs": {"id": "theirs", "state": "failed", "request_key": "owner-key"}
+    }
+    latest = {
+        "id": "retry",
+        "state": "succeeded",
+        "request_key": "ctl",
+        "retry_of_application_id": "theirs",
+    }
+    status = _lineage_guard(state, latest, ancestors).check(100.0)
+    assert status.new_activity and state.data["owner"]["hold_until"] == 100.0 + 1800
+    assert not any(x.get("continuation_of") for x in state.data["own_loads"])
