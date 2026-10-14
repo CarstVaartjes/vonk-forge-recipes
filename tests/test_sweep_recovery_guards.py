@@ -491,7 +491,7 @@ def test_removed_catalog_recipe_releases_lane_and_fresh_recipe_is_admitted(
     key = next(iter(sweep.state.slots))
     fleet.recipes.clear()
     sweep.refresh_catalog()
-    assert sweep.state.status(key) == "deferred"
+    assert sweep.state.status(key) == "skipped"
     sweep.cleanup_finished()
     sweep.release_orphan_load()
     assert not sweep.state.slots and not sweep.state.data["loads"]
