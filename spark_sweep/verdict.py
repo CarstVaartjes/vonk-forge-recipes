@@ -83,11 +83,10 @@ UNATTRIBUTED = "unattributed"
 WAIT_CLASSES = frozenset({SMOKE_BUSY, CLIENT_CREDENTIAL})
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport
 #: error after its own retries: the cause is uncertain, so it is observed once more.
-#: The Controller reports the lane's application as stalled (``STALLED_CODE``).
+OBSERVE_CLASSES = frozenset({"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED})
+#: The Controller reports the lane's application as stalled (``STALLED_CODE``): the lane is
+#: requeued with an ``observe`` row that spends no attempt (never through ``disposition``).
 PLATFORM_STALLED = "platform-stalled"
-OBSERVE_CLASSES = frozenset(
-    {"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED, PLATFORM_STALLED}
-)
 #: A job recipe's smoke job ended failed and the Controller names no platform cause.
 JOB_FAILED = "job-failed"
 FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})

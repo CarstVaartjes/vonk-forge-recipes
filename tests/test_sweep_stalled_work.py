@@ -68,6 +68,15 @@ def _followed(sweep: Any, fleet: FakeFleet) -> dict[str, Any]:
     return fleet.apps[load["app_id"]]
 
 
+def _followed_live(sweep: Any, fleet: FakeFleet) -> dict[str, Any]:
+    """The application of the load a live lane rides (released loads linger)."""
+    keys = {
+        s["request_key"] for s in sweep.state.slots.values() if s["phase"] != "finished"
+    }
+    (key,) = keys
+    return fleet.apps[sweep.state.data["loads"][key]["app_id"]]
+
+
 def _rows(tmp_path: Path) -> list[dict[str, Any]]:
     return [
         json.loads(line)
@@ -106,6 +115,7 @@ def test_a_stalled_application_releases_the_lane_and_pauses_until_it_clears(
     assert (row["disposition"], row["code"]) == ("observe", "platform.stalled")
     assert row["failure_class"] == verdict.PLATFORM_STALLED
     assert sweep.state.status(held.key) == "pending"
+    assert sweep.state.entry(held.key).get("attempts", 0) == 0
     assert sweep.paused and "Controller reports stalled work" in sweep.pause_reason
     write_status(sweep)
     status = (tmp_path / "status.md").read_text()
@@ -128,6 +138,68 @@ def test_a_stalled_application_releases_the_lane_and_pauses_until_it_clears(
     _drive(sweep, clock, lambda: sweep.state.status(held.key) == "passed")
     # The recovered application is forgotten, never cancelled by the sweep.
     assert _calls(fleet, "profile", "cancel", app["id"]) == 0
+
+
+def test_repeated_stalls_never_spend_an_attempt(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, clock, held = _sweep(tmp_path, gateway)
+    for _ in range(sweep.cfg.max_attempts + 1):
+        _drive(sweep, clock, lambda: _loading(sweep, held.key))
+        app = _followed_live(sweep, fleet)
+        app["blockers"] = [*app.get("blockers", []), ALARM]
+        sweep.tick()
+        assert sweep.paused
+        app["blockers"] = [b for b in app["blockers"] if b is not ALARM]
+        clock.sleep(sweep.cfg.poll_seconds)
+        sweep.tick()
+    entry = sweep.state.entry(held.key)
+    assert entry.get("attempts", 0) == 0
+    assert entry["status"] != "deferred"
+    stalls = [r for r in _rows(tmp_path) if r.get("code") == "platform.stalled"]
+    assert len(stalls) == sweep.cfg.max_attempts + 1
+
+
+def test_a_pause_holds_the_re_plan_of_a_preparing_recipe(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipes = [
+        FakeRecipe(
+            "bad",
+            ("m1",),
+            local="cached",
+            blocked=True,
+            blocker_code="profile.preparation_unavailable",
+            blocked_for=3000,
+        ),
+        FakeRecipe("good1", ("m1",), local="cached"),
+    ]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        [FakeModel("m1", local="cached")],
+        gateway=gateway,
+        timeouts=TimeoutPolicy(
+            first_start_seconds=600, floor_seconds=600, cap_seconds=600
+        ),
+        blocked_release_seconds=60,
+    )
+    _drive(
+        sweep,
+        clock,
+        lambda: any(s.get("blocked_since") for s in sweep.state.slots.values()),
+    )
+    fleet.stalled_applications = [{"application_id": "app_other", "detail": "x"}]
+    loads, removes = (
+        _calls(fleet, "profile", "load"),
+        _calls(fleet, "profile", "remove"),
+    )
+    for _ in range(20):
+        clock.sleep(sweep.cfg.poll_seconds)
+        sweep.tick()
+    assert sweep.paused
+    assert _calls(fleet, "profile", "load") == loads
+    assert _calls(fleet, "profile", "remove") == removes
 
 
 def test_only_the_platform_list_still_holds_the_pause(

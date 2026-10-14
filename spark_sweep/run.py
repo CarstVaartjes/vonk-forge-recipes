@@ -2059,6 +2059,7 @@ class Sweep:
         if (
             held is not None
             and now - float(held) > self.cfg.blocked_release_seconds
+            and not self.paused  # a re-plan submits a load: never while paused
             and self._release_prepared(slot, now)
         ):
             return
@@ -2070,22 +2071,21 @@ class Sweep:
     ) -> None:
         """The Controller reports the lane's application stalled: a platform problem.
 
-        The lane is released (observed again later, never a verdict) and nothing is
-        cancelled, now or once its lanes are gone: the application stays the
-        Controller's, and the sweep pauses on it (``observe_stalls``) until the
-        Controller stops reporting it.
+        The lane is released and the recipe requeued: an ``observe`` row that spends no
+        attempt, so a stall never ends a recipe. Nothing is cancelled, now or once its
+        lanes are gone: the application stays the Controller's, and the sweep pauses on
+        it (``observe_stalls``) until the Controller stops reporting it.
         """
         load["stall_released"] = True
-        self._fail_slot(
+        detail = str(load["stalled"])
+        self.requeue(
             key,
-            slot,
-            policy.classify(
-                "load",
-                "platform.stalled",
-                str(load["stalled"]),
-                verdict.PLATFORM_STALLED,
+            f"the Controller reports the load stalled: {detail}",
+            failure=policy.classify(
+                "load", "platform.stalled", detail, verdict.PLATFORM_STALLED
             ),
-            load,
+            disposition=verdict.Disposition.OBSERVE.value,
+            application_id=load.get("app_id"),
         )
 
     def _stalled(self, key: str, slot: dict[str, Any], now: float) -> None:
@@ -2315,6 +2315,7 @@ class Sweep:
         *,
         failure: policy.Failure | None = None,
         document: Mapping[str, Any] | None = None,
+        disposition: str | None = None,
         **evidence: Any,
     ) -> None:
         """Back to pending without blame or attempt: the recipe did not get a fair run.
@@ -2330,6 +2331,7 @@ class Sweep:
             reason=why,
             slot=slot,
             document=document,
+            disposition=disposition,
             failure_class=failure.klass if failure else None,
             code=failure.code if failure else None,
             evidence={**(dict(failure.evidence) if failure else {}), **evidence}
