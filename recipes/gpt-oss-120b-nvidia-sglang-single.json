@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (sglang) for gpt-oss 120b MXFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (sglang) for gpt-oss 120b MXFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags, except --attention-backend triton: the playbook's flashinfer comes from its DeepSeek-V2-Lite example and SGLang rejects it for GptOssForCausalLM. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -357,7 +357,7 @@
       {
         "name": "attention-backend",
         "setting": null,
-        "value": "flashinfer"
+        "value": "triton"
       },
       {
         "name": "context-length",
