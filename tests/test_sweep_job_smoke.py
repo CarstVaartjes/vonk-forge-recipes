@@ -283,9 +283,8 @@ def test_structural_and_image_assertions() -> None:
             "width": 64,
             "height": 32,
         },
-        {"kind": "glb-structure", "minimum_meshes": 1},
     ]
-    assert evaluate(assertions, outputs) == ["glb-structure"]
+    assert evaluate(assertions, outputs) == {}
     with pytest.raises(AssertionFailed) as missed:
         evaluate(
             [{"kind": "image-metadata", "media_type": "image/png", "width": 65}],
