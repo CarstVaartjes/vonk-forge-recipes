@@ -562,7 +562,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "747186e2aa8ac3e271abe7d043741fd304a9501c9aaf0420212e1756e87d30bf",
+        "content_sha256": "d4a2e853039a0a7df3d9316f2337083072e8d736cdc717bf467b2033761e436d",
         "kind": "model",
         "publisher": "local-inference-lab",
         "slug": "qwen3-8-flash-next-nvfp4-lil-ada4da32"

@@ -190,7 +190,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "1071df02757e4a7801a98172f290cd5e05a02b3951f51d42f3e66c21f4aef45f",
+        "content_sha256": "8e5a042e1826d718973ccba9ef1b7d9417501e2e52aad9c101a5290d9c09dacc",
         "kind": "model",
         "publisher": "unsloth",
         "slug": "qwen3-8-27b-nvfp4-f0b7c9e7"

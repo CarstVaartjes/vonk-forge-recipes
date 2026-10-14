@@ -526,9 +526,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "quanttrio",
-      "slug": "minimax-quanttrio",
-      "title": "MiniMax QuantTrio"
+      "publisher": "minimax",
+      "slug": "minimax",
+      "title": "MiniMax"
     },
     "model": {
       "publisher": "quanttrio",

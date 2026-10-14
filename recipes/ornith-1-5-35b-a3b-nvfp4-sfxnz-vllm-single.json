@@ -278,7 +278,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8a33a3e7d4f5950e91a83109184533f2ff6738c4b3ccf51ceff37d7924cf3b0f",
+        "content_sha256": "06ed43d41ee814b5606f1e5df24210e55efa8b6e3c18e9dfec12b36d395418b8",
         "kind": "model",
         "publisher": "ornith-ai",
         "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"

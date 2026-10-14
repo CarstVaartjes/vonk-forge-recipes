@@ -66,8 +66,8 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-5-lightning",
-      "title": "Nemotron 3.5 Lightning"
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
     },
     "model": {
       "publisher": "nvidia",

@@ -27,9 +27,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "madebyollin",
-      "slug": "sdxl-vae",
-      "title": "Stable Diffusion XL VAE"
+      "publisher": "stabilityai",
+      "slug": "stable-diffusion-xl",
+      "title": "Stable Diffusion XL"
     },
     "model": {
       "publisher": "madebyollin",

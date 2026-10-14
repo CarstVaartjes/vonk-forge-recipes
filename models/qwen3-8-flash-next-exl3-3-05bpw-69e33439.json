@@ -238,9 +238,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "turboderp",
-      "slug": "qwen3-8-exl3",
-      "title": "turboderp Qwen3.8 EXL3 quants"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "turboderp",

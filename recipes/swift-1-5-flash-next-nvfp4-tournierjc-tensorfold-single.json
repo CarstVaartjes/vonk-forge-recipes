@@ -1038,7 +1038,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "66d13eed9aaef372f1295c5bd1c29792c66571274b6e118770bc1f1fcbef239b",
+        "content_sha256": "e20b9aadd64e13b2c9279eb7acde15f2caa906f31888fa30dd0b0ca78dfcde71",
         "kind": "model",
         "publisher": "ukisai",
         "slug": "swift-1-5-flash-next-nvfp4-3ff05202"

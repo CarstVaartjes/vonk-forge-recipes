@@ -121,7 +121,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
+      "publisher": "meta-llama",
       "slug": "llama",
       "title": "Meta Llama"
     },

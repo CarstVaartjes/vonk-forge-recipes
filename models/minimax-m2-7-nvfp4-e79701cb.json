@@ -283,7 +283,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
+      "publisher": "minimax",
       "slug": "minimax",
       "title": "MiniMax"
     },

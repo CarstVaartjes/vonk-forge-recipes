@@ -33,9 +33,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "bartowski",
-      "slug": "ling-3-0",
-      "title": "Ling 3.0"
+      "publisher": "inclusionai",
+      "slug": "ling",
+      "title": "Ling"
     },
     "model": {
       "publisher": "bartowski",

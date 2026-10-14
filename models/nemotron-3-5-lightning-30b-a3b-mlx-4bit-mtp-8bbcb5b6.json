@@ -138,9 +138,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "vontra",
-      "slug": "nemotron-3-5-vontra",
-      "title": "Vontra Nemotron 3.5 MLX checkpoints"
+      "publisher": "nvidia",
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
     },
     "model": {
       "publisher": "vontra",

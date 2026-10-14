@@ -41,7 +41,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "ggml-org",
+      "publisher": "nvidia",
       "slug": "nemotron",
       "title": "NVIDIA Nemotron"
     },

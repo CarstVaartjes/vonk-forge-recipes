@@ -525,7 +525,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "hugging-quants",
+      "publisher": "meta-llama",
       "slug": "llama",
       "title": "Meta Llama"
     },

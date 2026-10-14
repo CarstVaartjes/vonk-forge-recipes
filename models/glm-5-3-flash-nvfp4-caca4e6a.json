@@ -1194,9 +1194,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "libertaidai",
-      "slug": "glm-5-3-libertai",
-      "title": "GLM 5.3 LibertAI"
+      "publisher": "zai-org",
+      "slug": "glm",
+      "title": "GLM"
     },
     "model": {
       "publisher": "libertaidai",

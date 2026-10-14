@@ -164,9 +164,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
-      "slug": "nvidia-qwen",
-      "title": "NVIDIA Qwen"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "nvidia",

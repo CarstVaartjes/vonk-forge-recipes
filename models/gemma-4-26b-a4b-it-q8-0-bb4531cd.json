@@ -51,7 +51,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "ggml-org",
+      "publisher": "google",
       "slug": "gemma",
       "title": "Google Gemma"
     },

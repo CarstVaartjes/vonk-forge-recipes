@@ -3199,7 +3199,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ae981a333b067f3929dff7ce68cc51e8d0c5750f575d7b96f837984ba80e3ce4",
+        "content_sha256": "14dd434fecafcff1c02012ebc908979cb549af95960cc56e892ca76db2c08645",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "deepseek-v4-1-flash-exl3-2-77bpw-9e3bbeab"

@@ -423,7 +423,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "180a79dc571598a751c65e02326a48706b64fbcec8ae587df85ea98bda526543",
+        "content_sha256": "eeb90387348552f4b676d17046cbfdd47ac48335612293a761d40c38645df468",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "phi-4-multimodal-instruct-fp8-d822efce"

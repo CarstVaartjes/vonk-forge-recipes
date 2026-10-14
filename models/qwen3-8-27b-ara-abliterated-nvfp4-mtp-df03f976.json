@@ -211,9 +211,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "aday777",
-      "slug": "qwen3-8-aday777",
-      "title": "Qwen3.8 aday777 abliterated"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "aday777",

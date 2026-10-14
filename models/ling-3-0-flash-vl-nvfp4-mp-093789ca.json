@@ -788,9 +788,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "r0b0tlab",
-      "slug": "ling-3-0-r0b0tlab",
-      "title": "Ling 3.0 r0b0tlab"
+      "publisher": "inclusionai",
+      "slug": "ling",
+      "title": "Ling"
     },
     "model": {
       "publisher": "r0b0tlab",

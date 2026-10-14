@@ -644,9 +644,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "lukealonso",
-      "slug": "minimax-m3",
-      "title": "MiniMax M3"
+      "publisher": "minimax",
+      "slug": "minimax",
+      "title": "MiniMax"
     },
     "model": {
       "publisher": "lukealonso",

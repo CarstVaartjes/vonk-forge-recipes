@@ -56,9 +56,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "sebesky",
-      "slug": "minimax-m3-eagle3",
-      "title": "MiniMax M3 EAGLE3"
+      "publisher": "minimax",
+      "slug": "minimax",
+      "title": "MiniMax"
     },
     "model": {
       "publisher": "sebesky",

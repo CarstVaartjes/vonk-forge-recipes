@@ -386,7 +386,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "f9a8e1f25b4c72736a791a36584a2fb6230462461364000a6bcf2ad146b5dc53",
+        "content_sha256": "815dcd7008dc169b01864568eff5186fa5053cba9997aa6787ee05a81bc57d90",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "gpt-oss-120b-eagle3-long-context-eagle3-633caf45"

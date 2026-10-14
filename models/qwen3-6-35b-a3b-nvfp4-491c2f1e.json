@@ -166,9 +166,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
-      "slug": "qwen3-6-nvidia",
-      "title": "Qwen3.6 NVIDIA"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "nvidia",

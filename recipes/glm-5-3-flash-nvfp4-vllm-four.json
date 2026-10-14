@@ -1495,7 +1495,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4f0926158e9e9e9cd204257df16a5576cb04791cc2a8615efab908a954c49986",
+        "content_sha256": "8205da98c1276abd172c6c293ffc1962f3968f0218069841587e4b85a7da4256",
         "kind": "model",
         "publisher": "libertaidai",
         "slug": "glm-5-3-flash-nvfp4-caca4e6a"
@@ -1561,7 +1561,7 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-bf582e4e",
       "model": {
-        "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
+        "content_sha256": "43c57f0707622cfa27e81749a79267a89050dd86b9dc148d479b36ab66a9a71b",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-bf582e4e"

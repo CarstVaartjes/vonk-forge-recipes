@@ -221,9 +221,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "turboderp",
-      "slug": "glm-5-3-turboderp",
-      "title": "GLM 5.3 turboderp"
+      "publisher": "zai-org",
+      "slug": "glm",
+      "title": "GLM"
     },
     "model": {
       "publisher": "turboderp",

@@ -265,7 +265,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "5c42119ab9e6e59eac330f901d5b46f8352446bcaed33514ea4bc4d0eba6a807",
+        "content_sha256": "ececeba16e304bd64e01df16dd2a75e19a4a1f0ab4fd8b6f188ec5f7375fafac",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-8-27b-nvfp4-nvidia-482ca0f3"
@@ -331,7 +331,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "09f334d37afe200301c8d3a8e306044df40bfec12dccf813d69a46699672b019",
+        "content_sha256": "1655bb6aa618f32e84d7136c982eb068b91acebccbb0299f0cc18f4377a720a7",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-8-27b-dflash2-50307d4c"

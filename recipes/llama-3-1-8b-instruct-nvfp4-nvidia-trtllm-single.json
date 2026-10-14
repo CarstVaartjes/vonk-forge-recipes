@@ -182,7 +182,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9e7c3beccf9fc4c07636e1e48c0b4b07ff67bf0649b744c540bee1bfbee9bd95",
+        "content_sha256": "06e87a022cce41677b21499753d9b0b647cb084c89150ed3194ec17a5ef15055",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "llama-3-1-8b-instruct-nvfp4-bdb54e24"

@@ -177,6 +177,12 @@ jobs:
           set -euo pipefail
           python3 tools/check-recipe-model-references
 
+      - name: Check that every Model family is one consistent lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-model-families
+
       - name: Require every Dockerfile COPY/ADD source in its build context
         shell: bash
         run: |

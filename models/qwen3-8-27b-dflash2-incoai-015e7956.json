@@ -56,9 +56,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "incoai",
-      "slug": "qwen3-8-dflash2-incoai",
-      "title": "Qwen3.8 DFlash2 (IncoAI)"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "incoai",

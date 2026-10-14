@@ -1684,7 +1684,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4f7620e6dacf1a6858812d01848622854baebeff2f2cc331c3f1bca1e1acbf51",
+        "content_sha256": "24b224437a2aec6feca6b6f30a5918faf4c288b65aa9b8cde5d10f725ec4ce9e",
         "kind": "model",
         "publisher": "jarrelscy",
         "slug": "glm-5-2-nvfp4-aqlm-hybrid-53e0082e"

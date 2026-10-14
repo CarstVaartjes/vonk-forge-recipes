@@ -233,7 +233,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "260e0e560500f27ae1c9409419bc6f9f2a84754e443e7eb5cbbef0c884299036",
+        "content_sha256": "c02ddd12ec387c6faf6b508cf9d384be19def75ba97cf1dea496d03a14c47656",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen2-5-vl-7b-instruct-nvfp4-d13bb1f2"

@@ -150,9 +150,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
-      "slug": "gemma-4-31b",
-      "title": "Gemma 4 31B"
+      "publisher": "google",
+      "slug": "gemma",
+      "title": "Google Gemma"
     },
     "model": {
       "publisher": "nvidia",

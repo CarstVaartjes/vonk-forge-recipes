@@ -2643,9 +2643,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "tech2wild",
-      "slug": "glm-5-3",
-      "title": "GLM 5.3"
+      "publisher": "zai-org",
+      "slug": "glm",
+      "title": "GLM"
     },
     "model": {
       "publisher": "tech2wild",

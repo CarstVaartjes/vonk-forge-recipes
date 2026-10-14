@@ -46,8 +46,8 @@
   "identity": {
     "family": {
       "publisher": "inclusionai",
-      "slug": "ling-3-0",
-      "title": "Ling 3.0"
+      "slug": "ling",
+      "title": "Ling"
     },
     "model": {
       "publisher": "inclusionai",

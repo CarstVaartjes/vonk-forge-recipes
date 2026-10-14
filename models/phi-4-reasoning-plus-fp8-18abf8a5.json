@@ -157,7 +157,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
+      "publisher": "microsoft",
       "slug": "phi-4",
       "title": "Microsoft Phi-4"
     },
