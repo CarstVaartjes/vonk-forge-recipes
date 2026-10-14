@@ -1444,7 +1444,6 @@ def make_definitions(recipes: list[FakeRecipe]) -> Any:
                 "assertions": [
                     {"kind": "file-count", "exact": 1},
                     {"kind": "format", "format": "png"},
-                    {"kind": "video-metadata", "media_type": "video/mp4"},
                 ],
             }
             for r in recipes

@@ -13,6 +13,7 @@ from . import policy
 from .catalog import fetch_fleet, fetch_models, fetch_recipes
 from .definitions import Definitions
 from .issues import file_issues
+from .job_media import ffprobe
 from .plan import make_plan, render_plan
 from .prefetch import TIB, PrefetchConfig
 from .report import build_report, export_evidence, render_report
@@ -322,6 +323,12 @@ def main(
         )
         return 2
     config = _config(args)
+    if args.job_recipes and ffprobe() is None:
+        print(
+            "sweep-recipes: warning: ffprobe is not installed, so video-metadata "
+            "assertions are recorded as not evaluated (brew install ffmpeg)",
+            file=sys.stderr,
+        )
     state = State.load(state_path)
     try:
         code = Sweep(config, vk, state, results, defs, clock).run()
