@@ -54,6 +54,7 @@ from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
 from .report import write_status
 from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
+from .smoke_job import smoke_job
 from .state import ResultsLog, State, StateLock
 from .verdict import Disposition, Progress
 from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
@@ -147,14 +148,6 @@ PLATFORM_SKIP = "platform"
 JOB_SKIP_CODE = "platform.job_recipes_not_loadable"
 
 
-def _platform_cannot_load(recipe: Recipe) -> bool:
-    """Job recipes: the Controller's run-switch builds a serving start payload for their job
-    plan, which never validates (vonk-forge #1485). The contract ties ``settings.kind == "job"``
-    to a ``*-job`` serving interface (``artifact-job``, ``image-job``, ...), which the sweep
-    already reads. Drop this predicate once the Controller hands job recipes to its job-run path."""
-    return recipe.adapter.endswith("-job")
-
-
 def _fleet_skip(entry: Mapping[str, Any]) -> bool:
     """A skip that depends on the fleet (also the older state files, which only carry the reason)."""
     return entry.get("status") == "skipped" and (
@@ -203,6 +196,9 @@ class SweepConfig:
     # it is re-planned without them: they leave the profile and wait for their preparation
     # (no attempt, no verdict) while the rest load. A re-plan delay, not a deadline.
     blocked_release_seconds: float = 300.0
+    # The deployed Controller loads job recipes as profile members (vonk-forge #1491) and
+    # reports a held job run healthy (#1494). Off: job recipes are skipped before any lane.
+    job_recipes_loadable: bool = False
 
 
 def alias_for(recipe: Recipe, definitions: Definitions) -> str:
@@ -520,6 +516,15 @@ class Sweep:
             if recipe.node_count <= enrolled:
                 self._reconcile_entry(recipe, enrolled)
 
+    def _platform_cannot_load(self, recipe: Recipe) -> bool:
+        """Job recipes, until the deployed Controller can load them (``--job-recipes``).
+
+        Without vonk-forge #1491 the run-switch builds a serving start payload for a job
+        plan, which never validates; without #1494 a held job run reads degraded. Either
+        way the lane would end in a false verdict, so the sweep decides before admission.
+        """
+        return recipe.is_job and not self.cfg.job_recipes_loadable
+
     def _selected(self, recipe: Recipe) -> bool:
         return not self.cfg.only or any(word in recipe.key for word in self.cfg.only)
 
@@ -537,7 +542,7 @@ class Sweep:
                 recipe.key, "reconcile", "pending", reason="back in the catalog"
             )
             self.state.event(f"{recipe.key} is back in the catalog: pending")
-        if entry.get("reason_kind") == PLATFORM_SKIP and not _platform_cannot_load(
+        if entry.get("reason_kind") == PLATFORM_SKIP and not self._platform_cannot_load(
             recipe
         ):
             entry["status"] = "pending"
@@ -547,7 +552,7 @@ class Sweep:
                 recipe.key, "reconcile", "pending", reason="loadable on this platform"
             )
             self.state.event(f"{recipe.key} is loadable on this platform: pending")
-        if _platform_cannot_load(recipe):
+        if self._platform_cannot_load(recipe):
             slot = self.state.slots.get(recipe.key)
             if entry.get("status") == "pending" and (
                 slot is None or slot.get("phase") == "finished"
@@ -663,7 +668,7 @@ class Sweep:
                 or recipe.key in self.state.slots
             ):
                 continue
-            if not self._selected(recipe) or _platform_cannot_load(recipe):
+            if not self._selected(recipe) or self._platform_cannot_load(recipe):
                 continue
             out.append(recipe)
         if self.cfg.limit:
@@ -863,7 +868,7 @@ class Sweep:
             entry
             and entry.get("status") == "pending"
             and self._selected(self.recipes[key])
-            and not _platform_cannot_load(self.recipes[key])
+            and not self._platform_cannot_load(self.recipes[key])
         )
 
     def adopt_in_flight(self) -> None:
@@ -1916,6 +1921,7 @@ class Sweep:
             slot["node_ids"],
             recipe.node_count,
             slot.get("prior_runs", ()),
+            job=recipe.is_job,
         )
         if run_id:
             slot.update(phase="smoking", run_id=run_id, ready_at=now)
@@ -1960,7 +1966,8 @@ class Sweep:
                             "readiness",
                             "run.not_published",
                             "the load succeeded but the run never became healthy and "
-                            f"published (no change for {round(silent)}s)",
+                            f"{'held' if recipe.is_job else 'published'} "
+                            f"(no change for {round(silent)}s)",
                         ),
                         app,
                     )
@@ -2266,6 +2273,17 @@ class Sweep:
 
     def _submit_smoke(self, key: str, slot: dict[str, Any]) -> None:
         recipe = self.recipes[key]
+        if recipe.is_job:
+            # A job run has no endpoint: its smoke is one artifact job against the run.
+            self.futures[key] = self.executor.submit(
+                smoke_job,
+                recipe,
+                self.defs,
+                self.vk,
+                slot["run_id"],
+                slot["request_key"],
+            )
+            return
         if not recipe.is_openai:
             self.futures[key] = _done_future(smoke_readiness(slot["run_id"]))
             return
