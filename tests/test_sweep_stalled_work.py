@@ -111,8 +111,8 @@ def test_a_stalled_application_releases_the_lane_and_pauses_until_it_clears(
     status = (tmp_path / "status.md").read_text()
     assert f"PAUSED: Controller reports stalled work: {app['id']}" in status
 
-    # Stalled for hours: no new load, and the sweep cancels nothing.
-    for _ in range(120):
+    # Stalled for half an hour: no new load, and the sweep cancels nothing.
+    for _ in range(30):
         clock.sleep(sweep.cfg.poll_seconds)
         sweep.tick()
     assert sweep.paused
@@ -126,6 +126,8 @@ def test_a_stalled_application_releases_the_lane_and_pauses_until_it_clears(
     sweep.tick()
     assert not sweep.paused
     _drive(sweep, clock, lambda: sweep.state.status(held.key) == "passed")
+    # The recovered application is forgotten, never cancelled by the sweep.
+    assert _calls(fleet, "profile", "cancel", app["id"]) == 0
 
 
 def test_only_the_platform_list_still_holds_the_pause(

@@ -2066,14 +2066,16 @@ class Sweep:
             self._stalled(key, slot, now)
 
     def _controller_stalled(
-        self, key: str, slot: dict[str, Any], load: Mapping[str, Any]
+        self, key: str, slot: dict[str, Any], load: dict[str, Any]
     ) -> None:
         """The Controller reports the lane's application stalled: a platform problem.
 
         The lane is released (observed again later, never a verdict) and nothing is
-        cancelled: the application stays the Controller's, and the sweep pauses on it
-        (``observe_stalls``) until the Controller stops reporting it.
+        cancelled, now or once its lanes are gone: the application stays the
+        Controller's, and the sweep pauses on it (``observe_stalls``) until the
+        Controller stops reporting it.
         """
+        load["stall_released"] = True
         self._fail_slot(
             key,
             slot,
@@ -2689,6 +2691,8 @@ class Sweep:
         if (
             app
             and load.get("state") not in SETTLED
+            # A stalled application released by its lane is the Controller's to heal.
+            and not load.get("stall_released")
             and not self._ridden_by_live_lane(app, key)
         ):
             # Ours (the sweep's own request key): cancel it so it releases what it holds.
