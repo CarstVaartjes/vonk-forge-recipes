@@ -590,11 +590,6 @@
         "value": "Qwen3.8-Flash-Next-NVFP4"
       },
       {
-        "name": "trust-remote-code",
-        "setting": null,
-        "value": true
-      },
-      {
         "name": "pipeline-parallel-size",
         "setting": null,
         "value": 1
