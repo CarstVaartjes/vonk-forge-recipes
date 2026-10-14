@@ -226,7 +226,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "b817eb5b94c840c1533f77e287a2c31f917d8dc022e9eade54c70aa8dce54804",
+        "content_sha256": "806c74896824a3e02e619ec40c92fc36536b0f2eea067ffd7954b2d6376bdb96",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "ornith-1-5-35b-a3b-nvfp4-w4a16-dcbc0a25"

@@ -221,8 +221,8 @@
   "identity": {
     "family": {
       "publisher": "wan-ai",
-      "slug": "wan-dancer",
-      "title": "Wan-Dancer"
+      "slug": "wan",
+      "title": "Wan"
     },
     "model": {
       "publisher": "wan-ai",

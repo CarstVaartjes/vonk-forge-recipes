@@ -226,7 +226,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8fc95722360a7d88a0825d449575a76e2caf669393ac33d131b4504de00c4cce",
+        "content_sha256": "3dcb01a93db1d318a878aa5d0eb802e75c2be68747d534c9964c2fca389edcdd",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "muse-glimmer-30b-nvfp4-d356db1d"

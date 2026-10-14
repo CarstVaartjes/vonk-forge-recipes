@@ -462,9 +462,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "mia-ai-lab",
-      "slug": "deepseek-v4-1-flash-mia",
-      "title": "DeepSeek V4.1 Flash MiaAI-Lab"
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
     },
     "model": {
       "publisher": "mia-ai-lab",

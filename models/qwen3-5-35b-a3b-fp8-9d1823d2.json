@@ -267,8 +267,8 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen3-5-qwen",
-      "title": "Qwen3.5"
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "qwen",

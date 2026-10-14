@@ -183,9 +183,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "r0b0tlab",
-      "slug": "qwen3-8-r0b0tlab",
-      "title": "Qwen3.8 r0b0tlab"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "r0b0tlab",

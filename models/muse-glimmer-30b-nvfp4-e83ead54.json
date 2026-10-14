@@ -121,7 +121,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "redhatai",
+      "publisher": "meta",
       "slug": "muse-glimmer",
       "title": "Muse Glimmer"
     },

@@ -63,9 +63,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "radixark",
-      "slug": "qwen3-8-radixark",
-      "title": "RadixArk Qwen3.8 deployments"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "radixark",

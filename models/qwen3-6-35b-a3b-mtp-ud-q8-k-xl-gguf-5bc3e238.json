@@ -33,7 +33,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "unsloth",
+      "publisher": "qwen",
       "slug": "qwen",
       "title": "Qwen"
     },

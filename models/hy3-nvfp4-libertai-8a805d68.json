@@ -1085,9 +1085,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "libertaidai",
-      "slug": "hy3-libertai",
-      "title": "Hy3 LibertAI"
+      "publisher": "tencent",
+      "slug": "hy3",
+      "title": "Hy3"
     },
     "model": {
       "publisher": "libertaidai",

@@ -481,8 +481,8 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen3-coder-next-qwen",
-      "title": "Qwen3-Coder-Next"
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "qwen",

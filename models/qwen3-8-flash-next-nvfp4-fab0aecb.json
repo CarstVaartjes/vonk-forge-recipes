@@ -240,9 +240,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
-      "slug": "qwen3-8-nvidia",
-      "title": "NVIDIA Qwen3.8 deployments"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "nvidia",

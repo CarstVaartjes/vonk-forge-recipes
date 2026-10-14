@@ -1024,7 +1024,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6e7a6e8fffe749fdd91a6f4332b12f124c737f05a9a8328bae6a684e54142091",
+        "content_sha256": "f4070b32ae67dec49ea385cb59aae69cd651050f0ece3e18d3b4e7281bda69d3",
         "kind": "model",
         "publisher": "xiaomimimo",
         "slug": "mimo-v2-6-flash-rl-dcd3fd83"

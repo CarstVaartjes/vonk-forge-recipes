@@ -4,7 +4,7 @@
   ],
   "dependencies": [
     {
-      "content_sha256": "7b566e43a26e435aaebf58cdae9c61a2c035521e7489a222f5324969e0eedd0c",
+      "content_sha256": "1dc231dc891334a8fca97099e5e734ff679370849c4794c0923caba34d987900",
       "kind": "model",
       "publisher": "facebook",
       "slug": "dinov2-with-registers-large"

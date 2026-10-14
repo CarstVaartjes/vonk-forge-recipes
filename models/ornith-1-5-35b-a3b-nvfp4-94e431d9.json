@@ -211,8 +211,8 @@
   "identity": {
     "family": {
       "publisher": "ornith-ai",
-      "slug": "ornith-1-5",
-      "title": "Ornith 1.5"
+      "slug": "ornith",
+      "title": "Ornith"
     },
     "model": {
       "publisher": "ornith-ai",

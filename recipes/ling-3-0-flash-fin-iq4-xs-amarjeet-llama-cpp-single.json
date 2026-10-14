@@ -77,7 +77,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9ffdf40084929169397204b816e0a00f2092a44087941fc61130914ee416ea85",
+        "content_sha256": "d4fc25ca195a08ec802fae50b2ce3937e4da1eb2cc9ddbcbc1646af81c04ef18",
         "kind": "model",
         "publisher": "bartowski",
         "slug": "ling-3-0-flash-fin-iq4-xs-gguf-a792b6bd"

@@ -28,8 +28,8 @@
   "identity": {
     "family": {
       "publisher": "facebook",
-      "slug": "dinov2-with-registers",
-      "title": "DINOv2 with Registers"
+      "slug": "dinov2",
+      "title": "DINOv2"
     },
     "model": {
       "publisher": "facebook",

@@ -594,7 +594,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f81014fb1ca7459b706bb16797572b950ebc8026703af6c02b19a0bc1d3216d8",
+        "content_sha256": "d97c40040f4d453fb25dfcf8c7e5d48c59872c1363d1a68aa29c297ed000a801",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6"

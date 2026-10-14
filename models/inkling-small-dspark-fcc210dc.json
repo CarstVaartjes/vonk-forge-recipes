@@ -63,9 +63,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "radixark",
-      "slug": "inkling-radixark",
-      "title": "RadixArk Inkling deployments"
+      "publisher": "thinkingmachines",
+      "slug": "inkling",
+      "title": "Inkling"
     },
     "model": {
       "publisher": "radixark",

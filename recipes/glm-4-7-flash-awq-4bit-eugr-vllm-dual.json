@@ -186,7 +186,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "24e2586b80c037b9c54ec9573f136b5c8c6c914a92dd416cf3554ab67b95c00b",
+        "content_sha256": "cac2bf8bf93536cba6015a49be96905e886ccc0fd2efa97ba11f23f1e23390f1",
         "kind": "model",
         "publisher": "cyankiwi",
         "slug": "glm-4-7-flash-awq-4bit-25624b53"

@@ -183,7 +183,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3e8f212c718c527284f171dd26a9436548569be3b23bee030d536764b713b4dc",
+        "content_sha256": "22a837fdda71700b8e9f1749868af01f9203502054b55a301d4558ba016aa9cf",
         "kind": "model",
         "publisher": "unsloth",
         "slug": "qwen3-8-27b-nvfp4-unsloth-f0b7c9e7"

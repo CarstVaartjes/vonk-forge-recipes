@@ -576,7 +576,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "99285825caf6bc5cd951c214ec762c8d70cc6f0c993017b868918b7154142720",
+        "content_sha256": "5f7702afc64f5e56877148103e5a505c012c40f34fcde28e6d142c8200af89f9",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-coder-next-fp8-da6e2ed2"

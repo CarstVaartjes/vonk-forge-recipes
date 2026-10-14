@@ -929,7 +929,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "77e83a9bb1e4f9462980be143854ea4a45f963c08bb7032daa9661b0390c97e9",
+        "content_sha256": "81c22cf5dd5213987aa85506febfa89042a70f0dfbf99e9f17fe3e0b5666d39d",
         "kind": "model",
         "publisher": "sebesky",
         "slug": "minimax-m3-w4a16-gptq-6696ce6f"
@@ -995,7 +995,7 @@
       ],
       "id": "dependency-minimax-m3-eagle3-rtn-int4-86ffe4b7",
       "model": {
-        "content_sha256": "87382c970ac3c976214f203b03c4faf2bfc30023bd3872a6620fcb4bb35455f5",
+        "content_sha256": "b864417bf7f37c45dff02074329b78748eaabab9ab6d7492112e748ad84b4049",
         "kind": "model",
         "publisher": "sebesky",
         "slug": "minimax-m3-eagle3-rtn-int4-86ffe4b7"

@@ -2652,9 +2652,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "0xsero",
-      "slug": "deepseek-v4-1-flash-0xsero",
-      "title": "DeepSeek V4.1 Flash 0xSero"
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
     },
     "model": {
       "publisher": "0xsero",

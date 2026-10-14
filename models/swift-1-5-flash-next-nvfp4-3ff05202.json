@@ -895,9 +895,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "ukisai",
-      "slug": "swift-qwen3-8-ukisai",
-      "title": "UkisAI Swift Qwen3.8 checkpoints"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "ukisai",

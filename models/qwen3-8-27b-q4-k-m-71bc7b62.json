@@ -52,9 +52,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "ggml-org",
-      "slug": "qwen3",
-      "title": "Alibaba Qwen3"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "ggml-org",

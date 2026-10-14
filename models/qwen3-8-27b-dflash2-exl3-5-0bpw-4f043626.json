@@ -65,9 +65,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "mia-ai-lab",
-      "slug": "qwen3-8-mia",
-      "title": "Qwen3.8 MiaAI-Lab deployments"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "mia-ai-lab",

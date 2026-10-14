@@ -476,7 +476,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "24b1e547b7eba18616763f64c4fea3b2fb0676739f3f2365bd5032bc0fb51278",
+        "content_sha256": "095e243ab0065b593c853d2d8ebd64a4e1d47d7abd15abbcac5d9785dda00a57",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-6f3ccc0b"

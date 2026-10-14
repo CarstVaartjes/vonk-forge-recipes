@@ -121,9 +121,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "cyankiwi",
-      "slug": "glm-4-7-flash-cyankiwi",
-      "title": "GLM 4.7 Flash cyankiwi"
+      "publisher": "zai-org",
+      "slug": "glm",
+      "title": "GLM"
     },
     "model": {
       "publisher": "cyankiwi",

@@ -537,9 +537,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "local-inference-lab",
-      "slug": "qwen3-8-flash-next-nvfp4-lil",
-      "title": "local-inference-lab Qwen3.8 Flash Next NVFP4"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "local-inference-lab",

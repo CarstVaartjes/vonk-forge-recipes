@@ -181,7 +181,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cd550510967d9b73e8d30d1cf13865812b7c95bd01794f028a66ff0cc32901d8",
+        "content_sha256": "eb1e4a913292219f2535fb264a839b71903e423c324009b8c663f2278ed91d6f",
         "kind": "model",
         "publisher": "redhatai",
         "slug": "muse-glimmer-30b-nvfp4-e83ead54"

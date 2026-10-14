@@ -236,7 +236,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "61e81a39bd3305255a232ab3b4566fc1fd3b833a06fb5dbd31052403d49e61ba",
+        "content_sha256": "b72f7a1175f2daf2beaa6bcdb527990f2f51684c4386f6afe4a6fcd247d5cd67",
         "kind": "model",
         "publisher": "unsloth",
         "slug": "qwen3-6-35b-a3b-nvfp4-fast-11fb1aff"

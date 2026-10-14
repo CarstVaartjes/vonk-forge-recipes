@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-We cover Agents-A1, Alibaba Qwen2.5-VL, DeepSeek V4 Flash, FastContext, FLUX.2, Gemma, GLM, Google Gemma, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3 kodelow, Hy3 LibertAI, Inkling, Laguna, Leanstral, LFM2.5, Ling, LTX, Meta Llama, Microsoft Phi-4, MiMo, MiniMax H3, MiniMax M2, MiniMax M3, MOSS-VL, MOVA, Muse Glimmer, Nemotron, Nex N2, OpenAI gpt-oss, Ornith, Pixal3D, Qwen (text and vision), Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, Ternary Bonsai, TRELLIS, TripoSG, UI-Mate, UkisAI Swift Qwen3.8 checkpoints, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+We cover Agents-A1, DeepSeek, DeepSeek Flash, FastContext, FLUX.2, GLM, Google Gemma, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3, Inkling, Laguna, Leanstral, Ling, LiquidAI LFM2.5, LTX, Meta Llama, Microsoft Phi-4, MiMo, MiniMax, MiniMax H3, MOVA, Muse Glimmer, Nex N2, NVIDIA Nemotron, OpenAI gpt-oss, OpenMOSS MOSS-VL, Ornith, Pixal3D, Qwen, Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, Ternary Bonsai, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -19,40 +19,37 @@ Which engines each model family runs on.
 | Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline | exllamav3 |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Agents-A1 | ✓ |  |  |  |  |  |  |  |  |  |
-| Alibaba Qwen2.5-VL | ✓ |  |  |  |  |  |  |  |  |  |
-| DeepSeek V4 Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |  |
+| DeepSeek |  | ✓ |  |  |  |  |  |  |  |  |
+| DeepSeek Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |  |
 | FastContext | ✓ |  |  |  |  |  |  |  |  |  |
 | FLUX.2 |  |  |  |  |  |  |  | ✓ |  |  |
-| Gemma | ✓ |  |  | ✓ |  |  |  |  |  |  |
 | GLM | ✓ | ✓ |  |  | ✓ |  |  |  |  |  |
-| Google Gemma | ✓ |  |  |  |  |  |  |  |  |  |
+| Google Gemma | ✓ |  |  | ✓ |  |  |  |  |  |  |
 | Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |  |
 | HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |  |
 | HunyuanVideo |  |  |  |  |  |  | ✓ |  |  |  |
 | HunyuanVideo Foley |  |  |  |  |  |  |  |  | ✓ |  |
-| Hy3 kodelow | ✓ |  |  |  |  |  |  |  |  |  |
-| Hy3 LibertAI | ✓ |  |  |  |  |  |  |  |  |  |
+| Hy3 | ✓ |  |  |  |  |  |  |  |  |  |
 | Inkling | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | Laguna | ✓ |  |  |  |  |  |  |  |  |  |
 | Leanstral | ✓ |  |  |  |  |  |  |  |  |  |
-| LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
 | Ling | ✓ | ✓ |  | ✓ |  |  |  |  |  |  |
+| LiquidAI LFM2.5 | ✓ |  |  |  |  |  |  |  |  |  |
 | LTX |  |  |  |  |  |  |  |  | ✓ |  |
 | Meta Llama | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
 | Microsoft Phi-4 | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
 | MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |
+| MiniMax | ✓ |  |  |  |  |  |  |  |  |  |
 | MiniMax H3 |  |  |  |  |  |  | ✓ |  |  |  |
-| MiniMax M2 | ✓ |  |  |  |  |  |  |  |  |  |
-| MiniMax M3 | ✓ |  |  |  |  |  |  |  |  |  |
-| MOSS-VL |  |  |  |  |  |  |  |  | ✓ |  |
 | MOVA |  |  |  |  |  |  |  |  | ✓ |  |
 | Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |  |
-| Nemotron | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |  |
 | Nex N2 | ✓ |  |  |  |  |  |  |  |  |  |
+| NVIDIA Nemotron | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  |  |
 | OpenAI gpt-oss | ✓ | ✓ | ✓ |  |  |  |  |  |  |  |
+| OpenMOSS MOSS-VL |  |  |  |  |  |  |  |  | ✓ |  |
 | Ornith | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | Pixal3D |  |  |  |  |  |  |  |  | ✓ |  |
-| Qwen (text and vision) | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  | ✓ |
+| Qwen | ✓ | ✓ | ✓ | ✓ | ✓ |  |  |  |  | ✓ |
 | Qwen Image |  |  |  |  |  |  | ✓ | ✓ |  |  |
 | SkinTokens |  |  |  |  |  |  |  |  | ✓ |  |
 | Step 3.7 Flash | ✓ |  |  |  |  |  |  |  |  |  |
@@ -61,7 +58,6 @@ Which engines each model family runs on.
 | TRELLIS |  |  |  |  |  |  |  |  | ✓ |  |
 | TripoSG |  |  |  |  |  |  |  |  | ✓ |  |
 | UI-Mate | ✓ |  |  |  |  |  |  |  |  |  |
-| UkisAI Swift Qwen3.8 checkpoints |  |  |  |  | ✓ |  |  |  |  |  |
 | VibeThinker | ✓ |  |  |  |  |  |  |  |  |  |
 | Wan |  |  |  |  |  |  |  | ✓ | ✓ |  |
 | XYZ Aquila | ✓ |  |  |  |  |  |  |  |  |  |
@@ -73,40 +69,37 @@ Which Spark counts each model family runs on.
 | Model family | 1 Spark | 2 Sparks | 3 Sparks | 4 Sparks | 8 Sparks |
 | --- | :---: | :---: | :---: | :---: | :---: |
 | Agents-A1 | ✓ |  |  |  |  |
-| Alibaba Qwen2.5-VL | ✓ |  |  |  |  |
-| DeepSeek V4 Flash | ✓ | ✓ |  | ✓ |  |
+| DeepSeek | ✓ |  |  |  |  |
+| DeepSeek Flash | ✓ | ✓ |  | ✓ |  |
 | FastContext | ✓ |  |  |  |  |
 | FLUX.2 | ✓ |  |  |  |  |
-| Gemma | ✓ | ✓ |  |  |  |
 | GLM | ✓ | ✓ | ✓ | ✓ |  |
-| Google Gemma | ✓ |  |  |  |  |
+| Google Gemma | ✓ | ✓ |  |  |  |
 | Hunyuan3D | ✓ |  |  |  |  |
 | HunyuanOCR | ✓ |  |  |  |  |
 | HunyuanVideo | ✓ |  |  |  |  |
 | HunyuanVideo Foley | ✓ |  |  |  |  |
-| Hy3 kodelow |  | ✓ |  |  |  |
-| Hy3 LibertAI |  | ✓ |  |  |  |
+| Hy3 |  | ✓ |  |  |  |
 | Inkling |  | ✓ |  |  | ✓ |
 | Laguna | ✓ | ✓ |  |  |  |
 | Leanstral |  | ✓ |  |  |  |
-| LFM2.5 | ✓ |  |  |  |  |
 | Ling | ✓ |  |  |  |  |
+| LiquidAI LFM2.5 | ✓ |  |  |  |  |
 | LTX | ✓ |  |  |  |  |
 | Meta Llama | ✓ | ✓ |  |  |  |
 | Microsoft Phi-4 | ✓ |  |  |  |  |
 | MiMo |  | ✓ | ✓ | ✓ |  |
+| MiniMax |  | ✓ | ✓ |  |  |
 | MiniMax H3 | ✓ |  |  |  |  |
-| MiniMax M2 |  | ✓ |  |  |  |
-| MiniMax M3 |  | ✓ | ✓ |  |  |
-| MOSS-VL | ✓ |  |  |  |  |
 | MOVA | ✓ |  |  |  |  |
 | Muse Glimmer | ✓ |  |  |  |  |
-| Nemotron | ✓ | ✓ |  |  |  |
 | Nex N2 | ✓ |  |  |  |  |
+| NVIDIA Nemotron | ✓ | ✓ |  |  |  |
 | OpenAI gpt-oss | ✓ |  |  |  |  |
+| OpenMOSS MOSS-VL | ✓ |  |  |  |  |
 | Ornith | ✓ |  |  |  |  |
 | Pixal3D | ✓ |  |  |  |  |
-| Qwen (text and vision) | ✓ | ✓ |  | ✓ |  |
+| Qwen | ✓ | ✓ |  | ✓ |  |
 | Qwen Image | ✓ |  |  |  |  |
 | SkinTokens | ✓ |  |  |  |  |
 | Step 3.7 Flash |  | ✓ |  |  |  |
@@ -115,7 +108,6 @@ Which Spark counts each model family runs on.
 | TRELLIS | ✓ |  |  |  |  |
 | TripoSG | ✓ |  |  |  |  |
 | UI-Mate | ✓ |  |  |  |  |
-| UkisAI Swift Qwen3.8 checkpoints | ✓ |  |  |  |  |
 | VibeThinker | ✓ |  |  |  |  |
 | Wan | ✓ |  |  |  |  |
 | XYZ Aquila | ✓ |  |  |  |  |

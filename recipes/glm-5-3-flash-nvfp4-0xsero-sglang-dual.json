@@ -1485,7 +1485,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "17d7133704c97da597649d0f049f0b119035783fe5c918467b631772f381e37e",
+        "content_sha256": "1ed60c14ceac2daecd1be28aace4a2ce12694fa9c506dd53c666edd152e5aa60",
         "kind": "model",
         "publisher": "libertaidai",
         "slug": "glm-5-3-flash-nvfp4-9e0d74e3"

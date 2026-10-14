@@ -694,7 +694,7 @@
       ],
       "id": "m",
       "model": {
-        "content_sha256": "d911234193e32cc05acc4d262302335b01e0aceb06213558e2edf3ae757d4cc1",
+        "content_sha256": "d1618040adcd37271c2f1558912a570c624488e421719a6263c8a26d74fc4910",
         "kind": "model",
         "publisher": "local-inference-lab",
         "slug": "glm-5-3-flash-nvfp4-spark-a6082410"

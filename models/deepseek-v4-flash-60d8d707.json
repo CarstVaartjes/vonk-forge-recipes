@@ -672,8 +672,8 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-flash",
-      "title": "DeepSeek V4 Flash"
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
     },
     "model": {
       "publisher": "deepseek-ai",

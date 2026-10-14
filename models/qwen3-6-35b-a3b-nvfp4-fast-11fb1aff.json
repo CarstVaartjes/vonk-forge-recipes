@@ -175,9 +175,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "unsloth",
-      "slug": "qwen3-6-unsloth",
-      "title": "Qwen3.6 Unsloth"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "unsloth",

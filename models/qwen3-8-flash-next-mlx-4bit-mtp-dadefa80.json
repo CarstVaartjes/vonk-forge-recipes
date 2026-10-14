@@ -330,9 +330,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "vontra",
-      "slug": "qwen3-8-vontra",
-      "title": "Vontra Qwen3.8 MLX checkpoints"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "vontra",

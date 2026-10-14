@@ -141,7 +141,7 @@
   },
   "identity": {
     "family": {
-      "publisher": "nvidia",
+      "publisher": "google",
       "slug": "gemma",
       "title": "Google Gemma"
     },

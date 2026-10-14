@@ -75,8 +75,8 @@
   "identity": {
     "family": {
       "publisher": "google",
-      "slug": "gemma-4-26b-a4b-assistant",
-      "title": "Gemma 4 26B-A4B assistant"
+      "slug": "gemma",
+      "title": "Google Gemma"
     },
     "model": {
       "publisher": "google",

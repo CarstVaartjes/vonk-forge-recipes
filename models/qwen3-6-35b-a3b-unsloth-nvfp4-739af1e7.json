@@ -182,9 +182,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "unsloth",
-      "slug": "unsloth-qwen",
-      "title": "Unsloth Qwen"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "unsloth",

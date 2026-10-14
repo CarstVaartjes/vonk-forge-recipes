@@ -2909,6 +2909,7 @@ def verify_steps() -> list[tuple[str, list[str]]]:
     return [
         ("README overview", [sys.executable, "tools/build-readme-overview"]),
         ("model references", [sys.executable, "tools/check-recipe-model-references"]),
+        ("model families", [sys.executable, "tools/check-model-families"]),
         (
             "build context sources",
             [sys.executable, "tools/check-build-context-sources"],

@@ -165,9 +165,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "r0b0tlab",
-      "slug": "ornith-1-5-r0b0tlab",
-      "title": "Ornith 1.5 r0b0tlab"
+      "publisher": "ornith-ai",
+      "slug": "ornith",
+      "title": "Ornith"
     },
     "model": {
       "publisher": "r0b0tlab",

@@ -1291,9 +1291,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "jarrelscy",
-      "slug": "glm-5-2",
-      "title": "GLM 5.2"
+      "publisher": "zai-org",
+      "slug": "glm",
+      "title": "GLM"
     },
     "model": {
       "publisher": "quanttrio",

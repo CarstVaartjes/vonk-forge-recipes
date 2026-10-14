@@ -517,9 +517,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "cyankiwi",
-      "slug": "minimax-cyankiwi",
-      "title": "MiniMax cyankiwi"
+      "publisher": "minimax",
+      "slug": "minimax",
+      "title": "MiniMax"
     },
     "model": {
       "publisher": "cyankiwi",

@@ -80,6 +80,18 @@ Reuse an existing exact Model when appropriate. Create a distinct version or
 variant record when the underlying model identity changes. Family names and
 new versions are data; they do not require new Python classes.
 
+`identity.family` is the upstream lineage, not the checkpoint you are adding:
+every quantization, fine-tune and republished checkpoint of Qwen carries
+`{"publisher": "qwen", "slug": "qwen", "title": "Qwen"}`, whoever published
+it; the republisher is the Model's own `identity.publisher`, and the weight
+format belongs in `version`, `variant` and `format`. Reuse the family an
+existing Model of that lineage already declares (`grep -l '"slug": "glm"'
+models/`); invent a new one only for a new lineage, with the upstream
+creator's slug as its publisher. `tools/check-model-families` fails a family
+that names a republisher or a format, or a slug that two documents describe
+differently, because the README overview and the public catalog group by
+this field.
+
 Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
 For GitHub release assets, bind the numeric release ID and each file's numeric

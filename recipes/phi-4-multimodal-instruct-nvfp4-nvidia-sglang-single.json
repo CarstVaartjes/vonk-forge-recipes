@@ -423,7 +423,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "614371ca5cc5aeac5cb1ab4e901394f86304a5d2eb87c5caec4154397ea8ccd6",
+        "content_sha256": "d9db969d33a631e8cd1e416385bd851237fa30a2e792d088d608c7dfe7f28d6c",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "phi-4-multimodal-instruct-nvfp4-617cfabb"

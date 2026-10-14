@@ -327,8 +327,8 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen-image-edit",
-      "title": "Qwen Image Edit"
+      "slug": "qwen-image",
+      "title": "Qwen Image"
     },
     "model": {
       "publisher": "qwen",

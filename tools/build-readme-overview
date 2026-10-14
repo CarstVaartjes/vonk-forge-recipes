@@ -2,7 +2,9 @@
 """Generate the README overview (engines, Spark variants, creators) from the catalog.
 
 The output is derived from recipes/*.json, models/*.json and creators.json and is
-written between the overview markers in README.md. It only reflects structure
+written between the overview markers in README.md. Families come from each
+Model's ``identity.family`` (tools/check-model-families keeps them consistent);
+creators.json only names creators. It only reflects structure
 (which recipes, families, engines, Spark counts and creators exist), never
 versions, dates or digests, so a normal version bump leaves it unchanged. Run it
 and commit README.md whenever recipes, models or creators.json change.
@@ -69,15 +71,14 @@ def creator_of(
     return (owner or "unknown"), (f"https://{host}/{owner}" if owner else None)
 
 
-def family_of(
-    recipe: dict[str, Any], models: dict[str, Any], config: dict[str, Any]
-) -> str:
-    slug = recipe["identity"]["slug"]
-    for family in config["families"]:
-        if any(slug.startswith(prefix) for prefix in family["prefixes"]):
-            return family["name"]
+def family_of(recipe: dict[str, Any], models: dict[str, Any]) -> str:
+    """The primary Model's family title: one lineage, however many republishers."""
     primary = models.get(recipe["models"][0]["model"]["slug"])
-    return primary["identity"]["family"]["title"] if primary else slug
+    return (
+        primary["identity"]["family"]["title"]
+        if primary
+        else recipe["identity"]["slug"]
+    )
 
 
 def engine_label(engine: str) -> str:
@@ -92,7 +93,7 @@ def render(root: Path) -> str:
         rows.append(
             {
                 "recipe": recipe,
-                "family": family_of(recipe, models, config),
+                "family": family_of(recipe, models),
                 "engine": recipe["runtime"]["engine"],
                 "sparks": recipe["topology"]["node_count"],
                 "creator": creator,

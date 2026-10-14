@@ -1,5 +1,5 @@
 {
-  "_comment": "The one hand-maintained input of tools/build-readme-overview. Creator rows (aliases are matched case-insensitively against a recipe's source owner and attribution) and family rules (recipe slug prefixes, first match wins; unmatched recipes fall back to their Model's family title). Everything else in the README overview is generated.",
+  "_comment": "The one hand-maintained input of tools/build-readme-overview: creator rows (aliases are matched case-insensitively against a recipe's source owner and attribution). Families are not configured here; they come from each Model document's identity.family, which tools/check-model-families keeps to one lineage per slug.",
   "creators": [
     {"name": "MiaAI-Lab", "url": "https://github.com/MiaAI-Lab", "aliases": ["miaai-lab", "miaai lab"], "focus": "Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling."},
     {"name": "tonyd2wild", "url": "https://github.com/tonyd2wild", "aliases": ["tonyd2wild"], "focus": "Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo."},
@@ -13,38 +13,5 @@
     {"name": "0xSero", "url": "https://github.com/0xSero", "aliases": ["0xsero"], "focus": "SparkInfer builds and local-ai-recipe-kit; DeepSeek V4 Flash on one Spark."},
     {"name": "amarjeet", "url": "https://github.com/amarjeet", "aliases": ["amarjeet"], "focus": "dgx-spark-recipes: single-Spark llama.cpp GGUF, TensorFold and EXL3 recipes that pin model revisions and shard SHA-256s; Ling, Ternary-Bonsai, Qwen3.8 Flash Next."},
     {"name": "antirez", "url": "https://github.com/antirez/ds4", "aliases": ["antirez", "salvatore sanfilippo (antirez)"], "focus": "ds4: the DeepSeek 4 Flash inference engine (Metal, CUDA, ROCm)."}
-  ],
-  "families": [
-    {"name": "DeepSeek V4 Flash", "prefixes": ["deepseek-"]},
-    {"name": "FLUX.2", "prefixes": ["flux-2"]},
-    {"name": "Gemma", "prefixes": ["gemma-"]},
-    {"name": "GLM", "prefixes": ["glm-"]},
-    {"name": "Hunyuan3D", "prefixes": ["hunyuan3d"]},
-    {"name": "HunyuanOCR", "prefixes": ["hunyuanocr"]},
-    {"name": "HunyuanVideo", "prefixes": ["hunyuan-video-1"]},
-    {"name": "HunyuanVideo Foley", "prefixes": ["hunyuan-video-foley"]},
-    {"name": "Inkling", "prefixes": ["inkling"]},
-    {"name": "Laguna", "prefixes": ["laguna"]},
-    {"name": "LFM2.5", "prefixes": ["lfm2"]},
-    {"name": "Ling", "prefixes": ["ling-"]},
-    {"name": "LTX", "prefixes": ["ltx-"]},
-    {"name": "MiMo", "prefixes": ["mimo-"]},
-    {"name": "MiniMax M2", "prefixes": ["minimax-m2"]},
-    {"name": "MiniMax M3", "prefixes": ["minimax-m3"]},
-    {"name": "MiniMax H3", "prefixes": ["minimax-"]},
-    {"name": "MOSS-VL", "prefixes": ["moss-vl"]},
-    {"name": "MOVA", "prefixes": ["mova-"]},
-    {"name": "Muse Glimmer", "prefixes": ["muse-glimmer"]},
-    {"name": "Nemotron", "prefixes": ["nemotron-"]},
-    {"name": "Ornith", "prefixes": ["ornith-"]},
-    {"name": "Pixal3D", "prefixes": ["pixal3d"]},
-    {"name": "Qwen Image", "prefixes": ["qwen-image", "nvidia-qwen-image"]},
-    {"name": "Qwen (text and vision)", "prefixes": ["qwen3-"]},
-    {"name": "SkinTokens", "prefixes": ["skintokens"]},
-    {"name": "Step1X-3D", "prefixes": ["step1x-3d"]},
-    {"name": "TRELLIS", "prefixes": ["trellis"]},
-    {"name": "TripoSG", "prefixes": ["triposg"]},
-    {"name": "UI-Mate", "prefixes": ["ui-mate"]},
-    {"name": "Wan", "prefixes": ["wan-"]}
   ]
 }

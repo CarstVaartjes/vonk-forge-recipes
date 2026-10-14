@@ -130,9 +130,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "redhatai",
-      "slug": "qwen3-6-redhatai",
-      "title": "Qwen3.6 RedHat AI"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "redhatai",

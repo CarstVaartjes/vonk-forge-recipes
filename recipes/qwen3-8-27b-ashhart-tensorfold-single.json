@@ -226,7 +226,7 @@
       ],
       "id": "target",
       "model": {
-        "content_sha256": "bd42e65876cf508578bf1d3be75d8dcb07fffbed043a73d891204f79e424b2f1",
+        "content_sha256": "a6496351590b8c663086688937f8d54ec669ece232681d9aa4a796d2fd318003",
         "kind": "model",
         "publisher": "vontra",
         "slug": "qwen3-8-27b-mlx-4bit-70ae7fac"
@@ -287,7 +287,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "09f334d37afe200301c8d3a8e306044df40bfec12dccf813d69a46699672b019",
+        "content_sha256": "1655bb6aa618f32e84d7136c982eb068b91acebccbb0299f0cc18f4377a720a7",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-8-27b-dflash2-50307d4c"

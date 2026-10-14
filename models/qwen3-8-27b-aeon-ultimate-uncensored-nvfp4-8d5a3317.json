@@ -139,9 +139,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "sakamakismile",
-      "slug": "qwen3-8-aeon-uncensored",
-      "title": "Qwen3.8 AEON Ultimate Uncensored"
+      "publisher": "qwen",
+      "slug": "qwen",
+      "title": "Qwen"
     },
     "model": {
       "publisher": "sakamakismile",

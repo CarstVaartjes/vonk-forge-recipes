@@ -1093,7 +1093,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c00b1cf05e884d8b66c143ba3f57f1d99d4da9751c20bd3578327f453b4d4784",
+        "content_sha256": "6b7948238164c6a564e2e3a81d6421fcb4b31627c9e09fe46b2db74db58e6124",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-4bpw-tensorfold-078455ff"
@@ -1159,7 +1159,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "877e81d8d00e7561d56d1f8e57ac5b0c4b1bdbf17c03e790ad35ba6aed3c4e97",
+        "content_sha256": "43c57f0707622cfa27e81749a79267a89050dd86b9dc148d479b36ab66a9a71b",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-bf582e4e"

@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+"""Fail when Model documents disagree about what a model family is.
+
+A family is one model lineage as its upstream creator publishes it (Qwen,
+GLM, DeepSeek Flash, Google Gemma). Every checkpoint of that lineage, whoever
+quantized or republished it, carries the same ``identity.family``; the
+republisher is the Model's own ``identity.publisher`` and the format lives in
+the version and variant. Families therefore never name a republisher or a
+weight format, and one family slug has exactly one publisher and title across
+the library. The README overview and the public catalog group by this field,
+so a fragmented family hides a lineage behind a dozen near-duplicate names.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+# Weight formats, quantizers and packaging words that belong to a version or
+# variant, never to the lineage.
+FORMAT_TOKENS = {
+    "awq",
+    "bf16",
+    "checkpoint",
+    "checkpoints",
+    "deployment",
+    "deployments",
+    "dflash",
+    "dflash2",
+    "eagle",
+    "eagle3",
+    "exl3",
+    "fp4",
+    "fp8",
+    "fp16",
+    "gguf",
+    "gptq",
+    "int4",
+    "int8",
+    "mlx",
+    "modelopt",
+    "mxfp8",
+    "nvfp4",
+    "quant",
+    "quants",
+    "quantized",
+    "quantization",
+    "quantizations",
+    "w4a16",
+}
+
+
+def _tokens(value: str) -> set[str]:
+    return {token for token in re.split(r"[^a-z0-9]+", value.lower()) if token}
+
+
+def check(root: Path) -> list[str]:
+    problems: list[str] = []
+    identities: dict[str, dict[str, set[str]]] = {}
+    for path in sorted((root / "models").glob("*.json")):
+        document = json.loads(path.read_text())
+        identity = document["identity"]
+        family = identity["family"]
+        name = f"models/{path.name}"
+        slug = str(family["slug"])
+        publisher = str(family["publisher"])
+        title = str(family["title"])
+        record = identities.setdefault(
+            slug, {"publisher": set(), "title": set(), "files": set()}
+        )
+        record["publisher"].add(publisher)
+        record["title"].add(title)
+        record["files"].add(name)
+
+        # A republisher's own name as a slug suffix (glm-5-3-0xsero, hy3-kodelow)
+        # marks a family cut per checkpoint source. An upstream whose lineage is
+        # named after it (qwen/qwen, minimax/minimax) is the slug itself, not a
+        # suffix.
+        model_publisher = str(identity["publisher"])
+        if slug != model_publisher and slug.endswith(f"-{model_publisher}"):
+            problems.append(
+                f"{name}: family slug {slug!r} ends in the republisher {model_publisher!r}; "
+                "a family is the upstream lineage, shared by every republished checkpoint"
+            )
+        for field, value in (("slug", slug), ("title", title)):
+            found = sorted(_tokens(value) & FORMAT_TOKENS)
+            if found:
+                problems.append(
+                    f"{name}: family {field} {value!r} names a weight format or packaging "
+                    f"({', '.join(found)}); that belongs to the version or variant"
+                )
+    for slug, record in sorted(identities.items()):
+        if len(record["publisher"]) > 1 or len(record["title"]) > 1:
+            problems.append(
+                f"family slug {slug!r} has {len(record['publisher'])} publisher(s) "
+                f"{sorted(record['publisher'])} and {len(record['title'])} title(s) "
+                f"{sorted(record['title'])} across {len(record['files'])} Model document(s); "
+                "one family slug means one publisher and one title"
+            )
+    return problems
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    args = parser.parse_args(argv)
+    problems = check(args.root)
+    for problem in problems:
+        print(problem, file=sys.stderr)
+    if problems:
+        print(f"check-model-families: {len(problems)} problem(s)", file=sys.stderr)
+        return 1
+    print("check-model-families: every family is one consistent lineage")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -276,7 +276,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "754ed3c9b23539d0772ca6c5edf323318dee812194d85b898ab12b043be2de1b",
+        "content_sha256": "7392c13353aea5db2cf285f6b11b038bceeb0b03fed898ac2e768876db622cda",
         "kind": "model",
         "publisher": "aday777",
         "slug": "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"

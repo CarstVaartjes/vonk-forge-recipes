@@ -30,9 +30,9 @@
   },
   "identity": {
     "family": {
-      "publisher": "antirez",
-      "slug": "deepseek-v4-flash-ds4-gguf",
-      "title": "DeepSeek V4 Flash ds4 GGUFs"
+      "publisher": "deepseek-ai",
+      "slug": "deepseek-flash",
+      "title": "DeepSeek Flash"
     },
     "model": {
       "publisher": "antirez",
