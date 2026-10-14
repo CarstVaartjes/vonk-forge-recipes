@@ -12,6 +12,11 @@ protocol. Reasoning tags (``<think>``) in ``content`` are functional only for a
 recipe that enables a reasoning parser, whose job is to strip them (``A323``,
 ``A391``). A recipe without one serves the model's raw output, which is valid
 but unparsed, so its ``*_UNPARSED`` variant reports leaked tags as quality.
+
+``raw.not-contains`` reads the text the user receives (each choice's content,
+reasoning, completion text and tool-call arguments), not server metadata such as
+SGLang's ``matched_stop`` naming the stop token; only a body that is not a JSON
+object is read raw.
 """
 
 from __future__ import annotations

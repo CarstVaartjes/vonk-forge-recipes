@@ -218,6 +218,66 @@ def test_the_assertion_kinds_of_the_reviewed_cases() -> None:
             check_assertions(response, json.dumps(response), [bad])
 
 
+LEAK = {"kind": "raw.not-contains", "values": ["<|", "<think>", "</think>"]}
+
+
+def _chat(message: dict[str, object], **choice: object) -> dict[str, object]:
+    return {
+        "object": "chat.completion",
+        "choices": [{"index": 0, "message": message, **choice}],
+    }
+
+
+def test_a_stop_token_named_in_server_metadata_is_not_a_leak() -> None:
+    """SGLang names the stop it matched; the answer itself is clean (phi-4, A323)."""
+    response = _chat(
+        {
+            "role": "assistant",
+            "content": "The product of 17 multiplied by 19 is 323.",
+            "reasoning_content": None,
+            "tool_calls": None,
+        },
+        finish_reason="stop",
+        matched_stop="<|end|>",
+        provider_specific_fields={"matched_stop": "<|end|>"},
+    )
+    check_assertions(response, json.dumps(response), [LEAK])
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        {"content": "323<|im_end|>"},
+        {"content": "<think>17 times 19</think>323"},
+        {"content": "323", "reasoning_content": "<|channel>analysis"},
+        {"content": [{"type": "text", "text": "323<|end|>"}]},
+        {
+            "content": None,
+            "tool_calls": [{"function": {"name": "f", "arguments": "<|im_end|>"}}],
+        },
+    ],
+)
+def test_a_token_in_the_text_the_user_receives_still_fails(
+    message: dict[str, object],
+) -> None:
+    response = _chat({"role": "assistant", **message})
+    with pytest.raises(AssertionFailed, match="raw.not-contains"):
+        check_assertions(response, json.dumps(response), [LEAK])
+
+
+def test_completion_text_is_checked_too() -> None:
+    response = {"choices": [{"text": "323</think>"}]}
+    with pytest.raises(AssertionFailed):
+        check_assertions(response, json.dumps(response), [LEAK])
+
+
+def test_a_body_that_is_not_a_json_object_is_checked_raw() -> None:
+    raw = "323<|im_end|> not json"
+    with pytest.raises(AssertionFailed):
+        check_assertions(None, raw, [LEAK])
+    check_assertions(None, "323 and nothing else", [LEAK])
+
+
 # -- the reviewed definitions ----------------------------------------------------------------
 
 
