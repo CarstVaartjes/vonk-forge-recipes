@@ -310,10 +310,10 @@
             {
               "name": "gpu-memory-utilization",
               "setting": null,
-              "value": "0.85"
+              "value": "0.70"
             }
           ],
-          "help": "--gpu-memory-utilization 0.85; upstream estimates about 740K KV tokens (not measured).",
+          "help": "--gpu-memory-utilization 0.85; upstream estimates about 740K KV tokens (not measured). Capped at 0.70 (was 0.85): with the draft-model allowance no larger budget fits one Spark.",
           "label": "0.85",
           "value": "util-085"
         },
@@ -322,7 +322,7 @@
             {
               "name": "gpu-memory-utilization",
               "setting": null,
-              "value": "0.86"
+              "value": "0.70"
             },
             {
               "name": "max-num-batched-tokens",
@@ -330,7 +330,7 @@
               "value": 16384
             }
           ],
-          "help": "GPU utilization 0.86 for GB10 unified-memory headroom; smaller KV pool than the upstream memory profile; other choice flags retained.",
+          "help": "GPU utilization 0.86 for GB10 unified-memory headroom; smaller KV pool than the upstream memory profile; other choice flags retained. Capped at 0.70 (was 0.86): with the draft-model allowance no larger budget fits one Spark.",
           "label": "0.86 + 16384 batched tokens",
           "value": "util-088"
         }

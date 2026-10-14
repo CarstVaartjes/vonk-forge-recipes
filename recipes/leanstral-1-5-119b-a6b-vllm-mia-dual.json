@@ -348,9 +348,14 @@
               "name": "speculative-config",
               "setting": null,
               "value": "{\"model\":\"/models/eagle\",\"num_speculative_tokens\":3,\"method\":\"eagle\",\"max_model_len\":\"65536\"}"
+            },
+            {
+              "name": "gpu-memory-utilization",
+              "setting": null,
+              "value": "0.6"
             }
           ],
-          "help": "Experimental; upstream reports instability. The draft weights are mounted either way.",
+          "help": "Experimental; upstream reports instability. The draft weights are mounted either way. Runs at gpu-memory-utilization 0.6: the draft model holds memory outside that budget.",
           "label": "EAGLE 3 tokens",
           "value": "eagle"
         }
