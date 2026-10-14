@@ -442,9 +442,8 @@
           "value": 1
         },
         {
-          "kind": "path.regex",
-          "path": "choices.0.message.content",
-          "value": "^\\s*-?[0-9]+\\s*$"
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
         },
         {
           "kind": "path.equals",
@@ -464,8 +463,14 @@
         {
           "kind": "path.regex",
           "path": "choices.0.message.content",
-          "value": "^\\s*323\\s*$",
+          "value": "[\\s\\S]*(?<![-0-9])323(?![0-9])[\\s\\S]*",
           "expected": "323"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*-?[0-9]+\\s*$",
+          "expected": "only the integer in content"
         }
       ]
     },

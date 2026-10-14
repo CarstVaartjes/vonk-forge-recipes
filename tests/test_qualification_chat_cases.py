@@ -8,6 +8,7 @@ thinking off in the request and leave room to pass if a model ignores it.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -63,14 +64,30 @@ def test_a_generic_chat_case_can_still_pass_when_a_model_ignores_the_switch(
     assert TEMPLATES[case]["body"]["max_tokens"] >= 256
 
 
-@pytest.mark.parametrize("case", ["A391", "A323", "V_RED", "V7"])
-def test_the_expected_answer_stays_strictly_matched_as_quality(case: str) -> None:
-    regexes = [
-        a
+def _content_regexes(case: str) -> list[str]:
+    return [
+        a["value"]
         for a in TEMPLATES[case]["quality_assertions"]
         if a["kind"] == "path.regex" and a["path"] == "choices.0.message.content"
     ]
-    assert len(regexes) == 1 and regexes[0]["value"].startswith("^")
+
+
+@pytest.mark.parametrize("case", ["A391", "V_RED", "V7"])
+def test_the_expected_answer_stays_strictly_matched_as_quality(case: str) -> None:
+    regexes = _content_regexes(case)
+    assert len(regexes) == 1 and regexes[0].startswith("^")
+
+
+@pytest.mark.parametrize(
+    ("content", "clean"),
+    [("323", True), (" 323\n", True), ("It is 323.", False), ("-323", False)],
+)
+def test_a323_notes_anything_but_the_bare_answer(content: str, clean: bool) -> None:
+    """A correct answer in prose is noted for format; only the bare answer is clean."""
+    holds = [
+        re.fullmatch(value, content) is not None for value in _content_regexes("A323")
+    ]
+    assert all(holds) is clean
 
 
 @pytest.mark.parametrize("case", ["A391", "A323"])
