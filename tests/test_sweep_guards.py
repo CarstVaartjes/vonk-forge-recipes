@@ -401,6 +401,7 @@ def test_verdict_codes_match_the_published_enums() -> None:
     used = {
         verdict.PHASE_RETRY,
         verdict.FAILURE_REPEATED,
+        verdict.STALLED_CODE,
         *verdict.PREPARATION_CODES,
         *verdict.CLIENT_WAIT_DECISIONS,
     }

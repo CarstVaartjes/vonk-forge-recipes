@@ -51,6 +51,9 @@ class Disposition(StrEnum):
 PHASE_RETRY = "run-switch.phase-retry"
 #: ProfileReasonCode.FAILURE_REPEATED: the Controller stopped retrying a failed application.
 FAILURE_REPEATED = "profile.failure_repeated"
+#: ProgressAlarmCode.STALLED: the Controller saw the same wait repeat with nothing moving.
+#: A platform problem, never the recipe's: the lane is released and the sweep pauses.
+STALLED_CODE = "progress.stalled"
 #: Blockers that name a preparation (build, image, download, install) the Controller runs.
 PREPARATION_CODES = frozenset(
     {
@@ -80,7 +83,11 @@ UNATTRIBUTED = "unattributed"
 WAIT_CLASSES = frozenset({SMOKE_BUSY, CLIENT_CREDENTIAL})
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport
 #: error after its own retries: the cause is uncertain, so it is observed once more.
-OBSERVE_CLASSES = frozenset({"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED})
+#: The Controller reports the lane's application as stalled (``STALLED_CODE``).
+PLATFORM_STALLED = "platform-stalled"
+OBSERVE_CLASSES = frozenset(
+    {"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED, PLATFORM_STALLED}
+)
 #: A job recipe's smoke job ended failed and the Controller names no platform cause.
 JOB_FAILED = "job-failed"
 FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
@@ -137,7 +144,9 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
     progress = progress if isinstance(progress, Mapping) else {}
     state = str(document.get("state") or "")
     held = [
-        code for code in _blocker_codes(document, holding=True) if code != PHASE_RETRY
+        code
+        for code in _blocker_codes(document, holding=True)
+        if code not in (PHASE_RETRY, STALLED_CODE)
     ]
     waiting_on: str | None = None
     if state in ("queued", "backoff"):
@@ -151,6 +160,18 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
     elif document.get("next_attempt_at") or progress.get("retry_due_at"):
         waiting_on = "controller retry"
     return Signal(tuple(activity(document)), waiting_on)
+
+
+def stalled_detail(document: Mapping[str, Any]) -> str | None:
+    """The Controller's stalled-work alarm on an application, or ``None`` (absent: no stall)."""
+    progress = document.get("progress")
+    held = document.get("blockers") or (
+        progress.get("blockers") if isinstance(progress, Mapping) else None
+    )
+    for item in held or []:
+        if isinstance(item, Mapping) and item.get("code") == STALLED_CODE:
+            return str(item.get("detail") or STALLED_CODE)
+    return None
 
 
 def download_signal(document: Mapping[str, Any]) -> Signal:

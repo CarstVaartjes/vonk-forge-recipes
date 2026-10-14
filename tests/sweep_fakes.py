@@ -258,6 +258,7 @@ class FakeFleet:
         self.worker_source_sha: str | None = "a" * 40
         self.worker_contract_sha256: str | None = "d" * 64
         self.worker_instance = "e" * 64
+        self.stalled_applications: list[dict[str, Any]] | None = None
         self.platform_observation_age = 0.0
         self.worker_observation_age = 0.0
         self.worker_issue: str | None = None
@@ -831,6 +832,12 @@ class FakeFleet:
                 }
             ],
             "worker_issue": self.worker_issue,
+            # Additive (vonk-forge #1495): omitted unless a test sets it, like an older Controller.
+            **(
+                {"stalled_applications": self.stalled_applications}
+                if self.stalled_applications is not None
+                else {}
+            ),
         }
 
     def _fleet(self) -> dict[str, Any]:
