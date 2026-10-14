@@ -1,5 +1,6 @@
 """vLLM's GPU budget excludes unified-memory overhead on each GB10 node."""
 
+import json
 from decimal import Decimal
 from pathlib import Path
 
@@ -14,6 +15,58 @@ SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
 OVERHEAD_BYTES = 8_000_000_000
 OS_FLOOR_BYTES = 6_000_000_000
 VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
+# A separately loaded speculative draft model (DFlash, DSpark, EAGLE, an external
+# MTP checkpoint) holds memory outside `gpu-memory-utilization`. Calibrated from
+# qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single on a GB10 (2026-10-13): at 0.7 it
+# drove ~116.4e9 bytes attributable to the run (121e9 used less 4.6e9 idle) within
+# twelve minutes and froze the Spark, 17e9 above 0.7 x memory + 8e9. That sample
+# was still climbing, so this is a floor; the sweep's memory-envelope note refines it.
+DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
+# Draft-model recipes whose weights leave no KV room once the draft overhead is
+# counted on a fitting envelope: each needs its creator (more Sparks, a smaller
+# context or drafter). They keep their current envelope until then; the entry
+# goes stale, and fails, as soon as the recipe fits.
+PENDING_CREATOR = frozenset(
+    {
+        "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",
+        "glm-5-3-flash-exl3-dflash2-vllm-dual",
+        "glm-5-3-flash-exl3-k2-0xsero-vllm-single",
+        "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
+        "inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual",
+        "laguna-s-2-1-nvfp4-dflash-vllm-mia-single",
+        "mimo-v2-6-flash-rl-vllm-dual",
+        "minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual",
+        "nemotron-3-super-120b-a12b-vllm-single",
+    }
+)
+
+
+def loads_draft_model(recipe: RecipeDefinition) -> bool:
+    """Whether the speculative config names a model other than the served target."""
+    arguments = recipe.runtime.arguments
+    served = set(recipe.runtime.entrypoint) | {
+        str(item.value) for item in arguments if item.name == "model"
+    }
+    for argument in arguments:
+        if argument.name != "speculative-config":
+            continue
+        config = argument.value
+        if isinstance(config, str):
+            try:
+                config = json.loads(config)
+            except json.JSONDecodeError:
+                continue  # "None" switches speculation off
+        draft = config.get("model") if isinstance(config, dict) else None
+        if draft is not None and str(draft) not in served:
+            return True
+    return False
+
+
+def non_utilization_bytes(recipe: RecipeDefinition) -> int:
+    """Memory a vLLM node holds beside its `gpu-memory-utilization` budget."""
+    if loads_draft_model(recipe):
+        return OVERHEAD_BYTES + DRAFT_MODEL_OVERHEAD_BYTES
+    return OVERHEAD_BYTES
 
 
 def assert_memory_fit(recipe: RecipeDefinition) -> None:
@@ -28,7 +81,7 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
         assert argument.setting is None, "Memory utilization must be a fixed budget"
         utilization = Decimal(str(argument.value))
     assert 0 < utilization <= 1
-    required_peak = utilization * SPARK_MEMORY_BYTES + OVERHEAD_BYTES
+    required_peak = utilization * SPARK_MEMORY_BYTES + non_utilization_bytes(recipe)
     for role in recipe.topology.roles:
         memory = role.resources.memory
         label = f"{recipe.identity.slug}/{role.name} at utilization {utilization}"
@@ -46,7 +99,7 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
 )
 def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
     recipe = RecipeDefinition.model_validate_json(path.read_text())
-    if recipe.runtime.engine != "vllm":
+    if recipe.runtime.engine != "vllm" or path.stem in PENDING_CREATOR:
         return
     assert_memory_fit(recipe)
     # Options cannot share an argument name, so each utilization override is
@@ -93,3 +146,66 @@ def test_guard_rejects_unsafe_envelopes(defect: str) -> None:
         ]
     with pytest.raises(AssertionError):
         assert_memory_fit(recipe)
+
+
+@pytest.mark.parametrize("slug", sorted(PENDING_CREATOR))
+def test_pending_creator_recipes_still_need_their_creator(slug: str) -> None:
+    path = ROOT / "recipes" / f"{slug}.json"
+    assert path.exists(), f"{slug} is gone; remove it from PENDING_CREATOR"
+    recipe = RecipeDefinition.model_validate_json(path.read_text())
+    assert loads_draft_model(recipe)
+    with pytest.raises(AssertionError):
+        assert_memory_fit(recipe)
+
+
+def _incident_recipe() -> RecipeDefinition:
+    return RecipeDefinition.model_validate_json(
+        (ROOT / "recipes/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single.json").read_text()
+    )
+
+
+def _with_utilization(recipe: RecipeDefinition, value: str) -> None:
+    for item in recipe.runtime.arguments:
+        if item.name == "gpu-memory-utilization":
+            item.value = value
+
+
+def test_draft_model_overhead_rejects_the_frozen_envelope() -> None:
+    """0.7 with peak 0.7 x memory + 8e9 froze a Spark; the guard must refuse it."""
+    recipe = _incident_recipe()
+    assert loads_draft_model(recipe)
+    _with_utilization(recipe, "0.7")
+    recipe.topology.roles[0].resources.memory.peak_bytes = 99_464_262_042
+    with pytest.raises(AssertionError):
+        assert_memory_fit(recipe)
+
+
+def test_draft_model_overhead_caps_utilization() -> None:
+    """With the draft term no honest peak fits a Spark at the old 0.85."""
+    recipe = _incident_recipe()
+    _with_utilization(recipe, "0.85")
+    recipe.topology.roles[0].resources.memory.peak_bytes = 120_600_000_000
+    with pytest.raises(AssertionError):
+        assert_memory_fit(recipe)
+
+
+def test_target_only_speculation_keeps_the_plain_overhead() -> None:
+    """Native MTP (no separate model) and no speculation use the plain 8e9 term."""
+    recipe = _incident_recipe()
+    for item in recipe.runtime.arguments:
+        if item.name == "speculative-config":
+            item.value = '{"method":"mtp","num_speculative_tokens":2}'
+    assert not loads_draft_model(recipe)
+    assert non_utilization_bytes(recipe) == OVERHEAD_BYTES
+    recipe.runtime.arguments = [
+        item for item in recipe.runtime.arguments if item.name != "speculative-config"
+    ]
+    assert non_utilization_bytes(recipe) == OVERHEAD_BYTES
+
+
+def test_self_referencing_draft_is_not_a_second_model() -> None:
+    recipe = _incident_recipe()
+    for item in recipe.runtime.arguments:
+        if item.name == "speculative-config":
+            item.value = '{"method":"deepseek_mtp","model":"/models/target"}'
+    assert not loads_draft_model(recipe)

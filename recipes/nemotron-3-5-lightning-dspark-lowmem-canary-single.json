@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Physical-OOM-gated single-Spark canary pairing NVIDIA's exact Nemotron 3.5 Lightning NVFP4 target with its official DSpark companion. It preserves speculative decoding and the OpenAI reasoning/tool surface while reducing the specialized profile from 1M to 256K context, bounding the FP8 KV cache to 4 GB, serving one sequence with 4K chunked prefills, using the supported FP16 Mamba state cache, and enforcing eager execution. Its 126 GB admission envelope is an unaccepted canary hypothesis; retain the original 1M latency profile and use the preferred target-only recipe until physical startup, memory, acceptance-rate, latency, and output-equivalence checks pass. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced.",
+    "description": "Physical-OOM-gated single-Spark canary pairing NVIDIA's exact Nemotron 3.5 Lightning NVFP4 target with its official DSpark companion. It preserves speculative decoding and the OpenAI reasoning/tool surface while reducing the specialized profile from 1M to 256K context, bounding the FP8 KV cache to 4 GB, serving one sequence with 4K chunked prefills, using the supported FP16 Mamba state cache, and enforcing eager execution. Its 126 GB admission envelope is an unaccepted canary hypothesis; retain the original 1M latency profile and use the preferred target-only recipe until physical startup, memory, acceptance-rate, latency, and output-equivalence checks pass. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.85) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
     "tags": [
       "candidate",
       "executable",
@@ -939,7 +939,7 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": "0.85"
+        "value": "0.6"
       }
     ],
     "engine": "vllm",
@@ -997,7 +997,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 103397938893,
             "reserve_bytes": 8000000000
           }
         }
