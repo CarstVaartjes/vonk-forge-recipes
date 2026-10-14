@@ -87,11 +87,22 @@ def test_a_wrong_answer_passes_the_functional_check_and_misses_quality(
     case: str, wrong: dict[str, Any], right: dict[str, Any]
 ) -> None:
     _functional(case, wrong)
-    [miss] = _quality(case, wrong)
-    assert miss["ok"] is False and miss["case"] == case and miss["got"]
+    [miss] = [note for note in _quality(case, wrong) if not note["ok"]]
+    assert miss["case"] == case and miss["got"]
     _functional(case, right)
-    [hit] = _quality(case, right)
-    assert hit["ok"] is True and hit["expected"]
+    hits = _quality(case, right)
+    assert hits and all(hit["ok"] and hit["expected"] for hit in hits)
+
+
+def test_a_correct_answer_in_prose_runs_with_a_format_note() -> None:
+    """phi-4-multimodal-instruct (sglang) answered A323 in a sentence: it runs."""
+    phi4 = _chat("The product of 17 multiplied by 19 is 323.")
+    _functional("A323", phi4)
+    notes = _quality("A323", phi4)
+    assert [(n["expected"], n["ok"]) for n in notes] == [
+        ("323", True),
+        ("only the integer in content", False),
+    ]
 
 
 @pytest.mark.parametrize(
@@ -102,6 +113,9 @@ def test_a_wrong_answer_passes_the_functional_check_and_misses_quality(
         ("A391", _chat(None)),
         ("A391", _chat("391", reasoning_content="<think>x</think>")),
         ("A323", _chat("323 <|im_end|>")),
+        ("A323", _chat("")),
+        ("A323", _chat(None)),
+        ("A323", _chat("323", reasoning_content="<think>x</think>")),
         ("V_RED", _chat("it is red and green")),
         ("V7", _chat("seven")),
         ("T_REPORT", _tool_call("report_temperature", "{}")),
