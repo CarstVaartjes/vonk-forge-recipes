@@ -2,7 +2,8 @@
   "source": {
     "RunSwitchCode": "https://github.com/CarstVaartjes/vonk-forge/blob/265c24111333757636d616c4e3e46880fd1008e2/agent_protocol/src/vonk_agent_protocol/reason_codes/runs.py",
     "ProfileReasonCode": "https://github.com/CarstVaartjes/vonk-forge/blob/265c24111333757636d616c4e3e46880fd1008e2/agent_protocol/src/vonk_agent_protocol/reason_codes/profiles.py",
-    "ErrorDecision": "https://github.com/CarstVaartjes/vonk-forge/blob/265c24111333757636d616c4e3e46880fd1008e2/src/cluster_profiles/error_reporting.py"
+    "ErrorDecision": "https://github.com/CarstVaartjes/vonk-forge/blob/265c24111333757636d616c4e3e46880fd1008e2/src/cluster_profiles/error_reporting.py",
+    "ProgressAlarmCode": "https://github.com/CarstVaartjes/vonk-forge/blob/bbd1d43c2673c7aee7675d8975c429435a986420/control/src/vonk_control/operation_blockers.py"
   },
   "RunSwitchCode": [
     "run-switch.active-run-conflict",
@@ -244,5 +245,8 @@
     "defer",
     "exit",
     "retry"
+  ],
+  "ProgressAlarmCode": [
+    "progress.stalled"
   ]
 }
