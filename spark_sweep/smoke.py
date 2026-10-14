@@ -107,12 +107,63 @@ def _path(value: Any, path: str) -> Any:
     return current
 
 
+_VISIBLE_FIELDS = ("content", "reasoning_content", "reasoning")
+
+
+def _texts(value: Any) -> list[str]:
+    """A text field as strings: plain, or the ``text`` of each content part."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, list):
+        return [
+            part["text"]
+            for part in value
+            if isinstance(part, dict) and isinstance(part.get("text"), str)
+        ]
+    return []
+
+
+def visible_text(response: Any, raw: str) -> list[str]:
+    """What the user receives: the generated text of every choice.
+
+    ``raw.not-contains`` guards against template and reasoning tokens leaking into
+    the answer. Server metadata (``matched_stop`` naming the stop token, say) is
+    not the answer, so a parsed body is read field by field; a body that is not a
+    JSON object has no fields, and then the raw text is all there is.
+    """
+    if not isinstance(response, dict):
+        return [raw]
+    texts: list[str] = []
+    choices = response.get("choices")
+    for choice in choices if isinstance(choices, list) else []:
+        if not isinstance(choice, dict):
+            continue
+        texts += _texts(choice.get("text"))
+        for part in ("message", "delta"):
+            message = choice.get(part)
+            if not isinstance(message, dict):
+                continue
+            for name in _VISIBLE_FIELDS:
+                texts += _texts(message.get(name))
+            calls = message.get("tool_calls")
+            for call in calls if isinstance(calls, list) else []:
+                function = call.get("function") if isinstance(call, dict) else None
+                if isinstance(function, dict):
+                    texts += _texts(function.get("arguments"))
+    return texts
+
+
 def _evaluate(response: Any, raw: str, assertion: dict[str, Any]) -> tuple[bool, Any]:
     """Whether one assertion holds, and the value it looked at."""
     kind = assertion.get("kind")
     if kind == "raw.not-contains":
+        texts = visible_text(response, raw)
         hit = next(
-            (v for v in assertion.get("values", []) if isinstance(v, str) and v in raw),
+            (
+                v
+                for v in assertion.get("values", [])
+                if isinstance(v, str) and any(v in text for text in texts)
+            ),
             None,
         )
         return hit is None, hit
@@ -164,7 +215,7 @@ def check_assertions(response: Any, raw: str, assertions: list[dict[str, Any]]) 
             continue
         if assertion.get("kind") == "raw.not-contains":
             raise AssertionFailed(
-                f"raw.not-contains: response contains {value!r}",
+                f"raw.not-contains: response text contains {value!r}",
                 value,
                 "raw.not-contains",
             )
