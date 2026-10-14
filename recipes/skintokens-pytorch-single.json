@@ -124,7 +124,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4833697faacb1957bafef238e6a7e0cfdfa2867ba33d52fadfd1b54a2ae9524a",
+        "content_sha256": "d0a9359ce92499d231fda42fe9f78cec4cf9ede799e623688de548e8f6dfeb82",
         "kind": "model",
         "publisher": "vast-ai",
         "slug": "skintokens"
