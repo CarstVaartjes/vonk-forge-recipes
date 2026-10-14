@@ -1,7 +1,7 @@
-FROM docker.io/eugr/spark-vllm@sha256:d33f2b78ef6b4f11447521a3e496a0711bbd2ac9bb3ff8802a27ab757de9637a
+FROM docker.io/eugr/spark-vllm@sha256:7094664bb85abf28be8cc5d678d8fc2a954160479d31f3a8402d394f74eb5dca
 
 LABEL org.opencontainers.image.source="https://github.com/eugr/spark-vllm-docker" \
-      org.opencontainers.image.revision="0b8c440a88af0e89f6c8871eb1295a31d26f4558" \
+      org.opencontainers.image.revision="2f340b6d79c60bf59820acb1868e8d0e0d4cb695" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
 # eugr's published vllm-node image (nightly-20260929). Its /workspace/build-metadata.yaml records
