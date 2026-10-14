@@ -53,7 +53,33 @@ def test_a_wrong_but_well_formed_answer_runs_with_a_quality_note(
     line = _smoke_line(tmp_path)
     assert line["status"] == "passed"
     assert line["result"]["quality"] == [
-        {"case": "A391", "expected": "391", "got": "305", "ok": False}
+        {"case": "A391", "expected": "391", "got": "305", "ok": False},
+        {
+            "case": "A391",
+            "expected": "only the integer in content",
+            "got": "305",
+            "ok": True,
+        },
+    ]
+
+
+def test_a_correct_answer_in_prose_runs_with_a_format_note(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    gateway.messages["a"] = {"content": "The answer is 391"}
+    sweep, _, _ = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    sweep.run()
+    entry = _entry(sweep)
+    assert entry["status"] == "passed"
+    assert entry["quality"] == [
+        {
+            "case": "A391",
+            "expected": "only the integer in content",
+            "got": "The answer is 391",
+            "ok": False,
+        }
     ]
 
 
@@ -92,19 +118,18 @@ def test_the_expected_answer_leaves_no_note(tmp_path: Path, gateway: Gateway) ->
     sweep.run()
     assert _entry(sweep)["status"] == "passed"
     assert "quality" not in _entry(sweep)
-    [check] = _smoke_line(tmp_path)["result"]["quality"]
-    assert check["ok"] is True
+    checks = _smoke_line(tmp_path)["result"]["quality"]
+    assert checks and all(check["ok"] is True for check in checks)
 
 
 @pytest.mark.parametrize(
     "message",
     [
-        {"content": "The answer is 391"},
         {"content": ""},
         {"content": None},
         {"content": "391", "reasoning_content": "<think>working it out</think>"},
     ],
-    ids=["prose", "empty", "no-content", "leaked-think-tag"],
+    ids=["empty", "no-content", "leaked-think-tag"],
 )
 def test_a_malformed_or_leaking_reply_still_fails_the_recipe(
     tmp_path: Path, gateway: Gateway, message: dict
@@ -208,7 +233,7 @@ def test_a_recipe_that_failed_on_an_answer_under_the_old_rules_is_requeued(
 def test_a_functional_failure_under_the_new_rules_is_not_requeued_again(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    gateway.messages["a"] = {"content": "no number here"}
+    gateway.messages["a"] = {"content": ""}
     recipe = FakeRecipe("a")
     sweep, fleet, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], gateway=gateway)
     sweep.run()

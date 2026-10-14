@@ -72,20 +72,45 @@ def _content_regexes(case: str) -> list[str]:
     ]
 
 
-@pytest.mark.parametrize("case", ["A391", "V_RED", "V7"])
-def test_the_expected_answer_stays_strictly_matched_as_quality(case: str) -> None:
-    regexes = _content_regexes(case)
-    assert len(regexes) == 1 and regexes[0].startswith("^")
+FORMAT_NOTED = ["A391", "A323", "NEM_A391_OFF", "NEM_REASON", "V_RED", "V7", "LFM_OCR"]
+
+
+@pytest.mark.parametrize("case", FORMAT_NOTED)
+def test_the_answer_format_stays_strictly_matched_as_quality(case: str) -> None:
+    [answer, format_note] = _content_regexes(case)
+    assert format_note.startswith("^") and format_note.endswith("$")
+    assert not answer.startswith("^")
 
 
 @pytest.mark.parametrize(
-    ("content", "clean"),
-    [("323", True), (" 323\n", True), ("It is 323.", False), ("-323", False)],
+    ("case", "content", "clean"),
+    [
+        ("A323", "323", True),
+        ("A323", " 323\n", True),
+        ("A323", "It is 323.", False),
+        ("A323", "-323", False),
+        ("A391", "391", True),
+        ("A391", "3910", False),
+        ("NEM_A391_OFF", "391", True),
+        ("NEM_A391_OFF", "1391", False),
+        ("NEM_REASON", " 391 ", True),
+        ("NEM_REASON", "-391", False),
+        ("V_RED", "red", True),
+        ("V_RED", "red.", True),
+        ("V_RED", "it is red", False),
+        ("V_RED", "redder", False),
+        ("V7", "7", True),
+        ("V7", "77", False),
+        ("LFM_OCR", "7", True),
+        ("LFM_OCR", "17", False),
+    ],
 )
-def test_a323_notes_anything_but_the_bare_answer(content: str, clean: bool) -> None:
+def test_only_the_bare_answer_leaves_no_note(
+    case: str, content: str, clean: bool
+) -> None:
     """A correct answer in prose is noted for format; only the bare answer is clean."""
     holds = [
-        re.fullmatch(value, content) is not None for value in _content_regexes("A323")
+        re.fullmatch(value, content) is not None for value in _content_regexes(case)
     ]
     assert all(holds) is clean
 
