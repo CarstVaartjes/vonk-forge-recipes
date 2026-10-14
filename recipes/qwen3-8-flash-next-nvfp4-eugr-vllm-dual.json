@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "3d60b3549296ac75ca9e92baff4101354219493d034426f5db6ccc3e5ad7fad0",
+        "digest": "6f2e3fd4b550c9e77672c09278f61e6c7d84246a61d4fe535444a13493dbb025",
         "repository": "docker.io/eugr/spark-vllm-b12x"
       },
       "context": {
@@ -709,11 +709,11 @@
       "vLLM contributors (Apache-2.0)",
       "b12x (lukealonso)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/eadf57da73953fe71326dbd10ef45fc793625cf2"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/0b8c440a88af0e89f6c8871eb1295a31d26f4558"
   },
   "release": {
-    "released_at": "2026-10-13",
-    "version": "1.0.1"
+    "released_at": "2026-10-14",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
