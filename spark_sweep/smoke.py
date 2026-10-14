@@ -4,7 +4,8 @@
   token and tokens per second, then the recipe's reviewed qualification cases
   run with their assertions (image cases carry their small PNG fixture);
 * generation and other non-OpenAI recipes: readiness only (the run is healthy
-  and its route published), recorded as such.
+  and its route published), recorded as such;
+* job recipes (``*-job``): one artifact job against the held run (``smoke_job``).
 
 Requests go to the gateway endpoint ``vonkctl profile endpoint`` reports,
 with the operator's client key.
@@ -60,7 +61,7 @@ class HttpConfig:
 @dataclass
 class SmokeResult:
     ok: bool
-    kind: str  # service | readiness-only
+    kind: str  # service | readiness-only | job
     cases: list[dict[str, Any]] = field(default_factory=list)
     perf: dict[str, Any] | None = None
     failure: Failure | None = None

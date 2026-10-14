@@ -11,6 +11,7 @@ with success and failure, and the fleet's loaded runs.
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import re
@@ -277,6 +278,10 @@ class FakeFleet:
         self.assessments = False
         # recipe key -> when the Controller stops holding it (see FakeRecipe.blocked_for)
         self.held_until: dict[str, float] = {}
+        # Artifact jobs by create request key, and every ``recipe job`` step seen.
+        self.jobs: dict[str, dict[str, Any]] = {}
+        self.job_calls: list[tuple[str, str]] = []
+        self.job_output = b""
 
     # -- helpers -------------------------------------------------------------
 
@@ -547,9 +552,56 @@ class FakeFleet:
             return self._retry_download(a)
         if noun == "recipe" and verb == "progress":
             return self._op_progress(a)
+        if noun == "recipe" and verb == "job":
+            return self._recipe_job(a[2:])
         if noun == "profile":
             return self._profile(profile, verb, a[2:])
         return self._error("unsupported", " ".join(a))
+
+    # -- artifact jobs -----------------------------------------------------------
+
+    def _recipe_job(self, a: list[str]) -> tuple[int, Any]:
+        """``vonkctl recipe job``: a job succeeds on submit with the fixture PNG as its output."""
+        action = a[0]
+        if action == "create":
+            run_id = a[a.index("--run") + 1]
+            key = a[a.index("--request-key") + 1]
+            job = self.jobs.setdefault(
+                key,
+                {
+                    "id": self._id("job"),
+                    "run_id": run_id,
+                    "state": None,
+                    "preparation": "ready",
+                },
+            )
+            self.job_calls.append(("create", job["id"]))
+            return 0, job
+        job = next(j for j in self.jobs.values() if j["id"] == a[1])
+        self.job_calls.append((action, job["id"]))
+        if action == "submit":
+            content = (ROOT / "qualification/fixtures/digit7.png.b64").read_bytes()
+            self.job_output = base64.b64decode(content)
+            job.update(
+                state="succeeded",
+                preparation=None,
+                output_files=[
+                    {
+                        "name": "out.png",
+                        "media_type": "image/png",
+                        "size_bytes": len(self.job_output),
+                        "sha256": hashlib.sha256(self.job_output).hexdigest(),
+                    }
+                ],
+            )
+        if action == "download":
+            path = Path(a[a.index("--output") + 1]) / "out.png"
+            path.write_bytes(self.job_output)
+            return 0, {
+                "job_id": job["id"],
+                "files": [{"name": "out.png", "path": str(path)}],
+            }
+        return 0, job
 
     # -- libraries -------------------------------------------------------------
 
@@ -791,7 +843,10 @@ class FakeFleet:
                     "alias": run["alias"],
                     "run_id": run["run_id"],
                     "healthy": run["ready"],
-                    "route_state": "published" if run["ready"] else "pending",
+                    # A held job run serves with its route withdrawn (vonk-forge #1494).
+                    "route_state": ("withdrawn" if _is_job(self, run) else "published")
+                    if run["ready"]
+                    else "pending",
                     "run_state": "running" if run["ready"] else "starting",
                 }
                 for run in self.runs
@@ -1344,8 +1399,16 @@ class FakeFleet:
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _is_job(fleet: FakeFleet, run: dict[str, Any]) -> bool:
+    recipe = fleet.recipes.get(run.get("recipe", ""))
+    return recipe is not None and recipe.adapter.endswith("-job")
+
+
 def make_definitions(recipes: list[FakeRecipe]) -> Any:
-    """Definitions for fake recipes: the repository's real M0 and A391 service cases."""
+    """Definitions for fake recipes: the repository's real M0 and A391 service cases.
+
+    A job recipe gets one job: the digit PNG fixture in, one PNG out.
+    """
     from spark_sweep.definitions import Definitions
 
     shared = json.loads(
@@ -1359,7 +1422,27 @@ def make_definitions(recipes: list[FakeRecipe]) -> Any:
             for r in recipes
             if r.adapter == "openai"
         },
-        "recipes": {},
+        "recipes": {
+            r.key: {
+                "interface": r.adapter,
+                "parameters": {},
+                "inputs": [{"slot": "image", "fixture": "service-digit7-png"}],
+                "output_limits": {
+                    "max_files": 1,
+                    "max_file_bytes": 1048576,
+                    "max_total_bytes": 1048576,
+                    "allowed_media_types": ["image/png"],
+                },
+                "timeout_seconds": 300,
+                "assertions": [
+                    {"kind": "file-count", "exact": 1},
+                    {"kind": "format", "format": "png"},
+                    {"kind": "video-metadata", "media_type": "video/mp4"},
+                ],
+            }
+            for r in recipes
+            if r.adapter.endswith("-job")
+        },
     }
     return Definitions(document, ROOT / "qualification")
 

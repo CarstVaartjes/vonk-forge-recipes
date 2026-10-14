@@ -81,7 +81,9 @@ WAIT_CLASSES = frozenset({SMOKE_BUSY, CLIENT_CREDENTIAL})
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport
 #: error after its own retries: the cause is uncertain, so it is observed once more.
 OBSERVE_CLASSES = frozenset({"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED})
-FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data"})
+#: A job recipe's smoke job ended failed and the Controller names no platform cause.
+JOB_FAILED = "job-failed"
+FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
 #: The recipe left the complete catalog (``catalog.recipe_removed``): deterministic, so it is
 #: skipped at once; a recipe that comes back is picked up like any new one.
 SKIP_CLASSES = frozenset({"catalog"})
