@@ -413,7 +413,7 @@ def render_report(report: Mapping[str, Any]) -> str:
                 )
     skipped = [r for r in report["recipes"] if r["status"] == "skipped"]
     if skipped:
-        lines += ["", f"## Not testable on this fleet ({len(skipped)})"]
+        lines += ["", f"## Skipped ({len(skipped)})"]
         lines += [f"- {r['recipe']}: {r['reason']}" for r in skipped]
     return "\n".join(lines) + "\n"
 
