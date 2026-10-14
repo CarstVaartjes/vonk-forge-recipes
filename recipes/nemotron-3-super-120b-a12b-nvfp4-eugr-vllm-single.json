@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "155ce16b49007c8b00690dd4c7637c0c1eafbe909709c3175c4498325c01c1d8",
+        "digest": "d33f2b78ef6b4f11447521a3e496a0711bbd2ac9bb3ff8802a27ab757de9637a",
         "repository": "docker.io/eugr/spark-vllm"
       },
       "context": {
@@ -428,7 +428,7 @@
       "NVIDIA (Nemotron Open Model License)",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/ef086aea1252dc2db59ceef2f2db805656fc9ac5"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/0b8c440a88af0e89f6c8871eb1295a31d26f4558"
   },
   "release": {
     "released_at": "2026-10-13",
