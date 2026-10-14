@@ -63,8 +63,8 @@
           ]
         },
         {
-          "file_id": "readme-38073ec4faba-b335630551",
-          "id": "primary-readme-38073ec4faba-b335630551",
+          "file_id": "readme-c45c199a5774-b335630551",
+          "id": "primary-readme-c45c199a5774-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -83,8 +83,8 @@
           ]
         },
         {
-          "file_id": "config-b1ecb2697178-587cb980af",
-          "id": "primary-config-b1ecb2697178-587cb980af",
+          "file_id": "config-fffcfb4bd787-587cb980af",
+          "id": "primary-config-fffcfb4bd787-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -93,8 +93,8 @@
           ]
         },
         {
-          "file_id": "export-manifest-8a0b93599e3e-8a33c06b46",
-          "id": "primary-export-manifest-8a0b93599e3e-8a33c06b46",
+          "file_id": "export-manifest-e661248072f1-8a33c06b46",
+          "id": "primary-export-manifest-e661248072f1-8a33c06b46",
           "mount": {
             "target": "/models"
           },
@@ -103,8 +103,8 @@
           ]
         },
         {
-          "file_id": "generation-config-735ec63e625c-97dd3d578b",
-          "id": "primary-generation-config-735ec63e625c-97dd3d578b",
+          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "primary-generation-config-e70c136c1b78-97dd3d578b",
           "mount": {
             "target": "/models"
           },
@@ -113,8 +113,8 @@
           ]
         },
         {
-          "file_id": "hf-quant-config-d60c54caa653-a481ad90fa",
-          "id": "primary-hf-quant-config-d60c54caa653-a481ad90fa",
+          "file_id": "hf-quant-config-369953bc72fb-a481ad90fa",
+          "id": "primary-hf-quant-config-369953bc72fb-a481ad90fa",
           "mount": {
             "target": "/models"
           },
@@ -133,368 +133,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-00036-a786f7bc8721-d4683fb388",
-          "id": "primary-model-00001-of-00036-a786f7bc8721-d4683fb388",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00002-of-00036-0e4f57c90fa7-73e9e61995",
-          "id": "primary-model-00002-of-00036-0e4f57c90fa7-73e9e61995",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00003-of-00036-a6fdb45c7e2a-10641892b9",
-          "id": "primary-model-00003-of-00036-a6fdb45c7e2a-10641892b9",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00004-of-00036-bf3a6e32c3af-6525091a2f",
-          "id": "primary-model-00004-of-00036-bf3a6e32c3af-6525091a2f",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00005-of-00036-3a5968598ccd-537ab996af",
-          "id": "primary-model-00005-of-00036-3a5968598ccd-537ab996af",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00006-of-00036-cd1d451050a7-c8e2b48694",
-          "id": "primary-model-00006-of-00036-cd1d451050a7-c8e2b48694",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00007-of-00036-2cc89ec5c7c7-e4a4883218",
-          "id": "primary-model-00007-of-00036-2cc89ec5c7c7-e4a4883218",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00008-of-00036-185b71a1d00f-1c503a9977",
-          "id": "primary-model-00008-of-00036-185b71a1d00f-1c503a9977",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00009-of-00036-5c6310e89aad-4c01d685ab",
-          "id": "primary-model-00009-of-00036-5c6310e89aad-4c01d685ab",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00010-of-00036-e7bd40743d3d-b99091b4fb",
-          "id": "primary-model-00010-of-00036-e7bd40743d3d-b99091b4fb",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00011-of-00036-42b1346f6c66-5ae016dded",
-          "id": "primary-model-00011-of-00036-42b1346f6c66-5ae016dded",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00012-of-00036-bd5d5f790a27-98cde2d266",
-          "id": "primary-model-00012-of-00036-bd5d5f790a27-98cde2d266",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00013-of-00036-78d08c172fff-055818a03a",
-          "id": "primary-model-00013-of-00036-78d08c172fff-055818a03a",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00014-of-00036-27816478b50e-d09987ca39",
-          "id": "primary-model-00014-of-00036-27816478b50e-d09987ca39",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00015-of-00036-579c34fe21dc-588c7b1330",
-          "id": "primary-model-00015-of-00036-579c34fe21dc-588c7b1330",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00016-of-00036-4e452062ee8a-473e872fed",
-          "id": "primary-model-00016-of-00036-4e452062ee8a-473e872fed",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00017-of-00036-53ab970e36e8-44e9f3300a",
-          "id": "primary-model-00017-of-00036-53ab970e36e8-44e9f3300a",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00018-of-00036-3ea1419ac7be-10f52cfe47",
-          "id": "primary-model-00018-of-00036-3ea1419ac7be-10f52cfe47",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00019-of-00036-5521c100d927-b97879777d",
-          "id": "primary-model-00019-of-00036-5521c100d927-b97879777d",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00020-of-00036-8ad9a9d3c23c-8850ac913d",
-          "id": "primary-model-00020-of-00036-8ad9a9d3c23c-8850ac913d",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00021-of-00036-fe9c40e5b4c9-73ea28b019",
-          "id": "primary-model-00021-of-00036-fe9c40e5b4c9-73ea28b019",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00022-of-00036-a136501dd94d-d142e2fe0b",
-          "id": "primary-model-00022-of-00036-a136501dd94d-d142e2fe0b",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00023-of-00036-a721a37b20a3-ba45202061",
-          "id": "primary-model-00023-of-00036-a721a37b20a3-ba45202061",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00024-of-00036-07bbd539fbab-f9513d0733",
-          "id": "primary-model-00024-of-00036-07bbd539fbab-f9513d0733",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00025-of-00036-38b381c492b3-40b6d051d4",
-          "id": "primary-model-00025-of-00036-38b381c492b3-40b6d051d4",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00026-of-00036-c18ef2cc9941-86500988f5",
-          "id": "primary-model-00026-of-00036-c18ef2cc9941-86500988f5",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00027-of-00036-98abf676fb32-e44a666a6a",
-          "id": "primary-model-00027-of-00036-98abf676fb32-e44a666a6a",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00028-of-00036-9f9160cf3d99-9e72fa7eb5",
-          "id": "primary-model-00028-of-00036-9f9160cf3d99-9e72fa7eb5",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00029-of-00036-5af1be56451e-7f8567cb99",
-          "id": "primary-model-00029-of-00036-5af1be56451e-7f8567cb99",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00030-of-00036-c3d2c1c8c307-029f8da69b",
-          "id": "primary-model-00030-of-00036-c3d2c1c8c307-029f8da69b",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00031-of-00036-0d0939a8064a-e6d8e8a9a4",
-          "id": "primary-model-00031-of-00036-0d0939a8064a-e6d8e8a9a4",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00032-of-00036-b05e9a64aad9-00b8506235",
-          "id": "primary-model-00032-of-00036-b05e9a64aad9-00b8506235",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00033-of-00036-75fc462c144d-90e8158ebb",
-          "id": "primary-model-00033-of-00036-75fc462c144d-90e8158ebb",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00034-of-00036-4ecb48830a06-c9194c49a9",
-          "id": "primary-model-00034-of-00036-4ecb48830a06-c9194c49a9",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00035-of-00036-94994a8d5484-0fde8aa52e",
-          "id": "primary-model-00035-of-00036-94994a8d5484-0fde8aa52e",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00036-of-00036-72c76c2b5249-1f89e07693",
-          "id": "primary-model-00036-of-00036-72c76c2b5249-1f89e07693",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-safetensors-index-c528e5628a0f-0a05be8238",
-          "id": "primary-model-safetensors-index-c528e5628a0f-0a05be8238",
+          "file_id": "model-safetensors-index-e65210a65667-0a05be8238",
+          "id": "primary-model-safetensors-index-e65210a65667-0a05be8238",
           "mount": {
             "target": "/models"
           },
@@ -551,14 +191,454 @@
           "roles": [
             "entrypoint"
           ]
+        },
+        {
+          "file_id": "hybrid-c0ebf65ab246-1046476e1d",
+          "id": "primary-hybrid-c0ebf65ab246-1046476e1d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hybrid-main-00001-b5b960f6f2c6-3603f12394",
+          "id": "primary-hybrid-main-00001-b5b960f6f2c6-3603f12394",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hybrid-main-00002-94994a8d5484-3cc19c0133",
+          "id": "primary-hybrid-main-00002-94994a8d5484-3cc19c0133",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00041-c65c1bbe3e3c-946ab1bf1f",
+          "id": "primary-model-00001-of-00041-c65c1bbe3e3c-946ab1bf1f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00041-5e416aaacb12-610bb2bd45",
+          "id": "primary-model-00002-of-00041-5e416aaacb12-610bb2bd45",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00041-7c3952544007-7ea6127ec9",
+          "id": "primary-model-00003-of-00041-7c3952544007-7ea6127ec9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00041-4752d94927b1-850ad8ba22",
+          "id": "primary-model-00004-of-00041-4752d94927b1-850ad8ba22",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00041-dabe5010052a-4a93154214",
+          "id": "primary-model-00005-of-00041-dabe5010052a-4a93154214",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00041-a6557d4fce96-5eb574e702",
+          "id": "primary-model-00006-of-00041-a6557d4fce96-5eb574e702",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00041-c5b0d0a3ca0f-53b82536b2",
+          "id": "primary-model-00007-of-00041-c5b0d0a3ca0f-53b82536b2",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00041-538379d4f1c8-81d1fa4395",
+          "id": "primary-model-00008-of-00041-538379d4f1c8-81d1fa4395",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00041-1dca2dea7486-a83c9ed6ad",
+          "id": "primary-model-00009-of-00041-1dca2dea7486-a83c9ed6ad",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00041-8b5b935561f3-054c45691c",
+          "id": "primary-model-00010-of-00041-8b5b935561f3-054c45691c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00041-96eaec8cf053-b08b889a7b",
+          "id": "primary-model-00011-of-00041-96eaec8cf053-b08b889a7b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00041-9b95bbac9d10-16b50957d9",
+          "id": "primary-model-00012-of-00041-9b95bbac9d10-16b50957d9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00041-2359135b9bb1-495cf2a74f",
+          "id": "primary-model-00013-of-00041-2359135b9bb1-495cf2a74f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00041-bc5e41da35cd-012c7872ee",
+          "id": "primary-model-00014-of-00041-bc5e41da35cd-012c7872ee",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00041-14a2443b5384-7d75618a70",
+          "id": "primary-model-00015-of-00041-14a2443b5384-7d75618a70",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00041-d1b324912f5a-11e547f3bf",
+          "id": "primary-model-00016-of-00041-d1b324912f5a-11e547f3bf",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00041-699749bfe7b3-77e2f2c753",
+          "id": "primary-model-00017-of-00041-699749bfe7b3-77e2f2c753",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00041-6c658ba6a1c7-498be2b9cb",
+          "id": "primary-model-00018-of-00041-6c658ba6a1c7-498be2b9cb",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00041-3f815e784ded-1e71515063",
+          "id": "primary-model-00019-of-00041-3f815e784ded-1e71515063",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00041-724e104ba8e2-dff5191638",
+          "id": "primary-model-00020-of-00041-724e104ba8e2-dff5191638",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00041-0d0ec7505ca7-4d0a05b480",
+          "id": "primary-model-00021-of-00041-0d0ec7505ca7-4d0a05b480",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00022-of-00041-77de96023b11-bf194e7c44",
+          "id": "primary-model-00022-of-00041-77de96023b11-bf194e7c44",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00023-of-00041-60d95b10b6e1-3e7aa45f9a",
+          "id": "primary-model-00023-of-00041-60d95b10b6e1-3e7aa45f9a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00024-of-00041-60d95b10b6e1-3ae6dddfc8",
+          "id": "primary-model-00024-of-00041-60d95b10b6e1-3ae6dddfc8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00025-of-00041-60d95b10b6e1-b99cc3a9e4",
+          "id": "primary-model-00025-of-00041-60d95b10b6e1-b99cc3a9e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00026-of-00041-fd00d38f3989-fa94ad5b5c",
+          "id": "primary-model-00026-of-00041-fd00d38f3989-fa94ad5b5c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00027-of-00041-4bf82cf0238a-a201c6cc2c",
+          "id": "primary-model-00027-of-00041-4bf82cf0238a-a201c6cc2c",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00028-of-00041-33669aa6fdab-b5373615ce",
+          "id": "primary-model-00028-of-00041-33669aa6fdab-b5373615ce",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00029-of-00041-1ff77ff74ec6-2454f00504",
+          "id": "primary-model-00029-of-00041-1ff77ff74ec6-2454f00504",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00030-of-00041-38cc36fffd12-7102359378",
+          "id": "primary-model-00030-of-00041-38cc36fffd12-7102359378",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00031-of-00041-1cad5c773a6a-86874c7b31",
+          "id": "primary-model-00031-of-00041-1cad5c773a6a-86874c7b31",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00032-of-00041-e17bf0258583-459a05e180",
+          "id": "primary-model-00032-of-00041-e17bf0258583-459a05e180",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00033-of-00041-32b4e171d12b-897c5675f5",
+          "id": "primary-model-00033-of-00041-32b4e171d12b-897c5675f5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00034-of-00041-1c1c614195b7-20b6f9230d",
+          "id": "primary-model-00034-of-00041-1c1c614195b7-20b6f9230d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00035-of-00041-b5e2ace729bd-c86f53e167",
+          "id": "primary-model-00035-of-00041-b5e2ace729bd-c86f53e167",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00036-of-00041-05ff79bf4788-c0a025b274",
+          "id": "primary-model-00036-of-00041-05ff79bf4788-c0a025b274",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00037-of-00041-3897a5102e23-486db9d813",
+          "id": "primary-model-00037-of-00041-3897a5102e23-486db9d813",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00038-of-00041-32cec97d1f56-21511882c0",
+          "id": "primary-model-00038-of-00041-32cec97d1f56-21511882c0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00039-of-00041-fddeaea6a185-45f58b1c39",
+          "id": "primary-model-00039-of-00041-fddeaea6a185-45f58b1c39",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00040-of-00041-b67f2ce571b5-39b7d3335e",
+          "id": "primary-model-00040-of-00041-b67f2ce571b5-39b7d3335e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00041-of-00041-66de4fee053f-6d3c086b53",
+          "id": "primary-model-00041-of-00041-66de4fee053f-6d3c086b53",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
         }
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ba2b71aa9b03a8eb7229cfacbbc1c180908578f823127ad4682f60c6ef399c8d",
+        "content_sha256": "17c87cbdcd82aa12d51e7bcb27722a417d955062f5718d0c921b3331d0ae2046",
         "kind": "model",
         "publisher": "local-inference-lab",
-        "slug": "qwen3-8-flash-next-nvfp4-lil-7c4f1bc1"
+        "slug": "qwen3-8-flash-next-nvfp4-lil-6c01ac37"
       }
     }
   ],
@@ -655,7 +735,7 @@
   },
   "release": {
     "released_at": "2026-10-06",
-    "version": "0.6.6"
+    "version": "0.6.7"
   },
   "runtime": {
     "arguments": [
@@ -741,7 +821,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 105895996845,
+            "artifact_bytes": 106390808283,
             "image_bytes": 26000000000,
             "safety_margin_bytes": 15000000000,
             "working_bytes": 8000000000
