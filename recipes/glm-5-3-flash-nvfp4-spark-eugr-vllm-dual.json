@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "7115ce74cc8c02073e1eb8ba525acdee1b301a362b2912d2661db97d65ae3334",
+        "digest": "03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595",
         "repository": "docker.io/eugr/spark-vllm-b12x"
       },
       "context": {
@@ -708,7 +708,7 @@
       "local-inference-lab",
       "vLLM contributors (Apache-2.0)"
     ],
-    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/2f340b6d79c60bf59820acb1868e8d0e0d4cb695"
+    "source_reference": "https://github.com/eugr/spark-vllm-docker/tree/303b4a29a6bd390428d363358964ad298dc20625"
   },
   "release": {
     "released_at": "2026-10-15",
