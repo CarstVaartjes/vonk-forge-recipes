@@ -107,6 +107,17 @@ def _path(value: Any, path: str) -> Any:
     return current
 
 
+def _empty_or_path(value: Any, path: str) -> Any:
+    """``path.empty`` reads an absent key as empty: an engine that omits the field
+    (``reasoning_content`` with thinking off, say) emitted nothing there. Only the
+    last key may be absent; a missing parent is still a missing path."""
+    parent, _, leaf = path.rpartition(".")
+    holder = _path(value, parent) if parent else value
+    if isinstance(holder, dict) and leaf not in holder:
+        return None
+    return _path(value, path)
+
+
 _VISIBLE_FIELDS = ("content", "reasoning_content", "reasoning")
 
 
@@ -168,7 +179,11 @@ def _evaluate(response: Any, raw: str, assertion: dict[str, Any]) -> tuple[bool,
         )
         return hit is None, hit
     path = str(assertion.get("path", ""))
-    value = _path(response, path)
+    value = (
+        _empty_or_path(response, path)
+        if kind == "path.empty"
+        else _path(response, path)
+    )
     expected = assertion.get("value")
     bad = False
     if kind == "path.equals":
