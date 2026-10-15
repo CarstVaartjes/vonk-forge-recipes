@@ -1,4 +1,4 @@
-FROM docker.io/eugr/spark-vllm@sha256:7094664bb85abf28be8cc5d678d8fc2a954160479d31f3a8402d394f74eb5dca
+FROM docker.io/eugr/spark-vllm@sha256:4428520bf19839a81eaa9f0647e421713e7246bd9ca28669dd742cb09955ad86
 
 LABEL org.opencontainers.image.source="https://github.com/eugr/spark-vllm-docker" \
       org.opencontainers.image.revision="2f340b6d79c60bf59820acb1868e8d0e0d4cb695" \
