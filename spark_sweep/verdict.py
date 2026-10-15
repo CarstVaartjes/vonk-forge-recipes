@@ -87,6 +87,9 @@ OBSERVE_CLASSES = frozenset({"copy-stalled", "network", "smoke-timeout", UNATTRI
 #: The Controller reports the lane's application as stalled (``STALLED_CODE``): the lane is
 #: requeued with an ``observe`` row that spends no attempt (never through ``disposition``).
 PLATFORM_STALLED = "platform-stalled"
+#: The sweep's own smoke code raised (a bug, a source tree changed under it): a tool fault,
+#: never the recipe's. The lane is requeued with an ``observe`` row that spends no attempt.
+SWEEP_CRASH = "sweep-crash"
 #: A job recipe's smoke job ended failed and the Controller names no platform cause.
 JOB_FAILED = "job-failed"
 FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
