@@ -1,5 +1,8 @@
 FROM ghcr.io/ggml-org/llama.cpp@sha256:e5a2f80c0f1bdbb829d19b3ba3e84359acad95ea9fae2161661e08af46a31ce0
 
+# Upstream shared libraries live beside the binary; Vonk runs from /tmp.
+ENV LD_LIBRARY_PATH="/app:${LD_LIBRARY_PATH}"
+
 LABEL org.opencontainers.image.source="https://github.com/ggml-org/llama.cpp" \
       org.opencontainers.image.revision="7fe450e19305b828c199d602c23a8337aaa1f03b" \
       org.opencontainers.image.version="0.5.0" \
