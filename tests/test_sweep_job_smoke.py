@@ -227,6 +227,70 @@ def test_a_controller_refusal_is_a_wait_never_a_verdict() -> None:
     assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
 
 
+def _cli_error(status: int, code: str, decision: str, **fields: Any) -> dict[str, Any]:
+    """The ``vonkctl --json`` document of a Controller HTTP answer (its ErrorContext)."""
+    return {
+        "error_type": "control_api",
+        "code": code,
+        "detail": "artifact input slot ids are not canonical",
+        "http_status": status,
+        "source": "remote_rejection",
+        "retryable": status == 429 or status >= 500,
+        "decision": decision,
+        **fields,
+    }
+
+
+REFUSED = _cli_error(409, "controller.conflict", "exit")
+
+
+@pytest.mark.parametrize("step", ["create", "upload"])
+def test_a_final_refusal_of_the_recipes_job_request_fails_the_recipe_at_once(
+    step: str,
+) -> None:
+    answers: dict[str, Any] = {"create": [(2, REFUSED)]}
+    if step == "upload":
+        answers = {
+            "create": [_job(None, preparation="draft")],
+            "upload": [(2, REFUSED)],
+        }
+    controller = Controller(**answers)
+    result = _smoke(controller)
+    assert result.failure is not None
+    assert result.failure.klass == "recipe-data"
+    assert verdict.disposition(result.failure) is verdict.Disposition.FAIL
+    assert result.failure.evidence["case"] == f"job.{step}"
+    assert result.failure.code == "controller.conflict"
+    assert result.failure.evidence["body"]  # the Controller's reply is kept as evidence
+    assert "submit" not in controller.steps
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        _cli_error(503, "controller.unavailable", "retry"),
+        _cli_error(409, "controller.conflict", "defer", retry_after_seconds=5),
+        _cli_error(404, "controller.not_found", "exit"),
+        _cli_error(403, "controller.request_rejected", "exit"),
+    ],
+)
+def test_a_job_request_the_controller_may_still_take_is_not_a_verdict(
+    answer: dict[str, Any],
+) -> None:
+    result = _smoke(Controller(create=[(2, answer)]))
+    assert result.failure is not None
+    assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
+
+
+def test_a_refused_submit_names_no_recipe_data_and_is_not_a_verdict() -> None:
+    controller = Controller(
+        create=[_job(None, preparation="ready")], submit=[(2, REFUSED)]
+    )
+    result = _smoke(controller)
+    assert result.failure is not None
+    assert verdict.disposition(result.failure) is verdict.Disposition.WAIT
+
+
 def test_a_transient_refusal_while_following_keeps_following() -> None:
     refusal = {"error_type": "control_api", "code": "controller.transport_timeout"}
     controller = Controller(
