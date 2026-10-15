@@ -71,6 +71,11 @@ PREPARATION_CODES = frozenset(
 )
 #: The CLI's ``ErrorDecision`` words that say "ask again later".
 CLIENT_WAIT_DECISIONS = frozenset({"retry", "defer"})
+#: The CLI's ``ErrorDecision`` word for a final answer: asking again gets the same one.
+CLIENT_EXIT_DECISION = "exit"
+#: The Controller refused the request's own contents (``controller.conflict`` and
+#: ``controller.invalid_request``), as opposed to who asked (401/403) or what it names (404).
+REQUEST_REFUSAL_HTTP = frozenset({409, 422})
 #: Standard temporary HTTP answers (the Controller's TemporaryHTTPError is 429/503).
 TEMPORARY_HTTP = frozenset({408, 429, 502, 503, 504})
 
@@ -298,6 +303,16 @@ def reply_disposition(reply: Reply | None) -> Disposition:
     if field is not None and field not in RECIPE_PROFILE_FIELDS:
         return Disposition.WAIT
     return Disposition.FAIL
+
+
+def request_refused(reply: Reply | None) -> bool:
+    """Did the Controller finally refuse the request's own contents (a 409/422, ``exit``)?"""
+    document = _document(reply)
+    return (
+        document.get("decision") == CLIENT_EXIT_DECISION
+        and document.get("retryable") is False
+        and document.get("http_status") in REQUEST_REFUSAL_HTTP
+    )
 
 
 def http_wait(status: object) -> bool:

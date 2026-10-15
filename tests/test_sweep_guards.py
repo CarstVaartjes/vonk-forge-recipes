@@ -404,6 +404,7 @@ def test_verdict_codes_match_the_published_enums() -> None:
         verdict.STALLED_CODE,
         *verdict.PREPARATION_CODES,
         *verdict.CLIENT_WAIT_DECISIONS,
+        verdict.CLIENT_EXIT_DECISION,
     }
     assert used <= words, sorted(used - words)
 

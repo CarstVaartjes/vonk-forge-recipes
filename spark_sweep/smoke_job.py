@@ -15,7 +15,10 @@ Verdicts follow ``verdict.disposition``:
 * the job failed on its own (the Controller names no platform cause): the recipe's
   failure, with the job's evidence;
 * an assertion missed: the recipe's failure (``smoke-assertion``);
-* the Controller refused or could not answer a step: a wait, smoked again later;
+* the Controller finally refused the job's request (``create``/``upload`` carry the
+  recipe's definition bound to its contract; a 409/422 with decision ``exit``): the
+  recipe's failure (``recipe-data``), with the reply as evidence;
+* the Controller refused otherwise or could not answer a step: a wait, smoked again later;
 * the job ended for a platform reason (agent lease lost, a scope that may remain, a
   cancel, a wait for an operator) or never ended within its own timeout: uncertain,
   observed again.
@@ -44,6 +47,8 @@ JOB_GRACE_SECONDS = 600.0
 DOWNLOAD_TIMEOUT_SECONDS = 1800.0
 ENDED = frozenset({"succeeded", "failed", "cancelled"})
 OPERATOR_WAIT = frozenset({"needs-operator", "waiting-for-operator"})
+#: The steps whose request is the recipe's own data: its definition bound to its contract.
+RECIPE_REQUEST_STEPS = frozenset({"create", "upload"})
 
 
 class _Refused(Exception):
@@ -71,7 +76,15 @@ def _call(
             "case": f"job.{step}",
             "body": excerpt(error.reply.document if error.reply else ""),
         }
-        if verdict.reply_disposition(error.reply) is verdict.Disposition.WAIT:
+        if step in RECIPE_REQUEST_STEPS and verdict.request_refused(error.reply):
+            failure = classify(
+                "smoke",
+                error.code or f"job.{step}",
+                str(error),
+                "recipe-data",
+                evidence,
+            )
+        elif verdict.reply_disposition(error.reply) is verdict.Disposition.WAIT:
             failure = classify(
                 "smoke", f"job.{step}", str(error), verdict.SMOKE_BUSY, evidence
             )
