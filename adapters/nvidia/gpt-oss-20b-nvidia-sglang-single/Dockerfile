@@ -6,8 +6,10 @@ LABEL org.opencontainers.image.source="https://github.com/sgl-project/sglang" \
 
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 COPY verify-runtime.py /opt/vonk/verify-runtime.py
+COPY gpt-oss-chat-template.jinja /opt/vonk/gpt-oss-chat-template.jinja
 
-RUN python3 /opt/vonk/verify-runtime.py \
+RUN echo "1be6557bc6b612a6a1481ea4d02d3279f312d765fbd6be7fea6a565809fe69fd  /opt/vonk/gpt-oss-chat-template.jinja" | sha256sum -c - \
+    && python3 /opt/vonk/verify-runtime.py \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi
 
