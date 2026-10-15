@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import SPARK_MEMORY, FakeModel, FakeRecipe, Gateway, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -23,8 +23,11 @@ def _entry(sweep, slug: str) -> dict:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
-def _refusing(fleet, times: int | None):
-    """Review refuses on capacity ``times`` times (always when None), then reviews as usual."""
+def _refusing(fleet, times: int | None, demand: int | None = 40 * 10**9):
+    """Review refuses on capacity ``times`` times (always when None), then reviews as usual.
+
+    ``demand`` is the Controller's own memory requirement for the Spark (None: unknown).
+    """
 
     real = fleet._load
     refused = []
@@ -44,6 +47,14 @@ def _refusing(fleet, times: int | None):
                                 "code": "run-switch.resource.insufficient_capacity",
                                 "detail": "7603704832 bytes short of the reserve",
                             }
+                        ],
+                        "requirements": [
+                            {
+                                "node_id": node,
+                                "memory_required_bytes": demand,
+                                "memory_floor_bytes": 6 * 10**9,
+                            }
+                            for node, *_ in (fleet.sparks if demand is not None else ())
                         ],
                     }
                 ],
@@ -67,13 +78,40 @@ def test_a_capacity_refusal_that_clearing_undoes_is_requeued_not_failed(
     assert "clearing the fleet and trying again" in str(sweep.state.data["events"])
 
 
-def test_a_capacity_refusal_that_survives_clearing_is_deferred_with_evidence(
+def _waits(sweep, key: str) -> list[dict]:
+    return [
+        r
+        for r in sweep.log.entries()
+        if r.get("recipe") == key and r.get("disposition") == verdict.Disposition.WAIT
+    ]
+
+
+@pytest.mark.parametrize("demand", [40 * 10**9, None], ids=["fits-idle", "unknown"])
+def test_a_capacity_refusal_that_outlasts_clearing_waits_when_it_can_fit(
+    tmp_path, gateway, demand
+) -> None:
+    # A Controller build (or any holder clearing cannot stop) keeps the room past the
+    # clearings: the recipe fits an idle Spark (or that is unknown), so it waits.
+    sweep, fleet, _ = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    refused = _refusing(fleet, times=MAX_REVIEW_FREEING + 3, demand=demand)
+    assert sweep.run() == 0
+    entry = _entry(sweep, "a")
+    assert entry["status"] == "passed"
+    assert len(refused) == MAX_REVIEW_FREEING + 3  # reviewed again after each wait
+    assert len(_waits(sweep, "vonk-forge/a")) >= 3
+    rows = [r for r in sweep.log.entries() if r.get("recipe") == "vonk-forge/a"]
+    assert not [r for r in rows if r.get("status") in ("deferred", "failed")]
+
+
+def test_a_capacity_refusal_beyond_an_idle_spark_is_deferred_with_evidence(
     tmp_path, gateway
 ) -> None:
     sweep, fleet, _ = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
     )
-    refused = _refusing(fleet, times=None)
+    refused = _refusing(fleet, times=None, demand=SPARK_MEMORY)
     sweep.run()
     entry = _entry(sweep, "a")
     assert (entry["status"], entry["phase"], entry["failure_class"]) == (
