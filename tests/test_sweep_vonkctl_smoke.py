@@ -218,6 +218,44 @@ def test_the_assertion_kinds_of_the_reviewed_cases() -> None:
             check_assertions(response, json.dumps(response), [bad])
 
 
+REASONING = "choices.0.message.reasoning_content"
+NO_REASONING = {"kind": "path.empty", "path": REASONING}
+SOME_REASONING = {"kind": "path.nonempty", "path": REASONING}
+
+
+@pytest.mark.parametrize(
+    "reasoning", [{}, {"reasoning_content": None}, {"reasoning_content": ""}]
+)
+def test_thinking_off_accepts_reasoning_absent_null_or_empty(
+    reasoning: dict[str, object],
+) -> None:
+    response = {"choices": [{"message": {"content": "391", **reasoning}}]}
+    check_assertions(response, json.dumps(response), [NO_REASONING])
+
+
+def test_thinking_off_refuses_reasoning_and_a_missing_parent() -> None:
+    response = {
+        "choices": [{"message": {"content": "391", "reasoning_content": "hmm"}}]
+    }
+    with pytest.raises(AssertionFailed):
+        check_assertions(response, json.dumps(response), [NO_REASONING])
+    with pytest.raises(AssertionFailed, match="is missing"):
+        check_assertions({"choices": []}, "{}", [NO_REASONING])
+
+
+@pytest.mark.parametrize(
+    "reasoning", [{}, {"reasoning_content": None}, {"reasoning_content": ""}]
+)
+def test_thinking_on_still_requires_reasoning(reasoning: dict[str, object]) -> None:
+    response = {"choices": [{"message": {"content": "391", **reasoning}}]}
+    with pytest.raises(AssertionFailed):
+        check_assertions(response, json.dumps(response), [SOME_REASONING])
+    present = {
+        "choices": [{"message": {"content": "391", "reasoning_content": "17*23"}}]
+    }
+    check_assertions(present, json.dumps(present), [SOME_REASONING])
+
+
 LEAK = {"kind": "raw.not-contains", "values": ["<|", "<think>", "</think>"]}
 
 
