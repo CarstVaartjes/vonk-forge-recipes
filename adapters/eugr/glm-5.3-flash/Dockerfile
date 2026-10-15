@@ -1,7 +1,7 @@
-FROM docker.io/eugr/spark-vllm-b12x@sha256:6f2e3fd4b550c9e77672c09278f61e6c7d84246a61d4fe535444a13493dbb025
+FROM docker.io/eugr/spark-vllm-b12x@sha256:7115ce74cc8c02073e1eb8ba525acdee1b301a362b2912d2661db97d65ae3334
 
 LABEL org.opencontainers.image.source="https://github.com/eugr/spark-vllm-docker" \
-      org.opencontainers.image.revision="0b8c440a88af0e89f6c8871eb1295a31d26f4558" \
+      org.opencontainers.image.revision="2f340b6d79c60bf59820acb1868e8d0e0d4cb695" \
       org.opencontainers.image.licenses="MIT AND Apache-2.0"
 
 # eugr's published vllm-node-b12x image (nightly-20260929, `--exp-b12x` lane). Its
