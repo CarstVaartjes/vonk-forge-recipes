@@ -6,10 +6,18 @@ them ``<|channel|>`` leaks into ``message.content``. vLLM and TensorRT-LLM parse
 harmony through ``openai_harmony``, which downloads its tiktoken vocab unless
 ``TIKTOKEN_ENCODINGS_BASE`` names a local directory; workloads run offline, so
 the encodings must be baked into the image there.
+
+SGLang renders the request's ``tools`` through the model's Jinja chat template.
+The upstream gpt-oss template concatenates ``function.description``, which the
+OpenAI tools spec makes optional, so a tool without one fails to render (HTTP
+400). SGLang recipes serve a vendored, sha256-pinned copy that renders the
+description comment only when present, as openai/harmony does.
 """
 
 from __future__ import annotations
 
+import hashlib
+import re
 import unittest
 from pathlib import Path
 from typing import Any
@@ -17,6 +25,9 @@ from typing import Any
 from gpt_oss_recipes import ROOT, all_arguments, gpt_oss_recipes, read
 
 HARMONY_ENCODINGS = ("o200k_base.tiktoken", "cl100k_base.tiktoken")
+GUARDED_TOOL_DESCRIPTION = re.compile(
+    r'{%-?\s*if tool\.description\s*%}\s*{{-?\s*"// " \+ tool\.description'
+)
 
 
 def environment(recipe: dict[str, Any]) -> dict[str, str]:
@@ -54,6 +65,26 @@ class GptOssHarmonyOutputTests(unittest.TestCase):
             with self.subTest(recipe=path.name):
                 self.assertEqual(arguments.get("reasoning-parser"), "gpt-oss")
                 self.assertEqual(arguments.get("tool-call-parser"), "gpt-oss")
+
+    def test_sglang_renders_tools_without_a_description(self) -> None:
+        for path in gpt_oss_recipes("sglang"):
+            recipe = read(path)
+            arguments = {
+                argument["name"]: argument.get("value")
+                for argument in all_arguments(recipe)
+            }
+            with self.subTest(recipe=path.name):
+                template = arguments.get("chat-template")
+                self.assertIsNotNone(template)
+                sources = copied_sources(recipe, template or "")
+                self.assertEqual(len(sources), 1)
+                content = sources[0].read_bytes()
+                self.assertRegex(content.decode("utf-8"), GUARDED_TOOL_DESCRIPTION)
+                dockerfile = ROOT / recipe["execution"]["build"]["dockerfile"]
+                self.assertIn(
+                    f"{hashlib.sha256(content).hexdigest()}  {template}",
+                    dockerfile.read_text(encoding="utf-8"),
+                )
 
     def test_harmony_vocab_is_baked_into_the_image(self) -> None:
         for path in gpt_oss_recipes("vllm", "tensorrt-llm"):
