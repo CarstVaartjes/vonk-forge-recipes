@@ -20,6 +20,7 @@ import json
 import signal
 import threading
 import time
+import traceback
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import Future
 from dataclasses import dataclass, field, replace
@@ -199,6 +200,24 @@ class SweepConfig:
     # The deployed Controller loads job recipes as profile members (vonk-forge #1491) and
     # reports a held job run healthy (#1494). Off: job recipes are skipped before any lane.
     job_recipes_loadable: bool = False
+
+
+#: The traceback frames a sweep crash keeps as evidence: where it raised, and its callers.
+CRASH_FRAMES = 3
+
+
+def crash_evidence(error: BaseException) -> dict[str, Any]:
+    """What a crash of the sweep's own code says: type, message, filename, last frames."""
+    frames = [
+        line.strip()
+        for line in traceback.format_tb(error.__traceback__)[-CRASH_FRAMES:]
+    ]
+    return {
+        "type": type(error).__name__,
+        "message": str(error)[:500],
+        "filename": str(getattr(error, "filename", None) or "") or None,
+        "frames": [frame[:400] for frame in frames],
+    }
 
 
 def alias_for(recipe: Recipe, definitions: Definitions) -> str:
@@ -2408,13 +2427,11 @@ class Sweep:
         try:
             result = future.result()
         except Exception as error:  # noqa: BLE001 - a bug in one smoke must not stop an unattended sweep
-            result = SmokeResult(
-                ok=False,
-                kind="service",
-                failure=policy.classify("smoke", "smoke.crash", repr(error)),
-            )
+            self._smoke_crashed(key, error)
+            return
         if result.ok:
             self.clear_infra("client-key")
+            self.clear_infra("smoke-tool")
             self._record_pass(key, slot, result)
             return
         assert result.failure is not None
@@ -2423,6 +2440,34 @@ class Sweep:
             self._smoke_wait(key, slot, failure)
             return
         self._record_failure(key, failure, slot.get("operation_id"))
+
+    def _smoke_crashed(self, key: str, error: BaseException) -> None:
+        """The sweep's own smoke code raised: a tool fault, never a verdict on the recipe.
+
+        The exception's type, message (an ``OSError`` keeps its filename) and last frames
+        go into the row and the event log. The recipe is requeued without spending an
+        attempt, and new work backs off (``note_infra``) until a smoke passes again, so a
+        crash that repeats costs backed-off loads, never the recipe.
+        """
+        evidence = crash_evidence(error)
+        failure = policy.classify(
+            "smoke",
+            "smoke.crash",
+            f"{evidence['type']}: {evidence['message']}",
+            verdict.SWEEP_CRASH,
+            evidence,
+        )
+        self.state.event(
+            f"smoke of {key} crashed in the sweep (a tool fault, not the recipe's): "
+            f"{failure.detail[:200]} at {evidence['frames'][-1][:200] if evidence['frames'] else '?'}"
+        )
+        self.note_infra("smoke-tool", f"the sweep's smoke crashed: {failure.detail}")
+        self.requeue(
+            key,
+            f"the sweep's smoke crashed: {failure.detail}",
+            failure=failure,
+            disposition=Disposition.OBSERVE.value,
+        )
 
     def _smoke_wait(
         self, key: str, slot: dict[str, Any], failure: policy.Failure

@@ -34,7 +34,15 @@ class Definitions:
 
     @classmethod
     def load(cls, root: Path = QUALIFICATION_ROOT) -> Definitions:
-        return cls(load_definitions(root), root)
+        """Every definition and fixture, read and digest-checked now.
+
+        A sweep runs for days from a source tree that may change under it: its inputs are
+        held in memory from the start, so a smoke never reads a file that has since gone.
+        """
+        definitions = cls(load_definitions(root), root)
+        for fixture_id in definitions.document["fixtures"]:
+            definitions.fixture(fixture_id)
+        return definitions
 
     def service(self, key: str) -> dict[str, Any] | None:
         value = self.document["service_recipes"].get(key)
