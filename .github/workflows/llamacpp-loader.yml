@@ -1,0 +1,84 @@
+name: llama.cpp native loader proof
+
+# The ggml-org llama.cpp image keeps its shared libraries beside /app/llama-server
+# and only resolves them from WorkingDir /app; Vonk runs workloads from /tmp,
+# where the loader exits 127. Every adapter built on that image must run there.
+# tests/test_llamacpp_loader_workflow.py keeps the paths below complete.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/llamacpp-loader.yml
+      - adapters/ling/amarjeet-fin-gguf-single/**
+      - adapters/nvidia/gemma-4-26b-a4b-it-q8-0-ggml-org-llamacpp-single/**
+      - adapters/nvidia/gemma-4-31b-it-q4-0-ggml-org-llamacpp-single/**
+      - adapters/nvidia/gemma-4-e2b-it-q8-0-ggml-org-llamacpp-single/**
+      - adapters/nvidia/gemma-4-e4b-it-q8-0-ggml-org-llamacpp-single/**
+      - adapters/nvidia/nemotron-3-5-lightning-30b-a3b-q4-0-nvidia-llamacpp-single/**
+      - adapters/nvidia/nemotron-3-nano-30b-a3b-q4-k-m-ggml-org-llamacpp-single/**
+      - adapters/nvidia/qwen3-6-35b-a3b-mtp-q4-k-xl-nvidia-llamacpp-single/**
+      - adapters/nvidia/qwen3-8-27b-q4-k-m-ggml-org-llamacpp-single/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: llamacpp-loader-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-loader:
+    name: Packaged llama-server runs from the managed working directory
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Build and run every package on the ggml-org llama.cpp image
+        shell: bash
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = aarch64
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_SHA"
+          prefix="vonk-llamacpp-loader-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          owned_containers=()
+          cleanup() {
+            for container in "${owned_containers[@]}"; do
+              [[ "$container" == "$prefix-"* ]] || return 1
+              docker rm --force "$container" >/dev/null 2>&1 || true
+            done
+          }
+          trap cleanup EXIT
+          mkdir -p artifacts/llamacpp-loader
+          git rev-parse HEAD > artifacts/llamacpp-loader/source-sha.txt
+          mapfile -t contexts < <(grep -l -E '^FROM ghcr\.io/ggml-org/llama\.cpp@sha256:[0-9a-f]{64}$' adapters/*/*/Dockerfile | xargs -n1 dirname | sort)
+          test "${#contexts[@]}" -gt 0
+          for context in "${contexts[@]}"; do
+            name="${context#adapters/}"
+            name="${name//\//-}"
+            image="vonk-llamacpp-loader:$name"
+            owned_containers+=("$prefix-$name")
+            # The owning Dockerfile executes the real wrapper during build.
+            timeout 600s docker build --tag "$image" "$context" > "artifacts/llamacpp-loader/$name.build.log" 2>&1
+            # Its actual packaged non-root runtime also resolves the libraries
+            # from the managed /tmp working directory with a read-only root and
+            # no network or model/GPU requirement.
+            timeout 20s docker run --rm --name "$prefix-$name" --network none --read-only \
+              --workdir /tmp --entrypoint /opt/vonk/bin/llama-server \
+              "$image" --help > "artifacts/llamacpp-loader/$name.help" 2> "artifacts/llamacpp-loader/$name.stderr"
+            grep -F -- '--model' "artifacts/llamacpp-loader/$name.help"
+            printf '%s\n' "$context: actual packaged --help passed" >> artifacts/llamacpp-loader/results.txt
+          done
+      - name: Preserve actual loader proof and source provenance
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: llamacpp-loader-${{ github.event.pull_request.head.sha || github.sha }}
+          path: artifacts/llamacpp-loader
+          if-no-files-found: error
+          retention-days: 14
