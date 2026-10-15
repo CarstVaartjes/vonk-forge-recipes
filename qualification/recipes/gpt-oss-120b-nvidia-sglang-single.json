@@ -4,7 +4,8 @@
     "alias": "gpt-oss-120b",
     "smoke_cases": [
       "M0",
-      "A323_UNPARSED"
+      "A323",
+      "T_PRODUCT"
     ],
     "higher_tiers": {
       "stress": [
