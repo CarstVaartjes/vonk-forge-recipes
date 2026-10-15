@@ -1026,6 +1026,8 @@ class FakeFleet:
         running = {r["alias"]: r for r in self.runs}
         names = {name: nid for nid, name in self.sparks}
         blocked: dict[str, list[dict[str, str]]] = {}
+        # The Controller's own demand per Spark, as its admission decisions carry it.
+        required: dict[str, list[dict[str, Any]]] = {}
         for spark, items in by_spark.items():
             total = (
                 sum(self.recipes[i["recipe_selector"]].memory for i in items) + 8 * GB
@@ -1033,6 +1035,15 @@ class FakeFleet:
             if total > SPARK_MEMORY:
                 for i in items:
                     if i["assignment_name"] not in running:
+                        required.setdefault(i["assignment_name"], []).append(
+                            {
+                                "node_id": names[spark],
+                                "memory_required_bytes": self.recipes[
+                                    i["recipe_selector"]
+                                ].memory,
+                                "memory_floor_bytes": 8 * GB,
+                            }
+                        )
                         blocked.setdefault(i["assignment_name"], []).append(
                             {
                                 "code": "run-switch.resource.insufficient_capacity",
@@ -1132,7 +1143,12 @@ class FakeFleet:
                     ],
                 },
                 "admission_decisions": [
-                    {"alias": alias, "allowed": False, "blockers": found}
+                    {
+                        "alias": alias,
+                        "allowed": False,
+                        "blockers": found,
+                        "requirements": required.get(alias, []),
+                    }
                     for alias, found in blocked.items()
                 ],
                 "reasons": [],
