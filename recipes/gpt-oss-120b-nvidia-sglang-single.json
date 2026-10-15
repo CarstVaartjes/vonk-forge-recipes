@@ -43,7 +43,8 @@
       "spark",
       "gpt-oss",
       "mxfp4",
-      "reasoning"
+      "reasoning",
+      "tool-use"
     ],
     "title": "gpt-oss 120b MXFP4 SGLang single Spark (NVIDIA playbook)"
   },
