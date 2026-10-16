@@ -13,7 +13,9 @@ Verdicts follow ``verdict.disposition``:
 
 * the job succeeded and its outputs hold: pass;
 * the job failed on its own (the Controller names no platform cause): the recipe's
-  failure, with the job's evidence;
+  failure, with the job's evidence: its exit code and stderr tail, read from its
+  operation's failure evidence (``vonkctl fleet evidence``). A read that fails is
+  recorded as ``evidence_unavailable`` and never changes the verdict;
 * an assertion missed: the recipe's failure (``smoke-assertion``);
 * the Controller finally refused the job's request (``create``/``upload`` carry the
   recipe's definition bound to its contract; a 409/422 with decision ``exit``): the
@@ -37,7 +39,7 @@ from . import verdict
 from .catalog import Recipe
 from .definitions import Definitions
 from .job_assertions import Output, evaluate
-from .policy import Failure, classify, excerpt
+from .policy import Failure, classify, excerpt, redact
 from .smoke import AssertionFailed, SmokeResult
 from .vonkctl import Vonkctl, VonkctlError, request_key
 
@@ -49,6 +51,8 @@ ENDED = frozenset({"succeeded", "failed", "cancelled"})
 OPERATOR_WAIT = frozenset({"needs-operator", "waiting-for-operator"})
 #: The steps whose request is the recipe's own data: its definition bound to its contract.
 RECIPE_REQUEST_STEPS = frozenset({"create", "upload"})
+#: The end of a failed job's stderr a result row keeps: what happened last.
+STDERR_TAIL_BYTES = 2048
 
 
 class _Refused(Exception):
@@ -136,7 +140,69 @@ def _binding(spec: Mapping[str, Any], definitions: Definitions, work: Path) -> P
     return binding
 
 
-def _ended_failure(job: Mapping[str, Any]) -> Failure:
+def _tail(text: str, limit: int = STDERR_TAIL_BYTES) -> str:
+    """The redacted end of ``text`` within ``limit`` UTF-8 bytes."""
+    encoded = redact(text).encode("utf-8")
+    return encoded[-limit:].decode("utf-8", errors="ignore")
+
+
+def _exit_code(diagnostics: Mapping[str, Any]) -> int | None:
+    """The typed ``exit_code`` property the agent reports with a process's diagnostics.
+
+    The agent adds it when the helper names the exit; a plain job exit does not carry
+    one in the evidence bundle yet, so it is absent rather than guessed from text.
+    """
+    for item in diagnostics.get("preflight") or []:
+        if isinstance(item, Mapping) and item.get("name") == "exit_code":
+            value = item.get("value")
+            if isinstance(value, str) and value.lstrip("-").isdigit():
+                return int(value)
+    return None
+
+
+def _job_evidence(vk: Vonkctl, job: Mapping[str, Any]) -> dict[str, Any]:
+    """The cause the Controller kept for a job that ended unsuccessfully.
+
+    Fail-open: a job without an operation, a refused or unreadable evidence read is
+    recorded as ``evidence_unavailable`` with its reason; it never changes the verdict.
+    """
+    operation_id = _text(job, "operation_id")
+    if not operation_id:
+        return {"evidence_unavailable": "the job names no operation"}
+    ref: dict[str, Any] = {"operation_id": operation_id}
+    with tempfile.TemporaryDirectory(prefix="sweep-job-evidence-") as root:
+        target = Path(root) / "evidence.json"
+        reply = vk.run("fleet", "evidence", operation_id, "--output", str(target))
+        if not reply.ok:
+            return {"evidence_ref": ref, "evidence_unavailable": reply.error_text}
+        try:
+            bundle = json.loads(target.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+            return {
+                "evidence_ref": ref,
+                "evidence_unavailable": f"{type(error).__name__}: {error}"[:500],
+            }
+    bundle = _mapping(bundle)
+    attempt = _mapping(bundle.get("context")).get("attempt")
+    if not isinstance(attempt, int):
+        attempt = _mapping(reply.document).get("attempt")
+    if isinstance(attempt, int) and not isinstance(attempt, bool):
+        ref["attempt"] = attempt
+    diagnostics = _mapping(bundle.get("diagnostics"))
+    stderr = _mapping(diagnostics.get("stderr")).get("text")
+    proof: dict[str, Any] = {
+        "evidence_ref": ref,
+        "evidence_error_code": _text(bundle, "error_code"),
+        "evidence_summary": excerpt(_text(bundle, "summary"), 512),
+        "exit_code": _exit_code(diagnostics),
+        "stderr_tail": _tail(stderr) if isinstance(stderr, str) else None,
+    }
+    if not diagnostics:
+        proof["evidence_unavailable"] = "the evidence carries no diagnostics"
+    return proof
+
+
+def _ended_failure(vk: Vonkctl, job: Mapping[str, Any]) -> Failure:
     """A job that ended without success: the recipe's, unless the platform names a cause."""
     state = _text(job, "state")
     evidence = _mapping(job.get("result_evidence"))
@@ -146,6 +212,7 @@ def _ended_failure(job: Mapping[str, Any]) -> Failure:
         "state": state,
         "status_reason": _text(job, "status_reason"),
         "result_evidence": dict(evidence),
+        **_job_evidence(vk, job),
     }
     detail = f"job {state}: {_text(job, 'status_reason') or 'no reason given'}"
     platform = (
@@ -243,7 +310,7 @@ def smoke_job(
                     ):
                         raise
             if _text(job, "state") != "succeeded":
-                result.failure = _ended_failure(job)
+                result.failure = _ended_failure(vk, job)
                 return result
             out = work / "outputs"
             out.mkdir()
