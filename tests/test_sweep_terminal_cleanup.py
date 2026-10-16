@@ -53,8 +53,13 @@ def scenario(tmp_path: Path):
     return sweep, fleet, clock, recipe, sweep.state.data["cleanup_loads"]["old-request"]
 
 
-def test_a_terminal_cleanup_retires_once_its_targets_are_gone(tmp_path: Path) -> None:
+@pytest.mark.parametrize("projection_known", ["unset", None, False])
+def test_a_terminal_cleanup_retires_once_its_targets_are_gone(
+    tmp_path: Path, projection_known
+) -> None:
     sweep, fleet, clock, recipe, record = scenario(tmp_path)
+    if projection_known != "unset":
+        record["projection_known"] = projection_known
     sweep.observe_cleanup()
     assert "end" not in record
     sweep.fleet = fetch_fleet(sweep.vk, sweep.cfg.default_spark_memory)
@@ -90,3 +95,34 @@ def test_an_offline_target_node_never_retires_a_terminal_cleanup(
     fleet.offline_nodes = set()
     sweep.observe_cleanup()
     assert "end" in record
+
+
+@pytest.mark.parametrize(
+    "no_targets", [{"reviewed_stops": []}, {"reviewed_stops": None}, {}]
+)
+def test_a_terminal_cleanup_without_targets_retires_beside_a_foreign_workload(
+    tmp_path: Path, no_targets
+) -> None:
+    """Recorded on the live sweep (2026-10-16): 13 of 52 unresolved terminal records
+    named no stop target and waited for a fleet with no runs, which never comes."""
+
+    sweep, fleet, clock, _recipe, record = scenario(tmp_path)
+    record.pop("reviewed_stops")
+    record.update(no_targets)
+    # A workload that is not the sweep's runs on spk_a, and spk_b is offline.
+    fleet.offline_nodes = {"spk_b"}
+    sweep.fleet = fetch_fleet(sweep.vk, sweep.cfg.default_spark_memory)
+    assert "spk_a" in sweep._cleanup_nodes()
+    sweep.observe_cleanup()
+    assert "end" not in record  # incomplete facts never invent absence
+
+    fleet.offline_nodes = set()
+    clock.sleep(record["observation_budget"]["next_check"] - clock.now())
+    sweep.observe_cleanup()
+    assert (
+        CleanupEnd.model_validate(record["end"]).reason
+        == CleanupEndReason.TARGET_ABSENT
+    )
+    assert any(run["run_id"] == "old-run" for run in fleet.runs)
+    sweep.fleet = fetch_fleet(sweep.vk, sweep.cfg.default_spark_memory)
+    assert sweep._cleanup_nodes() == set()
