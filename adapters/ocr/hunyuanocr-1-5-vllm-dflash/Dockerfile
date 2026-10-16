@@ -1,4 +1,7 @@
-FROM docker.io/vllm/vllm-openai@sha256:4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56
+# vLLM v0.27.1 (aarch64). Held below v0.29: from v0.29.0 (vLLM #53615) HunYuanVL runs on
+# the Transformers modeling backend, which returns a plain tensor where DFlash needs
+# auxiliary hidden states, so engine init fails on `assert isinstance(model_output, tuple)`.
+FROM docker.io/vllm/vllm-openai@sha256:1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c
 
 LABEL org.opencontainers.image.source="https://github.com/Tencent-Hunyuan/HunyuanOCR" \
       org.opencontainers.image.revision="1ef4179e53cf860f7e6fd8276a292e5d05b3e927" \

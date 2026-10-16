@@ -11,6 +11,12 @@ Upstream source: https://github.com/Tencent-Hunyuan/HunyuanOCR
 Model source: https://huggingface.co/tencent/HunyuanOCR
 vLLM deployment recipe: https://recipes.vllm.ai/tencent/HunyuanOCR
 
+The image is built on vLLM v0.27.1 (aarch64), within upstream's documented
+vllm>=0.25.1. It stays below v0.29.0: there vLLM moved HunYuanVL to its
+Transformers modeling backend (vLLM #53615), whose forward returns a plain
+tensor under DFlash, and engine initialization fails on
+`assert isinstance(model_output, tuple)` (seen on v0.30.0).
+
 HunyuanOCR weights and source are governed by the Tencent Hunyuan Community
 License Agreement included in the immutable model and source snapshots. vLLM
 is licensed under Apache-2.0.
