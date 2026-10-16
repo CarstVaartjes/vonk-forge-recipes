@@ -3904,9 +3904,15 @@ class Sweep:
                     "waiting",
                     reason=f"{code}: {detail}".strip(": "),
                     disposition=Disposition.WAIT.value,
+                    document=document,
                 )
                 continue
-            failure = policy.classify("review", code, detail)
+            failure = policy.classify(
+                "review",
+                code,
+                detail,
+                evidence={"reply": policy.excerpt(document, 1000)},
+            )
             freeing = int(entry.get("review_freeing", 0))
             if (
                 verdict.disposition(failure) is Disposition.OBSERVE
@@ -3926,6 +3932,7 @@ class Sweep:
                     reason=f"review refused ({code}): clearing the fleet and trying again "
                     f"({freeing + 1}/{MAX_REVIEW_FREEING})",
                     disposition=Disposition.OBSERVE.value,
+                    document=document,
                 )
                 self.state.event(
                     f"review refused {key} ({code}): clearing the fleet and trying "
