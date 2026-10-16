@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import contextlib
 import importlib
 import json
 import sys
@@ -9,7 +10,8 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
-from typing import Protocol, cast
+from typing import ClassVar, Protocol, cast
+from unittest import mock
 
 from catalog_documents import catalog_models, model_digest
 from vonk_forge_contracts.model import ModelDefinition
@@ -576,6 +578,103 @@ class LabelEncoder:
             {item.path for item in models[("madebyollin", "sdxl-vae-fp16-fix")].files},
             {"config.json", "diffusion_pytorch_model.safetensors"},
         )
+
+
+class _FakeImage:
+    def convert(self, mode: str) -> _FakeImage:
+        return self
+
+    def getchannel(self, band: str) -> _FakeImage:
+        return self
+
+    def getextrema(self) -> tuple[int, int]:
+        return (0, 255)
+
+    def save(self, destination: Path, format: str) -> None:
+        Path(destination).write_bytes(b"png")
+
+
+class _FakeMesh:
+    def export(self, destination: Path) -> None:
+        Path(destination).write_bytes(b"glb")
+
+
+class _FakePipeline:
+    seen: ClassVar[list[Path]] = []
+
+    @classmethod
+    def from_pretrained(cls, *args: object, **kwargs: object) -> _FakePipeline:
+        return cls()
+
+    device = "cuda"
+
+    def to(self, device: str) -> _FakePipeline:
+        return self
+
+    def __call__(self, image: str, **kwargs: object) -> object:
+        path = Path(image)
+        self.seen.append(path)
+        assert path.is_file(), "the prepared input exists while the model runs"
+        return types.SimpleNamespace(mesh=[_FakeMesh()])
+
+
+def _fake_modules() -> dict[str, types.ModuleType]:
+    torch = types.ModuleType("torch")
+    torch.Generator = lambda device: types.SimpleNamespace(  # type: ignore[attr-defined]
+        manual_seed=lambda seed: seed
+    )
+    pil = types.ModuleType("PIL")
+    image = types.ModuleType("PIL.Image")
+    image.open = lambda path: contextlib.nullcontext(_FakeImage())  # type: ignore[attr-defined]
+    pil.Image = image  # type: ignore[attr-defined]
+    pipeline = types.ModuleType("step1x3d_geometry.models.pipelines.pipeline")
+    pipeline.Step1X3DGeometryPipeline = _FakePipeline  # type: ignore[attr-defined]
+    modules = {"torch": torch, "PIL": pil, "PIL.Image": image}
+    for name in (
+        "step1x3d_geometry",
+        "step1x3d_geometry.models",
+        "step1x3d_geometry.models.pipelines",
+    ):
+        modules[name] = types.ModuleType(name)
+    modules[pipeline.__name__] = pipeline
+    return modules
+
+
+class Step1XGeometryOutputTests(unittest.TestCase):
+    def test_geometry_jobs_leave_only_the_declared_mesh_in_outputs(self) -> None:
+        # The job's output contract is one .glb; the prepared input used to
+        # land next to it, and the platform refused the second file.
+        with (
+            tempfile.TemporaryDirectory() as root,
+            mock.patch.dict(sys.modules, _fake_modules()),
+            mock.patch.object(sys, "path", [str(ADAPTER_ROOT), *sys.path]),
+        ):
+            module = types.ModuleType("step1x_run")
+            module.__file__ = str(RUN_PATH)
+            exec(
+                compile(RUN_PATH.read_text(encoding="utf-8"), str(RUN_PATH), "exec"),
+                module.__dict__,
+            )
+            source = Path(root) / "source.png"
+            source.write_bytes(b"image")
+            outputs = Path(root) / "outputs"
+            outputs.mkdir()
+            module.__dict__.update(
+                _one_input=lambda label, suffixes: source,
+                _publish_glb=lambda temporary, output, profile: temporary.replace(
+                    output
+                ),
+            )
+            for label_control in (False, True):
+                _FakePipeline.seen.clear()
+                module._geometry(
+                    label_control=label_control, seed=0, output_dir=outputs
+                )
+                self.assertEqual(
+                    sorted(path.name for path in outputs.iterdir()),
+                    ["step1x-geometry.glb"],
+                )
+                self.assertNotEqual(_FakePipeline.seen[0].parent, outputs)
 
 
 if __name__ == "__main__":
