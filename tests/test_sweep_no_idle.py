@@ -14,6 +14,8 @@ from typing import Any
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
+from spark_sweep.catalog import fetch_fleet
+
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
@@ -70,7 +72,7 @@ def test_idle_with_ready_work_raises_an_alert(tmp_path: Path, gateway: Gateway) 
     sweep, _, _ = make_sweep(
         tmp_path, [FakeRecipe("a", ("m1",))], [FakeModel("m1")], gateway=gateway
     )
-    sweep.sparks = lambda: [SimpleNamespace(id="spk_a")]  # type: ignore[method-assign]
+    sweep.sparks = lambda: [SimpleNamespace(id="spk_a", name="spark-a")]  # type: ignore[method-assign]
     sweep.ready_candidates = lambda: [object()]  # type: ignore[method-assign]
     now = sweep.clock.now()
     sweep.check_idle(now)
@@ -81,6 +83,51 @@ def test_idle_with_ready_work_raises_an_alert(tmp_path: Path, gateway: Gateway) 
     sweep.ready_candidates = list  # type: ignore[method-assign]
     sweep.check_idle(now + 2 * sweep.cfg.idle_alert_seconds)
     assert sweep.state.data["alerts"] == []
+
+
+def test_an_idle_lane_names_the_cleanup_that_keeps_it_from_placement(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    # Wrong implementation: the alert counted a lane free that placement skipped
+    # (an old terminal cleanup record holds every Spark running a workload that is
+    # not the sweep's) and blamed "placement review or lane admission" for hours.
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", ("m1",), local="cached")],
+        [FakeModel("m1", local="cached")],
+        gateway=gateway,
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    fleet.runs.append(
+        {
+            "alias": "owners-model",
+            "recipe": "external",
+            "run_id": "run-owner",
+            "node_ids": ["spk_b"],
+            "ready": True,
+        }
+    )
+    sweep.fleet = fetch_fleet(sweep.vk, sweep.cfg.default_spark_memory)
+    sweep.state.data["cleanup_loads"]["old"] = {
+        "request_key": "old",
+        "app_id": "c1eanup0-old",
+        "terminal_receipt": {"state": "cancelled"},
+    }
+    assert [b.id for b in sweep._bins()] == ["spk_a"]
+    sweep.state.slots["a"] = {
+        "alias": "a",
+        "phase": "loading",
+        "node_ids": ["spk_a"],
+        "request_key": "k",
+    }
+    sweep.ready_candidates = lambda: [object()]  # type: ignore[method-assign]
+    now = clock.now()
+    sweep.check_idle(now)
+    sweep.check_idle(now + sweep.cfg.idle_alert_seconds + 1)
+    (alert,) = sweep.state.data["alerts"]
+    assert "1 idle lane(s)" in alert
+    assert "c1eanup0" in alert and "owners-model" in alert
 
 
 def test_incremental_profile_fake_preserves_and_waits_for_exact_running_child(

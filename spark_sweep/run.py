@@ -2635,20 +2635,31 @@ class Sweep:
                         b.ports | frozenset(recipe.ports),
                         b.aliases | {slot["alias"]},
                     )
-        busy = {
-            node
-            for slot in self.state.slots.values()
-            if slot["phase"] != "finished"
-            for node in slot["node_ids"]
-        }
-        busy |= self._cleanup_nodes() | self._held_nodes()
-        return [bin_ for bin_ in bins.values() if bin_.id not in busy]
+        holds = self._lane_holds()
+        return [bin_ for bin_ in bins.values() if bin_.id not in holds]
 
-    def _held_nodes(self) -> set[str]:
-        """Sparks whose given-up load of ours still shows a workload: not reused until it is gone."""
-        return {
-            n for r in self.state.data.get("released", {}).values() for n in r["nodes"]
-        }
+    def _lane_holds(self) -> dict[str, str]:
+        """Why each online Spark takes no new placement now; a Spark not named is free.
+
+        The one account the scheduler and the idle alert share.
+        """
+        holds: dict[str, str] = {}
+        for slot in self.state.slots.values():
+            if slot["phase"] != "finished":
+                for node in slot["node_ids"]:
+                    holds.setdefault(node, f"lane {slot['alias']} is {slot['phase']}")
+        for node, why in self._cleanup_holds().items():
+            holds.setdefault(node, why)
+        for record in self.state.data.get("released", {}).values():
+            for node in record["nodes"]:
+                holds.setdefault(
+                    node,
+                    "given-up load "
+                    + ", ".join(record.get("aliases", ()))
+                    + " still shows its workload",
+                )
+        online = {s.id for s in self.sparks()}
+        return {node: why for node, why in holds.items() if node in online}
 
     def _hold_lanes(self, load: Mapping[str, Any]) -> None:
         """Remember the Sparks and workload names of a load the sweep gives up."""
@@ -2756,11 +2767,21 @@ class Sweep:
         self.state.data["loads"].pop(key, None)
 
     def check_idle(self, now: float) -> None:
-        """Alert when a free lane has had ready work for too long (the sweep must never idle)."""
-        busy = {n for s in self.state.slots.values() for n in s.get("node_ids", [])}
-        busy |= self._held_nodes()
-        free = [s for s in self.sparks() if s.id not in busy]
-        waiting = bool(free) and not self.paused and bool(self.ready_candidates())
+        """Alert when an idle lane has had ready work for too long (the sweep must never idle).
+
+        Each idle lane is named with what holds it, from the same account the scheduler
+        places by (``_lane_holds``), so the alert never reports a lane free that placement
+        skips.
+        """
+        holds = self._lane_holds()
+        lanes = {
+            node
+            for slot in self.state.slots.values()
+            if slot["phase"] != "finished"
+            for node in slot["node_ids"]
+        }
+        idle_lanes = [s for s in self.sparks() if s.id not in lanes]
+        waiting = bool(idle_lanes) and not self.paused and bool(self.ready_candidates())
         if not waiting:
             self.idle_since = None
             pending_idle = self.state.data.get("pending_idle")
@@ -2771,11 +2792,15 @@ class Sweep:
         idle = now - self.idle_since
         if idle < self.cfg.idle_alert_seconds:
             return
+        unheld = (
+            self.state.data.get("clearing_reason")
+            or "placement review or lane admission"
+        )
+        causes = "; ".join(f"{s.name}: {holds.get(s.id) or unheld}" for s in idle_lanes)
         message = (
-            f"IDLE WITH READY WORK: {len(free)} free lane(s) for {round(idle)}s "
+            f"IDLE WITH READY WORK: {len(idle_lanes)} idle lane(s) for {round(idle)}s "
             f"while recipes are ready (load record: "
-            f"{len(self.state.data['loads'])}; "
-            f"blocking reason: {self.state.data.get('clearing_reason', 'placement review or lane admission')})"
+            f"{len(self.state.data['loads'])}; {causes})"
         )
         if not self.state.data.get("alerts"):
             self.state.event(message)
@@ -2846,35 +2871,50 @@ class Sweep:
 
     def _cleanup_nodes(self) -> set[str]:
         """Unconfirmed exact stop scopes remain occupied, including whole gangs."""
-        occupied: set[str] = set()
-        for load in self.state.data["cleanup_loads"].values():
+        return set(self._cleanup_holds())
+
+    def _cleanup_holds(self) -> dict[str, str]:
+        """The online Sparks cleanup bookkeeping keeps from placement, each with why."""
+        held: dict[str, str] = {}
+        for key, load in self.state.data["cleanup_loads"].items():
             if load.get("end"):
                 continue
+            name = f"cleanup {str(load.get('app_id') or key)[:8]}"
             if load.get("terminal_receipt"):
                 if load.get("projection_known") and not self._cleanup_pending(load):
                     continue
                 # Terminal bookkeeping is not a physical occupancy certificate.
                 # Current fleet facts and the fresh Controller review own admission.
                 kept = self._own_aliases()
-                occupied.update(
-                    p.node_id for p in self.fleet.presences if p.alias not in kept
-                )
+                for p in self.fleet.presences:
+                    if p.alias not in kept:
+                        held.setdefault(
+                            p.node_id,
+                            f"{name} ended with unconfirmed stops and runs "
+                            f"{p.alias}, not the sweep's",
+                        )
                 continue
             if not load.get("projection_known"):
                 # Before the current projection is known no lane may be inferred free.
-                occupied.update(s.id for s in self.sparks())
+                for s in self.sparks():
+                    held.setdefault(s.id, f"{name} effects are not yet observed")
                 continue
             for row in self._cleanup_pending(load):
-                occupied.update(row["node_ids"])
-        online = {s.id for s in self.sparks()}
+                for node in row["node_ids"]:
+                    held.setdefault(
+                        node, f"{name} stop of run {row.get('target_id')} unconfirmed"
+                    )
         if self.state.data.get("takeover_fallback"):
             # Bookkeeping is not occupancy. A fresh review still owns admission;
             # this observation never rewrites or declares an old receipt successful.
             own = self._own_aliases()
-            return {
-                p.node_id for p in self.fleet.presences if p.alias not in own
-            } & online
-        return occupied & online
+            held = {
+                p.node_id: f"clearing fallback: runs {p.alias}, not the sweep's"
+                for p in self.fleet.presences
+                if p.alias not in own
+            }
+        online = {s.id for s in self.sparks()}
+        return {node: why for node, why in held.items() if node in online}
 
     def _cleanup_target_absent(self, load: Mapping) -> bool:
         """An exact absent receipt plus fresh online fleet facts ends bookkeeping."""
