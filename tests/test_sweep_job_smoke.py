@@ -63,15 +63,28 @@ class Controller:
     """A scripted ``vonkctl recipe job``: each step answers from its queue, in order."""
 
     def __init__(
-        self, output: bytes = b"", **answers: Sequence[tuple[int, Any]]
+        self,
+        output: bytes = b"",
+        evidence: tuple[int, Any] | None = None,
+        **answers: Sequence[tuple[int, Any]],
     ) -> None:
         self.output = output
+        # ``vonkctl fleet evidence``: (exit code, bundle written to --output or error).
+        self.evidence = evidence
         self.answers = {step: list(queue) for step, queue in answers.items()}
         self.calls: list[list[str]] = []
         self.binding: dict[str, Any] = {}
 
     def __call__(self, argv: Sequence[str], timeout: float) -> tuple[int, str, str]:
         args = list(argv[3:])  # vonkctl --json --no-input ...
+        if args[:2] == ["fleet", "evidence"] and self.evidence is not None:
+            self.calls.append(args)
+            code, answer = self.evidence
+            if code != 0:
+                return code, json.dumps(answer), ""
+            Path(args[args.index("--output") + 1]).write_text(json.dumps(answer))
+            document = {"operation_id": args[2], "attempt": 1, "output": "x"}
+            return 0, json.dumps(document), ""
         assert args[:2] == ["recipe", "job"]
         self.calls.append(args[2:])
         step = args[2]
@@ -213,6 +226,83 @@ def test_a_job_that_ends_unsuccessfully_is_the_recipes_only_without_a_platform_c
     assert verdict.disposition(result.failure) is outcome
     assert result.failure.evidence["job_id"] == JOB["id"]
     assert "download" not in controller.steps
+
+
+OPERATION = "22222222-2222-4222-8222-222222222222"
+
+
+def _bundle(stderr: str, exit_code: str | None = None) -> dict[str, Any]:
+    tail = {"truncated": False, "dropped_bytes": 0, "dropped_lines": 0}
+    preflight = [] if exit_code is None else [{"name": "exit_code", "value": exit_code}]
+    return {
+        "schema_version": 2,
+        "context": {"operation_id": OPERATION, "attempt": 1},
+        "error_code": "recipe_job_run_failed",
+        "summary": "job adapter exited unsuccessfully",
+        "diagnostics": {
+            "stdout": {"text": "", **tail},
+            "stderr": {"text": stderr, **tail},
+            "preflight": preflight,
+        },
+    }
+
+
+def test_a_failed_job_carries_its_exit_code_and_stderr_tail() -> None:
+    stderr = "x" * 5000 + "\n/opt/vonk/bin/comfyui-job: 1: not found\n"
+    controller = Controller(
+        evidence=(0, _bundle(stderr, exit_code="127")),
+        create=[_job(None, preparation="ready")],
+        submit=[_job("failed", operation_id=OPERATION, status_reason="exit")],
+    )
+    result = _smoke(controller)
+    assert result.failure is not None
+    assert verdict.disposition(result.failure) is verdict.Disposition.FAIL
+    proof = result.failure.evidence
+    assert proof["exit_code"] == 127
+    assert proof["stderr_tail"].endswith("comfyui-job: 1: not found\n")
+    assert len(proof["stderr_tail"].encode()) <= 2048
+    assert proof["evidence_ref"] == {"operation_id": OPERATION, "attempt": 1}
+    assert "evidence_unavailable" not in proof
+    assert controller.calls[-1][:3] == ["fleet", "evidence", OPERATION]
+
+
+@pytest.mark.parametrize("status", [404, 500])
+def test_an_evidence_read_that_fails_never_changes_the_verdict(status: int) -> None:
+    error = {
+        "error_type": "control_api",
+        "code": "controller.not_found" if status == 404 else "controller.error",
+        "status": status,
+    }
+    ended = _job("failed", operation_id=OPERATION, status_reason="exit")
+    controller = Controller(
+        evidence=(1, error),
+        create=[_job(None, preparation="ready")],
+        submit=[ended],
+    )
+    result = _smoke(controller)
+    assert result.failure is not None
+    assert verdict.disposition(result.failure) is verdict.Disposition.FAIL
+    assert result.failure.klass == verdict.JOB_FAILED
+    assert result.failure.evidence["evidence_unavailable"]
+    assert result.failure.evidence["evidence_ref"] == {"operation_id": OPERATION}
+    assert "stderr_tail" not in result.failure.evidence
+
+
+def test_a_deferred_job_keeps_its_evidence_and_stays_observed() -> None:
+    ended = _job(
+        "failed",
+        operation_id=OPERATION,
+        result_evidence={"failure_kind": "agent-lease-expired"},
+    )
+    controller = Controller(
+        evidence=(0, _bundle("lease lost\n")),
+        create=[_job(None, preparation="ready")],
+        submit=[ended],
+    )
+    result = _smoke(controller)
+    assert result.failure is not None
+    assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
+    assert result.failure.evidence["stderr_tail"] == "lease lost\n"
 
 
 def test_a_controller_refusal_is_a_wait_never_a_verdict() -> None:
