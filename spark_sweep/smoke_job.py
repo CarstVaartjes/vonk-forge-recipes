@@ -147,7 +147,11 @@ def _tail(text: str, limit: int = STDERR_TAIL_BYTES) -> str:
 
 
 def _exit_code(diagnostics: Mapping[str, Any]) -> int | None:
-    """The typed ``exit_code`` property the agent reports with a process's diagnostics."""
+    """The typed ``exit_code`` property the agent reports with a process's diagnostics.
+
+    The agent adds it when the helper names the exit; a plain job exit does not carry
+    one in the evidence bundle yet, so it is absent rather than guessed from text.
+    """
     for item in diagnostics.get("preflight") or []:
         if isinstance(item, Mapping) and item.get("name") == "exit_code":
             value = item.get("value")

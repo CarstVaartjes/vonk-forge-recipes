@@ -303,6 +303,8 @@ def test_a_deferred_job_keeps_its_evidence_and_stays_observed() -> None:
     assert result.failure is not None
     assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
     assert result.failure.evidence["stderr_tail"] == "lease lost\n"
+    # No typed exit_code property in the diagnostics: none is claimed.
+    assert "exit_code" not in result.failure.evidence
 
 
 def test_a_controller_refusal_is_a_wait_never_a_verdict() -> None:
