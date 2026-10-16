@@ -151,17 +151,15 @@ def _tail(text: str, limit: int = STDERR_TAIL_BYTES) -> str:
     return encoded[-limit:].decode("utf-8", errors="ignore")
 
 
-def _exit_code(diagnostics: Mapping[str, Any]) -> int | None:
-    """The typed ``exit_code`` property the agent reports with a process's diagnostics.
+def _exit_code(bundle: Mapping[str, Any]) -> int | None:
+    """The job process's exit code, as the evidence bundle types it.
 
-    The agent adds it when the helper names the exit; a plain job exit does not carry
-    one in the evidence bundle yet, so it is absent rather than guessed from text.
+    The Controller reads it from the agent's receipt; a bundle without one (no
+    process receipt) claims none.
     """
-    for item in diagnostics.get("preflight") or []:
-        if isinstance(item, Mapping) and item.get("name") == "exit_code":
-            value = item.get("value")
-            if isinstance(value, str) and value.lstrip("-").isdigit():
-                return int(value)
+    value = bundle.get("exit_code")
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
     return None
 
 
@@ -199,7 +197,7 @@ def _job_evidence(vk: Vonkctl, job: Mapping[str, Any]) -> dict[str, Any]:
         "evidence_ref": ref,
         "evidence_error_code": _text(bundle, "error_code"),
         "evidence_summary": excerpt(_text(bundle, "summary"), 512),
-        "exit_code": _exit_code(diagnostics),
+        "exit_code": _exit_code(bundle),
         "stderr_tail": _tail(stderr) if isinstance(stderr, str) else None,
     }
     if not diagnostics:
