@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Run one immutable ComfyUI API workflow as a shell-free Vonk media job."""
 
 from __future__ import annotations
