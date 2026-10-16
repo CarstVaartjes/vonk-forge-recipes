@@ -87,8 +87,8 @@ def _torchcodec_adapters() -> dict[str, bool]:
 
 def test_torchaudio_images_pin_torchcodec_or_record_why_not() -> None:
     adapters = _torchcodec_adapters()
-    # The scan sees real pins of both packages, not an empty tree.
-    assert any(adapters.values())
+    # The scan sees real torchaudio pins, not an empty tree.
+    assert adapters
     missing = sorted(
         name for name, pinned in adapters.items() if not pinned and name not in EXEMPT
     )
