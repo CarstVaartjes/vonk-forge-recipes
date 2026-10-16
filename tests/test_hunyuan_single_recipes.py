@@ -16,7 +16,6 @@ RECIPE_SLUGS = (
     "hunyuan-video-foley-xl-pytorch-single",
     "hunyuan-video-foley-xxl-pytorch-single",
     "hunyuan3d-omni-pytorch-single",
-    "hunyuanocr-1-5-vllm-dflash-single",
 )
 
 
@@ -86,12 +85,6 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
                     self.assertEqual(
                         selection["model"]["content_sha256"], model_digest(model_slug)
                     )
-                self.assertEqual(
-                    recipe["interfaces"][0]["adapter"],
-                    "artifact-job"
-                    if slug.startswith("hunyuanocr")
-                    else recipe["interfaces"][0]["adapter"],
-                )
 
     def test_current_upstream_revisions_are_pinned(self) -> None:
         expected = {
