@@ -56,7 +56,7 @@ from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
 from .report import write_status
 from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
-from .smoke_job import smoke_job
+from .smoke_job import job_budget_seconds, smoke_job
 from .state import ResultsLog, State, StateLock
 from .verdict import Disposition, Progress
 from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
@@ -2377,6 +2377,13 @@ class Sweep:
         recipe = self.recipes[key]
         if recipe.is_job:
             # A job run has no endpoint: its smoke is one artifact job against the run.
+            spec = self.defs.artifact(key)
+            if spec is not None:
+                # Each smoke enforces its own budget from its start: the lane shows that one.
+                slot.update(
+                    smoke_started_at=self.clock.now(),
+                    smoke_budget_s=job_budget_seconds(spec),
+                )
             self.futures[key] = self.executor.submit(
                 smoke_job,
                 recipe,
