@@ -193,3 +193,33 @@ def test_a_missing_build_beside_another_lanes_disk_blocker_is_a_wait_not_a_verdi
     assert entry_a["defer_until"] > clock.now()
     assert sweep.state.entry(lane_b.recipe.key)["attempts"] == 1  # as before: recorded
     assert entry_a.get("attempts", 0) == 0
+
+
+def test_a_blocked_review_keeps_the_controllers_document_on_every_row(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    # On hardware a review came back not allowed with no blocker the sweep could
+    # read: rows said only "the review was not allowed" and the Controller's
+    # answer was gone, so a Spark idled with no cause to look at.
+    sweep, _, clock = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    sweep.refresh_catalog()
+    recipe = next(iter(sweep.recipes.values()))
+    sweep.state.slots["other"] = {
+        "alias": "other",
+        "phase": "smoking",
+        "node_ids": ["spk_b"],
+        "request_key": "k",
+    }
+    document = {"allowed": False, "unexplained": "the Controller's own words"}
+    sweep._blocked(document, {}, [policy.Placement(recipe, ("spk_a",))], clock.now())
+    rows = [
+        json.loads(line)
+        for line in (tmp_path / "results.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    (row,) = [r for r in rows if r.get("step") == "review"]
+    assert row["status"] == "waiting"
+    assert row["controller_document"]["unexplained"] == "the Controller's own words"
