@@ -55,6 +55,11 @@ RECIPE_REQUEST_STEPS = frozenset({"create", "upload"})
 STDERR_TAIL_BYTES = 2048
 
 
+def job_budget_seconds(spec: Mapping[str, Any]) -> float:
+    """How long a job smoke follows its job once submitted: the timeout and the grace."""
+    return float(spec["timeout_seconds"]) + JOB_GRACE_SECONDS
+
+
 class _Refused(Exception):
     def __init__(self, failure: Failure) -> None:
         super().__init__(failure.detail)
@@ -288,7 +293,7 @@ def smoke_job(
                 job = _call(
                     vk, "submit", "submit", job_id, "--request-key", keys["submit"]
                 )
-            deadline = now() + float(spec["timeout_seconds"]) + JOB_GRACE_SECONDS
+            deadline = now() + job_budget_seconds(spec)
             while _text(job, "state") not in ENDED | OPERATOR_WAIT:
                 if now() >= deadline:
                     result.failure = classify(
