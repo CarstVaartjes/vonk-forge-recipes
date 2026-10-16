@@ -677,5 +677,82 @@ class Step1XGeometryOutputTests(unittest.TestCase):
                 self.assertNotEqual(_FakePipeline.seen[0].parent, outputs)
 
 
+class _FakeScene:
+    """trimesh 4.3.2's Scene: it has no to_geometry."""
+
+
+class _FakeTrimesh:
+    def export(self, path: Path) -> None:
+        Path(path).write_bytes(b"glb")
+
+
+class _FakeTexturePipeline:
+    received: ClassVar[list[object]] = []
+
+    def __init__(self, config: object) -> None:
+        self.config = config
+
+    def __call__(self, image: str, mesh: object, **kwargs: object) -> object:
+        # Upstream: `if isinstance(mesh, trimesh.Scene): mesh = mesh.to_geometry()`
+        if isinstance(mesh, _FakeScene):
+            mesh = mesh.to_geometry()  # type: ignore[attr-defined]
+        self.received.append(mesh)
+        return _FakeTrimesh()
+
+
+def _fake_texture_modules() -> dict[str, types.ModuleType]:
+    trimesh = types.ModuleType("trimesh")
+    trimesh.Scene = _FakeScene  # type: ignore[attr-defined]
+    trimesh.load = (  # type: ignore[attr-defined]
+        lambda path, force=None: _FakeTrimesh() if force == "mesh" else _FakeScene()
+    )
+    pipeline = types.ModuleType(
+        "step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline"
+    )
+    pipeline.Step1X3DTextureConfig = types.SimpleNamespace  # type: ignore[attr-defined]
+    pipeline.Step1X3DTexturePipeline = _FakeTexturePipeline  # type: ignore[attr-defined]
+    modules = {**_fake_modules(), "trimesh": trimesh, pipeline.__name__: pipeline}
+    for name in ("step1x3d_texture", "step1x3d_texture.pipelines"):
+        modules[name] = types.ModuleType(name)
+    return modules
+
+
+class Step1XTextureInputTests(unittest.TestCase):
+    def test_texture_hands_the_pipeline_one_mesh_never_a_scene(self) -> None:
+        # Sweep 2026-10-16: a GLB loads as a Scene, and upstream's Scene branch
+        # failed with "'Scene' object has no attribute 'to_geometry'" on the
+        # trimesh 4.3.2 it pins.
+        with (
+            tempfile.TemporaryDirectory() as root,
+            mock.patch.dict(sys.modules, _fake_texture_modules()),
+            mock.patch.object(sys, "path", [str(ADAPTER_ROOT), *sys.path]),
+        ):
+            module = types.ModuleType("step1x_run")
+            module.__file__ = str(RUN_PATH)
+            exec(
+                compile(RUN_PATH.read_text(encoding="utf-8"), str(RUN_PATH), "exec"),
+                module.__dict__,
+            )
+            mesh = Path(root) / "mesh.glb"
+            mesh.write_bytes(b"glb")
+            outputs = Path(root) / "outputs"
+            outputs.mkdir()
+            module.__dict__.update(
+                _one_input=lambda label, suffixes: mesh,
+                _validated_input_glb=lambda path: path,
+                _publish_glb=lambda temporary, output, profile: temporary.replace(
+                    output
+                ),
+            )
+            _FakeTexturePipeline.received.clear()
+            module._texture(seed=0, output_dir=outputs)
+            self.assertEqual(len(_FakeTexturePipeline.received), 1)
+            self.assertIsInstance(_FakeTexturePipeline.received[0], _FakeTrimesh)
+            self.assertEqual(
+                sorted(path.name for path in outputs.iterdir()),
+                ["step1x-textured.glb"],
+            )
+
+
 if __name__ == "__main__":
     unittest.main()
