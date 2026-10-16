@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from vonk_forge_contracts.sweep import CleanupEnd, CleanupEndReason
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -114,7 +115,12 @@ def test_ended_owned_application_keeps_audit_identity_and_admits_new_loads(
         sweep.clock.sleep(300)
     original = sweep.state.data["cleanup_loads"]["old"]
     assert original["app_id"] == "app-0001"
-    assert original["observation_unknown"]
+    # Its projection never became known: it retired only once fresh fleet facts
+    # showed nothing running, and it keeps its audit identity.
+    assert (
+        CleanupEnd.model_validate(original["end"]).reason
+        == CleanupEndReason.TARGET_ABSENT
+    )
     assert original["terminal_receipt"]["id"] == "app-0001"
     assert _load_keys(fleet, 10) and "old" not in _load_keys(fleet, 10)
     assert len(sweep.state.data["own_loads"]) > 1
