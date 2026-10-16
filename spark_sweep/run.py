@@ -3952,11 +3952,21 @@ class Sweep:
     def _own_aliases(self) -> set[str]:
         """Every workload name the sweep has ever put in its profile (lanes come and go, the
         workload of a released lane runs until the next load replaces it)."""
-        # (also the names the catalog would give: a state file from before own_aliases existed)
+        # Also every name ``_alias`` can derive for a catalog recipe, the plain one and its
+        # recipe-keyed suffix: ownership follows from the name itself, not from a record
+        # that a lost save or an older state file may lack.
+        derived = {
+            name
+            for r in self.recipes.values()
+            for name in (
+                alias_for(r, self.defs),
+                unique_profile_alias(alias_for(r, self.defs), r.key),
+            )
+        }
         return (
             {str(a) for a in self.state.data["own_aliases"]}
             | {str(s["alias"]) for s in self.state.slots.values()}
-            | {alias_for(r, self.defs) for r in self.recipes.values()}
+            | derived
         )
 
     def _fleet_runs(self) -> tuple[list[str], list[str]]:
