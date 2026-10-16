@@ -14,7 +14,14 @@ Against vLLM v0.25.1 the difference is small: it replaces
 lm_head.tie_weights(embed_tokens) with a direct weight share (ModelOpt does not
 implement tie_weights) and predates the mm_prefix_clamp_sliding_window argument.
 
-Our files: Dockerfile, vllm-wrapper.sh, verify-runtime.py and this notice.
+Our files: Dockerfile, vllm-wrapper.sh, verify-runtime.py,
+patch-vllm-pr47953.py and this notice.
+
+patch-vllm-pr47953.py applies the exact hunk of vLLM PR #47953 (Apache-2.0,
+https://github.com/vllm-project/vllm/pull/47953) to the pinned v0.25.1 image.
+v0.25.1 includes #43957, which stopped sharing the target embedding with Gemma 4
+MTP assistants; the MoE 26B-A4B then fails engine initialization (vLLM issue
+#47794). Upstream's nightly of 2026-07-05 predates that regression.
 
 The models, nvidia/Gemma-4-26B-A4B-NVFP4 and google/gemma-4-26B-A4B-it-assistant,
 are published under Google's Gemma terms (the model cards point to
