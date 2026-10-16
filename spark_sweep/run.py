@@ -2970,12 +2970,33 @@ class Sweep:
         present = {run.run_id for node in observed.nodes for run in node.loaded}
         return not (expected_runs & present) if expected_runs else not present
 
+    def _end_cleanup(self, load: dict[str, Any], now: float) -> None:
+        """Fresh fleet facts show the cleanup's targets gone: its bookkeeping ends."""
+        load["end"] = CleanupEnd(
+            reason=CleanupEndReason.TARGET_ABSENT, observed_at=now
+        ).model_dump(mode="json")
+        load["observation_unknown"] = False
+        load.pop("observation_budget", None)
+        self.state.event(
+            f"cleanup {str(load.get('app_id') or load['request_key'])[:8]} retired: "
+            "its stop targets are gone from the fleet"
+        )
+        self.state.save()
+
+    @staticmethod
+    def _defer_cleanup(
+        load: dict[str, Any], budget: CleanupObservationBudget, now: float
+    ) -> None:
+        budget.attempts += 1
+        budget.next_check = now + min(
+            INFRA_BASE * 2 ** min(budget.attempts - 1, 20), INFRA_CAP
+        )
+        load["observation_budget"] = budget.model_dump(mode="json")
+
     def observe_cleanup(self) -> None:
         """Observe original stop receipts once; never replace intent after a read timeout."""
         for load in self.state.data["cleanup_loads"].values():
             if load.get("end"):
-                continue
-            if load.get("terminal_receipt"):
                 continue
             if load.get("projection_known") and not self._cleanup_pending(load):
                 continue  # immutable successful receipt/history needs no repeated I/O
@@ -2985,6 +3006,14 @@ class Sweep:
             )
             if now < budget.next_check:
                 continue
+            if load.get("terminal_receipt"):
+                # The Controller ended it with stops unconfirmed and its receipt is
+                # final: only current fleet facts retire it, once its targets are gone.
+                if self._cleanup_target_absent(load):
+                    self._end_cleanup(load, now)
+                else:
+                    self._defer_cleanup(load, budget, now)
+                continue
             args = ["progress"]
             if load.get("app_id"):
                 args += ["--application", load["app_id"]]
@@ -2993,11 +3022,6 @@ class Sweep:
             reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
             document = reply.document
             if reply.is_not_found and self._cleanup_target_absent(load):
-                load["end"] = CleanupEnd(
-                    reason=CleanupEndReason.TARGET_ABSENT, observed_at=now
-                ).model_dump(mode="json")
-                load["observation_unknown"] = False
-                load.pop("observation_budget", None)
                 self.clear_infra("clearing")
                 self.backoff_until = max(
                     (
@@ -3007,14 +3031,10 @@ class Sweep:
                     ),
                     default=0.0,
                 )
-                self.state.save()
+                self._end_cleanup(load, now)
                 continue
             if not reply.ok:
-                budget.attempts += 1
-                budget.next_check = now + min(
-                    INFRA_BASE * 2 ** min(budget.attempts - 1, 20), INFRA_CAP
-                )
-                load["observation_budget"] = budget.model_dump(mode="json")
+                self._defer_cleanup(load, budget, now)
                 # Legacy status entries describe the next actual observation, not
                 # an expired submission retry. This does not pause other lanes.
                 if item := self.state.data["infra"].get("clearing"):

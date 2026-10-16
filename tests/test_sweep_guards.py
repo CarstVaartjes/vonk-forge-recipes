@@ -217,9 +217,9 @@ FATE_COUNTERS = frozenset(
 CADENCE = {
     ("cleanup_finished", "attempts"): "backoff exponent of an assignment removal retry",
     (
-        "observe_cleanup",
+        "_defer_cleanup",
         "attempts",
-    ): "backoff exponent of an unreadable cleanup receipt",
+    ): "backoff exponent of an unreadable cleanup receipt or a present target",
     (
         "_take_over",
         "attempts",
