@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import tempfile
 from pathlib import Path
 
 from glb_validation import normalize_glb_json_padding, validate_mesh_glb
@@ -84,7 +85,9 @@ def _geometry(*, label_control: bool, seed: int, output_dir: Path) -> None:
     )
 
     source = _one_input("image", _IMAGE_SUFFIXES)
-    prepared = _offline_geometry_image(source, output_dir / "prepared-input.png")
+    # /outputs holds only the declared mesh; the prepared input is scratch.
+    scratch = Path(tempfile.mkdtemp(prefix="step1x-input-"))
+    prepared = _offline_geometry_image(source, scratch / "prepared-input.png")
     subfolder = (
         "Step1X-3D-Geometry-Label-1300m"
         if label_control
