@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import sys
 import unittest
 from pathlib import Path, PurePosixPath
@@ -12,6 +13,7 @@ sys.path.insert(0, str(ROOT / "contracts" / "src"))
 
 from catalog_documents import catalog_models
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+from vonk_forge_contracts.recipe import RecipeBuildDefinition
 from vonk_forge_contracts.resolver import (
     validate_recipe_models,
     validate_recipe_package_paths,
@@ -167,6 +169,50 @@ class RecipeExecutabilityTests(unittest.TestCase):
                     entrypoint,
                     f"{path.name}: /bin/false is not an executable recipe entrypoint",
                 )
+
+    def test_entrypoint_copied_from_the_build_context_is_directly_executable(
+        self,
+    ) -> None:
+        # The runtime execs runtime.entrypoint[0] itself. A script without a
+        # shebang fails with ENOEXEC and falls back to /bin/sh, which then
+        # reads Python as shell (the ComfyUI job adapters failed exactly so).
+        # Entry points written by RUN or copied from a build stage are out of
+        # static reach and are left to the build.
+        for path in sorted(RECIPES.glob("*.json")):
+            recipe = RecipeDefinition.model_validate(
+                json.loads(path.read_text(encoding="utf-8"))
+            )
+            executable = recipe.runtime.entrypoint[0]
+            for source in copied_context_sources(recipe.execution.build, executable):
+                with self.subTest(recipe=path.name, source=source):
+                    head = (ROOT / source).read_bytes()[:4]
+                    self.assertTrue(
+                        head.startswith(b"#!") or head == b"\x7fELF",
+                        f"{path.name}: {source} is installed as the entrypoint "
+                        f"{executable} but has no #! line",
+                    )
+
+
+def copied_context_sources(build: RecipeBuildDefinition, destination: str) -> list[str]:
+    """Build-context files a Dockerfile COPY/ADD installs at ``destination``."""
+    context = PurePosixPath(build.context.path)
+    text = (ROOT / build.dockerfile).read_text(encoding="utf-8")
+    sources: list[str] = []
+    for line in text.replace("\\\n", " ").splitlines():
+        instruction = line.split(maxsplit=1)
+        if not instruction or instruction[0].upper() not in ("COPY", "ADD"):
+            continue
+        words = shlex.split(line, comments=True)
+        if any(word.startswith("--from") for word in words[1:]):
+            continue
+        *items, target = [word for word in words[1:] if not word.startswith("--")]
+        for item in items:
+            installed = PurePosixPath(target)
+            if target.endswith("/"):
+                installed /= PurePosixPath(item).name
+            if installed == PurePosixPath(destination):
+                sources.append((context / item).as_posix())
+    return sources
 
 
 if __name__ == "__main__":
