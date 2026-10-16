@@ -20,12 +20,6 @@
       "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
     },
     {
-      "file": "tests/test_hunyuanocr_adapter.py",
-      "rule": "reportAttributeAccessIssue",
-      "count": 1,
-      "reason": "The attribute is reached through a dynamically loaded adapter module or a dict-backed fixture."
-    },
-    {
       "file": "tests/test_image_diffusers_adapters.py",
       "rule": "reportAttributeAccessIssue",
       "count": 6,

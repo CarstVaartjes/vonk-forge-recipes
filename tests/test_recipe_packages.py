@@ -221,10 +221,6 @@ def test_model_territorial_restrictions_preserve_all_published_records() -> None
             ["EU", "GB", "KR"],
             "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea.",
         ),
-        "hunyuanocr-1-5-47644ecc": (
-            ["EU", "GB", "KR"],
-            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
-        ),
         "minimax-h3": (
             ["EU", "GB", "KR", "US"],
             "The MiniMax H3 Community License Agreement excludes the European Union, United Kingdom, Republic of Korea, and United States of America from its Applicable Territory.",

@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-We cover Agents-A1, DeepSeek, DeepSeek Flash, FastContext, FLUX.2, GLM, Google Gemma, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy3, Inkling, Laguna, Leanstral, Ling, LiquidAI LFM2.5, LTX, Meta Llama, Microsoft Phi-4, MiMo, MiniMax, MiniMax H3, MOVA, Muse Glimmer, Nex N2, NVIDIA Nemotron, OpenAI gpt-oss, OpenMOSS MOSS-VL, Ornith, Pixal3D, Qwen, Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, Ternary Bonsai, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+We cover Agents-A1, DeepSeek, DeepSeek Flash, FastContext, FLUX.2, GLM, Google Gemma, Hunyuan3D, HunyuanVideo, HunyuanVideo Foley, Hy3, Inkling, Laguna, Leanstral, Ling, LiquidAI LFM2.5, LTX, Meta Llama, Microsoft Phi-4, MiMo, MiniMax, MiniMax H3, MOVA, Muse Glimmer, Nex N2, NVIDIA Nemotron, OpenAI gpt-oss, OpenMOSS MOSS-VL, Ornith, Pixal3D, Qwen, Qwen Image, SkinTokens, Step 3.7 Flash, Step1X-3D, Ternary Bonsai, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -26,7 +26,6 @@ Which engines each model family runs on.
 | GLM | ✓ | ✓ |  |  | ✓ |  |  |  |  |  |
 | Google Gemma | ✓ |  |  | ✓ |  |  |  |  |  |  |
 | Hunyuan3D |  |  |  |  |  |  |  |  | ✓ |  |
-| HunyuanOCR |  |  |  |  |  |  |  |  | ✓ |  |
 | HunyuanVideo |  |  |  |  |  |  | ✓ |  |  |  |
 | HunyuanVideo Foley |  |  |  |  |  |  |  |  | ✓ |  |
 | Hy3 | ✓ |  |  |  |  |  |  |  |  |  |
@@ -76,7 +75,6 @@ Which Spark counts each model family runs on.
 | GLM | ✓ | ✓ | ✓ | ✓ |  |
 | Google Gemma | ✓ | ✓ |  |  |  |
 | Hunyuan3D | ✓ |  |  |  |  |
-| HunyuanOCR | ✓ |  |  |  |  |
 | HunyuanVideo | ✓ |  |  |  |  |
 | HunyuanVideo Foley | ✓ |  |  |  |  |
 | Hy3 |  | ✓ |  |  |  |
