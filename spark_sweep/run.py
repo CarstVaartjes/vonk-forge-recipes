@@ -720,6 +720,8 @@ class Sweep:
             write_status(self)
         except Exception as error:  # noqa: BLE001 - a status page never stops a wait
             self.note_infra("status", f"{type(error).__name__}: {error}")
+        else:
+            self.clear_infra("status")
 
     @property
     def paused(self) -> bool:
@@ -767,6 +769,7 @@ class Sweep:
         """One pass. A Controller that stops answering costs a pass, never the sweep."""
         try:
             self._tick()
+            self.clear_infra("tick")
         except VonkctlError as error:
             self.state.event(f"vonkctl failed, will retry: {str(error)[:150]}")
             self._save_quietly()
@@ -784,6 +787,8 @@ class Sweep:
             self.state.save()
         except Exception as error:  # noqa: BLE001 - the next pass saves again
             self.note_infra("state-save", f"{type(error).__name__}: {error}")
+        else:
+            self.clear_infra("state-save")
 
     def _startup(self, step: Callable[[], None]) -> bool:
         """One try of a startup step that only reads the fleet: a failing vonkctl waits, never exits.
@@ -1296,6 +1301,9 @@ class Sweep:
 
     def _run(self) -> int:
         self.state.data.pop("end", None)
+        # A new process retries everything afresh: entries a previous run left (or a
+        # source this version no longer has) describe nothing that is retrying now.
+        self.state.data["infra"].clear()
         stuck = 0
         try:
             self.check_client()
@@ -1326,6 +1334,7 @@ class Sweep:
                         ) = -1e18
                         continue
                     idle = self._nothing_moves()
+                    self.clear_infra("loop")
                     stuck = stuck + 1 if idle else 0
                     if not idle:
                         self.state.data.pop("pending_idle", None)
@@ -1579,6 +1588,8 @@ class Sweep:
         except OSError as error:
             # The log is the evidence; a full disk is an infrastructure fact to show.
             self.note_infra("results-log", f"{type(error).__name__}: {error}")
+        else:
+            self.clear_infra("results-log")
 
     def _facts(
         self, key: str, entry: Mapping[str, Any], slot: Mapping[str, Any] | None
@@ -2391,6 +2402,7 @@ class Sweep:
                 key, slot, policy.classify("readiness", "endpoint", str(error)), {}
             )
             return
+        self.clear_infra("endpoint")
         item = next(
             (
                 item
