@@ -6,6 +6,7 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
+from spark_sweep.vonkctl import Reply
 
 SID = "8cb1d3a7-0000-4000-8000-000000000001"
 
@@ -86,3 +87,44 @@ def test_earlier_failures_recorded_for_a_superseded_load_are_pending_again(
     again.run()
     assert _entry(again, "a")["status"] == "passed"
     assert _entry(again, "b")["status"] == "failed"
+
+
+OLD_APP = "8cb1d3a7-0000-4000-8000-0000000000a1"
+NEW_APP = "8cb1d3a7-0000-4000-8000-0000000000a2"
+
+
+def _two_own_loads(sweep, observed: dict) -> dict:
+    """An older load of ours and the later load of ours whose placement replaced it."""
+    sweep.state.data["own_loads"] = [
+        {"application_id": OLD_APP, "kind": "placement", "request_key": "key-old"},
+        {"application_id": NEW_APP, "kind": "placement", "request_key": "key-new"},
+    ]
+    load = {"request_key": "key-old", "app_id": observed["id"], "state": "running"}
+    sweep.state.data["loads"] = {"key-old": load}
+    sweep.vk.run = lambda *_args, **_kwargs: Reply(("profile",), 0, observed, "")
+    return load
+
+
+@pytest.mark.parametrize(
+    "observed",
+    [
+        # Hardware 2026-10-16: each placement of profile 10 superseded the previous
+        # one, and every older load "followed" it to the newest application.
+        {"id": OLD_APP, "state": "superseded", "superseded_by": NEW_APP},
+        # A load already following another load's application settles on next look.
+        {"id": NEW_APP, "state": "running"},
+    ],
+)
+def test_a_load_never_adopts_another_of_our_loads_as_its_continuation(
+    tmp_path, gateway, observed
+) -> None:
+    sweep, _fleet, _ = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    load = _two_own_loads(sweep, observed)
+
+    assert sweep._poll_application(load)
+
+    assert load["app_id"] != NEW_APP or observed["id"] == NEW_APP
+    assert "key-old" not in sweep.state.data["loads"]
+    assert sweep.state.data["apps"]["key-old"]["superseded"] is True

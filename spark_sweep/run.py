@@ -1747,6 +1747,17 @@ class Sweep:
             self._blind("application observation is unreadable")
             return False
         self.clear_infra("review")
+        owner = self._own_load_request(document["id"])
+        if owner not in (None, load["request_key"]):
+            # The application is another load of ours: that load superseded this
+            # one, it did not continue it. This load has ended; its lane requeues.
+            self.state.data.setdefault("apps", {})[load["request_key"]] = {
+                "state": "superseded",
+                "superseded": True,
+                "reason": f"superseded by this sweep's own load {owner}",
+            }
+            self.state.data["loads"].pop(load["request_key"], None)
+            return True
         self.documents[load["request_key"]] = document
         load["observed_at"] = self.clock.now()
         load["app_id"] = document["id"]
@@ -1765,8 +1776,15 @@ class Sweep:
         failure = document.get("failure") or {}
         failure_code = str(failure.get("code") or document.get("code") or "")
         replaced = policy.supersession(document) if status in SETTLED else None
-        if replaced is not None and replaced.successor not in (None, document["id"]):
+        if (
+            replaced is not None
+            and replaced.successor not in (None, document["id"])
+            and self._own_load_request(replaced.successor)
+            in (None, load["request_key"])
+        ):
             # The Controller continued this application as another one: follow it.
+            # A successor that is another load of ours replaced this one instead;
+            # this load then settles as superseded below.
             self.state.event(
                 f"application {document['id']} was superseded: following {replaced.successor}"
             )
@@ -1812,6 +1830,14 @@ class Sweep:
             }
             self.state.data["loads"].pop(load["request_key"], None)
         return True
+
+    def _own_load_request(self, app_id: str) -> str | None:
+        """The request key of this sweep's own load whose application ``app_id`` is."""
+        for item in self.state.data.get("own_loads") or []:
+            if isinstance(item, dict) and item.get("application_id") == app_id:
+                request = item.get("request_key")
+                return request if isinstance(request, str) else None
+        return None
 
     def _load_absent(self, load: dict[str, Any], reply: Reply) -> None:
         """The Controller has no application for this load, by id or by request key.
