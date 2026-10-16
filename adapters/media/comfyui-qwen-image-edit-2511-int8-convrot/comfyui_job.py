@@ -479,6 +479,37 @@ def copy_output(
     return target
 
 
+def comfyui_command(
+    temporary: Path, comfy_output: Path, extra_paths: Path
+) -> list[str]:
+    """ComfyUI's launch. Every directory it writes at startup (its user
+    directory and database, its temp directory, its outputs) lies in the
+    job's own temporary directory: the image's ComfyUI tree is read-only."""
+
+    user = temporary / "user"
+    user.mkdir(exist_ok=True)
+    return [
+        sys.executable,
+        str(COMFYUI_ROOT / "main.py"),
+        "--listen",
+        "127.0.0.1",
+        "--port",
+        str(PORT),
+        "--disable-auto-launch",
+        "--disable-metadata",
+        "--output-directory",
+        str(comfy_output),
+        "--input-directory",
+        str(INPUT_ROOT),
+        "--user-directory",
+        str(user),
+        "--temp-directory",
+        str(temporary),
+        "--extra-model-paths-config",
+        str(extra_paths),
+    ]
+
+
 def main() -> int:
     args = parse_args()
     document = load_workflow(args.workflow, args.workflow_sha256)
@@ -504,22 +535,7 @@ def main() -> int:
             "  diffusers: diffusers\n",
             encoding="utf-8",
         )
-        command = [
-            sys.executable,
-            str(COMFYUI_ROOT / "main.py"),
-            "--listen",
-            "127.0.0.1",
-            "--port",
-            str(PORT),
-            "--disable-auto-launch",
-            "--disable-metadata",
-            "--output-directory",
-            str(comfy_output),
-            "--input-directory",
-            str(INPUT_ROOT),
-            "--extra-model-paths-config",
-            str(extra_paths),
-        ]
+        command = comfyui_command(temporary, comfy_output, extra_paths)
         process = subprocess.Popen(command, stdout=sys.stderr, stderr=sys.stderr)
         try:
             wait_for_server(process)

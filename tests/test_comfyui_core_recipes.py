@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
+import itertools
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -179,6 +182,38 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
             self.assertIn(COMFY_REVISION, dockerfile_text)
             self.assertIn(COMFY_ARCHIVE_SHA256, dockerfile_text)
             self.assertNotIn("custom_nodes", dockerfile_text)
+
+    def test_comfyui_writes_its_startup_directories_inside_the_job(self) -> None:
+        # Hardware 2026-10-16: ComfyUI 0.38 creates its user directory (and
+        # its database there) and its temp directory at startup; under the
+        # read-only image tree that was "Read-only file system:
+        # '/opt/comfyui/user'" and the job exited before serving.
+        adapters = sorted((ROOT / "adapters/media").glob("comfyui-*/comfyui_job.py"))
+        self.assertTrue(adapters)
+        for path in adapters:
+            with self.subTest(adapter=path.parent.name):
+                spec = importlib.util.spec_from_file_location(
+                    f"comfyui_job_{path.parent.name.replace('-', '_')}", path
+                )
+                assert spec is not None and spec.loader is not None
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                with tempfile.TemporaryDirectory() as directory:
+                    temporary = Path(directory)
+                    command = module.comfyui_command(
+                        temporary, temporary / "output", temporary / "extra.yaml"
+                    )
+                    flags = dict(itertools.pairwise(command))
+                    for flag in (
+                        "--user-directory",
+                        "--temp-directory",
+                        "--output-directory",
+                    ):
+                        self.assertTrue(
+                            Path(flags[flag]).is_relative_to(temporary), flag
+                        )
+                    # ComfyUI requires the user directory to exist already.
+                    self.assertTrue(Path(flags["--user-directory"]).is_dir())
 
 
 if __name__ == "__main__":
