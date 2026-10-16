@@ -141,8 +141,8 @@
           ]
         },
         {
-          "file_id": "readme-a2f0fc3baea3-5728b2733a",
-          "id": "primary-readme-a2f0fc3baea3-5728b2733a",
+          "file_id": "readme-a34a5ca98c65-5728b2733a",
+          "id": "primary-readme-a34a5ca98c65-5728b2733a",
           "mount": {
             "target": "/models"
           },
@@ -152,8 +152,8 @@
           ]
         },
         {
-          "file_id": "encoding-502bdaec8a3f-498d5dc375",
-          "id": "primary-encoding-502bdaec8a3f-498d5dc375",
+          "file_id": "encoding-13231c592e95-498d5dc375",
+          "id": "primary-encoding-13231c592e95-498d5dc375",
           "mount": {
             "target": "/models"
           },
@@ -163,8 +163,8 @@
           ]
         },
         {
-          "file_id": "test-encoding-4a470892dad8-d3add5cc1f",
-          "id": "primary-test-encoding-4a470892dad8-d3add5cc1f",
+          "file_id": "test-encoding-288b79c9ea7d-d3add5cc1f",
+          "id": "primary-test-encoding-288b79c9ea7d-d3add5cc1f",
           "mount": {
             "target": "/models"
           },
@@ -1034,10 +1034,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cb97ebb50e5a8bff6ac6e2f33e2008a430501b6c2ef0662d5e6daf8d2f98a928",
+        "content_sha256": "cab6d52acd79c431bcd7304454b96e553e7a3ce2896d0b7ec9d716b77076be1f",
         "kind": "model",
         "publisher": "deepseek-ai",
-        "slug": "deepseek-v4-1-flash-52544481"
+        "slug": "deepseek-v4-1-flash-314113f8"
       }
     }
   ],
@@ -1107,8 +1107,8 @@
     "source_reference": "https://github.com/r0b0tlab/dsv41-flash-tp4-sglang-sm121/tree/430c812cf5e69b69e740756ea72fecdc1944db29"
   },
   "release": {
-    "released_at": "2026-10-12",
-    "version": "1.0.1"
+    "released_at": "2026-10-16",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1337,7 +1337,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 510313369034,
+            "artifact_bytes": 510313372802,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 50000000000,
             "working_bytes": 60000000000
@@ -1354,7 +1354,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 510313369034,
+            "artifact_bytes": 510313372802,
             "image_bytes": 40000000000,
             "safety_margin_bytes": 50000000000,
             "working_bytes": 60000000000
