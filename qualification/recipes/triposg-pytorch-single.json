@@ -6,7 +6,7 @@
     "inputs": [
       {
         "slot": "image",
-        "fixture": "generic-image-png"
+        "fixture": "triposg-example-house-png"
       }
     ],
     "output_limits": {

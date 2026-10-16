@@ -266,7 +266,7 @@
   },
   "release": {
     "released_at": "2026-09-28",
-    "version": "2.0.14"
+    "version": "2.0.15"
   },
   "runtime": {
     "arguments": [
@@ -353,9 +353,9 @@
           "kind": "mesh-job.output",
           "name": "job-output",
           "request": {
-            "fixture": "qualification/fixtures/tiny.png",
+            "fixture": "qualification/fixtures/triposg-example-house.png",
             "input_slots": {
-              "image": "qualification/fixtures/tiny.png"
+              "image": "qualification/fixtures/triposg-example-house.png"
             },
             "output_slot": "mesh",
             "transport": "job"
