@@ -114,6 +114,15 @@ def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
             )
 
 
+# The incident recipe at 0.85 measured 122_005_303_296 bytes on spark-3542
+# (2026-10-15/16): its overhead beside the utilization share, and the idle
+# available memory of that Spark, which the peak and the OS floor must fit.
+INCIDENT_MEASURED_OVERHEAD_BYTES = 122_005_303_296 - int(
+    Decimal("0.85") * SPARK_MEMORY_BYTES
+)
+SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
+
+
 def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     recipe = RecipeDefinition.model_validate_json(
         (
@@ -127,9 +136,15 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
         for item in recipe.runtime.arguments
         if item.name == "gpu-memory-utilization"
     )
-    assert Decimal(str(argument.value)) == Decimal("0.85")
-    assert recipe.topology.roles[0].resources.memory.reserve_bytes == OVERHEAD_BYTES
+    utilization = Decimal(str(argument.value))
+    memory = recipe.topology.roles[0].resources.memory
+    assert memory.reserve_bytes == OVERHEAD_BYTES
     assert_memory_fit(recipe)
+    # Declares what it really uses, and that fits the Spark it froze.
+    assert memory.peak_bytes >= (
+        utilization * SPARK_MEMORY_BYTES + INCIDENT_MEASURED_OVERHEAD_BYTES
+    )
+    assert memory.peak_bytes + OS_FLOOR_BYTES <= SPARK_3542_IDLE_AVAILABLE_BYTES
 
 
 @pytest.mark.parametrize("defect", ["torch-only", "os-floor", "worker", "implicit"])
