@@ -247,18 +247,20 @@ def test_a_job_that_ends_unsuccessfully_is_the_recipes_only_without_a_platform_c
 OPERATION = "22222222-2222-4222-8222-222222222222"
 
 
-def _bundle(stderr: str, exit_code: str | None = None) -> dict[str, Any]:
+def _bundle(stderr: str, exit_code: int | None = None) -> dict[str, Any]:
+    """A ``vonkctl fleet evidence`` bundle (schema 2): the exit code is typed."""
     tail = {"truncated": False, "dropped_bytes": 0, "dropped_lines": 0}
-    preflight = [] if exit_code is None else [{"name": "exit_code", "value": exit_code}]
     return {
         "schema_version": 2,
         "context": {"operation_id": OPERATION, "attempt": 1},
         "error_code": "recipe_job_run_failed",
         "summary": "job adapter exited unsuccessfully",
+        "exit_code": exit_code,
         "diagnostics": {
             "stdout": {"text": "", **tail},
             "stderr": {"text": stderr, **tail},
-            "preflight": preflight,
+            # Text that looks like an exit code is never read as one.
+            "preflight": [{"name": "exit_code", "value": "99"}],
         },
     }
 
@@ -266,7 +268,7 @@ def _bundle(stderr: str, exit_code: str | None = None) -> dict[str, Any]:
 def test_a_failed_job_carries_its_exit_code_and_stderr_tail() -> None:
     stderr = "x" * 5000 + "\n/opt/vonk/bin/comfyui-job: 1: not found\n"
     controller = Controller(
-        evidence=(0, _bundle(stderr, exit_code="127")),
+        evidence=(0, _bundle(stderr, exit_code=127)),
         create=[_job(None, preparation="ready")],
         submit=[_job("failed", operation_id=OPERATION, status_reason="exit")],
     )
@@ -319,7 +321,7 @@ def test_a_deferred_job_keeps_its_evidence_and_stays_observed() -> None:
     assert result.failure is not None
     assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
     assert result.failure.evidence["stderr_tail"] == "lease lost\n"
-    # No typed exit_code property in the diagnostics: none is claimed.
+    # No typed exit code in the bundle: none is claimed, whatever the text says.
     assert "exit_code" not in result.failure.evidence
 
 
