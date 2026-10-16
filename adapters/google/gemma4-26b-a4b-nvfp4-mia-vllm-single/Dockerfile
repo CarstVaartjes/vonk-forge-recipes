@@ -8,9 +8,13 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Gemma-4-26B-
 # lm_head tying). verify-runtime.py installs the same byte-identical file.
 COPY gemma4.py /opt/vonk/build/gemma4.py
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py
+# vLLM v0.25.1 carries the #43957 regression that breaks Gemma 4 MTP on MoE
+# targets (issue #47794); apply the upstream fix (#47953, released in v0.27.0).
+COPY patch-vllm-pr47953.py /opt/vonk/build/patch-vllm-pr47953.py
 COPY --chmod=0755 vllm-wrapper.sh /opt/vonk/bin/vllm
 
 RUN python3 /opt/vonk/build/verify-runtime.py \
+    && python3 /opt/vonk/build/patch-vllm-pr47953.py \
     && rm -rf /opt/vonk/build \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
