@@ -136,7 +136,10 @@ def _texture(*, seed: int, output_dir: Path) -> None:
     config.vae_model = "/models/sdxl-vae"
     config.adapter_path = "/models/target/Step1X-3D-Texture"
     pipeline = Step1X3DTexturePipeline(config)
-    mesh = trimesh.load(mesh_path)
+    # One mesh, never a Scene: upstream's Scene branch calls
+    # Scene.to_geometry(), which its own pinned trimesh 4.3.2 does not have
+    # (it arrived in 4.5.0). force="mesh" concatenates the scene the same way.
+    mesh = trimesh.load(mesh_path, force="mesh")
     # BiRefNet is optional upstream preprocessing.  Disabling it prevents the
     # hidden remote-code download and retains the caller-provided image exactly.
     textured_mesh = pipeline(image_path, mesh, remove_bg=False, seed=seed)
