@@ -129,6 +129,14 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         if not s.online
     }
     for key, slot in data["slots"].items():
+        smoking = slot["phase"] == "smoking"
+        # A job smoke's own budget, from its start; else the lane's stall window, which
+        # restarts on every movement and never runs while the lane waits (``waiting_on``).
+        budget = slot.get("smoke_budget_s") if smoking else None
+        since = slot["smoke_started_at"] if budget is not None else slot["started_at"]
+        limit = budget if budget is not None else slot["deadline"] - slot["started_at"]
+        # The current phase's own wait; the load's last wait ended with the load.
+        watch = slot.get("smoke_watch" if smoking else "watch") or {}
         for name in slot.get("spark_names", []):
             lanes.setdefault(name, []).append(
                 {
@@ -136,12 +144,9 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     "phase": "loading (copying)"
                     if slot.get("copying")
                     else slot["phase"],
-                    "elapsed_s": round(now - slot["started_at"]),
-                    # The stall window: it restarts on every movement and never runs
-                    # while the lane waits on the Controller (``waiting_on``).
-                    "limit_s": round(slot["deadline"] - slot["started_at"]),
-                    "waiting_on": (slot.get("watch") or {}).get("waiting_on")
-                    or slot.get("waiting_on"),
+                    "elapsed_s": round(now - since),
+                    "limit_s": round(limit),
+                    "waiting_on": watch.get("waiting_on") or slot.get("waiting_on"),
                 }
             )
     present = policy.present_models(sweep.models)

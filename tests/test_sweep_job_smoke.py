@@ -21,8 +21,24 @@ from spark_sweep.smoke_job import smoke_job
 from spark_sweep.vonkctl import Vonkctl
 
 ROOT = Path(__file__).resolve().parents[1]
-OCR = "vonk-forge/hunyuanocr-1-5-vllm-dflash-single"
-DEFINITIONS = Definitions.load()
+# An OCR artifact job with a document-archive output: the definition the withdrawn
+# HunyuanOCR recipe carried, kept as test data so the job smoke stays exercised.
+OCR = "vonk-forge/ocr-document-job"
+_CATALOG = Definitions.load()
+DEFINITIONS = Definitions(
+    {
+        **_CATALOG.document,
+        "recipes": {
+            **_CATALOG.document["recipes"],
+            OCR: json.loads(
+                (ROOT / "tests/fixtures/sweep-job-document-archive.json").read_text(
+                    encoding="utf-8"
+                )
+            ),
+        },
+    },
+    _CATALOG.root,
+)
 
 
 def _recipe(key: str = OCR, adapter: str = "artifact-job") -> Any:
