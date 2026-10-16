@@ -1,6 +1,7 @@
 {
   "ours": [
     "NOTICE",
+    "patch-vllm-pr47953.py",
     "verify-runtime.py",
     "vllm-wrapper.sh"
   ],
