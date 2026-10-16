@@ -3396,6 +3396,8 @@ class Sweep:
             ]
             try:
                 self.vk.call("profile", *args, profile=profile)
+                # Ours from the edit on: a rollback that fails leaves it for the prune.
+                self._remember_own(self._alias(recipe))
                 added.append(placement)
                 self.clear_infra("profile-edit")
             except VonkctlError as error:
@@ -3421,6 +3423,14 @@ class Sweep:
                 continue
         if not added:
             return
+        overfull = self._overfull_sparks()
+        crowded = [p for p in added if overfull & set(p.spark_ids)]
+        if crowded:
+            # A large recipe runs alone; the other waits for the next free slot.
+            self._rollback(crowded, f"would overfill Spark(s) {sorted(overfull)}")
+            added = [p for p in added if p not in crowded]
+            if not added:
+                return
         aliases = {self._alias(p.recipe): p for p in added}
         kept = {
             s["alias"]
@@ -3659,10 +3669,7 @@ class Sweep:
         )
         names = {s.id: s.name for s in self.sparks()}
         alias = self._alias(recipe)
-        own = self.state.data["own_aliases"]
-        if alias not in own:
-            own.append(alias)
-            del own[:-500]
+        self._remember_own(alias)
         self.state.slots[recipe.key] = {
             "alias": alias,
             "node_ids": list(placement.spark_ids),
@@ -3678,6 +3685,48 @@ class Sweep:
                 for p in self.fleet.presences
                 if p.alias == alias and p.node_id in placement.spark_ids
             ),
+        }
+
+    def _remember_own(self, alias: str) -> None:
+        own = self.state.data["own_aliases"]
+        if alias not in own:
+            own.append(alias)
+            del own[:-500]
+
+    def _overfull_sparks(self) -> set[str]:
+        """Sparks the sweep profile would load beyond one Spark's memory.
+
+        Two assignments share a Spark only when their declared peaks plus the reserve fit
+        it; an unknown demand shares with nothing. The platform refuses such a load at
+        review; the sweep does not propose it. An unreadable export decides nothing here.
+        """
+        reply = self.vk.run("profile", "export", profile=self.cfg.sweep_profile)
+        document = reply.document
+        assignments = (
+            document.get("assignments") if isinstance(document, dict) else None
+        )
+        if not reply.ok or not isinstance(assignments, list):
+            return set()
+        peaks: dict[str, list[int]] = {}
+        for item in assignments:
+            if not isinstance(item, dict) or item.get("desired_state") != "running":
+                continue
+            recipe = self.recipes.get(str(item.get("recipe_selector")))
+            for ref in item.get("spark_ids") or []:
+                spark = self.fleet.by_ref(str(ref))
+                if spark is not None:
+                    peaks.setdefault(spark.id, []).append(
+                        recipe.memory_bytes if recipe else 0
+                    )
+        capacity = {s.id: s.memory_total for s in self.fleet.sparks}
+        return {
+            spark_id
+            for spark_id, declared in peaks.items()
+            if len(declared) > 1
+            and (
+                0 in declared
+                or sum(declared) + self.cfg.reserve_bytes > capacity[spark_id]
+            )
         }
 
     def _rollback(self, placements: Sequence[policy.Placement], why: str) -> None:
