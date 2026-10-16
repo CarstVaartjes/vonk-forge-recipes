@@ -395,6 +395,14 @@ summary; it never opens an issue on its own. Moving to another line is a new var
 is published, otherwise the recipe's patch version is bumped; `released_at` is the pinned
 release or commit date.
 
+A recipe that a newer engine release breaks holds its base image in
+`base-image-holds.json` (`{"<recipe id>": {"base_image": {"repository", "digest"},
+"version", "reason", "upstream": "https://..."}}`). The refresh never moves a held image
+(it records the hold as evidence), and a catalog-wide refresh by hand skips it too:
+`tools/check-base-image-holds` (run by the test suite) fails when the recipe's
+`base_image` or Dockerfile `FROM` differs from the held digest. To move it, update or
+remove the hold in the same change, with the evidence that the newer release works.
+
 A refresh is **mechanical** only when all of these hold:
 
 - the selected commit descends from the pinned one (a pin at or ahead of the newest

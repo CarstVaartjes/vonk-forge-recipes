@@ -66,6 +66,7 @@ drift = _load("check-upstream-drift")
 vendored = _load("check-vendored-upstream")
 kit_pins = _load("kit-pins")
 catalog = _load("catalog-hf-model")
+base_holds = _load("check-base-image-holds")
 RefreshAppAuth = _load("_refresh_auth.py").RefreshAppAuth
 APP_AUTH: Any = None
 
@@ -2154,7 +2155,19 @@ class Assessor:
         recipe = self.catalog.recipes[recipe_id]
         edits: dict[str, bytes | None] = {}
         new_recipe = json.loads(json.dumps(recipe))
+        hold = base_holds.holds(self.catalog.root).get(recipe_id)
         for item in result.items:
+            moved = item.image[0] if item.image else item.repo
+            if (item.image or item.kind == "image") and base_holds.moves_held_image(
+                hold, moved
+            ):
+                # A held base image stays (base-image-holds.json): no move, no review.
+                item.noop = True
+                result.evidence.append(
+                    f"### {item.label}\n\n- newest `{item.target.sha}` is not followed: "
+                    f"{base_holds.describe(hold)}\n"
+                )
+                continue
             try:
                 if item.unverified is not None or item.unmark or item.uncompared:
                     self._mark(item, recipe, new_recipe, result, edits)

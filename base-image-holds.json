@@ -1,0 +1,20 @@
+{
+  "gemma-4-26b-a4b-vllm-mia-single": {
+    "base_image": {
+      "digest": "2cc49b81319f7a66a33dd8bd63a7bfddae079122b33ce51989b6828a1f038c37",
+      "repository": "docker.io/vllm/vllm-openai"
+    },
+    "reason": "MiaAI-Lab's whole-file gemma4.py replaces vLLM's and imports FusedMoE, which later vLLM releases renamed, so it only loads on v0.25.1; the image is patched with vLLM PR #47953 (Gemma 4 MTP on MoE targets) for that release.",
+    "upstream": "https://github.com/vllm-project/vllm/pull/47953",
+    "version": "v0.25.1"
+  },
+  "hunyuanocr-1-5-vllm-dflash-single": {
+    "base_image": {
+      "digest": "1c8e60a0841b333c700488cb029d3664807249da0c071e862191b00fe34b228c",
+      "repository": "docker.io/vllm/vllm-openai"
+    },
+    "reason": "vLLM v0.29.0 and later serve HunYuanVL through the Transformers backend (vLLM PR #53615), which returns no auxiliary hidden states under DFlash, so engine init fails with `assert isinstance(model_output, tuple)`; v0.27.1 still has the native HunYuanVL model.",
+    "upstream": "https://github.com/vllm-project/vllm/pull/53615",
+    "version": "v0.27.1"
+  }
+}
