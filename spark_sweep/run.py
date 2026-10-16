@@ -2928,8 +2928,13 @@ class Sweep:
         online = {s.id for s in self.sparks()}
         return {node: why for node, why in held.items() if node in online}
 
-    def _cleanup_target_absent(self, load: Mapping) -> bool:
-        """An exact absent receipt plus fresh online fleet facts ends bookkeeping."""
+    def _cleanup_target_absent(self, load: Mapping, *, terminal: bool = False) -> bool:
+        """An exact absent receipt plus fresh online fleet facts ends bookkeeping.
+
+        A ``terminal`` receipt is final: absence is judged against its own stop targets
+        only, and one with none has nothing to wait for. An absent receipt without
+        targets may have stopped anything, so only a fleet with no runs ends it.
+        """
         reply = self.vk.run("fleet")
         if not reply.ok:
             return False
@@ -2938,11 +2943,10 @@ class Sweep:
         except ValidationError:
             return False
         # Offline or incomplete facts cannot certify the absence of an old run.
-        expected_nodes = {
-            node for row in load.get("effects", []) for node in row["node_ids"]
-        }
-        expected_runs = {row["target_id"] for row in load.get("effects", [])}
-        for signature in load.get("reviewed_stops", []):
+        effects = load.get("effects") or []
+        expected_nodes = {node for row in effects for node in row["node_ids"]}
+        expected_runs = {row["target_id"] for row in effects}
+        for signature in load.get("reviewed_stops") or []:
             stop = cleanup.reviewed_stop(signature)
             if stop is None:
                 return False
@@ -2961,7 +2965,9 @@ class Sweep:
         ):
             return False
         present = {run.run_id for node in observed.nodes for run in node.loaded}
-        return not (expected_runs & present) if expected_runs else not present
+        if expected_runs or terminal:
+            return not (expected_runs & present)
+        return not present
 
     def _end_cleanup(self, load: dict[str, Any], now: float) -> None:
         """Fresh fleet facts show the cleanup's targets gone: its bookkeeping ends."""
@@ -3002,7 +3008,7 @@ class Sweep:
             if load.get("terminal_receipt"):
                 # The Controller ended it with stops unconfirmed and its receipt is
                 # final: only current fleet facts retire it, once its targets are gone.
-                if self._cleanup_target_absent(load):
+                if self._cleanup_target_absent(load, terminal=True):
                     self._end_cleanup(load, now)
                 else:
                     self._defer_cleanup(load, budget, now)
