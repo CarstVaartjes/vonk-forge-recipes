@@ -10,6 +10,7 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Protocol, cast
 from unittest import mock
 
 from generated_catalog import GENERATED
@@ -391,8 +392,12 @@ class NativeThreeDAdapterTests(unittest.TestCase):
         )
 
 
-if __name__ == "__main__":
-    unittest.main()
+class _OmniRun(Protocol):
+    """The Hunyuan3D-Omni adapter's job reading, as this test drives it."""
+
+    INPUTS: Path
+
+    def job(self) -> tuple[str, Path, object]: ...
 
 
 class HunyuanOmniBboxControlTests(unittest.TestCase):
@@ -414,8 +419,9 @@ class HunyuanOmniBboxControlTests(unittest.TestCase):
             assert spec is not None and spec.loader is not None
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-            module.INPUTS = inputs
-            return module.job()
+            run = cast(_OmniRun, module)
+            run.INPUTS = inputs
+            return run.job()
 
     def test_the_default_and_a_job_bbox_are_three_sizes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -448,3 +454,7 @@ class HunyuanOmniBboxControlTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(SystemExit, "three sizes"):
                 self._job(inputs)
+
+
+if __name__ == "__main__":
+    unittest.main()
