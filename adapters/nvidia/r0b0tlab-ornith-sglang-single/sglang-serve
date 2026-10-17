@@ -11,19 +11,37 @@ from pathlib import Path
 MODEL = Path("/models")
 PREWARM = Path("/opt/vonk/prewarm")
 
-arguments = sys.argv[1:]
-if str(MODEL) not in arguments or not (MODEL / "config.json").is_file():
-    raise SystemExit("the immutable /models checkpoint is required")
 
-# Seed the pre-warmed JIT caches once into the writable cache locations.
-for source, target in (
-    (PREWARM / "sglang", Path(os.environ["HOME"]) / ".cache" / "sglang"),
-    (PREWARM / "triton", Path(os.environ["TRITON_CACHE_DIR"])),
-):
+def seed(source: Path, target: Path) -> None:
+    """Seed a pre-warmed JIT cache once into its writable cache location.
+
+    The cache is an optimisation: when it cannot be copied the workload starts
+    without it (the engine compiles what it needs) and says so; it never aborts.
+    """
     marker = target / ".vonk-prewarmed"
-    if source.is_dir() and not marker.exists():
+    if not source.is_dir() or marker.exists():
+        return
+    try:
         target.mkdir(parents=True, exist_ok=True)
         shutil.copytree(source, target, dirs_exist_ok=True)
         marker.write_text("seeded\n", encoding="utf-8")
+    except OSError as error:
+        print(
+            f"sglang-serve: warning: pre-warmed cache {source} was not seeded "
+            f"({error}); starting without it",
+            file=sys.stderr,
+            flush=True,
+        )
 
-os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))
+
+def main() -> None:
+    arguments = sys.argv[1:]
+    if str(MODEL) not in arguments or not (MODEL / "config.json").is_file():
+        raise SystemExit("the immutable /models checkpoint is required")
+    seed(PREWARM / "sglang", Path(os.environ["HOME"]) / ".cache" / "sglang")
+    seed(PREWARM / "triton", Path(os.environ["TRITON_CACHE_DIR"]))
+    os.execv(sys.executable, (sys.executable, "-m", "sglang.launch_server", *arguments))
+
+
+if __name__ == "__main__":
+    main()
