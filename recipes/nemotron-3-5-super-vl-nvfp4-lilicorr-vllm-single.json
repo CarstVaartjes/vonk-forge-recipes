@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Nemotron 3.5 Super VL 120B-A12B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately. Uses NVIDIA's Spark-recommended LiLiCorr seven-token draft and Mamba cache configuration.",
+    "description": "Nemotron 3.5 Super VL 120B-A12B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead and the library's 17 GB separate-drafter allowance; reserve is informational, with the platform OS floor accounted separately. Uses NVIDIA's Spark-recommended LiLiCorr seven-token draft and Mamba cache configuration.",
     "tags": [
       "candidate",
       "executable",
@@ -1289,7 +1289,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.75"
+        "value": "0.70"
       },
       {
         "name": "max-num-batched-tokens",
@@ -1422,7 +1422,7 @@
             "working_bytes": 164762599794
           },
           "memory": {
-            "peak_bytes": 105997423616,
+            "peak_bytes": 116464262042,
             "reserve_bytes": 8000000000
           }
         }

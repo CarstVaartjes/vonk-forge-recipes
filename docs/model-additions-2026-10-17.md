@@ -42,7 +42,9 @@ manifest and reject changed or undeclared input bytes.
 The image recipes expose text-to-image at 1024 × 1024. Editing and layout are
 model capabilities but are not exposed by these recipes. Their estimates are
 90 GB (Qwen) and 100 GB (FLUX), not measurements. Serving recipes estimate
-allocated unified memory plus 8 GB of runtime/host overhead. Informational
+allocated unified memory plus 8 GB of runtime/host overhead. Nemotron also
+includes the library's 17 GB separate-drafter allowance and uses 0.70 GPU
+utilization to preserve the Spark OS floor. Informational
 reserve bytes are not an additional allocation. Four- and eight-Spark recipes
 cannot run on the current two-Spark fleet. Their runtime smoke checks remain
 in the recipe; they are outside the current one/two-Spark qualification campaign.
