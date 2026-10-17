@@ -1,0 +1,157 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-34448b82c17d-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930",
+      "size_bytes": 1570
+    },
+    {
+      "id": "readme-d5be19ef3721-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "d5be19ef3721f2cc728dc772e58c70a87b11506a1fe3d314976a65540327799a",
+      "size_bytes": 7216
+    },
+    {
+      "id": "chat-template-a4aee8afcf2e-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "a4aee8afcf2e0711942cf848899be66016f8d14a889ff9ede07bca099c28f715",
+      "size_bytes": 7756
+    },
+    {
+      "id": "config-7d7fc026d8bc-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7d7fc026d8bcb9f1fc505af1004779330fe59bb3256fe0271ec2568e8dc89db1",
+      "size_bytes": 2903
+    },
+    {
+      "id": "generation-config-e92258e3c39a-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e92258e3c39afbaa73fd53a98640c56f6d42fb091e1664697bd5396a1dcbb761",
+      "size_bytes": 163
+    },
+    {
+      "id": "model-f5062a1fba3e-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f5062a1fba3e63afe5c88349a311903fec06c959b362f1247127e63d5c860ed4",
+      "size_bytes": 18819722392
+    },
+    {
+      "id": "preprocessor-config-3a159dfec997-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "3a159dfec9978a186a72ba085e0ad6a050f3968d8b364218d7bd13f5c89381f2",
+      "size_bytes": 443
+    },
+    {
+      "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+      "size_bytes": 1191
+    },
+    {
+      "id": "system-prompts-b5da3ed8bc04-c9842185f1",
+      "path": "system_prompts.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b5da3ed8bc04ab59dbdb747930f7dbff847e868903fed8028f85ee1a4ac82fb4",
+      "size_bytes": 12602
+    },
+    {
+      "id": "tokenizer-06b9509352d2-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+      "size_bytes": 19989325
+    },
+    {
+      "id": "tokenizer-config-7488550a894d-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "7488550a894dcf741616126e322ea31d66cf9457b59ec5825f4c7efdced421f8",
+      "size_bytes": 1164
+    },
+    {
+      "id": "video-preprocessor-config-bd96830cce13-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "bd96830cce1312679aa1f2ea43ed17da20e8ebbcea2398cfa64e2d275a96fdd7",
+      "size_bytes": 550
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "black-forest-labs",
+      "slug": "flux-3",
+      "title": "FLUX 3"
+    },
+    "model": {
+      "publisher": "black-forest-labs",
+      "slug": "flux-3-image-klein-pup-bf16",
+      "title": "FLUX 3 Image Klein Prompt Upsampler"
+    },
+    "publisher": "black-forest-labs",
+    "slug": "flux-3-image-klein-pup-bf16-3f3edb52",
+    "variant": "flux-3-image-klein-pup-bf16",
+    "version": "3f3edb52"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "black-forest-labs"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/black-forest-labs/flux-3-image-klein-pup/blob/3f3edb52b2c55de0d49feab28598b68f7f8e4830/LICENSE"
+  },
+  "metadata": {
+    "description": "FLUX 3 Image Klein Prompt Upsampler immutable upstream checkpoint. Physical Spark qualification pending.",
+    "tags": [
+      "candidate",
+      "flux-3"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/black-forest-labs/flux-3-image-klein-pup",
+    "revision": "3f3edb52b2c55de0d49feab28598b68f7f8e4830"
+  }
+}

@@ -188,13 +188,6 @@ def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
         assert not PLATFORM_OWNED_ENVIRONMENT & names, path.name
 
 
-def test_catalog_excludes_provider_gated_models() -> None:
-    assert all(
-        not json.loads(path.read_text())["requires_token"]
-        for path in ROOT.joinpath("models").glob("*.json")
-    )
-
-
 def test_model_territorial_restrictions_preserve_all_published_records() -> None:
     expected = {
         "hunyuan-video-15-distilled": (

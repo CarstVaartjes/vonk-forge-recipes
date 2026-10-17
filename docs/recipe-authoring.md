@@ -125,12 +125,12 @@ a gap, or whose joined name is also published whole, is refused. The platform
 downloads and verifies the parts, assembles the file and installs it as one
 ordinary file, so recipes select `<name>` like any other file.
 
-The curated library excludes provider-gated checkpoints, even when the
-authoring tool can represent their credential requirement with `requires_token`.
-Do not add or retain a recipe that depends on such a checkpoint. This is the
-catalog owner's provider-access policy; it does not enforce territory or decide
-license compliance. Keep the general contract's token field for consumers and
-other catalogs that support gated sources.
+Provider-gated checkpoints may be included. Set `requires_token: true` and
+preserve the provider's license and access requirements. The Controller keeps
+the token in its existing secret store; never embed it in a Model, Recipe,
+build context or publication. A configured token does not prove that the account
+has accepted terms or received model-specific approval. Verify access separately
+and report pending approval accurately; publication is not download readiness.
 
 `capabilities` is the list of capability names the model supports. Leave out
 what is unknown. A source model's vision capability does not prove that every

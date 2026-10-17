@@ -1,0 +1,387 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "fd33bec1578f312a01547cc6b9691a5154c3e8bcfb76d2b35acb657bfc4eee8f",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/october-2026/mellum2-1-12b-thinking-vllm-single"
+      },
+      "dockerfile": "adapters/october-2026/mellum2-1-12b-thinking-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mellum2-1-12b-thinking-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "mellum2-1-12b-thinking-vllm-single"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Mellum2.1-12B-A2.5B-Thinking with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately.",
+    "tags": [
+      "candidate",
+      "executable",
+      "spark",
+      "vllm",
+      "mellum",
+      "reasoning",
+      "tool-use"
+    ],
+    "title": "Mellum2.1-12B-A2.5B-Thinking vLLM single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-f948bbe51bfb-618cd5b83d",
+          "id": "primary-metadata-f948bbe51bfb-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-3da5f8b9862c-b335630551",
+          "id": "primary-readme-3da5f8b9862c-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-4593a34d52f3-00824420d1",
+          "id": "primary-chat-template-4593a34d52f3-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-f43d01824609-587cb980af",
+          "id": "primary-config-f43d01824609-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-a9dc104ca398-97dd3d578b",
+          "id": "primary-generation-config-a9dc104ca398-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mellum-logo-dark-e55d257b537f-c293355def",
+          "id": "primary-mellum-logo-dark-e55d257b537f-c293355def",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "mellum21-summary-2a86585d0f70-445a429c88",
+          "id": "primary-mellum21-summary-2a86585d0f70-445a429c88",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00005-f5ccf8012c7d-8453f51e85",
+          "id": "primary-model-00001-of-00005-f5ccf8012c7d-8453f51e85",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00005-266beea6f34d-516421cb37",
+          "id": "primary-model-00002-of-00005-266beea6f34d-516421cb37",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00005-da9a04fb6ea1-05880bd763",
+          "id": "primary-model-00003-of-00005-da9a04fb6ea1-05880bd763",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00005-32f27ab7f38f-c340da1f8a",
+          "id": "primary-model-00004-of-00005-32f27ab7f38f-c340da1f8a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00005-d8bbb9b829cb-2bd52bf6f8",
+          "id": "primary-model-00005-of-00005-d8bbb9b829cb-2bd52bf6f8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-a6ad930e5bb3-0a05be8238",
+          "id": "primary-model-safetensors-index-a6ad930e5bb3-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-20e1ead0b098-c07a9be597",
+          "id": "primary-special-tokens-map-20e1ead0b098-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-58548a346eb0-224931eb13",
+          "id": "primary-tokenizer-58548a346eb0-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-e2950960d2a3-94d5c6ba8f",
+          "id": "primary-tokenizer-config-e2950960d2a3-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "da1e578dea66fa917ff867e5d014c1d77ff72b6a56f0d1282a574e588b2bed71",
+        "kind": "model",
+        "publisher": "jetbrains",
+        "slug": "mellum2-1-12b-a2-5b-thinking-bf16-92ddae9f"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "JetBrains",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://huggingface.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking/tree/92ddae9fc7665e9f801d141d2e5a6b2caf2460c4"
+  },
+  "release": {
+    "released_at": "2026-10-17",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "mellum2-1-12b-thinking-vllm-single"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.4"
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "qwen3"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "hermes"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 131072
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 24308363005,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 60616726010
+          },
+          "memory": {
+            "peak_bytes": 60265292596,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 2048,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "mellum2-1-12b-thinking-vllm-single"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

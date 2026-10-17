@@ -1,0 +1,364 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "fd33bec1578f312a01547cc6b9691a5154c3e8bcfb76d2b35acb657bfc4eee8f",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/october-2026/lightonocr-3-1b-vllm-single"
+      },
+      "dockerfile": "adapters/october-2026/lightonocr-3-1b-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "lightonocr-3-1b-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "lightonocr-3-1b-vllm-single"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "LightOnOCR 3 1B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately.",
+    "tags": [
+      "candidate",
+      "executable",
+      "spark",
+      "vllm",
+      "lightonocr",
+      "ocr",
+      "vision"
+    ],
+    "title": "LightOnOCR 3 1B vLLM single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "olmocrbench-fa822c9b979a-e025ac9af5",
+          "id": "primary-olmocrbench-fa822c9b979a-e025ac9af5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "parsebench-c5433b13d183-54eafe22b0",
+          "id": "primary-parsebench-c5433b13d183-54eafe22b0",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-464a5728a360-618cd5b83d",
+          "id": "primary-metadata-464a5728a360-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-739f34999e8f-b335630551",
+          "id": "primary-readme-739f34999e8f-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-0942a43ee0ba-00824420d1",
+          "id": "primary-chat-template-0942a43ee0ba-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-43b62f9ec0a7-587cb980af",
+          "id": "primary-config-43b62f9ec0a7-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-7d2566b27145-97dd3d578b",
+          "id": "primary-generation-config-7d2566b27145-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "lightonocr3-logo-768eee79d378-b09cdd515e",
+          "id": "primary-lightonocr3-logo-768eee79d378-b09cdd515e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-32879861d5cd-9d75c1098f",
+          "id": "primary-model-32879861d5cd-9d75c1098f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-5292a61a0898-27f0cb76af",
+          "id": "primary-processor-config-5292a61a0898-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-76862e765266-c07a9be597",
+          "id": "primary-special-tokens-map-76862e765266-c07a9be597",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-f54b55fa0c3a-224931eb13",
+          "id": "primary-tokenizer-f54b55fa0c3a-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-76d82c8010d0-94d5c6ba8f",
+          "id": "primary-tokenizer-config-76d82c8010d0-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "c68a94be372438ee7655569739320d6d878218683dab88ede008543b163f4d1f",
+        "kind": "model",
+        "publisher": "lightonai",
+        "slug": "lightonocr-3-1b-bf16-23d54408"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "lightonai",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://huggingface.co/lightonai/LightOnOCR-3-1B/tree/23d544085c886bbdace647bcfab91203299417e2"
+  },
+  "release": {
+    "released_at": "2026-10-17",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "lightonocr-3-1b-vllm-single"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.35"
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "default-chat-template-kwargs",
+        "setting": null,
+        "value": "{\"enable_thinking\":false}"
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":1}"
+      },
+      {
+        "name": "allowed-local-media-path",
+        "setting": null,
+        "value": "/inputs"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 16384
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 2024463475,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 16048926950
+          },
+          "memory": {
+            "peak_bytes": 53732131021,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 128,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAwklEQVR42u3ZgQ3AIAwDQfZful2hDXacSJ8J/gQIJM6zfA4AAAAAADACzowBAAAAAAAhQOx6+oxZBtixAr820lldPw6w+xAX6gcBavVTAOV6AOn6POCyPgy4r08CJPUxgKo+AxDWBwDaegDp+laAo74PYKpvAvjqOwDWejvAXe8FNNQDSNe7AG31FkBnvR7QXC8G9NcrAZF6GSBVDyBdLwBk628B8forwIT6OmBIfREwp74CqP3m7nhKAAAAAACAffMC1aTcSObsZAAAAAAASUVORK5CYII="
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "lightonocr-3-1b-vllm-single"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
