@@ -10,6 +10,7 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Protocol, cast
 from unittest import mock
 
 from generated_catalog import GENERATED
@@ -389,6 +390,70 @@ class NativeThreeDAdapterTests(unittest.TestCase):
             skin.index('validate_mesh_glb(candidate, profile="geometry")'),
             skin.index("model = get_model(str(CHECKPOINT))"),
         )
+
+
+class _OmniRun(Protocol):
+    """The Hunyuan3D-Omni adapter's job reading, as this test drives it."""
+
+    INPUTS: Path
+
+    def job(self) -> tuple[str, Path, object]: ...
+
+
+class HunyuanOmniBboxControlTests(unittest.TestCase):
+    """The bbox control is Omni's box size, the shape its encoder takes.
+
+    Sweep 2026-10-16: six min/max numbers became a (1, 1, 12) input after the
+    encoder's own repeat, and the run failed with "mat1 and mat2 shapes cannot
+    be multiplied (1x204 and 102x1024)". Upstream's demos/bbox/data.json gives
+    three sizes in (0, 1].
+    """
+
+    def _job(self, inputs: Path) -> tuple[str, Path, object]:
+        heavy = ("numpy", "torch", "trimesh", "PIL", "glb_validation")
+        stubs = {name: mock.MagicMock() for name in heavy}
+        with mock.patch.dict(sys.modules, stubs):
+            spec = importlib.util.spec_from_file_location(
+                "hunyuan3d_omni_run", ROOT / "adapters/three-d/hunyuan3d-omni/run.py"
+            )
+            assert spec is not None and spec.loader is not None
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            run = cast(_OmniRun, module)
+            run.INPUTS = inputs
+            return run.job()
+
+    def test_the_default_and_a_job_bbox_are_three_sizes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            inputs = Path(directory)
+            (inputs / "object.png").write_bytes(b"png")
+            self.assertEqual(self._job(inputs)[2], [1.0, 1.0, 1.0])
+            (inputs / "job.json").write_text(
+                json.dumps(
+                    {
+                        "control_type": "bbox",
+                        "image": "object.png",
+                        "control": [0.8, 0.64, 1],
+                    }
+                )
+            )
+            self.assertEqual(self._job(inputs)[2], [0.8, 0.64, 1])
+
+    def test_a_min_max_bbox_is_refused_before_the_model_loads(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            inputs = Path(directory)
+            (inputs / "object.png").write_bytes(b"png")
+            (inputs / "job.json").write_text(
+                json.dumps(
+                    {
+                        "control_type": "bbox",
+                        "image": "object.png",
+                        "control": [-0.95, -0.95, -0.95, 0.95, 0.95, 0.95],
+                    }
+                )
+            )
+            with self.assertRaisesRegex(SystemExit, "three sizes"):
+                self._job(inputs)
 
 
 if __name__ == "__main__":

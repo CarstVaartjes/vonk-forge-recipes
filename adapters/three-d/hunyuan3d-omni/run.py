@@ -63,12 +63,17 @@ def job() -> tuple[str, Path, object]:
                     "pose control must be a non-empty array of xyz triples"
                 )
         elif kind == "bbox":
+            # Hunyuan3D-Omni's bbox is the box's [length, height, width], each in
+            # (0, 1]: its encoder takes shape (1, 1, 3) and builds the corners
+            # (upstream demos/bbox/data.json, omni_encoder.bbox_to_corners).
             if (
                 not isinstance(control, list)
-                or len(control) != 6
-                or not all(isinstance(v, (int, float)) for v in control)
+                or len(control) != 3
+                or not all(
+                    isinstance(v, (int, float)) and 0 < v <= 1 for v in control
+                )
             ):
-                raise SystemExit("bbox control must contain six numbers")
+                raise SystemExit("bbox control must contain three sizes in (0, 1]")
         else:
             raise SystemExit("control_type must be bbox, point, pose, or voxel")
         return kind, image, control
@@ -80,7 +85,7 @@ def job() -> tuple[str, Path, object]:
     )
     if len(images) != 1:
         raise SystemExit("provide one image, or job.json plus its referenced inputs")
-    return "bbox", images[0], [-0.95, -0.95, -0.95, 0.95, 0.95, 0.95]
+    return "bbox", images[0], [1.0, 1.0, 1.0]
 
 
 def normalized_surface(path: Path, *, sample: bool, seed: int) -> torch.Tensor:
@@ -142,7 +147,7 @@ def main() -> None:
     if kind == "bbox":
         kwargs["bbox"] = torch.tensor(
             control, dtype=torch.float16, device="cuda"
-        ).reshape(1, 1, 6)
+        ).reshape(1, 1, 3)
     elif kind == "pose":
         kwargs["pose"] = torch.tensor(
             control, dtype=torch.float16, device="cuda"
