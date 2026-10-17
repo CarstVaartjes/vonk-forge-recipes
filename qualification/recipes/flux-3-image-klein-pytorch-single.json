@@ -1,0 +1,56 @@
+{
+  "id": "vonk-forge/flux-3-image-klein-pytorch-single",
+  "recipes": {
+    "assertions": [
+      {
+        "exact": 1,
+        "kind": "file-count"
+      },
+      {
+        "allowed": [
+          "image/png"
+        ],
+        "kind": "media-type"
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 1
+      },
+      {
+        "format": "png",
+        "kind": "format"
+      },
+      {
+        "exact": [
+          "image.png"
+        ],
+        "kind": "file-names"
+      },
+      {
+        "bit_depth": 8,
+        "color_type": 2,
+        "height": 1024,
+        "kind": "image-metadata",
+        "media_type": "image/png",
+        "width": 1024
+      }
+    ],
+    "inputs": [
+      {
+        "fixture": "generic-prompt-text",
+        "slot": "prompt"
+      }
+    ],
+    "interface": "image-job",
+    "output_limits": {
+      "allowed_media_types": [
+        "image/png"
+      ],
+      "max_file_bytes": 16777216,
+      "max_files": 1,
+      "max_total_bytes": 16777216
+    },
+    "parameters": {},
+    "timeout_seconds": 3600
+  }
+}

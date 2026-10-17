@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/mellum2-1-12b-thinking-vllm-single",
+  "service_recipes": {
+    "alias": "mellum2-1-12b-thinking-vllm-single",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start and offline warm-cache restart with exact model alias"
+      ],
+      "stress": [
+        "Context and concurrency boundary canaries on the declared topology"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ]
+  }
+}

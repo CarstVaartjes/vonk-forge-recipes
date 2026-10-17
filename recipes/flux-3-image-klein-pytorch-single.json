@@ -1,0 +1,636 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "4f63b83537c4cbd82822403965f395877054dc3b69612e7044ecd649a9badb02",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/october-2026/flux-3-image-klein-pytorch-single"
+      },
+      "dockerfile": "adapters/october-2026/flux-3-image-klein-pytorch-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "codeload.github.com",
+          "pypi.org",
+          "files.pythonhosted.org"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "flux-3-image-klein-pytorch-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "image-job",
+      "input": {
+        "max_bytes": 16384,
+        "media_types": [
+          "text/plain"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "UTF-8 text prompt for image generation.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 16777216,
+        "slots": [
+          {
+            "description": "Single generated PNG image.",
+            "extensions": [
+              ".png"
+            ],
+            "id": "image",
+            "label": "Generated image",
+            "max_file_bytes": 16777216,
+            "max_files": 1,
+            "max_total_bytes": 16777216,
+            "media_types": [
+              "image/png"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Native FLUX 3 distilled BF16 reference pipeline, 16 steps, with its required local prompt upsampler. Uses the official gated checkpoint (requires a granted Hugging Face account and Controller token) and the upstream-tested vLLM 0.21 dependency family. Text-to-image at 1024 square; image editing is not exposed by this recipe. Estimated peak 100 GB includes the upsampler's 35% memory pool, DiT, text encoder, VAE and workspace. Physical Spark acceptance pending.",
+    "tags": [
+      "candidate",
+      "executable",
+      "spark",
+      "image",
+      "generation",
+      "pytorch-pipeline",
+      "flux-3"
+    ],
+    "title": "FLUX 3 Image Klein single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "license-100a3a5af8f1-4673a3aba0",
+          "id": "primary-100a3a5af8f1a294-4673a3ab",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "notice-a12f7eb0cab8-53337bf7ea",
+          "id": "primary-a12f7eb0cab87ed2-53337bf7",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-cca5f3490d05-b335630551",
+          "id": "primary-cca5f3490d05e506-b3356305",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ae-868fe7b343cc-2269a163c7",
+          "id": "primary-868fe7b343cc8f3a-2269a163",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-c4fc638a9618-587cb980af",
+          "id": "primary-c4fc638a9618e8dd-587cb980",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "manifest-e6e1d78fe913-ffa5b716b5",
+          "id": "primary-e6e1d78fe913eebe-ffa5b716",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-c3e9813cdd04-9d75c1098f",
+          "id": "primary-c3e9813cdd049c83-9d75c109",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-c71d239df917-47734b651f",
+          "id": "primary-c71d239df91726fc-47734b65",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-a884e5e78f7d-aa014167af",
+          "id": "primary-a884e5e78f7d6f7b-aa014167",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-6f8a6a55027e-1187694af5",
+          "id": "primary-6f8a6a55027e3da5-1187694a",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-edac77033291-bcfd37e83e",
+          "id": "primary-edac7703329133ed-bcfd37e8",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-8469742d1fce-b77bbf3992",
+          "id": "primary-8469742d1fce0de9-b77bbf39",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-599bab540750-fd9a7ce579",
+          "id": "primary-599bab5407508877-fd9a7ce5",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00002-30a01a055662-87efbc9b48",
+          "id": "primary-30a01a0556622645-87efbc9b",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00002-046296a2a387-5aa97bb14c",
+          "id": "primary-046296a2a387efb4-5aa97bb1",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-58a7841d7bff-5fc12c01f9",
+          "id": "primary-58a7841d7bff2548-5fc12c01",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-a788ac5484",
+          "id": "primary-27225450ac9c6529-a788ac54",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-a5d85b6dcc53-9b5d4488eb",
+          "id": "primary-a5d85b6dcc535e6b-9b5d4488",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-c2da77180188-683269f7c6",
+          "id": "primary-c2da771801886ad9-683269f7",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-f4177064cb",
+          "id": "primary-7768af27c1fafa9c-f4177064",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ca10d7e9fb3e-0377681b2a",
+          "id": "primary-ca10d7e9fb3ed185-0377681b",
+          "mount": {
+            "target": "/models/flux-3-image-klein"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "ff402e9c8fafdd4f14a151880d41e39691be58e133e911820b617601e10ffbf0",
+        "kind": "model",
+        "publisher": "black-forest-labs",
+        "slug": "flux-3-image-klein-bf16-33733762"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "upsampler-34448b82c17d60fe-618cd5b8",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-d5be19ef3721-b335630551",
+          "id": "upsampler-d5be19ef3721f2cc-b3356305",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-a4aee8afcf2e-00824420d1",
+          "id": "upsampler-a4aee8afcf2e0711-00824420",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-7d7fc026d8bc-587cb980af",
+          "id": "upsampler-7d7fc026d8bcb9f1-587cb980",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-e92258e3c39a-97dd3d578b",
+          "id": "upsampler-e92258e3c39afbaa-97dd3d57",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-f5062a1fba3e-9d75c1098f",
+          "id": "upsampler-f5062a1fba3e63af-9d75c109",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-3a159dfec997-36afccab5d",
+          "id": "upsampler-3a159dfec9978a18-36afccab",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "upsampler-d89ef49ce9cd37fb-27f0cb76",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "system-prompts-b5da3ed8bc04-c9842185f1",
+          "id": "upsampler-b5da3ed8bc04ab59-c9842185",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-06b9509352d2-224931eb13",
+          "id": "upsampler-06b9509352d2af50-224931eb",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-7488550a894d-94d5c6ba8f",
+          "id": "upsampler-7488550a894dcf74-94d5c6ba",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-bd96830cce13-35d01a7325",
+          "id": "upsampler-bd96830cce131267-35d01a73",
+          "mount": {
+            "target": "/models/pup"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "upsampler",
+      "model": {
+        "content_sha256": "684cacf6ae1daea83b0d0c3caf7da6a528542c71d4f9d2134fedd6f563f44148",
+        "kind": "model",
+        "publisher": "black-forest-labs",
+        "slug": "flux-3-image-klein-pup-bf16-3f3edb52"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-11ad7efa2497-618cd5b83d",
+          "id": "classifier-11ad7efa24975ee4-618cd5b8",
+          "mount": {
+            "target": "/models/nsfw-classifier"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-2e6e2cd12fbe-b335630551",
+          "id": "classifier-2e6e2cd12fbe7d70-b3356305",
+          "mount": {
+            "target": "/models/nsfw-classifier"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-cd8c0a19566f-587cb980af",
+          "id": "classifier-cd8c0a19566f199b-587cb980",
+          "mount": {
+            "target": "/models/nsfw-classifier"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "labels-e5bd2d7de311-b123d2c124",
+          "id": "classifier-e5bd2d7de311ff9c-b123d2c1",
+          "mount": {
+            "target": "/models/nsfw-classifier"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-97b2ce64ec14-9d75c1098f",
+          "id": "classifier-97b2ce64ec146884-9d75c109",
+          "mount": {
+            "target": "/models/nsfw-classifier"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-a34861a24e78-36afccab5d",
+          "id": "classifier-a34861a24e781942-36afccab",
+          "mount": {
+            "target": "/models/nsfw-classifier"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "classifier",
+      "model": {
+        "content_sha256": "222152847be50e1eb25e422e6d0c78c0704d2f376ea468cdb4914e2f08966801",
+        "kind": "model",
+        "publisher": "falconsai",
+        "slug": "flux-3-safety-classifier-96cb0d03"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "unsloth",
+      "Black Forest Labs"
+    ],
+    "source_reference": "https://github.com/black-forest-labs/flux-3-image-klein/tree/e53f4ea697fe45db8f38fca91a90f5623f7f8f37"
+  },
+  "release": {
+    "released_at": "2026-10-17",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "pipeline",
+        "setting": null,
+        "value": "text-to-image"
+      },
+      {
+        "name": "output-mime",
+        "setting": null,
+        "value": "image/png"
+      },
+      {
+        "name": "width",
+        "setting": null,
+        "value": 1024
+      },
+      {
+        "name": "height",
+        "setting": null,
+        "value": 1024
+      },
+      {
+        "name": "seed",
+        "setting": null,
+        "value": 0
+      }
+    ],
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "WEIGHTS_DIR",
+        "value": "/models"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": null,
+    "kind": "job",
+    "knobs": {}
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 39503938721,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 91007881900
+          },
+          "memory": {
+            "peak_bytes": 100000000000,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
+          "kind": "image-job.output",
+          "name": "job-output",
+          "request": {
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_slots": {
+              "prompt": "qualification/fixtures/prompt.txt"
+            },
+            "output_slot": "image",
+            "transport": "job"
+          }
+        }
+      ],
+      "interface": "image-job"
+    }
+  }
+}

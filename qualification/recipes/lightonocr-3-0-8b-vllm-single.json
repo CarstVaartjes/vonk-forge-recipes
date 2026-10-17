@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/lightonocr-3-0-8b-vllm-single",
+  "service_recipes": {
+    "alias": "lightonocr-3-0-8b-vllm-single",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start and offline warm-cache restart with exact model alias"
+      ],
+      "stress": [
+        "Context and concurrency boundary canaries on the declared topology"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "LIGHTON3_OCR"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:ddc5d0b88594d3267f5d0e8cdaeb21187ccb6d0b2032e301694473f198a3cf96",
+      "kind": "digest",
+      "ref": "sha256:4e28f849a414a483b44be50a09198d76cbc859096b354796dc25ee2159e05a5e",
+      "repo": "ghcr.io/0xsero/step-5-preview-spark"
+    }
+  },
+  "kit": {
+    "commit": "662949a6c1244c1e8a5c44ed62cedb89a207cbcc",
+    "repo": "0xSero/Step-5-Preview-Four-Sparks"
+  }
+}

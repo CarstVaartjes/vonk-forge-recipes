@@ -1,0 +1,184 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "olmocrbench-3141a24de395-e025ac9af5",
+      "path": ".eval_results/olmocrbench.yaml",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "3141a24de395cf8137f9107530b407d65760f411271230a39d1f368d123e5b77",
+      "size_bytes": 1981
+    },
+    {
+      "id": "parsebench-25e4902aa6ba-54eafe22b0",
+      "path": ".eval_results/parsebench.yaml",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "25e4902aa6ba2d9a4dfdf05c8eb135c0a5af161281a58262fb5bb8129975327f",
+      "size_bytes": 1307
+    },
+    {
+      "id": "metadata-09cc0ca3448f-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "09cc0ca3448f8d64e5d162edc582c0e264516b6566ae8aa19411be309333465d",
+      "size_bytes": 1692
+    },
+    {
+      "id": "readme-0df44eab7827-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "0df44eab78278bad416d8974e96a6a181d59bae8416fa54877bd5b022e76aaf2",
+      "size_bytes": 9271
+    },
+    {
+      "id": "chat-template-273d8e0e683b-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+      "size_bytes": 7755
+    },
+    {
+      "id": "config-842fafd8f068-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "842fafd8f06807269960515fa6f0e4b5dd27f9e645b67a2b3e84f1699ee8d60c",
+      "size_bytes": 2692
+    },
+    {
+      "id": "generation-config-b1cfebea5837-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b1cfebea5837fc69aa89c3e2210dbe6494bb29a04e1e88beb227ddad53b9dfc1",
+      "size_bytes": 205
+    },
+    {
+      "id": "lightonocr3-logo-768eee79d378-b09cdd515e",
+      "path": "lightonocr3_logo.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "768eee79d378518cfea9ed8d81ba3a53a0cff17ccf4b12c22a9e5ebedde32bcf",
+      "size_bytes": 1648312
+    },
+    {
+      "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "size_bytes": 3353259
+    },
+    {
+      "id": "model-ae46aa6fd713-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ae46aa6fd7136d57297ac006ed9ec345b7a2083feb2e99501bedcb014ca3efdf",
+      "size_bytes": 1706030528
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+      "size_bytes": 1191
+    },
+    {
+      "id": "tokenizer-06b9509352d2-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+      "size_bytes": 19989325
+    },
+    {
+      "id": "tokenizer-config-c908cd42c5e6-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c908cd42c5e6eac721445fb70841e45845a6a269c6ef2c595e97a578a9724671",
+      "size_bytes": 1168
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "lightonai",
+      "slug": "lightonocr",
+      "title": "LightOnOCR"
+    },
+    "model": {
+      "publisher": "lightonai",
+      "slug": "lightonocr-3-0-8b-bf16",
+      "title": "LightOnOCR 3 0.8B"
+    },
+    "publisher": "lightonai",
+    "slug": "lightonocr-3-0-8b-bf16-36d86369",
+    "variant": "lightonocr-3-0-8b-bf16",
+    "version": "36d86369"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "lightonai"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/lightonai/LightOnOCR-3-0.8B/blob/36d8636925327c671bd8e479c517a004f7566bd9/LICENSE"
+  },
+  "metadata": {
+    "description": "LightOnOCR 3 0.8B immutable upstream checkpoint. Physical Spark qualification pending.",
+    "tags": [
+      "candidate",
+      "lightonocr"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/lightonai/LightOnOCR-3-0.8B",
+    "revision": "36d8636925327c671bd8e479c517a004f7566bd9"
+  }
+}

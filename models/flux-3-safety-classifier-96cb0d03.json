@@ -1,0 +1,103 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "readme-2e6e2cd12fbe-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "2e6e2cd12fbe7d70e992ef649eae85e6d72d87c9cfc31b4cecd36de0d5facadc",
+      "size_bytes": 10640
+    },
+    {
+      "id": "config-cd8c0a19566f-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "cd8c0a19566f199b5c64da402f1d6a9daf80d094fe6536befb060a2cc59449c2",
+      "size_bytes": 724
+    },
+    {
+      "id": "labels-e5bd2d7de311-b123d2c124",
+      "path": "labels.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "e5bd2d7de311ff9c564b075f52cf7c15c5d21068b0e9e74dd8c1bee5b77a034f",
+      "size_bytes": 38
+    },
+    {
+      "id": "model-97b2ce64ec14-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "97b2ce64ec146884b37f98ee7944ca4891aa72f6827dc0cb10684a1cbecd5830",
+      "size_bytes": 343223968
+    },
+    {
+      "id": "preprocessor-config-a34861a24e78-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a34861a24e781942424ad790b82bc99348404a2e64ea882de88c40905851698d",
+      "size_bytes": 325
+    }
+  ],
+  "format": {
+    "precision": "fp32",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "falconsai",
+      "slug": "nsfw-image-detection",
+      "title": "NSFW Image Detection"
+    },
+    "model": {
+      "publisher": "falconsai",
+      "slug": "flux-3-safety-classifier",
+      "title": "FLUX reference image classifier"
+    },
+    "publisher": "falconsai",
+    "slug": "flux-3-safety-classifier-96cb0d03",
+    "variant": "flux-3-safety-classifier",
+    "version": "96cb0d03"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Falconsai"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Falconsai/nsfw_image_detection/blob/96cb0d0342c7afb80cab76ecc58b265fa44da256/LICENSE"
+  },
+  "metadata": {
+    "description": "FLUX reference image classifier immutable upstream checkpoint. Physical Spark qualification pending.",
+    "tags": [
+      "candidate",
+      "nsfw-image-detection"
+    ]
+  },
+  "modalities": [
+    "image"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/Falconsai/nsfw_image_detection",
+    "revision": "96cb0d0342c7afb80cab76ecc58b265fa44da256"
+  }
+}
