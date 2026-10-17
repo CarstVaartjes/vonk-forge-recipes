@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/lfm2-5-24b-a2b-bf16-vllm-single",
+  "service_recipes": {
+    "alias": "lfm2-5-24b-a2b-bf16-vllm-single",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start and offline warm-cache restart with exact model alias"
+      ],
+      "stress": [
+        "Context and concurrency boundary canaries on the declared topology"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ]
+  }
+}

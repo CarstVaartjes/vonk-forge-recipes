@@ -1,0 +1,193 @@
+{
+  "capabilities": [],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-f948bbe51bfb-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "f948bbe51bfb87ec2cfaf6be567b9c1c90be70eea32ce71cc77737f031c4a7b7",
+      "size_bytes": 1576
+    },
+    {
+      "id": "readme-3da5f8b9862c-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "3da5f8b9862c7b3560e631d778e2402f222d87f1a332c34696dfa399608824a7",
+      "size_bytes": 8907
+    },
+    {
+      "id": "chat-template-4593a34d52f3-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "4593a34d52f3364ac13ce57f4bea5688924e8942da6df8201e411db17e729f48",
+      "size_bytes": 4849
+    },
+    {
+      "id": "config-f43d01824609-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f43d018246094dee6dca455b3072766b6acbefd1ac8e7fe664df34710606a541",
+      "size_bytes": 2329
+    },
+    {
+      "id": "generation-config-a9dc104ca398-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a9dc104ca398a2ef376d3f2fbb03037d99950ddb2db0cd041b98398cf1fc8d7c",
+      "size_bytes": 111
+    },
+    {
+      "id": "mellum-logo-dark-e55d257b537f-c293355def",
+      "path": "mellum-logo-dark.svg",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e55d257b537fd279c60fae86145191e1e6cac61b730966a061b126c0fd10960b",
+      "size_bytes": 5176
+    },
+    {
+      "id": "mellum21-summary-2a86585d0f70-445a429c88",
+      "path": "mellum21_summary.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "2a86585d0f7075c56a9a3ae7cd582561dc7020aff87e094a065651d5d4f92324",
+      "size_bytes": 174934
+    },
+    {
+      "id": "model-00001-of-00005-f5ccf8012c7d-8453f51e85",
+      "path": "model-00001-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f5ccf8012c7d44fd2598325bf2482b8fc21792ef888de68f9ca8c9053c2e022f",
+      "size_bytes": 4999531104
+    },
+    {
+      "id": "model-00002-of-00005-266beea6f34d-516421cb37",
+      "path": "model-00002-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "266beea6f34dea9c86414d8bf8cb35c0f4a53330731d99ed41ec666390758e39",
+      "size_bytes": 4996604776
+    },
+    {
+      "id": "model-00003-of-00005-da9a04fb6ea1-05880bd763",
+      "path": "model-00003-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "da9a04fb6ea121f71e30920c7657b889ca0078aea57d878e5cb768ebb3e4483a",
+      "size_bytes": 4996605688
+    },
+    {
+      "id": "model-00004-of-00005-32f27ab7f38f-c340da1f8a",
+      "path": "model-00004-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "32f27ab7f38ff5d98ac3d50dabb57ab8a55a8aa552febd42c2a5b01f4116262a",
+      "size_bytes": 4996605688
+    },
+    {
+      "id": "model-00005-of-00005-d8bbb9b829cb-2bd52bf6f8",
+      "path": "model-00005-of-00005.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d8bbb9b829cb3279e23f59af55bf68ec00cc8ad30923c227d8b13c7d831e6b3b",
+      "size_bytes": 4311191552
+    },
+    {
+      "id": "model-safetensors-index-a6ad930e5bb3-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a6ad930e5bb35ea92d5b734c4df4649bfcfdcd899f64b0a83efe40fe0ab9b60e",
+      "size_bytes": 526510
+    },
+    {
+      "id": "special-tokens-map-20e1ead0b098-c07a9be597",
+      "path": "special_tokens_map.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "20e1ead0b0986b55989aa8116bafe63efcbae0daf8ed047970cd28b36aada4d9",
+      "size_bytes": 1185
+    },
+    {
+      "id": "tokenizer-58548a346eb0-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "58548a346eb073e5132bf7d8ad17dc6971bca36ade378ca4d2bfbc49bf60da2a",
+      "size_bytes": 7091587
+    },
+    {
+      "id": "tokenizer-config-e2950960d2a3-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e2950960d2a3040a1938e6357c8c3628d531133c464286a7869b2e0504fcc59e",
+      "size_bytes": 7033
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "jetbrains",
+      "slug": "mellum",
+      "title": "Mellum"
+    },
+    "model": {
+      "publisher": "jetbrains",
+      "slug": "mellum2-1-12b-a2-5b-thinking-bf16",
+      "title": "Mellum2.1-12B-A2.5B-Thinking"
+    },
+    "publisher": "jetbrains",
+    "slug": "mellum2-1-12b-a2-5b-thinking-bf16-92ddae9f",
+    "variant": "mellum2-1-12b-a2-5b-thinking-bf16",
+    "version": "92ddae9f"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "JetBrains"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking/blob/92ddae9fc7665e9f801d141d2e5a6b2caf2460c4/LICENSE"
+  },
+  "metadata": {
+    "description": "Mellum2.1-12B-A2.5B-Thinking immutable upstream checkpoint. Physical Spark qualification pending.",
+    "tags": [
+      "candidate",
+      "mellum"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/JetBrains/Mellum2.1-12B-A2.5B-Thinking",
+    "revision": "92ddae9fc7665e9f801d141d2e5a6b2caf2460c4"
+  }
+}

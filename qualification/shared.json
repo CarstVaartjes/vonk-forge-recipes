@@ -1202,6 +1202,71 @@
           "expected": "<think>, <action> and one computer_use wait 1 tool call"
         }
       ]
+    },
+    "LIGHTON3_OCR": {
+      "assertions": [
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
+        },
+        {
+          "kind": "path.lte",
+          "path": "usage.completion_tokens",
+          "value": 128
+        },
+        {
+          "kind": "raw.not-contains",
+          "values": [
+            "<|im_start|>",
+            "<|im_end|>",
+            "<|tool_call|>"
+          ]
+        }
+      ],
+      "body": {
+        "max_tokens": 128,
+        "messages": [
+          {
+            "content": [
+              {
+                "image_url": {
+                  "url": {
+                    "$fixture_data_uri": "service-digit7-png"
+                  }
+                },
+                "type": "image_url"
+              }
+            ],
+            "role": "user"
+          }
+        ],
+        "model": "$ALIAS",
+        "stream": false,
+        "temperature": 0
+      },
+      "max_response_bytes": 131072,
+      "method": "POST",
+      "path": "/chat/completions",
+      "quality_assertions": [
+        {
+          "expected": "7",
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "[\\s\\S]*(?<![-0-9])7(?![0-9])[\\s\\S]*"
+        },
+        {
+          "expected": "only one character in content",
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*[0-9A-Za-z]\\s*$"
+        }
+      ],
+      "timeout_seconds": 300
     }
   }
 }

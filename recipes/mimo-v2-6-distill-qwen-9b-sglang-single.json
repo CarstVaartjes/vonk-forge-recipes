@@ -1,0 +1,387 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "06441be3de19a816ddbac917535e920cbfc7fc43171abc08417394f43634ffb6",
+        "repository": "docker.io/lmsysorg/sglang"
+      },
+      "context": {
+        "path": "adapters/october-2026/mimo-v2-6-distill-qwen-9b-sglang-single"
+      },
+      "dockerfile": "adapters/october-2026/mimo-v2-6-distill-qwen-9b-sglang-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mimo-v2-6-distill-qwen-9b-sglang-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "mimo-v2-6-distill-qwen-9b-sglang-single"
+      ],
+      "port": 30000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Xiaomi's BF16 distillation with the upstream SGLang mimo reasoning parser. 32K context and four requests are conservative defaults, not measured performance. Physical Spark acceptance pending. Peak memory estimates 45% of GB10 unified memory plus 8 GB runtime overhead.",
+    "tags": [
+      "candidate",
+      "executable",
+      "spark",
+      "sglang",
+      "mimo",
+      "reasoning"
+    ],
+    "title": "MiMo V2.6 Distill Qwen 9B SGLang single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-34448b82c17d-618cd5b83d",
+          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-09f915ac8116-b335630551",
+          "id": "primary-readme-09f915ac8116-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-59a64ebb4df6-00824420d1",
+          "id": "primary-chat-template-59a64ebb4df6-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-407c46388b8f-587cb980af",
+          "id": "primary-config-407c46388b8f-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-aaed5b26f1ca-97dd3d578b",
+          "id": "primary-generation-config-aaed5b26f1ca-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "primary-merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00004-aab052180118-1913267ec8",
+          "id": "primary-model-00001-of-00004-aab052180118-1913267ec8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00004-7a0486565f06-60f6088da9",
+          "id": "primary-model-00002-of-00004-7a0486565f06-60f6088da9",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00004-6c73207563d1-fc35f2c4d5",
+          "id": "primary-model-00003-of-00004-6c73207563d1-fc35f2c4d5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00004-1379a7cf8c0b-5078e75d62",
+          "id": "primary-model-00004-of-00004-1379a7cf8c0b-5078e75d62",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-4a24d25e9021-0a05be8238",
+          "id": "primary-model-safetensors-index-4a24d25e9021-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-3a159dfec997-36afccab5d",
+          "id": "primary-preprocessor-config-3a159dfec997-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "primary-processor-config-d89ef49ce9cd-27f0cb76af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-06b9509352d2-224931eb13",
+          "id": "primary-tokenizer-06b9509352d2-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-792fa3f0cb88-94d5c6ba8f",
+          "id": "primary-tokenizer-config-792fa3f0cb88-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "9047e12a5fcdf00a6615a9a49ea2ea93a53a01dc72566c714948f763825ed9b3",
+        "kind": "model",
+        "publisher": "xiaomimimo",
+        "slug": "mimo-v2-6-distill-qwen-9b-bf16-2367e865"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Xiaomi MiMo",
+      "SGLang contributors"
+    ],
+    "source_reference": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Distill-Qwen-9B/tree/2367e865d009c13ac81713a2878291d33ab28177"
+  },
+  "release": {
+    "released_at": "2026-10-17",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "model-path",
+        "setting": null,
+        "value": "/models"
+      },
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "mimo-v2-6-distill-qwen-9b-sglang-single"
+      },
+      {
+        "name": "context-length",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-running-requests",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "mem-fraction-static",
+        "setting": null,
+        "value": "0.45"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "mimo"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "sglang",
+    "entrypoint": [
+      "/opt/vonk/bin/sglang-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 18849870018,
+            "image_bytes": 12000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 36000000000
+          },
+          "memory": {
+            "peak_bytes": 66798454170,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "chat_template_kwargs": {
+                "enable_thinking": true
+              },
+              "max_tokens": 2048,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "mimo-v2-6-distill-qwen-9b-sglang-single"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/launch.sh",
+        "pattern": "^IMG=\\$\\{IMG:-(?P<repo>[^@}\"\\s]+)@(?P<version>sha256:[0-9a-f]{64})\\}$"
+      }
+    },
+    "whole": false
+  },
+  "ours": [
+    "launcher"
+  ],
+  "source": {
+    "commit": "662949a6c1244c1e8a5c44ed62cedb89a207cbcc",
+    "repo": "0xSero/Step-5-Preview-Four-Sparks"
+  }
+}

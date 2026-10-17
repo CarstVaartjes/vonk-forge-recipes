@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+[ "${1:-}" = serve ] && [ "${2:-}" = /models ] || exit 2
+[ -r /models/config.json ] || exit 2
+exec vllm "$@"

@@ -1,0 +1,411 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "fd33bec1578f312a01547cc6b9691a5154c3e8bcfb76d2b35acb657bfc4eee8f",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/october-2026/lfm2-5-24b-a2b-bf16-vllm-single"
+      },
+      "dockerfile": "adapters/october-2026/lfm2-5-24b-a2b-bf16-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "lfm2-5-24b-a2b-bf16-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "lfm2-5-24b-a2b-bf16-vllm-single"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "LFM2.5-24B-A2B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately.",
+    "tags": [
+      "candidate",
+      "executable",
+      "spark",
+      "vllm",
+      "lfm2-5",
+      "tool-use"
+    ],
+    "title": "LFM2.5-24B-A2B vLLM single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-f7d976c773cb-618cd5b83d",
+          "id": "primary-metadata-f7d976c773cb-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license-4d28ca14dedc-c693279643",
+          "id": "primary-license-4d28ca14dedc-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-22aa4c9f6882-b335630551",
+          "id": "primary-readme-22aa4c9f6882-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-ea663864491d-00824420d1",
+          "id": "primary-chat-template-ea663864491d-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-b0c46662afe3-587cb980af",
+          "id": "primary-config-b0c46662afe3-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-d1ecad152cd2-97dd3d578b",
+          "id": "primary-generation-config-d1ecad152cd2-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00010-f7b4d9106ff0-abda2caf91",
+          "id": "primary-model-00001-of-00010-f7b4d9106ff0-abda2caf91",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00010-e33aab029127-c78aeb3aa5",
+          "id": "primary-model-00002-of-00010-e33aab029127-c78aeb3aa5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00010-68bd39f975ed-3bbb02f554",
+          "id": "primary-model-00003-of-00010-68bd39f975ed-3bbb02f554",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00010-1355d0f20369-9744fa3b65",
+          "id": "primary-model-00004-of-00010-1355d0f20369-9744fa3b65",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00010-a4fec7fbe3c4-287722c574",
+          "id": "primary-model-00005-of-00010-a4fec7fbe3c4-287722c574",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00010-d7f59eb54c2c-5c0b2f8f0d",
+          "id": "primary-model-00006-of-00010-d7f59eb54c2c-5c0b2f8f0d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00010-13f6524d71c8-3028b843f1",
+          "id": "primary-model-00007-of-00010-13f6524d71c8-3028b843f1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00010-51ebc311324f-1a97e5bd74",
+          "id": "primary-model-00008-of-00010-51ebc311324f-1a97e5bd74",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00010-491ab1cff839-9e545a3307",
+          "id": "primary-model-00009-of-00010-491ab1cff839-9e545a3307",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00010-1d3f7178c0c7-3cc422b9fe",
+          "id": "primary-model-00010-of-00010-1d3f7178c0c7-3cc422b9fe",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-b3c3d025ee3b-0a05be8238",
+          "id": "primary-model-safetensors-index-b3c3d025ee3b-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-695be7802a0e-224931eb13",
+          "id": "primary-tokenizer-695be7802a0e-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-11f1de897317-94d5c6ba8f",
+          "id": "primary-tokenizer-config-11f1de897317-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "d54961ae9d60efbf2d3d8a3cd695288be414ba338fc9936b77d9bde9cae9d6ef",
+        "kind": "model",
+        "publisher": "liquidai",
+        "slug": "lfm2-5-24b-a2b-bf16-1769516a"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "LiquidAI",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://huggingface.co/LiquidAI/LFM2.5-24B-A2B/tree/1769516ac588c4c558089c94f27d96b0dc67b183"
+  },
+  "release": {
+    "released_at": "2026-10-17",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "lfm2-5-24b-a2b-bf16-vllm-single"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.55"
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 8192
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "lfm2"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 47962795506,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 107925591012
+          },
+          "memory": {
+            "peak_bytes": 79864777319,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 128,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "lfm2-5-24b-a2b-bf16-vllm-single"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
