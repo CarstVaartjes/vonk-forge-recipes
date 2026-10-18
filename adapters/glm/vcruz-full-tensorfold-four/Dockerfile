@@ -9,10 +9,12 @@ RUN apt-get update \
     && python3 -m venv /opt/venv
 COPY requirements.lock /tmp/requirements.lock
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu130 --require-hashes --requirement /tmp/requirements.lock
+COPY patch_fabric.py /tmp/patch_fabric.py
 COPY vendor/tensorfold.tar.gz /tmp/tensorfold.tar.gz
 RUN echo "10570c84b768c3a5cbe1cf5321a52286481b8786fab29d277ef80acae425b0c4  /tmp/tensorfold.tar.gz" | sha256sum -c - \
     && mkdir /tmp/tensorfold \
     && tar -xzf /tmp/tensorfold.tar.gz -C /tmp/tensorfold --strip-components=1 \
+    && python /tmp/patch_fabric.py /tmp/tensorfold \
     && pip install --no-cache-dir --no-deps --no-build-isolation /tmp/tensorfold \
     && rm -rf /tmp/tensorfold /tmp/tensorfold.tar.gz
 COPY vendor/b12x.tar.gz /tmp/b12x.tar.gz
@@ -22,7 +24,7 @@ RUN echo "8cfd2d8bf09169d00a669f72f179c54bdfc49af35b05214a5e5f0fdb1d5779d8  /tmp
     && pip install --no-cache-dir --no-deps --no-build-isolation --target /opt/b12x/site /tmp/b12x \
     && rm -rf /tmp/b12x /tmp/b12x.tar.gz
 COPY upstream /opt/vonk/runtime
-COPY prepare_view.py /opt/vonk/runtime/prepare_view.py
+COPY prepare_view.py fabric_binding.py /opt/vonk/runtime/
 COPY --chmod=0755 tensorfold-serve /opt/vonk/bin/tensorfold-serve
 COPY licenses /opt/vonk/licenses
 ENV PYTHONPATH=/opt/b12x/site HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \

@@ -33,7 +33,9 @@
     "licenses/",
     "requirements.lock",
     "prepare_view.py",
-    "tensorfold-serve"
+    "tensorfold-serve",
+    "fabric_binding.py",
+    "patch_fabric.py"
   ],
   "renamed": {
     "upstream/tf_speed_patches.py": "tensorfold-four-spark-tp4/lib/tf_speed_patches.py",

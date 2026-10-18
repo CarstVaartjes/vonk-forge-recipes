@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, "/opt/vonk/runtime")
 from prepare_view import prepare, digest
+from fabric_binding import primary_hca
 
 p = argparse.ArgumentParser()
 p.add_argument("--host", default="0.0.0.0")
@@ -29,7 +30,7 @@ if a.tp != 4 or a.rank not in range(4) or not (port.isascii() and port.isdigit()
     raise SystemExit("full GLM requires exact four-rank Controller placement")
 if a.master not in ("VONK_MASTER_ADDR", address) or a.master_port not in ("VONK_MASTER_PORT", port):
     raise SystemExit("recipe rendezvous differs from Controller placement")
-hca = os.environ.get("NCCL_IB_HCA", "").removeprefix("=")
+hca = primary_hca(os.environ.get("NCCL_IB_HCA", ""))
 interface = os.environ.get("TP_SOCKET_IFNAME", "").removeprefix("=")
 gid = os.environ.get("NCCL_IB_GID_INDEX", "")
 if not hca or "," in hca or not interface or not (gid.isascii() and gid.isdigit()):
@@ -46,7 +47,7 @@ if len(nccl) != 1:
 tiles = "/opt/vonk/runtime/tiles.json"
 if digest(tiles) != "db409731548ce676d14f29818ff689611202c27023f5cc4bcb93cbd871d6c84a":
     raise SystemExit("creator tile table identity mismatch")
-os.environ.update(TF_NCCL_LIB=nccl[0], CUDA_VISIBLE_DEVICES="0", TENSORFOLD_NO_UPDATE_CHECK="1", PYTHONDONTWRITEBYTECODE="1", TF_GLM53_DFLASH="/models/drafter", TF_GLM53_PROFILE_FLAG=str(ctl / "PROFILE"), TFS_TILES=tiles, TFS_TILES_SHA=digest(tiles), NCCL_IB_HCA=hca, GLOO_SOCKET_IFNAME=interface, B12X_ROCE_GID_INDEX=gid, B12X_ROCE_SPIN_LIMIT="300000000", B12X_ROCE_CACHE_DIR=str(cache / "roce"), B12X_COMPILE_CACHE_DIR=str(cache / "compile"))
+os.environ.update(TF_NCCL_LIB=nccl[0], CUDA_VISIBLE_DEVICES="0", TENSORFOLD_NO_UPDATE_CHECK="1", PYTHONDONTWRITEBYTECODE="1", TF_GLM53_DFLASH="/models/drafter", TF_GLM53_PROFILE_FLAG=str(ctl / "PROFILE"), TFS_TILES=tiles, TFS_TILES_SHA=digest(tiles), B12X_ROCE_HCA=hca, GLOO_SOCKET_IFNAME=interface, B12X_ROCE_GID_INDEX=gid, B12X_ROCE_SPIN_LIMIT="300000000", B12X_ROCE_CACHE_DIR=str(cache / "roce"), B12X_COMPILE_CACHE_DIR=str(cache / "compile"))
 # The Controller owns exposure and authentication of the managed backend. The
 # creator's device, tile, policy consensus and poisoned-collective guards remain.
 from tensorfold.families import glm_moe_dsa as family
