@@ -66,9 +66,15 @@ def test_fp4_dual_binds_controller_placement(tmp_path: Path, valid: bool) -> Non
         VONK_MASTER_ADDR="192.0.2.1" if valid else "bad",
         VONK_MASTER_PORT="29500",
     )
+    recipe = json.loads(
+        (
+            ROOT / "recipes/qwen3-8-flash-next-fp4-local-nvidia-vllm-dual.json"
+        ).read_text()
+    )
+    prefix = recipe["runtime"]["entrypoint"][1:]
+    assert prefix == ["serve", "/models"]
     argv = [
-        "serve",
-        "/models/target",
+        *["/models/target" if value == "/models" else value for value in prefix],
         "--nnodes",
         "2",
         "--node-rank",
