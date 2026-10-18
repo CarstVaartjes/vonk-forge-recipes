@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:77da91d4fd80fe1e1f7ca533b47f8977b2454f0587cb15f9ff53be9c43c5293b",
+      "kind": "tag",
+      "ref": "2026-10-10",
+      "repo": "ghcr.io/drowzeys/keys-tensorfold-glm53-tp4-dgx-spark"
+    }
+  },
+  "kit": {
+    "commit": "ea05ec696d1c408268a3d1de39b090b154c1ebff",
+    "repo": "drowzeys/keys-TensorFold-GLM-5.3-TP4-4x-DGX-Spark"
+  }
+}

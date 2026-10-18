@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+"""Keep upstream vision conversion in the managed cache; model mounts stay read-only."""
+import os
+import subprocess
+import sys
+from pathlib import Path
+for name in ("HOME", "TORCH_EXTENSIONS_DIR", "TRITON_CACHE_DIR", "TMPDIR"):
+    Path(os.environ[name]).mkdir(parents=True, exist_ok=True)
+Path(os.environ["HOME"], ".cache", "tensorfold").mkdir(parents=True, exist_ok=True)
+os.execvp("tensorfold", ["tensorfold", "serve", "/models", *sys.argv[1:]])

@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+"""Pass the Controller's canonical vLLM command to the pinned CLI."""
+import os
+import sys
+os.execv(sys.executable, [sys.executable, "-m", "vllm.entrypoints.cli.main", *sys.argv[1:]])

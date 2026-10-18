@@ -1,0 +1,24 @@
+{
+  "kit": {
+    "dependencies": {
+      "base": {
+        "datasource": "git-ref",
+        "file": "Dockerfile",
+        "pattern": "^ARG TF_REF=(?P<version>[0-9a-f]{7,40})$",
+        "repo_pattern": "^ARG TF_REPO=(?P<repo>\\S+)$"
+      },
+      "model": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "bench/arms.json",
+        "pattern": "\"exl3-305-turboderp\"\\s*:\\s*\\{\\s*\"repo\"\\s*:\\s*\"(?P<repo>[^\"]+)\"\\s*,\\s*\"revision\"\\s*:\\s*\"(?P<version>[^\"]+)\""
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "requirements.lock",
+    "tensorfold-serve",
+    "vendor/"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/qwen3-8-flash-next-mlx-sfxnz-tensorfold-dual",
+  "service_recipes": {
+    "alias": "qwen3.8-flash-next",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Long-context canaries and a replayed agent session (several parallel streams with agent-turn resume), with the first-run kernel compile time recorded separately"
+      ],
+      "recovery": [
+        "Controller stop/start with warm kernel-cache restart",
+        "Controller restart of the two-rank group and recovery after worker loss"
+      ]
+    }
+  }
+}

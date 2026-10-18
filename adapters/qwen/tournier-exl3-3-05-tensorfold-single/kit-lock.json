@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "base": {
+      "commit": "53ceb126d5d54e9193245bcc74130fc1d81cf46f",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "53ceb126d5d54e9193245bcc74130fc1d81cf46f",
+      "repo": "tournierjc/TensorFold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "branch",
+      "ref": "3.05bpw_h5_ng5",
+      "repo": "turboderp/Qwen3.8-Flash-Next-exl3",
+      "revision": "69e33439ae950f17bcbe95c98f117d80f759ab6d"
+    }
+  },
+  "kit": {
+    "commit": "70c561394e6e955e369b135b5edfd70c1dfe9efb",
+    "repo": "tournierjc/TensorFold-Single-DGX-Spark"
+  }
+}
