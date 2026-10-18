@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/opt/step1x \
+    FORCE_CUDA=1 \
     TORCH_CUDA_ARCH_LIST=12.1
 
 RUN apt-get update \
@@ -79,12 +80,14 @@ RUN curl --fail --location --silent --show-error \
         --directory /opt/step1x --strip-components=1 \
     && rm /tmp/step1x.tar.gz
 
+COPY check_cuda_extensions.py /opt/vonk/source/check_cuda_extensions.py
 COPY prepare_upstream.py /tmp/prepare_upstream.py
 RUN python3 /tmp/prepare_upstream.py \
     && rm /tmp/prepare_upstream.py \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-build-isolation \
         /opt/step1x/step1x3d_texture/custom_rasterizer \
         /opt/step1x/step1x3d_texture/differentiable_renderer \
+    && python3 /opt/vonk/source/check_cuda_extensions.py \
     && python3 -c 'import torch; import custom_rasterizer; import nvdiffrast.torch; import pytorch_lightning.utilities.rank_zero; from step1x3d_geometry.models.pipelines.pipeline import Step1X3DGeometryPipeline; from step1x3d_texture.pipelines.step1x_3d_texture_synthesis_pipeline import Step1X3DTexturePipeline' \
     && python3 -c 'import numpy as np; from PIL import Image; from step1x3d_texture.utils import make_image_grid, tensor_to_image; image = tensor_to_image(np.zeros((2, 2, 3), dtype=np.uint8)); assert isinstance(image, Image.Image); assert make_image_grid([image]).size == (2, 2)'
 

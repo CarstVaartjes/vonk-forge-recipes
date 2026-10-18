@@ -35,6 +35,7 @@ RUN apt-get update \
         trimesh==5.1.0 pygltflib==1.16.5 requests==2.34.2 \
         pillow==12.3.0 \
         flash-attn==2.8.3.post1 --no-build-isolation \
+    && cuobjdump --list-elf "$(python3 -c 'import torch; import flash_attn_2_cuda as c; print(c.__file__)')" | grep --quiet -E 'sm_12[01]\.' \
     && install --directory --mode=0755 /opt/vonk/bin /opt/vonk/source \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk
 
