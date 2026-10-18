@@ -11,6 +11,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes ca-certificates curl libgl1 libglib2.0-0 python3 python3-pip \
+        build-essential \
+        python3-dev \
     && rm -rf /var/lib/apt/lists/* \
     && curl --fail --location --retry 5 \
         https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/archive/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8.tar.gz \
