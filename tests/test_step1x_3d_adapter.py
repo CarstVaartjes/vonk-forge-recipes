@@ -693,6 +693,8 @@ class _FakeTexturePipeline:
         self.config = config
 
     def __call__(self, image: str, mesh: object, **kwargs: object) -> object:
+        # Upstream derives the image extension with .split(), not os.fspath().
+        assert image.split(".")[-1] == "png"
         # Upstream: `if isinstance(mesh, trimesh.Scene): mesh = mesh.to_geometry()`
         if isinstance(mesh, _FakeScene):
             mesh = mesh.to_geometry()  # type: ignore[attr-defined]
@@ -718,7 +720,7 @@ def _fake_texture_modules() -> dict[str, types.ModuleType]:
 
 
 class Step1XTextureInputTests(unittest.TestCase):
-    def test_texture_hands_the_pipeline_one_mesh_never_a_scene(self) -> None:
+    def test_texture_hands_upstream_a_string_image_path_and_one_mesh(self) -> None:
         # Sweep 2026-10-16: a GLB loads as a Scene, and upstream's Scene branch
         # failed with "'Scene' object has no attribute 'to_geometry'" on the
         # trimesh 4.3.2 it pins.
@@ -733,12 +735,14 @@ class Step1XTextureInputTests(unittest.TestCase):
                 compile(RUN_PATH.read_text(encoding="utf-8"), str(RUN_PATH), "exec"),
                 module.__dict__,
             )
+            image = Path(root) / "image.png"
+            image.write_bytes(b"png")
             mesh = Path(root) / "mesh.glb"
             mesh.write_bytes(b"glb")
             outputs = Path(root) / "outputs"
             outputs.mkdir()
             module.__dict__.update(
-                _one_input=lambda label, suffixes: mesh,
+                _one_input=lambda label, suffixes: image if label == "image" else mesh,
                 _validated_input_glb=lambda path: path,
                 _publish_glb=lambda temporary, output, profile: temporary.replace(
                     output
