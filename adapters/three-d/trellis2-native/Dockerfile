@@ -9,6 +9,8 @@ LABEL org.opencontainers.image.source="https://github.com/microsoft/TRELLIS.2" \
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONUNBUFFERED=1 \
+    HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1 \
     TORCH_CUDA_ARCH_LIST="12.1" \
     NATTEN_CUDA_ARCH="12.1" \
     NATTEN_N_WORKERS="4" \
@@ -83,7 +85,11 @@ RUN git clone --filter=blob:none --no-checkout https://github.com/microsoft/TREL
     && git -C /opt/vonk/natten-source submodule update --init --recursive
 
 COPY patches/apply-sdpa-arm64.py /opt/vonk/source/apply-sdpa-arm64.py
-RUN python3 /opt/vonk/source/apply-sdpa-arm64.py \
+COPY patches/apply-local-models.py /opt/vonk/source/apply-local-models.py
+RUN python3 /opt/vonk/source/apply-local-models.py \
+        /opt/vonk/trellis2-source/trellis2 \
+        /opt/vonk/pixal3d-source/pixal3d \
+    && python3 /opt/vonk/source/apply-sdpa-arm64.py \
         /opt/vonk/trellis2-source/trellis2 \
         /opt/vonk/pixal3d-source/pixal3d \
     && ln -sf /usr/bin/python3 /usr/local/bin/python \
