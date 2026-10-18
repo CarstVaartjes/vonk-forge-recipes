@@ -1,0 +1,16 @@
+TensorFold
+Copyright 2026 TensorFold contributors
+https://github.com/ashhart/TensorFold
+
+TensorFold is licensed under the Apache License, Version 2.0 (LICENSE) from 0.6.0.
+Releases up to 0.5.0 were MIT-licensed, and code written before 0.6.0 keeps its
+MIT notice in LICENSES/MIT.txt. Third-party code and its licenses are listed in
+THIRD_PARTY_NOTICES.md.
+
+----
+This repository (Qwen3.8-Flash-Next-TensorFold-2x-DGX-Spark) redistributes TensorFold source in:
+- docker/patches/pr141-on-0.6.2.patch: changes to TensorFold v0.6.2 (upstream PR #141, ported with fixes;
+  see docker/patches/README.md). Apache-2.0, LICENSES/Apache-2.0-TensorFold.txt.
+- tools/vendor/bench_concurrent.py: TensorFold's tools/bench_concurrent.py at v0.6.2, unmodified. Written
+  before 0.6.0, so it keeps its MIT notice (LICENSES/MIT-TensorFold.txt) as well as Apache-2.0.
+The recipe's own files are MIT (LICENSE).

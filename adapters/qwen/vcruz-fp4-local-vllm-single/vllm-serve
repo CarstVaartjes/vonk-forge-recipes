@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+"""Serve the immutable locally mounted FP4-Local checkpoint."""
+import os
+import sys
+os.execv(sys.executable, [sys.executable, "-m", "vllm.entrypoints.openai.api_server", "--model", "/models", *sys.argv[1:]])
