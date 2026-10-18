@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c",
+      "kind": "digest",
+      "ref": "sha256:e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c",
+      "repo": "ghcr.io/miaai-lab/qwen3.8-flash-dual-dgx-sparks-tensorfold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "1464274120d36a4d8fcaa934552334a7d83ce0fd",
+      "repo": "azampatti/Qwen3.8-Flash-Next-125B-A5B-INT4-AutoRound",
+      "revision": "1464274120d36a4d8fcaa934552334a7d83ce0fd"
+    }
+  },
+  "kit": {
+    "commit": "6730319ed948cc88b525bbbdc9d309451a863834",
+    "repo": "MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold"
+  }
+}

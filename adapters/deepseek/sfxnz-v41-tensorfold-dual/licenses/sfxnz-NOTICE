@@ -1,0 +1,25 @@
+DeepSeek-V4.1-Flash-EXL3-TensorFold-2x-DGX-Spark
+Copyright 2026 sfxnz
+https://github.com/sfxnz/DeepSeek-V4.1-Flash-EXL3-TensorFold-2x-DGX-Spark
+
+This recipe's own files are MIT-licensed (LICENSE). Some come from other MIT-licensed lab recipes, and one from
+TensorFold (Apache-2.0); each source's license notice, as its LICENSE or NOTICE file states it:
+
+- bench_decode.py, smoke_chat.py, tests/test_bench_decode.py, tests/test_smoke_chat.py
+  Copied unchanged from sfxnz/DeepSeek-V4.1-Flash-EXL3-vLLM-2x-DGX-Spark at 3de9146.
+  Its LICENSE at 3de9146: "MIT License" / "Copyright (c) 2023 DeepSeek".
+- kit/render.py, smoke_count.py, stop.sh, tools/session_gate.sh, parts of run.sh and tests/test_recipe_ops.py
+  Adapted from sfxnz/Qwen3.8-Flash-Next-TensorFold-2x-DGX-Spark at 4eef42d; kit/render.py comes from the owner's
+  own tooling (sfxnz/forge).
+  Its LICENSE at 4eef42d: "MIT License" / "Copyright (c) 2026".
+- tools/bench_concurrent.py
+  Copied unchanged from sfxnz/TensorFold (a fork of ashhart/TensorFold) at b86514a, tools/bench_concurrent.py.
+  Its NOTICE at b86514a: "TensorFold" / "Copyright 2026 TensorFold contributors"; licensed under the Apache License,
+  Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+
+Not included; each user fetches these under their own terms:
+- TensorFold (Apache-2.0, https://github.com/ashhart/TensorFold). docker/Dockerfile installs it from git at the
+  pinned commit; its NOTICE and THIRD_PARTY_NOTICES.md ship inside the installed package.
+- The weights sfxnz/DeepSeek-V4.1-Flash-EXL3, derived from deepseek-ai/DeepSeek-V4.1-Flash (MIT per its model card).
+- The NVIDIA PyTorch container nvcr.io/nvidia/pytorch:26.07-py3 (NVIDIA Deep Learning Container License) the image
+  is built FROM.

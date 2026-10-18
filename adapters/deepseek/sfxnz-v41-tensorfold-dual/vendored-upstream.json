@@ -1,0 +1,24 @@
+{
+  "kit": {
+    "dependencies": {
+      "base": {
+        "datasource": "git-ref",
+        "file": "docker/Dockerfile",
+        "pattern": "^ARG TF_SHA=(?P<version>[0-9a-f]{40})$",
+        "repo_pattern": "^ARG TF_REPO=(?P<repo>\\S+)$"
+      },
+      "model": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "recipe.yaml",
+        "pattern": "^  revision: &revision (?P<version>[0-9a-f]{40})$",
+        "repo_pattern": "^  id: &model (?P<repo>\\S+)$"
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve",
+    "vendor/"
+  ]
+}

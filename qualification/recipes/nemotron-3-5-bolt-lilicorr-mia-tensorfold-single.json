@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/nemotron-3-5-bolt-lilicorr-mia-tensorfold-single",
+  "service_recipes": {
+    "alias": "nemotron-3.5-bolt",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded multi-stream concurrency (--parallel) and long-context canaries, with the first-run kernel compile time recorded separately"
+      ],
+      "recovery": [
+        "Controller stop/start with warm kernel-cache restart"
+      ]
+    }
+  }
+}

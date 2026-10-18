@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "4c6a5613b6d887194a3a5493e3a18a5b3930bb86",
+      "repo": "nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB-LiLiCorr",
+      "revision": "4c6a5613b6d887194a3a5493e3a18a5b3930bb86"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:9d39df6d1526ede3d0afb983d122643284ae4a92f50c07ee544c47e2b7befa1e",
+      "kind": "tag",
+      "overridden": "image_ref derives this published tag from the exact engine revision plus image_hash over kit patches, native engine sources, Dockerfile and toolchain settings; matching tf.gate=bolt and tf.patches labels verified.",
+      "ref": "zig-46a08c1-5e11cf1ed295",
+      "repo": "ghcr.io/miaai-lab/nemotron-3.5-bolt-tensorfold-dgx-spark"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "a326822af111290f2af5ac59ef4b5040347dabc4",
+      "repo": "nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB",
+      "revision": "a326822af111290f2af5ac59ef4b5040347dabc4"
+    }
+  },
+  "kit": {
+    "commit": "6f61d7727ae3fac010f30e240799cc884d295f6e",
+    "repo": "MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark"
+  }
+}

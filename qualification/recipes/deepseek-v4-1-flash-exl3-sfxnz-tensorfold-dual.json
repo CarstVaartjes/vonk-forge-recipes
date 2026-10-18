@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/deepseek-v4-1-flash-exl3-sfxnz-tensorfold-dual",
+  "service_recipes": {
+    "alias": "deepseek-v4.1-flash",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded multi-stream concurrency (--parallel) and long-context canaries, with the first-run kernel compile time recorded separately"
+      ],
+      "recovery": [
+        "Controller stop/start with warm kernel-cache restart",
+        "Controller restart of the two-rank group and recovery after worker loss"
+      ]
+    }
+  }
+}

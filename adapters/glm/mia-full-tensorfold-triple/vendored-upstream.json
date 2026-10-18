@@ -1,0 +1,34 @@
+{
+  "source": {
+    "repo": "MiaAI-Lab/GLM-5.3-EXL3-3x-DGX-Sparks-TensorFold",
+    "commit": "eb6414b488c3bc58605cad3dc96391c7584d6bec"
+  },
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/config.sh",
+        "pattern": "^IMAGE_DIGEST=\"\\$\\{IMAGE_DIGEST:-(?P<version>sha256:[0-9a-f]{64})\\}\"",
+        "repo_pattern": "^GHCR_IMAGE=\"\\$\\{GHCR_IMAGE:-(?P<repo>[^}\"]+)\\}\""
+      },
+      "model": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "scripts/config.sh",
+        "pattern": "^MODEL_REVISION=\"\\$\\{MODEL_REVISION-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^MODEL_ID=\"\\$\\{MODEL_ID:-(?P<repo>[^}\"]+)\\}\""
+      },
+      "drafter": {
+        "datasource": "hf-revision",
+        "binds": "drafter",
+        "file": "scripts/config.sh",
+        "pattern": "^DSPARK_REVISION=\"\\$\\{DSPARK_REVISION-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^DSPARK_ID=\"\\$\\{DSPARK_ID:-(?P<repo>[^}\"]+)\\}\""
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve"
+  ]
+}

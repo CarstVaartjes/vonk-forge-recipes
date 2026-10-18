@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/qwen3-8-flash-next-int4-autoround-mia-tensorfold-dual",
+  "service_recipes": {
+    "alias": "qwen3.8-flash-next-int4-ar",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded concurrent streams with shared KV pool; full-window prefill separately from multi-stream load"
+      ],
+      "recovery": [
+        "Controller restart of both ranks; recover after worker loss"
+      ]
+    }
+  }
+}

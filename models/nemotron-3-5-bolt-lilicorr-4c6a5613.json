@@ -1,0 +1,107 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "license-8a0c5e232551-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8a0c5e232551abcb102d1bd39a34866ef4520361b613bd6405d55b36562e4d88",
+      "size_bytes": 2618
+    },
+    {
+      "id": "readme-1d1a07ae5b5a-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "1d1a07ae5b5ad97ba27b32677d35959c89b7b83f8dc8eebaf729796f8ac923a2",
+      "size_bytes": 14491
+    },
+    {
+      "id": "config-006c3f02f39c-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "006c3f02f39cbaa10b6b6cabff88d64a9e40ff56b57d5aec9b452abe9dbc10e0",
+      "size_bytes": 2389
+    },
+    {
+      "id": "hf-quant-config-848259a76e0d-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "848259a76e0dce8e4dd48102c049a2b854b6fcea203068c329ffeee76f12633d",
+      "size_bytes": 5594
+    },
+    {
+      "id": "model-850c121c5fa4-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "850c121c5fa444dfdebbc15d8f23a1ab2beda55863460ab44203e3cb63808562",
+      "size_bytes": 962485872
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "nemotron-3-5-bolt-lilicorr",
+      "title": "Nemotron 3.5 Bolt LiLiCorr"
+    },
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-bolt-lilicorr-4c6a5613",
+    "variant": "LiLiCorr",
+    "version": "3.5"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA"
+    ],
+    "spdx": "LicenseRef-OpenMDW-1.1",
+    "url": "https://openmdw.ai/license/1-1/"
+  },
+  "metadata": {
+    "description": "LiLiCorr speculative drafter for the Bolt 24GB checkpoint.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB-LiLiCorr",
+    "revision": "4c6a5613b6d887194a3a5493e3a18a5b3930bb86"
+  }
+}

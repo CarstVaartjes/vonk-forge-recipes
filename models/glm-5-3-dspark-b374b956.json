@@ -1,0 +1,117 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-11ad7efa2497-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+      "size_bytes": 1519
+    },
+    {
+      "id": "readme-909d4dae47b1-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "909d4dae47b1018b8e43560d8cf1ebf9443206d97369249b00b10a51d198a424",
+      "size_bytes": 5952
+    },
+    {
+      "id": "config-8b9e5e3b0889-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8b9e5e3b0889a3e788c5b9025210593bc5a549ac4e6a8dcd0e960c86022745e5",
+      "size_bytes": 1932
+    },
+    {
+      "id": "config-2f4381ff2eb9-117426151e",
+      "path": "config.py",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2f4381ff2eb9de506c6ba09bc17f83d0aee871f75651f6303b2e4b581e9b4ca1",
+      "size_bytes": 2342
+    },
+    {
+      "id": "model-d255a7019147-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d255a70191470d60a23c794852a29a64590f974fc759168d263068ebe5bfc36a",
+      "size_bytes": 2499134874
+    },
+    {
+      "id": "train-command-fb63901d12b5-dc25eba1a4",
+      "path": "train_command.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "fb63901d12b54a56a822bb973c9355dc945dac7950671319061b3aac5c6d652a",
+      "size_bytes": 864
+    },
+    {
+      "id": "training-state-b616f8958f4a-8f2fa1e9b6",
+      "path": "training_state.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b616f8958f4ac7e6195254f997c2aa640fd57b993c59a16d9244b828ad205a6b",
+      "size_bytes": 51
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "zai-org",
+      "slug": "glm",
+      "title": "GLM"
+    },
+    "model": {
+      "publisher": "redhatai",
+      "slug": "glm-5-3-dspark",
+      "title": "GLM 5.3 DSpark"
+    },
+    "publisher": "redhatai",
+    "slug": "glm-5-3-dspark-b374b956",
+    "variant": "DSpark",
+    "version": "5.3"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "RedHatAI",
+      "Z.ai"
+    ],
+    "spdx": "LicenseRef-GLM-5.3",
+    "url": "https://huggingface.co/RedHatAI/GLM-5.3-speculator.dspark/blob/b374b95663447ea0e935151be4f3d6666e36e6d7/LICENSE"
+  },
+  "metadata": {
+    "description": "DSpark speculative drafter for GLM 5.3.",
+    "tags": [
+      "redhatai",
+      "glm",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/RedHatAI/GLM-5.3-speculator.dspark",
+    "revision": "b374b95663447ea0e935151be4f3d6666e36e6d7"
+  }
+}

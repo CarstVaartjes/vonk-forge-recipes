@@ -1,0 +1,26 @@
+{
+  "source": {
+    "repo": "MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold",
+    "commit": "6730319ed948cc88b525bbbdc9d309451a863834"
+  },
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/config.sh",
+        "pattern": "^IMAGE_DIGEST=\"\\$\\{IMAGE_DIGEST:-(?P<version>sha256:[0-9a-f]{64})\\}\"",
+        "repo_pattern": "^GHCR_IMAGE=\"\\$\\{GHCR_IMAGE:-(?P<repo>[^}\"]+)\\}\""
+      },
+      "model": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "scripts/config.sh",
+        "pattern": "^\\s*nvfp4\\)\\s+_model=(?P<repo>[^;]+); _pin=(?P<version>[0-9a-f]{40})$"
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve"
+  ]
+}
