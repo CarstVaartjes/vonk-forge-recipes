@@ -1,0 +1,45 @@
+{
+  "source": {
+    "repo": "vcruz305/GLM-5.3-EXL3-DGX-Spark-recipe",
+    "commit": "ed2f31d65c00b1ebfc3f32039d1d37764fcf4e03"
+  },
+  "kit": {
+    "dependencies": {
+      "target": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "tensorfold-four-spark-tp4/env.sh",
+        "pattern": "^PACK_REV=(?P<version>[0-9a-f]{40})",
+        "repo_pattern": "^PACK_REPO=(?P<repo>[^ \\n]+)"
+      },
+      "draft": {
+        "datasource": "hf-revision",
+        "binds": "drafter",
+        "file": "tensorfold-four-spark-tp4/env.sh",
+        "pattern": "^DRAFTER_REV=(?P<version>[0-9a-f]{40})",
+        "repo_pattern": "^DRAFTER_REPO=(?P<repo>[^ \\n]+)"
+      },
+      "head": {
+        "datasource": "hf-revision",
+        "binds": "head",
+        "file": "tensorfold-four-spark-tp4/env.sh",
+        "pattern": "^HEAD_REV=(?P<version>[0-9a-f]{40})",
+        "repo_pattern": "^HEAD_REPO=(?P<repo>[^ \\n]+)"
+      }
+    }
+  },
+  "ours": [
+    "vendor/",
+    "licenses/",
+    "requirements.lock",
+    "prepare_view.py",
+    "tensorfold-serve"
+  ],
+  "renamed": {
+    "upstream/tf_speed_patches.py": "tensorfold-four-spark-tp4/lib/tf_speed_patches.py",
+    "upstream/tf_serve_patches.py": "tensorfold-four-spark-tp4/lib/tf_serve_patches.py",
+    "upstream/tf_speed_common.py": "tensorfold-four-spark-tp4/lib/tf_speed_common.py",
+    "upstream/fix_chat_template.py": "tensorfold-four-spark-tp4/tools/fix_chat_template.py",
+    "upstream/tiles.json": "tensorfold-four-spark-tp4/tiles/tiles.json"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "draft": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "425aa615ce320caac34400208b30808c8f14f76c",
+      "repo": "incoai/GLM-5.3-DFlash2",
+      "revision": "425aa615ce320caac34400208b30808c8f14f76c"
+    },
+    "head": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "aca966e4e02791568aa6a4ced368624b3d897f42",
+      "repo": "zai-org/GLM-5.3",
+      "revision": "aca966e4e02791568aa6a4ced368624b3d897f42"
+    },
+    "target": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "cc64e77b1b1744c7bc71e54c838727f0db0f1a36",
+      "repo": "vcruz305/GLM-5.3-EXL3-3.38bpw",
+      "revision": "cc64e77b1b1744c7bc71e54c838727f0db0f1a36"
+    }
+  },
+  "kit": {
+    "commit": "ed2f31d65c00b1ebfc3f32039d1d37764fcf4e03",
+    "repo": "vcruz305/GLM-5.3-EXL3-DGX-Spark-recipe"
+  }
+}
