@@ -142,7 +142,7 @@ def _texture(*, seed: int, output_dir: Path) -> None:
     mesh = trimesh.load(mesh_path, force="mesh")
     # BiRefNet is optional upstream preprocessing.  Disabling it prevents the
     # hidden remote-code download and retains the caller-provided image exactly.
-    textured_mesh = pipeline(image_path, mesh, remove_bg=False, seed=seed)
+    textured_mesh = pipeline(str(image_path), mesh, remove_bg=False, seed=seed)
     temporary = output_dir / ".step1x-textured.tmp.glb"
     textured_mesh.export(temporary)
     _publish_glb(temporary, output_dir / "step1x-textured.glb", profile="textured")
