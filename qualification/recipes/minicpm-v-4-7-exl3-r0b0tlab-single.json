@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/minicpm-v-4-7-exl3-r0b0tlab-single",
+  "service_recipes": {
+    "alias": "minicpm-v-4.7",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Native context canary and request queue behavior"
+      ],
+      "recovery": [
+        "Controller stop/start and warm cache reuse"
+      ]
+    }
+  }
+}

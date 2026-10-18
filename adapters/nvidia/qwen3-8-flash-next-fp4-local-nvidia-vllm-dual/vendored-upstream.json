@@ -1,0 +1,17 @@
+{
+  "kit": {
+    "whole": false,
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "models/qwen/qwen3.8-flash-next/dgx-spark-2gpu/linux/vllm/128gb/fp4-local/performance.yaml",
+        "pattern": "^  runtime_revision: (?P<version>sha256:[0-9a-f]{64})$",
+        "repo": "eugr/spark-vllm-b12x"
+      }
+    }
+  },
+  "ours": [
+    "vllm-wrapper",
+    "LICENSE"
+  ]
+}
