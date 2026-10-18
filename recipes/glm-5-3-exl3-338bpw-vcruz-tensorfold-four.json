@@ -41,7 +41,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Creator fast-160k profile with TensorFold 757a851a, b12x b58f34ea, SAGE EXL3 cc64e77b and DFlash2 425aa615. TP4, BF16 latent KV, DCP1, 163,840-token context and seven-token DFlash at confidence 0.60. Original BF16 head bytes are extracted offline from the exact 5.36 GB source shard and verified before atomic cache publication; the corrected template and model index live in a separate cache view. Preserves creator tile pinning, RoCE equality checks, startup/per-request consensus, poisoned-rank exits and warm-up. Controller owns placement, exposure and lifecycle. The 126 GB per-node peak is estimated from upstream capacity observations; physical four-Spark acceptance is unverified.",
+    "description": "Creator 32K BF16 profile with TensorFold 757a851a, b12x b58f34ea, SAGE EXL3 cc64e77b and DFlash2 425aa615. TP4, BF16 latent KV, DCP1, 32,768-token context and seven-token DFlash at confidence 0.60. Original BF16 head bytes are extracted offline from the exact 5.36 GB source shard and verified before atomic cache publication; the corrected template and model index live in a separate cache view. Preserves creator tile pinning, RoCE equality checks, startup/per-request consensus, poisoned-rank exits and warm-up. Controller owns placement, exposure and lifecycle. The 114 GB per-node peak is an estimate derived from upstream capacity observations and the documented KV slope. The smaller creator-tested context preserves the platform memory floor; the upstream 160K profile reached only 4.86 GiB available. Physical four-Spark acceptance is unverified.",
     "tags": [
       "glm",
       "tensorfold",
@@ -51,7 +51,7 @@
       "tool-use",
       "spark"
     ],
-    "title": "GLM-5.3 EXL3 3.38bpw TensorFold four Spark (vcruz305)"
+    "title": "GLM-5.3 EXL3 3.38bpw TensorFold four Spark (vcruz305) (32K BF16)"
   },
   "models": [
     {
@@ -986,7 +986,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 163840
+      "value": 32768
     },
     "kind": "generation",
     "knobs": {},
@@ -1014,7 +1014,7 @@
             "working_bytes": 12000000000
           },
           "memory": {
-            "peak_bytes": 126000000000,
+            "peak_bytes": 114000000000,
             "reserve_bytes": 0
           }
         }
@@ -1031,7 +1031,7 @@
             "working_bytes": 12000000000
           },
           "memory": {
-            "peak_bytes": 126000000000,
+            "peak_bytes": 114000000000,
             "reserve_bytes": 0
           }
         }
