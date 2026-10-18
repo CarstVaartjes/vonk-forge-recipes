@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     ATTN_BACKEND="sdpa" \
     SPARSE_ATTN_BACKEND="sdpa" \
     SPARSE_CONV_BACKEND="flex_gemm" \
-    FLEX_GEMM_AUTOTUNE_CACHE_PATH="/opt/vonk/flexgemm-source/autotune_cache.json" \
+    FLEX_GEMM_AUTOTUNE_CACHE_PATH="/tmp/flexgemm-autotune-cache.json" \
     FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE="0" \
     PYTHONPATH="/opt/vonk/trellis2-source:/opt/vonk/pixal3d-source"
 
