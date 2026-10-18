@@ -6,6 +6,8 @@ ARG COMFYUI_ARCHIVE_SHA256=fbcb570f26aaf67911d15e164907a0992fb9d5780ea17546f1e04
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl ffmpeg python3 python3-pip \
+        build-essential \
+        python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL "https://codeload.github.com/comfyanonymous/ComfyUI/tar.gz/${COMFYUI_REVISION}" -o /tmp/comfyui.tar.gz \
