@@ -34,6 +34,7 @@ from vonk_forge_contracts.sweep import (
     CleanupFleetObservation,
     CleanupObservationBudget,
     FleetOnlineState,
+    InfrastructureIncident,
 )
 
 from . import cleanup, memory, policy, recovery, verdict
@@ -261,7 +262,9 @@ class Sweep:
         self.owner_status = OwnerStatus()
         # The Controller reports stalled work (``progress.stalled``): a platform problem.
         self.stall_reason = ""
-        self.backoff_until = 0.0
+        self.backoff_until = float(
+            state.data["infra"].get("review", {}).get("until", 0.0)
+        )
         self.idle_since: float | None = None
         self.blind = False  # this tick could not observe the Controller
         self._skew_checked_at = float("-inf")
@@ -1301,9 +1304,13 @@ class Sweep:
 
     def _run(self) -> int:
         self.state.data.pop("end", None)
-        # A new process retries everything afresh: entries a previous run left (or a
-        # source this version no longer has) describe nothing that is retrying now.
-        self.state.data["infra"].clear()
+        # Retired sources may be forgotten, but restarting does not prove that a
+        # review/adoption dependency recovered. Its first sighting and budget survive.
+        self.state.data["infra"] = {
+            source: item
+            for source, item in self.state.data["infra"].items()
+            if source == "review"
+        }
         stuck = 0
         try:
             self.check_client()
@@ -1746,7 +1753,9 @@ class Sweep:
         if not isinstance(document, dict) or not isinstance(document.get("id"), str):
             self._blind("application observation is unreadable")
             return False
-        self.clear_infra("review")
+        # Polling one accepted load says nothing about another review's dependency.
+        if not self.state.data["infra"].get("review", {}).get("dependency"):
+            self.clear_infra("review")
         owner = self._own_load_request(document["id"])
         if owner not in (None, load["request_key"]):
             # The application is another load of ours: that load superseded this
@@ -3566,7 +3575,6 @@ class Sweep:
             for placement in added:
                 self._record_failure(placement.recipe.key, failure, None)
             return
-        self.clear_infra("review")
         stopped = [
             r["alias"]
             for r in dig(document, "effects", "runs", default=[])
@@ -3577,12 +3585,16 @@ class Sweep:
         if stopped:
             self._rollback(added, f"review would stop running lanes {stopped}")
             return
-        cleanup_requests = self._adopted_cleanup_requests(document)
+        cleanup_requests, dependency = self._cleanup_adoption(document)
         if cleanup_requests is None:
             self._rollback(
                 added, "pending original cleanup effects are not bound for adoption"
             )
-            self.note_infra("review", "waiting for exact original cleanup adoption")
+            self.note_infra(
+                "review",
+                "waiting for exact original cleanup adoption",
+                dependency=dependency,
+            )
             return
         adopted_requests = self._adopted_requests(document)
         if adopted_requests is None:
@@ -3599,6 +3611,7 @@ class Sweep:
         ):
             self._blocked(document, aliases, added, now)
             return
+        self.clear_infra("review")
         seq = int(self.state.data["load_seq"]) + 1
         key = request_key(
             "sweep-load",
@@ -3705,31 +3718,46 @@ class Sweep:
         )
 
     def _adopted_cleanup_requests(self, review: Mapping[str, Any]) -> list[str] | None:
+        return self._cleanup_adoption(review)[0]
+
+    def _cleanup_adoption(
+        self, review: Mapping[str, Any]
+    ) -> tuple[list[str] | None, str | None]:
         requests = []
         for key, load in self.state.data["cleanup_loads"].items():
             if load.get("terminal_receipt") or load.get("end"):
                 continue
+            owner = (
+                f"cleanup request={key}, application={load.get('app_id') or 'unknown'}"
+            )
             if not load.get("projection_known"):
                 if self.state.data.get("takeover_fallback"):
                     continue  # fleet occupancy and the fresh review govern new work
-                return None
+                return None, f"{owner}: waiting for effects projection"
             online = {s.id for s in self.sparks()}
             pending = [
                 row
                 for row in self._cleanup_pending(load)
                 if set(row["node_ids"]) & online
             ]
-            if load.get("state") in SETTLED:
-                # Historical cancelled claims stay occupied. A newer accepted exact
-                # stop may own that residual effect; never try to adopt terminal work.
-                if any(not self._cleanup_reaccepted(row) for row in pending):
-                    return None
-                continue
-            if any(not cleanup.adopted(review, row) for row in pending):
-                return None
-            if pending:
+            for row in pending:
+                # Historical cancelled claims stay occupied until a newer accepted
+                # exact stop owns that residual effect. Never adopt terminal work.
+                bound = (
+                    self._cleanup_reaccepted(row)
+                    if load.get("state") in SETTLED
+                    else cleanup.adopted(review, row)
+                )
+                if not bound:
+                    return None, (
+                        f"{owner}, effect={row['effect_id']}, "
+                        f"operation={row.get('operation_id')}, run={row['target_id']}, "
+                        f"nodes={','.join(row['node_ids'])}: "
+                        "waiting for exact stop adoption or a fresh exact stop receipt"
+                    )
+            if pending and load.get("state") not in SETTLED:
                 requests.append(key)
-        return sorted(requests)
+        return sorted(requests), None
 
     def _ridden_by_live_lane(self, app_id: Any, besides: Any) -> bool:
         """Does a live lane of another of the sweep's loads follow this application?
@@ -4038,29 +4066,35 @@ class Sweep:
                     return True
         return False
 
-    def note_infra(self, source: str, message: str) -> None:
-        """A client, protocol or transport problem: pause that kind of work, back off, show it."""
+    def note_infra(
+        self, source: str, message: str, *, dependency: str | None = None
+    ) -> None:
+        """Pause that kind of work, preserving retry history until its predicate passes."""
         now = self.clock.now()
-        item = self.state.data["infra"].get(source) or {"since": now, "count": 0}
-        item["count"] += 1
+        item = InfrastructureIncident.model_validate(
+            self.state.data["infra"].get(source) or {"since": now}
+        )
+        item.count += 1
         hint = (
             " (vonkctl may be older than the Controller: run `vonkctl update --apply`)"
             if "protocol_invalid" in message or "OpenAPI" in message
             else ""
         )
-        item["message"] = message[:300] + hint
-        item["until"] = now + min(
-            INFRA_BASE * 2 ** min(item["count"] - 1, 20), INFRA_CAP
-        )
-        self.state.data["infra"][source] = item
+        item.message = message[:300] + hint
+        if dependency is not None:
+            item.dependency = dependency
+            if item.escalate_at is None:
+                item.escalate_at = item.since + self.cfg.idle_alert_seconds
+        item.until = now + min(INFRA_BASE * 2 ** min(item.count - 1, 20), INFRA_CAP)
+        self.state.data["infra"][source] = item.model_dump(exclude_none=True)
         if source == "download":
-            self.prefetcher.pause_until = item["until"]
+            self.prefetcher.pause_until = item.until
         else:
-            self.backoff_until = max(self.backoff_until, item["until"])
-        if item["count"] in (1, 5) or item["count"] % 20 == 0:
+            self.backoff_until = max(self.backoff_until, item.until)
+        if item.count in (1, 5) or item.count % 20 == 0:
             self.state.event(
                 f"infrastructure problem ({source}, not a recipe failure), "
-                f"retrying with backoff: {item['message'][:160]}"
+                f"retrying with backoff: {item.message[:160]}"
             )
 
     def clear_infra(self, source: str) -> None:

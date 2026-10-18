@@ -243,3 +243,94 @@ def test_older_successful_stop_receipt_cannot_release_newer_stop_intent(
         "effects": [newer],
     }
     assert sweep._cleanup_nodes() == {"spk_a"}
+
+
+def test_missing_cleanup_binding_keeps_one_incident_across_restart(
+    tmp_path: Path,
+) -> None:
+    from spark_sweep.report import build_status, render_status
+
+    sweep, fleet, clock, recipe, key, original, app = scenario(tmp_path, dual=True)
+    fleet.cleanup_adoption = False
+    before = len(mutations(fleet))
+    first_seen = clock.now()
+    counts = []
+    delays = []
+    for cycle in range(3):
+        apply_healthy(sweep, clock, recipe)
+        incident = sweep.state.data["infra"]["review"]
+        counts.append(incident["count"])
+        delays.append(incident["until"] - clock.now())
+        assert incident["since"] == first_seen
+        assert len(mutations(fleet)) == before
+        assert recipe.key not in sweep.state.slots
+        assert not any(
+            "problem cleared (review)" in event["message"]
+            for event in sweep.state.data["events"]
+        )
+        if cycle == 1:
+            sweep.state.save()
+            sweep, _, _ = make_sweep(
+                tmp_path, [recipe], [FakeModel("m1", local="cached")], fleet=fleet
+            )
+
+            class RestartObserved(BaseException):
+                pass
+
+            def stop_after_restart(restarted=sweep, saved=incident) -> None:
+                assert restarted.state.data["infra"]["review"] == saved
+                assert restarted.backoff_until == saved["until"]
+                raise RestartObserved
+
+            sweep.check_client = stop_after_restart
+            with pytest.raises(RestartObserved):
+                sweep.run()
+            sweep.preflight()
+            sweep.refresh_catalog()
+        clock.sleep(delays[-1])
+    assert counts == [1, 2, 3]
+    assert delays == [30, 60, 120]
+    incident = sweep.state.data["infra"]["review"]
+    assert incident["escalate_at"] == first_seen + sweep.cfg.idle_alert_seconds
+    status = build_status(sweep)
+    page = render_status(status)
+    assert "escalat" in page.lower()
+    effect = original["effects"][0]
+    for identity in (key, app["id"], effect["effect_id"], effect["operation_id"]):
+        assert identity in page
+    clock.sleep(incident["escalate_at"] - clock.now())
+    status = build_status(sweep)
+    assert any(
+        "ESCALATION" in alert and app["id"] in alert for alert in status["alerts"]
+    )
+    fleet.cleanup_adoption = True
+    apply_healthy(sweep, clock, recipe)
+    assert recipe.key in sweep.state.slots
+    assert len(mutations(fleet)) == before + 1
+    assert "review" not in sweep.state.data["infra"]
+    assert (
+        sum(
+            "problem cleared (review)" in event["message"]
+            for event in sweep.state.data["events"]
+        )
+        == 1
+    )
+    assert not build_status(sweep)["alerts"]
+
+
+def test_polling_another_load_does_not_clear_cleanup_review_wait(
+    tmp_path: Path,
+) -> None:
+    sweep, _fleet, clock, recipe, key, original, _app = scenario(tmp_path)
+    apply_healthy(sweep, clock, recipe)
+    dependency = (
+        f"cleanup request={key}, operation={original['effects'][1]['operation_id']}"
+    )
+    sweep.note_infra("review", "waiting for cleanup binding", dependency=dependency)
+    incident = copy.deepcopy(sweep.state.data["infra"]["review"])
+    sweep.poll_application()
+    assert sweep.state.data["infra"]["review"] == incident
+    assert not any(
+        "problem cleared (review)" in event["message"]
+        for event in sweep.state.data["events"]
+    )

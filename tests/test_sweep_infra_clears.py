@@ -82,3 +82,33 @@ def test_every_infrastructure_source_is_cleared_when_its_work_succeeds() -> None
     # The guard: a source noted on failure and never cleared lists a resolved
     # problem forever and silences the stuck-work alert.
     assert _sources("note_infra") - _sources("clear_infra") == set()
+
+
+def test_review_recovery_follows_all_admission_and_adoption_checks() -> None:
+    tree = ast.parse((SWEEP / "run.py").read_text(encoding="utf-8"))
+    apply = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef) and node.name == "_apply"
+    )
+    checks = {"_cleanup_adoption", "_adopted_requests", "_blocked"}
+    checked_lines = {
+        node.func.attr: node.lineno
+        for node in ast.walk(apply)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr in checks
+    }
+    assert checked_lines.keys() == checks
+    recoveries = [
+        node.lineno
+        for node in ast.walk(apply)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "clear_infra"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+        and node.args[0].value == "review"
+    ]
+    assert len(recoveries) == 1
+    assert recoveries[0] > max(checked_lines.values())
