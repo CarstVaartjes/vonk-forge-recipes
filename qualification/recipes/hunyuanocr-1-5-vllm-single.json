@@ -1,0 +1,18 @@
+{
+  "id": "vonk-forge/hunyuanocr-1-5-vllm-single",
+  "service_recipes": {
+    "alias": "hunyuanocr-1-5-vllm-single",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start and offline warm-cache restart with exact model alias"
+      ],
+      "stress": [
+        "Context and concurrency boundary canaries on the declared topology"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "LFM_OCR"
+    ]
+  }
+}

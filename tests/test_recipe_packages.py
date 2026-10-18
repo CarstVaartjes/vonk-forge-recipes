@@ -190,6 +190,10 @@ def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
 
 def test_model_territorial_restrictions_preserve_all_published_records() -> None:
     expected = {
+        "hunyuanocr-1-5-47644ecc": (
+            ["EU", "GB", "KR"],
+            "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
+        ),
         "hunyuan-video-15-distilled": (
             ["EU", "GB", "KR"],
             "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea.",
