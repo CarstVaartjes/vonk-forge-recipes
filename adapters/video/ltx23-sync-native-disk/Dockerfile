@@ -15,6 +15,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes \
+        build-essential \
+        python3-dev \
         ca-certificates \
         curl \
         ffmpeg \

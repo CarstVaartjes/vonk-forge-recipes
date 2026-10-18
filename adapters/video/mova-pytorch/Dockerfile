@@ -17,6 +17,8 @@ ARG MOVA_ARCHIVE_SHA256=739c7c9754fc4e9fa374ac61b23df872becb1919443ff9b80777126a
 
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes \
+        build-essential \
+        python3-dev \
         ca-certificates \
         curl \
         ffmpeg \
