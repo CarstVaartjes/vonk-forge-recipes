@@ -20,7 +20,7 @@ Which engines each model family runs on.
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Agents-A1 | ✓ |  |  |  |  |  |  |  |  |  |
 | DeepSeek |  | ✓ |  |  |  |  |  |  |  |  |
-| DeepSeek Flash | ✓ | ✓ |  |  |  | ✓ |  |  |  |  |
+| DeepSeek Flash | ✓ | ✓ |  |  | ✓ | ✓ |  |  |  |  |
 | FastContext | ✓ |  |  |  |  |  |  |  |  |  |
 | FLUX 3 |  |  |  |  |  |  |  |  | ✓ |  |
 | FLUX.2 |  |  |  |  |  |  |  | ✓ |  |  |
