@@ -182,7 +182,6 @@
     "arguments": [
       {
         "name": "served-model-name",
-        "setting": null,
         "value": "hunyuanocr-1-5-vllm-single"
       },
       {
@@ -201,27 +200,22 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "setting": null,
         "value": "0.35"
       },
       {
         "name": "max-num-batched-tokens",
-        "setting": null,
         "value": 32768
       },
       {
         "name": "trust-remote-code",
-        "setting": null,
         "value": true
       },
       {
         "name": "limit-mm-per-prompt",
-        "setting": null,
         "value": "{\"image\":4,\"video\":0}"
       },
       {
         "name": "allowed-local-media-path",
-        "setting": null,
         "value": "/inputs"
       }
     ],
@@ -255,8 +249,7 @@
       "value": 32768
     },
     "kind": "generation",
-    "knobs": {},
-    "max_batch_tokens": null
+    "knobs": {}
   },
   "topology": {
     "name": "solo",
@@ -300,7 +293,6 @@
           "kind": "openai.health",
           "name": "health",
           "request": {
-            "body": null,
             "method": "GET",
             "path": "/v1/models",
             "transport": "http"
