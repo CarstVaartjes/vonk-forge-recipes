@@ -65,42 +65,69 @@ def extract_head(source, output, expected_sha=HEAD_SHA, expected_size=HEAD_BYTES
         Path(temporary).unlink(missing_ok=True)
 
 
+def write_atomic(path, content):
+    if path.is_file() and not path.is_symlink() and path.read_bytes() == content:
+        return
+    descriptor, temporary = tempfile.mkstemp(prefix=".metadata-", dir=path.parent)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        sync_directory(path.parent)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
+
+
+def link_atomic(path, target):
+    if path.is_symlink() and path.readlink() == target:
+        return
+    descriptor, temporary = tempfile.mkstemp(prefix=".link-", dir=path.parent)
+    os.close(descriptor)
+    temporary = Path(temporary)
+    try:
+        temporary.unlink()
+        temporary.symlink_to(target)
+        os.replace(temporary, path)
+        sync_directory(path.parent)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def prepare(pack, source, cache):
     import fix_chat_template as template
-    pack, cache = Path(pack), Path(cache)
+    pack, cache = Path(pack).resolve(), Path(cache).resolve()
     if digest(pack / "config.json") != CONFIG_SHA:
         raise ValueError("target config differs from the pinned creator checkpoint")
+    original = (pack / "chat_template.jinja").read_bytes()
+    if hashlib.sha256(original).hexdigest() != template.OFFICIAL_SHA or original.count(template.OLD) != 1:
+        raise ValueError("chat template differs from the pinned original")
+    fixed = original.replace(template.OLD, template.NEW)
+    if hashlib.sha256(fixed).hexdigest() != template.FIXED_SHA:
+        raise ValueError("derived chat template has an invalid identity")
+    index = json.loads((pack / "model.safetensors.index.json").read_text())
+    index["weight_map"]["lm_head.weight"] = "lm_head.safetensors"
     cache.mkdir(parents=True, exist_ok=True)
     head = cache / (HEAD_SHA + ".safetensors")
     extract_head(source, head)
     view = cache / "view-cc64e77b-aca966e4"
-    if view.is_dir():
-        if digest(view / "chat_template.jinja") != template.FIXED_SHA:
-            raise ValueError("cached template has an invalid identity")
-        return view
-    stage = Path(tempfile.mkdtemp(prefix=".view-", dir=cache))
+    existing = view.is_dir()
+    stage = view if existing else Path(tempfile.mkdtemp(prefix=".view-", dir=cache))
     try:
+        # Reconcile derived metadata before launching the engine. A prior failed
+        # start or corrupt disposable view cannot poison future starts.
         for path in pack.iterdir():
             if path.name not in {"model.safetensors.index.json", "chat_template.jinja"}:
-                (stage / path.name).symlink_to(path)
-        (stage / "lm_head.safetensors").symlink_to(head)
-        index = json.loads((pack / "model.safetensors.index.json").read_text())
-        index["weight_map"]["lm_head.weight"] = "lm_head.safetensors"
-        (stage / "model.safetensors.index.json").write_text(json.dumps(index, indent=2))
-        original = (pack / "chat_template.jinja").read_bytes()
-        if hashlib.sha256(original).hexdigest() != template.OFFICIAL_SHA or original.count(template.OLD) != 1:
-            raise ValueError("chat template differs from the pinned original")
-        fixed = original.replace(template.OLD, template.NEW)
-        if hashlib.sha256(fixed).hexdigest() != template.FIXED_SHA:
-            raise ValueError("derived chat template has an invalid identity")
-        (stage / "chat_template.jinja").write_bytes(fixed)
-        for name in ("model.safetensors.index.json", "chat_template.jinja"):
-            with (stage / name).open("rb") as stream:
-                os.fsync(stream.fileno())
+                link_atomic(stage / path.name, path)
+        link_atomic(stage / "lm_head.safetensors", head)
+        write_atomic(stage / "chat_template.jinja", fixed)
+        write_atomic(stage / "model.safetensors.index.json", json.dumps(index, indent=2).encode())
         sync_directory(stage)
-        os.replace(stage, view)
-        sync_directory(cache)
+        if not existing:
+            os.replace(stage, view)
+            sync_directory(cache)
     finally:
-        if stage.exists():
+        if not existing and stage.exists():
             shutil.rmtree(stage)
     return view

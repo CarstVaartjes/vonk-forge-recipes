@@ -57,3 +57,53 @@ def test_invalid_tensor_bounds_never_publish(tmp_path):
         VIEW.extract_head(source, output)
     assert not output.exists()
     assert not list(tmp_path.glob(".head-*"))
+
+
+def test_cached_view_recovers_corrupt_index_and_missing_link(tmp_path, monkeypatch):
+    import sys
+    from types import SimpleNamespace
+
+    pack = tmp_path / "pack"
+    pack.mkdir()
+    (pack / "config.json").write_bytes(b"{}")
+    (pack / "weights.safetensors").write_bytes(b"immutable weights")
+    (pack / "chat_template.jinja").write_bytes(b"before")
+    (pack / "model.safetensors.index.json").write_text(
+        json.dumps(
+            {
+                "weight_map": {
+                    "other": "weights.safetensors",
+                    "lm_head.weight": "weights.safetensors",
+                }
+            }
+        )
+    )
+    monkeypatch.setattr(VIEW, "CONFIG_SHA", hashlib.sha256(b"{}").hexdigest())
+    monkeypatch.setattr(
+        VIEW,
+        "extract_head",
+        lambda source, output: output.write_bytes(b"verified head"),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "fix_chat_template",
+        SimpleNamespace(
+            OFFICIAL_SHA=hashlib.sha256(b"before").hexdigest(),
+            FIXED_SHA=hashlib.sha256(b"after").hexdigest(),
+            OLD=b"before",
+            NEW=b"after",
+        ),
+    )
+    before = {p.name: p.read_bytes() for p in pack.iterdir()}
+    view = VIEW.prepare(pack, tmp_path / "source", tmp_path / "cache")
+    (view / "model.safetensors.index.json").write_bytes(b"interrupted/corrupt metadata")
+    (view / "weights.safetensors").unlink()
+    assert VIEW.prepare(pack, tmp_path / "source", tmp_path / "cache") == view
+    assert (
+        json.loads((view / "model.safetensors.index.json").read_text())["weight_map"][
+            "lm_head.weight"
+        ]
+        == "lm_head.safetensors"
+    )
+    assert (view / "weights.safetensors").read_bytes() == b"immutable weights"
+    assert {p.name: p.read_bytes() for p in pack.iterdir()} == before
