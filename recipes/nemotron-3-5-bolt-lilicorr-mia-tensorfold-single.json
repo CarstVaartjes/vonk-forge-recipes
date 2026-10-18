@@ -1241,7 +1241,7 @@
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-bolt-lilicorr-4c6a5613",
-        "content_sha256": "a895c187c0666afaf5ff6bb28f62a3aaedcaaf8d2c712136f2b8db9231aad04e"
+        "content_sha256": "7e00aef6eb1636541a110d4a7072903c1e74b6f914afe52f40a0cbbc345d9a75"
       },
       "files": [
         {

@@ -1,0 +1,22 @@
+{
+  "source": {
+    "repo": "r0b0tlab/minicpm-v47-exl3-exllamav3-gb10",
+    "commit": "b8859be8b257ddb7602f68ce7b85a7f0fd03f7b4"
+  },
+  "ours": [
+    "vendor/",
+    "requirements.lock",
+    "licenses/",
+    "exllamav3-serve"
+  ],
+  "kit": {
+    "dependencies": {
+      "model": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "runtime.lock.json",
+        "pattern": "\"target\":\\s*\\{\\s*\"hf_repo\":\\s*\"(?P<repo>[^\"]+)\",\\s*\"revision\":\\s*\"(?P<version>[0-9a-f]{40})\""
+      }
+    }
+  }
+}

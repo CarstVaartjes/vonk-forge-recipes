@@ -1,0 +1,345 @@
+{
+  "capabilities": [
+    "image-understanding",
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-a1904d0f816e-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a1904d0f816e6c841d0893a9f27fb5f13ccdd441cf4a74c56094ada236afa443",
+      "size_bytes": 2475
+    },
+    {
+      "id": "readme-067e1646de9c-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "067e1646de9cf32ebf7b8b25d4ee77b9b7ee3def22a8f549e299bfc83f6dbe1e",
+      "size_bytes": 9525
+    },
+    {
+      "id": "chat-template-c4531cacbf2a-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c4531cacbf2a0ab65170433d7a4f371d11b7599cf96c04b192e6372432636c70",
+      "size_bytes": 7250
+    },
+    {
+      "id": "config-d03d3a9c01c0-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d03d3a9c01c0df45011d90e6db4a3f4b5c5c4f72d7db5aef75672ec8eadb951f",
+      "size_bytes": 3981
+    },
+    {
+      "id": "metadata-ee05350c7fda-fadf393ed9",
+      "path": "dspark/.gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ee05350c7fda0af4da116020dd7b976d731de3beed4f5e717d5bcc95ead24550",
+      "size_bytes": 50
+    },
+    {
+      "id": "config-a603178db396-f7f5952300",
+      "path": "dspark/config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a603178db396e6a18e95d3151156ad817315e4135f99426253ac469629182096",
+      "size_bytes": 1410
+    },
+    {
+      "id": "model-211eda7b9627-a8959758be",
+      "path": "dspark/model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "211eda7b962795ba727b0d7db072d8c474dc3b94075f85f123fe363caf5e9679",
+      "size_bytes": 778452858
+    },
+    {
+      "id": "generation-config-7fa47217744f-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7fa47217744f0e0918f6cf846e7541e4f322e6bc66917044cf2ad580699216c8",
+      "size_bytes": 186
+    },
+    {
+      "id": "model-00001-of-00019-a0611a82883e-67bc88b062",
+      "path": "model-00001-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a0611a82883e5c1a93c420dcccf97ef08e9f57173a1a1c8d2cbf0334ea762222",
+      "size_bytes": 508798012
+    },
+    {
+      "id": "model-00002-of-00019-c2f3e2b73198-1628043128",
+      "path": "model-00002-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c2f3e2b731986710db6a83cc1882bfcf2ff23e36a082c142b6cf0c980c995d09",
+      "size_bytes": 1016397952
+    },
+    {
+      "id": "model-00003-of-00019-0faee370d5d9-da1dd565d0",
+      "path": "model-00003-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0faee370d5d9313efc667cd41dbbec148516bb9a4fe0976dcfae42daf35f7d29",
+      "size_bytes": 1000379932
+    },
+    {
+      "id": "model-00004-of-00019-51b1a9373ef9-bc14b316bc",
+      "path": "model-00004-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "51b1a9373ef9b4d6f17ee70df006578431007353750d2ee06f81c21885193d52",
+      "size_bytes": 1000547904
+    },
+    {
+      "id": "model-00005-of-00019-a89ed91c44d1-2990462eda",
+      "path": "model-00005-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a89ed91c44d1390d38408458bcca706f217ad5657139f74abbe0854b19b9d86a",
+      "size_bytes": 1000695428
+    },
+    {
+      "id": "model-00006-of-00019-1fabc7595e90-c69edde0f6",
+      "path": "model-00006-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1fabc7595e90caf9997a8ceeee7f539c792fc993348f0cdf9f19b367efae9c24",
+      "size_bytes": 1000516628
+    },
+    {
+      "id": "model-00007-of-00019-6a892fd28c67-2c2659bc47",
+      "path": "model-00007-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "6a892fd28c676b5b40fc002085adbafa50ed1687f8201f362b66393b10332dfe",
+      "size_bytes": 1000861916
+    },
+    {
+      "id": "model-00008-of-00019-7c5179d4dc94-16067996ea",
+      "path": "model-00008-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "7c5179d4dc94cb614906f646701528b3342ed07576264ac9b72b32e96573ea89",
+      "size_bytes": 996719432
+    },
+    {
+      "id": "model-00009-of-00019-1a83b0fd97c5-0ee503f88f",
+      "path": "model-00009-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "1a83b0fd97c5d1be9252030b0692e920b84ef14f650c70062bdac8e448d030ad",
+      "size_bytes": 1000835388
+    },
+    {
+      "id": "model-00010-of-00019-9ebfedf52575-ca06978110",
+      "path": "model-00010-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9ebfedf5257598ce41b013abbcac6cb6e67e390dac19180146e46c693848fd25",
+      "size_bytes": 1000828936
+    },
+    {
+      "id": "model-00011-of-00019-4110b19a9d64-5ea3ed1695",
+      "path": "model-00011-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4110b19a9d64ac66cebb5dc4b4bb4b639a20c40bb8526107018472014adf2f3c",
+      "size_bytes": 1000910768
+    },
+    {
+      "id": "model-00012-of-00019-ab09e691608c-477617cccc",
+      "path": "model-00012-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ab09e691608c4ca7b89eb0a5b88ae5f2dc48df571c725e5e801caa2f22edf07b",
+      "size_bytes": 1000921812
+    },
+    {
+      "id": "model-00013-of-00019-b76cc568b614-a95419bf0c",
+      "path": "model-00013-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "b76cc568b614e394ea358bb0224ff408fbd562bdf62ddc796ea0c97b3444477e",
+      "size_bytes": 1000860192
+    },
+    {
+      "id": "model-00014-of-00019-2313885e9742-af37a910d9",
+      "path": "model-00014-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2313885e9742a4ceef11c3210c895d6db13e1a588b670f9702910677e0b5f0bb",
+      "size_bytes": 1001027556
+    },
+    {
+      "id": "model-00015-of-00019-9ccbdee91b67-345acd2e3f",
+      "path": "model-00015-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "9ccbdee91b67170f7b8c37252b39641bad38060a6df2db9d53852f41040def88",
+      "size_bytes": 1000881708
+    },
+    {
+      "id": "model-00016-of-00019-72fe769c8994-1bc12be135",
+      "path": "model-00016-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "72fe769c89942f86e09a0ea9c93e0c0654dc552ad08499c0370d1f65825fc209",
+      "size_bytes": 1000645168
+    },
+    {
+      "id": "model-00017-of-00019-c90834c087fe-7bc572c26d",
+      "path": "model-00017-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "c90834c087febe91a2a5e5d7fd11be81d90e1a8c20de7e639055865574c64fcd",
+      "size_bytes": 995038976
+    },
+    {
+      "id": "model-00018-of-00019-2f8022cab2b0-3334ec36af",
+      "path": "model-00018-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "2f8022cab2b056f1de94a6ab968369fb959ed1b86eff501c3f7eb3abb4126d4b",
+      "size_bytes": 997622556
+    },
+    {
+      "id": "model-00019-of-00019-3395b9ed1345-61032447d8",
+      "path": "model-00019-of-00019.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "3395b9ed134520b07236db262af7541031461217b05d4e160c9f55590f3e0cae",
+      "size_bytes": 474814732
+    },
+    {
+      "id": "model-safetensors-index-0c4497bfb067-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "0c4497bfb067c1020f3014b7be10701d910e57a982d08fb87fd65bdf0b7af3da",
+      "size_bytes": 13001852
+    },
+    {
+      "id": "preprocessor-config-c64289d04f36-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c64289d04f36e48d9d059e3a0069f54062b2ef6044a807adb448b98449cb54de",
+      "size_bytes": 148
+    },
+    {
+      "id": "processor-config-44136fa355b3-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "size_bytes": 2
+    },
+    {
+      "id": "tokenizer-e4608c5d7b3f-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e4608c5d7b3f4f30ba83be16a82cdac856b2e7191d40f0a08cbacc76c2a926ee",
+      "size_bytes": 20001935
+    },
+    {
+      "id": "tokenizer-config-03c8faa31145-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "03c8faa31145d89c815b86dffc9aa7fa732ebebb5cb1a47b1663c17d0477eab9",
+      "size_bytes": 8976
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "exl3"
+  },
+  "identity": {
+    "family": {
+      "publisher": "openbmb",
+      "slug": "minicpm",
+      "title": "MiniCPM"
+    },
+    "model": {
+      "publisher": "vcruz305",
+      "slug": "minicpm-v-4-7-35b-a3b",
+      "title": "MiniCPM-V 4.7 35B A3B"
+    },
+    "publisher": "vcruz305",
+    "slug": "minicpm-v-4-7-exl3-sage-374bpw-855cb760",
+    "variant": "EXL3 SAGE 3.74bpw",
+    "version": "855cb760"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "OpenBMB",
+      "vcruz305"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-SAGE-3.74bpw/blob/855cb7601710064aeb7452b6b7e45e60a40be76b/README.md"
+  },
+  "metadata": {
+    "description": "MiniCPM-V 4.7 SAGE EXL3 3.74bpw including the native vision weights and optional embedded DSpark.",
+    "tags": [
+      "vcruz305",
+      "minicpm",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-SAGE-3.74bpw",
+    "revision": "855cb7601710064aeb7452b6b7e45e60a40be76b"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "kit": {
+    "dependencies": {
+      "base": {
+        "datasource": "git-ref",
+        "file": "docker/Dockerfile",
+        "pattern": "^ARG TF_SHA=(?P<version>[0-9a-f]{40})$",
+        "repo_pattern": "^ARG TF_REPO=(?P<repo>\\S+)$"
+      },
+      "model": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "run.sh",
+        "pattern": "^SNAPSHOT_SHA=\"\\$\\{SNAPSHOT_SHA:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^MODEL=\"\\$\\{MODEL:-(?P<repo>[^}\"]+)\\}\""
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve",
+    "vendor/",
+    "requirements.lock"
+  ]
+}

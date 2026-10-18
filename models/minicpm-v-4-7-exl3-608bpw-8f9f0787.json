@@ -1,0 +1,326 @@
+{
+  "capabilities": [
+    "reasoning",
+    "text-generation",
+    "tool-use"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-ab97511ab464-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ab97511ab4648b497f19d59f92ab96e438ee12a07a3693f57504aa8bfa7cb62e",
+      "size_bytes": 1696
+    },
+    {
+      "id": "convert-26626068500d-fd0c0168e8",
+      "path": "CONVERT.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "26626068500d467023b97ec612c38ef947d2722af8e3922f6be955d18b2157e8",
+      "size_bytes": 2363
+    },
+    {
+      "id": "license-cfc7749b96f6-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "size_bytes": 11358
+    },
+    {
+      "id": "notice-ed07481f528b-dfb14fbb9e",
+      "path": "NOTICE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ed07481f528bf4c7684fb7b9ae2fbebe4d15bd569fb81887010a6f51057d36be",
+      "size_bytes": 2461
+    },
+    {
+      "id": "readme-af35d2876836-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "af35d2876836c47c1065f84cdd4061942ba7608b871a2b1db213db04d6d60a45",
+      "size_bytes": 29248
+    },
+    {
+      "id": "upload-manifest-b3098a00b7a2-e7e2b271bb",
+      "path": "UPLOAD_MANIFEST.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b3098a00b7a23e9ae65776b040ff17a31d07c78c969679790562dd6559ab5ec0",
+      "size_bytes": 5025
+    },
+    {
+      "id": "calibration-08d231bb0567-345160881a",
+      "path": "calibration.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "08d231bb0567634dc9c2e6a1a11a74a060813d5a898b5c7b6f1f0a9c63019999",
+      "size_bytes": 78
+    },
+    {
+      "id": "calibration-acbf9851e6f0-038fd87f3f",
+      "path": "calibration.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "acbf9851e6f0aee2d8dc5e029394832f3c27a5f8fc017c7ce920653ab7410231",
+      "size_bytes": 674
+    },
+    {
+      "id": "chat-template-c4531cacbf2a-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "c4531cacbf2a0ab65170433d7a4f371d11b7599cf96c04b192e6372432636c70",
+      "size_bytes": 7250
+    },
+    {
+      "id": "config-b332cdb7ca06-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b332cdb7ca068987fb6c74e42aef874cd9821b3ca89d3556b1e31a4469be72b0",
+      "size_bytes": 3951
+    },
+    {
+      "id": "exl3-retry-log-9fb40e504035-072aaa3f79",
+      "path": "exl3_retry_log.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "9fb40e5040359991f6c75e6c48b3a294bf34b29569539c23029b758c11b13668",
+      "size_bytes": 344
+    },
+    {
+      "id": "generation-config-7fa47217744f-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7fa47217744f0e0918f6cf846e7541e4f322e6bc66917044cf2ad580699216c8",
+      "size_bytes": 186
+    },
+    {
+      "id": "kl-b510a36bb60e-01e954dab0",
+      "path": "kl.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "b510a36bb60e23f8dfbf90aad2e59b886d67e53f719e7c4c899fd967663a2449",
+      "size_bytes": 257804
+    },
+    {
+      "id": "model-00001-of-00008-e35037215430-8522ec2a1c",
+      "path": "model-00001-of-00008.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "e35037215430c76bbd841a5f39ebe6f5759b421909f29faa90f4dd3119a964b7",
+      "size_bytes": 4242152212
+    },
+    {
+      "id": "model-00002-of-00008-165c85ab89c7-737153de9f",
+      "path": "model-00002-of-00008.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "165c85ab89c74950842728ca8122894301ffbc90d8155b1b3ebc915e93836674",
+      "size_bytes": 3872221415
+    },
+    {
+      "id": "model-00003-of-00008-a1ba7fca2d96-62975fc789",
+      "path": "model-00003-of-00008.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "a1ba7fca2d96d71c4c82cd1db909caaf52eb9b9840eec9ab779e5f236e8459bc",
+      "size_bytes": 3865616258
+    },
+    {
+      "id": "model-00004-of-00008-0c6743519751-65920c8b4c",
+      "path": "model-00004-of-00008.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "0c6743519751398d1088f7f501147760f04a9789162db017aa5429e4d77d867f",
+      "size_bytes": 3872236945
+    },
+    {
+      "id": "model-00005-of-00008-eb197338fb68-afdea6f773",
+      "path": "model-00005-of-00008.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "eb197338fb6838cd8740174f804ccdd669cc68ddd2ba8d9e4dc878cd84c6d3b1",
+      "size_bytes": 3865616258
+    },
+    {
+      "id": "model-00006-of-00008-aff890e36675-04b37beecc",
+      "path": "model-00006-of-00008.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "aff890e36675821474595ad28b7e9d9556d2cf7f56e66746f2637fedf61b6767",
+      "size_bytes": 3872236945
+    },
+    {
+      "id": "model-00007-of-00008-8bb73fb2bd4c-dc99b36274",
+      "path": "model-00007-of-00008.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8bb73fb2bd4ce673695cb4bc889c6d2c948d0e69f5ff88c327295d7003fb880f",
+      "size_bytes": 4292015100
+    },
+    {
+      "id": "model-00008-of-00008-8ef5f1cd7b36-13c34dfda1",
+      "path": "model-00008-of-00008.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "8ef5f1cd7b36bbc4d428c7e700843fabbe1bfa72d724dd08427cfaa2e4926ce9",
+      "size_bytes": 414882767
+    },
+    {
+      "id": "model-safetensors-index-a621148b7afc-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "a621148b7afc205069c98cdb9fb956363a49ed05dd519f40bf4865dd7acdc92c",
+      "size_bytes": 13450633
+    },
+    {
+      "id": "preprocessor-config-c64289d04f36-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c64289d04f36e48d9d059e3a0069f54062b2ef6044a807adb448b98449cb54de",
+      "size_bytes": 148
+    },
+    {
+      "id": "processor-config-44136fa355b3-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "size_bytes": 2
+    },
+    {
+      "id": "quantization-config-5ea9d03ecdba-6f24389fb3",
+      "path": "quantization_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5ea9d03ecdba23a7f9917c9e553d5737dda9cc32e553b6e437db005e87310941",
+      "size_bytes": 40377713
+    },
+    {
+      "id": "rel-l2-scan-05fa68ca0a0e-192eaf43f4",
+      "path": "rel_l2_scan.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "05fa68ca0a0efd391af1d98b72200abad2fca0d49cf9511246a91cada38ec0f9",
+      "size_bytes": 34848
+    },
+    {
+      "id": "readme-e96742dbc5e4-47bb9c515c",
+      "path": "support/exllamav3/README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e96742dbc5e4a82caf1ca0f4a210bfeee2daf54b7b55c08574c3a45584826342",
+      "size_bytes": 739
+    },
+    {
+      "id": "minicpmv4-7-6cc291bc2803-e8b46c2618",
+      "path": "support/exllamav3/minicpmv4_7.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "6cc291bc2803cdcb4d29521f99811ff2913141c3aa9fb96f13c2d11aaf5eb81d",
+      "size_bytes": 4185
+    },
+    {
+      "id": "tokenizer-e4608c5d7b3f-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "e4608c5d7b3f4f30ba83be16a82cdac856b2e7191d40f0a08cbacc76c2a926ee",
+      "size_bytes": 20001935
+    },
+    {
+      "id": "tokenizer-config-03c8faa31145-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "03c8faa31145d89c815b86dffc9aa7fa732ebebb5cb1a47b1663c17d0477eab9",
+      "size_bytes": 8976
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "exl3"
+  },
+  "identity": {
+    "family": {
+      "publisher": "openbmb",
+      "slug": "minicpm",
+      "title": "MiniCPM"
+    },
+    "model": {
+      "publisher": "r0b0tlab",
+      "slug": "minicpm-v-4-7-35b-a3b",
+      "title": "MiniCPM-V 4.7 35B A3B"
+    },
+    "publisher": "r0b0tlab",
+    "slug": "minicpm-v-4-7-exl3-608bpw-8f9f0787",
+    "variant": "EXL3 6.08bpw",
+    "version": "8f9f0787"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "OpenBMB",
+      "r0b0tlab"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/r0b0tlab/MiniCPM-V-4.7-35B-A3B-EXL3-6.08bpw/blob/8f9f07872b09846f2e14b3c908e99be1ccf3402a/README.md"
+  },
+  "metadata": {
+    "description": "MiniCPM-V 4.7 EXL3 6.08bpw; this runtime uses the text path.",
+    "tags": [
+      "r0b0tlab",
+      "minicpm",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/r0b0tlab/MiniCPM-V-4.7-35B-A3B-EXL3-6.08bpw",
+    "revision": "8f9f07872b09846f2e14b3c908e99be1ccf3402a"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "source": {
+    "repo": "vcruz305/Qwen3.8-Flash-Next-FP4-Spark-recipe",
+    "commit": "0d727c4ec145dadc14ac311508c4bb8c577e1a7a"
+  },
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/serve.sh",
+        "pattern": "^IMAGE=(?P<repo>[^:@\\s]+):latest@(?P<version>sha256:[0-9a-f]{64})$"
+      }
+    }
+  },
+  "ours": [
+    "LICENSE.upstream",
+    "vllm-serve"
+  ]
+}

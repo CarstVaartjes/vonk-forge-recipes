@@ -1,0 +1,22 @@
+{
+  "source": {
+    "repo": "vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-DGX-Spark-recipe",
+    "commit": "7d0bff70e089ad78f57764fe44889a033b18a948"
+  },
+  "ours": [
+    "vendor/",
+    "requirements.lock",
+    "licenses/",
+    "exllamav3-serve"
+  ],
+  "kit": {
+    "dependencies": {
+      "model": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "model.lock.json",
+        "pattern": "\"repo_id\":\\s*\"(?P<repo>[^\"]+)\",\\s*\"revision\":\\s*\"(?P<version>[0-9a-f]{40})\""
+      }
+    }
+  }
+}

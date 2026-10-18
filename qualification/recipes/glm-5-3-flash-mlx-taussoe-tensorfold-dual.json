@@ -1,0 +1,21 @@
+{
+  "id": "vonk-forge/glm-5-3-flash-mlx-taussoe-tensorfold-dual",
+  "service_recipes": {
+    "alias": "glm-5.3-flash",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Long-context canary and persisted prompt-cache reuse after restart"
+      ],
+      "recovery": [
+        "Controller stop/start with warm kernel-cache restart",
+        "Controller restart of the two-rank group and recovery after worker loss"
+      ]
+    }
+  }
+}

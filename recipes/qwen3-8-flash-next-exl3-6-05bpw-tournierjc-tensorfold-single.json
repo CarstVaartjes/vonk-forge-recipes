@@ -1,0 +1,571 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+        "repository": "nvcr.io/nvidia/pytorch"
+      },
+      "context": {
+        "path": "adapters/qwen/tournier-exl3-6-05-tensorfold-single"
+      },
+      "dockerfile": "adapters/qwen/tournier-exl3-6-05-tensorfold-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "files.pythonhosted.org",
+          "pypi.org"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-exl3-6-05bpw-tournierjc-tensorfold-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "qwen3.8-flash-next"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Tournierjc TensorFold fork 53ceb126 with the exact turboderp EXL3 6.05bpw checkpoint declared by the kit. Text only: this exact checkpoint revision has no published vision sidecar, despite the kit documenting the optional conversion path. One stream and explicit disk-backed PLE tables reduce memory pressure for the 6.05bpw checkpoint. INT8 KV, MTP and the creator\u2019s EXL3 kernels. Memory is an estimate, not a measured qualification; physical Spark execution remains untested here.",
+    "tags": [
+      "qwen3.8",
+      "tensorfold",
+      "exl3",
+      "mtp",
+      "spark",
+      "text-only"
+    ],
+    "title": "Qwen3.8 Flash Next EXL3 6.05bpw TensorFold single Spark (tournierjc)"
+  },
+  "models": [
+    {
+      "id": "primary",
+      "model": {
+        "kind": "model",
+        "publisher": "turboderp",
+        "slug": "qwen3-8-flash-next-exl3-6-05bpw-d2e238fe",
+        "content_sha256": "4ab95bfe1af1af5284b3984dcf19790723fcae1c729205d23d1777568000469b"
+      },
+      "files": [
+        {
+          "id": "file--chat-template-jinja-60c0d2504ed2-8187ceb612",
+          "file_id": "file--chat-template-jinja-60c0d2504ed2-8187ceb612",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "metadata-d3b10d515fb2-618cd5b83d",
+          "file_id": "metadata-d3b10d515fb2-618cd5b83d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "license-a0dc42256084-c693279643",
+          "file_id": "license-a0dc42256084-c693279643",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "readme-35ca37ccc366-b335630551",
+          "file_id": "readme-35ca37ccc366-b335630551",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "chat-template-c3cf9e34abf4-00824420d1",
+          "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "config-882d1afff53d-587cb980af",
+          "file_id": "config-882d1afff53d-587cb980af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "generation-config-e70c136c1b78-97dd3d578b",
+          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00001-of-00013-f30a0770fa06-47027bc6a4",
+          "file_id": "model-00001-of-00013-f30a0770fa06-47027bc6a4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00002-of-00013-161909d9c761-9557582c81",
+          "file_id": "model-00002-of-00013-161909d9c761-9557582c81",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00003-of-00013-ad6a0185bc3c-685e2b1a02",
+          "file_id": "model-00003-of-00013-ad6a0185bc3c-685e2b1a02",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00004-of-00013-f9f51e338353-490a023f25",
+          "file_id": "model-00004-of-00013-f9f51e338353-490a023f25",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00005-of-00013-d80e6a09bece-bcc8badd72",
+          "file_id": "model-00005-of-00013-d80e6a09bece-bcc8badd72",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00006-of-00013-85f3c35195d9-120488f450",
+          "file_id": "model-00006-of-00013-85f3c35195d9-120488f450",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00007-of-00013-69447c625d14-7d5203840b",
+          "file_id": "model-00007-of-00013-69447c625d14-7d5203840b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00008-of-00013-538e75dc6f7b-91f9b8c570",
+          "file_id": "model-00008-of-00013-538e75dc6f7b-91f9b8c570",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00009-of-00013-35a704135bea-dff74d072a",
+          "file_id": "model-00009-of-00013-35a704135bea-dff74d072a",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00010-of-00013-69960fd415ff-8ff0115785",
+          "file_id": "model-00010-of-00013-69960fd415ff-8ff0115785",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00011-of-00013-e0b8bad9dc90-c294fe3a38",
+          "file_id": "model-00011-of-00013-e0b8bad9dc90-c294fe3a38",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00012-of-00013-35d8eef6d89d-e9cdb80d52",
+          "file_id": "model-00012-of-00013-35d8eef6d89d-e9cdb80d52",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00013-of-00013-aca66c97b8f4-8bcff86841",
+          "file_id": "model-00013-of-00013-aca66c97b8f4-8bcff86841",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-safetensors-index-01223becbd7f-0a05be8238",
+          "file_id": "model-safetensors-index-01223becbd7f-0a05be8238",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "mtp-hyper-connection-mixer-patch-9b29ae894138-9bbe8001cd",
+          "file_id": "mtp-hyper-connection-mixer-patch-9b29ae894138-9bbe8001cd",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "ngram-embedding-c63613666649-651a5f9db3",
+          "file_id": "ngram-embedding-c63613666649-651a5f9db3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "qbench-prompts-80b3b8c6d41e-ad1a2ae833",
+          "file_id": "qbench-prompts-80b3b8c6d41e-ad1a2ae833",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "qbench-prompts-f2b3f16d2f92-19411f315b",
+          "file_id": "qbench-prompts-f2b3f16d2f92-19411f315b",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "quantization-config-0f1ee6d44064-6f24389fb3",
+          "file_id": "quantization-config-0f1ee6d44064-6f24389fb3",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "tokenizer-0997f410c57a-224931eb13",
+          "file_id": "tokenizer-0997f410c57a-224931eb13",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "source_reference": "https://github.com/tournierjc/TensorFold-Single-DGX-Spark/tree/70c561394e6e955e369b135b5edfd70c1dfe9efb",
+    "attribution": [
+      "tournierjc",
+      "Ash Hart (TensorFold)",
+      "turboderp",
+      "Qwen"
+    ]
+  },
+  "release": {
+    "released_at": "2026-10-03",
+    "version": "0.6.4"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "host",
+        "setting": null,
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "setting": null,
+        "value": 8000
+      },
+      {
+        "name": "name",
+        "setting": null,
+        "value": "qwen3.8-flash-next"
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "context",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "kv-dtype",
+        "setting": null,
+        "value": "int8"
+      },
+      {
+        "name": "mtp-drafts",
+        "setting": null,
+        "value": 6
+      },
+      {
+        "name": "mtp-confidence",
+        "setting": null,
+        "value": 0.6
+      },
+      {
+        "name": "max-tokens",
+        "setting": null,
+        "value": 32768
+      },
+      {
+        "name": "thinking",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "reasoning-effort",
+        "setting": null,
+        "value": "xhigh"
+      },
+      {
+        "name": "ple-on-ssd",
+        "value": true
+      }
+    ],
+    "engine": "tensorfold",
+    "entrypoint": [
+      "/opt/vonk/bin/tensorfold-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_NO_UPDATE_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_VISION_WORKSPACE_MIB",
+        "value": "1280"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 139041630542,
+            "image_bytes": 40000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 10000000000
+          },
+          "memory": {
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 13100000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "qwen3.8-flash-next"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}

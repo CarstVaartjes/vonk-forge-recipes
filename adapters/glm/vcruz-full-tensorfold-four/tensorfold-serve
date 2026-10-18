@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+"""Run the creator's exact TP4 kernels and consensus guards under Controller placement."""
+import argparse
+import glob
+import os
+import sys
+from ipaddress import ip_address
+from pathlib import Path
+
+sys.path.insert(0, "/opt/vonk/runtime")
+from prepare_view import prepare, digest
+from fabric_binding import primary_hca
+
+p = argparse.ArgumentParser()
+p.add_argument("--host", default="0.0.0.0")
+p.add_argument("--port", type=int, default=8000)
+p.add_argument("--name", default="glm-5.3")
+p.add_argument("--max-tokens", type=int, default=4096)
+p.add_argument("--context", type=int, default=163840)
+p.add_argument("--tp", type=int, required=True)
+p.add_argument("--rank", type=int, required=True)
+p.add_argument("--master", required=True)
+p.add_argument("--master-port", required=True)
+a = p.parse_args()
+address = os.environ.get("VONK_MASTER_ADDR", "")
+port = os.environ.get("VONK_MASTER_PORT", "")
+ip_address(address)
+ip_address(os.environ.get("VONK_LOCAL_ADDR", ""))
+if a.tp != 4 or a.rank not in range(4) or not (port.isascii() and port.isdigit() and 1024 <= int(port) <= 65535):
+    raise SystemExit("full GLM requires exact four-rank Controller placement")
+if a.master not in ("VONK_MASTER_ADDR", address) or a.master_port not in ("VONK_MASTER_PORT", port):
+    raise SystemExit("recipe rendezvous differs from Controller placement")
+hca = primary_hca(os.environ.get("NCCL_IB_HCA", ""))
+interface = os.environ.get("TP_SOCKET_IFNAME", "").removeprefix("=")
+gid = os.environ.get("NCCL_IB_GID_INDEX", "")
+if not hca or "," in hca or not interface or not (gid.isascii() and gid.isdigit()):
+    raise SystemExit("full GLM requires one Controller-selected RoCE device, interface and GID")
+cache = Path(os.environ["XDG_CACHE_HOME"]) / "glm53-vcruz"
+view = prepare("/models/target", "/models/head/model-00001-of-00141.safetensors", cache)
+ctl = cache / "control"
+ctl.mkdir(exist_ok=True)
+for name in ("PROFILE", "PROFILE_PREFILL", "DFLASH_CFG"):
+    (ctl / name).unlink(missing_ok=True)
+nccl = glob.glob(sys.prefix + "/lib/python*/site-packages/nvidia/nccl/lib/libnccl.so.2")
+if len(nccl) != 1:
+    raise SystemExit("the pinned Torch NCCL library is missing or ambiguous")
+tiles = "/opt/vonk/runtime/tiles.json"
+if digest(tiles) != "db409731548ce676d14f29818ff689611202c27023f5cc4bcb93cbd871d6c84a":
+    raise SystemExit("creator tile table identity mismatch")
+os.environ.update(TF_NCCL_LIB=nccl[0], CUDA_VISIBLE_DEVICES="0", TENSORFOLD_NO_UPDATE_CHECK="1", PYTHONDONTWRITEBYTECODE="1", TF_GLM53_DFLASH="/models/drafter", TF_GLM53_PROFILE_FLAG=str(ctl / "PROFILE"), TFS_TILES=tiles, TFS_TILES_SHA=digest(tiles), B12X_ROCE_HCA=hca, GLOO_SOCKET_IFNAME=interface, B12X_ROCE_GID_INDEX=gid, B12X_ROCE_SPIN_LIMIT="300000000", B12X_ROCE_CACHE_DIR=str(cache / "roce"), B12X_COMPILE_CACHE_DIR=str(cache / "compile"))
+# The Controller owns exposure and authentication of the managed backend. The
+# creator's device, tile, policy consensus and poisoned-collective guards remain.
+from tensorfold.families import glm_moe_dsa as family
+from tensorfold.families.glm_moe_dsa.cuda import fused
+import tf_speed_patches as Pt
+import tf_serve_patches as Sp
+policy = Sp.Policy.from_env()
+Pt.pin_tiles(fused, "load:" + tiles, print)
+Pt.patch_roce_check(print)
+Sp.align_roce_rendezvous(print)
+Sp.install(family, a.rank, policy, str(ctl), print)
+from tensorfold import cli
+raise SystemExit(cli.main(["serve", str(view), "--backend", "cuda", "--tp", "4", "--rank", str(a.rank), "--master", address, "--master-port", port, "--context", str(a.context), "--host", a.host, "--port", str(a.port), "--name", a.name, "--max-tokens", str(a.max_tokens), "--thinking", "--no-update-check"]))

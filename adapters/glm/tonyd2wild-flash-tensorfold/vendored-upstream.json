@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "tonyd2wild/GLM-5.3-Flash-TensorFold-DGX-Spark",
+    "commit": "1758bc2dab8ae56bf9592b74b312b398577850cc"
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve",
+    "vendor/",
+    "requirements.lock"
+  ]
+}

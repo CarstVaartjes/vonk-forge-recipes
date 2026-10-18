@@ -1,0 +1,29 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "run.sh",
+        "pattern": "^IMAGE=\"(?P<repo>[^@]+)@(?P<version>sha256:[0-9a-f]{64})\""
+      },
+      "model": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "run.sh",
+        "pattern": "^MODEL_REV=\"(?P<version>[0-9a-f]{40})\"",
+        "repo_pattern": "^MODEL=\"(?P<repo>[^\"]+)\""
+      },
+      "draft": {
+        "datasource": "hf-revision",
+        "binds": "drafter",
+        "file": "run.sh",
+        "pattern": "^DRAFT_REV=\"(?P<version>[0-9a-f]{40})\"",
+        "repo_pattern": "^DRAFT=\"(?P<repo>[^\"]+)\""
+      }
+    }
+  },
+  "ours": [
+    "vllm-wrapper",
+    "LICENSE"
+  ]
+}

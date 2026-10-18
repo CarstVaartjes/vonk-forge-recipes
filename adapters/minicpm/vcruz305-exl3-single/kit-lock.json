@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "855cb7601710064aeb7452b6b7e45e60a40be76b",
+      "repo": "vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-SAGE-3.74bpw",
+      "revision": "855cb7601710064aeb7452b6b7e45e60a40be76b"
+    }
+  },
+  "kit": {
+    "commit": "7d0bff70e089ad78f57764fe44889a033b18a948",
+    "repo": "vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-DGX-Spark-recipe"
+  }
+}

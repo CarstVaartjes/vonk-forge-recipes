@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "draft": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "abd478065678ee83a93821c4b3f512da24e4cecb",
+      "repo": "nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB-LiLiCorr",
+      "revision": "abd478065678ee83a93821c4b3f512da24e4cecb"
+    },
+    "target": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "a326822af111290f2af5ac59ef4b5040347dabc4",
+      "repo": "nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB",
+      "revision": "a326822af111290f2af5ac59ef4b5040347dabc4"
+    }
+  },
+  "kit": {
+    "commit": "2fe482f67d5fb8859acac8d22b6670ef453b28a9",
+    "repo": "vcruz305/Nemotron-3.5-Bolt-74B-A9B-24GB-vLLM-recipe"
+  }
+}

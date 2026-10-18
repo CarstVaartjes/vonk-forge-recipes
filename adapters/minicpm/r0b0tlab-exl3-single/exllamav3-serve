@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+"""Run the pinned creator's plain-decode text server."""
+import os
+import sys
+os.execv(sys.executable, [sys.executable, "-u", "/opt/vonk/kit/scripts/serve_openai.py", "--model-dir", "/models/target", "--profile", "gb10-text-262k", *sys.argv[1:]])
