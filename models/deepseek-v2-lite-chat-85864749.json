@@ -1,5 +1,6 @@
 {
   "capabilities": [
+    "chat",
     "code-generation",
     "text-generation"
   ],
@@ -24,13 +25,13 @@
       "size_bytes": 13759
     },
     {
-      "id": "readme-702a8e859e90-b335630551",
+      "id": "readme-08cb188f66c8-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "702a8e859e90d1c9f2fe2bb472308000f54bfe7fd79b528394576e0b792e7bd7",
-      "size_bytes": 15498
+      "sha256": "08cb188f66c8255377c757b02849256779735a68af67b843bbcbcd8fc5a91efe",
+      "size_bytes": 15500
     },
     {
       "id": "config-f346286b0f1c-587cb980af",
@@ -60,39 +61,39 @@
       "size_bytes": 181
     },
     {
-      "id": "model-00001-of-000004-0d7e9f39bde4-b19332e52a",
+      "id": "model-00001-of-000004-a314b79a3081-b19332e52a",
       "path": "model-00001-of-000004.safetensors",
       "roles": [
         "weights"
       ],
-      "sha256": "0d7e9f39bde40111a4c0f390b87497dce4565cf578d916395e6b2c7851f1e8da",
+      "sha256": "a314b79a30810b1038f9db08345178e16fb5742aa266c4a3dc05054c59800082",
       "size_bytes": 8594887408
     },
     {
-      "id": "model-00002-of-000004-e0656832b0d5-7182f911b9",
+      "id": "model-00002-of-000004-b0bd088feada-7182f911b9",
       "path": "model-00002-of-000004.safetensors",
       "roles": [
         "weights"
       ],
-      "sha256": "e0656832b0d594b4a64cad40ff8465231de6ed44c854f74f6b217797660aa4bb",
+      "sha256": "b0bd088feada0af954614da3a5b179c4d4d5d8bb2482ec83194d101f3fe91796",
       "size_bytes": 8591757448
     },
     {
-      "id": "model-00003-of-000004-843ec689624f-c75b635dba",
+      "id": "model-00003-of-000004-d31b192e488f-c75b635dba",
       "path": "model-00003-of-000004.safetensors",
       "roles": [
         "weights"
       ],
-      "sha256": "843ec689624f3a520526e040f0326c4dc9865e8172942ca98a084fe136fdb21a",
+      "sha256": "d31b192e488f0b3a04e007d842c3c9ba5783d944cb1cc27402fe8b8bb837c490",
       "size_bytes": 8590718520
     },
     {
-      "id": "model-00004-of-000004-cfb51658f67c-a01ed6451e",
+      "id": "model-00004-of-000004-304499be0ea0-a01ed6451e",
       "path": "model-00004-of-000004.safetensors",
       "roles": [
         "weights"
       ],
-      "sha256": "cfb51658f67cedfbbc4d62ad14187830ceec8ee82c788c5f718feea98905ef31",
+      "sha256": "304499be0ea06bf8a3937d7a3cc515bc3738dbd288bdd0bbc1b2d3560fce4930",
       "size_bytes": 5636263200
     },
     {
@@ -157,9 +158,9 @@
       "title": "DeepSeek-V2-Lite"
     },
     "publisher": "deepseek-ai",
-    "slug": "deepseek-v2-lite-base-604d5664",
-    "variant": "BASE 604d5664",
-    "version": "BASE 604d5664"
+    "slug": "deepseek-v2-lite-chat-85864749",
+    "variant": "Chat 85864749",
+    "version": "Chat 85864749"
   },
   "kind": "model",
   "license": {
@@ -170,11 +171,11 @@
     "url": "https://github.com/deepseek-ai/DeepSeek-V2/blob/main/LICENSE-MODEL"
   },
   "metadata": {
-    "description": "Exact public DeepSeek-V2-Lite (MoE, 16B total / 2.4B active) base checkpoint, the model in NVIDIA's SGLang playbook walkthrough.",
+    "description": "DeepSeek-V2-Lite Chat SFT checkpoint for chat completion, with the upstream tokenizer chat template and EOS configuration.",
     "tags": [
+      "deepseek-ai",
       "deepseek",
       "language",
-      "moe",
       "candidate"
     ]
   },
@@ -183,7 +184,7 @@
   ],
   "requires_token": false,
   "source": {
-    "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V2-Lite",
-    "revision": "604d5664dddd88a0433dbae533b7fe9472482de0"
+    "repository": "https://huggingface.co/deepseek-ai/DeepSeek-V2-Lite-Chat",
+    "revision": "85864749cd611b4353ce1decdb286193298f64c7"
   }
 }
