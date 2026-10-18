@@ -2,11 +2,16 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import io
 import itertools
 import json
 import tempfile
+import traceback
 import unittest
+from email.message import Message
 from pathlib import Path
+from unittest.mock import patch
+from urllib.error import HTTPError
 
 ROOT = Path(__file__).resolve().parents[1]
 COMFY_RECIPES = (
@@ -182,6 +187,145 @@ class ComfyUICoreRecipeTests(unittest.TestCase):
             self.assertIn(COMFY_REVISION, dockerfile_text)
             self.assertIn(COMFY_ARCHIVE_SHA256, dockerfile_text)
             self.assertNotIn("custom_nodes", dockerfile_text)
+
+    def test_http_failure_evidence_keeps_node_errors_for_every_adapter(self) -> None:
+        for path in sorted((ROOT / "adapters/media").glob("comfyui-*/comfyui_job.py")):
+            spec = importlib.util.spec_from_file_location("comfyui_http_test", path)
+            assert spec is not None and spec.loader is not None
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            bodies = (
+                b'{"error": "prompt_outputs_failed_validation", "node_errors": {"14": {"errors": [{"message": "Required input is missing", "details": "format.codec"}]}}}',
+                b"invalid response: \xff",
+                b"x" * (64 * 1024 + 1),
+                b"",
+            )
+            for body in bodies:
+                with self.subTest(adapter=path.parent.name, body_length=len(body)):
+                    error = HTTPError(
+                        module.BASE_URL + "/prompt",
+                        400,
+                        "Bad Request",
+                        Message(),
+                        io.BytesIO(body),
+                    )
+                    with (
+                        patch.object(module, "urlopen", side_effect=error) as request,
+                        self.assertRaises(HTTPError) as caught,
+                    ):
+                        module.request_json(
+                            "/prompt", body={"prompt": {}, "client_id": "test"}
+                        )
+                    self.assertIs(caught.exception, error)
+                    evidence = "".join(traceback.format_exception(error))
+                    self.assertIn("ComfyUI /prompt HTTP 400 response body:", evidence)
+                    self.assertIn(
+                        body[: 64 * 1024].decode("utf-8", errors="replace"), evidence
+                    )
+                    self.assertEqual(
+                        "[response body truncated]" in evidence, len(body) > 64 * 1024
+                    )
+                    self.assertTrue(error.fp.closed)
+                    request.assert_called_once()
+
+    def test_model_links_point_to_files_inside_artifact_mounts(self) -> None:
+        for path in sorted((ROOT / "adapters/media").glob("comfyui-*/comfyui_job.py")):
+            spec = importlib.util.spec_from_file_location("comfyui_mount_test", path)
+            assert spec is not None and spec.loader is not None
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            for directory_mount, source_name in (
+                (False, "wan_2.1_vae.safetensors"),
+                (True, "wan_2.1_vae.safetensors"),
+                (True, "upstream-alias.safetensors"),
+            ):
+                with (
+                    self.subTest(
+                        adapter=path.parent.name, directory_mount=directory_mount
+                    ),
+                    tempfile.TemporaryDirectory() as temporary,
+                ):
+                    root = Path(temporary)
+                    mounts = root / "mounts"
+                    mounts.mkdir()
+                    artifact = mounts / "vae"
+                    filename = "wan_2.1_vae.safetensors"
+                    if directory_mount:
+                        source = artifact / "split_files" / "vae" / source_name
+                        source.parent.mkdir(parents=True)
+                    else:
+                        source = artifact
+                    source.write_bytes(b"fixture checkpoint")
+                    with patch.object(module, "MODEL_MOUNT_ROOT", mounts):
+                        module.link_models(
+                            {
+                                "models": [
+                                    {
+                                        "artifact_id": "vae",
+                                        "category": "vae",
+                                        "filename": filename,
+                                    }
+                                ]
+                            },
+                            root / "models",
+                        )
+                    linked = root / "models/vae" / filename
+                    self.assertTrue(linked.is_file())
+                    self.assertEqual(linked.resolve(), source.resolve())
+
+    def test_model_mount_rejects_missing_or_ambiguous_checkpoint(self) -> None:
+        for path in sorted((ROOT / "adapters/media").glob("comfyui-*/comfyui_job.py")):
+            spec = importlib.util.spec_from_file_location(
+                "comfyui_invalid_mount_test", path
+            )
+            assert spec is not None and spec.loader is not None
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            for count in (0, 2):
+                with (
+                    self.subTest(adapter=path.parent.name, matching_files=count),
+                    tempfile.TemporaryDirectory() as temporary,
+                ):
+                    root = Path(temporary)
+                    artifact = root / "mounts/vae"
+                    artifact.mkdir(parents=True)
+                    for index in range(count):
+                        checkpoint = artifact / str(index) / "wan_2.1_vae.safetensors"
+                        checkpoint.parent.mkdir()
+                        checkpoint.write_bytes(b"fixture checkpoint")
+                    with (
+                        patch.object(module, "MODEL_MOUNT_ROOT", artifact.parent),
+                        self.assertRaisesRegex(ValueError, "exactly one.*wan_2.1_vae"),
+                    ):
+                        module.link_models(
+                            {
+                                "models": [
+                                    {
+                                        "artifact_id": "vae",
+                                        "category": "vae",
+                                        "filename": "wan_2.1_vae.safetensors",
+                                    }
+                                ]
+                            },
+                            root / "models",
+                        )
+                    self.assertFalse(
+                        (root / "models/vae/wan_2.1_vae.safetensors").exists()
+                    )
+
+    def test_successful_http_response_is_unchanged(self) -> None:
+        path = ROOT / "adapters/media/comfyui-core/comfyui_job.py"
+        spec = importlib.util.spec_from_file_location("comfyui_success_test", path)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with patch.object(
+            module, "urlopen", return_value=io.BytesIO(b'{"prompt_id": "accepted"}')
+        ):
+            self.assertEqual(
+                module.request_json("/prompt", body={"prompt": {}}),
+                {"prompt_id": "accepted"},
+            )
 
     def test_comfyui_writes_its_startup_directories_inside_the_job(self) -> None:
         # Hardware 2026-10-16: ComfyUI 0.38 creates its user directory (and
