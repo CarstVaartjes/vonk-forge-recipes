@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Preserve canonical vLLM arguments and bind Controller placement."""
+import os
+import sys
+from ipaddress import ip_address
+arguments = sys.argv[1:]
+address = os.environ.get("VONK_MASTER_ADDR", "")
+local = os.environ.get("VONK_LOCAL_ADDR", "")
+port = os.environ.get("VONK_MASTER_PORT", "")
+try:
+    ip_address(address)
+    ip_address(local)
+    if not (port.isascii() and port.isdigit() and 1024 <= int(port) <= 65535):
+        raise ValueError("invalid rendezvous port")
+except ValueError as error:
+    raise SystemExit("FP4 TP2 requires valid Controller rendezvous and local addresses") from error
+arguments += ["--master-addr", address, "--master-port", port]
+os.environ["VLLM_HOST_IP"] = local
+os.environ["MASTER_ADDR"] = address
+os.environ["MASTER_PORT"] = port
+os.execv(sys.executable, [sys.executable, "-m", "vllm.entrypoints.cli.main", *arguments])

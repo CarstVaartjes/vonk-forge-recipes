@@ -1,0 +1,19 @@
+{
+  "id": "vonk-forge/qwen3-8-flash-next-fp4-local-nvidia-vllm-dual",
+  "service_recipes": {
+    "alias": "qwen3.8-flash-next-fp4-local",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Native context canary and concurrent request throughput"
+      ],
+      "recovery": [
+        "Controller stop/start and cache reuse"
+      ]
+    }
+  }
+}
