@@ -50,3 +50,16 @@ class CleanupFleetObservation(BaseModel):
 class ReviewedCleanupStop(BaseModel):
     run_id: str
     node_ids: list[str]
+
+
+class InfrastructureIncident(BaseModel):
+    """Durable local retry history; escalation never invents a Controller ending."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    message: str = ""
+    since: float
+    count: int = 0
+    until: float = 0.0
+    dependency: str | None = None
+    escalate_at: float | None = None

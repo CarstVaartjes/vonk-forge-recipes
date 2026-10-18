@@ -178,7 +178,13 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             for k in sweep.queue
             if k in sweep.recipes and sweep.lanes_short(sweep.recipes[k])
         ),
-        "alerts": list(data.get("alerts") or []),
+        "alerts": list(data.get("alerts") or [])
+        + [
+            f"ESCALATION: {source} has not recovered since {item['since']}; "
+            f"{item['dependency']}"
+            for source, item in data["infra"].items()
+            if item.get("escalate_at") is not None and now >= item["escalate_at"]
+        ],
         "queue": [
             {
                 "recipe": k,
@@ -226,7 +232,15 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "release": data["release"].get("sha"),
         "failures_by_release": failures_by_release(data),
         "infrastructure": {
-            source: {**item, "retry_in_s": max(0, round(item["until"] - now))}
+            source: {
+                **item,
+                "retry_in_s": max(0, round(item["until"] - now)),
+                **(
+                    {"escalate_in_s": max(0, round(item["escalate_at"] - now))}
+                    if item.get("escalate_at") is not None
+                    else {}
+                ),
+            }
             for source, item in data["infra"].items()
         },
         "client": data.get("client"),
@@ -274,6 +288,11 @@ def render_status(status: Mapping[str, Any]) -> str:
         lines += ["", "## Infrastructure problems (not recipe failures; retrying)"]
         lines += [
             f"- {source} x{item['count']}, next try in {_duration(item['retry_in_s'])}: {item['message']}"
+            + (
+                f"; escalation in {_duration(item['escalate_in_s'])}: {item['dependency']}"
+                if "escalate_in_s" in item
+                else ""
+            )
             for source, item in status["infrastructure"].items()
         ]
     d = status["downloads"]
