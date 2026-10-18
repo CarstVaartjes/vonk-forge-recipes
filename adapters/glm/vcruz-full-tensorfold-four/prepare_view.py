@@ -12,6 +12,14 @@ HEAD_BYTES = 1903165544
 CONFIG_SHA = "f520ce2795fa4f38a835f84ad4d3db17983d63babb7bb16f6e23178b4612ba18"
 
 
+def sync_directory(path):
+    descriptor = os.open(path, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def digest(path):
     h = hashlib.sha256()
     with Path(path).open("rb") as stream:
@@ -52,6 +60,7 @@ def extract_head(source, output, expected_sha=HEAD_SHA, expected_size=HEAD_BYTES
         if Path(temporary).stat().st_size != expected_size or digest(temporary) != expected_sha:
             raise ValueError("derived BF16 head does not match creator's exact identity")
         os.replace(temporary, output)
+        sync_directory(output.parent)
     finally:
         Path(temporary).unlink(missing_ok=True)
 
@@ -85,7 +94,12 @@ def prepare(pack, source, cache):
         if hashlib.sha256(fixed).hexdigest() != template.FIXED_SHA:
             raise ValueError("derived chat template has an invalid identity")
         (stage / "chat_template.jinja").write_bytes(fixed)
+        for name in ("model.safetensors.index.json", "chat_template.jinja"):
+            with (stage / name).open("rb") as stream:
+                os.fsync(stream.fileno())
+        sync_directory(stage)
         os.replace(stage, view)
+        sync_directory(cache)
     finally:
         if stage.exists():
             shutil.rmtree(stage)
