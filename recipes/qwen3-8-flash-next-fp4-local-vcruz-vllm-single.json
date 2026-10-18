@@ -520,7 +520,9 @@
     ],
     "engine": "vllm",
     "entrypoint": [
-      "/opt/vonk/bin/vllm"
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
     ],
     "environment": [
       {

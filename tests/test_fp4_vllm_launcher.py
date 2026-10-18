@@ -13,7 +13,17 @@ def test_fp4_launcher_preserves_canonical_serve_command(tmp_path: Path) -> None:
     (package / "main.py").write_text(
         "import json, sys\nprint(json.dumps(sys.argv[1:]))\n"
     )
-    command = ["serve", "/models", "--served-model-name", "name with spaces"]
+    recipe = json.loads(
+        (
+            Path(__file__).resolve().parents[1]
+            / "recipes/qwen3-8-flash-next-fp4-local-vcruz-vllm-single.json"
+        ).read_text()
+    )
+    command = recipe["runtime"]["entrypoint"][1:] + [
+        "--served-model-name",
+        "name with spaces",
+    ]
+    assert command[:2] == ["serve", "/models"]
     wrapper = (
         Path(__file__).resolve().parents[1]
         / "adapters/qwen/vcruz-fp4-local-vllm-single/vllm-serve"
