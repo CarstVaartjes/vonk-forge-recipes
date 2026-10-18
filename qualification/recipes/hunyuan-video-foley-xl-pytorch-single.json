@@ -50,7 +50,7 @@
       {
         "kind": "audio-metadata",
         "media_type": "audio/wav",
-        "channels": 2,
+        "channels": 1,
         "sample_rate": 48000,
         "sample_width_bytes": 2,
         "minimum_duration_seconds": 1.0,
