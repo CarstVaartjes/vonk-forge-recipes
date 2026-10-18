@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "sfxnz interactive profile at 1747d213: exact target 82d93699, draft 7c7221ae and vLLM image cb9bc64f. 32 sequences, 262,144-token context, fixed 19 GiB KV pool, seven-token DFlash, four images per prompt and bounded image profiling dimensions. Preserves the creator’s Mamba rounding and CUTLASS linear-kernel settings. The 110 GiB peak follows the creator’s memory estimate; physical execution is unverified here.",
+    "description": "sfxnz interactive profile at 1747d213: exact target 82d93699, draft 7c7221ae and vLLM image cb9bc64f. 32 sequences, 262,144-token context, fixed 19 GiB KV pool, seven-token DFlash, four images per prompt and bounded image profiling dimensions. Preserves the creator\u2019s Mamba rounding and CUTLASS linear-kernel settings. The 110 GiB peak follows the creator\u2019s memory estimate; physical execution is unverified here. The managed profile caps GPU utilization at 0.7 to include separate-drafter overhead and the platform OS floor; this capacity adjustment has not been physically qualified.",
     "tags": [
       "nemotron",
       "vllm",
@@ -1289,7 +1289,7 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": 0.75
+        "value": "0.7"
       },
       {
         "name": "kv-cache-memory-bytes",

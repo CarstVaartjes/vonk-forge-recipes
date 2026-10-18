@@ -16,7 +16,9 @@
           "security.ubuntu.com",
           "pypi.org",
           "files.pythonhosted.org",
-          "download.pytorch.org"
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.nvidia.com"
         ]
       },
       "patches": []
