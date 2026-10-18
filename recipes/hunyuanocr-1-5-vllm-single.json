@@ -1,0 +1,349 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "6ff5ff0ddf3658d2c2d677dac5ca2d4726ce0156b4371166d918181b210bd4bc",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/ocr/hunyuanocr-1-5-vllm-single"
+      },
+      "dockerfile": "adapters/ocr/hunyuanocr-1-5-vllm-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "hunyuanocr-1-5-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "hunyuanocr-1-5-vllm-single"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "title": "HunyuanOCR 1.5 vLLM single Spark",
+    "description": "Plain autoregressive OCR serving from Tencent’s single-GPU inference/vLLM/serve.sh, with the current 47644ecc target checkpoint and digest-pinned vLLM v0.32.0 ARM64 CUDA 13 image. No speculative decoder or draft weights. Context is bounded to 32768 tokens and concurrency to four. Physical Spark acceptance is pending. Per-node peak is an estimate: 0.35 times 130,663,231,488 bytes plus 8 GB runtime/host overhead. Tencent license terms, including territorial notices, remain informational in the Model.",
+    "tags": [
+      "candidate",
+      "executable",
+      "spark",
+      "vllm",
+      "hunyuanocr",
+      "ocr",
+      "vision"
+    ]
+  },
+  "models": [
+    {
+      "id": "primary",
+      "model": {
+        "content_sha256": "bf43de13dd7d9d6c67efeb574e1620e869c1ea625e68f6a7ed79b4643e078fec",
+        "kind": "model",
+        "publisher": "tencent",
+        "slug": "hunyuanocr-1-5-47644ecc"
+      },
+      "files": [
+        {
+          "file_id": "license",
+          "id": "primary-license",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "metadata-readme",
+          "id": "primary-metadata-readme",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template",
+          "id": "primary-chat-template",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-config",
+          "id": "primary-model-config",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config",
+          "id": "primary-generation-config",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-weights",
+          "id": "primary-model-weights",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config",
+          "id": "primary-preprocessor-config",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens",
+          "id": "primary-special-tokens",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer",
+          "id": "primary-tokenizer",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config",
+          "id": "primary-tokenizer-config",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config",
+          "id": "primary-video-preprocessor-config",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "Tencent Hunyuan",
+      "vLLM contributors"
+    ],
+    "source_reference": "https://github.com/Tencent-Hunyuan/HunyuanOCR/blob/1ef4179e53cf860f7e6fd8276a292e5d05b3e927/inference/vLLM/serve.sh"
+  },
+  "release": {
+    "released_at": "2026-07-06",
+    "version": "1.5"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "hunyuanocr-1-5-vllm-single"
+      },
+      {
+        "name": "tensor-parallel-size",
+        "value": 1
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.35"
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "setting": null,
+        "value": 32768
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "limit-mm-per-prompt",
+        "setting": null,
+        "value": "{\"image\":4,\"video\":0}"
+      },
+      {
+        "name": "allowed-local-media-path",
+        "setting": null,
+        "value": "/inputs"
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 32768
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 2249662450,
+            "image_bytes": 30000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 16499324900
+          },
+          "memory": {
+            "peak_bytes": 53732131021,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 128,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Extract the text visible in this image. Return only the text."
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAwklEQVR42u3ZgQ3AIAwDQfZful2hDXacSJ8J/gQIJM6zfA4AAAAAADACzowBAAAAAAAhQOx6+oxZBtixAr820lldPw6w+xAX6gcBavVTAOV6AOn6POCyPgy4r08CJPUxgKo+AxDWBwDaegDp+laAo74PYKpvAvjqOwDWejvAXe8FNNQDSNe7AG31FkBnvR7QXC8G9NcrAZF6GSBVDyBdLwBk628B8forwIT6OmBIfREwp74CqP3m7nhKAAAAAACAffMC1aTcSObsZAAAAAAASUVORK5CYII="
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "hunyuanocr-1-5-vllm-single",
+              "temperature": 0,
+              "repetition_penalty": 1.08
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
