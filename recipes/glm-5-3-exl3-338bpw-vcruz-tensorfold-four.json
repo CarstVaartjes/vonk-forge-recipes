@@ -989,8 +989,7 @@
       "value": 32768
     },
     "kind": "generation",
-    "knobs": {},
-    "max_batch_tokens": null
+    "knobs": {}
   },
   "topology": {
     "name": "four",
