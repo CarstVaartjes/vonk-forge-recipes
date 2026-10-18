@@ -102,7 +102,7 @@ def test_review_recovery_follows_all_admission_and_adoption_checks() -> None:
     assert checked_lines.keys() == checks
     recoveries = [
         node.lineno
-        for node in ast.walk(apply)
+        for node in ast.walk(tree)
         if isinstance(node, ast.Call)
         and isinstance(node.func, ast.Attribute)
         and node.func.attr == "clear_infra"
@@ -111,4 +111,5 @@ def test_review_recovery_follows_all_admission_and_adoption_checks() -> None:
         and node.args[0].value == "review"
     ]
     assert len(recoveries) == 1
-    assert recoveries[0] > max(checked_lines.values())
+    assert apply.end_lineno is not None
+    assert max(checked_lines.values()) < recoveries[0] <= apply.end_lineno

@@ -318,13 +318,16 @@ def test_missing_cleanup_binding_keeps_one_incident_across_restart(
     assert not build_status(sweep)["alerts"]
 
 
-def test_polling_another_load_does_not_clear_cleanup_review_wait(
-    tmp_path: Path,
+@pytest.mark.parametrize("with_dependency", [False, True])
+def test_polling_another_load_does_not_clear_review_wait(
+    tmp_path: Path, with_dependency: bool
 ) -> None:
     sweep, _fleet, clock, recipe, key, original, _app = scenario(tmp_path)
     apply_healthy(sweep, clock, recipe)
     dependency = (
         f"cleanup request={key}, operation={original['effects'][1]['operation_id']}"
+        if with_dependency
+        else None
     )
     sweep.note_infra("review", "waiting for cleanup binding", dependency=dependency)
     incident = copy.deepcopy(sweep.state.data["infra"]["review"])

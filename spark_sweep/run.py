@@ -1753,9 +1753,8 @@ class Sweep:
         if not isinstance(document, dict) or not isinstance(document.get("id"), str):
             self._blind("application observation is unreadable")
             return False
-        # Polling one accepted load says nothing about another review's dependency.
-        if not self.state.data["infra"].get("review", {}).get("dependency"):
-            self.clear_infra("review")
+        # This receipt resolves submission uncertainty, never another review's wait.
+        self.clear_infra("load-submit")
         owner = self._own_load_request(document["id"])
         if owner not in (None, load["request_key"]):
             # The application is another load of ours: that load superseded this
@@ -3638,7 +3637,7 @@ class Sweep:
             submitted = self._submit_load(profile, key, "placement")
         except VonkctlError as error:
             if verdict.reply_disposition(error.reply) is Disposition.WAIT:
-                self.note_infra("review", str(error))
+                self.note_infra("load-submit", str(error))
                 # Unknown admission is resolved by request UUID before any edit or replay.
                 self.state.data["loads"][key]["state"] = "observing"
                 return
