@@ -25,6 +25,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+from vonk_forge_contracts.model import GitHubReleaseSource
 
 DEFAULT_MANIFEST = ROOT / "upstream-watch.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -57,10 +58,12 @@ class Watch:
     source_path: str
     provider: str
     repository: str
+    # Git commit for tree sources; numeric release ID for release-asset sources.
     pinned_revision: str
     pinned_version: str | None
     policy: str
     ref: str | None
+    release_source: GitHubReleaseSource | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -283,6 +286,29 @@ def discover_watches(
             source = document.get("source")
             if not isinstance(source, dict):
                 continue
+            if source.get("provider") == "github-release":
+                release_source = GitHubReleaseSource.model_validate(source)
+                policy = overrides.get(entity, {}).get("policy", "latest-release")
+                if policy not in {"latest-release", "manual"} or overrides.get(
+                    entity, {}
+                ).get("ref"):
+                    raise DriftInputError(
+                        f"release assets require latest-release or manual policy without a ref: {entity}"
+                    )
+                watches.append(
+                    Watch(
+                        entity=entity,
+                        source_path=path.relative_to(root).as_posix(),
+                        provider="github",
+                        repository=parse_source(release_source.repository).repository,
+                        pinned_revision=str(release_source.release_id),
+                        pinned_version=None,
+                        policy=policy,
+                        ref=None,
+                        release_source=release_source,
+                    )
+                )
+                continue
             repository, revision = source.get("repository"), source.get("revision")
             if not isinstance(repository, str) or not isinstance(revision, str):
                 raise DriftInputError(f"catalog source is incomplete: {path}")
@@ -421,6 +447,18 @@ def _github_commit(
 
 def _pinned_exists(client: ProviderClient, watch: Watch) -> bool:
     try:
+        if watch.release_source is not None:
+            release = client.json(
+                f"https://api.github.com/repos/{watch.repository}/releases/{watch.release_source.release_id}",
+                "github",
+            )
+            assets = release.get("assets") if isinstance(release, dict) else None
+            if not isinstance(assets, list):
+                raise RuntimeError("provider response is missing release.assets")
+            asset_ids = {asset.get("id") for asset in assets if isinstance(asset, dict)}
+            return all(
+                asset.asset_id in asset_ids for asset in watch.release_source.assets
+            )
         if watch.provider == "github":
             _github_commit(client, watch.repository, watch.pinned_revision)
         elif watch.provider == "huggingface":
@@ -459,7 +497,26 @@ def observe(watch: Watch, client: ProviderClient) -> Observation:
         )
     try:
         observed_version: str | None = None
-        if watch.provider == "github":
+        if watch.release_source is not None:
+            if not _pinned_exists(client, watch):
+                raise RemoteNotFound("pinned release or selected assets are missing")
+            release = client.json(
+                f"https://api.github.com/repos/{watch.repository}/releases/latest",
+                "github",
+            )
+            if not isinstance(release, dict):
+                raise RuntimeError("provider response is not a release object")
+            release_id = release.get("id")
+            if type(release_id) is not int or release_id <= 0:
+                raise RuntimeError("provider response is missing release.id")
+            revision = str(release_id)
+            observed_version = _required_string(release, "tag_name", "release")
+            upstream_url = _required_string(release, "html_url", "release")
+            observed_at_value = release.get("published_at")
+            observed_at = (
+                observed_at_value if isinstance(observed_at_value, str) else None
+            )
+        elif watch.provider == "github":
             if watch.policy == "latest-release":
                 release = client.json(
                     f"https://api.github.com/repos/{watch.repository}/releases/latest",
@@ -495,7 +552,7 @@ def observe(watch: Watch, client: ProviderClient) -> Observation:
                 observed_at_value if isinstance(observed_at_value, str) else None
             )
             upstream_url = f"https://huggingface.co/{watch.repository}/tree/{revision}"
-        if not SHA.fullmatch(revision):
+        if watch.release_source is None and not SHA.fullmatch(revision):
             raise RuntimeError("provider returned a non-Git revision")
         status = "current" if revision == watch.pinned_revision else "advanced"
         detail = None

@@ -316,5 +316,42 @@ class ObservationTests(unittest.TestCase):
         self.assertIn("no longer resolvable", observation.detail)
 
 
+class ReleaseAssetWatchTests(unittest.TestCase):
+    def watch(self):
+        defaults, overrides = drift.load_manifest(ROOT / "upstream-watch.json")
+        return next(
+            watch
+            for watch in drift.discover_watches(ROOT, defaults, overrides)
+            if watch.entity == "model/valeoai/naf"
+        )
+
+    def test_release_source_keeps_release_and_asset_identity(self) -> None:
+        watch = self.watch()
+        self.assertEqual(watch.pinned_revision, "264676230")
+        self.assertEqual(watch.policy, "latest-release")
+        self.assertEqual(watch.release_source.assets[0].asset_id, 320107386)
+
+    def test_release_observation_uses_ids_without_git_commit_lookups(self) -> None:
+        watch = self.watch()
+        base = "https://api.github.com/repos/valeoai/NAF/releases"
+        pinned = {"id": 264676230, "assets": [{"id": 320107386}]}
+        latest = {
+            **pinned,
+            "tag_name": "model",
+            "html_url": "https://github.com/valeoai/NAF/releases/tag/model",
+            "published_at": "2025-11-24T12:00:00Z",
+        }
+        client = FakeClient({f"{base}/264676230": pinned, f"{base}/latest": latest})
+        self.assertEqual(drift.observe(watch, client).status, "current")
+        self.assertEqual(len(client.requests), 2)
+        client.responses[f"{base}/latest"] = {**latest, "id": 264676231}
+        self.assertEqual(drift.observe(watch, client).status, "advanced")
+        # A release tag still existing cannot hide a deleted/replaced asset.
+        client.responses[f"{base}/264676230"] = {**pinned, "assets": []}
+        self.assertEqual(drift.observe(watch, client).status, "missing")
+        client.responses[f"{base}/264676230"] = drift.RemoteNotFound("deleted release")
+        self.assertEqual(drift.observe(watch, client).status, "missing")
+
+
 if __name__ == "__main__":
     unittest.main()

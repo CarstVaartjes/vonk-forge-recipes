@@ -337,6 +337,108 @@
         "publisher": "microsoft",
         "slug": "trellis-2-4b"
       }
+    },
+    {
+      "files": [
+        {
+          "file_id": "ss-dec-conv3d-16l8-fp16-646781293f1c-85f0b62954",
+          "id": "sparse-decoder-config-ss-dec-conv3d-16l8-fp16-646781293f1c-85f",
+          "mount": {
+            "target": "/models/sparse-decoder-config"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "ss-dec-conv3d-16l8-fp16-1c76d4a40519-f445c876e9",
+          "id": "sparse-decoder-weights-ss-dec-conv3d-16l8-fp16-1c76d4a40519-f44",
+          "mount": {
+            "target": "/models/sparse-decoder-weights"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "sparse-decoder",
+      "model": {
+        "content_sha256": "dbef284f6dd0faf1d52eb25a73de1270110c1a6b7fd9281a6f2e201653afaf92",
+        "kind": "model",
+        "publisher": "microsoft",
+        "slug": "trellis-sparse-decoder"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "gitattributes",
+          "id": "dino-gitattributes",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license",
+          "id": "dino-license",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme",
+          "id": "dino-readme",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config",
+          "id": "dino-config",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights",
+          "id": "dino-weights",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor",
+          "id": "dino-preprocessor",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dino",
+      "model": {
+        "content_sha256": "5ab6f36558b2f0fd1962d013609c7b5d55eb1565dc33dcb955fd1076536024da",
+        "kind": "model",
+        "publisher": "facebook",
+        "slug": "dinov3-vitl16-pretrain-lvd1689m"
+      }
     }
   ],
   "provenance": {

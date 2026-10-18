@@ -307,6 +307,98 @@
         "publisher": "tencentarc",
         "slug": "pixal3d-b0cb2e1b"
       }
+    },
+    {
+      "files": [
+        {
+          "file_id": "naf-weights",
+          "id": "naf-naf-weights",
+          "mount": {
+            "target": "/models/naf"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "naf",
+      "model": {
+        "content_sha256": "70f6700c2234dd7a4f604f12e39352de445f8b1b7b7d5a481a86f31519a6a93e",
+        "kind": "model",
+        "publisher": "valeoai",
+        "slug": "naf"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "gitattributes",
+          "id": "dino-gitattributes",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "license",
+          "id": "dino-license",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme",
+          "id": "dino-readme",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config",
+          "id": "dino-config",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights",
+          "id": "dino-weights",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor",
+          "id": "dino-preprocessor",
+          "mount": {
+            "target": "/models/dino"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dino",
+      "model": {
+        "content_sha256": "5ab6f36558b2f0fd1962d013609c7b5d55eb1565dc33dcb955fd1076536024da",
+        "kind": "model",
+        "publisher": "facebook",
+        "slug": "dinov3-vitl16-pretrain-lvd1689m"
+      }
     }
   ],
   "provenance": {
