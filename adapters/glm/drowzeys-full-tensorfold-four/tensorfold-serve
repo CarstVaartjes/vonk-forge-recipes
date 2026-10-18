@@ -10,6 +10,7 @@ checkpoint is always mounted at /models/target.
 """
 
 import os
+import re
 import sys
 from ipaddress import ip_address
 
@@ -47,5 +48,17 @@ for path in (
     os.environ["TMPDIR"],
 ):
     os.makedirs(path, exist_ok=True)
+# The creator image has a separate plain-device/GID interface for its RoCE
+# kernels. Preserve NCCL's exact Controller binding, including additional rails.
+selectors = os.environ.get("NCCL_IB_HCA", "").removeprefix("=").split(",")
+rails = [re.fullmatch(r"([A-Za-z0-9_.-]+):1", value) for value in selectors]
+gid = os.environ.get("NCCL_IB_GID_INDEX", "")
+if any(rail is None for rail in rails) or not (gid.isascii() and gid.isdigit() and 0 <= int(gid) <= 255):
+    fail("the pinned kernel needs Controller-selected port-1 RoCE rails and a valid GID")
+names = [rail.group(1) for rail in rails]
+if len(names) != len(set(names)):
+    fail("Controller fabric rails must be distinct")
+os.environ["TF_GLM53_ROCE_HCA"] = ",".join(names)
+os.environ["TF_GLM53_ROCE_GIDS"] = ",".join([gid] * len(names))
 arguments = resolve(sys.argv[1:])
 os.execvp(sys.executable, [sys.executable, "-m", "tensorfold.cli", "serve", "/models/target", *arguments])

@@ -79,3 +79,46 @@ def test_pinned_kernel_consumes_b12x_device_and_leaves_nccl_selector(
     assert os.environ["NCCL_IB_HCA"] == selector
     with pytest.raises(ValueError, match="binding site changed"):
         load("patch_fabric").patch(tmp_path)
+
+
+@pytest.mark.parametrize("selector", ["=rocep1s0f1:1", "=rocep1s0f1:1,roceP2p1s0f1:1"])
+def test_drowzeys_launcher_translates_all_authorized_rails(
+    tmp_path, monkeypatch, selector
+):
+    import runpy
+    import sys
+
+    for name in ("HOME", "TORCH_EXTENSIONS_DIR", "TRITON_CACHE_DIR", "TMPDIR"):
+        monkeypatch.setenv(name, str(tmp_path / name))
+    monkeypatch.setenv("NCCL_IB_HCA", selector)
+    monkeypatch.setenv("NCCL_IB_GID_INDEX", "3")
+    monkeypatch.setenv("VONK_MASTER_ADDR", "192.0.2.1")
+    monkeypatch.setenv("VONK_MASTER_PORT", "29500")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "launcher",
+            "--master",
+            "VONK_MASTER_ADDR",
+            "--master-port",
+            "VONK_MASTER_PORT",
+        ],
+    )
+    calls = []
+    monkeypatch.setattr(os, "execvp", lambda executable, argv: calls.append(argv))
+    runpy.run_path(
+        str(ROOT / "adapters/glm/drowzeys-full-tensorfold-four/tensorfold-serve"),
+        run_name="__main__",
+    )
+    assert os.environ["NCCL_IB_HCA"] == selector
+    assert os.environ["TF_GLM53_ROCE_HCA"] == (
+        "rocep1s0f1,roceP2p1s0f1" if "," in selector else "rocep1s0f1"
+    )
+    assert os.environ["TF_GLM53_ROCE_GIDS"] == ("3,3" if "," in selector else "3")
+    assert calls and calls[0][-4:] == [
+        "--master",
+        "192.0.2.1",
+        "--master-port",
+        "29500",
+    ]
