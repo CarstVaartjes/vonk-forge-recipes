@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/nemotron-3-5-bolt-lilicorr-vcruz-vllm-single",
+  "service_recipes": {
+    "alias": "nemotron-bolt",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Native context canary and concurrent request throughput"
+      ],
+      "recovery": [
+        "Controller stop/start and cache reuse"
+      ]
+    }
+  }
+}

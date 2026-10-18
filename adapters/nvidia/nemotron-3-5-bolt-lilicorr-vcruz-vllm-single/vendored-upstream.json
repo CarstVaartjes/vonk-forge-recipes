@@ -1,0 +1,29 @@
+{
+  "source": {
+    "repo": "vcruz305/Nemotron-3.5-Bolt-74B-A9B-24GB-vLLM-recipe",
+    "commit": "2fe482f67d5fb8859acac8d22b6670ef453b28a9"
+  },
+  "kit": {
+    "dependencies": {
+      "target": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "README.md",
+        "pattern": "^- Target:.*revision `(?P<version>[0-9a-f]{40})`",
+        "repo_pattern": "^- Target: `(?P<repo>[^`]+)`"
+      },
+      "draft": {
+        "datasource": "hf-revision",
+        "binds": "drafter",
+        "file": "README.md",
+        "pattern": "^- Draft .*revision `(?P<version>[0-9a-f]{40})`",
+        "repo_pattern": "^- Draft .*https://huggingface.co/(?P<repo>[^)]+)"
+      }
+    }
+  },
+  "ours": [
+    "requirements.lock",
+    "vllm-wrapper"
+  ],
+  "renamed": {}
+}
