@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (sglang) for DeepSeek-V2-Lite: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
+    "description": "NVIDIA's single-Spark SGLang launch with DeepSeek's documented Chat SFT checkpoint for chat completion. Uses the checkpoint's bundled chat template and EOS configuration instead of serving base weights as chat. The ARM64 image and launch flags follow the pinned playbook. Resource envelopes are estimates, not measurements; physical Spark termination verification is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -44,7 +44,7 @@
       "deepseek",
       "moe"
     ],
-    "title": "DeepSeek-V2-Lite SGLang single Spark (NVIDIA playbook)"
+    "title": "DeepSeek-V2-Lite Chat SGLang single Spark (NVIDIA playbook)"
   },
   "models": [
     {
@@ -70,8 +70,8 @@
           ]
         },
         {
-          "file_id": "readme-702a8e859e90-b335630551",
-          "id": "readme-702a8e859e90-b335630551",
+          "file_id": "readme-08cb188f66c8-b335630551",
+          "id": "readme-08cb188f66c8-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -110,8 +110,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-000004-0d7e9f39bde4-b19332e52a",
-          "id": "model-00001-of-000004-0d7e9f39bde4-b19332e52a",
+          "file_id": "model-00001-of-000004-a314b79a3081-b19332e52a",
+          "id": "model-00001-of-000004-a314b79a3081-b19332e52a",
           "mount": {
             "target": "/models"
           },
@@ -120,8 +120,8 @@
           ]
         },
         {
-          "file_id": "model-00002-of-000004-e0656832b0d5-7182f911b9",
-          "id": "model-00002-of-000004-e0656832b0d5-7182f911b9",
+          "file_id": "model-00002-of-000004-b0bd088feada-7182f911b9",
+          "id": "model-00002-of-000004-b0bd088feada-7182f911b9",
           "mount": {
             "target": "/models"
           },
@@ -130,8 +130,8 @@
           ]
         },
         {
-          "file_id": "model-00003-of-000004-843ec689624f-c75b635dba",
-          "id": "model-00003-of-000004-843ec689624f-c75b635dba",
+          "file_id": "model-00003-of-000004-d31b192e488f-c75b635dba",
+          "id": "model-00003-of-000004-d31b192e488f-c75b635dba",
           "mount": {
             "target": "/models"
           },
@@ -140,8 +140,8 @@
           ]
         },
         {
-          "file_id": "model-00004-of-000004-cfb51658f67c-a01ed6451e",
-          "id": "model-00004-of-000004-cfb51658f67c-a01ed6451e",
+          "file_id": "model-00004-of-000004-304499be0ea0-a01ed6451e",
+          "id": "model-00004-of-000004-304499be0ea0-a01ed6451e",
           "mount": {
             "target": "/models"
           },
@@ -202,10 +202,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "2a28b012eb6384b8b6d66c6d1db128c6a073f74228fa08b71870e02b5a269911",
+        "content_sha256": "c09c9230b8ab97746c75cae96bb3c2b09516773b68eadcaf64ebf70545237945",
         "kind": "model",
         "publisher": "deepseek-ai",
-        "slug": "deepseek-v2-lite-base-604d5664"
+        "slug": "deepseek-v2-lite-chat-85864749"
       }
     }
   ],
@@ -303,7 +303,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 31418838087,
+            "artifact_bytes": 31418838089,
             "image_bytes": 35000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 16000000000
