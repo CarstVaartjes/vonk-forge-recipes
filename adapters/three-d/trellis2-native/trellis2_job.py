@@ -54,10 +54,10 @@ def local_model_root(target: Path, decoder_config: Path, decoder_weights: Path) 
     decoder = root / "companion" / "ss_dec_conv3d_16l8_fp16"
     decoder.parent.mkdir(parents=True)
     decoder.with_suffix(".json").symlink_to(
-        decoder_config / "ss_dec_conv3d_16l8_fp16.json"
+        decoder_config / "ckpts" / "ss_dec_conv3d_16l8_fp16.json"
     )
     decoder.with_suffix(".safetensors").symlink_to(
-        decoder_weights / "ss_dec_conv3d_16l8_fp16.safetensors"
+        decoder_weights / "ckpts" / "ss_dec_conv3d_16l8_fp16.safetensors"
     )
     config = json.loads((target / "pipeline.json").read_text())
     config["args"]["models"]["sparse_structure_decoder"] = str(decoder)
