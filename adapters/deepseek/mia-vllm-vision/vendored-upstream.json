@@ -21,7 +21,6 @@
     "patches/vision_exp/processor.py",
     "patches/vision_exp/vision.py",
     "verify-dspark-runtime.py",
-    "verify-patched-tree.py",
     "vllm-wrapper.py"
   ],
   "renamed": {

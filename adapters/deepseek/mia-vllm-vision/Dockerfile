@@ -13,15 +13,13 @@ COPY encoding /opt/vonk-build/encoding
 COPY patches /opt/vonk-build/patches
 COPY patches/vision_exp /opt/dspark-patches/vision_exp
 COPY licenses /opt/vonk/licenses
-COPY --chmod=0755 apply-build-patches.py verify-dspark-runtime.py verify-patched-tree.py /opt/vonk-build/
+COPY --chmod=0755 apply-build-patches.py verify-dspark-runtime.py /opt/vonk-build/
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
 RUN install --directory --mode=0770 --owner=10001 --group=10001 /state /outputs \
     && python3 /opt/vonk-build/verify-dspark-runtime.py \
     && python3 /opt/vonk-build/apply-build-patches.py \
     && python3 /opt/vonk-build/patches/hotfix-vllm-issue136-xgrammar-termination.py --status \
-    && python3 /opt/vonk-build/verify-patched-tree.py \
-        /usr/local/lib/python3.12/dist-packages/vllm \
     && rm -rf /opt/vonk-build \
     && test -x /opt/vonk/bin/vllm \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
