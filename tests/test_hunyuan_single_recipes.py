@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import json
 import tempfile
 import types
@@ -158,6 +159,32 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(SystemExit, "one supported video"):
                 foley._one_video(root)
+
+    def test_foley_qualification_accepts_native_mono_and_rejects_stereo(self) -> None:
+        from qualification.definitions_loader import load_definitions
+        from spark_sweep.job_assertions import Output, evaluate
+        from spark_sweep.smoke import AssertionFailed
+
+        # Pinned upstream DAC Decoder(d_out=1); infer.py saves it unchanged.
+        definitions = load_definitions()["recipes"]
+        for channels in (1, 2):
+            content = io.BytesIO()
+            with wave.open(content, "wb") as audio:
+                audio.setnchannels(channels)
+                audio.setsampwidth(2)
+                audio.setframerate(48000)
+                audio.writeframes(b"\x01\x00" * 48000 * channels)
+            output = Output("output.wav", "audio/wav", content.getvalue())
+            for size in ("xl", "xxl"):
+                with self.subTest(size=size, channels=channels):
+                    assertions = definitions[
+                        f"vonk-forge/hunyuan-video-foley-{size}-pytorch-single"
+                    ]["assertions"]
+                    if channels == 1:
+                        self.assertEqual(evaluate(assertions, [output]), {})
+                    else:
+                        with self.assertRaises(AssertionFailed):
+                            evaluate(assertions, [output])
 
     def test_foley_validates_invalid_wav_and_timeout_before_atomic_publish(
         self,
