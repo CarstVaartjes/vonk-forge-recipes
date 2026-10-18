@@ -101,7 +101,7 @@ def main() -> None:
     os.environ.setdefault("SPARSE_ATTN_BACKEND", "sdpa")
     os.environ.setdefault("SPARSE_CONV_BACKEND", "flex_gemm")
     os.environ.setdefault(
-        "FLEX_GEMM_AUTOTUNE_CACHE_PATH", "/opt/vonk/flexgemm-source/autotune_cache.json"
+        "FLEX_GEMM_AUTOTUNE_CACHE_PATH", "/tmp/flexgemm-autotune-cache.json"
     )
     os.environ.setdefault("FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE", "0")
 

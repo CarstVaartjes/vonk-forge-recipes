@@ -341,7 +341,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
         self.assertIn("np.random.seed(args.seed)", source)
         self.assertIn("sample_surface(loaded, 81920, seed=seed)", source)
 
-    def test_pixal_validates_input_before_model_load_and_disables_cache_writes(
+    def test_pixal_validates_input_before_model_load_and_uses_writable_cache(
         self,
     ) -> None:
         source = (ROOT / "adapters/three-d/trellis2-native/pixal3d_job.py").read_text()
@@ -351,7 +351,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
             source.index("    import torch"),
         )
         self.assertIn(
-            'FLEX_GEMM_AUTOTUNE_CACHE_PATH="/opt/vonk/flexgemm-source/autotune_cache.json"',
+            'FLEX_GEMM_AUTOTUNE_CACHE_PATH="/tmp/flexgemm-autotune-cache.json"',
             dockerfile,
         )
         self.assertIn('FLEX_GEMM_AUTOSAVE_AUTOTUNE_CACHE="0"', dockerfile)
