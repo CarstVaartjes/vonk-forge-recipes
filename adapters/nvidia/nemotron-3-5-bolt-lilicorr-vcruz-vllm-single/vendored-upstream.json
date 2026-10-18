@@ -23,7 +23,8 @@
   },
   "ours": [
     "requirements.lock",
-    "vllm-wrapper"
+    "vllm-wrapper",
+    "kernel-shim.lock"
   ],
   "renamed": {}
 }
