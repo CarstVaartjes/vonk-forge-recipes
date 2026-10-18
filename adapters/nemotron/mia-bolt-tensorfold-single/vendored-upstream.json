@@ -1,0 +1,38 @@
+{
+  "source": {
+    "repo": "MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark",
+    "commit": "6f61d7727ae3fac010f30e240799cc884d295f6e"
+  },
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/config.sh",
+        "pattern": "^TF_REF=\"\\$\\{TF_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^GHCR_IMAGE=\"\\$\\{GHCR_IMAGE:-(?P<repo>[^}\"]+)\\}\"",
+        "override": {
+          "ref": "zig-46a08c1-5e11cf1ed295",
+          "reason": "image_ref derives this published tag from the exact engine revision plus image_hash over kit patches, native engine sources, Dockerfile and toolchain settings; matching tf.gate=bolt and tf.patches labels verified."
+        }
+      },
+      "model": {
+        "datasource": "hf-revision",
+        "binds": "primary",
+        "file": "scripts/config.sh",
+        "pattern": "^MODEL_REVISION=\"\\$\\{MODEL_REVISION:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^MODEL_ID=\"\\$\\{MODEL_ID:-(?P<repo>[^}\"]+)\\}\""
+      },
+      "drafter": {
+        "datasource": "hf-revision",
+        "binds": "drafter",
+        "file": "scripts/config.sh",
+        "pattern": "^DRAFT_REVISION=\"\\$\\{DRAFT_REVISION:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^DRAFT_ID=\"\\$\\{DRAFT_ID:-(?P<repo>[^}\"]+)\\}\""
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve"
+  ]
+}

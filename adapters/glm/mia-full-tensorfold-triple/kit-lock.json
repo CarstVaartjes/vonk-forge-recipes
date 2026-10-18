@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "b374b95663447ea0e935151be4f3d6666e36e6d7",
+      "repo": "RedHatAI/GLM-5.3-speculator.dspark",
+      "revision": "b374b95663447ea0e935151be4f3d6666e36e6d7"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:1adb1f950a9bc44a633a62544ffa64deac7f099765f8cf8bfa2f40074694449c",
+      "kind": "digest",
+      "ref": "sha256:1adb1f950a9bc44a633a62544ffa64deac7f099765f8cf8bfa2f40074694449c",
+      "repo": "ghcr.io/miaai-lab/glm-5.3-exl3-3x-dgx-sparks-tensorfold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "2d747d0e30eca6e3fe37ba63c471cdf9172faa83",
+      "repo": "Mia-AiLab/GLM-5.3-EXL3-2.75bpw-TensorFold",
+      "revision": "2d747d0e30eca6e3fe37ba63c471cdf9172faa83"
+    }
+  },
+  "kit": {
+    "commit": "eb6414b488c3bc58605cad3dc96391c7584d6bec",
+    "repo": "MiaAI-Lab/GLM-5.3-EXL3-3x-DGX-Sparks-TensorFold"
+  }
+}

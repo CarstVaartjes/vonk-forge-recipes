@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "base": {
+      "commit": "19f5478ba778531ffb9a1ebb9c1ca7e06b8ceacb",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "19f5478ba778531ffb9a1ebb9c1ca7e06b8ceacb",
+      "repo": "sfxnz/TensorFold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "982b70452f399814f56b46272fd30394ae10d58c",
+      "repo": "sfxnz/DeepSeek-V4.1-Flash-EXL3",
+      "revision": "982b70452f399814f56b46272fd30394ae10d58c"
+    }
+  },
+  "kit": {
+    "commit": "f7a2ad22db3a3ba20ecc109953e205e31d02364d",
+    "repo": "sfxnz/DeepSeek-V4.1-Flash-EXL3-TensorFold-2x-DGX-Spark"
+  }
+}

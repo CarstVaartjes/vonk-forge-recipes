@@ -1,0 +1,24 @@
+{
+  "source": {
+    "repo": "MiaAI-Lab/Qwen3.8-27B-DGX-Spark-TensorFold",
+    "commit": "c11ff138871cf43d12898d79dbfa4dc952d17ca4"
+  },
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/config.sh",
+        "pattern": "^TF_VERSION=\"\\$\\{TF_VERSION:-(?P<version>[^}\"]+)\\}\"",
+        "repo_pattern": "^GHCR_IMAGE=\"\\$\\{GHCR_IMAGE:-(?P<repo>[^}\"]+)\\}\"",
+        "override": {
+          "ref": "v0.6.0-fb91a0019fdc",
+          "reason": "prepare.sh derives the published tag by appending the SHA-256 prefix of all patches to TF_VERSION; these exact kit patches hash to fb91a0019fdc."
+        }
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve"
+  ]
+}
