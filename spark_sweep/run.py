@@ -2670,8 +2670,21 @@ class Sweep:
         return out
 
     def _bins(self) -> list[policy.SparkBin]:
+        by_revision = {r.revision_id: r for r in self.recipes.values() if r.revision_id}
         bins: dict[str, policy.SparkBin] = {
-            s.id: policy.SparkBin(s.id, s.name, s.memory_total) for s in self.sparks()
+            s.id: policy.SparkBin(
+                s.id,
+                s.name,
+                s.memory_total,
+                model_digests=frozenset(
+                    digest
+                    for revision in s.installed_revisions
+                    if revision in by_revision and by_revision[revision].node_count == 1
+                    for digest in by_revision[revision].model_digests
+                ),
+                installed_revisions=s.installed_revisions,
+            )
+            for s in self.sparks()
         }
         for key, slot in self.state.slots.items():
             if slot["phase"] == "finished":

@@ -62,6 +62,16 @@ window (several cached duals back to back) rather than interleaved with
 singles. Each single recipe owns one Spark; dual recipes are scheduled only when
 both Sparks are free.
 
+Single placement prefers a free Spark holding every model digest, then the exact
+installed recipe revision (and its built runtime), then the usual usage/id order.
+These hints join the existing fleet `installed` rows to the current recipe
+catalog; incomplete, unknown and multi-node installations provide no model hint.
+The fleet does not expose model-store or image digests, so shared base images
+are not treated as proof of a shared runtime. The first fitting queued recipe
+always places immediately. Later variants may yield once within the placement
+call so the other Spark can take its next model or download; a fallback pass
+fills any remaining lane. No affinity reservation survives the call.
+
 In-flight applications are persisted in a `loads` map keyed by request UUID.
 Old state files with one `load` are adopted without changing that UUID. Admission
 and progress replies in `observing` or `backoff` keep being polled. Operator waits,

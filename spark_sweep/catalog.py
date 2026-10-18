@@ -279,6 +279,8 @@ class Spark:
     # The Controller's own words when it is not online: evidence for the lane's wait.
     offline_reason: str = ""
     last_seen_at: str = ""
+    # Only complete single-node installs supply whole-recipe local-asset hints.
+    installed_revisions: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)
@@ -332,6 +334,15 @@ def parse_fleet(document: Any, default_memory: int) -> Fleet:
                     or "unknown"
                 ),
                 last_seen_at=str(connection.get("last_seen_at") or ""),
+                installed_revisions=frozenset(
+                    revision
+                    for item in node.get("installed") or []
+                    if isinstance(item, dict)
+                    and item.get("complete") is True
+                    and item.get("expected_rank_count") == 1
+                    and isinstance(revision := item.get("recipe_revision_id"), str)
+                    and revision
+                ),
             )
         )
         for item in dig(node, "loaded", default=[]):

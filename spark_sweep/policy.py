@@ -235,6 +235,12 @@ class SparkBin:
     used: int = 0
     ports: frozenset[int] = frozenset()
     aliases: frozenset[str] = frozenset()
+    model_digests: frozenset[str] = frozenset()
+    # An exact installed revision hints at runtime reuse; base images do not.
+    installed_revisions: frozenset[str] = frozenset()
+
+    def holds_models(self, recipe: Recipe) -> bool:
+        return bool(recipe.model_set) and recipe.model_set <= self.model_digests
 
 
 @dataclass(frozen=True)
@@ -270,29 +276,46 @@ def place_singles(
 
     Memory fit is advisory; the Controller's review remains authoritative.
     A busy Spark never takes a second recipe, even with spare declared memory.
+    The first fitting recipe never waits for locality. Later variants may yield
+    once within this call, then a fallback pass fills any remaining free Spark.
     """
     # A queue window containing only duals or oversized singles must not hide
     # a ready single that fits the free Spark farther down the queue.
     singles = [recipe for recipe in candidates if recipe.node_count == 1]
     state = {b.id: b for b in bins}
     placed: list[Placement] = []
-    for recipe in singles:
-        if recipe.node_count != 1:
-            continue
-        alias = alias_of(recipe)
-        options = [b for b in state.values() if _fits(recipe, b, reserve, alias)]
-        if not options:
-            continue
-        spark = min(options, key=lambda b: (b.used, b.id))
-        state[spark.id] = SparkBin(
-            spark.id,
-            spark.name,
-            spark.capacity,
-            spark.used + recipe.memory_bytes,
-            spark.ports | frozenset(recipe.ports),
-            spark.aliases | {alias},
-        )
-        placed.append(Placement(recipe, (spark.id,)))
+    claimed: set[str] = set()
+    for locality_pass in (True, False):
+        for recipe in singles:
+            if recipe.key in claimed:
+                continue
+            alias = alias_of(recipe)
+            options = [b for b in state.values() if _fits(recipe, b, reserve, alias)]
+            if not options:
+                continue
+
+            if (
+                locality_pass
+                and placed
+                and not any(b.holds_models(recipe) for b in options)
+                and any(
+                    b.holds_models(recipe) and _fits(recipe, b, reserve, alias)
+                    for b in bins
+                )
+            ):
+                continue  # its owner was assigned this round; offer the other lane later work
+            spark = min(
+                options,
+                key=lambda b: (
+                    not b.holds_models(recipe),
+                    recipe.revision_id not in b.installed_revisions,
+                    b.used,
+                    b.id,
+                ),
+            )
+            del state[spark.id]  # one owner, including recipes with unknown/zero memory
+            claimed.add(recipe.key)
+            placed.append(Placement(recipe, (spark.id,)))
     placed.sort(key=lambda p: candidates.index(p.recipe))
     return placed
 
