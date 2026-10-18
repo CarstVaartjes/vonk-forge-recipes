@@ -112,3 +112,53 @@ def test_image_patches_both_offline_pipelines() -> None:
     ].split("&&", 1)[0]
     assert "/opt/vonk/trellis2-source/trellis2" in command
     assert "/opt/vonk/pixal3d-source/pixal3d" in command
+
+
+def test_trellis_decoder_uses_manifest_relative_paths(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Stage real recipe selectors with the agent's selection/path layout."""
+    import shutil
+
+    monkeypatch.syspath_prepend(str(ADAPTER))
+    adapter = runpy.run_path(str(ADAPTER / "trellis2_job.py"))
+    recipe = json.loads((ROOT / "recipes/trellis-2-4b-pytorch-single.json").read_text())
+    target = tmp_path / "target"
+    target.mkdir()
+    (target / "pipeline.json").write_text(
+        json.dumps({"args": {"models": {}, "image_cond_model": {"args": {}}}})
+    )
+    mounts: dict[str, Path] = {}
+    for selection in recipe["models"]:
+        if not selection["id"].startswith("sparse-decoder"):
+            continue
+        model = json.loads(
+            (ROOT / "models" / f"{selection['model']['slug']}.json").read_text()
+        )
+        files = {item["id"]: item for item in model["files"]}
+        for item in selection["files"]:
+            mount_id = Path(item["mount"]["target"]).name
+            mount = tmp_path / mount_id
+            mounts[mount_id] = mount
+            staged = mount / files[item["file_id"]]["path"]
+            staged.parent.mkdir(parents=True, exist_ok=True)
+            staged.write_bytes(b"decoder fixture")
+    assert set(mounts) == {"sparse-decoder-config", "sparse-decoder-weights"}
+    local = adapter["local_model_root"](
+        target, mounts["sparse-decoder-config"], mounts["sparse-decoder-weights"]
+    )
+    try:
+        config = json.loads((local / "pipeline.json").read_text())
+        decoder = config["args"]["models"]["sparse_structure_decoder"]
+        for suffix in (".json", ".safetensors"):
+            assert Path(decoder + suffix).read_bytes() == b"decoder fixture"
+        # Removing a declared companion exposes a missing local file immediately.
+        weights = (
+            mounts["sparse-decoder-weights"]
+            / "ckpts/ss_dec_conv3d_16l8_fp16.safetensors"
+        )
+        weights.unlink()
+        with pytest.raises(FileNotFoundError):
+            Path(decoder + ".safetensors").read_bytes()
+    finally:
+        shutil.rmtree(local)
