@@ -80,6 +80,22 @@ def link_models(document: dict[str, Any], model_root: Path) -> None:
         source = MODEL_MOUNT_ROOT / artifact_id
         if not source.exists():
             raise FileNotFoundError(f"required model artifact is missing: {source}")
+        # Selected artifacts may mount a snapshot directory preserving the
+        # upstream path, rather than a file at the mount root. ComfyUI must see
+        # the checkpoint itself under the workflow's exact basename.
+        if source.is_dir():
+            # The workflow may alias the selected checkpoint's basename (for
+            # example the FP4 Flux variant); its mount still holds one file.
+            matches = [
+                path for path in source.rglob(f"*{Path(filename).suffix}")
+                if path.is_file()
+            ]
+            if len(matches) != 1:
+                raise ValueError(
+                    f"model artifact {artifact_id} must contain exactly one "
+                    f"{filename}; found {len(matches)}"
+                )
+            source = matches[0]
         (model_root / category / filename).symlink_to(source)
     for snapshot in document.get("diffusers_snapshots", []):
         artifact_id = snapshot["artifact_id"]
@@ -293,8 +309,20 @@ def request_json(path: str, *, body: dict[str, Any] | None = None) -> Any:
         headers={"Content-Type": "application/json"} if payload is not None else {},
         method="POST" if payload is not None else "GET",
     )
-    with urlopen(request, timeout=10) as response:
-        return json.load(response)
+    try:
+        with urlopen(request, timeout=10) as response:
+            return json.load(response)
+    except HTTPError as error:
+        # Preserve HTTPError for startup retry handling, and include the local
+        # server's node_errors in the uncaught traceback collected as evidence.
+        maximum = 64 * 1024
+        with error:
+            payload = error.read(maximum + 1)
+        detail = payload[:maximum].decode("utf-8", errors="replace")
+        if len(payload) > maximum:
+            detail += " [response body truncated]"
+        error.add_note(f"ComfyUI {path} HTTP {error.code} response body: {detail}")
+        raise
 
 
 def wait_for_server(process: subprocess.Popen[bytes], timeout: int = 180) -> None:
