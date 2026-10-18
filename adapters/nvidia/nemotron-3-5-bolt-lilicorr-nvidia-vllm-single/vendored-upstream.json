@@ -1,0 +1,17 @@
+{
+  "kit": {
+    "whole": false,
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "models/nvidia/nemotron-3.5-bolt-74b-a9b/dgx-spark/linux/vllm/iq2/performance.yaml",
+        "pattern": "^  runtime_revision: (?P<version>sha256:[0-9a-f]{64})$",
+        "repo": "eugr/spark-vllm"
+      }
+    }
+  },
+  "ours": [
+    "vllm-wrapper",
+    "LICENSE"
+  ]
+}

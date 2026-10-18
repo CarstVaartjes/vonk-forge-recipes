@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "base": {
+      "commit": "56e2e3ec55bc0ae1d7d5158c4fa2c79a3567ab21",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "56e2e3ec55bc0ae1d7d5158c4fa2c79a3567ab21",
+      "repo": "ashhart/TensorFold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "2b170fa6309d5d1ee380b35636075fac7945f286",
+      "repo": "TensorFold/Qwen3.8-Flash-Next-MLX-4bit-MTP",
+      "revision": "2b170fa6309d5d1ee380b35636075fac7945f286"
+    }
+  },
+  "kit": {
+    "commit": "9d9fe19e80ac1f978821431ffd7635592f8b4c61",
+    "repo": "sfxnz/Qwen3.8-Flash-Next-TensorFold-2x-DGX-Spark"
+  }
+}

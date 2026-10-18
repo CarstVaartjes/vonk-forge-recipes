@@ -1,0 +1,586 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "repository": "nvcr.io/nvidia/cuda",
+        "digest": "5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6"
+      },
+      "context": {
+        "path": "adapters/minicpm/vcruz305-exl3-single"
+      },
+      "dockerfile": "adapters/minicpm/vcruz305-exl3-single/Dockerfile",
+      "network": {
+        "hosts": [
+          "ports.ubuntu.com",
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "pypi.org",
+          "files.pythonhosted.org",
+          "download.pytorch.org",
+          "download-r2.pytorch.org",
+          "pypi.nvidia.com"
+        ]
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minicpm-v-4-7-exl3-vcruz305-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "MiniCPM-V-4.7"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "standard",
+    "description": "Native MiniCPM vision through vcruz305\u2019s ExLlamaV3 and TabbyAPI forks, pinned to 475461e9 and 880e6b8b. Defaults to the creator\u2019s 4,096-token vision profile with FP16 KV and plain decoding. Optional long-text profile uses 262,144 tokens with Q4 KV. Exact creator checkpoint, immutable CUDA 13.0 image and hash-locked Torch 2.14.0 cu130 dependencies. The memory envelope is a conservative estimate; container and physical model acceptance remain separate.",
+    "tags": [
+      "minicpm",
+      "exl3",
+      "exllamav3",
+      "spark",
+      "reasoning",
+      "tool-use",
+      "vision"
+    ],
+    "title": "MiniCPM-V 4.7 EXL3 SAGE 3.74bpw TabbyAPI (vcruz305)"
+  },
+  "models": [
+    {
+      "id": "primary",
+      "model": {
+        "kind": "model",
+        "publisher": "vcruz305",
+        "slug": "minicpm-v-4-7-exl3-sage-374bpw-855cb760",
+        "content_sha256": "e2f77b0198322847864fe5bfb272665e82b9c1587db25056803a057dc7d74539"
+      },
+      "files": [
+        {
+          "id": "metadata-a1904d0f816e-618cd5b83d",
+          "file_id": "metadata-a1904d0f816e-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "readme-067e1646de9c-b335630551",
+          "file_id": "readme-067e1646de9c-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "chat-template-c4531cacbf2a-00824420d1",
+          "file_id": "chat-template-c4531cacbf2a-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "config-d03d3a9c01c0-587cb980af",
+          "file_id": "config-d03d3a9c01c0-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "metadata-ee05350c7fda-fadf393ed9",
+          "file_id": "metadata-ee05350c7fda-fadf393ed9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "config-a603178db396-f7f5952300",
+          "file_id": "config-a603178db396-f7f5952300",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-211eda7b9627-a8959758be",
+          "file_id": "model-211eda7b9627-a8959758be",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "generation-config-7fa47217744f-97dd3d578b",
+          "file_id": "generation-config-7fa47217744f-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00001-of-00019-a0611a82883e-67bc88b062",
+          "file_id": "model-00001-of-00019-a0611a82883e-67bc88b062",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00002-of-00019-c2f3e2b73198-1628043128",
+          "file_id": "model-00002-of-00019-c2f3e2b73198-1628043128",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00003-of-00019-0faee370d5d9-da1dd565d0",
+          "file_id": "model-00003-of-00019-0faee370d5d9-da1dd565d0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00004-of-00019-51b1a9373ef9-bc14b316bc",
+          "file_id": "model-00004-of-00019-51b1a9373ef9-bc14b316bc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00005-of-00019-a89ed91c44d1-2990462eda",
+          "file_id": "model-00005-of-00019-a89ed91c44d1-2990462eda",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00006-of-00019-1fabc7595e90-c69edde0f6",
+          "file_id": "model-00006-of-00019-1fabc7595e90-c69edde0f6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00007-of-00019-6a892fd28c67-2c2659bc47",
+          "file_id": "model-00007-of-00019-6a892fd28c67-2c2659bc47",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00008-of-00019-7c5179d4dc94-16067996ea",
+          "file_id": "model-00008-of-00019-7c5179d4dc94-16067996ea",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00009-of-00019-1a83b0fd97c5-0ee503f88f",
+          "file_id": "model-00009-of-00019-1a83b0fd97c5-0ee503f88f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00010-of-00019-9ebfedf52575-ca06978110",
+          "file_id": "model-00010-of-00019-9ebfedf52575-ca06978110",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00011-of-00019-4110b19a9d64-5ea3ed1695",
+          "file_id": "model-00011-of-00019-4110b19a9d64-5ea3ed1695",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00012-of-00019-ab09e691608c-477617cccc",
+          "file_id": "model-00012-of-00019-ab09e691608c-477617cccc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00013-of-00019-b76cc568b614-a95419bf0c",
+          "file_id": "model-00013-of-00019-b76cc568b614-a95419bf0c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00014-of-00019-2313885e9742-af37a910d9",
+          "file_id": "model-00014-of-00019-2313885e9742-af37a910d9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00015-of-00019-9ccbdee91b67-345acd2e3f",
+          "file_id": "model-00015-of-00019-9ccbdee91b67-345acd2e3f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00016-of-00019-72fe769c8994-1bc12be135",
+          "file_id": "model-00016-of-00019-72fe769c8994-1bc12be135",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00017-of-00019-c90834c087fe-7bc572c26d",
+          "file_id": "model-00017-of-00019-c90834c087fe-7bc572c26d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00018-of-00019-2f8022cab2b0-3334ec36af",
+          "file_id": "model-00018-of-00019-2f8022cab2b0-3334ec36af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-00019-of-00019-3395b9ed1345-61032447d8",
+          "file_id": "model-00019-of-00019-3395b9ed1345-61032447d8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "model-safetensors-index-0c4497bfb067-0a05be8238",
+          "file_id": "model-safetensors-index-0c4497bfb067-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "preprocessor-config-c64289d04f36-36afccab5d",
+          "file_id": "preprocessor-config-c64289d04f36-36afccab5d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "processor-config-44136fa355b3-27f0cb76af",
+          "file_id": "processor-config-44136fa355b3-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "tokenizer-e4608c5d7b3f-224931eb13",
+          "file_id": "tokenizer-e4608c5d7b3f-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "id": "tokenizer-config-03c8faa31145-94d5c6ba8f",
+          "file_id": "tokenizer-config-03c8faa31145-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "source_reference": "https://github.com/vcruz305/MiniCPM-V-4.7-35B-A3B-EXL3-DGX-Spark-recipe/tree/7d0bff70e089ad78f57764fe44889a033b18a948",
+    "attribution": [
+      "OpenBMB",
+      "vcruz305",
+      "turboderp (ExLlamaV3)"
+    ]
+  },
+  "release": {
+    "version": "1.0.0",
+    "released_at": "2026-10-18"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "host",
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "value": 8000
+      },
+      {
+        "name": "max-seq-len",
+        "setting": "context_tokens"
+      },
+      {
+        "name": "max-batch-size",
+        "setting": "concurrency"
+      },
+      {
+        "name": "profile",
+        "value": "vision"
+      }
+    ],
+    "engine": "exllamav3",
+    "entrypoint": [
+      "/opt/vonk/bin/exllamav3-serve"
+    ],
+    "environment": [],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 4096
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 18810795644,
+            "image_bytes": 16000000000,
+            "safety_margin_bytes": 15000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 48000000000,
+            "reserve_bytes": 0
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 2048,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "MiniCPM-V-4.7"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "bounded-vision",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "describe this image",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAYElEQVR4nO3PwQkAIBDAMAX3H/lwCB9BaCZo96y/HR3wqgGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQHtAgK6AfwYG1VIAAAAAElFTkSuQmCC"
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "MiniCPM-V-4.7"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  },
+  "options": [
+    {
+      "name": "profile",
+      "label": "Serving profile",
+      "help": "Select the creator\u2019s image or long-text profile.",
+      "choices": [
+        {
+          "value": "vision",
+          "label": "Vision, 4K context",
+          "help": "Native images with FP16 KV.",
+          "default": true
+        },
+        {
+          "value": "long-text",
+          "label": "Text, 262K context",
+          "help": "Text only with Q4 KV and larger prefill chunks.",
+          "default": false,
+          "args": [
+            {
+              "name": "profile",
+              "value": "long"
+            },
+            {
+              "name": "max-seq-len",
+              "value": 262144
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

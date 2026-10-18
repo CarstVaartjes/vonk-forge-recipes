@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "8f9f07872b09846f2e14b3c908e99be1ccf3402a",
+      "repo": "r0b0tlab/MiniCPM-V-4.7-35B-A3B-EXL3-6.08bpw",
+      "revision": "8f9f07872b09846f2e14b3c908e99be1ccf3402a"
+    }
+  },
+  "kit": {
+    "commit": "b8859be8b257ddb7602f68ce7b85a7f0fd03f7b4",
+    "repo": "r0b0tlab/minicpm-v47-exl3-exllamav3-gb10"
+  }
+}

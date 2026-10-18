@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+"""Render the creator's profile into managed cache, then run pinned TabbyAPI."""
+import argparse
+import os
+import sys
+from pathlib import Path
+sys.path.insert(0, "/opt/vonk/kit/tools")
+from common import config_from_env, dump_yaml
+p = argparse.ArgumentParser()
+p.add_argument("--host", default="0.0.0.0")
+p.add_argument("--port", type=int, default=8000)
+p.add_argument("--max-seq-len", type=int, default=4096)
+p.add_argument("--max-batch-size", type=int, default=1)
+p.add_argument("--profile", choices=("vision", "single", "long"), default="vision")
+a = p.parse_args()
+state = Path(os.environ["XDG_CACHE_HOME"]) / "minicpm-tabby"
+view = state / "models"
+view.mkdir(parents=True, exist_ok=True)
+link = view / "MiniCPM-V-4.7"
+if not link.is_symlink():
+    link.symlink_to("/models/target")
+env = {"PROFILE": a.profile, "HOST": a.host, "PORT": str(a.port), "MAX_SEQ_LEN": str(a.max_seq_len), "MAX_BATCH_SIZE": str(a.max_batch_size)}
+config = config_from_env(env, link)
+# The Controller owns authentication and exposure for this managed backend.
+config["network"]["disable_auth"] = True
+path = state / "config.yml"
+path.write_text(dump_yaml(config))
+os.chdir("/opt/tabbyAPI")
+os.execv(sys.executable, [sys.executable, "-u", "/opt/tabbyAPI/main.py", "--config", str(path)])

@@ -1,0 +1,98 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-ab474714b5bc-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "ab474714b5bc0079e53366ff6e9eac8cdc429fe4443fbc83b93a0686b24ea330",
+      "size_bytes": 1609
+    },
+    {
+      "id": "readme-41871d872e9f-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "41871d872e9f10a8eb339806a9779ae932b18cf13285bc3c8cabdbe2e08f26be",
+      "size_bytes": 15666
+    },
+    {
+      "id": "config-880d77cb17f6-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "880d77cb17f6f45925ba78ba94a04b92b5a88b6046e7b6e376d2ab794b02ba04",
+      "size_bytes": 2182
+    },
+    {
+      "id": "hf-quant-config-ba3ff3838481-a481ad90fa",
+      "path": "hf_quant_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "ba3ff3838481e9ca9cf4a408f8368e510ac603660b3e26d2054043b8105896bc",
+      "size_bytes": 5559
+    },
+    {
+      "id": "model-eec5efdf1b83-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "eec5efdf1b838020c2842f52d560c187515e84889c51f99d70b75c773c286599",
+      "size_bytes": 1317952596
+    }
+  ],
+  "format": {
+    "precision": "nvfp4",
+    "quantization": "nvfp4"
+  },
+  "identity": {
+    "family": {
+      "publisher": "nvidia",
+      "slug": "nemotron",
+      "title": "NVIDIA Nemotron"
+    },
+    "model": {
+      "publisher": "nvidia",
+      "slug": "nemotron-3-5-super-vl-lilicorr",
+      "title": "NVIDIA Nemotron 3.5 Super VL LiLiCorr"
+    },
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-super-vl-lilicorr-7c7221ae",
+    "variant": "NVFP4 LiLiCorr",
+    "version": "7c7221ae"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "NVIDIA"
+    ],
+    "spdx": "LicenseRef-NVIDIA-Open-Model-License",
+    "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4-LiLiCorr/blob/7c7221aeb4cb3139307aa457f7dce11a8fb6ceb2/README.md"
+  },
+  "metadata": {
+    "description": "Exact LiLiCorr draft for sfxnz\u2019s interactive profile.",
+    "tags": [
+      "nvidia",
+      "nemotron",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4-LiLiCorr",
+    "revision": "7c7221aeb4cb3139307aa457f7dce11a8fb6ceb2"
+  }
+}

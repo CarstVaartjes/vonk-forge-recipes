@@ -1,0 +1,19 @@
+{
+  "source": {
+    "repo": "drowzeys/keys-TensorFold-GLM-5.3-TP4-4x-DGX-Spark",
+    "commit": "ea05ec696d1c408268a3d1de39b090b154c1ebff"
+  },
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "one-shot.sh",
+        "pattern": "^IMAGE=\\$\\{IMAGE:-(?P<repo>ghcr.io/[^:}]+):(?P<version>[^}]+)\\}$"
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve"
+  ]
+}
