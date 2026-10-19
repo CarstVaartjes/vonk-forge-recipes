@@ -4,7 +4,7 @@ FROM ghcr.io/ggml-org/llama.cpp@sha256:e5a2f80c0f1bdbb829d19b3ba3e84359acad95ea9
 ENV LD_LIBRARY_PATH="/app:${LD_LIBRARY_PATH}"
 
 LABEL org.opencontainers.image.source="https://github.com/ggml-org/llama.cpp" \
-      org.opencontainers.image.revision="d81235049384534c167caea52b85a694f6103d14" \
+      org.opencontainers.image.revision="620d2225cc436ab0b001e3200e590e3b286ef9ab" \
       org.opencontainers.image.version="0.5.0" \
       org.opencontainers.image.licenses="MIT" \
       io.vonk.upstream-image-tag="server-cuda13-v0.5.0"
