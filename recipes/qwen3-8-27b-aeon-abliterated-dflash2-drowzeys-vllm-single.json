@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "abliterated",
-    "description": "drowzeys' community compile for one Spark: sakamakismile's uniform NVFP4 quantization of AEON-7's uncensored (abliterated) Qwen3.8 27B, IncoAI's DFlash2 draft at n=7, a cybersecurity-unlock chat template, and a 1,048,576-token window by YaRN x4 (nested rope hf-overrides plus a YaRN-extended drafter config, because vLLM does not stretch the draft rope past 262144). Runs AEON-7's aeon-vllm-ultimate as retagged by drowzeys. Defaults follow upstream's 1M seat (serve_b5_on_4.sh): 2 sequences, GPU memory 0.70, 8192 batched tokens, FP8 KV, Triton attention, no prefix caching, sampling temperature 0.6 top-p 0.95 top-k 20 repetition penalty 1.05. Upstream reports (not measured here): needle hit at 999,714 tokens, 1,113,770-token KV pool, cyber 8/8 and refusal 32/32, prose decode about 20 and code about 42 tok/s. Uncensored weights and an unlock template: users supply their own guardrails; upstream ships a Responsible Use agreement (RESPONSIBLE_USE.md, vendored). Licences: weights and draft Apache-2.0 per their model cards, drowzeys repository Apache-2.0 (LICENSE vendored). Not gated. Upstream's second seat (16k, 64 sequences) is available as an option; set the context and concurrency settings to 16384 and 64 with it. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.70) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
+    "description": "drowzeys' community compile for one Spark: sakamakismile's uniform NVFP4 quantization of AEON-7's uncensored (abliterated) Qwen3.8 27B, IncoAI's DFlash2 draft at n=7, a cybersecurity-unlock chat template, and a 1,048,576-token window by YaRN x4 (nested rope hf-overrides plus a YaRN-extended drafter config, because vLLM does not stretch the draft rope past 262144). Runs AEON-7's aeon-vllm-ultimate as retagged by drowzeys. Defaults follow upstream's 1M seat (serve_b5_on_4.sh): 2 sequences, GPU memory 0.70, 8192 batched tokens, FP8 KV, Triton attention, no prefix caching, sampling temperature 0.6 top-p 0.95 top-k 20 repetition penalty 1.05. Upstream reports (not measured here): needle hit at 999,714 tokens, 1,113,770-token KV pool, cyber 8/8 and refusal 32/32, prose decode about 20 and code about 42 tok/s. Uncensored weights and an unlock template: users supply their own guardrails; upstream ships a Responsible Use agreement (RESPONSIBLE_USE.md, vendored). Licences: weights and draft Apache-2.0 per their model cards, drowzeys repository Apache-2.0 (LICENSE vendored). Not gated. Upstream's second seat (16k, 64 sequences) is available as an option; set the context and concurrency settings to 16384 and 64 with it. GB10 memory correction: Per-node peak budgets utilization \u00d7 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.70) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance. Sweep correction (2026-10-19): the 0.6 utilization cap leaves 43.35 GiB of KV cache; 1,048,576 tokens need 51.31 GiB. Default context is 786,432 tokens (38.49 GiB at the observed cache rate), keeping the 1M-capable YaRN model/drafter configuration and the existing utilization cap. This is an evidence-based default, not a successful physical qualification.",
     "tags": [
       "abliterated",
       "candidate",
@@ -49,7 +49,7 @@
       "vllm",
       "yarn"
     ],
-    "title": "Qwen3.8 27B AEON Uncensored NVFP4 DFlash2 1M YaRN vLLM one Spark (drowzeys)"
+    "title": "Qwen3.8 27B AEON Uncensored NVFP4 DFlash2 768k YaRN vLLM one Spark (drowzeys)"
   },
   "models": [
     {
@@ -270,8 +270,8 @@
       "choices": [
         {
           "default": true,
-          "help": "Upstream default: YaRN x4 to 1,048,576, YaRN-extended drafter config, GPU memory 0.70, 8192 batched tokens. This recipe runs it at gpu-memory-utilization 0.6: a separate draft model holds memory outside that budget.",
-          "label": "1M YaRN, 2 sequences",
+          "help": "YaRN x4 model and drafter support up to 1M tokens; default context is 786432 because the 0.6 memory cap left 43.35 GiB KV in the sweep, below the 51.31 GiB needed for 1M. The selected context remains explicit.",
+          "label": "768k YaRN, 2 sequences",
           "value": "yarn-1m"
         },
         {
@@ -298,7 +298,7 @@
           "value": "speed-16k"
         }
       ],
-      "help": "Upstream ships two seats. The 1M seat is the default; the 16k seat trades context for concurrency (set context_tokens 16384 and concurrency 64 with it).",
+      "help": "The YaRN seat defaults to 786432 context tokens and 2 sequences. For the 16k seat set context_tokens to 16384 and concurrency to 64.",
       "label": "Serving seat",
       "name": "seat"
     }
@@ -315,8 +315,8 @@
     "source_reference": "https://github.com/drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark/tree/fca3d18bcab52b65e4a428b883cbcbcb0a7a3443"
   },
   "release": {
-    "released_at": "2026-09-09",
-    "version": "1.0.0"
+    "released_at": "2026-10-19",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -451,7 +451,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1048576
+      "value": 786432
     },
     "kind": "generation",
     "knobs": {},
