@@ -12,9 +12,16 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.fixture(params=[2, 4])
+@pytest.fixture(
+    params=[
+        (2, "tonyd2wild-1017-tensorfold-tp2"),
+        (4, "tonyd2wild-1017-tensorfold-tp4"),
+        (2, "mia-1017-tensorfold-dual"),
+    ]
+)
 def modules(request, monkeypatch):
-    folder = ROOT / f"adapters/deepseek/tonyd2wild-1017-tensorfold-tp{request.param}"
+    world, adapter = request.param
+    folder = ROOT / "adapters/deepseek" / adapter
     loaded = []
     for name in ("prepare_cache", "launcher"):
         spec = importlib.util.spec_from_file_location(name, folder / f"{name}.py")
@@ -23,7 +30,7 @@ def modules(request, monkeypatch):
         monkeypatch.setitem(sys.modules, name, module)
         spec.loader.exec_module(module)
         loaded.append(module)
-    return request.param, *loaded
+    return world, *loaded
 
 
 def test_rank_cache_reuses_complete_and_rebuilds_truncated(
