@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import ast
 import io
 import json
+import tarfile
 import tempfile
 import types
 import unittest
 import wave
 from pathlib import Path
-from unittest.mock import patch
+from typing import Any
+from unittest.mock import MagicMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = (
@@ -167,24 +170,79 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
 
         # Pinned upstream DAC Decoder(d_out=1); infer.py saves it unchanged.
         definitions = load_definitions()["recipes"]
-        for channels in (1, 2):
+        # The pinned 25-Hz sampler accumulates 0.04 in binary floats: its
+        # last sample can lie just beyond the fixture's final timestamp (0.96).
+        # Upstream returns 24/25 seconds; the 50-Hz latent length is then 48.
+        for channels, frames in (
+            (1, 46080),
+            (1, 48000),
+            (2, 46080),
+            (1, 45120),
+            (1, 48960),
+        ):
             content = io.BytesIO()
             with wave.open(content, "wb") as audio:
                 audio.setnchannels(channels)
                 audio.setsampwidth(2)
                 audio.setframerate(48000)
-                audio.writeframes(b"\x01\x00" * 48000 * channels)
+                audio.writeframes(b"\x01\x00" * frames * channels)
             output = Output("output.wav", "audio/wav", content.getvalue())
             for size in ("xl", "xxl"):
                 with self.subTest(size=size, channels=channels):
                     assertions = definitions[
                         f"vonk-forge/hunyuan-video-foley-{size}-pytorch-single"
                     ]["assertions"]
-                    if channels == 1:
+                    if channels == 1 and frames in (46080, 48000):
                         self.assertEqual(evaluate(assertions, [output]), {})
                     else:
                         with self.assertRaises(AssertionFailed):
                             evaluate(assertions, [output])
+
+    def test_pinned_foley_sampler_explains_short_audio(self) -> None:
+        archive = (
+            ROOT
+            / "adapters/audio/hunyuan-video-foley-native/vendor/hunyuan-video-foley-df7b005b5023df2a9b73e1d66dd51d452799884e.tar.gz"
+        )
+        with tarfile.open(archive) as source:
+            member = next(
+                item
+                for item in source.getmembers()
+                if item.name.endswith("/utils/feature_utils.py")
+            )
+            stream = source.extractfile(member)
+            assert stream is not None
+            tree = ast.parse(stream.read())
+        function = next(
+            node
+            for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name == "get_frames_av"
+        )
+        # Exercise the actual pinned sampling function without importing GPU models.
+        frames = [
+            types.SimpleNamespace(time=i / 25, to_ndarray=lambda **kw: None)
+            for i in range(25)
+        ]
+        container = MagicMock()
+        container.__enter__.return_value = container
+        container.streams.video = [types.SimpleNamespace(guessed_rate=25)]
+        container.demux.return_value = [types.SimpleNamespace(decode=lambda: frames)]
+        namespace: dict[str, Any] = {
+            "av": types.SimpleNamespace(open=lambda path: container),
+            "np": types.SimpleNamespace(stack=list),
+        }
+        module = ast.Module(body=[function], type_ignores=[])
+        exec(  # noqa: S102 - execute only the pinned upstream frame sampler.
+            compile(
+                module,
+                str(archive),
+                "exec",
+                flags=__import__("__future__").annotations.compiler_flag,
+            ),
+            namespace,
+        )
+        sampled, duration = namespace["get_frames_av"]("foley-video-1s.mp4", 25)
+        self.assertEqual(len(sampled), 24)
+        self.assertEqual(duration, 0.96)
 
     def test_foley_validates_invalid_wav_and_timeout_before_atomic_publish(
         self,
