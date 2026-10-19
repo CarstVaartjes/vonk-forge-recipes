@@ -281,7 +281,6 @@ def test_missing_cleanup_binding_keeps_one_incident_across_restart(
 
             def stop_after_restart(restarted=sweep, saved=incident) -> None:
                 assert restarted.state.data["infra"]["review"] == saved
-                assert restarted.backoff_until == saved["until"]
                 raise RestartObserved
 
             sweep.check_client = stop_after_restart

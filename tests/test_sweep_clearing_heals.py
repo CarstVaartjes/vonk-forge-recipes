@@ -146,7 +146,8 @@ def test_a_refused_clearing_is_the_recorded_wait_and_is_decided_again(
 
     fleet._load = refusing
     _blocked_by_leftover(sweep, clock)
-    assert not sweep._take_over(clock.now())
+    assert sweep._take_over(clock.now())
+    assert sweep.state.data["takeover_fallback"]
     assert not any(i["kind"] == "takeover" for i in sweep.state.data["own_loads"])
     reason = sweep.state.data["clearing_reason"]
     assert reason.startswith("clearing refused") and blocker["code"] in reason

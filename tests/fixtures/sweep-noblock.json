@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "took_over": true,
+  "owner": {
+    "baseline": {},
+    "hold_until": 0.0,
+    "export": {},
+    "paused_at": 999000.0
+  },
+  "infra": {
+    "review": {
+      "count": 8,
+      "message": "old cleanup adoption observation failed",
+      "since": 999000.0,
+      "until": 1000600.0
+    },
+    "startup": {
+      "count": 8,
+      "message": "old startup observation failed",
+      "since": 999000.0,
+      "until": 1000600.0
+    }
+  }
+}

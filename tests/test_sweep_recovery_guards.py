@@ -270,7 +270,6 @@ def test_cleanup_error_never_retains_busy_lane_and_is_retried(tmp_path: Path) ->
     clock.t += sweep.cfg.retry_delay * 2
     sweep.cleanup_finished()
     assert not sweep.state.data["cleanup"]
-    sweep.backoff_until = 0
     sweep.schedule(clock.now())
     assert sweep.state.data["loads"]
 
@@ -437,7 +436,6 @@ def test_unknown_platform_failure_ends_without_recipe_blame_and_releases_lane(
     sweep.release_orphan_load()
     assert not sweep.state.slots and not sweep.state.data["loads"]
     sweep._requeue_failed(key, "fresh-request")
-    sweep.backoff_until = 0
     sweep.schedule(clock.now())
     assert sweep.state.data["loads"]
 
@@ -499,7 +497,6 @@ def test_removed_catalog_recipe_releases_lane_and_fresh_recipe_is_admitted(
     fleet.recipes[fresh.key] = fresh
     sweep.refresh_catalog()
     sweep.queue = list(sweep.recipes)
-    sweep.backoff_until = 0
     sweep.schedule(clock.now())
     assert sweep.state.slots and sweep.state.data["loads"]
 

@@ -81,6 +81,13 @@ items, phase, last-progress time) is silent for an hour is shown as stalled and 
 its original request; nothing cancels or replaces it, and a download someone else
 started is followed until it lands.
 
+Controller application stall alarms keep only their own lane and original request.
+The status alerts name the application ids; independent lanes continue through
+fresh canonical review. An unreadable application receipt freezes only that
+request's observation window. Owner safety is observed every tick, including
+while paused, so an old unreadable owner profile cannot latch a global hold.
+See the [global gate audit](sweep-global-gates.md) for the complete safety boundary.
+
 Concurrent accepted snapshots use the Controller's bound whole-assignment
 adoption contract (`effects.adopted`), while original applications keep their
 children and progress. The sweep observes each original request independently.
@@ -336,17 +343,18 @@ would stop someone else's workload on an offline or unselected Spark are skipped
 A stop of the sweep's own workload on an offline enrolled Spark does not hold the
 clearing: the Controller queues it and delivers it when the Spark answers, while
 the clearing frees the online lanes. Clearing admission gets
-three attempts spaced by 30 seconds; the budget survives restart. After that,
-free online lanes are selected from a fresh fleet observation and submitted
-through the normal Controller review. Unknown cleanup bookkeeping cannot reserve
-every lane forever. Idle alerts include the clearing blocker and offline Spark names.
+bounded backoff from 30 seconds to 10 minutes; retry history survives restart.
+Free online lanes are selected immediately from a fresh fleet observation and
+submitted through the normal Controller review while clearing keeps retrying.
+Unknown cleanup bookkeeping cannot reserve every lane forever. Idle alerts
+include the clearing blocker and offline Spark names.
 
 A load applies the whole sweep profile, so before any load (placement, clearing,
 final stop) the sweep removes every assignment of its own that no live lane needs,
 judged by the exact profile export rather than its bookkeeping: a lost cleanup
 record can never make a clearing keep, or a stop start, a workload. Each new
 clearing decision (a review blocked by a different set of workloads, or a capacity
-refusal) gets a fresh three-attempt budget. A clearing that is not submitted
+refusal) gets fresh retry history. A clearing that is not submitted
 records why (`clearing refused: …` in the status and once in the events, with the
 review's blocker codes); a review still blocked by the same workloads is a wait on
 their owner only after a clearing load was actually submitted for them, otherwise
@@ -360,9 +368,9 @@ neither waits for offline-only cleanup adoption nor counts it as lane occupancy.
 Cleanup observes the original accepted application's canonical per-effect graph.
 An observation timeout never cancels it or invents a new clearing request. Each
 online stop scope remains occupied until its exact successful typed stop receipt
-while clearing observation is within its budget; absence from `fleet.loaded`
-never rewrites a receipt. After budget exhaustion, observed fleet occupancy and
-a fresh Controller review govern placement. A healthy independent lane can then
+while its projection is known; absence from `fleet.loaded` never rewrites a
+receipt. When clearing cannot proceed, observed fleet occupancy and a fresh
+Controller review govern placement immediately. A healthy independent lane can
 receive a fresh whole-fleet admission that explicitly adopts every remaining
 pending cleanup on online lanes. Borrowed cleanup retains its original root, plan, ordinal,
 request and child operation, and keeps the aggregate observer alive. A dual stop
