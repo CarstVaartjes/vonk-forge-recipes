@@ -672,6 +672,28 @@ communication, and model quality require the relevant hardware. Record tests
 that could not run and their missing inputs; do not manufacture passing
 evidence or add an unrelated formal approval gate.
 
+### TensorFold CPU checks on Apple hosts
+
+A Spark-built ARM64 binary may use SVE instructions that an Apple/OrbStack CPU
+does not expose. If `tensorfold-native capabilities --json` exits with an illegal
+instruction at an SVE instruction, run that same binary under QEMU's SVE-capable
+CPU emulation. For the Mia DeepSeek 1017 image, set `RECIPE_IMAGE` to the locally
+built image or its immutable published reference, then run:
+
+```bash
+docker run --rm --user 0 --entrypoint sh "$RECIPE_IMAGE" -ec '
+  apt-get update -qq
+  apt-get install --no-install-recommends -y qemu-user >/tmp/qemu-install.log
+  runuser -u vonk -- qemu-aarch64 -cpu max \
+    /opt/tensorfold/native/bin/tensorfold-native capabilities --json
+'
+```
+
+This disposable diagnostic container installs the emulator and then executes
+as the recipe's non-root user. It does not change the recipe image or production
+CPU target. A successful capability response proves the binary can execute this
+CPU path; CUDA, model loading, RoCE and inference still require Spark execution.
+
 ## 6. Generate, publish, and report
 
 Commit authored sources only. `catalog-index.json`,

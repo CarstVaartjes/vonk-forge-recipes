@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TRANSFORMERS_OFFLINE=1
 
 ARG MOVA_REVISION=1591b2557b42030a3421442c998dd6f5602ed9bd
-ARG MOVA_ARCHIVE_SHA256=739c7c9754fc4e9fa374ac61b23df872becb1919443ff9b80777126af2fefec3
+ARG MOVA_ARCHIVE_SHA256=255aa8eac38ffcbbcd236d95eca29812e46f55d235d6f40aa23cdd4a76dfbaad
 
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes \
