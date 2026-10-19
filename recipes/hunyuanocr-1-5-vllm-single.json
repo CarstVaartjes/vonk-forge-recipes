@@ -33,7 +33,7 @@
   "metadata": {
     "alignment": "unspecified",
     "title": "HunyuanOCR 1.5 vLLM single Spark",
-    "description": "Plain autoregressive OCR serving from Tencent’s single-GPU inference/vLLM/serve.sh, with the current 47644ecc target checkpoint and digest-pinned vLLM v0.32.0 ARM64 CUDA 13 image. No speculative decoder or draft weights. Context is bounded to 32768 tokens and concurrency to four. Physical Spark acceptance is pending. Per-node peak is an estimate: 0.35 times 130,663,231,488 bytes plus 8 GB runtime/host overhead. Tencent license terms, including territorial notices, remain informational in the Model.",
+    "description": "Plain autoregressive OCR serving from Tencent\u2019s single-GPU inference/vLLM/serve.sh, with the current 47644ecc target checkpoint and digest-pinned vLLM v0.32.0 ARM64 CUDA 13 image. No speculative decoder or draft weights. Context is bounded to 32768 tokens and concurrency to four. Physical Spark acceptance is pending. Per-node peak is an estimate: 0.35 times 130,663,231,488 bytes plus 8 GB runtime/host overhead. Tencent license terms, including territorial notices, remain informational in the Model. Eager execution avoids the CUDA graph-capture startup failure observed on GB10; graph replay performance is not claimed.",
     "tags": [
       "candidate",
       "executable",
@@ -217,6 +217,10 @@
       {
         "name": "allowed-local-media-path",
         "value": "/inputs"
+      },
+      {
+        "name": "enforce-eager",
+        "value": true
       }
     ],
     "engine": "vllm",
