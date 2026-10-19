@@ -1,0 +1,89 @@
+{
+  "kind": "model",
+  "identity": {
+    "publisher": "comfy-org",
+    "slug": "minimax-music3-comfy-9e364ccd",
+    "family": {
+      "publisher": "minimax",
+      "slug": "minimax-music3",
+      "title": "MiniMax Music3"
+    },
+    "model": {
+      "publisher": "minimax",
+      "slug": "minimax-music3",
+      "title": "MiniMax Music3"
+    },
+    "version": "Music3-9e364ccd",
+    "variant": "FP16 DiT and pruned BF16 text encoder"
+  },
+  "metadata": {
+    "description": "Exact Comfy-Org Music3 files used by the TensorFold CUDA engine; the engine converts its autoregressive weights to int8 at load. The repack card labels Apache-2.0; the original MiniMax-Music3 Community License applies to the underlying model.",
+    "tags": [
+      "minimax",
+      "music",
+      "audio"
+    ]
+  },
+  "requires_token": false,
+  "dependencies": [],
+  "modalities": [
+    "text",
+    "audio"
+  ],
+  "source": {
+    "repository": "https://huggingface.co/Comfy-Org/MiniMax-Music-3",
+    "revision": "9e364ccd290a401561091fb441ed19cd7de92550"
+  },
+  "format": {
+    "precision": "mixed",
+    "quantization": "none"
+  },
+  "license": {
+    "spdx": "LicenseRef-MiniMax-Music3-Community",
+    "url": "https://huggingface.co/MiniMaxAI/MiniMax-Music3/blob/fbdf52fbaaca799592917417eb05f1899f1255ec/LICENSE",
+    "attribution": [
+      "MiniMax; Comfy-Org repack. Commercial services must display MiniMax-Music3; see original license for commercial thresholds and acceptable-use terms."
+    ]
+  },
+  "files": [
+    {
+      "id": "readme-7b53c8f12b53-b335630551",
+      "path": "README.md",
+      "sha256": "7b53c8f12b53ee21368f6a64b2a6834c1cf15e72b61ad69464fa366b73504b77",
+      "size_bytes": 1790,
+      "roles": [
+        "metadata"
+      ]
+    },
+    {
+      "id": "minimax-music3-dit-fp16-45494a2b6b69-d758bf1f61",
+      "path": "diffusion_models/minimax_music3_dit_fp16.safetensors",
+      "sha256": "45494a2b6b69af115902ff28eaf54118d19067aa54da01000f3e3efce7ba0e34",
+      "size_bytes": 4914197682,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "minimax-music3-text-encoder-pruned-bf16-e81e469c92af-c0528e79a0",
+      "path": "text_encoders/minimax_music3_text_encoder_pruned_bf16.safetensors",
+      "sha256": "e81e469c92af324dc69b77e5a11179e22542a6d628f2b205c8cf6143e510d976",
+      "size_bytes": 16706629398,
+      "roles": [
+        "weights"
+      ]
+    },
+    {
+      "id": "minimax-music3-dav-2a32155b769b-649ac540e9",
+      "path": "vae/minimax_music3_dav.safetensors",
+      "sha256": "2a32155b769be01445fcc2a8663b910fc9e1751e18dc1c3ec528064512d9ef0c",
+      "size_bytes": 216696128,
+      "roles": [
+        "weights"
+      ]
+    }
+  ],
+  "capabilities": [
+    "text-to-audio"
+  ]
+}

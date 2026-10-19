@@ -1,0 +1,263 @@
+{
+  "kind": "recipe",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-music3-drowzeys-tensorfold-single"
+  },
+  "metadata": {
+    "title": "MiniMax-Music3 TensorFold CUDA single Spark",
+    "description": "Native TensorFold Music3 CUDA engine from drowzeys/Wasserman Studio, pinned at 6b714531e2d60f91d26e98e414547ad94ad771bf. Generates a bounded 60-second stereo 44.1 kHz WAV from a caption and optional lyrics. The three Comfy-Org checkpoint files stay immutable; the engine makes int8 autoregressive weights on the GPU at load. 30 DiT steps, AR guidance 1.5, DiT guidance 1.7, seed 0. Upstream measured about 18 GB; 32 GB peak is an unqualified planning estimate including load and workspace. Physical Spark and audio-quality acceptance are pending. MiniMax-Music3 Community License terms are included.",
+    "tags": [
+      "audio",
+      "music",
+      "tensorfold",
+      "cuda",
+      "spark"
+    ],
+    "alignment": "unspecified"
+  },
+  "models": [
+    {
+      "id": "primary",
+      "model": {
+        "kind": "model",
+        "publisher": "comfy-org",
+        "slug": "minimax-music3-comfy-9e364ccd",
+        "content_sha256": "bbafe0d79617ccf65623aa3ceab882736476813959bd5c6a51da51d844ecdc8c"
+      },
+      "files": [
+        {
+          "id": "readme-7b53c8f12b53-b335630551",
+          "file_id": "readme-7b53c8f12b53-b335630551",
+          "roles": [
+            "entrypoint"
+          ],
+          "mount": {
+            "target": "/models/music3"
+          }
+        },
+        {
+          "id": "minimax-music3-dit-fp16-45494a2b6b69-d758bf1f61",
+          "file_id": "minimax-music3-dit-fp16-45494a2b6b69-d758bf1f61",
+          "roles": [
+            "entrypoint"
+          ],
+          "mount": {
+            "target": "/models/music3"
+          }
+        },
+        {
+          "id": "minimax-music3-text-encoder-pruned-bf16-e81e469c92af-c0528e79a0",
+          "file_id": "minimax-music3-text-encoder-pruned-bf16-e81e469c92af-c0528e79a0",
+          "roles": [
+            "entrypoint"
+          ],
+          "mount": {
+            "target": "/models/music3"
+          }
+        },
+        {
+          "id": "minimax-music3-dav-2a32155b769b-649ac540e9",
+          "file_id": "minimax-music3-dav-2a32155b769b-649ac540e9",
+          "roles": [
+            "entrypoint"
+          ],
+          "mount": {
+            "target": "/models/music3"
+          }
+        }
+      ]
+    }
+  ],
+  "execution": {
+    "build": {
+      "base_image": {
+        "repository": "nvcr.io/nvidia/pytorch",
+        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3"
+      },
+      "context": {
+        "path": "adapters/audio/drowzeys-music3-tensorfold"
+      },
+      "dockerfile": "adapters/audio/drowzeys-music3-tensorfold/Dockerfile",
+      "patches": [],
+      "network": {
+        "hosts": [
+          "codeload.github.com",
+          "ziglang.org",
+          "pypi.org",
+          "files.pythonhosted.org"
+        ]
+      }
+    }
+  },
+  "runtime": {
+    "engine": "pytorch-pipeline",
+    "entrypoint": [
+      "/opt/vonk/bin/pytorch-pipeline"
+    ],
+    "arguments": [
+      {
+        "name": "pipeline",
+        "value": "text-to-audio"
+      },
+      {
+        "name": "output-mime",
+        "value": "audio/wav"
+      },
+      {
+        "name": "seconds",
+        "value": 60
+      },
+      {
+        "name": "seed",
+        "value": 0
+      }
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "roles": [
+      {
+        "name": "entrypoint",
+        "count": 1,
+        "endpoint_owner": true,
+        "resources": {
+          "memory": {
+            "peak_bytes": 32000000000,
+            "reserve_bytes": 6000000000
+          },
+          "disk": {
+            "image_bytes": 30000000000,
+            "artifact_bytes": 21837524998,
+            "working_bytes": 12000000000,
+            "safety_margin_bytes": 12000000000
+          }
+        }
+      }
+    ],
+    "parallelism": {
+      "tensor": 1,
+      "pipeline": 1,
+      "data": 1,
+      "backend": "local"
+    },
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "interfaces": [
+    {
+      "adapter": "audio-job",
+      "input": {
+        "required": true,
+        "media_types": [
+          "text/plain"
+        ],
+        "max_bytes": 32768,
+        "slots": [
+          {
+            "id": "caption",
+            "label": "Music style and instrumentation",
+            "description": "Music style and instrumentation as UTF-8 text.",
+            "media_types": [
+              "text/plain"
+            ],
+            "extensions": [
+              ".txt"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 16384,
+            "max_total_bytes": 16384
+          },
+          {
+            "id": "lyrics",
+            "label": "Optional lyrics",
+            "description": "Optional lyrics as UTF-8 text.",
+            "media_types": [
+              "text/plain"
+            ],
+            "extensions": [
+              ".txt"
+            ],
+            "min_files": 0,
+            "max_files": 1,
+            "max_file_bytes": 16384,
+            "max_total_bytes": 16384
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 11000000,
+        "slots": [
+          {
+            "id": "audio",
+            "label": "Generated song",
+            "description": "PCM16 stereo WAV at 44100 Hz, up to 60 seconds.",
+            "media_types": [
+              "audio/wav"
+            ],
+            "extensions": [
+              ".wav"
+            ],
+            "min_files": 1,
+            "max_files": 1,
+            "max_file_bytes": 11000000,
+            "max_total_bytes": 11000000
+          }
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "serving": {
+      "interface": "audio-job",
+      "checks": [
+        {
+          "name": "job-output",
+          "kind": "audio-job.output",
+          "request": {
+            "transport": "job",
+            "fixture": "qualification/fixtures/prompt.txt",
+            "input_slots": {
+              "caption": "qualification/fixtures/prompt.txt"
+            },
+            "output_slot": "audio"
+          },
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ]
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "source_reference": "https://github.com/drowzeys/keys-Wasserman-Slate-AI-Studio-powered-by-TensorFold-built-with-integrated-Fish-Audio-Drama3/tree/1e8677e7c9151836de375e3cc6306ed6e4170c65",
+    "attribution": [
+      "MiniMax",
+      "Comfy-Org",
+      "drowzeys",
+      "TensorFold contributors"
+    ]
+  },
+  "settings": {
+    "knobs": {},
+    "kind": "job"
+  },
+  "release": {
+    "version": "2.9.1",
+    "released_at": "2026-10-19"
+  },
+  "options": []
+}

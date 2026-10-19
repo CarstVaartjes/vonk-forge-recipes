@@ -10,7 +10,7 @@ A **recipe** is one tested way to run a model on NVIDIA DGX Spark: the model fil
 - **Full catalog:** browse everything at [vonkforge.ai/recipes](https://vonkforge.ai/recipes).
 
 <!-- overview:start -->
-We cover Agents-A1, DeepSeek, DeepSeek Flash, FastContext, FLUX 3, FLUX.2, GLM, Google Gemma, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy Memory, Hy3, Inkling, Laguna, Leanstral, LightOnOCR, Ling, LiquidAI LFM2.5, LTX, Mellum, Meta Llama, Microsoft Phi-4, MiMo, MiniCPM, MiniMax, MiniMax H3, MOVA, Muse Glimmer, Muse Spark, Nex N2, NVIDIA Nemotron, OpenAI gpt-oss, OpenMOSS MOSS-VL, Ornith, Pixal3D, Qwen, Qwen Image, SkinTokens, Step 3.7 Flash, Step 5, Step1X-3D, Ternary Bonsai, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
+We cover Agents-A1, DeepSeek, DeepSeek Flash, FastContext, FLUX 3, FLUX.2, GLM, Google Gemma, Hunyuan3D, HunyuanOCR, HunyuanVideo, HunyuanVideo Foley, Hy Memory, Hy3, Inkling, Laguna, Leanstral, LightOnOCR, Ling, LiquidAI LFM2.5, LTX, Mellum, Meta Llama, Microsoft Phi-4, MiMo, MiniCPM, MiniMax, MiniMax H3, MiniMax Music3, MOVA, Muse Glimmer, Muse Spark, Nex N2, NVIDIA Nemotron, OpenAI gpt-oss, OpenMOSS MOSS-VL, Ornith, Pixal3D, Qwen, Qwen Image, SkinTokens, Step 3.7 Flash, Step 5, Step1X-3D, Ternary Bonsai, TRELLIS, TripoSG, UI-Mate, VibeThinker, Wan, XYZ Aquila. This section is generated from `recipes/`, `models/` and [`creators.json`](creators.json) by `tools/build-readme-overview`; do not edit it by hand.
 
 ### Engines and models
 
@@ -46,6 +46,7 @@ Which engines each model family runs on.
 | MiniCPM |  |  |  |  |  |  |  |  |  | ✓ |
 | MiniMax | ✓ |  |  |  |  |  |  |  |  |  |
 | MiniMax H3 |  |  |  |  |  |  | ✓ |  |  |  |
+| MiniMax Music3 |  |  |  |  |  |  |  |  | ✓ |  |
 | MOVA |  |  |  |  |  |  |  |  | ✓ |  |
 | Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |  |
 | Muse Spark | ✓ |  |  |  |  |  |  |  |  |  |
@@ -103,6 +104,7 @@ Which Spark counts each model family runs on.
 | MiniCPM | ✓ |  |  |  |  |
 | MiniMax |  | ✓ | ✓ |  |  |
 | MiniMax H3 | ✓ |  |  |  |  |
+| MiniMax Music3 | ✓ |  |  |  |  |
 | MOVA | ✓ |  |  |  |  |
 | Muse Glimmer | ✓ |  |  |  |  |
 | Muse Spark |  |  |  |  | ✓ |

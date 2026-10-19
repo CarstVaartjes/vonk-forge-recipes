@@ -7,8 +7,8 @@ COPY vendor /tmp/source
 COPY patches /tmp/patches
 RUN curl -fsSL https://codeload.github.com/bertholomus/TensorFold/tar.gz/3ff3b2ac1d71a789cb930068c46d9abed025eefa -o /tmp/source/engine.tar.gz \
  && curl -fsSL https://codeload.github.com/bertholomus/deepseek-v4.1-tensorfold-tp2-2xgb10/tar.gz/1b5ebbee3cc8b63b8b875e46a314135eb6d669db -o /tmp/source/kit.tar.gz \
- && echo "d21ab5470320ecb88a8cbeee2085380ec6bb9fdbb2436bdfe8090c71934d77ff  /tmp/source/engine.tar.gz" | sha256sum -c - \
- && echo "9be67d01862125809fc9f148921f66d129f2ea6393461108d68f5e9189bcb403  /tmp/source/kit.tar.gz" | sha256sum -c - \
+ && echo "2effe400b7235cec9961a0456a431566b3b5b8dab40e3059282a977da87b2b39  /tmp/source/engine.tar.gz" | sha256sum -c - \
+ && echo "10a9e4022721731a586d5240513c79bdbcef951511a72f9a147ce5f7fc88476b  /tmp/source/kit.tar.gz" | sha256sum -c - \
  && mkdir -p /tmp/engine /tmp/recipe /opt/tensorfold/bin /opt/tensorfold/tools /opt/vonk/bin \
  && tar -xzf /tmp/source/engine.tar.gz --strip-components=1 -C /tmp/engine \
  && tar -xzf /tmp/source/kit.tar.gz --strip-components=1 -C /tmp/recipe \
@@ -21,7 +21,7 @@ RUN curl -fsSL https://ziglang.org/download/0.17.0/zig-aarch64-linux-0.17.0.tar.
  && cp zig-out/native/bin/tensorfold-native zig-out/bin/tf-dsv41-lanes zig-out/bin/tf-dsv41-rank-cache /opt/tensorfold/bin/ \
  && cp tools/dsv41-zig/inputs/make_token_map.py /opt/tensorfold/tools/ \
  && cp -a /tmp/recipe/kit /opt/tensorfold/kit \
- && echo '9be67d01862125809fc9f148921f66d129f2ea6393461108d68f5e9189bcb403' > /opt/tensorfold/kit/VONK_SOURCE_SHA256 \
+ && echo '10a9e4022721731a586d5240513c79bdbcef951511a72f9a147ce5f7fc88476b' > /opt/tensorfold/kit/VONK_SOURCE_SHA256 \
  && cp /tmp/source/make_rope.py /opt/tensorfold/tools/make_rope.py \
  && cp /tmp/recipe/kit/tools/make_bias_vl.py /opt/tensorfold/tools/ \
  && cp LICENSE /opt/tensorfold/LICENSE \
