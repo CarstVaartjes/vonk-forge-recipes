@@ -2,7 +2,7 @@
 
 The Controller and installed CLI own the strict wire models. This module only
 matches an observed cleanup to its previously accepted identity; it never
-constructs another workload authority or infers a stop from an absent run.
+constructs another workload authority or infers a successful receipt from an absent run.
 """
 
 from __future__ import annotations

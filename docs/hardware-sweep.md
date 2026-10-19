@@ -369,9 +369,12 @@ request and child operation, and keeps the aggregate observer alive. A dual stop
 scope remains atomic even when one member is healthy.
 
 A genuinely terminal failed or cancelled cleanup retains its physical-claim
-history. Normal admission may accept a new stop only for the exact residual run
-and topology; only its matching successful stop receipt reconciles the older
-unconfirmed effect. Unreadable or changed bindings defer safely. Stop and restore
+history, but cannot own a future stop. A fresh review either observes its exact
+targets absent on all their online nodes and retires the local record, or admits
+the sweep's own stop for the remaining run. The recovery clears the review
+incident once; it never rewrites the old Controller receipt. Active cleanup may
+also retire when a fresh fleet observation proves its exact targets gone.
+Unavailable fleet facts cannot certify absence. Stop and restore
 loads remain ordinary authorized whole-fleet intents with durable request keys.
 
 ## Evidence
