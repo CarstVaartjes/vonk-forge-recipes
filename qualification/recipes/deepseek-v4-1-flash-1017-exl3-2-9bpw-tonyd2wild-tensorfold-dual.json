@@ -1,0 +1,16 @@
+{
+  "id": "vonk-forge/deepseek-v4-1-flash-1017-exl3-2-9bpw-tonyd2wild-tensorfold-dual",
+  "service_recipes": {
+    "alias": "deepseek-v4.1-flash-1017",
+    "smoke_cases": [
+      "M0",
+      "A323"
+    ],
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start reuses the completed rank cache and generated kernel kit",
+        "Interrupted rank-cache preparation retries from the immutable checkpoint"
+      ]
+    }
+  }
+}

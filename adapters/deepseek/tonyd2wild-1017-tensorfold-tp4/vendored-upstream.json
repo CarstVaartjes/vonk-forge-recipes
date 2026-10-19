@@ -1,0 +1,20 @@
+{
+  "source": {
+    "repo": "tonyd2wild/DeepSeek-V4.1-Flash-vLLM-DGX-Spark",
+    "commit": "9fa230d3eb119f588e690bf9b87ce41ed902db60"
+  },
+  "ours": [
+    "vendor/",
+    "requirements.lock",
+    "tensorfold-serve",
+    "prepare_cache.py",
+    "launcher.py"
+  ],
+  "renamed": {
+    "patches/0003-dsv41-TF_RDMA_GID-sets-the-RDMA-rings-source-GID-ind.patch": "runs/2026-10-17-1017-tensorfold/patches/0003-dsv41-TF_RDMA_GID-sets-the-RDMA-rings-source-GID-ind.patch",
+    "patches/0001-fix-cuda-a-launch-with-no-captured-Triton-variant-ru.patch": "runs/2026-10-17-1017-tensorfold/patches/0001-fix-cuda-a-launch-with-no-captured-Triton-variant-ru.patch",
+    "patches/0002-fix-dsv41-the-prompt-indexer-passes-each-row-block-s.patch": "runs/2026-10-17-1017-tensorfold/patches/0002-fix-dsv41-the-prompt-indexer-passes-each-row-block-s.patch",
+    "patches/0004-server-opt-in-random-seed-and-top-k.patch": "runs/2026-10-17-1017-tensorfold/patches/0004-server-opt-in-random-seed-and-top-k.patch",
+    "chat_template.jinja": "runs/2026-10-17-1017-tensorfold/launch/chat_template.jinja"
+  }
+}

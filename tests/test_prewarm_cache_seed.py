@@ -24,6 +24,14 @@ PREWARM = "/opt/vonk/prewarm"
 SEEDING_LAUNCHERS = {"adapters/nvidia/r0b0tlab-ornith-sglang-single/sglang-serve"}
 
 
+# Mandatory generated kits have different failure semantics from optional prewarm seeds.
+# Their replacement/reuse boundary is exercised by test_native_kit_replacement below.
+NATIVE_KIT_BUILDERS = {
+    f"adapters/deepseek/tonyd2wild-1017-tensorfold-tp{world}/prepare_cache.py"
+    for world in (2, 4)
+}
+
+
 def _own_sources() -> list[Path]:
     return [
         path
@@ -57,7 +65,7 @@ def test_every_launcher_that_copies_a_cache_at_start_is_tested_here() -> None:
         for path in _own_sources()
         if "copytree(" in _text(path)
     }
-    assert copying == SEEDING_LAUNCHERS
+    assert copying == SEEDING_LAUNCHERS | NATIVE_KIT_BUILDERS
 
 
 def _launcher(relative: str):
@@ -105,3 +113,58 @@ def test_an_unreadable_seed_starts_without_it(
 
     assert not (target / ".vonk-prewarmed").exists()
     assert "starting without it" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("relative", sorted(NATIVE_KIT_BUILDERS))
+def test_native_kit_replacement_keeps_verified_cache_on_failure(
+    tmp_path, relative, monkeypatch
+):
+    import hashlib
+    import json
+    import subprocess
+
+    module = _launcher(relative)
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "vision").mkdir()
+    (source / "VONK_SOURCE_SHA256").write_text("first source")
+    rope, bias = b"rope bytes", b"bias bytes"
+    (source / "rope.json").write_text(
+        json.dumps({"rope.f32": hashlib.sha256(rope).hexdigest()})
+    )
+    monkeypatch.setattr(module, "BIAS_SHA256", hashlib.sha256(bias).hexdigest())
+    destination = tmp_path / "kit"
+    calls = []
+
+    def generate(command, check):
+        assert check
+        calls.append(command)
+        if command[1].endswith("make_rope.py"):
+            (Path(command[-1]) / "rope.f32").write_bytes(rope)
+        else:
+            Path(command[-1]).write_bytes(bias)
+
+    monkeypatch.setattr(module.subprocess, "run", generate)
+    module.prepare_kit(tmp_path, destination, source, tmp_path)
+    receipt = (destination / "vonk-generated.json").read_bytes()
+    module.prepare_kit(tmp_path, destination, source, tmp_path)
+    assert len(calls) == 2
+    (source / "VONK_SOURCE_SHA256").write_text("second source")
+
+    def interrupted(command, check):
+        raise subprocess.CalledProcessError(1, command)
+
+    monkeypatch.setattr(module.subprocess, "run", interrupted)
+    with pytest.raises(subprocess.CalledProcessError):
+        module.prepare_kit(tmp_path, destination, source, tmp_path)
+    assert (destination / "vonk-generated.json").read_bytes() == receipt
+    assert (destination / "rope.f32").read_bytes() == rope
+    monkeypatch.setattr(module.subprocess, "run", generate)
+    module.prepare_kit(tmp_path, destination, source, tmp_path)
+    assert (
+        json.loads((destination / "vonk-generated.json").read_text())["source"]
+        == "second source"
+    )
+    (destination / "rope.f32").unlink()
+    module.prepare_kit(tmp_path, destination, source, tmp_path)
+    assert (destination / "rope.f32").read_bytes() == rope
