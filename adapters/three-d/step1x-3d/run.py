@@ -9,6 +9,8 @@ jobs.  All model authorities are mounted by the recipe at immutable paths.
 from __future__ import annotations
 
 import argparse
+import json
+import struct
 import os
 import tempfile
 from pathlib import Path
@@ -18,8 +20,44 @@ from glb_validation import normalize_glb_json_padding, validate_mesh_glb
 _IMAGE_SUFFIXES = frozenset({".jpeg", ".jpg", ".png", ".webp"})
 
 
+def _exclude_image_alignment(temporary: Path) -> None:
+    """Trimesh 4.3.2 counts its 0..3 alignment spaces as encoded image bytes.
+
+    Keep the BIN chunk and offsets intact; exclude only alignment after the
+    PNG/JPEG end marker from the image view. Validation still checks every byte
+    of the encoded image, including CRCs and decoded PNG content.
+    """
+    data = temporary.read_bytes()
+    json_length = struct.unpack_from("<I", data, 12)[0]
+    document = json.loads(data[20 : 20 + json_length])
+    binary_chunk = data[20 + json_length :]
+    binary = binary_chunk[8:]
+    changed = False
+    for image in document.get("images", []):
+        view = document["bufferViews"][image["bufferView"]]
+        start, length = view.get("byteOffset", 0), view["byteLength"]
+        payload = binary[start : start + length]
+        marker = {"image/png": b"\x00\x00\x00\x00IEND\xaeB`\x82", "image/jpeg": b"\xff\xd9"}.get(image["mimeType"])
+        if marker is None:
+            continue
+        for padding in range(1, 4):
+            if payload.endswith(marker + b" " * padding):
+                view["byteLength"] = length - padding
+                changed = True
+                break
+    if changed:
+        encoded = json.dumps(document, separators=(",", ":")).encode("utf-8")
+        encoded += b" " * (-len(encoded) % 4)
+        temporary.write_bytes(
+            struct.pack("<4sII", b"glTF", 2, 20 + len(encoded) + len(binary_chunk))
+            + struct.pack("<I4s", len(encoded), b"JSON") + encoded + binary_chunk
+        )
+
+
 def _publish_glb(temporary: Path, output: Path, *, profile: str) -> None:
     normalize_glb_json_padding(temporary)
+    if profile == "textured":
+        _exclude_image_alignment(temporary)
     try:
         validate_mesh_glb(temporary, profile=profile)
     except ValueError as exc:
