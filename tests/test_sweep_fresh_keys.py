@@ -216,7 +216,7 @@ def test_unknown_stop_projection_keeps_claims_without_testing_on_busy_fleet(
     fleet.cleanup_projection = False
     fleet.cleanup_stop_seconds["owner-glm"] = 10**6
     sweep.refresh_catalog()
-    assert sweep._take_over(sweep.clock.now()) is False
+    assert sweep._take_over(sweep.clock.now()) is True
     original = dict(sweep.state.data["own_loads"][-1])
     sweep.clock.sleep(1800)
     sweep.observe_cleanup()

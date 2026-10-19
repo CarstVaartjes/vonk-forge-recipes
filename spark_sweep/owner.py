@@ -118,8 +118,10 @@ class OwnerGuard:
         for number in self.profiles:
             try:
                 latest = self._latest(number)
-            except VonkctlError:
-                paused.append(f"profile {number} ownership is unreadable")
+            except VonkctlError as error:
+                paused.append(
+                    f"profile {number} ownership is unreadable: {str(error)[:160]}"
+                )
                 continue
             known = baseline.get(str(number))
             if latest is None:
@@ -132,12 +134,14 @@ class OwnerGuard:
                 # The sweep's own load (a restore of the owner's profile, a clearing load): not an
                 # owner's. While it runs we wait for it; afterwards no hold, no preemption.
                 if app_state in ACTIVE:
-                    paused.append(f"profile {number} is loading (our own load)")
+                    paused.append(
+                        f"profile {number} application {app_id} is loading (our own load)"
+                    )
                 baseline[str(number)] = {"id": app_id, "state": app_state}
                 continue
             changed = known is not None and known["id"] != app_id
             if app_state in ACTIVE:
-                paused.append(f"profile {number} is loading")
+                paused.append(f"profile {number} application {app_id} is loading")
                 if changed:
                     new_activity = True
             elif known is not None and (changed or known["state"] in ACTIVE):
@@ -148,7 +152,7 @@ class OwnerGuard:
                 new_activity = new_activity or changed
             baseline[str(number)] = {"id": app_id, "state": app_state}
         if not paused and now < float(owner["hold_until"]):
-            paused.append("holding after an owner load")
+            paused.append(f"holding after an owner load until {owner['hold_until']}")
         return OwnerStatus(bool(paused), "; ".join(paused), new_activity)
 
 

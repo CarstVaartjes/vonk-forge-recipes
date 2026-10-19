@@ -175,11 +175,11 @@ def test_gone_clear_releases_existing_backoff_and_schedules_immediately(
     tmp_path: Path,
 ) -> None:
     sweep, fleet, clock, recipe, record = scenario(tmp_path)
-    assert sweep.backoff_until > clock.now()
+    assert sweep.state.data["infra"]["clearing"]["until"] > clock.now()
     absent(fleet)
     sweep.observe_cleanup()
     assert "end" in record
-    assert sweep.backoff_until <= clock.now()
+    assert "clearing" not in sweep.state.data["infra"]
     sweep.cached_models = {"m1"}
     sweep.queue = [recipe.key]
     sweep.schedule(clock.now())
@@ -196,7 +196,11 @@ def test_present_cleanup_still_observes_stop_receipt_and_admits_fresh_load(
     )
     clock.sleep(3600)
     sweep.observe_cleanup()
-    assert "end" not in record
+    assert (
+        CleanupEnd.model_validate(record["end"]).reason
+        is CleanupEndReason.TARGET_ABSENT
+    )
+    assert record["terminal_receipt"]
     assert record["projection_known"]
     admit(sweep, clock, recipe)
 

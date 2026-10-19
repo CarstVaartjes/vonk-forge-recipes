@@ -179,6 +179,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             if k in sweep.recipes and sweep.lanes_short(sweep.recipes[k])
         ),
         "alerts": list(data.get("alerts") or [])
+        + ([sweep.stall_reason] if sweep.stall_reason else [])
         + [
             f"ESCALATION: {source} has not recovered since {item['since']}; "
             f"{item['dependency']}"

@@ -52,7 +52,7 @@ PHASE_RETRY = "run-switch.phase-retry"
 #: ProfileReasonCode.FAILURE_REPEATED: the Controller stopped retrying a failed application.
 FAILURE_REPEATED = "profile.failure_repeated"
 #: ProgressAlarmCode.STALLED: the Controller saw the same wait repeat with nothing moving.
-#: A platform problem, never the recipe's: the lane is released and the sweep pauses.
+#: A platform problem, never the recipe's: only its lane waits on the original receipt.
 STALLED_CODE = "progress.stalled"
 #: Blockers that name a preparation (build, image, download, install) the Controller runs.
 PREPARATION_CODES = frozenset(
@@ -90,7 +90,7 @@ WAIT_CLASSES = frozenset({SMOKE_BUSY, CLIENT_CREDENTIAL})
 #: error after its own retries: the cause is uncertain, so it is observed once more.
 OBSERVE_CLASSES = frozenset({"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED})
 #: The Controller reports the lane's application as stalled (``STALLED_CODE``): the lane is
-#: requeued with an ``observe`` row that spends no attempt (never through ``disposition``).
+#: kept with an ``observe`` row that spends no attempt (never through ``disposition``).
 PLATFORM_STALLED = "platform-stalled"
 #: The sweep's own smoke code raised (a bug, a source tree changed under it): a tool fault,
 #: never the recipe's. The lane is requeued with an ``observe`` row that spends no attempt.

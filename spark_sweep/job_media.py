@@ -369,9 +369,44 @@ def _accessor(
     return accessors[value]
 
 
+def _glb_item(document: Mapping[str, Any], name: str, index: Any) -> dict[str, Any]:
+    items = _list(document, name)
+    if (
+        not _int(index)
+        or not 0 <= index < len(items)
+        or not isinstance(items[index], dict)
+    ):
+        _glb_fail(f"{name} index is invalid", index)
+    return items[index]
+
+
+def _textured_primitive(
+    document: Mapping[str, Any],
+    primitive: Mapping[str, Any],
+    accessors: list[tuple[int, str, int]],
+    vertex_count: int,
+) -> None:
+    attributes = primitive["attributes"]
+    uv = _accessor(accessors, attributes.get("TEXCOORD_0"), "TEXCOORD_0")
+    if uv != (5126, "VEC2", vertex_count):
+        _glb_fail("TEXCOORD_0 must be FLOAT VEC2 matching POSITION count", uv)
+    material = _glb_item(document, "materials", primitive.get("material"))
+    pbr = material.get("pbrMetallicRoughness")
+    info = pbr.get("baseColorTexture") if isinstance(pbr, dict) else None
+    if not isinstance(info, dict) or info.get("texCoord", 0) != 0:
+        _glb_fail("baseColorTexture must use TEXCOORD_0", info)
+    texture = _glb_item(document, "textures", info.get("index"))
+    image = _glb_item(document, "images", texture.get("source"))
+    if "uri" in image or image.get("mimeType") not in {"image/png", "image/jpeg"}:
+        _glb_fail("texture image must be an embedded PNG or JPEG", image)
+    view = _glb_item(document, "bufferViews", image.get("bufferView"))
+    if view.get("buffer") != 0 or "target" in view or "byteStride" in view:
+        _glb_fail("texture image bufferView is invalid", view)
+
+
 def glb_structure(content: bytes, assertion: Mapping[str, Any]) -> None:
     profile = assertion.get("profile", "triangle-mesh")
-    if profile != "triangle-mesh":
+    if profile not in {"triangle-mesh", "textured"}:
         _glb_fail(f"profile {profile!r} is not checked by the sweep", profile)
     document, blob = _glb_chunks(content)
     accessors = _glb_accessors(document, blob)
@@ -398,6 +433,8 @@ def glb_structure(content: bytes, assertion: Mapping[str, Any]) -> None:
                 or indices[2] % 3
             ):
                 _glb_fail("indices must be unsigned SCALAR triangle indices", indices)
+            if profile == "textured":
+                _textured_primitive(document, primitive, accessors, position[2])
     if len(meshes) < assertion.get("minimum_meshes", 1):
         _glb_fail("has too few meshes", len(meshes))
     if primitives < assertion.get("minimum_primitives", 1):
