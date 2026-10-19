@@ -177,6 +177,56 @@ def test_textured_profile_rejects_bare_mesh_and_invalid_binary(content: bytes) -
         evaluate([TEXTURED], _glb_output(content))
 
 
+TEXTURED_PBR = {"kind": "glb-structure", "profile": "textured-pbr"}
+
+
+def _pbr_glb() -> bytes:
+    return _glb(
+        textured=True,
+        materials=[
+            {
+                "pbrMetallicRoughness": {
+                    "baseColorTexture": {"index": 0},
+                    "metallicRoughnessTexture": {"index": 1},
+                }
+            }
+        ],
+        textures=[{"source": 0}, {"source": 1}],
+        images=[
+            {"bufferView": 3, "mimeType": "image/png"},
+            {"bufferView": 3, "mimeType": "image/png"},
+        ],
+    )
+
+
+def test_textured_pbr_checks_both_material_channels() -> None:
+    assert evaluate([TEXTURED_PBR], _glb_output(_pbr_glb())) == {}
+    with pytest.raises(AssertionFailed, match="metallicRoughnessTexture"):
+        evaluate([TEXTURED_PBR], _glb_output(_glb(textured=True)))
+
+
+@pytest.mark.parametrize(
+    "info", [{"index": 9}, {"index": 0}, {"index": 1, "texCoord": 1}]
+)
+def test_textured_pbr_rejects_invalid_or_shared_metallic_roughness(
+    info: dict[str, Any],
+) -> None:
+    content = _glb(
+        textured=True,
+        materials=[
+            {
+                "pbrMetallicRoughness": {
+                    "baseColorTexture": {"index": 0},
+                    "metallicRoughnessTexture": info,
+                }
+            }
+        ],
+        textures=[{"source": 0}, {"source": 0}],
+    )
+    with pytest.raises(AssertionFailed):
+        evaluate([TEXTURED_PBR], _glb_output(content))
+
+
 # -- realtime-transcript -----------------------------------------------------------------
 
 REVISION = "06b067617677661194cf837970fe3a10f1a0e56d"
