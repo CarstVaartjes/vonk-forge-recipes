@@ -3035,6 +3035,15 @@ class Sweep:
         ).model_dump(mode="json")
         load["observation_unknown"] = False
         load.pop("observation_budget", None)
+        self.clear_infra("clearing")
+        self.backoff_until = max(
+            (
+                item["until"]
+                for source, item in self.state.data["infra"].items()
+                if source != "download"
+            ),
+            default=0.0,
+        )
         self.state.event(
             f"cleanup {str(load.get('app_id') or load['request_key'])[:8]} retired: "
             "its stop targets are gone from the fleet"
@@ -3052,12 +3061,16 @@ class Sweep:
         load["observation_budget"] = budget.model_dump(mode="json")
 
     def observe_cleanup(self) -> None:
-        """Observe original stop receipts once; never replace intent after a read timeout."""
+        """Reconcile original applications and stops; never replace intent on timeout."""
         for load in self.state.data["cleanup_loads"].values():
             if load.get("end"):
                 continue
-            if load.get("projection_known") and not self._cleanup_pending(load):
-                continue  # immutable successful receipt/history needs no repeated I/O
+            if (
+                load.get("terminal_receipt")
+                and load.get("projection_known")
+                and not self._cleanup_pending(load)
+            ):
+                continue  # only a retained terminal receipt is immutable history
             now = self.clock.now()
             budget = CleanupObservationBudget.model_validate(
                 load.get("observation_budget", {})
@@ -3080,15 +3093,6 @@ class Sweep:
             reply = self.vk.run("profile", *args, profile=self.cfg.sweep_profile)
             document = reply.document
             if reply.is_not_found and self._cleanup_target_absent(load):
-                self.clear_infra("clearing")
-                self.backoff_until = max(
-                    (
-                        item["until"]
-                        for source, item in self.state.data["infra"].items()
-                        if source != "download"
-                    ),
-                    default=0.0,
-                )
                 self._end_cleanup(load, now)
                 continue
             if not reply.ok:
@@ -3213,6 +3217,13 @@ class Sweep:
                 observation_unknown=False,
                 observed_at=self.clock.now(),
             )
+            if not self._cleanup_pending(load):
+                # Child completion is not parent completion. Reconcile its exact
+                # targets with fresh fleet facts before retiring the observer.
+                if self._cleanup_target_absent(load, terminal=True):
+                    self._end_cleanup(load, now)
+                else:
+                    self._defer_cleanup(load, budget, now)
             self.state.save()
 
     def _take_over(self, now: float) -> bool:

@@ -196,7 +196,11 @@ def test_present_cleanup_still_observes_stop_receipt_and_admits_fresh_load(
     )
     clock.sleep(3600)
     sweep.observe_cleanup()
-    assert "end" not in record
+    assert (
+        CleanupEnd.model_validate(record["end"]).reason
+        is CleanupEndReason.TARGET_ABSENT
+    )
+    assert record["terminal_receipt"]
     assert record["projection_known"]
     admit(sweep, clock, recipe)
 
