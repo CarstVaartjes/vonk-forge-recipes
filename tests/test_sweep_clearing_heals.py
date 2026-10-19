@@ -15,6 +15,7 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
+from vonk_forge_contracts.sweep import CleanupEnd, CleanupEndReason
 
 from spark_sweep import policy
 
@@ -125,8 +126,73 @@ def test_a_clearing_decision_submits_a_cleanup_after_an_old_budget_was_spent(
     assert sweep.state.data["cleared_by"] == takeovers[0]["request_key"]
 
 
+@pytest.mark.parametrize("ended", [False, True, None])
+@pytest.mark.parametrize("decide_clearing", [True, False])
+def test_ready_lane_submits_a_decided_clearing_before_its_shortcut(
+    tmp_path: Path, gateway: Gateway, ended: bool | None, decide_clearing: bool
+) -> None:
+    sweep, fleet, clock = _recorded_world(tmp_path, gateway)
+    holders = [
+        "moss-vl-realtime-11b-pytorch-single-d03f0",
+        "pixal3d-pytorch-single-55cb4",
+    ]
+    fleet.runs.clear()
+    for alias, node in zip(holders, ("spk_a", "spk_b"), strict=True):
+        fleet.runs.append(
+            dict(LEFTOVER, alias=alias, run_id=f"run-{alias}", node_ids=[node])
+        )
+    fleet.cleanup_stop_seconds.update({alias: 600 for alias in holders})
+    sweep.state.data["own_aliases"].extend(holders)
+    sweep.state.data.pop("cleared_for", None)
+    if ended is None:
+        # No cleanup history: an existing slot was another early-success exit.
+        sweep.state.data["cleanup_loads"].clear()
+        sweep.state.slots["retired"] = {
+            "alias": "absent",
+            "phase": "finished",
+            "node_ids": [],
+        }
+    elif ended:
+        for load in sweep.state.data["cleanup_loads"].values():
+            load.pop("terminal_receipt")
+            load["end"] = CleanupEnd(
+                reason=CleanupEndReason.TARGET_ABSENT, observed_at=clock.now()
+            ).model_dump(mode="json")
+    sweep.preflight()
+    sweep.refresh_catalog()
+    if decide_clearing:
+        _blocked_by_leftover(sweep, clock)
+        _blocked_by_leftover(sweep, clock)
+        assert sweep.state.data["cleared_for"] == holders
+        assert not sweep.state.data.get("cleared_by")
+        assert not sweep.state.data["took_over"]
+        assert not sweep.state.data.get("clearing_refusal")
+        assert "was not submitted" in _results(tmp_path)[-1]["reason"]
+    assert sweep.fleet.presences
+    assert any(s.id not in sweep._cleanup_nodes() for s in sweep.sparks())
+
+    assert sweep._take_over(clock.now(), place_ready=True)
+
+    takeovers = [i for i in sweep.state.data["own_loads"] if i["kind"] == "takeover"]
+    if not decide_clearing:
+        assert not takeovers  # the ready-lane shortcut still avoids an empty clearing
+        return
+    assert len(takeovers) == 1
+    app = fleet.apps[takeovers[0]["application_id"]]
+    assert {row["target_id"] for row in app["effects"]} == {
+        f"run-{alias}" for alias in holders
+    }
+    assert not app["assign"]
+    assert sweep.state.data["cleared_by"] == takeovers[0]["request_key"]
+    _blocked_by_leftover(sweep, clock)
+    assert "outlived a clearing" in _results(tmp_path)[-1]["reason"]
+    assert sweep._take_over(clock.now(), place_ready=True)
+    assert len(fleet.apps) == 1  # observe the submitted clearing, never replay it
+
+
+@pytest.mark.parametrize("place_ready", [False, True])
 def test_a_refused_clearing_is_the_recorded_wait_and_is_decided_again(
-    tmp_path: Path, gateway: Gateway
+    tmp_path: Path, gateway: Gateway, place_ready: bool
 ) -> None:
     sweep, fleet, clock = _recorded_world(tmp_path, gateway)
     sweep.preflight()
@@ -146,7 +212,7 @@ def test_a_refused_clearing_is_the_recorded_wait_and_is_decided_again(
 
     fleet._load = refusing
     _blocked_by_leftover(sweep, clock)
-    assert sweep._take_over(clock.now())
+    assert sweep._take_over(clock.now(), place_ready=place_ready)
     assert sweep.state.data["takeover_fallback"]
     assert not any(i["kind"] == "takeover" for i in sweep.state.data["own_loads"])
     reason = sweep.state.data["clearing_reason"]
@@ -159,7 +225,7 @@ def test_a_refused_clearing_is_the_recorded_wait_and_is_decided_again(
     assert blocker["code"] in _results(tmp_path)[-1]["reason"]
     assert sweep.state.data["takeover_budget"]["attempts"] == 0
     fleet._load = original
-    sweep._take_over(clock.now())
+    sweep._take_over(clock.now(), place_ready=place_ready)
     assert any(i["kind"] == "takeover" for i in sweep.state.data["own_loads"])
 
 

@@ -3314,6 +3314,17 @@ class Sweep:
     def _attempt_takeover(self, now: float, *, place_ready: bool = False) -> bool:
         """Begin one durable cleanup, then admit lanes from exact receipts."""
         loads = self.state.data["cleanup_loads"]
+        if (
+            self.state.data.get("cleared_for")
+            and not self.state.data.get("cleared_by")
+            and all(
+                load.get("terminal_receipt") or load.get("end")
+                for load in loads.values()
+            )
+        ):
+            # A decided clearing precedes ready-lane shortcuts. In-flight intent
+            # still follows its original receipt instead of being submitted again.
+            return self._renew_cleanup(now)
         if loads:
             if all(
                 load.get("terminal_receipt") or load.get("end")
