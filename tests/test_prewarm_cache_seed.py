@@ -29,7 +29,7 @@ SEEDING_LAUNCHERS = {"adapters/nvidia/r0b0tlab-ornith-sglang-single/sglang-serve
 NATIVE_KIT_BUILDERS = {
     f"adapters/deepseek/tonyd2wild-1017-tensorfold-tp{world}/prepare_cache.py"
     for world in (2, 4)
-}
+} | {"adapters/deepseek/mia-1017-tensorfold-dual/prepare_cache.py"}
 
 
 def _own_sources() -> list[Path]:
