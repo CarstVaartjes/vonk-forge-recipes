@@ -121,6 +121,8 @@ def test_a_capacity_refusal_beyond_an_idle_spark_is_deferred_with_evidence(
     )
     assert entry["evidence"]["freeing_attempts"] == MAX_REVIEW_FREEING
     assert len(refused) == MAX_REVIEW_FREEING + 1
+    rows = [r for r in sweep.log.entries() if r.get("status") == "deferred"]
+    assert rows[-1]["controller_document"]["admission_decisions"][0]["requirements"]
 
 
 def test_a_capacity_failure_recorded_before_clearing_existed_is_requeued_once(
