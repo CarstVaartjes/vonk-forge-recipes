@@ -205,6 +205,7 @@ class Listing[T]:
         self.commit = ""
         self.last_error = ""
         self.failures = 0
+        self.invalid_rows = 0
 
     def begin(self, now: float) -> None:
         self.in_pass = True
@@ -215,6 +216,7 @@ class Listing[T]:
         self.cursor = None
         self.seen = set()
         self.failures = 0
+        self.invalid_rows = 0
 
     def step(self, now: float = 0.0) -> bool:
         """Read one page. True when this call completed a pass."""
@@ -235,6 +237,8 @@ class Listing[T]:
             if item is not None:
                 self.rows[self.key(item)] = item
                 self.seen.add(self.key(item))
+            else:
+                self.invalid_rows += 1
         self.commit = self.commit or str(
             dig(reply.document, "library", "commit", default="")
         )

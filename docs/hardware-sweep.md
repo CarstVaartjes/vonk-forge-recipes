@@ -165,6 +165,24 @@ The next models are downloaded to the NAS while the Sparks test.
   carries on and says so in the status page.
 * **Measured throughput.** The summed `smoothed_bytes_per_second` of the
   active operations feeds the ETA on the status page.
+* **Fleet model removal.** After every catalog recipe referencing a model has
+  a passed or terminally failed verdict for its current content, the sweep
+  reviews and requests `model remove DIGEST --fleet`. All model roles count;
+  pending, retrying, deferred, skipped and stale-content results keep their
+  models. A complete catalog and readable owner profiles are required. Every
+  saved owner profile number is protected, including 20 and higher; only this
+  sweep's own sweep and pin profiles are excluded from that owner check.
+  The Controller still owns reference and shared-byte retention.
+  `state.json` and `status.json` retain the review, request key and receipt;
+  `status.md` shows the outcome, request and next check.
+  Keys are saved before submission and reused after a disconnect or restart.
+  Terminal failures re-plan with a new key, up to three reviewed attempts;
+  uncertain outcomes reconnect to the original key (three reads without any
+  receipt, or at most 144 observations over 24 hours after acceptance).
+  Checks have backoff and a 30-second CLI timeout. Exhaustion
+  keeps the evidence and says that remote work may still run. Removal never
+  reserves a lane or delays sweep completion: unfinished cleanup remains in
+  state for a later invocation, and a refused removal never stops recipe work.
 
 ## What is tested
 

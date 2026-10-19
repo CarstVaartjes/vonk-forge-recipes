@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "nonce": "saved-removal-campaign",
+  "recipes": {
+    "vonk-forge/a": {
+      "status": "passed",
+      "content_sha256": "c1"
+    },
+    "vonk-forge/b": {
+      "status": "failed",
+      "content_sha256": "c1"
+    },
+    "vonk-forge/owner": {
+      "status": "passed",
+      "content_sha256": "c1"
+    },
+    "vonk-forge/later": {
+      "status": "pending",
+      "content_sha256": "c1"
+    }
+  },
+  "slots": {}
+}

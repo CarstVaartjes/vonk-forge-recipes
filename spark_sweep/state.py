@@ -46,6 +46,7 @@ def _fresh() -> dict[str, Any]:
         "rate": {"ema": 0.0, "samples": 0},
         "owner": {"baseline": {}, "hold_until": 0.0, "export": {}},
         "models_done": [],  # digests whose download finished, whatever a lagging listing says
+        "model_removals": {},  # model content digest -> durable fleet-removal request/receipt
         "took_over": False,
         "model_failures": {},  # model digest -> failure cluster
         "release": {},  # authenticated deployed API identity; publication is separate

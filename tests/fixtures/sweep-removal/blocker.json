@@ -1,0 +1,5 @@
+{
+  "code": "model_cache.removal_scope_changed",
+  "detail": "busy",
+  "retryable": true
+}

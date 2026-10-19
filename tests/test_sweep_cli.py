@@ -174,9 +174,8 @@ def test_a_full_run_writes_state_results_status_and_report(
         and row["load_s"]
         and row["download_s"]
     )
-    assert [c for p, c in fleet.calls if c[:2] == ("profile", "load")][
-        -1
-    ] and fleet.calls[-1][0] == 2
+    loads = [(p, c) for p, c in fleet.calls if c[:2] == ("profile", "load")]
+    assert loads and loads[-1][0] == 2
     # Rerunning resumes: nothing left to do and nothing is tested again.
     before = len(fleet.calls)
     assert _run(["run", "--yes", "--state-dir", str(tmp_path)], fleet, recipes) == 0

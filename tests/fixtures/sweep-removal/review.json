@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "action": "remove",
+  "resource_kind": "model",
+  "selector": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "target_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "with_model": null,
+  "fleet": {
+    "nas_remove": true,
+    "nas_reason": "unused",
+    "nas_detail": "No saved reference",
+    "targets": []
+  },
+  "nas_reclaimable_bytes": 12,
+  "assets": [],
+  "references": [],
+  "active_work": [],
+  "blockers": [],
+  "observed_at": "2026-10-20T00:00:00Z",
+  "review_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

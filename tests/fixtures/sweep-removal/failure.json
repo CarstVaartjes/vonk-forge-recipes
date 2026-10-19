@@ -1,0 +1,5 @@
+{
+  "code": "model_cache.object_busy",
+  "detail": "disk busy",
+  "retryable": true
+}
