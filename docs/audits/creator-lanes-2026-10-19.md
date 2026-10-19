@@ -17,6 +17,17 @@ repository has been reviewed. Missing README responses remain unverified.
 | `deepseek-v4-1-flash-1017-mia-sglang-four` | Same Mia commit; supported base-image profile, TP4/EP2, DSpark 5, 1M context. This is the base profile, not the optional canary RoCEnante/EP1 branch. |
 | `minimax-music3-drowzeys-tensorfold-single` | Studio `1e8677e7c9151836de375e3cc6306ed6e4170c65`, native CUDA engine `6b714531e2d60f91d26e98e414547ad94ad771bf`; caption/optional lyrics to bounded stereo WAV, int8 autoregressive weights generated at load. |
 
+The follow-up also adds `fasth3-8step-v2-drowzeys-tensorfold-single`: the studio's
+FastH3 8-Step V2 workflow, with TensorFold engine
+`1f7ecc75ded5df6da151d4d5eeee87b35161e3c2`, ComfyUI
+`5a665890ded5020c282f63c4ea2dd9e083e025ff`, and the exact four FastVideo checkpoint
+files at `ec1e3aa374a91c57b0b94a1623b7e657c0498cf2`. It generates 124 frames at
+864x480/24 fps with sound in one MP4. ComfyUI owns encoding, sampling and decoding;
+TensorFold replaces the transformer blocks. The writable int8 model view is bound
+to both checkpoint and engine revisions; source mounts stay read-only. The image
+build validates the complete graph against the pinned ComfyUI node API on CPU.
+This does not establish GPU execution or output-quality acceptance.
+
 DeepSeek weights are the native 1017 checkpoint at
 `1bae0e1088993b9b82de08f59de5be5a34e42170`, EXL3 2.9bpw at
 `9a85740a8dce89e858c2113c4d04b6f8fcd33999`, and EXL3 3.5bpw at
@@ -51,11 +62,6 @@ is included. Upstream measurements are estimates, not physical qualification.
   `drama3_ref.build_codec` from an external `ORACLE_DIR`; neither the inspected
   engine commit `81173e6c612739a3427844fd8131cf4905e0a9c4`, studio tree nor checkpoint
   provides that module. A reproducible codec conversion must be closed first.
-- **Studio TensorFold H3:** this is a ComfyUI transformer-block plugin. ComfyUI
-  still owns text encoding, sampling, projections and decoding. It needs a complete
-  pinned ComfyUI workflow and companion-model mapping; adding only the shared
-  library would not create an executable video recipe. This integration remains
-  outstanding; existing H3 recipes do not establish this acceleration variant.
 - **Amarjeet Qwen TensorFold:** a port of Mia's already represented upstream
   recipe; it is not a newly discovered model or engine. Mac-only MLX ports,
   dashboards, benchmarks and client applications are not Spark runtime additions.
