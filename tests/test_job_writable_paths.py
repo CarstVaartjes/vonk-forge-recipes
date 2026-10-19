@@ -39,6 +39,11 @@ def _violations(path: Path) -> list[str]:
                     found.append(f"{name}={value}")
         return found
     tree = ast.parse(source)
+    parents = {
+        child: parent
+        for parent in ast.walk(tree)
+        for child in ast.iter_child_nodes(parent)
+    }
     for node in ast.walk(tree):
         # Cover env defaults/assignments, named cache paths, and literal paths
         # passed to file APIs. Ignore imports and docstrings.
@@ -49,6 +54,11 @@ def _violations(path: Path) -> list[str]:
             if (
                 isinstance(child, ast.Constant)
                 and isinstance(child.value, str)
+                and not (
+                    child.value == "/"
+                    and isinstance(parent := parents.get(child), ast.JoinedStr)
+                    and parent.values[0] is not child
+                )
                 and _bad_path(name, child.value)
             ):
                 found.append(f"{child.lineno}: {child.value}")
@@ -149,3 +159,17 @@ def test_pixal_sets_writable_cache_before_loading_flexgemm(
         else "/tmp/flexgemm-autotune-cache.json"
     )
     assert os.environ[key] == expected
+
+
+def test_guard_distinguishes_formatted_log_separators_from_root_cache(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "job.py"
+    path.write_text('logging.info(f"cache blocks {rows}/{columns}/{depth}")\n')
+    assert not _violations(path)
+    path.write_text('cache_path = "/"\n')
+    assert _violations(path)
+    path.write_text('cache_path = f"/{name}"\n')
+    assert _violations(path)
+    path.write_text('cache_path = f"/root/cache/{name}"\n')
+    assert _violations(path)

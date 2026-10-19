@@ -188,7 +188,9 @@ def test_platform_owned_cache_variables_are_not_recipe_inputs() -> None:
         assert not PLATFORM_OWNED_ENVIRONMENT & names, path.name
 
 
-def test_model_territorial_restrictions_preserve_all_published_records() -> None:
+def test_model_territorial_restrictions_preserve_all_published_records(
+    built_catalog: tuple[dict, Path],
+) -> None:
     expected = {
         "hunyuanocr-1-5-47644ecc": (
             ["EU", "GB", "KR"],
@@ -236,7 +238,19 @@ def test_model_territorial_restrictions_preserve_all_published_records() -> None
                 restriction["denied_jurisdictions"],
                 restriction["notice"],
             )
-    assert actual == expected
+    # Keep previously published notices intact while allowing new model records.
+    assert {slug: actual.get(slug) for slug in expected} == expected
+    catalog, _ = built_catalog
+    published = {}
+    for row in catalog["catalog_entities"]:
+        document = row["document"]
+        restriction = document["license"].get("territorial_restrictions")
+        if restriction is not None:
+            published[document["identity"]["slug"]] = (
+                restriction["denied_jurisdictions"],
+                restriction["notice"],
+            )
+    assert published == actual
 
 
 def test_packages_contain_metadata_and_sources_but_no_model_or_oci_payloads(

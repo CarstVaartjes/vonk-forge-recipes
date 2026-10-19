@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "identity": "drowzeys-fasth3-tensorfold/8step-v2@1",
+  "upstream_template": "https://github.com/drowzeys/keys-Wasserman-Slate-AI-Studio-powered-by-TensorFold-built-with-integrated-Fish-Audio-Drama3/blob/1e8677e7c9151836de375e3cc6306ed6e4170c65/spark/spark_generate.py",
+  "models": [
+    {
+      "artifact_id": "target",
+      "category": "diffusion_models",
+      "filename": "fastvideo_fasth3_8step_v2_pruned_bf16.safetensors"
+    },
+    {
+      "artifact_id": "text-encoder",
+      "category": "text_encoders",
+      "filename": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors"
+    },
+    {
+      "artifact_id": "video-vae",
+      "category": "vae",
+      "filename": "minimax_h3_video_vae_int8_convrot.safetensors"
+    },
+    {
+      "artifact_id": "audio-vae",
+      "category": "vae",
+      "filename": "minimax_h3_audio_vae_fp32.safetensors"
+    }
+  ],
+  "inputs": {
+    "minimum": 0,
+    "maximum": 0
+  },
+  "text_inputs": {
+    "prompt": {
+      "required": true,
+      "slot": "prompt",
+      "maximum_bytes": 16384,
+      "maximum_characters": 4096
+    }
+  },
+  "result": {
+    "mime": "video/mp4",
+    "count": 1,
+    "video": {
+      "codec": "h264",
+      "width": 864,
+      "height": 480,
+      "fps": 24,
+      "frames": 124
+    },
+    "audio": true
+  },
+  "prompt": {
+    "1": {
+      "class_type": "UNETLoader",
+      "inputs": {
+        "unet_name": "fastvideo_fasth3_8step_v2_pruned_bf16.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    "2": {
+      "class_type": "MiniMaxH3SigmaShift",
+      "inputs": {
+        "model": [
+          "1",
+          0
+        ],
+        "shift_video": 10.0,
+        "shift_audio": 3.0
+      }
+    },
+    "3": {
+      "class_type": "CLIPLoader",
+      "inputs": {
+        "clip_name": "qwen3vl_32b_minimax_h3_int8_convrot.safetensors",
+        "type": "minimax",
+        "device": "default"
+      }
+    },
+    "4": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_video_vae_int8_convrot.safetensors"
+      }
+    },
+    "5": {
+      "class_type": "VAELoader",
+      "inputs": {
+        "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+      }
+    },
+    "6": {
+      "class_type": "MiniMaxH3ImageToVideo",
+      "inputs": {
+        "clip": [
+          "3",
+          0
+        ],
+        "vae": [
+          "4",
+          0
+        ],
+        "prompt": "__VONK_PROMPT__",
+        "width": 864,
+        "height": 480,
+        "length": 124
+      }
+    },
+    "7": {
+      "class_type": "ConditioningZeroOut",
+      "inputs": {
+        "conditioning": [
+          "6",
+          0
+        ]
+      }
+    },
+    "8": {
+      "class_type": "RandomNoise",
+      "inputs": {
+        "noise_seed": "__VONK_SEED__"
+      }
+    },
+    "9": {
+      "class_type": "KSamplerSelect",
+      "inputs": {
+        "sampler_name": "euler"
+      }
+    },
+    "12": {
+      "class_type": "SamplerCustomAdvanced",
+      "inputs": {
+        "noise": [
+          "8",
+          0
+        ],
+        "guider": [
+          "11",
+          0
+        ],
+        "sampler": [
+          "9",
+          0
+        ],
+        "sigmas": [
+          "10",
+          0
+        ],
+        "latent_image": [
+          "6",
+          1
+        ]
+      }
+    },
+    "13": {
+      "class_type": "VAEDecode",
+      "inputs": {
+        "samples": [
+          "12",
+          0
+        ],
+        "vae": [
+          "4",
+          0
+        ]
+      }
+    },
+    "14": {
+      "class_type": "VAEDecodeAudio",
+      "inputs": {
+        "samples": [
+          "12",
+          0
+        ],
+        "vae": [
+          "5",
+          0
+        ]
+      }
+    },
+    "15": {
+      "class_type": "CreateVideo",
+      "inputs": {
+        "images": [
+          "13",
+          0
+        ],
+        "audio": [
+          "14",
+          0
+        ],
+        "fps": 24
+      }
+    },
+    "16": {
+      "class_type": "SaveVideo",
+      "inputs": {
+        "video": [
+          "15",
+          0
+        ],
+        "filename_prefix": "vonk/fasth3-tensorfold",
+        "format": "mp4",
+        "format.codec": "h264",
+        "format.codec.encoding": "auto"
+      }
+    },
+    "22": {
+      "class_type": "TensorFoldH3Blocks",
+      "inputs": {
+        "model": [
+          "2",
+          0
+        ],
+        "unet_name": "fastvideo_fasth3_8step_v2_pruned_bf16.safetensors",
+        "sparsity": 0.8
+      }
+    },
+    "10": {
+      "class_type": "BasicScheduler",
+      "inputs": {
+        "model": [
+          "22",
+          0
+        ],
+        "scheduler": "simple",
+        "steps": 8,
+        "denoise": 1.0
+      }
+    },
+    "11": {
+      "class_type": "CFGGuider",
+      "inputs": {
+        "model": [
+          "22",
+          0
+        ],
+        "positive": [
+          "6",
+          0
+        ],
+        "negative": [
+          "7",
+          0
+        ],
+        "cfg": 1.0
+      }
+    }
+  }
+}
