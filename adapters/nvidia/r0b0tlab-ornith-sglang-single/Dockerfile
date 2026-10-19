@@ -16,6 +16,10 @@ RUN mkdir -p /opt/vonk/prewarm \
     && cp -a /home/sglang/.cache/sglang /opt/vonk/prewarm/sglang \
     && if [ -d /home/sglang/.cache/triton ]; then cp -a /home/sglang/.cache/triton /opt/vonk/prewarm/triton; fi \
     && chmod -R a+rX /opt/vonk/prewarm
+# The pinned SGLang checks its opt-out only after importing DeepGEMM. That
+# import asserts on this runtime-only image, even when JIT is disabled.
+COPY patch-deepgemm.py /opt/vonk/patch-deepgemm.py
+RUN /opt/venv/bin/python /opt/vonk/patch-deepgemm.py /opt/venv/lib/python3.12/site-packages/sglang/srt/layers/deep_gemm_wrapper/configurer.py
 COPY LICENSE.upstream /opt/vonk/licenses/LICENSE.upstream
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
