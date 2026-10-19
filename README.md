@@ -76,7 +76,7 @@ Which Spark counts each model family runs on.
 | Model family | 1 Spark | 2 Sparks | 3 Sparks | 4 Sparks | 8 Sparks |
 | --- | :---: | :---: | :---: | :---: | :---: |
 | Agents-A1 | ✓ |  |  |  |  |
-| DeepSeek | ✓ | ✓ |  | ✓ |  |
+| DeepSeek | ✓ | ✓ | ✓ | ✓ |  |
 | DeepSeek Flash | ✓ | ✓ |  | ✓ |  |
 | FastContext | ✓ |  |  |  |  |
 | FLUX 3 | ✓ |  |  |  |  |
