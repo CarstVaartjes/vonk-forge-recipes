@@ -73,8 +73,8 @@
           ]
         },
         {
-          "file_id": "readme-4a1ddebc85fd-b335630551",
-          "id": "readme-4a1ddebc85fd-b335630551",
+          "file_id": "readme-7ea038c050dd-b335630551",
+          "id": "readme-7ea038c050dd-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -95,10 +95,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "66fb4ed014b1caa55b35e707e5411043403eea10c5bcbddcbc9dd2a13057ba36",
+        "content_sha256": "254ab9a7ec48bcf1484fb03f607bf9a4e5bc1a4c08456df1ecdd3a6d567df546",
         "kind": "model",
         "publisher": "ggml-org",
-        "slug": "qwen3-8-27b-q4-k-m-71bc7b62"
+        "slug": "qwen3-8-27b-q4-k-m-a316ea52"
       }
     }
   ],
@@ -109,11 +109,11 @@
       "Alibaba Qwen",
       "ggml-org"
     ],
-    "source_reference": "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF/tree/71bc7b627595dc8a91039addd9c791ae548d6747"
+    "source_reference": "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF/tree/a316ea527fde32c12487be7574e2db5ac2ad2a7e"
   },
   "release": {
-    "released_at": "2026-10-05",
-    "version": "0.6.0"
+    "released_at": "2026-10-19",
+    "version": "0.6.1"
   },
   "runtime": {
     "arguments": [
@@ -183,7 +183,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 19603120191,
+            "artifact_bytes": 19603120230,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 16000000000

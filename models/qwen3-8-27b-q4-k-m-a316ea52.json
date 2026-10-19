@@ -28,13 +28,13 @@
       "size_bytes": 18973870528
     },
     {
-      "id": "readme-4a1ddebc85fd-b335630551",
+      "id": "readme-7ea038c050dd-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "4a1ddebc85fd59b14650bb04757dea42cfefa63b75173e15fd5bc919d2861adb",
-      "size_bytes": 449
+      "sha256": "7ea038c050ddf1d40bbff2b74de4e58cd480616ec9c6db1e3a0e07a0feb631d5",
+      "size_bytes": 488
     },
     {
       "id": "mmproj-qwen3-8-27b-q8-0-2e968a6af97c-266eaebc83",
@@ -62,9 +62,9 @@
       "title": "Qwen3.8 27B"
     },
     "publisher": "ggml-org",
-    "slug": "qwen3-8-27b-q4-k-m-71bc7b62",
-    "variant": "Q4_K_M 71bc7b62",
-    "version": "Q4_K_M 71bc7b62"
+    "slug": "qwen3-8-27b-q4-k-m-a316ea52",
+    "variant": "Q4_K_M a316ea52",
+    "version": "Q4_K_M a316ea52"
   },
   "kind": "model",
   "license": {
@@ -92,6 +92,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF",
-    "revision": "71bc7b627595dc8a91039addd9c791ae548d6747"
+    "revision": "a316ea527fde32c12487be7574e2db5ac2ad2a7e"
   }
 }
