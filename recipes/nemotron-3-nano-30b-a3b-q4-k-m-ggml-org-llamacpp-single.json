@@ -71,8 +71,8 @@
           ]
         },
         {
-          "file_id": "readme-1ea6f4e1a69d-b335630551",
-          "id": "readme-1ea6f4e1a69d-b335630551",
+          "file_id": "readme-ccbb285de440-b335630551",
+          "id": "readme-ccbb285de440-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -83,10 +83,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "bfade1cd83707656da3c8b6d0e95774dca2f1ebb840c45ae6b01b88120110719",
+        "content_sha256": "a7cd8870cc7e799f7855f8417c07d639c75256944778a9ae97cf7e8556e1ef74",
         "kind": "model",
         "publisher": "ggml-org",
-        "slug": "nemotron-3-nano-30b-a3b-q4-k-m-f9d9b441"
+        "slug": "nemotron-3-nano-30b-a3b-q4-k-m-fe801509"
       }
     }
   ],
@@ -97,11 +97,11 @@
       "NVIDIA Corporation",
       "ggml-org"
     ],
-    "source_reference": "https://huggingface.co/ggml-org/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF/tree/f9d9b441a049bf27473c3cdd9cec220f5657b862"
+    "source_reference": "https://huggingface.co/ggml-org/NVIDIA-Nemotron-3-Nano-30B-A3B-GGUF/tree/fe801509a580ff84a5728d4a9104e3f6f7e9b0dd"
   },
   "release": {
-    "released_at": "2026-10-05",
-    "version": "0.6.0"
+    "released_at": "2026-10-19",
+    "version": "0.6.1"
   },
   "runtime": {
     "arguments": [
@@ -166,7 +166,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 22421829729,
+            "artifact_bytes": 22421829768,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 16000000000
