@@ -183,3 +183,56 @@ def test_the_controllers_typed_ending_is_what_stops_the_following() -> None:
     assert not verdict.retry_ended(
         {"progress": {"switch_adapter": {"assignment_failures": [{"terminal": False}]}}}
     )
+
+
+@pytest.mark.parametrize("solo_refused", [False, True])
+def test_one_refused_lane_does_not_starve_an_admitted_sibling(
+    tmp_path, gateway, solo_refused
+) -> None:
+    """A build holds a's Spark; the rejected batch must be reviewed again with b alone."""
+    sweep, fleet, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", memory=100 * 10**9), FakeRecipe("b", memory=100 * 10**9)],
+        [FakeModel("m1")],
+        gateway=gateway,
+    )
+    real = fleet._load
+    refused = _refusing(fleet, times=None)
+    refusing = fleet._load
+    admitted = []
+
+    def load(n, data, a):
+        aliases = {item["assignment_name"] for item in data["assignments"]}
+        if "--review" in a and "a" in aliases and not admitted:
+            status, document = refusing(n, data, a)
+            if "b" in aliases:
+                document["admission_decisions"].append({"alias": "b", "allowed": True})
+            return status, document
+        if "--review" in a and aliases == {"b"} and solo_refused:
+            status, document = refusing(n, data, a)
+            document["admission_decisions"][0]["alias"] = "b"
+            return status, document
+        if "--review" not in a and aliases == {"b"}:
+            admitted.append(aliases)
+        return real(n, data, a)
+
+    fleet._load = load
+    from spark_sweep.policy import Placement
+
+    fleet.runs.clear()
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep._apply(
+        [
+            Placement(sweep.recipes[f"vonk-forge/{slug}"], (node,))
+            for slug, node in (("a", "spk_a"), ("b", "spk_b"))
+        ],
+        sweep.clock.now(),
+    )
+    assert bool(admitted) is not solo_refused
+    assert len(refused) == (2 if solo_refused else 1)
+    assert ("vonk-forge/b" in sweep.state.slots) is not solo_refused
+    assert "vonk-forge/a" not in sweep.state.slots
+    if not solo_refused:
+        assert sweep.run() == 0
+        assert all(_entry(sweep, slug)["status"] == "passed" for slug in ("a", "b"))
