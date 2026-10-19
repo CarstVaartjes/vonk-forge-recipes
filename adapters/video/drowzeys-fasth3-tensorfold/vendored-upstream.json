@@ -1,0 +1,15 @@
+{
+  "source": {
+    "repo": "drowzeys/keys-Wasserman-Slate-AI-Studio-powered-by-TensorFold-built-with-integrated-Fish-Audio-Drama3",
+    "commit": "1e8677e7c9151836de375e3cc6306ed6e4170c65"
+  },
+  "renamed": {
+    "tensorfold_h3/__init__.py": "spark/tensorfold_h3/__init__.py"
+  },
+  "ours": [
+    "comfyui_job.py",
+    "runtime_smoke.py",
+    "workflows/fasth3.json",
+    "vonk_agent_protocol-4.1.0-py3-none-any.whl"
+  ]
+}

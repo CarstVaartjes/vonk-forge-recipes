@@ -45,7 +45,7 @@ Which engines each model family runs on.
 | MiMo | ✓ | ✓ |  |  |  |  |  |  |  |  |
 | MiniCPM |  |  |  |  |  |  |  |  |  | ✓ |
 | MiniMax | ✓ |  |  |  |  |  |  |  |  |  |
-| MiniMax H3 |  |  |  |  |  |  | ✓ |  |  |  |
+| MiniMax H3 |  |  |  |  |  |  | ✓ | ✓ |  |  |
 | MiniMax Music3 |  |  |  |  |  |  |  |  | ✓ |  |
 | MOVA |  |  |  |  |  |  |  |  | ✓ |  |
 | Muse Glimmer | ✓ |  |  |  |  |  |  |  |  |  |
