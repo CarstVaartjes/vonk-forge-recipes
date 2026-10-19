@@ -25,5 +25,7 @@ config = config_from_env(env, link)
 config["network"]["disable_auth"] = True
 path = state / "config.yml"
 path.write_text(dump_yaml(config))
-os.chdir("/opt/tabbyAPI")
+# TabbyAPI writes logs/ relative to its working directory. Its source stays
+# read-only; the absolute entrypoint still supplies its import path.
+os.chdir(state)
 os.execv(sys.executable, [sys.executable, "-u", "/opt/tabbyAPI/main.py", "--config", str(path)])
