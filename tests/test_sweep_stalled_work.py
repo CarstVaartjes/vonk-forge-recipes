@@ -1,8 +1,7 @@
 """Stalled work the Controller reports (``progress.stalled``) is a platform problem.
 
-The lane following a stalled application is released with an ``observe`` row (code
-``platform.stalled``), nothing is cancelled, and the sweep admits no new load until the
-Controller reports no stalled work. The field is additive: absent means no stall.
+The lane following a stalled application keeps its receipt and emits an ``observe``
+row. Independent lanes continue. The field is additive: absent means no stall.
 """
 
 from __future__ import annotations
@@ -88,7 +87,7 @@ def _calls(fleet: FakeFleet, *verb: str) -> int:
     return sum(1 for _, args in fleet.calls if args[: len(verb)] == verb)
 
 
-def test_a_stalled_application_releases_the_lane_and_pauses_until_it_clears(
+def test_a_stalled_application_keeps_only_its_lane_until_it_clears(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, clock, held = _sweep(tmp_path, gateway)
@@ -112,20 +111,22 @@ def test_a_stalled_application_releases_the_lane_and_pauses_until_it_clears(
     sweep.tick()
 
     row = _rows(tmp_path)[-1]
-    assert (row["disposition"], row["code"]) == ("observe", "platform.stalled")
+    assert (row["disposition"], row["code"]) == ("observe", verdict.STALLED_CODE)
     assert row["failure_class"] == verdict.PLATFORM_STALLED
     assert sweep.state.status(held.key) == "pending"
     assert sweep.state.entry(held.key).get("attempts", 0) == 0
-    assert sweep.paused and "Controller reports stalled work" in sweep.pause_reason
+    assert not sweep.paused
+    assert held.key in sweep.state.slots
     write_status(sweep)
     status = (tmp_path / "status.md").read_text()
-    assert f"PAUSED: Controller reports stalled work: {app['id']}" in status
+    assert f"Controller reports stalled work: {app['id']}" in status
+    assert "PAUSED:" not in status
 
     # Stalled for half an hour: no new load, and the sweep cancels nothing.
     for _ in range(30):
         clock.sleep(sweep.cfg.poll_seconds)
         sweep.tick()
-    assert sweep.paused
+    assert not sweep.paused
     assert _calls(fleet, "profile", "load") == loads
     assert _calls(fleet, "profile", "cancel") == cancels
 
@@ -136,7 +137,7 @@ def test_a_stalled_application_releases_the_lane_and_pauses_until_it_clears(
     sweep.tick()
     assert not sweep.paused
     _drive(sweep, clock, lambda: sweep.state.status(held.key) == "passed")
-    # The recovered application is forgotten, never cancelled by the sweep.
+    # The original application recovers without cancellation.
     assert _calls(fleet, "profile", "cancel", app["id"]) == 0
 
 
@@ -149,18 +150,19 @@ def test_repeated_stalls_never_spend_an_attempt(
         app = _followed_live(sweep, fleet)
         app["blockers"] = [*app.get("blockers", []), ALARM]
         sweep.tick()
-        assert sweep.paused
+        assert not sweep.paused
         app["blockers"] = [b for b in app["blockers"] if b is not ALARM]
         clock.sleep(sweep.cfg.poll_seconds)
         sweep.tick()
+        # Each fresh stall episode is visible without replacing the receipt.
     entry = sweep.state.entry(held.key)
     assert entry.get("attempts", 0) == 0
     assert entry["status"] != "deferred"
-    stalls = [r for r in _rows(tmp_path) if r.get("code") == "platform.stalled"]
+    stalls = [r for r in _rows(tmp_path) if r.get("code") == verdict.STALLED_CODE]
     assert len(stalls) == sweep.cfg.max_attempts + 1
 
 
-def test_a_pause_holds_the_re_plan_of_a_preparing_recipe(
+def test_an_owner_pause_holds_the_re_plan_of_a_preparing_recipe(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     recipes = [
@@ -189,7 +191,7 @@ def test_a_pause_holds_the_re_plan_of_a_preparing_recipe(
         clock,
         lambda: any(s.get("blocked_since") for s in sweep.state.slots.values()),
     )
-    fleet.stalled_applications = [{"application_id": "app_other", "detail": "x"}]
+    fleet.owner_load(2, duration=3000)
     loads, removes = (
         _calls(fleet, "profile", "load"),
         _calls(fleet, "profile", "remove"),
@@ -202,7 +204,7 @@ def test_a_pause_holds_the_re_plan_of_a_preparing_recipe(
     assert _calls(fleet, "profile", "remove") == removes
 
 
-def test_only_the_platform_list_still_holds_the_pause(
+def test_the_platform_list_alerts_without_holding_the_fleet(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, clock, held = _sweep(tmp_path, gateway)
@@ -210,10 +212,10 @@ def test_only_the_platform_list_still_holds_the_pause(
         {"application_id": "app_other", "detail": "DistributionUnknown manifest"}
     ]
     sweep.tick()
-    assert sweep.pause_reason == (
+    assert sweep.stall_reason == (
         "Controller reports stalled work: app_other DistributionUnknown manifest"
     )
-    assert _calls(fleet, "profile", "load") == 0
+    assert not sweep.paused
     fleet.stalled_applications = []
     _drive(sweep, clock, lambda: sweep.state.status(held.key) == "passed")
 

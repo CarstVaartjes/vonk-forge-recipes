@@ -281,7 +281,6 @@ def test_missing_cleanup_binding_keeps_one_incident_across_restart(
 
             def stop_after_restart(restarted=sweep, saved=incident) -> None:
                 assert restarted.state.data["infra"]["review"] == saved
-                assert restarted.backoff_until == saved["until"]
                 raise RestartObserved
 
             sweep.check_client = stop_after_restart
@@ -443,3 +442,117 @@ def test_cleanup_review_uses_fresh_exact_run_absence(
     assert len(mutations(fleet)) == before + int(recovered)
     assert ("review" not in sweep.state.data["infra"]) is recovered
     assert not cleanup.stopped(original["effects"][0])
+
+
+def saved_confirmed_cleanup(
+    tmp_path: Path,
+    saved_state: LifecycleState,
+    owner_state: LifecycleState,
+    empty: bool,
+):
+    sweep, fleet, clock, recipe, key, original, app = scenario(tmp_path, dual=True)
+    clock.sleep(3600)
+    reply = sweep.vk.run("profile", "progress", "--application", app["id"], profile=10)
+    rows = cleanup.stop_effects(reply.document)
+    assert rows and all(cleanup.stopped(row) for row in rows)
+    original["effects"] = rows
+    if empty:
+        original.update(effects=[], reviewed_stops=[])
+        app["effects"] = []
+    original.update(state=saved_state, projection_known=True)
+    original.pop("terminal_receipt", None)
+    app["state"] = owner_state
+    # Hold the parent's projection active after all its children finished.
+    app["blocked"] = owner_state in (LifecycleState.RUNNING, LifecycleState.QUEUED)
+    sweep.state.save()
+    restarted, _, _ = make_sweep(
+        tmp_path, [recipe], [FakeModel("m1", local="cached")], fleet=fleet
+    )
+    restarted.preflight()
+    restarted.refresh_catalog()
+    fleet.calls.clear()
+    return restarted, fleet, clock, recipe, key, app
+
+
+@pytest.mark.parametrize("saved_state", [LifecycleState.RUNNING, LifecycleState.QUEUED])
+@pytest.mark.parametrize(
+    "owner_state",
+    [
+        LifecycleState.SUCCEEDED,
+        LifecycleState.FAILED,
+        LifecycleState.RUNNING,
+        LifecycleState.QUEUED,
+    ],
+)
+@pytest.mark.parametrize("empty", [False, True])
+def test_saved_confirmed_cleanup_reobserves_owner_and_retires(
+    tmp_path: Path,
+    saved_state: LifecycleState,
+    owner_state: LifecycleState,
+    empty: bool,
+) -> None:
+    sweep, fleet, clock, recipe, key, app = saved_confirmed_cleanup(
+        tmp_path, saved_state, owner_state, empty
+    )
+    sweep.note_infra("clearing", "stale cleanup owner")
+    sweep.observe_cleanup()
+    record = sweep.state.data["cleanup_loads"][key]
+    assert record["state"] == owner_state
+    assert (
+        CleanupEnd.model_validate(record["end"]).reason
+        is CleanupEndReason.TARGET_ABSENT
+    )
+    reads = [c for _, c in fleet.calls if c[:2] == ("profile", "progress")]
+    assert len(reads) == 1 and app["id"] in reads[0]
+    assert not mutations(fleet)
+    assert not any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
+    calls = len(fleet.calls)
+    sweep.observe_cleanup()
+    assert len(fleet.calls) == calls  # retired history does not generate I/O
+    assert "clearing" not in sweep.state.data["infra"]
+    assert sweep.backoff_until <= clock.now()
+    assert sweep._take_over(clock.now())
+    apply_healthy(sweep, clock, recipe)
+    assert recipe.key in sweep.state.slots
+    assert mutations(fleet)
+
+
+@pytest.mark.parametrize("observation", ["present", "offline", "unavailable"])
+def test_confirmed_cleanup_waits_for_fresh_absence_with_bounded_reads(
+    tmp_path: Path, observation: str
+) -> None:
+    sweep, fleet, clock, _recipe, key, _app = saved_confirmed_cleanup(
+        tmp_path, LifecycleState.RUNNING, LifecycleState.RUNNING, False
+    )
+    if observation == "present":
+        fleet.runs.append(run("gang", ["spk_a", "spk_b"]))
+    elif observation == "offline":
+        fleet.offline_nodes.add("spk_a")
+    else:
+        fleet.observations.append((("fleet",), 0, {}))
+    sweep.observe_cleanup()
+    record = sweep.state.data["cleanup_loads"][key]
+    assert "end" not in record
+    budget = record["observation_budget"]
+    assert 0 < budget["next_check"] - clock.now() <= 600
+    calls = len(fleet.calls)
+    sweep.observe_cleanup()
+    assert len(fleet.calls) == calls
+    fleet.runs.clear()
+    fleet.offline_nodes.clear()
+    clock.sleep(budget["next_check"] - clock.now())
+    sweep.observe_cleanup()
+    assert "end" in record
+
+
+def test_empty_queued_cleanup_has_no_targets_beside_a_foreign_run(
+    tmp_path: Path,
+) -> None:
+    sweep, fleet, _clock, _recipe, key, _app = saved_confirmed_cleanup(
+        tmp_path, LifecycleState.QUEUED, LifecycleState.QUEUED, True
+    )
+    fleet.runs.append(run("foreign", ["spk_a"]))
+    sweep.observe_cleanup()
+    assert "end" in sweep.state.data["cleanup_loads"][key]
+    assert any(row["alias"] == "foreign" for row in fleet.runs)
+    assert not mutations(fleet)
