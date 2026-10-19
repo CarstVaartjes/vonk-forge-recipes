@@ -1,0 +1,19 @@
+{
+  "source": {
+    "repo": "tonyd2wild/DeepSeek-V4.1-Flash-vLLM-DGX-Spark",
+    "commit": "9fa230d3eb119f588e690bf9b87ce41ed902db60"
+  },
+  "ours": [
+    "vendor/",
+    "requirements.lock",
+    "tensorfold-serve",
+    "prepare_cache.py",
+    "launcher.py"
+  ],
+  "renamed": {
+    "patches/0002-server-opt-in-random-sampling-seed-per-request-and-t.patch": "runs/2026-10-18-1017-tensorfold-tp2/patches/0002-server-opt-in-random-sampling-seed-per-request-and-t.patch",
+    "patches/0001-feat-dsv41-each-node-s-weight-file-and-token-map-fro.patch": "runs/2026-10-18-1017-tensorfold-tp2/patches/0001-feat-dsv41-each-node-s-weight-file-and-token-map-fro.patch",
+    "patches/0003-dsv41-tf-dsv41-rank-cache-and-tf-dsv41-check-on-this.patch": "runs/2026-10-18-1017-tensorfold-tp2/patches/0003-dsv41-tf-dsv41-rank-cache-and-tf-dsv41-check-on-this.patch",
+    "chat_template.jinja": "runs/2026-10-17-1017-tensorfold/launch/chat_template.jinja"
+  }
+}
