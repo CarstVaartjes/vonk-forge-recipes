@@ -18,13 +18,13 @@
       "size_bytes": 2488
     },
     {
-      "id": "readme-5f4c9e4289ab-b335630551",
+      "id": "readme-fcea79b725e0-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "5f4c9e4289abcb4f78591e2d49c4b528d6f8bce0fdd6db68690b754846885684",
-      "size_bytes": 669
+      "sha256": "fcea79b725e048c5027e03394a3e79c926e0c78fd98960daebeb7942b2a6ad72",
+      "size_bytes": 708
     },
     {
       "id": "gemma-4-31b-it-q4-0-031dc1c5fa9c-8410300e52",
@@ -61,9 +61,9 @@
       "title": "Gemma 4 31B"
     },
     "publisher": "ggml-org",
-    "slug": "gemma-4-31b-it-q4-0-4fa4fdf3",
-    "variant": "IT Q4_0 4fa4fdf3",
-    "version": "IT Q4_0 4fa4fdf3"
+    "slug": "gemma-4-31b-it-q4-0-3d47a7e6",
+    "variant": "IT Q4_0 3d47a7e6",
+    "version": "IT Q4_0 3d47a7e6"
   },
   "kind": "model",
   "license": {
@@ -91,6 +91,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/ggml-org/gemma-4-31B-it-GGUF",
-    "revision": "4fa4fdf38bee237b5c9e8a5b4e72cf39404c9dcc"
+    "revision": "3d47a7e680fb9526dcac74335858f0f31acc9c27"
   }
 }
