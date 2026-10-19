@@ -1,6 +1,6 @@
 {
   "capabilities": [
-    "structured-decisions",
+    "decision",
     "video",
     "vision"
   ],

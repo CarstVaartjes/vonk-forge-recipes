@@ -38,7 +38,7 @@
       "executable",
       "spark",
       "vllm",
-      "structured-decisions",
+      "decision",
       "vision",
       "video"
     ],
@@ -210,7 +210,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "5747edfc4bc85fd3115361a5999db4859ab1ac8b3226389bdc618f57fb7188b3",
+        "content_sha256": "8bb8468205d8b776bc3e830227ffd35423584af39bcc325ccb6ce8e6ededeba3",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "d3-mini-bf16-bd0090dd"

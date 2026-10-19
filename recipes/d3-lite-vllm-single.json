@@ -38,7 +38,7 @@
       "executable",
       "spark",
       "vllm",
-      "structured-decisions",
+      "decision",
       "vision",
       "video"
     ],
@@ -200,7 +200,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3c5f5ff08239b8c4d883aa7e78f4d17a572e7ad445b186c250ac03ac5f94b219",
+        "content_sha256": "c451035621cab6cddd7c7a58b8c0f886285c4462f80b3007229dd57f76e44b62",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "d3-lite-bf16-03560c26"
@@ -302,7 +302,7 @@
             "working_bytes": 12000000000
           },
           "memory": {
-            "peak_bytes": 27599484723,
+            "peak_bytes": 27599484724,
             "reserve_bytes": 8000000000
           }
         }
