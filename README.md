@@ -19,7 +19,7 @@ Which engines each model family runs on.
 | Model family | vLLM | SGLang | TensorRT-LLM | llama.cpp | TensorFold | ds4 | diffusers | ComfyUI | pytorch-pipeline | exllamav3 |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Agents-A1 | ✓ |  |  |  |  |  |  |  |  |  |
-| DeepSeek |  | ✓ |  |  |  |  |  |  |  |  |
+| DeepSeek |  | ✓ |  |  | ✓ |  |  |  |  |  |
 | DeepSeek Flash | ✓ | ✓ |  |  | ✓ | ✓ |  |  |  |  |
 | FastContext | ✓ |  |  |  |  |  |  |  |  |  |
 | FLUX 3 |  |  |  |  |  |  |  |  | ✓ |  |
@@ -76,7 +76,7 @@ Which Spark counts each model family runs on.
 | Model family | 1 Spark | 2 Sparks | 3 Sparks | 4 Sparks | 8 Sparks |
 | --- | :---: | :---: | :---: | :---: | :---: |
 | Agents-A1 | ✓ |  |  |  |  |
-| DeepSeek | ✓ |  |  |  |  |
+| DeepSeek | ✓ | ✓ |  | ✓ |  |
 | DeepSeek Flash | ✓ | ✓ |  | ✓ |  |
 | FastContext | ✓ |  |  |  |  |
 | FLUX 3 | ✓ |  |  |  |  |
