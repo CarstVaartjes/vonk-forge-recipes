@@ -1427,6 +1427,7 @@ class Sweep:
         *,
         inherited_from: str | None = None,
         final: bool = False,
+        document: Mapping[str, Any] | None = None,
     ) -> None:
         """Record what an attempt came to; only an OBSERVE outcome spends an attempt.
 
@@ -1468,6 +1469,7 @@ class Sweep:
                 code=failure.code,
                 evidence=dict(failure.evidence),
                 slot=slot,
+                document=document,
             )
             self.state.event(f"wait {key}: {failure.klass} ({failure.phase})")
             return
@@ -1487,6 +1489,7 @@ class Sweep:
                 code=failure.code,
                 evidence=dict(failure.evidence),
                 slot=slot,
+                document=document,
             )
             self.state.event(f"skipped {key}: {failure.describe()[:160]}")
             return
@@ -1507,6 +1510,7 @@ class Sweep:
                 code=failure.code,
                 evidence=dict(failure.evidence),
                 slot=slot,
+                document=document,
             )
             self.state.event(f"retry {key}: {failure.klass} ({failure.phase})")
             return
@@ -1561,6 +1565,7 @@ class Sweep:
             error=f"{failure.phase}/{failure.klass}: {failure.describe()}"[:1536],
             disposition=outcome.value,
             slot=slot,
+            document=document,
         )
         self.state.event(f"{status.upper()} {key}: {failure.phase}/{failure.klass}")
 
@@ -4060,7 +4065,9 @@ class Sweep:
                     evidence={**failure.evidence, "freeing_attempts": freeing},
                 )
             # The clearings were this outcome's observations: once spent, it is recorded.
-            self._record_failure(key, failure, None, final=freeing > 0)
+            self._record_failure(
+                key, failure, None, final=freeing > 0, document=document
+            )
 
     def _beyond_idle_spark(self, document: Mapping[str, Any], alias: str) -> bool:
         """The Controller's own demand for a node, with its reserve, exceeds that Spark's
