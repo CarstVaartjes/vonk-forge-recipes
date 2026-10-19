@@ -58,10 +58,22 @@ omit unused optional fields when sending or authoring a document. Required
 fields must always be present, including `null` when their type allows it.
 Preserve meaningful false, zero, empty values and engine-owned JSON values.
 
+### Native structured decisions
+
+Contract 2.3.0 adds `settings.kind: decision` with an input context limit and
+optional scheduler settings. The existing HTTP interface serves native
+`POST /v1/systemone` requests. The `openai.systemone` serving check uses the
+`decision.probabilities` assertion. `systemone.py` owns typed request/response
+models and checks that each requested question receives the correct option
+set, a normalized probability distribution and a consistent result. Choice,
+`noul` and score results retain their native shapes; engine-owned JSON and
+extensions are preserved. These models do not advertise chat generation or
+embedding output.
+
 ## Versions, identity and reading
 
-`CONTRACT_VERSION` (`2.2.0`) is the semantic version of these contracts and of
-the recipe library release that publishes the catalog (`v2.2.0`). Documents
+`CONTRACT_VERSION` (`2.3.0`) is the semantic version of these contracts and of
+the recipe library release that publishes the catalog (`v2.3.0`). Documents
 carry no schema version. Recipe and Model changes never change the library
 version; publication updates the release in place and records `updated_at`.
 An additive contract change (a new optional field) is a minor version and a

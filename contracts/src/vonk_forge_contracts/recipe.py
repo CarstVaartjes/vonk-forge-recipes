@@ -262,6 +262,13 @@ class RecipeGenerationSettings(_RecipeSettings):
     max_batch_tokens: RecipeIntegerSetting | None = None
 
 
+class RecipeDecisionSettings(_RecipeSettings):
+    kind: Literal["decision"]
+    context_tokens: RecipeIntegerSetting
+    concurrency: RecipeIntegerSetting | None = None
+    max_batch_tokens: RecipeIntegerSetting | None = None
+
+
 class RecipeEmbeddingSettings(_RecipeSettings):
     kind: Literal["embedding"]
     concurrency: RecipeIntegerSetting | None = None
@@ -278,7 +285,10 @@ class RecipeIntegerSetting(RecipeSetting):
 
 
 RecipeSettings = Annotated[
-    RecipeGenerationSettings | RecipeEmbeddingSettings | RecipeJobSettings,
+    RecipeGenerationSettings
+    | RecipeDecisionSettings
+    | RecipeEmbeddingSettings
+    | RecipeJobSettings,
     Field(discriminator="kind"),
 ]
 
@@ -587,6 +597,7 @@ ServingKind = Literal[
     "openai.tools",
     "openai.completion",
     "openai.embedding",
+    "openai.systemone",
     "image-job.output",
     "audio-job.output",
     "video-job.output",
@@ -601,6 +612,7 @@ ServingAssertion = Literal[
     "completion.nonempty",
     "completion.output-cap",
     "embedding.nonempty",
+    "decision.probabilities",
     "inference.completed",
     "artifact.output",
 ]
@@ -612,6 +624,7 @@ _ASSERTIONS_BY_KIND: dict[str, frozenset[str]] = {
     "openai.tools": frozenset({"chat.nonempty", "chat.output-cap", "tools.called"}),
     "openai.completion": frozenset({"completion.nonempty", "completion.output-cap"}),
     "openai.embedding": frozenset({"embedding.nonempty"}),
+    "openai.systemone": frozenset({"decision.probabilities"}),
     "image-job.output": frozenset({"inference.completed", "artifact.output"}),
     "audio-job.output": frozenset({"inference.completed", "artifact.output"}),
     "video-job.output": frozenset({"inference.completed", "artifact.output"}),
@@ -726,6 +739,17 @@ class RecipeValidationCheck(_RecipeContract):
                     raise ValueError(
                         "completion checks require a prompt and completion.nonempty"
                     )
+            elif self.kind == "openai.systemone":
+                from .systemone import SystemOneRequest
+
+                if (
+                    self.request.path != "/v1/systemone"
+                    or "decision.probabilities" not in self.assertions
+                ):
+                    raise ValueError(
+                        "decision checks require /v1/systemone and decision.probabilities"
+                    )
+                SystemOneRequest.model_validate_json(json.dumps(body))
             elif self.kind == "openai.embedding":
                 if (
                     self.request.path != "/v1/embeddings"
@@ -896,7 +920,7 @@ class RecipeDefinition(_RecipeContract):
             raise ValueError("recipe references must be unique")
         settings_kind = self.settings.kind
         has_openai = any(interface.adapter == "openai" for interface in self.interfaces)
-        if has_openai != (settings_kind in {"generation", "embedding"}):
+        if has_openai != (settings_kind in {"generation", "decision", "embedding"}):
             raise ValueError("settings kind must match the serving interface")
         role_names = [role.name for role in self.topology.roles]
         if (
