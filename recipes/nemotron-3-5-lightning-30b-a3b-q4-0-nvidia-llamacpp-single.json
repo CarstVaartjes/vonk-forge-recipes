@@ -72,8 +72,8 @@
           ]
         },
         {
-          "file_id": "readme-5e807745c2ed-b335630551",
-          "id": "readme-5e807745c2ed-b335630551",
+          "file_id": "readme-0e5c29476662-b335630551",
+          "id": "readme-0e5c29476662-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -84,10 +84,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "fdab0e68d8c25572616c4890c4f72263fc0acd536bf1c5965fbdbfb1b9c4fb89",
+        "content_sha256": "08236382b57f4acb8ca2374020db1cb9f5d355b48e3f8e538d9fc1e83df35dd6",
         "kind": "model",
         "publisher": "ggml-org",
-        "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8a08a1c8"
+        "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8cd08217"
       }
     }
   ],
@@ -102,8 +102,8 @@
     "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16/tree/a9904d24bcc1d289a1950fa9d2b978c47cf903b9"
   },
   "release": {
-    "released_at": "2026-10-05",
-    "version": "0.6.0"
+    "released_at": "2026-10-19",
+    "version": "0.6.1"
   },
   "runtime": {
     "arguments": [
@@ -193,7 +193,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 18898094549,
+            "artifact_bytes": 18898094588,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 16000000000
