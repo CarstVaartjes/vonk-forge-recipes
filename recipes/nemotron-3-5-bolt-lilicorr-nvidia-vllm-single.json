@@ -1268,8 +1268,8 @@
           ]
         },
         {
-          "file_id": "config-006c3f02f39c-587cb980af",
-          "id": "config-006c3f02f39c-587cb980af",
+          "file_id": "config-4abd5788c431-587cb980af",
+          "id": "config-4abd5788c431-587cb980af",
           "mount": {
             "target": "/models/drafter"
           },
@@ -1300,10 +1300,10 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "486a8ce3cd13564328c5f621b72d12f8e788e743ac39725f29e0c6a888429813",
+        "content_sha256": "3b81c69e9406b5d1bdff66ad4e4336b10c57be6e2fb16a8c30bef11fe3802015",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "nemotron-3-5-bolt-lilicorr-abd47806"
+        "slug": "nemotron-3-5-bolt-lilicorr-449d2414"
       }
     }
   ],
@@ -1316,8 +1316,8 @@
     "source_reference": "https://github.com/NVIDIA/local-ai-inference-recipes/tree/ca3326c375f77ab60301898a83f3094ee72b0884"
   },
   "release": {
-    "released_at": "2026-10-18",
-    "version": "1.0.1"
+    "released_at": "2026-10-19",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1437,7 +1437,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 25082874616,
+            "artifact_bytes": 25082874590,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 164762599794
