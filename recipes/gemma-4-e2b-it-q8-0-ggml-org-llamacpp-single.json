@@ -61,8 +61,8 @@
           ]
         },
         {
-          "file_id": "readme-940fc004b446-b335630551",
-          "id": "readme-940fc004b446-b335630551",
+          "file_id": "readme-9dbd5e423137-b335630551",
+          "id": "readme-9dbd5e423137-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -93,10 +93,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f56db50228de3e2510e098cd1d44cd84a044fd263556977ada292c7ea1183590",
+        "content_sha256": "51e1fffc10758b90720f3b0e7e13eccee6f74bc89e58bc2266b9d9d1d4c6ba06",
         "kind": "model",
         "publisher": "ggml-org",
-        "slug": "gemma-4-e2b-it-q8-0-b4243c15"
+        "slug": "gemma-4-e2b-it-q8-0-6938c58e"
       }
     }
   ],
@@ -107,11 +107,11 @@
       "Google DeepMind",
       "ggml-org"
     ],
-    "source_reference": "https://huggingface.co/ggml-org/gemma-4-E2B-it-GGUF/tree/b4243c156154b6dca9324415f8c7ccc098b4aed1"
+    "source_reference": "https://huggingface.co/ggml-org/gemma-4-E2B-it-GGUF/tree/6938c58e698502037401a5f19f6905f2fb2f7dee"
   },
   "release": {
-    "released_at": "2026-10-05",
-    "version": "0.6.0"
+    "released_at": "2026-10-19",
+    "version": "0.6.1"
   },
   "runtime": {
     "arguments": [
@@ -181,7 +181,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 5524868316,
+            "artifact_bytes": 5524868355,
             "image_bytes": 8000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 16000000000
