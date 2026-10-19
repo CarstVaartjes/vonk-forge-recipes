@@ -1,7 +1,7 @@
 print_iter_log: false
 disable_overlap_scheduler: true
 speculative_config:
-  decoding_type: DraftTarget
+  decoding_type: Draft_Target
   max_draft_len: 4
   speculative_model_dir: /models/drafter
 kv_cache_config:
