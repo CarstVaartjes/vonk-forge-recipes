@@ -1202,7 +1202,7 @@
           "file_id": "metadata-ab474714b5bc-618cd5b83d",
           "id": "draft-metadata-ab474714b5bc-618cd5b83d",
           "mount": {
-            "target": "/models/draft"
+            "target": "/draft"
           },
           "roles": [
             "entrypoint"
@@ -1212,7 +1212,7 @@
           "file_id": "readme-014833badd32-b335630551",
           "id": "draft-readme-014833badd32-b335630551",
           "mount": {
-            "target": "/models/draft"
+            "target": "/draft"
           },
           "roles": [
             "entrypoint"
@@ -1222,7 +1222,7 @@
           "file_id": "config-880d77cb17f6-587cb980af",
           "id": "draft-config-880d77cb17f6-587cb980af",
           "mount": {
-            "target": "/models/draft"
+            "target": "/draft"
           },
           "roles": [
             "entrypoint"
@@ -1232,7 +1232,7 @@
           "file_id": "hf-quant-config-ba3ff3838481-a481ad90fa",
           "id": "draft-hf-quant-config-ba3ff3838481-a481ad90fa",
           "mount": {
-            "target": "/models/draft"
+            "target": "/draft"
           },
           "roles": [
             "entrypoint"
@@ -1242,7 +1242,7 @@
           "file_id": "model-eec5efdf1b83-9d75c1098f",
           "id": "draft-model-eec5efdf1b83-9d75c1098f",
           "mount": {
-            "target": "/models/draft"
+            "target": "/draft"
           },
           "roles": [
             "entrypoint"
@@ -1319,7 +1319,7 @@
       {
         "name": "speculative-config",
         "setting": null,
-        "value": "{\"model\": \"/models/draft\", \"num_speculative_tokens\": 7, \"method\": \"dflash\"}"
+        "value": "{\"model\": \"/draft\", \"num_speculative_tokens\": 7, \"method\": \"dflash\"}"
       },
       {
         "name": "mamba-backend",
