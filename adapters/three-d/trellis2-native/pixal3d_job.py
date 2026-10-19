@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import json
+import struct
 import math
 import os
 import sys
@@ -59,6 +61,52 @@ def validated_input(path: Path) -> object:
             return ImageOps.exif_transpose(opened).convert("RGB")
     except (OSError, UnidentifiedImageError) as exc:
         raise SystemExit(f"invalid image input: {path.name}") from exc
+
+
+def _exclude_webp_alignment(path: Path) -> None:
+    """Exclude Trimesh 4.10.1's alignment spaces from encoded WebP views.
+
+    RIFF declares the exact encoded length. Keep the BIN bytes and offsets
+    intact, and shorten a view only for the exporter's 1..3 trailing spaces.
+    The unchanged validator still checks the entire encoded image.
+    """
+    data = path.read_bytes()
+    json_length = struct.unpack_from("<I", data, 12)[0]
+    document = json.loads(data[20 : 20 + json_length])
+    binary_chunk = data[20 + json_length :]
+    binary = binary_chunk[8:]
+    changed = False
+    for image in document.get("images", []):
+        if image.get("mimeType") != "image/webp":
+            continue
+        view = document["bufferViews"][image["bufferView"]]
+        start, length = view.get("byteOffset", 0), view["byteLength"]
+        payload = binary[start : start + length]
+        if len(payload) < 12 or payload[:4] != b"RIFF" or payload[8:12] != b"WEBP":
+            continue
+        encoded_length = struct.unpack_from("<I", payload, 4)[0] + 8
+        padding = length - encoded_length
+        if 1 <= padding <= 3 and payload[encoded_length:] == b" " * padding:
+            view["byteLength"] = encoded_length
+            changed = True
+    if changed:
+        encoded = json.dumps(document, separators=(",", ":")).encode("utf-8")
+        encoded += b" " * (-len(encoded) % 4)
+        path.write_bytes(
+            struct.pack("<4sII", b"glTF", 2, 20 + len(encoded) + len(binary_chunk))
+            + struct.pack("<I4s", len(encoded), b"JSON") + encoded + binary_chunk
+        )
+
+
+def _publish_glb(temporary: Path, output: Path) -> None:
+    normalize_glb_json_padding(temporary)
+    _exclude_webp_alignment(temporary)
+    try:
+        validate_mesh_glb(temporary, profile="textured-pbr")
+    except ValueError as exc:
+        temporary.unlink(missing_ok=True)
+        raise SystemExit(f"Pixal3D produced an invalid GLB artifact: {exc}") from exc
+    os.replace(temporary, output)
 
 
 def main() -> None:
@@ -210,13 +258,7 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     temporary = args.output_dir / ".output.tmp.glb"
     glb.export(temporary, extension_webp=True)
-    normalize_glb_json_padding(temporary)
-    try:
-        validate_mesh_glb(temporary, profile="textured-pbr")
-    except ValueError as exc:
-        temporary.unlink(missing_ok=True)
-        raise SystemExit(f"Pixal3D produced an invalid GLB artifact: {exc}") from exc
-    os.replace(temporary, args.output_dir / "output.glb")
+    _publish_glb(temporary, args.output_dir / "output.glb")
 
 
 if __name__ == "__main__":

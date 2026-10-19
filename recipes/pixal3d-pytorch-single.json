@@ -90,7 +90,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Installable single-DGX Spark image-to-3D Candidate using the pinned official Pixal3D source, local DINOv3 and NAF feature stack, bounded manual camera calibration, ARM64-native extensions, and deterministic GLB adapter. Its pinned nvdiffrast runtime dependency is limited to non-commercial research or evaluation; operator acceptance and physical Spark quality, memory, and latency evidence are still required.",
+    "description": "Installable single-DGX Spark image-to-3D Candidate using the pinned official Pixal3D source, local DINOv3 and NAF feature stack, bounded manual camera calibration, ARM64-native extensions, and deterministic GLB adapter. Its pinned nvdiffrast runtime dependency is limited to non-commercial research or evaluation; operator acceptance and physical Spark quality, memory, and latency evidence are still required. Excludes Trimesh WebP alignment bytes from image views before strict artifact validation.",
     "tags": [
       "candidate",
       "three-d",
@@ -411,8 +411,8 @@
     "source_reference": "https://github.com/TencentARC/Pixal3D/tree/f7cf38429b0bd264f1995f0f8743a88b1c728b94"
   },
   "release": {
-    "released_at": "2026-08-31",
-    "version": "2.0.12"
+    "released_at": "2026-10-19",
+    "version": "2.0.13"
   },
   "runtime": {
     "arguments": [
