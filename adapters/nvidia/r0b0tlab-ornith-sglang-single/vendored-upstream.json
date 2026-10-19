@@ -11,7 +11,8 @@
     "whole": false
   },
   "ours": [
-    "sglang-serve"
+    "sglang-serve",
+    "patch-deepgemm.py"
   ],
   "renamed": {
     "LICENSE.upstream": "LICENSE"
