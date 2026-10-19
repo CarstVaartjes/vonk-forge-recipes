@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import shutil
 import struct
@@ -20,11 +21,15 @@ from spark_sweep.smoke import AssertionFailed
 TRIANGLE_MESH = {"kind": "glb-structure", "profile": "triangle-mesh"}
 
 
-def _glb(**overrides: Any) -> bytes:
+def _glb(*, textured: bool = False, **overrides: Any) -> bytes:
     """One indexed triangle: a FLOAT VEC3 POSITION and three UNSIGNED_SHORT indices."""
     positions = struct.pack("<9f", 0, 0, 0, 1, 0, 0, 0, 1, 0)
     indices = struct.pack("<3H", 0, 1, 2) + b"\0\0"
-    blob = positions + indices
+    uv = struct.pack("<6f", 0, 0, 1, 0, 0, 1)
+    png = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+    )
+    blob = positions + indices + (uv + png if textured else b"")
     document: dict[str, Any] = {
         "asset": {"version": "2.0"},
         "buffers": [{"byteLength": len(blob)}],
@@ -47,8 +52,24 @@ def _glb(**overrides: Any) -> bytes:
         "nodes": [{"mesh": 0}],
         "scenes": [{"nodes": [0]}],
         "scene": 0,
-        **overrides,
     }
+    if textured:
+        document["bufferViews"] += [
+            {"buffer": 0, "byteOffset": 44, "byteLength": len(uv)},
+            {"buffer": 0, "byteOffset": 68, "byteLength": len(png)},
+        ]
+        document["accessors"].append(
+            {"bufferView": 2, "componentType": 5126, "count": 3, "type": "VEC2"}
+        )
+        document["meshes"][0]["primitives"][0].update(
+            attributes={"POSITION": 0, "TEXCOORD_0": 2}, material=0
+        )
+        document["materials"] = [
+            {"pbrMetallicRoughness": {"baseColorTexture": {"index": 0}}}
+        ]
+        document["textures"] = [{"source": 0}]
+        document["images"] = [{"bufferView": 3, "mimeType": "image/png"}]
+    document.update(overrides)
     text = json.dumps(document).encode()
     text += b" " * (-len(text) % 4)
     body = struct.pack("<II", len(text), 0x4E4F534A) + text
@@ -106,6 +127,54 @@ def test_an_accessor_beyond_its_buffer_view_fails() -> None:
     accessors = [_vec2_position()["accessors"][0] | {"type": "VEC3"}, index]
     with pytest.raises(AssertionFailed, match="exceeds its bufferView"):
         evaluate([TRIANGLE_MESH], _glb_output(_glb(accessors=accessors)))
+
+
+TEXTURED = {"kind": "glb-structure", "profile": "textured"}
+
+
+def test_a_textured_glb_with_material_texture_and_uv_holds() -> None:
+    assert evaluate([TEXTURED], _glb_output(_glb(textured=True))) == {}
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"materials": []},
+        {"materials": [{}]},
+        {"textures": []},
+        {"textures": [{"source": 9}]},
+        {"images": []},
+        {"images": [{"bufferView": 9, "mimeType": "image/png"}]},
+        {"images": [{"bufferView": 3, "mimeType": "text/plain"}]},
+        {"images": [{"uri": "missing.png"}]},
+        {"meshes": [{"primitives": [{"attributes": {"POSITION": 0}, "indices": 1}]}]},
+        {
+            "meshes": [
+                {
+                    "primitives": [
+                        {
+                            "attributes": {"POSITION": 0, "TEXCOORD_0": 0},
+                            "indices": 1,
+                            "material": 0,
+                        }
+                    ]
+                }
+            ]
+        },
+    ],
+)
+def test_a_textured_glb_requires_bound_materials_textures_and_uv(
+    overrides: dict[str, Any],
+) -> None:
+    with pytest.raises(AssertionFailed) as missed:
+        evaluate([TEXTURED], _glb_output(_glb(textured=True, **overrides)))
+    assert missed.value.kind == "glb-structure"
+
+
+@pytest.mark.parametrize("content", [_glb(), _glb(textured=True)[:-4]])
+def test_textured_profile_rejects_bare_mesh_and_invalid_binary(content: bytes) -> None:
+    with pytest.raises(AssertionFailed):
+        evaluate([TEXTURED], _glb_output(content))
 
 
 # -- realtime-transcript -----------------------------------------------------------------
