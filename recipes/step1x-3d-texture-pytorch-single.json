@@ -355,8 +355,8 @@
     "source_reference": "https://huggingface.co/stepfun-ai/Step1X-3D/tree/bf7084495b3a72222f36549b7942948aa4d9daa7"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.2.18"
+    "released_at": "2026-10-19",
+    "version": "1.2.19"
   },
   "runtime": {
     "arguments": [
