@@ -156,6 +156,61 @@
       "title": "RecipeBuildDefinition",
       "type": "object"
     },
+    "RecipeDecisionSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "knobs": {
+          "maxProperties": 64,
+          "patternProperties": {
+            "^[a-z][a-z0-9_-]*$": {
+              "$ref": "#/$defs/RecipeSetting"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1
+          },
+          "title": "Knobs",
+          "type": "object"
+        },
+        "kind": {
+          "const": "decision",
+          "title": "Kind",
+          "type": "string"
+        },
+        "context_tokens": {
+          "$ref": "#/$defs/RecipeIntegerSetting"
+        },
+        "concurrency": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeIntegerSetting"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "max_batch_tokens": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RecipeIntegerSetting"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind",
+        "context_tokens"
+      ],
+      "title": "RecipeDecisionSettings",
+      "type": "object"
+    },
     "RecipeDiskResources": {
       "additionalProperties": false,
       "properties": {
@@ -1519,6 +1574,7 @@
             "openai.tools",
             "openai.completion",
             "openai.embedding",
+            "openai.systemone",
             "image-job.output",
             "audio-job.output",
             "video-job.output",
@@ -1556,6 +1612,7 @@
               "completion.nonempty",
               "completion.output-cap",
               "embedding.nonempty",
+              "decision.probabilities",
               "inference.completed",
               "artifact.output"
             ],
@@ -1674,6 +1731,7 @@
     "settings": {
       "discriminator": {
         "mapping": {
+          "decision": "#/$defs/RecipeDecisionSettings",
           "embedding": "#/$defs/RecipeEmbeddingSettings",
           "generation": "#/$defs/RecipeGenerationSettings",
           "job": "#/$defs/RecipeJobSettings"
@@ -1683,6 +1741,9 @@
       "oneOf": [
         {
           "$ref": "#/$defs/RecipeGenerationSettings"
+        },
+        {
+          "$ref": "#/$defs/RecipeDecisionSettings"
         },
         {
           "$ref": "#/$defs/RecipeEmbeddingSettings"
