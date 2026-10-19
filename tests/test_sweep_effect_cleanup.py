@@ -7,8 +7,10 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from vonk_forge_contracts.sweep import CleanupEnd, CleanupEndReason
 
 from spark_sweep import cleanup, policy
+from spark_sweep.lifecycle import LifecycleState
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -337,3 +339,107 @@ def test_polling_another_load_does_not_clear_review_wait(
         "problem cleared (review)" in event["message"]
         for event in sweep.state.data["events"]
     )
+
+
+@pytest.mark.parametrize(
+    "owner_state", [LifecycleState.FAILED, LifecycleState.SUPERSEDED]
+)
+@pytest.mark.parametrize("run_present", [False, True])
+@pytest.mark.parametrize("terminal_receipt", [False, True])
+def test_ended_cleanup_owner_releases_review_or_gets_a_new_exact_stop(
+    tmp_path: Path,
+    owner_state: LifecycleState,
+    run_present: bool,
+    terminal_receipt: bool,
+) -> None:
+    sweep, fleet, clock, recipe, key, original, app = scenario(tmp_path, dual=True)
+    original["effects"][0]["operation_id"] = app["effects"][0]["operation_id"] = None
+    fleet.cleanup_adoption = False
+    apply_healthy(sweep, clock, recipe)
+    assert "review" in sweep.state.data["infra"]
+    app["state"] = owner_state
+    app["effects"][0].update(state=LifecycleState.CANCELLED, operation_id=None)
+    sweep.observe_cleanup()  # the parent ended without stopping its exact run
+    assert original["terminal_receipt"]["state"] == owner_state
+    if not terminal_receipt:
+        # Persisted state can predate receipt retention.
+        original.pop("terminal_receipt")
+    before = len(mutations(fleet))
+    if not run_present:
+        fleet.runs.clear()  # another Controller decision already achieved the stop
+    sweep.state.save()
+    restarted, _, _ = make_sweep(
+        tmp_path, [recipe], [FakeModel("m1", local="cached")], fleet=fleet
+    )
+    restarted.preflight()
+    restarted.refresh_catalog()
+    # Exercise the review that was blocked before restart, without waiting for
+    # another cleanup observation to retire its owner first.
+    apply_healthy(restarted, clock, recipe)
+    assert recipe.key in restarted.state.slots
+    assert len(mutations(fleet)) == before + 1
+    assert "review" not in restarted.state.data["infra"]
+    assert (
+        sum(
+            "problem cleared (review)" in event["message"]
+            for event in restarted.state.data["events"]
+        )
+        == 1
+    )
+    record = restarted.state.data["cleanup_loads"][key]
+    assert record["effects"][0]["state"] == LifecycleState.CANCELLED
+    current = restarted.state.data["loads"][
+        restarted.state.slots[recipe.key]["request_key"]
+    ]
+    assert current["adopted_cleanup_requests"] == []
+    if run_present:
+        assert "end" not in record
+        own_stop = fleet.apps[current["app_id"]]["effects"][0]
+        assert own_stop["application_id"] == current["app_id"] != app["id"]
+        assert own_stop["operation_id"]
+        assert cleanup.stop_signature(
+            own_stop["stop_effect"]
+        ) == cleanup.stop_signature(original["effects"][0]["stop_effect"])
+    else:
+        assert (
+            CleanupEnd.model_validate(record["end"]).reason
+            is CleanupEndReason.TARGET_ABSENT
+        )
+        retired = [
+            e for e in restarted.state.data["events"] if "retired:" in e["message"]
+        ]
+        assert len(retired) == 1
+        restarted.observe_cleanup()
+        assert [
+            e for e in restarted.state.data["events"] if "retired:" in e["message"]
+        ] == retired
+
+
+@pytest.mark.parametrize(
+    "observation", ["fresh", "different-run", "offline", "incomplete", "unavailable"]
+)
+def test_cleanup_review_uses_fresh_exact_run_absence(
+    tmp_path: Path, observation: str
+) -> None:
+    sweep, fleet, clock, recipe, _key, original, _app = scenario(tmp_path, dual=True)
+    fleet.cleanup_adoption = False
+    apply_healthy(sweep, clock, recipe)
+    fleet.runs.clear()  # the cached sweep.fleet still shows the old run
+    if observation == "different-run":
+        replacement = run("gang", ["spk_a", "spk_b"])
+        replacement["run_id"] = "replacement-run"
+        fleet.runs.append(replacement)
+    elif observation == "offline":
+        fleet.offline_nodes.add("spk_b")
+    elif observation == "incomplete":
+        fleet.observations.append((("fleet",), 0, {"nodes": []}))
+    elif observation == "unavailable":
+        fleet.observations.append((("fleet",), 124, {}))
+    before = len(mutations(fleet))
+    apply_healthy(sweep, clock, recipe)
+    recovered = observation in ("fresh", "different-run")
+    assert (recipe.key in sweep.state.slots) is recovered
+    assert ("end" in original) is recovered
+    assert len(mutations(fleet)) == before + int(recovered)
+    assert ("review" not in sweep.state.data["infra"]) is recovered
+    assert not cleanup.stopped(original["effects"][0])
