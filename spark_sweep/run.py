@@ -3465,7 +3465,6 @@ class Sweep:
         loads[key] = {
             "request_key": key,
             "app_id": None,
-            "predecessor_effects": [row["effect_id"] for row in residual],
             "reviewed_stops": sorted(cleanup.stop_signature(row) for row in stops),
         }
         self.state.data["took_over"] = True
@@ -3732,19 +3731,6 @@ class Sweep:
             requests.append(request)
         return sorted(set(requests))
 
-    def _cleanup_reaccepted(self, original: Mapping[str, Any]) -> bool:
-        return any(
-            original["effect_id"] in load.get("predecessor_effects", [])
-            and load.get("projection_known")
-            and load.get("state") not in SETTLED
-            and any(
-                cleanup.stop_signature(row["stop_effect"])
-                == cleanup.stop_signature(original["stop_effect"])
-                for row in load.get("effects", [])
-            )
-            for load in self.state.data["cleanup_loads"].values()
-        )
-
     def _adopted_cleanup_requests(self, review: Mapping[str, Any]) -> list[str] | None:
         return self._cleanup_adoption(review)[0]
 
@@ -3753,7 +3739,13 @@ class Sweep:
     ) -> tuple[list[str] | None, str | None]:
         requests = []
         for key, load in self.state.data["cleanup_loads"].items():
-            if load.get("terminal_receipt") or load.get("end"):
+            if load.get("end"):
+                continue
+            if load.get("terminal_receipt") or load.get("state") in SETTLED:
+                if self._cleanup_target_absent(load, terminal=True):
+                    self._end_cleanup(load, self.clock.now())
+                # An ended owner cannot adopt or execute another stop. The fresh
+                # placement review admits our own stops for any remaining runs.
                 continue
             owner = (
                 f"cleanup request={key}, application={load.get('app_id') or 'unknown'}"
@@ -3768,22 +3760,18 @@ class Sweep:
                 for row in self._cleanup_pending(load)
                 if set(row["node_ids"]) & online
             ]
+            if pending and self._cleanup_target_absent(load):
+                self._end_cleanup(load, self.clock.now())
+                continue
             for row in pending:
-                # Historical cancelled claims stay occupied until a newer accepted
-                # exact stop owns that residual effect. Never adopt terminal work.
-                bound = (
-                    self._cleanup_reaccepted(row)
-                    if load.get("state") in SETTLED
-                    else cleanup.adopted(review, row)
-                )
-                if not bound:
+                if not cleanup.adopted(review, row):
                     return None, (
                         f"{owner}, effect={row['effect_id']}, "
                         f"operation={row.get('operation_id')}, run={row['target_id']}, "
                         f"nodes={','.join(row['node_ids'])}: "
                         "waiting for exact stop adoption or a fresh exact stop receipt"
                     )
-            if pending and load.get("state") not in SETTLED:
+            if pending:
                 requests.append(key)
         return sorted(requests), None
 
