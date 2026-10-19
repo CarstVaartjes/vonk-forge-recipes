@@ -19,10 +19,7 @@ COPY runtime/flash_mla_sm120.py /sgl-workspace/sglang/python/sglang/kernels/ops/
 # encoding_dsv41.py no longer matches the anchor.
 COPY runtime/patch_encoding_dsv41.py /opt/dsv41/runtime/patch_encoding_dsv41.py
 RUN python3 /opt/dsv41/runtime/patch_encoding_dsv41.py
-COPY boot.py /opt/dsv41/boot.py
-COPY scripts /opt/dsv41/scripts
 COPY tests /opt/dsv41/tests
-COPY benchmarks /opt/dsv41/benchmarks
 RUN PYTHONPATH=/opt/dsv41/adapter python3 /opt/dsv41/tests/test_thinking_alias.py \
  && PYTHONPATH=/opt/dsv41/adapter python3 /opt/dsv41/tests/test_max_new_tokens.py \
  && PYTHONPATH=/opt/dsv41/adapter python3 /opt/dsv41/tests/test_loop_abort.py \
