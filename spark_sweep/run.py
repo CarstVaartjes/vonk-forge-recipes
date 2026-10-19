@@ -3622,6 +3622,17 @@ class Sweep:
             or document.get("waits_for_preparation") is True
         ):
             self._blocked(document, aliases, added, now)
+            admitted = {
+                decision.get("alias")
+                for decision in document.get("admission_decisions", [])
+                if isinstance(decision, dict) and decision.get("allowed") is True
+            }
+            remaining = [p for alias, p in aliases.items() if alias in admitted]
+            if remaining and len(remaining) < len(added):
+                # A rejected batch accepted nothing. Re-plan the smaller set,
+                # including a fresh review and binding, so one held Spark cannot
+                # starve an independent lane. Each re-plan removes an assignment.
+                self._apply(remaining, now)
             return
         self.clear_infra("review")
         seq = int(self.state.data["load_seq"]) + 1
