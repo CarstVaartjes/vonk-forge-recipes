@@ -52,6 +52,7 @@ from .catalog import (
 from .definitions import Definitions
 from .lifecycle import ACTIVE as ACTIVE_APP
 from .lifecycle import TERMINAL as SETTLED
+from .lifecycle import LifecycleState
 from .owner import OwnerGuard, OwnerStatus
 from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
@@ -66,9 +67,6 @@ WAIT_EVENT_SECONDS = 60.0  # a wait says what it waits for at least this often
 # Clearing the fleet and reviewing again, for a capacity refusal (an OBSERVE outcome),
 # before it counts against the recipe.
 MAX_REVIEW_FREEING = 2
-# Clearing attempts before placement re-plans onto the online lanes that are free now.
-# A re-plan, never a verdict: nothing is ended or recorded against a recipe.
-MAX_TAKEOVER_ATTEMPTS = 3
 TAKEOVER_RETRY_SECONDS = 30.0
 SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
@@ -258,15 +256,13 @@ class Sweep:
         self.fleet = Fleet((), ())
         self.release_at = self.clock.now()  # check_client has just read it
         self.status_at = -1e18
-        self.owner_at = -1e18
         self.owner_status = OwnerStatus()
-        # The Controller reports stalled work (``progress.stalled``): a platform problem.
+        # Visible application alarms never reserve unrelated lanes.
         self.stall_reason = ""
-        self.backoff_until = float(
-            state.data["infra"].get("review", {}).get("until", 0.0)
-        )
+        self.stalled_applications: set[str] = set()
         self.idle_since: float | None = None
         self.blind = False  # this tick could not observe the Controller
+        self.unobserved_loads: set[str] = set()
         self._skew_checked_at = float("-inf")
         self.library_commit = ""
         self.rate = policy.RateTracker()
@@ -728,15 +724,15 @@ class Sweep:
 
     @property
     def paused(self) -> bool:
-        """No new loads or cleanups: an owner's load, or work the Controller reports stalled."""
-        return self.owner_status.paused or bool(self.stall_reason)
+        """Only fresh owner safety observations stop every lane."""
+        return self.owner_status.paused
 
     @property
     def pause_reason(self) -> str:
-        return "; ".join(r for r in (self.owner_status.reason, self.stall_reason) if r)
+        return self.owner_status.reason
 
     def observe_stalls(self) -> None:
-        """Pause while the Controller reports stalled work; resume once it reports none.
+        """Alert on stalled work without making an item's stall a fleet-wide hold.
 
         Read from the followed applications' ``progress.stalled`` blocker and from
         ``/api/platform.stalled_applications``. Both are additive: absent means no stall.
@@ -748,17 +744,24 @@ class Sweep:
             if load.get("stalled")
         ]
         listed = self.state.data["platform"].get("stalled_applications")
+        self.stalled_applications = {
+            item["application_id"]
+            for item in listed or []
+            if isinstance(item, Mapping) and isinstance(item.get("application_id"), str)
+        }
         stalled += [
             f"{item.get('application_id')} {item.get('detail') or ''}".strip()
             for item in listed or []
             if isinstance(item, Mapping)
         ]
         reason = (
-            f"Controller reports stalled work: {stalled[0]}"[:300] if stalled else ""
+            "Controller reports stalled work: " + "; ".join(dict.fromkeys(stalled))
+            if stalled
+            else ""
         )
-        if bool(reason) != bool(self.stall_reason):
+        if reason != self.stall_reason:
             self.state.event(
-                f"paused: {reason}"
+                f"lane alert: {reason}"
                 if reason
                 else "resumed: the Controller reports no stalled work"
             )
@@ -803,16 +806,9 @@ class Sweep:
         except (VonkctlError, OSError) as error:
             self.note_infra("startup", f"{type(error).__name__}: {error}")
             item = self.state.data["infra"]["startup"]
-            self.waiting("the Controller to answer at startup", float(item["since"]))
-            self.clock.sleep(
-                max(
-                    1.0,
-                    min(
-                        float(item["until"]) - self.clock.now(),
-                        self.cfg.poll_seconds * 6,
-                    ),
-                )
-            )
+            item["until"] = self.clock.now() + self.cfg.poll_seconds
+            self.waiting(f"startup {step.__name__}: {error}", float(item["since"]))
+            self.clock.sleep(self.cfg.poll_seconds)
             return False
         self.clear_infra("startup")
         self.done_waiting()
@@ -831,15 +827,11 @@ class Sweep:
                     and self._selected_key(key)
                 ):
                     self._schedule_retest(key, "scheduled-retest")
-        if now - self.owner_at >= self.cfg.owner_poll_seconds:
-            self.owner_at = now
-            self.owner_status = self.guard.check(now)
-            if self.owner_status.new_activity:
-                self.state.data["took_over"] = (
-                    False  # their load replaced what ours ran
-                )
-                self.state.data["owner"]["seen_at"] = now
-                self.preempt("an owner profile was loaded")
+        self.owner_status = self.guard.check(now)
+        if self.owner_status.new_activity:
+            self.state.data["took_over"] = False  # their load replaced what ours ran
+            self.state.data["owner"]["seen_at"] = now
+            self.preempt("an owner profile was loaded")
         if self.owner_status.paused:
             # An owner's load (or ownership we cannot read: unknown) is waited for while it
             # lasts; it never ends the sweep.
@@ -1326,9 +1318,12 @@ class Sweep:
                         if not self._startup(self.preflight):
                             continue
                         self.adopt_in_flight()
-                        if not self._startup(self.start_takeover):
-                            continue
                         started = True
+                        try:
+                            self.start_takeover()
+                        except (VonkctlError, OSError) as error:
+                            # Eager clearing is useful, but is never a startup gate.
+                            self.note_infra("clearing", str(error))
                     self.tick()
                     if self.done():
                         self.state.data.pop("pending_idle", None)
@@ -1393,10 +1388,8 @@ class Sweep:
         waiting = (
             external
             or self.paused
-            or bool(self.state.data["infra"])
             or self.clock.now()
             < max(
-                self.backoff_until,
                 self.prefetcher.pressure_until,
                 self.prefetcher.pause_until,
             )
@@ -1714,8 +1707,14 @@ class Sweep:
     def poll_application(self) -> bool:
         """Refresh the load's application; False when the Controller could not be observed."""
         observed = True
+        fleet_blind = self.blind
         for load in list(self.state.data["loads"].values()):
-            observed = self._poll_application(load) and observed
+            self.blind = fleet_blind
+            fresh = self._poll_application(load)
+            if not fresh:
+                self.unobserved_loads.add(load["request_key"])
+            observed = fresh and observed
+        self.blind = fleet_blind
         return observed
 
     def _poll_application(self, load: dict[str, Any]) -> bool:
@@ -1923,9 +1922,10 @@ class Sweep:
 
     def advance_slots(self, now: float) -> None:
         self.blind = False
+        self.unobserved_loads.clear()
         if not self.state.slots:
             self.poll_application()
-            if not self.blind:
+            if not self.blind and not self.unobserved_loads:
                 self.clear_infra("observe")
             return
         try:
@@ -1934,7 +1934,7 @@ class Sweep:
             # An unreadable fleet is unknown: nothing is judged on it this pass.
             self._blind(str(error), error.reply)
         self.poll_application()
-        if not self.blind:
+        if not self.blind and not self.unobserved_loads:
             self.clear_infra("observe")
         for key, slot in list(self.state.slots.items()):
             if slot["phase"] == "loading":
@@ -1961,8 +1961,9 @@ class Sweep:
         elapsed = now - float(slot.get("last_tick", slot["started_at"]))
         slot["last_tick"] = now
         watch = slot.setdefault("watch", {})
-        if self.blind or load is None or not isinstance(load.get("signal"), Mapping):
-            if self.blind:
+        unreadable = self.blind or slot["request_key"] in self.unobserved_loads
+        if unreadable or load is None or not isinstance(load.get("signal"), Mapping):
+            if unreadable:
                 slot["blind_seconds"] = float(slot.get("blind_seconds", 0)) + elapsed
             return verdict.progress_verdict(
                 None, watch, window=self._load_window(slot), now=now
@@ -2024,7 +2025,7 @@ class Sweep:
 
     def _advance_loading(self, key: str, slot: dict[str, Any], now: float) -> None:
         recipe = self.recipes[key]
-        if self.blind:
+        if self.blind or slot["request_key"] in self.unobserved_loads:
             self._observe_load(slot, now)
             return  # no recipe verdict on an unreadable Controller: unknown keeps waiting
         run_id = serving_run(
@@ -2036,6 +2037,7 @@ class Sweep:
             job=recipe.is_job,
         )
         if run_id:
+            slot.pop("waiting_on", None)
             slot.update(phase="smoking", run_id=run_id, ready_at=now)
             self.clear_infra("load-stall")
             policy.learn(
@@ -2124,6 +2126,8 @@ class Sweep:
         if load.get("stalled"):
             self._controller_stalled(key, slot, load)
             return
+        load.pop("stall_released", None)
+        slot.pop("waiting_on", None)
         progress = self._observe_load(slot, now)
         held = slot.get("blocked_since")
         if (
@@ -2141,21 +2145,30 @@ class Sweep:
     ) -> None:
         """The Controller reports the lane's application stalled: a platform problem.
 
-        The lane is released and the recipe requeued: an ``observe`` row that spends no
-        attempt, so a stall never ends a recipe. Nothing is cancelled, now or once its
-        lanes are gone: the application stays the Controller's, and the sweep pauses on
-        it (``observe_stalls``) until the Controller stops reporting it.
+        Keep its lane and original receipt, polling it on every tick. Independent
+        placements still require canonical adoption of this unchanged assignment.
+        No cancellation, new intent, or recipe attempt is justified by this alarm.
         """
+        slot["waiting_on"] = f"application {load.get('app_id')}: {load['stalled']}"
+        # Freeze only this lane's inactivity window while its Controller waits.
+        self._observe_load(slot, self.clock.now())
+        verdict.progress_verdict(
+            None, slot["watch"], window=self._load_window(slot), now=self.clock.now()
+        )
+        if load.get("stall_released"):
+            return
         load["stall_released"] = True
         detail = str(load["stalled"])
-        self.requeue(
+        self.record_result(
             key,
-            f"the Controller reports the load stalled: {detail}",
-            failure=policy.classify(
-                "load", "platform.stalled", detail, verdict.PLATFORM_STALLED
-            ),
-            disposition=verdict.Disposition.OBSERVE.value,
-            application_id=load.get("app_id"),
+            "load",
+            LifecycleState.OBSERVING,
+            reason=f"the Controller reports the load stalled: {detail}",
+            slot=slot,
+            disposition=Disposition.OBSERVE.value,
+            failure_class=verdict.PLATFORM_STALLED,
+            code=verdict.STALLED_CODE,
+            evidence={"application_id": load.get("app_id")},
         )
 
     def _stalled(self, key: str, slot: dict[str, Any], now: float) -> None:
@@ -2505,7 +2518,7 @@ class Sweep:
 
         The exception's type, message (an ``OSError`` keeps its filename) and last frames
         go into the row and the event log. The recipe is requeued without spending an
-        attempt, and new work backs off (``note_infra``) until a smoke passes again, so a
+        attempt, and this recipe backs off (``note_infra``) until a smoke passes again, so a
         crash that repeats costs backed-off loads, never the recipe.
         """
         evidence = crash_evidence(error)
@@ -2527,6 +2540,9 @@ class Sweep:
             failure=failure,
             disposition=Disposition.OBSERVE.value,
         )
+        self.state.entry(key)["not_before"] = self.state.data["infra"]["smoke-tool"][
+            "until"
+        ]
 
     def _smoke_wait(
         self, key: str, slot: dict[str, Any], failure: policy.Failure
@@ -2880,14 +2896,31 @@ class Sweep:
     def schedule(self, now: float) -> None:
         self.release_given_up(now)
         self.release_orphan_load()
-        if now < self.backoff_until:
-            return
         candidates = self.ready_candidates()
         if not candidates:
             return
-        if not self._take_over(now):
+        if not self._take_over(now, place_ready=True):
             return
         bins = self._bins()
+        # A gang can drain healthy lanes, but cannot reserve a free lane behind a
+        # stalled application or unresolved cleanup on its other member.
+        if (
+            candidates[0].node_count == 2
+            and len(bins) < 2
+            and (
+                self._cleanup_nodes()
+                or self.state.data.get("released")
+                or self.unobserved_loads
+                or any(
+                    load.get("stalled")
+                    or load.get("app_id") in self.stalled_applications
+                    for load in self.state.data["loads"].values()
+                )
+            )
+        ):
+            candidates = [recipe for recipe in candidates if recipe.node_count == 1]
+            if not candidates:
+                return
         # A dual at the head drains both lanes; do not refill one with later singles.
         if candidates[0].node_count == 2:
             if len(bins) < 2:
@@ -3081,14 +3114,6 @@ class Sweep:
             document = reply.document
             if reply.is_not_found and self._cleanup_target_absent(load):
                 self.clear_infra("clearing")
-                self.backoff_until = max(
-                    (
-                        item["until"]
-                        for source, item in self.state.data["infra"].items()
-                        if source != "download"
-                    ),
-                    default=0.0,
-                )
                 self._end_cleanup(load, now)
                 continue
             if not reply.ok:
@@ -3215,7 +3240,7 @@ class Sweep:
             )
             self.state.save()
 
-    def _take_over(self, now: float) -> bool:
+    def _take_over(self, now: float, *, place_ready: bool = False) -> bool:
         """Bound clearing admission; fresh fleet facts keep independent lanes moving."""
         try:
             self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
@@ -3235,13 +3260,6 @@ class Sweep:
             else "clearing waits on cleanup receipt or admission"
         )
         self.state.data["clearing_reason"] = reason
-        if budget["attempts"] >= MAX_TAKEOVER_ATTEMPTS:
-            # Spent on this decision: review free online lanes, and say so (not a wait).
-            self.state.data["takeover_fallback"] = True
-            self.state.data["clearing_reason"] = (
-                f"{reason}; clearing budget spent, reviewing free online lanes"
-            )
-            return True
         if self.state.data.get("took_over") and all(
             load.get("projection_known") and load.get("state") not in SETTLED
             for load in self.state.data["cleanup_loads"].values()
@@ -3249,12 +3267,16 @@ class Sweep:
             self.state.data.pop("clearing_reason", None)
             return True
         if now < budget["next_check"]:
-            return False
+            if place_ready:
+                self.state.data["takeover_fallback"] = True
+            return bool(self.state.data.get("takeover_fallback"))
         budget["attempts"] += 1
-        budget["next_check"] = now + TAKEOVER_RETRY_SECONDS
+        budget["next_check"] = now + min(
+            TAKEOVER_RETRY_SECONDS * 2 ** min(budget["attempts"] - 1, 5), INFRA_CAP
+        )
         self.state.save()
         try:
-            admitted = self._attempt_takeover(now)
+            admitted = self._attempt_takeover(now, place_ready=place_ready)
         except VonkctlError as error:
             self.state.event(f"clearing attempt unanswered: {str(error)[:120]}")
             admitted = False
@@ -3263,15 +3285,13 @@ class Sweep:
             self.state.data.pop("clearing_reason", None)
             self.state.data.pop("clearing_refusal", None)
             return True
-        if budget["attempts"] >= MAX_TAKEOVER_ATTEMPTS:
-            self.state.data["takeover_fallback"] = True
-            self.state.event(
-                f"{reason}: clearing budget exhausted; reviewing free online lanes"
-            )
-            return True
-        return False
+        self.state.data["takeover_fallback"] = True
+        self.state.event(
+            f"{reason}; reviewing free online lanes while clearing retries"
+        )
+        return True
 
-    def _attempt_takeover(self, now: float) -> bool:
+    def _attempt_takeover(self, now: float, *, place_ready: bool = False) -> bool:
         """Begin one durable cleanup, then admit lanes from exact receipts."""
         loads = self.state.data["cleanup_loads"]
         if loads:
@@ -3279,7 +3299,12 @@ class Sweep:
                 load.get("terminal_receipt") or load.get("end")
                 for load in loads.values()
             ):
-                if not self.fleet.presences:
+                if not self.fleet.presences or (
+                    place_ready
+                    and any(s.id not in self._cleanup_nodes() for s in self.sparks())
+                ):
+                    # Prefer the ready lane's fresh reviewed load to an empty
+                    # clearing that would introduce another adoption dependency.
                     return True
                 return self._renew_cleanup(now)
             if not all(
@@ -3348,7 +3373,6 @@ class Sweep:
         self.state.data["takeover_budget"] = {"attempts": 0, "next_check": 0.0}
         self.state.data.pop("takeover_fallback", None)
         self.state.data.pop("cleared_by", None)
-        self.backoff_until = now
 
     def _prune_profile(self) -> bool:
         """Before any load of the sweep profile, it holds only what live lanes need.
@@ -3543,6 +3567,12 @@ class Sweep:
                     # nothing about this recipe. The next pass reviews afresh.
                     self._rollback(added, f"profile edit failed: {error}")
                     self.note_infra("profile-edit", str(error))
+                    self.state.entry(recipe.key)["not_before"] = self.state.data[
+                        "infra"
+                    ]["profile-edit"]["until"]
+                    remaining = [p for p in placements if p.recipe.key != recipe.key]
+                    if remaining:
+                        self._apply(remaining, now)
                     return
                 # An explicit recipe-data code on the recipe's own data.
                 refused = verdict.refused_field(str(error))
@@ -3905,7 +3935,10 @@ class Sweep:
                         "next_check": self.clock.now() + self.cfg.retry_delay,
                     },
                 )
-        self.backoff_until = self.clock.now() + self.cfg.retry_delay
+        for placement in placements:
+            self.state.entry(placement.recipe.key)["not_before"] = (
+                self.clock.now() + self.cfg.retry_delay
+            )
         self.state.event(why[:200])
 
     def _blocked(
@@ -4107,8 +4140,6 @@ class Sweep:
         self.state.data["infra"][source] = item.model_dump(exclude_none=True)
         if source == "download":
             self.prefetcher.pause_until = item.until
-        else:
-            self.backoff_until = max(self.backoff_until, item.until)
         if item.count in (1, 5) or item.count % 20 == 0:
             self.state.event(
                 f"infrastructure problem ({source}, not a recipe failure), "
