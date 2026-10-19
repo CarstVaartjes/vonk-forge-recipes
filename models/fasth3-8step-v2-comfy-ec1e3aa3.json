@@ -37,7 +37,7 @@
   },
   "format": {
     "precision": "mixed",
-    "quantization": "none"
+    "quantization": "int8_tensorwise_convrot"
   },
   "license": {
     "spdx": "LicenseRef-MiniMax-H3-Community-License",
