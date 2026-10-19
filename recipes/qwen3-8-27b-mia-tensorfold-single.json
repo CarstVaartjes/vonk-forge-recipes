@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "MiaAI-Lab TensorFold v0.6.0 with five patches for image/video input, YaRN, FP8 KV and pooled attention cache. Runs the creator-published ARM64 image tagged v0.6.0-fb91a0019fdc. Vontra MLX 4-bit target with z-lab DFlash2 drafter; eight streams and a 262,144-token window. A fixed 78 GiB KV pool follows the upstream maximum; the estimated 109 GiB peak includes the upstream 31 GiB model/runtime allowance. Pool capacity is shared across streams. Physical Spark execution and model quality are unmeasured here.",
+    "description": "MiaAI-Lab TensorFold v0.6.0 with five patches for image/video input, YaRN, FP8 KV and pooled attention cache. Runs the creator-published ARM64 image tagged v0.6.0-fb91a0019fdc. Vontra MLX 4-bit target with z-lab DFlash2 drafter; eight streams and a 262,144-token window. KV caches grow on demand using upstream\u2019s supported zero-pool mode instead of pinning its 78 GiB maximum at startup. The conservative 109 GiB memory envelope is retained; actual allocation depends on active requests. Physical Spark execution and model quality are unmeasured here.",
     "tags": [
       "qwen3.8",
       "tensorfold",
@@ -390,7 +390,7 @@
       },
       {
         "name": "TENSORFOLD_KV_POOL_GIB",
-        "value": "78"
+        "value": "0"
       }
     ],
     "lifecycle": {
