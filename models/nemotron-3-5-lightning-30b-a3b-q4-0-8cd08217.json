@@ -26,13 +26,13 @@
       "size_bytes": 18898091584
     },
     {
-      "id": "readme-5e807745c2ed-b335630551",
+      "id": "readme-0e5c29476662-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "5e807745c2ede98bbef441dc8d66b7e54fd9f991cf28d32420acbfdd9a7fd74c",
-      "size_bytes": 759
+      "sha256": "0e5c29476662f6bf54da70f46e318c44692cd2a9da4f8c3b092c41bce3b4e76a",
+      "size_bytes": 798
     }
   ],
   "format": {
@@ -51,9 +51,9 @@
       "title": "Nemotron 3.5 Lightning 30B-A3B"
     },
     "publisher": "ggml-org",
-    "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8a08a1c8",
-    "variant": "Q4_0 8a08a1c8",
-    "version": "Q4_0 8a08a1c8"
+    "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8cd08217",
+    "variant": "Q4_0 8cd08217",
+    "version": "Q4_0 8cd08217"
   },
   "kind": "model",
   "license": {
@@ -80,6 +80,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/ggml-org/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF",
-    "revision": "8a08a1c81dadcc75d35dbb96016cfd344b632e67"
+    "revision": "8cd082170ed313484be1cf44f256a5caa2cfdad3"
   }
 }
