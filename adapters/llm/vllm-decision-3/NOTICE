@@ -1,0 +1,6 @@
+vLLM native Decision 3.0 profiles from https://github.com/vllm-project/recipes/tree/2338e9edec1d5df5f823abf3c1f19e7ba0b2ed0e/models/vllm-sr
+Runtime https://github.com/vllm-project/vllm/tree/e68efc685ab1e6f1eda004ced7157e3ca411da2f (Apache-2.0).
+The ARM64 image includes Decision 3.0 support (#61565) and Nano's single-file readout fix (#61778).
+No upstream source files are vendored. The launcher and image smoke are authored here.
+32K input context and one concurrent sequence bound the Spark profiles. Native D3 disables prefix caching and chunked prefill.
+The video probe uses the Apache-2.0 example motion clip from vllm-sr/d3-edge at c454ee39b862248d70abd7f84195d2f54ffe6d43, assets/example-video.mp4. Its exact provenance is recorded in qualification/shared.json.

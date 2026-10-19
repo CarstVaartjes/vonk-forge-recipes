@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/d3-lite-vllm-single",
+  "service_recipes": {
+    "alias": "d3-lite-vllm-single",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start and offline warm-cache restart with the exact alias"
+      ],
+      "stress": [
+        "Input-context and concurrency boundaries with text and multimodal decisions"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "D3_TEXT",
+      "D3_IMAGE",
+      "D3_VIDEO"
+    ]
+  }
+}

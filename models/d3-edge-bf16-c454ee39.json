@@ -1,0 +1,192 @@
+{
+  "capabilities": [
+    "decision",
+    "video",
+    "vision"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "license-c71d239df917-c693279643",
+      "path": "LICENSE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "size_bytes": 11357
+    },
+    {
+      "id": "notice-0e7694dee192-dfb14fbb9e",
+      "path": "NOTICE",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "0e7694dee1927d83b3637be7a8f989b941ebd884dd40767b995c7adee484789b",
+      "size_bytes": 106
+    },
+    {
+      "id": "readme-e7df42704840-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "e7df42704840545e87480543c96c4dfb329a1122de9cc8067f144da1ba882e8d",
+      "size_bytes": 17549
+    },
+    {
+      "id": "chat-template-273d8e0e683b-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+      "size_bytes": 7755
+    },
+    {
+      "id": "config-5e529d9aea2f-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "5e529d9aea2f8d387750acf5b02cc32a47d7e87dc65d6d008fba98e5d15acc4d",
+      "size_bytes": 2572
+    },
+    {
+      "id": "decision-config-30b6095b945d-e7e5a68d30",
+      "path": "decision_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "30b6095b945d5a93697868afdf9be9123ea892085fbaff3078112c48da20dc6b",
+      "size_bytes": 5504
+    },
+    {
+      "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "size_bytes": 3353259
+    },
+    {
+      "id": "model-00001-of-00001-91bb8618450a-914d077e93",
+      "path": "model-00001-of-00001.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "91bb8618450a7f628f1432bbced76bc19ee7346c93d191a228fdd33c25a57a9d",
+      "size_bytes": 1188677968
+    },
+    {
+      "id": "model-safetensors-index-7d3951baba64-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7d3951baba643a2c4fe2263d8602ef37b1c1f804b58949a5469449da6a588b03",
+      "size_bytes": 25448
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "readout-de33d5dc795b-29c64a51ee",
+      "path": "readout.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "de33d5dc795bbd77168e40bfadc340cca9b9f163b88744c10e1a788f4e166d3d",
+      "size_bytes": 1044560
+    },
+    {
+      "id": "tokenizer-5f9e4d4901a9-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "size_bytes": 12807982
+    },
+    {
+      "id": "tokenizer-config-49e2b6e395f9-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "49e2b6e395f959f077f1e992b338919c0d4a9732fc6e613995e06557f843500c",
+      "size_bytes": 16709
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "precision": "mixed",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "vonk-forge",
+      "slug": "decision-3",
+      "title": "Decision 3.0"
+    },
+    "model": {
+      "publisher": "vonk-forge",
+      "slug": "d3-edge",
+      "title": "D3-EDGE"
+    },
+    "publisher": "vonk-forge",
+    "slug": "d3-edge-bf16-c454ee39",
+    "variant": "c454ee39b862",
+    "version": "c454ee39b862"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "vLLM Semantic Router"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/vllm-sr/d3-edge/blob/c454ee39b862248d70abd7f84195d2f54ffe6d43/LICENSE"
+  },
+  "metadata": {
+    "description": "d3-edge typed-decision model with probability outputs and an FP32 answer-code readout.",
+    "tags": [
+      "vonk-forge",
+      "decision-3",
+      "language",
+      "candidate"
+    ]
+  },
+  "modalities": [
+    "text",
+    "image",
+    "video"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/vllm-sr/d3-edge",
+    "revision": "c454ee39b862248d70abd7f84195d2f54ffe6d43"
+  }
+}

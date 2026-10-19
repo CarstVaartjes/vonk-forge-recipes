@@ -1,6 +1,7 @@
 {
   "_comment": "The one hand-maintained input of tools/build-readme-overview: creator rows (aliases are matched case-insensitively against a recipe's source owner and attribution). Families are not configured here; they come from each Model document's identity.family, which tools/check-model-families keeps to one lineage per slug.",
   "creators": [
+    {"name": "vLLM project", "url": "https://github.com/vllm-project/recipes", "aliases": ["vllm-project", "vllm semantic router", "vllm"], "focus": "Official vLLM model recipes, including Decision 3.0 native structured decisions with text, image and video inputs."},
     {"name": "MiaAI-Lab", "url": "https://github.com/MiaAI-Lab", "aliases": ["miaai-lab", "miaai lab"], "focus": "Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling."},
     {"name": "tonyd2wild", "url": "https://github.com/tonyd2wild", "aliases": ["tonyd2wild"], "focus": "Multi-Spark (2 and 4) vLLM recipes for large MoE models: GLM, MiMo."},
     {"name": "r0b0tlab", "url": "https://github.com/r0b0tlab", "aliases": ["r0b0tlab"], "focus": "vLLM on GB10/SM121: EXL3 kernels, DFlash2 speculative decoding, GLM and Nemotron."},
