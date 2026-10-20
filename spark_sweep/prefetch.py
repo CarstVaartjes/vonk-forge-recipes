@@ -578,7 +578,7 @@ class Prefetcher:
             digest
             for plan in plans
             for digest in plan.digests
-            if digest in present or any(self._requested(k) for k in plan.recipes)
+            if digest in present or any(self._active(k) for k in plan.recipes)
         }
         pinned_bytes = sum(sizes.get(d, 0) for d in tracked)
 
@@ -637,9 +637,6 @@ class Prefetcher:
             "pinned_bytes": pinned_bytes,
             "pressure": now < self.pressure_until,
         }
-
-    def _requested(self, key: str) -> bool:
-        return key in self.state.downloads
 
     def _active(self, key: str) -> bool:
         record = self.state.downloads.get(key)
@@ -878,7 +875,7 @@ class Prefetcher:
         spent = 0
         for plan in plans:
             if plan.digests - present and not any(
-                k in self.state.downloads for k in plan.recipes
+                self._active(k) for k in plan.recipes
             ):
                 continue  # not downloaded, not requested: nothing to protect
             cost = sum(sizes.get(d, 0) for d in plan.digests)
