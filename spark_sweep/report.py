@@ -275,7 +275,7 @@ def render_status(status: Mapping[str, Any]) -> str:
         lines += ["## Fleet model removal"]
         for digest, item in status["model_removals"].items():
             lines.append(
-                f"- {digest}: {item['outcome']} (attempt {item['attempt_count']}): {item['message']}"
+                f"- {digest}: {item['outcome']}: {item['message']}"
                 f"; next check {item['next_check']}; request {item['request_key'] or 'none'}"
             )
         lines.append("")

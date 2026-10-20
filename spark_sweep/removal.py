@@ -1,6 +1,8 @@
 """Best-effort, request-led fleet removal after the last current recipe verdict."""
 
 from collections.abc import Mapping
+from random import uniform
+from uuid import uuid4
 
 from pydantic import ValidationError
 
@@ -16,13 +18,10 @@ from .removal_contract import (
     RemovalReview,
 )
 from .state import State
-from .vonkctl import Vonkctl, request_key
+from .vonkctl import Vonkctl
 
-MAX_ATTEMPTS = 3
-MAX_OBSERVATIONS = 144
 RETRY_SECONDS = 60.0
-OBSERVE_SECONDS = 600.0
-REQUEST_SECONDS = 24 * 3600.0
+MAX_BACKOFF_SECONDS = 3600.0
 
 
 class ModelRemover:
@@ -104,12 +103,18 @@ class ModelRemover:
             )
         }
         records = self.state.data.setdefault("model_removals", {})
-        for digest in consumers.keys() - eligible:
-            if digest in records:
-                record = RemovalRecord.model_validate(records[digest])
+        for digest in records.keys() - eligible:
+            record = RemovalRecord.model_validate(records[digest])
+            if record.outcome == RemovalOutcome.RECEIPT:
                 if not record.needed_again:
                     record.needed_again = True
                     self._store(digest, record)
+            else:
+                del records[digest]
+                self.state.event(
+                    f"model removal {digest}: dropped; consumers need it again"
+                )
+                self.state.save()
         if not eligible:
             return
         try:
@@ -124,26 +129,35 @@ class ModelRemover:
                 self.state.data.setdefault("model_removals", {}).get(digest, {})
             )
             scope = {recipe.key: recipe.content_sha256 for recipe in consumers[digest]}
-            if (
-                record.outcome == RemovalOutcome.RECEIPT
-                or (
-                    record.outcome == RemovalOutcome.EXHAUSTED
-                    and record.request_key is None
-                )
-            ) and (record.needed_again or record.consumers != scope):
+            if record.outcome == RemovalOutcome.RECEIPT and (
+                record.needed_again or record.consumers != scope
+            ):
                 history = [*record.history]
                 if record.receipt:
                     history.append(record.receipt)
-                record = RemovalRecord(cycle=record.cycle + 1, history=history)
+                record = RemovalRecord(history=history)
             record.consumers = scope
-            if record.outcome in (RemovalOutcome.RECEIPT, RemovalOutcome.EXHAUSTED):
+            if record.outcome == RemovalOutcome.RECEIPT:
+                continue
+            if digest in protected:
+                if record.request_key is not None:
+                    self.state.event(
+                        f"model removal {digest}: dropped request {record.request_key}; owner needs it"
+                    )
+                    record = RemovalRecord(consumers=scope, history=record.history)
+                if now < record.next_check:
+                    continue
+                record.outcome = RemovalOutcome.OWNER
+                record.message = "referenced by an owner profile"
+                self._schedule(record, now)
+                self._store(digest, record)
                 continue
             if now < record.next_check:
                 continue
-            if digest in protected or owner_error:
+            if owner_error:
                 record.outcome = RemovalOutcome.OWNER
-                record.message = owner_error or "referenced by an owner profile"
-                record.next_check = now + RETRY_SECONDS
+                record.message = owner_error
+                self._schedule(record, now)
                 self._store(digest, record)
                 continue
             if advanced and not final:
@@ -151,40 +165,29 @@ class ModelRemover:
             self._advance(digest, record, now)
             advanced = True
 
+    def _schedule(self, record: RemovalRecord, now: float) -> None:
+        delay = min(MAX_BACKOFF_SECONDS, max(RETRY_SECONDS, record.backoff_seconds))
+        record.next_check = now + uniform(delay / 2, delay)
+        record.backoff_seconds = min(MAX_BACKOFF_SECONDS, delay * 2)
+
     def _retry(self, record: RemovalRecord, message: str, now: float) -> None:
         record.message = message
-        record.outcome = (
-            RemovalOutcome.EXHAUSTED
-            if record.attempt_count >= MAX_ATTEMPTS
-            else RemovalOutcome.RETRY
-        )
-        record.next_check = now + RETRY_SECONDS * max(1, record.attempt_count)
+        record.outcome = RemovalOutcome.RETRY
+        self._schedule(record, now)
 
     def _advance(self, digest: str, record: RemovalRecord, now: float) -> None:
         if record.request_key is None:
-            record.attempt_count += 1
             review = self.vk.run(
                 "model", "remove", digest, "--fleet", "--review", timeout=30
             )
             try:
                 parsed = RemovalReview.model_validate(review.document)
                 if parsed.target_identity != digest:
-                    record.outcome = RemovalOutcome.EXHAUSTED
-                    record.message = (
+                    raise ValueError(
                         "review names different model content; no effects requested"
                     )
-                    record.last_response = review.document
-                    self._store(digest, record)
-                    return
                 record.review = review.document
                 if parsed.blockers:
-                    if any(not blocker.retryable for blocker in parsed.blockers):
-                        record.outcome = RemovalOutcome.EXHAUSTED
-                        record.message = "; ".join(
-                            item.detail for item in parsed.blockers
-                        )
-                        self._store(digest, record)
-                        return
                     raise ValueError("; ".join(item.detail for item in parsed.blockers))
                 if not review.ok:
                     raise ValueError(review.error_text)
@@ -193,27 +196,13 @@ class ModelRemover:
                 record.last_response = review.document
                 self._store(digest, record)
                 return
-            record.request_key = request_key(
-                "fleet-model-removal",
-                self.state.nonce,
-                digest,
-                record.cycle,
-                record.attempt_count,
-            )
+            record.request_key = str(uuid4())
             record.receipt = (
                 None  # prior terminal receipts belong to history, not this request
             )
-            record.deadline = now + REQUEST_SECONDS
-            record.observations = 0
-        if now >= record.deadline or record.observations >= MAX_OBSERVATIONS:
-            record.outcome = RemovalOutcome.EXHAUSTED
-            record.message = "observation budget ended; original request may still run; receipt retained"
-            self._store(digest, record)
-            return
-        record.observations += 1
         record.outcome = RemovalOutcome.WAIT
         record.message = "request submitted or reconnecting; waiting for typed receipt"
-        record.next_check = now + OBSERVE_SECONDS
+        self._schedule(record, now)
         # Write-ahead: even a process death inside run() reconnects to this key.
         self._store(digest, record)
         reply = self.vk.run(
@@ -234,24 +223,15 @@ class ModelRemover:
                 receipt.request_key != record.request_key
                 or receipt.model_content_sha256 != digest
             ):
-                record.outcome = RemovalOutcome.EXHAUSTED
-                record.message = (
+                raise ValueError(
                     "receipt does not bind the original request and model content"
                 )
-                self._store(digest, record)
-                return
         except (ValueError, ValidationError) as error:
             # A transport loss or refusal can follow acceptance. Never mint a new key
-            # from prose or an HTTP status: reconnect to the same owner, bounded.
+            # from prose or an HTTP status: reconnect to the same owner after backoff.
             record.message = f"receipt unavailable: {reply.error_text}; {error}"[:1024]
-            if record.receipt is None and record.observations >= MAX_ATTEMPTS:
-                record.outcome = RemovalOutcome.EXHAUSTED
-                record.message += "; reconnect budget ended; original request retained"
         else:
             record.receipt = reply.document
-            record.deadline = min(
-                record.deadline, receipt.fleet.deadline_at.timestamp()
-            )
             record.message = f"operation {receipt.operation_id}: {receipt.state}"
             if receipt.state == LifecycleState.SUCCEEDED and receipt.result is not None:
                 record.outcome = RemovalOutcome.RECEIPT
@@ -261,11 +241,8 @@ class ModelRemover:
             elif receipt.state in TERMINAL:
                 record.history.append(record.receipt or {})
                 record.request_key = None
-                self._retry(
-                    record,
-                    receipt.failure.detail if receipt.failure else record.message,
-                    now,
+                record.outcome = RemovalOutcome.RETRY
+                record.message = (
+                    receipt.failure.detail if receipt.failure else record.message
                 )
-                if receipt.failure and not receipt.failure.retryable:
-                    record.outcome = RemovalOutcome.EXHAUSTED
         self._store(digest, record)

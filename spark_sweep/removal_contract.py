@@ -19,7 +19,6 @@ class RemovalOutcome(StrEnum):
     WAIT = "waiting"
     RETRY = "retry"
     RECEIPT = "receipt"
-    EXHAUSTED = "exhausted"
 
 
 class RecipeVerdict(StrEnum):
@@ -113,13 +112,10 @@ class RemovalRecord(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     outcome: RemovalOutcome = RemovalOutcome.WAIT
-    attempt_count: int = 0
-    observations: int = 0
-    cycle: int = 0
+    backoff_seconds: float = 60.0
     needed_again: bool = False
     consumers: dict[str, str] = Field(default_factory=dict)
     request_key: str | None = None
-    deadline: float = 0
     next_check: float = 0
     message: str = ""
     review: dict[str, JsonValue] | None = None

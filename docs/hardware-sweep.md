@@ -174,13 +174,16 @@ The next models are downloaded to the NAS while the Sparks test.
   sweep's own sweep and pin profiles are excluded from that owner check.
   The Controller still owns reference and shared-byte retention.
   `state.json` and `status.json` retain the review, request key and receipt;
-  `status.md` shows the outcome, request and next check.
+  `status.md` shows the outcome, request key, last message and next check.
   Keys are saved before submission and reused after a disconnect or restart.
-  Terminal failures re-plan with a new key, up to three reviewed attempts;
-  uncertain outcomes reconnect to the original key (three reads without any
-  receipt, or at most 144 observations over 24 hours after acceptance).
-  Checks have backoff and a 30-second CLI timeout. Exhaustion
-  keeps the evidence and says that remote work may still run. Removal never
+  Terminal failures re-plan with a fresh review and a new key. Uncertain
+  outcomes keep reconnecting to the original key until the Controller returns
+  a receipt or a typed terminal answer. Checks use capped exponential backoff
+  with jitter (at most one hour) and a 30-second CLI timeout; no attempt,
+  observation or elapsed-time budget ends reconciliation. If a consumer becomes
+  pending or retrying again, or an owner profile starts using the model, the
+  sweep drops its pending removal intent immediately. This does not cancel
+  remote work already accepted by the Controller. Removal never
   reserves a lane or delays sweep completion: unfinished cleanup remains in
   state for a later invocation, and a refused removal never stops recipe work.
 
