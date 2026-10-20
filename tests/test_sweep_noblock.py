@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from vonk_forge_contracts.sweep import SweepSlotPhase
 
 from spark_sweep import policy, verdict
 from spark_sweep.lifecycle import LifecycleState
@@ -20,6 +21,126 @@ FIXTURE = Path(__file__).parent / "fixtures/sweep-noblock.json"
 TRANSPORT_TIMEOUT = json.loads(
     (FIXTURE.parent / "sweep-verdicts/cli-transport-timeout.json").read_text()
 )
+
+
+def test_new_single_lanes_have_independent_application_receipts(tmp_path: Path) -> None:
+    """Catches batching two independently placeable lanes into one admission wait."""
+    recipes = [FakeRecipe("a", local="cached"), FakeRecipe("b", local="cached")]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep._apply(
+        [
+            policy.Placement(sweep.recipes[recipes[0].key], ("spk_a",)),
+            policy.Placement(sweep.recipes[recipes[1].key], ("spk_b",)),
+        ],
+        clock.now(),
+    )
+    requests = {slot["request_key"] for slot in sweep.state.slots.values()}
+    assert len(requests) == 2
+    assert len(sweep.state.slots) == 2
+    assert all(
+        len([s for s in sweep.state.slots.values() if s["request_key"] == request]) == 1
+        for request in requests
+    )
+    assert not any(args[:2] == ("profile", "cancel") for _, args in fleet.calls)
+
+
+@pytest.mark.parametrize(
+    "admitted,reclaimable", [(False, 0), (False, 300_000_000_000), (True, 0)]
+)
+def test_saved_unadmitted_storage_wait_replans_without_cancelling_children(
+    tmp_path: Path,
+    admitted: bool,
+    reclaimable: int,
+) -> None:
+    """A pending admission has no child to adopt; an accepted effect stays owned."""
+    recipes = [FakeRecipe("a", local="cached"), FakeRecipe("b", local="cached")]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    # Reproduce the aggregate receipt written by the previous coordinator.
+    sweep._open_slot(
+        policy.Placement(sweep.recipes[recipes[0].key], ("spk_a",)),
+        "original",
+        clock.now(),
+    )
+    sweep._open_slot(
+        policy.Placement(sweep.recipes[recipes[1].key], ("spk_b",)),
+        "original",
+        clock.now(),
+    )
+    sweep.state.data["loads"]["original"] = {
+        "request_key": "original",
+        "app_id": "old",
+        "state": LifecycleState.QUEUED,
+    }
+    sweep.state.save()
+    restarted, _, _ = make_sweep(
+        tmp_path, recipes, list(fleet.models.values()), fleet=fleet
+    )
+    restarted.refresh_catalog()
+    load = restarted.state.data["loads"]["original"]
+    document = json.loads((FIXTURE.parent / "sweep-pending-storage.json").read_text())
+    document["progress"]["blockers"][0]["storage"]["reclaimable_bytes"] = reclaimable
+    if admitted:
+        document["progress"]["effects"] = [{"effect_id": "accepted-child"}]
+    restarted._replan_pending_storage(load, document)
+    if admitted:
+        assert not load.get("replanned_pending")
+        assert all(
+            s["phase"] == SweepSlotPhase.LOADING for s in restarted.state.slots.values()
+        )
+        return
+    assert load["replanned_pending"]
+    restarted.enqueue_finished_cleanup()
+    restarted.cleanup_finished()
+    restarted.release_orphan_load()
+    assert "original" in restarted.state.data["loads"]
+    fleet.observations.append(
+        (("profile", "progress", "--application", "old"), 0, document)
+    )
+    restarted.tick()
+    assert recipes[1].key in restarted.state.slots
+    assert recipes[0].key not in restarted.state.slots
+    assert not any(args[:2] == ("profile", "cancel") for _, args in fleet.calls)
+
+
+def test_owner_request_between_lane_submissions_steers_the_next_snapshot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    recipes = [FakeRecipe("a", local="cached"), FakeRecipe("b", local="cached")]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    submit = sweep._submit_load
+
+    def owner_after_first(*args, **kwargs):
+        document = submit(*args, **kwargs)
+        fleet.owner_load(1, duration=300)
+        return document
+
+    monkeypatch.setattr(sweep, "_submit_load", owner_after_first)
+    sweep._apply(
+        [
+            policy.Placement(sweep.recipes[recipes[0].key], ("spk_a",)),
+            policy.Placement(sweep.recipes[recipes[1].key], ("spk_b",)),
+        ],
+        clock.now(),
+    )
+    assert sweep.owner_status.paused
+    assert not any(
+        args[:2] == ("profile", "add") and recipes[1].key in args
+        for _, args in fleet.calls
+    )
+    assert not any(args[:2] == ("profile", "cancel") for _, args in fleet.calls)
 
 
 @pytest.mark.parametrize(
@@ -274,3 +395,48 @@ def test_fleet_outage_blocks_submission_only_until_the_next_fresh_tick(
     sweep.vk.runner = original
     sweep.tick()
     assert recipe.key in sweep.state.slots
+
+
+def test_storage_shortfall_never_submits_an_impossible_lane(tmp_path: Path) -> None:
+    """A waitable batch must not admit a Spark whose free plus evictable disk is short."""
+    from vonk_forge_contracts.sweep import SweepStorageCode, SweepStorageWait
+
+    (tmp_path / "state.json").write_text(FIXTURE.read_text())
+    recipes = [FakeRecipe("a", local="cached"), FakeRecipe("b", local="cached")]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    blocked_review = json.loads(
+        (FIXTURE.parent / "sweep-storage-shortfall.json").read_text()
+    )
+    fleet.observations.append((("profile", "load", "--review"), 0, blocked_review))
+    sweep._apply(
+        [
+            policy.Placement(sweep.recipes[recipes[0].key], ("spk_a",)),
+            policy.Placement(sweep.recipes[recipes[1].key], ("spk_b",)),
+        ],
+        clock.now(),
+    )
+    assert recipes[0].key not in sweep.state.slots
+    assert recipes[1].key in sweep.state.slots
+    wait = SweepStorageWait.model_validate(
+        sweep.state.entry(recipes[0].key)["storage_wait"]
+    )
+    assert wait.reasons[0].code == SweepStorageCode.INSUFFICIENT_DISK
+    assert wait.node_ids == {"spk_a"}
+    assert sweep.state.entry(recipes[0].key).get("attempts", 0) == 0
+    # The saved decision constrains the fallback too, but a new observation
+    # after the check interval can reconsider that Spark without manual edits.
+    sweep.state.save()
+    restarted, _, _ = make_sweep(
+        tmp_path, recipes, list(fleet.models.values()), fleet=fleet
+    )
+    restarted.refresh_catalog()
+    blocked_bin = next(b for b in restarted._bins() if b.id == "spk_a")
+    assert recipes[0].key in blocked_bin.disk_blocked_recipes
+    clock.sleep(sweep.cfg.defer_delay + 1)
+    assert not next(
+        b for b in restarted._bins() if b.id == "spk_a"
+    ).disk_blocked_recipes
