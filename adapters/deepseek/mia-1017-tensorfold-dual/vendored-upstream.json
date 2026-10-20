@@ -1,29 +1,46 @@
 {
-  "source": {
-    "repo": "MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks",
-    "commit": "1afc8910b76574aa6b844a08ec9643d14d57089a"
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "TF_REF=\"\\$\\{TF_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo": "bertholomus/TensorFold"
+      },
+      "engram": {
+        "binds": "engram",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "&& _erev=(?P<version>[0-9a-f]{40})",
+        "repo": "deepseek-ai/DeepSeek-V4.1-Flash-1017"
+      },
+      "image": {
+        "datasource": "oci-image",
+        "file": "README.md",
+        "pattern": "ghcr\\.io/miaai-lab/deepseek-v4\\.1-flash-1017-2x-dgx-sparks-tensorfold:(?P<version>exl3-tp2-[0-9a-f]{12})",
+        "repo": "ghcr.io/miaai-lab/deepseek-v4.1-flash-1017-2x-dgx-sparks-tensorfold"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "&& _rev=(?P<version>[0-9a-f]{40})",
+        "repo": "Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw"
+      }
+    },
+    "whole": true
   },
   "ours": [
     "requirements.lock",
     "tensorfold-serve",
     "prepare_cache.py",
-    "launcher.py"
+    "launcher.py",
+    "refresh-engine.sh"
   ],
   "renamed": {
     "chat_template.jinja": "model/chat_template.jinja",
+    "licenses/CREDITS.md": "CREDITS.md",
     "licenses/LICENSE": "LICENSE",
-    "licenses/NOTICE": "NOTICE",
-    "licenses/CREDITS.md": "CREDITS.md"
-  },
-  "kit": {
-    "whole": true,
-    "dependencies": {
-      "image": {
-        "datasource": "oci-image",
-        "file": "README.md",
-        "repo": "ghcr.io/miaai-lab/deepseek-v4.1-flash-1017-2x-dgx-sparks-tensorfold",
-        "pattern": "ghcr\\.io/miaai-lab/deepseek-v4\\.1-flash-1017-2x-dgx-sparks-tensorfold:(?P<version>exl3-tp2-[0-9a-f]{12})"
-      }
-    }
+    "licenses/NOTICE": "NOTICE"
   }
 }
