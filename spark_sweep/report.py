@@ -137,6 +137,10 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         limit = budget if budget is not None else slot["deadline"] - slot["started_at"]
         # The current phase's own wait; the load's last wait ended with the load.
         watch = slot.get("smoke_watch" if smoking else "watch") or {}
+        if not smoking and slot.get("copying"):
+            # Copying has an inactivity window, not the engine startup budget.
+            since = watch.get("progressed_at", slot["started_at"])
+            limit = sweep.cfg.copy_stall_seconds
         for name in slot.get("spark_names", []):
             lanes.setdefault(name, []).append(
                 {

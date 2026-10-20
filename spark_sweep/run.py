@@ -2074,6 +2074,11 @@ class Sweep:
             tuple(load["signal"].get("signature") or ()),
             load["signal"].get("waiting_on"),
         )
+        if copying and load.get("state") in ACTIVE_APP:
+            # Distribution retries still own the same copy. Only changed bytes
+            # or phases restart its window; a retry timestamp cannot keep a lane
+            # forever. The existing stalled-copy path releases and observes it.
+            signal = replace(signal, waiting_on=None)
         if signal.waiting_on is not None:
             slot["waited_seconds"] = float(slot.get("waited_seconds", 0)) + elapsed
         return verdict.progress_verdict(
