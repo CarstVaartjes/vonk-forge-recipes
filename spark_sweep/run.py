@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from pydantic import ValidationError
+from vonk_forge_contracts import sweep as sweep_contract
 from vonk_forge_contracts.sweep import (
     CleanupEnd,
     CleanupEndReason,
@@ -35,7 +36,6 @@ from vonk_forge_contracts.sweep import (
     CleanupObservationBudget,
     FleetOnlineState,
     InfrastructureIncident,
-    SweepPendingAdmission,
 )
 
 from . import cleanup, memory, policy, recovery, verdict
@@ -1952,7 +1952,7 @@ class Sweep:
         ):
             return
         try:
-            pending = SweepPendingAdmission.model_validate(
+            pending = sweep_contract.SweepPendingAdmission.model_validate(
                 document.get("progress"), strict=True
             )
         except ValidationError:
