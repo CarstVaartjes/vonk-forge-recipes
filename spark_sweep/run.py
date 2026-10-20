@@ -895,12 +895,6 @@ class Sweep:
         # Cold-start paging may not yet have seen the owner's seed/priority recipe.
         # Existing receipts still advance above; new work uses the first complete view.
         pending = self.pending() if self.catalog_loaded else []
-        for (
-            key,
-            record,
-        ) in self.state.downloads.items():  # a state file from an older run
-            if record.get("state") == "succeeded":
-                self._download_done(key)
         self.cached_models = self._cached_models()
         self.prefetcher.library_fresh_since = self.recipe_list.complete_started_at
         present = self._present()
@@ -973,7 +967,27 @@ class Sweep:
         """Models on the NAS: the library says so, a download of ours finished, or the library's own
         assessment of a recipe says its exact assets are ready. Never fleet fit or readiness."""
         cached = {d for d, m in self.models.items() if m.local == "cached"}
-        cached |= set(self.state.data["models_done"])
+        # Completion receipts bridge lagging catalog reads; a later complete
+        # model pass can prove eviction. History must not reserve absent bytes.
+        latest: dict[str, float] = {}
+        for record in self.state.downloads.values():
+            if record.get("state") != LifecycleState.SUCCEEDED:
+                continue
+            accepted = AcceptedRequest.read(record)
+            if accepted is not None:
+                for digest in accepted.recipe.model_digests:
+                    latest[digest] = max(
+                        latest.get(digest, 0.0), float(record.get("done_at") or 0.0)
+                    )
+        cached |= {
+            digest
+            for digest in self.state.data["models_done"]
+            if not (
+                digest in self.models
+                and self.models[digest].local == "not_cached"
+                and self.model_list.complete_started_at > latest.get(digest, 0.0)
+            )
+        }
         for recipe in self.recipes.values():
             if recipe.cache_ready:
                 cached |= set(recipe.model_digests)
@@ -2911,6 +2925,11 @@ class Sweep:
             download.get("state") == LifecycleState.SUCCEEDED
             and accepted is not None
             and accepted.recipe.content_sha256 == recipe.content_sha256
+            and (
+                self.model_list.complete_started_at
+                <= float(download.get("done_at") or 0.0)
+                or recipe.model_set <= self.cached_models
+            )
         ):
             return True
         return recipe.local == "cached" and all(
