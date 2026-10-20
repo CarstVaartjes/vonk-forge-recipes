@@ -248,7 +248,7 @@ def main() -> None:
         remesh=True,
         remesh_band=1,
         remesh_project=0,
-        use_tqdm=True,
+        use_tqdm=False,
     )
     rotation = np.array(
         [[-1, 0, 0, 0], [0, 0, -1, 0], [0, -1, 0, 0], [0, 0, 0, 1]],

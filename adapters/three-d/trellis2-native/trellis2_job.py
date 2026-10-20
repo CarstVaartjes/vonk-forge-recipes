@@ -139,7 +139,7 @@ def main() -> None:
             remesh=True,
             remesh_band=1,
             remesh_project=0,
-            verbose=True,
+            verbose=False,
         )
         args.output_dir.mkdir(parents=True, exist_ok=True)
         temporary = args.output_dir / ".output.tmp.glb"
