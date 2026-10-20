@@ -556,3 +556,37 @@ def test_empty_queued_cleanup_has_no_targets_beside_a_foreign_run(
     assert "end" in sweep.state.data["cleanup_loads"][key]
     assert any(row["alias"] == "foreign" for row in fleet.runs)
     assert not mutations(fleet)
+
+
+def test_catalog_change_preserves_accepted_sibling_lane_and_load(
+    tmp_path: Path,
+) -> None:
+    from dataclasses import replace
+
+    recipes = [
+        FakeRecipe("changing", local="cached"),
+        FakeRecipe("sibling", local="cached"),
+    ]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    assert sweep._take_over(clock.now())
+    sweep._apply(
+        [
+            policy.Placement(sweep.recipes[recipes[0].key], ("spk_a",)),
+            policy.Placement(sweep.recipes[recipes[1].key], ("spk_b",)),
+        ],
+        clock.now(),
+    )
+    sibling = copy.deepcopy(sweep.state.slots[recipes[1].key])
+    loads = copy.deepcopy(sweep.state.data["loads"])
+    before = list(mutations(fleet))
+    sweep.recipes[recipes[0].key] = replace(
+        sweep.recipes[recipes[0].key], content_sha256="c2"
+    )
+    sweep._reconcile_all()
+    assert sweep.state.slots[recipes[1].key] == sibling
+    assert sweep.state.data["loads"] == loads
+    assert mutations(fleet) == before

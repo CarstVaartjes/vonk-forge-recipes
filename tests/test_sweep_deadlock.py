@@ -144,7 +144,13 @@ def test_a_state_file_with_finished_downloads_resumes_without_asking_again(
     first, fleet, _ = make_sweep(
         tmp_path, recipes, [FakeModel("m1")], gateway=gateway, limit=0
     )
+    from spark_sweep.identity import AcceptedRequest
+
+    first.refresh_catalog()
     first.state.downloads["vonk-forge/a1"] = {
+        "accepted_content": AcceptedRequest(
+            request_key="old-request", recipe=first.recipes["vonk-forge/a1"]
+        ).model_dump(mode="json"),
         "state": "succeeded",
         "kind": "model",
         "attempt": 6,
