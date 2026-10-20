@@ -380,6 +380,35 @@ def _glb_item(document: Mapping[str, Any], name: str, index: Any) -> dict[str, A
     return items[index]
 
 
+def _texture_image(document: Mapping[str, Any], texture: Mapping[str, Any]) -> int:
+    """Resolve the effective image, validating a core fallback independently."""
+    source = texture.get("source")
+    if source is not None:
+        image = _glb_item(document, "images", source)
+        if "uri" in image or image.get("mimeType") not in {"image/png", "image/jpeg"}:
+            _glb_fail("core texture image must be an embedded PNG or JPEG", image)
+    extensions = texture.get("extensions")
+    if isinstance(extensions, dict) and "EXT_texture_webp" in extensions:
+        webp = extensions["EXT_texture_webp"]
+        if not isinstance(webp, dict):
+            _glb_fail("EXT_texture_webp must be an object", webp)
+        source = webp.get("source")
+        image = _glb_item(document, "images", source)
+        if "uri" in image or image.get("mimeType") != "image/webp":
+            _glb_fail("WebP texture image must be embedded WebP", image)
+        for name in ("extensionsUsed", "extensionsRequired"):
+            if "EXT_texture_webp" not in _list(document, name):
+                _glb_fail(
+                    "WebP textures must declare EXT_texture_webp as used and required",
+                    name,
+                )
+    else:
+        _glb_item(document, "images", source)
+    if not _int(source):
+        _glb_fail("texture source index is invalid", source)
+    return source
+
+
 def _textured_primitive(
     document: Mapping[str, Any],
     primitive: Mapping[str, Any],
@@ -405,10 +434,9 @@ def _textured_primitive(
         if not isinstance(info, dict) or info.get("texCoord", 0) != 0:
             _glb_fail(f"{channel} must use TEXCOORD_0", info)
         texture = _glb_item(document, "textures", info.get("index"))
-        image = _glb_item(document, "images", texture.get("source"))
-        sources.append(texture["source"])
-        if "uri" in image or image.get("mimeType") not in {"image/png", "image/jpeg"}:
-            _glb_fail("texture image must be an embedded PNG or JPEG", image)
+        source = _texture_image(document, texture)
+        image = _glb_item(document, "images", source)
+        sources.append(source)
         view = _glb_item(document, "bufferViews", image.get("bufferView"))
         if view.get("buffer") != 0 or "target" in view or "byteStride" in view:
             _glb_fail("texture image bufferView is invalid", view)

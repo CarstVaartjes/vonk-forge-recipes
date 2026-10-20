@@ -227,6 +227,58 @@ def test_textured_pbr_rejects_invalid_or_shared_metallic_roughness(
         evaluate([TEXTURED_PBR], _glb_output(content))
 
 
+@pytest.mark.parametrize("fallback", [False, True])
+def test_pixal3d_webp_export_passes_the_sweep(fallback: bool) -> None:
+    """Catches the sweep rejecting the adapter's required WebP texture sources."""
+    content = (
+        Path(__file__).parent / "fixtures/pixal3d-trimesh-4.10.1-padded.glb"
+    ).read_bytes()
+    document, blob = job_media._glb_chunks(content)
+    if fallback:
+        document["images"].append({"bufferView": 2, "mimeType": "image/png"})
+        for texture in document["textures"]:
+            texture["source"] = 2
+    evaluate([TEXTURED_PBR], _glb_output(_repack_glb(document, blob)))
+
+
+def _repack_glb(document: dict[str, Any], blob: bytes) -> bytes:
+    text = json.dumps(document).encode()
+    text += b" " * (-len(text) % 4)
+    body = struct.pack("<II", len(text), 0x4E4F534A) + text
+    body += struct.pack("<II", len(blob), 0x004E4942) + blob
+    return struct.pack("<4sII", b"glTF", 2, 12 + len(body)) + body
+
+
+@pytest.mark.parametrize(
+    "damage",
+    ["used", "required", "index", "mime", "uri", "shared", "extension", "core"],
+)
+def test_sweep_rejects_broken_webp_texture_references(damage: str) -> None:
+    """Extension support must preserve declaration, source and distinct-image checks."""
+    content = (
+        Path(__file__).parent / "fixtures/pixal3d-trimesh-4.10.1-padded.glb"
+    ).read_bytes()
+    document, blob = job_media._glb_chunks(content)
+    if damage == "used":
+        document["extensionsUsed"] = []
+    elif damage == "required":
+        document["extensionsRequired"] = []
+    elif damage == "index":
+        document["textures"][0]["extensions"]["EXT_texture_webp"]["source"] = 9
+    elif damage == "mime":
+        document["images"][0]["mimeType"] = "image/png"
+    elif damage == "uri":
+        document["images"][0]["uri"] = "external.webp"
+    elif damage == "shared":
+        document["textures"][1]["extensions"]["EXT_texture_webp"]["source"] = 0
+    elif damage == "extension":
+        document["textures"][0]["extensions"]["EXT_texture_webp"] = None
+    elif damage == "core":
+        document["textures"][0]["source"] = 9
+    with pytest.raises(AssertionFailed):
+        evaluate([TEXTURED_PBR], _glb_output(_repack_glb(document, blob)))
+
+
 # -- realtime-transcript -----------------------------------------------------------------
 
 REVISION = "06b067617677661194cf837970fe3a10f1a0e56d"
