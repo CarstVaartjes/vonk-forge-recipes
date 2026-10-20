@@ -8,8 +8,8 @@ name: Recipe runtime images
 # publish.yml calls this on every publication: recipes changed since the last
 # published commit whose image is missing are built, then every recipe's image
 # is resolved for the signed index. Run it by hand to backfill ("all" or recipe
-# ids); it then republishes so the index picks up the new digests. A failed
-# build only means that recipe publishes without a prebuilt image.
+# ids); it then republishes so the index picks up the new digests. Publication
+# requires current images except for explicit hosted-build exclusions.
 on:
   # Independent recovery owner; publication tags do not retire missing keys.
   schedule:
