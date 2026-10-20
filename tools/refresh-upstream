@@ -46,8 +46,11 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+sys.path.insert(0, str(ROOT))
 from vonk_forge_contracts import document_sha256
 from vonk_forge_contracts.recipe import RecipeRelease
+
+from spark_sweep.tolerant import InputReason, read_optional
 
 
 def _load(name: str) -> Any:
@@ -4009,6 +4012,29 @@ class AnonymousHeadClient:
 def command_run(arguments: argparse.Namespace) -> int:
     root = ROOT
     cache_dir = arguments.cache_dir
+    summary = Summary(started=git("rev-parse", "HEAD", cwd=root))
+    if not arguments.dry_run:
+        for source, action, reason in (
+            (
+                "publication receipt",
+                publish_if_stale,
+                InputReason.PUBLICATION_UNAVAILABLE,
+            ),
+            (
+                "arm open PRs",
+                lambda: arm_open_mechanical_prs(summary),
+                InputReason.HOUSEKEEPING_UNAVAILABLE,
+            ),
+        ):
+            read_optional(
+                source,
+                action,
+                lambda diagnostic: summary.failures.append(
+                    diagnostic.model_dump_json()
+                ),
+                reason,
+            )
+
     http = Http(
         github_token=os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN"),
         hf_token=os.environ.get("HF_TOKEN"),
@@ -4016,22 +4042,36 @@ def command_run(arguments: argparse.Namespace) -> int:
     )
     if cache_dir is not None:
         os.environ.setdefault("VONK_UPSTREAM_CACHE", str(cache_dir / "github-trees"))
-    summary = Summary(started=git("rev-parse", "HEAD", cwd=root))
-    if not arguments.dry_run:
-        try:
-            arm_open_mechanical_prs(summary)
-        except RuntimeError as error:
-            summary.failures.append(f"arming open PRs: {str(error)[:300]}")
-    catalog_ = Catalog.load(root)
-    defaults, overrides = drift.load_manifest(root / "upstream-watch.json")
-    watches = drift.discover_watches(root, defaults, overrides)
-    embedded = drift.embedded_inventory(root, watches)
-    drift.observe_embedded_heads(embedded, AnonymousHeadClient(http))
-    assessor = Assessor(catalog_, http, cache_dir, embedded)
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        results = list(pool.map(assessor.assess, sorted(catalog_.recipes)))
+
+    def assess_catalog():
+        catalog_ = Catalog.load(root)
+        defaults, overrides = drift.load_manifest(root / "upstream-watch.json")
+        watches = drift.discover_watches(root, defaults, overrides)
+        embedded = drift.embedded_inventory(root, watches)
+        drift.observe_embedded_heads(embedded, AnonymousHeadClient(http))
+        assessor = Assessor(catalog_, http, cache_dir, embedded)
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            results = list(pool.map(assessor.assess, sorted(catalog_.recipes)))
+        return catalog_, results, embedded
+
+    assessment = read_optional(
+        "catalog assessment",
+        assess_catalog,
+        lambda diagnostic: summary.failures.append(diagnostic.model_dump_json()),
+        InputReason.ASSESSMENT_UNAVAILABLE,
+    )
+    if assessment is None:
+        write_summary(
+            summary, http, os.environ.get("GITHUB_STEP_SUMMARY"), {"coverage": {}}
+        )
+        return 1
+    catalog_, results, embedded = assessment
     assessed = {r.recipe_id: r for r in results}
-    http.save()
+    read_optional(
+        "upstream HTTP cache",
+        http.save,
+        lambda diagnostic: summary.failures.append(diagnostic.model_dump_json()),
+    )
     if arguments.dry_run:
         for result in results:
             if result.drifted or result.unreachable:
@@ -4138,13 +4178,25 @@ def command_run(arguments: argparse.Namespace) -> int:
         except (RuntimeError, OSError, KeyError) as error:
             failed.add(result.recipe_id)
             summary.failures.append(f"{result.recipe_id}: {str(error)[:300]}")
-    try:
-        close_current_issues(assessed, handled - review_ids - failed, summary)
-        close_stale_refresh_prs(assessed, summary, groups, published)
-        update_stale_prs(summary)
-        publish_if_stale()
-    except RuntimeError as error:
-        summary.failures.append(f"housekeeping: {str(error)[:300]}")
+    for source, action in (
+        (
+            "close current issues",
+            lambda: close_current_issues(
+                assessed, handled - review_ids - failed, summary
+            ),
+        ),
+        (
+            "close stale refresh PRs",
+            lambda: close_stale_refresh_prs(assessed, summary, groups, published),
+        ),
+        ("update stale PRs", lambda: update_stale_prs(summary)),
+    ):
+        read_optional(
+            source,
+            action,
+            lambda diagnostic: summary.failures.append(diagnostic.model_dump_json()),
+            InputReason.HOUSEKEEPING_UNAVAILABLE,
+        )
     write_summary(summary, http, os.environ.get("GITHUB_STEP_SUMMARY"), embedded)
     return 1 if summary.failures else 0
 

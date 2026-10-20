@@ -62,6 +62,7 @@ from .report import write_status
 from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
 from .smoke_job import job_budget_seconds, smoke_job
 from .state import ResultsLog, State, StateLock
+from .tolerant import InputReason, read_optional
 from .verdict import Disposition, Progress
 from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 
@@ -412,6 +413,11 @@ class Sweep:
                 )
             if finished and active is self.recipe_list:
                 self.library_commit = active.commit
+        self.state.data["catalog_diagnostics"] = [
+            diagnostic.model_dump(mode="json")
+            for listing in (self.recipe_list, self.model_list)
+            for diagnostic in listing.diagnostics
+        ]
         self._reconcile_all()
 
     def refresh_catalog(self, max_steps: int = 200) -> None:
@@ -1566,7 +1572,14 @@ class Sweep:
             return
         entry["evidence_seq"] = int(entry.get("evidence_seq", 0)) + 1
         bundle = (
-            self._evidence(key, op_id, entry["evidence_seq"])
+            read_optional(
+                f"evidence/{key}",
+                lambda: self._evidence(key, op_id, entry["evidence_seq"]),
+                lambda diagnostic: entry.update(
+                    diagnostics=[diagnostic.model_dump(mode="json")]
+                ),
+                InputReason.EVIDENCE_UNAVAILABLE,
+            )
             if inherited_from is None
             else None
         )
@@ -1681,6 +1694,7 @@ class Sweep:
             "attempt": entry.get("attempts"),
             "evidence": entry.get("evidence"),
             "evidence_bundle": entry.get("evidence_bundle"),
+            "diagnostics": entry.get("diagnostics"),
             "content_sha256": (recipe.content_sha256 if recipe else None)
             if slot
             else entry.get("content_sha256"),
@@ -1709,7 +1723,9 @@ class Sweep:
         directory.mkdir(parents=True, exist_ok=True)
         target = directory / f"{key.partition('/')[2]}-{attempt}.json"
         reply = self.vk.run("fleet", "evidence", op_id, "--output", str(target))
-        return str(target) if reply.ok else None
+        if not reply.ok:
+            raise ValueError(reply.error_text)
+        return str(target)
 
     def _record_pass(self, key: str, slot: dict[str, Any], result: SmokeResult) -> None:
         now = self.clock.now()
