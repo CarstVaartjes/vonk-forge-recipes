@@ -100,6 +100,8 @@ class FakeRecipe:
     alias: str | None = None
     # What its run really holds on a Spark once serving (the node telemetry shows it).
     observed_memory: int = 0
+    image_build_key: str = "a" * 64
+    image_digest: str = "sha256:" + "b" * 64
 
     @property
     def key(self) -> str:
@@ -637,6 +639,10 @@ class FakeFleet:
         return {
             **self._assessment(r),
             "selector": r.key,
+            "prebuilt_image": {
+                "build_key": r.image_build_key,
+                "reference": f"ghcr.io/test/runtime@{r.image_digest}",
+            },
             "identity": {
                 "content_sha256": r.content,
                 "recipe_revision_id": f"rev-{r.content}",
