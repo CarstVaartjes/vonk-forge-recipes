@@ -348,3 +348,49 @@ def test_retesting_rearms_cleanup_with_new_identity_and_keeps_prior_receipt(tmp_
     record = sweep.state.data["model_removals"][A]
     assert record["request_key"] != original
     assert record["history"][0]["request_key"] == original
+
+
+@pytest.mark.parametrize("retryable,http_status", [(False, 500), (True, 503)])
+def test_review_error_keeps_typed_cause_and_backoff_then_heals(
+    tmp_path, retryable, http_status
+):
+    """Catches parsing a Controller error as a review and losing its cause."""
+    from spark_sweep.removal_contract import RemovalReplyError
+
+    sweep, peer, clock = scenario(tmp_path)
+    fault = RemovalReplyError.model_validate(
+        {
+            **fixture("error"),
+            "http_status": http_status,
+            "retryable": retryable,
+        }
+    )
+    original_runner = peer.runner
+
+    def runner(argv, timeout):
+        if "--review" in argv:
+            peer.calls.append(list(argv)[3:])
+            return 2, fault.model_dump_json(), ""
+        return original_runner(argv, timeout)
+
+    sweep.model_remover.vk = Vonkctl(runner=runner)
+    sweep.remove_finished_models()
+    record = RemovalRecord.model_validate(sweep.state.data["model_removals"][A])
+    assert record.outcome == RemovalOutcome.RETRY
+    assert record.request_key is None
+    assert fault.code in record.message
+    assert f"http_status={http_status}" in record.message
+    assert f"retryable={retryable}" in record.message
+    assert fault.detail in record.message
+    assert "validation error" not in record.message
+    assert not peer.submissions
+    assert clock.now() < record.next_check <= clock.now() + record.backoff_seconds
+    calls = sum(args[2] == A for args in peer.calls)
+    sweep.remove_finished_models()
+    assert sum(args[2] == A for args in peer.calls) == calls
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.model_remover.state = sweep.state
+    sweep.model_remover.vk = Vonkctl(runner=original_runner)
+    advance(sweep, clock)
+    assert peer.submissions
+    assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
