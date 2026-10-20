@@ -1,4 +1,4 @@
-"""The sweep follows the Controller's verdicts: waits never expire, only a stall ends work.
+"""The sweep follows the Controller's verdicts: waits expire into a re-plan, never a recipe failure.
 
 Unit cases drive ``progress_verdict`` and ``disposition`` on vonkctl JSON in the published
 shapes (``tests/fixtures/sweep-verdicts``: ``FleetProfileApplicationView`` and the CLI's
@@ -56,13 +56,20 @@ def _drive(sweep, clock, *, until, limit: int = 2000) -> None:
 @pytest.mark.parametrize(
     "name", ["queued-retry", "backoff", "admission-pending", "needs-operator"]
 )
-def test_a_controller_owned_wait_is_waiting_for_ever(name: str) -> None:
+def test_a_controller_owned_wait_expires_within_its_budget(name: str) -> None:
     watch: dict[str, Any] = {}
     signal = verdict.application_signal(_document(name))
     assert signal.waiting_on
-    for hour in range(48):  # two days of the same document: past every old cap
-        progress = verdict.progress_verdict(signal, watch, window=600, now=hour * HOUR)
-        assert progress is Progress.WAITING
+    assert (
+        verdict.progress_verdict(signal, watch, window=600, now=0) is Progress.WAITING
+    )
+    assert (
+        verdict.progress_verdict(signal, watch, window=600, now=600) is Progress.WAITING
+    )
+    assert (
+        verdict.progress_verdict(signal, watch, window=600, now=601)
+        is Progress.WAIT_EXPIRED
+    )
     assert watch["waiting_on"] == signal.waiting_on
 
 
@@ -90,7 +97,7 @@ def test_a_warning_blocker_is_a_brief_hold_not_a_wait() -> None:
     assert verdict.application_signal(document).waiting_on is None
 
 
-def test_movement_restarts_the_window_and_a_wait_never_ages_it() -> None:
+def test_movement_restarts_own_progress_but_waits_have_a_separate_budget() -> None:
     watch: dict[str, Any] = {}
     silent = verdict.application_signal(_document("running-silent"))
     moved = verdict.application_signal(_document("running-moved"))
@@ -99,12 +106,13 @@ def test_movement_restarts_the_window_and_a_wait_never_ages_it() -> None:
     assert verdict.progress_verdict(moved, watch, window=600, now=500) is (
         Progress.PROGRESSING
     )
-    # Ten hours queued, then the same silent work again: the window starts afresh.
+    # Queuing cannot rewrite the last own-work progress timestamp.
     assert verdict.progress_verdict(queued, watch, window=600, now=10 * HOUR) is (
         Progress.WAITING
     )
-    assert verdict.progress_verdict(moved, watch, window=600, now=10 * HOUR + 599) is (
-        Progress.PROGRESSING
+    assert (
+        verdict.progress_verdict(moved, watch, window=600, now=10 * HOUR + 599)
+        is Progress.STALLED
     )
 
 
@@ -113,7 +121,11 @@ def test_an_unreadable_observation_is_unknown_and_waits() -> None:
     assert verdict.progress_verdict(None, watch, window=600, now=5000) is (
         Progress.WAITING
     )
-    assert watch["progressed_at"] == 5000
+    assert watch["progressed_at"] == 0.0
+    assert (
+        verdict.progress_verdict(None, watch, window=600, now=5601)
+        is Progress.WAIT_EXPIRED
+    )
 
 
 def test_the_controllers_typed_end_stops_following_a_failed_application() -> None:
@@ -173,11 +185,9 @@ def test_outcomes_spend_attempts_only_when_uncertain(
 # -- behaviour on a fake clock -------------------------------------------------------------
 
 
-def test_a_lane_held_by_the_controller_past_every_old_cap_waits_then_passes(
+def test_a_controller_hold_releases_and_replans_without_an_attempt(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    # 30 hours of an admission hold: past the 900 s blocked cap, the 1800 s platform
-    # wait, the 7200 s longest load window and the 24 h load wall.
     held = FakeRecipe("big", blocked=True, blocked_for=30 * HOUR)
     sweep, fleet, clock = make_sweep(
         tmp_path,
@@ -187,19 +197,15 @@ def test_a_lane_held_by_the_controller_past_every_old_cap_waits_then_passes(
         timeouts=_timeouts(600),
         poll_seconds=300.0,
     )
-    start = clock.now()
-    seen_waiting = []
-
-    def observe(_now: float) -> None:
-        slot = sweep.state.slots.get(held.key)
-        if slot and slot.get("watch", {}).get("waiting_on"):
-            seen_waiting.append(clock.now() - start)
-
-    clock.hooks.append(observe)
-    _drive(sweep, clock, until=lambda: sweep.state.status(held.key) == "passed")
-    assert max(seen_waiting) > 29 * HOUR
-    entry = sweep.state.entry(held.key)
-    assert entry["attempts"] == 1 and not entry.get("failure_class")
+    _drive(
+        sweep,
+        clock,
+        until=lambda: any(r["step"] == "requeue" for r in sweep.log.entries()),
+    )
+    assert held.key not in sweep.state.slots
+    assert sweep.state.status(held.key) == "pending"
+    assert sweep.state.entry(held.key).get("attempts", 0) == 0
+    assert sweep.state.entry(held.key)["not_before"] > clock.now()
     assert not any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
 
 

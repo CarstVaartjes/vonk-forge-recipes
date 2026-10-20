@@ -43,6 +43,7 @@ from .verdict import (
     download_signal,
     progress_verdict,
     reply_disposition,
+    wait_expiry,
 )
 from .vonkctl import Vonkctl, VonkctlError, request_key
 
@@ -163,7 +164,16 @@ class Prefetcher:
             watch = record.setdefault("watch", {})
             if not reply.ok or not isinstance(document, dict):
                 # Unknown: keep the last truthful state, wait, and try again next tick.
-                progress_verdict(None, watch, window=DOWNLOAD_STALL_SECONDS, now=now)
+                if (
+                    progress_verdict(
+                        None, watch, window=DOWNLOAD_STALL_SECONDS, now=now
+                    )
+                    is Progress.WAIT_EXPIRED
+                ):
+                    record["wait_deferral"] = wait_expiry(watch, now).model_dump(
+                        mode="json"
+                    )
+                    self._retire(key, record, record["wait_deferral"]["code"])
                 continue
             if not record.get("operation_id"):
                 intent = record.get("requested_intent")
@@ -229,7 +239,12 @@ class Prefetcher:
                 or 0
             )
             record["bps"] = speed
-            if record["state"] in WAITING:
+            if moving is Progress.WAIT_EXPIRED:
+                record["wait_deferral"] = wait_expiry(watch, now).model_dump(
+                    mode="json"
+                )
+                self._retire(key, record, record["wait_deferral"]["code"])
+            elif record["state"] in WAITING:
                 self._retire(key, record, f"download.{record['state']}")
             elif active(record["state"]) and moving is Progress.STALLED:
                 # The work's own progress was silent for a whole window: show it and keep

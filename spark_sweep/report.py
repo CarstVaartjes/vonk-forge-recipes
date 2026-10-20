@@ -133,13 +133,22 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
     }
     for key, slot in data["slots"].items():
         smoking = slot["phase"] == "smoking"
-        # A job smoke's own budget, from its start; else the lane's stall window, which
-        # restarts on every movement and never runs while the lane waits (``waiting_on``).
+        # Show the enforced phase budget, including elapsed time during dependency waits.
         budget = slot.get("smoke_budget_s") if smoking else None
-        since = slot["smoke_started_at"] if budget is not None else slot["started_at"]
+        since = (
+            slot.get("smoke_started_at", slot.get("ready_at", slot["started_at"]))
+            if smoking
+            else slot["started_at"]
+        )
         limit = budget if budget is not None else slot["deadline"] - slot["started_at"]
         # The current phase's own wait; the load's last wait ended with the load.
-        watch = slot.get("smoke_watch" if smoking else "watch") or {}
+        watch = (
+            slot.get("smoke_watch")
+            if smoking
+            else slot.get("ready_watch") or slot.get("watch")
+        ) or {}
+        if watch.get("waiting_on"):
+            limit = min(limit, float(watch.get("wait_deadline", since + limit)) - since)
         for name in slot.get("spark_names", []):
             lanes.setdefault(name, []).append(
                 {
@@ -149,6 +158,16 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     else slot["phase"],
                     "elapsed_s": round(now - since),
                     "limit_s": round(limit),
+                    "over_budget_s": max(
+                        0,
+                        round(
+                            now
+                            - min(
+                                since + limit,
+                                float(watch.get("wait_deadline", since + limit)),
+                            )
+                        ),
+                    ),
                     "waiting_on": watch.get("waiting_on") or slot.get("waiting_on"),
                 }
             )
@@ -287,6 +306,12 @@ def render_status(status: Mapping[str, Any]) -> str:
     for spark, items in status["lanes"].items():
         text = ", ".join(
             f"{i['recipe']} [{i['phase']} {_duration(i['elapsed_s'])}/{_duration(i['limit_s'])}]"
+            + (
+                f" OVER BUDGET by {_duration(i['over_budget_s'])}"
+                + ("; re-plan due" if i.get("waiting_on") else "")
+                if i.get("over_budget_s")
+                else ""
+            )
             + (f" waiting on {i['waiting_on']}" if i.get("waiting_on") else "")
             for i in items
         )

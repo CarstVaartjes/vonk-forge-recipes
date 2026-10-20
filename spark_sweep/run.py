@@ -38,6 +38,8 @@ from vonk_forge_contracts.sweep import (
     InfrastructureIncident,
     SweepStorageReview,
     SweepStorageWait,
+    SweepWait,
+    SweepWaitReason,
 )
 
 from . import cleanup, memory, policy, recovery, verdict
@@ -199,9 +201,8 @@ class SweepConfig:
     retry_failed: bool = False
     # The stall window while bytes are copied to a Spark (the learned window covers the rest).
     copy_stall_seconds: float = 600.0
-    # How long a load may wait on a *preparation* that names only some of its recipes before
-    # it is re-planned without them: they leave the profile and wait for their preparation
-    # (no attempt, no verdict) while the rest load. A re-plan delay, not a deadline.
+    # Preparation waits use this shorter bound, capped by the lane budget.
+    # Expiry re-plans without spending an attempt.
     blocked_release_seconds: float = 300.0
     # The deployed Controller loads job recipes as profile members (vonk-forge #1491) and
     # reports a held job run healthy (#1494). Off: job recipes are skipped before any lane.
@@ -254,6 +255,7 @@ class Sweep:
         self.clock = clock or RealClock()
         self.executor = executor or DaemonExecutor()
         self.futures: dict[str, Future[SmokeResult]] = {}
+        self.smoke_stops: dict[str, threading.Event] = {}
         # The cached listings: scheduling reads these, a refresh updates them page by page.
         self.recipe_list = recipe_listing(vk)
         self.model_list = model_listing(vk)
@@ -1893,7 +1895,7 @@ class Sweep:
         signal = verdict.application_signal(document)
         load["signal"] = {
             "signature": list(signal.signature),
-            "waiting_on": signal.waiting_on,
+            "wait": signal.wait.model_dump(mode="json") if signal.wait else None,
         }
         load["stalled"] = verdict.stalled_detail(document)
         failure = document.get("failure") or {}
@@ -2104,11 +2106,8 @@ class Sweep:
     def _observe_load(self, slot: dict[str, Any], now: float) -> Progress:
         """What the slot's load is doing: PROGRESSING, WAITING or STALLED (``progress_verdict``).
 
-        Copying a few hundred GiB to a Spark can take longer than any sensible load timeout while
-        being perfectly healthy, so copy seconds are not load time and only a copy that stops
-        moving for the copy window stalls. While the Controller holds the application (queue,
-        admission, a blocker, its own retry, an operator) or cannot be read, the lane waits
-        and the window restarts: a wait never ages into a verdict.
+        Moving copies retain their inactivity window. Dependency waits use the lane
+        budget from admission; changing reasons and unreadable observations cannot extend it.
         """
         load = self.state.data["loads"].get(slot["request_key"])
         elapsed = now - float(slot.get("last_tick", slot["started_at"]))
@@ -2119,7 +2118,11 @@ class Sweep:
             if unreadable:
                 slot["blind_seconds"] = float(slot.get("blind_seconds", 0)) + elapsed
             return verdict.progress_verdict(
-                None, watch, window=self._load_window(slot), now=now
+                None,
+                watch,
+                window=float(slot["deadline"]) - float(slot["started_at"]),
+                now=now,
+                started_at=float(slot["started_at"]),
             )
         copying = bool(load.get("copying"))
         slot["copying"] = copying
@@ -2137,12 +2140,21 @@ class Sweep:
             slot["load_phase"] = load["phase"]
         signal = verdict.Signal(
             tuple(load["signal"].get("signature") or ()),
-            load["signal"].get("waiting_on"),
+            SweepWait.model_validate(load["signal"]["wait"])
+            if load["signal"].get("wait")
+            else None,
         )
         if signal.waiting_on is not None:
             slot["waited_seconds"] = float(slot.get("waited_seconds", 0)) + elapsed
+        window = (
+            float(slot["deadline"]) - float(slot["started_at"])
+            if signal.wait
+            else self._load_window(slot)
+        )
+        if signal.wait and verdict.preparation_blockers(load.get("blockers") or []):
+            window = min(window, self.cfg.blocked_release_seconds)
         return verdict.progress_verdict(
-            signal, watch, window=self._load_window(slot), now=now
+            signal, watch, window=window, now=now, started_at=float(slot["started_at"])
         )
 
     def _observe_readiness(self, slot: dict[str, Any], now: float) -> Progress:
@@ -2170,10 +2182,16 @@ class Sweep:
             p.healthy and p.run_state == "running" for p in found
         )
         return verdict.progress_verdict(
-            verdict.Signal(signature, "route publication" if publishing else None),
+            verdict.Signal(
+                signature,
+                SweepWait(reason=SweepWaitReason.ROUTE_PUBLICATION)
+                if publishing
+                else None,
+            ),
             slot.setdefault("ready_watch", {}),
             window=float(slot["deadline"]) - float(slot["started_at"]),
             now=now,
+            started_at=float(slot["started_at"]),
         )
 
     def _advance_loading(self, key: str, slot: dict[str, Any], now: float) -> None:
@@ -2183,8 +2201,9 @@ class Sweep:
             return
         recipe = accepted.recipe
         if self.blind or slot["request_key"] in self.unobserved_loads:
-            self._observe_load(slot, now)
-            return  # no recipe verdict on an unreadable Controller: unknown keeps waiting
+            if self._observe_load(slot, now) is Progress.WAIT_EXPIRED:
+                self._expire_wait(key, slot, slot["watch"])
+            return
         run_id = serving_run(
             self.fleet,
             slot["alias"],
@@ -2195,7 +2214,9 @@ class Sweep:
         )
         if run_id:
             slot.pop("waiting_on", None)
-            slot.update(phase="smoking", run_id=run_id, ready_at=now)
+            slot.update(
+                phase="smoking", run_id=run_id, ready_at=now, smoke_started_at=now
+            )
             self.clear_infra("load-stall")
             policy.learn(
                 self.state.data["learned"],
@@ -2228,7 +2249,10 @@ class Sweep:
                 self.state.entry(key)["not_before"] = now + self.cfg.retry_delay
                 return
             if app["state"] == "succeeded":
-                if self._observe_readiness(slot, now) is Progress.STALLED:
+                progress = self._observe_readiness(slot, now)
+                if progress is Progress.WAIT_EXPIRED:
+                    self._expire_wait(key, slot, slot["ready_watch"])
+                elif progress is Progress.STALLED:
                     silent = verdict.silent_seconds(slot["ready_watch"], now)
                     self._fail_slot(
                         key,
@@ -2294,13 +2318,8 @@ class Sweep:
         load.pop("stall_released", None)
         slot.pop("waiting_on", None)
         progress = self._observe_load(slot, now)
-        held = slot.get("blocked_since")
-        if (
-            held is not None
-            and now - float(held) > self.cfg.blocked_release_seconds
-            and not self.paused  # a re-plan submits a load: never while paused
-            and self._release_prepared(slot, now)
-        ):
+        if progress is Progress.WAIT_EXPIRED:
+            self._expire_wait(key, slot, slot["watch"])
             return
         if progress is Progress.STALLED:
             self._stalled(key, slot, now)
@@ -2310,16 +2329,20 @@ class Sweep:
     ) -> None:
         """The Controller reports the lane's application stalled: a platform problem.
 
-        Keep its lane and original receipt, polling it on every tick. Independent
-        placements still require canonical adoption of this unchanged assignment.
-        No cancellation, new intent, or recipe attempt is justified by this alarm.
+        Observe the original receipt within the lane budget. Expiry re-plans locally
+        without asserting a remote ending or spending a recipe attempt.
         """
-        slot["waiting_on"] = f"application {load.get('app_id')}: {load['stalled']}"
-        # Freeze only this lane's inactivity window while its Controller waits.
-        self._observe_load(slot, self.clock.now())
-        verdict.progress_verdict(
-            None, slot["watch"], window=self._load_window(slot), now=self.clock.now()
-        )
+        if self._wait_slot(
+            key,
+            slot,
+            SweepWait(
+                reason=SweepWaitReason.CONTROLLER_STALLED,
+                detail=f"application {load.get('app_id')}: {load['stalled']}",
+            ),
+            watch_name="watch",
+            started_at=float(slot["started_at"]),
+        ):
+            return
         if load.get("stall_released"):
             return
         load["stall_released"] = True
@@ -2405,96 +2428,6 @@ class Sweep:
                 else f"collateral: {cause}, and no blocker names a recipe"
             )
             self.requeue(key, why)
-
-    def _release_prepared(self, slot: Mapping[str, Any], now: float) -> bool:
-        """A load waiting on the preparation of some recipes: re-plan it without them.
-
-        The recipes a preparation blocker names leave the profile and wait for their
-        preparation (requeued: no attempt, no verdict; the Controller keeps preparing), and
-        the load is submitted again for the rest, so ready recipes do not wait for them.
-        Returns False when nothing was done (no preparation names a subset of the load).
-        """
-        blockers = verdict.preparation_blockers(slot["blocked"])
-        group = self._lane_group(slot)
-        if len(group) < 2 or not blockers:
-            return False
-        culprits = [
-            k for k in group if k in policy.blamed(blockers, self._lanes(group))
-        ]
-        survivors = [k for k in group if k not in culprits]
-        if not culprits or not survivors:
-            return False
-        profile = self.cfg.sweep_profile
-        try:
-            for key in culprits:
-                self.vk.call(
-                    "profile",
-                    "remove",
-                    self.state.slots[key]["alias"],
-                    "--yes",
-                    profile=profile,
-                )
-        except VonkctlError as error:
-            self.note_infra("review", f"re-plan without a preparing recipe: {error}")
-            return False
-        if not self._prune_profile():
-            return False
-        review = self.vk.run("profile", "load", "--review", profile=profile)
-        document = review.document
-        if not review.ok or not isinstance(document, Mapping):
-            return False
-        if not (
-            document.get("allowed") is True
-            or document.get("waits_for_preparation") is True
-        ):
-            return False
-        cleanup_requests = self._adopted_cleanup_requests(document)
-        adopted_requests = self._adopted_requests(
-            document, excluded=frozenset(culprits)
-        )
-        if cleanup_requests is None or adopted_requests is None:
-            return False
-        lanes = self._lanes(culprits)
-        # Fresh canonical admission supersedes only changed effects. Cancelling
-        # this original root first would also abort the unchanged survivor.
-        for key in culprits:
-            own = [b for b in blockers if policy.blamed([b], {key: lanes[key]})]
-            first = (own or blockers)[0]
-            self.requeue(
-                key,
-                f"waiting on its preparation ({first['code']}): re-planned without it, "
-                "the other recipes of the load go on",
-                blockers=list(blockers),
-            )
-            self.state.entry(key)["not_before"] = now + self.cfg.defer_delay
-        seq = int(self.state.data["load_seq"]) + 1
-        request = request_key("sweep-load", self.state.nonce, profile, seq)
-        self.state.data["load_seq"] = seq
-        self.state.data["loads"][request] = {
-            "request_key": request,
-            "app_id": None,
-            "seq": seq,
-            "submitted_at": now,
-            "adopted_requests": adopted_requests,
-            "adopted_cleanup_requests": cleanup_requests,
-        }
-        for key in survivors:
-            lane = self.state.slots[key]
-            # Observation stays bound to the original accepted child/root.
-            for stale in ("blocked_since", "blocked"):
-                lane.pop(stale, None)
-        self.state.save()
-        try:
-            submitted = self._submit_load(profile, request, "release")
-        except VonkctlError as error:
-            self.state.data["loads"][request]["state"] = "observing"
-            self.note_infra("review", f"release outcome unknown: {str(error)[:100]}")
-            return True
-        self.state.data["loads"][request]["app_id"] = submitted.get("id")
-        self.state.event(
-            "released " + ", ".join(survivors) + " without " + ", ".join(culprits)
-        )
-        return True
 
     def _timeout(
         self, key: str, slot: dict[str, Any], failure: policy.Failure | None = None
@@ -2590,19 +2523,87 @@ class Sweep:
             slot["phase"] = "finished"
         self.state.event(f"requeued {key}: {why}")
 
+    def _expire_wait(
+        self, key: str, slot: dict[str, Any], watch: Mapping[str, Any]
+    ) -> None:
+        expiry = verdict.wait_expiry(watch, self.clock.now())
+        stop = self.smoke_stops.pop(key, None)
+        if stop is not None:
+            stop.set()
+        future = self.futures.pop(key, None)
+        if future is not None:
+            future.cancel()
+        # Keep the original receipt for observation; the next canonical review
+        # supersedes changed intent. Local expiry is never a remote terminal claim.
+        load = self.state.data["loads"].get(slot["request_key"])
+        if load is not None:
+            load["replanned_pending"] = True
+        failure = policy.classify(
+            slot["phase"],
+            expiry.code,
+            f"wait budget exhausted: {expiry.wait.description}",
+            klass=expiry.code,
+            evidence=expiry.model_dump(mode="json"),
+        )
+        group = [
+            k
+            for k, lane in self.state.slots.items()
+            if lane.get("request_key") == slot["request_key"]
+            and lane["phase"] == "loading"
+        ]
+        self.requeue(
+            key, failure.detail, failure=failure, disposition=Disposition.WAIT.value
+        )
+        self.state.entry(key)["wait_deferral"] = expiry.model_dump(mode="json")
+        # requeue marked this slot finished; include it when attributing a shared hold.
+        lanes = self._lanes(sorted(set(group) | {key}))
+        held = policy.blamed(load.get("blockers") or [], lanes) if load else set()
+        delay = 0.0 if held and key not in held else self.cfg.defer_delay
+        self.state.entry(key)["not_before"] = self.clock.now() + delay
+
+    def _wait_slot(
+        self,
+        key: str,
+        slot: dict[str, Any],
+        wait: SweepWait,
+        *,
+        watch_name: str = "smoke_watch",
+        started_at: float | None = None,
+    ) -> bool:
+        watch = slot.setdefault(watch_name, {})
+        since = (
+            float(
+                slot.get("smoke_started_at", slot.get("ready_at", slot["started_at"]))
+            )
+            if started_at is None
+            else started_at
+        )
+        window = float(
+            slot.get(
+                "smoke_budget_s", float(slot["deadline"]) - float(slot["started_at"])
+            )
+        )
+        progress = verdict.bounded_wait(
+            wait, watch, window=window, now=self.clock.now(), started_at=since
+        )
+        if progress is Progress.WAIT_EXPIRED:
+            self._expire_wait(key, slot, watch)
+            return True
+        return False
+
     def _submit_smoke(self, key: str, slot: dict[str, Any]) -> None:
         accepted = AcceptedRequest.read(slot)
         if accepted is None:
             self.requeue(key, IdentityReason.UNBOUND)
             return
         recipe = accepted.recipe
+        slot.setdefault("smoke_started_at", slot.get("ready_at", self.clock.now()))
         if recipe.is_job:
             # A job run has no endpoint: its smoke is one artifact job against the run.
             spec = self.defs.artifact(key)
             if spec is not None:
                 # Each smoke enforces its own budget from its start: the lane shows that one.
                 slot.update(
-                    smoke_started_at=self.clock.now(),
                     smoke_budget_s=job_budget_seconds(spec),
                 )
             self.futures[key] = self.executor.submit(
@@ -2623,6 +2624,14 @@ class Sweep:
             )
         except VonkctlError as error:
             if verdict.reply_disposition(error.reply) is Disposition.WAIT:
+                if self._wait_slot(
+                    key,
+                    slot,
+                    SweepWait(
+                        reason=SweepWaitReason.ENDPOINT_PUBLICATION, detail=str(error)
+                    ),
+                ):
+                    return
                 self.note_infra("endpoint", str(error))
                 slot["smoke_not_before"] = self.clock.now() + ENDPOINT_RECHECK_SECONDS
                 return  # the run is up: look the endpoint up again on the next pass
@@ -2641,19 +2650,39 @@ class Sweep:
         )
         base = dig(item, "endpoint", "api_base")
         if not isinstance(base, str):
-            # The Controller publishes the route: a wait on it never expires. Look again.
+            if self._wait_slot(
+                key,
+                slot,
+                SweepWait(
+                    reason=SweepWaitReason.ENDPOINT_PUBLICATION,
+                    detail=f"assignment state {item.get('state')}",
+                ),
+            ):
+                return
             slot["smoke_not_before"] = self.clock.now() + ENDPOINT_RECHECK_SECONDS
-            slot["waiting_on"] = (
-                f"endpoint publication (assignment state {item.get('state')})"
-            )
             return
         slot.pop("waiting_on", None)
+        stop = threading.Event()
+        self.smoke_stops[key] = stop
         self.futures[key] = self.executor.submit(
-            smoke_service, recipe, self.defs, base, slot["alias"], self.cfg.http
+            smoke_service,
+            recipe,
+            self.defs,
+            base,
+            slot["alias"],
+            replace(self.cfg.http, cancelled=stop),
         )
 
     def _advance_smoking(self, key: str, slot: dict[str, Any]) -> None:
         future = self.futures.get(key)
+        watch = slot.get("smoke_watch") or {}
+        wait = (
+            SweepWait.model_validate(watch["wait"])
+            if watch.get("wait")
+            else SweepWait(reason=SweepWaitReason.SMOKE_RESPONSE)
+        )
+        if self._wait_slot(key, slot, wait):
+            return
         if (
             future is None
         ):  # resumed after a restart: the smoke is idempotent, run it again
@@ -2661,10 +2690,10 @@ class Sweep:
                 self._submit_smoke(key, slot)
             return
         if not future.done():
-            # Each request has its own inactivity bound (the socket timeout); the smoke as a
-            # whole has no wall clock to expire.
+            self._wait_slot(key, slot, SweepWait(reason=SweepWaitReason.SMOKE_RESPONSE))
             return
         del self.futures[key]
+        self.smoke_stops.pop(key, None)
         try:
             result = future.result()
         except Exception as error:  # noqa: BLE001 - a bug in one smoke must not stop an unattended sweep
@@ -2718,9 +2747,8 @@ class Sweep:
     ) -> None:
         """A busy gateway or engine (429/503) or a refused client key: no attempt, smoke again.
 
-        The lane is kept. A refused key waits on its renewal (the key file is read on every
-        request); a busy answer that never changes for the lane's whole window is the
-        engine's own stall and is observed (one attempt).
+        Both reasons use the smoke phase budget, even during retry backoff.
+        Expiry releases the lane without spending a recipe attempt.
         """
         now = self.clock.now()
         if failure.klass == policy.CLIENT_CREDENTIAL:
@@ -2730,27 +2758,15 @@ class Sweep:
                 f"({failure.describe()}); renew it in the --client-key-file",
             )
             until = float(self.state.data["infra"]["client-key"]["until"])
-            waiting_on: str | None = "client key renewal"
+            wait = SweepWait(
+                reason=SweepWaitReason.CLIENT_KEY, detail=failure.describe()
+            )
         else:
             until = now + self.cfg.retry_delay
-            waiting_on = None
-        progress = verdict.progress_verdict(
-            verdict.Signal((failure.signature,), waiting_on),
-            slot.setdefault("smoke_watch", {}),
-            window=float(slot["deadline"]) - float(slot["started_at"]),
-            now=now,
-        )
-        if progress is Progress.STALLED:
-            silent = round(verdict.silent_seconds(slot["smoke_watch"], now))
-            self._record_failure(
-                key,
-                replace(
-                    failure,
-                    klass="smoke-timeout",
-                    detail=f"{failure.detail}; busy without change for {silent}s",
-                ),
-                slot.get("operation_id"),
+            wait = SweepWait(
+                reason=SweepWaitReason.SMOKE_BUSY, detail=failure.describe()
             )
+        if self._wait_slot(key, slot, wait):
             return
         slot["smoke_not_before"] = until
         self.record_result(
@@ -2784,6 +2800,9 @@ class Sweep:
                 continue
             pending.setdefault(slot["alias"], {"attempts": 0, "next_check": 0.0})
             self.futures.pop(key, None)
+            stop = self.smoke_stops.pop(key, None)
+            if stop is not None:
+                stop.set()
             del self.state.slots[key]
             changed = True
         if changed:
@@ -2863,7 +2882,11 @@ class Sweep:
             ):
                 continue
             out.append(recipe)
-        return out
+        deferred = [r for r in out if self.state.entry(r.key).get("wait_deferral")]
+        fresh = [r for r in out if not self.state.entry(r.key).get("wait_deferral")]
+        return fresh + sorted(
+            deferred, key=lambda r: (r.updated_at, r.key), reverse=True
+        )
 
     def _bins(self) -> list[policy.SparkBin]:
         by_revision = {r.revision_id: r for r in self.recipes.values() if r.revision_id}

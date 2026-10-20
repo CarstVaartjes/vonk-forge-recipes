@@ -84,16 +84,16 @@ fills any remaining lane. No affinity reservation survives the call.
 In-flight applications are persisted in a `loads` map keyed by request UUID.
 Old state files with one `load` are adopted without changing that UUID. Admission
 and progress replies in `observing` or `backoff` keep being polled. Operator waits,
-removal gates and every other wait the Controller reports are waited for: the lane
-keeps its load and shows what it waits on. A download whose own progress (bytes,
+removal gates and every other lane wait use a bounded local observation budget.
+Expiry releases the lane and requeues the case for a later fresh review. A download whose own progress (bytes,
 items, phase, last-progress time) is silent for an hour is shown as stalled and keeps
 its original request; nothing cancels or replaces it, and a download someone else
 started is followed until it lands.
 
-Controller application stall alarms keep only their own lane and original request.
+Controller application stall alarms retain their original request for observation,
+but release their local lane when its budget expires.
 The status alerts name the application ids; independent lanes continue through
-fresh canonical review. An unreadable application receipt freezes only that
-request's observation window. Owner safety is observed every tick, including
+fresh canonical review. An unreadable application receipt consumes that lane's wait budget. Owner safety is observed every tick, including
 while paused, so an old unreadable owner profile cannot latch a global hold.
 See the [global gate audit](sweep-global-gates.md) for the complete safety boundary.
 
@@ -229,26 +229,26 @@ Requests go to the endpoint `vonkctl profile endpoint` reports, with the key in
 `--client-key-file` (`--ca-file` or `--insecure-tls` for the gateway's
 certificate). The key file is read on every request. A request the gateway
 refuses with 401 or 403 is the sweep's own key failing (for example an expired
-one), never the recipe: the sweep keeps the lane, reports an infrastructure
-problem and smokes again with backoff, and carries on as soon as the file holds
+one), never the recipe: the sweep reports an infrastructure problem and smokes
+again with backoff within its phase budget, then releases and requeues. It carries
+on as soon as the file holds
 a working key (`vonkctl key roll NAME --output NEW`, then move `NEW` over the key file).
 
 ## Timeouts, failures, fixes
 
-* The sweep follows the Controller's verdicts (`spark_sweep/verdict.py`): it records
-  what the platform does and never turns a wait into a verdict. A lane ends a load
-  only on the Controller's own terminal state or on a `STALLED` verdict of the work's
-  own progress (`progress_verdict`). The learned limit below (per engine from completed
-  loads: seconds per GiB of model, times 3, between 20 minutes and 2 hours; before any
-  sample, 60 minutes allow a first-start compile) is that stall window: it runs from
-  the last change the Controller shows (phase, sub-phase, completed bytes or items,
-  last-progress time; never retries or attempt counters) and every change restarts
-  it. A load that keeps progressing is never given up. While the Controller reports
-  the application queued, in backoff, pending admission, held by a blocker, retrying
-  or waiting on an operator, the lane is `WAITING`: the window restarts and never
-  expires, and nothing is cancelled. An unreadable Controller is unknown and waits too.
-  A load the sweep gives up is cancelled again until the Spark no longer shows its
-  workload; only those lanes wait for it.
+* The sweep follows the Controller's verdicts, while bounding local lane occupancy.
+  `bounded_wait` is the sole `waiting_on` producer. Every wait uses the lane budget
+  from admission (or the smoke phase start); changing reasons, progress signatures,
+  heartbeats, backoff and process restarts cannot extend that deadline. Expiry
+  records `sweep.wait_budget_exhausted` with the typed reason, detail, start,
+  deadline, observation time and last Controller receipt. The local lane releases,
+  no recipe attempt is spent, and the case requeues after `defer_delay`.
+  Fresh work goes first; deferred cases are reconsidered newest revision first.
+  Original remote receipts remain observed; fresh canonical review decides which
+  effects can be adopted or superseded. Expiry never asserts remote cancellation.
+  `status.md` marks any over-budget lane explicitly until it releases.
+  Own-work inactivity still stalls independently; moving copies may exceed a load
+  budget, but a dependency wait during copying cannot hold the lane past it.
 * The window does not run while the profile application is distributing or
   copying (child phase `target-copy`, `transfer`, `model-download`,
   `container-download`, or a copying operation) it does not count, and the learned
@@ -257,14 +257,11 @@ a working key (`vonkctl key roll NAME --output NEW`, then move `NEW` over the ke
   which is class `copy-stalled`, observed once more and then deferred, and requeued
   on a platform change or the watch cooldown.
   Load timeouts recorded before this rule (copy time counted) are retried once.
-* While the Controller holds the application back with blockers (capacity, stale
-  inventory, a preparation; `progress.blockers`), those seconds are not load time
-  either and the lane waits for as long as the Controller holds it; the Controller's
-  own typed end of that hold is what is recorded. Only `run-switch.phase-retry` (the
-  load's own phase being retried) counts against the stall window. When a preparation
-  blocker names only some recipes of a shared load, the load is re-planned without
-  them after `blocked_release_seconds`: they wait for their preparation (no attempt,
-  no verdict) while the others load.
+* Preparation blockers use the shorter of `blocked_release_seconds` (default
+  five minutes) and the lane budget. Other application waits use the lane budget.
+  Download queue/backoff and unreadable-operation waits use a one-hour observation
+  bound. Downloads own no Spark lane: expiry records a deferral and keeps observing
+  the same remote request with cooldown, preserving download concurrency accounting.
 * After the load succeeded, a healthy run whose route the Controller has not
   published yet, and an endpoint not yet published, are waits; a run that is missing
   or unhealthy is the recipe's own work and stalls after the window (`run.not_published`).
@@ -497,3 +494,25 @@ The former clearing counter was an infrastructure submission-error counter,
 not an observation counter. Progress observation kept running without updating
 or clearing that old entry. Reconciliation now removes the stale entry and its
 backoff; the local observation budget records successive unavailable reads.
+
+### Bounded wait inventory
+
+All `waiting_on` producers in `spark_sweep/` use `SweepWaitReason` and
+`bounded_wait` (there is no `tools/spark_sweep` directory):
+
+| Producer | Reasons | Bound |
+|---|---|---|
+| `application_signal` | application queued, application backoff, operator, admission, controller blocker, controller retry | Lane budget; preparation blockers at most five minutes |
+| `download_signal` | operation queued, operation backoff | One-hour observation bound; no Spark lane |
+| `progress_verdict(None)` | observation unavailable | Lane budget, or one hour for downloads |
+| `_observe_readiness` | route publication | Lane budget |
+| `_controller_stalled` | controller stalled, with application and alarm detail | Lane budget |
+| `_submit_smoke` | endpoint publication, including unreadable endpoint observations | Smoke phase budget |
+| `_smoke_wait` | client key renewal, smoke busy | Smoke phase budget |
+| `_advance_smoking` | smoke response (including SSE heartbeats) | Smoke phase budget; job-specific budget when declared |
+
+The phase budget defaults to the learned lane window; job smoke uses its declared
+job budget including grace. Expired streams also receive a cooperative stop signal
+so a continuing SSE heartbeat closes its response on the next line.
+`tests/test_sweep_wait_budget.py` guards every `waiting_on` write and contract reason,
+and drives every reason beyond its budget to require lane release and a requeue.
