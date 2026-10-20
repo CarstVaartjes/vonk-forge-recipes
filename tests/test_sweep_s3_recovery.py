@@ -20,6 +20,7 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from vonk_forge_contracts.sweep import SweepWait, SweepWaitReason
 
 from spark_sweep import policy, verdict
+from spark_sweep.identity import content_identity
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.smoke import HttpConfig, stream_probe
 from spark_sweep.state import State
@@ -489,6 +490,11 @@ def test_a_previously_exhausted_uncertainty_resumes_automatically_from_saved_sta
         state=LifecycleState.FAILED, observe_failures=17
     )
     sweep.state.entry(recipe.key).update(SAVED["deferred_uncertain"])
+    # Exercise uncertainty recovery for unchanged content, independently of the
+    # legacy unknown-image migration (which deliberately starts a fresh test).
+    sweep.state.entry(recipe.key)["verdict_identity"] = content_identity(
+        sweep.recipes[recipe.key]
+    ).model_dump(mode="json")
     sweep.state.save()
     resumed, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
     resumed.refresh_catalog()

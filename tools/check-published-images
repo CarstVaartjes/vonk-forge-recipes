@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""Require the release to pin the current planned images before signing it."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+from pydantic import BaseModel, TypeAdapter
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from spark_sweep.image_evidence import Digest, PrebuiltImage
+
+
+class PlannedRecipe(BaseModel):
+    slug: str
+    source_path: str
+    content_sha256: Digest
+
+
+class PlannedImage(BaseModel):
+    build_key: Digest
+    recipes: list[PlannedRecipe]
+
+
+class SkippedRecipe(BaseModel):
+    slug: str
+    reason: str
+
+
+class ImagePlan(BaseModel):
+    source_commit: str
+    images: list[PlannedImage]
+    skipped: list[SkippedRecipe]
+
+
+class PublishedRecipe(BaseModel):
+    source_path: str
+    content_sha256: Digest
+    prebuilt_image: PrebuiltImage | None = None
+
+
+class PublishedIndex(BaseModel):
+    source_commit: str
+    recipes: list[PublishedRecipe]
+
+
+def verify(
+    plan: ImagePlan,
+    index: PublishedIndex,
+    images: dict[str, PrebuiltImage],
+    exclusions: dict[str, str],
+    source_commit: str,
+) -> None:
+    if plan.source_commit != source_commit or index.source_commit != source_commit:
+        raise ValueError("image plan and release must belong to the publication commit")
+    for skipped in plan.skipped:
+        if skipped.slug not in exclusions:
+            raise ValueError(f"{skipped.slug}: image not planned: {skipped.reason}")
+    published = {row.source_path: row for row in index.recipes}
+    for image in plan.images:
+        for recipe in image.recipes:
+            row = published.get(recipe.source_path)
+            if row is None or row.content_sha256 != recipe.content_sha256:
+                raise ValueError(f"{recipe.slug}: planned recipe missing from release")
+            expected = images.get(recipe.content_sha256)
+            if (
+                recipe.slug in exclusions
+                and expected is None
+                and row.prebuilt_image is None
+            ):
+                continue
+            if expected is None or expected.build_key != image.build_key:
+                raise ValueError(
+                    f"{recipe.slug}: unresolved current build {image.build_key}"
+                )
+            if row.prebuilt_image != expected:
+                raise ValueError(
+                    f"{recipe.slug}: release does not pin {expected.reference}"
+                )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--plan", type=Path, required=True)
+    parser.add_argument("--images", type=Path, required=True)
+    parser.add_argument("--index", type=Path, required=True)
+    parser.add_argument("--source-commit", required=True)
+    args = parser.parse_args()
+    verify(
+        ImagePlan.model_validate_json(args.plan.read_bytes()),
+        PublishedIndex.model_validate_json(args.index.read_bytes()),
+        TypeAdapter(dict[str, PrebuiltImage]).validate_json(args.images.read_bytes()),
+        TypeAdapter(dict[str, str]).validate_python(
+            json.loads(Path("prebuilt-image-exclusions.json").read_bytes())
+        ),
+        args.source_commit,
+    )
+    print("Release pins the current planned runtime images")
+
+
+if __name__ == "__main__":
+    main()

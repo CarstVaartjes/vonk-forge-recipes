@@ -58,7 +58,7 @@ from .catalog import (
 )
 from .definitions import Definitions
 from .finalization import FinalAction, Finalization
-from .identity import AcceptedRequest, IdentityReason
+from .identity import AcceptedRequest, IdentityReason, content_identity, verdict_matches
 from .lifecycle import ACTIVE as ACTIVE_APP
 from .lifecycle import TERMINAL as SETTLED
 from .lifecycle import LifecycleState, RecipeStatus, RetestReason
@@ -200,6 +200,7 @@ class SweepConfig:
     limit: int = 0
     variants_last: bool = False
     revalidate_passes: bool = True
+    revalidate_library_passes: bool = False
     restore_owner: int | None = None
     stop_at_end: bool = True
     watch_seconds: float = 0.0
@@ -672,18 +673,22 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
-        why = policy.requeue_reason(entry, recipe)
+        why = policy.requeue_reason(
+            entry, recipe, revalidate_library_passes=self.cfg.revalidate_library_passes
+        )
         if why is None:
             return
-        if (
-            why == "passed-on-older-revision"
-            and not self.cfg.revalidate_passes
-            and recipe.key not in self.state.slots
-        ):
+        if why == RetestReason.PASSED_OLDER_REVISION and not self.cfg.revalidate_passes:
             return
         entry["previous"] = {
             k: entry.get(k)
-            for k in ("status", "content_sha256", "revision_id", "cluster")
+            for k in (
+                "status",
+                "content_sha256",
+                "verdict_identity",
+                "revision_id",
+                "cluster",
+            )
         }
         # The evidence about to be cleared is kept in the log first.
         self.record_result(
@@ -702,6 +707,7 @@ class Sweep:
                     "evidence",
                     "cluster",
                     "content_sha256",
+                    "verdict_identity",
                     "revision_id",
                 )
             },
@@ -709,7 +715,7 @@ class Sweep:
         entry.update(
             status="pending",
             attempts=0,
-            revalidate=why.startswith("passed"),
+            revalidate=why == RetestReason.PASSED_OLDER_REVISION,
             requeued_because=why,
         )
         for stale in (
@@ -909,6 +915,16 @@ class Sweep:
             },
             deprioritised=self._deprioritised(pending),
             variants_last=self.cfg.variants_last,
+            refreshed={
+                k
+                for k, e in self.state.recipes.items()
+                if e.get("requeued_because")
+                in (
+                    RetestReason.PASSED_OLDER_REVISION,
+                    RetestReason.FAILED_OLDER_REVISION,
+                    RetestReason.DEFERRED_OLDER_REVISION,
+                )
+            },
         )
         if not self.paused:
             self.schedule(self.clock.now())
@@ -1679,6 +1695,9 @@ class Sweep:
             if recipe
             else entry.get("content_sha256"),
             revision_id=recipe.revision_id if recipe else entry.get("revision_id"),
+            verdict_identity=content_identity(recipe).model_dump(mode="json")
+            if recipe
+            else entry.get("verdict_identity"),
         )
         if inherited_from:
             entry["inherited_from"] = inherited_from
@@ -1748,7 +1767,7 @@ class Sweep:
         if (
             slot is None
             and accepted is not None
-            and entry.get("content_sha256") != accepted.recipe.content_sha256
+            and not verdict_matches(entry, accepted.recipe)
         ):
             accepted = None
         recipe = accepted.recipe if accepted else None
@@ -1772,6 +1791,9 @@ class Sweep:
             "controller_version": self.state.data["release"].get("version"),
             "engine": recipe.engine if recipe else None,
             "timings": entry.get("timings"),
+            "verdict_identity": content_identity(recipe).model_dump(mode="json")
+            if slot and recipe is not None
+            else entry.get("verdict_identity"),
         }
         if slot:
             facts["node_ids"] = list(slot.get("node_ids", []))
@@ -1803,10 +1825,9 @@ class Sweep:
         recipe = accepted.recipe
         download = self.state.downloads.get(key, {})
         downloaded = AcceptedRequest.read(download)
-        if (
-            downloaded is None
-            or downloaded.recipe.content_sha256 != recipe.content_sha256
-        ):
+        if downloaded is None or content_identity(
+            downloaded.recipe
+        ) != content_identity(recipe):
             download = {}
         timings = {
             "download_s": round(
@@ -1826,6 +1847,7 @@ class Sweep:
             release_authority="deployed-controller" if self.release_sha else None,
             content_sha256=recipe.content_sha256,
             revision_id=recipe.revision_id,
+            verdict_identity=content_identity(recipe).model_dump(mode="json"),
             timings=timings,
             smoke=result.kind,
             perf=result.perf,
@@ -2925,7 +2947,7 @@ class Sweep:
         if (
             download.get("state") == LifecycleState.SUCCEEDED
             and accepted is not None
-            and accepted.recipe.content_sha256 == recipe.content_sha256
+            and content_identity(accepted.recipe) == content_identity(recipe)
             and (
                 self.model_list.complete_started_at
                 <= float(download.get("done_at") or 0.0)

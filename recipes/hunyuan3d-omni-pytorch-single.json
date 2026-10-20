@@ -39,8 +39,8 @@
           "image/jpeg",
           "image/png",
           "image/webp",
-          "model/gltf-binary",
           "model/gltf+json",
+          "model/gltf-binary",
           "model/obj",
           "model/ply"
         ],
@@ -95,8 +95,8 @@
             "max_files": 1,
             "max_total_bytes": 251641856,
             "media_types": [
-              "model/gltf-binary",
               "model/gltf+json",
+              "model/gltf-binary",
               "model/obj",
               "model/ply"
             ],

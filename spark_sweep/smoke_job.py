@@ -36,6 +36,8 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
+from qualification.media_types import canonical_media_types
+
 from . import verdict
 from .catalog import Recipe
 from .definitions import Definitions
@@ -136,7 +138,12 @@ def _binding(spec: Mapping[str, Any], definitions: Definitions, work: Path) -> P
         "interface": spec["interface"],
         "parameters": spec.get("parameters") or {},
         "inputs": inputs,
-        "output_limits": spec["output_limits"],
+        "output_limits": {
+            **spec["output_limits"],
+            "allowed_media_types": canonical_media_types(
+                spec["output_limits"]["allowed_media_types"]
+            ),
+        },
         "timeout_seconds": spec["timeout_seconds"],
     }
     binding = work / "binding.json"

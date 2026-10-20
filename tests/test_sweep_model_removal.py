@@ -94,6 +94,14 @@ def scenario(tmp_path):
         ],
         [FakeModel(digest, local="cached") for digest in (A, B, C, D)],
     )
+    from spark_sweep.catalog import parse_recipe
+    from spark_sweep.identity import content_identity
+
+    # These fixtures represent current verdicts, with accepted runtime evidence.
+    for key, entry in sweep.state.recipes.items():
+        accepted = parse_recipe(fleet._recipe_row(fleet.recipes[key]))
+        assert accepted is not None
+        entry["verdict_identity"] = content_identity(accepted).model_dump(mode="json")
     sweep.refresh_catalog()
     peer = RemovalPeer(sweep, fleet)
     sweep.vk = Vonkctl(runner=peer.runner)

@@ -7,6 +7,7 @@ from uuid import uuid4
 from pydantic import TypeAdapter, ValidationError
 
 from .catalog import Recipe
+from .identity import verdict_matches
 from .lifecycle import TERMINAL, LifecycleState
 from .prefetch import SWEEP_LABEL
 from .removal_contract import (
@@ -97,7 +98,7 @@ class ModelRemover:
                 (entry := self.state.recipes.get(recipe.key, {})).get("status")
                 in (RecipeVerdict.PASSED, RecipeVerdict.FAILED)
                 and bool(recipe.content_sha256)
-                and entry.get("content_sha256") == recipe.content_sha256
+                and verdict_matches(entry, recipe)
                 and recipe.key not in self.state.slots
                 and now >= float(entry.get("not_before", 0))
                 and now >= float(entry.get("defer_until", 0))
