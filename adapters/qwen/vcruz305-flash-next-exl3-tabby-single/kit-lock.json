@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "engine": {
+      "commit": "d968d96dbe56072317329d573bd06e1403eb949b",
+      "datasource": "git-ref",
+      "kind": "branch",
+      "ref": "master",
+      "repo": "vcruz305/exllamav3"
+    },
+    "server": {
+      "commit": "880e6b8bbdeda83090eb6cb5eabdbf8623fc4426",
+      "datasource": "git-ref",
+      "kind": "branch",
+      "ref": "main",
+      "repo": "vcruz305/tabbyAPI"
+    }
+  },
+  "kit": {
+    "commit": "49850ef896372407c5a56773bcf6dae661ab6ab9",
+    "repo": "vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe"
+  }
+}
