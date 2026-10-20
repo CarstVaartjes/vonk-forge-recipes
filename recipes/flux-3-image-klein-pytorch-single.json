@@ -517,11 +517,11 @@
       "unsloth",
       "Black Forest Labs"
     ],
-    "source_reference": "https://github.com/black-forest-labs/flux-3-image-klein/tree/e53f4ea697fe45db8f38fca91a90f5623f7f8f37"
+    "source_reference": "https://github.com/black-forest-labs/flux-3-image-klein/tree/bfc8889a4497f846416f253a3972a1941ac698b9"
   },
   "release": {
-    "released_at": "2026-10-17",
-    "version": "1.0.0"
+    "released_at": "2026-10-20",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
