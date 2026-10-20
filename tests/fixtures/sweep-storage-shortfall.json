@@ -1,0 +1,27 @@
+{
+  "allowed": false,
+  "waits_for_preparation": true,
+  "effects": {
+    "adopted": [],
+    "runs": []
+  },
+  "admission_decisions": [],
+  "reasons": [],
+  "assessments": [
+    {
+      "assignment_id": "synthetic-a",
+      "assessment": {
+        "blockers": [
+          {
+            "code": "run-switch.insufficient-disk",
+            "detail": "The operation needs 264079786892 bytes and would leave -156363006860 bytes. Only 0 bytes of unused installations can be removed.",
+            "node_ids": [
+              "spk_a"
+            ],
+            "severity": "error"
+          }
+        ]
+      }
+    }
+  ]
+}

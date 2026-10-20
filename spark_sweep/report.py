@@ -17,7 +17,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from . import policy
+from .evidence_contract import read_result
 from .lifecycle import ACTIVE
+from .removal_contract import RecipeVerdict
 from .state import write_atomic
 
 if TYPE_CHECKING:
@@ -46,18 +48,19 @@ def counts(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, int]:
 
 def quality_notes(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, list[Any]]:
     """Recipes that ran but whose model missed an expected answer: information, not failures."""
-    return {
-        key: list(entry["quality"])
-        for key, entry in sorted(recipes.items())
-        if entry.get("status") == "passed" and entry.get("quality")
-    }
+    notes = {}
+    for key, entry in sorted(recipes.items()):
+        result = read_result(entry, key)
+        if result.core.status is RecipeVerdict.PASSED and result.quality:
+            notes[key] = [note.model_dump(exclude_none=True) for note in result.quality]
+    return notes
 
 
 def average_test_seconds(recipes: Mapping[str, Mapping[str, Any]]) -> float:
     totals = [
-        float(e["timings"]["total_s"])
-        for e in recipes.values()
-        if isinstance(e.get("timings"), dict) and e["timings"].get("total_s")
+        total
+        for key, entry in recipes.items()
+        if (total := read_result(entry, key).timings.total_s) is not None
     ]
     return statistics.mean(totals) if totals else DEFAULT_TEST_SECONDS
 
@@ -184,6 +187,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "paused": sweep.pause_reason or None,
         "mode": data["mode"],
         "counts": counts(data["recipes"]),
+        "catalog_diagnostics": data.get("catalog_diagnostics", []),
         "model_removals": data.get("model_removals", {}),
         "model_removal_wait": data.get("model_removal_wait"),
         "quality_notes": {
@@ -379,8 +383,9 @@ def render_status(status: Mapping[str, Any]) -> str:
 def build_report(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
     rows = []
     for key, entry in sorted(recipes.items()):
-        timings = entry.get("timings") or {}
-        perf = entry.get("perf") or {}
+        result = read_result(entry, key)
+        timings = result.timings
+        perf = result.perf
         rows.append(
             {
                 "recipe": key,
@@ -390,15 +395,18 @@ def build_report(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
                 "reason": entry.get("error") or entry.get("reason"),
                 "cluster": entry.get("cluster"),
                 "smoke": entry.get("smoke"),
-                "download_s": timings.get("download_s"),
-                "load_s": timings.get("load_s"),
-                "smoke_s": timings.get("smoke_s"),
-                "ttft_ms": perf.get("ttft_ms"),
-                "tokens_per_second": perf.get("tokens_per_second"),
+                "download_s": timings.download_s,
+                "load_s": timings.load_s,
+                "smoke_s": timings.smoke_s,
+                "ttft_ms": perf.ttft_ms,
+                "tokens_per_second": perf.tokens_per_second,
                 "content_sha256": entry.get("content_sha256"),
                 "evidence": policy.evidence_of(entry) or None,
                 "evidence_bundle": entry.get("evidence_bundle"),
-                "quality": quality_notes({key: entry}).get(key, []),
+                "quality": [
+                    note.model_dump(exclude_none=True) for note in result.quality
+                ],
+                "diagnostics": [d.model_dump(mode="json") for d in result.diagnostics],
             }
         )
     return {

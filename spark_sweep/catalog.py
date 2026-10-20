@@ -11,6 +11,8 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
+from .catalog_contract import ModelRow, RecipeRow
+from .tolerant import InputDiagnostic, InputReason, read_optional
 from .vonkctl import Reply, Vonkctl
 
 PAGE_LIMIT = "512"
@@ -87,6 +89,7 @@ class Recipe:
 
 
 def parse_recipe(row: dict[str, Any]) -> Recipe | None:
+    RecipeRow.model_validate(row)
     key = dig(row, "selector")
     document = dig(row, "document", default={})
     if not isinstance(key, str) or not isinstance(document, dict):
@@ -159,6 +162,7 @@ def parse_recipe(row: dict[str, Any]) -> Recipe | None:
 
 
 def parse_model(row: dict[str, Any]) -> Model | None:
+    ModelRow.model_validate(row)
     digest = dig(row, "identity", "content_sha256")
     selector = dig(row, "selector")
     if not isinstance(digest, str) or not isinstance(selector, str):
@@ -206,6 +210,7 @@ class Listing[T]:
         self.last_error = ""
         self.failures = 0
         self.invalid_rows = 0
+        self.diagnostics: list[InputDiagnostic] = []
 
     def begin(self, now: float) -> None:
         self.in_pass = True
@@ -217,6 +222,7 @@ class Listing[T]:
         self.seen = set()
         self.failures = 0
         self.invalid_rows = 0
+        self.diagnostics.clear()
 
     def read_page(self) -> Reply:
         """Read the current cursor without mutating the listing (worker safe)."""
@@ -238,7 +244,12 @@ class Listing[T]:
         self.last_error = ""
         self.failures = 0
         for row in dig(reply.document, self.collection, default=[]):
-            item = self.parse(row) if isinstance(row, dict) else None
+            item = read_optional(
+                f"{self.noun} library row",
+                lambda row=row: self.parse(row),
+                self.diagnostics.append,
+                InputReason.INVALID_ROW,
+            )
             if item is not None:
                 self.rows[self.key(item)] = item
                 self.seen.add(self.key(item))
@@ -251,8 +262,9 @@ class Listing[T]:
         if isinstance(following, str) and following != self.cursor:
             self.cursor = following
             return False
-        for gone in set(self.rows) - self.seen:
-            del self.rows[gone]
+        if not self.invalid_rows:
+            for gone in set(self.rows) - self.seen:
+                del self.rows[gone]
         self.in_pass = False
         self.passes += 1
         self.pass_done_at = now
