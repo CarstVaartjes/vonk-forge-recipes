@@ -1963,7 +1963,7 @@ class Sweep:
         for key, slot in list(self.state.slots.items()):
             if (
                 slot.get("request_key") != load["request_key"]
-                or slot["phase"] != "loading"
+                or slot["phase"] != sweep_contract.SweepSlotPhase.LOADING
             ):
                 continue
             self.requeue(

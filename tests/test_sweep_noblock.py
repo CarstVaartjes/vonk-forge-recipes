@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from vonk_forge_contracts.sweep import SweepSlotPhase
 
 from spark_sweep import policy, verdict
 from spark_sweep.lifecycle import LifecycleState
@@ -91,7 +92,9 @@ def test_saved_unadmitted_storage_wait_replans_without_cancelling_children(
     restarted._replan_pending_storage(load, document)
     if admitted:
         assert not load.get("replanned_pending")
-        assert all(s["phase"] == "loading" for s in restarted.state.slots.values())
+        assert all(
+            s["phase"] == SweepSlotPhase.LOADING for s in restarted.state.slots.values()
+        )
         return
     assert load["replanned_pending"]
     restarted.enqueue_finished_cleanup()

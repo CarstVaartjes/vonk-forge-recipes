@@ -23,6 +23,10 @@ class CleanupObservationBudget(BaseModel):
     next_check: float = 0.0
 
 
+class SweepSlotPhase(StrEnum):
+    LOADING = "loading"
+
+
 class SweepStorageEvidence(BaseModel):
     required_free_bytes: int = Field(ge=0)
     available_bytes: int = Field(ge=0)
