@@ -2783,6 +2783,11 @@ class Sweep:
             download.get("state") == LifecycleState.SUCCEEDED
             and accepted is not None
             and accepted.recipe.content_sha256 == recipe.content_sha256
+            and (
+                self.model_list.complete_started_at
+                <= float(download.get("done_at") or 0.0)
+                or recipe.model_set <= self.cached_models
+            )
         ):
             return True
         return recipe.local == "cached" and all(

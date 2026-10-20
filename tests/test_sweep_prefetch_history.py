@@ -104,6 +104,8 @@ def test_new_cache_observation_overrides_completed_download_hint(
     sweep.refresh_catalog()
     cached = sweep._cached_models()
     assert "old" not in cached
+    sweep.cached_models = cached
+    assert not sweep.ready(sweep.recipes[old.key])
     sweep.prefetcher.tick(
         sweep.recipes,
         sweep.models,
