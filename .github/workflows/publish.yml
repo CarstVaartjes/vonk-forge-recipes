@@ -76,8 +76,8 @@ jobs:
 
   # Build the runtime images of recipes changed since the last publication on
   # hosted ARM64 runners and resolve every recipe's pinned GHCR image for the
-  # index. A failed build never holds publication: that recipe publishes
-  # without a prebuilt image and Controllers build it on a Spark.
+  # index. Publication requires the current images; only declared hosted-build
+  # exclusions may fall back to a Controller build.
   images:
     name: Recipe runtime images
     if: github.ref == 'refs/heads/main'
@@ -91,12 +91,13 @@ jobs:
     name: Create signed library release
     needs: [validate, producer-contracts, catalog-index, images]
     # Fan-in: publish only when no validation job failed or was cancelled.
-    # The image job is informative only: its outcome never blocks the release.
+    # Image failures must be visible, never a green release with stale images.
     if: >-
       ${{ !cancelled() && github.ref == 'refs/heads/main'
       && needs.validate.result != 'failure'
       && needs.producer-contracts.result != 'failure'
-      && needs.catalog-index.result != 'failure' }}
+      && needs.catalog-index.result != 'failure'
+      && needs.images.result == 'success' }}
     runs-on: ubuntu-24.04
     environment: recipe-release
     # Control planes accept only assets whose SHA256SUMS carries a Sigstore
@@ -151,22 +152,22 @@ jobs:
 
       - name: Download the pinned prebuilt images
         id: prebuilt
-        continue-on-error: true
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: prebuilt-images
           path: ${{ runner.temp }}/prebuilt
 
+      - name: Download the image plan for release verification
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: recipe-image-plan
+          path: ${{ runner.temp }}/plan
+
       - name: Build release assets from the release commit
         shell: bash
         run: |
           set -euo pipefail
-          prebuilt=()
-          if [ -f "$RUNNER_TEMP/prebuilt/prebuilt-images.json" ]; then
-            prebuilt=(--prebuilt-images "$RUNNER_TEMP/prebuilt/prebuilt-images.json")
-          else
-            echo "::warning::no prebuilt image map; this release pins no prebuilt images"
-          fi
+          test -s "$RUNNER_TEMP/prebuilt/prebuilt-images.json"
           # Coverage is derived offline from this build (the authority is derived from it, not committed).
           "$RELEASE_TEST_PYTHON" tools/build-catalog-index --source-commit "$GITHUB_SHA"
           "$RELEASE_TEST_PYTHON" tools/build-family-aware-coverage
@@ -178,7 +179,12 @@ jobs:
             --include qualification/coverage/family-aware-coverage-2026-09-24.json \
             --include qualification/coverage/family-aware-coverage-2026-09-24.md \
             --include "$RUNNER_TEMP/overview/recipe-overview.md" \
-            "${prebuilt[@]}"
+            --prebuilt-images "$RUNNER_TEMP/prebuilt/prebuilt-images.json"
+          "$RELEASE_TEST_PYTHON" tools/check-published-images \
+            --plan "$RUNNER_TEMP/plan/plan.json" \
+            --images "$RUNNER_TEMP/prebuilt/prebuilt-images.json" \
+            --index "$RUNNER_TEMP/release/catalog-index.json" \
+            --source-commit "$GITHUB_SHA"
 
       - name: Compare with the published release
         id: current
