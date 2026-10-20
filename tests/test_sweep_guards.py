@@ -398,7 +398,10 @@ def test_verdict_codes_match_the_published_enums() -> None:
         if name != "source"
         for word in values
     }
+    from vonk_forge_contracts.sweep import SweepStorageCode
+
     used = {
+        *SweepStorageCode,
         verdict.PHASE_RETRY,
         verdict.FAILURE_REPEATED,
         verdict.STALLED_CODE,
