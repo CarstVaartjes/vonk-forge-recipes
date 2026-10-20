@@ -154,6 +154,10 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         )
         if watch.get("waiting_on"):
             limit = min(limit, float(watch.get("wait_deadline", since + limit)) - since)
+        if not smoking and slot.get("copying"):
+            # Copying has an inactivity window, not the engine startup budget.
+            since = watch.get("progressed_at", slot["started_at"])
+            limit = sweep.cfg.copy_stall_seconds
         for name in slot.get("spark_names", []):
             lanes.setdefault(name, []).append(
                 {
