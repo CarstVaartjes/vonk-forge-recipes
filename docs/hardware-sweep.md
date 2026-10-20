@@ -62,6 +62,14 @@ window (several cached duals back to back) rather than interleaved with
 singles. Each single recipe owns one Spark; dual recipes are scheduled only when
 both Sparks are free.
 
+Placement consumes the Controller review's disk decision, which counts free
+space, reservations, reusable objects and evictable installations. A typed
+insufficient-disk decision never submits that lane, even when the aggregate
+review allows waiting for preparation. Its node scope and evidence survive
+restart until the next check; other placements are reviewed again immediately.
+The next placement can use another Spark, and the original is reconsidered after
+the check interval without spending a recipe attempt.
+
 Single placement prefers a free Spark holding every model digest, then the exact
 installed recipe revision (and its built runtime), then the usual usage/id order.
 These hints join the existing fleet `installed` rows to the current recipe
