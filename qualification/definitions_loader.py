@@ -20,8 +20,12 @@ import json
 from pathlib import Path
 from typing import Any
 
+from pydantic import TypeAdapter
+from vonk_forge_contracts.media_types import CanonicalMediaTypes
+
 QUALIFICATION_ROOT = Path(__file__).resolve().parent
 PER_RECIPE_SECTIONS = ("recipes", "service_recipes")
+_MEDIA_TYPES = TypeAdapter(CanonicalMediaTypes)
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -71,6 +75,18 @@ def load_definitions(root: Path = QUALIFICATION_ROOT) -> dict[str, Any]:
             if section in entry:
                 if recipe_id in document[section]:
                     raise ValueError(f"{recipe_id} is defined twice in {section}")
+                if section == "recipes":
+                    spec = entry[section]
+                    for case in [spec, *spec.get("cases", [])]:
+                        if "output_limits" in case:
+                            try:
+                                _MEDIA_TYPES.validate_python(
+                                    case["output_limits"].get("allowed_media_types")
+                                )
+                            except ValueError as error:
+                                raise ValueError(
+                                    f"{path}: output_limits.allowed_media_types: {error}"
+                                ) from error
                 document[section][recipe_id] = entry[section]
     for section in PER_RECIPE_SECTIONS:
         document[section] = dict(sorted(document[section].items()))

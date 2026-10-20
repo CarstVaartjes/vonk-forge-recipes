@@ -202,7 +202,7 @@ class ImageDiffusersAdapterTests(unittest.TestCase):
         )
         self.assertEqual(
             edit_recipe["interfaces"][0]["input"]["media_types"],
-            ["text/plain", "image/jpeg", "image/png", "image/webp"],
+            ["image/jpeg", "image/png", "image/webp", "text/plain"],
         )
         edit_slots = {
             slot["id"]: slot for slot in edit_recipe["interfaces"][0]["input"]["slots"]

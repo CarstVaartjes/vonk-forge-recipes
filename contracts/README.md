@@ -91,6 +91,12 @@ validate strictly, rejecting unknown fields.
 
 OpenAI checks declare an HTTP request. Container jobs declare filesystem fixture and output-slot bindings; the fixture is staged as the input when the interface declares one, and `/outputs` is a directory, not an HTTP endpoint. Tests must exercise representative inference. Health alone is insufficient. Unknown assertions must fail validation, and accepted assertions must be enforced by the executor. Restart and cache reuse belong to the maintainer qualification run.
 
+Job media-type lists are sorted, unique, lowercase and parameter-free, matching
+the Controller's existing compiled job contract. Producers use
+`canonical_media_types` to sort and deduplicate lists; authored recipes and
+qualification cases are rejected during catalog construction when noncanonical.
+This repairs validation of the existing contract without adding a wire format.
+
 The examples use synthetic sources and image identities to illustrate the contract; they are not runnable model recommendations.
 
 ## Reuse

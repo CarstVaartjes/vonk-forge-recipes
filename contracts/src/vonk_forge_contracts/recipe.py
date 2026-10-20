@@ -24,6 +24,7 @@ from pydantic import (
     model_validator,
 )
 
+from .media_types import CanonicalMediaTypes
 from .model import ModelReference
 
 
@@ -522,7 +523,7 @@ class RecipeFileSlot(_RecipeContract):
     id: StrictStr = Field(pattern=r"^[A-Za-z][A-Za-z0-9_-]{0,31}$")
     label: StrictStr = Field(min_length=1, max_length=64)
     description: StrictStr = Field(min_length=1, max_length=256)
-    media_types: list[StrictStr] = Field(min_length=1, max_length=16)
+    media_types: CanonicalMediaTypes
     extensions: list[StrictStr] = Field(max_length=16)
     min_files: StrictInt = Field(ge=0, le=32)
     max_files: StrictInt = Field(ge=1, le=32)
@@ -536,10 +537,8 @@ class RecipeFileSlot(_RecipeContract):
             or self.max_file_bytes > self.max_total_bytes
         ):
             raise ValueError("file slot limits are inconsistent")
-        if len(self.media_types) != len(set(self.media_types)) or len(
-            self.extensions
-        ) != len(set(self.extensions)):
-            raise ValueError("file slot media types and extensions must be unique")
+        if len(self.extensions) != len(set(self.extensions)):
+            raise ValueError("file slot extensions must be unique")
         return self
 
 
@@ -557,7 +556,7 @@ class RecipeOutputSlot(RecipeFileSlot):
 class RecipeJobInput(_RecipeContract):
     # Inputs are staged read-only under /inputs.
     required: StrictBool
-    media_types: list[StrictStr] = Field(min_length=1, max_length=16)
+    media_types: CanonicalMediaTypes
     max_bytes: StrictInt = Field(ge=1, le=1073741824)
     slots: list[RecipeInputSlot] | None = Field(
         default=None, min_length=1, max_length=32

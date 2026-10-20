@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from .canonical import canonical_json, document_sha256, read_model, read_recipe
 from .endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
+from .media_types import canonical_media_types
 from .model import GitHubReleaseAsset, GitHubReleaseSource, ModelDefinition
 from .qualification_authority import (
     QualificationAuthority,
@@ -59,6 +60,7 @@ __all__ = [
     "campaign_authority_json_schema",
     "campaign_manifest_json_schema",
     "canonical_json",
+    "canonical_media_types",
     "document_sha256",
     "read_model",
     "read_recipe",
