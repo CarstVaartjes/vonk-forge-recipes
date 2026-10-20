@@ -3,3 +3,12 @@ immutable HunyuanVideo 1.5 Diffusers snapshots entirely from /models.
 
 Diffusers is licensed under Apache-2.0. The mounted HunyuanVideo model
 snapshots remain subject to the Tencent Hunyuan Community License Agreement.
+
+Artifact validation follows the pinned Diffusers pipeline's area/aspect buckets:
+https://github.com/huggingface/diffusers/blob/d035dcd7cc7c88e0a154609b62887d50bba9fdc2/src/diffusers/pipelines/hunyuan_video1_5/image_processor.py
+A square image in the 480p I2V model selects 640x640; 480 is not an invariant
+short edge. T2V uses the same processor with the pipeline's default aspect ratio.
+The pipeline's default output is float RGB numpy frames, with 121 = 4*30+1
+frames supported. export_to_video casts those floats to uint8, so finiteness
+and luminance are inspected before export. Keep the existing bfloat16 load;
+the generic MP4 error alone is not evidence of fp16 VAE overflow on GB10.

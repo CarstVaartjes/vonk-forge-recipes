@@ -30,6 +30,14 @@ RUN apt-get update \
         sentencepiece==0.2.2 \
         transformers==5.17.0
 
+COPY requirements.lock /opt/vonk/source/requirements.lock
+
+# diffusers c5469b7 requires PEFT >=0.17.0. Its dependencies are installed above;
+# keep the pinned CUDA torch/transformers stack when adding the LoRA backend.
+RUN python3 -m pip install --break-system-packages --no-cache-dir --no-deps \
+        --require-hashes --requirement /opt/vonk/source/requirements.lock \
+    && python3 -c "import peft; from diffusers.utils import USE_PEFT_BACKEND; assert USE_PEFT_BACKEND"
+
 COPY qwen_image_lightning.py /opt/vonk/source/qwen_image_lightning.py
 
 RUN install --directory --mode=0755 /opt/vonk/bin /opt/vonk/source \

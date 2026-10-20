@@ -121,6 +121,9 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
             "streams": [
                 {
                     "codec_type": "video",
+                    "codec_name": "h264",
+                    "pix_fmt": "yuv420p",
+                    "avg_frame_rate": "24/1",
                     "width": 848,
                     "height": 480,
                     "nb_read_frames": "121",
@@ -128,22 +131,29 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
             ],
             "format": {"format_name": "mov,mp4,m4a,3gp,3g2,mj2", "duration": "5.042"},
         }
-        with patch.object(
-            module.subprocess,
-            "run",
-            return_value=types.SimpleNamespace(stdout=json.dumps(valid)),
-        ):
-            module._validate_video(Path("output.mp4"), 480)
-        valid["streams"][0]["nb_read_frames"] = "120"
-        with (
-            patch.object(
+        metrics = module.FrameMetrics(121, (121, 480, 848, 3), 0.5, 0, 0, 0)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "output.mp4"
+            output.write_bytes(b"probe fixture")
+            with patch.object(
                 module.subprocess,
                 "run",
-                return_value=types.SimpleNamespace(stdout=json.dumps(valid)),
-            ),
-            self.assertRaisesRegex(SystemExit, "invalid 121-frame MP4"),
-        ):
-            module._validate_video(Path("output.mp4"), 480)
+                return_value=types.SimpleNamespace(stdout=json.dumps(valid), stderr=""),
+            ):
+                module._validate_video(output, (848, 480), metrics)
+            valid["streams"][0]["nb_read_frames"] = "120"
+            with (
+                patch.object(
+                    module.subprocess,
+                    "run",
+                    return_value=types.SimpleNamespace(
+                        stdout=json.dumps(valid), stderr=""
+                    ),
+                ),
+                self.assertRaisesRegex(SystemExit, "invalid 121-frame MP4.*") as error,
+            ):
+                module._validate_video(output, (848, 480), metrics)
+            self.assertIn('"nb_read_frames": "120"', str(error.exception))
 
     def test_video_and_foley_reject_wrong_signed_input_extensions(self) -> None:
         video = video_module()
