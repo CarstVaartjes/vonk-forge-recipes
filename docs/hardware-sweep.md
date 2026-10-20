@@ -49,7 +49,8 @@ a load stops its workload (`docs/runbooks/vonkctl.md` in the platform: "Profiles
 cover the entire enrolled, non-revoked fleet… an unassigned Spark is explicitly
 idle"; the preview scope is the roster, `idle_node_ids`). A profile per lane
 would therefore stop the other lane. The sweep uses **one profile** (default
-`--sweep-profile 10`) holding every lane's assignment. A lane swap is
+`--sweep-profile 10`) holding every lane's assignment. Each new single lane is submitted as its own application, retaining the same
+whole-fleet profile and bound adoption of unchanged lanes. A lane swap is
 `profile remove <old>` plus `profile add <new> --spark X --as <alias> --state
 running`, then `profile load --review`. Before loading, the review must show
 no `stop` effect for a lane that is still running; then `profile load --yes
@@ -91,6 +92,11 @@ See the [global gate audit](sweep-global-gates.md) for the complete safety bound
 Concurrent accepted snapshots use the Controller's bound whole-assignment
 adoption contract (`effects.adopted`), while original applications keep their
 children and progress. The sweep observes each original request independently.
+A snapshot still waiting for admission, with no child operation or accepted
+effects and a measured storage shortfall, releases its local lane slots for
+re-planning. Its original receipt stays observed; the next reviewed snapshot
+omits the blocked assignment and supersedes that intent. The blocked recipe
+waits until its next check while a fitting sibling gets a separate application.
 An application whose own lane has ended still retains its observation receipt
 while an adopted lane is active: cancelling that aggregate application would
 also stop its adopted effects. These observer receipts never occupy a Spark or
