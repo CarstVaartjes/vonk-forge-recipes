@@ -19,6 +19,12 @@ MOSS = "vonk-forge/moss-vl-realtime-11b-pytorch-single"
 MOSS_MEDIA = ["application/x-ndjson", "video/mp4"]
 
 
+@pytest.mark.parametrize("media", ["Video/MP4", "video/mp4; codecs=h264", "video/*"])
+def test_shared_producer_rejects_unsupported_media_spellings(media: str) -> None:
+    with pytest.raises(ValueError, match="lowercase and parameter-free"):
+        canonical_media_types([media])
+
+
 def test_moss_binding_canonicalizes_the_actual_failed_list(tmp_path: Path) -> None:
     definitions = Definitions.load()
     spec = definitions.artifact(MOSS)

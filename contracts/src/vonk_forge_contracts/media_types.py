@@ -1,5 +1,6 @@
 """Canonical, parameter-free media types shared by job producers and validators."""
 
+import re
 from collections.abc import Iterable
 from typing import Annotated
 
@@ -14,10 +15,13 @@ MEDIA_TYPE_PATTERN = (
 def canonical_media_types(values: Iterable[str]) -> list[str]:
     """Sort and deduplicate media types without changing their spelling.
 
-    Case, parameters and syntax are validated at the contract boundary; this
-    helper only canonicalizes the ordering and multiplicity of a producer's list.
+    Reject unsupported spellings rather than silently changing an allowed type
+    or dropping its parameters. The same syntax is enforced by the wire contract.
     """
-    return sorted(set(values))
+    canonical = sorted(set(values))
+    if any(re.fullmatch(MEDIA_TYPE_PATTERN, value) is None for value in canonical):
+        raise ValueError("media types must be lowercase and parameter-free")
+    return canonical
 
 
 def _require_canonical(values: list[str]) -> list[str]:
