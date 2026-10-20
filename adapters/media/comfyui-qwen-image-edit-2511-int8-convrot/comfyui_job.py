@@ -353,7 +353,7 @@ def wait_for_prompt(
         try:
             history = request_json(f"/history/{prompt_id}")
         except (HTTPError, URLError, TimeoutError, ConnectionError) as error:
-            if isinstance(error, HTTPError) and error.code not in (408, 429, 502, 503, 504):
+            if isinstance(error, HTTPError) and error.code not in (408, 429, 500, 502, 503, 504):
                 raise
             # Only observe the accepted prompt again; never resubmit it. The owner
             # budget and the process-liveness check remain in force across retries.

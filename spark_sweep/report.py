@@ -137,10 +137,15 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         limit = budget if budget is not None else slot["deadline"] - slot["started_at"]
         # The current phase's own wait; the load's last wait ended with the load.
         watch = (
-            slot.get("smoke_watch")
+            (slot.get("smoke_watch") or {})
             if smoking
-            else slot.get("ready_watch") or slot.get("watch")
-        ) or {}
+            else max(
+                (slot.get("watch") or {}, slot.get("ready_watch") or {}),
+                key=lambda item: float(
+                    item.get("observed_at", item.get("progressed_at", 0))
+                ),
+            )
+        )
         for name in slot.get("spark_names", []):
             lanes.setdefault(name, []).append(
                 {
@@ -150,7 +155,9 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     else slot["phase"],
                     "elapsed_s": round(now - since),
                     "limit_s": round(limit),
-                    "waiting_on": watch.get("waiting_on") or slot.get("waiting_on"),
+                    "waiting_on": watch.get("waiting_on")
+                    if watch
+                    else slot.get("waiting_on"),
                     "wait": watch.get("wait"),
                     "silent_s": round(
                         max(0.0, now - float(watch.get("progressed_at", now)))

@@ -253,14 +253,17 @@ def adapter(request):
             sys.path.remove(str(wheel))
 
 
-def test_transient_history_read_recovers_the_same_accepted_prompt(adapter, monkeypatch):
+@pytest.mark.parametrize("status", [500, 503])
+def test_transient_history_read_recovers_the_same_accepted_prompt(
+    adapter, monkeypatch, status
+):
     clock = [0.0]
     reads = []
 
     def request(path):
         reads.append(path)
         if len(reads) <= 4:
-            raise HTTPError(path, 503, "unavailable", Message(), io.BytesIO())
+            raise HTTPError(path, status, "unavailable", Message(), io.BytesIO())
         return SAVED["history_complete"]
 
     monkeypatch.setattr(adapter, "request_json", request)
@@ -436,6 +439,22 @@ def test_an_unchanged_held_lane_escalates_the_same_request_and_publishes_its_age
     lanes = [lane for items in build_status(sweep)["lanes"].values() for lane in items]
     assert lanes and all(lane["wait"] == wait for lane in lanes)
     assert slot["request_key"] == request
+    # A later unreadable observation must replace a stale readiness hold in
+    # status, while keeping the accepted request and semantic age intact.
+    slot["ready_watch"] = json.loads(json.dumps(slot["watch"]))
+    clock.sleep(sweep.cfg.poll_seconds)
+    sweep.blind = True
+    sweep._observe_load(slot, clock.now())
+    lanes = [lane for items in build_status(sweep)["lanes"].values() for lane in items]
+    assert all(
+        lane["wait"]["reason"] == "sweep.observation_unavailable" for lane in lanes
+    )
+    assert all(lane["wait"]["next_check_at"] > clock.now() for lane in lanes)
+    clock.sleep(sweep.cfg.poll_seconds)
+    slot["waiting_on"] = "stale dependency label"
+    sweep._lane_progress(slot, verdict.Signal(("resumed",)), clock.now())
+    lanes = [lane for items in build_status(sweep)["lanes"].values() for lane in items]
+    assert all(lane["waiting_on"] is None and lane["wait"] is None for lane in lanes)
 
 
 @pytest.mark.parametrize("ending", ["budget", "process", "workflow"])
