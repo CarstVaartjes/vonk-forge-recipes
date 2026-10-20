@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "repository": "ghcr.io/miaai-lab/deepseek-v4.1-flash-1017-2x-dgx-sparks-tensorfold",
-        "digest": "4ed15dceaf0a210052d5db89c74145794d8ee45f63a3436878ac3ec01cea38b5"
+        "digest": "4ed15dceaf0a210052d5db89c74145794d8ee45f63a3436878ac3ec01cea38b5",
+        "repository": "ghcr.io/miaai-lab/deepseek-v4.1-flash-1017-2x-dgx-sparks-tensorfold"
       },
       "context": {
         "path": "adapters/deepseek/mia-1017-tensorfold-dual"
@@ -13,7 +13,8 @@
         "hosts": [
           "pypi.org",
           "files.pythonhosted.org",
-          "codeload.github.com"
+          "codeload.github.com",
+          "github.com"
         ]
       },
       "patches": []
@@ -54,8 +55,8 @@
     {
       "files": [
         {
-          "id": "primary-metadata-f7c727ee6501-618cd5b83d",
           "file_id": "metadata-f7c727ee6501-618cd5b83d",
+          "id": "primary-metadata-f7c727ee6501-618cd5b83d",
           "mount": {
             "target": "/models/target"
           },
@@ -65,8 +66,8 @@
           ]
         },
         {
-          "id": "primary-license-f2c6c6028156-c693279643",
           "file_id": "license-f2c6c6028156-c693279643",
+          "id": "primary-license-f2c6c6028156-c693279643",
           "mount": {
             "target": "/models/target"
           },
@@ -76,8 +77,8 @@
           ]
         },
         {
-          "id": "primary-readme-23701fbd9ae9-b335630551",
           "file_id": "readme-23701fbd9ae9-b335630551",
+          "id": "primary-readme-23701fbd9ae9-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -87,8 +88,8 @@
           ]
         },
         {
-          "id": "primary-config-4eac47f0da99-587cb980af",
           "file_id": "config-4eac47f0da99-587cb980af",
+          "id": "primary-config-4eac47f0da99-587cb980af",
           "mount": {
             "target": "/models/target"
           },
@@ -98,8 +99,8 @@
           ]
         },
         {
-          "id": "primary-model-00001-of-00039-7d18021abd29-6467600fe4",
           "file_id": "model-00001-of-00039-7d18021abd29-6467600fe4",
+          "id": "primary-model-00001-of-00039-7d18021abd29-6467600fe4",
           "mount": {
             "target": "/models/target"
           },
@@ -109,8 +110,8 @@
           ]
         },
         {
-          "id": "primary-model-00002-of-00039-e24859cfbd8e-b3eefdb328",
           "file_id": "model-00002-of-00039-e24859cfbd8e-b3eefdb328",
+          "id": "primary-model-00002-of-00039-e24859cfbd8e-b3eefdb328",
           "mount": {
             "target": "/models/target"
           },
@@ -120,8 +121,8 @@
           ]
         },
         {
-          "id": "primary-model-00003-of-00039-bb4edfb31a01-eba0e023a5",
           "file_id": "model-00003-of-00039-bb4edfb31a01-eba0e023a5",
+          "id": "primary-model-00003-of-00039-bb4edfb31a01-eba0e023a5",
           "mount": {
             "target": "/models/target"
           },
@@ -131,8 +132,8 @@
           ]
         },
         {
-          "id": "primary-model-00004-of-00039-3ef8a8bed655-22d20a25b3",
           "file_id": "model-00004-of-00039-3ef8a8bed655-22d20a25b3",
+          "id": "primary-model-00004-of-00039-3ef8a8bed655-22d20a25b3",
           "mount": {
             "target": "/models/target"
           },
@@ -142,8 +143,8 @@
           ]
         },
         {
-          "id": "primary-model-00005-of-00039-87366b18c6e4-545a6b3ac0",
           "file_id": "model-00005-of-00039-87366b18c6e4-545a6b3ac0",
+          "id": "primary-model-00005-of-00039-87366b18c6e4-545a6b3ac0",
           "mount": {
             "target": "/models/target"
           },
@@ -153,8 +154,8 @@
           ]
         },
         {
-          "id": "primary-model-00006-of-00039-3ba7c830ef44-e88137e81b",
           "file_id": "model-00006-of-00039-3ba7c830ef44-e88137e81b",
+          "id": "primary-model-00006-of-00039-3ba7c830ef44-e88137e81b",
           "mount": {
             "target": "/models/target"
           },
@@ -164,8 +165,8 @@
           ]
         },
         {
-          "id": "primary-model-00007-of-00039-6b4c8d0b081f-3f0821eb88",
           "file_id": "model-00007-of-00039-6b4c8d0b081f-3f0821eb88",
+          "id": "primary-model-00007-of-00039-6b4c8d0b081f-3f0821eb88",
           "mount": {
             "target": "/models/target"
           },
@@ -175,8 +176,8 @@
           ]
         },
         {
-          "id": "primary-model-00008-of-00039-6e6c204a67d6-76337fd4f0",
           "file_id": "model-00008-of-00039-6e6c204a67d6-76337fd4f0",
+          "id": "primary-model-00008-of-00039-6e6c204a67d6-76337fd4f0",
           "mount": {
             "target": "/models/target"
           },
@@ -186,8 +187,8 @@
           ]
         },
         {
-          "id": "primary-model-00009-of-00039-ed0a69b73070-c3d148435e",
           "file_id": "model-00009-of-00039-ed0a69b73070-c3d148435e",
+          "id": "primary-model-00009-of-00039-ed0a69b73070-c3d148435e",
           "mount": {
             "target": "/models/target"
           },
@@ -197,8 +198,8 @@
           ]
         },
         {
-          "id": "primary-model-00010-of-00039-45a621997686-fafc0988b9",
           "file_id": "model-00010-of-00039-45a621997686-fafc0988b9",
+          "id": "primary-model-00010-of-00039-45a621997686-fafc0988b9",
           "mount": {
             "target": "/models/target"
           },
@@ -208,8 +209,8 @@
           ]
         },
         {
-          "id": "primary-model-00011-of-00039-348d4b250f86-2cc65c68fe",
           "file_id": "model-00011-of-00039-348d4b250f86-2cc65c68fe",
+          "id": "primary-model-00011-of-00039-348d4b250f86-2cc65c68fe",
           "mount": {
             "target": "/models/target"
           },
@@ -219,8 +220,8 @@
           ]
         },
         {
-          "id": "primary-model-00012-of-00039-e4d04c60e5e8-8349e3e3a0",
           "file_id": "model-00012-of-00039-e4d04c60e5e8-8349e3e3a0",
+          "id": "primary-model-00012-of-00039-e4d04c60e5e8-8349e3e3a0",
           "mount": {
             "target": "/models/target"
           },
@@ -230,8 +231,8 @@
           ]
         },
         {
-          "id": "primary-model-00013-of-00039-978514e757cd-4a02a2735a",
           "file_id": "model-00013-of-00039-978514e757cd-4a02a2735a",
+          "id": "primary-model-00013-of-00039-978514e757cd-4a02a2735a",
           "mount": {
             "target": "/models/target"
           },
@@ -241,8 +242,8 @@
           ]
         },
         {
-          "id": "primary-model-00014-of-00039-b0fdb9d59a46-1e72afbfad",
           "file_id": "model-00014-of-00039-b0fdb9d59a46-1e72afbfad",
+          "id": "primary-model-00014-of-00039-b0fdb9d59a46-1e72afbfad",
           "mount": {
             "target": "/models/target"
           },
@@ -252,8 +253,8 @@
           ]
         },
         {
-          "id": "primary-model-00015-of-00039-b7b11a4b2823-a035e979be",
           "file_id": "model-00015-of-00039-b7b11a4b2823-a035e979be",
+          "id": "primary-model-00015-of-00039-b7b11a4b2823-a035e979be",
           "mount": {
             "target": "/models/target"
           },
@@ -263,8 +264,8 @@
           ]
         },
         {
-          "id": "primary-model-00016-of-00039-584e16c28ba6-fdf86548d7",
           "file_id": "model-00016-of-00039-584e16c28ba6-fdf86548d7",
+          "id": "primary-model-00016-of-00039-584e16c28ba6-fdf86548d7",
           "mount": {
             "target": "/models/target"
           },
@@ -274,8 +275,8 @@
           ]
         },
         {
-          "id": "primary-model-00017-of-00039-a584ba023515-6f84572a34",
           "file_id": "model-00017-of-00039-a584ba023515-6f84572a34",
+          "id": "primary-model-00017-of-00039-a584ba023515-6f84572a34",
           "mount": {
             "target": "/models/target"
           },
@@ -285,8 +286,8 @@
           ]
         },
         {
-          "id": "primary-model-00018-of-00039-1c29b236ec0d-c47def37a4",
           "file_id": "model-00018-of-00039-1c29b236ec0d-c47def37a4",
+          "id": "primary-model-00018-of-00039-1c29b236ec0d-c47def37a4",
           "mount": {
             "target": "/models/target"
           },
@@ -296,8 +297,8 @@
           ]
         },
         {
-          "id": "primary-model-00019-of-00039-468e038fa7ec-892cf2c4be",
           "file_id": "model-00019-of-00039-468e038fa7ec-892cf2c4be",
+          "id": "primary-model-00019-of-00039-468e038fa7ec-892cf2c4be",
           "mount": {
             "target": "/models/target"
           },
@@ -307,8 +308,8 @@
           ]
         },
         {
-          "id": "primary-model-00020-of-00039-9e4edbaefb94-9c6146e489",
           "file_id": "model-00020-of-00039-9e4edbaefb94-9c6146e489",
+          "id": "primary-model-00020-of-00039-9e4edbaefb94-9c6146e489",
           "mount": {
             "target": "/models/target"
           },
@@ -318,8 +319,8 @@
           ]
         },
         {
-          "id": "primary-model-00021-of-00039-b4ca1f13b6c8-502b86cba1",
           "file_id": "model-00021-of-00039-b4ca1f13b6c8-502b86cba1",
+          "id": "primary-model-00021-of-00039-b4ca1f13b6c8-502b86cba1",
           "mount": {
             "target": "/models/target"
           },
@@ -329,8 +330,8 @@
           ]
         },
         {
-          "id": "primary-model-00022-of-00039-7145fe502df0-091fe8a85e",
           "file_id": "model-00022-of-00039-7145fe502df0-091fe8a85e",
+          "id": "primary-model-00022-of-00039-7145fe502df0-091fe8a85e",
           "mount": {
             "target": "/models/target"
           },
@@ -340,8 +341,8 @@
           ]
         },
         {
-          "id": "primary-model-00023-of-00039-786449496a8d-6b8995210e",
           "file_id": "model-00023-of-00039-786449496a8d-6b8995210e",
+          "id": "primary-model-00023-of-00039-786449496a8d-6b8995210e",
           "mount": {
             "target": "/models/target"
           },
@@ -351,8 +352,8 @@
           ]
         },
         {
-          "id": "primary-model-00024-of-00039-9149b4f9b5b9-a76335258a",
           "file_id": "model-00024-of-00039-9149b4f9b5b9-a76335258a",
+          "id": "primary-model-00024-of-00039-9149b4f9b5b9-a76335258a",
           "mount": {
             "target": "/models/target"
           },
@@ -362,8 +363,8 @@
           ]
         },
         {
-          "id": "primary-model-00025-of-00039-6bfa439fe979-e5cb20e35a",
           "file_id": "model-00025-of-00039-6bfa439fe979-e5cb20e35a",
+          "id": "primary-model-00025-of-00039-6bfa439fe979-e5cb20e35a",
           "mount": {
             "target": "/models/target"
           },
@@ -373,8 +374,8 @@
           ]
         },
         {
-          "id": "primary-model-00026-of-00039-1ec3a1656260-b65b2b3f02",
           "file_id": "model-00026-of-00039-1ec3a1656260-b65b2b3f02",
+          "id": "primary-model-00026-of-00039-1ec3a1656260-b65b2b3f02",
           "mount": {
             "target": "/models/target"
           },
@@ -384,8 +385,8 @@
           ]
         },
         {
-          "id": "primary-model-00027-of-00039-25029c1fe6e1-b344ac8e09",
           "file_id": "model-00027-of-00039-25029c1fe6e1-b344ac8e09",
+          "id": "primary-model-00027-of-00039-25029c1fe6e1-b344ac8e09",
           "mount": {
             "target": "/models/target"
           },
@@ -395,8 +396,8 @@
           ]
         },
         {
-          "id": "primary-model-00028-of-00039-9e861f7437be-242afb74b1",
           "file_id": "model-00028-of-00039-9e861f7437be-242afb74b1",
+          "id": "primary-model-00028-of-00039-9e861f7437be-242afb74b1",
           "mount": {
             "target": "/models/target"
           },
@@ -406,8 +407,8 @@
           ]
         },
         {
-          "id": "primary-model-00029-of-00039-059aa4933a7e-7b3a4ba36f",
           "file_id": "model-00029-of-00039-059aa4933a7e-7b3a4ba36f",
+          "id": "primary-model-00029-of-00039-059aa4933a7e-7b3a4ba36f",
           "mount": {
             "target": "/models/target"
           },
@@ -417,8 +418,8 @@
           ]
         },
         {
-          "id": "primary-model-00030-of-00039-4b1825b7fbf7-25ce473105",
           "file_id": "model-00030-of-00039-4b1825b7fbf7-25ce473105",
+          "id": "primary-model-00030-of-00039-4b1825b7fbf7-25ce473105",
           "mount": {
             "target": "/models/target"
           },
@@ -428,8 +429,8 @@
           ]
         },
         {
-          "id": "primary-model-00031-of-00039-be975db269aa-c397f5437e",
           "file_id": "model-00031-of-00039-be975db269aa-c397f5437e",
+          "id": "primary-model-00031-of-00039-be975db269aa-c397f5437e",
           "mount": {
             "target": "/models/target"
           },
@@ -439,8 +440,8 @@
           ]
         },
         {
-          "id": "primary-model-00032-of-00039-99acb8bcff21-41b8ee9b1d",
           "file_id": "model-00032-of-00039-99acb8bcff21-41b8ee9b1d",
+          "id": "primary-model-00032-of-00039-99acb8bcff21-41b8ee9b1d",
           "mount": {
             "target": "/models/target"
           },
@@ -450,8 +451,8 @@
           ]
         },
         {
-          "id": "primary-model-00033-of-00039-6fa29eb49ddc-15358f5c98",
           "file_id": "model-00033-of-00039-6fa29eb49ddc-15358f5c98",
+          "id": "primary-model-00033-of-00039-6fa29eb49ddc-15358f5c98",
           "mount": {
             "target": "/models/target"
           },
@@ -461,8 +462,8 @@
           ]
         },
         {
-          "id": "primary-model-00034-of-00039-bc80bf84d7f8-d52288d4a2",
           "file_id": "model-00034-of-00039-bc80bf84d7f8-d52288d4a2",
+          "id": "primary-model-00034-of-00039-bc80bf84d7f8-d52288d4a2",
           "mount": {
             "target": "/models/target"
           },
@@ -472,8 +473,8 @@
           ]
         },
         {
-          "id": "primary-model-00035-of-00039-7b51f60e1916-9627fc64fe",
           "file_id": "model-00035-of-00039-7b51f60e1916-9627fc64fe",
+          "id": "primary-model-00035-of-00039-7b51f60e1916-9627fc64fe",
           "mount": {
             "target": "/models/target"
           },
@@ -483,8 +484,8 @@
           ]
         },
         {
-          "id": "primary-model-00036-of-00039-e291dd4ac263-3dea84db5c",
           "file_id": "model-00036-of-00039-e291dd4ac263-3dea84db5c",
+          "id": "primary-model-00036-of-00039-e291dd4ac263-3dea84db5c",
           "mount": {
             "target": "/models/target"
           },
@@ -494,8 +495,8 @@
           ]
         },
         {
-          "id": "primary-model-00037-of-00039-b16e8fb4010d-05e5d6ddef",
           "file_id": "model-00037-of-00039-b16e8fb4010d-05e5d6ddef",
+          "id": "primary-model-00037-of-00039-b16e8fb4010d-05e5d6ddef",
           "mount": {
             "target": "/models/target"
           },
@@ -505,8 +506,8 @@
           ]
         },
         {
-          "id": "primary-model-00038-of-00039-aa4e072510ae-a71cb9ad6c",
           "file_id": "model-00038-of-00039-aa4e072510ae-a71cb9ad6c",
+          "id": "primary-model-00038-of-00039-aa4e072510ae-a71cb9ad6c",
           "mount": {
             "target": "/models/target"
           },
@@ -516,8 +517,8 @@
           ]
         },
         {
-          "id": "primary-model-00039-of-00039-2e363ac298b1-8c028ad6c0",
           "file_id": "model-00039-of-00039-2e363ac298b1-8c028ad6c0",
+          "id": "primary-model-00039-of-00039-2e363ac298b1-8c028ad6c0",
           "mount": {
             "target": "/models/target"
           },
@@ -527,8 +528,8 @@
           ]
         },
         {
-          "id": "primary-model-safetensors-index-6c4679e64078-0a05be8238",
           "file_id": "model-safetensors-index-6c4679e64078-0a05be8238",
+          "id": "primary-model-safetensors-index-6c4679e64078-0a05be8238",
           "mount": {
             "target": "/models/target"
           },
@@ -538,8 +539,8 @@
           ]
         },
         {
-          "id": "primary-quantization-config-f6812790ff02-6f24389fb3",
           "file_id": "quantization-config-f6812790ff02-6f24389fb3",
+          "id": "primary-quantization-config-f6812790ff02-6f24389fb3",
           "mount": {
             "target": "/models/target"
           },
@@ -549,8 +550,8 @@
           ]
         },
         {
-          "id": "primary-tokenizer-c90dfa01249d-224931eb13",
           "file_id": "tokenizer-c90dfa01249d-224931eb13",
+          "id": "primary-tokenizer-c90dfa01249d-224931eb13",
           "mount": {
             "target": "/models/target"
           },
@@ -560,8 +561,8 @@
           ]
         },
         {
-          "id": "primary-tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
           "file_id": "tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
+          "id": "primary-tokenizer-config-6ac8c8dc065e-94d5c6ba8f",
           "mount": {
             "target": "/models/target"
           },
@@ -573,10 +574,10 @@
       ],
       "id": "primary",
       "model": {
+        "content_sha256": "da464c8cbd1c228a82f83c1f1e9579dadae1d5b09b5cf05f47cf449b02385f6e",
         "kind": "model",
         "publisher": "mia-ailab",
-        "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-6d54be4f",
-        "content_sha256": "da464c8cbd1c228a82f83c1f1e9579dadae1d5b09b5cf05f47cf449b02385f6e"
+        "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-6d54be4f"
       }
     },
     {
@@ -633,11 +634,11 @@
       "DeepSeek-AI",
       "hashd1ve"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks/tree/1afc8910b76574aa6b844a08ec9643d14d57089a"
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks/tree/75cab1d6047a414f9b8db7a3639fe5a1f98f17dc"
   },
   "release": {
-    "version": "1.0.0",
-    "released_at": "2026-10-19"
+    "released_at": "2026-10-20",
+    "version": "1.1.0"
   },
   "runtime": {
     "arguments": [
@@ -702,6 +703,10 @@
       {
         "name": "VONK_MODEL_REVISION",
         "value": "6d54be4fca338d79b17c3b03cc9a423bb3ac6718"
+      },
+      {
+        "name": "TF_DS_PREFILL_INTERLEAVE_MS",
+        "value": "250"
       }
     ],
     "lifecycle": {
@@ -794,6 +799,9 @@
           "name": "bounded-chat",
           "request": {
             "body": {
+              "chat_template_kwargs": {
+                "enable_thinking": false
+              },
               "max_tokens": 256,
               "messages": [
                 {
@@ -801,10 +809,7 @@
                   "role": "user"
                 }
               ],
-              "model": "DeepSeek-V4.1-Flash-1017",
-              "chat_template_kwargs": {
-                "enable_thinking": false
-              }
+              "model": "DeepSeek-V4.1-Flash-1017"
             },
             "method": "POST",
             "path": "/v1/chat/completions",
