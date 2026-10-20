@@ -6,22 +6,20 @@
 # from the cu130 index, compiles the fork's CUDA extension for sm_121 and
 # installs the latest vcruz305/tabbyAPI main. This image performs the same
 # installation on a digest-pinned CUDA 13.4.1 devel base, with the engine fork
-# and the TabbyAPI fork pinned by commit (upstream tracks the TabbyAPI fork's
-# main; the pinned commit is the one its VALIDATION_2026-10-09.md records). The upstream launch scripts are not
+# and TabbyAPI forks locked to their declared master/main heads on 2026-10-20
+# (ExLlamaV3 1.6.1.post1). The upstream launch scripts are not
 # run; tabby-serve replaces serve.sh and renders the vendored tabby-config.yml
 # the same way.
 FROM nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37
 
 LABEL org.opencontainers.image.source="https://github.com/vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe" \
-      org.opencontainers.image.revision="fa461b798941acacde2454ea6021da78a18a77e9" \
+      org.opencontainers.image.revision="49850ef896372407c5a56773bcf6dae661ab6ab9" \
       org.opencontainers.image.licenses="MIT AND AGPL-3.0-only" \
       io.vonk.exllamav3.source="https://github.com/vcruz305/exllamav3" \
-      io.vonk.exllamav3.revision="24f0dece34f09c8d1e2359d6b3b3f7befef7331b" \
+      io.vonk.exllamav3.revision="d968d96dbe56072317329d573bd06e1403eb949b" \
       io.vonk.tabbyapi.source="https://github.com/vcruz305/tabbyAPI" \
-      io.vonk.tabbyapi.revision="f391c96beea0bcd21cbae3c929f75bb98136ff32"
+      io.vonk.tabbyapi.revision="880e6b8bbdeda83090eb6cb5eabdbf8623fc4426"
 
-ARG EXLLAMAV3_COMMIT=24f0dece34f09c8d1e2359d6b3b3f7befef7331b
-ARG TABBYAPI_COMMIT=f391c96beea0bcd21cbae3c929f75bb98136ff32
 ARG TORCH_SPEC=torch==2.13.0
 ARG TORCH_INDEX_URL=https://download.pytorch.org/whl/cu130
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -32,6 +30,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl build-essential ninja-build python3 python3-dev python3-venv \
     && rm -rf /var/lib/apt/lists/*
+
+COPY kit-lock.json /opt/vonk/kit-lock.json
 
 # setup.sh steps 1-2: venv, build tools, torch with CUDA, and Triton (the fork's
 # gated-delta-net kernels are Triton and the aarch64 torch wheel does not bring it).
@@ -44,6 +44,7 @@ RUN test "$(uname -m)" = aarch64 \
 # setup.sh step 3: the fork at the pinned commit, compiled for sm_121 (about 15
 # minutes), built from the commit tree rather than a clone.
 RUN set -eux; \
+    EXLLAMAV3_COMMIT="$(python3 -c 'import json; print(json.load(open("/opt/vonk/kit-lock.json"))["dependencies"]["engine"]["commit"])')"; \
     mkdir -p /tmp/exllamav3; \
     curl -fsSL "https://codeload.github.com/vcruz305/exllamav3/tar.gz/${EXLLAMAV3_COMMIT}" \
       | tar -xz -C /tmp/exllamav3 --strip-components=1; \
@@ -55,6 +56,7 @@ RUN set -eux; \
 # and torch wheels), plus uvloop, which main.py imports but its pyproject skips
 # on aarch64. A stock exllamav3 pulled in by TabbyAPI would shadow the fork.
 RUN set -eux; \
+    TABBYAPI_COMMIT="$(python3 -c 'import json; print(json.load(open("/opt/vonk/kit-lock.json"))["dependencies"]["server"]["commit"])')"; \
     mkdir -p /opt/tabbyAPI; \
     curl -fsSL "https://codeload.github.com/vcruz305/tabbyAPI/tar.gz/${TABBYAPI_COMMIT}" \
       | tar -xz -C /opt/tabbyAPI --strip-components=1; \

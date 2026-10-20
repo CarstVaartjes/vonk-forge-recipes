@@ -316,11 +316,11 @@
       "Qwen",
       "TabbyAPI contributors"
     ],
-    "source_reference": "https://github.com/vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe/tree/fa461b798941acacde2454ea6021da78a18a77e9"
+    "source_reference": "https://github.com/vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe/tree/49850ef896372407c5a56773bcf6dae661ab6ab9"
   },
   "release": {
-    "released_at": "2026-10-09",
-    "version": "1.0.2"
+    "released_at": "2026-10-20",
+    "version": "1.0.3"
   },
   "runtime": {
     "arguments": [

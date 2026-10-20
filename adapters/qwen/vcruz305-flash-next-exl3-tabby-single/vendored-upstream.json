@@ -1,4 +1,21 @@
 {
+  "kit": {
+    "dependencies": {
+      "engine": {
+        "datasource": "git-ref",
+        "file": "exllamav3-tabby/env.sh",
+        "pattern": "EXL3_REF=\"\\$\\{EXL3_REF:-(?P<version>[^}]+)\\}\"",
+        "repo": "vcruz305/exllamav3"
+      },
+      "server": {
+        "datasource": "git-ref",
+        "file": "exllamav3-tabby/env.sh",
+        "pattern": "TABBY_REF=\"\\$\\{TABBY_REF:-(?P<version>[^}]+)\\}\"",
+        "repo": "vcruz305/tabbyAPI"
+      }
+    },
+    "whole": true
+  },
   "ours": [
     "tabby-serve",
     "verify-runtime.py"
@@ -7,7 +24,7 @@
     "tabby-config.yml": "exllamav3-tabby/tabby-config.yml"
   },
   "source": {
-    "commit": "fa461b798941acacde2454ea6021da78a18a77e9",
+    "commit": "49850ef896372407c5a56773bcf6dae661ab6ab9",
     "repo": "vcruz305/Qwen3.8-Flash-Next-EXL3-DGX-Spark-recipe"
   }
 }
