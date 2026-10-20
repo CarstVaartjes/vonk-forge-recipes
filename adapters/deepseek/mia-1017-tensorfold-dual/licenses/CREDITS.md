@@ -31,14 +31,22 @@ License 2.0 ([`LICENSE`](LICENSE)); [`NOTICE`](NOTICE) carries the notices that 
   [BertholomusAI (Albert Lee, @bertholomus)](https://github.com/bertholomus): the `dsv41` family (prompt and decode
   paths, DSpark drafting, Engram, the RDMA ring between two nodes, the vision tower and aligner), in their fork
   [bertholomus/TensorFold, branch `deepseek-v41-zig`](https://github.com/bertholomus/TensorFold/tree/deepseek-v41-zig)
-  at commit [`3ff3b2a`](https://github.com/bertholomus/TensorFold/commit/3ff3b2ac1d71a789cb930068c46d9abed025eefa)
+  at commit [`629c524`](https://github.com/bertholomus/TensorFold/commit/629c524a0ea57512a5342abb498d1b7c25353343)
   (Apache-2.0). This recipe builds that commit and serves both ranks with it. Commits by other authors in that branch:
   - **[sayyidfareed](https://github.com/sayyidfareed)**: the RDMA GID index and endpoint MTU negotiation (#12) and a
     buffered descriptor for the direct-IO test (#9);
   - **[Lucas Peters (@lucas-peters)](https://github.com/lucas-peters)**: the prompt indexer's 16-byte-aligned row-block
     pointers (#4);
   - **lepetitprince716-prog**: the loader reading each layer's expert run from the rank cache whole (#18);
-  - **LeetJoe**: escaping the image placeholder in a message's own text (#17).
+  - **LeetJoe**: escaping the image placeholder in a message's own text (#17);
+  - **Manrique ([hashd1ve](https://github.com/hashd1ve))**: a prefix two conversations share no longer stales the first one's
+    kept states, and the room each kept extent keeps for its conversation's next turn (#26, `629c524`);
+  - **[Jay Leaton (jayleaton)](https://github.com/jayleaton)**: the JSON writer escapes a UTF-8 sequence cut off at a string's
+    end as U+FFFD instead of slicing past it (`0937cc1`);
+  - **[Nathan McBride (nmcbride)](https://github.com/nmcbride)**: the chat-template appends in place when a namespace string
+    accumulates, and sizes a new append buffer exactly (`6ddebc6`, `5699d86`);
+  - **[sayyidfareed](https://github.com/sayyidfareed)** reported the overwrite of a retained prefix by a growing history
+    (TensorFold PR #10) that `9f82099` fixes, by BertholomusAI.
 - **The inputs' tools** (`tf-dsv41-rank-cache`, which writes a rank's weight file from the checkpoint alone with no GPU
   and no Python, and the standalone `make_token_map.py`, `make_rope.py` and `make_bias_vl.py`) were written by
   BertholomusAI in their fork's branch
@@ -90,10 +98,14 @@ License 2.0 ([`LICENSE`](LICENSE)); [`NOTICE`](NOTICE) carries the notices that 
   ([@kerpopule](https://github.com/kerpopule)); `scripts/zig_flags.py` (the serve flags checked against
   `tensorfold-native capabilities --json`), `scripts/publish-image.sh` and the registry pull in `scripts/prepare.sh`, and the
   issue and pull request templates and `FUNDING.yml` in `.github`, by Mia's AI Lab.
-- **`zig/patches/0001-0003`** are changes to BertholomusAI's engine written by Mia's AI Lab for this recipe (Apache-2.0), each off by default: the
-  prompt-cache placement (0003), a second AIO ring for Engram reads (0002) and a row split of the prefill indexer between the
-  two ranks (0001). The idea of splitting the indexer is credited to drowzeys, from the GLM-5.3-Flash recipe's design; no code of
+- **`zig/patches/0001-0002`** are changes to BertholomusAI's engine written by Mia's AI Lab for this recipe (Apache-2.0), each off by default: a
+  second AIO ring for Engram reads (0002) and a row split of the prefill indexer between the two ranks (0001). A prompt-cache placement
+  patch (0003) was dropped when the pin moved to `629c524`, which places kept states itself. The idea of splitting the indexer is credited to drowzeys, from the GLM-5.3-Flash recipe's design; no code of
   that recipe was used. They modify code by TensorFold's contributors and BertholomusAI, which keeps their licences.
+- **`zig/patches/0005-prefill-interleave.patch`** was authored by **[Coinupbtc](https://github.com/Coinupbtc)** (@Coinupbtc), in [pull request #5](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks/pull/5)
+  (commit [`27e02c6`](https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks/pull/5/commits/27e02c605eae0997ed9161baaf583dd3ad431bb3)) of this repository, for issue #3: between two chunks of a long prompt pass, the other live streams get decode rounds and
+  their cancels are taken (`TF_DS_PREFILL_INTERLEAVE_MS`), with its host test and the bit-identity runs in the pull request. It is carried here as it
+  was sent; **`zig/patches/0006-image-prompt-cache.patch`** (issue #2) was written for this recipe on top of it.
 - **`zig/patches/0004-call-gate.patch`** (`tool_choice` enforcement) was written by Mia's AI Lab (Apache-2.0). Its new file,
   `zig/src/core/lanes/call_gate.zig`, is Mia's AI Lab's Zig call gate for the Flash Next CUDA engine (commits `49350ed6` and
   `c948979c` of 2026-10-07, with fixes `06cbbf72` and `1b082936`), which is itself a port of the call gate in TensorFold's
