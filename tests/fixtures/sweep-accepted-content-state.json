@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "nonce": "saved-identity-regression",
+  "recipes": {
+    "vonk-forge/changing": {
+      "status": "pending"
+    }
+  },
+  "slots": {
+    "vonk-forge/changing": {
+      "accepted_content": {
+        "request_key": "saved-request",
+        "recipe": {
+          "key": "vonk-forge/changing",
+          "title": "changing",
+          "node_count": 1,
+          "usage": [
+            "chat"
+          ],
+          "engine": "vllm",
+          "creator": "test",
+          "model_digests": [
+            "m1"
+          ],
+          "model_selectors": [
+            "hf/m1"
+          ],
+          "memory_bytes": 40000000000,
+          "image_bytes": 10000000000,
+          "artifact_bytes": 20000000000,
+          "ports": [
+            8000
+          ],
+          "adapter": "readiness",
+          "aliases": [
+            "changing"
+          ],
+          "content_sha256": "c1",
+          "revision_id": "rev-c1",
+          "local": "cached",
+          "updated_at": "",
+          "base_image": "base-vllm",
+          "cache_ready": false,
+          "checks": []
+        },
+        "library_commit": "accepted-library"
+      },
+      "alias": "changing",
+      "node_ids": [
+        "spk_a"
+      ],
+      "spark_names": [
+        "spark-a"
+      ],
+      "phase": "smoking",
+      "request_key": "saved-request",
+      "started_at": 1000000.0,
+      "ready_at": 1000001.0,
+      "run_id": "saved-run",
+      "deadline": 1002000.0,
+      "digests": [
+        "m1"
+      ],
+      "model_bytes": 20000000000
+    }
+  },
+  "cleanup": {},
+  "loads": {},
+  "load_seq": 0,
+  "downloads": {},
+  "download_history": {},
+  "pins": [],
+  "learned": {},
+  "rate": {
+    "ema": 0.0,
+    "samples": 0
+  },
+  "owner": {
+    "baseline": {},
+    "hold_until": 0.0,
+    "export": {}
+  },
+  "models_done": [],
+  "model_removals": {},
+  "took_over": false,
+  "model_failures": {},
+  "release": {},
+  "release_history": [],
+  "publication": {},
+  "publication_history": [],
+  "platform": {},
+  "cleanup_loads": {},
+  "own_loads": [],
+  "own_aliases": [],
+  "own_seq": 0,
+  "infra": {},
+  "mode": "single",
+  "events": []
+}

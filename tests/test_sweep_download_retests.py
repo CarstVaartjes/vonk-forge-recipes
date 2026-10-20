@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
+from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.prefetch import PrefetchConfig
 from spark_sweep.state import State
 from spark_sweep.vonkctl import request_key
@@ -305,3 +306,72 @@ def test_terminal_retry_uses_content_identity_despite_changed_revision(
     clock.sleep(sweep.prefetcher.config.retry_cooldown)
     current = replace(recipe, revision_id="new-provenance-same-content")
     assert sweep.prefetcher._can_request(current, clock.now())
+
+
+@pytest.mark.parametrize("restart", [False, True])
+def test_download_completion_credits_only_accepted_models_after_catalog_change(
+    tmp_path: Path, restart: bool
+) -> None:
+    from dataclasses import replace
+
+    fake = FakeRecipe("changing")
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [fake], [FakeModel("m1"), FakeModel("m2")]
+    )
+    sweep.refresh_catalog()
+    accepted = sweep.recipes[fake.key]
+    sweep.prefetcher._request(accepted, "model")
+    original = copy.deepcopy(sweep.state.downloads[fake.key])
+    sweep.state.save()
+    if restart:
+        sweep, _, _ = make_sweep(tmp_path, [fake], [], fleet=fleet)
+        sweep.refresh_catalog()
+    changed = replace(
+        accepted, content_sha256="c2", revision_id="rev-c2", model_digests=("m2",)
+    )
+    sweep.recipes[fake.key] = changed
+    clock.sleep(fleet.download_seconds + 1)
+    sweep.prefetcher._poll()
+    assert sweep.state.data["models_done"] == ["m1"]
+    assert not sweep.ready(changed)
+    assert sweep.prefetcher._can_request(changed, clock.now())
+    sweep.prefetcher._request(changed, "model")
+    new = sweep.state.downloads[fake.key]
+    assert new["request_key"] != original["request_key"]
+    assert new["retry_of_operation_id"] is None
+    assert new["accepted_intent"]["kind"] == "selector"
+    assert (
+        sweep.state.data["download_history"][fake.key][0]["request_key"]
+        == original["request_key"]
+    )
+
+
+@pytest.mark.parametrize(
+    "ending",
+    [LifecycleState.FAILED, LifecycleState.CANCELLED, LifecycleState.SUPERSEDED],
+)
+def test_changed_content_after_terminal_download_gets_a_fresh_selector_request(
+    tmp_path: Path, ending: LifecycleState
+) -> None:
+    from dataclasses import replace
+
+    fake = FakeRecipe("changing")
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [fake], [FakeModel("m1"), FakeModel("m2")]
+    )
+    sweep.refresh_catalog()
+    recipe = sweep.recipes[fake.key]
+    sweep.prefetcher._request(recipe, "model")
+    original = copy.deepcopy(sweep.state.downloads[fake.key])
+    fleet.ops[original["operation_id"]]["state"] = ending
+    sweep.prefetcher._poll()
+    changed = replace(recipe, content_sha256="c2", model_digests=("m2",))
+    sweep.recipes[fake.key] = changed
+    sweep._reconcile_entry(changed, 2)
+    clock.sleep(sweep.prefetcher.config.retry_cooldown)
+    assert sweep.prefetcher._can_request(changed, clock.now())
+    sweep.prefetcher._request(changed, "model")
+    current = sweep.state.downloads[fake.key]
+    assert current["request_key"] != original["request_key"]
+    assert current["retry_of_operation_id"] is None
+    assert current["accepted_intent"]["kind"] == "selector"

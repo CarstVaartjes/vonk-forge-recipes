@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .catalog import Model, Recipe
+from .identity import AcceptedRequest
 from .lifecycle import TERMINAL, WAITING, LifecycleState, active
 from .policy import (
     Boost,
@@ -292,11 +293,24 @@ class Prefetcher:
         for key, recipe in recipes.items():
             record = self.state.downloads.get(key)
             if recipe.local == "preparing" and record is None:
-                self.state.downloads[key] = {"state": "external", "started_at": now}
+                self.state.downloads[key] = {
+                    "state": "external",
+                    "started_at": now,
+                    "accepted_content": AcceptedRequest(
+                        request_key="", recipe=recipe
+                    ).model_dump(mode="json"),
+                }
             elif record is not None and record.get("state") == "external":
                 if recipe.local == "cached":
-                    record.update(state="succeeded", done_at=now)
-                    self.on_done(key)
+                    accepted = AcceptedRequest.read(record)
+                    if (
+                        accepted is not None
+                        and accepted.recipe.content_sha256 == recipe.content_sha256
+                    ):
+                        record.update(state=LifecycleState.SUCCEEDED, done_at=now)
+                        self.on_done(key)
+                    else:
+                        del self.state.downloads[key]
                 elif recipe.local in ("failed", "not_cached"):
                     del self.state.downloads[key]  # it did not land: ours to ask for
 
@@ -372,8 +386,18 @@ class Prefetcher:
         key = request_key(
             "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
         )
+        accepted = AcceptedRequest.read(record)
+        same_content = (
+            accepted is not None
+            and accepted.recipe.content_sha256 == recipe.content_sha256
+        )
         retry_of = (
-            record.get("operation_id") if record.get("state") == "failed" else None
+            record.get("operation_id")
+            if record.get("state") == LifecycleState.FAILED and same_content
+            else None
+        )
+        content = AcceptedRequest(request_key=key, recipe=recipe).model_dump(
+            mode="json"
         )
         requested_intent = (
             {"kind": "retry", "operation_id": retry_of}
@@ -387,6 +411,7 @@ class Prefetcher:
         # Persist the next request before effects. An interrupted reply reconnects
         # this same UUID rather than losing it or creating a different attempt.
         self.state.downloads[recipe.key] = {
+            "accepted_content": content,
             "request_key": key,
             "state": "observing",
             "kind": kind,
@@ -437,6 +462,7 @@ class Prefetcher:
                 },
             )
             self.state.downloads[recipe.key] = {
+                "accepted_content": content,
                 "request_key": key,
                 "state": "failed",
                 "kind": kind,
@@ -467,6 +493,7 @@ class Prefetcher:
         op_state = str(document.get("state", "queued"))
         self.state.downloads[recipe.key] = {
             "operation_id": document.get("id"),
+            "accepted_content": content,
             "request_key": key,
             "state": op_state,
             "kind": kind,
@@ -631,6 +658,32 @@ class Prefetcher:
         if active(record.get("state")) and record.get("state") != "retired":
             return False
         if recipe.cache_ready:
+            return False
+        accepted = AcceptedRequest.read(record)
+        if (
+            accepted is not None
+            and accepted.recipe.content_sha256 != recipe.content_sha256
+        ):
+            # A new document needs a new selector request, never a retry of the old parent.
+            if record.get("state") == LifecycleState.SUCCEEDED:
+                return True
+            if record.get("operation_id") and accepted.request_key:
+                reply = self.vk.run(
+                    "recipe", "progress", "--request-key", accepted.request_key
+                )
+                document = reply.document
+                if (
+                    reply.ok
+                    and isinstance(document, Mapping)
+                    and document.get("id") == record["operation_id"]
+                    and document.get("request_id") == accepted.request_key
+                    and document.get("recipe_content_sha256")
+                    == accepted.recipe.content_sha256
+                    and document.get("state") in TERMINAL
+                ):
+                    record["terminal_receipt"] = dict(document)
+                    record["terminal_verified_at"] = now
+                    return True
             return False
         if record.get("state") == "retired":
             if record.get("request_key"):

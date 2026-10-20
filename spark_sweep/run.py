@@ -50,6 +50,7 @@ from .catalog import (
     serving_run,
 )
 from .definitions import Definitions
+from .identity import AcceptedRequest, IdentityReason
 from .lifecycle import ACTIVE as ACTIVE_APP
 from .lifecycle import TERMINAL as SETTLED
 from .lifecycle import LifecycleState
@@ -556,6 +557,9 @@ class Sweep:
         if not self._selected(recipe):
             return
         entry = self.state.entry(recipe.key)
+        slot = self.state.slots.get(recipe.key)
+        if slot is not None and slot.get("phase") != "finished":
+            return
         # A recipe that left the catalog is decided in _reconcile_all; here it is back.
         if entry.get("reason_kind") == CATALOG_SKIP:
             entry["status"] = "pending"
@@ -636,7 +640,11 @@ class Sweep:
         why = policy.requeue_reason(entry, recipe)
         if why is None:
             return
-        if why == "passed-on-older-revision" and not self.cfg.revalidate_passes:
+        if (
+            why == "passed-on-older-revision"
+            and not self.cfg.revalidate_passes
+            and recipe.key not in self.state.slots
+        ):
             return
         entry["previous"] = {
             k: entry.get(k)
@@ -936,9 +944,11 @@ class Sweep:
         return policy.present_models(self.models) | self.cached_models
 
     def _download_done(self, key: str) -> None:
-        recipe = self.recipes.get(key)
-        if recipe is not None:
-            done = set(self.state.data["models_done"]) | set(recipe.model_digests)
+        accepted = AcceptedRequest.read(self.state.downloads.get(key))
+        if accepted is not None:
+            done = set(self.state.data["models_done"]) | set(
+                accepted.recipe.model_digests
+            )
             self.state.data["models_done"] = sorted(done)
 
     def _deprioritised(self, pending: Iterable[Recipe]) -> set[str]:
@@ -1432,9 +1442,10 @@ class Sweep:
     def _download_failed(
         self, key: str, failure: policy.Failure, op_id: str | None, model_level: bool
     ) -> None:
-        recipe = self.recipes.get(key)
+        accepted = AcceptedRequest.read(self.state.downloads.get(key))
+        recipe = accepted.recipe if accepted else None
         # The prefetcher already waited out what is a wait: this one is final.
-        self._record_failure(key, failure, op_id, final=True)
+        self._record_failure(key, failure, op_id, final=True, from_download=True)
         if (
             model_level
             and failure.code in policy.RECIPE_FAILURE_CODES
@@ -1442,6 +1453,10 @@ class Sweep:
         ):
             for digest in recipe.model_digests:
                 self.state.data["model_failures"][digest] = failure.cluster
+
+    def _unplaced_recipe(self, key: str) -> Recipe | None:
+        """Only pre-placement failures may describe the currently requested document."""
+        return self.recipes.get(key)
 
     def _record_failure(
         self,
@@ -1451,6 +1466,7 @@ class Sweep:
         *,
         inherited_from: str | None = None,
         final: bool = False,
+        from_download: bool = False,
         document: Mapping[str, Any] | None = None,
     ) -> None:
         """Record what an attempt came to; only an OBSERVE outcome spends an attempt.
@@ -1461,8 +1477,19 @@ class Sweep:
         """
         now = self.clock.now()
         entry = self.state.entry(key)
-        recipe = self.recipes.get(key)
-        slot = self.state.slots.get(key)
+        slot = None if from_download else self.state.slots.get(key)
+        accepted = AcceptedRequest.read(
+            self.state.downloads.get(key) if from_download else slot
+        )
+        recipe = (
+            accepted.recipe
+            if accepted
+            else (None if slot or from_download else self._unplaced_recipe(key))
+        )
+        outcome = Disposition.FAIL if final else verdict.disposition(failure)
+        if slot is not None and accepted is None and outcome is not Disposition.SKIP:
+            self.requeue(key, IdentityReason.UNBOUND)
+            return
         if (
             slot is not None
             and failure.phase != "review"
@@ -1474,7 +1501,6 @@ class Sweep:
                 failure=failure,
             )
             return
-        outcome = Disposition.FAIL if final else verdict.disposition(failure)
         if slot is not None:
             slot["phase"] = "finished"
         if outcome is Disposition.WAIT:
@@ -1592,6 +1618,13 @@ class Sweep:
             document=document,
         )
         self.state.event(f"{status.upper()} {key}: {failure.phase}/{failure.klass}")
+        self._reconcile_completed(key)
+
+    def _reconcile_completed(self, key: str) -> None:
+        # Re-plan now: a one-shot sweep may exit before another catalog tick.
+        recipe = self.recipes.get(key)
+        if recipe is not None:
+            self._reconcile_entry(recipe, self.fleet_capacity())
 
     def record_result(
         self,
@@ -1630,7 +1663,16 @@ class Sweep:
     def _facts(
         self, key: str, entry: Mapping[str, Any], slot: Mapping[str, Any] | None
     ) -> dict[str, Any]:
-        recipe = self.recipes.get(key)
+        accepted = AcceptedRequest.read(
+            slot if slot is not None else self.state.downloads.get(key)
+        )
+        if (
+            slot is None
+            and accepted is not None
+            and entry.get("content_sha256") != accepted.recipe.content_sha256
+        ):
+            accepted = None
+        recipe = accepted.recipe if accepted else None
         facts: dict[str, Any] = {
             "phase": entry.get("phase"),
             "failure_class": entry.get("failure_class"),
@@ -1639,13 +1681,13 @@ class Sweep:
             "attempt": entry.get("attempts"),
             "evidence": entry.get("evidence"),
             "evidence_bundle": entry.get("evidence_bundle"),
-            "content_sha256": recipe.content_sha256
-            if recipe
+            "content_sha256": (recipe.content_sha256 if recipe else None)
+            if slot
             else entry.get("content_sha256"),
-            "recipe_revision_id": recipe.revision_id
-            if recipe
+            "recipe_revision_id": (recipe.revision_id if recipe else None)
+            if slot
             else entry.get("revision_id"),
-            "library_commit": self.library_commit or None,
+            "library_commit": accepted.library_commit if accepted else None,
             "controller_release": entry.get("release"),
             "controller_version": self.state.data["release"].get("version"),
             "engine": recipe.engine if recipe else None,
@@ -1655,6 +1697,9 @@ class Sweep:
             facts["node_ids"] = list(slot.get("node_ids", []))
             facts["sparks"] = list(slot.get("spark_names", []))
             facts["run_id"] = slot.get("run_id")
+        if accepted is not None:
+            facts["request_key"] = accepted.request_key
+            facts["model_digests"] = list(accepted.recipe.model_digests)
         return {k: v for k, v in facts.items() if v is not None}
 
     def _evidence(self, key: str, op_id: str | None, attempt: int) -> str | None:
@@ -1669,8 +1714,18 @@ class Sweep:
     def _record_pass(self, key: str, slot: dict[str, Any], result: SmokeResult) -> None:
         now = self.clock.now()
         entry = self.state.entry(key)
-        recipe = self.recipes[key]
+        accepted = AcceptedRequest.read(slot)
+        if accepted is None:
+            self.requeue(key, IdentityReason.UNBOUND)
+            return
+        recipe = accepted.recipe
         download = self.state.downloads.get(key, {})
+        downloaded = AcceptedRequest.read(download)
+        if (
+            downloaded is None
+            or downloaded.recipe.content_sha256 != recipe.content_sha256
+        ):
+            download = {}
         timings = {
             "download_s": round(
                 float(download["done_at"]) - float(download["started_at"]), 1
@@ -1732,6 +1787,8 @@ class Sweep:
             f"passed {key}"
             + (f" ({notes} quality note{'s' if notes != 1 else ''})" if notes else "")
         )
+
+        self._reconcile_completed(key)
 
     # ------------------------------------------------------------------ slots
 
@@ -2055,7 +2112,11 @@ class Sweep:
         )
 
     def _advance_loading(self, key: str, slot: dict[str, Any], now: float) -> None:
-        recipe = self.recipes[key]
+        accepted = AcceptedRequest.read(slot)
+        if accepted is None:
+            self.requeue(key, IdentityReason.UNBOUND)
+            return
+        recipe = accepted.recipe
         if self.blind or slot["request_key"] in self.unobserved_loads:
             self._observe_load(slot, now)
             return  # no recipe verdict on an unreadable Controller: unknown keeps waiting
@@ -2457,7 +2518,11 @@ class Sweep:
         self.state.event(f"requeued {key}: {why}")
 
     def _submit_smoke(self, key: str, slot: dict[str, Any]) -> None:
-        recipe = self.recipes[key]
+        accepted = AcceptedRequest.read(slot)
+        if accepted is None:
+            self.requeue(key, IdentityReason.UNBOUND)
+            return
+        recipe = accepted.recipe
         if recipe.is_job:
             # A job run has no endpoint: its smoke is one artifact job against the run.
             spec = self.defs.artifact(key)
@@ -2698,7 +2763,13 @@ class Sweep:
         """
         if recipe.cache_ready:
             return True
-        if self.state.downloads.get(recipe.key, {}).get("state") == "succeeded":
+        download = self.state.downloads.get(recipe.key, {})
+        accepted = AcceptedRequest.read(download)
+        if (
+            download.get("state") == LifecycleState.SUCCEEDED
+            and accepted is not None
+            and accepted.recipe.content_sha256 == recipe.content_sha256
+        ):
             return True
         return recipe.local == "cached" and all(
             d in self.cached_models for d in recipe.model_digests
@@ -2738,10 +2809,13 @@ class Sweep:
             )
             for s in self.sparks()
         }
-        for key, slot in self.state.slots.items():
+        for slot in self.state.slots.values():
             if slot["phase"] == "finished":
                 continue
-            recipe = self.recipes[key]
+            accepted = AcceptedRequest.read(slot)
+            if accepted is None:
+                continue  # legacy lanes are held by _lane_holds until re-planned
+            recipe = accepted.recipe
             for node in slot["node_ids"]:
                 if node in bins:
                     b = bins[node]
@@ -3918,6 +3992,11 @@ class Sweep:
         alias = self._alias(recipe)
         self._remember_own(alias)
         self.state.slots[recipe.key] = {
+            "accepted_content": AcceptedRequest(
+                request_key=request,
+                recipe=recipe,
+                library_commit=self.library_commit or None,
+            ).model_dump(mode="json"),
             "alias": alias,
             "node_ids": list(placement.spark_ids),
             "spark_names": [names.get(i, i) for i in placement.spark_ids],
