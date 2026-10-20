@@ -466,9 +466,18 @@ def test_unreadable_owner_never_looks_like_absent_owner(tmp_path: Path) -> None:
     assert status.paused and "unreadable" in status.reason
 
 
-def test_an_owner_load_is_waited_for_and_never_ends_the_sweep(tmp_path: Path) -> None:
+def test_an_owner_load_is_waited_for_and_never_ends_the_sweep(
+    tmp_path: Path, monkeypatch
+) -> None:
     from spark_sweep.owner import OwnerStatus
+    from spark_sweep.smoke import SmokeResult
 
+    # This owner-recovery scenario has no HTTP server; supply a successful smoke
+    # instead of relying on the former count-exhaustion of connection refusals.
+    monkeypatch.setattr(
+        "spark_sweep.run.smoke_service",
+        lambda *_args: SmokeResult(ok=True, kind="service"),
+    )
     sweep, _, clock = _loading(tmp_path)
     sweep.owner_status = OwnerStatus(True, "owner intent is running")
     sweep.guard.check = lambda now: sweep.owner_status

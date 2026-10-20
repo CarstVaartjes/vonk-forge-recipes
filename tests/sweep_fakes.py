@@ -17,6 +17,7 @@ import json
 import re
 import threading
 from collections.abc import Callable, Sequence
+from concurrent.futures import Future
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -25,6 +26,8 @@ from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
+
+from spark_sweep.run import DaemonExecutor
 
 _ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
 SPARK_MEMORY = 130_663_231_488
@@ -1469,6 +1472,15 @@ def make_definitions(recipes: list[FakeRecipe]) -> Any:
     return Definitions(document, ROOT / "qualification")
 
 
+class ImmediateCatalogExecutor(DaemonExecutor):
+    """Instant fake CLI reads are deterministic; blocking-read tests use the real executor."""
+
+    def submit(self, fn, *args):
+        future = Future()
+        future.set_result(fn(*args))
+        return future
+
+
 def make_sweep(
     tmp_path: Path,
     recipes: list[FakeRecipe],
@@ -1510,4 +1522,5 @@ def make_sweep(
         make_definitions(recipes),
         clock,
     )
+    sweep.catalog_executor = ImmediateCatalogExecutor()
     return sweep, fleet, clock

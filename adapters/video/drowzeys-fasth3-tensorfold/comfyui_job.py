@@ -306,12 +306,25 @@ def wait_for_prompt(
     prompt_id: str, process: subprocess.Popen[bytes], timeout: int
 ) -> None:
     deadline = time.monotonic() + timeout
+    failures = 0
     while time.monotonic() < deadline:
         if process.poll() is not None:
             raise RuntimeError(
                 f"ComfyUI exited while executing with status {process.returncode}"
             )
-        history = request_json(f"/history/{prompt_id}")
+        try:
+            history = request_json(f"/history/{prompt_id}")
+        except (HTTPError, URLError, TimeoutError, ConnectionError) as error:
+            if isinstance(error, HTTPError) and error.code not in (408, 429, 502, 503, 504):
+                raise
+            # Only observe the accepted prompt again; never resubmit it. The owner
+            # budget and the process-liveness check remain in force across retries.
+            failures += 1
+            delay = min(2 ** min(failures, 5), 30, max(0, deadline - time.monotonic()))
+            print(f"ComfyUI history {prompt_id} unavailable: {error}; next check in {delay}s", flush=True)
+            time.sleep(delay)
+            continue
+        failures = 0
         item = history.get(prompt_id)
         if item:
             status = item.get("status", {})

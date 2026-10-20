@@ -13,12 +13,14 @@ with the operator's client key.
 
 from __future__ import annotations
 
+import itertools
 import json
 import re
 import ssl
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -32,12 +34,25 @@ PERF_PROMPT = "Count from one to twenty in words, separated by commas."
 PERF_TOKENS = 64
 
 
+@dataclass
+class SemanticProgress:
+    """One smoke attempt's useful output; stale workers cannot renew a newer attempt."""
+
+    at: float
+
+    def stalled(self, window: float) -> bool:
+        return time.monotonic() - self.at > window
+
+
 @dataclass(frozen=True)
 class HttpConfig:
     key_file: Path | None = None
     ca_file: Path | None = None
     insecure_tls: bool = False
     case_timeout: float = 180.0
+    on_progress: Callable[[], None] | None = field(
+        default=None, repr=False, compare=False
+    )
 
     def headers(self) -> dict[str, str]:
         headers = {"Accept": "application/json"}
@@ -394,6 +409,34 @@ def _assertion_failure(
     )
 
 
+def _stream_lines(
+    response: Any, last_progress: Callable[[], float], window: float
+) -> Iterator[bytes]:
+    """Read available bytes, not a blocking line iterator.
+
+    read1 returns partial lines too: heartbeat and unterminated trickles cannot
+    keep an iterator blocked forever. Each socket read also has the window as
+    its timeout. Only the caller's semantic output advances last_progress.
+    """
+    pending = b""
+    for _ in itertools.count():
+        if time.monotonic() - last_progress() >= window:
+            raise TimeoutError("stream stalled without semantic output")
+        chunk = response.read1(65536)
+        if time.monotonic() - last_progress() >= window:
+            raise TimeoutError("stream stalled without semantic output")
+        if not chunk:
+            if pending:
+                yield pending
+            return
+        pending += chunk
+        lines = pending.split(b"\n")
+        pending = lines.pop()
+        yield from lines
+        if len(pending) > 65536:
+            raise AssertionFailed("stream event exceeds its bound")
+
+
 def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
     """One short streamed completion: time to first token and tokens per second."""
     body = {
@@ -412,6 +455,10 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
     first = last = None
     pieces = 0
     usage_tokens: int | None = None
+
+    def last_output() -> float:
+        return last if last is not None else started
+
     with open_with_body(
         base.rstrip("/") + "/chat/completions",
         body,
@@ -419,7 +466,7 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
         config.case_timeout,
         config.context(),
     ) as response:
-        for raw in response:
+        for raw in _stream_lines(response, last_output, config.case_timeout):
             line = raw.decode("utf-8", "replace").strip()
             if not line.startswith("data:"):
                 continue
@@ -444,6 +491,8 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
                     first = first if first is not None else now
                     last = now
                     pieces += 1
+                    if config.on_progress is not None:
+                        config.on_progress()
     if first is None or last is None:
         raise AssertionFailed("the stream produced no tokens")
     tokens = usage_tokens if usage_tokens else pieces
@@ -562,6 +611,8 @@ def smoke_service(
                 record = run_case(base, case, config)
                 result.quality.extend(record.pop("quality", []))
                 result.cases.append(record)
+                if config.on_progress is not None:
+                    config.on_progress()
             except AssertionFailed as error:
                 result.failure = _assertion_failure(error, str(case.get("id")), config)
             except (OSError, urllib.error.URLError, ValueError) as error:

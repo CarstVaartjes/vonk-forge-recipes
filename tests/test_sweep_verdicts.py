@@ -56,7 +56,7 @@ def _drive(sweep, clock, *, until, limit: int = 2000) -> None:
 @pytest.mark.parametrize(
     "name", ["queued-retry", "backoff", "admission-pending", "needs-operator"]
 )
-def test_a_controller_owned_wait_is_waiting_for_ever(name: str) -> None:
+def test_a_controller_owned_wait_retains_age_and_reconciliation(name: str) -> None:
     watch: dict[str, Any] = {}
     signal = verdict.application_signal(_document(name))
     assert signal.waiting_on
@@ -64,6 +64,9 @@ def test_a_controller_owned_wait_is_waiting_for_ever(name: str) -> None:
         progress = verdict.progress_verdict(signal, watch, window=600, now=hour * HOUR)
         assert progress is Progress.WAITING
     assert watch["waiting_on"] == signal.waiting_on
+    assert watch["progressed_at"] == watch["wait"]["first_seen_at"] == 0
+    assert watch["wait"]["next_check_at"] > 47 * HOUR
+    assert watch["wait"]["next_check"] == "reconcile-request"
 
 
 @pytest.mark.parametrize("name", ["running-silent", "phase-retry"])
@@ -113,7 +116,9 @@ def test_an_unreadable_observation_is_unknown_and_waits() -> None:
     assert verdict.progress_verdict(None, watch, window=600, now=5000) is (
         Progress.WAITING
     )
-    assert watch["progressed_at"] == 5000
+    assert watch["progressed_at"] == 0
+    assert watch["wait"]["last_progress_at"] == 0
+    assert watch["wait"]["next_check_at"] > 5000
 
 
 def test_the_controllers_typed_end_stops_following_a_failed_application() -> None:

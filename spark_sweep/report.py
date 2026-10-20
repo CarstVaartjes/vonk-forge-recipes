@@ -136,7 +136,11 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         since = slot["smoke_started_at"] if budget is not None else slot["started_at"]
         limit = budget if budget is not None else slot["deadline"] - slot["started_at"]
         # The current phase's own wait; the load's last wait ended with the load.
-        watch = slot.get("smoke_watch" if smoking else "watch") or {}
+        watch = (
+            slot.get("smoke_watch")
+            if smoking
+            else slot.get("ready_watch") or slot.get("watch")
+        ) or {}
         for name in slot.get("spark_names", []):
             lanes.setdefault(name, []).append(
                 {
@@ -147,6 +151,10 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     "elapsed_s": round(now - since),
                     "limit_s": round(limit),
                     "waiting_on": watch.get("waiting_on") or slot.get("waiting_on"),
+                    "wait": watch.get("wait"),
+                    "silent_s": round(
+                        max(0.0, now - float(watch.get("progressed_at", now)))
+                    ),
                 }
             )
     present = policy.present_models(sweep.models)
@@ -165,6 +173,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
     ready = {k for k in sweep.queue if sweep.ready(sweep.recipes[k])}
     return {
         "updated_at": now,
+        "finalization": data.get("finalization"),
         "paused": sweep.pause_reason or None,
         "mode": data["mode"],
         "counts": counts(data["recipes"]),

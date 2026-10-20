@@ -5,7 +5,7 @@ Rule: the sweep records what the platform does; it never turns a wait into a ver
 * A lane ends a load only on the Controller's own terminal state or on a ``STALLED``
   verdict of the work's own progress (``progress_verdict``).
 * A wait on something the Controller reports as owned, queued or in progress
-  (``WAITING``) never expires: it restarts the stall window instead of ageing it.
+  (``WAITING``) retains semantic age and schedules reconciliation of its owner.
 * Attempts are spent only on ``OBSERVE`` outcomes (``disposition``); a ``WAIT`` spends
   nothing, a ``FAIL`` ends at once with its evidence and a ``SKIP`` (the recipe is no
   longer the sweep's to test) is recorded at once with its reason, never a verdict.
@@ -26,8 +26,10 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
+from .lifecycle import LifecycleState
 from .policy import CLIENT_CREDENTIAL, RECIPE_FAILURE_CODES, Failure, activity
 from .vonkctl import Reply
+from .waits import NextCheck, WaitEvidence, WaitOwner, WaitReason
 
 
 class Progress(StrEnum):
@@ -43,6 +45,11 @@ class Disposition(StrEnum):
     OBSERVE = "observe"  # an uncertain outcome: look again, spending one attempt
     FAIL = "fail"  # a definite outcome: record it now, with its evidence
     SKIP = "skip"  # not the sweep's to test any more: record the reason now, no verdict
+
+
+class RecoveryReason(StrEnum):
+    UNCERTAIN = "sweep.uncertain_outcome"
+    REQUEST_REFUSED = "sweep.request_refused"
 
 
 # -- vendored published vocabulary (tests/fixtures/sweep-vocabulary.json) -----------
@@ -88,7 +95,8 @@ UNATTRIBUTED = "unattributed"
 WAIT_CLASSES = frozenset({SMOKE_BUSY, CLIENT_CREDENTIAL})
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport
 #: error after its own retries: the cause is uncertain, so it is observed once more.
-OBSERVE_CLASSES = frozenset({"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED})
+SMOKE_TIMEOUT = "smoke-timeout"
+OBSERVE_CLASSES = frozenset({"copy-stalled", "network", SMOKE_TIMEOUT, UNATTRIBUTED})
 #: The Controller reports the lane's application as stalled (``STALLED_CODE``): the lane is
 #: kept with an ``observe`` row that spends no attempt (never through ``disposition``).
 PLATFORM_STALLED = "platform-stalled"
@@ -199,7 +207,16 @@ def download_signal(document: Mapping[str, Any]) -> Signal:
         state,
         children,
     )
-    waiting = f"operation {state}" if state in ("queued", "backoff") else None
+    waiting = (
+        f"operation {state}"
+        if state
+        in (
+            LifecycleState.QUEUED,
+            LifecycleState.BACKOFF,
+            LifecycleState.NEEDS_OPERATOR,
+        )
+        else None
+    )
     return Signal(signature, waiting)
 
 
@@ -216,29 +233,65 @@ def progress_verdict(
     *,
     window: float,
     now: float,
+    check_seconds: float = 60.0,
 ) -> Progress:
-    """PROGRESSING, WAITING or STALLED, remembering the last movement in ``watch``.
+    """Observe progress and retain semantic age during dependency holds.
 
-    ``None`` is an unreadable observation: unknown, so it waits and restarts the window.
-    A wait on the Controller restarts the window too, so it never ages into a stall. Only
-    the work's own silence for a whole ``window`` is ``STALLED``, the one verdict that
-    ends work.
+    An unchanged hold never becomes a recipe verdict. It carries a typed next
+    observation and a reconciliation deadline for the same accepted request.
     """
     signature = _comparable(signal.signature) if signal is not None else None
-    if signal is None or signal.waiting_on is not None:
+    changed = signature is not None and watch.get("signature") != signature
+    if "progressed_at" not in watch or changed:
         watch["progressed_at"] = now
-        watch["waiting_on"] = (
-            signal.waiting_on if signal is not None else "observation unavailable"
-        )
-        if signature is not None:
-            watch["signature"] = signature
-        return Progress.WAITING
-    watch.pop("waiting_on", None)
-    if "progressed_at" not in watch or watch.get("signature") != signature:
+    if signature is not None:
         watch["signature"] = signature
-        watch["progressed_at"] = now
-        return Progress.PROGRESSING
-    if now - float(watch["progressed_at"]) > window:
+    watch["observed_at"] = now
+    if signal is None or signal.waiting_on is not None:
+        detail = signal.waiting_on if signal is not None else "observation unavailable"
+        reason = (
+            WaitReason.CONTROLLER_HELD
+            if signal is not None
+            else WaitReason.OBSERVATION_UNAVAILABLE
+        )
+        previous = watch.get("wait")
+        wait = (
+            WaitEvidence.model_validate(previous)
+            if previous is not None
+            else WaitEvidence(
+                reason=reason,
+                owner=WaitOwner.CONTROLLER,
+                detail=detail or "",
+                first_seen_at=now,
+                last_progress_at=watch["progressed_at"],
+                observed_at=now,
+                next_check_at=now,
+                next_check=NextCheck.OBSERVE_REQUEST,
+                reconcile_at=now + window,
+            )
+        )
+        wait.reason = reason
+        wait.detail = detail or ""
+        wait.last_progress_at = float(watch["progressed_at"])
+        wait.observed_at = now
+        wait.next_check_at = now + check_seconds
+        if changed:
+            wait.reconcile_at = now + window
+        wait.next_check = (
+            NextCheck.RECONCILE_REQUEST
+            if now >= wait.reconcile_at
+            else NextCheck.OBSERVE_REQUEST
+        )
+        watch["waiting_on"] = detail
+        watch["wait"] = wait.model_dump(mode="json", exclude_none=True)
+        return Progress.WAITING
+    if watch.pop("wait", None) is not None:
+        # Own work resumes with a fresh inactivity window, while its real last
+        # progress remains truthful and available for diagnosis.
+        watch["resumed_at"] = now
+    watch.pop("waiting_on", None)
+    baseline = max(float(watch["progressed_at"]), float(watch.get("resumed_at", 0)))
+    if now - baseline > window:
         return Progress.STALLED
     return Progress.PROGRESSING
 
@@ -262,6 +315,10 @@ def disposition(failure: Failure) -> Disposition:
     if failure.klass in WAIT_CLASSES:
         return Disposition.WAIT
     if failure.klass == "capacity":
+        if failure.evidence.get("demand_exceeds_idle_spark") is True:
+            return (
+                Disposition.FAIL
+            )  # deterministic physical demand proof, not retry exhaustion
         # NAS space is a resource prerequisite the collector frees: a wait. A placement
         # refusal may be the recipe not fitting: the fleet is cleared and it is observed.
         return Disposition.WAIT if failure.phase == "download" else Disposition.OBSERVE
@@ -293,7 +350,10 @@ def reply_disposition(reply: Reply | None) -> Disposition:
     if (
         str(document.get("decision") or "") in CLIENT_WAIT_DECISIONS
         or document.get("retryable") is True
-        or any(document.get(name) is not None for name in _HTTP_FIELDS)
+        or (
+            any(document.get(name) is not None for name in _HTTP_FIELDS)
+            and not request_refused(reply)
+        )
         or code not in RECIPE_FAILURE_CODES
     ):
         return Disposition.WAIT
@@ -338,3 +398,8 @@ def retry_ended(document: Mapping[str, Any]) -> bool:
         isinstance(item, Mapping) and item.get("terminal") is True
         for item in failures or []
     )
+
+
+def retry_delay(base: float, attempts: int) -> float:
+    """Counters pace observation, never end uncertain work."""
+    return min(base * 2 ** min(max(0, attempts - 1), 10), 600.0)
