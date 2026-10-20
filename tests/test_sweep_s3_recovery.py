@@ -17,7 +17,6 @@ from urllib.error import HTTPError
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
 from vonk_forge_contracts.sweep import SweepWait, SweepWaitReason
 
 from spark_sweep import policy, verdict
@@ -216,6 +215,7 @@ def test_catalog_read_timeout_does_not_hold_live_observation_or_status(
 
 def test_held_wait_age_and_deadline_survive_json_roundtrips():
     signal = verdict.application_signal(SAVED["held_application"])
+    assert signal.wait is not None
     watch = {}
     for now in (0, 300, 600, 601, 48 * 3600):
         progress = verdict.progress_verdict(signal, watch, window=600, now=now)
@@ -373,8 +373,8 @@ def test_canonical_acceptance_outranks_a_refusal_shaped_lost_reply(tmp_path):
 
 
 def test_lane_supervision_releases_a_stuck_stream_with_the_shared_budget(tmp_path):
-    from concurrent.futures import Future
     import threading
+    from concurrent.futures import Future
 
     recipe = FakeRecipe("a", local="cached")
     sweep, _, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1", local="cached")])
@@ -412,7 +412,9 @@ def test_an_unchanged_held_lane_preserves_its_request_and_publishes_its_age(tmp_
     request = slot["request_key"]
     sweep.state.data["loads"][request]["signal"] = {
         "signature": ["held"],
-        "wait": SweepWait(reason=SweepWaitReason.BLOCKER, detail="dependency").model_dump(mode="json"),
+        "wait": SweepWait(
+            reason=SweepWaitReason.BLOCKER, detail="dependency"
+        ).model_dump(mode="json"),
     }
     first_seen = clock.now()
     sweep._observe_load(slot, first_seen)
@@ -435,7 +437,9 @@ def test_an_unchanged_held_lane_preserves_its_request_and_publishes_its_age(tmp_
     assert all(lane["wait"]["reason"] == SweepWaitReason.OBSERVATION for lane in lanes)
     assert watch["wait_started_at"] == first_seen
     clock.sleep(sweep.cfg.poll_seconds)
-    verdict.progress_verdict(verdict.Signal(("resumed",)), watch, window=600, now=clock.now())
+    verdict.progress_verdict(
+        verdict.Signal(("resumed",)), watch, window=600, now=clock.now()
+    )
     lanes = [lane for items in build_status(sweep)["lanes"].values() for lane in items]
     assert all(lane["waiting_on"] is None and lane["wait"] is None for lane in lanes)
 

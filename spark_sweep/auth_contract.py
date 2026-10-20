@@ -15,7 +15,6 @@ class GatewayAuthType(StrEnum):
     MISSING = "token_not_found_in_db"
 
 
-
 class GatewayError(BaseModel):
     model_config = ConfigDict(strict=True)
 
@@ -35,4 +34,3 @@ class GatewayAuthReply(BaseModel):
         if self.detail is not None:
             return False
         return self.error is not None and self.error.type in set(GatewayAuthType)
-

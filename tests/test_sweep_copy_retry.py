@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
 from vonk_forge_contracts.sweep import SweepWait, SweepWaitReason
 
 from spark_sweep.lifecycle import LifecycleState
@@ -28,7 +27,12 @@ def test_copy_retry_ages_by_real_progress_across_restart(
     load = {
         "copying": True,
         "state": state,
-        "signal": {"signature": [123, "target-copy"], "wait": SweepWait(reason=SweepWaitReason.CONTROLLER_RETRY).model_dump(mode="json")},
+        "signal": {
+            "signature": [123, "target-copy"],
+            "wait": SweepWait(reason=SweepWaitReason.CONTROLLER_RETRY).model_dump(
+                mode="json"
+            ),
+        },
     }
     sweep.state.data["loads"][key] = load
     assert sweep._observe_load(slot, clock.now()) is Progress.PROGRESSING

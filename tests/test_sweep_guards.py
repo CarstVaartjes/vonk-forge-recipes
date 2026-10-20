@@ -654,9 +654,7 @@ def waits_without_evidence(source: str) -> list[int]:
             and _name(item.func) == "update"
             and any(key.arg == "waiting_on" for key in item.keywords)
         ]
-        if writes and not _calls(
-            function, {"SweepWait", "bounded_wait", "progress_verdict", "_wait_slot"}
-        ):
+        if writes and function.name != "bounded_wait":
             bad.extend(item.lineno for item in writes)
     return bad
 
@@ -664,7 +662,7 @@ def waits_without_evidence(source: str) -> list[int]:
 def test_wait_evidence_guard_rejects_free_text_only_holds():
     assert waits_without_evidence("def f(w):\n w['waiting_on'] = 'owner'\n")
     assert not waits_without_evidence(
-        "def f(w):\n progress_verdict(signal, w, now=now, window=600)\n w['waiting_on'] = 'owner'\n"
+        "def bounded_wait(w, wait):\n w.update(wait=wait.model_dump(), waiting_on=wait.description, wait_deadline=600)\n"
     )
 
 

@@ -227,6 +227,7 @@ def test_unavailable_observation_releases_even_during_a_blind_pass(
 def test_expired_stream_stops_on_the_next_heartbeat(monkeypatch) -> None:
     import threading
     from contextlib import contextmanager
+    from types import SimpleNamespace
 
     from spark_sweep import smoke
 
@@ -242,7 +243,8 @@ def test_expired_stream_stops_on_the_next_heartbeat(monkeypatch) -> None:
     @contextmanager
     def response(*_args):
         try:
-            yield heartbeats()
+            lines = heartbeats()
+            yield SimpleNamespace(read1=lambda _size: next(lines, b""))
         finally:
             closed.append(True)
 

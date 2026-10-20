@@ -11,10 +11,9 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-
-from spark_sweep import policy
 from vonk_forge_contracts.sweep import SweepWaitCode, SweepWaitReason
 
+from spark_sweep import policy
 from spark_sweep.auth_contract import SmokeAuthClass
 from spark_sweep.removal_contract import RecipeVerdict
 from spark_sweep.report import build_status

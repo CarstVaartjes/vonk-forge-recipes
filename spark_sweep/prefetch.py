@@ -44,9 +44,9 @@ from .verdict import (
     download_signal,
     progress_verdict,
     reply_disposition,
-    wait_expiry,
     request_refused,
     retry_delay,
+    wait_expiry,
 )
 from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 

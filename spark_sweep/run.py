@@ -2219,6 +2219,7 @@ class Sweep:
         return verdict.progress_verdict(
             signal, watch, window=window, now=now, started_at=float(slot["started_at"])
         )
+
     def _observe_readiness(self, slot: dict[str, Any], now: float) -> Progress:
         """After the load succeeded: the run turning healthy and its route being published.
 
