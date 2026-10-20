@@ -2,7 +2,10 @@ FROM ghcr.io/miaai-lab/deepseek-v4.1-flash-1017-2x-dgx-sparks-tensorfold@sha256:
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks" \
       org.opencontainers.image.revision="75cab1d6047a414f9b8db7a3639fe5a1f98f17dc" \
       org.opencontainers.image.licenses="Apache-2.0 AND MIT" \
-      ai.vonkforge.runtime-interface="v1"
+      ai.vonkforge.runtime-interface="v1" \
+      tf.ref="" tf.patches=""
+# Clear the base image's retired engine/patch labels; kit-lock.json records
+# the exact replacement engine and this image's source revision owns its patches.
 # The creator's README still publishes the previous image; the new measured tags
 # are absent from GHCR. Reuse its exact CUDA/Zig/input-tool stack and rebuild only
 # the serving engine with the kit's current pin and verbatim patch stack.
