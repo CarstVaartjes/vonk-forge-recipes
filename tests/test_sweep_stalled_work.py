@@ -145,7 +145,7 @@ def test_repeated_stalls_never_spend_an_attempt(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, clock, held = _sweep(tmp_path, gateway)
-    for _ in range(sweep.cfg.max_attempts + 1):
+    for _ in range(5):
         _drive(sweep, clock, lambda: _loading(sweep, held.key))
         app = _followed_live(sweep, fleet)
         app["blockers"] = [*app.get("blockers", []), ALARM]
@@ -159,7 +159,7 @@ def test_repeated_stalls_never_spend_an_attempt(
     assert entry.get("attempts", 0) == 0
     assert entry["status"] != "deferred"
     stalls = [r for r in _rows(tmp_path) if r.get("code") == verdict.STALLED_CODE]
-    assert len(stalls) == sweep.cfg.max_attempts + 1
+    assert len(stalls) == 5
 
 
 def test_an_owner_pause_holds_the_re_plan_of_a_preparing_recipe(

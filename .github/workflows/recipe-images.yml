@@ -11,6 +11,9 @@ name: Recipe runtime images
 # ids); it then republishes so the index picks up the new digests. A failed
 # build only means that recipe publishes without a prebuilt image.
 on:
+  # Independent recovery owner; publication tags do not retire missing keys.
+  schedule:
+    - cron: '23 3 * * *'
   workflow_call:
     inputs:
       slugs:
@@ -50,6 +53,7 @@ jobs:
       builds: ${{ steps.select.outputs.builds }}
       build_count: ${{ steps.select.outputs.build_count }}
       copy_count: ${{ steps.select.outputs.copy_count }}
+      deferred_slugs: ${{ steps.select.outputs.deferred_slugs }}
     steps:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -98,7 +102,7 @@ jobs:
       - name: Select missing images
         id: select
         env:
-          SLUGS: ${{ inputs.slugs }}
+          SLUGS: ${{ github.event_name == 'schedule' && 'all' || inputs.slugs }}
         shell: bash
         run: |
           set -euo pipefail
@@ -118,6 +122,7 @@ jobs:
           {
             echo "builds=$(jq -c '[.builds[] | {build_key}]' "$RUNNER_TEMP/selection.json")"
             echo "build_count=$(jq '.builds | length' "$RUNNER_TEMP/selection.json")"
+            echo "deferred_slugs=$(jq -r '.deferred_slugs | join(" ")' "$RUNNER_TEMP/selection.json")"
             echo "copy_count=$(jq '.copies | length' "$RUNNER_TEMP/selection.json")"
           } >> "$GITHUB_OUTPUT"
           {
@@ -318,10 +323,27 @@ jobs:
           path: ${{ runner.temp }}/resolved/prebuilt-images.json
           retention-days: 7
 
+  continue:
+    name: Continue deferred image builds
+    needs: [plan, build, copy, resolve]
+    # Failed builds in this batch must not starve the deferred tail. Each
+    # continuation carries only that tail, independently of the publication tag.
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.deferred_slugs != '' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch the remaining keys
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFERRED: ${{ needs.plan.outputs.deferred_slugs }}
+        run: gh workflow run recipe-images.yml --repo "${{ github.repository }}" --ref "${{ github.ref_name }}" -f slugs="$DEFERRED" -f republish=true
+
   republish:
     name: Republish with the new images
-    needs: [resolve, build, copy]
-    if: ${{ !cancelled() && inputs.republish && needs.resolve.result == 'success' }}
+    needs: [plan, resolve, build, copy]
+    if: ${{ !cancelled() && needs.resolve.result == 'success' && (inputs.republish || (github.event_name == 'schedule' && (needs.plan.outputs.build_count != '0' || needs.plan.outputs.copy_count != '0'))) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

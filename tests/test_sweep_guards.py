@@ -131,6 +131,8 @@ def fixed_caps_ending_work(source: str) -> list[int]:
                 continue
             compares = [c for c in ast.walk(item.test) if isinstance(c, ast.Compare)]
             for compare in compares:
+                if _calls(compare, {"last_progress"}):
+                    continue  # semantic output age, not a total stream duration
                 parts = list(ast.walk(compare))
                 clock = any(
                     _is_clock(p) or (isinstance(p, ast.Name) and p.id in timed)
@@ -215,6 +217,10 @@ FATE_COUNTERS = frozenset(
 )
 #: Counters of the same name that pace a retry or re-plan and never decide a recipe's fate.
 CADENCE = {
+    (
+        "_leave_fleet",
+        "attempts",
+    ): "backoff of a durable final fleet intent; never an exhaustion gate",
     ("cleanup_finished", "attempts"): "backoff exponent of an assignment removal retry",
     (
         "_defer_cleanup",
@@ -504,3 +510,164 @@ def test_verdict_writers_do_not_select_identity_from_the_live_catalog() -> None:
             f"{function.name} must read the frozen record"
         )
     assert checked == writers
+
+
+# -- S3: counters may pace retries, never settle uncertain work ----------------------
+
+
+def count_to_terminal(source: str) -> list[tuple[str, int]]:
+    counters = FATE_COUNTERS | {"rerequests", "max_attempts", "MAX_REREQUESTS"}
+
+    def counted(node):
+        return any(_name(part) in counters for part in ast.walk(node)) or any(
+            isinstance(part, ast.Call)
+            and _name(part.func) == "get"
+            and part.args
+            and isinstance(part.args[0], ast.Constant)
+            and part.args[0].value in counters
+            for part in ast.walk(node)
+        )
+
+    def terminal(node):
+        return bool(_calls(node, ENDING | {"on_failure"})) or any(
+            isinstance(part, ast.Constant)
+            and part.value in ("deferred", "failed", "skipped")
+            for part in ast.walk(node)
+        )
+
+    bad = []
+    for function in _functions(ast.parse(source)):
+        for item in ast.walk(function):
+            if (
+                isinstance(item, ast.Call)
+                and _name(item.func) == "_record_failure"
+                and any(keyword.arg == "final" for keyword in item.keywords)
+            ):
+                bad.append((function.name, item.lineno))
+            if (
+                isinstance(item, ast.If)
+                and counted(item.test)
+                and terminal(function)
+                and (
+                    any(isinstance(part, ast.Return) for part in ast.walk(item))
+                    or terminal(item)
+                )
+            ):
+                # A counted early return also gates later terminal fallthrough.
+                bad.append((function.name, item.lineno))
+            if (
+                isinstance(item, ast.Return)
+                and item.value is not None
+                and counted(item.value)
+                and any(isinstance(part, ast.Compare) for part in ast.walk(item.value))
+            ):
+                bad.append((function.name, item.lineno))
+    return bad
+
+
+def test_count_to_terminal_detector_catches_fallthrough_and_cache_abandonment():
+    assert count_to_terminal(
+        "def f(self, n):\n self._record_failure(failure, final=n > 0)\n"
+    )
+    assert count_to_terminal(
+        "def f(e):\n if e['attempts'] < 2: return\n e.update(status='deferred')\n"
+    )
+    assert count_to_terminal(
+        "def f(e):\n return e.get('rerequests', 0) < MAX_REREQUESTS\n"
+    )
+    assert not count_to_terminal(
+        "def f(e):\n e['next_check'] = now + min(2 ** e['attempts'], 600)\n"
+    )
+
+
+@pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)
+def test_no_sweep_counter_can_terminate_uncertain_work(path):
+    assert count_to_terminal(path.read_text()) == [], str(path)
+
+
+def unowned_stream_reads(source: str) -> list[int]:
+    """Blocking HTTP iteration must have semantic inactivity supervision."""
+    bad = []
+    for function in _functions(ast.parse(source)):
+        for item in ast.walk(function):
+            if (
+                isinstance(item, (ast.For, ast.AsyncFor))
+                and _name(item.iter) == "response"
+            ):
+                bad.append(item.lineno)
+            if (
+                isinstance(item, ast.Call)
+                and _name(item.func) in {"readline", "read1"}
+                and not _calls(function, {"last_progress"})
+            ):
+                bad.append(item.lineno)
+    return bad
+
+
+def test_stream_read_guard_rejects_socket_only_inactivity():
+    assert unowned_stream_reads("def f(response):\n for line in response: pass\n")
+    assert unowned_stream_reads("def f(response):\n return response.readline()\n")
+    assert not unowned_stream_reads(
+        "def f(response):\n if now - last_progress() > window: raise TimeoutError\n return response.read1(64)\n"
+    )
+
+
+@pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)
+def test_blocking_stream_reads_have_semantic_progress_evidence(path):
+    assert unowned_stream_reads(path.read_text()) == [], str(path)
+
+
+def test_wait_record_requires_a_contract_reason_and_finite_expiry_evidence():
+    from pydantic import ValidationError
+    from vonk_forge_contracts.sweep import SweepWait, SweepWaitExpiry, SweepWaitReason
+
+    fields = {
+        "wait": SweepWait(reason=SweepWaitReason.BLOCKER),
+        "started_at": 0,
+        "deadline": 600,
+        "observed_at": 601,
+    }
+    assert SweepWaitExpiry.model_validate(fields).wait.reason is SweepWaitReason.BLOCKER
+    for required in fields:
+        with pytest.raises(ValidationError):
+            SweepWaitExpiry.model_validate(
+                {key: value for key, value in fields.items() if key != required}
+            )
+
+
+def waits_without_evidence(source: str) -> list[int]:
+    bad = []
+    for function in _functions(ast.parse(source)):
+        writes = [
+            item
+            for item in ast.walk(function)
+            if isinstance(item, ast.Assign)
+            and any(
+                isinstance(target, ast.Subscript) and _name(target) == "waiting_on"
+                for target in item.targets
+            )
+        ]
+        writes += [
+            item
+            for item in ast.walk(function)
+            if isinstance(item, ast.Call)
+            and _name(item.func) == "update"
+            and any(key.arg == "waiting_on" for key in item.keywords)
+        ]
+        if writes and not _calls(
+            function, {"SweepWait", "bounded_wait", "progress_verdict", "_wait_slot"}
+        ):
+            bad.extend(item.lineno for item in writes)
+    return bad
+
+
+def test_wait_evidence_guard_rejects_free_text_only_holds():
+    assert waits_without_evidence("def f(w):\n w['waiting_on'] = 'owner'\n")
+    assert not waits_without_evidence(
+        "def f(w):\n progress_verdict(signal, w, now=now, window=600)\n w['waiting_on'] = 'owner'\n"
+    )
+
+
+@pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)
+def test_waits_must_carry_progress_evidence_and_a_typed_next_check(path):
+    assert waits_without_evidence(path.read_text()) == [], str(path)

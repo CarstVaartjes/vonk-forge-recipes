@@ -71,6 +71,8 @@ def test_a_controller_owned_wait_expires_within_its_budget(name: str) -> None:
         is Progress.WAIT_EXPIRED
     )
     assert watch["waiting_on"] == signal.waiting_on
+    assert watch["wait_started_at"] == 0
+    assert watch["wait_deadline"] == 600
 
 
 @pytest.mark.parametrize("name", ["running-silent", "phase-retry"])

@@ -131,11 +131,11 @@ def test_the_limit_still_applies_once_the_bytes_are_in_place(
     )  # the copy first, then the 600 s limit
 
 
-def test_a_copy_that_stops_moving_fails_after_the_stall_window_and_is_retried_once(
+def test_a_copy_stall_keeps_retrying_until_copy_recovery(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     stuck = FakeRecipe("big", copy_seconds=1000, copy_stalls=True)
-    sweep, _, _ = make_sweep(
+    sweep, fleet, clock = make_sweep(
         tmp_path,
         [stuck],
         [FakeModel("m1")],
@@ -143,15 +143,15 @@ def test_a_copy_that_stops_moving_fails_after_the_stall_window_and_is_retried_on
         timeouts=_timeouts(600),
         copy_stall_seconds=600,
     )
+
+    def recover(_now):
+        if sweep.state.recipes.get(stuck.key, {}).get("attempts", 0) >= 4:
+            fleet.recipes[stuck.key].copy_stalls = False
+
+    clock.hooks.append(recover)
     sweep.run()
     entry = _entry(sweep)
-    assert (entry["status"], entry["failure_class"], entry["attempts"]) == (
-        "deferred",
-        "copy-stalled",
-        2,
-    )
-    assert "no progress" in entry["error"] and "target-copy" in entry["error"]
-    assert entry["recovery_basis"] is None  # no fault owner follows from copy-stalled
+    assert entry["status"] == "passed" and entry["attempts"] >= 4
 
 
 def test_an_application_the_controller_holds_back_is_waited_for_not_a_load_timeout(

@@ -143,10 +143,15 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         limit = budget if budget is not None else slot["deadline"] - slot["started_at"]
         # The current phase's own wait; the load's last wait ended with the load.
         watch = (
-            slot.get("smoke_watch")
+            (slot.get("smoke_watch") or {})
             if smoking
-            else slot.get("ready_watch") or slot.get("watch")
-        ) or {}
+            else max(
+                (slot.get("watch") or {}, slot.get("ready_watch") or {}),
+                key=lambda item: float(
+                    item.get("observed_at", item.get("progressed_at", 0))
+                ),
+            )
+        )
         if watch.get("waiting_on"):
             limit = min(limit, float(watch.get("wait_deadline", since + limit)) - since)
         for name in slot.get("spark_names", []):
@@ -158,6 +163,13 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     else slot["phase"],
                     "elapsed_s": round(now - since),
                     "limit_s": round(limit),
+                    "waiting_on": watch.get("waiting_on")
+                    if watch
+                    else slot.get("waiting_on"),
+                    "wait": watch.get("wait"),
+                    "silent_s": round(
+                        max(0.0, now - float(watch.get("progressed_at", now)))
+                    ),
                     "over_budget_s": max(
                         0,
                         round(
@@ -168,7 +180,6 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                             )
                         ),
                     ),
-                    "waiting_on": watch.get("waiting_on") or slot.get("waiting_on"),
                 }
             )
     present = policy.present_models(sweep.models)
@@ -187,6 +198,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
     ready = {k for k in sweep.queue if sweep.ready(sweep.recipes[k])}
     return {
         "updated_at": now,
+        "finalization": data.get("finalization"),
         "paused": sweep.pause_reason or None,
         "mode": data["mode"],
         "counts": counts(data["recipes"]),

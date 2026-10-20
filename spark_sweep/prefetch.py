@@ -25,7 +25,7 @@ from typing import Any
 
 from .catalog import Model, Recipe
 from .identity import AcceptedRequest
-from .lifecycle import TERMINAL, WAITING, LifecycleState, active
+from .lifecycle import TERMINAL, WAITING, LifecycleState, RetestReason, active
 from .policy import (
     Boost,
     Failure,
@@ -39,22 +39,22 @@ from .state import State
 from .verdict import (
     Disposition,
     Progress,
+    RecoveryReason,
     disposition,
     download_signal,
     progress_verdict,
     reply_disposition,
     wait_expiry,
+    request_refused,
+    retry_delay,
 )
-from .vonkctl import Vonkctl, VonkctlError, request_key
+from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 
 TIB = 1024**4
 # The stall window of a download: no bytes, items, phase or last-progress change for this long.
 DOWNLOAD_STALL_SECONDS = 3600.0
 FailureHandler = Callable[[str, Failure, str | None, bool], None]
 DoneHandler = Callable[[str], None]
-MAX_REREQUESTS = (
-    2  # after a success, ask again at most this often when the cache looks empty
-)
 
 
 @dataclass(frozen=True)
@@ -137,6 +137,13 @@ class Prefetcher:
             if reply.is_not_found and not record.get("operation_id"):
                 # Only a canonical absence before any accepted parent permits
                 # replay. Keep the persisted intent and request UUID unchanged.
+                if record.get("refusal"):
+                    refusal = record["refusal"]
+                    record.update(
+                        state=LifecycleState.FAILED, rejection_verified_at=now
+                    )
+                    self._refused(key, record, Reply(reply.argv, 2, refusal, ""))
+                    continue
                 intent = record.get("requested_intent")
                 action: list[str] | None = None
                 if isinstance(intent, Mapping):
@@ -159,6 +166,12 @@ class Prefetcher:
                         "--request-key",
                         str(record["request_key"]),
                     )
+                    if request_refused(reply):
+                        record["refusal"] = reply.document
+                        record["next_check"] = now + min(
+                            self.config.retry_cooldown, 60.0
+                        )
+                        continue  # confirm canonical absence before settling rejection
             document = reply.document
             record["next_check"] = now + min(self.config.retry_cooldown, 60.0)
             watch = record.setdefault("watch", {})
@@ -199,6 +212,9 @@ class Prefetcher:
                 ):
                     continue
                 record["accepted_intent"] = dict(accepted)
+                record.pop(
+                    "refusal", None
+                )  # exact acceptance outranks an earlier CLI error
                 self.on_ok("download")
             if document.get("state") in (
                 LifecycleState.CANCELLED,
@@ -249,7 +265,6 @@ class Prefetcher:
             elif active(record["state"]) and moving is Progress.STALLED:
                 # The work's own progress was silent for a whole window: show it and keep
                 # observing the original request (never cancelled, never replaced).
-                watch["progressed_at"] = now
                 self._retire(key, record, "download.stalled")
             elif active(record["state"]):
                 total_rate += float(speed)
@@ -378,9 +393,11 @@ class Prefetcher:
             record["retry_at"] = self.clock() + self.config.retry_cooldown
             self.state.event(f"download waits: {key}: {failure.klass}")
             return
-        if outcome is Disposition.OBSERVE and not record.get("observe_failures"):
+        if outcome is Disposition.OBSERVE:
             record["observe_failures"] = int(record.get("observe_failures", 0)) + 1
-            record["retry_at"] = self.clock() + self.config.retry_cooldown
+            record["retry_at"] = self.clock() + retry_delay(
+                self.config.retry_cooldown, record["observe_failures"]
+            )
             return
         record.pop("retry_at", None)
         self.on_failure(
@@ -389,6 +406,18 @@ class Prefetcher:
             str(document.get("id") or ""),
             model_child or failure.model_level,
         )
+
+    def _refused(self, key: str, record: dict[str, Any], reply: Reply) -> None:
+        document = reply.document
+        failure = classify(
+            "download",
+            str(document.get("code") or "")
+            if reply_disposition(reply) is Disposition.FAIL
+            else RecoveryReason.REQUEST_REFUSED,
+            str(document.get("detail") or reply.error_text),
+            evidence={"request_key": record["request_key"], "refusal": document},
+        )
+        self.on_failure(key, failure, None, failure.model_level)
 
     def _request(self, recipe: Recipe, kind: str) -> None:
         if self.clock() < self.pause_until:
@@ -458,6 +487,13 @@ class Prefetcher:
                 tolerate=(1, 2),
             )
         except VonkctlError as error:
+            if request_refused(error.reply):
+                rejected = self.state.downloads[recipe.key]
+                rejected["refusal"] = error.reply.document if error.reply else None
+                # A deterministic error is not by itself absence of an accepted
+                # parent. Poll the same UUID first; never replay this refusal.
+                rejected["next_check"] = self.clock()
+                return
             if reply_disposition(error.reply) is Disposition.WAIT:
                 self.on_infra("download", str(error))
                 return
@@ -491,9 +527,7 @@ class Prefetcher:
                 },
             }
             outcome = disposition(failure)
-            if outcome is Disposition.WAIT or (
-                outcome is Disposition.OBSERVE and not record.get("observe_failures")
-            ):
+            if outcome is Disposition.WAIT or (outcome is Disposition.OBSERVE):
                 self.state.downloads[recipe.key]["retry_at"] = (
                     self.clock() + self.config.retry_cooldown
                 )
@@ -670,6 +704,28 @@ class Prefetcher:
         record = self.state.downloads.get(recipe.key)
         if record is None:
             return True
+        accepted = AcceptedRequest.read(record)
+        if record.get("refusal"):
+            # Proven rejection created no remote parent; a changed document may
+            # re-plan immediately, but the unchanged intent is settled with proof.
+            return (
+                record.get("rejection_verified_at") is not None
+                and accepted is not None
+                and (
+                    accepted.recipe.content_sha256 != recipe.content_sha256
+                    or (
+                        isinstance(
+                            retest := self.state.entry(recipe.key).get("retest"),
+                            Mapping,
+                        )
+                        and retest.get("reason") == RetestReason.OPERATOR
+                        and retest.get("at")
+                        != self.state.entry(recipe.key).get(
+                            "download_retest_consumed_at"
+                        )
+                    )
+                )
+            )
         if active(record.get("state")) and record.get("state") != "retired":
             return False
         if recipe.cache_ready:
@@ -706,12 +762,11 @@ class Prefetcher:
             return now >= float(record.get("retry_at", 0))
         if record.get("state") == "succeeded":
             # A finished download stands. Ask again only if a library read made *after*
-            # it still says the cache is empty (evicted), and only a couple of times: a
-            # lagging listing must never turn into a download loop.
+            # it still says the cache is empty (evicted). Fresh evidence, not a count,
+            # authorizes recovery; the cooldown bounds lagging-listing churn.
             done_at = float(record.get("done_at", now))
             return (
                 recipe.local == "not_cached"
-                and int(record.get("rerequests", 0)) < MAX_REREQUESTS
                 and now - done_at > 600
                 and self.library_fresh_since > done_at
             )
@@ -735,9 +790,9 @@ class Prefetcher:
             and retest.get("at") != entry.get("download_retest_consumed_at")
             and retest.get("reason")
             in (
-                "scheduled-retest",
-                "observed-fault-owner-changed",
-                "operator: --retry-failed",
+                RetestReason.SCHEDULED,
+                RetestReason.OWNER_CHANGED,
+                RetestReason.OPERATOR,
             )
             and entry.get("content_sha256") == recipe.content_sha256
         )

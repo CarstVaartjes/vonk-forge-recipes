@@ -28,8 +28,8 @@ from vonk_forge_contracts.sweep import (
     SweepWaitReason,
 )
 
-from .lifecycle import LifecycleState
 from .auth_contract import SmokeAuthClass
+from .lifecycle import LifecycleState
 from .policy import CLIENT_CREDENTIAL, RECIPE_FAILURE_CODES, Failure, activity
 from .vonkctl import Reply
 
@@ -41,6 +41,11 @@ class Disposition(StrEnum):
     OBSERVE = "observe"  # an uncertain outcome: look again, spending one attempt
     FAIL = "fail"  # a definite outcome: record it now, with its evidence
     SKIP = "skip"  # not the sweep's to test any more: record the reason now, no verdict
+
+
+class RecoveryReason(StrEnum):
+    UNCERTAIN = "sweep.uncertain_outcome"
+    REQUEST_REFUSED = "sweep.request_refused"
 
 
 # -- vendored published vocabulary (tests/fixtures/sweep-vocabulary.json) -----------
@@ -88,7 +93,8 @@ WAIT_CLASSES = frozenset(
 )
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport
 #: error after its own retries: the cause is uncertain, so it is observed once more.
-OBSERVE_CLASSES = frozenset({"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED})
+SMOKE_TIMEOUT = "smoke-timeout"
+OBSERVE_CLASSES = frozenset({"copy-stalled", "network", SMOKE_TIMEOUT, UNATTRIBUTED})
 #: The Controller reports the lane's application as stalled (``STALLED_CODE``): the lane is
 #: kept with an ``observe`` row that spends no attempt (never through ``disposition``).
 PLATFORM_STALLED = "platform-stalled"
@@ -241,6 +247,7 @@ def bounded_wait(
     )
     deadline = min(float(watch.get("wait_deadline", since + window)), since + window)
     watch.update(
+        observed_at=now,
         wait=wait.model_dump(mode="json"),
         waiting_on=wait.description,
         wait_deadline=deadline,
@@ -276,7 +283,9 @@ def progress_verdict(
             now=now,
             started_at=started_at,
         )
+    watch["observed_at"] = now
     watch.pop("waiting_on", None)
+    watch.pop("wait", None)
     if "progressed_at" not in watch or watch.get("signature") != signature:
         watch["signature"] = signature
         watch["progressed_at"] = now
@@ -305,6 +314,10 @@ def disposition(failure: Failure) -> Disposition:
     if failure.klass in WAIT_CLASSES:
         return Disposition.WAIT
     if failure.klass == "capacity":
+        if failure.evidence.get("demand_exceeds_idle_spark") is True:
+            return (
+                Disposition.FAIL
+            )  # deterministic physical demand proof, not retry exhaustion
         # NAS space is a resource prerequisite the collector frees: a wait. A placement
         # refusal may be the recipe not fitting: the fleet is cleared and it is observed.
         return Disposition.WAIT if failure.phase == "download" else Disposition.OBSERVE
@@ -336,7 +349,10 @@ def reply_disposition(reply: Reply | None) -> Disposition:
     if (
         str(document.get("decision") or "") in CLIENT_WAIT_DECISIONS
         or document.get("retryable") is True
-        or any(document.get(name) is not None for name in _HTTP_FIELDS)
+        or (
+            any(document.get(name) is not None for name in _HTTP_FIELDS)
+            and not request_refused(reply)
+        )
         or code not in RECIPE_FAILURE_CODES
     ):
         return Disposition.WAIT
@@ -381,3 +397,8 @@ def retry_ended(document: Mapping[str, Any]) -> bool:
         isinstance(item, Mapping) and item.get("terminal") is True
         for item in failures or []
     )
+
+
+def retry_delay(base: float, attempts: int) -> float:
+    """Counters pace observation, never end uncertain work."""
+    return min(base * 2 ** min(max(0, attempts - 1), 10), 600.0)

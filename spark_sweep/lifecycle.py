@@ -38,3 +38,19 @@ def active(state: object) -> bool:
     return not isinstance(state, str) or (
         state not in TERMINAL and state not in WAITING
     )
+
+
+class RecipeStatus(StrEnum):
+    """Local qualification outcomes, distinct from a Controller operation receipt."""
+
+    PENDING = "pending"
+    PASSED = "passed"
+    FAILED = "failed"
+    DEFERRED = "deferred"
+    SKIPPED = "skipped"
+
+
+class RetestReason(StrEnum):
+    OPERATOR = "operator: --retry-failed"
+    SCHEDULED = "scheduled-retest"
+    OWNER_CHANGED = "observed-fault-owner-changed"
