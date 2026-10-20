@@ -1,0 +1,15 @@
+{
+  "id": "old",
+  "current_operation_id": null,
+  "state": "queued",
+  "progress": {
+    "admission_pending": true,
+    "effects": [],
+    "blockers": [{
+      "code": "storage.insufficient_after_eviction",
+      "node_ids": ["spk_a"],
+      "detail": "Fresh inventory still cannot cover the demand.",
+      "storage": {"required_free_bytes": 264079786892, "available_bytes": 107716780032, "reclaimable_bytes": 0}
+    }]
+  }
+}
