@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CleanupEndReason(StrEnum):
@@ -63,3 +63,35 @@ class InfrastructureIncident(BaseModel):
     until: float = 0.0
     dependency: str | None = None
     escalate_at: float | None = None
+
+
+class SweepStorageEvidence(BaseModel):
+    required_free_bytes: int = Field(ge=0)
+    available_bytes: int = Field(ge=0)
+    reclaimable_bytes: int = Field(ge=0)
+
+
+class SweepAdmissionBlocker(BaseModel):
+    node_ids: list[str]
+    detail: str
+    storage: SweepStorageEvidence | None = None
+
+
+class SweepAdmissionEffect(BaseModel):
+    """Only presence is needed; an accepted effect prevents local retirement."""
+
+
+class SweepPendingAdmission(BaseModel):
+    admission_pending: bool
+    effects: list[SweepAdmissionEffect]
+    blockers: list[SweepAdmissionBlocker]
+
+    @property
+    def storage_wait_nodes(self) -> set[str]:
+        return {
+            node
+            for blocker in self.blockers
+            if blocker.storage is not None
+            and blocker.storage.required_free_bytes > blocker.storage.available_bytes
+            for node in blocker.node_ids
+        }

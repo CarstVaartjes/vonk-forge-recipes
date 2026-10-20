@@ -116,17 +116,15 @@ def test_a_hold_is_waited_for_and_every_recipe_then_passes(tmp_path, gateway) ->
 def test_the_ready_recipes_are_released_early_and_pass(tmp_path, gateway) -> None:
     sweep, _, _ = _make_held(tmp_path, gateway, release=60, blocked_for=3000)
     sweep.run()
-    # Re-planned without the preparing recipe: the others ran in one load, and the held
-    # one waited for its preparation (no attempt, no verdict) and passed afterwards.
-    assert "released" in _events(sweep)
+    # Independent applications let the healthy recipes finish before preparation
+    # ends; the held recipe keeps its own attempt and later passes.
     assert _status(sweep, "good1")["status"] == "passed"
     assert _status(sweep, "good2")["status"] == "passed"
     bad = _status(sweep, "bad")
     assert bad["status"] == "passed" and bad["attempts"] == 1
-    rows = [r for r in sweep.log.entries() if r["recipe"] == "vonk-forge/bad"]
-    assert any(
-        r["step"] == "requeue" and "waiting on its preparation" in r["reason"]
-        for r in rows
+    assert all(
+        _status(sweep, key)["finished_at"] < bad["finished_at"]
+        for key in ("good1", "good2")
     )
 
 

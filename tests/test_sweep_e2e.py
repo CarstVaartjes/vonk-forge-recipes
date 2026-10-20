@@ -76,14 +76,14 @@ def test_lanes_run_in_parallel_one_per_spark(tmp_path: Path, gateway: Gateway) -
     assert any(
         len(snapshot) == 2 and snapshot[0][0] != snapshot[1][0] for snapshot in seen
     )
-    # One accepted load carried both lanes; final stop has its own required review.
+    # Each lane has a separate admission receipt; final stop has its own review.
     writes = [
         c[1]
         for p, c in fleet.calls
         if p == 10 and c[0] == "profile" and c[1] in ("add", "remove", "load")
     ]
     first_load = writes.index("load")
-    assert writes[:first_load].count("add") == 2
+    assert writes[:first_load].count("add") == 1
     loads = [c for p, c in fleet.calls if p == 10 and c[:2] == ("profile", "load")]
-    assert len([c for c in loads if "--review" in c]) == 2
-    assert len([c for c in loads if "--yes" in c]) == 2
+    assert len([c for c in loads if "--review" in c]) == 3
+    assert len([c for c in loads if "--yes" in c]) == 3
