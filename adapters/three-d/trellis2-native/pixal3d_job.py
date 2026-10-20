@@ -257,7 +257,9 @@ def main() -> None:
     glb.apply_transform(rotation)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     temporary = args.output_dir / ".output.tmp.glb"
-    glb.export(temporary, extension_webp=True)
+    from glb_export import export_webp_glb
+
+    export_webp_glb(glb, temporary)
     _publish_glb(temporary, args.output_dir / "output.glb")
 
 

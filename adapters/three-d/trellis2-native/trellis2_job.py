@@ -143,7 +143,9 @@ def main() -> None:
         )
         args.output_dir.mkdir(parents=True, exist_ok=True)
         temporary = args.output_dir / ".output.tmp.glb"
-        glb.export(temporary, extension_webp=True)
+        from glb_export import export_webp_glb
+
+        export_webp_glb(glb, temporary)
         normalize_glb_json_padding(temporary)
         try:
             validate_mesh_glb(temporary, profile="textured-pbr")
