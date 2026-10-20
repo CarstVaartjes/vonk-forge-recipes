@@ -480,3 +480,24 @@ def test_testable_is_decided_from_enrolled_sparks_only() -> None:
     run = (ROOT / "spark_sweep/run.py").read_text()
     assert online_reads(run, TOPOLOGY) == []
     assert online_reads((ROOT / "spark_sweep/cli.py").read_text()) == []
+
+
+def test_verdict_writers_do_not_select_identity_from_the_live_catalog() -> None:
+    tree = ast.parse((ROOT / "spark_sweep/run.py").read_text())
+    writers = {"_record_pass", "_record_failure", "_facts", "_download_done"}
+    checked = set()
+    for function in _functions(tree):
+        if function.name not in writers:
+            continue
+        checked.add(function.name)
+        assert not any(
+            isinstance(node, ast.Attribute)
+            and isinstance(node.value, ast.Name)
+            and node.value.id == "self"
+            and node.attr == "recipes"
+            for node in ast.walk(function)
+        ), f"{function.name} must take accepted identity from the lane/download record"
+        assert _calls(function, {"read"}), (
+            f"{function.name} must read the frozen record"
+        )
+    assert checked == writers

@@ -330,3 +330,157 @@ def test_watch_retests_after_bounded_cooldown_without_new_release_or_recipe(
     assert len(requeues) == 1
     assert requeues[0]["reason"] == "scheduled-retest"
     assert requeues[0]["previous"]["status"] == "deferred"
+
+
+@pytest.mark.parametrize("phase", ["loading", "smoking"])
+@pytest.mark.parametrize("restart", [False, True])
+def test_catalog_change_during_lane_keeps_the_verdict_bound_to_accepted_content(
+    tmp_path: Path, phase: str, restart: bool
+) -> None:
+    from dataclasses import replace
+
+    from spark_sweep import policy
+
+    fake = FakeRecipe("changing", local="cached", adapter="readiness")
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [fake], [FakeModel("m1", local="cached")]
+    )
+    sweep.refresh_catalog()
+    accepted = sweep.recipes[fake.key]
+    sweep._open_slot(
+        policy.Placement(accepted, ("spk_a",)), "accepted-request", clock.now()
+    )
+    slot = sweep.state.slots[fake.key]
+    slot.update(phase=phase, ready_at=clock.now(), run_id="accepted-run")
+    sweep.state.save()
+    if restart:
+        sweep, _, _ = make_sweep(tmp_path, [fake], [], fleet=fleet)
+        sweep.refresh_catalog()
+        slot = sweep.state.slots[fake.key]
+    sweep.recipes[fake.key] = replace(
+        accepted,
+        content_sha256="c2",
+        revision_id="rev-c2",
+        model_digests=("m2",),
+    )
+    sweep._submit_smoke(fake.key, slot)
+    sweep._advance_smoking(fake.key, slot)
+    assert sweep.state.entry(fake.key)["content_sha256"] == accepted.content_sha256
+    row = next(
+        row for row in _lines(tmp_path / "results.jsonl") if row["status"] == "passed"
+    )
+    assert row["content_sha256"] == accepted.content_sha256
+    assert row["recipe_revision_id"] == accepted.revision_id
+    assert row["run_id"] == "accepted-run"
+    assert row["library_commit"] == "lib-commit-1"
+    sweep._reconcile_entry(sweep.recipes[fake.key], 2)
+    entry = sweep.state.entry(fake.key)
+    assert entry["status"] == "pending"
+    assert entry["previous"]["content_sha256"] == accepted.content_sha256
+
+
+@pytest.mark.parametrize("bound", [False, True])
+def test_saved_lane_fixture_never_certifies_the_catalog_at_restart(
+    tmp_path: Path, bound: bool
+) -> None:
+    from spark_sweep.identity import IdentityReason
+
+    fixture = Path(__file__).parent / "fixtures/sweep-accepted-content-state.json"
+    saved = json.loads(fixture.read_text())
+    key = "vonk-forge/changing"
+    if not bound:
+        saved["slots"][key].pop("accepted_content")
+    (tmp_path / "state.json").write_text(json.dumps(saved))
+    fake = FakeRecipe("changing", content="c2", local="cached", adapter="readiness")
+    sweep, fleet, _ = make_sweep(tmp_path, [fake], [FakeModel("m1", local="cached")])
+    sweep.refresh_catalog()
+    slot = sweep.state.slots[key]
+    sweep._submit_smoke(key, slot)
+    if bound:
+        sweep._advance_smoking(key, slot)
+    rows = _lines(tmp_path / "results.jsonl")
+    passed = [row for row in rows if row["status"] == "passed"]
+    assert [row["content_sha256"] for row in passed] == (["c1"] if bound else [])
+    assert sweep.state.entry(key)["status"] == "pending"
+    assert slot["phase"] == "finished"
+    if bound:
+        assert passed[0]["library_commit"] == "accepted-library"
+        assert passed[0]["run_id"] == "saved-run"
+    else:
+        assert rows[-1]["reason"] == IdentityReason.UNBOUND
+    assert not [call for _, call in fleet.calls if call[:2] == ("fleet", "cancel")]
+
+
+def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
+    tmp_path: Path,
+) -> None:
+    from dataclasses import replace
+
+    from spark_sweep import policy
+
+    fake = FakeRecipe("changing", local="cached")
+    sweep, _, clock = make_sweep(tmp_path, [fake], [FakeModel("m1", local="cached")])
+    sweep.refresh_catalog()
+    accepted = sweep.recipes[fake.key]
+    sweep._open_slot(
+        policy.Placement(accepted, ("spk_a",)), "accepted-request", clock.now()
+    )
+    sweep.recipes[fake.key] = replace(
+        accepted, content_sha256="c2", revision_id="rev-c2"
+    )
+    sweep._record_failure(
+        fake.key,
+        policy.classify("start", fake.fail_code, "injected failure"),
+        None,
+        final=True,
+    )
+    row = next(
+        row for row in _lines(tmp_path / "results.jsonl") if row["step"] == "smoke"
+    )
+    assert row["content_sha256"] == accepted.content_sha256
+    assert row["recipe_revision_id"] == accepted.revision_id
+    assert row["request_key"] == "accepted-request"
+    assert row["model_digests"] == ["m1"]
+    entry = sweep.state.entry(fake.key)
+    assert entry["status"] == "pending"
+    assert entry["previous"]["content_sha256"] == accepted.content_sha256
+
+
+def test_smoke_submission_uses_the_accepted_adapter_and_checks(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from concurrent.futures import Future
+    from dataclasses import replace
+
+    from spark_sweep import policy
+
+    fake = FakeRecipe("changing", local="cached")
+    sweep, _, clock = make_sweep(tmp_path, [fake], [FakeModel("m1", local="cached")])
+    sweep.refresh_catalog()
+    accepted = sweep.recipes[fake.key]
+    sweep._open_slot(
+        policy.Placement(accepted, ("spk_a",)), "accepted-request", clock.now()
+    )
+    slot = sweep.state.slots[fake.key]
+    sweep.recipes[fake.key] = replace(
+        accepted, content_sha256="c2", adapter="readiness"
+    )
+    submitted = []
+
+    class Executor:
+        def submit(self, fn, *args):
+            submitted.append(args[0])
+            return Future()
+
+    sweep.executor = Executor()
+    monkeypatch.setattr(
+        sweep.vk,
+        "call",
+        lambda *args, **kwargs: {
+            "assignments": [
+                {"alias": slot["alias"], "endpoint": {"api_base": "http://fake"}}
+            ]
+        },
+    )
+    sweep._submit_smoke(fake.key, slot)
+    assert submitted == [accepted]
