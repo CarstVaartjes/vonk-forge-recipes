@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import subprocess
 from pathlib import Path
+from typing import NamedTuple
+
+import numpy as np
 
 import torch
 from diffusers import HunyuanVideo15ImageToVideoPipeline, HunyuanVideo15Pipeline
@@ -68,7 +72,73 @@ def _one_image(path: Path) -> Image.Image:
         return image.convert("RGB")
 
 
-def _validate_video(path: Path, resolution: int) -> None:
+class FrameMetrics(NamedTuple):
+    frames: int
+    shape: tuple[int, ...]
+    mean_luminance: float | None
+    nan_count: int
+    inf_count: int
+    black_frames: int
+
+
+def _frame_metrics(frames: np.ndarray) -> FrameMetrics:
+    # Inspect floats before export_to_video casts them to uint8 and erases NaNs.
+    nan_count = inf_count = black_frames = 0
+    luminance = 0.0
+    rgb_video = frames.ndim == 4 and frames.shape[-1] == 3
+    for frame in frames:
+        nan_count += int(np.count_nonzero(np.isnan(frame)))
+        inf_count += int(np.count_nonzero(np.isinf(frame)))
+        # Match the exporter's float-to-uint8 quantization.
+        black_frames += int(np.all(frame < 1 / 255))
+        if rgb_video and np.isfinite(frame).all():
+            luminance += sum(
+                float(frame[..., channel].mean(dtype=np.float64)) * weight
+                for channel, weight in enumerate((0.2126, 0.7152, 0.0722))
+            )
+    return FrameMetrics(
+        len(frames),
+        tuple(frames.shape),
+        luminance / len(frames)
+        if rgb_video and len(frames) and not (nan_count or inf_count)
+        else None,
+        nan_count,
+        inf_count,
+        black_frames,
+    )
+
+
+def _video_error(
+    path: Path,
+    expected_size: tuple[int, int],
+    metrics: FrameMetrics,
+    reason: str,
+    probe: str = "unavailable",
+) -> SystemExit:
+    reason = reason.replace("\n", "\\n")
+    return SystemExit(
+        "Diffusers produced an invalid 121-frame MP4 artifact: "
+        f"{reason}; expected_size={expected_size}, fps=24, "
+        f"bytes={path.stat().st_size if path.is_file() else 0}; "
+        f"source={json.dumps(metrics._asdict(), allow_nan=False)}; probe={probe}"
+    )
+
+
+def _expected_size(pipe, image: Image.Image | None) -> tuple[int, int]:
+    # '480p'/'720p' identify area buckets, not a mandatory short edge. Use the
+    # pinned pipeline's own aspect-ratio selection for I2V and T2V alike.
+    width, height = image.size if image is not None else pipe.default_aspect_ratio
+    height, width = pipe.video_processor.calculate_default_height_width(
+        height=height, width=width, target_size=pipe.target_size
+    )
+    return width, height
+
+
+def _validate_video(
+    path: Path,
+    expected_size: tuple[int, int],
+    metrics: FrameMetrics,
+) -> None:
     command = [
         "ffprobe",
         "-v",
@@ -77,11 +147,12 @@ def _validate_video(path: Path, resolution: int) -> None:
         "-select_streams",
         "v:0",
         "-show_entries",
-        "stream=codec_type,width,height,nb_read_frames:format=format_name,duration",
+        "stream=codec_type,codec_name,pix_fmt,width,height,nb_read_frames,avg_frame_rate:format=format_name,duration",
         "-of",
         "json",
         str(path),
     ]
+    probe = "unavailable"
     try:
         completed = subprocess.run(
             command,
@@ -90,7 +161,10 @@ def _validate_video(path: Path, resolution: int) -> None:
             text=True,
             timeout=120,
         )
+        probe = completed.stdout[:4000].replace("\n", "")
         document = json.loads(completed.stdout)
+        if not isinstance(document, dict):
+            raise TypeError("ffprobe inventory is not an object")
         streams = document.get("streams")
         stream = streams[0] if isinstance(streams, list) and len(streams) == 1 else None
         container = document.get("format")
@@ -103,23 +177,65 @@ def _validate_video(path: Path, resolution: int) -> None:
         formats = str(container["format_name"]).split(",")
         if (
             stream.get("codec_type") != "video"
+            or stream.get("codec_name") != "h264"
+            or stream.get("pix_fmt") != "yuv420p"
             or "mp4" not in formats
-            or min(width, height) != resolution
+            or (width, height) != expected_size
             or frames != 121
-            or duration <= 0
+            or stream.get("avg_frame_rate") != "24/1"
+            or not math.isfinite(duration)
+            or abs(duration - 121 / 24) > 1 / 24
+            or path.stat().st_size == 0
         ):
             raise ValueError("unexpected MP4 stream contract")
+        if completed.stderr:
+            raise ValueError(f"ffprobe decode errors: {completed.stderr[:2000]}")
     except (
-        FileNotFoundError,
+        OSError,
         KeyError,
         TypeError,
         ValueError,
-        json.JSONDecodeError,
         subprocess.SubprocessError,
     ) as error:
-        raise SystemExit(
-            "Diffusers produced an invalid 121-frame MP4 artifact"
+        stderr = getattr(error, "stderr", None)
+        raise _video_error(
+            path,
+            expected_size,
+            metrics,
+            f"{type(error).__name__}: {error}; stderr={str(stderr)[:2000]}",
+            probe,
         ) from error
+
+
+def _write_video(
+    frames: np.ndarray, directory: Path, expected_size: tuple[int, int]
+) -> None:
+    metrics = _frame_metrics(frames)
+    directory.mkdir(parents=True, exist_ok=True)
+    temporary = directory / ".output.tmp.mp4"
+    try:
+        if (
+            metrics.shape != (121, expected_size[1], expected_size[0], 3)
+            or metrics.nan_count
+            or metrics.inf_count
+            or metrics.black_frames == metrics.frames
+        ):
+            raise _video_error(
+                temporary, expected_size, metrics, "invalid decoded RGB frames"
+            )
+        # Native buckets are multiples of 16; avoid imageio silently resizing.
+        export_to_video(frames, temporary, fps=24, macro_block_size=1)
+        _validate_video(temporary, expected_size, metrics)
+        os.replace(temporary, directory / "output.mp4")
+    except SystemExit:
+        temporary.unlink(missing_ok=True)
+        raise
+    except Exception as error:
+        diagnostic = _video_error(
+            temporary, expected_size, metrics, f"{type(error).__name__}: {error}"
+        )
+        temporary.unlink(missing_ok=True)
+        raise diagnostic from error
 
 
 def _variant(pipeline: str, resolution: int, steps: int, guidance: float) -> str:
@@ -204,17 +320,9 @@ def main() -> None:
     if args.pipeline == "image-to-image":
         call["image"] = image
 
-    frames = pipe(**call).frames[0]
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    temporary = args.output_dir / ".output.tmp.mp4"
-    output = args.output_dir / "output.mp4"
-    export_to_video(frames, temporary, fps=24)
-    try:
-        _validate_video(temporary, args.resolution)
-    except SystemExit:
-        temporary.unlink(missing_ok=True)
-        raise
-    os.replace(temporary, output)
+    expected_size = _expected_size(pipe, image)
+    frames = pipe(**call, output_type="np").frames[0]
+    _write_video(frames, args.output_dir, expected_size)
 
 
 if __name__ == "__main__":
