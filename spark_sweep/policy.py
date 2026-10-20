@@ -239,6 +239,8 @@ class SparkBin:
     # An exact installed revision hints at runtime reuse; base images do not.
     installed_revisions: frozenset[str] = frozenset()
 
+    disk_blocked_recipes: frozenset[str] = frozenset()
+
     def holds_models(self, recipe: Recipe) -> bool:
         return bool(recipe.model_set) and recipe.model_set <= self.model_digests
 
@@ -255,6 +257,8 @@ def never_fits(recipe: Recipe, capacity: int, reserve: int) -> bool:
 
 
 def _fits(recipe: Recipe, spark: SparkBin, reserve: int, alias: str) -> bool:
+    if recipe.key in spark.disk_blocked_recipes:
+        return False
     if spark.used or spark.aliases:
         return False  # a single recipe owns its Spark for the entire attempt
     if alias in spark.aliases:
@@ -328,7 +332,7 @@ def place_dual(
         return None
     for recipe in candidates:
         if recipe.node_count == 2 and all(
-            recipe.memory_bytes + reserve <= b.capacity for b in bins[:2]
+            _fits(recipe, b, reserve, "") for b in bins[:2]
         ):
             return Placement(recipe, tuple(b.id for b in bins[:2]))
     return None

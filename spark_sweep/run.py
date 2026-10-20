@@ -35,6 +35,8 @@ from vonk_forge_contracts.sweep import (
     CleanupObservationBudget,
     FleetOnlineState,
     InfrastructureIncident,
+    SweepStorageReview,
+    SweepStorageWait,
 )
 
 from . import cleanup, memory, policy, recovery, verdict
@@ -2806,6 +2808,16 @@ class Sweep:
                     for digest in by_revision[revision].model_digests
                 ),
                 installed_revisions=s.installed_revisions,
+                disk_blocked_recipes=frozenset(
+                    key
+                    for key, entry in self.state.data["recipes"].items()
+                    if entry.get("storage_wait") is not None
+                    and (wait := SweepStorageWait.model_validate(entry["storage_wait"]))
+                    and key in self.recipes
+                    and self.recipes[key].content_sha256 == wait.content_sha256
+                    and self.clock.now() < wait.next_check
+                    and s.id in wait.node_ids
+                ),
             )
             for s in self.sparks()
         }
@@ -3051,7 +3063,9 @@ class Sweep:
             head = candidates[0]
             width = head.node_count
             spark_ids = tuple(b.id for b in bins[:width])
-            if len(spark_ids) == width:
+            if len(spark_ids) == width and all(
+                head.key not in b.disk_blocked_recipes for b in bins[:width]
+            ):
                 placements = [policy.Placement(head, spark_ids)]
         if placements:
             self._apply(placements, now)
@@ -3786,6 +3800,44 @@ class Sweep:
             self.note_infra(
                 "review", "observing unchanged loading effects before overlap"
             )
+            return
+        # The Controller's disk decision includes reservations, reused objects
+        # and evictable installations. Preparation being waitable cannot turn
+        # a proven storage shortfall into a placement on that Spark.
+        storage_reasons = SweepStorageReview.model_validate(document).insufficient
+        storage_blocked = [
+            p
+            for p in added
+            if any(set(p.spark_ids) & set(r.node_ids) for r in storage_reasons)
+        ]
+        if storage_blocked:
+            self._rollback(
+                storage_blocked, "storage does not fit after eviction: re-planning"
+            )
+            for placement in storage_blocked:
+                entry = self.state.entry(placement.recipe.key)
+                entry["storage_wait"] = SweepStorageWait(
+                    reasons=[
+                        r
+                        for r in storage_reasons
+                        if set(r.node_ids) & set(placement.spark_ids)
+                    ],
+                    content_sha256=placement.recipe.content_sha256,
+                    next_check=now + self.cfg.defer_delay,
+                ).model_dump(mode="json")
+                entry.pop("not_before", None)
+                self.record_result(
+                    placement.recipe.key,
+                    "review",
+                    "waiting",
+                    reason="; ".join(r.detail for r in storage_reasons),
+                    disposition=Disposition.WAIT.value,
+                    document=document,
+                )
+            self.state.save()
+            remaining = [p for p in added if p not in storage_blocked]
+            if remaining:
+                self._apply(remaining, now)
             return
         if not (
             document.get("allowed") is True
