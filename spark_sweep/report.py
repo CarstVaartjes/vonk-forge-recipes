@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 from . import policy
 from .evidence_contract import read_result
+from .identity import recorded_identity
 from .lifecycle import ACTIVE
 from .removal_contract import RecipeVerdict
 from .state import write_atomic
@@ -238,6 +239,9 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             for k in sweep.queue[:15]
         ],
         "queue_length": len(sweep.queue),
+        "verdict_identities": {
+            key: entry.get("verdict_identity") for key, entry in data["recipes"].items()
+        },
         "downloads": {
             "in_flight": [
                 {
@@ -402,6 +406,10 @@ def render_status(status: Mapping[str, Any]) -> str:
         ]
     if status["events"]:
         lines += ["", "## Recent"] + [f"- {m}" for m in status["events"]]
+    if status.get("verdict_identities"):
+        lines += ["", "## Verdict content identities"]
+        for key, value in sorted(status["verdict_identities"].items()):
+            lines.append(f"- {key}: `{json.dumps(value, sort_keys=True)}`")
     return "\n".join(lines) + "\n"
 
 
@@ -426,6 +434,7 @@ def build_report(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
                 "ttft_ms": perf.ttft_ms,
                 "tokens_per_second": perf.tokens_per_second,
                 "content_sha256": entry.get("content_sha256"),
+                "verdict_identity": entry.get("verdict_identity"),
                 "evidence": policy.evidence_of(entry) or None,
                 "evidence_bundle": entry.get("evidence_bundle"),
                 "quality": [
@@ -488,6 +497,19 @@ def render_report(report: Mapping[str, Any]) -> str:
             lines.append(
                 f"- {len(cluster['recipes'])} x `{cluster['signature']}`: {', '.join(cluster['recipes'][:6])}"
             )
+    lines += ["", "## Verdict content identities"]
+    for row in report["recipes"]:
+        identity = recorded_identity(row)
+        image = identity.runtime_image if identity is not None else None
+        lines.append(
+            f"- {row['recipe']}: recipe `{row['content_sha256']}`; "
+            + (
+                f"image `{image.image_digest}`; build `{image.build_key}`"
+                if image is not None
+                else "unknown image"
+            )
+            + (f"; models {', '.join(identity.model_digests)}" if identity else "")
+        )
     noted = [r for r in report["recipes"] if r.get("quality")]
     if noted:
         lines += ["", "## Quality notes (the recipe ran; information, not failures)"]
@@ -526,9 +548,9 @@ def write_status(sweep: Sweep, final: bool = False) -> None:
 def export_evidence(
     entries: Iterable[Mapping[str, Any]], out_dir: Path, known_recipes: Iterable[str]
 ) -> list[Path]:
-    """One ``<slug>.jsonl`` per recipe: the latest recorded outcome for each recipe document digest."""
+    """One ``<slug>.jsonl`` per recipe: the latest outcome per full content identity."""
     known = set(known_recipes)
-    latest: dict[tuple[str, str], Mapping[str, Any]] = {}
+    latest: dict[tuple[str, str, str], Mapping[str, Any]] = {}
     for entry in entries:
         recipe, digest = entry.get("recipe"), entry.get("content_sha256")
         if (
@@ -537,9 +559,12 @@ def export_evidence(
             and isinstance(digest, str)
             and recipe in known
         ):
-            latest[(recipe, digest)] = entry
+            identity = recorded_identity(entry)
+            latest[(recipe, digest, identity.model_dump_json() if identity else "")] = (
+                entry
+            )
     by_recipe: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
-    for (recipe, _), entry in sorted(
+    for (recipe, _, _), entry in sorted(
         latest.items(), key=lambda item: str(item[1].get("recorded_at"))
     ):
         by_recipe[recipe].append(entry)

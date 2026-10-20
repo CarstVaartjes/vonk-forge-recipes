@@ -18,11 +18,13 @@ RUN echo "2fee9bd3f5f5475c4fed1ba74c1820e217e7d4698e3e89025eb38d06d98bdc37  /tmp
     && pip install --no-cache-dir --no-deps --no-build-isolation /tmp/exllamav3 \
     && rm -rf /tmp/exllamav3 /tmp/exllamav3.tar.gz /tmp/requirements.lock
 COPY vendor/tabby.tar.gz /tmp/tabby.tar.gz
+COPY patch-tabby-vision.py /tmp/patch-tabby-vision.py
 RUN echo "85d83013e319e49ffb97608ba3fff0d93b8357139b6f893a8e73023f49eaf74e  /tmp/tabby.tar.gz" | sha256sum -c - \
     && mkdir /opt/tabbyAPI \
     && tar -xzf /tmp/tabby.tar.gz -C /opt/tabbyAPI --strip-components=1 \
+    && python /tmp/patch-tabby-vision.py /opt/tabbyAPI \
     && pip install --no-cache-dir --no-deps --no-build-isolation /opt/tabbyAPI \
-    && rm /tmp/tabby.tar.gz
+    && rm /tmp/tabby.tar.gz /tmp/patch-tabby-vision.py
 COPY tools /opt/vonk/kit/tools
 COPY --chmod=0755 exllamav3-serve /opt/vonk/bin/exllamav3-serve
 COPY licenses /opt/vonk/licenses

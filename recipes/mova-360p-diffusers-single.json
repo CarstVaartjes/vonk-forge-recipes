@@ -37,10 +37,10 @@
       "input": {
         "max_bytes": 16793600,
         "media_types": [
-          "text/plain",
           "image/jpeg",
           "image/png",
-          "image/webp"
+          "image/webp",
+          "text/plain"
         ],
         "required": true,
         "slots": [

@@ -23,6 +23,8 @@ from typing import Any
 
 from .auth_contract import SmokeAuthClass
 from .catalog import Model, Recipe
+from .identity import verdict_matches
+from .lifecycle import RecipeStatus, RetestReason
 
 Boost = Callable[[Recipe], float]
 
@@ -187,6 +189,7 @@ def order_queue(
     revalidate: Collection[str] = (),
     deprioritised: Collection[str] = (),
     variants_last: bool = False,
+    refreshed: Collection[str] = (),
 ) -> list[str]:
     """Cached singles, cached duals, then downloads; smallest models first.
 
@@ -220,7 +223,14 @@ def order_queue(
         size = sum(sizes.get(d, 0) for d in recipe.model_set)
         return tier(key), category, int(key in tail), size, positions[key]
 
-    return sorted(ordered, key=priority)
+    newest = sorted(
+        (key for key in ordered if key in refreshed),
+        key=lambda key: (recipes[key].updated_at, key),
+        reverse=True,
+    )
+    return newest + sorted(
+        (key for key in ordered if key not in refreshed), key=priority
+    )
 
 
 # --------------------------------------------------------------------------
@@ -720,13 +730,32 @@ def cluster(entries: Mapping[str, Mapping[str, Any]]) -> list[Cluster]:
 # --------------------------------------------------------------------------
 
 
-def requeue_reason(entry: Mapping[str, Any] | None, recipe: Recipe) -> str | None:
-    """Why a recorded result no longer stands: the recipe document changed under it."""
-    if not entry or entry.get("status") not in ("passed", "failed", "deferred"):
+def requeue_reason(
+    entry: Mapping[str, Any] | None,
+    recipe: Recipe,
+    *,
+    revalidate_library_passes: bool = False,
+) -> RetestReason | None:
+    """Re-test changed content, including legacy verdicts with unknown images.
+
+    The caller applies revalidate_passes to both changed and legacy passes.
+    """
+    reasons = {
+        RecipeStatus.PASSED: RetestReason.PASSED_OLDER_REVISION,
+        RecipeStatus.FAILED: RetestReason.FAILED_OLDER_REVISION,
+        RecipeStatus.DEFERRED: RetestReason.DEFERRED_OLDER_REVISION,
+    }
+    if not entry or verdict_matches(
+        entry,
+        recipe,
+        ignore_library_commit=entry.get("status") == RecipeStatus.PASSED
+        and not revalidate_library_passes,
+    ):
         return None
-    if entry.get("content_sha256") and entry["content_sha256"] != recipe.content_sha256:
-        return f"{entry['status']}-on-older-revision"
-    return None
+    return next(
+        (reason for status, reason in reasons.items() if entry.get("status") == status),
+        None,
+    )
 
 
 # --------------------------------------------------------------------------

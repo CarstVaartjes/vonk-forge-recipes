@@ -21,7 +21,11 @@
           "pypi.nvidia.com"
         ]
       },
-      "patches": []
+      "patches": [
+        {
+          "path": "adapters/minicpm/vcruz305-exl3-single/patch-tabby-vision.py"
+        }
+      ]
     }
   },
   "identity": {
@@ -41,7 +45,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Native MiniCPM vision through vcruz305\u2019s ExLlamaV3 and TabbyAPI forks, pinned to 475461e9 and 880e6b8b. Defaults to the creator\u2019s 4,096-token vision profile with FP16 KV and plain decoding. Optional long-text profile uses 262,144 tokens with Q4 KV. Exact creator checkpoint, immutable CUDA 13.0 image and hash-locked Torch 2.14.0 cu130 dependencies. The memory envelope is a conservative estimate; container and physical model acceptance remain separate.",
+    "description": "Native MiniCPM vision through vcruz305\u2019s ExLlamaV3 and TabbyAPI forks, pinned to 475461e9 and 880e6b8b. A build-time TabbyAPI repair loads vision directly on the single GPU, avoiding text-shaped autosplit measuring forwards (see the packaged VISION_LOAD.md). Defaults to the creator\u2019s 4,096-token vision profile with FP16 KV and plain decoding. Optional long-text profile uses 262,144 tokens with Q4 KV. Exact creator checkpoint, immutable CUDA 13.0 image and hash-locked Torch 2.14.0 cu130 dependencies. The memory envelope is a conservative estimate; container and physical model acceptance remain separate.",
     "tags": [
       "minicpm",
       "exl3",
@@ -395,8 +399,8 @@
     ]
   },
   "release": {
-    "version": "1.0.0",
-    "released_at": "2026-10-18"
+    "version": "1.0.1",
+    "released_at": "2026-10-20"
   },
   "runtime": {
     "arguments": [

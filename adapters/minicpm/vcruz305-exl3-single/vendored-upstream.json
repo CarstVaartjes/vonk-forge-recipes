@@ -7,7 +7,9 @@
     "vendor/",
     "requirements.lock",
     "licenses/",
-    "exllamav3-serve"
+    "exllamav3-serve",
+    "patch-tabby-vision.py",
+    "VISION_LOAD.md"
   ],
   "kit": {
     "dependencies": {

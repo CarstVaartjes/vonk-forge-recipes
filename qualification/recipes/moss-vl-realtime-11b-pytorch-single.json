@@ -18,8 +18,8 @@
       "max_file_bytes": 536870912,
       "max_total_bytes": 536936448,
       "allowed_media_types": [
-        "video/mp4",
-        "application/x-ndjson"
+        "application/x-ndjson",
+        "video/mp4"
       ]
     },
     "timeout_seconds": 1800,

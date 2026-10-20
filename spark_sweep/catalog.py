@@ -11,7 +11,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
-from .catalog_contract import ModelRow, RecipeRow
+from .catalog_contract import ModelRow, RecipeRow, RuntimeImageIdentity
 from .tolerant import InputDiagnostic, InputReason, read_optional
 from .vonkctl import Reply, Vonkctl
 
@@ -69,6 +69,8 @@ class Recipe:
     base_image: str
     cache_ready: bool = False  # the library's own assessment: exact NAS assets ready
     checks: tuple[dict[str, Any], ...] = field(default=(), compare=False)
+    runtime_image: RuntimeImageIdentity | None = None
+    library_commit: str | None = None
 
     @property
     def model_set(self) -> frozenset[str]:
@@ -88,8 +90,8 @@ class Recipe:
         return self.key.partition("/")[2]
 
 
-def parse_recipe(row: dict[str, Any]) -> Recipe | None:
-    RecipeRow.model_validate(row)
+def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None:
+    projected = RecipeRow.model_validate(row)
     key = dig(row, "selector")
     document = dig(row, "document", default={})
     if not isinstance(key, str) or not isinstance(document, dict):
@@ -153,6 +155,13 @@ def parse_recipe(row: dict[str, Any]) -> Recipe | None:
             dig(document, "execution", "build", "base_image", "digest", default="")
         ),
         cache_ready=dig(row, "assessment", "cache", "state") == "ready",
+        library_commit=library_commit or None,
+        runtime_image=RuntimeImageIdentity(
+            build_key=projected.prebuilt_image.build_key,
+            image_digest=projected.prebuilt_image.reference.partition("@")[2],
+        )
+        if projected.prebuilt_image is not None
+        else None,
         checks=tuple(
             c
             for c in dig(document, "validation", "serving", "checks", default=[])
@@ -161,7 +170,7 @@ def parse_recipe(row: dict[str, Any]) -> Recipe | None:
     )
 
 
-def parse_model(row: dict[str, Any]) -> Model | None:
+def parse_model(row: dict[str, Any], _library_commit: str = "") -> Model | None:
     ModelRow.model_validate(row)
     digest = dig(row, "identity", "content_sha256")
     selector = dig(row, "selector")
@@ -190,7 +199,7 @@ class Listing[T]:
         vk: Vonkctl,
         noun: str,
         collection: str,
-        parse: Callable[[dict[str, Any]], T | None],
+        parse: Callable[[dict[str, Any], str], T | None],
         key: Callable[[T], str],
     ) -> None:
         self.vk = vk
@@ -243,10 +252,11 @@ class Listing[T]:
             return False
         self.last_error = ""
         self.failures = 0
+        commit = str(dig(reply.document, "library", "commit", default=self.commit))
         for row in dig(reply.document, self.collection, default=[]):
             item = read_optional(
                 f"{self.noun} library row",
-                lambda row=row: self.parse(row),
+                lambda row=row: self.parse(row, commit),
                 self.diagnostics.append,
                 InputReason.INVALID_ROW,
             )
@@ -255,9 +265,7 @@ class Listing[T]:
                 self.seen.add(self.key(item))
             else:
                 self.invalid_rows += 1
-        self.commit = self.commit or str(
-            dig(reply.document, "library", "commit", default="")
-        )
+        self.commit = commit
         following = dig(reply.document, "next_cursor")
         if isinstance(following, str) and following != self.cursor:
             self.cursor = following

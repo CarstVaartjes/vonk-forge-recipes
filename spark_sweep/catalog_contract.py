@@ -69,6 +69,20 @@ class RecipeIdentity(Projection):
     recipe_revision_id: str = ""
 
 
+class PrebuiltImage(Projection):
+    """Signed catalogue image pin, independent of the recipe JSON digest."""
+
+    reference: str = Field(pattern=r"^.+@sha256:[0-9a-f]{64}$")
+    build_key: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
+class RuntimeImageIdentity(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    build_key: str
+    image_digest: str
+
+
 class Resources(Projection):
     memory_bytes: int = 0
     image_bytes: int = 0
@@ -86,6 +100,7 @@ class RecipeRow(Projection):
     engine: str = ""
     creator: str = ""
     updated_at: str = ""
+    prebuilt_image: PrebuiltImage | None = None
 
 
 class ModelRow(Projection):

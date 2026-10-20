@@ -39,15 +39,15 @@
         "max_bytes": 536870912,
         "media_types": [
           "application/json",
-          "text/plain",
+          "audio/flac",
+          "audio/mp4",
+          "audio/mpeg",
+          "audio/ogg",
+          "audio/wav",
           "image/jpeg",
           "image/png",
           "image/webp",
-          "audio/flac",
-          "audio/mpeg",
-          "audio/mp4",
-          "audio/ogg",
-          "audio/wav"
+          "text/plain"
         ],
         "required": true,
         "slots": [
@@ -102,8 +102,8 @@
             "max_total_bytes": 67108864,
             "media_types": [
               "audio/flac",
-              "audio/mpeg",
               "audio/mp4",
+              "audio/mpeg",
               "audio/ogg",
               "audio/wav"
             ],

@@ -22,9 +22,9 @@ revision and prefers the pinned digest over a Spark build.
             change can move the build keys of recipes nobody touched, and only
             keys whose image is missing are built.
 
-Recipes whose image is missing (not built yet, or its build failed) simply
-publish without ``prebuilt_image``; Controllers then build them on a Spark.
-``resolve`` names the reason for every recipe without an image: refused by the
+``resolve`` reports missing images; publication requires every planned image
+except declared hosted-build exclusions before signing the release.
+It names the reason for every recipe without an image: refused by the
 Controller's source policy (not planned), declared unbuildable in CI in
 ``prebuilt-image-exclusions.json`` (those are not retried until asked for by
 name), or no image in the registry (the build failed or has not run).

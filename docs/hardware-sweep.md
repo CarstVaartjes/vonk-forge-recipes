@@ -42,6 +42,23 @@ The state directory (default `~/.vonk-sweep`, `--state-dir`) holds:
 | `report.json`, `report.md` | the final summary |
 | `evidence/<slug>-<n>.json` | `vonkctl fleet evidence` bundles of failed operations |
 
+## Verdict identity
+
+A verdict records the accepted recipe digest, resolved runtime image build key
+and image digest, and model digests. Reconciliation, runtime preparation reuse,
+model removal and evidence export compare this shared identity. Image-only
+changes requeue the recipe, newest publication first. Status and reports retain
+both the tested identity and the previous verdict when a retest is queued.
+
+The signed catalogue's `prebuilt_image` pin must be exposed in the Controller's
+recipe library row for an exact image identity. When a Controller omits it,
+the image stays explicitly unknown and the accepted library commit serves as a
+conservative invalidator for failed/deferred verdicts. A library-commit-only
+change preserves passed verdicts unless `--revalidate-passes` is supplied.
+It cannot distinguish republished images at the same library commit. Existing
+saved verdicts without identity requeue failed/deferred recipes; passed recipes
+are preserved with `--no-revalidate`. No sweep state needs manual editing.
+
 ## Lanes: one sweep profile, not one profile per lane
 
 Profiles cover the whole enrolled fleet: a Spark with no assignment is idle and

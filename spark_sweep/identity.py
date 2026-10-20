@@ -9,6 +9,52 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 from .catalog import Recipe
+from .catalog_contract import RuntimeImageIdentity
+
+
+class VerdictIdentity(BaseModel):
+    """Content certified by one verdict; absent image evidence stays unknown."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    content_sha256: str
+    runtime_image: RuntimeImageIdentity | None
+    model_digests: tuple[str, ...]
+    # Older Controllers omit the pin. Invalidate conservatively on any library
+    # publication for failed/deferred verdicts; passes require explicit opt-in.
+    # Never substitute the Docker base image.
+    image_library_commit: str | None = None
+
+
+def content_identity(recipe: Recipe) -> VerdictIdentity:
+    return VerdictIdentity(
+        content_sha256=recipe.content_sha256,
+        runtime_image=recipe.runtime_image,
+        model_digests=tuple(sorted(set(recipe.model_digests))),
+        image_library_commit=recipe.library_commit
+        if recipe.runtime_image is None
+        else None,
+    )
+
+
+def recorded_identity(entry: Mapping[str, Any]) -> VerdictIdentity | None:
+    value = entry.get("verdict_identity")
+    return VerdictIdentity.model_validate(value) if value is not None else None
+
+
+def verdict_matches(
+    entry: Mapping[str, Any], recipe: Recipe, *, ignore_library_commit: bool = False
+) -> bool:
+    identity = content_identity(recipe)
+    recorded = recorded_identity(entry)
+    if ignore_library_commit and recorded is not None:
+        recorded = recorded.model_copy(update={"image_library_commit": None})
+        identity = identity.model_copy(update={"image_library_commit": None})
+    return (
+        recorded == identity
+        and entry.get("content_sha256", identity.content_sha256)
+        == identity.content_sha256
+    )
 
 
 class IdentityReason(StrEnum):

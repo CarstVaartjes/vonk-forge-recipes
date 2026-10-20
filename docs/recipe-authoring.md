@@ -798,10 +798,16 @@ The field is optional and covered by the same signed `SHA256SUMS` as the rest
 of the index; Controllers that do not know it ignore it. A Controller whose own
 key for the revision matches pulls that digest (verified once, at ingress)
 instead of building on a Spark, so updating a running recipe needs no Spark
-build memory. A recipe whose image build failed or has not run yet publishes
-without the field (the job summary lists them) and is built on a Spark as a
-fallback. A backfill run republishes when it finishes so the index picks up
-the new digests.
+build memory. Only recipes explicitly listed in `prebuilt-image-exclusions.json`
+may publish without this field and use a Controller build as a fallback. Publication fails
+if the image workflow fails, its artifacts are missing, or the final index does
+not pin every other planned recipe to its current build key and resolved digest.
+The plan, index and publication must name the same source commit; verification
+runs before signing or changing the release. A backfill run republishes when it
+finishes so the index picks up the new digests. The recipe `content_sha256`
+identifies its JSON document, not the adapter source or image; an adapter-only
+fix changes the package identity and the signed index image reference while the
+recipe JSON digest can remain unchanged.
 
 The qualification authority is derived, never committed. Coverage builds it in
 memory from the generated catalog (`tools/build-qualification-authority` writes
