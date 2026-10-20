@@ -8,8 +8,9 @@
 - dSparK: official OpenBMB checkpoint, pinned by the model publisher. Optional,
   separately downloaded; no speedup is promised.
 - ExLlamaV3/EXL3: Turboderp and contributors. Engine/codec license remains its own.
-- TabbyAPI: The Royal Lab and contributors, AGPL-3.0. Installed separately; this
-  repository does not copy or modify its source.
+- TabbyAPI: The Royal Lab and contributors, AGPL-3.0. The pinned source archive
+  is shipped in vendor/tabby.tar.gz. patch-tabby-vision.py modifies its
+  single-GPU vision load path at image build time; see VISION_LOAD.md.
 
 Original recipe scripts, tests and explanatory docs use the root MIT LICENSE.
 External packages and downloaded artifacts are not relicensed by that file.
