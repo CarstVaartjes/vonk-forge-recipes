@@ -28,7 +28,7 @@
       },
       {
         "bit_depth": 8,
-        "color_type": 2,
+        "color_type": 6,
         "height": 1024,
         "kind": "image-metadata",
         "media_type": "image/png",
