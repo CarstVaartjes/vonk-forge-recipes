@@ -51,7 +51,7 @@ def launch(arguments, environ):
                TENSORFOLD_CUDA_KERNELS=str(cache / "kit/aot"), TF_DS_ENGRAM="/models/engram",
                TF_DS_TOKEN_MAP=str(cache / "dsv41_token_map.json"), TF_DS_GRAPHS="1",
                TF_DS_HC_SIDE="1", TF_DS_L2_PREFETCH="1", TF_DS_ENGRAM_AIO="1",
-               TF_DS_STREAMS=str(args.parallel), TF_DS_CACHE_PLACEMENT="1")
+               TF_DS_STREAMS=str(args.parallel))
     env["TF_DS_REPLAY_FLOOR"] = "1"
     model = cache / "model"
     if args.rank == 0:

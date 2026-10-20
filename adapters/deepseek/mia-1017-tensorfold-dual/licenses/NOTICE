@@ -14,10 +14,10 @@ TensorFold
 
 The DeepSeek-V4.1-Flash family on TensorFold's native engine (BertholomusAI's fork)
   https://github.com/bertholomus/TensorFold (branch deepseek-v41-zig, commit
-  3ff3b2ac1d71a789cb930068c46d9abed025eefa; and, for the inputs' tools only, branch deepseek-v41-zig-tp4, commit
+  629c524a0ea57512a5342abb498d1b7c25353343; and, for the inputs' tools only, branch deepseek-v41-zig-tp4, commit
   59402086381a42c74d53053443224eec2790b4c5)
   Written by BertholomusAI (Albert Lee, @bertholomus), on TensorFold. Apache License, Version 2.0.
-  zig/Dockerfile builds those commits and applies the files in zig/patches (four, written for this project) to the first. Any change in
+  zig/Dockerfile builds those commits and applies the files in zig/patches (five: 0001, 0002, 0004 and 0006 written for this project; 0005 by Coinupbtc, pull request #5 of this repository, Apache-2.0) to the first. Any change in
   zig/patches is this project's work under Apache-2.0; the code it modifies, and quotes as diff context, stays under its
   authors' license.
 
