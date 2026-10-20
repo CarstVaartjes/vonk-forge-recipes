@@ -312,11 +312,11 @@
       "vLLM Semantic Router",
       "vLLM contributors"
     ],
-    "source_reference": "https://github.com/vllm-project/recipes/blob/2338e9edec1d5df5f823abf3c1f19e7ba0b2ed0e/models/vllm-sr/d3.yaml"
+    "source_reference": "https://github.com/vllm-project/recipes/blob/d2b96f40fc6c719cddd1fb043180b70e09e2ae7c/models/vllm-sr/d3.yaml"
   },
   "release": {
-    "released_at": "2026-10-15",
-    "version": "3.0"
+    "released_at": "2026-10-20",
+    "version": "3.1"
   },
   "runtime": {
     "arguments": [
