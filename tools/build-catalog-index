@@ -21,6 +21,14 @@ REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 sys.path.insert(0, str(ROOT))
+from spark_sweep.image_evidence import load_images, read_images
+from spark_sweep.tolerant import InputDiagnostic
+
+
+def image_diagnostic(diagnostic: InputDiagnostic) -> None:
+    print(diagnostic.model_dump_json(), file=sys.stderr)
+
+
 from qualification.case_assertions import require_valid_case_assertions
 from qualification.definitions_loader import load_definitions
 from qualification.service_aliases import require_valid_service_aliases
@@ -647,9 +655,7 @@ def recipe_package(
     return payload, metadata
 
 
-def pin_prebuilt_images(
-    recipes: list[dict[str, Any]], images: dict[str, dict[str, str]]
-) -> None:
+def pin_prebuilt_images(recipes: list[dict[str, Any]], images: object) -> None:
     """Record each recipe's CI-built runtime image, pinned by digest.
 
     ``images`` maps a recipe content digest to ``{reference, build_key}``
@@ -657,6 +663,7 @@ def pin_prebuilt_images(
     revision; a recipe without one is built on a Spark by the Controller.
     """
 
+    images = read_images(images, image_diagnostic)
     for entry in recipes:
         image = images.get(str(entry["content_sha256"]))
         if image is not None:
@@ -890,7 +897,7 @@ def main() -> int:
     arguments = parser.parse_args()
     source_commit = arguments.source_commit or _git_revision(ROOT)
     prebuilt_images = (
-        json.loads(arguments.prebuilt_images.read_text(encoding="utf-8"))
+        load_images(arguments.prebuilt_images, image_diagnostic)
         if arguments.prebuilt_images is not None
         else None
     )

@@ -22,9 +22,15 @@ SOURCE_COMMIT = "0123456789abcdef0123456789abcdef01234567"
 
 def test_release_manifest_covers_every_asset_and_matches_the_index(
     tmp_path: Path,
+    built_catalog: tuple[dict, Path],
 ) -> None:
     release = tmp_path / "release"
-    TOOL["write_release"](release, source_commit=SOURCE_COMMIT)
+    digest = built_catalog[0]["recipes"][0]["content_sha256"]
+    TOOL["write_release"](
+        release,
+        source_commit=SOURCE_COMMIT,
+        prebuilt_images={digest: {"build_key": "a" * 64}},
+    )
 
     lines = (release / "SHA256SUMS").read_text(encoding="utf-8").splitlines()
     listed = {name: digest for digest, name in (line.split("  ") for line in lines)}
@@ -36,6 +42,7 @@ def test_release_manifest_covers_every_asset_and_matches_the_index(
 
     index = json.loads((release / "catalog-index.json").read_text(encoding="utf-8"))
     assert index["source_commit"] == SOURCE_COMMIT
+    assert all("prebuilt_image" not in row for row in index["recipes"])
     packages = {
         PurePosixPath(row["package"]["path"]).name: row["package"]["sha256"]
         for row in index["recipes"]

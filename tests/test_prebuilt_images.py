@@ -36,7 +36,7 @@ def _plan() -> dict[str, object]:
         return {
             "slug": slug,
             "version": "1.0",
-            "content_sha256": slug[0] * 64,
+            "content_sha256": ({"other": "e", "single": "f"}.get(slug, slug[0])) * 64,
             "source_path": f"recipes/{slug}.json",
             "context": context,
         }
@@ -110,7 +110,7 @@ def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
     registry = _registry({("vonk-forge-recipe-other", f"build-{OWN}"): DIGEST})
     images, missing = tool.resolve(_plan(), owner=OWNER, lookup=registry)
     assert images == {
-        "o" * 64: {
+        "e" * 64: {
             "reference": f"ghcr.io/carstvaartjes/vonk-forge-recipe-other@{DIGEST}",
             "build_key": OWN,
         }
@@ -118,11 +118,11 @@ def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
     assert missing == ["dual", "single"]
 
     # The index carries the entry beside exactly the revision it belongs to.
-    rows = [{"content_sha256": "o" * 64}, {"content_sha256": "s" * 64}]
+    rows = [{"content_sha256": "e" * 64}, {"content_sha256": "f" * 64}]
     INDEX["pin_prebuilt_images"](rows, images)
     assert rows == [
-        {"content_sha256": "o" * 64, "prebuilt_image": images["o" * 64]},
-        {"content_sha256": "s" * 64},
+        {"content_sha256": "e" * 64, "prebuilt_image": images["e" * 64]},
+        {"content_sha256": "f" * 64},
     ]
 
 
