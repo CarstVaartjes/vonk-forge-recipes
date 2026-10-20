@@ -56,6 +56,7 @@ from .lifecycle import LifecycleState
 from .owner import OwnerGuard, OwnerStatus
 from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
+from .removal import ModelRemover
 from .report import write_status
 from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
 from .smoke_job import job_budget_seconds, smoke_job
@@ -269,6 +270,7 @@ class Sweep:
         self.rate.rate = float(state.data["rate"].get("ema", 0.0))
         self.rate.samples = int(state.data["rate"].get("samples", 0))
         self.guard = OwnerGuard(vk, state, config.owner_hold_seconds)
+        self.model_remover = ModelRemover(vk, state)
         self.prefetcher = Prefetcher(
             vk,
             state,
@@ -883,12 +885,41 @@ class Sweep:
             self.boost,
             self.cached_models,
         )
+        self.remove_finished_models()
         self.check_idle(self.clock.now())
         self.state.data["rate"] = {"ema": self.rate.rate, "samples": self.rate.samples}
         if now - self.status_at >= self.cfg.status_seconds:
             self.status_at = now
             write_status(self)
         self.state.save()
+
+    def remove_finished_models(self, *, final: bool = False) -> None:
+        if (
+            self.paused
+            or not self.catalog_loaded
+            or not self.model_list.passes
+            or self.recipe_list.in_pass
+            or self.model_list.in_pass
+            or self.recipe_list.last_error
+            or self.model_list.last_error
+            or self.recipe_list.invalid_rows
+            or self.model_list.invalid_rows
+        ):
+            self.state.data["model_removal_wait"] = (
+                "waiting for a complete readable catalog and the sweep pause to clear"
+            )
+            return
+        own = {self.cfg.sweep_profile}
+        if self.cfg.prefetch.pin_profile is not None:
+            own.add(self.cfg.prefetch.pin_profile)
+        try:
+            self.model_remover.tick(self.recipes, own, self.clock.now(), final=final)
+            self.state.data.pop("model_removal_wait", None)
+        except (ValueError, OSError, VonkctlError) as error:
+            self.state.data["model_removal_wait"] = str(error)
+            self.state.event(
+                f"model removal observation failed; sweep continues: {error}"
+            )
 
     def _cached_models(self) -> set[str]:
         """Models on the NAS: the library says so, a download of ours finished, or the library's own
@@ -4256,6 +4287,8 @@ class Sweep:
             if not any(self._open(k) for k in self.recipes):
                 self.prefetcher.release_pins()
         self._leave_fleet()
+        if not interrupted:
+            self.remove_finished_models(final=True)
         write_status(self, final=True)
         self.state.save()
 

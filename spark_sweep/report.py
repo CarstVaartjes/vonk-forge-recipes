@@ -168,6 +168,8 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "paused": sweep.pause_reason or None,
         "mode": data["mode"],
         "counts": counts(data["recipes"]),
+        "model_removals": data.get("model_removals", {}),
+        "model_removal_wait": data.get("model_removal_wait"),
         "quality_notes": {
             key: len(notes) for key, notes in quality_notes(data["recipes"]).items()
         },
@@ -267,6 +269,16 @@ def render_status(status: Mapping[str, Any]) -> str:
     ]
     if status.get("alerts"):
         lines += ["## ALERTS", *(f"- {a}" for a in status["alerts"]), ""]
+    if status.get("model_removal_wait"):
+        lines += [f"Fleet model removal: {status['model_removal_wait']}", ""]
+    if status.get("model_removals"):
+        lines += ["## Fleet model removal"]
+        for digest, item in status["model_removals"].items():
+            lines.append(
+                f"- {digest}: {item['outcome']}: {item['message']}"
+                f"; next check {item['next_check']}; request {item['request_key'] or 'none'}"
+            )
+        lines.append("")
     lines.append("## Lanes")
     for spark, items in status["lanes"].items():
         text = ", ".join(

@@ -1,0 +1,38 @@
+{
+  "action": "remove",
+  "selector": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "request_key": "00000000-0000-4000-8000-000000000001",
+  "model_content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "operation_id": "00000000-0000-4000-8000-000000000002",
+  "review_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "fleet": {
+    "deadline_at": "2026-10-21T00:00:00Z",
+    "effects": {
+      "nas_remove": true,
+      "nas_reason": "unused",
+      "nas_detail": "No saved reference",
+      "targets": []
+    },
+    "completed_installations": [],
+    "confirmed_nodes": []
+  },
+  "state": "succeeded",
+  "phase": "completed",
+  "progress": {
+    "phase": "completed",
+    "completed_bytes": 12,
+    "total_bytes": 12,
+    "completed_items": 1,
+    "total_items": 1
+  },
+  "transferred_bytes": 12,
+  "total_bytes": 12,
+  "result": {
+    "schema_version": 2,
+    "removed_entries": [
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "reclaimed_bytes": 12,
+    "cancelled_operations": []
+  }
+}
