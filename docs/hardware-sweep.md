@@ -49,7 +49,8 @@ a load stops its workload (`docs/runbooks/vonkctl.md` in the platform: "Profiles
 cover the entire enrolled, non-revoked fleet… an unassigned Spark is explicitly
 idle"; the preview scope is the roster, `idle_node_ids`). A profile per lane
 would therefore stop the other lane. The sweep uses **one profile** (default
-`--sweep-profile 10`) holding every lane's assignment. A lane swap is
+`--sweep-profile 10`) holding every lane's assignment. Each new single lane is submitted as its own application, retaining the same
+whole-fleet profile and bound adoption of unchanged lanes. A lane swap is
 `profile remove <old>` plus `profile add <new> --spark X --as <alias> --state
 running`, then `profile load --review`. Before loading, the review must show
 no `stop` effect for a lane that is still running; then `profile load --yes
@@ -61,6 +62,14 @@ restarts the other lane. Duals use both Sparks and run as a
 window (several cached duals back to back) rather than interleaved with
 singles. Each single recipe owns one Spark; dual recipes are scheduled only when
 both Sparks are free.
+
+Placement consumes the Controller review's disk decision, which counts free
+space, reservations, reusable objects and evictable installations. A typed
+insufficient-disk decision never submits that lane, even when the aggregate
+review allows waiting for preparation. Its node scope and evidence survive
+restart until the next check; other placements are reviewed again immediately.
+The next placement can use another Spark, and the original is reconsidered after
+the check interval without spending a recipe attempt.
 
 Single placement prefers a free Spark holding every model digest, then the exact
 installed recipe revision (and its built runtime), then the usual usage/id order.
@@ -91,6 +100,11 @@ See the [global gate audit](sweep-global-gates.md) for the complete safety bound
 Concurrent accepted snapshots use the Controller's bound whole-assignment
 adoption contract (`effects.adopted`), while original applications keep their
 children and progress. The sweep observes each original request independently.
+A snapshot still waiting for admission, with no child operation or accepted
+effects and a measured storage shortfall, releases its local lane slots for
+re-planning. Its original receipt stays observed; the next reviewed snapshot
+omits the blocked assignment and supersedes that intent. The blocked recipe
+waits until its next check while a fitting sibling gets a separate application.
 An application whose own lane has ended still retains its observation receipt
 while an adopted lane is active: cancelling that aggregate application would
 also stop its adopted effects. These observer receipts never occupy a Spark or

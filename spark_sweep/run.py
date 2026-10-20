@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from pydantic import ValidationError
+from vonk_forge_contracts import sweep as sweep_contract
 from vonk_forge_contracts.sweep import (
     CleanupEnd,
     CleanupEndReason,
@@ -35,6 +36,8 @@ from vonk_forge_contracts.sweep import (
     CleanupObservationBudget,
     FleetOnlineState,
     InfrastructureIncident,
+    SweepStorageReview,
+    SweepStorageWait,
 )
 
 from . import cleanup, memory, policy, recovery, verdict
@@ -62,6 +65,7 @@ from .report import write_status
 from .smoke import HttpConfig, SmokeResult, smoke_readiness, smoke_service
 from .smoke_job import job_budget_seconds, smoke_job
 from .state import ResultsLog, State, StateLock
+from .tolerant import InputReason, read_optional
 from .verdict import Disposition, Progress
 from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 
@@ -412,6 +416,11 @@ class Sweep:
                 )
             if finished and active is self.recipe_list:
                 self.library_commit = active.commit
+        self.state.data["catalog_diagnostics"] = [
+            diagnostic.model_dump(mode="json")
+            for listing in (self.recipe_list, self.model_list)
+            for diagnostic in listing.diagnostics
+        ]
         self._reconcile_all()
 
     def refresh_catalog(self, max_steps: int = 200) -> None:
@@ -824,6 +833,19 @@ class Sweep:
         self.done_waiting()
         return True
 
+    def _observe_owner(self, now: float) -> None:
+        self.owner_status = self.guard.check(now)
+        if self.owner_status.new_activity:
+            self.state.data["took_over"] = False  # their load replaced what ours ran
+            self.state.data["owner"]["seen_at"] = now
+            self.preempt("an owner profile was loaded")
+        if self.owner_status.paused:
+            # An owner's load (or ownership we cannot read: unknown) is waited for while it
+            # lasts; it never ends the sweep.
+            self.state.data["owner"].setdefault("paused_at", now)
+        else:
+            self.state.data["owner"].pop("paused_at", None)
+
     def _tick(self) -> None:
         now = self.clock.now()
         self.advance_catalog(now)
@@ -837,17 +859,7 @@ class Sweep:
                     and self._selected_key(key)
                 ):
                     self._schedule_retest(key, "scheduled-retest")
-        self.owner_status = self.guard.check(now)
-        if self.owner_status.new_activity:
-            self.state.data["took_over"] = False  # their load replaced what ours ran
-            self.state.data["owner"]["seen_at"] = now
-            self.preempt("an owner profile was loaded")
-        if self.owner_status.paused:
-            # An owner's load (or ownership we cannot read: unknown) is waited for while it
-            # lasts; it never ends the sweep.
-            self.state.data["owner"].setdefault("paused_at", now)
-        else:
-            self.state.data["owner"].pop("paused_at", None)
+        self._observe_owner(now)
         self.observe_platform()
         self.advance_slots(now)
         self.observe_stalls()
@@ -1566,7 +1578,14 @@ class Sweep:
             return
         entry["evidence_seq"] = int(entry.get("evidence_seq", 0)) + 1
         bundle = (
-            self._evidence(key, op_id, entry["evidence_seq"])
+            read_optional(
+                f"evidence/{key}",
+                lambda: self._evidence(key, op_id, entry["evidence_seq"]),
+                lambda diagnostic: entry.update(
+                    diagnostics=[diagnostic.model_dump(mode="json")]
+                ),
+                InputReason.EVIDENCE_UNAVAILABLE,
+            )
             if inherited_from is None
             else None
         )
@@ -1681,6 +1700,7 @@ class Sweep:
             "attempt": entry.get("attempts"),
             "evidence": entry.get("evidence"),
             "evidence_bundle": entry.get("evidence_bundle"),
+            "diagnostics": entry.get("diagnostics"),
             "content_sha256": (recipe.content_sha256 if recipe else None)
             if slot
             else entry.get("content_sha256"),
@@ -1709,7 +1729,9 @@ class Sweep:
         directory.mkdir(parents=True, exist_ok=True)
         target = directory / f"{key.partition('/')[2]}-{attempt}.json"
         reply = self.vk.run("fleet", "evidence", op_id, "--output", str(target))
-        return str(target) if reply.ok else None
+        if not reply.ok:
+            raise ValueError(reply.error_text)
+        return str(target)
 
     def _record_pass(self, key: str, slot: dict[str, Any], result: SmokeResult) -> None:
         now = self.clock.now()
@@ -1859,6 +1881,7 @@ class Sweep:
             self.state.data["loads"].pop(load["request_key"], None)
             return True
         self.documents[load["request_key"]] = document
+        self._replan_pending_storage(load, document)
         load["observed_at"] = self.clock.now()
         load["app_id"] = document["id"]
         status = str(document.get("state", ""))
@@ -1930,6 +1953,48 @@ class Sweep:
             }
             self.state.data["loads"].pop(load["request_key"], None)
         return True
+
+    def _replan_pending_storage(
+        self, load: dict[str, Any], document: Mapping[str, Any]
+    ) -> None:
+        """A never-admitted snapshot cannot reserve a healthy sibling's lane.
+
+        Keep its original receipt for observation. The next reviewed whole-fleet
+        snapshot removes the blocked assignment and steers the latest intent;
+        no cancellation can race a newly admitted or adopted child.
+        """
+        if (
+            load.get("replanned_pending")
+            or "current_operation_id" not in document
+            or document.get("current_operation_id") is not None
+        ):
+            return
+        try:
+            pending = sweep_contract.SweepPendingAdmission.model_validate(
+                document.get("progress"), strict=True
+            )
+        except ValidationError:
+            return
+        nodes = pending.storage_wait_nodes
+        if not pending.admission_pending or pending.effects or not nodes:
+            return
+        for key, slot in list(self.state.slots.items()):
+            if (
+                slot.get("request_key") != load["request_key"]
+                or slot["phase"] != sweep_contract.SweepSlotPhase.LOADING
+            ):
+                continue
+            self.requeue(
+                key,
+                "unadmitted storage snapshot: re-planning independent lanes",
+                document=document,
+            )
+            if nodes & set(slot["node_ids"]):
+                self.state.entry(key)["not_before"] = (
+                    self.clock.now() + self.cfg.defer_delay
+                )
+        load["replanned_pending"] = True
+        self.state.save()
 
     def _own_load_request(self, app_id: str) -> str | None:
         """The request key of this sweep's own load whose application ``app_id`` is."""
@@ -2192,21 +2257,29 @@ class Sweep:
             else:
                 group = [key]
             phase = policy.child_phase(app.get("child_phase")) or "start"
-            detail = f"{app.get('reason') or app['state']} {app.get('failures') or ''}".strip()
+            detail = str(app.get("reason") or app["state"])
             for member in group:
+                own_failure = next(
+                    (
+                        item
+                        for item in app.get("failures") or []
+                        if isinstance(item, Mapping)
+                        and member in policy.blamed([item], self._lanes(group))
+                    ),
+                    None,
+                )
                 failure = policy.classify(
                     phase,
-                    next(
-                        (
-                            str(item["code"])
-                            for item in app.get("failures") or []
-                            if isinstance(item, Mapping)
-                            and isinstance(item.get("code"), str)
-                            and member in policy.blamed([item], self._lanes(group))
-                        ),
-                        app.get("failure_code") or f"application.{app['state']}",
-                    ),
-                    detail,
+                    str(own_failure["code"])
+                    if own_failure is not None
+                    and isinstance(own_failure.get("code"), str)
+                    else app.get("failure_code") or f"application.{app['state']}",
+                    str(
+                        own_failure.get("reason") or own_failure.get("detail") or detail
+                    )
+                    if own_failure is not None
+                    else detail,
+                    evidence={"assignment_failures": app.get("failures") or []},
                 )
                 if unattributed:
                     # Nothing the Controller said names this lane: an uncertain outcome,
@@ -2806,6 +2879,16 @@ class Sweep:
                     for digest in by_revision[revision].model_digests
                 ),
                 installed_revisions=s.installed_revisions,
+                disk_blocked_recipes=frozenset(
+                    key
+                    for key, entry in self.state.data["recipes"].items()
+                    if entry.get("storage_wait") is not None
+                    and (wait := SweepStorageWait.model_validate(entry["storage_wait"]))
+                    and key in self.recipes
+                    and self.recipes[key].content_sha256 == wait.content_sha256
+                    and self.clock.now() < wait.next_check
+                    and s.id in wait.node_ids
+                ),
             )
             for s in self.sparks()
         }
@@ -2930,6 +3013,8 @@ class Sweep:
             self._release_orphan_load(load)
 
     def _release_orphan_load(self, load: dict[str, Any]) -> None:
+        if load.get("replanned_pending"):
+            return  # observe until the fresh snapshot supersedes it, never cancel a race
         if self._adopted_slots_live(load):
             return  # selected aggregate still owns an active borrowed lane
         key = load.get("request_key")
@@ -3051,7 +3136,9 @@ class Sweep:
             head = candidates[0]
             width = head.node_count
             spark_ids = tuple(b.id for b in bins[:width])
-            if len(spark_ids) == width:
+            if len(spark_ids) == width and all(
+                head.key not in b.disk_blocked_recipes for b in bins[:width]
+            ):
                 placements = [policy.Placement(head, spark_ids)]
         if placements:
             self._apply(placements, now)
@@ -3672,6 +3759,19 @@ class Sweep:
         return alias
 
     def _apply(self, placements: Sequence[policy.Placement], now: float) -> None:
+        if len(placements) > 1:
+            # Each new lane has its own receipt. The unchanged lane remains in
+            # this same whole-fleet profile and requires canonical adoption.
+            for index, placement in enumerate(placements):
+                if index:
+                    self._observe_owner(self.clock.now())
+                    if self.paused or self.owner_status.new_activity:
+                        return
+                self._apply([placement], now)
+                # Resolve a first lane's admission wait before reviewing the
+                # next snapshot; a pending application has no effect to adopt.
+                self.advance_slots(now)
+            return
         profile = self.cfg.sweep_profile
         if not self._prune_profile():
             return  # a load now would also start what no lane needs; the next pass retries
@@ -3786,6 +3886,44 @@ class Sweep:
             self.note_infra(
                 "review", "observing unchanged loading effects before overlap"
             )
+            return
+        # The Controller's disk decision includes reservations, reused objects
+        # and evictable installations. Preparation being waitable cannot turn
+        # a proven storage shortfall into a placement on that Spark.
+        storage_reasons = SweepStorageReview.model_validate(document).insufficient
+        storage_blocked = [
+            p
+            for p in added
+            if any(set(p.spark_ids) & set(r.node_ids) for r in storage_reasons)
+        ]
+        if storage_blocked:
+            self._rollback(
+                storage_blocked, "storage does not fit after eviction: re-planning"
+            )
+            for placement in storage_blocked:
+                entry = self.state.entry(placement.recipe.key)
+                entry["storage_wait"] = SweepStorageWait(
+                    reasons=[
+                        r
+                        for r in storage_reasons
+                        if set(r.node_ids) & set(placement.spark_ids)
+                    ],
+                    content_sha256=placement.recipe.content_sha256,
+                    next_check=now + self.cfg.defer_delay,
+                ).model_dump(mode="json")
+                entry.pop("not_before", None)
+                self.record_result(
+                    placement.recipe.key,
+                    "review",
+                    "waiting",
+                    reason="; ".join(r.detail for r in storage_reasons),
+                    disposition=Disposition.WAIT.value,
+                    document=document,
+                )
+            self.state.save()
+            remaining = [p for p in added if p not in storage_blocked]
+            if remaining:
+                self._apply(remaining, now)
             return
         if not (
             document.get("allowed") is True
