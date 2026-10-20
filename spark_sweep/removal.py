@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from random import uniform
 from uuid import uuid4
 
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from .catalog import Recipe
 from .lifecycle import TERMINAL, LifecycleState
@@ -15,6 +15,7 @@ from .removal_contract import (
     RemovalOutcome,
     RemovalReceipt,
     RemovalRecord,
+    RemovalReplyError,
     RemovalReview,
 )
 from .state import State
@@ -22,6 +23,7 @@ from .vonkctl import Vonkctl
 
 RETRY_SECONDS = 60.0
 MAX_BACKOFF_SECONDS = 3600.0
+_REVIEW_REPLY = TypeAdapter(RemovalReview | RemovalReplyError)
 
 
 class ModelRemover:
@@ -181,7 +183,17 @@ class ModelRemover:
                 "model", "remove", digest, "--fleet", "--review", timeout=30
             )
             try:
-                parsed = RemovalReview.model_validate(review.document)
+                parsed = _REVIEW_REPLY.validate_python(review.document)
+                if isinstance(parsed, RemovalReplyError):
+                    self._retry(
+                        record,
+                        f"review error: {parsed.code} (http_status={parsed.http_status}, "
+                        f"retryable={parsed.retryable}): {parsed.detail}",
+                        now,
+                    )
+                    record.last_response = review.document
+                    self._store(digest, record)
+                    return
                 if parsed.target_identity != digest:
                     raise ValueError(
                         "review names different model content; no effects requested"

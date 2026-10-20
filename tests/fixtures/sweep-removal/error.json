@@ -1,0 +1,7 @@
+{
+  "code": "controller.internal_error",
+  "error_type": "control_api",
+  "http_status": 500,
+  "retryable": false,
+  "detail": "internal server error"
+}

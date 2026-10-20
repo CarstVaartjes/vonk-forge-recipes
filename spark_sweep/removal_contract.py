@@ -34,6 +34,17 @@ class Finding(BaseModel):
     retryable: bool = False
 
 
+class RemovalReplyError(BaseModel):
+    """Projection of CLI error context; code vocabulary belongs to its producer."""
+
+    model_config = ConfigDict(strict=True)
+
+    code: str
+    http_status: int | None = Field(default=None, ge=100, le=599)
+    retryable: bool
+    detail: str
+
+
 class RemovalTarget(BaseModel):
     node_id: str
     observation_available: bool
