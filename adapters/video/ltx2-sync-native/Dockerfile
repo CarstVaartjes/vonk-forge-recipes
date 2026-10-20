@@ -25,10 +25,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
-        --index-url https://download.pytorch.org/whl/cu132 \
-        torch==2.13.0 torchvision==0.28.0 \
-    && python3 -m pip install --break-system-packages --no-cache-dir --no-deps \
-        --index-url https://download.pytorch.org/whl/test/cu132 \
+        --index-url https://download.pytorch.org/whl/cu130 \
+        torch==2.11.0 torchvision==0.26.0 \
         torchaudio==2.11.0
 
 COPY requirements.lock /opt/vonk/source/requirements.lock
@@ -65,6 +63,10 @@ RUN install --directory --mode=0755 /opt/vonk/bin \
         > /opt/vonk/bin/pytorch-pipeline \
     && chmod 0755 /opt/vonk/bin/pytorch-pipeline \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin vonk
+
+# Import the real pipeline before publishing an image; lazy transformers imports
+# otherwise hide binary torch/torchaudio incompatibilities until the first job.
+RUN python3 -c "import torchaudio; from transformers import PreTrainedModel; from ltx_pipelines.utils.types import PipelineOutput"
 
 USER 10001:10001
 ENTRYPOINT []

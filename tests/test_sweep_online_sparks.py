@@ -19,7 +19,11 @@ def test_bounded_clearing_admits_ready_online_work(
     try:
         recipes = [FakeRecipe(slug, local="cached") for slug in ("first", "next")]
         sweep, fleet, clock = make_sweep(
-            tmp_path, recipes, [FakeModel("m1", local="cached")], gateway=gateway
+            tmp_path,
+            recipes,
+            [FakeModel("m1", local="cached")],
+            gateway=gateway,
+            stop_at_end=False,  # inspect offline cleanup still pending; no final stop requested
         )
         fleet.runs.append(
             {

@@ -91,7 +91,7 @@ def test_optional_export_preserves_verdict_identity_and_failure_proof(
             sweep.vk, "run", side_effect=RuntimeError("export failed")
         )
     with context:
-        sweep._record_failure("vonk-forge/bad", failure, "operation-1", final=True)
+        sweep._record_failure("vonk-forge/bad", failure, "operation-1")
     entry = sweep.state.entry("vonk-forge/bad")
     assert entry["status"] == "failed"
     assert entry["content_sha256"] == "c1"

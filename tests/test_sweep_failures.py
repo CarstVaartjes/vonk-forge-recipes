@@ -60,7 +60,7 @@ def test_failed_load_is_recorded_with_phase_class_and_evidence(
     assert fleet.profiles[10]["assignments"] == []
 
 
-def test_transient_failure_is_retried_once_then_final(
+def test_transient_failure_recovers_beyond_the_old_attempt_limit(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     flaky = FakeRecipe(
@@ -69,11 +69,18 @@ def test_transient_failure_is_retried_once_then_final(
         fail_phase="container-download",
         fail_code="controller.transport_timeout",
     )
-    sweep, _, _ = make_sweep(tmp_path, [flaky], [FakeModel("m1")], gateway=gateway)
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [flaky], [FakeModel("m1")], gateway=gateway
+    )
+
+    def recover(_now):
+        if sweep.state.recipes.get(flaky.key, {}).get("attempts", 0) >= 4:
+            fleet.recipes[flaky.key].fail_load = ""
+
+    clock.hooks.append(recover)
     sweep.run()
     entry = _entry(sweep, "flaky")
-    assert entry["status"] == "deferred" and entry["attempts"] == 2
-    assert entry["failure_class"] == "network"
+    assert entry["status"] == "passed" and entry["attempts"] >= 4
 
 
 def test_non_transient_failure_is_not_retried(tmp_path: Path, gateway: Gateway) -> None:

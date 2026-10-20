@@ -13,16 +13,20 @@ with the operator's client key.
 
 from __future__ import annotations
 
+import itertools
 import json
 import re
 import ssl
+import threading
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .auth_contract import GatewayAuthReply, SmokeAuthClass
 from .catalog import Recipe
 from .definitions import Definitions
 from .policy import CLIENT_CREDENTIAL, Failure, classify, excerpt
@@ -38,6 +42,10 @@ class HttpConfig:
     ca_file: Path | None = None
     insecure_tls: bool = False
     case_timeout: float = 180.0
+    cancelled: threading.Event | None = None
+    on_progress: Callable[[], None] | None = field(
+        default=None, repr=False, compare=False
+    )
 
     def headers(self) -> dict[str, str]:
         headers = {"Accept": "application/json"}
@@ -355,11 +363,19 @@ def _transport_failure(
     body = getattr(error, "body", None)
     if isinstance(error, urllib.error.HTTPError):
         evidence["http_status"] = error.code
-        evidence["body"] = excerpt(body or _http_body(error), secrets=secrets)
+        response_body = body or _http_body(error)
+        evidence["body"] = excerpt(response_body, secrets=secrets)
         # A temporary answer (busy, overloaded, a gateway in between) is a wait, never a verdict.
         klass = SMOKE_BUSY if http_wait(error.code) else "smoke-request"
         if error.code in (401, 403):
-            klass = CLIENT_CREDENTIAL
+            klass = SmokeAuthClass.REFUSAL
+            try:
+                reply = GatewayAuthReply.model_validate_json(response_body)
+            except ValueError:
+                pass  # An untyped denial cannot authorize renewal retries.
+            else:
+                if reply.renewable:
+                    klass = CLIENT_CREDENTIAL
         return classify("smoke", f"case.{case}", f"HTTP {error.code}", klass, evidence)
     if body is not None:  # a 200 whose body was not the JSON we expected
         evidence["http_status"] = getattr(error, "http_status", None)
@@ -394,6 +410,34 @@ def _assertion_failure(
     )
 
 
+def _stream_lines(
+    response: Any, last_progress: Callable[[], float], window: float
+) -> Iterator[bytes]:
+    """Read available bytes, not a blocking line iterator.
+
+    read1 returns partial lines too: heartbeat and unterminated trickles cannot
+    keep an iterator blocked forever. Each socket read also has the window as
+    its timeout. Only the caller's semantic output advances last_progress.
+    """
+    pending = b""
+    for _ in itertools.count():
+        if time.monotonic() - last_progress() >= window:
+            raise TimeoutError("stream stalled without semantic output")
+        chunk = response.read1(65536)
+        if time.monotonic() - last_progress() >= window:
+            raise TimeoutError("stream stalled without semantic output")
+        if not chunk:
+            if pending:
+                yield pending
+            return
+        pending += chunk
+        lines = pending.split(b"\n")
+        pending = lines.pop()
+        yield from lines
+        if len(pending) > 65536:
+            raise AssertionFailed("stream event exceeds its bound")
+
+
 def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
     """One short streamed completion: time to first token and tokens per second."""
     body = {
@@ -412,6 +456,10 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
     first = last = None
     pieces = 0
     usage_tokens: int | None = None
+
+    def last_output() -> float:
+        return last if last is not None else started
+
     with open_with_body(
         base.rstrip("/") + "/chat/completions",
         body,
@@ -419,7 +467,9 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
         config.case_timeout,
         config.context(),
     ) as response:
-        for raw in response:
+        for raw in _stream_lines(response, last_output, config.case_timeout):
+            if config.cancelled is not None and config.cancelled.is_set():
+                raise TimeoutError("smoke lane observation budget exhausted")
             line = raw.decode("utf-8", "replace").strip()
             if not line.startswith("data:"):
                 continue
@@ -444,6 +494,8 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
                     first = first if first is not None else now
                     last = now
                     pieces += 1
+                    if config.on_progress is not None:
+                        config.on_progress()
     if first is None or last is None:
         raise AssertionFailed("the stream produced no tokens")
     tokens = usage_tokens if usage_tokens else pieces
@@ -562,6 +614,8 @@ def smoke_service(
                 record = run_case(base, case, config)
                 result.quality.extend(record.pop("quality", []))
                 result.cases.append(record)
+                if config.on_progress is not None:
+                    config.on_progress()
             except AssertionFailed as error:
                 result.failure = _assertion_failure(error, str(case.get("id")), config)
             except (OSError, urllib.error.URLError, ValueError) as error:

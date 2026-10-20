@@ -318,6 +318,9 @@ def test_watch_retests_after_bounded_cooldown_without_new_release_or_recipe(
             fleet.recipes[recipe.key].fail_load = None
         if entry.get("status") == "passed":
             assert now >= first_finished[0] + 24 * 3600
+            clock.hooks.remove(
+                repair_and_stop
+            )  # one user interrupt; finalization keeps its owner
             raise KeyboardInterrupt
 
     clock.hooks.append(repair_and_stop)
@@ -432,7 +435,6 @@ def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
         fake.key,
         policy.classify("start", fake.fail_code, "injected failure"),
         None,
-        final=True,
     )
     row = next(
         row for row in _lines(tmp_path / "results.jsonl") if row["step"] == "smoke"

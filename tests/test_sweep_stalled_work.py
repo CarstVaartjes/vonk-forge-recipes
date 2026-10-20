@@ -12,6 +12,7 @@ from typing import Any
 
 import pytest
 from sweep_fakes import FakeFleet, FakeModel, FakeRecipe, Gateway, make_sweep
+from vonk_forge_contracts.sweep import SweepWaitReason
 
 from spark_sweep import verdict
 from spark_sweep.policy import TimeoutPolicy
@@ -87,7 +88,7 @@ def _calls(fleet: FakeFleet, *verb: str) -> int:
     return sum(1 for _, args in fleet.calls if args[: len(verb)] == verb)
 
 
-def test_a_stalled_application_keeps_only_its_lane_until_it_clears(
+def test_a_stalled_application_releases_only_its_lane_at_budget(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, clock, held = _sweep(tmp_path, gateway)
@@ -104,10 +105,7 @@ def test_a_stalled_application_keeps_only_its_lane_until_it_clears(
             "first_seen_at": "2026-10-14T00:00:00+00:00",
         }
     ]
-    loads, cancels = (
-        _calls(fleet, "profile", "load"),
-        _calls(fleet, "profile", "cancel"),
-    )
+    cancels = _calls(fleet, "profile", "cancel")
     sweep.tick()
 
     row = _rows(tmp_path)[-1]
@@ -122,12 +120,14 @@ def test_a_stalled_application_keeps_only_its_lane_until_it_clears(
     assert f"Controller reports stalled work: {app['id']}" in status
     assert "PAUSED:" not in status
 
-    # Stalled for half an hour: no new load, and the sweep cancels nothing.
-    for _ in range(30):
-        clock.sleep(sweep.cfg.poll_seconds)
-        sweep.tick()
+    # The platform alarm cannot hold a local lane past its budget.
+    _drive(sweep, clock, lambda: held.key not in sweep.state.slots)
     assert not sweep.paused
-    assert _calls(fleet, "profile", "load") == loads
+    assert sweep.state.entry(held.key).get("attempts", 0) == 0
+    assert (
+        sweep.state.entry(held.key)["wait_deferral"]["wait"]["reason"]
+        == SweepWaitReason.CONTROLLER_STALLED
+    )
     assert _calls(fleet, "profile", "cancel") == cancels
 
     # The Controller stops reporting it: the sweep resumes by itself.
@@ -145,7 +145,7 @@ def test_repeated_stalls_never_spend_an_attempt(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     sweep, fleet, clock, held = _sweep(tmp_path, gateway)
-    for _ in range(sweep.cfg.max_attempts + 1):
+    for _ in range(5):
         _drive(sweep, clock, lambda: _loading(sweep, held.key))
         app = _followed_live(sweep, fleet)
         app["blockers"] = [*app.get("blockers", []), ALARM]
@@ -159,7 +159,7 @@ def test_repeated_stalls_never_spend_an_attempt(
     assert entry.get("attempts", 0) == 0
     assert entry["status"] != "deferred"
     stalls = [r for r in _rows(tmp_path) if r.get("code") == verdict.STALLED_CODE]
-    assert len(stalls) == sweep.cfg.max_attempts + 1
+    assert len(stalls) == 5
 
 
 def test_an_owner_pause_holds_the_re_plan_of_a_preparing_recipe(

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from vonk_forge_contracts.sweep import SweepWaitCode
 
 from spark_sweep.lifecycle import ACTIVE
 from spark_sweep.policy import RECIPE_FAILURE_CODES
@@ -178,7 +179,7 @@ def _loading(tmp_path: Path):
 
 
 @pytest.mark.parametrize("reason", ["needs-operator", "queued", "gate"])
-def test_an_application_the_controller_holds_is_waited_for_never_ended(
+def test_a_controller_hold_releases_the_local_lane_without_ending_remote_work(
     tmp_path: Path, reason: str
 ) -> None:
     sweep, fleet, clock = _loading(tmp_path)
@@ -198,18 +199,20 @@ def test_an_application_the_controller_holds_is_waited_for_never_ended(
             ],
         },
     }[reason]
-    # Held for 30 hours: past the old 24 h wall, 900 s blocked and 1800 s platform caps.
-    for _ in range(30):
-        clock.t += 3600
-        fleet.observations.append(
-            (("profile", "progress"), 0, {"id": load["app_id"], **held})
-        )
-        sweep.advance_slots(clock.now())
+    clock.t = sweep.state.slots["vonk-forge/a"]["deadline"] + 1
+    fleet.observations.append(
+        (("profile", "progress"), 0, {"id": load["app_id"], **held})
+    )
+    sweep.advance_slots(clock.now())
     assert load["request_key"] in sweep.state.data["loads"]
-    assert sweep.state.slots["vonk-forge/a"]["phase"] == "loading"
+    sweep.enqueue_finished_cleanup()
+    assert "vonk-forge/a" not in sweep.state.slots
     assert sweep.state.status("vonk-forge/a") == "pending"
+    assert sweep.state.entry("vonk-forge/a")["not_before"] > clock.now()
     assert not any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
-    assert not [r for r in sweep.log.entries() if r["recipe"] == "vonk-forge/a"]
+    rows = [r for r in sweep.log.entries() if r["recipe"] == "vonk-forge/a"]
+    assert rows[-1]["code"] == SweepWaitCode.BUDGET_EXHAUSTED
+    assert rows[-1]["controller_document"]["id"] == load["app_id"]
 
 
 def _hold(fleet, load) -> None:
@@ -315,7 +318,7 @@ def test_dual_does_not_use_a_busy_spark_and_singles_get_distinct_sparks(
     )
 
 
-def test_a_running_smoke_has_no_wall_clock_and_its_outcome_is_recorded(
+def test_a_running_smoke_expires_and_its_late_result_cannot_pass_the_case(
     tmp_path: Path,
 ) -> None:
     from concurrent.futures import Future
@@ -327,14 +330,14 @@ def test_a_running_smoke_has_no_wall_clock_and_its_outcome_is_recorded(
     slot = sweep.state.slots[key]
     slot.update(phase="smoking", ready_at=clock.now(), run_id="run-1")
     future: Future[SmokeResult] = Future()
+    future.set_running_or_notify_cancel()
     sweep.futures[key] = future
-    clock.t += 30 * 3600.0  # each request has its own socket inactivity bound
+    clock.t += 30 * 3600.0  # heartbeats can defeat a socket inactivity bound
     sweep._advance_smoking(key, slot)
-    assert slot["phase"] == "smoking" and sweep.futures[key] is future
+    assert slot["phase"] == "finished" and key not in sweep.futures
     future.set_result(SmokeResult(ok=True, kind="readiness"))
-    sweep._advance_smoking(key, slot)
-    assert sweep.state.status(key) == "passed"
-    assert sweep.log.entries()[-1]["status"] == "passed"
+    assert sweep.state.status(key) == "pending"
+    assert sweep.log.entries()[-1]["code"] == SweepWaitCode.BUDGET_EXHAUSTED
 
 
 def test_request_map_observes_each_lane_independently(tmp_path: Path) -> None:
@@ -466,9 +469,18 @@ def test_unreadable_owner_never_looks_like_absent_owner(tmp_path: Path) -> None:
     assert status.paused and "unreadable" in status.reason
 
 
-def test_an_owner_load_is_waited_for_and_never_ends_the_sweep(tmp_path: Path) -> None:
+def test_an_owner_load_is_waited_for_and_never_ends_the_sweep(
+    tmp_path: Path, monkeypatch
+) -> None:
     from spark_sweep.owner import OwnerStatus
+    from spark_sweep.smoke import SmokeResult
 
+    # This owner-recovery scenario has no HTTP server; supply a successful smoke
+    # instead of relying on the former count-exhaustion of connection refusals.
+    monkeypatch.setattr(
+        "spark_sweep.run.smoke_service",
+        lambda *_args: SmokeResult(ok=True, kind="service"),
+    )
     sweep, _, clock = _loading(tmp_path)
     sweep.owner_status = OwnerStatus(True, "owner intent is running")
     sweep.guard.check = lambda now: sweep.owner_status
