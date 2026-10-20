@@ -21,7 +21,8 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import TypeAdapter
-from vonk_forge_contracts.media_types import CanonicalMediaTypes
+
+from qualification.media_types import CanonicalMediaTypes
 
 QUALIFICATION_ROOT = Path(__file__).resolve().parent
 PER_RECIPE_SECTIONS = ("recipes", "service_recipes")

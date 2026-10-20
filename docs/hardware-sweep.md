@@ -53,7 +53,8 @@ both the tested identity and the previous verdict when a retest is queued.
 The signed catalogue's `prebuilt_image` pin must be exposed in the Controller's
 recipe library row for an exact image identity. When a Controller omits it,
 the image stays explicitly unknown and the accepted library commit serves as a
-conservative invalidator: any new library publication triggers revalidation.
+conservative invalidator for failed/deferred verdicts. A library-commit-only
+change preserves passed verdicts unless `--revalidate-passes` is supplied.
 It cannot distinguish republished images at the same library commit. Existing
 saved verdicts without identity requeue failed/deferred recipes; passed recipes
 are preserved with `--no-revalidate`. No sweep state needs manual editing.

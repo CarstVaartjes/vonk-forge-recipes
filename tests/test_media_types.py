@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import json
+import runpy
 from pathlib import Path
 
 import pytest
 from pydantic import TypeAdapter, ValidationError
-from vonk_forge_contracts import RecipeDefinition, canonical_media_types
-from vonk_forge_contracts.media_types import CanonicalMediaTypes
+from vonk_forge_contracts import RecipeDefinition
 
 from qualification.definitions_loader import load_definitions
+from qualification.media_types import (
+    CanonicalMediaTypes,
+    canonical_media_types,
+    require_canonical_recipe_media,
+)
 from spark_sweep.definitions import Definitions
 from spark_sweep.smoke_job import _binding
 
@@ -78,18 +83,22 @@ def test_catalog_build_rejects_noncanonical_qualification_lists(
         ["video/mp4; codecs=h264"],
     ],
 )
-def test_recipe_validation_rejects_noncanonical_slot_lists(media: list[str]) -> None:
+def test_catalog_packaging_rejects_noncanonical_slot_lists(media: list[str]) -> None:
     document = json.loads(
         (ROOT / "recipes/moss-vl-realtime-11b-pytorch-single.json").read_text()
     )
     document["interfaces"][0]["output"]["slots"][0]["media_types"] = media
     with pytest.raises(ValidationError):
-        RecipeDefinition.model_validate(document)
+        runpy.run_path(str(ROOT / "tools/build-catalog-index"))["recipe_package"](
+            document
+        )
 
 
 def test_all_catalog_recipes_and_qualification_cases_use_canonical_media() -> None:
     for path in (ROOT / "recipes").glob("*.json"):
-        RecipeDefinition.model_validate_json(path.read_bytes())
+        require_canonical_recipe_media(
+            RecipeDefinition.model_validate_json(path.read_bytes())
+        )
     definitions = load_definitions()
     adapter = TypeAdapter(CanonicalMediaTypes)
     for spec in definitions["recipes"].values():

@@ -21,7 +21,8 @@ class VerdictIdentity(BaseModel):
     runtime_image: RuntimeImageIdentity | None
     model_digests: tuple[str, ...]
     # Older Controllers omit the pin. Invalidate conservatively on any library
-    # publication until they expose it; never substitute the Docker base image.
+    # publication for failed/deferred verdicts; passes require explicit opt-in.
+    # Never substitute the Docker base image.
     image_library_commit: str | None = None
 
 
@@ -41,10 +42,16 @@ def recorded_identity(entry: Mapping[str, Any]) -> VerdictIdentity | None:
     return VerdictIdentity.model_validate(value) if value is not None else None
 
 
-def verdict_matches(entry: Mapping[str, Any], recipe: Recipe) -> bool:
+def verdict_matches(
+    entry: Mapping[str, Any], recipe: Recipe, *, ignore_library_commit: bool = False
+) -> bool:
     identity = content_identity(recipe)
+    recorded = recorded_identity(entry)
+    if ignore_library_commit and recorded is not None:
+        recorded = recorded.model_copy(update={"image_library_commit": None})
+        identity = identity.model_copy(update={"image_library_commit": None})
     return (
-        recorded_identity(entry) == identity
+        recorded == identity
         and entry.get("content_sha256", identity.content_sha256)
         == identity.content_sha256
     )

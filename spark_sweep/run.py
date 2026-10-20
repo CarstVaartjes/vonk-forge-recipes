@@ -200,6 +200,7 @@ class SweepConfig:
     limit: int = 0
     variants_last: bool = False
     revalidate_passes: bool = True
+    revalidate_library_passes: bool = False
     restore_owner: int | None = None
     stop_at_end: bool = True
     watch_seconds: float = 0.0
@@ -672,7 +673,9 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
-        why = policy.requeue_reason(entry, recipe)
+        why = policy.requeue_reason(
+            entry, recipe, revalidate_library_passes=self.cfg.revalidate_library_passes
+        )
         if why is None:
             return
         if why == RetestReason.PASSED_OLDER_REVISION and not self.cfg.revalidate_passes:

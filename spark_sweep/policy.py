@@ -731,7 +731,10 @@ def cluster(entries: Mapping[str, Mapping[str, Any]]) -> list[Cluster]:
 
 
 def requeue_reason(
-    entry: Mapping[str, Any] | None, recipe: Recipe
+    entry: Mapping[str, Any] | None,
+    recipe: Recipe,
+    *,
+    revalidate_library_passes: bool = False,
 ) -> RetestReason | None:
     """Re-test changed content, including legacy verdicts with unknown images.
 
@@ -742,7 +745,12 @@ def requeue_reason(
         RecipeStatus.FAILED: RetestReason.FAILED_OLDER_REVISION,
         RecipeStatus.DEFERRED: RetestReason.DEFERRED_OLDER_REVISION,
     }
-    if not entry or verdict_matches(entry, recipe):
+    if not entry or verdict_matches(
+        entry,
+        recipe,
+        ignore_library_commit=entry.get("status") == RecipeStatus.PASSED
+        and not revalidate_library_passes,
+    ):
         return None
     return next(
         (reason for status, reason in reasons.items() if entry.get("status") == status),

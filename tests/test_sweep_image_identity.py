@@ -82,7 +82,7 @@ def test_failed_verdict_requeues_when_only_the_published_image_changes(
 
 
 @pytest.mark.parametrize(
-    "changed", ["digest", "build", "model", "document", "unchanged"]
+    "changed", ["digest", "build", "model", "document", "library", "unchanged"]
 )
 @pytest.mark.parametrize(
     "status", [RecipeStatus.FAILED, RecipeStatus.DEFERRED, RecipeStatus.PASSED]
@@ -117,13 +117,15 @@ def test_full_identity_drives_requeue(changed, status):
         current = replace(accepted, model_digests=("another-model",))
     elif changed == "document":
         current = replace(accepted, content_sha256="c2")
+    elif changed == "library":
+        current = replace(accepted, library_commit="new-library")
     entry = {
         "status": status,
         "content_sha256": accepted.content_sha256,
         "verdict_identity": content_identity(accepted).model_dump(mode="json"),
     }
     assert (policy.requeue_reason(entry, current) is not None) == (
-        changed != "unchanged"
+        changed not in {"library", "unchanged"}
     )
 
 
@@ -255,3 +257,43 @@ def test_evidence_export_keeps_verdicts_for_different_images(tmp_path):
     written = export_evidence(rows, tmp_path, [first.key])
     assert len(written) == 1
     assert len(written[0].read_text().splitlines()) == 2
+
+
+@pytest.mark.parametrize(
+    "status", [RecipeStatus.PASSED, RecipeStatus.FAILED, RecipeStatus.DEFERRED]
+)
+@pytest.mark.parametrize("revalidate", [False, True])
+def test_library_commit_only_refresh_preserves_passes_by_default(
+    tmp_path, status, revalidate
+):
+    from spark_sweep.identity import content_identity
+
+    fake = FakeRecipe("runtime")
+    sweep, _, _ = make_sweep(
+        tmp_path, [fake], [FakeModel("m1")], revalidate_library_passes=revalidate
+    )
+    sweep.refresh_catalog()
+    accepted = replace(sweep.recipes[fake.key], runtime_image=None)
+    entry = sweep.state.entry(fake.key)
+    entry.update(
+        status=status,
+        content_sha256=accepted.content_sha256,
+        verdict_identity=content_identity(accepted).model_dump(mode="json"),
+    )
+    current = replace(accepted, library_commit="new-library")
+    sweep._reconcile_entry(current, 2)
+    assert entry["status"] == (
+        RecipeStatus.PASSED
+        if status == RecipeStatus.PASSED and not revalidate
+        else RecipeStatus.PENDING
+    )
+
+
+def test_library_pass_revalidation_requires_the_explicit_cli_flag():
+    from spark_sweep.cli import _config, _parser
+
+    parser = _parser()
+    assert not _config(parser.parse_args(["run"])).revalidate_library_passes
+    assert _config(
+        parser.parse_args(["run", "--revalidate-passes"])
+    ).revalidate_library_passes

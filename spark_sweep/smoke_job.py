@@ -36,7 +36,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts import canonical_media_types
+from qualification.media_types import canonical_media_types
 
 from . import verdict
 from .catalog import Recipe
