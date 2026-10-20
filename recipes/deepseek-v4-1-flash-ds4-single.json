@@ -126,11 +126,11 @@
       "DeepSeek AI",
       "Salvatore Sanfilippo (antirez)"
     ],
-    "source_reference": "https://github.com/antirez/ds4/tree/fc80bd695da76ee14bcb86820bf900a5cdfda806"
+    "source_reference": "https://github.com/antirez/ds4/tree/5379c1c9ac315f1540371b06a3db88491d4059ff"
   },
   "release": {
-    "released_at": "2026-10-07",
-    "version": "1.0.1"
+    "released_at": "2026-10-20",
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
