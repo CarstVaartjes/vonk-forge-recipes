@@ -1,9 +1,9 @@
-"""Class guards: published vocabulary, Controller-led waits, evidence and untyped access.
+"""Class guards: published vocabulary, bounded Controller waits, evidence and untyped access.
 
 The sweep follows the Controller's verdicts (``spark_sweep/verdict.py``). These guards are
 AST-based and whole-tree over ``spark_sweep`` (it is small):
 
-* a wait is bounded by the work's own progress, never by a fixed cap that ends work;
+* all wait budgets go through one primitive; own-work stalls follow progress;
 * a recipe's attempt counter moves only after ``disposition(...)`` decided the outcome;
 * every lane exit writes a results row, through the one writer ``record_result``.
 """
@@ -110,7 +110,7 @@ def _is_clock(node: ast.AST) -> bool:
 def fixed_caps_ending_work(source: str) -> list[int]:
     """A clock compared with a fixed offset (``now - since > CAP``) never ends work.
 
-    Waits restart a stall window (``progress_verdict``); a fixed cap may pace a poll or a
+    Waits use the shared primitive (``progress_verdict``); a fixed cap may pace a poll or a
     backoff, but a branch that ends a lane, records a verdict or raises on it fails CI.
     """
     bad = []

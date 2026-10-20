@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import re
 import ssl
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -38,6 +39,7 @@ class HttpConfig:
     ca_file: Path | None = None
     insecure_tls: bool = False
     case_timeout: float = 180.0
+    cancelled: threading.Event | None = None
 
     def headers(self) -> dict[str, str]:
         headers = {"Accept": "application/json"}
@@ -420,6 +422,8 @@ def stream_probe(base: str, alias: str, config: HttpConfig) -> dict[str, Any]:
         config.context(),
     ) as response:
         for raw in response:
+            if config.cancelled is not None and config.cancelled.is_set():
+                raise TimeoutError("smoke lane observation budget exhausted")
             line = raw.decode("utf-8", "replace").strip()
             if not line.startswith("data:"):
                 continue
