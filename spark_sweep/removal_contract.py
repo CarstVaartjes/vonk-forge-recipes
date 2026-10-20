@@ -40,7 +40,7 @@ class RemovalReplyError(BaseModel):
     model_config = ConfigDict(strict=True)
 
     code: str
-    http_status: int = Field(ge=100, le=599)
+    http_status: int | None = Field(default=None, ge=100, le=599)
     retryable: bool
     detail: str
 

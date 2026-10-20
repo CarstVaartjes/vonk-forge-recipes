@@ -350,7 +350,10 @@ def test_retesting_rearms_cleanup_with_new_identity_and_keeps_prior_receipt(tmp_
     assert record["history"][0]["request_key"] == original
 
 
-@pytest.mark.parametrize("retryable,http_status", [(False, 500), (True, 503)])
+@pytest.mark.parametrize(
+    "retryable,http_status",
+    [(False, 500), (True, 503), (True, None), (True, "omitted")],
+)
 def test_review_error_keeps_typed_cause_and_backoff_then_heals(
     tmp_path, retryable, http_status
 ):
@@ -358,19 +361,19 @@ def test_review_error_keeps_typed_cause_and_backoff_then_heals(
     from spark_sweep.removal_contract import RemovalReplyError
 
     sweep, peer, clock = scenario(tmp_path)
-    fault = RemovalReplyError.model_validate(
-        {
-            **fixture("error"),
-            "http_status": http_status,
-            "retryable": retryable,
-        }
-    )
+    document = fixture("error")
+    document["retryable"] = retryable
+    if http_status == "omitted":
+        del document["http_status"]
+    else:
+        document["http_status"] = http_status
+    fault = RemovalReplyError.model_validate(document)
     original_runner = peer.runner
 
     def runner(argv, timeout):
         if "--review" in argv:
             peer.calls.append(list(argv)[3:])
-            return 2, fault.model_dump_json(), ""
+            return 2, json.dumps(document), ""
         return original_runner(argv, timeout)
 
     sweep.model_remover.vk = Vonkctl(runner=runner)
@@ -379,7 +382,7 @@ def test_review_error_keeps_typed_cause_and_backoff_then_heals(
     assert record.outcome == RemovalOutcome.RETRY
     assert record.request_key is None
     assert fault.code in record.message
-    assert f"http_status={http_status}" in record.message
+    assert f"http_status={fault.http_status}" in record.message
     assert f"retryable={retryable}" in record.message
     assert fault.detail in record.message
     assert "validation error" not in record.message
