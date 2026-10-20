@@ -36,16 +36,16 @@
         "max_bytes": 1073741824,
         "media_types": [
           "application/json",
-          "image/jpeg",
-          "image/png",
-          "image/webp",
-          "video/mp4",
-          "video/quicktime",
-          "video/webm",
           "audio/flac",
           "audio/mpeg",
           "audio/wav",
-          "text/plain"
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "text/plain",
+          "video/mp4",
+          "video/quicktime",
+          "video/webm"
         ],
         "required": true,
         "slots": [
