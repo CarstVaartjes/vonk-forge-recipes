@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
+from .auth_contract import SmokeAuthClass
 from .policy import CLIENT_CREDENTIAL, RECIPE_FAILURE_CODES, Failure, activity
 from .vonkctl import Reply
 
@@ -97,7 +98,9 @@ PLATFORM_STALLED = "platform-stalled"
 SWEEP_CRASH = "sweep-crash"
 #: A job recipe's smoke job ended failed and the Controller names no platform cause.
 JOB_FAILED = "job-failed"
-FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
+FAIL_CLASSES = frozenset(
+    {"smoke-assertion", "recipe-data", JOB_FAILED, SmokeAuthClass.REFUSAL}
+)
 #: The recipe left the complete catalog (``catalog.recipe_removed``): deterministic, so it is
 #: skipped at once; a recipe that comes back is picked up like any new one.
 SKIP_CLASSES = frozenset({"catalog"})

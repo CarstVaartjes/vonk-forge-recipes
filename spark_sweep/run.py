@@ -41,6 +41,7 @@ from vonk_forge_contracts.sweep import (
 )
 
 from . import cleanup, memory, policy, recovery, verdict
+from .auth_contract import ClientKeyWait, SmokeAuthClass, SmokeWaitReason
 from .catalog import (
     Fleet,
     Model,
@@ -2654,10 +2655,32 @@ class Sweep:
 
     def _advance_smoking(self, key: str, slot: dict[str, Any]) -> None:
         future = self.futures.get(key)
+        if future is None and slot.get("client_key_wait") is not None:
+            wait = ClientKeyWait.model_validate(slot["client_key_wait"])
+            if self.clock.now() >= wait.deadline_at:
+                failure = policy.classify(
+                    "smoke",
+                    str(slot["client_key_evidence"]["code"]),
+                    "client key renewal deadline reached; releasing lane for other work",
+                    policy.CLIENT_CREDENTIAL,
+                    slot["client_key_evidence"],
+                )
+                self._record_failure(key, failure, slot.get("operation_id"))
+                self.state.entry(key)["not_before"] = (
+                    self.clock.now() + self.cfg.defer_delay
+                )
+                return
         if (
             future is None
         ):  # resumed after a restart: the smoke is idempotent, run it again
-            if self.clock.now() >= float(slot.get("smoke_not_before", 0)):
+            legacy_key_wait = (
+                slot.get("client_key_wait") is None
+                and slot.get("smoke_watch", {}).get("waiting_on")
+                == SmokeWaitReason.CLIENT_KEY
+            )
+            if legacy_key_wait or self.clock.now() >= float(
+                slot.get("smoke_not_before", 0)
+            ):
                 self._submit_smoke(key, slot)
             return
         if not future.done():
@@ -2677,6 +2700,8 @@ class Sweep:
             return
         assert result.failure is not None
         failure = result.failure
+        if failure.klass == SmokeAuthClass.REFUSAL:
+            self.clear_infra("client-key")
         if verdict.disposition(failure) is Disposition.WAIT:
             self._smoke_wait(key, slot, failure)
             return
@@ -2716,11 +2741,9 @@ class Sweep:
     def _smoke_wait(
         self, key: str, slot: dict[str, Any], failure: policy.Failure
     ) -> None:
-        """A busy gateway or engine (429/503) or a refused client key: no attempt, smoke again.
+        """Retry busy responses and typed key expiry without spending an attempt.
 
-        The lane is kept. A refused key waits on its renewal (the key file is read on every
-        request); a busy answer that never changes for the lane's whole window is the
-        engine's own stall and is observed (one attempt).
+        Renewal has a durable deadline; expiry releases the lane without blaming the recipe.
         """
         now = self.clock.now()
         if failure.klass == policy.CLIENT_CREDENTIAL:
@@ -2729,9 +2752,36 @@ class Sweep:
                 "the gateway refused the sweep's client key "
                 f"({failure.describe()}); renew it in the --client-key-file",
             )
-            until = float(self.state.data["infra"]["client-key"]["until"])
-            waiting_on: str | None = "client key renewal"
+            if slot.get("client_key_wait") is None:
+                # Old saved waits have already consumed their lane window. Do not
+                # grant another full window on every restart or changed error body.
+                started = (
+                    float(slot["started_at"])
+                    if slot.get("smoke_watch", {}).get("waiting_on")
+                    == SmokeWaitReason.CLIENT_KEY
+                    else now
+                )
+                slot["client_key_wait"] = ClientKeyWait(
+                    started_at=started,
+                    deadline_at=started
+                    + float(slot["deadline"])
+                    - float(slot["started_at"]),
+                ).model_dump(mode="json")
+            wait = ClientKeyWait.model_validate(slot["client_key_wait"])
+            slot["client_key_evidence"] = dict(failure.evidence)
+            slot.update(
+                smoke_started_at=wait.started_at,
+                smoke_budget_s=wait.deadline_at - wait.started_at,
+            )
+            until = min(
+                float(self.state.data["infra"]["client-key"]["until"]), wait.deadline_at
+            )
+            waiting_on: str | None = SmokeWaitReason.CLIENT_KEY
         else:
+            slot.pop("client_key_wait", None)
+            slot.pop("client_key_evidence", None)
+            slot.pop("smoke_started_at", None)
+            slot.pop("smoke_budget_s", None)
             until = now + self.cfg.retry_delay
             waiting_on = None
         progress = verdict.progress_verdict(

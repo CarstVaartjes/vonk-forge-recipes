@@ -497,3 +497,11 @@ The former clearing counter was an infrastructure submission-error counter,
 not an observation counter. Progress observation kept running without updating
 or clearing that old entry. Reconciliation now removes the stale entry and its
 backoff; the local observation budget records successive unavailable reads.
+
+Gateway authorization refusals (including a route denied to the client key)
+end the smoke case immediately, retaining its case, status and redacted body.
+Only typed LiteLLM key expiry/revocation waits for renewal. That wait uses the
+lane's load-window duration, persists its deadline across restart and shows
+its elapsed time and budget in status. At expiry the lane is released without
+a recipe attempt; the recipe is requeued at the configured defer cadence.
+A successful renewed key is read from `--client-key-file` on the next request.
