@@ -274,3 +274,48 @@ def test_fleet_outage_blocks_submission_only_until_the_next_fresh_tick(
     sweep.vk.runner = original
     sweep.tick()
     assert recipe.key in sweep.state.slots
+
+
+def test_storage_shortfall_never_submits_an_impossible_lane(tmp_path: Path) -> None:
+    """A waitable batch must not admit a Spark whose free plus evictable disk is short."""
+    from vonk_forge_contracts.sweep import SweepStorageCode, SweepStorageWait
+
+    (tmp_path / "state.json").write_text(FIXTURE.read_text())
+    recipes = [FakeRecipe("a", local="cached"), FakeRecipe("b", local="cached")]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    blocked_review = json.loads(
+        (FIXTURE.parent / "sweep-storage-shortfall.json").read_text()
+    )
+    fleet.observations.append((("profile", "load", "--review"), 0, blocked_review))
+    sweep._apply(
+        [
+            policy.Placement(sweep.recipes[recipes[0].key], ("spk_a",)),
+            policy.Placement(sweep.recipes[recipes[1].key], ("spk_b",)),
+        ],
+        clock.now(),
+    )
+    assert recipes[0].key not in sweep.state.slots
+    assert recipes[1].key in sweep.state.slots
+    wait = SweepStorageWait.model_validate(
+        sweep.state.entry(recipes[0].key)["storage_wait"]
+    )
+    assert wait.reasons[0].code == SweepStorageCode.INSUFFICIENT_DISK
+    assert wait.node_ids == {"spk_a"}
+    assert sweep.state.entry(recipes[0].key).get("attempts", 0) == 0
+    # The saved decision constrains the fallback too, but a new observation
+    # after the check interval can reconsider that Spark without manual edits.
+    sweep.state.save()
+    restarted, _, _ = make_sweep(
+        tmp_path, recipes, list(fleet.models.values()), fleet=fleet
+    )
+    restarted.refresh_catalog()
+    blocked_bin = next(b for b in restarted._bins() if b.id == "spk_a")
+    assert recipes[0].key in blocked_bin.disk_blocked_recipes
+    clock.sleep(sweep.cfg.defer_delay + 1)
+    assert not next(
+        b for b in restarted._bins() if b.id == "spk_a"
+    ).disk_blocked_recipes
