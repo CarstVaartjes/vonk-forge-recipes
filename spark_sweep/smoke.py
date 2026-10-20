@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .auth_contract import GatewayAuthReply, SmokeAuthClass
 from .catalog import Recipe
 from .definitions import Definitions
 from .policy import CLIENT_CREDENTIAL, Failure, classify, excerpt
@@ -357,11 +358,19 @@ def _transport_failure(
     body = getattr(error, "body", None)
     if isinstance(error, urllib.error.HTTPError):
         evidence["http_status"] = error.code
-        evidence["body"] = excerpt(body or _http_body(error), secrets=secrets)
+        response_body = body or _http_body(error)
+        evidence["body"] = excerpt(response_body, secrets=secrets)
         # A temporary answer (busy, overloaded, a gateway in between) is a wait, never a verdict.
         klass = SMOKE_BUSY if http_wait(error.code) else "smoke-request"
         if error.code in (401, 403):
-            klass = CLIENT_CREDENTIAL
+            klass = SmokeAuthClass.REFUSAL
+            try:
+                reply = GatewayAuthReply.model_validate_json(response_body)
+            except ValueError:
+                pass  # An untyped denial cannot authorize renewal retries.
+            else:
+                if reply.renewable:
+                    klass = CLIENT_CREDENTIAL
         return classify("smoke", f"case.{case}", f"HTTP {error.code}", klass, evidence)
     if body is not None:  # a 200 whose body was not the JSON we expected
         evidence["http_status"] = getattr(error, "http_status", None)

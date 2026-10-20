@@ -516,3 +516,10 @@ job budget including grace. Expired streams also receive a cooperative stop sign
 so a continuing SSE heartbeat closes its response on the next line.
 `tests/test_sweep_wait_budget.py` guards every `waiting_on` write and contract reason,
 and drives every reason beyond its budget to require lane release and a requeue.
+Gateway authorization refusals (including a route denied to the client key)
+end the smoke case immediately, retaining its case, status and redacted body.
+Only typed LiteLLM key expiry/revocation waits for renewal. That wait uses the
+lane's load-window duration, persists its deadline across restart and shows
+its elapsed time and budget in status. At expiry the lane is released without
+a recipe attempt; the recipe is requeued at the configured defer cadence.
+A successful renewed key is read from `--client-key-file` on the next request.

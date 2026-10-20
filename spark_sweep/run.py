@@ -43,6 +43,7 @@ from vonk_forge_contracts.sweep import (
 )
 
 from . import cleanup, memory, policy, recovery, verdict
+from .auth_contract import SmokeAuthClass
 from .catalog import (
     Fleet,
     Model,
@@ -2681,7 +2682,7 @@ class Sweep:
             if watch.get("wait")
             else SweepWait(reason=SweepWaitReason.SMOKE_RESPONSE)
         )
-        if self._wait_slot(key, slot, wait):
+        if (future is None or not future.done()) and self._wait_slot(key, slot, wait):
             return
         if (
             future is None
@@ -2706,6 +2707,8 @@ class Sweep:
             return
         assert result.failure is not None
         failure = result.failure
+        if failure.klass == SmokeAuthClass.REFUSAL:
+            self.clear_infra("client-key")
         if verdict.disposition(failure) is Disposition.WAIT:
             self._smoke_wait(key, slot, failure)
             return
@@ -2745,7 +2748,7 @@ class Sweep:
     def _smoke_wait(
         self, key: str, slot: dict[str, Any], failure: policy.Failure
     ) -> None:
-        """A busy gateway or engine (429/503) or a refused client key: no attempt, smoke again.
+        """Retry busy responses and typed key expiry without spending an attempt.
 
         Both reasons use the smoke phase budget, even during retry backoff.
         Expiry releases the lane without spending a recipe attempt.
