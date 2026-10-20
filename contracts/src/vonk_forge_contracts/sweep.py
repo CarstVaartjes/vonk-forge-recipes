@@ -149,3 +149,53 @@ class SweepStorageWait(BaseModel):
     @property
     def node_ids(self) -> set[str]:
         return {node for reason in self.reasons for node in reason.node_ids}
+
+
+class SweepWaitReason(StrEnum):
+    APPLICATION_QUEUED = "application queued"
+    APPLICATION_BACKOFF = "application backoff"
+    OPERATOR = "operator"
+    ADMISSION = "admission"
+    BLOCKER = "controller blocker"
+    CONTROLLER_RETRY = "controller retry"
+    OPERATION_QUEUED = "operation queued"
+    OPERATION_BACKOFF = "operation backoff"
+    OBSERVATION = "observation unavailable"
+    ROUTE_PUBLICATION = "route publication"
+    CONTROLLER_STALLED = "controller stalled"
+    ENDPOINT_PUBLICATION = "endpoint publication"
+    CLIENT_KEY = "client key renewal"
+    SMOKE_BUSY = "smoke busy"
+    SMOKE_RESPONSE = "smoke response"
+
+
+class SweepWaitCode(StrEnum):
+    BUDGET_EXHAUSTED = "sweep.wait_budget_exhausted"
+
+
+class SweepWait(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    reason: SweepWaitReason
+    detail: str = ""
+
+    @property
+    def description(self) -> str:
+        return f"{self.reason}: {self.detail}" if self.detail else self.reason.value
+
+
+class SweepWaitExpiry(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: SweepWaitCode = SweepWaitCode.BUDGET_EXHAUSTED
+    wait: SweepWait
+    started_at: float
+    deadline: float
+    observed_at: float
+
+
+class SweepProgress(StrEnum):
+    PROGRESSING = "progressing"
+    WAITING = "waiting"
+    STALLED = "stalled"
+    WAIT_EXPIRED = "wait-expired"

@@ -1,0 +1,13 @@
+{
+  "phase": "smoking",
+  "started_at": 997372.0,
+  "deadline": 998572.0,
+  "smoke_not_before": 1000600.0,
+  "smoke_watch": {
+    "progressed_at": 1000000.0,
+    "waiting_on": "client key renewal"
+  },
+  "response": {
+    "detail": "Virtual key is not allowed to call this route. Only allowed to call routes: ['openai_routes']. Tried to call route: /vllm/systemone"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "uncertain_recipe": {
+    "status": "pending",
+    "attempts": 17
+  },
+  "cache_recovery": {
+    "state": "succeeded",
+    "rerequests": 17,
+    "done_at": 1
+  },
+  "refusal": {
+    "error_type": "control_api",
+    "code": "recipe.invalid_option",
+    "detail": "request is invalid: body.option_choices.invalid",
+    "http_status": 422,
+    "decision": "exit",
+    "retryable": false
+  },
+  "held_application": {
+    "state": "needs-operator",
+    "status_reason": "dependency unavailable"
+  },
+  "history_complete": {
+    "accepted-prompt": {
+      "status": {
+        "completed": true
+      }
+    }
+  },
+  "deferred_uncertain": {
+    "status": "deferred",
+    "attempts": 17,
+    "phase": "download",
+    "failure_class": "network",
+    "code": "controller.transport_timeout",
+    "error": "connection reset"
+  }
+}

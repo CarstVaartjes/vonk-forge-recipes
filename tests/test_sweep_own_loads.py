@@ -113,9 +113,10 @@ def test_it_waits_for_its_own_restore_to_settle_without_calling_it_an_owner_load
     clock.hooks.append(lambda _t: reasons.append(second.owner_status.reason))
     assert second.run() == 0
     waited = [r for r in reasons if r]
-    assert waited and all(
-        "our own load" in r for r in waited
-    )  # it waited, and said whose load it was
+    # The original finalization owner now follows the restore to its receipt
+    # before returning, so restart has no unfinished restore to wait on.
+    assert all("our own load" in r for r in waited)
+    assert not first.state.data["dirty"]
     assert not any("holding after an owner load" in r for r in reasons)
     assert second.state.data["owner"]["hold_until"] == 0
     assert clock.now() - start < 1800

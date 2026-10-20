@@ -1,14 +1,8 @@
 """The sweep follows the Controller's verdicts: one place decides wait, observe or fail.
 
-Rule: the sweep records what the platform does; it never turns a wait into a verdict.
-
-* A lane ends a load only on the Controller's own terminal state or on a ``STALLED``
-  verdict of the work's own progress (``progress_verdict``).
-* A wait on something the Controller reports as owned, queued or in progress
-  (``WAITING``) never expires: it restarts the stall window instead of ageing it.
-* Attempts are spent only on ``OBSERVE`` outcomes (``disposition``); a ``WAIT`` spends
-  nothing, a ``FAIL`` ends at once with its evidence and a ``SKIP`` (the recipe is no
-  longer the sweep's to test) is recorded at once with its reason, never a verdict.
+A Controller wait is not a recipe failure. Every wait has a finite observation
+budget; expiry releases the local lane and re-plans without spending an attempt.
+The original Controller receipt remains authoritative for remote effects.
 
 The vocabulary is what actually reaches ``vonkctl --json``: the application's
 ``LifecycleState``, its typed blocker codes, ``next_attempt_at`` and admission flags,
@@ -26,14 +20,18 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
+from vonk_forge_contracts.sweep import SweepProgress as Progress
+from vonk_forge_contracts.sweep import (
+    SweepWait,
+    SweepWaitCode,
+    SweepWaitExpiry,
+    SweepWaitReason,
+)
+
+from .auth_contract import SmokeAuthClass
+from .lifecycle import LifecycleState
 from .policy import CLIENT_CREDENTIAL, RECIPE_FAILURE_CODES, Failure, activity
 from .vonkctl import Reply
-
-
-class Progress(StrEnum):
-    PROGRESSING = "progressing"
-    WAITING = "waiting"
-    STALLED = "stalled"
 
 
 class Disposition(StrEnum):
@@ -43,6 +41,11 @@ class Disposition(StrEnum):
     OBSERVE = "observe"  # an uncertain outcome: look again, spending one attempt
     FAIL = "fail"  # a definite outcome: record it now, with its evidence
     SKIP = "skip"  # not the sweep's to test any more: record the reason now, no verdict
+
+
+class RecoveryReason(StrEnum):
+    UNCERTAIN = "sweep.uncertain_outcome"
+    REQUEST_REFUSED = "sweep.request_refused"
 
 
 # -- vendored published vocabulary (tests/fixtures/sweep-vocabulary.json) -----------
@@ -85,10 +88,13 @@ TEMPORARY_HTTP = frozenset({408, 429, 502, 503, 504})
 SMOKE_BUSY = "smoke-busy"
 #: A shared load ended and nothing the Controller said names which recipe caused it.
 UNATTRIBUTED = "unattributed"
-WAIT_CLASSES = frozenset({SMOKE_BUSY, CLIENT_CREDENTIAL})
+WAIT_CLASSES = frozenset(
+    {SMOKE_BUSY, CLIENT_CREDENTIAL, SweepWaitCode.BUDGET_EXHAUSTED}
+)
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport
 #: error after its own retries: the cause is uncertain, so it is observed once more.
-OBSERVE_CLASSES = frozenset({"copy-stalled", "network", "smoke-timeout", UNATTRIBUTED})
+SMOKE_TIMEOUT = "smoke-timeout"
+OBSERVE_CLASSES = frozenset({"copy-stalled", "network", SMOKE_TIMEOUT, UNATTRIBUTED})
 #: The Controller reports the lane's application as stalled (``STALLED_CODE``): the lane is
 #: kept with an ``observe`` row that spends no attempt (never through ``disposition``).
 PLATFORM_STALLED = "platform-stalled"
@@ -97,7 +103,9 @@ PLATFORM_STALLED = "platform-stalled"
 SWEEP_CRASH = "sweep-crash"
 #: A job recipe's smoke job ended failed and the Controller names no platform cause.
 JOB_FAILED = "job-failed"
-FAIL_CLASSES = frozenset({"smoke-assertion", "recipe-data", JOB_FAILED})
+FAIL_CLASSES = frozenset(
+    {"smoke-assertion", "recipe-data", JOB_FAILED, SmokeAuthClass.REFUSAL}
+)
 #: The recipe left the complete catalog (``catalog.recipe_removed``): deterministic, so it is
 #: skipped at once; a recipe that comes back is picked up like any new one.
 SKIP_CLASSES = frozenset({"catalog"})
@@ -127,7 +135,11 @@ class Signal:
     """
 
     signature: tuple[Any, ...]
-    waiting_on: str | None = None
+    wait: SweepWait | None = None
+
+    @property
+    def waiting_on(self) -> str | None:
+        return self.wait.description if self.wait else None
 
 
 def _blocker_codes(document: Mapping[str, Any], *, holding: bool = False) -> list[str]:
@@ -155,18 +167,25 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
         for code in _blocker_codes(document, holding=True)
         if code not in (PHASE_RETRY, STALLED_CODE)
     ]
-    waiting_on: str | None = None
-    if state in ("queued", "backoff"):
-        waiting_on = f"application {state}"
-    elif state == "needs-operator":
-        waiting_on = f"operator: {document.get('status_reason') or 'needs-operator'}"
+    wait = None
+    if state == LifecycleState.QUEUED:
+        wait = SweepWait(reason=SweepWaitReason.APPLICATION_QUEUED)
+    elif state == LifecycleState.BACKOFF:
+        wait = SweepWait(reason=SweepWaitReason.APPLICATION_BACKOFF)
+    elif state == LifecycleState.NEEDS_OPERATOR:
+        wait = SweepWait(
+            reason=SweepWaitReason.OPERATOR,
+            detail=str(document.get("status_reason") or state),
+        )
     elif progress.get("admission_pending"):
-        waiting_on = "admission" + (f" ({held[0]})" if held else "")
+        wait = SweepWait(
+            reason=SweepWaitReason.ADMISSION, detail=held[0] if held else ""
+        )
     elif held:
-        waiting_on = held[0]
+        wait = SweepWait(reason=SweepWaitReason.BLOCKER, detail=held[0])
     elif document.get("next_attempt_at") or progress.get("retry_due_at"):
-        waiting_on = "controller retry"
-    return Signal(tuple(activity(document)), waiting_on)
+        wait = SweepWait(reason=SweepWaitReason.CONTROLLER_RETRY)
+    return Signal(tuple(activity(document)), wait)
 
 
 def stalled_detail(document: Mapping[str, Any]) -> str | None:
@@ -199,8 +218,12 @@ def download_signal(document: Mapping[str, Any]) -> Signal:
         state,
         children,
     )
-    waiting = f"operation {state}" if state in ("queued", "backoff") else None
-    return Signal(signature, waiting)
+    wait = None
+    if state == LifecycleState.QUEUED:
+        wait = SweepWait(reason=SweepWaitReason.OPERATION_QUEUED)
+    elif state == LifecycleState.BACKOFF:
+        wait = SweepWait(reason=SweepWaitReason.OPERATION_BACKOFF)
+    return Signal(signature, wait)
 
 
 def _comparable(value: Any) -> Any:
@@ -210,30 +233,59 @@ def _comparable(value: Any) -> Any:
     return value
 
 
+def bounded_wait(
+    wait: SweepWait,
+    watch: MutableMapping[str, Any],
+    *,
+    window: float,
+    now: float,
+    started_at: float | None = None,
+) -> Progress:
+    """The only waiting_on writer. Changing reasons or heartbeats cannot renew a budget."""
+    since = float(
+        watch.setdefault("wait_started_at", now if started_at is None else started_at)
+    )
+    deadline = min(float(watch.get("wait_deadline", since + window)), since + window)
+    watch.update(
+        observed_at=now,
+        wait=wait.model_dump(mode="json"),
+        waiting_on=wait.description,
+        wait_deadline=deadline,
+    )
+    return Progress.WAIT_EXPIRED if now > deadline else Progress.WAITING
+
+
+def wait_expiry(watch: Mapping[str, Any], now: float) -> SweepWaitExpiry:
+    return SweepWaitExpiry(
+        wait=SweepWait.model_validate(watch["wait"]),
+        started_at=float(watch["wait_started_at"]),
+        deadline=float(watch["wait_deadline"]),
+        observed_at=now,
+    )
+
+
 def progress_verdict(
     signal: Signal | None,
     watch: MutableMapping[str, Any],
     *,
     window: float,
     now: float,
+    started_at: float | None = None,
 ) -> Progress:
-    """PROGRESSING, WAITING or STALLED, remembering the last movement in ``watch``.
-
-    ``None`` is an unreadable observation: unknown, so it waits and restarts the window.
-    A wait on the Controller restarts the window too, so it never ages into a stall. Only
-    the work's own silence for a whole ``window`` is ``STALLED``, the one verdict that
-    ends work.
-    """
+    """Own-work silence stalls; dependency waits expire through bounded_wait."""
     signature = _comparable(signal.signature) if signal is not None else None
-    if signal is None or signal.waiting_on is not None:
-        watch["progressed_at"] = now
-        watch["waiting_on"] = (
-            signal.waiting_on if signal is not None else "observation unavailable"
+    if signal is None or signal.wait is not None:
+        wait = signal.wait if signal is not None else None
+        return bounded_wait(
+            wait or SweepWait(reason=SweepWaitReason.OBSERVATION),
+            watch,
+            window=window,
+            now=now,
+            started_at=started_at,
         )
-        if signature is not None:
-            watch["signature"] = signature
-        return Progress.WAITING
+    watch["observed_at"] = now
     watch.pop("waiting_on", None)
+    watch.pop("wait", None)
     if "progressed_at" not in watch or watch.get("signature") != signature:
         watch["signature"] = signature
         watch["progressed_at"] = now
@@ -262,6 +314,10 @@ def disposition(failure: Failure) -> Disposition:
     if failure.klass in WAIT_CLASSES:
         return Disposition.WAIT
     if failure.klass == "capacity":
+        if failure.evidence.get("demand_exceeds_idle_spark") is True:
+            return (
+                Disposition.FAIL
+            )  # deterministic physical demand proof, not retry exhaustion
         # NAS space is a resource prerequisite the collector frees: a wait. A placement
         # refusal may be the recipe not fitting: the fleet is cleared and it is observed.
         return Disposition.WAIT if failure.phase == "download" else Disposition.OBSERVE
@@ -293,7 +349,10 @@ def reply_disposition(reply: Reply | None) -> Disposition:
     if (
         str(document.get("decision") or "") in CLIENT_WAIT_DECISIONS
         or document.get("retryable") is True
-        or any(document.get(name) is not None for name in _HTTP_FIELDS)
+        or (
+            any(document.get(name) is not None for name in _HTTP_FIELDS)
+            and not request_refused(reply)
+        )
         or code not in RECIPE_FAILURE_CODES
     ):
         return Disposition.WAIT
@@ -338,3 +397,8 @@ def retry_ended(document: Mapping[str, Any]) -> bool:
         isinstance(item, Mapping) and item.get("terminal") is True
         for item in failures or []
     )
+
+
+def retry_delay(base: float, attempts: int) -> float:
+    """Counters pace observation, never end uncertain work."""
+    return min(base * 2 ** min(max(0, attempts - 1), 10), 600.0)

@@ -60,13 +60,17 @@ def _cancels(fleet) -> list[tuple]:
     return [c for _, c in fleet.calls if c[:2] == ("profile", "cancel")]
 
 
-def test_the_recorded_copy_on_a_controller_retry_waits_and_never_stalls() -> None:
+def test_the_recorded_copy_on_a_controller_retry_expires_without_recipe_blame() -> None:
     signal = verdict.application_signal(_running_view())
     assert signal.waiting_on == "controller retry"
     watch: dict[str, Any] = {}
-    for minute in range(0, 48 * 60, 5):  # two days of the same document
-        progress = verdict.progress_verdict(signal, watch, window=600, now=minute * 60)
-        assert progress is Progress.WAITING
+    assert (
+        verdict.progress_verdict(signal, watch, window=600, now=0) is Progress.WAITING
+    )
+    assert (
+        verdict.progress_verdict(signal, watch, window=600, now=601)
+        is Progress.WAIT_EXPIRED
+    )
 
 
 def test_a_finished_load_never_cancels_the_application_a_live_lane_rides(

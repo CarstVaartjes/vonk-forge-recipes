@@ -237,3 +237,73 @@ def test_declared_exclusions_name_existing_recipes_and_give_a_reason() -> None:
     for slug, reason in tool.read_exclusions(ROOT / tool.EXCLUSIONS).items():
         assert (ROOT / "recipes" / f"{slug}.json").is_file(), slug
         assert reason.strip(), slug
+
+
+def test_matrix_overflow_continues_after_publication_and_failed_first_batch(
+    tmp_path, monkeypatch
+):
+    plan = {
+        "images": [
+            {
+                "build_key": str(i),
+                "recipes": [
+                    {
+                        "slug": f"r{i:04}",
+                        "content_sha256": str(i),
+                        "source_path": f"recipes/r{i}.json",
+                        "context": f"adapters/r{i}",
+                    }
+                ],
+            }
+            for i in range(520)
+        ]
+    }
+    first = tool.select(plan, owner=OWNER, candidates=None, lookup=_registry({}))
+    assert len(first["builds"]) == tool.MAX_BUILDS
+    assert first.get("deferred_slugs") is not None, (
+        "overflow needs an automatic continuation payload"
+    )
+    assert len(first["deferred_slugs"]) == 264
+    workflow_path = tmp_path / "publish.yml"
+    workflow_path.write_text(f"platform_ref: {OLD_PIN}\n")
+    monkeypatch.setattr(tool, "_git_file", lambda *_args: workflow_path.read_text())
+    monkeypatch.setattr(
+        tool, "_git_changed", lambda _baseline: ["qualification/shared.json"]
+    )
+    assert (
+        tool.candidate_slugs(
+            plan, [], baseline="published-after-first-batch", workflow=workflow_path
+        )
+        == set()
+    )
+    remaining = tool.candidate_slugs(
+        plan,
+        first["deferred_slugs"],
+        baseline="published-after-first-batch",
+        workflow=workflow_path,
+    )
+    # Even if the release tag advances and every first-batch build fails, the
+    # workflow explicitly carries the tail; registry evidence suppresses success.
+    second = tool.select(plan, owner=OWNER, candidates=remaining, lookup=_registry({}))
+    third = tool.select(
+        plan,
+        owner=OWNER,
+        candidates=set(second["deferred_slugs"]),
+        lookup=_registry({}),
+    )
+    assert len(second["builds"]) == tool.MAX_BUILDS and len(third["builds"]) == 8
+    covered = {
+        row["build_key"] for batch in (first, second, third) for row in batch["builds"]
+    }
+    assert len(covered) == 520 and not third["deferred"]
+    workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
+    assert (
+        "schedule:" in workflow
+        and "github.event_name == 'schedule' && 'all'" in workflow
+    )
+    assert "needs.plan.outputs.deferred_slugs" in workflow
+    assert (
+        "gh workflow run recipe-images.yml" in workflow
+        and '-f slugs="$DEFERRED"' in workflow
+    )
+    assert "needs.build.result == 'success'" not in workflow

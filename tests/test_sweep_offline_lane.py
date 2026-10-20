@@ -220,6 +220,7 @@ def test_an_undeliverable_stop_of_ours_does_not_hold_the_online_lane(
         [FakeModel("m1", local="cached")],
         gateway=gateway,
         only=(blocked,),
+        stop_at_end=False,  # this scenario observes pending offline cleanup before delivery
     )
     fleet.sparks = [(n["id"], n["display_name"]) for n in (offline, online)]
     fleet.offline_nodes = {offline["id"]}

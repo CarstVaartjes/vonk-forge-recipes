@@ -51,9 +51,7 @@ def test_an_endpoint_the_controller_has_not_published_is_waited_for_not_failed(
     fleet.observations.append((("profile", "endpoint"), 0, _unpublished(slot)))
     sweep._submit_smoke(key, slot)
     assert key not in sweep.futures
-    assert slot["phase"] == "smoking"
+    assert slot["phase"] == "finished"
     assert not sweep.state.entry(key).get("attempts")
-    assert "unavailable" in slot["waiting_on"]
-    clock.t = slot["smoke_not_before"]
-    sweep._advance_smoking(key, slot)  # published now: the smoke starts
-    assert key in sweep.futures
+    assert sweep.state.entry(key)["not_before"] > clock.now()
+    assert "unavailable" in sweep.state.entry(key)["wait_deferral"]["wait"]["detail"]

@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from .auth_contract import SmokeAuthClass
 from .catalog import Model, Recipe
 
 Boost = Callable[[Recipe], float]
@@ -498,9 +499,8 @@ _CODE_CLASSES = {
     "controller.transport_timeout": "network",
 }
 _FIXED_CLASS = {"timeout": "timeout", "readiness": "readiness"}
-# The gateway refused the sweep's own key (expired, revoked, not allowed): the recipe was never
-# judged. Never a verdict on it, never counted as an attempt.
-CLIENT_CREDENTIAL = "client-credential"
+# Only typed expiry/revocation is renewable; route and other auth denials are final.
+CLIENT_CREDENTIAL = SmokeAuthClass.CREDENTIAL
 MODEL_LEVEL_CLASSES = frozenset({"model-integrity"})
 
 

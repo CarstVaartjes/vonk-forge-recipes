@@ -13,7 +13,7 @@ from typing import Any
 
 from .catalog_contract import ModelRow, RecipeRow
 from .tolerant import InputDiagnostic, InputReason, read_optional
-from .vonkctl import Vonkctl
+from .vonkctl import Reply, Vonkctl
 
 PAGE_LIMIT = "512"
 MAX_PAGE_FAILURES = 3
@@ -224,12 +224,17 @@ class Listing[T]:
         self.invalid_rows = 0
         self.diagnostics.clear()
 
-    def step(self, now: float = 0.0) -> bool:
-        """Read one page. True when this call completed a pass."""
+    def read_page(self) -> Reply:
+        """Read the current cursor without mutating the listing (worker safe)."""
         args = [self.noun, "library", "--limit", PAGE_LIMIT]
         if self.cursor:
             args += ["--cursor", self.cursor]
-        reply = self.vk.run(*args, timeout=300)
+        return self.vk.run(*args, timeout=300)
+
+    def step(self, now: float = 0.0, *, reply: Reply | None = None) -> bool:
+        """Apply one page on the owner thread. True when a pass completed."""
+        if reply is None:
+            reply = self.read_page()
         if not reply.ok or not isinstance(reply.document, dict):
             self.last_error = reply.error_text
             self.failures += 1

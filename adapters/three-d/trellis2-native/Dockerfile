@@ -103,6 +103,7 @@ RUN python3 /opt/vonk/source/apply-local-models.py \
 COPY trellis2_job.py /opt/vonk/source/trellis2_job.py
 COPY pixal3d_job.py /opt/vonk/source/pixal3d_job.py
 COPY glb_validation.py /opt/vonk/source/glb_validation.py
+COPY glb_export.py /opt/vonk/source/glb_export.py
 
 RUN install --directory --mode=0755 /opt/vonk/bin /opt/vonk/source \
     && printf '%s\n' '#!/bin/sh' \

@@ -119,8 +119,10 @@ def test_a_capacity_refusal_beyond_an_idle_spark_is_deferred_with_evidence(
         "review",
         "capacity",
     )
-    assert entry["evidence"]["freeing_attempts"] == MAX_REVIEW_FREEING
-    assert len(refused) == MAX_REVIEW_FREEING + 1
+    assert entry["evidence"]["demand_exceeds_idle_spark"] is True
+    assert (
+        len(refused) == 1
+    )  # deterministic demand proof fails fast, without spending counts
     rows = [r for r in sweep.log.entries() if r.get("status") == "deferred"]
     assert rows[-1]["controller_document"]["admission_decisions"][0]["requirements"]
 

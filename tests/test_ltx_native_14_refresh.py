@@ -89,3 +89,24 @@ class LtxNative14RefreshTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_native_images_resolve_one_compatible_pytorch_release() -> None:
+    """torchaudio's native extension must use the torch ABI it was built for."""
+    for adapter in set(RECIPES.values()):
+        root = ROOT / adapter
+        dockerfile = (root / "Dockerfile").read_text()
+        torch = re.search(r"\btorch==([\d.]+)", dockerfile)
+        audio = re.search(r"\btorchaudio==([\d.]+)", dockerfile)
+        assert torch is not None and audio is not None
+        assert torch.group(1) == audio.group(1), adapter
+        assert "--no-deps" not in dockerfile.split("COPY requirements.lock")[0]
+        lock = (root / "requirements.lock").read_text()
+        # Constraints from the selected cu130 torch wheel's METADATA. Keep the
+        # subsequent requirements install from replacing its binary dependencies.
+        assert "nvidia-cudnn-cu13==9.19.0.56" in lock
+        assert "setuptools==81.0.0" in lock
+        assert (
+            'RUN python3 -c "import torchaudio; from transformers import PreTrainedModel; from ltx_pipelines.utils.types import PipelineOutput"'
+            in dockerfile
+        )

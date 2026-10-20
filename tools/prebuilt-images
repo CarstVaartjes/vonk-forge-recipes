@@ -179,6 +179,11 @@ def select(
     return {
         "builds": ordered[:MAX_BUILDS],
         "deferred": [item["build_key"] for item in ordered[MAX_BUILDS:]],
+        "deferred_slugs": [
+            recipe["slug"]
+            for item in ordered[MAX_BUILDS:]
+            for recipe in item["recipes"]
+        ],
         "copies": copies,
     }
 

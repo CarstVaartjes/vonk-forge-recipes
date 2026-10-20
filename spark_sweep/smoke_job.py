@@ -29,6 +29,7 @@ Verdicts follow ``verdict.disposition``:
 from __future__ import annotations
 
 import json
+import re
 import tempfile
 import time
 from collections.abc import Callable, Mapping
@@ -145,9 +146,25 @@ def _binding(spec: Mapping[str, Any], definitions: Definitions, work: Path) -> P
     return binding
 
 
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+_TQDM_LINE = re.compile(r".*\b\d{1,3}%\|[^|]*\|\s*\d+/\d+\s*\[[^]\r\n]*\]\s*")
+
+
 def _tail(text: str, limit: int = STDERR_TAIL_BYTES) -> str:
-    """The redacted end of ``text`` within ``limit`` UTF-8 bytes."""
-    encoded = redact(text).encode("utf-8")
+    """The last non-progress lines, redacted and bounded by UTF-8 bytes.
+
+    Split carriage-return redraws before filtering: progress after an exception
+    must not push it out of the retained evidence. Keep progress if it is all we have.
+    """
+    plain = _ANSI_ESCAPE.sub("", text)
+    lines = plain.splitlines()
+    diagnostics = [
+        line for line in lines if line.strip() and not _TQDM_LINE.fullmatch(line)
+    ]
+    content = "\n".join(diagnostics) if diagnostics else plain
+    if diagnostics and plain.endswith(("\n", "\r")):
+        content += "\n"
+    encoded = redact(content).encode("utf-8")
     return encoded[-limit:].decode("utf-8", errors="ignore")
 
 
