@@ -123,3 +123,30 @@ def test_pipeline_receives_offline_assets_and_checkpoint_sampling(job, monkeypat
         assert generate.call_args.kwargs["pup"] is True
         assert generate.call_args.kwargs["steps"] == 16
     image.save.assert_called_once_with(output / "image.png", format="PNG")
+
+
+@pytest.mark.parametrize("mode", ["RGBA", "RGB", "L"])
+def test_qwen_qualification_requires_native_rgba_png(mode: str) -> None:
+    # The pinned QwenImage21 VAE decodes four channels; preserve its alpha.
+    # https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/fc13ba1986fcb905854dc8de2f52eee395f49b5b/vae/config.json
+    import io
+
+    Image = pytest.importorskip("PIL.Image")
+
+    from qualification.definitions_loader import load_definitions
+    from spark_sweep.job_assertions import Output, evaluate
+    from spark_sweep.smoke import AssertionFailed
+
+    assertions = load_definitions()["recipes"][
+        "vonk-forge/qwen-image-2-1-turbo-diffusers-single"
+    ]["assertions"]
+    content = io.BytesIO()
+    Image.new(mode, (1024, 1024)).save(content, format="PNG")
+    output = Output("image.png", "image/png", content.getvalue())
+    if mode == "RGBA":
+        assert evaluate(assertions, [output]) == {}
+    else:
+        with pytest.raises(AssertionFailed, match="color_type"):
+            evaluate(assertions, [output])
+    with pytest.raises(AssertionFailed):
+        evaluate(assertions, [Output("image.png", "image/png", b"broken PNG")])

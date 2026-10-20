@@ -39,7 +39,8 @@
       "spark",
       "vllm",
       "lfm2-5",
-      "tool-use"
+      "tool-use",
+      "reasoning"
     ],
     "title": "LFM2.5-24B-A2B vLLM single Spark"
   },
@@ -298,6 +299,10 @@
         "name": "enable-auto-tool-choice",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "reasoning-parser",
+        "value": "qwen3"
       }
     ],
     "engine": "vllm",
