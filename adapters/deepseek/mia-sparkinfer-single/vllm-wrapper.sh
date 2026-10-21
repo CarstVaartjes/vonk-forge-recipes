@@ -70,7 +70,6 @@ done
 [[ ${max_num_seqs} == 1 ]] || die "the upstream-tested profile is single-request"
 [[ ${max_num_batched_tokens} == 8224 ]] || die "the validated batch-token limit is 8224"
 [[ ${max_cudagraph_capture_size} == 24 ]] || die "the upstream-tested CUDA graph width is 24"
-[[ ${gpu_memory_utilization} == 0.94 ]] || die "the upstream-tested memory utilization is 0.94"
 [[ ${kv_cache_dtype} == nvfp4_ds_mla ]] || die "the validated sparse-MLA cache selector is required"
 [[ ${prefix_cache} == 1 ]] || die "the validated profile requires prefix caching"
 

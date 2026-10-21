@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark vLLM TP1 + MTP3 profile for the 99 GiB Mia mirror of the local-inference-lab Qwen3.8 Flash Next NVFP4 checkpoint (text, image and video). The 27 GiB PLE table is served from a memory-mapped packed file built once into the platform cache, so it stays evictable page cache. The adapter bakes MiaAI-Lab's PLE offload, MXFP8, QSA FP8-KV, reduced-vocabulary MTP drafting and block-drop patches into the pinned arm64 image. Defaults follow upstream: 262144 context, FP8 KV, BF16 recurrent state, MTP 3, four sequences, 2048-token prefill chunks; contexts up to 524288 use YaRN. GPU memory utilisation 0.786 follows the current upstream .env.sample budget for KV_TARGET_GIB=20, HOST_RESERVE_GIB=26, and a 121.69 GiB host (95.60 GiB budget); it is derived from that owning profile, not a measured constant. The README's 0.780 (94.87 GiB) table documents an earlier KV_TARGET_GIB=16, five-sequence profile. Upstream claims (not measured here): 48.7 tok/s single stream; 162.9 tok/s aggregate needs 8 streams (upstream ran max-num-seqs 8 with a 28 GiB reserve, this recipe defaults to 4). GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "Single-DGX-Spark vLLM TP1 + MTP3 profile for the 99 GiB Mia mirror of the local-inference-lab Qwen3.8 Flash Next NVFP4 checkpoint (text, image and video). The 27 GiB PLE table is served from a memory-mapped packed file built once into the platform cache, so it stays evictable page cache. The adapter bakes MiaAI-Lab's PLE offload, MXFP8, QSA FP8-KV, reduced-vocabulary MTP drafting and block-drop patches into the pinned arm64 image. Defaults follow upstream: 262144 context, FP8 KV, BF16 recurrent state, MTP 3, four sequences, 2048-token prefill chunks; contexts up to 524288 use YaRN. GPU memory utilisation 0.786 follows the current upstream .env.sample budget for KV_TARGET_GIB=20, HOST_RESERVE_GIB=26, and a 121.69 GiB host (95.60 GiB budget); it is derived from that owning profile, not a measured constant. The README's 0.780 (94.87 GiB) table documents an earlier KV_TARGET_GIB=16, five-sequence profile. Upstream claims (not measured here): 48.7 tok/s single stream; 162.9 tok/s aggregate needs 8 streams (upstream ran max-num-seqs 8 with a 28 GiB reserve, this recipe defaults to 4). GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "multimodal",
       "mtp",
@@ -828,7 +828,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.786"
+        "value": "0.75"
       },
       {
         "name": "max-num-seqs",

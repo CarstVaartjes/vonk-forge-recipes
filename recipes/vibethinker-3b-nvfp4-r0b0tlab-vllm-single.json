@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's vLLM 0.22 serve of its NVFP4 quantization of WeiboAI VibeThinker-3B (3B reasoning model) on one GB10: ModelOpt quantization, fp8 KV cache, FlashInfer attention, eager execution and prefix caching. Upstream defaults: 32,768 context, 8 sequences, 0.85 memory utilization; upstream reports about 2.6x throughput over its BF16 baseline (claim, not measured here). The upstream registry image is not public and its startup downloads the model, so the recipe uses upstream's digest-pinned public vllm/vllm-openai base with the model mounted. Licence: MIT per the HF card (information only). No licence file in the upstream repository. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "r0b0tlab's vLLM 0.22 serve of its NVFP4 quantization of WeiboAI VibeThinker-3B (3B reasoning model) on one GB10: ModelOpt quantization, fp8 KV cache, FlashInfer attention, eager execution and prefix caching. Upstream defaults: 32,768 context, 8 sequences, 0.85 memory utilization; upstream reports about 2.6x throughput over its BF16 baseline (claim, not measured here). The upstream registry image is not public and its startup downloads the model, so the recipe uses upstream's digest-pinned public vllm/vllm-openai base with the model mounted. Licence: MIT per the HF card (information only). No licence file in the upstream repository. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "candidate",
       "executable",
@@ -203,7 +203,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.85"
+        "value": "0.75"
       },
       {
         "name": "max-model-len",

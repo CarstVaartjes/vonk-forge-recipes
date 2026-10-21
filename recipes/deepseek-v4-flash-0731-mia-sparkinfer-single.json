@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate reproduction of MiaAI-Lab's physically tested one-DGX-Spark DeepSeek V4 Flash profile: native compact NVFP4 KV, 384K single-request context, DSpark K5, CUDA graphs through 24 rows, and 0.94 memory utilization. GB10 memory correction: GPU utilization 0.94 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.83 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "Executable Candidate reproduction of MiaAI-Lab's physically tested one-DGX-Spark DeepSeek V4 Flash profile: native compact NVFP4 KV, 384K single-request context, DSpark K5, CUDA graphs through 24 rows, and 0.94 memory utilization. GB10 host-guard headroom: explicit engine reservation capped at 0.60; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -2012,7 +2012,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.83"
+        "value": "0.60"
       },
       {
         "name": "enable-prefix-caching",

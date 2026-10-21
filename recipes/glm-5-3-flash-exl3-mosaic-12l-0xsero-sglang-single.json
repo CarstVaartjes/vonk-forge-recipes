@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "0xSero's M288-12L mosaic of GLM-5.3-Flash EXL3 on one Spark with SGLang, from glm-5.3-flash-spark-mosaic at 248dbaa0 (docker/run-spark.sh with the mosaic's measured values, also reachable as start-mosaic.sh in GLM-5.3-Flash-EXL3-1x-DGX-Spark): 12 of the 45 MoE layers at 3.05 bpw and the rest at 2.05 bpw (codebook mul1, 96.1 GB, byte-copy of turboderp's quants), served through upstream's exl3-plain SGLang overlay image (pinned by digest, built on the lmsysorg glm-5.3-flash base) with DSA attention, FP8 E4M3 KV cache, 262144-token context, one request at a time, image input, glm45 reasoning and glm47 tool parsers. CUDA graphs are off and there is no speculative decoding: the mul1 codebook is rejected by the MTP-capable vLLM overlay (see the 0xSero vLLM K2 recipe for the MTP path). Upstream census of the tensors runs first at container start and stops the launch on a layout mismatch. Upstream claims, not measured here: 10.79 tok/s decode and 503.5 tok/s prefill on one Spark, top-1 agreement with BF16 0.80842 versus 0.78902 for the 2.05 bpw baseline, images up to about 8000 tokens each. Licences are informational: repository and weights are MIT. Physical Spark acceptance is pending.",
+    "description": "0xSero's M288-12L mosaic of GLM-5.3-Flash EXL3 on one Spark with SGLang, from glm-5.3-flash-spark-mosaic at 248dbaa0 (docker/run-spark.sh with the mosaic's measured values, also reachable as start-mosaic.sh in GLM-5.3-Flash-EXL3-1x-DGX-Spark): 12 of the 45 MoE layers at 3.05 bpw and the rest at 2.05 bpw (codebook mul1, 96.1 GB, byte-copy of turboderp's quants), served through upstream's exl3-plain SGLang overlay image (pinned by digest, built on the lmsysorg glm-5.3-flash base) with DSA attention, FP8 E4M3 KV cache, 262144-token context, one request at a time, image input, glm45 reasoning and glm47 tool parsers. CUDA graphs are off and there is no speculative decoding: the mul1 codebook is rejected by the MTP-capable vLLM overlay (see the 0xSero vLLM K2 recipe for the MTP path). Upstream census of the tensors runs first at container start and stops the launch on a layout mismatch. Upstream claims, not measured here: 10.79 tok/s decode and 503.5 tok/s prefill on one Spark, top-1 agreement with BF16 0.80842 versus 0.78902 for the 2.05 bpw baseline, images up to about 8000 tokens each. Licences are informational: repository and weights are MIT. Physical Spark acceptance is pending. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "0xsero",
       "candidate",
@@ -425,7 +425,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.95"
+        "value": "0.75"
       },
       {
         "name": "enable-multimodal",
