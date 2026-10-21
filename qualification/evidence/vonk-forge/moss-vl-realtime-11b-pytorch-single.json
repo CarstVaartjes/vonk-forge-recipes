@@ -265,6 +265,55 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "model_digests": [
+          "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "18be18d5b0db5fdc716b00c5f27351da1da592b3264bf76168bd46a31e752d86"
+      ],
+      "tested_at": "2026-10-21T06:39:05.198393Z",
+      "platform": {
+        "controller_source_sha": "fe788a24c18de8eefe8b4a6de942673d9f7ca1b9",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "model_digests": [
+          "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "7e0900e5e69aab0486d4bbb2145af2d6fcdfd7b394541b304df128d3c9436ef1"
+      ],
+      "tested_at": "2026-10-21T08:19:46.755775Z",
+      "platform": {
+        "controller_source_sha": "fe788a24c18de8eefe8b4a6de942673d9f7ca1b9",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
     }
   ]
 }
