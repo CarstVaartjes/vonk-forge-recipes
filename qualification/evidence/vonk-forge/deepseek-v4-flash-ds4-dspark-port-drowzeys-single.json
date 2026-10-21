@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-ds4-dspark-port-drowzeys-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "f82bc69dcacaff5c3b4744512886803d3301bd404c20169d6bad4fadeca61994",
+        "model_digests": [
+          "08438e74ddda5d47084d1590077d1786c9e8ea8b1be66bb5fdb35f4520e006f2"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "dc5d74a4bbf695545c43699ad07511045c84d25bc120b40014cf3e845f41db76"
+      ],
+      "tested_at": "2026-10-21T06:34:35.379832Z",
+      "platform": {
+        "controller_source_sha": "fe788a24c18de8eefe8b4a6de942673d9f7ca1b9",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
