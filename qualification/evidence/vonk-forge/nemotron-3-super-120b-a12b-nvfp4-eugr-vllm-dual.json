@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-super-120b-a12b-nvfp4-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "e987063d69f32e817ceea2624f244b685e6b1012ef4e5e05661dca2c76956275",
+        "runtime_image": {
+          "build_key": "60f730c466fad594aa65fda852ab4aeff4d8b11e7f43569ab4dd9b44082604b9",
+          "image_digest": "sha256:ac77c0cea99821f27594ddaee6b6b6c96383e4c9efe9e2dfbbc1c4743226306a"
+        },
+        "model_digests": [
+          "6aa6f5e0542e5676862996deb985c8017b081fcfe98da045671439c722a5c09c"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "af914772a3af075d8a514aaa620f510f0dd06ee478a3d339f520f05f735d0ae6"
+      ],
+      "tested_at": "2026-10-21T22:08:09.366219Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
