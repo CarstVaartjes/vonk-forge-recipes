@@ -16,12 +16,16 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import (
+    PLATFORM_MEMORY_FLOOR_BYTES,
+    evaluate_memory_admission,
+)
 
 # Offline policy pinned to vonk-forge cee017ae806f0ac4c0842a3652f8ef7ee57388b8:
 # control/src/vonk_control/resource_planning/types.py::PLATFORM_MEMORY_FLOOR_BYTES
 # and rust/crates/vonk-agent-protocol/src/host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES.
 # These estimates do not redefine live admission or the sustained-pressure guard.
-OS_FLOOR_BYTES = 6_000_000_000
+OS_FLOOR_BYTES = PLATFORM_MEMORY_FLOOR_BYTES
 # Historical GB10 total, not a substitute for available live node telemetry.
 SPARK_MEMORY_BYTES = 130_663_231_488
 SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
@@ -367,6 +371,7 @@ def require_memory_need(
     document_digest: str,
 ) -> MemoryNeed | None:
     """Check new/changed vLLM/SGLang documents without retuning historical ones."""
+    require_admissible_declaration(recipe)
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return None
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
@@ -541,3 +546,20 @@ def declaration_problems(
                 f"{role.name}: reserve understates host headroom {GUARD_BYTES}"
             )
     return problems
+
+
+def require_admissible_declaration(
+    recipe: RecipeDefinition, *, pool_bytes: int = SPARK_MEMORY_BYTES
+) -> None:
+    """Every launch variant must fit an empty target pool; no assumed host use."""
+    for variant in memory_variants(recipe):
+        for role in variant.topology.roles:
+            if not evaluate_memory_admission(
+                role.resources.memory.peak_bytes, pool_bytes
+            ).admissible:
+                raise ValueError(
+                    f"{recipe.identity.slug}/{role.name}: declared peak "
+                    f"{role.resources.memory.peak_bytes} bytes is not admissible "
+                    f"on empty pool {pool_bytes} bytes; "
+                    f"platform floor={PLATFORM_MEMORY_FLOOR_BYTES} bytes"
+                )

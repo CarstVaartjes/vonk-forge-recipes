@@ -281,6 +281,16 @@ and [InstantTensor backend selection](https://github.com/scitix/InstantTensor#ba
 
 ### Memory: preserve proof, reserve by need
 
+The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` owns
+admission, explanatory headroom and the 6 GB platform floor. Every recipe and
+option variant, on every role, must pass its empty-target-pool check: peak plus platform floor fits the
+pool. `reserve_bytes` is informational and is never charged. Offline validation
+assumes no host occupancy; it proves declaration admissibility, not live fit.
+The Controller supplies observed host use, exact commitments, unmaterialized
+claims and unknown resident upper bounds to this same function. It does not
+assume the historical idle baseline below. Proven recipes are calibration inputs,
+never exemptions or candidates for automatic retuning.
+
 **A.** Preserve the runtime settings of every recipe that passed on real hardware.
 Change them only after a hardware failure, or deliberately with hardware retesting.
 
@@ -290,15 +300,16 @@ pools: vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens` with source-backe
 per-token sizing. Never substitute a fraction of RAM or benchmark concurrency.
 `qualification/memory_need.py` supplies the shared calculator and catalog guard.
 
-Per GB10, the limit is **130,663,231,488 total bytes − 17,179,869,184 bytes
+The workload estimator (not declaration admission) uses
+**130,663,231,488 total bytes − 17,179,869,184 bytes
 (16 GiB host guard floor) − 5,012,574,208 measured idle bytes = 108,470,788,096
 bytes**. Sources: vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
 `rust/crates/vonk-agent-helper/src/host_memory_guard.rs`, re-exporting
 `host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES`; spark-3542 2026-10-15/16
 incident telemetry, **125,650,657,280 bytes idle MemAvailable**, retained in the
 calculator's historical source. The live guard also requires sustained pressure
-(full PSI 30%, 3 seconds); planning always leaves its floor. Runtime overhead
-currently uses an **8,000,000,000-byte estimate**, not a measurement. A separately
+(full PSI 30%, 3 seconds); the estimator leaves its planning floor. Runtime
+overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A separately
 loaded speculative draft also requires the **17,000,000,000-byte measured floor**:
 `qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single` froze a GB10 on 2026-10-13 at
 utilization 0.7, with about 116.4 GB attributable to the run and still climbing,
