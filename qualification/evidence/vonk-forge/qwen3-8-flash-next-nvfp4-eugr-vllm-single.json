@@ -281,6 +281,185 @@
         "hardware_class": "GB10"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8",
+        "runtime_image": {
+          "build_key": "35938e578d334fc86f12f6b7cde1cfa1a3aa36baeeb58fe5c9d1b6a24e4c52f5",
+          "image_digest": "sha256:9ea6bc0621a7a950bac21b0230acaea8faff574b9bb128c30b7a0dd180348a41"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "799087a888f921f86bd1457e18dcb47578dce36203fc67698e14598018dbcfcf"
+      ],
+      "tested_at": "2026-10-21T19:29:02.886084Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8",
+        "runtime_image": {
+          "build_key": "35938e578d334fc86f12f6b7cde1cfa1a3aa36baeeb58fe5c9d1b6a24e4c52f5",
+          "image_digest": "sha256:9ea6bc0621a7a950bac21b0230acaea8faff574b9bb128c30b7a0dd180348a41"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "9c3201e28868fb1de450dbfbb04a842d1b191342a735f0cef315aa85604d2491"
+      ],
+      "tested_at": "2026-10-21T19:31:48.494443Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8",
+        "runtime_image": {
+          "build_key": "35938e578d334fc86f12f6b7cde1cfa1a3aa36baeeb58fe5c9d1b6a24e4c52f5",
+          "image_digest": "sha256:9ea6bc0621a7a950bac21b0230acaea8faff574b9bb128c30b7a0dd180348a41"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "7d1fc41f293953443b7b03e61ee8fb7ac5f8b8ef34d65b9e18b6993a1b59dbf2"
+      ],
+      "tested_at": "2026-10-21T19:34:41.001396Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8",
+        "runtime_image": {
+          "build_key": "35938e578d334fc86f12f6b7cde1cfa1a3aa36baeeb58fe5c9d1b6a24e4c52f5",
+          "image_digest": "sha256:9ea6bc0621a7a950bac21b0230acaea8faff574b9bb128c30b7a0dd180348a41"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "76f8ff368effcfae7be2ff9522942db50e865483dd40f6827f2254ca3a5da6fb"
+      ],
+      "tested_at": "2026-10-21T19:37:14.281627Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8",
+        "runtime_image": {
+          "build_key": "35938e578d334fc86f12f6b7cde1cfa1a3aa36baeeb58fe5c9d1b6a24e4c52f5",
+          "image_digest": "sha256:9ea6bc0621a7a950bac21b0230acaea8faff574b9bb128c30b7a0dd180348a41"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "034721623ce2a3ead87252847e64c3e09a4205027eb7c8761e6c3a2345def0b3"
+      ],
+      "tested_at": "2026-10-21T19:39:54.616005Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8",
+        "runtime_image": {
+          "build_key": "35938e578d334fc86f12f6b7cde1cfa1a3aa36baeeb58fe5c9d1b6a24e4c52f5",
+          "image_digest": "sha256:9ea6bc0621a7a950bac21b0230acaea8faff574b9bb128c30b7a0dd180348a41"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "e3cb84476257b249f92d8b3489326c523b1ea1aa3dc0fdb1141691aa19c20889"
+      ],
+      "tested_at": "2026-10-21T19:42:46.695034Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8",
+        "runtime_image": {
+          "build_key": "35938e578d334fc86f12f6b7cde1cfa1a3aa36baeeb58fe5c9d1b6a24e4c52f5",
+          "image_digest": "sha256:9ea6bc0621a7a950bac21b0230acaea8faff574b9bb128c30b7a0dd180348a41"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "a1d26d92115a7a6cd76b97c5c6cb7caa1cff283d825ad5d38ccd5172753c3e8a"
+      ],
+      "tested_at": "2026-10-21T19:45:30.049192Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
     }
   ]
 }
