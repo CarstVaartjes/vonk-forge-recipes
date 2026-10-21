@@ -8,6 +8,7 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep.catalog import fetch_models, fetch_recipes, recipe_listing
+from spark_sweep.catalog_contract import RecipeProjection, RecipeRow
 from spark_sweep.vonkctl import Vonkctl
 
 
@@ -23,6 +24,17 @@ def _fleet_with(n: int):
 
     recipes = [FakeRecipe(f"r{i}", (f"m{i}",)) for i in range(n)]
     return FakeFleet(FakeClock(), recipes, [FakeModel(f"m{i}") for i in range(n)])
+
+
+def test_fake_library_rows_supply_every_consumed_projected_field() -> None:
+    fleet = _fleet_with(1)
+    page = fleet._library(
+        [], "recipes", fleet._recipe_row, list(fleet.recipes.values())
+    )
+    for row in page["recipes"]:
+        assert "document" not in row
+        assert RecipeProjection.model_fields.keys() <= row["projected"].keys()
+        RecipeRow.model_validate(row)
 
 
 def test_an_invalid_cursor_restarts_the_pass_from_the_first_page() -> None:
@@ -80,3 +92,26 @@ def test_scheduling_continues_on_the_cached_listing_while_pages_fail(
     assert any(
         "library page failed" in e["message"] for e in sweep.state.data["events"]
     )
+
+
+def test_shared_platform_list_vector_keeps_pins_ports_and_serving_checks():
+    """Consume the same projection-only list vector as vonkctl's renderer."""
+    import json
+
+    from spark_sweep.catalog import parse_recipe
+
+    page = json.loads(
+        (Path(__file__).parent / "fixtures/library-list.json").read_text()
+    )
+    row = page["recipes"][0]
+    recipe = parse_recipe(row, page["library"]["commit"])
+    assert recipe is not None
+    assert recipe.key == "vonk-forge/synthetic-tiny-build"
+    assert recipe.library_commit == "a" * 40
+    assert recipe.model_digests == tuple(
+        sorted(selection["content_sha256"] for selection in row["projected"]["models"])
+    )
+    assert recipe.adapter == row["projected"]["interfaces"][0]["adapter"]
+    assert recipe.ports == (row["projected"]["interfaces"][0]["port"],)
+    assert recipe.base_image == row["projected"]["base_image_digest"]
+    assert recipe.checks == tuple(row["projected"]["validation"]["serving"]["checks"])

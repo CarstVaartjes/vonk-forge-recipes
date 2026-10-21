@@ -39,14 +39,6 @@ class ModelIdentity(Projection):
     content_sha256: str
 
 
-class ModelBinding(Projection):
-    model: ModelIdentity
-
-
-class Runtime(Projection):
-    engine: str = ""
-
-
 class Serving(Projection):
     checks: list[RecipeValidationCheck] = Field(default_factory=list)
 
@@ -55,12 +47,13 @@ class Validation(Projection):
     serving: Serving = Field(default_factory=Serving)
 
 
-class RecipeDocument(Projection):
+class RecipeProjection(Projection):
     validation: Validation = Field(default_factory=Validation)
     interfaces: list[Interface] = Field(default_factory=list)
     topology: Topology = Field(default_factory=Topology)
-    models: list[ModelBinding] = Field(default_factory=list)
-    runtime: Runtime = Field(default_factory=Runtime)
+    models: list[ModelIdentity] = Field(default_factory=list)
+    runtime_engine: str = ""
+    base_image_digest: str = ""
 
 
 class RecipeIdentity(Projection):
@@ -91,7 +84,7 @@ class Resources(Projection):
 
 class RecipeRow(Projection):
     selector: str
-    document: RecipeDocument
+    projected: RecipeProjection
     identity: RecipeIdentity = Field(default_factory=RecipeIdentity)
     resources: Resources = Field(default_factory=Resources)
     node_count: int = 1

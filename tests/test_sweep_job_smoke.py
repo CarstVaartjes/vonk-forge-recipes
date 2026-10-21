@@ -44,7 +44,7 @@ DEFINITIONS = Definitions(
 def _recipe(key: str = OCR, adapter: str = "artifact-job") -> Any:
     row = {
         "selector": key,
-        "document": {"interfaces": [{"adapter": adapter, "model_aliases": ["ocr"]}]},
+        "projected": {"interfaces": [{"adapter": adapter, "model_aliases": ["ocr"]}]},
     }
     recipe = parse_recipe(row)
     assert recipe is not None and recipe.is_job
