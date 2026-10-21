@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 import os
+import socket
 import subprocess
 import sys
 import tempfile
@@ -274,11 +275,19 @@ def main() -> None:
         temporary_path = Path(temporary)
         reference = _reference_frame(temporary_path, height, width, manifest)
         staged_output = temporary_path / "mova.mp4"
+        # Static rendezvous keeps both the agent and worker store on loopback.
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+            listener.bind(("127.0.0.1", 0))
+            rendezvous_port = listener.getsockname()[1]
         command = [
             sys.executable,
             "-m",
             "torch.distributed.run",
-            "--standalone",
+            "--rdzv-backend=static",
+            f"--rdzv-endpoint=127.0.0.1:{rendezvous_port}",
+            "--rdzv-conf=timeout=10",
+            "--node-rank=0",
+            "--max-restarts=0",
             "--nnodes=1",
             "--nproc-per-node=1",
             str(_OFFICIAL_RUNNER),
