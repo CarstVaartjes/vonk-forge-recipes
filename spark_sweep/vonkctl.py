@@ -16,6 +16,9 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from pydantic import ValidationError
+from vonk_forge_contracts.sweep import CliObservationReply
+
 OWNER_PROFILES = frozenset({1, 2, 3})
 PROFILE_WRITES = frozenset({"add", "remove", "configure", "import", "load", "cancel"})
 _KEY_NAMESPACE = uuid.UUID("6f1d1a5e-5b0c-4d7e-9a53-0d6c5b2a7e11")
@@ -66,12 +69,31 @@ class VonkctlTimeout(VonkctlError):
         self.stderr = stderr
 
 
+class VonkctlTransportError(VonkctlError):
+    """No authoritative JSON reply; observe or retry without spending an attempt."""
+
+
 @dataclass(frozen=True)
 class Reply:
     argv: tuple[str, ...]
     exit_code: int
     document: Any
     stderr: str
+    stdout: str = ""
+
+    @property
+    def is_transport_error(self) -> bool:
+        return self.document is None or (
+            isinstance(self.document, dict)
+            and "observation" in self.document
+            and not self.is_error_document
+        )
+
+    def require_document(self) -> Any:
+        """Keep missing replies and local observation envelopes out of validators."""
+        if self.is_transport_error:
+            raise VonkctlTransportError(self.argv, self, self.error_text)
+        return self.document
 
     @property
     def is_error_document(self) -> bool:
@@ -79,7 +101,11 @@ class Reply:
 
     @property
     def ok(self) -> bool:
-        return self.exit_code == 0 and not self.is_error_document
+        return (
+            self.exit_code == 0
+            and not self.is_error_document
+            and not self.is_transport_error
+        )
 
     @property
     def is_not_found(self) -> bool:
@@ -94,6 +120,29 @@ class Reply:
 
     @property
     def error_text(self) -> str:
+        if self.is_transport_error:
+            if self.document is None:
+                cause = (
+                    "empty JSON stdout"
+                    if not self.stdout.strip()
+                    else "stdout is not a non-null JSON reply"
+                )
+            else:
+                try:
+                    observation = CliObservationReply.model_validate(
+                        self.document
+                    ).observation
+                except ValidationError:
+                    cause = "unreadable CLI observation envelope"
+                else:
+                    cause = f"CLI observation {observation.status}"
+                    if observation.error:
+                        cause += f": {observation.error}"
+            return ": ".join(
+                part
+                for part in (f"exit {self.exit_code}", cause, self.stderr.strip())
+                if part
+            )[:500]
         if isinstance(self.document, dict):
             parts = [
                 str(self.document.get(name))
@@ -184,14 +233,14 @@ class Vonkctl:
         except VonkctlTimeout as error:
             # Evidence is never lost: what the command printed before the limit stays.
             stderr = "\n".join(part for part in (str(error), error.stderr) if part)
-            return Reply(tuple(argv), 124, _parse(error.stdout), stderr)
+            return Reply(tuple(argv), 124, _parse(error.stdout), stderr, error.stdout)
         except OSError as error:
             # The binary is missing (``vonkctl update --apply`` replaces it atomically) or
             # cannot be spawned: infrastructure, like a timeout. No document, so the
             # callers pause and retry.
             return Reply(tuple(argv), 127, None, f"{type(error).__name__}: {error}")
         document = _parse(out)
-        return Reply(tuple(argv), code, document, err)
+        return Reply(tuple(argv), code, document, err, out)
 
     def call(
         self,
@@ -209,12 +258,13 @@ class Vonkctl:
         reply = self.run(
             *args, profile=profile, timeout=timeout, allow_owner_write=allow_owner_write
         )
-        failed = reply.is_error_document or reply.document is None
+        document = reply.require_document()
+        failed = reply.is_error_document
         if reply.exit_code != 0 and reply.exit_code not in tolerate:
             failed = True
         if failed:
             raise VonkctlError(reply.argv, reply, reply.error_text)
-        return reply.document
+        return document
 
     @staticmethod
     def _guard(

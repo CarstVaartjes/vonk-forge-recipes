@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import Gateway
+from vonk_forge_contracts.sweep import CliObservationStatus
 
 from spark_sweep.catalog import Recipe
 from spark_sweep.definitions import Definitions
@@ -130,6 +131,79 @@ def test_only_a_single_stdout_json_document_is_a_receipt(out: str, err: str) -> 
     run, _ = runner_returning(0, out, err)
     with pytest.raises(VonkctlError):
         Vonkctl("vonkctl", runner=run).call("recipe", "progress", "op")
+
+
+@pytest.mark.parametrize("code", [0, 2, 124])
+@pytest.mark.parametrize("out", ["", "null", "not JSON"])
+def test_missing_json_is_transport_with_exit_and_stderr(code: int, out: str) -> None:
+    from spark_sweep.verdict import Disposition, reply_disposition
+    from spark_sweep.vonkctl import VonkctlTransportError
+
+    run, _ = runner_returning(code, out, "injected connection failure")
+    vk = Vonkctl(runner=run)
+    result = vk.run("fleet")
+    assert not result.ok
+    assert reply_disposition(result) is Disposition.WAIT
+    with pytest.raises(VonkctlTransportError) as caught:
+        vk.call("fleet", tolerate=(2, 124))
+    assert caught.value.reply is not None
+    assert caught.value.reply.stdout == out
+    assert f"exit {code}" in str(caught.value)
+    assert "injected connection failure" in str(caught.value)
+
+
+def test_real_cli_observation_envelope_is_not_a_controller_reply(
+    tmp_path: Path,
+) -> None:
+    """Captured GET remove-review output from cli_outcome.Observation.document()."""
+    from spark_sweep.verdict import Disposition, reply_disposition
+    from spark_sweep.vonkctl import VonkctlTransportError
+
+    document = json.loads(
+        (ROOT / "tests/fixtures/sweep-removal/observation.json").read_text()
+    )
+    # Even a retained successful receipt is stale observation evidence, not a
+    # fresh response that can authorize effects or settle an outstanding request.
+    from spark_sweep.lifecycle import LifecycleState
+
+    document["result"] = {"state": LifecycleState.SUCCEEDED}
+    script = tmp_path / "vonkctl"
+    script.write_text(
+        "#!/usr/bin/env python3\n"
+        "import sys\n"
+        f"print({json.dumps(document)!r})\n"
+        "sys.exit(2)\n"
+    )
+    script.chmod(script.stat().st_mode | stat.S_IEXEC)
+    vk = Vonkctl(str(script))
+    result = vk.run("model", "remove", "a" * 64, "--fleet", "--review")
+    assert not result.ok
+    assert reply_disposition(result) is Disposition.WAIT
+    with pytest.raises(VonkctlTransportError, match="control API connection was lost"):
+        vk.call("model", "remove", "a" * 64, "--fleet", "--review", tolerate=(2,))
+    assert CliObservationStatus.TIMED_OUT in result.error_text
+    assert "exit 2" in result.error_text
+
+
+def test_controller_error_keeps_its_cause_when_observation_is_attached() -> None:
+    """cli._control_error attaches observation metadata to final refusals too."""
+    from spark_sweep.vonkctl import VonkctlTransportError
+
+    error = {
+        "error_type": "control_api",
+        "code": "controller.not_found",
+        "detail": "Model not found",
+        "observation": {"status": "ended"},
+        "result": {},
+    }
+    run, _ = runner_returning(2, json.dumps(error))
+    vk = Vonkctl(runner=run)
+    assert vk.run("model", "show", "missing").is_not_found
+    with pytest.raises(VonkctlError) as caught:
+        vk.call("model", "show", "missing", tolerate=(2,))
+    assert not isinstance(caught.value, VonkctlTransportError)
+    assert caught.value.code == error["code"]
+    assert error["detail"] in str(caught.value)
 
 
 def test_request_keys_are_deterministic_so_a_restart_reconnects() -> None:

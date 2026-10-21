@@ -1,0 +1,13 @@
+{
+  "observation": {
+    "age_seconds": 5.003069708123803,
+    "error": "control API connection was lost",
+    "observed_at": "2026-10-21T23:15:19.589737+00:00",
+    "path": "/api/model/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/remove-review",
+    "reconnect_command": "vonkctl --no-input --json model remove aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --fleet --review --timeout-seconds 5",
+    "reconnecting": true,
+    "status": "timed_out",
+    "timeout_seconds": 5.0
+  },
+  "result": {}
+}
