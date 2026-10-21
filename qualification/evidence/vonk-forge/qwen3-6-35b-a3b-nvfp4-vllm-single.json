@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-6-35b-a3b-nvfp4-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "a0a644cbd685c09da9dc0dfb969091a347375d9edba199240fc0cf44b39bd992",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "8a7e657c1ef653cde83f7debc06f6a3cd57d8913b132b3c2aa0dd913a4aa04b9"
+      ],
+      "tested_at": "2026-10-16T21:28:58.215072Z",
+      "platform": {
+        "controller_source_sha": "e3beaee6c8512e9f729c33096a1d3605935ec74c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

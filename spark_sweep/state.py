@@ -22,7 +22,18 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-SCHEMA = 1
+from vonk_forge_contracts.sweep import SweepAdoptionReason, SweepAdoptionResult
+
+from .lifecycle import (
+    DownloadIntentKind,
+    LifecycleState,
+    RecipeStatus,
+    ReleaseAuthority,
+    SkipReasonKind,
+)
+from .policy import LOAD_RULES, SMOKE_RULES
+
+SCHEMA = 2
 EVENT_LIMIT = 60
 # The live results log is rotated (never trimmed) once it is this large.
 RESULT_ROTATE_BYTES = 4 * 1024 * 1024
@@ -34,7 +45,8 @@ def _fresh() -> dict[str, Any]:
         "schema": SCHEMA,
         # Folded into every request key: a fresh state directory never replays an old run's requests.
         "nonce": uuid.uuid4().hex,
-        "recipes": {},  # key -> result entry
+        "recipes": {},  # key -> operational bookkeeping, never qualification proof
+        "qualification_evidence": {},  # adopted and newly observed evidence
         "slots": {},  # key -> a recipe currently loading, serving or smoking
         "cleanup": {},  # assignment alias -> retry metadata; never occupies a lane
         "loads": {},  # request key -> in-flight profile application
@@ -63,6 +75,163 @@ def _fresh() -> dict[str, Any]:
         "mode": "single",
         "events": [],
     }
+
+
+def _superseded(reason: object) -> bool:
+    text = str(reason or "").lower()
+    return any(
+        marker in text
+        for marker in (
+            "reconciled by profile retry",
+            "profile intent was superseded",
+            "changed during admission",
+        )
+    )
+
+
+def _adopt_evidence(entry: dict[str, Any]) -> None:
+    if isinstance(entry.get("evidence"), str):
+        entry.setdefault("evidence_bundle", entry.pop("evidence"))
+
+
+def _adopt(
+    data: dict[str, Any],
+    now: float,
+    record_result: Callable[[SweepAdoptionResult], None],
+) -> dict[str, Any]:
+    """Normalize saved sweep records once; runtime reads only the current shape.
+
+    Receipts, accepted content and remote effect scopes are never reconstructed
+    from the current catalog. An unbound lane still goes through canonical
+    requeue/cleanup, which retains its original request for observation.
+    """
+    if "qualification_evidence" not in data:
+        from .qualification import adopt_state_evidence
+
+        data["qualification_evidence"] = {
+            key: evidence.model_dump(mode="json")
+            for key, evidence in adopt_state_evidence(data).items()
+        }
+    merged = _fresh()
+    for name, value in data.items():
+        if isinstance(value, dict) and isinstance(merged.get(name), dict):
+            merged[name].update(value)
+        else:
+            merged[name] = value
+    data = merged
+    if data["schema"] == SCHEMA:
+        return data
+    load = data.pop("load", None)
+    if load:
+        data["loads"].setdefault(load["request_key"], load)
+    for record in data["downloads"].values():
+        intent = record.get("request_intent")
+        if (
+            record.get("accepted_intent") is None
+            and record.get("operation_id")
+            and isinstance(intent, dict)
+            and isinstance(intent.get("recipe_key"), str)
+        ):
+            # Old sweep submissions used these saved CLI arguments. A retry still
+            # requires the Controller's exact terminal receipt before any effect.
+            parent = record.get("retry_of_operation_id")
+            record["accepted_intent"] = (
+                {"kind": DownloadIntentKind.RETRY, "operation_id": parent}
+                if parent
+                else {
+                    "kind": DownloadIntentKind.SELECTOR,
+                    "selector": intent["recipe_key"],
+                    "force": False,
+                }
+            )
+    release = data["release"]
+    if release and release.get("authority") != ReleaseAuthority.DEPLOYED_CONTROLLER:
+        data["release_history"].append({**release, "authority": None})
+        release.clear()
+    for row in data["release_history"]:
+        if (
+            isinstance(row, dict)
+            and row.get("authority") != ReleaseAuthority.DEPLOYED_CONTROLLER
+        ):
+            row["authority"] = None
+    for app in data.get("apps", {}).values():
+        if app.pop("superseded", False) or (
+            app.get("state") in (LifecycleState.FAILED, LifecycleState.CANCELLED)
+            and (
+                _superseded(app.get("reason"))
+                or app.get("cause") == LifecycleState.SUPERSEDED
+            )
+        ):
+            app["state"] = LifecycleState.SUPERSEDED
+    for key, entry in data["recipes"].items():
+        _adopt_evidence(entry)
+        if (
+            entry.get("status") == RecipeStatus.SKIPPED
+            and "reason_kind" not in entry
+            and str(entry.get("reason", "")).startswith("not testable on this fleet")
+        ):
+            entry["reason_kind"] = SkipReasonKind.FLEET
+        if (
+            entry.get("release")
+            and entry.get("release_authority") != ReleaseAuthority.DEPLOYED_CONTROLLER
+        ):
+            entry["release_authority"] = None
+        if entry.get("status") != RecipeStatus.FAILED:
+            continue
+        evidence = entry.get("evidence")
+        evidence = evidence if isinstance(evidence, dict) else {}
+        why = None
+        if _superseded(evidence.get("reason")) or _superseded(entry.get("error")):
+            why = SweepAdoptionReason.SUPERSESSION
+        elif (
+            entry.get("failure_class") == "timeout"
+            and int(entry.get("rules", 1)) < LOAD_RULES
+        ):
+            why = SweepAdoptionReason.LOAD_RULES
+        elif (
+            entry.get("phase") == "smoke"
+            and entry.get("failure_class") == "smoke-assertion"
+            and int(entry.get("smoke_rules", 1)) < SMOKE_RULES
+        ):
+            why = SweepAdoptionReason.SMOKE_RULES
+        elif (
+            entry.get("phase") == "review"
+            and entry.get("failure_class") == "capacity"
+            and not evidence.get("freeing_attempts")
+        ):
+            why = SweepAdoptionReason.CAPACITY
+        if why is None:
+            continue
+        # Keep all prior failure evidence in state as well as the append-only log.
+        previous = dict(entry)
+        record_result(SweepAdoptionResult(recipe=key, reason=why, previous=previous))
+        entry.update(
+            status=RecipeStatus.PENDING,
+            attempts=0,
+            previous=previous,
+            requeued_because=why,
+        )
+        for field in (
+            "phase",
+            "failure_class",
+            "code",
+            "error",
+            "signature",
+            "cluster",
+            "evidence",
+            "evidence_bundle",
+            "inherited_from",
+            "not_before",
+            "defer_until",
+            "review_freeing",
+            "release",
+            "quality",
+        ):
+            entry.pop(field, None)
+        data["events"].append({"at": now, "message": f"adopted {key}: {why}"})
+    del data["events"][:-EVENT_LIMIT]
+    data["schema"] = SCHEMA
+    return data
 
 
 def write_atomic(path: Path, text: str) -> None:
@@ -130,10 +299,7 @@ class State:
         self.path = path
         self.data = data if data is not None else _fresh()
         self.clock = clock
-        legacy = self.data.pop("load", None)
-        self.data.setdefault("loads", {})
-        if legacy:
-            self.data["loads"].setdefault(legacy["request_key"], legacy)
+        self.adoptions: list[SweepAdoptionResult] = []
 
     @classmethod
     def load(cls, path: Path, clock: Callable[[], float] = time.time) -> State:
@@ -141,7 +307,7 @@ class State:
             return cls(path, None, clock)
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-            if not isinstance(data, dict) or data.get("schema") != SCHEMA:
+            if not isinstance(data, dict) or data.get("schema") not in (1, SCHEMA):
                 raise ValueError("unreadable state schema")
             for name, fresh in _fresh().items():
                 if (
@@ -203,16 +369,10 @@ class State:
                 f"state rebuilt after {type(error).__name__}: {backup.name}"
             )
             return recovered
-        merged = _fresh()
-        for name, value in data.items():
-            if isinstance(value, dict) and isinstance(merged.get(name), dict):
-                merged[name].update(value)
-            else:
-                merged[name] = value
-        for entry in merged["recipes"].values():
-            if entry.get("release") and "release_authority" not in entry:
-                entry["release_authority"] = "legacy-unverified-publication-proxy"
-        return cls(path, merged, clock)
+        adoptions: list[SweepAdoptionResult] = []
+        adopted = cls(path, _adopt(data, clock(), adoptions.append), clock)
+        adopted.adoptions = adoptions
+        return adopted
 
     def save(self) -> None:
         live = {
@@ -313,5 +473,6 @@ class ResultsLog:
                 isinstance(record, dict)
                 and record.get("authority_id") == self.authority_id
             ):
+                _adopt_evidence(record)
                 records.append(record)
         return records

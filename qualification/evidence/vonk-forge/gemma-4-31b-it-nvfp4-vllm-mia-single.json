@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gemma-4-31b-it-nvfp4-vllm-mia-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "8d95e435a4d9f109701442a12260f7643f2f70ae2717b424fa29be50fb2b1bb7",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "b7620a82867c4ae0976c7c09c84f5824d2fc18a502751f08cb198c7f1c171cd2"
+      ],
+      "tested_at": "2026-10-17T16:02:20.114868Z",
+      "platform": {
+        "controller_source_sha": "d083b43f558b94ddda479d2e227a6ca7b373b1e3",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

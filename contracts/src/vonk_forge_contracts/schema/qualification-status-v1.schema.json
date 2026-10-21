@@ -1,0 +1,425 @@
+{
+  "$defs": {
+    "QualificationBlame": {
+      "enum": [
+        "recipe",
+        "platform"
+      ],
+      "title": "QualificationBlame",
+      "type": "string"
+    },
+    "QualificationCauseCode": {
+      "enum": [
+        "qualification.hardware_pass",
+        "qualification.recipe_failure",
+        "qualification.platform_failure",
+        "recipe.runtime_exit",
+        "recipe.runtime_oom",
+        "model.digest_mismatch",
+        "recipe.digest_mismatch",
+        "recipe.invalid_definition",
+        "recipe.invalid_document",
+        "recipe.invalid_option",
+        "dockerfile.heredoc_forbidden",
+        "qualification.serving_assertion",
+        "qualification.job_failure"
+      ],
+      "title": "QualificationCauseCode",
+      "type": "string"
+    },
+    "QualificationChange": {
+      "enum": [
+        "recipe",
+        "image",
+        "model"
+      ],
+      "title": "QualificationChange",
+      "type": "string"
+    },
+    "QualificationEvidenceRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/QualificationIdentity"
+        },
+        "outcome": {
+          "$ref": "#/$defs/QualificationOutcome"
+        },
+        "blame": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualificationBlame"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cause_code": {
+          "$ref": "#/$defs/QualificationCauseCode"
+        },
+        "cause_summary": {
+          "$ref": "#/$defs/QualificationSummary"
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "tested_at": {
+          "format": "date-time",
+          "title": "Tested At",
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/$defs/QualificationPlatform"
+        },
+        "fix_reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualificationFixReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "quality_notes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualificationQualityNote"
+          },
+          "title": "Quality Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "identity",
+        "outcome",
+        "cause_code",
+        "cause_summary",
+        "tested_at",
+        "platform"
+      ],
+      "title": "QualificationEvidenceRecord",
+      "type": "object"
+    },
+    "QualificationFixReference": {
+      "additionalProperties": false,
+      "properties": {
+        "issue_number": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Issue Number"
+        },
+        "source_sha": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Sha"
+        }
+      },
+      "title": "QualificationFixReference",
+      "type": "object"
+    },
+    "QualificationHardware": {
+      "enum": [
+        "GB10"
+      ],
+      "title": "QualificationHardware",
+      "type": "string"
+    },
+    "QualificationIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "runtime_image": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualificationRuntimeImage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "model_digests": {
+          "default": [],
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Model Digests",
+          "type": "array"
+        },
+        "required_sparks": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required Sparks"
+        },
+        "models_resolved": {
+          "default": true,
+          "title": "Models Resolved",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "content_sha256"
+      ],
+      "title": "QualificationIdentity",
+      "type": "object"
+    },
+    "QualificationOutcome": {
+      "enum": [
+        "passed",
+        "failed"
+      ],
+      "title": "QualificationOutcome",
+      "type": "string"
+    },
+    "QualificationPlatform": {
+      "additionalProperties": false,
+      "properties": {
+        "controller_source_sha": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Controller Source Sha"
+        },
+        "controller_version": {
+          "anyOf": [
+            {
+              "maxLength": 96,
+              "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+(?:(?:~|-)(?:dev|alpha|beta|rc)[.-][0-9]+)?(?:\\+g[0-9a-f]{7,40})?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Controller Version"
+        },
+        "agent_version": {
+          "anyOf": [
+            {
+              "maxLength": 96,
+              "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+(?:(?:~|-)(?:dev|alpha|beta|rc)[.-][0-9]+)?(?:\\+g[0-9a-f]{7,40})?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Version"
+        },
+        "hardware_class": {
+          "$ref": "#/$defs/QualificationHardware",
+          "default": "GB10"
+        },
+        "spark_count": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Spark Count"
+        },
+        "topology": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualificationTopology"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "QualificationPlatform",
+      "type": "object"
+    },
+    "QualificationQualityNote": {
+      "enum": [
+        "Model output differed from the expected answer"
+      ],
+      "title": "QualificationQualityNote",
+      "type": "string"
+    },
+    "QualificationRuntimeImage": {
+      "additionalProperties": false,
+      "properties": {
+        "build_key": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Build Key",
+          "type": "string"
+        },
+        "image_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Image Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "build_key",
+        "image_digest"
+      ],
+      "title": "QualificationRuntimeImage",
+      "type": "object"
+    },
+    "QualificationStatus": {
+      "enum": [
+        "Working",
+        "Re-check: worked before",
+        "Fix to verify",
+        "Failed: recipe",
+        "Blocked: platform",
+        "Untested",
+        "Can't test here",
+        "Testing now",
+        "Not yet verified"
+      ],
+      "title": "QualificationStatus",
+      "type": "string"
+    },
+    "QualificationSummary": {
+      "enum": [
+        "Hardware checks passed",
+        "Recipe checks failed; needs fix",
+        "Platform issue under fix",
+        "Recipe runtime exited; needs fix",
+        "Recipe runtime exceeded available memory; needs fix",
+        "Model content integrity check failed; needs fix",
+        "Recipe definition or build policy check failed; needs fix",
+        "Serving checks failed; needs fix",
+        "Artifact job failed; needs fix"
+      ],
+      "title": "QualificationSummary",
+      "type": "string"
+    },
+    "QualificationTopology": {
+      "enum": [
+        "single",
+        "multi"
+      ],
+      "title": "QualificationTopology",
+      "type": "string"
+    },
+    "QualificationUnverifiedReason": {
+      "enum": [
+        "never tested",
+        "needs more Sparks",
+        "platform issue under fix",
+        "historical platform or runtime identity unavailable"
+      ],
+      "title": "QualificationUnverifiedReason",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "$ref": "#/$defs/QualificationStatus"
+    },
+    "changed": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/QualificationChange"
+      },
+      "title": "Changed",
+      "type": "array"
+    },
+    "last_pass": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/QualificationEvidenceRecord"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "last_failure": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/QualificationEvidenceRecord"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/QualificationUnverifiedReason"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "required_sparks": {
+      "minimum": 1,
+      "title": "Required Sparks",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "status",
+    "required_sparks"
+  ],
+  "title": "QualificationStatusView",
+  "type": "object"
+}

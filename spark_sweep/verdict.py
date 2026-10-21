@@ -52,8 +52,6 @@ class RecoveryReason(StrEnum):
 
 #: RunSwitchCode.PHASE_RETRY: the load's own phase keeps being retried. Own work, not a wait.
 PHASE_RETRY = "run-switch.phase-retry"
-#: ProfileReasonCode.FAILURE_REPEATED: the Controller stopped retrying a failed application.
-FAILURE_REPEATED = "profile.failure_repeated"
 #: ProgressAlarmCode.STALLED: the Controller saw the same wait repeat with nothing moving.
 #: A platform problem, never the recipe's: only its lane waits on the original receipt.
 STALLED_CODE = "progress.stalled"
@@ -183,7 +181,7 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
         )
     elif held:
         wait = SweepWait(reason=SweepWaitReason.BLOCKER, detail=held[0])
-    elif document.get("next_attempt_at") or progress.get("retry_due_at"):
+    elif document.get("next_attempt_at"):
         wait = SweepWait(reason=SweepWaitReason.CONTROLLER_RETRY)
     return Signal(tuple(activity(document)), wait)
 
@@ -382,21 +380,6 @@ def preparation_blockers(
     blockers: Sequence[Mapping[str, Any]],
 ) -> list[Mapping[str, Any]]:
     return [b for b in blockers if str(b.get("code") or "") in PREPARATION_CODES]
-
-
-def retry_ended(document: Mapping[str, Any]) -> bool:
-    """Did the Controller stop retrying this failed application (a definite end)?"""
-    if FAILURE_REPEATED in _blocker_codes(document):
-        return True
-    progress = document.get("progress")
-    adapter = progress.get("switch_adapter") if isinstance(progress, Mapping) else None
-    failures = (
-        adapter.get("assignment_failures") if isinstance(adapter, Mapping) else None
-    )
-    return any(
-        isinstance(item, Mapping) and item.get("terminal") is True
-        for item in failures or []
-    )
 
 
 def retry_delay(base: float, attempts: int) -> float:

@@ -127,44 +127,6 @@ def test_a_capacity_refusal_beyond_an_idle_spark_is_deferred_with_evidence(
     assert rows[-1]["controller_document"]["admission_decisions"][0]["requirements"]
 
 
-def test_a_capacity_failure_recorded_before_clearing_existed_is_requeued_once(
-    tmp_path, gateway
-) -> None:
-    sweep, _fleet, _ = make_sweep(
-        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway, limit=0
-    )
-    entry = sweep.state.entry("vonk-forge/a")
-    entry.update(
-        status="failed",
-        phase="review",
-        failure_class="capacity",
-        evidence={"code": "run-switch.resource.insufficient_capacity"},
-    )
-    sweep.requeue_unfreed_capacity_failures()
-    assert entry["status"] == "pending"
-    entry.update(
-        status="failed",
-        phase="review",
-        failure_class="capacity",
-        evidence={"freeing_attempts": 2},
-    )
-    sweep.requeue_unfreed_capacity_failures()
-    assert entry["status"] == "failed"
-
-
-@pytest.mark.parametrize("mode", ["failed-retry"])
-def test_a_failed_application_the_controller_still_retries_is_followed(
-    tmp_path, gateway, mode
-) -> None:
-    sweep, fleet, _ = make_sweep(
-        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
-    )
-    fleet.supersede = [mode]
-    assert sweep.run() == 0
-    assert _entry(sweep, "a")["status"] == "passed"
-    assert "the Controller retries it" in str(sweep.state.data["events"])
-
-
 def test_a_failed_application_the_controller_gave_up_on_is_recorded(
     tmp_path, gateway
 ) -> None:
@@ -175,18 +137,6 @@ def test_a_failed_application_the_controller_gave_up_on_is_recorded(
     sweep.run()
     entry = _entry(sweep, "a")
     assert (entry["status"], entry["phase"]) == ("deferred", "start")
-
-
-def test_the_controllers_typed_ending_is_what_stops_the_following() -> None:
-    assert verdict.retry_ended(
-        {"blockers": [{"code": "profile.failure_repeated", "detail": "x"}]}
-    )
-    assert verdict.retry_ended(
-        {"progress": {"switch_adapter": {"assignment_failures": [{"terminal": True}]}}}
-    )
-    assert not verdict.retry_ended(
-        {"progress": {"switch_adapter": {"assignment_failures": [{"terminal": False}]}}}
-    )
 
 
 @pytest.mark.parametrize("solo_refused", [False, True])
