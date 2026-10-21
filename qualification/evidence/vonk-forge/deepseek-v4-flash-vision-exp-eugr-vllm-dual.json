@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-vision-exp-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9866ab75030511fe8263ddc79ccbbc04cdbc771e4c98065a523707e865ef2f06",
+        "runtime_image": {
+          "build_key": "6293ac235ec5f14f8a7e474e88755dfdfa76d06d6c5d56ce6fc6542c18b37a9a",
+          "image_digest": "sha256:1e18f59e74488bf7103e975178d04b23b8144005a141a974b9e43bc2d10eb3b2"
+        },
+        "model_digests": [
+          "7a5cff0cc5fb0191cb96282a6b7bce85cac8496921d4d73d282a59aefb00a923"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "c8622a32ee98ba21fc94862ff392b50245b8a3a932585b9f53560f06b2ec6a5e"
+      ],
+      "tested_at": "2026-10-21T18:29:34.140995Z",
+      "platform": {
+        "controller_source_sha": "b3d5ff8abde9b8511afcd8c4f544f2addfb070df",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    }
+  ]
+}
