@@ -23,7 +23,7 @@ from typing import Any
 
 from .auth_contract import SmokeAuthClass
 from .catalog import Model, Recipe
-from .identity import verdict_matches
+from .identity import legacy_image_unknown, verdict_matches
 from .lifecycle import RecipeStatus, RetestReason
 
 Boost = Callable[[Recipe], float]
@@ -210,9 +210,7 @@ def order_queue(
     ordered = head + tail
 
     def tier(key: str) -> int:
-        if key in deprioritised:
-            return 2
-        return 1 if key in revalidate else 0
+        return int(key in deprioritised)
 
     positions = {key: index for index, key in enumerate(ordered)}
 
@@ -228,9 +226,12 @@ def order_queue(
         key=lambda key: (recipes[key].updated_at, key),
         reverse=True,
     )
-    return newest + sorted(
+    ordered = newest + sorted(
         (key for key in ordered if key not in refreshed), key=priority
     )
+    # Refresh recency and cache locality must never put pass revalidation ahead
+    # of recipes still needing successful evidence, including deferred models.
+    return sorted(ordered, key=lambda key: key in revalidate)
 
 
 # --------------------------------------------------------------------------
@@ -736,10 +737,7 @@ def requeue_reason(
     *,
     revalidate_library_passes: bool = False,
 ) -> RetestReason | None:
-    """Re-test changed content, including legacy verdicts with unknown images.
-
-    The caller applies revalidate_passes to both changed and legacy passes.
-    """
+    """Re-test known changes; unknown legacy images only retry unsuccessful verdicts."""
     reasons = {
         RecipeStatus.PASSED: RetestReason.PASSED_OLDER_REVISION,
         RecipeStatus.FAILED: RetestReason.FAILED_OLDER_REVISION,
@@ -750,6 +748,10 @@ def requeue_reason(
         recipe,
         ignore_library_commit=entry.get("status") == RecipeStatus.PASSED
         and not revalidate_library_passes,
+    ):
+        return None
+    if entry.get("status") == RecipeStatus.PASSED and legacy_image_unknown(
+        entry, recipe
     ):
         return None
     return next(

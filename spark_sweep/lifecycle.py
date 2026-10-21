@@ -57,3 +57,8 @@ class RetestReason(StrEnum):
     PASSED_OLDER_REVISION = "passed-on-older-revision"
     FAILED_OLDER_REVISION = "failed-on-older-revision"
     DEFERRED_OLDER_REVISION = "deferred-on-older-revision"
+
+
+class ReconciliationStatus(StrEnum):
+    REQUEUED = "requeued"
+    RESTORED = "restored"
