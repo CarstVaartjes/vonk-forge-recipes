@@ -22,6 +22,15 @@ from vonk_forge_contracts.recipe import (
 
 ROOT = Path(__file__).resolve().parents[1]
 QWEN = "qwen3-8-flash-next-nvfp4-eugr-vllm-single"
+CHECKPOINT_RECIPES = (
+    "deepseek-v4-flash-0731-eugr-vllm-dual",
+    "deepseek-v4-flash-vision-exp-eugr-vllm-dual",
+    "glm-5-3-flash-nvfp4-spark-eugr-vllm-dual",
+    "qwen3-8-flash-next-nvfp4-eugr-vllm-dual",
+    QWEN,
+    "qwen3-8-flash-next-fp4-local-nvidia-vllm-dual",
+    "qwen3-8-flash-next-fp4-local-vcruz-vllm-single",
+)
 
 
 def recipe(slug: str = QWEN) -> RecipeDefinition:
@@ -55,11 +64,16 @@ def require_sandbox_loaders(
                         if separator:
                             env[key] = setting
         env.update((item.name, str(item.value)) for item in launch.runtime.environment)
+        args = {item.name: item.value for item in launch.runtime.arguments}
         # Image launchers enforce the sandbox transport before exec, including
         # when an upstream recipe still declares the old backend. Exec handoffs
         # are exercised separately with a fake vLLM that refuses io_uring.
         if image_policy:
-            for wrapper in (context / "vllm-wrapper.py", context / "vllm-serve"):
+            for wrapper in (
+                context / "vllm-wrapper.py",
+                context / "vllm-serve",
+                context / "vllm-wrapper",
+            ):
                 if not wrapper.is_file():
                     continue
                 source = wrapper.read_text()
@@ -74,10 +88,20 @@ def require_sandbox_loaders(
                         and "os.environ.update(SANDBOX_LOADER_ENV)" in source
                     ):
                         env.update(ast.literal_eval(node.value))
-        args = {item.name: item.value for item in launch.runtime.arguments}
+                    if isinstance(node, ast.Assign) and any(
+                        isinstance(target, ast.Name)
+                        and target.id == "SANDBOX_LOAD_FORMAT"
+                        for target in node.targets
+                    ):
+                        args["load-format"] = ast.literal_eval(node.value)
         load_format = str(args.get("load-format", "auto")).lower()
         assert load_format not in {"io_uring", "uring", "uring_buffered"}, (
             "load-format requires io_uring"
+        )
+        # The checkpoint loader selects io_uring bounce reads on GB10. The
+        # B12X_DISK_BACKEND switch below controls PLE/Engram only.
+        assert load_format != "b12x", (
+            "b12x checkpoint loading defaults to io_uring; use safetensors"
         )
         # InstantTensor's defaults try URING then AIO; BUFFERED tries
         # URING_BUFFERED then MMAP. Only an exclusive URING selection is unsafe.
@@ -99,7 +123,7 @@ def require_sandbox_loaders(
         ple = additional.get("ple_table_memory", env.get("VLLM_PLE_TABLE_MEMORY"))
         # b12x Qwen Flash Next defaults BF16 PLE to disk, even without an env.
         implicit_ple_disk = (
-            load_format == "b12x"
+            args.get("linear-backend") == "b12x"
             and any("flash-next" in item.model.slug for item in launch.models)
             and ple is None
             and "VLLM_PLE_CPU_OFFLOAD" not in env
@@ -163,8 +187,114 @@ def test_guard_preserves_documented_fallbacks(backend: str) -> None:
     require_sandbox_loaders(document)
 
 
+def test_guard_rejects_b12x_checkpoint_bounce_even_with_safe_disk_tables() -> None:
+    document = recipe()
+    for argument in document.runtime.arguments:
+        if argument.name == "load-format":
+            argument.value = "b12x"
+    document.runtime.environment = [
+        RecipeRuntimeEnvironment(name="B12X_DISK_BACKEND", value="gds"),
+        RecipeRuntimeEnvironment(name="CUFILE_FORCE_COMPAT_MODE", value="true"),
+    ]
+    # This policy controls PLE/Engram, not the checkpoint reader's auto/bounce
+    # selection. Safe disk tables cannot make the initial weight read safe.
+    with pytest.raises(AssertionError, match="checkpoint.*io_uring"):
+        require_sandbox_loaders(document, image_policy=False)
+
+
+@pytest.mark.parametrize(
+    ("slug", "rank"),
+    [
+        (slug, rank)
+        for slug in CHECKPOINT_RECIPES
+        for rank in range(recipe(slug).topology.node_count)
+    ],
+)
+def test_checkpoint_launch_survives_uring_refusal(
+    monkeypatch: pytest.MonkeyPatch, slug: str, rank: int
+) -> None:
+    document = recipe(slug)
+    context = ROOT / document.execution.build.context.path
+    wrapper = next(
+        path
+        for name in ("vllm-wrapper.py", "vllm-wrapper", "vllm-serve")
+        if (path := context / name).is_file()
+    )
+    arguments = list(document.runtime.entrypoint[1:])
+    for argument in document.runtime.arguments:
+        value = argument.value
+        if argument.setting is not None:
+            value = getattr(document.settings, argument.setting).value
+        if isinstance(value, bool):
+            if value:
+                arguments.append(f"--{argument.name}")
+        else:
+            arguments.extend((f"--{argument.name}", str(value)))
+    if document.topology.node_count == 2:
+        arguments.extend(
+            (
+                "--nnodes",
+                "2",
+                "--node-rank",
+                str(rank),
+                "--distributed-executor-backend",
+                "mp",
+            )
+        )
+    if rank:
+        arguments.append("--headless")
+    for name, value in {
+        "VONK_LOCAL_ADDR": f"192.0.2.{rank + 1}",
+        "VONK_MASTER_ADDR": "192.0.2.1",
+        "VONK_MASTER_PORT": "29500",
+        "NCCL_SOCKET_IFNAME": "fabric0",
+        "NCCL_IB_HCA": "mlx5_0",
+        "NCCL_IB_GID_INDEX": "3",
+        "TP_SOCKET_IFNAME": "fabric0",
+        "GLOO_SOCKET_IFNAME": "fabric0",
+    }.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.setattr(sys, "argv", [str(wrapper), *arguments])
+    monkeypatch.setattr(shutil, "which", lambda *args, **kwargs: "/fake/vllm")
+    calls: list[tuple[str, ...]] = []
+
+    def exec_with_uring_refused(executable: str, argv: tuple[str, ...]) -> None:
+        assert executable in ("/fake/vllm", sys.executable)
+        load_format = argv[argv.index("--load-format") + 1]
+        if load_format == "b12x":
+            raise RuntimeError(
+                "io_uring bounce initialization failed: Operation not permitted"
+            )
+        assert load_format == "safetensors"
+        # Changing the checkpoint reader must retain the execution kernels.
+        for option, backend in (
+            ("--attention-backend", "B12X"),
+            ("--moe-backend", "b12x"),
+            ("--linear-backend", "b12x"),
+        ):
+            if option in arguments:
+                assert argv[argv.index(option) + 1] == backend
+        if document.topology.node_count == 2:
+            assert argv[argv.index("--node-rank") + 1] == str(rank)
+        assert ("--headless" in argv) == bool(rank)
+        calls.append(argv)
+
+    monkeypatch.setattr(os, "execv", exec_with_uring_refused)
+    runpy.run_path(str(wrapper), run_name="__main__")
+    assert len(calls) == 1
+
+
 def test_guard_checks_nondefault_options() -> None:
     document = recipe()
+    for argument in document.runtime.arguments:
+        if argument.name == "load-format":
+            argument.value = "safetensors"
+    document.runtime.environment.extend(
+        [
+            RecipeRuntimeEnvironment(name="B12X_DISK_BACKEND", value="gds"),
+            RecipeRuntimeEnvironment(name="CUFILE_FORCE_COMPAT_MODE", value="true"),
+        ]
+    )
     document.options = [
         RecipeOption(
             name="loader",
@@ -184,11 +314,14 @@ def test_guard_checks_nondefault_options() -> None:
         )
     ]
     with pytest.raises(AssertionError, match="io_uring"):
-        require_sandbox_loaders(document)
+        require_sandbox_loaders(document, image_policy=False)
 
 
 def test_guard_checks_implicit_bf16_ple_and_additional_config() -> None:
     document = recipe()
+    for argument in document.runtime.arguments:
+        if argument.name == "load-format":
+            argument.value = "safetensors"
     document.runtime.environment = []
     with pytest.raises(AssertionError, match="defaults to io_uring"):
         require_sandbox_loaders(document, image_policy=False)

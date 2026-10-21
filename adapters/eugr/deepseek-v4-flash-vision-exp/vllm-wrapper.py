@@ -6,7 +6,7 @@ Two Sparks: the Controller renders vLLM's native multi-node
 launch (``--distributed-executor-backend mp``, ``--nnodes 2``, ``--node-rank``,
 ``--headless`` on the worker), which is eugr's default no-Ray cluster mode. The
 wrapper checks the Controller rendezvous and fabric, then pins the node address.
-Every engine option comes from the authored Recipe.
+Engine options come from the Recipe; sandbox checkpoint I/O is image-owned.
 """
 
 from __future__ import annotations
@@ -30,6 +30,15 @@ def _value(arguments: list[str], option: str) -> str | None:
 
 
 arguments = sys.argv[1:]
+# The b12x checkpoint reader auto-selects io_uring bounce I/O on GB10,
+# independently of B12X_DISK_BACKEND. Keep its compute kernels, but load the
+# same checkpoint with vLLM's standard safetensors reader in our sandbox.
+SANDBOX_LOAD_FORMAT = "safetensors"
+arguments = [
+    SANDBOX_LOAD_FORMAT if index and arguments[index - 1] == "--load-format" else value
+    for index, value in enumerate(arguments)
+]
+
 node_count = _value(arguments, "--nnodes")
 
 if node_count is not None:

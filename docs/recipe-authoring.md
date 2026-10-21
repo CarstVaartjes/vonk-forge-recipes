@@ -275,6 +275,11 @@ Older b12x images without that backend need a tested POSIX reader replacement;
 never request relaxed seccomp. Enforce image-owned transport policy in the
 launcher before exec, including when a kit declares an unsafe backend. b12x
 defaults PLE BF16 tables and disk Engram to io_uring even when no backend is specified.
+The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
+I/O on GB10; `B12X_DISK_BACKEND` does not control it. Use `--load-format safetensors`
+at the image launcher handoff for checkpoint loading while retaining the B12X
+attention, MoE and linear kernels. Enforce that transport when an upstream Recipe
+requests `b12x`; keep the checkpoint I/O policy separate from PLE/Engram I/O.
 See [b12x disk transports](https://github.com/local-inference-lab/b12x/blob/2cc7f66aaef76a9c7cbb660a1efb865cf3f26c88/docs/disk-embedding-backends.md),
 [NVIDIA compatibility I/O](https://docs.nvidia.com/gpudirect-storage/troubleshooting-guide/#tracking-the-io-after-enabling-compatibility-mode),
 and [InstantTensor backend selection](https://github.com/scitix/InstantTensor#backend-selection).
