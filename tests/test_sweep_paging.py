@@ -2,21 +2,12 @@
 
 from __future__ import annotations
 
-import json
-from dataclasses import asdict
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-from spark_sweep.catalog import (
-    fetch_models,
-    fetch_recipes,
-    parse_recipe,
-    recipe_listing,
-)
-from spark_sweep.catalog_contract import RecipeRow
+from spark_sweep.catalog import fetch_models, fetch_recipes, recipe_listing
 from spark_sweep.vonkctl import Vonkctl
 
 
@@ -112,66 +103,3 @@ def test_shared_platform_list_vector_keeps_pins_ports_and_serving_checks():
     assert recipe.ports == (row["projected"]["interfaces"][0]["port"],)
     assert recipe.base_image == row["projected"]["base_image_digest"]
     assert recipe.checks == tuple(row["projected"]["validation"]["serving"]["checks"])
-
-
-@pytest.mark.parametrize("image_pin", [False, True])
-@pytest.mark.parametrize("summary_fields", [False, True])
-def test_legacy_document_shape_stays_supported_until_coordinator_contracts(
-    image_pin, summary_fields
-):
-    """Keep both vectors until the coordinator ends old Controller support.
-
-    The legacy vector captures LibraryRecipeProjection.document: RecipeDefinition
-    from production contract tree 120f0e7cb7de236f7ec27e98d075652ed7671c7f,
-    using the same canonical synthetic recipe as the platform's projected vector.
-    No production read or sweep state is needed to replay that wire contract.
-    """
-    recipes = []
-    projections = []
-    for filename in ["library-list.json", "library-list-legacy.json"]:
-        page = json.loads((Path(__file__).parent / "fixtures" / filename).read_text())
-        row = page["recipes"][0]
-        if not summary_fields:
-            row.pop("engine")
-            row.pop("node_count")
-        if image_pin:
-            row["prebuilt_image"] = {
-                "build_key": "b" * 64,
-                "reference": "ghcr.io/test/runtime@sha256:" + "c" * 64,
-            }
-        recipe = parse_recipe(row, page["library"]["commit"])
-        assert recipe is not None
-        recipes.append(asdict(recipe))  # Recipe equality deliberately excludes checks.
-        projections.append(RecipeRow.model_validate(row).projected)
-        assert recipe.model_digests == (
-            "05a481f76890725bfb498309a58b7464846ac4853b8e4a5db6495d40ce631ac4",
-        )
-        assert recipe.aliases == ("synthetic-tiny",)
-        assert recipe.ports == (8000,)
-        assert recipe.artifact_bytes == 1024
-        assert recipe.node_count == 1 and recipe.engine == "vllm"
-        assert recipe.base_image == "f" * 64
-        assert (
-            recipe.checks
-            and recipe.checks[0]["request"]["path"] == "/v1/chat/completions"
-        )
-        assert (recipe.runtime_image is not None) == image_pin
-        if recipe.runtime_image is not None:
-            assert recipe.runtime_image.build_key == "b" * 64
-            assert recipe.runtime_image.image_digest == "sha256:" + "c" * 64
-    assert recipes[0] == recipes[1]
-    assert projections[0] == projections[1]
-
-
-def test_projected_shape_wins_even_when_legacy_document_is_invalid():
-    row = {"selector": "vonk-forge/current", "projected": {}, "document": None}
-    recipe = parse_recipe(row)
-    assert recipe is not None and recipe.base_image == ""
-
-
-@pytest.mark.parametrize("projected", [None, {"runtime_engine": 123}])
-def test_invalid_present_projection_does_not_fall_back_to_legacy(projected):
-    with pytest.raises(ValidationError):
-        parse_recipe(
-            {"selector": "vonk-forge/current", "projected": projected, "document": {}}
-        )

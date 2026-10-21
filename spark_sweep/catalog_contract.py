@@ -4,7 +4,7 @@ Extra producer fields are intentionally ignored. A malformed consumed field
 invalidates only its row; unavailable assessments still use their defaults.
 """
 
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts.recipe import RecipeValidationCheck
 
 
@@ -36,11 +36,7 @@ class Topology(Projection):
 
 
 class ModelIdentity(Projection):
-    content_sha256: str = Field(
-        validation_alias=AliasChoices(
-            "content_sha256", AliasPath("model", "content_sha256")
-        )
-    )
+    content_sha256: str
 
 
 class Serving(Projection):
@@ -56,16 +52,8 @@ class RecipeProjection(Projection):
     interfaces: list[Interface] = Field(default_factory=list)
     topology: Topology = Field(default_factory=Topology)
     models: list[ModelIdentity] = Field(default_factory=list)
-    runtime_engine: str = Field(
-        default="",
-        validation_alias=AliasChoices("runtime_engine", AliasPath("runtime", "engine")),
-    )
-    base_image_digest: str = Field(
-        default="",
-        validation_alias=AliasChoices(
-            "base_image_digest", AliasPath("execution", "build", "base_image", "digest")
-        ),
-    )
+    runtime_engine: str = ""
+    base_image_digest: str = ""
 
 
 class RecipeIdentity(Projection):
@@ -96,11 +84,7 @@ class Resources(Projection):
 
 class RecipeRow(Projection):
     selector: str
-    # Expand/contract: legacy document shape accepted until every Controller serves
-    # projected. Keep both paths until the coordinator removes legacy support.
-    projected: RecipeProjection = Field(
-        validation_alias=AliasChoices("projected", "document")
-    )
+    projected: RecipeProjection
     identity: RecipeIdentity = Field(default_factory=RecipeIdentity)
     resources: Resources = Field(default_factory=Resources)
     node_count: int = 1

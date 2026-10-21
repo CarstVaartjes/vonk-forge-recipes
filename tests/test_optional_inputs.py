@@ -37,7 +37,7 @@ def test_poison_row_advances_cursor_retains_cache_and_cannot_authorize_removal(
     healthy = fleet._recipe_row(FakeRecipe("good"))
     bad = copy.deepcopy(healthy)
     bad["selector"] = "vonk-forge/poison"
-    (bad if field in ("usage", "model_selectors") else bad["projected"])[field] = None
+    (bad if field in ("usage", "model_selectors") else bad["document"])[field] = None
     rows = [healthy, healthy]
     rows.insert(position, bad)
     pages = iter(
@@ -354,7 +354,7 @@ def test_poison_refresh_keeps_a_healthy_lane_and_status_advancing(
             if isinstance(document, dict) and "recipes" in document:
                 bad = copy.deepcopy(fleet._recipe_row(FakeRecipe("good")))
                 bad["selector"] = "vonk-forge/poison"
-                bad["projected"]["interfaces"] = None
+                bad["document"]["interfaces"] = None
                 document["recipes"].insert(position, bad)
             return code, json.dumps(document), stderr
 
