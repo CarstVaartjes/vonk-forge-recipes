@@ -1,99 +1,54 @@
 """vLLM's GPU budget excludes unified-memory overhead on each GB10 node."""
 
+import json
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
-from vonk_forge_contracts import RecipeDefinition
+from catalog_documents import catalog_models
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-from qualification.memory_need import (
+from qualification.memory_need import load_inputs, require_memory_need
+from qualification.vllm_memory_fit import (
+    INCIDENT_MEASURED_OVERHEAD_BYTES,
     OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
-    SPARK_IDLE_AVAILABLE_BYTES,
+    PENDING_CREATOR,
+    SPARK_3542_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
-    VLLM_DEFAULT_UTILIZATION,
+    assert_memory_fit,
     loads_draft_model,
     non_utilization_bytes,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-# Draft-model recipes whose weights leave no KV room once the draft overhead is
-# counted on a fitting envelope: each needs its creator (more Sparks, a smaller
-# context or drafter). Until then only the draft term is waived for them: the
-# plain GPU budget and the OS floor still apply, and the entry goes stale, and
-# fails, as soon as the recipe fits with the term counted.
-PENDING_CREATOR = frozenset(
-    {
-        "glm-5-3-flash-exl3-dflash2-vllm-dual",
-        "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
-        "minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual",
-    }
-)
-
-
-def assert_memory_fit(
-    recipe: RecipeDefinition,
-    count_draft_model: bool = True,
-    *,
-    require_fit: bool = True,
-) -> None:
-    arguments = [
-        argument
-        for argument in recipe.runtime.arguments
-        if argument.name == "gpu-memory-utilization"
-    ]
-    utilization = VLLM_DEFAULT_UTILIZATION
-    if arguments:
-        argument = arguments[-1]
-        assert argument.setting is None, "Memory utilization must be a fixed budget"
-        utilization = Decimal(str(argument.value))
-    assert 0 < utilization <= 1
-    required_peak = utilization * SPARK_MEMORY_BYTES + non_utilization_bytes(
-        recipe, count_draft_model
-    )
-    for role in recipe.topology.roles:
-        memory = role.resources.memory
-        label = f"{recipe.identity.slug}/{role.name} at utilization {utilization}"
-        assert memory.peak_bytes >= required_peak, (
-            f"{label}: peak {memory.peak_bytes} understates GPU budget plus overhead "
-            f"{required_peak}"
-        )
-        if require_fit:
-            assert memory.peak_bytes + OS_FLOOR_BYTES <= SPARK_IDLE_AVAILABLE_BYTES, (
-                f"{label}: peak plus OS floor exceeds an idle Spark's available memory"
-            )
 
 
 @pytest.mark.parametrize(
     "path", sorted((ROOT / "recipes").glob("*.json")), ids=lambda path: path.stem
 )
 def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
-    recipe = RecipeDefinition.model_validate_json(path.read_text())
+    document = json.loads(path.read_text())
+    recipe = RecipeDefinition.model_validate(document)
     if recipe.runtime.engine != "vllm":
         return
+    if recipe.topology.node_count != 1:
+        require_memory_need(
+            recipe,
+            catalog_models(),
+            load_inputs(),
+            document_digest=document_sha256(document),
+        )
+        return
     count = path.stem not in PENDING_CREATOR
-    # This profile now declares its full nonfitting demand; the capacity guard
-    # checks its estimate and host reserve instead of hiding the draft term.
-    require_fit = path.stem != "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual"
-    assert_memory_fit(recipe, count, require_fit=require_fit)
+    assert_memory_fit(recipe, count)
     # Options cannot share an argument name, so each utilization override is
     # independent. Resolve each choice through the actual contract merger.
     for option in recipe.options:
         for choice in option.choices:
             assert_memory_fit(
-                recipe.with_option_choices({option.name: choice.value}),
-                count,
-                require_fit=require_fit,
+                recipe.with_option_choices({option.name: choice.value}), count
             )
-
-
-# The incident recipe at 0.85 measured 122_005_303_296 bytes on spark-3542
-# (2026-10-15/16): its overhead beside the utilization share, and the idle
-# available memory of that Spark, which the peak and the OS floor must fit.
-INCIDENT_MEASURED_OVERHEAD_BYTES = 122_005_303_296 - int(
-    Decimal("0.85") * SPARK_MEMORY_BYTES
-)
-SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 
 
 def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:

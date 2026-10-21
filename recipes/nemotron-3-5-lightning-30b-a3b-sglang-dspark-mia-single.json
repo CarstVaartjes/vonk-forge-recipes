@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate adaptation of MiaAI-Lab's DGX Spark lane for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 with NVIDIA's DSpark draft on SGLang (cookbook DSpark operating point: mem-fraction 0.78, block size 3, 1M context). Upstream reports ~4.9M-token pool and 48 concurrent requests on a Spark; those are upstream claims, not measured here. The RTX 5090 / 6000 PRO lanes are not modelled. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "Executable Candidate adaptation of MiaAI-Lab's DGX Spark lane for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 with NVIDIA's DSpark draft on SGLang (cookbook DSpark operating point: mem-fraction 0.78, block size 3, 1M context). Upstream reports ~4.9M-token pool and 48 concurrent requests on a Spark; those are upstream claims, not measured here. The RTX 5090 / 6000 PRO lanes are not modelled.",
     "tags": [
       "candidate",
       "executable",
@@ -840,6 +840,31 @@
       "choices": [
         {
           "default": true,
+          "help": "Upstream's DGX Spark operating point (about 4.93M-token pool, 48 concurrent requests as reported upstream).",
+          "label": "0.78 (upstream default)",
+          "value": "fraction-078"
+        },
+        {
+          "args": [
+            {
+              "name": "mem-fraction-static",
+              "setting": null,
+              "value": "0.85"
+            }
+          ],
+          "help": "Upstream's documented example for growing cache and concurrency on a memory-rich machine; leaves less headroom for the OS on a Spark.",
+          "label": "0.85 (larger cache)",
+          "value": "fraction-085"
+        }
+      ],
+      "help": "SGLang --mem-fraction-static: the share of device memory reserved for weights, KV cache and CUDA-graph scratch; the main lever for KV pool size and concurrency. The 0.78 default is upstream's DGX Spark setting (128 GiB unified memory).",
+      "label": "Static memory fraction",
+      "name": "mem-fraction"
+    },
+    {
+      "choices": [
+        {
+          "default": true,
           "help": "Upstream's DGX Spark setting.",
           "label": "4 (upstream default)",
           "value": "bs-4"
@@ -909,7 +934,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.75"
+        "value": "0.78"
       },
       {
         "name": "cuda-graph-max-bs-decode",

@@ -17,7 +17,7 @@ from vonk_forge_contracts import (
     document_sha256,
 )
 
-from qualification.memory_need import declaration_problems, memory_need
+from qualification.memory_need import declaration_problems, per_rank_need
 
 
 def main() -> int:
@@ -43,7 +43,7 @@ def main() -> int:
             for choice in option.choices
         )
         for label, variant in variants:
-            need = memory_need(variant, models)
+            need = per_rank_need(variant, models)
             print(
                 f"{slug} [{label}]: {need.verdict}; need >= {need.peak_bytes} bytes/rank, "
                 f"safe limit {need.safe_limit_bytes} bytes/rank"

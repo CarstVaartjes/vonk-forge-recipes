@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B BF16, using the official vLLM 0.30.0 ARM64 release image and immutable local media inputs. Chat, vision, reasoning, and tool calling remain Candidate capabilities; combining reasoning with JSON-schema structured output is not supported by this pinned runtime. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B BF16, using the official vLLM 0.30.0 ARM64 release image and immutable local media inputs. Chat, vision, reasoning, and tool calling remain Candidate capabilities; combining reasoning with JSON-schema structured output is not supported by this pinned runtime. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "executable",
       "candidate",
@@ -226,7 +226,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.75"
+        "value": "0.82"
       },
       {
         "name": "tensor-parallel-size",
