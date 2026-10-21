@@ -5,11 +5,11 @@ name: Recipe runtime images
 # (plus :<version>). The key is Vonk Forge's executable build key; Controllers
 # derive the same key and pull the pinned digest instead of building on a Spark.
 #
-# publish.yml calls this on every publication: recipes changed since the last
-# published commit whose image is missing are built, then every recipe's image
-# is resolved for the signed index. Run it by hand to backfill ("all" or recipe
-# ids); it then republishes so the index picks up the new digests. Publication
-# requires current images except for explicit hosted-build exclusions.
+# publish.yml calls this on every publication: every missing current key is
+# considered, then every recipe's image is resolved for the signed index. Run
+# it by hand to backfill ("all" or recipe ids); it then republishes so the index
+# picks up the new digests. Publication
+# reports unresolved images as pending until a later build resolves them.
 on:
   # Independent recovery owner; publication tags do not retire missing keys.
   schedule:
@@ -17,7 +17,7 @@ on:
   workflow_call:
     inputs:
       slugs:
-        description: "Space-separated recipe ids or 'all' (default: changed since the last publication)"
+        description: "Space-separated recipe ids or 'all' (default: every missing image)"
         type: string
         default: ""
       republish:
@@ -41,8 +41,8 @@ permissions:
 # The Vonk Forge commit whose planner derives the build keys, the exact Spark
 # build flags and the platform adaptation stage is the `platform_ref` that
 # publish.yml validates the library with: one pin, read from there. Controllers
-# compare the same key. When that pin moves, the next publication considers
-# every recipe, and builds the images whose key changed.
+# compare the same key. Every publication considers every recipe and builds
+# only missing keys.
 
 jobs:
   plan:
@@ -57,9 +57,6 @@ jobs:
     steps:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          fetch-tags: true
 
       - name: Read the platform ref
         id: platform
@@ -109,12 +106,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version=$(uv run --python 3.14 --no-project --with-editable contracts \
-            python -c 'from vonk_forge_contracts import CONTRACT_VERSION; print(CONTRACT_VERSION)')
-          # The release tag is moved to every published commit.
-          baseline=$(git rev-parse -q --verify "refs/tags/v$version^{commit}" || true)
           python3 tools/prebuilt-images select --plan "$RUNNER_TEMP/plan.json" \
-            --owner "${{ github.repository_owner }}" --baseline "$baseline" \
+            --owner "${{ github.repository_owner }}" \
             --slugs "$SLUGS" --output "$RUNNER_TEMP/selection.json"
           # Ship only the plan and the build contexts of the selected keys.
           mkdir -p "$RUNNER_TEMP/upload"
@@ -130,7 +123,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           {
             echo "### Recipe images"
-            echo "Baseline: \`${baseline:-none}\`; requested: \`${SLUGS:-changed}\`; platform: \`${{ steps.platform.outputs.ref }}\`"
+            echo "Requested: \`${SLUGS:-all}\`; platform: \`${{ steps.platform.outputs.ref }}\`"
             echo
             jq -r '.builds[] | "- build `\(.build_key[0:12])` for \([.recipes[].slug] | join(", "))"' "$RUNNER_TEMP/selection.json"
             jq -r '.copies[] | "- copy to `\(.to)`"' "$RUNNER_TEMP/selection.json"

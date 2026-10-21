@@ -8,22 +8,19 @@ derives (source bundle, Dockerfile, pinned base images, build options and
 capabilities, runtime adapter). The Controller derives the same key for a
 revision and prefers the pinned digest over a Spark build.
 
-``select``  decides what the image workflow builds: recipes changed since the
-            last published commit (or the slugs asked for, or all) whose
-            ``build-<key>`` tag is missing, one build per distinct key. A key
+``select``  considers every recipe (or the slugs asked for) whose ``build-<key>``
+            tag is missing, one build per distinct key. A key
             another recipe already has is copied instead of rebuilt.
 ``resolve`` looks up every recipe's ``build-<key>`` digest for the signed index.
 
 ``platform-ref`` prints the Vonk Forge commit the library is validated with
             (``platform_ref`` in publish.yml). The image workflow plans and
             builds with that same commit, so there is one pin and it cannot
-            drift between validation and images. When the pin moved since the
-            last publication, ``select`` considers every recipe: a platform
-            change can move the build keys of recipes nobody touched, and only
-            keys whose image is missing are built.
+            drift between validation and images. Selection reconciles every
+            current key on each publication, independently of release tags.
 
-``resolve`` reports missing images; publication requires every planned image
-except declared hosted-build exclusions before signing the release.
+``resolve`` reports missing images; publication leaves those image pins absent
+and reports them as pending while deferred/scheduled builds reconcile them.
 It names the reason for every recipe without an image: refused by the
 Controller's source policy (not planned), declared unbuildable in CI in
 ``prebuilt-image-exclusions.json`` (those are not retried until asked for by
@@ -35,13 +32,12 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sys
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable, Mapping
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any
 
 REGISTRY = "ghcr.io"
@@ -101,19 +97,6 @@ def _recipes(plan: Mapping[str, Any]) -> Iterable[tuple[str, Mapping[str, Any]]]
     for image in plan.get("images", []):
         for recipe in image.get("recipes", []):
             yield str(image["build_key"]), recipe
-
-
-def changed_slugs(plan: Mapping[str, Any], paths: Iterable[str]) -> set[str]:
-    """Recipes whose document or build context a set of changed paths touches."""
-
-    changed = [PurePosixPath(path) for path in paths if path]
-    slugs: set[str] = set()
-    for _key, recipe in _recipes(plan):
-        source = PurePosixPath(str(recipe["source_path"]))
-        context = PurePosixPath(str(recipe["context"]))
-        if any(path == source or context in path.parents for path in changed):
-            slugs.add(str(recipe["slug"]))
-    return slugs
 
 
 def select(
@@ -266,62 +249,15 @@ def platform_ref(workflow: str) -> str | None:
     return found.group(1) if found else None
 
 
-def _git_file(revision: str, path: Path) -> str | None:
-    completed = subprocess.run(
-        ["git", "show", f"{revision}:{path.as_posix()}"],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    return completed.stdout if completed.returncode == 0 else None
+def candidate_slugs(requested: list[str]) -> set[str] | None:
+    """Reconcile every current key, unless the run explicitly names recipes.
 
-
-def platform_moved(current: str | None, baseline: str | None) -> bool:
-    """Whether the platform pin differs from the one at the last publication.
-
-    An unknown pin on either side counts as moved: rebuilding is only ever
-    paid for keys whose image is missing, so assuming a change is cheap and
-    assuming none could leave every image stale.
+    A release tag is not evidence of image availability. In particular, a new
+    contract version has no tag yet, and successful publication may advance a
+    tag while builds are still pending.
     """
 
-    return current is None or baseline is None or current != baseline
-
-
-def _git_changed(baseline: str) -> list[str]:
-    completed = subprocess.run(
-        ["git", "diff", "--name-only", baseline, "HEAD"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return completed.stdout.splitlines()
-
-
-def candidate_slugs(
-    plan: Mapping[str, Any],
-    requested: list[str],
-    *,
-    baseline: str,
-    workflow: Path,
-) -> set[str] | None:
-    """The recipes whose image a run considers; ``None`` means every recipe."""
-
-    if requested == ["all"]:
-        return None
-    if requested:
-        return set(requested)
-    if not baseline:
-        # No published baseline (a new contract release): build on request only.
-        return set()
-    current = platform_ref(workflow.read_text(encoding="utf-8"))
-    previous = _git_file(baseline, workflow)
-    if platform_moved(current, None if previous is None else platform_ref(previous)):
-        print(
-            "the platform ref moved since the last publication; "
-            "considering every recipe"
-        )
-        return None
-    return changed_slugs(plan, _git_changed(baseline))
+    return set(requested) if requested and requested != ["all"] else None
 
 
 def missing_reasons(
@@ -350,20 +286,11 @@ def main() -> int:
     choose.add_argument("--plan", type=Path, required=True)
     choose.add_argument("--owner", required=True)
     choose.add_argument(
-        "--baseline",
+        "--slugs",
         default="",
-        help="last published commit; recipes changed since it are candidates",
-    )
-    choose.add_argument(
-        "--slugs", default="", help="space-separated recipe ids, or 'all'"
+        help="space-separated recipe ids; defaults to every missing image",
     )
     choose.add_argument("--output", type=Path, required=True)
-    choose.add_argument(
-        "--workflow",
-        type=Path,
-        default=PLATFORM_WORKFLOW,
-        help="workflow that pins platform_ref; a move since the baseline selects all",
-    )
     pin = commands.add_parser("platform-ref")
     pin.add_argument("--workflow", type=Path, default=PLATFORM_WORKFLOW)
     look = commands.add_parser("resolve")
@@ -380,12 +307,7 @@ def main() -> int:
         return 0
     plan = json.loads(arguments.plan.read_text(encoding="utf-8"))
     if arguments.command == "select":
-        candidates = candidate_slugs(
-            plan,
-            arguments.slugs.split(),
-            baseline=arguments.baseline,
-            workflow=arguments.workflow,
-        )
+        candidates = candidate_slugs(arguments.slugs.split())
         candidates = without_excluded(
             plan,
             candidates,
