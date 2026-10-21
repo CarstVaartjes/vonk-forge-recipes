@@ -147,7 +147,7 @@ def test_group_members_are_back_to_back_with_engine_and_base_image_locality() ->
     ]  # model group together; engine, then base image, inside it
 
 
-def test_revalidation_goes_after_new_work_and_suspect_siblings_last() -> None:
+def test_revalidation_goes_after_new_work_including_suspect_siblings() -> None:
     rs = [recipe("new", ("N",)), recipe("old", ("O",)), recipe("sib", ("S",))]
     by_key = {r.key: r for r in rs}
     plans = policy.plan_groups(rs, {"N": GB, "O": GB, "S": GB}, {"N", "O", "S"})
@@ -159,7 +159,7 @@ def test_revalidation_goes_after_new_work_and_suspect_siblings_last() -> None:
         revalidate={"vonk-forge/old"},
         deprioritised={"vonk-forge/sib"},
     )
-    assert [k.split("/")[1] for k in order] == ["new", "old", "sib"]
+    assert [k.split("/")[1] for k in order] == ["new", "sib", "old"]
 
 
 def test_variants_last_tests_one_recipe_per_model_first() -> None:

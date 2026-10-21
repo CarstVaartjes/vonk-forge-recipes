@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict
 
 from .catalog import Recipe
 from .catalog_contract import RuntimeImageIdentity
+from .lifecycle import RecipeStatus, ReconciliationStatus, RetestReason
 
 
 class VerdictIdentity(BaseModel):
@@ -18,7 +19,7 @@ class VerdictIdentity(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     content_sha256: str
-    runtime_image: RuntimeImageIdentity | None
+    runtime_image: RuntimeImageIdentity | None = None
     model_digests: tuple[str, ...]
     # Older Controllers omit the pin. Invalidate conservatively on any library
     # publication for failed/deferred verdicts; passes require explicit opt-in.
@@ -55,6 +56,49 @@ def verdict_matches(
         and entry.get("content_sha256", identity.content_sha256)
         == identity.content_sha256
     )
+
+
+def legacy_image_unknown(entry: Mapping[str, Any], recipe: Recipe) -> bool:
+    """Missing image evidence alone does not disprove a content verdict.
+
+    Legacy content hashes also bind the recipe's model references. Compare any
+    independently recorded model digests too, rather than masking known changes.
+    """
+    recorded = recorded_identity(entry)
+    current = content_identity(recipe)
+    if entry.get("content_sha256") != current.content_sha256:
+        return False
+    models = entry.get("model_digests")
+    if models is not None and tuple(sorted(set(models))) != current.model_digests:
+        return False
+    if recorded is None:
+        return True
+    return (
+        recorded.runtime_image is None
+        and current.runtime_image is not None
+        and recorded.content_sha256 == current.content_sha256
+        and recorded.model_digests == current.model_digests
+    )
+
+
+class LegacyPassedVerdict(BaseModel):
+    """The saved verdict, including the evidence the requeue cleared."""
+
+    model_config = ConfigDict(extra="allow")
+
+    status: Literal[RecipeStatus.PASSED]
+    content_sha256: str
+    verdict_identity: VerdictIdentity | None = None
+
+
+class PassReconciliationRecord(BaseModel):
+    """Typed local log record used to repair only the legacy-image requeue."""
+
+    recipe: str
+    status: ReconciliationStatus
+    reason: Literal[RetestReason.PASSED_OLDER_REVISION]
+    previous: LegacyPassedVerdict
+    verdict_identity: VerdictIdentity | None = None
 
 
 class IdentityReason(StrEnum):
