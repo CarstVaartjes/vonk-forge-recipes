@@ -27,10 +27,11 @@ from uuid import NAMESPACE_URL, uuid5
 
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
+from qualification.memory_need import SPARK_MEMORY_BYTES
 from spark_sweep.run import DaemonExecutor
 
 _ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
-SPARK_MEMORY = 130_663_231_488
+SPARK_MEMORY = SPARK_MEMORY_BYTES
 GB = 10**9
 
 

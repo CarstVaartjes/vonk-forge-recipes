@@ -1,0 +1,15 @@
+[
+  {
+    "semantic_id": "agent_protocol.wheel",
+    "owner": "tools/protocol-wheel/selection.json",
+    "selector": "artifact",
+    "kind": "protocol-wheel",
+    "adversarial_fixtures": [
+      {
+        "path": "tests/test_single_source_values.py",
+        "function": "test_rejects_protocol_wheel_family",
+        "reason": "Adversarial old and future wheel filenames in executable consumers."
+      }
+    ]
+  }
+]

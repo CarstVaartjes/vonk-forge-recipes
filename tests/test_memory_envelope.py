@@ -12,8 +12,10 @@ import os
 import unittest
 from pathlib import Path
 
+from qualification.memory_need import SPARK_MEMORY_BYTES
+
 ROOT = Path(__file__).resolve().parents[1]
-PHYSICAL_MEMORY_BYTES = 130_663_231_488
+PHYSICAL_MEMORY_BYTES = SPARK_MEMORY_BYTES
 ADMISSIBLE_PEAK_BYTES = int(
     os.environ.get("VONK_SPARK_ADMISSIBLE_PEAK_BYTES", "124000000000")
 )

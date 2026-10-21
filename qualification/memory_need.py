@@ -17,15 +17,18 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 
-from qualification.vllm_memory_fit import (
-    DRAFT_MODEL_OVERHEAD_BYTES,
-    OVERHEAD_BYTES,
-    SPARK_3542_IDLE_AVAILABLE_BYTES,
-    SPARK_MEMORY_BYTES,
-)
-from qualification.vllm_memory_fit import (
-    loads_draft_model as configured_draft_model,
-)
+# Offline policy pinned to vonk-forge cee017ae806f0ac4c0842a3652f8ef7ee57388b8:
+# control/src/vonk_control/resource_planning/types.py::PLATFORM_MEMORY_FLOOR_BYTES
+# and rust/crates/vonk-agent-protocol/src/host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES.
+# These estimates do not redefine live admission or the sustained-pressure guard.
+OS_FLOOR_BYTES = 6_000_000_000
+# Historical GB10 total, not a substitute for available live node telemetry.
+SPARK_MEMORY_BYTES = 130_663_231_488
+SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
+SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
+OVERHEAD_BYTES = 8_000_000_000
+# Separate speculative-model calibration; see vllm_memory_fit.py for the incident.
+DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 
 ROOT = Path(__file__).resolve().parents[1]
 # GB10 total and lower idle MemAvailable from spark-3542, 2026-10-15/16;
@@ -192,6 +195,10 @@ def positive_argument(recipe: RecipeDefinition, name: str) -> int:
 
 
 def loads_draft_model(recipe: RecipeDefinition) -> bool:
+    from qualification.vllm_memory_fit import (
+        loads_draft_model as configured_draft_model,
+    )
+
     wrapper = ROOT / recipe.execution.build.context.path / "vllm-wrapper.sh"
     if wrapper.is_file() and "export SPEC_MODEL_PATH=" in wrapper.read_text():
         return True

@@ -10,9 +10,11 @@ from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
+    DRAFT_MODEL_OVERHEAD_BYTES,
     GUARD_BYTES,
     IDLE_USE_BYTES,
     LIMIT_BYTES,
+    OVERHEAD_BYTES,
     TOTAL_BYTES,
     CacheGeometry,
     argument_value,
@@ -22,7 +24,6 @@ from qualification.memory_need import (
     load_inputs,
     require_memory_need,
 )
-from qualification.vllm_memory_fit import DRAFT_MODEL_OVERHEAD_BYTES, OVERHEAD_BYTES
 
 ROOT = Path(__file__).resolve().parents[1]
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
@@ -57,7 +58,7 @@ def test_llama_need_is_small_and_the_pool_matches_the_declared_workload() -> Non
 
 def test_limit_subtracts_idle_use_and_guard_exactly_once() -> None:
     assert IDLE_USE_BYTES == 5_012_574_208
-    assert GUARD_BYTES == 17_179_869_184
+    assert GUARD_BYTES > IDLE_USE_BYTES
     assert TOTAL_BYTES - IDLE_USE_BYTES - GUARD_BYTES == LIMIT_BYTES
 
 

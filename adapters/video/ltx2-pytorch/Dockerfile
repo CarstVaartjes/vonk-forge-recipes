@@ -4,8 +4,8 @@ LABEL org.opencontainers.image.source="https://huggingface.co/Lightricks/LTX-2" 
       org.opencontainers.image.revision="dfcc2108383fe1aaa0584bdf55d368a4bdadd90c" \
       org.opencontainers.image.licenses="LTX-2 Community License Agreement" \
       io.vonk.ltx2.source-commit="9ec55f9f22798a3198d9c923856824821bc3317e" \
-      io.vonk.agent-protocol.source-commit="e6de69b20c098d4df2eb9e0294cede8acc552a3c" \
-      io.vonk.agent-protocol.wheel-sha256="e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195" \
+      io.vonk.agent-protocol.source-commit="cee017ae806f0ac4c0842a3652f8ef7ee57388b8" \
+      io.vonk.agent-protocol.wheel-sha256="9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625" \
       io.vonk.ltx2.source-archive-sha256="4010dea65ad0408770b08714834f35eadf32ddb4ce340365d15fc016585b4b43"
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -33,7 +33,7 @@ COPY wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl /opt/vonk/source/wheels/v
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
         --requirement /opt/vonk/source/requirements.lock \
     && printf '%s  %s\n' \
-        e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195 \
+        9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625 \
         /opt/vonk/source/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl \
         | sha256sum --check --strict \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-index \

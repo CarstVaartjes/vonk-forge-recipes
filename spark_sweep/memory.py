@@ -7,8 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
-# Node telemetry includes the OS: the Controller's memory floor is what a run never gets.
-OS_ALLOWANCE_BYTES = 6_000_000_000
+from qualification.memory_need import OS_FLOOR_BYTES
 
 
 class _Sample(BaseModel):
@@ -72,10 +71,10 @@ def notes(memory: Mapping[str, Any] | None) -> list[dict[str, Any]]:
             "case": "memory-envelope",
             "expected": f"at most {memory['declared_bytes']} bytes (declared)",
             "got": f"{node['used_bytes']} bytes in use on {node['node_id']} "
-            f"(run alone; OS included, {OS_ALLOWANCE_BYTES} allowed for it)",
+            f"(run alone; OS included, {OS_FLOOR_BYTES} allowed for it)",
             "ok": False,
         }
         for node in memory["nodes"]
         if node["alone"]
-        and node["used_bytes"] > memory["declared_bytes"] + OS_ALLOWANCE_BYTES
+        and node["used_bytes"] > memory["declared_bytes"] + OS_FLOOR_BYTES
     ]

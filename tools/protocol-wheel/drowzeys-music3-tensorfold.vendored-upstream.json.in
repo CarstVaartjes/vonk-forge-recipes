@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "drowzeys/TensorFold",
+    "commit": "6b714531e2d60f91d26e98e414547ad94ad771bf"
+  },
+  "ours": [
+    "job.py",
+    "launcher",
+    "MUSIC3-LICENSE",
+    "@protocol.wheel@"
+  ]
+}

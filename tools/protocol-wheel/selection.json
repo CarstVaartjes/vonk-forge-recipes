@@ -1,0 +1,36 @@
+{
+  "artifact": "adapters/video/ltx2-pytorch/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl",
+  "artifact_sha256": "9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625",
+  "platform_source_commit": "cee017ae806f0ac4c0842a3652f8ef7ee57388b8",
+  "source_path": "agent_protocol",
+  "consumers": [
+    {
+      "context": "adapters/audio/drowzeys-music3-tensorfold",
+      "wheel_directory": ""
+    },
+    {
+      "context": "adapters/october-2026/flux-3-image-klein-pytorch-single",
+      "wheel_directory": ""
+    },
+    {
+      "context": "adapters/october-2026/qwen-image-2-1-turbo-diffusers-single",
+      "wheel_directory": ""
+    },
+    {
+      "context": "adapters/video/drowzeys-fasth3-tensorfold",
+      "wheel_directory": ""
+    },
+    {
+      "context": "adapters/video/ltx2-pytorch",
+      "wheel_directory": "wheels"
+    },
+    {
+      "context": "adapters/video/ltx2-sync-native",
+      "wheel_directory": "wheels"
+    },
+    {
+      "context": "adapters/video/ltx23-sync-native-disk",
+      "wheel_directory": "wheels"
+    }
+  ]
+}

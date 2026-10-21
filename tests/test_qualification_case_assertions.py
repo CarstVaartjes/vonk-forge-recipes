@@ -402,13 +402,14 @@ def test_qualification_parameters_do_not_enter_recipe_content_identity(built_cat
             assert entry["content_sha256"] == document_sha256(document)
 
 
-# origin/main bytes reviewed against read-only sweep results: LTX FP8 passed
-# 2026-10-21T02:47:59Z; Pixal3D passed 2026-10-20T04:24:58Z. Recipe-only
-# protection misses changes anywhere in these shared image build contexts.
-PROVEN_SHARED_IDENTITIES = {
+# Reviewed source identities, not hardware verdicts. Pixal3D's context matches
+# its 2026-10-20 pass. LTX intentionally adopts the reviewed protocol artifact;
+# its 2026-10-21 pass remains historical evidence, not proof of these new bytes.
+# Recipe-only protection misses changes in a shared image build context.
+REVIEWED_SHARED_IDENTITIES = {
     "ltx-2-19b-distilled-fp8-diffusers-single": (
         "2bdcd7561497a20a66cd02cde2db09e5db89a866ca73c4842ed65e12e2a864c3",
-        "32d29663893be2ac98eeb7ef032d3e0a2fd68a61aa3c613c6b517aea5fb8e62e",
+        "8baa9284cbeb16f52a453735c2abece195bed47934e8f7ba9bc03bc9e4593229",
     ),
     "pixal3d-pytorch-single": (
         "fbcc650e981638662e48920c0f867ffc7dd69302fbe8749545c26159ab824b6e",
@@ -417,28 +418,28 @@ PROVEN_SHARED_IDENTITIES = {
 }
 
 
-def _assert_proven_shared_identity(root: Path, slug: str) -> None:
+def _assert_reviewed_shared_identity(root: Path, slug: str) -> None:
     recipe_path = root / "recipes" / f"{slug}.json"
     recipe = json.loads(recipe_path.read_text())
-    expected_recipe, expected_source = PROVEN_SHARED_IDENTITIES[slug]
+    expected_recipe, expected_source = REVIEWED_SHARED_IDENTITIES[slug]
     assert hashlib.sha256(recipe_path.read_bytes()).hexdigest() == expected_recipe, (
-        f"{slug}: hardware-proven Recipe bytes changed"
+        f"{slug}: reviewed Recipe bytes changed"
     )
     bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
     context = root / recipe["execution"]["build"]["context"]["path"]
     assert bundle(context)[2] == expected_source, (
-        f"{slug}: hardware-proven image context bytes changed"
+        f"{slug}: reviewed image context bytes changed"
     )
 
 
-@pytest.mark.parametrize("slug", PROVEN_SHARED_IDENTITIES)
-def test_hardware_proven_shared_recipe_and_image_bytes(slug: str) -> None:
-    _assert_proven_shared_identity(ROOT, slug)
+@pytest.mark.parametrize("slug", REVIEWED_SHARED_IDENTITIES)
+def test_reviewed_shared_recipe_and_image_bytes(slug: str) -> None:
+    _assert_reviewed_shared_identity(ROOT, slug)
 
 
-@pytest.mark.parametrize("slug", PROVEN_SHARED_IDENTITIES)
+@pytest.mark.parametrize("slug", REVIEWED_SHARED_IDENTITIES)
 @pytest.mark.parametrize("mutate_context", [False, True])
-def test_proven_identity_guard_detects_shared_context_or_document_change(
+def test_reviewed_identity_guard_detects_shared_context_or_document_change(
     tmp_path: Path, slug: str, mutate_context: bool
 ) -> None:
     recipe_path = Path("recipes") / f"{slug}.json"
@@ -447,7 +448,7 @@ def test_proven_identity_guard_detects_shared_context_or_document_change(
     (tmp_path / "recipes").mkdir()
     shutil.copy2(ROOT / recipe_path, tmp_path / recipe_path)
     shutil.copytree(ROOT / context, tmp_path / context)
-    _assert_proven_shared_identity(tmp_path, slug)
+    _assert_reviewed_shared_identity(tmp_path, slug)
     # Even an unused helper or whitespace changes the image's source identity.
     target = (
         tmp_path / context / "unused-helper.py"
@@ -456,5 +457,65 @@ def test_proven_identity_guard_detects_shared_context_or_document_change(
     )
     with target.open("a") as stream:
         stream.write("\n")
-    with pytest.raises(AssertionError, match="hardware-proven .* bytes changed"):
-        _assert_proven_shared_identity(tmp_path, slug)
+    with pytest.raises(AssertionError, match="reviewed .* bytes changed"):
+        _assert_reviewed_shared_identity(tmp_path, slug)
+
+
+def test_protocol_refresh_preserves_prior_pass_without_certifying_new_context() -> None:
+    from datetime import UTC, datetime, timedelta
+
+    from vonk_forge_contracts import (
+        QualificationOutcome,
+        QualificationRuntimeImage,
+        QualificationStatus,
+        QualificationUnverifiedReason,
+        published_status,
+    )
+
+    from spark_sweep.qualification import read_evidence
+
+    slug = "ltx-2-19b-distilled-fp8-diffusers-single"
+    historical_context = (
+        "32d29663893be2ac98eeb7ef032d3e0a2fd68a61aa3c613c6b517aea5fb8e62e"
+    )
+    assert REVIEWED_SHARED_IDENTITIES[slug][1] != historical_context
+    proof = read_evidence(ROOT, f"vonk-forge/{slug}")
+    # Freeze the actual historical input: future evidence publication must not
+    # turn this boundary regression into a constraint on the live catalog.
+    passed = next(
+        record
+        for record in proof.records
+        if record.outcome == QualificationOutcome.PASSED
+        and record.tested_at == datetime(2026, 10, 21, 2, 47, 59, 39345, tzinfo=UTC)
+    )
+    history = proof.model_copy(update={"records": (passed,)})
+    assert passed.identity.runtime_image is None
+    # This prospective image is a synthetic fixture, never inferred from the
+    # reviewed source-bundle hash or written into public hardware evidence.
+    current = passed.identity.model_copy(
+        update={
+            "runtime_image": QualificationRuntimeImage(
+                build_key="f" * 64,
+                image_digest="sha256:" + "e" * 64,
+            )
+        }
+    )
+    view = published_status(history, current)
+    assert view.last_pass == passed
+    assert view.status == QualificationStatus.NOT_YET_VERIFIED
+    assert view.reason == QualificationUnverifiedReason.INCOMPLETE_PROVENANCE
+    # Fresh, complete evidence clears the uncertainty without a manual waiver.
+    platform = passed.platform.model_copy(update={"agent_version": "0.0.1"})
+    assert platform.resolved
+    measured = passed.model_copy(
+        update={
+            "identity": current,
+            "platform": platform,
+            "tested_at": passed.tested_at + timedelta(seconds=1),
+        }
+    )
+    updated = history.model_copy(update={"records": (*history.records, measured)})
+    recovered = published_status(updated, current)
+    assert recovered.status == QualificationStatus.WORKING
+    assert recovered.last_pass == measured
+    assert history.records == (passed,)
