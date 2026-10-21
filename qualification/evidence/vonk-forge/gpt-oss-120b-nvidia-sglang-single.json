@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gpt-oss-120b-nvidia-sglang-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "3e12532266c74215a3d463698b049291a73e77d9db55ccd0b9ce57f98ac66e18",
+        "runtime_image": {
+          "build_key": "7f194b3a84dc4e75f90a9c57bc8f2558c1c9147b23037298ce14b75714a35daf",
+          "image_digest": "sha256:399d32692b5dc09ceae956b68a5a62affe79d5048cebdbb58dddc8207b13b9b7"
+        },
+        "model_digests": [
+          "43358b54fdc6ef2cb10f658a465217d30db6bcef756812bd7644838096128ba8"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "4d5632cd81485aa89efce6cfb0a0c3f0afd575689ba8b09dca4c788dc5f04264"
+      ],
+      "tested_at": "2026-10-21T21:14:37.701556Z",
+      "platform": {
+        "controller_source_sha": "e8ce8d1fa39d705d2dd3e4d571a4ead2bc9051e2",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
