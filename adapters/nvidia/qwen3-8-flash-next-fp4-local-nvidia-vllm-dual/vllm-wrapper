@@ -4,6 +4,15 @@ import os
 import sys
 from ipaddress import ip_address
 arguments = sys.argv[1:]
+# The b12x checkpoint reader auto-selects io_uring bounce I/O on GB10,
+# independently of B12X_DISK_BACKEND. Keep its compute kernels, but load the
+# same checkpoint with vLLM's standard safetensors reader in our sandbox.
+SANDBOX_LOAD_FORMAT = "safetensors"
+arguments = [
+    SANDBOX_LOAD_FORMAT if index and arguments[index - 1] == "--load-format" else value
+    for index, value in enumerate(arguments)
+]
+
 address = os.environ.get("VONK_MASTER_ADDR", "")
 local = os.environ.get("VONK_LOCAL_ADDR", "")
 port = os.environ.get("VONK_MASTER_PORT", "")
