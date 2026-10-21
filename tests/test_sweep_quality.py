@@ -188,7 +188,8 @@ def test_quality_notes_file_no_issue(tmp_path: Path, gateway: Gateway) -> None:
 def test_evidence_export_keeps_the_quality_notes(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    gateway.messages["a"] = {"content": "305"}
+    private_answer = "private model answer 305"
+    gateway.messages["a"] = {"content": private_answer}
     digest = "d" * 64
     sweep, _, _ = make_sweep(
         tmp_path,
@@ -204,7 +205,7 @@ def test_evidence_export_keeps_the_quality_notes(
     assert evidence.records[-1].quality_notes == (
         QualificationQualityNote.ANSWER_VARIANCE,
     )
-    assert "305" not in path.read_text()  # raw answers stay in private diagnostics
+    assert private_answer not in path.read_text()
 
 
 def test_a_recipe_that_failed_on_an_answer_under_the_old_rules_is_requeued(
