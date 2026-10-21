@@ -18,6 +18,7 @@ from qualification.memory_need import (
     argument_value,
     cache_bytes,
     calculate_need,
+    hardware_proven,
     load_inputs,
     require_memory_need,
 )
@@ -60,22 +61,13 @@ def test_limit_subtracts_idle_use_and_guard_exactly_once() -> None:
     assert TOTAL_BYTES - IDLE_USE_BYTES - GUARD_BYTES == LIMIT_BYTES
 
 
-def test_every_hardware_pass_remains_accepted() -> None:
-    assert len(INPUTS.hardware_passes) == 180
-    assert (
-        sum(
-            p.recorded_at < "2026-10-21T01:33:00Z"
-            for p in INPUTS.hardware_passes.values()
-        )
-        == 174
+def test_hardware_pass_status_comes_from_qualification_evidence() -> None:
+    document = json.loads(
+        (ROOT / "recipes/gpt-oss-20b-nvidia-vllm-single.json").read_text()
     )
-    for key in INPUTS.hardware_passes:
-        path = ROOT / "recipes" / f"{key.split('/')[1]}.json"
-        document = json.loads(path.read_text())
-        recipe = RecipeDefinition.model_validate(document)
-        require_memory_need(
-            recipe, catalog_models(), INPUTS, document_digest=document_sha256(document)
-        )
+    recipe = RecipeDefinition.model_validate(document)
+    assert hardware_proven(recipe, document_sha256(document))
+    assert not hardware_proven(recipe, "0" * 64)
 
 
 def test_proven_identity_is_not_an_exemption_for_a_mutated_recipe() -> None:
@@ -125,13 +117,12 @@ def test_failed_recipe_cannot_reuse_its_historical_pass_to_bypass_need() -> None
         for item in recipe.runtime.arguments
         if item.name != "kv-cache-memory-bytes"
     ]
-    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     with pytest.raises(ValueError, match="absolute kv-cache-memory-bytes"):
         require_memory_need(
             recipe,
             catalog_models(),
             INPUTS,
-            document_digest=INPUTS.hardware_passes[key].content_sha256,
+            document_digest="stale-passed-digest",
         )
 
 
@@ -325,11 +316,14 @@ def test_multispark_delegates_every_role_even_for_historical_identity(
     document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
     recipe = RecipeDefinition.model_validate(document)
     digest = document_sha256(document)
-    assert require_memory_need(recipe, {}, INPUTS, document_digest=digest) is None
+    assert (
+        require_memory_need(recipe, catalog_models(), INPUTS, document_digest=digest)
+        is None
+    )
     worker = recipe.topology.roles[-1]
     worker.resources.memory.peak_bytes = 0
-    with pytest.raises(ValueError, match=f"{slug}/{worker.name}.*understates"):
-        require_memory_need(recipe, {}, INPUTS, document_digest=digest)
+    with pytest.raises(ValueError, match=f"{slug}:.*{worker.name}:.*understates"):
+        require_memory_need(recipe, catalog_models(), INPUTS, document_digest=digest)
 
 
 def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> None:

@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-from qualification.memory_need import argument_value, load_inputs
+from qualification.memory_need import argument_value, hardware_proven
 
 ROOT = Path(__file__).resolve().parents[1]
 SLUG = "qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single"
@@ -76,5 +76,6 @@ def test_proven_drowzeys_siblings_remain_at_hardware_identity() -> None:
         "qwen3-8-27b-aeon-abliterated-dflash2-drowzeys-vllm-single",
     ):
         document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
-        proof = load_inputs().hardware_passes[f"vonk-forge/{slug}"]
-        assert document_sha256(document) == proof.content_sha256
+        assert hardware_proven(
+            RecipeDefinition.model_validate(document), document_sha256(document)
+        )

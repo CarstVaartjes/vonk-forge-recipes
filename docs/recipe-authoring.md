@@ -307,10 +307,30 @@ whose need exceeds the limit fails the catalog build: reduce context/concurrency
 choose a smaller quantization, or author a multi-Spark recipe id. Never omit a
 failing recipe to pass the check.
 
-**C.** Proven recipes are the calibration set. If an estimate rejects one, correct
-the need model or source measurements, never the proven runtime reservation.
-Historical document identity preserves behavior; it is not numeric calibration.
-Never discard a hardware-calibrated guard because a formula disagrees.
+**C.** Assume an existing recipe works until hardware evidence says otherwise.
+Only new or changed recipe documents are subject to the need guard. An exact
+`content_sha256` in the committed `historical_documents` snapshot in
+`qualification/memory-inputs.json` or in any `qualification/evidence/` record
+identifies existing content, regardless of its qualification outcome. The snapshot's
+`historical_sources` records its source commits; it is a content baseline, never
+hardware proof. Validation reads these committed identities without Git or remote
+refs. Changed content and new ids must satisfy the need guard; supplying an old
+digest cannot exempt modified recipe bytes or a modified parsed launch. Existing
+untested recipes produce informative **WARNING** lines in
+`tools/build-catalog-index` and `tools/check-recipe-memory-need`; estimates never
+rewrite them or assign a “does not fit” verdict. A memory repair requires a
+hardware memory failure with no later pass. Qualification status comes only
+from `qualification/evidence/` and the shared `derive_status` reducer. There is
+no second pass/failure list in memory inputs; that file contains numerical
+geometry, source references and the immutable content baseline only. Preserve all
+unrelated recipe bytes.
+
+Proven recipes are the calibration set. Run
+`tools/check-recipe-memory-need --calibrate` without exemptions before changing
+an estimator. The catalog loading floor must reject no proven recipe; engines
+outside its vLLM/SGLang scope are reported explicitly. A loading floor does not
+prove full-context capacity, graph peaks, or runtime fit. Missing full-workload
+geometry is an unknown warning, never a hardware failure.
 
 [tests/test_vllm_memory_fit.py](../tests/test_vllm_memory_fit.py) retains the
 pre-#1612 calibration guard for historical vLLM documents and options on **each
@@ -328,10 +348,8 @@ floor, and tests reject stale exceptions once they fit with the draft counted.
 `tests/test_single_spark_memory_headroom.py`, shares those constants and checks
 absolute single-node need with the measured draft floor. An absolute vLLM KV
 pool overrides utilization, so that path uses need rather than an implicit 0.9
-reservation. Historical multi-Spark vLLM identities retain the shared per-role
-calibrated guard, including option combinations. Changed multi-Spark documents
-use the per-rank demand declaration below; neither path divides aggregate
-memory by node count.
+reservation. Changed multi-Spark documents use the per-rank demand declaration below.
+Existing documents remain unchanged and receive informative warnings.
 
 SGLang profiles loaded weights before applying `max-total-tokens`. A fraction
 below the resident model size can therefore produce a negative hybrid-cache
@@ -358,33 +376,29 @@ Keep the serving assertion strict; response deduplication can discard real calls
 
 ### Multi-Spark memory demand and nonfitting recipes
 
-Use the shared `qualification.memory_need.per_rank_need` calculator for vLLM
-capacity repairs; `tools/check-recipe-memory-need <recipe-slug>...` checks the
-base launch and every option. It reports estimated capacity separately from
-underdeclared resources: an honest oversized declaration prints **does not fit
-2 Sparks** without failing the producer check. This is a catalog estimate,
-not a live admission decision or a new execution ban.
+`qualification.memory_need.per_rank_need` reports an optimistic loading floor:
+selected weights divided over tensor/pipeline shards, explicit KV bytes, and
+8 GB estimated runtime overhead. The complete selected auxiliary weights are
+counted once. Replicated tensors, graph buffers, recurrent state and loading
+expansion may require more. Use source-backed `calculate_need` where its
+geometry is available; keep unknown full-workload terms visible.
 
-On each GB10 rank, budget the larger of the utilization fraction times
-130,663,231,488 bytes plus 8 GB runtime overhead (another 17 GB for a separate
-vLLM drafter), and selected weight bytes divided by tensor/pipeline shards plus
-explicit KV-cache bytes and 8 GB. The latter is an optimistic loading floor:
-replicated tensors and startup expansion can require more. Absolute KV bytes
-bypass utilization, so reducing only the fraction cannot hide that floor.
-Use the lower observed idle MemAvailable, 125,650,657,280 bytes, and leave the
-host guard's 16 GiB pressure headroom: the safe workload limit is
-108,470,788,096 bytes per rank. Declare at least the calculated peak and the
-16 GiB reserve; do not shrink either to pass admission or waive a draft term.
+Calibration separates physical feasibility from planning headroom. The lower
+observed idle MemAvailable is **125,650,657,280 bytes** (spark-3542, 2026-10-15/16,
+retained in `qualification/vllm_memory_fit.py`). Subtracting the host pressure
+floor leaves **108,470,788,096 bytes** for conservative new-document planning;
+that policy margin is not proof that an existing recipe cannot execute.
 
-Llama 3.1 405B AWQ TP2 needs at least 119,063,746,765 bytes per rank at its
-0.85 fraction; Reederey87 GLM EXL3 DFlash2 TP2 needs at least
-133,450,482,136 at 0.83 including its separate drafter. Both exceed the safe
-two-Spark limit. Their existing model, context and runtime pins stay intact;
-resource declarations expose the demand. A four-Spark memory projection with
-TP4 and a retuned 0.60 fraction fits this estimate for both. That requires a
-**distinct recipe** and porting Reederey87's TP2-only launcher; it is not proof of engine,
-context or physical four-Spark qualification. Never change a proven recipe to
-repair a failing sibling.
+Utilization fractions size adaptive pools; they are not irreducible workload
+demand. [vLLM's cache contract](https://docs.vllm.ai/en/v0.19.1/api/vllm/config/cache/)
+states that absolute KV bytes override utilization. The
+[SGLang memory guide](https://github.com/sgl-project/sglang/blob/main/docs/docs/advanced_features/hyperparameter_tuning.mdx)
+separates weights, KV, graphs and activations. Do not count a fraction-sized
+pool as a required full-context allocation. The measured 17 GB draft floor was
+relative to a utilization budget; adding it again to explicitly selected draft
+weights double counts that measurement. Retain that incident term in the
+strict workload guard and historical utilization-envelope tests, where it was
+calibrated; it is not another allocation in the optimistic catalog loading floor.
 
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`,

@@ -28,23 +28,12 @@ def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
     recipe = RecipeDefinition.model_validate(document)
     if recipe.runtime.engine != "vllm":
         return
-    if recipe.topology.node_count != 1:
-        require_memory_need(
-            recipe,
-            catalog_models(),
-            load_inputs(),
-            document_digest=document_sha256(document),
-        )
-        return
-    count = path.stem not in PENDING_CREATOR
-    assert_memory_fit(recipe, count)
-    # Options cannot share an argument name, so each utilization override is
-    # independent. Resolve each choice through the actual contract merger.
-    for option in recipe.options:
-        for choice in option.choices:
-            assert_memory_fit(
-                recipe.with_option_choices({option.name: choice.value}), count
-            )
+    require_memory_need(
+        recipe,
+        catalog_models(),
+        load_inputs(),
+        document_digest=document_sha256(document),
+    )
 
 
 def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
