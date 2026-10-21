@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gemma-4-26b-a4b-it-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "ff1c34765ff9392ee102931f84ac3fde7319b4a02964c53f1cfe76469bbeb70d",
+        "runtime_image": {
+          "build_key": "74af231b125d0fb5cb0274a46982f49cbb13036959e59759438901019c044abc",
+          "image_digest": "sha256:a1ad71cc0d7ce7f92e495773c21ee5b58c6b8d848fdb8b87b952bb151b66f155"
+        },
+        "model_digests": [
+          "bd6279d808aa71ceb12ade124ca2f2b7ef41c431c2263abcfbf7af78a8777cfa"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "141f4416d5f2a54a1663b0382dbbc823ea88be7e60a09a371ce74232bab28920"
+      ],
+      "tested_at": "2026-10-21T14:55:23.052735Z",
+      "platform": {
+        "controller_source_sha": "1629b7b33e507c439b3052f67b670b1404b693d2",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
