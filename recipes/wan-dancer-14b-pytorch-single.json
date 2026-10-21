@@ -110,7 +110,7 @@
             "min_files": 1
           },
           {
-            "description": "Optional JSON controls for style, dimensions, inference steps, and guidance scale. Height and width must remain within their documented per-dimension bounds, be multiples of 16, and define no more than 921,600 pixels.",
+            "description": "Optional JSON controls for style, dimensions, inference steps, and guidance scale. Height and width must remain within their documented per-dimension bounds, be multiples of 16, and define no more than 262,144 pixels.",
             "extensions": [
               ".json"
             ],
@@ -151,7 +151,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Installable single-DGX Spark Candidate for Wan-Dancer's official global-planning and local-refinement music-to-dance pipeline, with isolated reference-image, music, style and prompt inputs. Generation is bounded to a 921,600-pixel canvas (including 720x1280 portrait and 1280x720 landscape). Controller admission still requires the full declared 128 GB memory envelope; physical Spark memory, quality, and latency acceptance remain pending. Keeps models on CUDA without CPU offload on GB10 unified memory; smoke fit is estimated, and physical memory and latency qualification remain pending.",
+    "description": "Single-DGX Spark candidate for Wan-Dancer's official global-planning and local-refinement pipeline, bounded to a 262,144-pixel canvas (512x512 by default) and 1-5 seconds of music. Height/width controls are passed to BOTH creator stages, reducing latent/attention/decoding allocations from the former 921,600-pixel canvas. Both stages run in separate subprocesses: one 34,490,546,744-byte DiT plus T5 (11,361,920,418), CLIP (4,772,359,047) and VAE (507,609,880) totals 51,132,436,089 resident weight-file bytes per stage. Pinned model_manager.py constructs on meta, assigns the CPU state dict then transfers to CUDA; allow 35 GB for a complete extra largest checkpoint during loading (not the old 12 GB allowance). Add 12 GB estimated activation/decoding workspace at the reduced canvas (at most 40 latent frames including reference/padding, 1,024 spatial tokens/frame; 16 live BF16 5,120-wide vectors plus two FP32 13,824-wide FFN buffers and 0.5 GB decode slack is under 12 GB) and 8 GB runtime overhead: peak 106,132,436,089 bytes, with 8 GB separate reserve. The former 120 GB declaration was an inherited startup estimate (110 GB steady, 8 GB growth), not an engine allocation cap or measured peak. Models stay on CUDA; CPU offload is not extra memory on GB10. Physical memory, quality and latency acceptance remain pending.",
     "tags": [
       "executable",
       "candidate",
@@ -489,7 +489,7 @@
             "working_bytes": 183335734368
           },
           "memory": {
-            "peak_bytes": 120000000000,
+            "peak_bytes": 106132436089,
             "reserve_bytes": 8000000000
           }
         }

@@ -1,8 +1,8 @@
 [
   {
     "semantic_id": "memory.os_floor",
-    "owner": "qualification/memory_need.py",
-    "selector": "OS_FLOOR_BYTES",
+    "owner": "contracts/src/vonk_forge_contracts/memory_admission.py",
+    "selector": "PLATFORM_MEMORY_FLOOR_BYTES",
     "kind": "memory-bytes",
     "consumer_symbols": [
       "OS_FLOOR_BYTES",

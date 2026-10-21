@@ -5,6 +5,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 
 from qualification.memory_need import (
     DRAFT_MODEL_OVERHEAD_BYTES,
@@ -110,7 +111,12 @@ def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) 
             f"{label}: peak {memory.peak_bytes} understates GPU budget plus overhead "
             f"{required_peak}"
         )
-        assert memory.peak_bytes + OS_FLOOR_BYTES <= SPARK_IDLE_AVAILABLE_BYTES, (
+        assert evaluate_memory_admission(
+            memory.peak_bytes,
+            SPARK_MEMORY_BYTES,
+            occupied_bytes=SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES,
+            memory_floor_bytes=OS_FLOOR_BYTES,
+        ).admissible, (
             f"{label}: peak plus OS floor exceeds an idle Spark's available memory"
         )
 
