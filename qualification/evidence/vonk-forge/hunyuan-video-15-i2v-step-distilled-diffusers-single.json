@@ -215,6 +215,35 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "83d517022d760db57eb4fe5ad1755702b3217e5d956354acd7d5f87edbb6957f",
+        "runtime_image": {
+          "build_key": "eddaf2615a9a51eaf8ad31614ea111f12284e62612e1759fa04f0ff358b40e8c",
+          "image_digest": "sha256:137ae1e4d353d52d1da6b38cb9787d9650611f6cd6deb5ef2a4ca5b0dd073b74"
+        },
+        "model_digests": [
+          "c665cdc7df4402b933e201b860b0a11025f5ae1926d5070a2f9cffa669e1b420"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "87146d6b47ea5e9b45f832c8ab0331ba552bfdda4c00ebea198cbe27b2248c58"
+      ],
+      "tested_at": "2026-10-21T15:12:19.336417Z",
+      "platform": {
+        "controller_source_sha": "1629b7b33e507c439b3052f67b670b1404b693d2",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
     }
   ]
 }
