@@ -83,7 +83,10 @@ def main() -> None:
         "--texture-size", type=int, choices=(1024, 2048, 4096), default=2048
     )
     parser.add_argument("--timeout-seconds", type=int, default=3600)
+    parser.add_argument("--sampler-steps", type=int, default=12)
     args = parser.parse_args()
+    if not 1 <= args.sampler_steps <= 50:
+        raise SystemExit("sampler-steps must be between 1 and 50")
     if args.entrypoint != "/opt/vonk/source/trellis2_job.py":
         raise SystemExit("unexpected adapter entrypoint")
     if args.output_mime != "model/gltf-binary":
@@ -124,6 +127,9 @@ def main() -> None:
             seed=args.seed,
             preprocess_image=False,
             pipeline_type=args.pipeline_resolution,
+            sparse_structure_sampler_params={"steps": args.sampler_steps},
+            shape_slat_sampler_params={"steps": args.sampler_steps},
+            tex_slat_sampler_params={"steps": args.sampler_steps},
         )[0]
         mesh.simplify(16_777_216)
         glb = o_voxel.postprocess.to_glb(

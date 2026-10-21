@@ -474,6 +474,11 @@
         "name": "seed",
         "setting": null,
         "value": 0
+      },
+      {
+        "name": "sampler-steps",
+        "setting": "sampler-steps",
+        "value": null
       }
     ],
     "engine": "pytorch-pipeline",
@@ -493,7 +498,12 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "sampler-steps": {
+        "value": 12,
+        "change_effect": "none"
+      }
+    }
   },
   "topology": {
     "name": "solo",

@@ -173,3 +173,113 @@ class MovaInputContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_minimal_job_reaches_official_runner_with_native_resolution(tmp_path: Path):
+    """The reviewed case must survive argv, generation and output validation."""
+    import sys
+
+    import pytest
+
+    for recipe_path, dimensions in zip(RECIPES, ((352, 640), (720, 1280)), strict=True):
+        runner = load_runner()
+        spec = json.loads(
+            (ROOT / "qualification/recipes" / recipe_path.name).read_text()
+        )["recipes"]
+        args = [
+            "mova",
+            "--entrypoint",
+            runner._ENTRYPOINT,
+            "--output-mime",
+            "video/mp4",
+            "--output-dir",
+            str(tmp_path),
+        ]
+        for name, value in spec["parameters"].items():
+            args.extend((f"--{name}", str(value)))
+        generated: list[list[str]] = []
+
+        def generate(
+            command,
+            environment,
+            deadline,
+            generated=generated,
+            runner=runner,
+            spec=spec,
+        ):
+            generated.append(command)
+            assert environment["HF_HUB_OFFLINE"] == "1"
+            assert 0 < runner._remaining(deadline) <= spec["timeout_seconds"]
+            Path(command[command.index("--output_path") + 1]).write_bytes(b"mp4")
+
+        with (
+            mock.patch.dict(
+                os.environ, {"VONK_JOB_TIMEOUT_SECONDS": str(spec["timeout_seconds"])}
+            ),
+            mock.patch.object(sys, "argv", args),
+            mock.patch.object(runner, "_input_manifest", return_value=None),
+            mock.patch.object(runner, "_prompt", return_value="A small sample"),
+            mock.patch.object(runner, "_variant", return_value=dimensions),
+            mock.patch.object(runner, "_OFFICIAL_RUNNER", Path(__file__)),
+            mock.patch.object(
+                runner, "_reference_frame", return_value=tmp_path / "reference.png"
+            ),
+            mock.patch.object(runner, "_generate", side_effect=generate),
+            mock.patch.object(runner, "_verify_synchronized_mp4") as verify,
+        ):
+            runner.main()
+        command = generated[0]
+        for flag, value in (
+            ("--num_frames", "1"),
+            ("--num_inference_steps", "2"),
+            ("--height", str(dimensions[0])),
+            ("--width", str(dimensions[1])),
+        ):
+            assert command[command.index(flag) + 1] == value
+        assert verify.call_args.kwargs["frames"] == 1
+        assert 0 < verify.call_args.kwargs["timeout"] <= spec["timeout_seconds"]
+        assert (tmp_path / "mova.mp4").read_bytes() == b"mp4"
+        with (
+            mock.patch.object(sys, "argv", [*args, "--num-frames", "2"]),
+            pytest.raises(SystemExit, match="4k\\+1"),
+        ):
+            runner._arguments()
+
+
+def test_job_budget_expiry_kills_generation_with_evidence(tmp_path: Path):
+    """Inject a stuck real subprocess; it must leave no artifact or live worker."""
+    import signal
+    import sys
+    import time
+
+    import pytest
+
+    runner = load_runner()
+    artifact = tmp_path / "late.mp4"
+    script = "import time,pathlib; time.sleep(10); pathlib.Path(__import__('sys').argv[1]).write_text('late')"
+    started = time.monotonic()
+    with (
+        mock.patch.dict(os.environ, {"VONK_JOB_TIMEOUT_SECONDS": "1"}),
+        mock.patch.object(runner.os, "killpg", wraps=os.killpg) as kill,
+        pytest.raises(SystemExit, match="declared job budget"),
+    ):
+        runner._generate(
+            [sys.executable, "-c", script, str(artifact)],
+            dict(os.environ),
+            runner._job_deadline(),
+        )
+    assert time.monotonic() - started < 3
+    assert kill.call_args.args[1] == signal.SIGKILL
+    assert not artifact.exists()
+
+
+def test_missing_or_invalid_job_budget_fails_before_generation():
+    import pytest
+
+    runner = load_runner()
+    for value in (None, "", "0", "3601", "forever"):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            if value is not None:
+                os.environ["VONK_JOB_TIMEOUT_SECONDS"] = value
+            with pytest.raises(SystemExit, match="job.*(timeout|TIMEOUT)"):
+                runner._job_deadline()

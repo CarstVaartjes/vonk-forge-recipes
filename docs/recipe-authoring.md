@@ -676,6 +676,27 @@ all referenced fixtures in the package. `tests/test_qualification_index.py`,
 `tests/test_qualification_case_assertions.py`, `tests/test_optional_inputs.py`
 and `tests/test_media_types.py` enforce closure and slot consistency.
 
+A media smoke proves one small, safe output, not full-quality generation. Keep
+native resolution, topology and output codecs; use the smallest frame count the
+model accepts and a few denoising steps (retain required distilled schedules).
+Declare per-job controls as Recipe knobs bound to runtime arguments, then select
+small values in the qualification `parameters`, or use an existing request slot.
+Do not add undeclared parameters: the Controller refuses them. Qualification
+JSON is outside `document_sha256(recipe)`, although fixture/package bytes and
+image source identities can change. Adding knobs changes the Recipe document;
+preserve hardware-proven documents lacking these controls and report that limit.
+`tests/test_qualification_case_assertions.py` guards the reviewed media cases.
+
+MOVA's pinned temporal rule is `4k+1`, including one frame; smoke uses one frame
+and two steps at 640x352 or 1280x720, with synchronized 48 kHz audio at 24 fps.
+The target is a few minutes on one GB10, with a 600-second job budget including
+adapter preparation, generation and ffprobe. The adapter reads the platform's
+`VONK_JOB_TIMEOUT_SECONDS`, shares one monotonic deadline, and kills torchrun's
+process group on expiry with stderr evidence. The read-only 2026-10-21 sweep
+results record the 360p 193-frame/50-step attempt timing out after 3,606 seconds;
+there is no completed 360p timing from which to estimate a measured speedup.
+The few-minute target remains unverified until a separately authorized GPU run.
+
 ### What the sweep checks
 
 The sweep process and verdict meanings live in

@@ -117,7 +117,7 @@ def _video_error(
 ) -> SystemExit:
     reason = reason.replace("\n", "\\n")
     return SystemExit(
-        "Diffusers produced an invalid 121-frame MP4 artifact: "
+        f"Diffusers produced an invalid {metrics.frames}-frame MP4 artifact: "
         f"{reason}; expected_size={expected_size}, fps=24, "
         f"bytes={path.stat().st_size if path.is_file() else 0}; "
         f"source={json.dumps(metrics._asdict(), allow_nan=False)}; probe={probe}"
@@ -138,6 +138,7 @@ def _validate_video(
     path: Path,
     expected_size: tuple[int, int],
     metrics: FrameMetrics,
+    expected_frames: int = 121,
 ) -> None:
     command = [
         "ffprobe",
@@ -181,10 +182,10 @@ def _validate_video(
             or stream.get("pix_fmt") != "yuv420p"
             or "mp4" not in formats
             or (width, height) != expected_size
-            or frames != 121
+            or frames != expected_frames
             or stream.get("avg_frame_rate") != "24/1"
             or not math.isfinite(duration)
-            or abs(duration - 121 / 24) > 1 / 24
+            or abs(duration - expected_frames / 24) > 1 / 24
             or path.stat().st_size == 0
         ):
             raise ValueError("unexpected MP4 stream contract")
@@ -208,14 +209,14 @@ def _validate_video(
 
 
 def _write_video(
-    frames: np.ndarray, directory: Path, expected_size: tuple[int, int]
+    frames: np.ndarray, directory: Path, expected_size: tuple[int, int], expected_frames: int = 121
 ) -> None:
     metrics = _frame_metrics(frames)
     directory.mkdir(parents=True, exist_ok=True)
     temporary = directory / ".output.tmp.mp4"
     try:
         if (
-            metrics.shape != (121, expected_size[1], expected_size[0], 3)
+            metrics.shape != (expected_frames, expected_size[1], expected_size[0], 3)
             or metrics.nan_count
             or metrics.inf_count
             or metrics.black_frames == metrics.frames
@@ -225,7 +226,7 @@ def _write_video(
             )
         # Native buckets are multiples of 16; avoid imageio silently resizing.
         export_to_video(frames, temporary, fps=24, macro_block_size=1)
-        _validate_video(temporary, expected_size, metrics)
+        _validate_video(temporary, expected_size, metrics, expected_frames)
         os.replace(temporary, directory / "output.mp4")
     except SystemExit:
         temporary.unlink(missing_ok=True)
@@ -243,14 +244,14 @@ def _variant(pipeline: str, resolution: int, steps: int, guidance: float) -> str
     if (
         pipeline == "text-to-video"
         and resolution == 720
-        and steps == 50
+        and 1 <= steps <= 50
         and guidance == 6.0
     ):
         return "HunyuanVideo15Pipeline"
     if (
         pipeline == "text-to-video"
         and resolution == 480
-        and steps == 50
+        and 1 <= steps <= 50
         and guidance == 1.0
     ):
         return "HunyuanVideo15Pipeline"
@@ -274,9 +275,12 @@ def main() -> None:
     parser.add_argument("--guidance-scale", required=True, type=float)
     parser.add_argument("--resolution", required=True, type=int, choices=(480, 720))
     parser.add_argument("--seed", required=True, type=int)
+    parser.add_argument("--num-frames", type=int, default=121)
     parser.add_argument("--output-dir", required=True, type=Path)
     args = parser.parse_args()
 
+    if not 1 <= args.num_frames <= 121 or args.num_frames % 4 != 1:
+        raise SystemExit("num-frames must be 4k+1 between 1 and 121")
     if args.output_mime != "video/mp4":
         raise SystemExit("HunyuanVideo 1.5 only emits video/mp4")
     class_name = _variant(
@@ -314,7 +318,7 @@ def main() -> None:
         "prompt": prompt,
         "negative_prompt": "",
         "generator": torch.Generator(device="cuda:0").manual_seed(args.seed),
-        "num_frames": 121,
+        "num_frames": args.num_frames,
         "num_inference_steps": args.num_inference_steps,
     }
     if args.pipeline == "image-to-image":
@@ -322,7 +326,7 @@ def main() -> None:
 
     expected_size = _expected_size(pipe, image)
     frames = pipe(**call, output_type="np").frames[0]
-    _write_video(frames, args.output_dir, expected_size)
+    _write_video(frames, args.output_dir, expected_size, args.num_frames)
 
 
 if __name__ == "__main__":

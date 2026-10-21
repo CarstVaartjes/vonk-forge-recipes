@@ -117,6 +117,11 @@
       {
         "name": "seed",
         "value": 0
+      },
+      {
+        "name": "num-frames",
+        "setting": "num-frames",
+        "value": null
       }
     ],
     "environment": [
@@ -244,7 +249,12 @@
     ]
   },
   "settings": {
-    "knobs": {},
+    "knobs": {
+      "num-frames": {
+        "value": 124,
+        "change_effect": "none"
+      }
+    },
     "kind": "job"
   },
   "release": {
