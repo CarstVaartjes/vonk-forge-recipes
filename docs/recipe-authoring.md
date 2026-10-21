@@ -195,6 +195,24 @@ Single-Spark vLLM/SGLang reservations must leave the GB10 host guard's
 See [the derivation and absolute KV-cache rules](gb10-memory-headroom.md);
 `tests/test_single_spark_memory_headroom.py` checks every recipe and option.
 
+SGLang profiles loaded weights before applying `max-total-tokens`. A fraction
+below the resident model size can therefore produce a negative hybrid-cache
+budget even with a short context. For a large hybrid model, cap both the token
+pool and `max-mamba-cache-size`, bound concurrency and disable graphs, then use
+a fraction that permits profiling. Budget the actual capped allocations,
+including state padding, index storage, resident weight expansion and runtime
+overhead; the fraction alone no longer describes that peak. Tie any geometry
+bound to the exact Model identity and test the pinned engine's sizing path with
+the old failing inputs. Label estimated overhead and retain physical testing as
+an outstanding check. Never raise an uncapped fraction to hide a memory failure.
+
+For a named tool choice that must produce one invocation, use a single native
+grammar rather than a repeating triggered tag. Preserve the argument schema's
+local `$ref`/`$defs` scope and the engine's automatic/parallel tool handling.
+Test the old grammar accepting duplicate calls and the replacement rejecting
+them, plus streaming and non-streaming parsing of the resulting native frame.
+Keep the serving assertion strict; response deduplication can discard real calls.
+
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`).
 `tools/check-recipe-topology` fails validation when a change alters the
