@@ -669,6 +669,7 @@ class FakeFleet:
                     "roles": [{"resources": {"disk": {"artifact_bytes": 20 * GB}}}],
                 },
                 "base_image_digest": f"base-{r.engine}",
+                "source_bundle_sha256": None,
                 "validation": {"serving": {"checks": []}},
                 "runtime_engine": r.engine,
             },

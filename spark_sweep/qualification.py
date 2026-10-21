@@ -43,6 +43,7 @@ from .state import write_atomic
 
 class HistoricalIdentity(BaseModel):
     content_sha256: str
+    source_bundle_sha256: str | None = None
     runtime_image: QualificationRuntimeImage | None = None
     model_digests: tuple[str, ...] | None = None
 
@@ -130,6 +131,7 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
     identity = QualificationIdentity(
         content_sha256=recorded.content_sha256 if recorded else row.content_sha256,
         runtime_image=recorded.runtime_image if recorded else None,
+        source_bundle_sha256=recorded.source_bundle_sha256 if recorded else None,
         model_digests=tuple(sorted(set(models or ()))),
         models_resolved=models is not None,
         required_sparks=row.node_count or len(row.node_ids) or None,
