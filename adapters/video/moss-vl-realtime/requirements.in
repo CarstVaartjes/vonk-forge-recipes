@@ -8,4 +8,7 @@ packaging==26.0
 pillow==12.3.0
 torch==2.14.0+cu130
 torchvision==0.29.0+cu130
+# Stable PyTorch ABI >=2.11; CPU decoding needs no NVDEC device or driver.
+# https://github.com/meta-pytorch/torchcodec#compatibility-with-torch-versions
+torchcodec @ https://download.pytorch.org/whl/cpu/torchcodec-0.17.0%2Bcpu-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl
 transformers==4.57.6
