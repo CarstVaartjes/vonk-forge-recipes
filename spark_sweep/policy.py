@@ -21,6 +21,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from vonk_forge_contracts import QualificationCauseCode
+
 from .auth_contract import SmokeAuthClass
 from .catalog import Model, Recipe
 from .identity import legacy_image_unknown, verdict_matches
@@ -493,15 +495,15 @@ _CHILD_PHASE = {
 }
 # The one table of recipe-data codes, for CLI errors and Controller failures alike:
 # attribution follows typed codes; platform detail text is evidence only.
-RECIPE_FAILURE_CODES = {
-    "recipe.invalid_definition": "build-policy",
-    "recipe.invalid_document": "build-policy",
-    "recipe.invalid_option": "build-policy",
-    "recipe.digest_mismatch": "model-integrity",
-    "model.digest_mismatch": "model-integrity",
-    "dockerfile.heredoc_forbidden": "build-policy",
-    "recipe.runtime_oom": "oom",
-    "recipe.runtime_exit": "start",
+RECIPE_FAILURE_CODES: dict[str, str] = {
+    QualificationCauseCode.INVALID_DEFINITION: "build-policy",
+    QualificationCauseCode.INVALID_DOCUMENT: "build-policy",
+    QualificationCauseCode.INVALID_OPTION: "build-policy",
+    QualificationCauseCode.RECIPE_INTEGRITY: "model-integrity",
+    QualificationCauseCode.MODEL_INTEGRITY: "model-integrity",
+    QualificationCauseCode.BUILD_POLICY: "build-policy",
+    QualificationCauseCode.RUNTIME_OOM: "oom",
+    QualificationCauseCode.RUNTIME_EXIT: "start",
 }
 _CODE_CLASSES = {
     **RECIPE_FAILURE_CODES,
