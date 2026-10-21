@@ -74,10 +74,8 @@ jobs:
           "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
 
-  # Build the runtime images of recipes changed since the last publication on
-  # hosted ARM64 runners and resolve every recipe's pinned GHCR image for the
-  # index. Publication requires the current images; only declared hosted-build
-  # exclusions may fall back to a Controller build.
+  # Reconcile current runtime image keys on hosted ARM64 runners. Missing
+  # images remain pending in the signed library until a later build resolves.
   images:
     name: Recipe runtime images
     if: github.ref == 'refs/heads/main'
@@ -91,13 +89,13 @@ jobs:
     name: Create signed library release
     needs: [validate, producer-contracts, catalog-index, images]
     # Fan-in: publish only when no validation job failed or was cancelled.
-    # Image failures must be visible, never a green release with stale images.
+    # Build failures remain visible in the image jobs. Required plan/resolution
+    # artifacts and the release verifier prevent stale pins from being signed.
     if: >-
       ${{ !cancelled() && github.ref == 'refs/heads/main'
       && needs.validate.result != 'failure'
       && needs.producer-contracts.result != 'failure'
-      && needs.catalog-index.result != 'failure'
-      && needs.images.result == 'success' }}
+      && needs.catalog-index.result != 'failure' }}
     runs-on: ubuntu-24.04
     environment: recipe-release
     # Control planes accept only assets whose SHA256SUMS carries a Sigstore
@@ -175,12 +173,13 @@ jobs:
             --release-dir "$RUNNER_TEMP/release" --source-commit "$GITHUB_SHA" \
             --include qualification/coverage/family-aware-coverage-2026-09-24.json \
             --include qualification/coverage/family-aware-coverage-2026-09-24.md \
-            --prebuilt-images "$RUNNER_TEMP/prebuilt/prebuilt-images.json"
+            --prebuilt-images "$RUNNER_TEMP/prebuilt/prebuilt-images.json" \
+            --include "$RUNNER_TEMP/plan/plan.json"
           "$RELEASE_TEST_PYTHON" tools/check-published-images \
             --plan "$RUNNER_TEMP/plan/plan.json" \
             --images "$RUNNER_TEMP/prebuilt/prebuilt-images.json" \
             --index "$RUNNER_TEMP/release/catalog-index.json" \
-            --source-commit "$GITHUB_SHA"
+            --source-commit "$GITHUB_SHA" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Compare with the published release
         id: current
