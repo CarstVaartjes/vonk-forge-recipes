@@ -27,7 +27,8 @@ RUN apt-get update \
         --require-hashes \
         --extra-index-url https://download.pytorch.org/whl/cu130 \
         --requirement /tmp/requirements.lock \
-    && rm /tmp/requirements.lock
+    && rm /tmp/requirements.lock \
+    && python3 -c 'from torchcodec.decoders import VideoDecoder'
 
 COPY NOTICE session.schema.json example-session.json input_contract.py run.py /opt/vonk/source/
 RUN install --directory --mode=0755 /opt/vonk/bin /inputs /outputs \

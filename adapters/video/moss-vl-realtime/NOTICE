@@ -11,3 +11,11 @@ Primary sources:
 The upstream deployment currently pins PyTorch 2.8 CUDA 12.8. This Vonk source
 context is a thin, unaccepted CUDA 13 ARM64 adaptation for DGX Spark. It must
 pass an ARM64 container build and a physical Spark canary before acceptance.
+
+TorchCodec 0.17.0+cpu uses PyTorch's stable ABI (torch >=2.11), compatible with
+this image's torch 2.14.0+cu130. The hash-locked CPython 3.12 manylinux aarch64
+CPU wheel decodes frames without NVDEC. The image imports VideoDecoder during
+its build; the shared recipe-images remote-code smoke checks every pinned
+model Python module before publication.
+- https://github.com/meta-pytorch/torchcodec/tree/v0.17.0#compatibility-with-torch-versions
+- https://download.pytorch.org/whl/cpu/torchcodec/

@@ -677,6 +677,15 @@ communication, and model quality require the relevant hardware. Record tests
 that could not run and their missing inputs; do not manufacture passing
 evidence or add an unrelated formal approval gate.
 
+The hosted image build runs `tools/prepare-remote-code-smoke` against its plan.
+For every image, it calls Transformers `check_imports` inside the recipe's
+installed environment on every selected root-level Python module from the pinned
+Model (including processor modules), before adding the platform layer or pushing.
+The check fetches only source code and verifies the Model's hash and size; it
+loads no weights and requires no GPU. Keep remote-code dependencies hash-locked
+and import native decoders during the Dockerfile build so missing wheels or
+shared libraries fail before qualification.
+
 ### TensorFold CPU checks on Apple hosts
 
 A Spark-built ARM64 binary may use SVE instructions that an Apple/OrbStack CPU

@@ -840,6 +840,9 @@ torch==2.14.0+cu130 \
     #   -r adapters/video/moss-vl-realtime/requirements.in
     #   accelerate
     #   torchvision
+torchcodec @ https://download.pytorch.org/whl/cpu/torchcodec-0.17.0%2Bcpu-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl \
+    --hash=sha256:187383c26847db470a22a9aa8b15e45611dda594f3fdc1a6a32b670f1d7ddd82
+    # via -r adapters/video/moss-vl-realtime/requirements.in
 torchvision==0.29.0+cu130 \
     --hash=sha256:0602b0423bb4b82eaaa95aedbfa1b5e278648095e88cad059b8ff91a9554795b \
     --hash=sha256:0a9f1fcdad5d737e2f0a29a9058c83ecf1b5bbb825086cf7e7e7cb5036907b3f \

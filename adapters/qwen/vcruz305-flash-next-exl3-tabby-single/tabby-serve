@@ -92,8 +92,13 @@ config.write_text(
     string.Template(TEMPLATE.read_text()).substitute({key: str(value) for key, value in values.items()})
 )
 
-# TabbyAPI resolves templates/, sampler_overrides/ and api_tokens.yml relative to its cwd.
-os.chdir(TABBY)
+# setup_logger runs before config loading and writes logs/ relative to cwd.
+# Keep that cwd writable while preserving the pinned read-only template resources.
+for name in ("templates", "sampler_overrides"):
+    link = state / name
+    if not link.is_symlink():
+        link.symlink_to(TABBY / name, target_is_directory=True)
+os.chdir(state)
 os.execv(
     sys.executable,
     (sys.executable, "-u", str(TABBY / "main.py"), "--config", str(config)),

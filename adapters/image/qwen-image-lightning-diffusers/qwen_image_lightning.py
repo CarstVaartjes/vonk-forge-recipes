@@ -1,3 +1,8 @@
+"""Emit qwen-image.png (generation) or qwen-image-edit.png (editing).
+
+These are the image-job filenames shared with qualification and the sweep.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -152,7 +157,7 @@ def main() -> None:
                 "height": args.height,
             }
         )
-        output_name = "qwen-image-2512-lightning.png"
+        output_name = "qwen-image.png"
     else:
         image_files = _input_files(_IMAGE_SUFFIXES)
         if not 1 <= len(image_files) <= 2:
@@ -163,7 +168,7 @@ def main() -> None:
                 "negative_prompt": " ",
             }
         )
-        output_name = "qwen-image-edit-2511-lightning.png"
+        output_name = "qwen-image-edit.png"
 
     image = pipe(**call).images[0]
     args.output_dir.mkdir(parents=True, exist_ok=True)

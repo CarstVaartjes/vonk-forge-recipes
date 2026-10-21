@@ -98,6 +98,9 @@ jobs:
             .vonk-forge/scripts/recipe-image-plan \
             --library-root "$GITHUB_WORKSPACE" --output-dir "$RUNNER_TEMP/images" \
             > "$RUNNER_TEMP/plan.json"
+          uv run --python 3.14 --no-project --with-editable contracts \
+            python tools/prepare-remote-code-smoke \
+            --plan "$RUNNER_TEMP/plan.json" --output-dir "$RUNNER_TEMP/images"
 
       - name: Select missing images
         id: select
@@ -248,6 +251,14 @@ jobs:
           }
           build_with_retry sudo TMPDIR="$WORK/tmp" podman --runtime=/usr/bin/crun build --network=host \
             "${recipe_args[@]}" --tag localhost/vonk/recipe-build context
+          # Deterministic dependency errors fail here, outside the build retry.
+          # Use the recipe interpreter/venv and no GPU or model weights.
+          if [ -f remote-code-smoke.py ]; then
+            sudo podman run --rm --read-only --tmpfs /tmp \
+              --env HOME=/tmp --env HF_HOME=/tmp/huggingface --env XDG_CACHE_HOME=/tmp/cache \
+              --volume "$PWD/remote-code-smoke.py:/tmp/remote-code-smoke.py:ro" \
+              --entrypoint python3 localhost/vonk/recipe-build /tmp/remote-code-smoke.py
+          fi
           mkdir -p adapter
           jq -r '.adapter_containerfile' <<<"$image" > adapter/Containerfile
           mapfile -t adapter_args < <(jq -r '.adapter_build_arguments[]' <<<"$image")
