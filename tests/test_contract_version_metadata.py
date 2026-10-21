@@ -21,6 +21,7 @@ OWNER = "src/vonk_forge_contracts/_version.py"
 
 def owned_version(contracts: Path) -> str:
     (assignment,) = ast.parse((contracts / OWNER).read_text()).body[1:]
+    assert isinstance(assignment, ast.Assign)
     return ast.literal_eval(assignment.value)
 
 
