@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-fp4-local-nvidia-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "a6088554d3125ea877a5402a7a86a35189d43eb7439dca3e1815496eeee39c06",
+        "runtime_image": {
+          "build_key": "af7829778be8dc239f5877eadea4f795962d939a32da40896423a75cf06c1912",
+          "image_digest": "sha256:cf7e843ee48b34ed423779be64e19a4c3bbb88321181b2814a1c6794ed0e4335"
+        },
+        "model_digests": [
+          "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "29baa3e11571d0f44eb386e72495695362085d75b72baa17e241f9082f633518"
+      ],
+      "tested_at": "2026-10-21T12:00:06.295993Z",
+      "platform": {
+        "controller_source_sha": "20aa759b554738c96fddf058a104e2b9f5c1ed2a",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
