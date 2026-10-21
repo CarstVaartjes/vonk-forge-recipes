@@ -1137,7 +1137,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.90"
+        "value": "0.718702620795"
       },
       {
         "name": "moe-runner-backend",
@@ -1297,7 +1297,7 @@
             "working_bytes": 50000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 101908006912,
             "reserve_bytes": 8000000000
           }
         }
@@ -1314,7 +1314,7 @@
             "working_bytes": 50000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 101908006912,
             "reserve_bytes": 8000000000
           }
         }

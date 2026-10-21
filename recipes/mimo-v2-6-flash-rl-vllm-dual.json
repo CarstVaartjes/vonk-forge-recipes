@@ -1036,7 +1036,7 @@
       "choices": [
         {
           "default": true,
-          "help": "FP8 KV (upstream default, measured upstream at 0.90 memory utilization). Runs at gpu-memory-utilization 0.73: the draft model holds memory outside that budget.",
+          "help": "FP8 KV (upstream default), bounded by the absolute KV byte pool.",
           "label": "FP8 (default)",
           "value": "fp8"
         },
@@ -1046,14 +1046,9 @@
               "name": "kv-cache-dtype",
               "setting": null,
               "value": "auto"
-            },
-            {
-              "name": "gpu-memory-utilization",
-              "setting": null,
-              "value": "0.73"
             }
           ],
-          "help": "BF16 KV, as in the upstream BF16 baseline (measured upstream at 0.82 memory utilization). Capped at 0.73 (was 0.82): the draft model holds memory outside that budget; the 131,072-token default context is close to the BF16 pool, so lower the context if the engine refuses to start.",
+          "help": "BF16 KV in the same absolute byte pool; lower the context if the engine refuses to start.",
           "label": "BF16",
           "value": "bf16"
         }
@@ -1114,11 +1109,6 @@
         "value": 2
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.73"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -1177,6 +1167,11 @@
         "name": "no-async-scheduling",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 19676020092
       }
     ],
     "engine": "vllm",
@@ -1302,7 +1297,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120384158987,
+            "peak_bytes": 116546642456,
             "reserve_bytes": 8000000000
           }
         }
@@ -1319,7 +1314,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120384158987,
+            "peak_bytes": 116546642456,
             "reserve_bytes": 8000000000
           }
         }
