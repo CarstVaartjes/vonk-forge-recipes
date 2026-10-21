@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/ui-mate-27b-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "ea66a4e74fd92d19199def234e144f7b90e204a36077b5ba9f7ef114656f4902",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "6d55ba4d9f853434163ac27b33fa9ab340e4c9bb20a6bfc46b5c86854ed3e2ee"
+      ],
+      "tested_at": "2026-10-18T05:27:10.623955Z",
+      "platform": {
+        "controller_source_sha": "0fd719ad2e12c2d32b821d014dd3cf8fafbaa9bd",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

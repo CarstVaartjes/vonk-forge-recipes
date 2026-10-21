@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
+from vonk_forge_contracts import RecipeQualificationEvidence
+from vonk_forge_contracts.qualification_status import QualificationQualityNote
 
 from spark_sweep import policy
 from spark_sweep.issues import file_issues
@@ -186,16 +188,24 @@ def test_quality_notes_file_no_issue(tmp_path: Path, gateway: Gateway) -> None:
 def test_evidence_export_keeps_the_quality_notes(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    gateway.messages["a"] = {"content": "305"}
+    private_answer = "private model answer 305"
+    gateway.messages["a"] = {"content": private_answer}
+    digest = "d" * 64
     sweep, _, _ = make_sweep(
-        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+        tmp_path,
+        [FakeRecipe("a", digests=(digest,), content="c" * 64)],
+        [FakeModel(digest)],
+        gateway=gateway,
     )
     sweep.run()
     [path] = export_evidence(
         sweep.log.entries(), tmp_path / "evidence", ["vonk-forge/a"]
     )
-    [line] = [json.loads(x) for x in path.read_text().splitlines()]
-    assert line["result"]["quality"][0]["got"] == "305"
+    evidence = RecipeQualificationEvidence.model_validate_json(path.read_text())
+    assert evidence.records[-1].quality_notes == (
+        QualificationQualityNote.ANSWER_VARIANCE,
+    )
+    assert private_answer not in path.read_text()
 
 
 def test_a_recipe_that_failed_on_an_answer_under_the_old_rules_is_requeued(

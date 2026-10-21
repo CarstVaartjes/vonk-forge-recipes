@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen-image-layered-diffusers-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "b13ed1a1ca919f32c24cacaa74cf408f0a689c4b63a938189ed72e10bd244c17",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "3ff96b3708a813033e904d87ad2f130402abf1613f341a0c2a01185023477224"
+      ],
+      "tested_at": "2026-10-19T04:02:39.246224Z",
+      "platform": {
+        "controller_source_sha": "197be7a01be8f3401d9c15d930a51d75b5ec204d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b13ed1a1ca919f32c24cacaa74cf408f0a689c4b63a938189ed72e10bd244c17",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "1c431e2495d418d5a5ce0958404df06a322510f633232eadd83a580d0d04792a"
+      ],
+      "tested_at": "2026-10-19T05:55:25.646241Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b13ed1a1ca919f32c24cacaa74cf408f0a689c4b63a938189ed72e10bd244c17",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "e9a0d040da3ae597cf790961fd1084778b406fb34e56f7a0b2a4069b5be3a89d"
+      ],
+      "tested_at": "2026-10-20T06:18:46.755826Z",
+      "platform": {
+        "controller_source_sha": "891ae3a0697d367b104a291073c72a6c73e32eba",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

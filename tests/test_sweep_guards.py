@@ -24,6 +24,22 @@ ROOT = Path(__file__).resolve().parents[1]
 SWEEP = [*sorted((ROOT / "spark_sweep").glob("*.py")), ROOT / "tools/sweep-recipes"]
 
 
+def test_fake_sweeps_cannot_launch_the_live_evidence_publisher(tmp_path, monkeypatch):
+    from spark_sweep.evidence_publisher import EvidencePublisher
+
+    def subprocess_forbidden(*args, **kwargs):
+        raise AssertionError("a publisher subprocess escaped test isolation")
+
+    monkeypatch.setattr(
+        "spark_sweep.evidence_publisher.subprocess.Popen", subprocess_forbidden
+    )
+    directory = tmp_path / "publisher"
+    publisher = EvidencePublisher(tmp_path / "results.jsonl", directory, Path("worker"))
+    with pytest.raises(pytest.fail.Exception, match="disable evidence publication"):
+        publisher.tick(0)
+    assert not directory.exists()
+
+
 def _functions(tree: ast.AST) -> Iterator[ast.FunctionDef | ast.AsyncFunctionDef]:
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -145,7 +161,14 @@ def fixed_caps_ending_work(source: str) -> list[int]:
                 )
                 ends = any(
                     _calls(statement, ENDING)
-                    or any(isinstance(s, ast.Raise) for s in ast.walk(statement))
+                    or any(
+                        isinstance(s, ast.Raise)
+                        and not (
+                            isinstance(s.exc, ast.Call)
+                            and _name(s.exc.func) == "EvidencePublicationTimeout"
+                        )
+                        for s in ast.walk(statement)
+                    )
                     for statement in item.body
                 )
                 if clock and cap and ends:
@@ -194,6 +217,23 @@ def test_wait_guard_accepts_progress_and_rejects_fixed_caps() -> None:
         "        self._timeout(slot)\n"
     )
     assert fixed_caps_ending_work(judged) == []
+    # The optional repository publisher has its own bounded transport. Its typed
+    # timeout must not end a hardware lane or spend a recipe attempt.
+    transport = (
+        "def command(now, started):\n"
+        "    if now - started > 240:\n"
+        "        raise EvidencePublicationTimeout('retry metadata transport')\n"
+    )
+    assert fixed_caps_ending_work(transport) == []
+    assert fixed_caps_ending_work(
+        transport.replace("EvidencePublicationTimeout", "TimeoutError")
+    ) == [2]
+    assert fixed_caps_ending_work(
+        transport.replace(
+            "raise EvidencePublicationTimeout",
+            "self._end_load(slot)\n        raise EvidencePublicationTimeout",
+        )
+    ) == [2]
 
 
 @pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)

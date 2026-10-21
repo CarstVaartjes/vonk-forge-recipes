@@ -21,10 +21,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from vonk_forge_contracts import QualificationCauseCode
+
 from .auth_contract import SmokeAuthClass
 from .catalog import Model, Recipe
-from .identity import legacy_image_unknown, verdict_matches
-from .lifecycle import RecipeStatus, RetestReason
 
 Boost = Callable[[Recipe], float]
 
@@ -493,15 +493,15 @@ _CHILD_PHASE = {
 }
 # The one table of recipe-data codes, for CLI errors and Controller failures alike:
 # attribution follows typed codes; platform detail text is evidence only.
-RECIPE_FAILURE_CODES = {
-    "recipe.invalid_definition": "build-policy",
-    "recipe.invalid_document": "build-policy",
-    "recipe.invalid_option": "build-policy",
-    "recipe.digest_mismatch": "model-integrity",
-    "model.digest_mismatch": "model-integrity",
-    "dockerfile.heredoc_forbidden": "build-policy",
-    "recipe.runtime_oom": "oom",
-    "recipe.runtime_exit": "start",
+RECIPE_FAILURE_CODES: dict[str, str] = {
+    QualificationCauseCode.INVALID_DEFINITION: "build-policy",
+    QualificationCauseCode.INVALID_DOCUMENT: "build-policy",
+    QualificationCauseCode.INVALID_OPTION: "build-policy",
+    QualificationCauseCode.RECIPE_INTEGRITY: "model-integrity",
+    QualificationCauseCode.MODEL_INTEGRITY: "model-integrity",
+    QualificationCauseCode.BUILD_POLICY: "build-policy",
+    QualificationCauseCode.RUNTIME_OOM: "oom",
+    QualificationCauseCode.RUNTIME_EXIT: "start",
 }
 _CODE_CLASSES = {
     **RECIPE_FAILURE_CODES,
@@ -723,40 +723,6 @@ def cluster(entries: Mapping[str, Mapping[str, Any]]) -> list[Cluster]:
             for cid, keys in groups.items()
         ),
         key=lambda c: (-len(c.recipes), c.id),
-    )
-
-
-# --------------------------------------------------------------------------
-# Fixes feed back
-# --------------------------------------------------------------------------
-
-
-def requeue_reason(
-    entry: Mapping[str, Any] | None,
-    recipe: Recipe,
-    *,
-    revalidate_library_passes: bool = False,
-) -> RetestReason | None:
-    """Re-test known changes; unknown legacy images only retry unsuccessful verdicts."""
-    reasons = {
-        RecipeStatus.PASSED: RetestReason.PASSED_OLDER_REVISION,
-        RecipeStatus.FAILED: RetestReason.FAILED_OLDER_REVISION,
-        RecipeStatus.DEFERRED: RetestReason.DEFERRED_OLDER_REVISION,
-    }
-    if not entry or verdict_matches(
-        entry,
-        recipe,
-        ignore_library_commit=entry.get("status") == RecipeStatus.PASSED
-        and not revalidate_library_passes,
-    ):
-        return None
-    if entry.get("status") == RecipeStatus.PASSED and legacy_image_unknown(
-        entry, recipe
-    ):
-        return None
-    return next(
-        (reason for status, reason in reasons.items() if entry.get("status") == status),
-        None,
     )
 
 

@@ -145,24 +145,25 @@ def test_a_changed_recipe_document_requeues_only_that_recipe(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     recipes = [
-        FakeRecipe("good"),
+        FakeRecipe("good", ("1" * 64,), content="c" * 64),
         FakeRecipe(
             "bad",
-            ("m2",),
+            ("2" * 64,),
+            content="c" * 64,
             fail_load="driver mismatch",
             fail_phase="start",
             fail_code="recipe.runtime_exit",
         ),
-        FakeRecipe("same", ("m3",)),
+        FakeRecipe("same", ("3" * 64,), content="c" * 64),
     ]
-    models = [FakeModel("m1"), FakeModel("m2"), FakeModel("m3")]
+    models = [FakeModel("1" * 64), FakeModel("2" * 64), FakeModel("3" * 64)]
     sweep, fleet, _ = make_sweep(tmp_path, recipes, models, gateway=gateway)
     sweep.run()
     assert sweep.state.recipes["vonk-forge/bad"]["status"] == "failed"
     # A fix lands: the refresh publishes new revisions of `bad` (fixed) and `good` (touched).
-    fleet.recipes["vonk-forge/bad"].content = "c2"
+    fleet.recipes["vonk-forge/bad"].content = "d" * 64
     fleet.recipes["vonk-forge/bad"].fail_load = None
-    fleet.recipes["vonk-forge/good"].content = "c2"
+    fleet.recipes["vonk-forge/good"].content = "d" * 64
     again, _, _ = make_sweep(tmp_path, recipes, models, fleet=fleet)
     again.refresh_catalog()
     states = {
@@ -176,22 +177,25 @@ def test_a_changed_recipe_document_requeues_only_that_recipe(
     again.pending()
     assert again.run() == 0
     assert again.state.recipes["vonk-forge/bad"]["status"] == "passed"
-    assert again.state.recipes["vonk-forge/bad"]["content_sha256"] == "c2"
+    assert again.state.recipes["vonk-forge/bad"]["content_sha256"] == "d" * 64
     assert (
-        again.state.recipes["vonk-forge/same"]["content_sha256"] == "c1"
+        again.state.recipes["vonk-forge/same"]["content_sha256"] == "c" * 64
     )  # untouched, not retested
 
 
 def test_no_revalidate_keeps_old_passes(tmp_path: Path, gateway: Gateway) -> None:
     sweep, fleet, _ = make_sweep(
-        tmp_path, [FakeRecipe("good")], [FakeModel("m1")], gateway=gateway
+        tmp_path,
+        [FakeRecipe("good", ("1" * 64,), content="c" * 64)],
+        [FakeModel("1" * 64)],
+        gateway=gateway,
     )
     sweep.run()
-    fleet.recipes["vonk-forge/good"].content = "c2"
+    fleet.recipes["vonk-forge/good"].content = "d" * 64
     again, _, _ = make_sweep(
         tmp_path,
-        [FakeRecipe("good")],
-        [FakeModel("m1")],
+        [FakeRecipe("good", ("1" * 64,), content="c" * 64)],
+        [FakeModel("1" * 64)],
         fleet=fleet,
         revalidate_passes=False,
     )

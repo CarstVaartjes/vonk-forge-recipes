@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/mellum2-1-12b-thinking-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "1b8c819c8a515f9d5cb83d812ff515c3b49cc4a356625fb5f8791f8b746b5849",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "15c030d25a0489e23fbb62e3d030601a93d559d1b6a9ed10c483fdc4b024cb40"
+      ],
+      "tested_at": "2026-10-19T08:32:51.825102Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

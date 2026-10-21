@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-nano-30b-a3b-bf16-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "a89dfc81a5e604afd418e76e984d482f2ceed32098ee1806a4d93f1805e11713",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "17b66ed5f37ba43fbe7e65ecb45e15669d75adc9500b6a957118d3fd8267f477"
+      ],
+      "tested_at": "2026-10-19T06:06:41.883128Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "a89dfc81a5e604afd418e76e984d482f2ceed32098ee1806a4d93f1805e11713",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "0578a9147b76fe1b4a14389b6909a6a47918517115f6c10d5dd6742d20253e8a"
+      ],
+      "tested_at": "2026-10-20T09:20:54.309334Z",
+      "platform": {
+        "controller_source_sha": "411bfdeb1de2187af0b52e5823cad0b15bf3905a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

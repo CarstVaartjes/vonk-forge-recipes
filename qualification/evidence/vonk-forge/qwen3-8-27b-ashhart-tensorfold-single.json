@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-27b-ashhart-tensorfold-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "5a47c9de0c896617a675022669746248d598758331bbe524f015b0e31a9c0f1d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "035123b0f29401aafa40da175030342cbb35e9f6433ac5a5d30978c939e8f186"
+      ],
+      "tested_at": "2026-10-15T11:42:51.740955Z",
+      "platform": {
+        "controller_source_sha": "4a92d0a9566eb62b509c6eee35ea9811900bf103",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5a47c9de0c896617a675022669746248d598758331bbe524f015b0e31a9c0f1d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "38c9a4e9723e26f1d96bda49246727272137130bf7b6e7a3b93197801a678173"
+      ],
+      "tested_at": "2026-10-15T12:40:53.375257Z",
+      "platform": {
+        "controller_source_sha": "4a92d0a9566eb62b509c6eee35ea9811900bf103",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

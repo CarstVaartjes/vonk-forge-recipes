@@ -1,6 +1,6 @@
 """Typed local sweep reconciliation records; no Controller success is inferred."""
 
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,6 +25,8 @@ class CleanupObservationBudget(BaseModel):
 
 class SweepSlotPhase(StrEnum):
     LOADING = "loading"
+    SMOKING = "smoking"
+    FINISHED = "finished"
 
 
 class SweepStorageEvidence(BaseModel):
@@ -199,3 +201,19 @@ class SweepProgress(StrEnum):
     WAITING = "waiting"
     STALLED = "stalled"
     WAIT_EXPIRED = "wait-expired"
+
+
+class SweepEvidenceExit(IntEnum):
+    SYNCED = 0
+    WAITING = 10
+
+
+class SweepEvidenceMergeState(StrEnum):
+    BEHIND = "BEHIND"
+    BLOCKED = "BLOCKED"
+    CLEAN = "CLEAN"
+    DIRTY = "DIRTY"
+    DRAFT = "DRAFT"
+    HAS_HOOKS = "HAS_HOOKS"
+    UNKNOWN = "UNKNOWN"
+    UNSTABLE = "UNSTABLE"

@@ -443,7 +443,7 @@ def test_unknown_platform_failure_ends_without_recipe_blame_and_releases_lane(
     assert sweep.state.data["loads"]
 
 
-def test_watch_retests_deferred_outcome_with_a_fresh_request(tmp_path: Path) -> None:
+def test_watch_keeps_platform_blocked_without_an_observed_fix(tmp_path: Path) -> None:
     from spark_sweep import policy
     from spark_sweep.run import RETEST_SECONDS
 
@@ -458,8 +458,12 @@ def test_watch_retests_deferred_outcome_with_a_fresh_request(tmp_path: Path) -> 
     sweep.cfg.watch_seconds = 60
     clock.t += RETEST_SECONDS
     sweep.tick()
-    assert sweep.state.status(key) == "pending"
-    assert next(iter(sweep.state.data["loads"])) != original
+    assert sweep.state.status(key) == "deferred"
+    assert not sweep.state.data["loads"]
+    assert all(
+        record.get("request_key") != original for record in sweep.state.slots.values()
+    )
+    assert not sweep.state.entry(key).get("recovery_history")
 
 
 def test_unreadable_owner_never_looks_like_absent_owner(tmp_path: Path) -> None:

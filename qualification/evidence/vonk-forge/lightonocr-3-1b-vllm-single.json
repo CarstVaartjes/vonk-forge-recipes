@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/lightonocr-3-1b-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "6d28cac63e004a3bc6ed6e54d15cfd5e25a40f264234bc111249f6470e717b5f",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "cc48c8e4e2bd322a41ab6c1e5efd1aa56281fbcbcb2aa13607a6dc3e88eed1e7"
+      ],
+      "tested_at": "2026-10-18T15:31:31.675182Z",
+      "platform": {
+        "controller_source_sha": "90c5e2066902a77246ac1ca556aca9a511129904",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

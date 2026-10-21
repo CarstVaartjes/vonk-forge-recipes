@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-5-super-vl-lilicorr-sfxnz-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "5260e454348f7ee61eeb20a30d5ba5b378232823de65720651e06d02470d90a3",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "551ed63282480275d29731ae8d8619db7f9cecbff68c95591f7e0ad8b6441b0d"
+      ],
+      "tested_at": "2026-10-19T06:16:13.237351Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5260e454348f7ee61eeb20a30d5ba5b378232823de65720651e06d02470d90a3",
+        "model_digests": [
+          "e7868625b850e1fb847275ab388021e309942c2372b53e0db903ee2a07b5c7f5",
+          "efefaef42471c5a94b3b721d7d2db84a1c19810ec25d4aeba6183849902b1227"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "17b4ffc228389cc555056dc4a3bca367b385dded2231b365da12eb614110eed2"
+      ],
+      "tested_at": "2026-10-20T14:44:49.429375Z",
+      "platform": {
+        "controller_source_sha": "6109552dc9e08c488c6c3db252d661c2c63156b6",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
