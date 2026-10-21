@@ -10,6 +10,19 @@ from generated_catalog import GENERATED
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
+@pytest.fixture(autouse=True)
+def forbid_sweep_evidence_publication(request, monkeypatch):
+    """Fake fleet tests must never start the git/GitHub publisher subprocess."""
+    if request.node.path.name == "test_qualification_evidence_publisher.py":
+        return  # publisher unit tests supply their own fake subprocesses
+    from spark_sweep.evidence_publisher import EvidencePublisher
+
+    def forbidden(self, now):
+        pytest.fail("sweep tests must disable evidence publication")
+
+    monkeypatch.setattr(EvidencePublisher, "tick", forbidden)
+
+
 @pytest.fixture(scope="session")
 def built_catalog() -> tuple[dict, Path]:
     """The catalog and package directory built once for the whole session.

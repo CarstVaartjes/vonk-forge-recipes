@@ -24,6 +24,22 @@ ROOT = Path(__file__).resolve().parents[1]
 SWEEP = [*sorted((ROOT / "spark_sweep").glob("*.py")), ROOT / "tools/sweep-recipes"]
 
 
+def test_fake_sweeps_cannot_launch_the_live_evidence_publisher(tmp_path, monkeypatch):
+    from spark_sweep.evidence_publisher import EvidencePublisher
+
+    def subprocess_forbidden(*args, **kwargs):
+        raise AssertionError("a publisher subprocess escaped test isolation")
+
+    monkeypatch.setattr(
+        "spark_sweep.evidence_publisher.subprocess.Popen", subprocess_forbidden
+    )
+    directory = tmp_path / "publisher"
+    publisher = EvidencePublisher(tmp_path / "results.jsonl", directory, Path("worker"))
+    with pytest.raises(pytest.fail.Exception, match="disable evidence publication"):
+        publisher.tick(0)
+    assert not directory.exists()
+
+
 def _functions(tree: ast.AST) -> Iterator[ast.FunctionDef | ast.AsyncFunctionDef]:
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):

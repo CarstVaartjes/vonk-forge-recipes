@@ -32,6 +32,8 @@ def _fleet(recipes, models, root="http://127.0.0.1:1"):
 
 
 def _run(argv, fleet, recipes):
+    if argv[0] == "run":
+        argv = [*argv, "--no-publish-evidence"]
     return main(
         argv,
         vonkctl_factory=lambda exe: Vonkctl(exe, runner=fleet.runner),
