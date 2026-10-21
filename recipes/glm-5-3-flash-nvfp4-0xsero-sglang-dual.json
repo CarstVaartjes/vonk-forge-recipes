@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "0xSero's two-Spark SGLang profile for the LibertAIDAI/GLM-5.3-Flash-NVFP4 checkpoint at the revision upstream hash-locks (9e0d74e3, the one its SGLang patches were written against; the repository's newer caca4e6a changed per-expert input scales and configuration and is not used), from glm-5.3-flash-sglang-sm121 at dfb1bb7e. Tensor and expert parallel 2 over the Spark fabric on 0xSero's published image (ghcr.io/0xsero/glm-5.3-flash-sglang-sm121, the digest the kit pins: upstream's six GLM/SGLang SM121 patches on the digest-pinned lmsysorg/sglang glm-5.3-flash image), run as published with only a thin layer for the Controller's launcher and not rebuilt from the kit's sources: DSA attention with flashinfer sparse MLA, FP8 E4M3 KV cache, flashinfer_cutlass MoE, NEXTN multi-token-prediction speculation (5 steps, 6 draft tokens, adaptive), image and video input, glm45 reasoning and glm47 tool parsing, CUDA graphs. Defaults are upstream's conservative tp2 profile (131072 tokens, 2 requests); upstream's tp4 profile (four Sparks) is not packaged. Upstream claims, not measured here: 17.49 tok/s at one request and 30.72 tok/s at two on two Sparks, 992128 KV tokens per rank. Licences are informational: the checkpoint is MIT; the source repository carries no licence file. Physical Spark acceptance is pending.",
+    "description": "0xSero's two-Spark SGLang profile for the LibertAIDAI/GLM-5.3-Flash-NVFP4 checkpoint at the revision upstream hash-locks (9e0d74e3, the one its SGLang patches were written against; the repository's newer caca4e6a changed per-expert input scales and configuration and is not used), from glm-5.3-flash-sglang-sm121 at dfb1bb7e. Tensor and expert parallel 2 over the Spark fabric on 0xSero's published image (ghcr.io/0xsero/glm-5.3-flash-sglang-sm121, the digest the kit pins: upstream's six GLM/SGLang SM121 patches on the digest-pinned lmsysorg/sglang glm-5.3-flash image), run as published with only a thin layer for the Controller's launcher and not rebuilt from the kit's sources: DSA attention with flashinfer sparse MLA, FP8 E4M3 KV cache, flashinfer_cutlass MoE, NEXTN multi-token-prediction speculation (5 steps, 6 draft tokens, adaptive), image and video input, glm45 reasoning and glm47 tool parsing, CUDA graphs. Defaults are upstream's conservative tp2 profile (131072 tokens, 2 requests); upstream's tp4 profile (four Sparks) is not packaged. Upstream claims, not measured here: 17.49 tok/s at one request and 30.72 tok/s at two on two Sparks, 992128 KV tokens per rank. Licences are informational: the checkpoint is MIT; the source repository carries no licence file. Physical Spark acceptance is pending. Memory by need (unproven): estimated 120,181,546,732 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "0xsero",
       "candidate",
@@ -45,7 +45,8 @@
       "reasoning",
       "sglang",
       "spark",
-      "tool-use"
+      "tool-use",
+      "does-not-fit"
     ],
     "title": "GLM 5.3 Flash NVFP4 SGLang two Sparks (0xSero)"
   },
@@ -1590,7 +1591,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.90"
+        "value": "0.95"
       },
       {
         "name": "cuda-graph-max-bs-decode",
@@ -1646,6 +1647,21 @@
         "name": "tool-call-parser",
         "setting": null,
         "value": "glm47"
+      },
+      {
+        "name": "disable-cuda-graph",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "max-mamba-cache-size",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "max-total-tokens",
+        "setting": null,
+        "value": 8192
       }
     ],
     "engine": "sglang",
@@ -1717,11 +1733,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 2
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 131072
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {}
@@ -1748,8 +1764,8 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 120181546732,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -1765,8 +1781,8 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 120181546732,
+            "reserve_bytes": 17179869184
           }
         }
       }

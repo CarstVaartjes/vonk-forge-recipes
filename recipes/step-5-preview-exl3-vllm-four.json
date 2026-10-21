@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Step 5 Preview Spark with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately. Requires exactly 4 Sparks; not runnable on the current two-Spark fleet. Reproduces 0xSero's K4 expert/K8 hybrid-body image and MTP2 launch. Upstream reports 26-30 tokens/s on four Sparks; not measured here.",
+    "description": "Step 5 Preview Spark with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately. Requires exactly 4 Sparks; not runnable on the current two-Spark fleet. Reproduces 0xSero's K4 expert/K8 hybrid-body image and MTP2 launch. Upstream reports 26-30 tokens/s on four Sparks; not measured here. Memory by need (unproven): estimated 102,605,714,774 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "executable",
@@ -2253,11 +2253,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "max-num-batched-tokens",
         "setting": null,
         "value": 8192
@@ -2295,7 +2290,7 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 20000000000
+        "value": 9261023232
       },
       {
         "name": "speculative-config",
@@ -2389,11 +2384,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 4
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 262144
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -2421,8 +2416,8 @@
             "working_bytes": 694778217936
           },
           "memory": {
-            "peak_bytes": 119063746765,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 102605714774,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -2438,8 +2433,8 @@
             "working_bytes": 694778217936
           },
           "memory": {
-            "peak_bytes": 119063746765,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 102605714774,
+            "reserve_bytes": 17179869184
           }
         }
       }

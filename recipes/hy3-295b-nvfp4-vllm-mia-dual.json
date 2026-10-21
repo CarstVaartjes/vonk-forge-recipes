@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate Ray TP2 recipe for Tencent Hy3 (295B MoE, 21B active) as the kodelow NVFP4 weight-only (W4A16, Marlin MoE) 181 GB checkpoint on two Sparks, following MiaAI-Lab's Hy3-Dual-DGX-Spark kit: its published vLLM image pinned by digest, MTP speculative decoding with one token, hy_v3 tool-call and reasoning parsers (the :opensource token patch is applied at build time), FP8 KV cache, eager mode, 128K context and six sequences. Code: no licence file upstream; model: Apache-2.0 (Tencent Hy3 and the quantization). The model card reports occasional Chinese output and tool-call failures that uncalibrated FP8 KV may amplify and recommends BF16 KV, which is offered as an option. Vonk physical two-Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.84 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "Executable Candidate Ray TP2 recipe for Tencent Hy3 (295B MoE, 21B active) as the kodelow NVFP4 weight-only (W4A16, Marlin MoE) 181 GB checkpoint on two Sparks, following MiaAI-Lab's Hy3-Dual-DGX-Spark kit: its published vLLM image pinned by digest, MTP speculative decoding with one token, hy_v3 tool-call and reasoning parsers (the :opensource token patch is applied at build time), FP8 KV cache, eager mode, 128K context and six sequences. Code: no licence file upstream; model: Apache-2.0 (Tencent Hy3 and the quantization). The model card reports occasional Chinese output and tool-call failures that uncalibrated FP8 KV may amplify and recommends BF16 KV, which is offered as an option. Vonk physical two-Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.84 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 99,764,151,972 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "executable",
@@ -1275,6 +1275,11 @@
               "name": "kv-cache-dtype",
               "setting": null,
               "value": "auto"
+            },
+            {
+              "name": "kv-cache-memory-bytes",
+              "setting": null,
+              "value": 1342177280
             }
           ],
           "help": "Unquantized KV cache as advised by the model card; a smaller token pool.",
@@ -1333,11 +1338,6 @@
         "value": "fp8_e4m3"
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.84"
-      },
-      {
         "name": "speculative-config",
         "setting": null,
         "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":1}"
@@ -1361,6 +1361,11 @@
         "name": "enforce-eager",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 671088640
       }
     ],
     "engine": "vllm",
@@ -1418,11 +1423,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 6
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 131072
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -1450,8 +1455,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119460206112,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 99764151972,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -1467,8 +1472,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119460206112,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 99764151972,
+            "reserve_bytes": 17179869184
           }
         }
       }

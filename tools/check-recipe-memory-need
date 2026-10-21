@@ -17,40 +17,61 @@ from vonk_forge_contracts import (
     document_sha256,
 )
 
-from qualification.memory_need import declaration_problems, per_rank_need
+from qualification.memory_need import (
+    calculate_need,
+    load_inputs,
+    memory_variants,
+    per_rank_need,
+    require_memory_need,
+)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("recipes", nargs="+", help="recipe slugs (without publisher)")
+    parser.add_argument(
+        "recipes",
+        nargs="*",
+        help="recipe slugs (default: every unproven vLLM/SGLang recipe)",
+    )
     args = parser.parse_args()
     models: dict[str, ModelDefinition] = {}
     for path in sorted((ROOT / "models").glob("*.json")):
         document = json.loads(path.read_text())
         models[document_sha256(document)] = ModelDefinition.model_validate(document)
+    inputs = load_inputs()
     failed = False
-    for slug in args.recipes:
-        recipe = RecipeDefinition.model_validate_json(
-            (ROOT / "recipes" / f"{slug}.json").read_text()
-        )
-        variants = [("base", recipe)]
-        variants.extend(
-            (
-                f"{option.name}={choice.value}",
-                recipe.with_option_choices({option.name: choice.value}),
-            )
-            for option in recipe.options
-            for choice in option.choices
-        )
-        for label, variant in variants:
-            need = per_rank_need(variant, models)
-            print(
-                f"{slug} [{label}]: {need.verdict}; need >= {need.peak_bytes} bytes/rank, "
-                f"safe limit {need.safe_limit_bytes} bytes/rank"
-            )
-            for problem in declaration_problems(variant, need):
-                failed = True
-                print(f"  {problem}", file=sys.stderr)
+    paths = (
+        [ROOT / "recipes" / f"{slug}.json" for slug in args.recipes]
+        if args.recipes
+        else sorted((ROOT / "recipes").glob("*.json"))
+    )
+    for path in paths:
+        document = json.loads(path.read_text())
+        recipe = RecipeDefinition.model_validate(document)
+        if recipe.runtime.engine not in {"vllm", "sglang"}:
+            continue
+        key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+        digest = document_sha256(document)
+        proven = inputs.hardware_passes.get(key)
+        if proven is not None and proven.catalog_content_sha256 == digest:
+            print(f"{key}: hardware-proven; preserved")
+            continue
+        try:
+            require_memory_need(recipe, models, inputs, document_digest=digest)
+            for index, variant in enumerate(memory_variants(recipe)):
+                if variant.topology.node_count == 1:
+                    absolute = calculate_need(variant, models, inputs.geometries)
+                    peak, limit = absolute.total_bytes, absolute.limit_bytes
+                else:
+                    rank = per_rank_need(variant, models)
+                    peak, limit = rank.peak_bytes, rank.safe_limit_bytes
+                verdict = "fits" if peak <= limit else "does not fit"
+                print(
+                    f"{key} [{index}]: {verdict} {variant.topology.node_count} Sparks; need {peak} bytes/rank; limit {limit} bytes/rank"
+                )
+        except (ValueError, TypeError) as error:
+            failed = True
+            print(str(error), file=sys.stderr)
     return int(failed)
 
 

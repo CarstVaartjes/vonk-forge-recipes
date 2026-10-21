@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker deepseek-v4-flash recipe for DeepSeek's DeepSeek-V4-Flash (MIT; checkpoint revision 60d8d707) served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: InstantTensor loading, FP8 KV cache with block size 256, MTP speculative decoding with two tokens, deepseek_v4 tokenizer, tool-call and reasoning parsers with thinking on and high reasoning effort by default, 500,000-token context (VLLM_ALLOW_LONG_MAX_MODEL_LEN), four sequences, 8,192 batched tokens and memory utilisation 0.8 (upstream defaults), with DG_JIT_USE_NVRTC=0 and VLLM_USE_BREAKABLE_CUDAGRAPH=1. Tensor parallel 2 across the pair uses vLLM's native multi-node launch, eugr's default no-Ray cluster mode, so upstream's --distributed-executor-backend ray is dropped. Upstream's `--default-chat-template-kwargs.thinking=true` and `.reasoning_effort=high` are passed as one JSON `--default-chat-template-kwargs` value (equivalent). The recipe is cluster-only upstream (the checkpoint does not fit one Spark). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker deepseek-v4-flash recipe for DeepSeek's DeepSeek-V4-Flash (MIT; checkpoint revision 60d8d707) served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: InstantTensor loading, FP8 KV cache with block size 256, MTP speculative decoding with two tokens, deepseek_v4 tokenizer, tool-call and reasoning parsers with thinking on and high reasoning effort by default, 500,000-token context (VLLM_ALLOW_LONG_MAX_MODEL_LEN), four sequences, 8,192 batched tokens and memory utilisation 0.8 (upstream defaults), with DG_JIT_USE_NVRTC=0 and VLLM_USE_BREAKABLE_CUDAGRAPH=1. Tensor parallel 2 across the pair uses vLLM's native multi-node launch, eugr's default no-Ray cluster mode, so upstream's --distributed-executor-backend ray is dropped. Upstream's `--default-chat-template-kwargs.thinking=true` and `.reasoning_effort=high` are passed as one JSON `--default-chat-template-kwargs` value (equivalent). The recipe is cluster-only upstream (the checkpoint does not fit one Spark). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 88,304,550,968 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "deepseek",
@@ -919,11 +919,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.8"
-      },
-      {
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
@@ -967,6 +962,11 @@
         "name": "load-format",
         "setting": null,
         "value": "instanttensor"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -996,11 +996,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 4
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 500000
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -1031,8 +1031,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 88304550968,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -1048,8 +1048,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 88304550968,
+            "reserve_bytes": 17179869184
           }
         }
       }

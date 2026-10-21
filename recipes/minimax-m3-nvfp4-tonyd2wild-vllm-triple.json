@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "MiniMax M3 (428B mixture-of-experts, about 23B active) as lukealonso's ModelOpt NVFP4 quantization on three Sparks with vLLM tensor parallel 3 (real TP=3 through the chthonic fork's virtual head sharding), b12x attention and MoE kernels, FP8 KV, PIECEWISE CUDA graphs, 200K context and clean minimax_m3 tool-call and reasoning parsers. Basis: tonyd2wild's recipe (Apache-2.0) on his published image, with Ray and b12x master 08e980c installed at build time instead of at every start. The checkpoint's base model is under the MiniMax Community License (non-commercial use; commercial use needs attribution and, above 20 million US dollars yearly revenue, prior written authorization from MiniMax; prohibited-use appendix), shown for information. Needs a three-node RoCE mesh (upstream used a switchless point-to-point ring with NCCL 2.30u1 subnet-aware routing, and warns not to pin NCCL_IB_GID_INDEX). Upstream EAGLE3 speculative decoding (about +25 percent claimed) needs a locally padded 96-head draft and is not offered. Upstream figures (about 10.5 tok/s single stream on RoCE) are claims until measured here; Vonk physical three-Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "MiniMax M3 (428B mixture-of-experts, about 23B active) as lukealonso's ModelOpt NVFP4 quantization on three Sparks with vLLM tensor parallel 3 (real TP=3 through the chthonic fork's virtual head sharding), b12x attention and MoE kernels, FP8 KV, PIECEWISE CUDA graphs, 200K context and clean minimax_m3 tool-call and reasoning parsers. Basis: tonyd2wild's recipe (Apache-2.0) on his published image, with Ray and b12x master 08e980c installed at build time instead of at every start. The checkpoint's base model is under the MiniMax Community License (non-commercial use; commercial use needs attribution and, above 20 million US dollars yearly revenue, prior written authorization from MiniMax; prohibited-use appendix), shown for information. Needs a three-node RoCE mesh (upstream used a switchless point-to-point ring with NCCL 2.30u1 subnet-aware routing, and warns not to pin NCCL_IB_GID_INDEX). Upstream EAGLE3 speculative decoding (about +25 percent claimed) needs a locally padded 96-head draft and is not offered. Upstream figures (about 10.5 tok/s single stream on RoCE) are claims until measured here; Vonk physical three-Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 107,038,911,656 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "b12x",
       "distributed",
@@ -872,11 +872,6 @@
         "value": "ray"
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.82"
-      },
-      {
         "name": "quantization",
         "setting": null,
         "value": "modelopt_fp4"
@@ -960,6 +955,11 @@
         "name": "tool-call-parser",
         "setting": null,
         "value": "minimax_m3"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 12291932160
       }
     ],
     "engine": "vllm",
@@ -1125,8 +1125,8 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 115143849821,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 107038911656,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -1142,8 +1142,8 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 115143849821,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 107038911656,
+            "reserve_bytes": 17179869184
           }
         }
       }

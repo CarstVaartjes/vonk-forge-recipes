@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's plug-and-play dual-GB10 vLLM serve of StepFun Step 3.7 Flash NVFP4 (198B sparse MoE vision-language model, ModelOpt NVFP4, fp8 KV): a vLLM dev build (0.1.dev16944) with Ray 2.55.1 and FlashInfer 0.6.11, tensor parallel 2 over Ray, native FlashInfer-CUTLASS NVFP4 (no Marlin or emulation), step3p5 reasoning and tool parsers, eager execution. Upstream README profile: 65,536 token context, 4 sequences, 0.90 memory utilization; it validated 32K context and reports about 16.5 tok/s single-stream decode (upstream claims, not measured here). Licences: Apache-2.0 for the model and the package (information only). The image serves the model under the name Step-3.7-Flash-NVFP4 via served-model-name (upstream's examples use the path /models/Step-3.7-Flash-NVFP4, which is not a valid model name). GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
+    "description": "r0b0tlab's plug-and-play dual-GB10 vLLM serve of StepFun Step 3.7 Flash NVFP4 (198B sparse MoE vision-language model, ModelOpt NVFP4, fp8 KV): a vLLM dev build (0.1.dev16944) with Ray 2.55.1 and FlashInfer 0.6.11, tensor parallel 2 over Ray, native FlashInfer-CUTLASS NVFP4 (no Marlin or emulation), step3p5 reasoning and tool parsers, eager execution. Upstream README profile: 65,536 token context, 4 sequences, 0.90 memory utilization; it validated 32K context and reports about 16.5 tok/s single-stream decode (upstream claims, not measured here). Licences: Apache-2.0 for the model and the package (information only). The image serves the model under the name Step-3.7-Flash-NVFP4 via served-model-name (upstream's examples use the path /models/Step-3.7-Flash-NVFP4, which is not a valid model name). GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Memory by need (unproven): estimated 75,640,700,996 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "distributed",
@@ -437,11 +437,6 @@
         "value": true
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -475,6 +470,11 @@
         "name": "enforce-eager",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 3019898880
       }
     ],
     "engine": "vllm",
@@ -512,11 +512,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 4
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 65536
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -544,8 +544,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 75640700996,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -561,8 +561,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 75640700996,
+            "reserve_bytes": 17179869184
           }
         }
       }

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Native Decision 3.0 service with choice, noul and score probabilities over text, JSON, images and video. BF16 backbone and FP32 readout. A 32768-token input context and one concurrent sequence bound this profile. Estimated peak is 0.15 times 130663231488 bytes plus 8 GB runtime overhead; physical Spark qualification is pending. Requires native System One gateway support.",
+    "description": "Native Decision 3.0 service with choice, noul and score probabilities over text, JSON, images and video. BF16 backbone and FP32 readout. A 32768-token input context and one concurrent sequence bound this profile. Estimated peak is 0.15 times 130663231488 bytes plus 8 GB runtime overhead; physical Spark qualification is pending. Requires native System One gateway support. Memory by need (unproven): estimated 10,008,791,456 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "executable",
@@ -235,13 +235,14 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "value": "0.15"
-      },
-      {
         "name": "max-num-batched-tokens",
         "setting": "max_batch_tokens",
         "value": null
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 819068928
       }
     ],
     "engine": "vllm",
@@ -302,7 +303,7 @@
             "working_bytes": 12000000000
           },
           "memory": {
-            "peak_bytes": 27599484724,
+            "peak_bytes": 10008791456,
             "reserve_bytes": 8000000000
           }
         }

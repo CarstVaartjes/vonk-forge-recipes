@@ -61,18 +61,15 @@ def test_limit_subtracts_idle_use_and_guard_exactly_once() -> None:
 
 
 def test_every_hardware_pass_remains_accepted() -> None:
-    assert len(INPUTS.hardware_passes) == 180
-    assert (
-        sum(
-            p.recorded_at < "2026-10-21T01:33:00Z"
-            for p in INPUTS.hardware_passes.values()
-        )
-        == 174
-    )
+    assert INPUTS.hardware_passes
     for key in INPUTS.hardware_passes:
         path = ROOT / "recipes" / f"{key.split('/')[1]}.json"
         document = json.loads(path.read_text())
         recipe = RecipeDefinition.model_validate(document)
+        assert (
+            document_sha256(document)
+            == INPUTS.hardware_passes[key].catalog_content_sha256
+        )
         require_memory_need(
             recipe, catalog_models(), INPUTS, document_digest=document_sha256(document)
         )
@@ -118,7 +115,7 @@ def test_fraction_is_not_a_substitute_for_an_absolute_pool() -> None:
         checked(recipe)
 
 
-def test_failed_recipe_cannot_reuse_its_historical_pass_to_bypass_need() -> None:
+def test_observed_pass_digest_cannot_waive_mutated_catalog_bytes() -> None:
     recipe = llama()
     recipe.runtime.arguments = [
         item
@@ -325,11 +322,14 @@ def test_multispark_delegates_every_role_even_for_historical_identity(
     document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
     recipe = RecipeDefinition.model_validate(document)
     digest = document_sha256(document)
-    assert require_memory_need(recipe, {}, INPUTS, document_digest=digest) is None
+    assert (
+        require_memory_need(recipe, catalog_models(), INPUTS, document_digest=digest)
+        is not None
+    )
     worker = recipe.topology.roles[-1]
     worker.resources.memory.peak_bytes = 0
-    with pytest.raises(ValueError, match=f"{slug}/{worker.name}.*understates"):
-        require_memory_need(recipe, {}, INPUTS, document_digest=digest)
+    with pytest.raises(ValueError, match="understates"):
+        require_memory_need(recipe, catalog_models(), INPUTS, document_digest=digest)
 
 
 def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> None:

@@ -28,10 +28,7 @@ DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 PENDING_CREATOR = frozenset(
     {
         "glm-5-3-flash-exl3-dflash2-vllm-dual",
-        "glm-5-3-flash-exl3-k2-0xsero-vllm-single",
         "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
-        "laguna-s-2-1-nvfp4-dflash-vllm-mia-single",
-        "minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual",
     }
 )
 

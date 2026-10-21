@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate torch-distributed TP2 recipe for StepFun Step 3.7 Flash (198B sparse MoE vision-language model, about 11B active) as the official ModelOpt NVFP4 checkpoint on two Sparks, following MiaAI-Lab's Dual-DGX-Spark-Step-3.7-Flash-NVFP4 kit: the official vllm/vllm-openai:stepfun37 image pinned by digest (no Ray), step3p5 tool-call and reasoning parsers, FP8 KV cache, 256K context and eight sequences. MTP speculative decoding with three drafted tokens is upstream's default and is offered as a choice (off gives upstream's no-MTP baseline); the BF16 MTP layers now ship inside the pinned checkpoint, so upstream's download-time graft is not needed, and its drafter patch is applied at build time. Upstream reports about 31-32 tok/s with MTP 3 on two Sparks (a claim, not measured here). Code: MIT; model: Apache-2.0. Vonk physical two-Spark acceptance is pending.",
+    "description": "Executable Candidate torch-distributed TP2 recipe for StepFun Step 3.7 Flash (198B sparse MoE vision-language model, about 11B active) as the official ModelOpt NVFP4 checkpoint on two Sparks, following MiaAI-Lab's Dual-DGX-Spark-Step-3.7-Flash-NVFP4 kit: the official vllm/vllm-openai:stepfun37 image pinned by digest (no Ray), step3p5 tool-call and reasoning parsers, FP8 KV cache, 256K context and eight sequences. MTP speculative decoding with three drafted tokens is upstream's default and is offered as a choice (off gives upstream's no-MTP baseline); the BF16 MTP layers now ship inside the pinned checkpoint, so upstream's download-time graft is not needed, and its drafter patch is applied at build time. Upstream reports about 31-32 tok/s with MTP 3 on two Sparks (a claim, not measured here). Code: MIT; model: Apache-2.0. Vonk physical two-Spark acceptance is pending. Memory by need (unproven): estimated 75,640,700,996 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "executable",
@@ -451,11 +451,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "quantization",
         "setting": null,
         "value": "modelopt"
@@ -494,6 +489,11 @@
         "name": "tool-call-parser",
         "setting": null,
         "value": "step3p5"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 3019898880
       }
     ],
     "engine": "vllm",
@@ -523,11 +523,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 8
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 262144
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -555,8 +555,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
-            "reserve_bytes": 5000000000
+            "peak_bytes": 75640700996,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -572,8 +572,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
-            "reserve_bytes": 5000000000
+            "peak_bytes": 75640700996,
+            "reserve_bytes": 17179869184
           }
         }
       }

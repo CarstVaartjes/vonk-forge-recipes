@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab a8b46367 on the immutable Anemll ARM64 runtime, including the per-forward routing-kind and limit-mm-per-prompt image-cap vision fixes, the single-lane partial-prefill default, and low default reasoning effort, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, and 1M context; Vonk physical image and dual-Spark acceptance remain pending.",
+    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab a8b46367 on the immutable Anemll ARM64 runtime, including the per-forward routing-kind and limit-mm-per-prompt image-cap vision fixes, the single-lane partial-prefill default, and low default reasoning effort, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, and 1M context; Vonk physical image and dual-Spark acceptance remain pending. Memory by need (unproven): estimated 92,405,678,632 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "deepseek",
@@ -1170,11 +1170,6 @@
         "value": 48
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.835"
-      },
-      {
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
@@ -1248,6 +1243,11 @@
         "name": "enable-flashinfer-autotune",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1401,11 +1401,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 6
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1048576
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -1433,8 +1433,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 92405678632,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -1450,8 +1450,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 92405678632,
+            "reserve_bytes": 17179869184
           }
         }
       }

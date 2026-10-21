@@ -1,17 +1,16 @@
 """Nonfitting dual recipes must expose their demand instead of waiving it."""
 
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
     GUARD_BYTES,
     LIMIT_BYTES,
-    SPARK_MEMORY_BYTES,
-    declaration_problems,
+    calculate_need,
     load_inputs,
     per_rank_need,
     require_memory_need,
@@ -42,13 +41,12 @@ def test_capacity_profiles_declare_need_and_report_nonfit(slug: str) -> None:
     for variant in variants:
         need = per_rank_need(variant, catalog_models())
         assert need.verdict == "does not fit 2 Sparks"
-        assert not declaration_problems(variant, need)
         assert need.peak_bytes > LIMIT_BYTES
         assert (
             require_memory_need(
                 variant, catalog_models(), load_inputs(), document_digest=""
             )
-            is None
+            is not None
         )
 
 
@@ -59,12 +57,10 @@ def test_guard_rejects_hidden_demand_and_headroom(slug: str, rank: int) -> None:
     need = per_rank_need(recipe, catalog_models())
     memory = recipe.topology.roles[rank].resources.memory
     memory.peak_bytes = need.peak_bytes - 1
-    assert any("peak understates" in p for p in declaration_problems(recipe, need))
     with pytest.raises(ValueError, match="peak understates"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
     memory.peak_bytes = need.peak_bytes
     memory.reserve_bytes = GUARD_BYTES - 1
-    assert any("reserve understates" in p for p in declaration_problems(recipe, need))
     with pytest.raises(ValueError, match="reserve understates"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
 
@@ -72,9 +68,9 @@ def test_guard_rejects_hidden_demand_and_headroom(slug: str, rank: int) -> None:
 def test_draft_budget_is_not_waived() -> None:
     recipe = recipe_for(RECIPES[1])
     need = per_rank_need(recipe, catalog_models())
-    expected = Decimal("0.83") * SPARK_MEMORY_BYTES + 8_000_000_000 + 17_000_000_000
-    assert need.peak_bytes >= expected
-    assert need.peak_bytes - expected < 1
+    absolute = calculate_need(recipe, catalog_models(), load_inputs().geometries)
+    assert absolute.overhead_bytes == 25_000_000_000
+    assert need.peak_bytes == absolute.total_bytes
 
 
 @pytest.mark.parametrize("slug", RECIPES)
@@ -82,10 +78,9 @@ def test_lower_fraction_cannot_hide_selected_weight_or_absolute_kv_floor(
     slug: str,
 ) -> None:
     recipe = recipe_for(slug)
-    fraction = next(
-        a for a in recipe.runtime.arguments if a.name == "gpu-memory-utilization"
+    recipe.runtime.arguments.append(
+        RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.10")
     )
-    fraction.value = "0.10"
     need = per_rank_need(recipe, catalog_models())
     assert need.peak_bytes > LIMIT_BYTES
 
@@ -101,9 +96,19 @@ def test_four_rank_memory_projection_with_retuned_budget(slug: str) -> None:
     next(
         a for a in recipe.runtime.arguments if a.name == "tensor-parallel-size"
     ).value = 4
-    next(
-        a for a in recipe.runtime.arguments if a.name == "gpu-memory-utilization"
-    ).value = "0.60"
+    recipe.runtime.arguments.append(
+        RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.60")
+    )
+    for arg in recipe.runtime.arguments:
+        if arg.name == "kv-cache-memory-bytes":
+            arg.value = (
+                calculate_need(
+                    recipe, catalog_models(), load_inputs().geometries
+                ).kv_bytes
+                + calculate_need(
+                    recipe, catalog_models(), load_inputs().geometries
+                ).state_bytes
+            )
     recipe = RecipeDefinition.model_validate(recipe.model_dump(mode="json"))
     need = per_rank_need(recipe, catalog_models())
     assert need.fits

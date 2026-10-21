@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "MiaAI-Lab's DeepSeek-V4-Flash (base checkpoint, pre-0731) 1M-context profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and FlashInfer autotune on aidendle94's published vLLM fork image (digest-pinned, used unmodified), with upstream's coding-tuned sampling default (temperature 0.6, top_p 0.95), thinking on and reasoning effort high. Upstream marks this kit OLD in favour of its DSpark kit; the current Mia dual recipe is the Vision Experimental one. Licences (information only): recipe repository has no licence file (its README states MIT), model MIT. Upstream states no throughput figures; Vonk physical two-Spark acceptance is pending. The first start compiles and autotunes for several minutes (upstream allows about 20 minutes). Default sampling is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream's coding-tuned default. GB10 fit: GPU utilization 0.83 → 0.80 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "MiaAI-Lab's DeepSeek-V4-Flash (base checkpoint, pre-0731) 1M-context profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and FlashInfer autotune on aidendle94's published vLLM fork image (digest-pinned, used unmodified), with upstream's coding-tuned sampling default (temperature 0.6, top_p 0.95), thinking on and reasoning effort high. Upstream marks this kit OLD in favour of its DSpark kit; the current Mia dual recipe is the Vision Experimental one. Licences (information only): recipe repository has no licence file (its README states MIT), model MIT. Upstream states no throughput figures; Vonk physical two-Spark acceptance is pending. The first start compiles and autotunes for several minutes (upstream allows about 20 minutes). Default sampling is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream's coding-tuned default. GB10 fit: GPU utilization 0.83 → 0.80 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 88,304,550,968 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "deepseek",
       "distributed",
@@ -862,33 +862,7 @@
       }
     }
   ],
-  "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream compose value.",
-          "label": "0.83 (default)",
-          "value": "util-083"
-        },
-        {
-          "args": [
-            {
-              "name": "gpu-memory-utilization",
-              "setting": null,
-              "value": "0.75"
-            }
-          ],
-          "help": "Upstream's out-of-memory fallback; leaves less KV pool.",
-          "label": "0.75",
-          "value": "util-075"
-        }
-      ],
-      "help": "Fraction of unified memory vLLM may take. 0.83 is the value in upstream's compose file; upstream's troubleshooting suggests lowering it (for example to 0.75) on CUDA out-of-memory.",
-      "label": "GPU memory utilization",
-      "name": "memory"
-    }
-  ],
+  "options": [],
   "provenance": {
     "attribution": [
       "DeepSeek AI (model, MIT)",
@@ -950,11 +924,6 @@
         "value": 8192
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.80"
-      },
-      {
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
@@ -1003,6 +972,11 @@
         "name": "enable-flashinfer-autotune",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1080,11 +1054,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 6
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1000000
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -1112,8 +1086,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
-            "reserve_bytes": 6000000000
+            "peak_bytes": 88304550968,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -1129,8 +1103,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
-            "reserve_bytes": 6000000000
+            "peak_bytes": 88304550968,
+            "reserve_bytes": 17179869184
           }
         }
       }

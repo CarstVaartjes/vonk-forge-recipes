@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.30.0, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Draft-model correction (2026-10-15): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is 0.85 → 0.72 and the peak budgets 0.72 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance; 0.72 keeps the peak plus the 8 GB reserve within this single-Spark recipe's 128 GB admission bound, and the lower 0.6 used for smaller draft recipes leaves no KV room for these weights. At 0.72 the 94.1 GB budget holds the 80.3 GB target and 5.9 GB MTPv2 head and leaves about 8 GB for activations and cache; one 262,144-token sequence needs about 1.2 GB (8 attention layers of FP8 KV plus Mamba state), so the context is kept.",
+    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.30.0, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Draft-model correction (2026-10-15): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is 0.85 → 0.72 and the peak budgets 0.72 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance; 0.72 keeps the peak plus the 8 GB reserve within this single-Spark recipe's 128 GB admission bound, and the lower 0.6 used for smaller draft recipes leaves no KV room for these weights. At 0.72 the 94.1 GB budget holds the 80.3 GB target and 5.9 GB MTPv2 head and leaves about 8 GB for activations and cache; one 262,144-token sequence needs about 1.2 GB (8 attention layers of FP8 KV plus Mamba state), so the context is kept. Memory by need (unproven): estimated 112,707,960,432 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "executable",
       "candidate",
@@ -42,7 +42,8 @@
       "openai",
       "single",
       "spark",
-      "tool-use"
+      "tool-use",
+      "does-not-fit"
     ],
     "title": "Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark"
   },
@@ -528,11 +529,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.72"
-      },
-      {
         "name": "trust-remote-code",
         "setting": null,
         "value": true
@@ -591,6 +587,11 @@
         "name": "enable-auto-tool-choice",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 1505230848
       }
     ],
     "engine": "vllm",
@@ -624,11 +625,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 4
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 262144
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -656,8 +657,8 @@
             "working_bytes": 176501147302
           },
           "memory": {
-            "peak_bytes": 119077526672,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 112707960432,
+            "reserve_bytes": 17179869184
           }
         }
       }

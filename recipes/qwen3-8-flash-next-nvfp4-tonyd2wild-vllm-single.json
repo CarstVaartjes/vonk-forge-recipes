@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "tonyd2wild's single-Spark vLLM TP1 profile for NVIDIA's own nvidia/Qwen3.8-Flash-Next-NVFP4 checkpoint, used byte for byte (124 GB; 125B-A6B hybrid MoE, MTP head). The 47.7 GiB per-layer-embedding (n-gram) table stays on the NVMe and only the 16 rows each token needs are read on demand (disk-backed table patch, staged gather so decode runs as CUDA graphs), with a reduced-vocabulary MTP draft (65,536 ids), MTP 3, FP8 KV, memory utilization 0.80, 262,144 context, six sequences and 4,096-token prefill chunks (upstream defaults). The adapter bakes upstream's patch files and its vLLM overlays (PR #55375 fused PLE state-index fix, PR #54846 FP8/NVFP4 KV on the QSA path, and two ModelOpt MTP-loading fixes) into the image at upstream's exact vLLM commit 8a728663. Image note: upstream ran the vllm/vllm-openai nightly-8a728663 tag, which is no longer on Docker Hub; the same commit survives only as the cu129-nightly-8a728663 build, which this recipe pins by digest (CUDA 12.9 runtime instead of upstream's CUDA 13), so a Spark start is unverified. The disk-backed table needs the model files on a local NVMe (random reads over NFS crawl). Licences (information only): repository Apache-2.0; vLLM Apache-2.0; checkpoint under the NVIDIA Open Model License and the Qwen licence of the base model. Upstream figures (43.9 tok/s median single stream, 68.8 tok/s aggregate at six streams) are claims until measured here; alternatives from other creators: MiaAI-Lab's single-Spark vLLM and TensorFold kits. Vonk physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "tonyd2wild's single-Spark vLLM TP1 profile for NVIDIA's own nvidia/Qwen3.8-Flash-Next-NVFP4 checkpoint, used byte for byte (124 GB; 125B-A6B hybrid MoE, MTP head). The 47.7 GiB per-layer-embedding (n-gram) table stays on the NVMe and only the 16 rows each token needs are read on demand (disk-backed table patch, staged gather so decode runs as CUDA graphs), with a reduced-vocabulary MTP draft (65,536 ids), MTP 3, FP8 KV, memory utilization 0.80, 262,144 context, six sequences and 4,096-token prefill chunks (upstream defaults). The adapter bakes upstream's patch files and its vLLM overlays (PR #55375 fused PLE state-index fix, PR #54846 FP8/NVFP4 KV on the QSA path, and two ModelOpt MTP-loading fixes) into the image at upstream's exact vLLM commit 8a728663. Image note: upstream ran the vllm/vllm-openai nightly-8a728663 tag, which is no longer on Docker Hub; the same commit survives only as the cu129-nightly-8a728663 build, which this recipe pins by digest (CUDA 12.9 runtime instead of upstream's CUDA 13), so a Spark start is unverified. The disk-backed table needs the model files on a local NVMe (random reads over NFS crawl). Licences (information only): repository Apache-2.0; vLLM Apache-2.0; checkpoint under the NVIDIA Open Model License and the Qwen licence of the base model. Upstream figures (43.9 tok/s median single stream, 68.8 tok/s aggregate at six streams) are claims until measured here; alternatives from other creators: MiaAI-Lab's single-Spark vLLM and TensorFold kits. Vonk physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 141,644,415,010 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "multimodal",
       "mtp",
@@ -43,7 +43,8 @@
       "spark",
       "tool-use",
       "tonyd2wild",
-      "vllm"
+      "vllm",
+      "does-not-fit"
     ],
     "title": "Qwen3.8 Flash Next NVFP4 vLLM one Spark (tonyd2wild)"
   },
@@ -379,6 +380,11 @@
               "name": "kv-cache-dtype",
               "setting": null,
               "value": "auto"
+            },
+            {
+              "name": "kv-cache-memory-bytes",
+              "setting": null,
+              "value": 964165632
             }
           ],
           "help": "Stock BF16 KV; upstream measured a smaller pool at the same memory utilization.",
@@ -465,11 +471,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.80"
-      },
-      {
         "name": "max-num-batched-tokens",
         "setting": null,
         "value": 4096
@@ -518,6 +519,11 @@
         "name": "kv-cache-dtype",
         "setting": null,
         "value": "fp8_e4m3"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 561512448
       }
     ],
     "engine": "vllm",
@@ -585,11 +591,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 6
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 262144
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -617,8 +623,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 141644415010,
+            "reserve_bytes": 17179869184
           }
         }
       }

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "abliterated",
-    "description": "drowzeys' single-Spark stack for aday777's abliterated (ARA) Qwen3.8 27B NVFP4 checkpoint with a BF16 MTP head: eugr spark-vllm-b12x 0.27 (nightly-20260813) with the NVFP4 KV cache back-ported to GB10 (vLLM PR 49891) and the A4Q fp4 QK attention overlay. Follows upstream's Profile B except for the GPU memory budget: 1,048,576-token context by YaRN x4 (hf-overrides), NVFP4 KV, prefix caching, 4096 batched tokens, MTP 3, qwen3_xml tool parser. Upstream reports a 4.34M-token KV pool (4.14x concurrency at 1M) on one GB10; those are upstream measurements, not measured here. Notes: the abliterated build is very wordy, so clients should allow at least 20000 max_tokens; prefilling 1M tokens takes about an hour cold on one Spark; upstream's 256K Profile A is reached by lowering the context setting, but the YaRN override stays on. Licences: checkpoint Apache-2.0; drowzeys' repository carries no licence file. Not gated. GB10 memory correction: GPU utilization 0.90 → 0.80. Measured on spark-3542 (2026-10-15/16), the 0.85 build peaked at 122,005,303,296 bytes, 10.94 GB above its utilization share, and could not fit an idle Spark (125.65 GB available) with the 6 GB OS floor. The per-node peak now budgets utilization × 130,663,231,488-byte unified memory plus that measured 11 GB for CUDA context/graphs, FlashInfer workspace, the MTP head and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. The 1,048,576-token (1M) context remains configured; upstream KV-pool/concurrency figures at 0.90 do not apply to this 0.80 pool.",
+    "description": "drowzeys' single-Spark stack for aday777's abliterated (ARA) Qwen3.8 27B NVFP4 checkpoint with a BF16 MTP head: eugr spark-vllm-b12x 0.27 (nightly-20260813) with the NVFP4 KV cache back-ported to GB10 (vLLM PR 49891) and the A4Q fp4 QK attention overlay. Follows upstream's Profile B except for the GPU memory budget: 1,048,576-token context by YaRN x4 (hf-overrides), NVFP4 KV, prefix caching, 4096 batched tokens, MTP 3, qwen3_xml tool parser. Upstream reports a 4.34M-token KV pool (4.14x concurrency at 1M) on one GB10; those are upstream measurements, not measured here. Notes: the abliterated build is very wordy, so clients should allow at least 20000 max_tokens; prefilling 1M tokens takes about an hour cold on one Spark; upstream's 256K Profile A is reached by lowering the context setting, but the YaRN override stays on. Licences: checkpoint Apache-2.0; drowzeys' repository carries no licence file. Not gated. GB10 memory correction: GPU utilization 0.90 → 0.80. Measured on spark-3542 (2026-10-15/16), the 0.85 build peaked at 122,005,303,296 bytes, 10.94 GB above its utilization share, and could not fit an idle Spark (125.65 GB available) with the 6 GB OS floor. The per-node peak now budgets utilization × 130,663,231,488-byte unified memory plus that measured 11 GB for CUDA context/graphs, FlashInfer workspace, the MTP head and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. The 1,048,576-token (1M) context remains configured; upstream KV-pool/concurrency figures at 0.90 do not apply to this 0.80 pool. Memory by need (unproven): estimated 29,844,833,776 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "abliterated",
       "candidate",
@@ -381,12 +381,7 @@
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "nvfp4"
-      },
-      {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.80"
+        "value": "fp8"
       },
       {
         "name": "enable-flashinfer-autotune",
@@ -407,6 +402,11 @@
         "name": "speculative-config",
         "setting": null,
         "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3}"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 1285554176
       }
     ],
     "engine": "vllm",
@@ -448,11 +448,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 4
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1048576
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -480,8 +480,8 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 115530585191,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 29844833776,
+            "reserve_bytes": 17179869184
           }
         }
       }

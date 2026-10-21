@@ -153,7 +153,9 @@ class GlmWrapperArgvTests(unittest.TestCase):
                     for index, value in enumerate(final)
                     if value == "--gpu-memory-utilization"
                 ]
-                self.assertGreaterEqual(len(utilization), 2)
+                self.assertEqual(
+                    len(utilization), authored.count("--gpu-memory-utilization")
+                )
                 self.assertEqual(final[utilization[-1] + 1], "0.71")
                 speculative = [
                     index

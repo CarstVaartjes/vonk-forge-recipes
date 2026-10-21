@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker recipes qwen3.8-flash-next-nvfp4-solo and -cluster for local-inference-lab's Qwen3.8-Flash-Next-NVFP4 (quantization-aware-distilled ModelOpt export, NVFP4 experts with MXFP8 attention; Qwen Community licence, informational; checkpoint revision 7c4f1bc1, about 106 GB of weights) served by vLLM on two Sparks. Runs eugr's published vllm-node-b12x image (--exp-b12x lane, nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM local-inference-lab/vllm dev/karmic-kraken 0296a817, FlashInfer 4a638133 and b12x master) with upstream's launch: the b12x kernel stack (b12x model loader, linear, MoE and gated-delta-net decode kernels, modelopt_mixed quantization, bfloat16 dtype, FP8 KV cache, block size 16, mamba cache mode align), MTP with four speculative tokens, chunked prefill, prefix caching, qwen3 reasoning and qwen3_xml tool parsing, multimodal encoder tensor-parallel mode data, FlashInfer autotune off, act-quant fusion compilation pass, 262,144-token context and 4,096 batched tokens (upstream defaults), plus upstream's environment for the b12x stack. This is upstream's cluster recipe (cluster-only): tensor parallel 2, sixteen sequences, memory utilisation 0.7 and RoCE all-reduce enabled (VLLM_ENABLE_ROCE_ALLREDUCE=1, 2 MB maximum size); the Controller runs it as native multi-node vLLM. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker recipes qwen3.8-flash-next-nvfp4-solo and -cluster for local-inference-lab's Qwen3.8-Flash-Next-NVFP4 (quantization-aware-distilled ModelOpt export, NVFP4 experts with MXFP8 attention; Qwen Community licence, informational; checkpoint revision 7c4f1bc1, about 106 GB of weights) served by vLLM on two Sparks. Runs eugr's published vllm-node-b12x image (--exp-b12x lane, nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM local-inference-lab/vllm dev/karmic-kraken 0296a817, FlashInfer 4a638133 and b12x master) with upstream's launch: the b12x kernel stack (b12x model loader, linear, MoE and gated-delta-net decode kernels, modelopt_mixed quantization, bfloat16 dtype, FP8 KV cache, block size 16, mamba cache mode align), MTP with four speculative tokens, chunked prefill, prefix caching, qwen3 reasoning and qwen3_xml tool parsing, multimodal encoder tensor-parallel mode data, FlashInfer autotune off, act-quant fusion compilation pass, 262,144-token context and 4,096 batched tokens (upstream defaults), plus upstream's environment for the b12x stack. This is upstream's cluster recipe (cluster-only): tensor parallel 2, sixteen sequences, memory utilisation 0.7 and RoCE all-reduce enabled (VLLM_ENABLE_ROCE_ALLREDUCE=1, 2 MB maximum size); the Controller runs it as native multi-node vLLM. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 61,527,429,958 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "b12x",
       "candidate",
@@ -838,9 +838,9 @@
         "value": "{\"pass_config\":{\"fuse_act_quant\":true}}"
       },
       {
-        "name": "gpu-memory-utilization",
+        "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": "0.7"
+        "value": 360185856
       }
     ],
     "engine": "vllm",
@@ -898,11 +898,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 16
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 262144
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -933,8 +933,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 99464262042,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 61527429958,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -950,8 +950,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 99464262042,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 61527429958,
+            "reserve_bytes": 17179869184
           }
         }
       }

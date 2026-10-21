@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Physical-OOM-gated single-Spark canary for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. It preserves the OpenAI reasoning and tool surface while bounding the FP8 KV cache to 3 GB, one sequence, 32K context, 4K chunked prefills, and eager execution. The 126 GB admission envelope is a conservative canary hypothesis, not measured acceptance; retain the original 65K profile and use Laguna XS as the default fleet-fit alternative until this exact variant passes physical startup, memory, and output checks. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced.",
+    "description": "Physical-OOM-gated single-Spark canary for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. It preserves the OpenAI reasoning and tool surface while bounding the FP8 KV cache to 3 GB, one sequence, 32K context, 4K chunked prefills, and eager execution. The 126 GB admission envelope is a conservative canary hypothesis, not measured acceptance; retain the original 65K profile and use Laguna XS as the default fleet-fit alternative until this exact variant passes physical startup, memory, and output checks. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced. Memory by need (unproven): estimated 108,515,202,081 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "executable",
       "candidate",
@@ -50,7 +50,8 @@
       "openai",
       "single",
       "spark",
-      "tool-use"
+      "tool-use",
+      "does-not-fit"
     ],
     "title": "Laguna S 2.1 NVFP4 vLLM 32K low-memory canary single Spark"
   },
@@ -722,7 +723,7 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 3000000000
+        "value": 805306368
       },
       {
         "name": "enforce-eager",
@@ -743,10 +744,6 @@
         "name": "enable-auto-tool-choice",
         "setting": null,
         "value": true
-      },
-      {
-        "name": "gpu-memory-utilization",
-        "value": "0.85"
       }
     ],
     "engine": "vllm",
@@ -776,7 +773,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 32768
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -804,8 +801,8 @@
             "working_bytes": 203434559724
           },
           "memory": {
-            "peak_bytes": 119063746765,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 108515202081,
+            "reserve_bytes": 17179869184
           }
         }
       }

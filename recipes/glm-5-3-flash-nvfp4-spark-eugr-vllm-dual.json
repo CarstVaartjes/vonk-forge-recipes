@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker glm-5.3-flash recipe for local-inference-lab's GLM-5.3-Flash-NVFP4-Spark (ModelOpt mixed NVFP4 checkpoint of Z.ai GLM-5.3-Flash, MIT; checkpoint revision a6082410) served by vLLM on two Sparks. Runs eugr's published vllm-node-b12x image (nightly-20260929, `--exp-b12x` lane, digest pinned; its build-metadata records spark-vllm-docker 42f62e34 and the local-inference-lab/vllm dev/karmic-kraken vLLM fork with lukealonso's b12x kernels) with upstream's launch: modelopt_mixed quantization, B12X attention, MoE and linear backends, b12x load format, FP8 KV cache with block size 256, hybrid mamba cache mode align, chunked prefill and prefix caching, MTP speculative decoding with five tokens (humming drafter MoE backend, B12X attention), glm45 reasoning and glm47 tool-call parsers, 500,000-token context, four sequences, 4,096 batched tokens and memory utilisation 0.87 (upstream defaults), with the upstream RoCE all-reduce and ahead-of-time compilation environment. Upstream's kv_cache_memory_bytes default (8G) is not used by its launch command and is not applied. The recipe is cluster-only upstream (two Sparks). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.87 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker glm-5.3-flash recipe for local-inference-lab's GLM-5.3-Flash-NVFP4-Spark (ModelOpt mixed NVFP4 checkpoint of Z.ai GLM-5.3-Flash, MIT; checkpoint revision a6082410) served by vLLM on two Sparks. Runs eugr's published vllm-node-b12x image (nightly-20260929, `--exp-b12x` lane, digest pinned; its build-metadata records spark-vllm-docker 42f62e34 and the local-inference-lab/vllm dev/karmic-kraken vLLM fork with lukealonso's b12x kernels) with upstream's launch: modelopt_mixed quantization, B12X attention, MoE and linear backends, b12x load format, FP8 KV cache with block size 256, hybrid mamba cache mode align, chunked prefill and prefix caching, MTP speculative decoding with five tokens (humming drafter MoE backend, B12X attention), glm45 reasoning and glm47 tool-call parsers, 500,000-token context, four sequences, 4,096 batched tokens and memory utilisation 0.87 (upstream defaults), with the upstream RoCE all-reduce and ahead-of-time compilation environment. Upstream's kv_cache_memory_bytes default (8G) is not used by its launch command and is not applied. The recipe is cluster-only upstream (two Sparks). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.87 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 116,522,798,096 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "b12x",
       "candidate",
@@ -46,7 +46,8 @@
       "reasoning",
       "spark",
       "tool-use",
-      "vllm"
+      "vllm",
+      "does-not-fit"
     ],
     "title": "GLM 5.3 Flash NVFP4 Spark B12X MTP vLLM two Sparks (eugr)"
   },
@@ -832,9 +833,14 @@
         "value": true
       },
       {
-        "name": "gpu-memory-utilization",
+        "name": "enforce-eager",
         "setting": null,
-        "value": "0.86"
+        "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 694157312
       }
     ],
     "engine": "vllm",
@@ -916,11 +922,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 4
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 500000
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -951,8 +957,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 116522798096,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -968,8 +974,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 116522798096,
+            "reserve_bytes": 17179869184
           }
         }
       }

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's self-quantized ModelOpt NVFP4 W4A16 Qwen3.8 Flash Next (180B-A4B hybrid GDN + QSA sparse-attention MoE; BF16 NEXTN MTP tensors kept; 131 shards) on two Sparks with SGLang TP=2 over the fabric, from r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang at 7bfacc51 (MIT). The checkpoint card declares licence 'other' and inherits the Qwen Community 1.0 terms of Qwen/Qwen3.8-Flash-Next. Runs upstream's published production full-context image (digest-pinned, SGLang source 7d2e8fcb with a small graph-observability overlay) with its qualified full-context NEXTN profile: Marlin FP4 GEMM and MoE, Triton attention, FP8 E4M3 target and draft KV, 262,144-token context without auto-truncation, up to 4 running requests, 20 Mamba slots, full decode CUDA graphs for batch sizes 1 to 4, embedding offload, memory fraction 0.90 and 3-step NEXTN speculation. The option switches speculation off (upstream's AR full-context profile). Upstream claims (not measured here): Q200-v2 188/200; dedicated c1 62.10 tok/s and short-request aggregate 63.84 / 83.66 / 132.64 tok/s at c1 / c2 / c4 on the promoted graph-on profile; full-window 261,504-token needle retrieval passes, with a full-window request needing about 138 s to first token. Vision is not claimed by upstream. Physical Spark acceptance is pending.",
+    "description": "r0b0tlab's self-quantized ModelOpt NVFP4 W4A16 Qwen3.8 Flash Next (180B-A4B hybrid GDN + QSA sparse-attention MoE; BF16 NEXTN MTP tensors kept; 131 shards) on two Sparks with SGLang TP=2 over the fabric, from r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang at 7bfacc51 (MIT). The checkpoint card declares licence 'other' and inherits the Qwen Community 1.0 terms of Qwen/Qwen3.8-Flash-Next. Runs upstream's published production full-context image (digest-pinned, SGLang source 7d2e8fcb with a small graph-observability overlay) with its qualified full-context NEXTN profile: Marlin FP4 GEMM and MoE, Triton attention, FP8 E4M3 target and draft KV, 262,144-token context without auto-truncation, up to 4 running requests, 20 Mamba slots, full decode CUDA graphs for batch sizes 1 to 4, embedding offload, memory fraction 0.90 and 3-step NEXTN speculation. The option switches speculation off (upstream's AR full-context profile). Upstream claims (not measured here): Q200-v2 188/200; dedicated c1 62.10 tok/s and short-request aggregate 63.84 / 83.66 / 132.64 tok/s at c1 / c2 / c4 on the promoted graph-on profile; full-window 261,504-token needle retrieval passes, with a full-window request needing about 138 s to first token. Vision is not claimed by upstream. Physical Spark acceptance is pending. Memory by need (unproven): estimated 101,983,284,285 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "dual",
@@ -1833,12 +1833,12 @@
       {
         "name": "max-total-tokens",
         "setting": null,
-        "value": 262144
+        "value": 1048576
       },
       {
         "name": "max-mamba-cache-size",
         "setting": null,
-        "value": 20
+        "value": 4
       },
       {
         "name": "mm-processor-worker-num",
@@ -1863,7 +1863,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.90"
+        "value": "0.95"
       },
       {
         "name": "stream-interval",
@@ -1942,6 +1942,11 @@
       },
       {
         "name": "weight-loader-disable-mmap",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "disable-cuda-graph",
         "setting": null,
         "value": true
       }
@@ -2035,8 +2040,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 101983284285,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -2052,8 +2057,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 101983284285,
+            "reserve_bytes": 17179869184
           }
         }
       }

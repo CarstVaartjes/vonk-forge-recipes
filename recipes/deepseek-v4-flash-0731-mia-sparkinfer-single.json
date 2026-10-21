@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate reproduction of MiaAI-Lab's physically tested one-DGX-Spark DeepSeek V4 Flash profile: native compact NVFP4 KV, 384K single-request context, DSpark K5, CUDA graphs through 24 rows, and 0.94 memory utilization. GB10 memory correction: GPU utilization 0.94 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.83 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "Executable Candidate reproduction of MiaAI-Lab's physically tested one-DGX-Spark DeepSeek V4 Flash profile: native compact NVFP4 KV, 384K single-request context, DSpark K5, CUDA graphs through 24 rows, and 0.94 memory utilization. GB10 memory correction: GPU utilization 0.94 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.83 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 285,131,163,120 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "executable",
       "candidate",
@@ -45,7 +45,8 @@
       "sparkinfer",
       "spark",
       "speculative-decoding",
-      "tool-use"
+      "tool-use",
+      "does-not-fit"
     ],
     "title": "DeepSeek V4 Flash 0731 Mia SparkInfer single Spark"
   },
@@ -2010,14 +2011,19 @@
         "value": 24
       },
       {
+        "name": "enable-prefix-caching",
+        "setting": null,
+        "value": true
+      },
+      {
         "name": "gpu-memory-utilization",
         "setting": null,
         "value": "0.83"
       },
       {
-        "name": "enable-prefix-caching",
+        "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": true
+        "value": 46497792000
       }
     ],
     "engine": "vllm",
@@ -2083,8 +2089,8 @@
             "working_bytes": 135000000000
           },
           "memory": {
-            "peak_bytes": 120186735371,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 285131163120,
+            "reserve_bytes": 17179869184
           }
         }
       }

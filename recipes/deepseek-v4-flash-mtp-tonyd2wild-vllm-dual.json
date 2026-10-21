@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 1,000,000-token context on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Upstream's 500K rollback profile is a memory option plus the context and concurrency settings (500000 and 8). Same-creator alternatives for this Spark count with the 0731 checkpoint are the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 45.5 tok/s single stream at MTP 2, 2.84M-token KV pool at 1M context) are claims until measured here; Vonk physical two-Spark acceptance is pending. The first request after boot can time out while autotune and warmup finish. GB10 fit: GPU utilization 0.80, 0.82 → 0.79 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 1,000,000-token context on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Upstream's 500K rollback profile is a memory option plus the context and concurrency settings (500000 and 8). Same-creator alternatives for this Spark count with the 0731 checkpoint are the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 45.5 tok/s single stream at MTP 2, 2.84M-token KV pool at 1M context) are claims until measured here; Vonk physical two-Spark acceptance is pending. The first request after boot can time out while autotune and warmup finish. GB10 fit: GPU utilization 0.80, 0.82 → 0.79 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 88,304,550,968 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "deepseek",
       "distributed",
@@ -866,31 +866,6 @@
       "choices": [
         {
           "default": true,
-          "help": "Upstream 1M profile.",
-          "label": "0.82 (default)",
-          "value": "profile-1m"
-        },
-        {
-          "args": [
-            {
-              "name": "gpu-memory-utilization",
-              "setting": null,
-              "value": "0.79"
-            }
-          ],
-          "help": "Upstream 500K rollback baseline (set the context setting to 500000 and concurrency to 8).",
-          "label": "0.79",
-          "value": "profile-500k"
-        }
-      ],
-      "help": "Fraction of unified memory vLLM may take. 0.82 is upstream's 1M profile ('higher OOMs at this context, lower wastes KV pool'); 0.80 is its 500K rollback baseline, used with 500000 context and 8 concurrency.",
-      "label": "GPU memory utilization",
-      "name": "memory"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
           "help": "Two drafted tokens (upstream default).",
           "label": "2 (default)",
           "value": "mtp2"
@@ -974,11 +949,6 @@
         "value": 8192
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.79"
-      },
-      {
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
@@ -1012,6 +982,11 @@
         "name": "enable-flashinfer-autotune",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1081,11 +1056,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 6
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1000000
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -1113,8 +1088,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
-            "reserve_bytes": 6000000000
+            "peak_bytes": 88304550968,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -1130,8 +1105,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
-            "reserve_bytes": 6000000000
+            "peak_bytes": 88304550968,
+            "reserve_bytes": 17179869184
           }
         }
       }

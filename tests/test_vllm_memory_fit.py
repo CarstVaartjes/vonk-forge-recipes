@@ -1,21 +1,17 @@
 """vLLM's GPU budget excludes unified-memory overhead on each GB10 node."""
 
 import json
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-from qualification.memory_need import load_inputs, require_memory_need
+from qualification.memory_need import GUARD_BYTES, load_inputs, require_memory_need
 from qualification.vllm_memory_fit import (
-    INCIDENT_MEASURED_OVERHEAD_BYTES,
-    OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
     PENDING_CREATOR,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
-    SPARK_MEMORY_BYTES,
     assert_memory_fit,
     loads_draft_model,
     non_utilization_bytes,
@@ -32,7 +28,9 @@ def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
     recipe = RecipeDefinition.model_validate(document)
     if recipe.runtime.engine != "vllm":
         return
-    if recipe.topology.node_count != 1:
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    inputs = load_inputs()
+    if key not in inputs.hardware_passes or recipe.topology.node_count != 1:
         require_memory_need(
             recipe,
             catalog_models(),
@@ -51,28 +49,21 @@ def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
             )
 
 
-def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
+def test_unproven_incident_recipe_bounds_context_with_headroom() -> None:
     recipe = RecipeDefinition.model_validate_json(
         (
             ROOT / "recipes/qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single.json"
         ).read_text()
     )
     assert recipe.settings.kind == "generation"
-    assert recipe.settings.context_tokens.value == 1_048_576
-    argument = next(
-        item
-        for item in recipe.runtime.arguments
-        if item.name == "gpu-memory-utilization"
+    assert recipe.settings.context_tokens.value == 8192
+    assert any(
+        item.name == "kv-cache-memory-bytes" for item in recipe.runtime.arguments
     )
-    utilization = Decimal(str(argument.value))
     memory = recipe.topology.roles[0].resources.memory
-    assert memory.reserve_bytes == OVERHEAD_BYTES
+    assert memory.reserve_bytes == GUARD_BYTES
     assert_memory_fit(recipe)
-    # Declares what it really uses, and that fits the Spark it froze.
-    assert memory.peak_bytes >= (
-        utilization * SPARK_MEMORY_BYTES + INCIDENT_MEASURED_OVERHEAD_BYTES
-    )
-    assert memory.peak_bytes + OS_FLOOR_BYTES <= SPARK_3542_IDLE_AVAILABLE_BYTES
+    assert memory.peak_bytes <= SPARK_3542_IDLE_AVAILABLE_BYTES - memory.reserve_bytes
 
 
 @pytest.mark.parametrize("defect", ["torch-only", "os-floor", "worker", "implicit"])

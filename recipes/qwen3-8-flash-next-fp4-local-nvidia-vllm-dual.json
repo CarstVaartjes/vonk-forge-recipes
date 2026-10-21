@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Official NVIDIA two-Spark profile: exact b9ce18a6 checkpoint and measured eugr b12x image 03a95654. TP2, 262,144-token window, 16 streams, FP8 KV, shared PLE tables, four-token MTP and RoCE all-reduce. Controller supplies placement and fabric identities. Memory is a conservative per-node estimate, not a local measurement. Publication does not establish physical Spark qualification.",
+    "description": "Official NVIDIA two-Spark profile: exact b9ce18a6 checkpoint and measured eugr b12x image 03a95654. TP2, 262,144-token window, 16 streams, FP8 KV, shared PLE tables, four-token MTP and RoCE all-reduce. Controller supplies placement and fabric identities. Memory is a conservative per-node estimate, not a local measurement. Publication does not establish physical Spark qualification. Memory by need (unproven): estimated 59,456,191,714 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "qwen3.8",
       "vllm",
@@ -537,20 +537,23 @@
         }
       },
       {
-        "name": "gpu-memory-utilization",
-        "value": 0.7
-      },
-      {
         "name": "max-model-len",
-        "setting": "context_tokens"
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-num-seqs",
-        "setting": "concurrency"
+        "setting": "concurrency",
+        "value": null
       },
       {
         "name": "block-size",
         "value": 16
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 360185856
       }
     ],
     "engine": "vllm",
@@ -636,11 +639,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 16
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 262144
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -668,8 +671,8 @@
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 100000000000,
-            "reserve_bytes": 0
+            "peak_bytes": 59456191714,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -685,8 +688,8 @@
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 100000000000,
-            "reserve_bytes": 0
+            "peak_bytes": 59456191714,
+            "reserve_bytes": 17179869184
           }
         }
       }

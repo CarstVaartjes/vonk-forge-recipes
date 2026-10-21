@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "drowzeys' champion two-Spark profile for thinkingmachines/Inkling-Small-NVFP4 (276B total, 12B active MoE) with RadixArk's stock DSpark speculator (block size 7 of the checkpoint's 15) and a first NVFP4-style KV cache on SGLang's triton backend (fp4_mx_block16), giving a 1,048,576-token context. Runs upstream's :kvquant image (lmsysorg/sglang dev-inkling-dspark plus NCCL 2.30 and the KV-quant patches). Defaults follow scripts/nvfp4-kv-boot.sh: fp4_mx_block16 KV, triton attention with fp32 reduction, page size 1, marlin MoE, extra_buffer mamba radix cache, memory fraction 0.85, 16 running requests, 8192-token prefill chunks, decode CUDA graphs for 1 to 16 (piecewise and prefill graphs off). Upstream reports (not measured here): about 33 tok/s decode, accept length about 3.5, KV pool 1,082,627 tokens, byte-exact against the bf16 reference at temperature 0 and needle retrieval to 113K. Text only: upstream does not enable multimodal. Licences: checkpoint Apache-2.0 (Thinking Machines); the RadixArk draft declares none; drowzeys' repository declares none. Not gated.",
+    "description": "drowzeys' champion two-Spark profile for thinkingmachines/Inkling-Small-NVFP4 (276B total, 12B active MoE) with RadixArk's stock DSpark speculator (block size 7 of the checkpoint's 15) and a first NVFP4-style KV cache on SGLang's triton backend (fp4_mx_block16), giving a 1,048,576-token context. Runs upstream's :kvquant image (lmsysorg/sglang dev-inkling-dspark plus NCCL 2.30 and the KV-quant patches). Defaults follow scripts/nvfp4-kv-boot.sh: fp4_mx_block16 KV, triton attention with fp32 reduction, page size 1, marlin MoE, extra_buffer mamba radix cache, memory fraction 0.85, 16 running requests, 8192-token prefill chunks, decode CUDA graphs for 1 to 16 (piecewise and prefill graphs off). Upstream reports (not measured here): about 33 tok/s decode, accept length about 3.5, KV pool 1,082,627 tokens, byte-exact against the bf16 reference at temperature 0 and needle retrieval to 113K. Text only: upstream does not enable multimodal. Licences: checkpoint Apache-2.0 (Thinking Machines); the RadixArk draft declares none; drowzeys' repository declares none. Not gated. Memory by need (unproven): estimated 112,560,680,362 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "dspark",
@@ -45,7 +45,8 @@
       "reasoning",
       "sglang",
       "spark",
-      "tool-use"
+      "tool-use",
+      "does-not-fit"
     ],
     "title": "Inkling Small NVFP4 DSpark NVFP4-KV 1M SGLang two Sparks (drowzeys)"
   },
@@ -444,7 +445,7 @@
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "fp4_mx_block16"
+        "value": "fp8"
       },
       {
         "name": "attention-backend",
@@ -479,7 +480,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.85"
+        "value": "0.95"
       },
       {
         "name": "swa-full-tokens-ratio",
@@ -560,6 +561,16 @@
         "name": "disable-prefill-cuda-graph",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "disable-cuda-graph",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "max-total-tokens",
+        "setting": null,
+        "value": 8192
       }
     ],
     "engine": "sglang",
@@ -639,11 +650,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 16
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1048576
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -671,8 +682,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 112560680362,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -688,8 +699,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 112560680362,
+            "reserve_bytes": 17179869184
           }
         }
       }

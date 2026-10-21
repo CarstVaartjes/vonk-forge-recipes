@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's single-Spark vLLM profile for its own mixed NVFP4 + FP8 quantization of inclusionAI's Ling-3.0-flash-VL (124B total, 5.1B active hybrid KDA + MLA MoE vision-language model, MIT; NVIDIA Model Optimizer 0.48), from r0b0tlab/ling30vl-nvfp4-mp-sm121 at 739081ce (MIT). Runs upstream's published image (ghcr.io/r0b0tlab/ling30vl-nvfp4-mp-sm121:e2e5751, pinned here by manifest digest sha256:912f416d; the inclusionAI vllm-ling-v3 fork at e2e5751 plus upstream's two SM121 patches, plain sm_120 cubins, FlashInfer 0.6.18) unchanged, with upstream's frozen winner configuration: auto backends (FlashInfer CUTLASS MoE, Triton MLA attention, CuTe DSL W4A16 linear), CUDA graphs with compile, prefix caching, mamba cache mode align, FP8 KV (NVFP4 KV is unavailable for dense MLA), gpu memory utilisation 0.85, 16,384-token context, 8 sequences, ling3 tool and reasoning parsers, thinking on by default. Upstream validated only 16K by default and reached the 131,072-token window with a separate configuration (memory utilisation 0.78, 4,096 batched tokens, one sequence); raise the context setting only with those values in mind. Upstream claims (not measured here): 42.4 tok/s at c1 rising to about 165 tok/s aggregate at c16, GSM8K-200 91.5%, text probes 5/5, vision probes 8/8, NIAH 15/15 to about 120K tokens. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "r0b0tlab's single-Spark vLLM profile for its own mixed NVFP4 + FP8 quantization of inclusionAI's Ling-3.0-flash-VL (124B total, 5.1B active hybrid KDA + MLA MoE vision-language model, MIT; NVIDIA Model Optimizer 0.48), from r0b0tlab/ling30vl-nvfp4-mp-sm121 at 739081ce (MIT). Runs upstream's published image (ghcr.io/r0b0tlab/ling30vl-nvfp4-mp-sm121:e2e5751, pinned here by manifest digest sha256:912f416d; the inclusionAI vllm-ling-v3 fork at e2e5751 plus upstream's two SM121 patches, plain sm_120 cubins, FlashInfer 0.6.18) unchanged, with upstream's frozen winner configuration: auto backends (FlashInfer CUTLASS MoE, Triton MLA attention, CuTe DSL W4A16 linear), CUDA graphs with compile, prefix caching, mamba cache mode align, FP8 KV (NVFP4 KV is unavailable for dense MLA), gpu memory utilisation 0.85, 16,384-token context, 8 sequences, ling3 tool and reasoning parsers, thinking on by default. Upstream validated only 16K by default and reached the 131,072-token window with a separate configuration (memory utilisation 0.78, 4,096 batched tokens, one sequence); raise the context setting only with those values in mind. Upstream claims (not measured here): 42.4 tok/s at c1 rising to about 165 tok/s aggregate at c16, GSM8K-200 91.5%, text probes 5/5, vision probes 8/8, NIAH 15/15 to about 120K tokens. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 86,939,410,312 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "executable",
@@ -953,11 +953,6 @@
         "value": 1
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -996,6 +991,11 @@
         "name": "reasoning-parser",
         "setting": null,
         "value": "ling3"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 6341787648
       }
     ],
     "engine": "vllm",
@@ -1053,8 +1053,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 86939410312,
+            "reserve_bytes": 17179869184
           }
         }
       }

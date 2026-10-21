@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SGLang click-run profile for its own Ornith-1.5-35B-A3B NVFP4 W4A16 weight-only quantization (NVIDIA Model Optimizer w4_nvfp4 preset, BF16 MTP head kept; MIT) on one Spark, from r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang at 6d0a25d9 (MIT). Runs upstream's published GB10 image (a pinned SGLang-main venv with pre-warmed FlashInfer and Triton JIT caches; pinned here by the digest of its only tag, built 2026-08-21, since upstream publishes no digest) with the claim-row profile: Triton attention, Marlin MoE, FP8 E4M3 KV, memory fraction 0.75, 262,144-token context, qwen3_coder tool parser and EAGLE K=1 (1 step, top-1, 2 draft tokens). Upstream warns that MTP fails needle retrieval at about 235k tokens (a deterministic degenerate output in its r0b0bench lane, while base autoregressive passes), so the option turns MTP off for workloads that really sit near the full window. Upstream claims (not measured here): 74.9 tok/s at c1 and 67.5 tok/s decode with accept length 1.925 in its SM12X-LLM-BENCH claim row (GSM8K 90.75%, MMLU-Pro 81.2%, 15/15 lanes), MTP K=1 sweep best at 80.78 tok/s, aggregate 82 to 513 tok/s from c1 to c64. The independent quantization is not affiliated with Ornith AI or NVIDIA. Physical Spark acceptance is pending.",
+    "description": "r0b0tlab's SGLang click-run profile for its own Ornith-1.5-35B-A3B NVFP4 W4A16 weight-only quantization (NVIDIA Model Optimizer w4_nvfp4 preset, BF16 MTP head kept; MIT) on one Spark, from r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang at 6d0a25d9 (MIT). Runs upstream's published GB10 image (a pinned SGLang-main venv with pre-warmed FlashInfer and Triton JIT caches; pinned here by the digest of its only tag, built 2026-08-21, since upstream publishes no digest) with the claim-row profile: Triton attention, Marlin MoE, FP8 E4M3 KV, memory fraction 0.75, 262,144-token context, qwen3_coder tool parser and EAGLE K=1 (1 step, top-1, 2 draft tokens). Upstream warns that MTP fails needle retrieval at about 235k tokens (a deterministic degenerate output in its r0b0bench lane, while base autoregressive passes), so the option turns MTP off for workloads that really sit near the full window. Upstream claims (not measured here): 74.9 tok/s at c1 and 67.5 tok/s decode with accept length 1.925 in its SM12X-LLM-BENCH claim row (GSM8K 90.75%, MMLU-Pro 81.2%, 15/15 lanes), MTP K=1 sweep best at 80.78 tok/s, aggregate 82 to 513 tok/s from c1 to c64. The independent quantization is not affiliated with Ornith AI or NVIDIA. Physical Spark acceptance is pending. Memory by need (unproven): estimated 42,507,463,488 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "eagle",
@@ -328,12 +328,32 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.75"
+        "value": "0.95"
       },
       {
         "name": "enable-metrics",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "max-running-requests",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "disable-cuda-graph",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "max-mamba-cache-size",
+        "setting": null,
+        "value": 2
+      },
+      {
+        "name": "max-total-tokens",
+        "setting": null,
+        "value": 262144
       }
     ],
     "engine": "sglang",
@@ -361,7 +381,11 @@
     },
     "kind": "generation",
     "knobs": {},
-    "max_batch_tokens": null
+    "max_batch_tokens": null,
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    }
   },
   "topology": {
     "name": "solo",
@@ -385,8 +409,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 96000000000,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 42507463488,
+            "reserve_bytes": 17179869184
           }
         }
       }

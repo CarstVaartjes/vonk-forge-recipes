@@ -39,7 +39,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Reederey87 GLM-5.3-Flash EXL3 dual-Spark source refresh at v1.6.0 (aad6481c94b20ef4853ea07819f3f4ea2ec18f33, 2026-10-05). Keeps the byte-exact Mia-AiLab TR3 4 bpw primary Model and the source launcher’s exact incoai DFlash2 drafter pin 7d74cdd881ed7e32c31175984a67823127b66cfe (non-commercial, no derivatives). The recipe-owned ARM64 ExLlamaV3 build is 1.4.9 5be886578ec80324c2c715269387be2058724b6e (its six EXL3 quant/MoE source files are byte-identical to 1.4.7, preserving the fused-kernel/ticket-scheduler ABI). v1.6.0 adds the prefix-admission and resident-tail scheduler patches, the 50 ms shared-memory recheck and the adaptive-k batch margin and position trim; upstream's release notes name them part of its production image (e3-armc-shm50), so the image bakes the first three and the recipe enables the last two (upstream's measurements, not measured here). The digest-pinned vLLM base image is unchanged. Refreshes the current GLM/DFlash2 overlay/test closure, retains Vonk’s non-root read-only runtime wrapper and build-time patching, and carries upstream’s default-on sparse-cache-miss metric and prompt-token detail reporting. Default serving remains DFlash2 k=7, TP2 across two Sparks, fp8 KV and the existing context/resource envelope. Upstream’s performance and DFlash2 acceptance evidence is not Vonk physical two-Spark acceptance; local build and runtime qualification remain separate gates. The drafter license terms are shown in its Model document. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter. Default thinking effort is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: reasoning_effort high (upstream production default). GB10 fit: GPU utilization 0.85 → 0.83 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "Reederey87 GLM-5.3-Flash EXL3 dual-Spark source refresh at v1.6.0 (aad6481c94b20ef4853ea07819f3f4ea2ec18f33, 2026-10-05). Keeps the byte-exact Mia-AiLab TR3 4 bpw primary Model and the source launcher’s exact incoai DFlash2 drafter pin 7d74cdd881ed7e32c31175984a67823127b66cfe (non-commercial, no derivatives). The recipe-owned ARM64 ExLlamaV3 build is 1.4.9 5be886578ec80324c2c715269387be2058724b6e (its six EXL3 quant/MoE source files are byte-identical to 1.4.7, preserving the fused-kernel/ticket-scheduler ABI). v1.6.0 adds the prefix-admission and resident-tail scheduler patches, the 50 ms shared-memory recheck and the adaptive-k batch margin and position trim; upstream's release notes name them part of its production image (e3-armc-shm50), so the image bakes the first three and the recipe enables the last two (upstream's measurements, not measured here). The digest-pinned vLLM base image is unchanged. Refreshes the current GLM/DFlash2 overlay/test closure, retains Vonk’s non-root read-only runtime wrapper and build-time patching, and carries upstream’s default-on sparse-cache-miss metric and prompt-token detail reporting. Default serving remains DFlash2 k=7, TP2 across two Sparks, fp8 KV and the existing context/resource envelope. Upstream’s performance and DFlash2 acceptance evidence is not Vonk physical two-Spark acceptance; local build and runtime qualification remain separate gates. The drafter license terms are shown in its Model document. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter. Default thinking effort is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: reasoning_effort high (upstream production default). GB10 fit: GPU utilization 0.85 → 0.83 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 130,056,635,609 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "adaptive-k",
       "candidate",
@@ -53,7 +53,8 @@
       "reasoning",
       "spark",
       "tool-use",
-      "vllm"
+      "vllm",
+      "does-not-fit"
     ],
     "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM two Sparks (Reederey87)"
   },
@@ -1756,11 +1757,6 @@
         "value": "/opt/glm53/chat_template.jinja"
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.83"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -1793,7 +1789,7 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 15414698763
+        "value": 893386752
       },
       {
         "name": "no-async-scheduling",
@@ -1847,6 +1843,11 @@
       },
       {
         "name": "skip-mm-profiling",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "enforce-eager",
         "setting": null,
         "value": true
       }
@@ -2074,11 +2075,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 4
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1000000
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -2106,7 +2107,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 133450482136,
+            "peak_bytes": 130056635609,
             "reserve_bytes": 17179869184
           }
         }
@@ -2123,7 +2124,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 133450482136,
+            "peak_bytes": 130056635609,
             "reserve_bytes": 17179869184
           }
         }

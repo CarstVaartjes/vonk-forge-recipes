@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Nemotron 3.5 Super VL 120B-A12B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead and the library's 17 GB separate-drafter allowance; reserve is informational, with the platform OS floor accounted separately. Uses NVIDIA's Spark-recommended LiLiCorr seven-token draft and Mamba cache configuration.",
+    "description": "Nemotron 3.5 Super VL 120B-A12B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead and the library's 17 GB separate-drafter allowance; reserve is informational, with the platform OS floor accounted separately. Uses NVIDIA's Spark-recommended LiLiCorr seven-token draft and Mamba cache configuration. Memory by need (unproven): estimated 102,617,627,172 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "executable",
@@ -1287,11 +1287,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.70"
-      },
-      {
         "name": "max-num-batched-tokens",
         "setting": null,
         "value": 8192
@@ -1365,6 +1360,11 @@
         "name": "prefix-match-unit",
         "setting": null,
         "value": 64
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 1289486336
       }
     ],
     "engine": "vllm",
@@ -1394,7 +1394,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 131072
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -1422,8 +1422,8 @@
             "working_bytes": 164762599794
           },
           "memory": {
-            "peak_bytes": 116464262042,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 102617627172,
+            "reserve_bytes": 17179869184
           }
         }
       }

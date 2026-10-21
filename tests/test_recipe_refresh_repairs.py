@@ -64,7 +64,7 @@ class RecipeRefreshRepairTests(unittest.TestCase):
                 "repository": "ghcr.io/r0b0tlab/vllm-laguna-s-2.1-nvfp4-sm121",
             },
         )
-        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 262144)
+        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 8192)
         args = {
             item["name"]: item.get("value") for item in recipe["runtime"]["arguments"]
         }

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker step-3.7-flash-nvfp4 recipe for StepFun's Step-3.7-Flash-NVFP4 (ModelOpt NVFP4 of the 198B MoE vision-language model, Apache-2.0; checkpoint revision 4275532f) served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: InstantTensor loading, step3p5 reasoning and tool-call parsers, 262,144-token context and memory utilisation 0.8 (upstream defaults); the sequence limit is left to vLLM's default. Upstream's step-3.7-flash mod is baked at image build time; on the pinned image it finds Step-3.7-Flash support already present and skips its patch. Tensor parallel 2 across the pair uses vLLM's native multi-node launch, eugr's default no-Ray cluster mode, so upstream's --distributed-executor-backend ray is dropped. The recipe is cluster-only upstream (129 GB checkpoint). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker step-3.7-flash-nvfp4 recipe for StepFun's Step-3.7-Flash-NVFP4 (ModelOpt NVFP4 of the 198B MoE vision-language model, Apache-2.0; checkpoint revision 4275532f) served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: InstantTensor loading, step3p5 reasoning and tool-call parsers, 262,144-token context and memory utilisation 0.8 (upstream defaults); the sequence limit is left to vLLM's default. Upstream's step-3.7-flash mod is baked at image build time; on the pinned image it finds Step-3.7-Flash support already present and skips its patch. Tensor parallel 2 across the pair uses vLLM's native multi-node launch, eugr's default no-Ray cluster mode, so upstream's --distributed-executor-backend ray is dropped. The recipe is cluster-only upstream (129 GB checkpoint). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 78,660,599,876 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "dual",
@@ -410,11 +410,6 @@
         "value": true
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.8"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -438,6 +433,16 @@
         "name": "load-format",
         "setting": null,
         "value": "instanttensor"
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 6039797760
       }
     ],
     "engine": "vllm",
@@ -454,10 +459,14 @@
   "settings": {
     "context_tokens": {
       "change_effect": "restart",
-      "value": 262144
+      "value": 8192
     },
     "kind": "generation",
-    "knobs": {}
+    "knobs": {},
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    }
   },
   "topology": {
     "name": "dual",
@@ -481,8 +490,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 78660599876,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -498,8 +507,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 78660599876,
+            "reserve_bytes": 17179869184
           }
         }
       }

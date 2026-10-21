@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "LFM2.5-24B-A2B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately.",
+    "description": "LFM2.5-24B-A2B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately. Memory by need (unproven): estimated 66,685,493,856 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "executable",
@@ -276,11 +276,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.55"
-      },
-      {
         "name": "max-num-batched-tokens",
         "setting": null,
         "value": 8192
@@ -303,6 +298,11 @@
       {
         "name": "reasoning-parser",
         "value": "qwen3"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 10741350400
       }
     ],
     "engine": "vllm",
@@ -360,8 +360,8 @@
             "working_bytes": 107925591012
           },
           "memory": {
-            "peak_bytes": 79864777319,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 66685493856,
+            "reserve_bytes": 17179869184
           }
         }
       }

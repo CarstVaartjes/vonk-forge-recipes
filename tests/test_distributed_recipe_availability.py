@@ -51,7 +51,10 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         adapter = ROOT / "adapters/glm/tonyd2wild-glm53-tp4-current"
         dockerfile = (adapter / "Dockerfile").read_text()
         arguments = {
-            item["name"]: item["value"] for item in recipe["runtime"]["arguments"]
+            item["name"]: recipe["settings"][item["setting"]]["value"]
+            if item.get("setting")
+            else item["value"]
+            for item in recipe["runtime"]["arguments"]
         }
         self.assertEqual(
             recipe["execution"]["build"]["context"]["path"],
@@ -70,15 +73,15 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         )
         self.assertEqual(recipe["execution"]["build"]["network"]["hosts"], [])
         self.assertEqual(arguments["tensor-parallel-size"], 4)
-        self.assertEqual(arguments["max-model-len"], 1048576)
-        self.assertEqual(arguments["max-num-seqs"], 64)
+        self.assertEqual(arguments["max-model-len"], 8192)
+        self.assertEqual(arguments["max-num-seqs"], 1)
         self.assertEqual(arguments["max-num-batched-tokens"], 16384)
-        self.assertEqual(arguments["kv-cache-memory"], 25769803776)
+        self.assertIn("kv-cache-memory-bytes", arguments)
         self.assertEqual(
             arguments["speculative-config"],
             '{"method":"dflash","model":"/models/drafter","num_speculative_tokens":7}',
         )
-        self.assertFalse(arguments["enforce-eager"])
+        self.assertTrue(arguments["enforce-eager"])
         self.assertEqual(
             arguments["compilation-config"], '{"cudagraph_mode":"FULL_AND_PIECEWISE"}'
         )

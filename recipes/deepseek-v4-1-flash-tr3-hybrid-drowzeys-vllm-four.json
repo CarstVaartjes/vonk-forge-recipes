@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "drowzeys' four-Spark serve of DeepSeek V4.1 Flash (763B MoE) as the TR3-Hybrid quant (EXL3-TR3 K=3 tail experts plus 64 native MXFP4 keep experts per layer, about 3.22 bpw MoE mix, 410 GB checkpoint incl. 203 GB Engram): vLLM dsv41-feat e47aa780b with DSpark k=5 speculative decoding, the TR3/B12X plugin, CUDA graphs (FULL_AND_PIECEWISE), native vision (4 images per prompt), tool calling and the deepseek_v41 reasoning parser, TP4, 1,048,576-token context, 8 sequences, 2048 batched tokens, GPU memory 0.81, thinking off by default. Upstream reports (not measured here): about 8.7M-token KV pool at 0.81 (9,452,923 measured at 0.83, selectable as an option), 1M needle-in-haystack pass, C1 up to 44.6 tok/s and C8 aggregate up to 171 tok/s, KL 0.032 nats vs native over 66.6K positions. Licences: MIT (DeepSeek weights and the drowzeys checkpoint and recipe). Not gated. Upstream also documents an abliterated overlay (drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed, a gated Hugging Face repository that cannot be pinned without access) applied to the checkpoint by a separate graft step before serving; it is not part of this recipe. Needs four Sparks on the 200G RoCE fabric; 440 GB of model files per node. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "drowzeys' four-Spark serve of DeepSeek V4.1 Flash (763B MoE) as the TR3-Hybrid quant (EXL3-TR3 K=3 tail experts plus 64 native MXFP4 keep experts per layer, about 3.22 bpw MoE mix, 410 GB checkpoint incl. 203 GB Engram): vLLM dsv41-feat e47aa780b with DSpark k=5 speculative decoding, the TR3/B12X plugin, CUDA graphs (FULL_AND_PIECEWISE), native vision (4 images per prompt), tool calling and the deepseek_v41 reasoning parser, TP4, 1,048,576-token context, 8 sequences, 2048 batched tokens, GPU memory 0.81, thinking off by default. Upstream reports (not measured here): about 8.7M-token KV pool at 0.81 (9,452,923 measured at 0.83, selectable as an option), 1M needle-in-haystack pass, C1 up to 44.6 tok/s and C8 aggregate up to 171 tok/s, KL 0.032 nats vs native over 66.6K positions. Licences: MIT (DeepSeek weights and the drowzeys checkpoint and recipe). Not gated. Upstream also documents an abliterated overlay (drowzeys/DeepSeek-V4.1-Flash-Abliterated-Cybersecurity-Unleashed, a gated Hugging Face repository that cannot be pinned without access) applied to the checkpoint by a separate graft step before serving; it is not part of this recipe. Needs four Sparks on the 200G RoCE fabric; 440 GB of model files per node. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 118,695,047,614 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "candidate",
       "deepseek",
@@ -48,7 +48,8 @@
       "tool-use",
       "tp4",
       "vision",
-      "vllm"
+      "vllm",
+      "does-not-fit"
     ],
     "title": "DeepSeek V4.1 Flash TR3-Hybrid vLLM four Sparks (drowzeys)"
   },
@@ -692,32 +693,7 @@
       }
     }
   ],
-  "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream default and published configuration.",
-          "label": "0.81 (deployed)",
-          "value": "gmu-081"
-        },
-        {
-          "args": [
-            {
-              "name": "gpu-memory-utilization",
-              "value": "0.83"
-            }
-          ],
-          "help": "Upstream: 9,452,923-token pool, about 2 GiB per rank less prefill headroom.",
-          "label": "0.83 (max pool)",
-          "value": "gmu-083"
-        }
-      ],
-      "help": "GPU memory fraction. Upstream deploys 0.81, about 8.7M KV tokens with roughly 2 GiB per rank of prefill headroom; 0.83 is the measured maximum pool (9.45M tokens) with tighter prefill headroom.",
-      "label": "KV pool size",
-      "name": "kv-pool"
-    }
-  ],
+  "options": [],
   "provenance": {
     "attribution": [
       "drowzeys (Keys)",
@@ -748,11 +724,6 @@
         "name": "distributed-executor-backend",
         "setting": null,
         "value": "mp"
-      },
-      {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.81"
       },
       {
         "name": "max-model-len",
@@ -823,6 +794,11 @@
         "name": "kernel-config",
         "setting": null,
         "value": "{\"enable_flashinfer_autotune\": false}"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 671088640
       }
     ],
     "engine": "vllm",
@@ -988,11 +964,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 8
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1048576
+      "value": 8192
     },
     "kind": "generation",
     "knobs": {},
@@ -1020,8 +996,8 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 116450482136,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 118695047614,
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -1037,8 +1013,8 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 116450482136,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 118695047614,
+            "reserve_bytes": 17179869184
           }
         }
       }

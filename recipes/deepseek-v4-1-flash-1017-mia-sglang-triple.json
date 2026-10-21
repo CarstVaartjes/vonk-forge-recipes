@@ -6,7 +6,7 @@
   },
   "metadata": {
     "title": "DeepSeek V4.1 Flash 1017 SGLang 3 Sparks (Mia)",
-    "description": "MiaAI-Lab's pinned dev-dsv41 base profile at 64b02dea8681fb1d8e3a659ea432a8e9e9ba3995: native MXFP4 experts, DSpark 5 and NVMe Engram on 3 Sparks. Uses the creator's base image and adapters, including SM121 attention and chat-history repair. All ranks read Controller-managed local checkpoint files; the upstream row store reads Engram directly from those immutable files. Does not use host NFS, packed Engram copies, display-reservation memory or the optional canary RoCEnante image. Memory and throughput remain upstream estimates; physical Spark acceptance is unmeasured.",
+    "description": "MiaAI-Lab's pinned dev-dsv41 base profile at 64b02dea8681fb1d8e3a659ea432a8e9e9ba3995: native MXFP4 experts, DSpark 5 and NVMe Engram on 3 Sparks. Uses the creator's base image and adapters, including SM121 attention and chat-history repair. All ranks read Controller-managed local checkpoint files; the upstream row store reads Engram directly from those immutable files. Does not use host NFS, packed Engram copies, display-reservation memory or the optional canary RoCEnante image. Memory and throughput remain upstream estimates; physical Spark acceptance is unmeasured. Memory by need (unproven): estimated 178,769,991,411 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
     "tags": [
       "deepseek",
       "1017",
@@ -15,7 +15,8 @@
       "vision",
       "reasoning",
       "tool-use",
-      "spark"
+      "spark",
+      "does-not-fit"
     ],
     "alignment": "unspecified"
   },
@@ -1005,7 +1006,8 @@
       },
       {
         "name": "mem-fraction-static",
-        "value": 0.95
+        "value": "0.95",
+        "setting": null
       },
       {
         "name": "chunked-prefill-size",
@@ -1045,7 +1047,8 @@
       },
       {
         "name": "max-total-tokens",
-        "value": 750000
+        "value": 8192,
+        "setting": null
       },
       {
         "name": "fp8-gemm-backend",
@@ -1061,11 +1064,18 @@
       },
       {
         "name": "context-length",
-        "setting": "context_tokens"
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-running-requests",
-        "setting": "concurrency"
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "disable-cuda-graph",
+        "setting": null,
+        "value": true
       }
     ],
     "environment": [
@@ -1200,8 +1210,8 @@
         "endpoint_owner": true,
         "resources": {
           "memory": {
-            "peak_bytes": 124000000000,
-            "reserve_bytes": 6000000000
+            "peak_bytes": 178769991411,
+            "reserve_bytes": 17179869184
           },
           "disk": {
             "image_bytes": 40000000000,
@@ -1217,8 +1227,8 @@
         "endpoint_owner": false,
         "resources": {
           "memory": {
-            "peak_bytes": 124000000000,
-            "reserve_bytes": 6000000000
+            "peak_bytes": 178769991411,
+            "reserve_bytes": 17179869184
           },
           "disk": {
             "image_bytes": 40000000000,
@@ -1305,11 +1315,11 @@
     "knobs": {},
     "kind": "generation",
     "context_tokens": {
-      "value": 262144,
+      "value": 8192,
       "change_effect": "restart"
     },
     "concurrency": {
-      "value": 4,
+      "value": 1,
       "change_effect": "restart"
     }
   },
