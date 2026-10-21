@@ -97,7 +97,7 @@ class WanDancerAuthorityTests(unittest.TestCase):
         )
         self.assertEqual(recipe["topology"]["node_count"], 1)
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(memory["peak_bytes"], 120000000000)
+        self.assertEqual(memory["peak_bytes"], 106132436089)
         self.assertEqual(memory["reserve_bytes"], 8000000000)
         runtime = recipe["runtime"]
         self.assertEqual(
@@ -214,22 +214,23 @@ class WanDancerAuthorityTests(unittest.TestCase):
 
 
 class WanDancerInputTests(unittest.TestCase):
-    def test_generation_canvas_accepts_portrait_and_landscape_720p(self) -> None:
+    def test_generation_canvas_binds_smaller_creator_dimensions(self) -> None:
         runner = load_runner()
-
+        self.assertEqual(runner._generation_dimensions({}), (512, 512))
         self.assertEqual(
-            runner._generation_dimensions({"height": 720, "width": 1280}),
-            (720, 1280),
+            runner._generation_dimensions({"height": 720, "width": 352}), (720, 352)
         )
         self.assertEqual(
-            runner._generation_dimensions({"height": 1280, "width": 720}),
-            (1280, 720),
+            runner._generation_dimensions({"height": 512, "width": 512}), (512, 512)
         )
+        for height, width in ((720, 1280), (1280, 720)):
+            with self.assertRaisesRegex(ValueError, "at most 262144 pixels"):
+                runner._generation_dimensions({"height": height, "width": width})
 
     def test_generation_canvas_rejects_1280_square(self) -> None:
         runner = load_runner()
 
-        with self.assertRaisesRegex(ValueError, "at most 921600 pixels"):
+        with self.assertRaisesRegex(ValueError, "at most 262144 pixels"):
             runner._generation_dimensions({"height": 1280, "width": 1280})
 
     def test_expected_output_is_derived_from_reference_aspect_and_music(self) -> None:

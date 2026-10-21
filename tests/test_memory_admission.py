@@ -4,7 +4,7 @@ import ast
 from pathlib import Path
 
 import pytest
-from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
     evaluate_memory_admission,
@@ -68,11 +68,16 @@ def test_recipe_guard_delegates_even_for_historical_content(monkeypatch) -> None
         )
 
 
-def test_every_recipe_declaration_fits_its_target_pool() -> None:
+def test_unrecorded_declarations_fit_the_idle_target_pool() -> None:
+    import json
+
+    inputs = memory_need.load_inputs()
     for path in (ROOT / "recipes").glob("*.json"):
-        memory_need.require_admissible_declaration(
-            RecipeDefinition.model_validate_json(path.read_text())
-        )
+        document = json.loads(path.read_text())
+        recipe = RecipeDefinition.model_validate(document)
+        if memory_need.unchanged_recipe(recipe, document_sha256(document), inputs):
+            continue
+        memory_need.require_admissible_declaration(recipe)
 
 
 def _delegates_without_arithmetic(source: str) -> bool:
@@ -98,7 +103,11 @@ def test_guard_rejects_a_second_admission_formula() -> None:
     assert _delegates_without_arithmetic(source)
     assert not _delegates_without_arithmetic(
         source.replace(
-            "not evaluate_memory_admission(\n                role.resources.memory.peak_bytes, pool_bytes\n            ).admissible",
+            "not evaluate_memory_admission(\n"
+            "                role.resources.memory.peak_bytes,\n"
+            "                pool_bytes,\n"
+            "                occupied_bytes=IDLE_USE_BYTES,\n"
+            "            ).admissible",
             "role.resources.memory.peak_bytes + role.resources.memory.reserve_bytes > pool_bytes",
         )
     )

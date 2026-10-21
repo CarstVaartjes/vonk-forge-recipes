@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 
 from qualification.memory_need import (
     IDLE_AVAILABLE_BYTES,
@@ -142,7 +143,7 @@ def test_catalog_checks_each_supported_document() -> None:
 def test_original_deferral_fails_before_any_controller_operation(rank: int) -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
     recipe.topology.roles[rank].resources.memory.peak_bytes = 124_000_000_000
-    with pytest.raises(ValueError, match="declared peak plus reserve"):
+    with pytest.raises(ValueError, match="not admissible"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
 
 
@@ -155,18 +156,48 @@ def test_static_budget_drift_cannot_hide_behind_a_smaller_declaration() -> None:
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
 
 
-def test_admission_uses_the_owned_host_baseline_once_and_checks_reserve() -> None:
+def test_repaired_deferral_uses_shared_admission_with_owned_idle_host() -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
-    # The deferral's host use is lower than the owner's historical baseline.
     assert 4_515_061_760 < IDLE_USE_BYTES
     assert IDLE_AVAILABLE_BYTES == TOTAL_BYTES - IDLE_USE_BYTES
     for role in recipe.topology.roles:
-        role.resources.memory.reserve_bytes = OS_FLOOR_BYTES
-        role.resources.memory.peak_bytes = IDLE_AVAILABLE_BYTES - OS_FLOOR_BYTES
+        assert role.resources.memory.peak_bytes == 92_405_678_632
+        assert evaluate_memory_admission(
+            role.resources.memory.peak_bytes, TOTAL_BYTES, occupied_bytes=IDLE_USE_BYTES
+        ).admissible
+        # Informational reserve is not another claim in the shared predicate.
+        role.resources.memory.reserve_bytes = TOTAL_BYTES
     require_admissible_declaration(recipe)
-    recipe.topology.roles[1].resources.memory.reserve_bytes += 1
-    with pytest.raises(ValueError, match="worker.*declared peak plus reserve"):
+    recipe.topology.roles[1].resources.memory.peak_bytes = (
+        IDLE_AVAILABLE_BYTES - OS_FLOOR_BYTES + 1
+    )
+    with pytest.raises(ValueError, match="worker.*not admissible"):
         require_admissible_declaration(recipe)
+
+
+def test_recorded_content_precedes_admission(monkeypatch) -> None:
+    from qualification import memory_need
+
+    recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
+    document = json.loads(
+        (ROOT / "recipes" / f"{recipe.identity.slug}.json").read_text()
+    )
+    digest = document_sha256(document)
+    inputs = load_inputs()
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    inputs.historical_documents[key] = [digest]
+    calls = []
+
+    def reject(*args, **kwargs):
+        calls.append((args, kwargs))
+        return evaluate_memory_admission(1, 0)
+
+    monkeypatch.setattr(memory_need, "evaluate_memory_admission", reject)
+    assert require_memory_need(recipe, {}, inputs, document_digest=digest) is None
+    assert not calls
+    with pytest.raises(ValueError, match="not admissible"):
+        require_memory_need(recipe, {}, inputs, document_digest="")
+    assert calls
 
 
 def test_wrapper_cache_alias_counts_toward_actual_rank_demand() -> None:

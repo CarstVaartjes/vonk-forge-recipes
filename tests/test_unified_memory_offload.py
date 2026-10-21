@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
             16_000_000_000,
             6_000_000_000,
         ),
-        ("wan-dancer-14b-pytorch-single", 16_000_000_000, 12_000_000_000),
+        ("wan-dancer-14b-pytorch-single", 12_000_000_000, 35_000_000_000),
     ],
 )
 def test_resident_smoke_includes_companions_loading_and_activations(
@@ -50,6 +50,16 @@ def test_resident_smoke_includes_companions_loading_and_activations(
                     continue  # The two stages run in separate subprocesses.
                 weights += item.size_bytes
     need = MemoryNeed(weights, 0, 0, activation_bytes + loading_bytes)
+    if slug.startswith("wan-dancer"):
+        # Separate stages retain one DiT plus ALL companions. Allow a complete
+        # duplicate of the largest checkpoint while the meta/assign loader
+        # transfers its CPU state to CUDA on the same physical memory pool.
+        assert weights == 51_132_436_089
+        assert loading_bytes > 34_490_546_744
+        assert recipe.topology.roles[0].resources.memory.peak_bytes == need.total_bytes
+        tokens = 40 * 512 * 512 // 256  # temporal padding and reference included
+        workspace = 16 * tokens * 5120 * 2 + 2 * tokens * 13824 * 4 + 500_000_000
+        assert workspace < activation_bytes
     assert need.total_bytes < need.limit_bytes
     if slug.startswith("mova"):
         assert weights == 77_672_622_000  # BOTH DiTs and all companion models.

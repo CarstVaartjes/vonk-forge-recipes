@@ -432,7 +432,6 @@ def require_memory_need(
                 raise ValueError(
                     f"{key}/{role.name}: peak_bytes must cover need {need.total_bytes}"
                 )
-        if need.total_bytes <= need.limit_bytes:
         result = need
     return result
 
