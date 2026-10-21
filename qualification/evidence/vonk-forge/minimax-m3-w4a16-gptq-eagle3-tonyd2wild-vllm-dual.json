@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "11ecddb9be15c7b0910906cb3778fadd96f1ae6c0362a1897697f61adcc53532",
+        "model_digests": [
+          "81c22cf5dd5213987aa85506febfa89042a70f0dfbf99e9f17fe3e0b5666d39d",
+          "b864417bf7f37c45dff02074329b78748eaabab9ab6d7492112e748ad84b4049"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "fd20a0a137432557d98ba3c18a5d4be75b3f87eb31292c23e426d9e83292701b"
+      ],
+      "tested_at": "2026-10-21T18:33:33.202122Z",
+      "platform": {
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
