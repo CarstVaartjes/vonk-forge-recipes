@@ -395,6 +395,33 @@ def published_status(
     if required_sparks is None:
         raise ValueError("current identity requires the recipe's Spark count")
     view = derive_status(evidence, current_identity, required_sparks, False)
+    if view.status == QualificationStatus.WORKING:
+        # A later successful test with incomplete telemetry does not erase a
+        # complete proof. A recipe failure on this identity invalidates older
+        # proofs; a partial pass after that failure cannot revive them publicly.
+        failures = [
+            r.tested_at
+            for r in evidence.records
+            if r.identity == current_identity and r.blame == QualificationBlame.RECIPE
+        ]
+        failed_at = max(failures) if failures else None
+        certified = [
+            r
+            for r in evidence.records
+            if r.identity == current_identity
+            and r.outcome == QualificationOutcome.PASSED
+            and r.identity.resolved
+            and r.platform.resolved
+            and (failed_at is None or r.tested_at > failed_at)
+        ]
+        if certified:
+            view = view.model_copy(
+                update={
+                    "last_pass": max(
+                        certified, key=lambda r: (r.tested_at, r.model_dump_json())
+                    )
+                }
+            )
     reason = view.reason
     if view.status == QualificationStatus.UNTESTED and required_sparks > 1:
         # Describe the required topology without publishing our enrollment.

@@ -92,7 +92,9 @@ The sweep's background `tools/sync-qualification-evidence` batches evidence onto
 requests auto-merge. Each attempt has bounded subprocess waits; failures are
 visible on the status page and in `evidence-publisher/publisher.log`. A competing
 push re-plans from a fresh disposable clone on the next batch. GitHub cannot
-block lanes. `--no-publish-evidence` disables this optional transport. Never run
+block lanes. Keep an open PR's head stable through CI and auto-merge; new results
+accumulate in history until it merges. A behind or conflicted PR gets a fresh
+merge plan. `--no-publish-evidence` disables this optional transport. Never run
 it against a production sweep unless that task explicitly authorizes writing.
 Publication computes every recipe's public view from release identities and
 includes it in the normally signed catalog; publication is not hardware proof.

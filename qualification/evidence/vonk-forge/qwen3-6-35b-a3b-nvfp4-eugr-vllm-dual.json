@@ -71,9 +71,7 @@
         "spark_count": 2,
         "topology": "multi"
       },
-      "quality_notes": [
-        "Model output differed from the expected answer"
-      ]
+      "quality_notes": []
     },
     {
       "identity": {
@@ -96,9 +94,7 @@
         "spark_count": 2,
         "topology": "multi"
       },
-      "quality_notes": [
-        "Model output differed from the expected answer"
-      ]
+      "quality_notes": []
     }
   ]
 }

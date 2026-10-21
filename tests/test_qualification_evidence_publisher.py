@@ -17,9 +17,10 @@ def test_sync_batches_one_pr_requests_auto_merge_and_replans_after_push_race(
     history.write_text(json.dumps(historical()) + "\n")
     calls = []
     fail_push = True
+    pushed = False
 
     def command(cwd, *args, timeout=60):
-        nonlocal fail_push
+        nonlocal fail_push, pushed
         calls.append(args)
         assert timeout <= 120
         if args[:2] == ("git", "clone"):
@@ -31,8 +32,10 @@ def test_sync_batches_one_pr_requests_auto_merge_and_replans_after_push_race(
         if args[:2] == ("git", "push") and fail_push:
             fail_push = False
             raise subprocess.CalledProcessError(1, args, stderr="push raced")
+        if args[:2] == ("git", "push"):
+            pushed = True
         if args[:3] == ("gh", "pr", "list"):
-            return '[{"number": 123}]'
+            return '[{"number": 123}]' if pushed else "[]"
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
@@ -50,11 +53,18 @@ def test_empty_batch_never_opens_pr(tmp_path, monkeypatch):
     history = tmp_path / "results.jsonl"
     history.write_text("")
     calls = []
-    monkeypatch.setattr(
-        publisher, "command", lambda cwd, *args, **kw: calls.append(args) or ""
-    )
+
+    def command(cwd, *args, **kwargs):
+        calls.append(args)
+        return "[]" if args[:3] == ("gh", "pr", "list") else ""
+
+    monkeypatch.setattr(publisher, "command", command)
     publisher.sync(history, tmp_path / "work")
-    assert not any(c[0] == "gh" or c[:2] == ("git", "push") for c in calls)
+    assert not any(
+        c[:3] in (("gh", "pr", "create"), ("gh", "pr", "merge"))
+        or c[:2] == ("git", "push")
+        for c in calls
+    )
 
 
 def test_lane_tick_never_waits_on_github_and_timeout_is_visible(tmp_path, monkeypatch):
@@ -110,8 +120,10 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
     row["recorded_at"] = (NOW + timedelta(days=2)).isoformat()
     history.write_text(json.dumps(row) + "\n")
     observed = []
+    lists = 0
 
     def command(cwd, *args, **kwargs):
+        nonlocal lists
         if args[:2] == ("git", "clone"):
             clone = Path(args[-1])
             (clone / ".git").mkdir()
@@ -126,7 +138,8 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
         if args[:3] == ("git", "diff", "--cached"):
             return "qualification/evidence/vonk-forge/example.json"
         if args[:3] == ("gh", "pr", "list"):
-            return '[{"number":123}]'
+            lists += 1
+            return "[]" if lists == 1 else '[{"number":123}]'
         return ""
 
     def merge(args, *, cwd, **kwargs):
@@ -163,3 +176,32 @@ def test_publisher_spawn_failure_is_visible_and_never_escapes_to_lanes(
     assert len(attempts) == 1
     worker.tick(300)
     assert len(attempts) == 2
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        publisher.SweepEvidenceMergeState.BLOCKED,
+        publisher.SweepEvidenceMergeState.CLEAN,
+        publisher.SweepEvidenceMergeState.UNKNOWN,
+    ],
+)
+def test_open_pr_has_a_quiet_head_for_ci_and_auto_merge(tmp_path, monkeypatch, state):
+    history = tmp_path / "results.jsonl"
+    history.write_text(json.dumps(historical()) + "\n")
+    before = history.read_bytes()
+    calls = []
+
+    def command(cwd, *args, **kwargs):
+        calls.append(args)
+        if args[:3] == ("gh", "pr", "list"):
+            return '[{"number":123}]'
+        if args[:3] == ("gh", "pr", "view"):
+            return json.dumps({"number": 123, "mergeStateStatus": state})
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    assert publisher.sync(history, tmp_path / "work") is False
+    assert not any(c[0] == "git" for c in calls)
+    assert any(c[:3] == ("gh", "pr", "merge") and "--auto" in c for c in calls)
+    assert history.read_bytes() == before

@@ -13,7 +13,8 @@ import time
 from pathlib import Path
 from typing import TextIO
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+from vonk_forge_contracts.sweep import SweepEvidenceExit, SweepEvidenceMergeState
 
 from .qualification import backfill, merge_evidence, read_evidence, write_evidence
 
@@ -30,6 +31,10 @@ class EvidencePublicationTimeout(TimeoutError):
 class PullRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
     number: int
+    # Unknown provider states keep the current batch stable until it merges.
+    merge_state: str = Field(
+        default=SweepEvidenceMergeState.UNKNOWN, alias="mergeStateStatus"
+    )
 
 
 def command(cwd: Path, *args: str, timeout: int = 60) -> str:
@@ -44,11 +49,65 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-def sync(history: Path, directory: Path) -> None:
+def sync(history: Path, directory: Path) -> bool:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
     _deadline = time.monotonic() + 240
     directory.mkdir(parents=True, exist_ok=True)
+    opened = json.loads(
+        command(
+            directory,
+            "gh",
+            "pr",
+            "list",
+            "--repo",
+            REPOSITORY,
+            "--head",
+            BRANCH,
+            "--state",
+            "open",
+            "--json",
+            "number",
+        )
+    )
+    if len(opened) > 1:
+        raise RuntimeError("multiple qualification evidence PRs; needs repair")
+    if opened:
+        pr = PullRequest.model_validate(opened[0])
+        details = PullRequest.model_validate_json(
+            command(
+                directory,
+                "gh",
+                "pr",
+                "view",
+                str(pr.number),
+                "--repo",
+                REPOSITORY,
+                "--json",
+                "number,mergeStateStatus",
+            )
+        )
+        if details.merge_state not in (
+            SweepEvidenceMergeState.BEHIND,
+            SweepEvidenceMergeState.DIRTY,
+        ):
+            command(
+                directory,
+                "gh",
+                "pr",
+                "merge",
+                str(pr.number),
+                "--repo",
+                REPOSITORY,
+                "--auto",
+                "--squash",
+            )
+            print(
+                f"evidence: PR #{pr.number} awaiting CI/auto-merge; new results remain in history",
+                flush=True,
+            )
+            return False
+        # Conflicts or required base updates get a fresh clone and a new plan.
     with tempfile.TemporaryDirectory(
         prefix="qualification-", dir=directory
     ) as temporary:
@@ -124,7 +183,7 @@ def sync(history: Path, directory: Path) -> None:
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
         ):
-            return  # merged evidence or an empty batch never creates an empty PR
+            return True  # merged evidence or an empty batch never creates an empty PR
         changed = command(clone, "git", "diff", "--cached", "--name-only")
         merging = (clone / ".git/MERGE_HEAD").exists()
         if changed or merging:
@@ -138,7 +197,7 @@ def sync(history: Path, directory: Path) -> None:
             )
             command(clone, "git", "push", "origin", f"HEAD:refs/heads/{BRANCH}")
         elif not remote:
-            return
+            return True
         opened = json.loads(
             command(
                 clone,
@@ -203,6 +262,7 @@ def sync(history: Path, directory: Path) -> None:
             "--squash",
         )
         print(f"evidence: PR #{pr.number}, auto-merge requested", flush=True)
+        return True
 
 
 class EvidencePublisher:
@@ -228,8 +288,10 @@ class EvidencePublisher:
                 return
             self.process.wait(timeout=1)
             self.message = (
-                "evidence batch submitted"
-                if code == 0
+                "evidence sync complete"
+                if code == SweepEvidenceExit.SYNCED
+                else "evidence PR awaiting CI/auto-merge; new results queued; check in 300s (see publisher.log)"
+                if code == SweepEvidenceExit.WAITING
                 else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
             )
             if self._output is not None:

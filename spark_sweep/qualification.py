@@ -44,6 +44,14 @@ class HistoricalIdentity(BaseModel):
     model_digests: tuple[str, ...] | None = None
 
 
+class HistoricalQualityCheck(BaseModel):
+    ok: bool
+
+
+class HistoricalSmokeResult(BaseModel):
+    quality: tuple[HistoricalQualityCheck, ...] = ()
+
+
 class HistoricalResult(BaseModel):
     """Input projection only. Infrastructure fields are counted, never copied."""
 
@@ -58,8 +66,8 @@ class HistoricalResult(BaseModel):
     agent_version: str | None = None
     node_count: int | None = Field(default=None, ge=1)
     node_ids: tuple[str, ...] = ()
-    quality: list[Any] = Field(default_factory=list)
-    result: dict[str, Any] = Field(default_factory=dict)
+    quality: tuple[HistoricalQualityCheck, ...] = ()
+    result: HistoricalSmokeResult = Field(default_factory=HistoricalSmokeResult)
     failure_class: str | None = None
     code: str | None = None
 
@@ -211,7 +219,7 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         ),
         evidence_refs=(reference,),
         quality_notes=(QualificationQualityNote.ANSWER_VARIANCE,)
-        if row.quality or row.result.get("quality")
+        if any(not check.ok for check in (*row.quality, *row.result.quality))
         else (),
     )
 

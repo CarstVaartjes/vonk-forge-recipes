@@ -277,6 +277,16 @@ def historical():
     }
 
 
+@pytest.mark.parametrize("ok", [True, False])
+def test_only_missed_quality_checks_become_public_notes(ok):
+    row = historical()
+    row["result"] = {"quality": [{"ok": ok, "got": "private model answer"}]}
+    imported = from_history(row)
+    assert imported is not None
+    assert bool(imported.quality_notes) is not ok
+    assert "private model answer" not in imported.model_dump_json()
+
+
 def test_backfill_rotations_idempotent_read_only_and_sanitized(tmp_path):
     old, current = tmp_path / "results.jsonl.old", tmp_path / "results.jsonl"
     row = historical()
@@ -589,3 +599,35 @@ def test_missing_historical_topology_stays_unknown_and_roundtrips():
         derive_status(
             evidence(), A.model_copy(update={"required_sparks": None}), 2, False
         )
+
+
+@pytest.mark.parametrize(
+    "suffix",
+    [
+        record(day=1),
+        record(A, Outcome.FAILED, Blame.PLATFORM, day=1),
+        record(B, Outcome.FAILED, Blame.RECIPE, day=1),
+        record(B, day=1),
+    ],
+)
+def test_incomplete_later_telemetry_never_erases_complete_working_proof(suffix):
+    incomplete = suffix.model_copy(
+        update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
+    )
+    proven = record()
+    view = published_status(evidence(proven, incomplete), A)
+    assert view.status == Status.WORKING
+    assert view.last_pass == proven
+
+
+def test_partial_pass_after_recipe_failure_cannot_revive_an_invalidated_public_proof():
+    failed = record(A, Outcome.FAILED, Blame.RECIPE, day=1)
+    partial = record(day=2).model_copy(
+        update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
+    )
+    history = evidence(record(), failed, partial)
+    assert published_status(history, A).status == Status.NOT_YET_VERIFIED
+    assert (
+        published_status(evidence(*history.records, record(day=3)), A).status
+        == Status.WORKING
+    )

@@ -162,9 +162,7 @@
         "spark_count": 1,
         "topology": "single"
       },
-      "quality_notes": [
-        "Model output differed from the expected answer"
-      ]
+      "quality_notes": []
     },
     {
       "identity": {
@@ -188,9 +186,7 @@
         "spark_count": 1,
         "topology": "single"
       },
-      "quality_notes": [
-        "Model output differed from the expected answer"
-      ]
+      "quality_notes": []
     }
   ]
 }
