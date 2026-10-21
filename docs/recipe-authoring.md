@@ -1079,6 +1079,13 @@ change invalidates an unchanged recipe's old build and verdict, including
 recipes built on a Spark without a published image. Acceptance revalidates that
 context identity so a concurrent library refresh requires a fresh plan.
 
+Roll out this format by publishing the signed library first, then deploying
+the Controller that requires the context identity. The preceding Controller
+accepts the additional index and manifest fields and derives the same context
+identity at ingress; the new Controller rejects a publication missing that
+identity. Verify the new library syncs on the running Controller before its
+upgrade. Keep one current contract; this deploy order needs no alternate reader.
+
 The qualification authority is derived, never committed. Coverage builds it in
 memory from the generated catalog; `tools/build-qualification-authority` can
 write it with `--output-dir`. Author its inputs as specified in section 5.

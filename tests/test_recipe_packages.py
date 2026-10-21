@@ -325,7 +325,7 @@ def test_ds4_multistage_package_manifests_both_digest_pinned_base_images(
     ]
 
 
-def test_adapter_only_change_is_published_as_new_source_identity(tmp_path, monkeypatch):
+def test_adapter_only_change_is_published_as_new_source_identity(monkeypatch):
     # Guard the actual producer boundary: source repairs must be visible before
     # hydration even when recipe JSON and the set of base images stay identical.
     namespace = TOOL["recipe_package"].__globals__
@@ -333,18 +333,20 @@ def test_adapter_only_change_is_published_as_new_source_identity(tmp_path, monke
         (ROOT / "recipes/skintokens-pytorch-single.json").read_bytes()
     )
     original = namespace["_recipe_closure"]
-    _archive, first = TOOL["recipe_package"](document)
+    first_archive, first = TOOL["recipe_package"](document)
     closure = original(
         document,
         ROOT / "recipes/skintokens-pytorch-single.json",
         TOOL["_catalog_entity_documents"](),
     )
-    dockerfile = document["execution"]["build"]["dockerfile"]
+    adapter = document["execution"]["build"]["context"]["path"] + "/run.py"
+    assert adapter in dict(closure)
     changed = [
-        (name, data + b"\n# adapter repair\n" if name == dockerfile else data)
+        (name, data + b"\n# adapter repair\n" if name == adapter else data)
         for name, data in closure
     ]
     monkeypatch.setitem(namespace, "_recipe_closure", lambda *args: changed)
-    _archive, second = TOOL["recipe_package"](document)
+    second_archive, second = TOOL["recipe_package"](document)
+    assert first_archive != second_archive
     assert first["recipe_content_sha256"] == second["recipe_content_sha256"]
     assert first["source_bundle_sha256"] != second["source_bundle_sha256"]
