@@ -15,9 +15,13 @@ LABEL org.opencontainers.image.source="https://github.com/0xSero/DeepSeek-V4.1-F
       ai.vonkforge.runtime-interface="v1"
 
 COPY LICENSE /opt/vonk/LICENSE.upstream
+COPY LICENSE.b12x /opt/vonk/LICENSE.b12x
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
-RUN test -x /usr/local/bin/vllm \
+COPY _ple_reader.c /opt/vonk/_ple_reader.c
+
+RUN python3 -c "from pathlib import Path; import b12x.loader; p = Path(b12x.loader.__file__).parent / '_ple_reader.c'; assert p.is_file(); p.write_bytes(Path('/opt/vonk/_ple_reader.c').read_bytes())" \
+    && test -x /usr/local/bin/vllm \
     && install --directory --mode=0755 /outputs \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi \
