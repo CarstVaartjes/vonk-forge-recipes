@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-exl3-6-05bpw-tournierjc-tensorfold-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "4b1408a1bc2778003c998908cbebb3ec47205f0a98befd6e913fe241eded1247",
+        "runtime_image": {
+          "build_key": "a4ad041869312b3774d93b5ae1409388669e520f59018f2e561e7e04bd488c0d",
+          "image_digest": "sha256:3297c4bc308a851e50d5289b0e77353e26c62eda046f36cb1a2997a3ec572a40"
+        },
+        "model_digests": [
+          "4ab95bfe1af1af5284b3984dcf19790723fcae1c729205d23d1777568000469b"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "f12e3f621e9788453b4e8cf2260c87ab57d1dfedb6ac9f88086da1f2ba66a7b8"
+      ],
+      "tested_at": "2026-10-21T19:58:42.518131Z",
+      "platform": {
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
