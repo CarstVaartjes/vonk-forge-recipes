@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-0731-ds4-dspark-latency-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "1114518165b7d0abc4ac1223a1c4330fef6fc4dfac8b587f196f076d2edd6329",
+        "runtime_image": {
+          "build_key": "271845bf1c99f2a95ed7f4288f1d2c57752b8c5b19e033d7c61a6e1224153d2c",
+          "image_digest": "sha256:3fc613ed6f8af875e82a0844c8f4eec2ad499cda8805db5446527cfb37bdd4b1"
+        },
+        "model_digests": [
+          "22859b6f9d0634714c6753defcef24ffaeca8828bf68e7a1f9cf4303c07f606d"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "e97bc9af02cc3b2f2f6e9a88b97e0cd5e04adc41f1bfd42d3eb52acbdc704688"
+      ],
+      "tested_at": "2026-10-21T12:53:53.374992Z",
+      "platform": {
+        "controller_source_sha": "20aa759b554738c96fddf058a104e2b9f5c1ed2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
