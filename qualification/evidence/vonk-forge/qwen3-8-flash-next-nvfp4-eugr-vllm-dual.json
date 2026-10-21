@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-nvfp4-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "70f166446da9baea9a817d0be42ae69db021b330b707a06bd9dd57c2918347ee",
+        "runtime_image": {
+          "build_key": "22a487915de610874b9f03ef1fcf0e9dd6b2c9d6c4fd0c6ec4432d4398716b39",
+          "image_digest": "sha256:7ac40fac0a60f81e967901aca0c2a746d787c6cf5b306b3b6ed90e7615cf8010"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "d29784804771421f936f691a106eb811dfc8cc9e18254d23ac0bdd3c88384244"
+      ],
+      "tested_at": "2026-10-21T23:28:32.692447Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
