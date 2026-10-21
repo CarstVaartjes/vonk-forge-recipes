@@ -182,7 +182,7 @@ tools/sweep-recipes file-issues --dry-run
 
 `plan` reads the catalog/fleet and estimates unique bytes/order. `run` accepts
 `--only`, `--limit`, `--spark`, `--seed-list` (JSON slugs), `--boost`,
-`--retry-failed`, `--watch`, `--no-revalidate` and `--revalidate-passes`.
+`--retry-failed`, `--watch` and `--no-revalidate`.
 Use `--job-recipes` only when the deployed Controller supports job profile
 members; otherwise job recipes are skipped before consuming a lane.
 Read `spark_sweep/cli.py` or `--help` for current defaults.
@@ -290,11 +290,10 @@ of an expired key (`tests/test_sweep_auth_refusal.py`,
 `tests/test_sweep_verdicts.py`, `tests/test_sweep_load_blame.py`). What the smoke
 actually executes is specified once in the authoring guide below.
 
-Verdicts bind recipe content, image build key/digest and Model digests. Changed
-content/images requeue; newest publication is considered first. Unknown image
-identity stays unknown: library commit is a conservative invalidator for
-failed/deferred outcomes; passed outcomes need `--revalidate-passes` for that
-fallback-only change. `--no-revalidate` preserves old passes on content changes.
+Qualification evidence binds recipe content, known image build key/digest and
+Model digests. Requeues, exact-identity revert restoration and `--retry-failed`
+use `derive_status` only. Library publication alone is not a content change.
+`--no-revalidate` preserves old passes on content changes.
 Keep prior verdicts visible while retesting. Record deployed API provenance
 separately from signed publication and CLI versions; a publication does not
 prove deployment. Automatic fault recovery requires an exact typed fault and

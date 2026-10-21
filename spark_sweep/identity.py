@@ -20,8 +20,8 @@ class VerdictIdentity(BaseModel):
     content_sha256: str
     runtime_image: RuntimeImageIdentity | None = None
     model_digests: tuple[str, ...]
-    # Older Controllers omit the pin. Invalidate conservatively on any library
-    # publication for failed/deferred verdicts; passes require explicit opt-in.
+    # Unknown image pins bind accepted work conservatively to its library for
+    # cache/request matching. Qualification decisions use evidence, not this key.
     # Never substitute the Docker base image.
     image_library_commit: str | None = None
 
@@ -42,41 +42,13 @@ def recorded_identity(entry: Mapping[str, Any]) -> VerdictIdentity | None:
     return VerdictIdentity.model_validate(value) if value is not None else None
 
 
-def verdict_matches(
-    entry: Mapping[str, Any], recipe: Recipe, *, ignore_library_commit: bool = False
-) -> bool:
+def verdict_matches(entry: Mapping[str, Any], recipe: Recipe) -> bool:
     identity = content_identity(recipe)
     recorded = recorded_identity(entry)
-    if ignore_library_commit and recorded is not None:
-        recorded = recorded.model_copy(update={"image_library_commit": None})
-        identity = identity.model_copy(update={"image_library_commit": None})
     return (
         recorded == identity
         and entry.get("content_sha256", identity.content_sha256)
         == identity.content_sha256
-    )
-
-
-def legacy_image_unknown(entry: Mapping[str, Any], recipe: Recipe) -> bool:
-    """Missing image evidence alone does not disprove a content verdict.
-
-    Legacy content hashes also bind the recipe's model references. Compare any
-    independently recorded model digests too, rather than masking known changes.
-    """
-    recorded = recorded_identity(entry)
-    current = content_identity(recipe)
-    if entry.get("content_sha256") != current.content_sha256:
-        return False
-    models = entry.get("model_digests")
-    if models is not None and tuple(sorted(set(models))) != current.model_digests:
-        return False
-    if recorded is None:
-        return True
-    return (
-        recorded.runtime_image is None
-        and current.runtime_image is not None
-        and recorded.content_sha256 == current.content_sha256
-        and recorded.model_digests == current.model_digests
     )
 
 

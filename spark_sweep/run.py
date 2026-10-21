@@ -78,6 +78,7 @@ from .owner import OwnerGuard, OwnerStatus
 from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
 from .qualification import (
+    current_identity,
     from_history,
     local_status,
     merge_evidence,
@@ -219,7 +220,6 @@ class SweepConfig:
     limit: int = 0
     variants_last: bool = False
     revalidate_passes: bool = True
-    revalidate_library_passes: bool = False
     restore_owner: int | None = None
     stop_at_end: bool = True
     watch_seconds: float = 0.0
@@ -330,7 +330,14 @@ class Sweep:
         self._wait_event_at = -1e18
         # The latest Controller document of each load (by request key): evidence for its rows.
         self.documents: dict[str, Mapping[str, Any]] = {}
-        self.qualification_evidence: dict[str, RecipeQualificationEvidence] = {}
+        self.retry_failed_pending = config.retry_failed
+        self.qualification_evidence = {
+            key: merge_evidence(
+                read_evidence(Path(__file__).resolve().parents[1], key),
+                RecipeQualificationEvidence.model_validate(value),
+            )
+            for key, value in state.data.get("qualification_evidence", {}).items()
+        }
         self.evidence_publisher = EvidencePublisher(
             log.path,
             config.state_dir / "evidence-publisher",
@@ -349,7 +356,11 @@ class Sweep:
             previous = self.qualification_evidence.get(key) or read_evidence(
                 Path(__file__).resolve().parents[1], key
             )
-            self.qualification_evidence[key] = merge_evidence(previous, evidence)
+            merged = merge_evidence(previous, evidence)
+            self.qualification_evidence[key] = merged
+            self.state.data.setdefault("qualification_evidence", {})[key] = (
+                merged.model_dump(mode="json")
+            )
         except (ValueError, TypeError, OSError) as error:
             self.state.event(
                 f"qualification evidence unavailable: {type(error).__name__}"
@@ -756,9 +767,20 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
-        why = policy.requeue_reason(
-            entry, recipe, revalidate_library_passes=self.cfg.revalidate_library_passes
-        )
+        why = None
+        if view is not None:
+            why = {
+                QualificationStatus.RECHECK: RetestReason.PASSED_OLDER_REVISION,
+                QualificationStatus.FIX_TO_VERIFY: RetestReason.FAILED_OLDER_REVISION,
+            }.get(view.status)
+            if (
+                view.status == QualificationStatus.BLOCKED_PLATFORM
+                and view.last_failure is not None
+                and view.last_failure.identity != current_identity(recipe)
+            ):
+                why = RetestReason.DEFERRED_OLDER_REVISION
+        if entry.get("status") == RecipeStatus.PENDING:
+            return
         if why is None:
             return
         if why == RetestReason.PASSED_OLDER_REVISION and not self.cfg.revalidate_passes:
@@ -796,7 +818,7 @@ class Sweep:
             },
         )
         entry.update(
-            status="pending",
+            status=RecipeStatus.PENDING,
             attempts=0,
             revalidate=why == RetestReason.PASSED_OLDER_REVISION,
             requeued_because=why,
@@ -830,9 +852,12 @@ class Sweep:
             key=lambda recipe: (
                 scheduling_priority(view)
                 if (view := self.qualification_view(recipe)) is not None
-                else 3
-                if self.state.entry(recipe.key).get("revalidate")
-                else 1
+                else scheduling_priority(
+                    QualificationStatusView(
+                        status=QualificationStatus.UNTESTED,
+                        required_sparks=recipe.node_count,
+                    )
+                )
             )
         )
         if self.cfg.limit:
@@ -972,6 +997,9 @@ class Sweep:
     def _tick(self) -> None:
         now = self.clock.now()
         self.advance_catalog(now)
+        if self.retry_failed_pending and self.catalog_loaded:
+            self.requeue_failed()
+            self.retry_failed_pending = False
         self.observe_lanes()
         self.check_release(now)
         if self.cfg.watch_seconds > 0:
@@ -1447,14 +1475,20 @@ class Sweep:
     def requeue_failed(self) -> int:
         """``--retry-failed``: every failed recipe (within ``--only``), whatever the cause."""
         keys = [
-            key
-            for key, entry in self.state.recipes.items()
-            if entry.get("status") in ("failed", "deferred")
-            and self._selected_key(key)
-            and not (
-                key in self.recipes
-                and (view := self.qualification_view(self.recipes[key])) is not None
-                and view.status == QualificationStatus.WORKING
+            recipe.key
+            for recipe in self.recipes.values()
+            if self._selected(recipe)
+            and (view := self.qualification_view(recipe)) is not None
+            and view.status
+            in (
+                QualificationStatus.FAILED_RECIPE,
+                QualificationStatus.FIX_TO_VERIFY,
+                QualificationStatus.BLOCKED_PLATFORM,
+            )
+            and self.state.status(recipe.key) != RecipeStatus.PENDING
+            and (
+                recipe.key not in self.state.slots
+                or self.state.slots[recipe.key].get("phase") == SweepSlotPhase.FINISHED
             )
         ]
         for key in keys:
@@ -1557,8 +1591,6 @@ class Sweep:
             self.requeue_for_rules()
             self.requeue_superseded_failures()
             self.requeue_unfreed_capacity_failures()
-            if self.cfg.retry_failed:
-                self.requeue_failed()
             started = False
             for _ in itertools.count():
                 try:

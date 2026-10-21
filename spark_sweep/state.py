@@ -34,7 +34,8 @@ def _fresh() -> dict[str, Any]:
         "schema": SCHEMA,
         # Folded into every request key: a fresh state directory never replays an old run's requests.
         "nonce": uuid.uuid4().hex,
-        "recipes": {},  # key -> result entry
+        "recipes": {},  # key -> operational bookkeeping, never qualification proof
+        "qualification_evidence": {},  # adopted and newly observed evidence
         "slots": {},  # key -> a recipe currently loading, serving or smoking
         "cleanup": {},  # assignment alias -> retry metadata; never occupies a lane
         "loads": {},  # request key -> in-flight profile application
@@ -203,6 +204,13 @@ class State:
                 f"state rebuilt after {type(error).__name__}: {backup.name}"
             )
             return recovered
+        if "qualification_evidence" not in data:
+            from .qualification import adopt_state_evidence
+
+            data["qualification_evidence"] = {
+                key: evidence.model_dump(mode="json")
+                for key, evidence in adopt_state_evidence(data).items()
+            }
         merged = _fresh()
         for name, value in data.items():
             if isinstance(value, dict) and isinstance(merged.get(name), dict):

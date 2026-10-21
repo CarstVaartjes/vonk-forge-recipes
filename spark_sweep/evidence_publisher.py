@@ -16,7 +16,14 @@ from typing import TextIO
 from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts.sweep import SweepEvidenceExit, SweepEvidenceMergeState
 
-from .qualification import backfill, merge_evidence, read_evidence, write_evidence
+from .qualification import (
+    backfill,
+    catalog_recipe_keys,
+    merge_evidence,
+    prune_withdrawn_evidence,
+    read_evidence,
+    write_evidence,
+)
 
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
@@ -162,9 +169,22 @@ def sync(history: Path, directory: Path) -> bool:
                     raise RuntimeError(
                         "evidence branch has a non-evidence conflict; needs repair"
                     )
+                keys = catalog_recipe_keys(clone)
                 for name in conflicts:
-                    command(clone, "git", "checkout", "--theirs", "--", name)
+                    key = (
+                        Path(name)
+                        .relative_to("qualification/evidence")
+                        .with_suffix("")
+                        .as_posix()
+                    )
+                    if key not in keys:
+                        command(clone, "git", "rm", "--", name)
+                    else:
+                        command(clone, "git", "checkout", "--theirs", "--", name)
+            keys = catalog_recipe_keys(clone)
             for key, evidence in inherited.items():
+                if key not in keys:
+                    continue
                 write_evidence(
                     clone, merge_evidence(read_evidence(clone, key), evidence)
                 )
@@ -179,6 +199,7 @@ def sync(history: Path, directory: Path) -> bool:
                 f"evidence: rejected {result.rejected} malformed historical rows",
                 flush=True,
             )
+        prune_withdrawn_evidence(clone)
         command(clone, "git", "add", "qualification/evidence")
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"

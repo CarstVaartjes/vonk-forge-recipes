@@ -10,6 +10,14 @@ from test_qualification_status import historical
 from spark_sweep import evidence_publisher as publisher
 
 
+def seed_catalog(root):
+    source = Path(__file__).resolve().parents[1] / "recipes/qwen3-5-9b-vllm-single.json"
+    document = json.loads(source.read_text())
+    document["identity"]["slug"] = "example"
+    (root / "recipes").mkdir(exist_ok=True)
+    (root / "recipes/example.json").write_text(json.dumps(document))
+
+
 def test_sync_batches_one_pr_requests_auto_merge_and_replans_after_push_race(
     tmp_path, monkeypatch
 ):
@@ -25,6 +33,7 @@ def test_sync_batches_one_pr_requests_auto_merge_and_replans_after_push_race(
         assert timeout <= 120
         if args[:2] == ("git", "clone"):
             (Path(args[-1]) / ".git").mkdir()
+            seed_catalog(Path(args[-1]))
         if args[:3] == ("git", "diff", "origin/main"):
             return "evidence diff"
         if args[:3] == ("git", "diff", "--cached"):
@@ -56,6 +65,8 @@ def test_empty_batch_never_opens_pr(tmp_path, monkeypatch):
 
     def command(cwd, *args, **kwargs):
         calls.append(args)
+        if args[:2] == ("git", "clone"):
+            seed_catalog(Path(args[-1]))
         return "[]" if args[:3] == ("gh", "pr", "list") else ""
 
     monkeypatch.setattr(publisher, "command", command)
@@ -127,6 +138,7 @@ def test_evidence_merge_conflict_unions_both_histories(tmp_path, monkeypatch):
         if args[:2] == ("git", "clone"):
             clone = Path(args[-1])
             (clone / ".git").mkdir()
+            seed_catalog(clone)
             write_evidence(clone, evidence(record()))
         if args[:2] == ("git", "ls-remote"):
             return "remote-branch"
@@ -205,3 +217,56 @@ def test_open_pr_has_a_quiet_head_for_ci_and_auto_merge(tmp_path, monkeypatch, s
     assert not any(c[0] == "git" for c in calls)
     assert any(c[:3] == ("gh", "pr", "merge") and "--auto" in c for c in calls)
     assert history.read_bytes() == before
+
+
+def test_sync_removes_withdrawn_evidence_despite_branch_conflict_and_old_history(
+    tmp_path, monkeypatch
+):
+    from test_qualification_status import Evidence, evidence, record
+
+    from spark_sweep.qualification import evidence_path, write_evidence
+
+    key = "vonk-forge/withdrawn"
+    history = tmp_path / "results.jsonl"
+    history.write_text(json.dumps({**historical(), "recipe": key}) + "\n")
+    observed = []
+    calls = []
+    lists = 0
+
+    def command(cwd, *args, **kwargs):
+        nonlocal lists
+        calls.append(args)
+        if args[:2] == ("git", "clone"):
+            clone = Path(args[-1])
+            (clone / ".git").mkdir()
+            seed_catalog(clone)
+            write_evidence(clone, evidence(record()))
+            write_evidence(clone, Evidence(recipe_key=key, records=(record(),)))
+        if args[:2] == ("git", "ls-remote"):
+            return "remote-branch"
+        if "--diff-filter=U" in args:
+            return "qualification/evidence/vonk-forge/withdrawn.json"
+        if args[:3] == ("git", "diff", "origin/main"):
+            observed.append(evidence_path(cwd, key).exists())
+            return "removed withdrawn evidence"
+        if args[:3] == ("git", "diff", "--cached"):
+            return "qualification/evidence/vonk-forge/withdrawn.json"
+        if args[:3] == ("gh", "pr", "list"):
+            lists += 1
+            return "[]" if lists == 1 else '[{"number":123}]'
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    monkeypatch.setattr(
+        publisher.subprocess,
+        "run",
+        lambda args, **kwargs: subprocess.CompletedProcess(args, 1),
+    )
+    publisher.sync(history, tmp_path / "work")
+    assert observed == [False]
+    assert (
+        "git",
+        "rm",
+        "--",
+        "qualification/evidence/vonk-forge/withdrawn.json",
+    ) in calls

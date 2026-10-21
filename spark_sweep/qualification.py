@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Iterable, Mapping
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from vonk_forge_contracts import (
     QualificationBlame,
     QualificationCauseCode,
+    QualificationDerivationInput,
     QualificationEvidenceRecord,
     QualificationIdentity,
     QualificationOutcome,
@@ -25,6 +26,7 @@ from vonk_forge_contracts import (
     QualificationTopology,
     RecipeQualificationEvidence,
     derive_status,
+    read_recipe,
 )
 from vonk_forge_contracts.qualification_status import (
     QUALIFICATION_SUMMARIES,
@@ -224,6 +226,56 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
     )
 
 
+def adopt_state_evidence(
+    data: Mapping[str, Any],
+) -> dict[str, RecipeQualificationEvidence]:
+    """One load-time adoption of saved verdicts; never bind them to today's catalog.
+
+    Sparse requeue snapshots retain unknown provenance. The saved completion time
+    (or, if absent, the state's observation time) orders them; this is not a new
+    hardware measurement. Subsequent loads consume only the adopted evidence.
+    """
+    adopted = {
+        key: QualificationDerivationInput.model_validate(value).evidence
+        for key, value in data.get("qualification_inputs", {}).items()
+    }
+    for key, entry in data.get("recipes", {}).items():
+        for saved in (entry.get("previous", {}), entry):
+            if saved.get("status") not in (
+                RecipeStatus.PASSED,
+                RecipeStatus.FAILED,
+                RecipeStatus.DEFERRED,
+            ):
+                continue
+            # A sparse previous snapshot predates the current result. Never give
+            # it the state's newer timestamp and thereby override a later failure.
+            timestamp = saved.get("finished_at") or (
+                data.get("updated_at", 0) if saved is entry else 0
+            )
+            try:
+                record = from_history(
+                    {
+                        **saved,
+                        "recipe": key,
+                        "step": QualificationEvidenceStep.SMOKE,
+                        "recorded_at": datetime.fromtimestamp(
+                            timestamp, UTC
+                        ).isoformat(),
+                    }
+                )
+            except (ValueError, TypeError, OverflowError):
+                continue  # unusable provenance cannot certify a recipe
+            if record is not None:
+                evidence = RecipeQualificationEvidence(
+                    recipe_key=key, records=(record,)
+                )
+                adopted[key] = merge_evidence(
+                    adopted.get(key, RecipeQualificationEvidence(recipe_key=key)),
+                    evidence,
+                )
+    return adopted
+
+
 class BackfillResult(BaseModel):
     read: int = 0
     imported: int = 0
@@ -277,3 +329,28 @@ STATUS_ORDER = {
 
 def scheduling_priority(view: QualificationStatusView) -> int:
     return STATUS_ORDER.get(view.status, 4)
+
+
+def catalog_recipe_keys(root: Path) -> set[str]:
+    directory = root / "recipes"
+    if not directory.is_dir():
+        raise ValueError("evidence pruning requires the authored recipe catalog")
+    keys = set()
+    for path in directory.glob("*.json"):
+        recipe = read_recipe(json.loads(path.read_text()))
+        keys.add(f"{recipe.identity.publisher}/{recipe.identity.slug}")
+    return keys
+
+
+def prune_withdrawn_evidence(root: Path) -> list[Path]:
+    """A complete authored catalog owns the current evidence set; history stays in git."""
+    keys = catalog_recipe_keys(root)
+    removed = []
+    for path in (root / "qualification/evidence").rglob("*.json"):
+        key = (
+            path.relative_to(root / "qualification/evidence").with_suffix("").as_posix()
+        )
+        if key not in keys:
+            path.unlink()
+            removed.append(path)
+    return removed

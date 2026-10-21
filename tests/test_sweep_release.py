@@ -35,25 +35,31 @@ def _entry(sweep, slug: str) -> dict:
 def _failing_set() -> tuple[list[FakeRecipe], list[FakeModel]]:
     recipes = [
         FakeRecipe(
-            "image-bug", ("m1",), fail_load=IMAGE_BUG, fail_phase="runtime-install"
+            "image-bug",
+            ("1" * 64,),
+            content="c" * 64,
+            fail_load=IMAGE_BUG,
+            fail_phase="runtime-install",
         ),
         FakeRecipe(
             "corrupt",
-            ("m2",),
+            ("2" * 64,),
+            content="c" * 64,
             fail_download="sha256 mismatch for model-00001.safetensors",
             fail_download_code="model.digest_mismatch",
         ),
-        FakeRecipe("policy", ("m3",), fail_download="policy"),
+        FakeRecipe("policy", ("3" * 64,), content="c" * 64, fail_download="policy"),
         FakeRecipe(
             "oom",
-            ("m4",),
+            ("4" * 64,),
+            content="c" * 64,
             fail_load="CUDA error: out of memory",
             fail_phase="start",
             fail_code="recipe.runtime_oom",
         ),
-        FakeRecipe("fine", ("m5",)),
+        FakeRecipe("fine", ("5" * 64,), content="c" * 64),
     ]
-    return recipes, [FakeModel(f"m{i}") for i in range(1, 6)]
+    return recipes, [FakeModel(str(i) * 64) for i in range(1, 6)]
 
 
 def _deployed_api(fleet, source: str) -> None:
@@ -355,9 +361,15 @@ def test_catalog_change_during_lane_keeps_the_verdict_bound_to_accepted_content(
 
     from spark_sweep import policy
 
-    fake = FakeRecipe("changing", local="cached", adapter="readiness")
+    fake = FakeRecipe(
+        "changing",
+        digests=("1" * 64,),
+        content="c" * 64,
+        local="cached",
+        adapter="readiness",
+    )
     sweep, fleet, clock = make_sweep(
-        tmp_path, [fake], [FakeModel("m1", local="cached")]
+        tmp_path, [fake], [FakeModel("1" * 64, local="cached")]
     )
     sweep.refresh_catalog()
     accepted = sweep.recipes[fake.key]
@@ -373,9 +385,9 @@ def test_catalog_change_during_lane_keeps_the_verdict_bound_to_accepted_content(
         slot = sweep.state.slots[fake.key]
     sweep.recipes[fake.key] = replace(
         accepted,
-        content_sha256="c2",
+        content_sha256="d" * 64,
         revision_id="rev-c2",
-        model_digests=("m2",),
+        model_digests=("2" * 64,),
     )
     sweep._submit_smoke(fake.key, slot)
     sweep._advance_smoking(fake.key, slot)
@@ -405,8 +417,16 @@ def test_saved_lane_fixture_never_certifies_the_catalog_at_restart(
     if not bound:
         saved["slots"][key].pop("accepted_content")
     (tmp_path / "state.json").write_text(json.dumps(saved))
-    fake = FakeRecipe("changing", content="c2", local="cached", adapter="readiness")
-    sweep, fleet, _ = make_sweep(tmp_path, [fake], [FakeModel("m1", local="cached")])
+    fake = FakeRecipe(
+        "changing",
+        digests=("1" * 64,),
+        content="d" * 64,
+        local="cached",
+        adapter="readiness",
+    )
+    sweep, fleet, _ = make_sweep(
+        tmp_path, [fake], [FakeModel("1" * 64, local="cached")]
+    )
     sweep.refresh_catalog()
     slot = sweep.state.slots[key]
     sweep._submit_smoke(key, slot)
@@ -414,7 +434,7 @@ def test_saved_lane_fixture_never_certifies_the_catalog_at_restart(
         sweep._advance_smoking(key, slot)
     rows = _lines(tmp_path / "results.jsonl")
     passed = [row for row in rows if row["status"] == "passed"]
-    assert [row["content_sha256"] for row in passed] == (["c1"] if bound else [])
+    assert [row["content_sha256"] for row in passed] == (["c" * 64] if bound else [])
     assert sweep.state.entry(key)["status"] == "pending"
     assert slot["phase"] == "finished"
     if bound:
@@ -432,15 +452,17 @@ def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
 
     from spark_sweep import policy
 
-    fake = FakeRecipe("changing", local="cached")
-    sweep, _, clock = make_sweep(tmp_path, [fake], [FakeModel("m1", local="cached")])
+    fake = FakeRecipe("changing", digests=("1" * 64,), content="c" * 64, local="cached")
+    sweep, _, clock = make_sweep(
+        tmp_path, [fake], [FakeModel("1" * 64, local="cached")]
+    )
     sweep.refresh_catalog()
     accepted = sweep.recipes[fake.key]
     sweep._open_slot(
         policy.Placement(accepted, ("spk_a",)), "accepted-request", clock.now()
     )
     sweep.recipes[fake.key] = replace(
-        accepted, content_sha256="c2", revision_id="rev-c2"
+        accepted, content_sha256="d" * 64, revision_id="rev-c2"
     )
     sweep._record_failure(
         fake.key,
@@ -453,7 +475,7 @@ def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
     assert row["content_sha256"] == accepted.content_sha256
     assert row["recipe_revision_id"] == accepted.revision_id
     assert row["request_key"] == "accepted-request"
-    assert row["model_digests"] == ["m1"]
+    assert row["model_digests"] == ["1" * 64]
     entry = sweep.state.entry(fake.key)
     assert entry["status"] == "pending"
     assert entry["previous"]["content_sha256"] == accepted.content_sha256

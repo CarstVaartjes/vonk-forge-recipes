@@ -631,3 +631,350 @@ def test_partial_pass_after_recipe_failure_cannot_revive_an_invalidated_public_p
         published_status(evidence(*history.records, record(day=3)), A).status
         == Status.WORKING
     )
+
+
+def evidence_sweep(tmp_path, names=("example",), **kwargs):
+    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+
+    fakes = [
+        FakeRecipe(name, digests=A.model_digests, content=A.content_sha256)
+        for name in names
+    ]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, fakes, [FakeModel(A.model_digests[0])], **kwargs
+    )
+    sweep.refresh_catalog()
+    # Use the same fully resolved identity in the fake Controller and the evidence.
+    assert A.runtime_image is not None
+    for fake in fakes:
+        fake.image_build_key = A.runtime_image.build_key
+        fake.image_digest = A.runtime_image.image_digest
+    sweep.refresh_catalog()
+    return sweep, fleet, clock
+
+
+@pytest.mark.parametrize(
+    "changed", ["document", "model", "image", "build", "library", "unchanged"]
+)
+@pytest.mark.parametrize(
+    "outcome,blame",
+    [
+        (Outcome.PASSED, None),
+        (Outcome.FAILED, Blame.RECIPE),
+        (Outcome.FAILED, Blame.PLATFORM),
+    ],
+)
+def test_evidence_identity_drives_requeue(tmp_path, changed, outcome, blame):
+    from spark_sweep.lifecycle import RecipeStatus
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    current = sweep.recipes[KEY]
+    assert current_identity(current) == A
+    if changed == "document":
+        current = replace(current, content_sha256=B.content_sha256)
+    elif changed == "model":
+        current = replace(current, model_digests=("f" * 64,))
+    elif changed in ("image", "build"):
+        image = current.runtime_image
+        assert image is not None
+        current = replace(
+            current,
+            runtime_image=image.model_copy(
+                update={
+                    "image_digest" if changed == "image" else "build_key": "sha256:"
+                    + "f" * 64
+                    if changed == "image"
+                    else "f" * 64
+                }
+            ),
+        )
+    elif changed == "library":
+        current = replace(current, library_commit="new-publication")
+    sweep.qualification_evidence[KEY] = evidence(record(A, outcome, blame))
+    entry = sweep.state.entry(KEY)
+    entry.update(
+        status=RecipeStatus.PASSED if outcome == Outcome.PASSED else RecipeStatus.FAILED
+    )
+    sweep._reconcile_entry(current, 2)
+    assert (entry["status"] == RecipeStatus.PENDING) == (
+        changed not in ("library", "unchanged")
+    )
+    view = sweep.qualification_view(current)
+    assert view is not None
+    if outcome == Outcome.PASSED:
+        assert view.last_pass == record()
+
+
+def test_evidence_revalidation_of_newest_cached_pass_is_last_even_with_limit(tmp_path):
+    from spark_sweep import policy
+    from spark_sweep.lifecycle import RecipeStatus
+
+    sweep, _, _ = evidence_sweep(tmp_path, ("passed", "untested", "failed", "deferred"))
+    for slug, records in (
+        ("passed", (record(),)),
+        ("failed", (record(A, Outcome.FAILED, Blame.RECIPE),)),
+        ("deferred", (record(A, Outcome.FAILED, Blame.PLATFORM),)),
+    ):
+        key = f"vonk-forge/{slug}"
+        current = replace(sweep.recipes[key], content_sha256=B.content_sha256)
+        if slug == "passed":
+            current = replace(current, updated_at="2026-10-21", artifact_bytes=1)
+        sweep.recipes[key] = current
+        sweep.qualification_evidence[key] = Evidence(recipe_key=key, records=records)
+        sweep.state.entry(key)["status"] = (
+            RecipeStatus.PASSED if slug == "passed" else RecipeStatus.FAILED
+        )
+        sweep._reconcile_entry(current, 2)
+    pending = sweep.pending()
+    assert pending[-1].slug == "passed"
+    plans = [policy.GroupPlan(r.model_set, (r.key,), r.artifact_bytes) for r in pending]
+    ordered = policy.order_queue(
+        plans, sweep.recipes, cached=set(A.model_digests), sizes={}
+    )
+    ordered.sort(
+        key=lambda key: scheduling_priority(
+            sweep.qualification_view(sweep.recipes[key])
+        )
+    )
+    assert ordered[-1] == "vonk-forge/passed"
+    assert set(ordered[:-1]) == {
+        "vonk-forge/" + s for s in ("untested", "failed", "deferred")
+    }
+    sweep.cfg.limit = 1
+    assert [r.slug for r in sweep.pending()] == ["failed"]
+    # With no other failure to verify, untested work still wins the one slot.
+    sweep.recipes.pop("vonk-forge/failed")
+    assert [r.slug for r in sweep.pending()] == ["untested"]
+
+
+@pytest.mark.parametrize("active", [False, True])
+def test_saved_verdict_adoption_restores_without_rerun_and_survives_interrupted_save(
+    tmp_path, active
+):
+    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+
+    from spark_sweep.identity import content_identity
+    from spark_sweep.lifecycle import RecipeStatus
+
+    sweep, fleet, _ = evidence_sweep(tmp_path)
+    accepted = sweep.recipes[KEY]
+    saved = sweep.state.entry(KEY)
+    saved.update(
+        status=RecipeStatus.PENDING,
+        previous={
+            "status": RecipeStatus.PASSED,
+            "content_sha256": A.content_sha256,
+            "verdict_identity": content_identity(accepted).model_dump(mode="json"),
+            "node_count": 1,
+            "finished_at": NOW.timestamp(),
+        },
+    )
+    if active:
+        sweep.state.slots[KEY] = {
+            "phase": "loading",
+            "request_key": "saved-request",
+            "alias": "saved-alias",
+            "node_ids": ["spk_a"],
+            "started_at": 1,
+        }
+    sweep.state.data.pop("qualification_evidence", None)
+    sweep.state.save()
+    before = sweep.state.path.read_bytes()
+
+    def restart():
+        again, _, _ = make_sweep(
+            tmp_path, [FakeRecipe("example")], [FakeModel("m1")], fleet=fleet
+        )
+        again.refresh_catalog()
+        return again
+
+    adopted = restart()
+    # Loading and deriving neither writes the source state nor submits a load.
+    assert sweep.state.path.read_bytes() == before
+    assert adopted.state.status(KEY) == (
+        RecipeStatus.PENDING if active else RecipeStatus.PASSED
+    )
+    assert not adopted.log.entries()
+    interrupted = restart()
+    assert interrupted.qualification_evidence == adopted.qualification_evidence
+    adopted.state.save()
+    persisted = restart()
+    assert persisted.qualification_evidence == adopted.qualification_evidence
+    assert not [c for _, c in fleet.calls if c[:2] == ("profile", "load")]
+
+
+@pytest.mark.parametrize("changed", ["document", "model"])
+def test_adopted_unknown_image_pass_keeps_proof_but_cannot_hide_known_changes(
+    tmp_path, changed
+):
+    from spark_sweep.lifecycle import RecipeStatus
+    from spark_sweep.state import State
+
+    sweep, _, clock = evidence_sweep(tmp_path)
+    historical_identity = A.model_copy(update={"runtime_image": None})
+    if changed == "document":
+        historical_identity = historical_identity.model_copy(
+            update={"content_sha256": B.content_sha256}
+        )
+    else:
+        historical_identity = historical_identity.model_copy(
+            update={"model_digests": ("f" * 64,)}
+        )
+    sweep.state.entry(KEY).update(
+        status=RecipeStatus.PASSED,
+        content_sha256=historical_identity.content_sha256,
+        verdict_identity=historical_identity.model_dump(mode="json"),
+    )
+    sweep.state.data.pop("qualification_evidence", None)
+    sweep.state.save()
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.qualification_evidence[KEY] = Evidence.model_validate(
+        sweep.state.data["qualification_evidence"][KEY]
+    )
+    sweep._reconcile_entry(sweep.recipes[KEY], 2)
+    assert sweep.state.status(KEY) == RecipeStatus.PENDING
+    view = sweep.qualification_view(sweep.recipes[KEY])
+    assert view is not None and view.last_pass is not None
+    assert view.last_pass.identity == historical_identity.model_copy(
+        update={"required_sparks": None}
+    )
+    assert view.last_pass.identity.runtime_image is None
+    assert (Change.RECIPE if changed == "document" else Change.MODEL) in view.changed
+
+
+def test_adoption_is_once_and_retry_failed_never_requeues_proven_pass(tmp_path):
+    from spark_sweep.lifecycle import RecipeStatus
+    from spark_sweep.state import State
+
+    sweep, _, clock = evidence_sweep(tmp_path)
+    sweep.state.data["qualification_evidence"] = {
+        KEY: evidence(record()).model_dump(mode="json")
+    }
+    # Obsolete bookkeeping must not be imported on subsequent loads.
+    sweep.state.entry(KEY).update(
+        status=RecipeStatus.FAILED, content_sha256=B.content_sha256
+    )
+    sweep.state.save()
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.qualification_evidence[KEY] = Evidence.model_validate(
+        sweep.state.data["qualification_evidence"][KEY]
+    )
+    assert sweep.qualification_evidence[KEY].records == (record(),)
+    assert sweep.requeue_failed() == 0
+    sweep._reconcile_entry(sweep.recipes[KEY], 2)
+    assert sweep.state.status(KEY) == RecipeStatus.PASSED
+
+
+@pytest.mark.parametrize("blame", [Blame.RECIPE, Blame.PLATFORM])
+def test_retry_failed_uses_adopted_failure_evidence(tmp_path, blame):
+    from spark_sweep.lifecycle import RecipeStatus
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    sweep.qualification_evidence[KEY] = evidence(record(A, Outcome.FAILED, blame))
+    sweep.state.entry(KEY)["status"] = (
+        RecipeStatus.FAILED if blame == Blame.RECIPE else RecipeStatus.DEFERRED
+    )
+    assert sweep.requeue_failed() == 1
+    assert sweep.state.status(KEY) == RecipeStatus.PENDING
+
+
+def test_superseded_verdict_paths_cannot_return():
+    import ast
+
+    for name in ("identity.py", "lifecycle.py", "policy.py", "run.py"):
+        tree = ast.parse((ROOT / "spark_sweep" / name).read_text())
+        defined = {
+            n.name
+            for n in ast.walk(tree)
+            if isinstance(n, (ast.ClassDef, ast.FunctionDef))
+        }
+        assert not defined & {
+            "legacy_image_unknown",
+            "requeue_reason",
+            "PassReconciliationRecord",
+            "LegacyPassedVerdict",
+        }
+    run = ast.parse((ROOT / "spark_sweep/run.py").read_text())
+    for name in ("_reconcile_entry", "requeue_failed"):
+        function = next(
+            n
+            for n in ast.walk(run)
+            if isinstance(n, ast.FunctionDef) and n.name == name
+        )
+        calls = {
+            n.func.attr
+            for n in ast.walk(function)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+        }
+        assert "qualification_view" in calls
+        assert not {n.id for n in ast.walk(function) if isinstance(n, ast.Name)} & {
+            "verdict_matches",
+            "recorded_identity",
+        }
+
+
+def test_adoption_never_dates_a_sparse_previous_pass_after_a_known_failure(tmp_path):
+    from spark_sweep.lifecycle import RecipeStatus
+    from spark_sweep.state import State
+
+    sweep, _, clock = evidence_sweep(tmp_path)
+    saved = historical()
+    sweep.state.entry(KEY).update(
+        status=RecipeStatus.FAILED,
+        content_sha256=A.content_sha256,
+        verdict_identity=A.model_dump(mode="json"),
+        failure_class="smoke-assertion",
+        node_count=1,
+        finished_at=NOW.timestamp(),
+        previous={**saved, "node_count": 1},
+    )
+    sweep.state.data.pop("qualification_evidence", None)
+    clock.t = (NOW + timedelta(days=1)).timestamp()
+    sweep.state.save()
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.qualification_evidence[KEY] = Evidence.model_validate(
+        sweep.state.data["qualification_evidence"][KEY]
+    )
+    view = sweep.qualification_view(sweep.recipes[KEY])
+    assert view is not None and view.status == Status.FAILED_RECIPE
+    assert view.last_pass is not None
+
+
+def test_repository_evidence_only_names_current_catalog_recipes():
+    from spark_sweep.qualification import catalog_recipe_keys
+
+    keys = catalog_recipe_keys(ROOT)
+    for path in (ROOT / "qualification/evidence").rglob("*.json"):
+        assert (
+            path.relative_to(ROOT / "qualification/evidence").with_suffix("").as_posix()
+            in keys
+        )
+
+
+@pytest.mark.parametrize(
+    "outcome,blame",
+    [
+        (Outcome.PASSED, None),
+        (Outcome.FAILED, Blame.RECIPE),
+        (Outcome.FAILED, Blame.PLATFORM),
+    ],
+)
+def test_unknown_image_library_publication_is_not_a_qualification_change(
+    tmp_path, outcome, blame
+):
+    from spark_sweep.lifecycle import RecipeStatus
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    current = replace(
+        sweep.recipes[KEY], runtime_image=None, library_commit="new-library"
+    )
+    unknown = A.model_copy(update={"runtime_image": None})
+    sweep.qualification_evidence[KEY] = evidence(record(unknown, outcome, blame))
+    status = RecipeStatus.PASSED if outcome == Outcome.PASSED else RecipeStatus.FAILED
+    sweep.state.entry(KEY)["status"] = status
+    sweep._reconcile_entry(current, 2)
+    assert sweep.state.status(KEY) == status
+    view = sweep.qualification_view(current)
+    assert view is not None and not view.changed
+    if view.last_pass is not None:
+        assert view.last_pass.identity.runtime_image is None

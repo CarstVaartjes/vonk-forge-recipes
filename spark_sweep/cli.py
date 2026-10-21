@@ -128,11 +128,6 @@ def _parser() -> argparse.ArgumentParser:
         help="test one recipe per model first, variants afterwards",
     )
     run.add_argument(
-        "--revalidate-passes",
-        action="store_true",
-        help="also retest passed recipes when only the fallback library commit changes",
-    )
-    run.add_argument(
         "--no-revalidate",
         action="store_true",
         help="do not retest passed recipes whose document changed",
@@ -259,7 +254,6 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         limit=args.limit,
         variants_last=args.variants_last,
         revalidate_passes=not args.no_revalidate,
-        revalidate_library_passes=args.revalidate_passes,
         restore_owner=args.restore_owner,
         stop_at_end=not args.leave_running,
         watch_seconds=args.watch,
