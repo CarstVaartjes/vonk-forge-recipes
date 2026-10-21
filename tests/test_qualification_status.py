@@ -1093,3 +1093,118 @@ def test_sparse_topology_failure_invalidates_older_public_proof():
     history = evidence(record(), failed, partial)
     assert derive_status(history, A, 2, False).status == Status.WORKING
     assert published_status(history, A).status == Status.NOT_YET_VERIFIED
+
+
+def test_real_projected_library_and_evidence_restore_requeued_pass(tmp_path):
+    from sweep_fakes import make_sweep
+
+    from spark_sweep.identity import content_identity, recorded_identity
+    from spark_sweep.lifecycle import RecipeStatus, RetestReason
+    from spark_sweep.state import State
+    from spark_sweep.vonkctl import Reply
+
+    # Identity-only slices of the owner's five-row Controller GET, plus a d3 GET
+    # row from the same projected API. No document-shaped compatibility reader.
+    page = json.loads(
+        (ROOT / "tests/fixtures/sweep-projected-library-2026-10-21.json").read_text()
+    )
+    sweep, fleet, _ = make_sweep(tmp_path, [], [])
+    assert sweep.recipe_list.step(reply=Reply((), 0, page, ""))
+    assert sweep.recipe_list.invalid_rows == 0
+    for row in page["recipes"]:
+        recipe = sweep.recipes[row["selector"]]
+        identity = current_identity(recipe)
+        assert identity.content_sha256 == row["identity"]["content_sha256"]
+        assert identity.model_digests == tuple(
+            sorted({model["content_sha256"] for model in row["projected"]["models"]})
+        )
+        assert identity.required_sparks == row["projected"]["topology"]["node_count"]
+        assert identity.runtime_image is not None
+        assert identity.runtime_image.build_key == row["prebuilt_image"]["build_key"]
+        assert (
+            identity.runtime_image.image_digest
+            == row["prebuilt_image"]["reference"].partition("@")[2]
+        )
+        assert content_identity(recipe).model_digests == identity.model_digests
+
+    recipe = sweep.recipes["vonk-forge/d3-vllm-single"]
+    proof = read_evidence(ROOT, recipe.key)
+    # Pin the actual incident measurement; later evidence publication must not
+    # turn this historical boundary regression into a live catalog assertion.
+    passed = next(
+        record
+        for record in proof.records
+        if "83d67a9b089b3b92274634e0877cd52257b6845085b085682509abf1f5cd40e0"
+        in record.evidence_refs
+    )
+    proof = proof.model_copy(update={"records": (passed,)})
+    sweep.qualification_evidence[recipe.key] = proof
+    assert passed.identity.runtime_image is None  # actual historical provenance
+    assert passed.identity.model_digests == recipe.model_digests
+    assert passed.identity.content_sha256 == recipe.content_sha256
+    assert passed.identity.required_sparks == recipe.node_count
+    entry = sweep.state.entry(recipe.key)
+    entry.update(
+        status=RecipeStatus.PENDING,
+        revalidate=True,
+        requeued_because=RetestReason.PASSED_OLDER_REVISION,
+        attempts=0,
+    )
+    sweep.state.save()
+    sweep.state = State.load(sweep.state.path)
+    entry = sweep.state.entry(recipe.key)
+    sweep._reconcile_entry(recipe, 2)
+    assert entry["status"] == RecipeStatus.PASSED
+    assert entry["attempts"] == 0
+    assert entry["revalidate"] is False
+    assert "requeued_because" not in entry
+    view = sweep.qualification_view(recipe)
+    assert view.status == Status.WORKING
+    assert view.last_pass == passed
+    restored = recorded_identity(entry)
+    assert restored is not None and restored.runtime_image is None
+    assert (
+        published_status(proof, current_identity(recipe)).status
+        == Status.NOT_YET_VERIFIED
+    )
+    assert not fleet.calls  # no inference, loads, downloads or remote reads
+    assert not (tmp_path / "results.jsonl").exists()  # no manufactured measurement
+
+
+@pytest.mark.parametrize(
+    "changed", ["unchanged", "recipe", "model", "topology", "unknown-models"]
+)
+def test_unrecorded_image_is_not_a_change_or_invented_provenance(changed):
+    saved_identity = A.model_copy(update={"runtime_image": None})
+    saved = record(saved_identity)
+    current = {
+        "unchanged": A,
+        "recipe": B,
+        "model": A.model_copy(update={"model_digests": ("f" * 64,)}),
+        "topology": A.model_copy(update={"required_sparks": 2}),
+        "unknown-models": A.model_copy(update={"models_resolved": False}),
+    }[changed]
+    view = derive_status(evidence(saved), current, 2, False)
+    assert (view.status == Status.WORKING) == (changed == "unchanged")
+    assert view.last_pass == saved
+    assert Change.IMAGE not in view.changed
+    assert published_status(evidence(saved), current).status != Status.WORKING
+
+
+def test_unbound_pass_cannot_hide_a_recorded_image_change():
+    unbound = record(A.model_copy(update={"runtime_image": None}))
+    pinned = record(day=1)
+    current = A.model_copy(
+        update={
+            "runtime_image": Image(
+                build_key="d" * 64, image_digest="sha256:" + "e" * 64
+            )
+        }
+    )
+    view = derive_status(evidence(unbound, pinned), current, 2, False)
+    assert view.status == Status.RECHECK
+    assert view.changed == (Change.IMAGE,)
+    # Exact pin revert restores the original measurement, not the unbound pass.
+    restored = derive_status(evidence(unbound, pinned), A, 2, False)
+    assert restored.status == Status.WORKING
+    assert restored.last_pass == pinned

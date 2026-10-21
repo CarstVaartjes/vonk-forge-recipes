@@ -16,7 +16,10 @@ identity restores Working without running hardware again. Quality notes do not
 turn a successful hardware check into a failure. A missing historical Spark
 count does not change a matching recipe digest, which already binds topology;
 local proof survives while public certification still requires recorded platform
-provenance.
+provenance. An unrecorded historical image is unknown, not a changed image pin:
+matching recipe, resolved Models and recorded topology retain local proof unless
+image-bound evidence establishes a different runtime. Restoring that proof must
+retain its measured identity, never fill missing pins from the current library.
 
 The contract 2.4.0 models and `derive_status` are the authority. Evidence lives
 separately in `qualification/evidence/<publisher>/<recipe-slug>.json`; recording

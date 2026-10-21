@@ -1,0 +1,167 @@
+{
+  "generated_at": "2026-10-21T10:47:39.180646Z",
+  "library": {
+    "commit": "d3f0f385221c7298ebc8f1ab27071a82095ec7a1",
+    "updated_at": "2026-10-21T09:45:39Z",
+    "version": "2.4.0"
+  },
+  "next_cursor": null,
+  "recipes": [
+    {
+      "selector": "vonk-forge/qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single",
+      "identity": {
+        "content_sha256": "50b71f18988cabb4a79d99890d397682cd4f23ea229cc917078f5d2321e20017",
+        "recipe_revision_id": "04cc7fdc-42d4-4438-8275-844a2352f9d4"
+      },
+      "node_count": 1,
+      "prebuilt_image": {
+        "build_key": "a1c845b529056fd3997b726c7fcb588ede4eb3f9157688c9891603dadb8978dd",
+        "reference": "ghcr.io/carstvaartjes/vonk-forge-recipe-qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single@sha256:c0bdd714fbe3b5642b58fa8d910feb488c6a160e310ba8e6ca6cacdd32993096"
+      },
+      "projected": {
+        "models": [
+          {
+            "content_sha256": "7392c13353aea5db2cf285f6b11b038bceeb0b03fed898ac2e768876db622cda",
+            "kind": "model",
+            "publisher": "aday777",
+            "slug": "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
+          }
+        ],
+        "topology": {
+          "node_count": 1
+        },
+        "base_image_digest": "d9010635c22a34694000447f96bf12622210494578be670b2a9e953ca04b29af"
+      }
+    },
+    {
+      "selector": "vonk-forge/mova-720p-diffusers-single",
+      "identity": {
+        "content_sha256": "0058f1750ba22bfafadb447581926803f1f08d667fcc08c8dfe0ccd0fd7c2b5b",
+        "recipe_revision_id": "150cb0d9-e249-4356-b028-f73b94616513"
+      },
+      "node_count": 1,
+      "prebuilt_image": {
+        "build_key": "e2bfa3cb8a80b3e40529962069ee191f341385fe471468c133408228ab56243d",
+        "reference": "ghcr.io/carstvaartjes/vonk-forge-recipe-mova-720p-diffusers-single@sha256:3898722d29ec192d325102ad9d278cb187b0277d60b98773cf560fad029e66b8"
+      },
+      "projected": {
+        "models": [
+          {
+            "content_sha256": "e9ee5114179de6c3dafb94c922a0bb118bffcc6af73b8387cc3f2b14cd4ae50b",
+            "kind": "model",
+            "publisher": "openmoss",
+            "slug": "mova-720p"
+          }
+        ],
+        "topology": {
+          "node_count": 1
+        },
+        "base_image_digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962"
+      }
+    },
+    {
+      "selector": "vonk-forge/mova-360p-diffusers-single",
+      "identity": {
+        "content_sha256": "21a547c8ee124bc1d2dcc35540c631c780a8dbe6a4c1e577310acdbe39c54231",
+        "recipe_revision_id": "1a85e8a3-b9d9-4a29-98bd-e1916eac8a95"
+      },
+      "node_count": 1,
+      "prebuilt_image": {
+        "build_key": "e2bfa3cb8a80b3e40529962069ee191f341385fe471468c133408228ab56243d",
+        "reference": "ghcr.io/carstvaartjes/vonk-forge-recipe-mova-360p-diffusers-single@sha256:3898722d29ec192d325102ad9d278cb187b0277d60b98773cf560fad029e66b8"
+      },
+      "projected": {
+        "models": [
+          {
+            "content_sha256": "8533420444efd03b6d5e0bdbc98a16b9fba5f369eec17681c6c3921651b9851b",
+            "kind": "model",
+            "publisher": "openmoss",
+            "slug": "mova-360p"
+          }
+        ],
+        "topology": {
+          "node_count": 1
+        },
+        "base_image_digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962"
+      }
+    },
+    {
+      "selector": "vonk-forge/ltx-2-19b-dev-fp4-pytorch-single",
+      "identity": {
+        "content_sha256": "89645e2e7a97de15333015b9e2cdb513f2b8a127e07daffe8332fba35b3457eb",
+        "recipe_revision_id": "417cc948-ff14-494c-8686-0e9b66286c39"
+      },
+      "node_count": 1,
+      "prebuilt_image": {
+        "build_key": "26c7e5c32c7af2a628211603ae870a0223e26bf3de174b21b47266957dbe7084",
+        "reference": "ghcr.io/carstvaartjes/vonk-forge-recipe-ltx-2-19b-dev-fp4-pytorch-single@sha256:ef0e30ef621f5d28909897e0f562ce1a88dda3f6488e1549824aa159acfdd534"
+      },
+      "projected": {
+        "models": [
+          {
+            "content_sha256": "9253bb344fb0bab7f19db2aed480e1e27649848b478a4b5064b7ba99de828e47",
+            "kind": "model",
+            "publisher": "lightricks",
+            "slug": "ltx-2-19b-dev-fp4-dfcc2108"
+          }
+        ],
+        "topology": {
+          "node_count": 1
+        },
+        "base_image_digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962"
+      }
+    },
+    {
+      "selector": "vonk-forge/hunyuan-video-15-t2v-diffusers-single",
+      "identity": {
+        "content_sha256": "bd505d891cf00a75009a6637dc5657d36c77108f5aa09b24dd82a782332b24c8",
+        "recipe_revision_id": "944dcbdd-3359-4ea9-adf9-2af314f8aa56"
+      },
+      "node_count": 1,
+      "prebuilt_image": {
+        "build_key": "92c6b53680d481af93dce5bf51d95bc46a78ab26d74078847a04bee853dae987",
+        "reference": "ghcr.io/carstvaartjes/vonk-forge-recipe-hunyuan-video-15-t2v-diffusers-single@sha256:bf021a459fee2bef46b330b4d6d4985fff9f61cb327da60fcbcdca91e8244da8"
+      },
+      "projected": {
+        "models": [
+          {
+            "content_sha256": "c95294a1948bc994779878c8ef47ae6ec55821541ab9130e0179afa365f7985f",
+            "kind": "model",
+            "publisher": "tencent",
+            "slug": "hunyuan-video-15-t2v"
+          }
+        ],
+        "topology": {
+          "node_count": 1
+        },
+        "base_image_digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962"
+      }
+    },
+    {
+      "selector": "vonk-forge/d3-vllm-single",
+      "identity": {
+        "content_sha256": "0889e88e19043650f4178c90dce52e6bac661acbb9fe976c0e81b8dd8f20f881",
+        "recipe_revision_id": "5d56cfe0-9202-4527-8173-223d0aa703a9"
+      },
+      "node_count": 1,
+      "prebuilt_image": {
+        "build_key": "8a25a29e9570c3386cf15c310916a8c53375a2d0da353119cee7407f0bb31642",
+        "reference": "ghcr.io/carstvaartjes/vonk-forge-recipe-d3-vllm-single@sha256:6e622471f2bacbdc399c6d7bf0c630a41a794b780a311883fd2638457669f961"
+      },
+      "projected": {
+        "models": [
+          {
+            "content_sha256": "7c47fbbdaa8a82411bc5034eca5786253d68812d5a97e757bc7a87cb7a06d892",
+            "kind": "model",
+            "publisher": "vonk-forge",
+            "slug": "d3-bf16-cf15549a"
+          }
+        ],
+        "topology": {
+          "node_count": 1
+        },
+        "base_image_digest": "c6c3c61579c905a3a0f3f10d8cd7f1df54a1b1c664807320699734bc5f014fb4"
+      }
+    }
+  ]
+}

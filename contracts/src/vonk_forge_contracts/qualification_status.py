@@ -298,7 +298,8 @@ def _changes(
             ),
             (
                 QualificationChange.IMAGE,
-                previous.runtime_image != current.runtime_image,
+                previous.runtime_image is not None
+                and previous.runtime_image != current.runtime_image,
             ),
             (
                 QualificationChange.MODEL,
@@ -313,13 +314,18 @@ def _changes(
 def _same_content_identity(
     previous: QualificationIdentity, current: QualificationIdentity
 ) -> bool:
-    # The recipe digest binds its topology. A missing historical Spark count
-    # cannot change that content; explicit counts and all other pins must agree.
-    if previous.required_sparks is None:
-        previous = previous.model_copy(
-            update={"required_sparks": current.required_sparks}
+    # Compare recorded content, never turn missing historical provenance into a
+    # changed pin. Publication separately requires fully resolved exact proof.
+    return (
+        previous.content_sha256 == current.content_sha256
+        and previous.model_digests == current.model_digests
+        and previous.models_resolved == current.models_resolved
+        and previous.required_sparks in (None, current.required_sparks)
+        and (
+            previous.runtime_image is None
+            or previous.runtime_image == current.runtime_image
         )
-    return previous == current
+    )
 
 
 def derive_status(
@@ -348,8 +354,24 @@ def derive_status(
     passes = [r for r in records if r.outcome == QualificationOutcome.PASSED]
     failures = [r for r in records if r.outcome == QualificationOutcome.FAILED]
     behavioural = [r for r in records if r.blame != QualificationBlame.PLATFORM]
+    # Once this content has image-bound evidence, an older unbound pass cannot
+    # certify a different image. Unbound failures still invalidate local proof.
+    image_bound = any(
+        r.identity.runtime_image is not None
+        and _same_content_identity(
+            r.identity.model_copy(update={"runtime_image": None}), current_identity
+        )
+        for r in behavioural
+    )
     exact = [
-        r for r in behavioural if _same_content_identity(r.identity, current_identity)
+        r
+        for r in behavioural
+        if _same_content_identity(r.identity, current_identity)
+        and not (
+            image_bound
+            and r.identity.runtime_image is None
+            and r.outcome == QualificationOutcome.PASSED
+        )
     ]
     last_pass = passes[-1] if passes else None
     last_failure = failures[-1] if failures else None
