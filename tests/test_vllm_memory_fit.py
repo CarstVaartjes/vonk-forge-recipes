@@ -1,27 +1,22 @@
 """vLLM's GPU budget excludes unified-memory overhead on each GB10 node."""
 
-import json
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
 from vonk_forge_contracts import RecipeDefinition
 
+from qualification.memory_need import (
+    OS_FLOOR_BYTES,
+    OVERHEAD_BYTES,
+    SPARK_IDLE_AVAILABLE_BYTES,
+    SPARK_MEMORY_BYTES,
+    VLLM_DEFAULT_UTILIZATION,
+    loads_draft_model,
+    non_utilization_bytes,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
-# Physical GB10 unified memory, not aggregate memory across the topology.
-SPARK_MEMORY_BYTES = 130_663_231_488
-# Lowest idle MemAvailable observed on a Spark; admission keeps the floor above it.
-SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
-OVERHEAD_BYTES = 8_000_000_000
-OS_FLOOR_BYTES = 6_000_000_000
-VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
-# A separately loaded speculative draft model (DFlash, DSpark, EAGLE, an external
-# MTP checkpoint) holds memory outside `gpu-memory-utilization`. Calibrated from
-# qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single on a GB10 (2026-10-13): at 0.7 it
-# drove ~116.4e9 bytes attributable to the run (121e9 used less 4.6e9 idle) within
-# twelve minutes and froze the Spark, 17e9 above 0.7 x memory + 8e9. That sample
-# was still climbing, so this is a floor; the sweep's memory-envelope note refines it.
-DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 # Draft-model recipes whose weights leave no KV room once the draft overhead is
 # counted on a fitting envelope: each needs its creator (more Sparks, a smaller
 # context or drafter). Until then only the draft term is waived for them: the
@@ -29,7 +24,6 @@ DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 # fails, as soon as the recipe fits with the term counted.
 PENDING_CREATOR = frozenset(
     {
-        "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",
         "glm-5-3-flash-exl3-dflash2-vllm-dual",
         "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
         "minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual",
@@ -37,42 +31,12 @@ PENDING_CREATOR = frozenset(
 )
 
 
-def loads_draft_model(recipe: RecipeDefinition) -> bool:
-    """Whether the speculative config names a model other than the served target."""
-    # SparkInfer builds and selects its DSpark draft inside the recipe wrapper,
-    # rather than an authored speculative-config argument. Budget it too.
-    wrapper = ROOT / recipe.execution.build.context.path / "vllm-wrapper.sh"
-    if wrapper.is_file() and "export SPEC_MODEL_PATH=" in wrapper.read_text():
-        return True
-    arguments = recipe.runtime.arguments
-    served = set(recipe.runtime.entrypoint) | {
-        str(item.value) for item in arguments if item.name == "model"
-    }
-    for argument in arguments:
-        if argument.name != "speculative-config":
-            continue
-        config = argument.value
-        if isinstance(config, str):
-            try:
-                config = json.loads(config)
-            except json.JSONDecodeError:
-                continue  # "None" switches speculation off
-        draft = config.get("model") if isinstance(config, dict) else None
-        if draft is not None and str(draft) not in served:
-            return True
-    return False
-
-
-def non_utilization_bytes(
-    recipe: RecipeDefinition, count_draft_model: bool = True
-) -> int:
-    """Memory a vLLM node holds beside its `gpu-memory-utilization` budget."""
-    if count_draft_model and loads_draft_model(recipe):
-        return OVERHEAD_BYTES + DRAFT_MODEL_OVERHEAD_BYTES
-    return OVERHEAD_BYTES
-
-
-def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) -> None:
+def assert_memory_fit(
+    recipe: RecipeDefinition,
+    count_draft_model: bool = True,
+    *,
+    require_fit: bool = True,
+) -> None:
     arguments = [
         argument
         for argument in recipe.runtime.arguments
@@ -94,9 +58,10 @@ def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) 
             f"{label}: peak {memory.peak_bytes} understates GPU budget plus overhead "
             f"{required_peak}"
         )
-        assert memory.peak_bytes + OS_FLOOR_BYTES <= SPARK_IDLE_AVAILABLE_BYTES, (
-            f"{label}: peak plus OS floor exceeds an idle Spark's available memory"
-        )
+        if require_fit:
+            assert memory.peak_bytes + OS_FLOOR_BYTES <= SPARK_IDLE_AVAILABLE_BYTES, (
+                f"{label}: peak plus OS floor exceeds an idle Spark's available memory"
+            )
 
 
 @pytest.mark.parametrize(
@@ -107,13 +72,18 @@ def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
     if recipe.runtime.engine != "vllm":
         return
     count = path.stem not in PENDING_CREATOR
-    assert_memory_fit(recipe, count)
+    # This profile now declares its full nonfitting demand; the capacity guard
+    # checks its estimate and host reserve instead of hiding the draft term.
+    require_fit = path.stem != "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual"
+    assert_memory_fit(recipe, count, require_fit=require_fit)
     # Options cannot share an argument name, so each utilization override is
     # independent. Resolve each choice through the actual contract merger.
     for option in recipe.options:
         for choice in option.choices:
             assert_memory_fit(
-                recipe.with_option_choices({option.name: choice.value}), count
+                recipe.with_option_choices({option.name: choice.value}),
+                count,
+                require_fit=require_fit,
             )
 
 
