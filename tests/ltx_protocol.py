@@ -49,6 +49,21 @@ def manifest_bytes(payload: bytes, *, name: str = "prompt.txt") -> bytes:
     return manifest.model_dump_json().encode("utf-8")
 
 
+def assert_streaming_quantization_supported(command: list[str]) -> None:
+    """Pinned LTX streaming supports no quantization policy or fp8-cast only."""
+    offload = (
+        command[command.index("--offload") + 1] if "--offload" in command else "none"
+    )
+    quantization = (
+        command[command.index("--quantization") + 1]
+        if "--quantization" in command
+        else None
+    )
+    assert offload == "none" or quantization in (None, "fp8-cast"), (
+        f"{offload} block streaming does not support {quantization} quantization"
+    )
+
+
 def verify_bundled_wheels() -> None:
     artifacts = []
     for context in PROTOCOL_CONTEXTS:
