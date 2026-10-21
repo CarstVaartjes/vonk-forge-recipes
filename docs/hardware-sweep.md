@@ -331,7 +331,15 @@ never used); `--sweep-profile` and `--pin-profile` cannot be 1-3. The sweep
 refuses a profile that already holds assignments it did not create. At start it
 stores a read-only export of profiles 1-3. If an owner profile load starts, the
 sweep submits nothing until it ends plus a hold (30 minutes), and requeues its
-in-flight tests without blame. `--restore-owner 2` loads profile 2 at the end.
+in-flight tests without blame. An unreadable owner profile instead gets a two-minute
+observation budget, independently of other profiles. Each progress read is limited
+to five seconds. The original deadline survives restarts and changing transport
+errors. Status and events show the wait deadline; expiry records typed
+`sweep.wait_budget_exhausted` evidence and an infrastructure note, then proceeds
+without observed owner activity. Reads continue every tick; a readable reply
+clears that profile's incident, and a genuine active owner load still pauses.
+Lane verdicts, over-budget release/re-planning and download observation continue
+during any owner pause. `--restore-owner 2` loads profile 2 at the end.
 `run` refuses to start without `--yes`, because the sweep replaces whatever the
 Sparks run: at start it loads the empty sweep profile once (again after an
 owner load, or when a review is blocked by a workload that is not ours), so

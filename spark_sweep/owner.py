@@ -18,9 +18,19 @@ from collections.abc import Collection
 from dataclasses import dataclass
 from typing import Any
 
+from vonk_forge_contracts.sweep import (
+    InfrastructureIncident,
+    SweepWait,
+    SweepWaitReason,
+)
+
+from . import verdict
 from .lifecycle import ACTIVE
 from .state import State
 from .vonkctl import OWNER_PROFILES, Vonkctl, VonkctlError
+
+OWNER_OBSERVATION_SECONDS = 120.0
+OWNER_READ_SECONDS = 5.0
 
 LINEAGE_HOPS = 16  # how far back a continuation chain is followed to an own load
 
@@ -46,7 +56,12 @@ class OwnerGuard:
         self.profiles = sorted(profiles)
 
     def _latest(self, number: int) -> tuple[str, str, str, str] | None:
-        reply = self.vk.run("profile", "progress", profile=number)
+        reply = self.vk.run(
+            "profile",
+            "progress",
+            profile=number,
+            timeout=min(self.vk.timeout, OWNER_READ_SECONDS),
+        )
         document = reply.document
         if (
             reply.ok
@@ -61,7 +76,9 @@ class OwnerGuard:
             )
         if reply.is_not_found:
             return None
-        raise VonkctlError(reply.argv, reply, "owner application is unreadable")
+        raise VonkctlError(
+            reply.argv, reply, f"owner application is unreadable: {reply.error_text}"
+        )
 
     def _own(self, app_id: str, request: str) -> dict[str, Any] | None:
         return next(
@@ -110,6 +127,42 @@ class OwnerGuard:
             return True
         return False
 
+    def _unreadable(self, number: int, error: VonkctlError, now: float) -> str | None:
+        """Courtesy protection expires per profile; keep observing after fail-open."""
+        watch = (
+            self.state.data["owner"]
+            .setdefault("unreadable", {})
+            .setdefault(str(number), {})
+        )
+        detail = f"profile {number} ownership is unreadable: {str(error)[:160]}"
+        progress = verdict.bounded_wait(
+            SweepWait(reason=SweepWaitReason.OBSERVATION, detail=detail),
+            watch,
+            window=OWNER_OBSERVATION_SECONDS,
+            now=now,
+        )
+        message = f"{detail}; waiting until {watch['wait_deadline']}"
+        if progress is verdict.Progress.WAIT_EXPIRED:
+            expiry = verdict.wait_expiry(watch, now)
+            message = (
+                f"{expiry.code}: {detail}; proceeding without observed owner activity; "
+                "still observing"
+            )
+            if "expiry" not in watch:
+                watch["expiry"] = expiry.model_dump(mode="json")
+                self.state.event(message)
+        source = f"owner-profile-{number}"
+        incident = InfrastructureIncident.model_validate(
+            self.state.data["infra"].get(source) or {"since": watch["wait_started_at"]}
+        )
+        incident.count += 1
+        incident.message = message
+        incident.until = now
+        self.state.data["infra"][source] = incident.model_dump(exclude_none=True)
+        if incident.count == 1:
+            self.state.event(message)
+        return message if progress is verdict.Progress.WAITING else None
+
     def check(self, now: float) -> OwnerStatus:
         owner = self.state.data["owner"]
         baseline: dict[str, dict[str, str]] = owner["baseline"]
@@ -119,10 +172,16 @@ class OwnerGuard:
             try:
                 latest = self._latest(number)
             except VonkctlError as error:
-                paused.append(
-                    f"profile {number} ownership is unreadable: {str(error)[:160]}"
-                )
+                reason = self._unreadable(number, error, now)
+                if reason is not None:
+                    paused.append(reason)
                 continue
+            self.state.data["owner"].setdefault("unreadable", {}).pop(str(number), None)
+            if (
+                self.state.data["infra"].pop(f"owner-profile-{number}", None)
+                is not None
+            ):
+                self.state.event(f"profile {number} ownership is readable again")
             known = baseline.get(str(number))
             if latest is None:
                 baseline.setdefault(
