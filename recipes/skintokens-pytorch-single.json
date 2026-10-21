@@ -11,7 +11,7 @@
       "dockerfile": "adapters/three-d/skintokens/Dockerfile",
       "network": {
         "hosts": [
-          "github.com",
+          "codeload.github.com",
           "huggingface.co",
           "download.pytorch.org",
           "download-r2.pytorch.org",

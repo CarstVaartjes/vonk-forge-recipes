@@ -395,11 +395,6 @@
         "value": "mp"
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.76"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -503,6 +498,11 @@
         "name": "chat-template",
         "setting": null,
         "value": "/opt/vonk/chat_template_alias.jinja"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 561512448
       }
     ],
     "engine": "vllm",
@@ -630,7 +630,7 @@
             "working_bytes": 54000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
+            "peak_bytes": 74901637137,
             "reserve_bytes": 8000000000
           }
         }
@@ -647,7 +647,7 @@
             "working_bytes": 54000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
+            "peak_bytes": 74901637137,
             "reserve_bytes": 8000000000
           }
         }

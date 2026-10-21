@@ -1089,11 +1089,6 @@
         "value": 12884901888
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.80"
-      },
-      {
         "name": "max-num-seqs",
         "setting": "concurrency",
         "value": null
@@ -1337,7 +1332,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 104794604072,
             "reserve_bytes": 8589934592
           }
         }
@@ -1354,7 +1349,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 104794604072,
             "reserve_bytes": 8589934592
           }
         }

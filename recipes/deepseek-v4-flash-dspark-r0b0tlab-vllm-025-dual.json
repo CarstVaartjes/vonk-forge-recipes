@@ -969,11 +969,6 @@
         "value": 16384
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.84"
-      },
-      {
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
@@ -1022,6 +1017,11 @@
         "name": "moe-backend",
         "setting": null,
         "value": "flashinfer_b12x"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1171,7 +1171,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 91939244116,
             "reserve_bytes": 8000000000
           }
         }
@@ -1188,7 +1188,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 91939244116,
             "reserve_bytes": 8000000000
           }
         }

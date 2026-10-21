@@ -721,31 +721,6 @@
       "help": "MTP drafting with the checkpoint's bundled MTP head. Upstream found MTP1 better than MTP2 here: MTP2 halves the KV pool without a speed gain.",
       "label": "Speculative decoding",
       "name": "speculative"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Validated 1M-context budget (upstream default).",
-          "label": "0.84 (default)",
-          "value": "high"
-        },
-        {
-          "args": [
-            {
-              "name": "gpu-memory-utilization",
-              "setting": null,
-              "value": "0.81"
-            }
-          ],
-          "help": "Upstream's 500K fallback example: export MAX_MODEL_LEN=500000 MAX_NUM_SEQS=2 GPU_MEMORY_UTILIZATION=0.81. Set the context and concurrency settings to match.",
-          "label": "0.81",
-          "value": "fallback"
-        }
-      ],
-      "help": "Fraction of unified memory vLLM may take. Upstream's OOM guidance: 0.84 is what the 1M profile needs (0.80 just fails at 500K); lower it only together with the context setting when a load or profile step runs out of memory.",
-      "label": "GPU memory utilization",
-      "name": "memory"
     }
   ],
   "provenance": {
@@ -817,11 +792,6 @@
         "name": "kv-cache-dtype",
         "setting": null,
         "value": "nvfp4"
-      },
-      {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.81"
       },
       {
         "name": "max-model-len",
@@ -897,6 +867,11 @@
         "name": "enforce-eager",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 301989888
       }
     ],
     "engine": "vllm",
@@ -1054,7 +1029,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
+            "peak_bytes": 100049700412,
             "reserve_bytes": 6000000000
           }
         }
@@ -1071,7 +1046,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
+            "peak_bytes": 100049700412,
             "reserve_bytes": 6000000000
           }
         }

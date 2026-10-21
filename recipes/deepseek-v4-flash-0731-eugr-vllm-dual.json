@@ -932,11 +932,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
@@ -1005,6 +1000,11 @@
         "name": "speculative-config",
         "setting": null,
         "value": "{\"method\":\"dspark\",\"num_speculative_tokens\":5,\"draft_sample_method\":\"probabilistic\",\"attention_backend\":\"B12X\"}"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1117,7 +1117,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 91939244116,
             "reserve_bytes": 8000000000
           }
         }
@@ -1134,7 +1134,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 91939244116,
             "reserve_bytes": 8000000000
           }
         }

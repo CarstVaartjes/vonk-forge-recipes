@@ -790,11 +790,6 @@
         "value": "nvfp4"
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.86"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -853,6 +848,11 @@
         "name": "reasoning-parser",
         "setting": null,
         "value": "mimo"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 301989888
       }
     ],
     "engine": "vllm",
@@ -998,7 +998,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
+            "peak_bytes": 69467130238,
             "reserve_bytes": 8000000000
           }
         }
@@ -1015,7 +1015,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
+            "peak_bytes": 69467130238,
             "reserve_bytes": 8000000000
           }
         }

@@ -472,11 +472,6 @@
         "value": "inkling"
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.73"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -520,6 +515,11 @@
         "name": "speculative-config",
         "setting": null,
         "value": "{\"method\":\"dspark\",\"model\":\"/opt/vonk/draft-overlay\",\"num_speculative_tokens\":7,\"draft_tensor_parallel_size\":2}"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 18688428637
       }
     ],
     "engine": "vllm",
@@ -605,7 +605,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120384158987,
+            "peak_bytes": 112954944938,
             "reserve_bytes": 8000000000
           }
         }
@@ -622,7 +622,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120384158987,
+            "peak_bytes": 112954944938,
             "reserve_bytes": 8000000000
           }
         }

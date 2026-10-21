@@ -15,7 +15,7 @@ RUN apt-get update \
         build-essential ca-certificates curl ninja-build python3 python3-dev python3-pip \
     && rm -rf /var/lib/apt/lists/* \
     && curl --fail --location --retry 5 \
-        https://github.com/VAST-AI-Research/SkinTokens/archive/273b691d35989d71cd17ff2895fdc735097b92d1.tar.gz \
+        https://codeload.github.com/VAST-AI-Research/SkinTokens/tar.gz/273b691d35989d71cd17ff2895fdc735097b92d1 \
         --output /tmp/skintokens.tar.gz \
     && echo "f886ce830f8f6ed5a3eabebb9399244812ac17a44d5b51fe8853c381a214e334  /tmp/skintokens.tar.gz" | sha256sum --check --strict \
     && mkdir -p /opt/skintokens/models/Qwen3-0.6B \

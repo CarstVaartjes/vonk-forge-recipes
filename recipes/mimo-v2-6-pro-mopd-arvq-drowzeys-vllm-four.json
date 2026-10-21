@@ -5866,11 +5866,6 @@
         "value": 5120
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "enable-chunked-prefill",
         "setting": null,
         "value": true
@@ -5919,6 +5914,11 @@
         "name": "compilation-config",
         "setting": null,
         "value": "{\"mode\":3,\"cudagraph_mode\":\"FULL_AND_PIECEWISE\",\"cudagraph_capture_sizes\":[1,2,3,4,6,8,9,12,16]}"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 880803840
       }
     ],
     "engine": "vllm",
@@ -6028,7 +6028,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 99658822432,
             "reserve_bytes": 8000000000
           }
         }
@@ -6045,7 +6045,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 99658822432,
             "reserve_bytes": 8000000000
           }
         }

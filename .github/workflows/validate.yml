@@ -230,7 +230,9 @@ jobs:
           set -euo pipefail
           # Keep the active test visible and dump stacks for a stalled test;
           # neither option changes production retry or observation deadlines.
-          "$RECIPE_TEST_PYTHON" -m pytest -vv -o faulthandler_timeout=20
+          # Only a real stall dumps: a dump racing a slow test's C code once
+          # segfaulted the whole suite (exit 139).
+          "$RECIPE_TEST_PYTHON" -m pytest -vv -o faulthandler_timeout=300
 
       - name: Lint the repository with pinned Ruff
         if: steps.scope.outputs.full == 'true'

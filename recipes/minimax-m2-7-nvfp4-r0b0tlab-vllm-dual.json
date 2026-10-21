@@ -453,11 +453,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "max-num-batched-tokens",
         "setting": null,
         "value": 8192
@@ -506,6 +501,11 @@
         "name": "compilation-config",
         "setting": null,
         "value": "{\"mode\":3,\"cudagraph_mode\":\"none\",\"inductor_compile_config\":{\"combo_kernels\":false,\"benchmark_combo_kernel\":false,\"max_autotune\":false,\"max_autotune_gemm\":false}}"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 520093696
       }
     ],
     "engine": "vllm",
@@ -587,7 +587,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 78463817648,
             "reserve_bytes": 8000000000
           }
         }
@@ -604,7 +604,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 78463817648,
             "reserve_bytes": 8000000000
           }
         }

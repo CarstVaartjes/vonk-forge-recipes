@@ -937,11 +937,6 @@
         "value": 4096
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "compilation-config",
         "setting": null,
         "value": "{\"cudagraph_mode\":\"FULL_AND_PIECEWISE\",\"custom_ops\":[\"all\"]}"
@@ -960,6 +955,11 @@
         "name": "load-format",
         "setting": null,
         "value": "safetensors"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1057,7 +1057,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 88304550968,
             "reserve_bytes": 8000000000
           }
         }
@@ -1074,7 +1074,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 88304550968,
             "reserve_bytes": 8000000000
           }
         }

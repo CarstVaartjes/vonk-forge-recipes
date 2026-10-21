@@ -1333,11 +1333,6 @@
         "value": "fp8_e4m3"
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.84"
-      },
-      {
         "name": "speculative-config",
         "setting": null,
         "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":1}"
@@ -1361,6 +1356,11 @@
         "name": "enforce-eager",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 1342177280
       }
     ],
     "engine": "vllm",
@@ -1450,7 +1450,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119460206112,
+            "peak_bytes": 99764151972,
             "reserve_bytes": 8000000000
           }
         }
@@ -1467,7 +1467,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119460206112,
+            "peak_bytes": 99764151972,
             "reserve_bytes": 8000000000
           }
         }

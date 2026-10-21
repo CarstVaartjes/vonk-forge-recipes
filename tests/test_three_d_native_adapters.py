@@ -28,8 +28,8 @@ CASES = {
     "skintokens-pytorch-single": {
         "context": "adapters/three-d/skintokens",
         "model": "models/skintokens.json",
-        "source_repository": "VAST-AI-Research/SkinTokens",
         "source_revision": "273b691d35989d71cd17ff2895fdc735097b92d1",
+        "source_archive_url": "https://codeload.github.com/VAST-AI-Research/SkinTokens/tar.gz/273b691d35989d71cd17ff2895fdc735097b92d1",
         "source_archive": "skintokens.tar.gz",
         "source_archive_sha256": "f886ce830f8f6ed5a3eabebb9399244812ac17a44d5b51fe8853c381a214e334",
         "base_image": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
@@ -37,8 +37,8 @@ CASES = {
     "triposg-pytorch-single": {
         "context": "adapters/three-d/triposg",
         "model": "models/triposg.json",
-        "source_repository": "VAST-AI-Research/TripoSG",
         "source_revision": "fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c",
+        "source_archive_url": "https://github.com/VAST-AI-Research/TripoSG/archive/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c.tar.gz",
         "source_archive": "triposg.tar.gz",
         "source_archive_sha256": "3d06f11eb795bcabea7863e670e9cea02f96bfc6ec3e6db20e015e5710653682",
         "base_image": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
@@ -46,8 +46,8 @@ CASES = {
     "hunyuan3d-omni-pytorch-single": {
         "context": "adapters/three-d/hunyuan3d-omni",
         "model": "models/hunyuan3d-omni.json",
-        "source_repository": "Tencent-Hunyuan/Hunyuan3D-Omni",
         "source_revision": "4d47c0cc2bd0c4281963a7314ab330a5af36bfa8",
+        "source_archive_url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/archive/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8.tar.gz",
         "source_archive": "hunyuan3d-omni.tar.gz",
         "source_archive_sha256": "1191700188114ac9fd257ed617c3a46bb523adc90a05316c2bbed433063e32d3",
         "base_image": "nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
@@ -264,7 +264,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                     f'org.opencontainers.image.revision="{revision}"', dockerfile
                 )
                 self.assertIn(
-                    f"https://github.com/{case['source_repository']}/archive/{revision}.tar.gz",
+                    case["source_archive_url"],
                     dockerfile,
                 )
                 self.assertIn(
