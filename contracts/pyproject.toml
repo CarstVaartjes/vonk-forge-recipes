@@ -1,6 +1,6 @@
 [project]
 name = "vonk-forge-public-contracts"
-version = "2.4.0"
+dynamic = ["version"]
 description = "Standalone Pydantic v2 authoring contracts for Vonk Forge recipes"
 requires-python = ">=3.14"
 dependencies = ["pydantic>=2.13,<3"]
@@ -8,6 +8,9 @@ dependencies = ["pydantic>=2.13,<3"]
 [build-system]
 requires = ["hatchling>=1.32.4"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/vonk_forge_contracts/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/vonk_forge_contracts"]
