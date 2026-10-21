@@ -49,22 +49,23 @@ def patch_stage(path: Path, model_name: str) -> None:
     )
 
     replacements = {
-        f'ModelConfig(\n                model_id="Wan-AI/Wan-Dancer-14B",\n                origin_file_pattern="{model_name}",\n                offload_device="cpu",\n            )': f'ModelConfig(path="/models/{model_name}", offload_device="cpu")',
-        'ModelConfig(\n                model_id="Wan-AI/Wan-Dancer-14B",\n                origin_file_pattern="models_t5_umt5-xxl-enc-bf16.pth",\n                offload_device="cpu",\n            )': 'ModelConfig(path="/models/models_t5_umt5-xxl-enc-bf16.pth", offload_device="cpu")',
-        'ModelConfig(\n                model_id="Wan-AI/Wan-Dancer-14B",\n                origin_file_pattern="Wan2.1_VAE.pth",\n                offload_device="cpu",\n            )': 'ModelConfig(path="/models/Wan2.1_VAE.pth", offload_device="cpu")',
-        'ModelConfig(\n                model_id="Wan-AI/Wan-Dancer-14B",\n                origin_file_pattern="models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth",\n                offload_device="cpu",\n            )': 'ModelConfig(path="/models/models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth", offload_device="cpu")',
+        f'ModelConfig(\n                model_id="Wan-AI/Wan-Dancer-14B",\n                origin_file_pattern="{model_name}",\n                offload_device="cpu",\n            )': f'ModelConfig(path="/models/{model_name}", offload_device="cuda")',
+        'ModelConfig(\n                model_id="Wan-AI/Wan-Dancer-14B",\n                origin_file_pattern="models_t5_umt5-xxl-enc-bf16.pth",\n                offload_device="cpu",\n            )': 'ModelConfig(path="/models/models_t5_umt5-xxl-enc-bf16.pth", offload_device="cuda")',
+        'ModelConfig(\n                model_id="Wan-AI/Wan-Dancer-14B",\n                origin_file_pattern="Wan2.1_VAE.pth",\n                offload_device="cpu",\n            )': 'ModelConfig(path="/models/Wan2.1_VAE.pth", offload_device="cuda")',
+        'ModelConfig(\n                model_id="Wan-AI/Wan-Dancer-14B",\n                origin_file_pattern="models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth",\n                offload_device="cpu",\n            )': 'ModelConfig(path="/models/models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth", offload_device="cuda")',
         'ModelConfig(\n            model_id="Wan-AI/Wan-Dancer-14B", origin_file_pattern="google/umt5-xxl/"\n        )': 'ModelConfig(path="/models/google/umt5-xxl")',
     }
     if model_name == "local_model.safetensors":
         replacements = {
-            'ModelConfig(model_id="Wan-AI/Wan-Dancer-14B", \n                        origin_file_pattern="local_model.safetensors", \n                        offload_device="cpu")': 'ModelConfig(path="/models/local_model.safetensors", offload_device="cpu")',
-            'ModelConfig(model_id="Wan-AI/Wan-Dancer-14B", \n                        origin_file_pattern="models_t5_umt5-xxl-enc-bf16.pth", \n                        offload_device="cpu")': 'ModelConfig(path="/models/models_t5_umt5-xxl-enc-bf16.pth", offload_device="cpu")',
-            'ModelConfig(model_id="Wan-AI/Wan-Dancer-14B", \n                        origin_file_pattern="Wan2.1_VAE.pth", \n                        offload_device="cpu")': 'ModelConfig(path="/models/Wan2.1_VAE.pth", offload_device="cpu")',
-            'ModelConfig(model_id="Wan-AI/Wan-Dancer-14B", \n                        origin_file_pattern="models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth", \n                        offload_device="cpu")': 'ModelConfig(path="/models/models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth", offload_device="cpu")',
+            'ModelConfig(model_id="Wan-AI/Wan-Dancer-14B", \n                        origin_file_pattern="local_model.safetensors", \n                        offload_device="cpu")': 'ModelConfig(path="/models/local_model.safetensors", offload_device="cuda")',
+            'ModelConfig(model_id="Wan-AI/Wan-Dancer-14B", \n                        origin_file_pattern="models_t5_umt5-xxl-enc-bf16.pth", \n                        offload_device="cpu")': 'ModelConfig(path="/models/models_t5_umt5-xxl-enc-bf16.pth", offload_device="cuda")',
+            'ModelConfig(model_id="Wan-AI/Wan-Dancer-14B", \n                        origin_file_pattern="Wan2.1_VAE.pth", \n                        offload_device="cpu")': 'ModelConfig(path="/models/Wan2.1_VAE.pth", offload_device="cuda")',
+            'ModelConfig(model_id="Wan-AI/Wan-Dancer-14B", \n                        origin_file_pattern="models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth", \n                        offload_device="cpu")': 'ModelConfig(path="/models/models_clip_open-clip-xlm-roberta-large-vit-huge-14.pth", offload_device="cuda")',
             'tokenizer_config=ModelConfig(model_id="Wan-AI/Wan-Dancer-14B",origin_file_pattern="google/umt5-xxl/")': 'tokenizer_config=ModelConfig(path="/models/google/umt5-xxl")',
         }
     for old, new in replacements.items():
         replace_once(path, old, new)
+    replace_once(path, "    pipe.enable_vram_management()\n", "")
 
     replace_once(
         path,

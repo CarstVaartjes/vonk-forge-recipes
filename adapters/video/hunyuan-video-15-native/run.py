@@ -311,7 +311,7 @@ def main() -> None:
         )
     if float(pipe.guider.guidance_scale) != args.guidance_scale:
         raise SystemExit("snapshot guider does not match the signed recipe")
-    pipe.enable_model_cpu_offload()
+    pipe.to("cuda")
     pipe.vae.enable_tiling()
 
     call = {

@@ -103,7 +103,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Installable Candidate for 480p eight-step image-to-video with a complete immutable step-distilled Diffusers snapshot, isolated image input, and offline ARM64 runtime; physical Spark acceptance remains pending.",
+    "description": "Installable Candidate for 480p eight-step image-to-video with a complete immutable step-distilled Diffusers snapshot, isolated image input, and offline ARM64 runtime; physical Spark acceptance remains pending. Keeps models on CUDA without CPU offload on GB10 unified memory; smoke fit is estimated, and physical memory and latency qualification remain pending.",
     "tags": [
       "executable",
       "candidate",

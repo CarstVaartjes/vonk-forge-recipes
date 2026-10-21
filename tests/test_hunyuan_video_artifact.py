@@ -29,6 +29,7 @@ def test_square_i2v_job_publishes_native_bucket(
         guider = SimpleNamespace(guidance_scale=1.0)
         vae = MagicMock()
         enable_model_cpu_offload = MagicMock()
+        to = MagicMock()
         target_size = 640
         video_processor = MagicMock()
 
@@ -103,6 +104,8 @@ def test_square_i2v_job_publishes_native_bucket(
         ),
     ):
         module.main()
+    pipe.to.assert_called_once_with("cuda")
+    pipe.enable_model_cpu_offload.assert_not_called()
     assert (tmp_path / "output.mp4").read_bytes() == b"encoded"
     assert not (tmp_path / ".output.tmp.mp4").exists()
 
