@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "c223bb07252ee8452a01ce112721509b5f1323f5d66e39f96c0301001659b67d",
+        "runtime_image": {
+          "build_key": "288c02b96d4137b3dbb72ee43e11b19198a7409cca5e26e899354e164c12c44c",
+          "image_digest": "sha256:2079027219b41a33df04f5629a47eec80e5dc219f333a91280a3c7d1271d17c1"
+        },
+        "model_digests": [
+          "6aa6f5e0542e5676862996deb985c8017b081fcfe98da045671439c722a5c09c"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "403f6057f5c7ad1590fb7f5fd4bf21dc2dd288610b60c57aaa4c819ebb186b90"
+      ],
+      "tested_at": "2026-10-21T21:47:40.910977Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
