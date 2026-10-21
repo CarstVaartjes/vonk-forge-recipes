@@ -213,6 +213,36 @@ Test the old grammar accepting duplicate calls and the replacement rejecting
 them, plus streaming and non-streaming parsing of the resulting native frame.
 Keep the serving assertion strict; response deduplication can discard real calls.
 
+### Multi-Spark memory demand and nonfitting recipes
+
+Use the shared `qualification.memory_need.memory_need` calculator for vLLM
+capacity repairs; `tools/check-recipe-memory-need <recipe-slug>...` checks the
+base launch and every option. It reports estimated capacity separately from
+underdeclared resources: an honest oversized declaration prints **does not fit
+2 Sparks** without failing the producer check. This is a catalog estimate,
+not a live admission decision or a new execution ban.
+
+On each GB10 rank, budget the larger of the utilization fraction times
+130,663,231,488 bytes plus 8 GB runtime overhead (another 17 GB for a separate
+vLLM drafter), and selected weight bytes divided by tensor/pipeline shards plus
+explicit KV-cache bytes and 8 GB. The latter is an optimistic loading floor:
+replicated tensors and startup expansion can require more. Absolute KV bytes
+bypass utilization, so reducing only the fraction cannot hide that floor.
+Use the lower observed idle MemAvailable, 125,650,657,280 bytes, and leave the
+host guard's 16 GiB pressure headroom: the safe workload limit is
+108,470,788,096 bytes per rank. Declare at least the calculated peak and the
+16 GiB reserve; do not shrink either to pass admission or waive a draft term.
+
+Llama 3.1 405B AWQ TP2 needs at least 119,063,746,765 bytes per rank at its
+0.85 fraction; Reederey87 GLM EXL3 DFlash2 TP2 needs at least
+133,450,482,136 at 0.83 including its separate drafter. Both exceed the safe
+two-Spark limit. Their existing model, context and runtime pins stay intact;
+resource declarations expose the demand. A four-Spark memory projection with
+TP4 and a retuned 0.60 fraction fits this estimate for both. That requires a
+**distinct recipe** and porting Reederey87's TP2-only launcher; it is not proof of engine,
+context or physical four-Spark qualification. Never change a proven recipe to
+repair a failing sibling.
+
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`).
 `tools/check-recipe-topology` fails validation when a change alters the
