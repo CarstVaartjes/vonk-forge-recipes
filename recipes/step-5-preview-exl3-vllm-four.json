@@ -2253,11 +2253,6 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "max-num-batched-tokens",
         "setting": null,
         "value": 8192
@@ -2421,7 +2416,7 @@
             "working_bytes": 694778217936
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 113344691542,
             "reserve_bytes": 8000000000
           }
         }
@@ -2438,7 +2433,7 @@
             "working_bytes": 694778217936
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 113344691542,
             "reserve_bytes": 8000000000
           }
         }

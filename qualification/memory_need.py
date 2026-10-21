@@ -370,16 +370,18 @@ def require_memory_need(
     *,
     document_digest: str,
 ) -> MemoryNeed | None:
-    """Check new/changed vLLM/SGLang documents without retuning historical ones."""
+    """Check new/changed documents without retuning historical ones."""
+    # Recorded content is judged by hardware, not by this offline check.
+    if unchanged_recipe(recipe, document_digest, inputs):
+        return None
     require_admissible_declaration(recipe)
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return None
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    if unchanged_recipe(recipe, document_digest, inputs):
-        return None
-    if recipe.runtime.engine == "vllm" and recipe.topology.node_count != 1:
+    if recipe.topology.node_count != 1:
         for variant in memory_variants(recipe):
-            problems = declaration_problems(variant, per_rank_need(variant, models))
+            need = per_rank_need(variant, models)
+            problems = declaration_problems(variant, need)
             if problems:
                 raise ValueError(f"{key}: " + "; ".join(problems))
         return None
@@ -430,6 +432,7 @@ def require_memory_need(
                 raise ValueError(
                     f"{key}/{role.name}: peak_bytes must cover need {need.total_bytes}"
                 )
+        if need.total_bytes <= need.limit_bytes:
         result = need
     return result
 
@@ -512,6 +515,8 @@ def per_rank_need(
         raise ValueError("memory need requires a vLLM/SGLang recipe")
     kv_bytes = 0
     pool = argument_value(recipe, "kv-cache-memory-bytes")
+    if pool is None:
+        pool = argument_value(recipe, "kv-cache-memory")
     if pool is not None:
         kv_bytes = cache_bytes(pool)
     parallel = recipe.topology.parallelism
@@ -537,13 +542,25 @@ def declaration_problems(
 ) -> list[str]:
     """An oversized estimate is valid; hiding demand or headroom is not."""
     problems: list[str] = []
+    fraction = argument_value(recipe, "mem-fraction-static")
+    static_peak = (
+        Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        if recipe.runtime.engine == "sglang" and fraction is not None
+        else None
+    )
     for role in recipe.topology.roles:
         memory = role.resources.memory
         if memory.peak_bytes < need.peak_bytes:
             problems.append(f"{role.name}: peak understates need {need.peak_bytes}")
-        if memory.reserve_bytes < GUARD_BYTES:
+        if memory.reserve_bytes < OS_FLOOR_BYTES:
             problems.append(
-                f"{role.name}: reserve understates host headroom {GUARD_BYTES}"
+                f"{role.name}: reserve understates host headroom {OS_FLOOR_BYTES}"
+            )
+        if static_peak is not None and (
+            not static_peak.is_finite() or static_peak > memory.peak_bytes
+        ):
+            problems.append(
+                f"{role.name}: peak understates SGLang static allocation plus overhead"
             )
     return problems
 
@@ -551,15 +568,22 @@ def declaration_problems(
 def require_admissible_declaration(
     recipe: RecipeDefinition, *, pool_bytes: int = SPARK_MEMORY_BYTES
 ) -> None:
-    """Every launch variant must fit an empty target pool; no assumed host use."""
+    """Every launch variant must fit an idle Spark by the Controller's rule.
+
+    An idle Spark's host already uses IDLE_USE_BYTES; a declaration that only
+    fits with no host use can never be admitted (2026-10-21 deferral).
+    """
     for variant in memory_variants(recipe):
         for role in variant.topology.roles:
             if not evaluate_memory_admission(
-                role.resources.memory.peak_bytes, pool_bytes
+                role.resources.memory.peak_bytes,
+                pool_bytes,
+                occupied_bytes=IDLE_USE_BYTES,
             ).admissible:
                 raise ValueError(
                     f"{recipe.identity.slug}/{role.name}: declared peak "
                     f"{role.resources.memory.peak_bytes} bytes is not admissible "
-                    f"on empty pool {pool_bytes} bytes; "
-                    f"platform floor={PLATFORM_MEMORY_FLOOR_BYTES} bytes"
+                    f"on an idle Spark (pool {pool_bytes} bytes, host "
+                    f"{IDLE_USE_BYTES} bytes, floor "
+                    f"{PLATFORM_MEMORY_FLOOR_BYTES} bytes); reserve by need"
                 )

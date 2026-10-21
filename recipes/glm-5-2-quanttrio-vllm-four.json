@@ -1679,11 +1679,6 @@
         "value": 7008000000
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.86"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -1861,7 +1856,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 120370379080,
+            "peak_bytes": 116378253504,
             "reserve_bytes": 8000000000
           }
         }
@@ -1878,7 +1873,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 120370379080,
+            "peak_bytes": 116378253504,
             "reserve_bytes": 8000000000
           }
         }

@@ -1130,11 +1130,6 @@
         "value": 8192
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.86"
-      },
-      {
         "name": "long-prefill-token-threshold",
         "setting": null,
         "value": 1024
@@ -1178,6 +1173,11 @@
         "name": "compilation-config",
         "setting": null,
         "value": "{\"mode\":0,\"cudagraph_mode\":\"FULL_DECODE_ONLY\",\"cudagraph_capture_sizes\":[1,2,4,8,16,32,48]}"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1295,7 +1295,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120370379080,
+            "peak_bytes": 92405678632,
             "reserve_bytes": 8000000000
           }
         }
@@ -1312,7 +1312,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120370379080,
+            "peak_bytes": 92405678632,
             "reserve_bytes": 8000000000
           }
         }

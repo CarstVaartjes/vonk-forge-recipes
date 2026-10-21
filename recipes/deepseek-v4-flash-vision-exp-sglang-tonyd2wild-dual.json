@@ -1068,7 +1068,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.80"
+        "value": "0.645978808810"
       },
       {
         "name": "swa-full-tokens-ratio",
@@ -1228,7 +1228,7 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 92405678632,
             "reserve_bytes": 6000000000
           }
         }
@@ -1245,7 +1245,7 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 124000000000,
+            "peak_bytes": 92405678632,
             "reserve_bytes": 6000000000
           }
         }

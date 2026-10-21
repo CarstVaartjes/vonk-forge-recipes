@@ -897,31 +897,6 @@
       "help": "Drafted tokens per step. The drafter emits exactly 5 per pass, so upstream allows 5 or fewer (or a multiple of 5); 7 crashes on first generation. k=5 measured about 24 percent faster than k=3 (upstream).",
       "label": "DSpark draft length",
       "name": "speculative-length"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream's current best profile for the text checkpoint: speculative decoding allocates buffers on the first real request, and 0.80 or more can boot then die under traffic (upstream issue 8).",
-          "label": "0.78 (default)",
-          "value": "conservative"
-        },
-        {
-          "args": [
-            {
-              "name": "gpu-memory-utilization",
-              "setting": null,
-              "value": "0.82"
-            }
-          ],
-          "help": "Upstream's 12-slot lane (the Vision-Exp launcher default); upstream documents it as the profile class that can hit the first-request memory failure.",
-          "label": "0.82",
-          "value": "high"
-        }
-      ],
-      "help": "Fraction of unified memory vLLM may take. Set the concurrency setting to match (upstream: 6 slots at 0.78, 12 at 0.85).",
-      "label": "GPU memory utilization",
-      "name": "memory"
     }
   ],
   "provenance": {
@@ -985,11 +960,6 @@
         "value": 8192
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.78"
-      },
-      {
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
@@ -1048,6 +1018,11 @@
         "name": "enable-flashinfer-autotune",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1273,7 +1248,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
+            "peak_bytes": 91939244116,
             "reserve_bytes": 6000000000
           }
         }
@@ -1290,7 +1265,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
+            "peak_bytes": 91939244116,
             "reserve_bytes": 6000000000
           }
         }
