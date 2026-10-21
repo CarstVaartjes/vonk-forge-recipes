@@ -16,12 +16,16 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import (
+    PLATFORM_MEMORY_FLOOR_BYTES,
+    evaluate_memory_admission,
+)
 
 # Offline policy pinned to vonk-forge cee017ae806f0ac4c0842a3652f8ef7ee57388b8:
 # control/src/vonk_control/resource_planning/types.py::PLATFORM_MEMORY_FLOOR_BYTES
 # and rust/crates/vonk-agent-protocol/src/host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES.
 # These estimates do not redefine live admission or the sustained-pressure guard.
-OS_FLOOR_BYTES = 6_000_000_000
+OS_FLOOR_BYTES = PLATFORM_MEMORY_FLOOR_BYTES
 # Historical GB10 total, not a substitute for available live node telemetry.
 SPARK_MEMORY_BYTES = 130_663_231_488
 SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
@@ -366,24 +370,20 @@ def require_memory_need(
     *,
     document_digest: str,
 ) -> MemoryNeed | None:
-    """Check new/changed vLLM/SGLang documents without retuning historical ones."""
+    """Check new/changed documents without retuning historical ones."""
+    # Recorded content is judged by hardware, not by this offline check.
+    if unchanged_recipe(recipe, document_digest, inputs):
+        return None
+    require_admissible_declaration(recipe)
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return None
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    if unchanged_recipe(recipe, document_digest, inputs):
-        return None
     if recipe.topology.node_count != 1:
         for variant in memory_variants(recipe):
             need = per_rank_need(variant, models)
             problems = declaration_problems(variant, need)
             if problems:
                 raise ValueError(f"{key}: " + "; ".join(problems))
-            if all(
-                need.peak_bytes + role.resources.memory.reserve_bytes
-                <= IDLE_AVAILABLE_BYTES
-                for role in variant.topology.roles
-            ):
-                require_admissible_declaration(variant)
         return None
     result = None
     for variant in memory_variants(recipe):
@@ -432,8 +432,6 @@ def require_memory_need(
                 raise ValueError(
                     f"{key}/{role.name}: peak_bytes must cover need {need.total_bytes}"
                 )
-        if need.total_bytes <= need.limit_bytes:
-            require_admissible_declaration(variant)
         result = need
     return result
 
@@ -566,21 +564,25 @@ def declaration_problems(
     return problems
 
 
-def require_admissible_declaration(recipe: RecipeDefinition) -> None:
-    """Check the declared reservation, independently of estimated workload fit.
+def require_admissible_declaration(
+    recipe: RecipeDefinition, *, pool_bytes: int = SPARK_MEMORY_BYTES
+) -> None:
+    """Every launch variant must fit an idle Spark by the Controller's rule.
 
-    The 2026-10-21 deferral observed 4,515,061,760 host bytes. The owner's
-    lower historical idle availability includes 5,012,574,208 host bytes,
-    so use that existing, more conservative baseline without another constant.
-    This is an offline declaration check, not a hardware qualification verdict.
+    An idle Spark's host already uses IDLE_USE_BYTES; a declaration that only
+    fits with no host use can never be admitted (2026-10-21 deferral).
     """
-    for role in recipe.topology.roles:
-        memory = role.resources.memory
-        demand = memory.peak_bytes + max(memory.reserve_bytes, OS_FLOOR_BYTES)
-        if demand > IDLE_AVAILABLE_BYTES:
-            raise ValueError(
-                f"{recipe.identity.slug}/{role.name}: declared peak plus reserve "
-                f"{demand} bytes exceeds idle Spark capacity {IDLE_AVAILABLE_BYTES} "
-                f"bytes (pool={TOTAL_BYTES}, host={IDLE_USE_BYTES}); "
-                "reserve by need and bound the engine allocation"
-            )
+    for variant in memory_variants(recipe):
+        for role in variant.topology.roles:
+            if not evaluate_memory_admission(
+                role.resources.memory.peak_bytes,
+                pool_bytes,
+                occupied_bytes=IDLE_USE_BYTES,
+            ).admissible:
+                raise ValueError(
+                    f"{recipe.identity.slug}/{role.name}: declared peak "
+                    f"{role.resources.memory.peak_bytes} bytes is not admissible "
+                    f"on an idle Spark (pool {pool_bytes} bytes, host "
+                    f"{IDLE_USE_BYTES} bytes, floor "
+                    f"{PLATFORM_MEMORY_FLOOR_BYTES} bytes); reserve by need"
+                )

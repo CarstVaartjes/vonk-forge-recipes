@@ -37,13 +37,12 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Tony's native Zig TensorFold TP2 lane at 9fa230d3eb119f588e690bf9b87ce41ed902db60, with the pinned bertholomus engine/kit and the creator's sampling, Triton/indexer and rank-cache patches. Full 1M context, 4 streams, built-in DSpark, image input and byte-checked chat template. Engram shards stay on local NVMe. Read-only source weights derive a per-rank cache and verified RoPE/vision kit under /outputs/cache; restart reuses valid completed work and rebuilds incomplete or malformed derived inputs. The 115 GiB peak estimate follows the creator's 121.7 GiB host with 6.7 GiB free on the head. Upstream measurements are not physical qualification on this fleet.",
+    "description": "Tony's native Zig TensorFold TP2 lane at 9fa230d3eb119f588e690bf9b87ce41ed902db60, with the pinned bertholomus engine/kit and the creator's sampling, Triton/indexer and rank-cache patches. 262,144-token shared context pool, 4 streams, target-only decoding, image input and byte-checked chat template. Engram shards stay on local NVMe. Read-only source weights derive a per-rank cache and verified RoPE/vision kit under /outputs/cache; restart reuses valid completed work and rebuilds incomplete or malformed derived inputs. The former 115 GiB declaration came from the creator's whole-host 121.7 GiB minus 6.7 GiB free at 1M context, not a recipe-only allocation measurement. Upstream measurements are not physical qualification on this fleet. Admission repair: --no-drafts skips DSpark weight loading and draft buffers on BOTH ranks (weights.zig::load, model.zig::open); credit only 3 GiB of the creator's approximately 3.5 GiB draft weights. Reducing --context/--pool from 1,048,576 to 262,144 removes at least another 1 GiB: prompt.zig::Caches.init uses 890 bytes/position (KV sources 2/8/14 at ratio 2 and 20 at ratio 1, packed 512-wide FP4 plus scales and 128-wide index keys), and model.zig allocates 512 RoPE bytes/position; 786,432 * 1,402 = 1,102,577,664 bytes removed, before smaller round/index workspace. Keep the remaining original allowance: 115 - 3 - 1 = 111 GiB (119,185,342,464 bytes) peak/rank. --prompt-cache-gib=0 prevents additional kept-state snapshots. Engram remains disk-backed, no CPU offload or RAM-fraction cap is substituted. This is a conservative source-backed planning estimate, not measured fleet acceptance.",
     "tags": [
       "deepseek",
       "1017",
       "tensorfold",
       "exl3",
-      "dspark",
       "vision",
       "spark"
     ],
@@ -899,6 +898,14 @@
       {
         "name": "context",
         "setting": "context_tokens"
+      },
+      {
+        "name": "no-drafts",
+        "value": true
+      },
+      {
+        "name": "prompt-cache-gib",
+        "value": 0
       }
     ],
     "engine": "tensorfold",
@@ -934,7 +941,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1048576
+      "value": 262144
     },
     "kind": "generation",
     "knobs": {}
@@ -961,7 +968,7 @@
             "working_bytes": 115000000000
           },
           "memory": {
-            "peak_bytes": 123480309760,
+            "peak_bytes": 119185342464,
             "reserve_bytes": 6000000000
           }
         }
@@ -978,7 +985,7 @@
             "working_bytes": 115000000000
           },
           "memory": {
-            "peak_bytes": 123480309760,
+            "peak_bytes": 119185342464,
             "reserve_bytes": 6000000000
           }
         }

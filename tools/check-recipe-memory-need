@@ -24,6 +24,7 @@ from qualification.memory_need import (
     memory_variants,
     memory_warnings,
     per_rank_need,
+    require_admissible_declaration,
     require_memory_need,
     unchanged_recipe,
 )
@@ -53,6 +54,11 @@ def main() -> int:
         recipe = RecipeDefinition.model_validate(document)
         key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
         digest = document_sha256(document)
+        try:
+            require_admissible_declaration(recipe)
+        except ValueError as error:
+            failed += 1
+            print(str(error), file=sys.stderr)
         if args.calibrate:
             evidence = read_evidence(ROOT, key)
             if not any(

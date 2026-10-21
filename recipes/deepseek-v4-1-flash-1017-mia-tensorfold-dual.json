@@ -37,14 +37,13 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Mia AI Lab's exact two-Spark TensorFold kit at 1afc8910: EAQ v1 EXL3 2.9 bpw checkpoint, full 1,048,576-token shared pool, four streams, DSpark drafts, image input, thinking on, and required/named tool-choice enforcement. Preserves all four upstream engine patches and enables its measured prompt-cache placement setting. Uses Mia's digest-pinned ARM64 image with its exact serving fork, auxiliary rank-cache tools and four patches, plus the pinned kernel kit. Controller-managed read-only models and local Engram shards replace upstream SSH/NFS setup; durable per-rank derived inputs use /outputs/cache. Estimated peak 115 GiB per Spark conservatively covers upstream's 98.9 GiB rank weights, 12.2 GiB runtime allowance and workspace. This is an estimate; physical qualification on this fleet is pending. The optional gated abliterated overlay is not included.",
+    "description": "Mia AI Lab's exact two-Spark TensorFold kit at 75cab1d6: EAQ v1 EXL3 2.9 bpw checkpoint, 262,144-token shared pool, four streams, target-only decoding, image input, thinking on, and required/named tool-choice enforcement. Preserves the pinned upstream engine patches with kept prompt snapshots disabled. Uses Mia's digest-pinned ARM64 image with its exact serving fork, auxiliary rank-cache tools and patches, plus the pinned kernel kit. Controller-managed read-only models and local Engram shards replace upstream SSH/NFS setup; durable per-rank derived inputs use /outputs/cache. The former 115 GiB declaration combined upstream's 98.9 GiB rank weights with a misidentified 12.2 GiB runtime allowance: 12.2 GiB is the engine's free-memory reserve, not an allocation. This is an estimate; physical qualification on this fleet is pending. The optional gated abliterated overlay is not included. Admission repair: --no-drafts skips DSpark weight loading and draft buffers on BOTH ranks (weights.zig::load, model.zig::open); credit only 3 GiB of the creator's approximately 3.5 GiB draft weights. Reducing --context/--pool from 1,048,576 to 262,144 removes at least another 1 GiB: prompt.zig::Caches.init uses 890 bytes/position (KV sources 2/8/14 at ratio 2 and 20 at ratio 1, packed 512-wide FP4 plus scales and 128-wide index keys), and model.zig allocates 512 RoPE bytes/position; 786,432 * 1,402 = 1,102,577,664 bytes removed, before smaller round/index workspace. Keep the remaining original allowance: 115 - 3 - 1 = 111 GiB (119,185,342,464 bytes) peak/rank. --prompt-cache-gib=0 prevents additional kept-state snapshots. Engram remains disk-backed, no CPU offload or RAM-fraction cap is substituted. This is a conservative source-backed planning estimate, not measured fleet acceptance.",
     "tags": [
       "deepseek",
       "1017",
       "tensorfold",
       "exl3",
       "eaq",
-      "dspark",
       "vision",
       "mia",
       "spark"
@@ -681,6 +680,14 @@
       {
         "name": "context",
         "setting": "context_tokens"
+      },
+      {
+        "name": "no-drafts",
+        "value": true
+      },
+      {
+        "name": "prompt-cache-gib",
+        "value": 0
       }
     ],
     "engine": "tensorfold",
@@ -720,7 +727,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1048576
+      "value": 262144
     },
     "kind": "generation",
     "knobs": {}
@@ -747,7 +754,7 @@
             "working_bytes": 115000000000
           },
           "memory": {
-            "peak_bytes": 123480309760,
+            "peak_bytes": 119185342464,
             "reserve_bytes": 6000000000
           }
         }
@@ -764,7 +771,7 @@
             "working_bytes": 115000000000
           },
           "memory": {
-            "peak_bytes": 123480309760,
+            "peak_bytes": 119185342464,
             "reserve_bytes": 6000000000
           }
         }

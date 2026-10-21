@@ -114,3 +114,65 @@ def test_rank_launch_binds_authorized_fabric_and_shared_pool(modules):
     for bad in ("", "mlx5_0:2", "mlx5_0:1,mlx5_0:1", "mlx5_0:1;false"):
         with pytest.raises(ValueError, match="RoCE rails"):
             launcher.launch(args, {**env, "NCCL_IB_HCA": bad})
+
+
+@pytest.mark.parametrize("rank", [0, 1])
+def test_admission_repair_reaches_both_engine_ranks(modules, rank):
+    world, _, launcher = modules
+    if world != 2:
+        pytest.skip("the four-rank recipe is outside this repair")
+    adapter = Path(launcher.__file__).parent.name
+    slug = (
+        "deepseek-v4-1-flash-1017-mia-tensorfold-dual"
+        if adapter.startswith("mia")
+        else "deepseek-v4-1-flash-1017-exl3-2-9bpw-tonyd2wild-tensorfold-dual"
+    )
+    recipe = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+    settings = recipe["settings"]
+    arguments = [
+        "--tp",
+        "2",
+        "--rank",
+        str(rank),
+        "--master",
+        "VONK_MASTER_ADDR",
+        "--master-port",
+        "VONK_MASTER_PORT",
+    ]
+    for item in recipe["runtime"]["arguments"]:
+        value = (
+            settings[item["setting"]]["value"] if "setting" in item else item["value"]
+        )
+        if value is not False:
+            arguments.append("--" + item["name"])
+            if value is not True:
+                arguments.append(str(value))
+    environ = {
+        "VONK_TF_WORLD": "2",
+        "VONK_MODEL_REVISION": "a" * 40,
+        "VONK_MASTER_ADDR": "192.0.2.1",
+        "VONK_MASTER_PORT": "29500",
+        "NCCL_IB_HCA": "=rocep1s0:1,rocep2s0:1",
+        "NCCL_IB_GID_INDEX": "3",
+    }
+    _, _, command, runtime = launcher.launch(arguments, environ)
+    context = settings["context_tokens"]["value"]
+    assert context == 262144
+    if rank == 0:
+        assert "--no-drafts" in command
+        assert command[command.index("--context") + 1] == str(context)
+        assert command[command.index("--prompt-cache-gib") + 1] == "0"
+    else:
+        assert command[command.index("--drafts") + 1] == "0"
+        assert command[command.index("--pool") + 1] == str(context)
+    assert runtime["TF_DS_STREAMS"] == "4"
+    # Pinned prompt.zig::Caches.init and model.zig's RoPE allocation. Only
+    # credit whole GiB removed, leaving all original non-pool allowances.
+    cache_bytes_per_position = 3 * ((512 // 2 + 512 // 16 + 128 // 2 + 128 // 32) // 2)
+    cache_bytes_per_position += 512 // 2 + 512 // 16 + 128 // 2 + 128 // 32
+    rope_bytes_per_position = 4 * (64 // 2) * 4
+    assert (1048576 - context) * (
+        cache_bytes_per_position + rope_bytes_per_position
+    ) >= 1024**3
+    for role in recipe["topology"]["roles"]:
+        assert role["resources"]["memory"]["peak_bytes"] == (115 - 3 - 1) * 1024**3

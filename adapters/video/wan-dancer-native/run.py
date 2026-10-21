@@ -25,7 +25,7 @@ MAX_TOTAL_INPUT_BYTES = 512 * 1024 * 1024
 OUTPUT_FPS = 30
 OUTPUT_TRIM_SECONDS = 0.2
 OUTPUT_AUDIO_SAMPLE_RATE = "44100"
-MAX_GENERATION_PIXELS = 921_600
+MAX_GENERATION_PIXELS = 512 * 512
 ALLOWED_KEYS = {
     "reference_image",
     "music",
@@ -263,13 +263,13 @@ def _number(
 
 
 def _generation_dimensions(request: dict[str, Any]) -> tuple[int, int]:
-    height = _integer(request.get("height"), "height", 1280, 512, 1280)
-    width = _integer(request.get("width"), "width", 720, 288, 1280)
+    height = _integer(request.get("height"), "height", 512, 512, 1280)
+    width = _integer(request.get("width"), "width", 512, 288, 1280)
     if height % 16 or width % 16:
         raise ValueError("height and width must be multiples of 16")
     if height * width > MAX_GENERATION_PIXELS:
         raise ValueError(
-            "height and width must define a canvas of at most 921600 pixels"
+            f"height and width must define a canvas of at most {MAX_GENERATION_PIXELS} pixels"
         )
     return height, width
 

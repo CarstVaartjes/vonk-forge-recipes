@@ -52,8 +52,8 @@
       {
         "kind": "video-metadata",
         "media_type": "video/mp4",
-        "width": 720,
-        "height": 720,
+        "width": 512,
+        "height": 512,
         "fps": 30,
         "fps_tolerance": 0.01,
         "frame_count": 24,

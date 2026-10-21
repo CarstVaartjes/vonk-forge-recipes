@@ -31,7 +31,10 @@ def launch(arguments, environ):
     parser.add_argument("--master-port", required=True)
     parser.add_argument("--context", type=int, required=True)
     parser.add_argument("--parallel", type=int, required=True)
+    parser.add_argument("--no-drafts", action="store_true")
     args, server_args = parser.parse_known_args(arguments)
+    if args.no_drafts:
+        server_args.append("--no-drafts")
     if args.tp != int(environ["VONK_TF_WORLD"]) or args.tp != 2 or not 0 <= args.rank < args.tp:
         raise ValueError("rank/topology does not match this TensorFold engine")
     master = environ.get(args.master, "") if args.master == "VONK_MASTER_ADDR" else args.master
@@ -57,7 +60,7 @@ def launch(arguments, environ):
     if args.rank == 0:
         command = ["/opt/tensorfold/bin/tensorfold-native", "serve", str(model), "--context", str(args.context), "--parallel", str(args.parallel), *server_args, "--backend", "cuda"]
     else:
-        command = ["/opt/tensorfold/bin/tf-dsv41-lanes", str(model), str(cache / "rank-cache"), str(args.rank), str(args.tp), master, port, str(cache / "kit"), "--engram", "/models/engram", "--token-map", str(cache / "dsv41_token_map.json"), "--pool", str(args.context), "--rdma", rails, "--graphs", "1", "--side", "1", "--prefetch", "1", "--aio", "1", "--streams", str(args.parallel), "--drafts", "1"]
+        command = ["/opt/tensorfold/bin/tf-dsv41-lanes", str(model), str(cache / "rank-cache"), str(args.rank), str(args.tp), master, port, str(cache / "kit"), "--engram", "/models/engram", "--token-map", str(cache / "dsv41_token_map.json"), "--pool", str(args.context), "--rdma", rails, "--graphs", "1", "--side", "1", "--prefetch", "1", "--aio", "1", "--streams", str(args.parallel), "--drafts", "0" if args.no_drafts else "1"]
     return args, cache, command, env
 
 
