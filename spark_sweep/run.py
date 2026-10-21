@@ -68,6 +68,7 @@ from .finalization import FinalAction, Finalization
 from .identity import (
     AcceptedRequest,
     IdentityReason,
+    VerdictIdentity,
     content_identity,
     verdict_matches,
 )
@@ -684,7 +685,12 @@ class Sweep:
             entry.update(
                 status=RecipeStatus.PASSED,
                 content_sha256=recipe.content_sha256,
-                verdict_identity=content_identity(recipe).model_dump(mode="json"),
+                # Restore the measured identity, not today's unmeasured image pin.
+                verdict_identity=VerdictIdentity.model_validate(
+                    view.last_pass.identity.model_dump(
+                        exclude={"required_sparks", "models_resolved"}
+                    )
+                ).model_dump(mode="json"),
                 revalidate=False,
             )
             for stale in (

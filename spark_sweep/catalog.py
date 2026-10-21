@@ -104,7 +104,6 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         for item in dig(document, "topology", "roles", default=[])
         if isinstance(item, dict)
     ]
-    models = [item for item in document.get("models", []) if isinstance(item, dict)]
     aliases: list[str] = []
     for item in interfaces:
         aliases += [
@@ -113,18 +112,14 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
     return Recipe(
         key=key,
         title=str(dig(row, "identity", "title", default=key)),
-        node_count=as_int(
-            dig(row, "node_count"), as_int(dig(document, "topology", "node_count"), 1)
-        ),
+        node_count=projected.projected.topology.node_count,
         usage=tuple(str(u) for u in dig(row, "usage", default=[])),
         engine=str(
             dig(row, "engine", default=dig(document, "runtime_engine", default=""))
         ),
         creator=str(dig(row, "creator", default="")),
         model_digests=tuple(
-            sorted(
-                str(m.get("content_sha256")) for m in models if m.get("content_sha256")
-            )
+            sorted({model.content_sha256 for model in projected.projected.models})
         ),
         model_selectors=tuple(
             sorted(str(s) for s in dig(row, "model_selectors", default=[]))
@@ -143,7 +138,7 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         ),
         adapter=str(interfaces[0].get("adapter", "")) if interfaces else "",
         aliases=tuple(aliases),
-        content_sha256=str(dig(row, "identity", "content_sha256", default="")),
+        content_sha256=projected.identity.content_sha256,
         revision_id=str(dig(row, "identity", "recipe_revision_id", default="")),
         local=str(dig(row, "local", "controller", default="unknown")),
         updated_at=str(dig(row, "updated_at", default="")),

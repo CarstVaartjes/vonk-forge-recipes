@@ -7,6 +7,7 @@ from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
+from vonk_forge_contracts import QualificationIdentity, QualificationRuntimeImage
 
 from .catalog import Recipe
 from .catalog_contract import RuntimeImageIdentity
@@ -34,6 +35,20 @@ def content_identity(recipe: Recipe) -> VerdictIdentity:
         image_library_commit=recipe.library_commit
         if recipe.runtime_image is None
         else None,
+    )
+
+
+def current_identity(recipe: Recipe) -> QualificationIdentity:
+    identity = content_identity(recipe)
+    return QualificationIdentity(
+        content_sha256=identity.content_sha256,
+        runtime_image=QualificationRuntimeImage.model_validate(
+            identity.runtime_image.model_dump()
+        )
+        if identity.runtime_image is not None
+        else None,
+        model_digests=identity.model_digests,
+        required_sparks=recipe.node_count,
     )
 
 
