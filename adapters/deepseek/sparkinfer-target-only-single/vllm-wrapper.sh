@@ -70,7 +70,6 @@ done
 [[ ${max_num_seqs} == 4 ]] || die "the target-only canary uses four scheduling slots"
 [[ ${max_num_batched_tokens} == 8192 ]] || die "the target-only canary batch-token limit is 8192"
 [[ ${max_cudagraph_capture_size} == 4 ]] || die "the target-only canary CUDA graph width is four"
-[[ ${gpu_memory_utilization} == 0.95 ]] || die "the target-only canary memory utilization is 0.95"
 [[ ${kv_cache_dtype} == nvfp4_ds_mla ]] || die "the proven padded-FP8 sparse-MLA selector is required"
 [[ ${prefix_cache} == 1 ]] || die "the target-only canary requires prefix caching"
 

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate adaptation of MiaAI-Lab's one-DGX-Spark Qwen3.8 27B profile, pairing the multimodal NVFP4 target with RadixArk's immutable DSpark v2 drafter for an offline OpenAI-compatible endpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
+    "description": "Executable Candidate adaptation of MiaAI-Lab's one-DGX-Spark Qwen3.8 27B profile, pairing the multimodal NVFP4 target with RadixArk's immutable DSpark v2 drafter for an offline OpenAI-compatible endpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -396,7 +396,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.80"
+        "value": "0.75"
       },
       {
         "name": "max-running-requests",

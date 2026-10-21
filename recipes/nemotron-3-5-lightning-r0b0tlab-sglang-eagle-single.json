@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SGLang SM121 profile for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 (NVIDIA OpenMDW-1.1) using the checkpoint's own trained MTP layer through SGLang's EAGLE path (3 steps, top-1), from r0b0tlab/nemotron-3.5-lightning-sglang-sm121 at d4ae1993 (MIT). Runs the day-0 lmsysorg/sglang Lightning image unchanged (dev-cu13-nemotron3-5-lightning, SGLang d59c1ddf, CUDA 13.0.3, pinned by the digest upstream records) with FlashInfer attention and Mamba, float16 SSM state with stochastic rounding (5 Philox rounds), FP8 KV, memory fraction 0.85, 50,016-token evaluation window, 6 running requests and a 65,536-token pool. Upstream's repository pins no model revision (weights are local); this recipe binds e8f3c7c4, the revision its sibling r0b0tlab repository names for the same suite. Upstream's launch script does not pass a MoE runner flag although its README says Marlin is required for W4A16_NVFP4, so the recipe follows the launch script and leaves the choice to SGLang. Upstream states its results are still to be filled after the matched run. Physical Spark acceptance is pending.",
+    "description": "r0b0tlab's SGLang SM121 profile for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 (NVIDIA OpenMDW-1.1) using the checkpoint's own trained MTP layer through SGLang's EAGLE path (3 steps, top-1), from r0b0tlab/nemotron-3.5-lightning-sglang-sm121 at d4ae1993 (MIT). Runs the day-0 lmsysorg/sglang Lightning image unchanged (dev-cu13-nemotron3-5-lightning, SGLang d59c1ddf, CUDA 13.0.3, pinned by the digest upstream records) with FlashInfer attention and Mamba, float16 SSM state with stochastic rounding (5 Philox rounds), FP8 KV, memory fraction 0.85, 50,016-token evaluation window, 6 running requests and a 65,536-token pool. Upstream's repository pins no model revision (weights are local); this recipe binds e8f3c7c4, the revision its sibling r0b0tlab repository names for the same suite. Upstream's launch script does not pass a MoE runner flag although its README says Marlin is required for W4A16_NVFP4, so the recipe follows the launch script and leaves the choice to SGLang. Upstream states its results are still to be filled after the matched run. Physical Spark acceptance is pending. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "candidate",
       "eagle",
@@ -815,7 +815,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.85"
+        "value": "0.75"
       },
       {
         "name": "cuda-graph-max-bs-decode",

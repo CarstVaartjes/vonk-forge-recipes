@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's vLLM 0.22 serve of its NVFP4 quantization of Nex-AGI Nex-N2-mini (Qwen3.5-MoE 35B) on one Blackwell GB10: ModelOpt FP4 quantization, fp8 KV cache with the checkpoint's KV scales, FlashInfer attention and FlashInfer-CUTLASS MoE, eager execution, chunked prefill and prefix caching. Upstream defaults: 32,768 context, 32,768 batched tokens, 0.90 memory utilization; no sequence limit is set upstream. The upstream registry image is not public and its startup downloads the model from Hugging Face, so the recipe uses upstream's digest-pinned public vllm/vllm-openai base with the model mounted instead. Licences: Apache-2.0 for the model and package (information only). Upstream declares no benchmark figures. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
+    "description": "r0b0tlab's vLLM 0.22 serve of its NVFP4 quantization of Nex-AGI Nex-N2-mini (Qwen3.5-MoE 35B) on one Blackwell GB10: ModelOpt FP4 quantization, fp8 KV cache with the checkpoint's KV scales, FlashInfer attention and FlashInfer-CUTLASS MoE, eager execution, chunked prefill and prefix caching. Upstream defaults: 32,768 context, 32,768 batched tokens, 0.90 memory utilization; no sequence limit is set upstream. The upstream registry image is not public and its startup downloads the model from Hugging Face, so the recipe uses upstream's digest-pinned public vllm/vllm-openai base with the model mounted instead. Licences: Apache-2.0 for the model and package (information only). Upstream declares no benchmark figures. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "candidate",
       "executable",
@@ -268,7 +268,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.85"
+        "value": "0.75"
       },
       {
         "name": "max-model-len",
