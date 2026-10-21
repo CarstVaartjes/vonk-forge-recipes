@@ -1,0 +1,58 @@
+#!/usr/bin/env -S uv run --no-project --python 3.14 --with-editable contracts python
+"""Check honest vLLM demand declarations and report estimated Spark capacity."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+    document_sha256,
+)
+
+from qualification.memory_need import declaration_problems, per_rank_need
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("recipes", nargs="+", help="recipe slugs (without publisher)")
+    args = parser.parse_args()
+    models: dict[str, ModelDefinition] = {}
+    for path in sorted((ROOT / "models").glob("*.json")):
+        document = json.loads(path.read_text())
+        models[document_sha256(document)] = ModelDefinition.model_validate(document)
+    failed = False
+    for slug in args.recipes:
+        recipe = RecipeDefinition.model_validate_json(
+            (ROOT / "recipes" / f"{slug}.json").read_text()
+        )
+        variants = [("base", recipe)]
+        variants.extend(
+            (
+                f"{option.name}={choice.value}",
+                recipe.with_option_choices({option.name: choice.value}),
+            )
+            for option in recipe.options
+            for choice in option.choices
+        )
+        for label, variant in variants:
+            need = per_rank_need(variant, models)
+            print(
+                f"{slug} [{label}]: {need.verdict}; need >= {need.peak_bytes} bytes/rank, "
+                f"safe limit {need.safe_limit_bytes} bytes/rank"
+            )
+            for problem in declaration_problems(variant, need):
+                failed = True
+                print(f"  {problem}", file=sys.stderr)
+    return int(failed)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

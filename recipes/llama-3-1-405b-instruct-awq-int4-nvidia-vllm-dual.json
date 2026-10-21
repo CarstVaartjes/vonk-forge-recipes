@@ -790,7 +790,7 @@
           },
           "memory": {
             "peak_bytes": 119063746765,
-            "reserve_bytes": 8000000000
+            "reserve_bytes": 17179869184
           }
         }
       },
@@ -807,7 +807,7 @@
           },
           "memory": {
             "peak_bytes": 119063746765,
-            "reserve_bytes": 8000000000
+            "reserve_bytes": 17179869184
           }
         }
       }
