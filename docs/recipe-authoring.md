@@ -4,9 +4,7 @@ Use this workflow for a new recipe, an upstream refresh, or a targeted fix.
 The outcome is a runnable recipe with exact inputs, useful version information,
 and a self-contained downloadable package. A repository recipe is expected to
 work; authors do not maintain a separate approval or readiness lifecycle.
-This is a first-release platform with one supported public contract. Remove
-superseded code, formats, settings, fixtures, and instructions; do not preserve
-them as compatibility paths. Git history retains the previous implementations.
+The repository process and supported-contract policy live in AGENTS.md.
 
 ## Hardware qualification status
 
@@ -52,10 +50,8 @@ published proof and use the shared contract rather than storing a status label.
 
 ## 1. Establish the change
 
-Fetch current `origin/main` and use an isolated branch/worktree. Read
-[`AGENTS.md`](../AGENTS.md), the [contract guide](../contracts/README.md), and
-the closest existing recipe and Model. Coordinate ownership before changing
-shared Pydantic classes, generators, indexes, or archives.
+Follow [`AGENTS.md`](../AGENTS.md) for branch isolation and repository checks.
+Inspect the closest existing recipe and Model before choosing a contract shape.
 
 State which kind of work you are doing:
 
@@ -72,7 +68,11 @@ a catalog-wide request, account for every recipe, including unchanged recipes.
 Inventory the sources used by the recipe: primary and companion models,
 engine or specialized fork, wrapper/adapter code, build dependencies, patches,
 and every external Dockerfile base image. A multi-stage Dockerfile can have
-several independent base images.
+several independent base images. For creator intake, inspect new runtime/model
+profiles inside older tracked repositories as well as newly created ones;
+`creators.json` records discovery sources. A README inventory does not establish
+coverage of every branch or runtime file. This is an author review obligation,
+not an automated completeness guarantee.
 
 Use primary sources: release notes, model cards, repository commits and diffs,
 Dockerfiles, image manifests, and upstream tests. Resolve tags and branches to
@@ -100,6 +100,21 @@ The [Pydantic definitions](../contracts/src/vonk_forge_contracts) are the source
 of truth. Use the [examples](../contracts/src/vonk_forge_contracts/examples) for
 structure only; replace synthetic identities and data with verified inputs.
 
+The roots are strict: authoring rejects unknown fields. Do not use lenient
+published-document readers to bypass producer validation (`tests/test_contracts.py`).
+
+| Document | Required structure (read the definitions for typed variants) |
+| --- | --- |
+| Model | `identity`, `metadata`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
+| Recipe | `identity`, `metadata`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
+
+`settings.kind` selects the typed generation, embedding, job or decision shape;
+never invent an LLM context length for an artifact job. `interfaces` contains one
+OpenAI-compatible HTTP or filesystem job interface. Native decision models use
+`POST /v1/systemone`, `openai.systemone` and `decision.probabilities`; use the
+`systemone.py` typed requests/responses, preserving native result shapes and
+extensions (`tests/test_systemone_contract.py`).
+
 Contract compatibility: the library's release version is the contract's
 semantic version (`CONTRACT_VERSION`, release `v2.3.0`). New or changed models
 and recipes never change it: publication updates that release in place and
@@ -107,13 +122,16 @@ records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
 release. A change to the contract itself bumps `CONTRACT_VERSION`:
 
-- **Additive (minor, `2.1.0`):** add an optional field, or make a field
-  optional. The Controller reads published documents with `read_model` and
+- **Additive (minor):** add an optional field without changing existing wire
+  requirements. The Controller reads published documents with `read_model` and
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
 - **Breaking (major, `3.0.0`):** remove or rename a field, make one required,
-  or change a field's meaning. Coordinate a vonk-forge release; Controllers on
+  or change a field's meaning. Making a required field optional also needs
+  consumer compatibility evidence if producers will stop emitting it: ignoring
+  unknown fields does not let an old reader accept a missing required field.
+  Coordinate a vonk-forge release; Controllers on
   the previous major keep following the previous major's release.
 
 ### Model: the exact files and their capabilities
@@ -127,12 +145,11 @@ every quantization, fine-tune and republished checkpoint of Qwen carries
 `{"publisher": "qwen", "slug": "qwen", "title": "Qwen"}`, whoever published
 it; the republisher is the Model's own `identity.publisher`, and the weight
 format belongs in `version`, `variant` and `format`. Reuse the family an
-existing Model of that lineage already declares (`grep -l '"slug": "glm"'
-models/`); invent a new one only for a new lineage, with the upstream
-creator's slug as its publisher. `tools/check-model-families` fails a family
+existing Model of that lineage already declares
+(`rg -l '"slug": "glm"' models/`); invent a new one only for a new lineage,
+with the upstream creator's slug as its publisher. `tools/check-model-families` fails a family
 that names a republisher or a format, or a slug that two documents describe
-differently, because the README overview and the public catalog group by
-this field.
+differently, because the public catalog groups by this field.
 
 Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
@@ -155,8 +172,8 @@ still supply identity, license, `--requires-token` for a gated repository and
 files the model does not need, and list only capabilities the model supports
 before you use the Model in a recipe.
 
-Hugging Face caps a file at 50 GB, so a larger shard may be published only as
-`<name>.part00`, `<name>.part01`, ... (joined by `cat`). The tool recognizes
+An upstream shard may be published only as `<name>.part00`, `<name>.part01`,
+... (joined by `cat`). The tool recognizes
 such a set and writes one file entry for `<name>` with `parts` (contract
 2.2.0): each part's LFS SHA-256 and size, while the entry's own `sha256` and
 `size_bytes` describe the joined file. Hugging Face cannot know the joined
@@ -179,7 +196,8 @@ what is unknown. A source model's vision capability does not prove that every
 engine recipe can serve images.
 
 Preserve upstream license terms, territorial notices, and their source links
-as information for the user. License compliance decisions belong to the user;
+as information for the user; a republisher's permissive card metadata does not
+replace the original weight licence. License compliance decisions belong to the user;
 do not add location setup, territorial admission gates, or tests requiring
 Vonk Forge to deny downloads or runs based on geography. A provider may still
 require authenticated access to download gated files: preserve those actual
@@ -197,14 +215,14 @@ offline. Include all required local build inputs, patches, entrypoints,
 wrappers, and test fixtures. Model weights and container image bytes stay
 outside the recipe package.
 
-The image must be buildable by the Controller, and publication builds the same
-image on a hosted runner and pins it in the signed index, so two checks run on
-every pull request (`validate-recipe-library`): the Controller's static source
-policy over the build context (no Dockerfile heredocs or `ADD`, digest-pinned
+The image must be buildable by the Controller; publication builds the planned
+image on a hosted runner and pins it in the signed index. The PR
+`validate-recipe-library` checks the Controller's static source policy over the
+build context (no Dockerfile heredocs or `ADD`, digest-pinned
 bases, a numeric non-root final user, every URL host in
 `execution.build.network.hosts`, no Compose device, host-namespace or bind
-settings; put multi-line scripts in vendored files and `COPY` them), and the
-launcher rule: the platform's runtime adapter verifies the engine's canonical
+settings; put multi-line scripts in vendored files and `COPY` them). For the
+launcher rule, the platform's runtime adapter verifies the engine's canonical
 launcher in the built image (`/opt/vonk/bin/vllm`, `sglang-serve`,
 `exllamav3-serve`, and so on), so the Dockerfile installs your wrapper at that
 exact path and `runtime.entrypoint` names it. The image workflow lists, in each
@@ -218,27 +236,87 @@ must still be written, even when their value is `null`. Do not remove false,
 zero, empty values or engine-owned JSON nulls as if they were absent. A
 document's identity is the `document_sha256` of its JSON (key order and
 whitespace aside), so any value change changes it. Keep documents in the
-repository's sorted, two-space-indented form.
+repository's sorted, two-space-indented form. Do not add hand-maintained digests
+for files authored in the same change; tooling owns package/source digests.
+Recorded upstream artifact checksums remain valid inputs
+(`tools/build-catalog-index`, `tests/test_recipe_packages.py`).
 
 Preserve launch behavior: executable, ordered arguments, environment, topology,
-ports, model aliases, resource envelope, and stop timeout. Declare per-role
+ports, model aliases, resource envelope, and stop timeout. Model targets stay
+under `/models`; every distributed role needs selected model files
+(`tests/test_recipe_model_mounts.py`). Multi-node topology derives one connected
+fabric with a 200 Gbit/s floor, endpoint withdrawal on rank loss, worker-first
+recovery and endpoint-owner-first stopping; do not author contradictory copies
+of those derived properties (`RecipeTopology`, `tests/test_contracts.py`).
+Declare per-role
 unified memory as `peak_bytes` (the most the workload uses at any time,
 startup or steady state) plus `reserve_bytes`, and disk as image, artifact,
 working (staging plus caches) and safety-margin bytes. Declare `node_count`,
-roles and their start order; the single/distributed mode, fabric requirement,
-failure handling and stop order follow from them. Bind tunable
+roles and their start order. Bind tunable
 arguments to the corresponding declared settings instead of maintaining two
 copies of a default. Respect the contract's automatic/unspecified settings;
 benchmark request counts are not engine concurrency limits. If a wrapper
 hardcodes a setting, align its implementation with the declared setting.
 
-Single-Spark vLLM/SGLang reservations must leave the GB10 host guard's
-16 GiB pressure headroom, including runtime overhead and idle host use.
-See [the derivation and absolute KV-cache rules](gb10-memory-headroom.md);
-`tests/test_single_spark_memory_headroom.py` checks every recipe and option.
+### Memory: preserve proof, reserve by need
+
+**A.** Preserve the runtime settings of every recipe that passed on real hardware.
+Change them only after a hardware failure, or deliberately with hardware retesting.
+
+**B.** New/failing recipes reserve selected weights (including drafts), KV for
+declared context × declared engine concurrency, and runtime overhead. Use absolute
+pools: vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens` with source-backed
+per-token sizing. Never substitute a fraction of RAM or benchmark concurrency.
+`qualification/memory_need.py` supplies the shared calculator and catalog guard.
+
+Per GB10, the limit is **130,663,231,488 total bytes − 17,179,869,184 bytes
+(16 GiB host guard floor) − 5,012,574,208 measured idle bytes = 108,470,788,096
+bytes**. Sources: vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
+`rust/crates/vonk-agent-helper/src/host_memory_guard.rs`, re-exporting
+`host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES`; spark-3542 2026-10-15/16
+incident telemetry, **125,650,657,280 bytes idle MemAvailable**, retained in the
+calculator's historical source. The live guard also requires sustained pressure
+(full PSI 30%, 3 seconds); planning always leaves its floor. Runtime overhead
+currently uses an **8,000,000,000-byte estimate**, not a measurement. A separately
+loaded speculative draft also requires the **17,000,000,000-byte measured floor**:
+`qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single` froze a GB10 on 2026-10-13 at
+utilization 0.7, with about 116.4 GB attributable to the run and still climbing,
+17 GB above utilization × physical memory + 8 GB. Keep this floor alongside
+selected weights/cache until hardware evidence supplies a replacement; weight
+arithmetic alone cannot remove it. Target-only speculation and a draft pointing
+to the served target do not load a second model. A new/changed recipe
+whose need exceeds the limit fails the catalog build: reduce context/concurrency,
+choose a smaller quantization, or author a multi-Spark recipe id. Never omit a
+failing recipe to pass the check.
+
+**C.** Proven recipes are the calibration set. If an estimate rejects one, correct
+the need model or source measurements, never the proven runtime reservation.
+Historical document identity preserves behavior; it is not numeric calibration.
+Never discard a hardware-calibrated guard because a formula disagrees.
+
+[tests/test_vllm_memory_fit.py](../tests/test_vllm_memory_fit.py) retains the
+pre-#1612 calibration guard for every vLLM recipe and option on **each role of
+each node**, including dual/multi-Spark recipes. Its shared implementation and
+constants live in `qualification/vllm_memory_fit.py`: utilization ×
+**130,663,231,488 bytes** + **8 GB** runtime overhead + **17 GB** for a separate
+draft must fit the declared per-node peak; peak + the **6 GB OS floor** must fit
+the **126,600,000,000-byte idle-available floor**. The 2026-10-15/16 incident also
+retains its measured overhead and the lower spark-3542 idle-available value above.
+`PENDING_CREATOR` retains six explicit draft exceptions pending creator changes;
+only their draft term is waived, never utilization, runtime overhead or the OS
+floor, and tests reject stale exceptions once they fit with the draft counted.
+
+[qualification/memory_need.py](../qualification/memory_need.py), exercised by
+`tests/test_single_spark_memory_headroom.py`, shares those constants and checks
+absolute single-node need with the measured draft floor. An absolute vLLM KV
+pool overrides utilization, so that path uses need rather than an implicit 0.9
+reservation. The calculator explicitly delegates multi-Spark vLLM documents,
+including historical identities and option combinations, to the shared
+per-role calibrated guard; it never divides aggregate memory by node count.
 
 A different number of Sparks is always a different recipe id, never a new
-revision of the same recipe: name recipes per topology (`-single`, `-dual`).
+revision of the same recipe: name recipes per topology (`-single`, `-dual`,
+`-triple`, `-four`, `-eight` as applicable).
 `tools/check-recipe-topology` fails validation when a change alters the
 `node_count` of an existing recipe compared with `origin/main`, and the
 Controller's catalog sync skips such a revision (`recipe.topology_changed`).
@@ -247,6 +325,13 @@ Every Model a recipe selects must exist in `models/` at the pinned content
 digest, with every selected file present. `tools/check-recipe-model-references`
 checks this over the whole library on every pull request and names the recipe
 and the missing Model.
+
+Runtime arguments are ordered data, not shell text. Repeated names keep their
+order; an empty string remains an argv token; literal `true` emits a flag and
+`false` omits it. `value: null` requires a setting binding. Structured values
+render as deterministic compact JSON. The contract bounds names/values at
+65,536 UTF-8 bytes, rendered argv at 1 MiB and argument count at 128
+(`tests/test_contracts.py`).
 
 Trusted recipe options pass through to the pinned engine even when the
 Controller has no label, enum entry, or specialized validator for them. Known
@@ -261,6 +346,10 @@ the runtime UID/GID. Recipes must not duplicate or override those defaults.
 Keep non-root execution, a read-only root, and declared writable volumes. If an
 engine needs an additional invariant, fix the central engine implementation
 and exercise actual writes and cache reuse; do not scatter recipe workarounds.
+Bind generated rank/vision/model views to their checkpoint and engine inputs,
+reuse complete cached work and rebuild malformed/interrupted output
+(`tests/test_tony_tensorfold_cache.py`,
+`tests/test_tensorfold_vision_cache_launcher.py`, `tests/test_prewarm_cache_seed.py`).
 
 Artifact jobs receive their declared files under `/inputs`, plus
 `/inputs/manifest.json`, and write their outputs under `/outputs`. Read
@@ -273,6 +362,27 @@ changing this shared contract, rebuild that wheel from the platform's
 `agent_protocol` source, replace all three adapter copies, and run the actual
 manifest-producer-to-adapter tests before rebuilding the catalog.
 
+### Job output staging
+
+`/outputs` is a writable artifact root with platform-owned `tmp/` and persistent
+`cache/` entries, not an empty working directory. Keep incomplete artifacts in a
+unique directory under `/outputs/tmp`; generate and validate there, then
+`os.replace` each final file into `/outputs` on the same filesystem. Export only
+plain files matching signed output slots. Clean up only the scratch directory
+you created; preserve caches, other scratch and existing final output on failed
+generation, validation or rename. Retries may retain all those entries.
+`tests/test_adapter_output_staging.py` rejects output-root emptiness checks and
+exercises atomic publication, failures and retries with retained entries.
+`tests/test_job_writable_paths.py` catches cache/lock/temp writes into image paths.
+
+A delivery-only retry observes a durable exit receipt and retained outputs; it
+cannot launch a second process. Missing local evidence does not authorize a
+rerun. These are platform lifecycle rules, not extra Recipe fields; the pinned
+implementation evidence is [job receipt persistence](https://github.com/CarstVaartjes/vonk-forge/blob/486f7ff1e6dedb2b77d03bee36c8120e8bc5d1c6/rust/crates/vonk-agent/src/oci/jobs.rs)
+and [delivery retry dispatch](https://github.com/CarstVaartjes/vonk-forge/blob/486f7ff1e6dedb2b77d03bee36c8120e8bc5d1c6/rust/crates/vonk-agent/src/executor/jobs.rs).
+The output collector excludes platform-owned scratch/cache entries; see its
+[pinned implementation](https://github.com/CarstVaartjes/vonk-forge/blob/486f7ff1e6dedb2b77d03bee36c8120e8bc5d1c6/rust/crates/vonk-agent/src/executor/jobs/outputs.rs).
+
 ### Tool calling, reasoning and images: claim only what the launch serves
 
 vLLM, SGLang and TensorRT-LLM parse tool calls and reasoning only when the
@@ -283,8 +393,8 @@ TensorRT-LLM; `--reasoning-parser` or `reasoning_parser` for reasoning); if it
 does not, the recipe must not tag `tool-use` and its `smoke_cases` must hold no
 tool case, because the engine answers HTTP 400 or returns the raw `<tool_call>`
 text in `content`. A reasoning model served without a reasoning parser uses the
-`A323_UNPARSED`/`A391_UNPARSED` case, which only requires a well-formed answer
-(thinking left in `content` is valid, reported as quality). Image cases need a
+`A323_UNPARSED`/`A391_UNPARSED` case; use its actual functional and quality
+assertions rather than assuming that every kind of leaked markup is allowed. Image cases need a
 multimodal recipe. When a kit's entrypoint injects the flags from inside its
 image, record them with their source in `qualification/kit-engine-flags.json`.
 `qualification/capabilities.py` derives all of this and
@@ -388,202 +498,43 @@ upstream claims until measured here. Do not infer a speedup or quality gain
 from a commit title. Missing or incomplete upstream notes do not prevent a
 usable recipe from publishing.
 
-## Automatic refresh (hourly)
+## Refresh selection and repair
 
-Self-healing: every run rebuilds each mechanical refresh branch on main against the
-newest upstream and force-pushes it when anything differs. A refresh PR whose checks
-failed or were cancelled is pushed again (the checks restart) even when its tree is
-unchanged; the failed runs are counted in the PR body (`refresh-failures`), and after
-`FAILURE_LIMIT` in a row the recipe's one needs-review issue carries the failed check's
-log. Before preparing each PR a run fetches main; when main has changed the refresher
-(`tools/`) or a file that refresh rewrites since the run started, the PR is deferred to the
-next run, which assesses afresh. An open refresh PR whose recipe is current again, gone or no longer mechanical is
-closed with a comment (linking the issue). Recipes sharing a build context (one adapter)
-are refreshed together in one PR on the first recipe's branch, never one at a time; the
-detector's own checks run every data check of `validate.yml` (a test keeps them equal).
+Follow newest applicable upstream revisions, not a history of old revisions
+under one id. Reuse an exact Model already catalogued; delete an old Model only
+when no recipe references it. A distinct weight/runtime variant or topology is
+still a distinct recipe. `release` contains only the current version/date;
+`tests/test_recipe_releases.py` rejects embedded history.
 
-`.github/workflows/refresh-upstream.yml` runs `tools/refresh-upstream` every hour
-(and on `workflow_dispatch`). It uses no AI. It applies the pinning rule to every
-recipe's source reference, adapter pin and Models: if the upstream publishes a release
-(else a plain version tag), pin the newest one by its commit; if it publishes none,
-follow the latest commit; Hugging Face Models follow the newest revision (except a Model
-that a kit's declaration pins: the kit decides, see Kit-built recipes below). The job's
-"no drift" count applies only to those configured source, adapter and Model watches.
-Its derived embedded-input inventory also records Dockerfile stages, build-time Git and
-package commands, selected companion Models, patches, launch defaults and runtime
-options. Immutable image digests are pin-only evidence with no implied moving channel;
-mutable or unresolved inputs and package-resolution gaps remain explicit as mutable or
-unknown. A Git head difference is review evidence, never an instruction to replace a
-specialized pin with generic latest. The inventory does not claim to resolve every
-transitive package or infer an upstream mapping from top-level provenance. Each recipe
-is refreshed in place (same id). The refresh only ever moves forward, never back: a pin
-that is the newest release (or head) or already ahead of it - the release commit is an
-ancestor of the pin - is current, so no pull request or review issue is opened for it
-and an open one closes. The pin moves to a newer release that descends from it (or, for
-repos without releases, to a newer head). A release that neither descends from the pin
-nor is its ancestor (diverged history, typically a release branch against a pin on
-`main`) counts as current when the pin commit is the newer of the two; otherwise it is
-judged by the rules below and goes to review only when a file the recipe uses differs.
-Hugging Face Models follow the repository head. A pin on a non-default branch (a per-bpw
-branch of an EXL3 repository whose `main` holds only a README, a feature branch of a
-GitHub recipe) follows that branch: it is derived from the pin itself, as the branch whose
-head is the pinned commit or, when the branch has moved on, the only branch whose history
-contains it (a pin the default branch's history contains follows the default branch). The
-refresh then compares with that branch's head, and for GitHub with its newest version tag
-when that tag lies inside the branch; the issue and pull request name the branch.
-An adapter whose engine forked into release lines declares the line its source pin
-follows in `vendored-upstream.json` (`"source": {"repo", "commit", "line": "0.6"}`, a
-version prefix): the newest published (non-draft, non-prerelease) release inside that line
-is then the target, never a later line and never a branch head. A newer line upstream is
-reported as "Newer release line available" in the recipe's issue or pull request (naming the
-line, not the release, so it does not change with every patch release) and in the run
-summary; it never opens an issue on its own. Moving to another line is a new variant.
-`release.version` becomes upstream's version when one
-is published, otherwise the recipe's patch version is bumped; `released_at` is the pinned
-release or commit date.
+Fix a broken creator recipe instead of preserving a broken launch for fidelity.
+Keep required specialized implementation, but repair missing imports, invalid
+chat weights, output handling or unreproducible build closure with a regression
+that fails before the fix. Do not hide defects with non-executable placeholders
+(`tests/test_recipe_executability.py`). A chat validation needs an explicit
+runtime chat template, a selected template file, or a served Model declaring
+`chat`; a drafter's capability and an embedded tokenizer template alone cannot
+make base weights chat-trained (`tests/test_chat_configuration.py`).
 
-A recipe that a newer engine release breaks holds its base image in
-`base-image-holds.json` (`{"<recipe id>": {"base_image": {"repository", "digest"},
-"version", "reason", "upstream": "https://..."}}`). The refresh never moves a held image
-(it records the hold as evidence), and a catalog-wide refresh by hand skips it too:
-`tools/check-base-image-holds` (run by the test suite) fails when the recipe's
-`base_image` or Dockerfile `FROM` differs from the held digest. To move it, update or
-remove the hold in the same change, with the evidence that the newer release works.
+`tools/check-upstream-drift` inventories configured watches and embedded inputs;
+unknown/mutable/transitive inputs remain evidence gaps, not proof of freshness.
+The hourly `.github/workflows/refresh-upstream.yml` and `tools/refresh-upstream`
+implement automatic selection (`tests/test_check_upstream_drift.py`,
+`tests/test_refresh_upstream.py`): newest release/tag or head, preserving inferred
+non-default branches and declared release lines. Never downgrade an ahead pin.
+A mechanical move requires compatible vendored/used bytes, retained referenced
+launch names, complete selected Model files and passing producer checks. Changes
+to patched runtime files or missing selected files need review; metadata-only
+changes do not independently justify rebuilding identical content. Shared build
+contexts refresh together. Human repairs may intentionally diverge with evidence.
 
-A refresh is **mechanical** only when all of these hold:
-
-- the selected commit descends from the pinned one (a pin at or ahead of the newest
-  release is current, never downgraded). Diverged histories are not a reason on their
-  own: what matters is the next rule;
-- `tools/check-vendored-upstream` passes for the adapter at the new commit, so every
-  vendored file is byte-identical. A vendored file the recipe's own creator changed (the
-  upstream the recipe already follows: an eugr `recipes/*.yaml`, a mod's `run.sh`) moves
-  with the pin, carrying upstream's new bytes, when (a) the adapter vendors it verbatim (no
-  adapter patch targets it, no file of ours overlays it, no `sed`/`perl`/`awk`/`patch`/
-  redirect in the Dockerfile or our own files edits it) and (b) every flag, env var and
-  entrypoint name the recipe references that the old file states is still in the new one:
-  the runtime arguments and option choices (`--name`), the recipe's and the Dockerfile's
-  env vars, the recipe's and the Dockerfile's entrypoint words, and the file names of
-  path-valued arguments. The pull request shows the file's upstream diff and the names
-  checked; the sweep proves on hardware that the recipe runs. A patched or overlaid file,
-  or one that lost a referenced flag (the issue names it), stays a review;
-- no other upstream file the recipe uses changed. Used files are the adapter's vendored files
-  (compared byte for byte), files it fetches by explicit `raw.githubusercontent.com` or
-  `github.com/.../blob|raw/` URL, and the targets of its patches, compared by blob at both
-  commits (so a truncated 300-file comparison does not matter). Other upstream changes,
-  READMEs, docs and licence texts are not judged; a removed licence file is noted in the
-  pull request, never a blocker. An adapter that clones the repository, installs an
-  archive of it, or carries a file named after the pinned commit uses all of it, and then
-  every changed launch script, Dockerfile, configuration, dependency list or patch blocks.
-  Labels and build args in the adapter Dockerfile that embed the old pin (for example an
-  archive digest) are refreshed with it, or the refresh goes to review;
-- every Model file the recipe mounts by name still exists. A Model's newest revision is
-  followed, re-exports included (re-sharded weights, an added `HYBRID.json`, changed
-  configuration or tokenizer): a recipe that mounts every file mounts every file of the
-  new revision (added files reach it, dropped ones leave it), and a recipe that mounts only
-  some files moves only when one of those files changes, and goes to review only when one
-  of them is gone (the issue names it). Metadata files (README, licence, `.gitattributes`)
-  the revision dropped leave the catalogued Model and are noted. Paths and digests are
-  compared, never our own file id format. A Model that catalogues only some files of its
-  repository (one checkpoint of several) is judged on those files and on files the
-  repository added since; a file it left out that the catalogued revision already had is
-  neither new nor moved. A kit-declared Model revision keeps the stricter rule (same file
-  set; only weights or metadata digests may change), since the kit names the payload.
-  New digests come from
-  `tools/catalog-hf-model`'s inventory, verified at ingress only, and the recipe's file ids
-  and content digest follow. If the newest revision is already
-  catalogued it is reused; the old Model document is deleted once no recipe uses it;
-- the README overview, `tools/check-vendored-upstream`, the model-reference check and
-  the whole test suite pass on the result.
-
-A pin move that changes no file the recipe uses (and no image, Model or kit declaration)
-is not a refresh on its own: it would only rewrite commit references and rebuild
-identical content. It rides along with a move that does change what runs. The same holds
-when the adapter uses the whole repository (or is built from a kit) and every changed
-file is one no recipe runs: documentation (`*.md`, `*.rst`, `docs/`), benchmarks
-(`bench/`, `benchmarks/`), tests, CI, pictures and licence texts; when the only vendored
-copy that differs is such a file (an `upstream-README.md`); and for a Hugging Face
-`source_reference`, which is a label (the Model is judged as its own item).
-
-A recipe that runs its source's published image follows the image, not the commits.
-`published-images.json` names such an image, its source repository and the tag upstream
-publishes as current. When that tag names another digest, the Dockerfile's `FROM`,
-`base_image`, the revision label, `vendored-upstream.json` and `source_reference` move
-to that digest and to the build commit the image records (its
-`org.opencontainers.image.revision` label, or the `build_script_commit` of its
-`build-metadata.yaml`); vendored files are checked at that commit as above. An unchanged
-image proposes nothing; one that records no build commit is a review. An image built from a
-commit GitHub does not serve (404/422; a rate limit or outage only waits) is still followed
-by its digest, since the digest is the identity and the commit provenance: the pull request
-moves `FROM`, `base_image`, the revision label, `source_reference` and `vendored-upstream.json`
-to the recorded commit with `"unverified": "commit <sha> not on github.com/<repo>"` beside
-it, is labelled `refresh:needs-review` and is never armed, and the recipe's issue shows what
-the image records (its `build-metadata.yaml`: vLLM version and commit, build date) for a person
-to judge, because the files the recipe uses cannot be compared. Once GitHub serves the commit,
-the next run drops the mark (a mechanical pull request) or, before merge, judges the move as
-any other. A later image that moves a marked pin to a published commit is held for review the
-same way (the old side cannot be compared) and drops the mark.
-`tools/check-image-provenance` holds every changed recipe of this kind to the commit its
-image records, and accepts a commit GitHub does not serve only with that explicit mark (a
-mark on a commit GitHub serves is stale and fails too); `tools/check-vendored-upstream` does
-not judge vendored files of a correctly marked pin.
-
-Then a bounded set of pull requests (branch `refresh/<recipe-id>`, label
-`refresh:mechanical`) is opened or updated using a repository-scoped GitHub App.
-Its pushes and PRs trigger normal `pull_request` validation without GitHub's built-in Actions-token approval gate.
-A pull request closed unmerged for the same target is not reopened. At most six
-mechanical pull requests are pushed (prepared) per run; the rest follow in the next
-run. The refresh arms auto-merge (squash) for every prepared PR, not one per run, while
-the latest finished `publish.yml` run on `main` succeeded (in-flight or cancelled runs
-do not block; a failed one does, and the refresh re-dispatches it). Required checks gate
-each merge, `main` does not require up-to-date branches, and `publish.yml` serialises
-on one concurrency group and builds from the newest `main`, so back-to-back merges
-coalesce. A PR is deferred only when it shares a file (a common Model document) with
-an armed PR, then regenerated on `main` by the next run. Open `refresh:mechanical`
-PRs that fall behind `main` are updated from it. Later runs reconsider unchanged
-prepared PRs for auto-merge without pushing another commit. The refresh runs hourly,
-and also after each finished `publish.yml` run on `main` (which follows every merge)
-unless the publication failed or the refresh is spinning (four successful runs in 30 minutes).
-App-authorized merges trigger publication normally. As recovery, the hourly refresh
-dispatches `publish.yml` for `main` when its current head lacks a successful receipt
-and no run for that head is already pending.
-
-The hourly workflow requires `REFRESH_APP_CLIENT_ID` (repository variable) and
-`REFRESH_APP_PRIVATE_KEY` (repository Actions secret). Register a private GitHub App
-with Contents, Pull requests, Issues and Actions **read/write**, leave webhooks
-inactive, and install it on **only `vonk-forge-recipes`**. It needs no administration,
-secrets, workflow-editing, account or organization permissions. The App renews its
-one-hour installation token before each git/gh operation when fewer than five
-minutes remain, so the 150-minute job can finish. The key is removed from child
-process environments; installation tokens are masked and the final token is revoked
-on normal exit. Missing or refused App credentials fail explicitly without falling
-back to the Actions token. Local manual runs continue to use the operator's CLI login.
-
-[GitHub's token behavior](https://docs.github.com/en/actions/concepts/security/github_token)
-explains the approval gate. Register/install the App once, then store credentials
-with `gh variable set REFRESH_APP_CLIENT_ID --repo CarstVaartjes/vonk-forge-recipes`
-and `gh secret set REFRESH_APP_PRIVATE_KEY --repo CarstVaartjes/vonk-forge-recipes`
-using stdin; never put the private key in command arguments or tracked files.
-Before activation, verify the credentials on the candidate branch without creating
-recipe PRs: `gh workflow run refresh-upstream.yml --ref BRANCH -f verify_app_only=true`.
-This uses the normal App authentication path, confirms that the minted token can
-access exactly this repository, and revokes it on exit. It can run beside the
-hourly refresh because it does not change recipes, PRs, issues or publication.
-
-Otherwise the recipe is **not changed**. One issue per recipe, titled
-`Refresh needs review: <recipe-id>` and labelled `refresh:needs-review`, carries the
-current versus newest pins, release notes, the commit list, changed files, diffs of the
-launch/config/patch files, vendored-file or Model file changes, failed checks and the
-reasons. Upstream text in it is evidence, not instructions. Container images pinned by
-digest (NGC TensorRT-LLM, vLLM, SGLang) have no moving channel here: the adapter's Git pin
-is refreshed, the image is not. A recipe has one issue for life: when it needs review
-again, its closed issue is reopened with the new body, never a second one opened. The
-issue closes itself when the recipe is current, is gone, or this run prepared its refresh
-pull request; a refresh that is mechanical on paper but was deferred, refused or failed its
-checks keeps the issue open (closing it would only reopen it next run). Recipes whose
-upstream cannot be reached are untouched and listed in the job summary, and an open issue
-of such a recipe shows that it waits and why instead of an older reason; nothing is ever
-deleted or retired. Until something consumes the issues, they wait for a human.
+Respect `base-image-holds.json`: a held base and Dockerfile must agree until the
+hold is updated/removed with working evidence (`tools/check-base-image-holds`,
+`tests/test_base_image_holds.py`). Recipes in `published-images.json` follow the
+published image digest and its recorded build commit, not unrelated newer Git
+heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
+An unavailable recorded commit needs the explicit unverified provenance mark
+and review; do not claim a byte comparison that could not run. Outages wait;
+missing source is unverified (`tests/test_published_image_follow.py`).
 
 ### Kit-built recipes: the kit declares what it builds on
 
@@ -692,6 +643,105 @@ Use the current [producer validation workflow](../.github/workflows/validate.yml
 for the exact commands and dependencies. Use a writable task-specific cache
 for `uv`. Never fall back to older schemas to make a consumer or test pass.
 
+Author representative `validation.serving.checks` in the Recipe and reviewed
+qualification definitions in `qualification/recipes/<slug>.json`. The latter has
+`id: "<publisher>/<slug>"` and the applicable `recipes` (artifact) and/or
+`service_recipes` (HTTP) section; either section may be omitted. It is assembled
+with shared fixtures and templates from `qualification/shared.json` by
+`qualification.definitions_loader.load_definitions`. Duplicate ids fail. Add one
+file for a new recipe; do not edit a generated plan, authority or catalog count.
+Declare aliases matching `ENDPOINT_ALIAS_PATTERN` (lowercase profile identifiers);
+`qualification.service_aliases` and `tests/test_qualification_service_aliases.py`
+validate them. A colliding active alias receives the sweep's stable suffix;
+use the reviewed alias in response assertions.
+
+Service entries choose applicable `smoke_cases` and request templates from the
+shared definitions; job entries declare real fixture slots, timeout and output
+assertions. Use `qualification/case_assertions.py` and the typed contract's
+assertion variants rather than inventing an ignored assertion. A fixture's
+extension, media type and decoded bytes must match the declared slot; include
+all referenced fixtures in the package. `tests/test_qualification_index.py`,
+`tests/test_qualification_case_assertions.py`, `tests/test_optional_inputs.py`
+and `tests/test_media_types.py` enforce closure and slot consistency.
+
+### What the sweep checks
+
+The sweep process and verdict meanings live in
+[AGENTS.md](../AGENTS.md#hardware-sweep-operation). Author for its actual executors:
+
+- **HTTP service:** for chat, stream once to measure TTFT and tokens/second, then
+  run reviewed cases; without reviewed service cases, use the Recipe's serving
+  checks. Functional `assertions` gate execution (response shape, alias, choice,
+  parsers, bounded content). `quality_assertions` record expected-answer misses
+  as notes without failing a runnable recipe or filing a defect. Generic chat
+  cases switch thinking off per request, while markup rules still apply. Keep
+  the two assertion classes separate (`tests/test_sweep_quality.py`,
+  `tests/test_qualification_chat_cases.py`, `tests/test_sweep_vonkctl_smoke.py`).
+- **Artifact job with `--job-recipes`:** create/upload/submit one job against the
+  held run, follow its receipt, download outputs and evaluate output count,
+  names, media/format, size, image/audio/video metadata, GLB structure or declared
+  document/transcript assertions. `spark_sweep/smoke_job.py` and
+  `spark_sweep/job_assertions.py` are the executors. Host-unobservable assertions
+  are recorded as `not_evaluated` with a reason, never silently passed. Video
+  inspection needs ffprobe; inspect any missing observation before claiming
+  coverage (`tests/test_sweep_job_smoke.py`, `tests/test_sweep_job_media.py`,
+  `tests/test_image_output_contracts.py`). Without deployed job-profile support
+  and the flag, jobs are skipped (`tests/test_sweep_job_recipes.py`).
+- **Other non-OpenAI services:** `readiness-only` proves health/routing only;
+  never call it successful generation (`spark_sweep/smoke.py`).
+
+The sweep records telemetry as total minus available memory per node, including
+the OS. A run observed alone above its declared bytes plus
+`spark_sweep.memory.OS_ALLOWANCE_BYTES` gets a quality note, not a failure
+(`tests/test_sweep_quality.py`). These observations and upstream performance
+are not measurements of every topology/configuration. Test the selected runtime,
+not merely a Model capability. Full qualification also needs restart/cache reuse
+and relevant fault recovery; structural checks and hosted builds cannot prove
+CUDA inference or fabric behaviour (`tests/test_family_aware_coverage.py`,
+`tests/test_qualification_authority_contract.py`).
+
+### Catalog guard repair map
+
+Run the full suite; the named guards below are not a substitute for it. Each
+failure should identify the recipe/input and be repaired at its source, never
+by deleting coverage or weakening an assertion. Source-backed version notes,
+newest-applicable selection, fix-over-fidelity and truthful evidence are author
+review policies; no static guard can prove upstream completeness or honesty.
+
+| Guard/test | Required invariant and repair |
+| --- | --- |
+| `tests/test_contracts.py`, `tests/test_contract_examples.py` | Strict root/field/relationship validation, bounded paths/argv, source/file identities. Correct data to the current definitions; regenerate examples/schemas after a contract change. |
+| `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py` | Every pinned Model/file exists at the exact digest. Catalog the missing immutable Model or update all bindings together. |
+| `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent upstream lineage. Reuse its family identity instead of republisher/format families. |
+| `tools/check-recipe-topology --base origin/main`, `tests/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
+| `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. Repair the launcher or metadata; do not publish placeholder tags. |
+| `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
+| `tools/check-build-context-sources`, `tests/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
+| `tests/test_recipe_build_inputs.py`, `tests/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
+| `tools/check-vendored-upstream`, `tests/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. |
+| `tools/kit-pins check`, `tests/test_kit_pins.py`, `tests/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
+| `tools/check-image-provenance`, `tests/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
+| `tools/check-base-image-holds`, `tests/test_base_image_holds.py` | A held digest stays consistent. Change/remove the hold only with replacement evidence. |
+| `tests/test_memory_envelope.py`, `tests/test_single_spark_memory_headroom.py` | Memory consistency, component accounting and need checks. Repair the reported launch/envelope inconsistency; follow the memory section above. |
+| `tests/test_recipe_capabilities.py`, `tests/test_chat_configuration.py`, `tests/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
+| `tests/test_recipe_option_controls.py`, `tests/test_qwen36_fp8_options.py` | Deployment choices and base defaults execute as declared. Bind actual runtime differences, keep request controls per request. |
+| `tests/test_recipe_releases.py`, `tests/test_recipe_refresh_repairs.py` | Current release metadata, valid dates/version shape and bounded source closure. Correct release data or repair the specific refresh regression. |
+| `tests/test_job_writable_paths.py`, `tests/test_adapter_output_staging.py`, `tests/test_local_media_path_exists.py` | Managed writable paths, atomic outputs, existing local media inputs. Fix path handling; do not add root/broad-write workarounds. |
+| `tests/test_job_runtime_toolchain.py`, `tests/test_cuda_extension_builds.py`, `tests/test_torchaudio_torchcodec.py` | Required compilers, ABI-compatible media/native dependencies and build flags exist. Fix the locked image environment and import/build smoke. |
+| `tools/prepare-remote-code-smoke`, `tests/test_remote_code_build_smoke.py` | Pinned selected remote Python modules pass check_imports in the installed image. Add hash-locked dependencies and build-time native import checks, not runtime installation. |
+| `tests/test_recipe_packages.py`, `tests/test_recipe_package_closure.py`, `tests/test_exact_model_file_closure.py`, `tests/test_explicit_hf_file_manifest_closure.py` | Self-contained source/fixture/Model closure, deterministic bytes, no weights/OCI payloads. Include required local inputs and recalculate generated manifests through the builder. |
+| `tests/test_qualification_definitions_loader.py`, `tests/test_qualification_index.py`, `tests/test_qualification_case_assertions.py`, `tests/test_qualification_service_aliases.py` | Every recipe is defined/scheduled; ids, aliases, fixtures and assertions resolve. Repair the per-recipe source definition, not generated outputs. |
+| `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
+| `tests/test_prebuilt_images.py`, `tests/test_publish_image_guard.py`, `tests/test_release_bundle.py`, `tests/test_release_assets.py` | Plan/source/build keys, digests, signed index and packaged bytes agree. Rebuild/resolve the correct artifacts before signing. |
+| `tests/test_guidance_files.py` | Guidance stays in the allowlisted files and local Markdown links resolve. Consolidate the new rule here or in AGENTS; fix links in the same change. |
+| `validate-recipe-library` in `.github/workflows/validate.yml` | Platform source/security/launcher/option compilation. Repair the concrete refusal; producer-only success is insufficient. |
+
+Recipe-specific regressions under `tests/test_<family or adapter>*.py` additionally
+pin supported launch, model, cache, protocol and media behaviour. Find them with
+`rg -l '<recipe-slug>|<adapter-path>' tests`; run them after touching that runtime,
+and run the full suite to catch shared-context consumers. Never treat a narrow
+subset as every catalog guard.
+
 The required checks cover:
 
 - Shared `ModelDefinition` and `RecipeDefinition` Pydantic validation for the
@@ -718,6 +768,30 @@ with a read-only root and restart reuse. Real GPU execution, multi-Spark
 communication, and model quality require the relevant hardware. Record tests
 that could not run and their missing inputs; do not manufacture passing
 evidence or add an unrelated formal approval gate.
+
+### Dependency locks and build-time smokes
+
+For an adapter that installs Python dependencies, keep its authored input and
+generated hash lock together, target the image's Python/ARM64/CUDA environment,
+and install with `--require-hashes`. Regenerate with the command recorded in the
+lock header rather than editing resolved hashes. For example,
+`adapters/video/moss-vl-realtime/requirements.lock` records its exact
+`uv pip compile` invocation for Python 3.12/aarch64 and cu130; it is not a macOS
+lock. Include the lock and any vendored wheels/sources in build closure. Existing
+creator images may already supply dependencies; do not reinstall a different
+engine over them merely to impose a lock format. There is no global lock-format
+guard: lock/content checks are recipe-specific, including
+`tests/test_remote_code_build_smoke.py` and `tests/test_nemotron_omni_sglang_audio_lock.py`.
+
+Python CUDA runtime bases need the host compiler/libc and Python headers that
+Triton uses at inference time (`tests/test_job_runtime_toolchain.py`). Native
+CUDA extensions need explicit target architecture/CUDA build verification
+(`tests/test_cuda_extension_builds.py`). Audio paths using torchaudio 2.9+ need
+a compatible pinned TorchCodec or an evidence-backed unused-audio exemption
+(`tests/test_torchaudio_torchcodec.py`). Import native decoders during the image
+build to catch missing wheels/shared libraries before qualification. Driverless
+build smokes must not replace runtime engine-schema validation: retain the
+installed engine's refusal before serving (`tests/test_trtllm_speculative_build_guard.py`).
 
 The hosted image build runs `tools/prepare-remote-code-smoke` against its plan.
 For every image, it calls Transformers `check_imports` inside the recipe's
@@ -768,56 +842,9 @@ It writes them in place, recording the checkout's `HEAD` as `source_commit`.
 into `qualification/coverage/`. The test suite builds its own copy once per
 session in a temporary directory and never reads outputs from the checkout.
 
-Install the repository hook once per checkout to run the pinned Python lint,
-format, and type checks before commits:
-
-```bash
-scripts/install-git-hooks
-```
-
-It requires tracked edits to be staged together; CI remains the authoritative
-full-repository verification.
-
-Publication (`.github/workflows/publish.yml`) runs on every merge to `main`
-that changes more than Markdown. It is the only workflow that runs on a push to
-`main`: it first runs the platform validator, the producer checks from
-`validate.yml` (recipe-data-only pushes get the light checks, anything else the
-full suite) and the catalog-index check, and publishes only when none of them
-failed. Pull requests run `validate.yml` directly. It builds the release asset set from the
-merge commit with `tools/build-catalog-index --release-dir`:
-`catalog-index.json`, `qualification-index.json`, one `<slug>.tar.gz` per
-recipe, the family-aware coverage matrix and report, and a `SHA256SUMS`
-listing all of them. `catalog-index.json` records the `contract_version`, the
-`source_commit` and `updated_at`, that commit's time. The release tag is
-`v<CONTRACT_VERSION>`. When that release does not exist yet (a new contract
-version), the workflow creates it; otherwise it moves the tag to the new
-commit and replaces the release's bundle in place. The release carries exactly
-one asset, `recipe-library.tar` (below); it holds no per-file assets.
-`tools/sync-release-assets` uploads the bundle when it is missing or different,
-then deletes every other asset (this also removes the per-file assets older
-releases carried), retries failed rounds, and fails the run unless the
-release's single asset digest and size (as GitHub reports them) match the bundle
-exactly. A run whose `SHA256SUMS` equals the one inside the published bundle
-changes nothing, provided the release holds only that bundle and every member
-matches. The workflow attests `SHA256SUMS` with a keyless GitHub
-artifact attestation (Sigstore) and stores it in the bundle as
-`SHA256SUMS.sigstore.json`.
-Control planes accept a release only when that attestation names this
-repository's `publish.yml` on `refs/heads/main` and every bundle member matches
-its listed digest; extract `SHA256SUMS` and `SHA256SUMS.sigstore.json` from the
-bundle and verify with
-`gh attestation verify SHA256SUMS -R CarstVaartjes/vonk-forge-recipes --bundle SHA256SUMS.sigstore.json`.
-Rebuilding the tagged commit reproduces the release's index and packages byte
-for byte.
-
-Every publish uploads one asset, `recipe-library.tar`, built by
-`tools/build-release-bundle`: an uncompressed, deterministic tar (sorted flat
-member names, regular files only, mtime 0, uid/gid 0, empty uname/gname, mode
-0644, plain ustar: asset names over 100 bytes fail the build) whose members are exactly `SHA256SUMS`,
-`SHA256SUMS.sigstore.json` and every file `SHA256SUMS` lists. It is the trust
-unit consumers should read: verify `SHA256SUMS.sigstore.json` against
-`SHA256SUMS` from inside the tar, then every member against `SHA256SUMS`. It
-is the only published asset.
+For CI, signing, release bundle verification and integration procedure, follow
+[AGENTS.md](../AGENTS.md#ci-and-publication). Build assets are not release evidence
+until that procedure verifies the published bytes.
 
 ### Prebuilt runtime images
 
@@ -866,44 +893,10 @@ fix changes the package identity and the signed index image reference while the
 recipe JSON digest can remain unchanged.
 
 The qualification authority is derived, never committed. Coverage builds it in
-memory from the generated catalog (`tools/build-qualification-authority` writes
-it with `--output-dir`), so a new recipe needs only its recipe, model and
-`qualification/recipes/<slug>.json` file (`<slug>` is the recipe id without the
-publisher prefix; shape `{"id": "<publisher>/<slug>", "recipes": {...},
-"service_recipes": {...}}`); no plan, count, generated file or shared file is
-edited. `qualification/shared.json` holds only the shared fixtures and
-templates. Read the assembled document only through
-`qualification.definitions_loader.load_definitions`, which fails on a recipe id
-defined twice. A branch that still edits the old `qualification/definitions.json`
-merges main (deleting `definitions.json` in the merge), commits, then runs
-`tools/migrate-pr-qualification` and commits the new files. Tests assert that
-every recipe has a definition and is scheduled.
+memory from the generated catalog; `tools/build-qualification-authority` can
+write it with `--output-dir`. Author its inputs as specified in section 5.
 
-Open or update the PR with exact before/after sources, the reason for changes,
-version notes, validation results, and any retained pins. Complete CI, merge,
-and verify the published catalog and changed package downloads within the
-user's authorization. Confirm package/index/source identities agree and that
-all intended recipes remain present. Report a failed publication distinctly
-from a successful merge.
-
-The Controller/NAS caches model files and container images separately. A
-Spark-built image can be exported to the Controller's verified local store
-and distributed to other Sparks; a registry push is not required. Recipe
-publication does not itself deploy the Controller or run a physical model.
-
-Finish with a concise report: recipes added/updated/unchanged, upstream pins
-changed or retained and why, checks executed, PR/commit/publication links, and
-any remaining work. For a catalog refresh, include a per-recipe accounting so
-the user can distinguish current upstreams from unchecked ones.
-
-Before the first release, check that consumers, launch setup, generated types,
-tests, and documentation use the same supported contracts. Remove dead readers
-and obsolete defaults rather than leaving hidden fallback behavior. Fresh
-database initialization must reflect that baseline; cleanup is not permission
-to delete live volumes or data. Current private wire/build/job schemas and API
-route versions are independent contracts, so inspect their meaning instead of
-replacing every occurrence of an older-looking version number.
-
-## README overview
-
-The README overview (engines, Spark variants, creators, per-family listings) is generated from `recipes/`, `models/` and `creators.json` by `tools/build-readme-overview`. It only reflects structure (recipes, families, engines, Spark counts, creators), not versions or dates. After changing `recipes/`, `models/` or `creators.json`, run `tools/build-readme-overview` and commit `README.md`; CI fails when it is stale. On a `README.md` merge conflict, do not hand-merge: take either side, rerun the tool, and commit. When a rescan adds or changes a tracked creator, edit `creators.json` (also holds the family grouping rules) and run the tool locally to preview.
+Use [the repository gates](../AGENTS.md#setup-and-producer-gates), then push and
+integrate only within the requested scope. Report added/updated/unchanged
+recipes, checked/retained pins and reasons, checks, exact source/package/image
+identities and remaining hardware work. Include sources that could not be checked in the report.
