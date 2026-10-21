@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-5-122b-a10b-fp8-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "eedab9ca6e4247f0e8cf5e9a0d4aa450fdf8b95577be8bbfb0cc0c905bd050ea",
+        "runtime_image": {
+          "build_key": "832fc9d306a426c942099fe4eca2ac272e61debea7d256ab884275c7a57d7e18",
+          "image_digest": "sha256:f9dfa9f0c1f997d3332d05afa3082d58f355e5fc6e0e081307f636186af14bec"
+        },
+        "model_digests": [
+          "53c3dbdc43c9c0fc61dba4da9642d6264b63da7e6b810090ccd4a2158fc10803"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "cd33ba367e9d4eecc227d4264816c100d916bb8bc1cf7df1a297acbef6eeb6fa"
+      ],
+      "tested_at": "2026-10-21T20:12:43.494804Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
