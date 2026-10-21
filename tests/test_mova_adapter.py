@@ -229,6 +229,8 @@ def test_minimal_job_reaches_official_runner_with_native_resolution(tmp_path: Pa
         ):
             runner.main()
         command = generated[0]
+        assert command[command.index("--offload") + 1] == "none"
+        assert "--remove_video_dit" not in command
         for flag, value in (
             ("--num_frames", "1"),
             ("--num_inference_steps", "2"),

@@ -377,6 +377,39 @@ Test the old grammar accepting duplicate calls and the replacement rejecting
 them, plus streaming and non-streaming parsing of the resulting native frame.
 Keep the serving assertion strict; response deduplication can discard real calls.
 
+On GB10, CPU and CUDA allocations share physical memory. For unproven
+single-Spark jobs, keep models on CUDA when the complete resident weights,
+startup transients, activations and runtime overhead fit `LIMIT_BYTES` from the
+shared calculator. CPU/model/sequential/group offload adds device transitions
+and can duplicate storage; it is not a second memory pool. Inspect the pinned
+loader as well as steady inference. Retain proven execution settings and real
+disk streaming where residency or loading peaks require it. A smoke estimate is
+not full-length capacity or hardware acceptance.
+
+MOVA at source `1591b2557b42030a3421442c998dd6f5602ed9bd` offers `none`,
+`cpu` (Accelerate model hooks) and `group` (leaf streaming). Its step invokes
+visual/audio/bridge pre-forward hooks for each sequential CFG pass; Accelerate
+1.15.0 skips transfers for already-resident components, so hooks alone do not
+prove the source of all observed latency. Both pinned snapshots contain
+77,672,622,000 weight-file bytes, including both 28.58 GB video DiTs, T5,
+audio DiT, bridge and VAEs. With one frame there are 880/3,600 visual tokens
+at 352x640/720x1280 (latent stride 8, patch stride 2). Estimate 2/8 GB for
+activations and decoding, plus the shared 8 GB runtime estimate and 10 GB
+loading allowance (largest shard rounded up): 97.67/103.67 GB, below the
+108.47 GB safe limit. These are planning estimates, not measured peaks.
+`--remove_video_dit` only deletes the high-noise DiT after the low-noise switch;
+it does not change the initial loading peak or inference mathematics and is
+unnecessary with resident models.
+
+The MOVA smoke keeps one frame and two steps. Budgets are 1,200/3,600 seconds:
+the 2026-10-21 sweep observed 325.32 s/step at 360p with offload, so allow
+650.64 seconds for two steps plus 549 seconds for cold loading and export.
+For 720p, scale denoising by the 3,600/880 token ratio (2,662 seconds) and
+allow 938 seconds for loading/export. This deliberately assumes no offload
+speedup, uses the job's existing one-hour ceiling, and needs hardware validation;
+attention can scale worse than linearly. Each reference-image case gets the
+same bounded job budget.
+
 ### Multi-Spark memory demand and nonfitting recipes
 
 `qualification.memory_need.per_rank_need` reports an optimistic loading floor:
@@ -772,6 +805,14 @@ Keep prior passes and unknown image provenance unchanged; reviewed source bytes
 do not certify the new runtime image. `tests/test_qualification_case_assertions.py`
 guards every reviewed shared context and verifies that historical passes do not
 become public proof of the refreshed context.
+
+For pipelines that select native buckets, metadata assertions declare
+`native_dimensions` (kind, target size and T2V aspect ratio) instead of fixed
+width/height. The shared loader uses a stdlib translation of the pinned upstream
+bucket rule and reads the digest-checked PNG fixture's IHDR dimensions for I2V.
+Only resolved width/height
+reach consumers. `tests/test_native_dimension_expectations.py` guards the
+source pins, automatic-sizing contexts and wrong-dimension rejection.
 
 MOVA's pinned temporal rule is `4k+1`, including one frame; smoke uses one frame
 and two steps at 640x352 or 1280x720, with synchronized 48 kHz audio at 24 fps.

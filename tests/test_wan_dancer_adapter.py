@@ -193,6 +193,8 @@ class WanDancerAuthorityTests(unittest.TestCase):
             self.assertIn(
                 'ModelConfig(path="/models/local_model.safetensors"', local_stage
             )
+            self.assertNotIn('offload_device="cpu"', global_stage + local_stage)
+            self.assertNotIn("enable_vram_management()", global_stage + local_stage)
             self.assertNotIn("use_usp=True", global_stage + local_stage)
             self.assertNotIn("dist.get_rank()", global_stage + local_stage)
             self.assertIn("cfg_scale=args.cfg_scale", local_stage)
