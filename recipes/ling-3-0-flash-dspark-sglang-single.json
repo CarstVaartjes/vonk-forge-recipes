@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate adaptation of MiaAI-Lab's public one-DGX-Spark Ling 3.0 Flash SGLang profile, with the target and external DSpark draft fully hydrated before an offline launch. The pinned upstream full-context profile measures mem-fraction-static 0.80 at 262144 context with a 328898-token KV pool, about 12.5 GB of KV memory, 22.0 GB free GPU-side memory after graphs, and about 20 GB host MemAvailable. Vonk conservatively budgets 119 GB startup, 114 GB steady state, 5 GB runtime growth, and 7 GB system reserve for an exact 126 GB admission envelope; physical Vonk acceptance remains pending. Memory by need (unproven): estimated 88,999,848,314 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Executable Candidate adaptation of MiaAI-Lab's public one-DGX-Spark Ling 3.0 Flash SGLang profile, with the target and external DSpark draft fully hydrated before an offline launch. The pinned upstream full-context profile measures mem-fraction-static 0.80 at 262144 context with a 328898-token KV pool, about 12.5 GB of KV memory, 22.0 GB free GPU-side memory after graphs, and about 20 GB host MemAvailable. Vonk conservatively budgets 119 GB startup, 114 GB steady state, 5 GB runtime growth, and 7 GB system reserve for an exact 126 GB admission envelope; physical Vonk acceptance remains pending.",
     "tags": [
       "executable",
       "candidate",
@@ -500,27 +500,12 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.95"
+        "value": "0.80"
       },
       {
         "name": "max-running-requests",
         "setting": "concurrency",
         "value": null
-      },
-      {
-        "name": "disable-cuda-graph",
-        "setting": null,
-        "value": true
-      },
-      {
-        "name": "max-mamba-cache-size",
-        "setting": null,
-        "value": 2
-      },
-      {
-        "name": "max-total-tokens",
-        "setting": null,
-        "value": 8192
       }
     ],
     "engine": "sglang",
@@ -540,11 +525,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 6
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 262144
     },
     "kind": "generation",
     "knobs": {},
@@ -572,8 +557,8 @@
             "working_bytes": 32000000000
           },
           "memory": {
-            "peak_bytes": 88999848314,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119000000000,
+            "reserve_bytes": 7000000000
           }
         }
       }

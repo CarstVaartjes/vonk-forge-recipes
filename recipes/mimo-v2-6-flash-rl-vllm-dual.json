@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Xiaomi MiMo-V2.6-Flash-RL (309B total, 15B active, fp8 attention with MXFP4 routed experts, MIT) on two Sparks with vLLM tensor parallel 2, the bundled DFlash drafter (7 tokens), FP8 KV, Marlin MoE, 300K context and text, image, video and audio input. Basis: tonyd2wild's recipe (MIT, measured, patched stock image with the three vLLM overlays baked in). Alternatives from other creators: MiaAI-Lab's SGLang kit (AGPL-3.0, EAGLE MTP or DFlash, 1M context) and r0b0tlab's SGLang kit on a self-quantized NVFP4 checkpoint (MIT, claimed +21 percent decode). Upstream throughput figures (about 45 tok/s single stream, 156 tok/s aggregate at six streams) are claims until measured here; Vonk physical two-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default). Sampling defaults is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Checkpoint generation config with repetition_penalty 1.05 (upstream default). GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.82 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Draft-model correction (2026-10-15): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is 0.82 → 0.73 and the peak budgets 0.73 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance; 0.73 is the highest utilization whose peak plus the 6 GB OS floor still fits an idle Spark, and the lower 0.6 used for smaller draft recipes leaves no KV room for these weights. At 0.73 the 95.4 GB per-Spark budget leaves about 3.9 GB of KV pool after weights, drafter, audio tokenizer and activations (upstream's measured 1.87M FP8 tokens at 0.90 and 560K BF16 tokens at 0.82 imply about 91.5 GB outside the pool and about 14 KB per FP8 token per rank), which is about 276K FP8 tokens and too little for one 300K sequence, so the default context is reduced from 300,000 to 131,072 tokens (about 1.8 GB in FP8, about 3.7 GB in BF16). The BF16 choice also runs at 0.73 (was 0.82) and is close to that pool at 131,072 tokens; lower the context for it if the engine refuses to start. Memory by need (unproven): estimated 116,546,642,456 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Xiaomi MiMo-V2.6-Flash-RL (309B total, 15B active, fp8 attention with MXFP4 routed experts, MIT) on two Sparks with vLLM tensor parallel 2, the bundled DFlash drafter (7 tokens), FP8 KV, Marlin MoE, 300K context and text, image, video and audio input. Basis: tonyd2wild's recipe (MIT, measured, patched stock image with the three vLLM overlays baked in). Alternatives from other creators: MiaAI-Lab's SGLang kit (AGPL-3.0, EAGLE MTP or DFlash, 1M context) and r0b0tlab's SGLang kit on a self-quantized NVFP4 checkpoint (MIT, claimed +21 percent decode). Upstream throughput figures (about 45 tok/s single stream, 156 tok/s aggregate at six streams) are claims until measured here; Vonk physical two-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default). Sampling defaults is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Checkpoint generation config with repetition_penalty 1.05 (upstream default). GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.82 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Draft-model correction (2026-10-15): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is 0.82 → 0.73 and the peak budgets 0.73 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance; 0.73 is the highest utilization whose peak plus the 6 GB OS floor still fits an idle Spark, and the lower 0.6 used for smaller draft recipes leaves no KV room for these weights. At 0.73 the 95.4 GB per-Spark budget leaves about 3.9 GB of KV pool after weights, drafter, audio tokenizer and activations (upstream's measured 1.87M FP8 tokens at 0.90 and 560K BF16 tokens at 0.82 imply about 91.5 GB outside the pool and about 14 KB per FP8 token per rank), which is about 276K FP8 tokens and too little for one 300K sequence, so the default context is reduced from 300,000 to 131,072 tokens (about 1.8 GB in FP8, about 3.7 GB in BF16). The BF16 choice also runs at 0.73 (was 0.82) and is close to that pool at 131,072 tokens; lower the context for it if the engine refuses to start.",
     "tags": [
       "audio",
       "dflash",
@@ -46,8 +46,7 @@
       "spark",
       "tool-use",
       "vllm",
-      "video",
-      "does-not-fit"
+      "video"
     ],
     "title": "MiMo V2.6 Flash RL vLLM two Sparks"
   },
@@ -1049,9 +1048,9 @@
               "value": "auto"
             },
             {
-              "name": "kv-cache-memory-bytes",
+              "name": "gpu-memory-utilization",
               "setting": null,
-              "value": 1207959552
+              "value": "0.73"
             }
           ],
           "help": "BF16 KV, as in the upstream BF16 baseline (measured upstream at 0.82 memory utilization). Capped at 0.73 (was 0.82): the draft model holds memory outside that budget; the 131,072-token default context is close to the BF16 pool, so lower the context if the engine refuses to start.",
@@ -1115,6 +1114,11 @@
         "value": 2
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.73"
+      },
+      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -1173,11 +1177,6 @@
         "name": "no-async-scheduling",
         "setting": null,
         "value": true
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 603979776
       }
     ],
     "engine": "vllm",
@@ -1271,11 +1270,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 8
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 131072
     },
     "kind": "generation",
     "knobs": {},
@@ -1303,8 +1302,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 116546642456,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120384158987,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1320,8 +1319,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 116546642456,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120384158987,
+            "reserve_bytes": 8000000000
           }
         }
       }

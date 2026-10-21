@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (sglang) for gpt-oss 120b MXFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags, except --attention-backend triton: the playbook's flashinfer comes from its DeepSeek-V2-Lite example and SGLang rejects it for GptOssForCausalLM; plus --reasoning-parser gpt-oss and --tool-call-parser gpt-oss as in SGLang's GPT-OSS cookbook, because SGLang keeps gpt-oss's harmony special tokens in the output and only these parsers turn the channel markup into OpenAI content, reasoning and tool calls. The model's chat template is served from a vendored copy (--chat-template, sha256-checked at build) that differs from upstream only in rendering a tool's description comment when the tool has one, as openai/harmony does: the upstream template concatenates the optional function.description unconditionally and fails for a tool without one. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending. Memory by need (unproven): estimated 82,912,569,600 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (sglang) for gpt-oss 120b MXFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags, except --attention-backend triton: the playbook's flashinfer comes from its DeepSeek-V2-Lite example and SGLang rejects it for GptOssForCausalLM; plus --reasoning-parser gpt-oss and --tool-call-parser gpt-oss as in SGLang's GPT-OSS cookbook, because SGLang keeps gpt-oss's harmony special tokens in the output and only these parsers turn the channel markup into OpenAI content, reasoning and tool calls. The model's chat template is served from a vendored copy (--chat-template, sha256-checked at build) that differs from upstream only in rendering a tool's description comment when the tool has one, as openai/harmony does: the upstream template concatenates the optional function.description unconditionally and fails for a tool without one. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -368,7 +368,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.95"
+        "value": "0.75"
       },
       {
         "name": "reasoning-parser",
@@ -384,21 +384,6 @@
         "name": "chat-template",
         "setting": null,
         "value": "/opt/vonk/gpt-oss-chat-template.jinja"
-      },
-      {
-        "name": "max-running-requests",
-        "setting": "concurrency",
-        "value": null
-      },
-      {
-        "name": "disable-cuda-graph",
-        "setting": null,
-        "value": true
-      },
-      {
-        "name": "max-total-tokens",
-        "setting": null,
-        "value": 131072
       }
     ],
     "engine": "sglang",
@@ -420,10 +405,7 @@
     }
   },
   "settings": {
-    "concurrency": {
-      "change_effect": "restart",
-      "value": 1
-    },
+    "concurrency": null,
     "context_tokens": {
       "change_effect": "restart",
       "value": 131072
@@ -454,8 +436,8 @@
             "working_bytes": 32638429705
           },
           "memory": {
-            "peak_bytes": 82912569600,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 100000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

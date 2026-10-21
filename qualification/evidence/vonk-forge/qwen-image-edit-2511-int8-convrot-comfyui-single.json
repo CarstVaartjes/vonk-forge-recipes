@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen-image-edit-2511-int8-convrot-comfyui-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "d35ccb5872e1a1fa9909a598ccba03df60c4e945726a5ad0fdf0b2153a107205",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "845d46e22fe03bcf241f1b0006e27acbbb076e144706bbfaedac9be7cfaafb75"
+      ],
+      "tested_at": "2026-10-19T06:12:24.538181Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    }
+  ]
+}

@@ -16,6 +16,9 @@ from spark_sweep.state import State
 from spark_sweep.verdict import Disposition, reply_disposition
 from spark_sweep.vonkctl import Reply
 
+pytest_plugins = ["sweep_bounds"]
+pytestmark = pytest.mark.usefixtures("bounded_clock")
+
 
 @pytest.mark.parametrize("status", range(100, 600))
 def test_every_http_error_preserves_the_request_until_canonical_recovery(
@@ -89,6 +92,7 @@ def test_platform_codes_do_not_become_recipe_faults(code: str) -> None:
 def test_legacy_load_adopted_without_changing_request_identity(tmp_path: Path) -> None:
     path = tmp_path / "state.json"
     original = State(path)
+    original.data["schema"] = 1
     original.data["load"] = {
         "request_key": "old",
         "app_id": "app-old",
@@ -443,7 +447,7 @@ def test_unknown_platform_failure_ends_without_recipe_blame_and_releases_lane(
     assert sweep.state.data["loads"]
 
 
-def test_watch_retests_deferred_outcome_with_a_fresh_request(tmp_path: Path) -> None:
+def test_watch_keeps_platform_blocked_without_an_observed_fix(tmp_path: Path) -> None:
     from spark_sweep import policy
     from spark_sweep.run import RETEST_SECONDS
 
@@ -458,8 +462,12 @@ def test_watch_retests_deferred_outcome_with_a_fresh_request(tmp_path: Path) -> 
     sweep.cfg.watch_seconds = 60
     clock.t += RETEST_SECONDS
     sweep.tick()
-    assert sweep.state.status(key) == "pending"
-    assert next(iter(sweep.state.data["loads"])) != original
+    assert sweep.state.status(key) == "deferred"
+    assert not sweep.state.data["loads"]
+    assert all(
+        record.get("request_key") != original for record in sweep.state.slots.values()
+    )
+    assert not sweep.state.entry(key).get("recovery_history")
 
 
 def test_unreadable_owner_never_looks_like_absent_owner(tmp_path: Path) -> None:
@@ -530,3 +538,183 @@ def test_results_log_rotates_and_keeps_every_outcome(
     entries = log.entries()
     assert len(entries) == 1002  # appended, never trimmed
     assert [e["recipe"] for e in entries[-2:]] == ["fresh", "newest"]
+
+
+@pytest.mark.parametrize(
+    "fields, reason",
+    [
+        (
+            {"error": "Automatically reconciled by profile retry app-next"},
+            "load-superseded: not a recipe failure",
+        ),
+        (
+            {"failure_class": "timeout", "rules": 1},
+            "load-timeout rules changed: copying no longer counts",
+        ),
+        (
+            {"failure_class": "smoke-assertion", "phase": "smoke", "smoke_rules": 1},
+            "smoke rules changed: answer quality no longer fails a recipe",
+        ),
+        (
+            {"failure_class": "capacity", "phase": "review", "evidence": {}},
+            "review capacity refusal: the fleet was not cleared first",
+        ),
+    ],
+)
+def test_saved_obsolete_verdict_is_adopted_once_at_load(tmp_path, fields, reason):
+    path = tmp_path / "state.json"
+    state = State(path)
+    state.data["schema"] = 1
+    state.entry("recipe").update(status="failed", attempts=7, **fields)
+    state.data["downloads"]["recipe"] = {"request_key": "accepted", "deadline": 123}
+    state.save()
+
+    adopted = State.load(path)
+    entry = adopted.entry("recipe")
+    assert entry["status"] == "pending"
+    assert entry["requeued_because"] == reason
+    assert entry["previous"]["status"] == "failed"
+    assert entry["previous"]["attempts"] == 7
+    assert adopted.downloads == state.downloads
+    adopted.save()
+    reloaded = State.load(path)
+    assert reloaded.entry("recipe") == entry
+    assert reloaded.data["events"] == adopted.data["events"]
+    assert len(adopted.adoptions) == 1
+    assert adopted.adoptions[0].reason == reason
+    assert adopted.adoptions[0].previous["attempts"] == 7
+    assert not reloaded.adoptions
+
+
+def test_saved_provenance_skip_and_evidence_have_one_runtime_shape(tmp_path):
+    path = tmp_path / "state.json"
+    path.write_text(
+        json.dumps(
+            {
+                "schema": 1,
+                "release": {"sha": "publication-sha"},
+                "recipes": {
+                    "a": {
+                        "status": "skipped",
+                        "reason": "not testable on this fleet: needs 2 Sparks",
+                        "release": "publication-sha",
+                        "evidence": "bundle.json",
+                    }
+                },
+                "apps": {
+                    "key": {
+                        "state": "failed",
+                        "reason": "Automatically reconciled by profile retry successor",
+                    }
+                },
+            }
+        )
+    )
+    state = State.load(path)
+    assert not state.data["release"]
+    assert state.data["release_history"] == [
+        {"sha": "publication-sha", "authority": None}
+    ]
+    assert state.entry("a")["release_authority"] is None
+    assert state.entry("a")["reason_kind"] == "fleet"
+    assert state.entry("a")["evidence_bundle"] == "bundle.json"
+    assert "evidence" not in state.entry("a")
+    assert state.data["apps"]["key"]["state"] == "superseded"
+
+
+def test_current_failure_is_not_repaired_by_saved_rule_adoption(tmp_path):
+    from spark_sweep import policy
+
+    path = tmp_path / "state.json"
+    state = State(path)
+    state.entry("capacity").update(
+        status="failed",
+        phase="review",
+        failure_class="capacity",
+        evidence={"freeing_attempts": 2},
+    )
+    state.entry("timeout").update(
+        status="failed", failure_class="timeout", rules=policy.LOAD_RULES
+    )
+    state.entry("smoke").update(
+        status="failed",
+        phase="smoke",
+        failure_class="smoke-assertion",
+        smoke_rules=policy.SMOKE_RULES,
+    )
+    state.save()
+    assert State.load(path).recipes == state.recipes
+
+
+@pytest.mark.parametrize("parent", [None, "parent-operation"])
+def test_saved_download_intent_is_adopted_from_original_arguments(tmp_path, parent):
+    path = tmp_path / "state.json"
+    state = State(path)
+    state.data["schema"] = 1
+    state.downloads["saved"] = {
+        "operation_id": "operation",
+        "request_key": "original-uuid",
+        "request_intent": {"recipe_key": "saved", "content_sha256": "original-content"},
+        "retry_of_operation_id": parent,
+    }
+    state.save()
+    adopted = State.load(path)
+    intent = adopted.downloads["saved"]["accepted_intent"]
+    assert intent == (
+        {"kind": "retry", "operation_id": parent}
+        if parent
+        else {"kind": "selector", "selector": "saved", "force": False}
+    )
+    assert adopted.downloads["saved"]["request_key"] == "original-uuid"
+    adopted.save()
+    assert State.load(path).downloads == adopted.downloads
+
+
+def test_read_only_adoption_leaves_state_and_logs_unchanged(tmp_path):
+    path = tmp_path / "state.json"
+    original = json.dumps(
+        {
+            "schema": 1,
+            "recipes": {"a": {"status": "failed", "failure_class": "timeout"}},
+        }
+    )
+    path.write_text(original)
+    adopted = State.load(path)
+    assert adopted.entry("a")["status"] == "pending"
+    assert len(adopted.adoptions) == 1
+    assert path.read_text() == original
+    assert not (tmp_path / "results.jsonl").exists()
+
+
+def test_adoption_log_failure_prevents_state_save_and_remote_work(
+    tmp_path, monkeypatch
+):
+    from spark_sweep.state import ResultsLog
+
+    path = tmp_path / "state.json"
+    original = json.dumps(
+        {
+            "schema": 1,
+            "recipes": {"a": {"status": "failed", "failure_class": "timeout"}},
+        }
+    )
+    path.write_text(original)
+    sweep, fleet, _ = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
+
+    def full_disk(*args, **kwargs):
+        raise OSError("injected full disk")
+
+    monkeypatch.setattr(ResultsLog, "append", full_disk)
+    assert sweep.run() == 1
+    assert path.read_text() == original
+    assert not fleet.calls
+
+
+def test_current_state_never_interprets_failure_prose_as_supersession(tmp_path):
+    path = tmp_path / "state.json"
+    state = State(path)
+    state.entry("a").update(status="failed", error="changed during admission")
+    state.save()
+    loaded = State.load(path)
+    assert loaded.entry("a")["status"] == "failed"
+    assert not loaded.adoptions

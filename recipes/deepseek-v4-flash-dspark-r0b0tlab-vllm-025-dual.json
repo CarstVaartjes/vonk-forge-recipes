@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's audited production lane for the official DeepSeek V4 Flash DSpark checkpoint (913f0657) on two GB10 Sparks: Anemll's digest-pinned dspark-vllm-gx10 image (vLLM 0.25.2.dev0, FlashInfer 0.6.15), FlashInfer B12X MoE, native DSpark speculative decoding at k=5, NVFP4 MLA KV cache and RoCE tensor parallel 2. Upstream production profile: 200,000 token context, 16 sequences, 16K batched tokens, 0.84 memory utilization. Upstream's 384K and 1M profiles run a different legacy Stage-C image and are not included. Licences: r0b0tlab package MIT AND Apache-2.0, model MIT (information only). Performance figures are upstream claims, not measured here. Memory by need (unproven): estimated 91,939,244,116 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "r0b0tlab's audited production lane for the official DeepSeek V4 Flash DSpark checkpoint (913f0657) on two GB10 Sparks: Anemll's digest-pinned dspark-vllm-gx10 image (vLLM 0.25.2.dev0, FlashInfer 0.6.15), FlashInfer B12X MoE, native DSpark speculative decoding at k=5, NVFP4 MLA KV cache and RoCE tensor parallel 2. Upstream production profile: 200,000 token context, 16 sequences, 16K batched tokens, 0.84 memory utilization. Upstream's 384K and 1M profiles run a different legacy Stage-C image and are not included. Licences: r0b0tlab package MIT AND Apache-2.0, model MIT (information only). Performance figures are upstream claims, not measured here.",
     "tags": [
       "candidate",
       "deepseek",
@@ -969,6 +969,11 @@
         "value": 16384
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.84"
+      },
+      {
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
@@ -1017,11 +1022,6 @@
         "name": "moe-backend",
         "setting": null,
         "value": "flashinfer_b12x"
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1139,11 +1139,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 16
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 200000
     },
     "kind": "generation",
     "knobs": {},
@@ -1171,8 +1171,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 91939244116,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1188,8 +1188,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 91939244116,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate adaptation of MiaAI-Lab's two-DGX-Spark Inkling Small NVFP4 profile: SGLang TP2 over RoCE with RadixArk's DSpark Preview draft (block size 7), the fp4_mx_block16 KV cache and a 1M-token context, on drowzeys' prebuilt KV-quant GB10 SGLang image pinned by digest. Launch flags are upstream's text-only set (no --enable-multimodal); throughput figures in upstream's README are its own claims. Memory by need (unproven): estimated 112,954,944,938 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Executable Candidate adaptation of MiaAI-Lab's two-DGX-Spark Inkling Small NVFP4 profile: SGLang TP2 over RoCE with RadixArk's DSpark Preview draft (block size 7), the fp4_mx_block16 KV cache and a 1M-token context, on drowzeys' prebuilt KV-quant GB10 SGLang image pinned by digest. Launch flags are upstream's text-only set (no --enable-multimodal); throughput figures in upstream's README are its own claims.",
     "tags": [
       "executable",
       "candidate",
@@ -47,8 +47,7 @@
       "speculative-decoding",
       "long-context",
       "distributed",
-      "spark",
-      "does-not-fit"
+      "spark"
     ],
     "title": "Inkling Small NVFP4 SGLang DSpark two Sparks (Mia)"
   },
@@ -387,11 +386,6 @@
             {
               "name": "kv-cache-dtype",
               "value": "auto"
-            },
-            {
-              "name": "max-total-tokens",
-              "setting": null,
-              "value": 8192
             }
           ],
           "help": "Lets SGLang pick the KV dtype from the checkpoint; larger KV footprint, not the configuration upstream benchmarked.",
@@ -550,7 +544,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.95"
+        "value": "0.85"
       },
       {
         "name": "swa-full-tokens-ratio",
@@ -635,22 +629,12 @@
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "fp8"
+        "value": "fp4_mx_block16"
       },
       {
         "name": "cuda-graph-bs",
         "setting": null,
         "value": "1 2 3 4 5 6 7 8 10 12 14 16"
-      },
-      {
-        "name": "disable-cuda-graph",
-        "setting": null,
-        "value": true
-      },
-      {
-        "name": "max-total-tokens",
-        "setting": null,
-        "value": 8192
       }
     ],
     "engine": "sglang",
@@ -742,11 +726,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 16
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 1048576
     },
     "kind": "generation",
     "knobs": {},
@@ -774,8 +758,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 112954944938,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -791,8 +775,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 112954944938,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

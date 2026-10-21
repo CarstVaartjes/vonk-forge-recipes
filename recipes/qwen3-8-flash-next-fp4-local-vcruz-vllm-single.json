@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "FP4-Local checkpoint served by the exact eugr b12x ARM64 image pinned in vcruz305’s kit at 0d727c4e. Eight concurrent sequences, a 262,144-token window, FP8 KV and four-token MTP speculation. Preserves the kit’s b12x load format, disk-backed PLE table and one-worker compilation setting. The 110 GB peak is a conservative runtime estimate for the 0.8 GPU-memory utilization setting and host workspace; physical Spark execution is unmeasured here. Memory by need (unproven): estimated 110,753,524,164 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "FP4-Local checkpoint served by the exact eugr b12x ARM64 image pinned in vcruz305\u2019s kit at 0d727c4e. Eight concurrent sequences, a 262,144-token window, FP8 KV and four-token MTP speculation. Preserves the kit\u2019s b12x load format, disk-backed PLE table and one-worker compilation setting. The 110 GB peak is a conservative runtime estimate for the 0.8 GPU-memory utilization setting and host workspace; physical Spark execution is unmeasured here.",
     "tags": [
       "qwen3.8",
       "vllm",
@@ -40,8 +40,7 @@
       "fp4",
       "mtp",
       "spark",
-      "tool-use",
-      "does-not-fit"
+      "tool-use"
     ],
     "title": "Qwen3.8 Flash Next FP4-Local vLLM single Spark (vcruz305)"
   },
@@ -507,19 +506,16 @@
         }
       },
       {
+        "name": "gpu-memory-utilization",
+        "value": 0.8
+      },
+      {
         "name": "max-model-len",
-        "setting": "context_tokens",
-        "value": null
+        "setting": "context_tokens"
       },
       {
         "name": "max-num-seqs",
-        "setting": "concurrency",
-        "value": null
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 561512448
+        "setting": "concurrency"
       }
     ],
     "engine": "vllm",
@@ -609,11 +605,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 8
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 262144
     },
     "kind": "generation",
     "knobs": {},
@@ -641,8 +637,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 110753524164,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 113000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

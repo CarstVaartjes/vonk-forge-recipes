@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's preferred serve of its NVFP4 export of XiaomiMiMo/MiMo-V2.6-Flash-RL on two GB10 Sparks: SGLang nightly 582389ce with tensor and expert parallel 2, Marlin MoE runner, calibrated FP8 KV cache, in-checkpoint EAGLE MTP (3 steps, 4 draft tokens), MiMo tool and reasoning parsers, and multimodal input (image; upstream also probed audio and video). Upstream default context 524,288 (model native 1M) with 8 running requests and a pinned 4096 draft window. Licences: r0b0tlab original work MIT, base model MIT, SGLang and the vendored patches Apache-2.0 (information only). Upstream claims +21% decode over the vendor MXFP4 checkpoint (median 69.1 vs 56.9 tok/s at bs=8); not measured here. The upstream DFlash lane is not selectable because options cannot remove the MTP arguments. Memory by need (unproven): estimated 101,908,006,912 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "r0b0tlab's preferred serve of its NVFP4 export of XiaomiMiMo/MiMo-V2.6-Flash-RL on two GB10 Sparks: SGLang nightly 582389ce with tensor and expert parallel 2, Marlin MoE runner, calibrated FP8 KV cache, in-checkpoint EAGLE MTP (3 steps, 4 draft tokens), MiMo tool and reasoning parsers, and multimodal input (image; upstream also probed audio and video). Upstream default context 524,288 (model native 1M) with 8 running requests and a pinned 4096 draft window. Licences: r0b0tlab original work MIT, base model MIT, SGLang and the vendored patches Apache-2.0 (information only). Upstream claims +21% decode over the vendor MXFP4 checkpoint (median 69.1 vs 56.9 tok/s at bs=8); not measured here. The upstream DFlash lane is not selectable because options cannot remove the MTP arguments.",
     "tags": [
       "candidate",
       "distributed",
@@ -1137,7 +1137,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.95"
+        "value": "0.90"
       },
       {
         "name": "moe-runner-backend",
@@ -1238,16 +1238,6 @@
         "name": "image-processor-backend",
         "setting": null,
         "value": "torchvision"
-      },
-      {
-        "name": "disable-cuda-graph",
-        "setting": null,
-        "value": true
-      },
-      {
-        "name": "max-total-tokens",
-        "setting": null,
-        "value": 8192
       }
     ],
     "engine": "sglang",
@@ -1275,11 +1265,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 8
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 524288
     },
     "kind": "generation",
     "knobs": {},
@@ -1307,8 +1297,8 @@
             "working_bytes": 50000000000
           },
           "memory": {
-            "peak_bytes": 101908006912,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1324,8 +1314,8 @@
             "working_bytes": 50000000000
           },
           "memory": {
-            "peak_bytes": 101908006912,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

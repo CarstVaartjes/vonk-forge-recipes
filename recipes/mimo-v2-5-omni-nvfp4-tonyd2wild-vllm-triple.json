@@ -34,7 +34,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on three Sparks with vLLM tensor parallel 3 over Ray, a 1,000,000-token context on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode), MTP2 speculative decoding and the TP3 virtual-heads mod that pads the attention heads for three ranks. Basis: tonyd2wild's TP3 NVFP4-KV recipe (MIT) and his earlier TP3 MTP repository (FP8 KV variant, offered as an option), on his published patched vLLM 0.21.1rc1.dev85 dev-build image with the upstream mods applied at build time (the mods are derived from vLLM, Apache-2.0). The upstream TP3 repository does not name an image; the published TP2 image is used because the earlier TP3 repository's audio recipe names the same image lineage (vllm-mimo-omni-mtp2-1m-audio-exp:20260620). The two-Spark recipe by the same creator is mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual. Upstream figures (about 36 tok/s decode, 10.59M-token KV pool at 1M context with NVFP4 KV against 3.06M with FP8 KV) are claims until measured here; Vonk physical three-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: No server default (upstream TP3 default). GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.89 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 69,467,130,238 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on three Sparks with vLLM tensor parallel 3 over Ray, a 1,000,000-token context on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode), MTP2 speculative decoding and the TP3 virtual-heads mod that pads the attention heads for three ranks. Basis: tonyd2wild's TP3 NVFP4-KV recipe (MIT) and his earlier TP3 MTP repository (FP8 KV variant, offered as an option), on his published patched vLLM 0.21.1rc1.dev85 dev-build image with the upstream mods applied at build time (the mods are derived from vLLM, Apache-2.0). The upstream TP3 repository does not name an image; the published TP2 image is used because the earlier TP3 repository's audio recipe names the same image lineage (vllm-mimo-omni-mtp2-1m-audio-exp:20260620). The two-Spark recipe by the same creator is mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual. Upstream figures (about 36 tok/s decode, 10.59M-token KV pool at 1M context with NVFP4 KV against 3.06M with FP8 KV) are claims until measured here; Vonk physical three-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: No server default (upstream TP3 default). GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.89 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "audio",
       "diffkv",
@@ -675,11 +675,6 @@
               "name": "kv-cache-dtype",
               "setting": null,
               "value": "fp8_e4m3"
-            },
-            {
-              "name": "kv-cache-memory-bytes",
-              "setting": null,
-              "value": 301989888
             }
           ],
           "env": {
@@ -792,7 +787,12 @@
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "fp8"
+        "value": "nvfp4"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.86"
       },
       {
         "name": "max-model-len",
@@ -853,11 +853,6 @@
         "name": "reasoning-parser",
         "setting": null,
         "value": "mimo"
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 301989888
       }
     ],
     "engine": "vllm",
@@ -971,11 +966,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 6
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 1000000
     },
     "kind": "generation",
     "knobs": {},
@@ -1003,8 +998,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 69467130238,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120370379081,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1020,8 +1015,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 69467130238,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120370379081,
+            "reserve_bytes": 8000000000
           }
         }
       }

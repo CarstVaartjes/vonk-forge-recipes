@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Complete offline Candidate TP8 recipe for Thinking Machines' flagship Inkling NVFP4 checkpoint. Its exact eight-rank topology is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 296.0 GB of checkpoint bytes per Spark before KV cache or runtime overhead. The executable contract remains installable for a future eight-Spark canary and has no DGX Spark physical evidence. Inkling Small NVFP4 dual is the same-family alternative for text, image, and 16 kHz WAV audio, but its current 128 GB Controller admission envelope also needs either at least 128 GB free per node or a separately proven lower-memory profile. Memory by need (unproven): estimated 90,859,071,202 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Complete offline Candidate TP8 recipe for Thinking Machines' flagship Inkling NVFP4 checkpoint. Its exact eight-rank topology is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 296.0 GB of checkpoint bytes per Spark before KV cache or runtime overhead. The executable contract remains installable for a future eight-Spark canary and has no DGX Spark physical evidence. Inkling Small NVFP4 dual is the same-family alternative for text, image, and 16 kHz WAV audio, but its current 128 GB Controller admission envelope also needs either at least 128 GB free per node or a separately proven lower-memory profile.",
     "tags": [
       "executable",
       "audio",
@@ -627,7 +627,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.95"
+        "value": "0.80"
       },
       {
         "name": "swa-full-tokens-ratio",
@@ -663,21 +663,6 @@
         "name": "trust-remote-code",
         "setting": null,
         "value": true
-      },
-      {
-        "name": "max-running-requests",
-        "setting": "concurrency",
-        "value": null
-      },
-      {
-        "name": "disable-cuda-graph",
-        "setting": null,
-        "value": true
-      },
-      {
-        "name": "max-total-tokens",
-        "setting": null,
-        "value": 262144
       }
     ],
     "engine": "sglang",
@@ -703,10 +688,7 @@
     }
   },
   "settings": {
-    "concurrency": {
-      "change_effect": "restart",
-      "value": 1
-    },
+    "concurrency": null,
     "context_tokens": {
       "change_effect": "restart",
       "value": 262144
@@ -737,8 +719,8 @@
             "working_bytes": 1234074674236
           },
           "memory": {
-            "peak_bytes": 90859071202,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -754,8 +736,8 @@
             "working_bytes": 1234074674236
           },
           "memory": {
-            "peak_bytes": 90859071202,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gemma-4-31b-it-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "53a5e2e048f93cdb04f57c2376dc723fbfaacac486c37d54161bb0fd70d2f82d",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "2ea6e6260167f8d8cf16e7f227698ecf4262b4a8191abac9d915a3a12a888a4e"
+      ],
+      "tested_at": "2026-10-19T06:04:16.218472Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    }
+  ]
+}

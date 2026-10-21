@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "drowzeys' two-Spark launch of the stock deepseek-ai/DeepSeek-V4-Flash-DSpark checkpoint (MIT, ungated, 167 GB) with DSpark speculative decoding (k=5), an experimental nvfp4_ds_mla 4-bit KV cache and a 1,500,000-token window, TP=2 over RoCE/IB. Defaults follow upstream's standing profile: 12 sequences, GPU memory 0.85, 8192 batched tokens, B12X MoE and B12X WO projection, prefix caching, thinking off, temperature 0. Upstream reports (not measured here) a 3.23M-token KV pool, C1 about 51 tok/s, C12 about 255 tok/s aggregate, 61 to 67 percent DSpark acceptance and needle recall to 543,994 tokens. The runtime is drowzeys' published stage-c image (aidendle94 GB10 base plus Rafael Caricio's DSpark overlay plus tonyd2wild's nvfp4 stages); upstream's launcher names it vllm-dspark-runtime:dspark-nvfp4-stage-c and this recipe pins ghcr.io/drowzeys/vllm-dspark-nvfp4-stage-c:gb10 (2026-07-01), which drowzeys' companion repo documents as that image. Upstream's ghcr.io/drowzeys/dspark-nvfp4-stage-c is not publicly pullable. Licences: repo Apache-2.0, checkpoint MIT. Not gated. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 91,939,244,116 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "drowzeys' two-Spark launch of the stock deepseek-ai/DeepSeek-V4-Flash-DSpark checkpoint (MIT, ungated, 167 GB) with DSpark speculative decoding (k=5), an experimental nvfp4_ds_mla 4-bit KV cache and a 1,500,000-token window, TP=2 over RoCE/IB. Defaults follow upstream's standing profile: 12 sequences, GPU memory 0.85, 8192 batched tokens, B12X MoE and B12X WO projection, prefix caching, thinking off, temperature 0. Upstream reports (not measured here) a 3.23M-token KV pool, C1 about 51 tok/s, C12 about 255 tok/s aggregate, 61 to 67 percent DSpark acceptance and needle recall to 543,994 tokens. The runtime is drowzeys' published stage-c image (aidendle94 GB10 base plus Rafael Caricio's DSpark overlay plus tonyd2wild's nvfp4 stages); upstream's launcher names it vllm-dspark-runtime:dspark-nvfp4-stage-c and this recipe pins ghcr.io/drowzeys/vllm-dspark-nvfp4-stage-c:gb10 (2026-07-01), which drowzeys' companion repo documents as that image. Upstream's ghcr.io/drowzeys/dspark-nvfp4-stage-c is not publicly pullable. Licences: repo Apache-2.0, checkpoint MIT. Not gated. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "dspark",
@@ -962,6 +962,11 @@
         "value": 8192
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
@@ -1015,11 +1020,6 @@
         "name": "enable-flashinfer-autotune",
         "setting": null,
         "value": true
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1189,11 +1189,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 12
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 1500000
     },
     "kind": "generation",
     "knobs": {},
@@ -1221,8 +1221,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 91939244116,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1238,8 +1238,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 91939244116,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       }

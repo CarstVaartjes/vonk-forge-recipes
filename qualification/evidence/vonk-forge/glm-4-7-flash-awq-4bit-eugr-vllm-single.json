@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/glm-4-7-flash-awq-4bit-eugr-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "3e143b676ac8577bdcfe5195d2a6ad24b203ef71fa963df65787d87a85bcc9a3",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "f854e14e82a1d3a3d1afc3becce9d3f42121e2b62b3d3d7f6da29dea356b5aa2"
+      ],
+      "tested_at": "2026-10-11T06:03:08.569531Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "6d199b277530827e46ae026b6d3c88b83a25b358409195baa3255dce676eeae6",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "e131a7f3e4230213ed842dd0ea9e76bfc2af173eb1d889b117f4e4a10e666b81"
+      ],
+      "tested_at": "2026-10-15T12:57:31.537345Z",
+      "platform": {
+        "controller_source_sha": "4a92d0a9566eb62b509c6eee35ea9811900bf103",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

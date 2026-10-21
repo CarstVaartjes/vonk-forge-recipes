@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate thin adaptation of SGLang's verified two-DGX-Spark Inkling Small NVFP4 TP2 profile, rebased from its dedicated dev image onto the stable SGLang v0.5.20 release image. It serves text, image, and 16 kHz audio inputs through an offline OpenAI-compatible API with bounded 64K context; Candidate status is retained only for Vonk's physical canary. Memory by need (unproven): estimated 99,003,761,392 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Executable Candidate thin adaptation of SGLang's verified two-DGX-Spark Inkling Small NVFP4 TP2 profile, rebased from its dedicated dev image onto the stable SGLang v0.5.20 release image. It serves text, image, and 16 kHz audio inputs through an offline OpenAI-compatible API with bounded 64K context; Candidate status is retained only for Vonk's physical canary.",
     "tags": [
       "executable",
       "candidate",
@@ -361,7 +361,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.95"
+        "value": "0.85"
       },
       {
         "name": "swa-full-tokens-ratio",
@@ -397,21 +397,6 @@
         "name": "trust-remote-code",
         "setting": null,
         "value": true
-      },
-      {
-        "name": "max-running-requests",
-        "setting": "concurrency",
-        "value": null
-      },
-      {
-        "name": "disable-cuda-graph",
-        "setting": null,
-        "value": true
-      },
-      {
-        "name": "max-total-tokens",
-        "setting": null,
-        "value": 65536
       }
     ],
     "engine": "sglang",
@@ -437,10 +422,7 @@
     }
   },
   "settings": {
-    "concurrency": {
-      "change_effect": "restart",
-      "value": 1
-    },
+    "concurrency": null,
     "context_tokens": {
       "change_effect": "restart",
       "value": 65536
@@ -471,8 +453,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 99003761392,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -488,8 +470,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 99003761392,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

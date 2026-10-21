@@ -34,7 +34,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "The full GLM-5.3 (743B mixture-of-experts, about 40B active) as tonyd2wild's data-free Int4/Int8 mixed-precision compressed-tensors quantization (377 GiB, about 98 GiB per rank at TP4 with the MTP layer) on four Sparks with vLLM tensor parallel 4 over a switched RoCE fabric, native MTP speculative decoding (4 tokens), FP8 sparse-MLA KV pinned at 10.95 GB, CUDA graphs, 200K context and glm45/glm47 reasoning and tool parsers. Basis: tonyd2wild's GLM-5.3 TP4 launcher, which reuses his GLM-5.2 launch stack; this recipe bakes the ten sm12x sparse-MLA kernel overlays and the indexer MTP-overhang patch from that repository at 162d7a76 into the published digest-pinned vLLM 0.23.1rc1.dev190 base. Other upstream lanes (DFlash2, NVFP4 KV) need locally built images and are not included. The upstream launch pins kv-cache-memory-bytes, which skips memory profiling, and expects page cache to be dropped on every node during load because GB10 page cache reduces CUDA-visible memory one to one. GLM-5.3 licence: MIT-style grant with a security-review condition for Model-as-a-Service businesses above 10 billion US dollars revenue, shown for information. Upstream figures (about 27 tok/s single-stream count-to-100 with MTP-4, 53 tok/s with DFlash2) are claims until measured here, and upstream ran no quality evaluation on this quant; Vonk physical four-Spark acceptance is pending. GB10 memory correction: GPU utilization 0.91 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced. Memory by need (unproven): estimated 110,210,145,876 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "The full GLM-5.3 (743B mixture-of-experts, about 40B active) as tonyd2wild's data-free Int4/Int8 mixed-precision compressed-tensors quantization (377 GiB, about 98 GiB per rank at TP4 with the MTP layer) on four Sparks with vLLM tensor parallel 4 over a switched RoCE fabric, native MTP speculative decoding (4 tokens), FP8 sparse-MLA KV pinned at 10.95 GB, CUDA graphs, 200K context and glm45/glm47 reasoning and tool parsers. Basis: tonyd2wild's GLM-5.3 TP4 launcher, which reuses his GLM-5.2 launch stack; this recipe bakes the ten sm12x sparse-MLA kernel overlays and the indexer MTP-overhang patch from that repository at 162d7a76 into the published digest-pinned vLLM 0.23.1rc1.dev190 base. Other upstream lanes (DFlash2, NVFP4 KV) need locally built images and are not included. The upstream launch pins kv-cache-memory-bytes, which skips memory profiling, and expects page cache to be dropped on every node during load because GB10 page cache reduces CUDA-visible memory one to one. GLM-5.3 licence: MIT-style grant with a security-review condition for Model-as-a-Service businesses above 10 billion US dollars revenue, shown for information. Upstream figures (about 27 tok/s single-stream count-to-100 with MTP-4, 53 tok/s with DFlash2) are claims until measured here, and upstream ran no quality evaluation on this quant; Vonk physical four-Spark acceptance is pending. GB10 memory correction: GPU utilization 0.91 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced.",
     "tags": [
       "compressed-tensors",
       "distributed",
@@ -46,8 +46,7 @@
       "spark",
       "tool-use",
       "tp4",
-      "vllm",
-      "does-not-fit"
+      "vllm"
     ],
     "title": "GLM 5.3 Int4 Int8Mix MTP vLLM four Sparks"
   },
@@ -3381,14 +3380,19 @@
         "value": 8192
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 899678208
+        "value": 10950000000
       },
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "fp8"
+        "value": "fp8_ds_mla"
       },
       {
         "name": "compilation-config",
@@ -3491,11 +3495,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 6
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 200000
     },
     "kind": "generation",
     "knobs": {},
@@ -3523,8 +3527,8 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 110210145876,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -3540,8 +3544,8 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 110210145876,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       }

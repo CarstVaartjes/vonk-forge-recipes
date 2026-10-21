@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate Ray TP2 recipe for Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's NVFP4 checkpoint on two Sparks, following MiaAI-Lab's MiMo-V2.5-vLLM-Dual-DGX-Sparks kit: its published dev vLLM 0.21.1rc1 image pinned by digest, the kit's mods and engine patches replayed at build time, NVFP4 KV cache through the DiffKV Triton backend, MTP with one token, FlashInfer CUTLASS MoE, mimo tool-call and reasoning parsers, eager mode, 1M context and three sequences. Code: no licence file upstream (the image labels itself Apache-2.0); model: MIT (base XiaomiMiMo/MiMo-V2.5; the quantization repository has no licence file). The model card says it needs its own SGLang image on RTX PRO 6000; the kit runs it on GB10. The kit builds on tonyd2wild's MiMo-V2.5 NVFP4-KV work. Upstream reports about 30 tok/s single stream and about 56 tok/s cumulative at three streams on its pair (claims until measured here), and a 2.7M-token KV pool at 0.83 memory utilization, so only about two full-1M requests fit at once. Vonk physical two-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default). Memory by need (unproven): estimated 100,049,700,412 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Executable Candidate Ray TP2 recipe for Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's NVFP4 checkpoint on two Sparks, following MiaAI-Lab's MiMo-V2.5-vLLM-Dual-DGX-Sparks kit: its published dev vLLM 0.21.1rc1 image pinned by digest, the kit's mods and engine patches replayed at build time, NVFP4 KV cache through the DiffKV Triton backend, MTP with one token, FlashInfer CUTLASS MoE, mimo tool-call and reasoning parsers, eager mode, 1M context and three sequences. Code: no licence file upstream (the image labels itself Apache-2.0); model: MIT (base XiaomiMiMo/MiMo-V2.5; the quantization repository has no licence file). The model card says it needs its own SGLang image on RTX PRO 6000; the kit runs it on GB10. The kit builds on tonyd2wild's MiMo-V2.5 NVFP4-KV work. Upstream reports about 30 tok/s single stream and about 56 tok/s cumulative at three streams on its pair (claims until measured here), and a 2.7M-token KV pool at 0.83 memory utilization, so only about two full-1M requests fit at once. Vonk physical two-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default).",
     "tags": [
       "candidate",
       "executable",
@@ -791,7 +791,12 @@
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "fp8"
+        "value": "nvfp4"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.83"
       },
       {
         "name": "max-model-len",
@@ -867,11 +872,6 @@
         "name": "disable-uvicorn-access-log",
         "setting": null,
         "value": true
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 301989888
       }
     ],
     "engine": "vllm",
@@ -1009,11 +1009,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 3
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 1000000
     },
     "kind": "generation",
     "knobs": {},
@@ -1041,8 +1041,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 100049700412,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118200000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1058,8 +1058,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 100049700412,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118200000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

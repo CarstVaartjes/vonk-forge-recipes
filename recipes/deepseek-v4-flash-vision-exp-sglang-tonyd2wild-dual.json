@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's DeepSeek-V4-Flash-Vision-Exp (native image input, bundled DSpark draft head) on two Sparks with SGLang tensor parallel 2 over RoCE, from the SGLang DeepSeek-V4 cookbook's verified dgx-spark flash-vision fp4 balanced cell: b12x MoE runner, DSpark speculative decoding, 327,680-token context, about a 507K-token KV pool, thinking off by default. Image: the SGLang DGX Spark preview build lmsysorg/sglang:dev-v4f-2dgx-v2 (branch b12x-vision @ 452239a74f), pinned by digest and used unmodified. Upstream calls this a staging checkpoint: untuned, the DSpark accept length observed was 1.7 to 2.6 tokens per step, and the TP4 lane is only planned (not packaged). Same-creator alternative for this model and Spark count: the vLLM DSpark recipe. Host prerequisite from upstream: the FP8-to-FP4 weight conversion needs tens of GB of host memory on GB10, so upstream adds a 48 GB swapfile per node as a safety net (peak swap use about 36 GB). Licences (information only): recipe MIT, model MIT, SGLang Apache-2.0. Upstream figures (about 45 tok/s median real-prompt single stream, 75 tok/s aggregate at 16 streams) are claims until measured here; Vonk physical two-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default). Memory by need (unproven): estimated 92,405,678,632 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "tonyd2wild's DeepSeek-V4-Flash-Vision-Exp (native image input, bundled DSpark draft head) on two Sparks with SGLang tensor parallel 2 over RoCE, from the SGLang DeepSeek-V4 cookbook's verified dgx-spark flash-vision fp4 balanced cell: b12x MoE runner, DSpark speculative decoding, 327,680-token context, about a 507K-token KV pool, thinking off by default. Image: the SGLang DGX Spark preview build lmsysorg/sglang:dev-v4f-2dgx-v2 (branch b12x-vision @ 452239a74f), pinned by digest and used unmodified. Upstream calls this a staging checkpoint: untuned, the DSpark accept length observed was 1.7 to 2.6 tokens per step, and the TP4 lane is only planned (not packaged). Same-creator alternative for this model and Spark count: the vLLM DSpark recipe. Host prerequisite from upstream: the FP8-to-FP4 weight conversion needs tens of GB of host memory on GB10, so upstream adds a 48 GB swapfile per node as a safety net (peak swap use about 36 GB). Licences (information only): recipe MIT, model MIT, SGLang Apache-2.0. Upstream figures (about 45 tok/s median real-prompt single stream, 75 tok/s aggregate at 16 streams) are claims until measured here; Vonk physical two-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default).",
     "tags": [
       "deepseek",
       "distributed",
@@ -1068,7 +1068,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.95"
+        "value": "0.80"
       },
       {
         "name": "swa-full-tokens-ratio",
@@ -1109,16 +1109,6 @@
         "name": "startup-weight-load-mode",
         "setting": null,
         "value": "serial"
-      },
-      {
-        "name": "disable-cuda-graph",
-        "setting": null,
-        "value": true
-      },
-      {
-        "name": "max-total-tokens",
-        "setting": null,
-        "value": 8192
       }
     ],
     "engine": "sglang",
@@ -1206,11 +1196,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 32
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 327680
     },
     "kind": "generation",
     "knobs": {},
@@ -1238,8 +1228,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 92405678632,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 124000000000,
+            "reserve_bytes": 6000000000
           }
         }
       },
@@ -1255,8 +1245,8 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 92405678632,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 124000000000,
+            "reserve_bytes": 6000000000
           }
         }
       }

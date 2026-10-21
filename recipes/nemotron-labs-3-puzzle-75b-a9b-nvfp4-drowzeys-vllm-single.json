@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "drowzeys' single-Spark launch of NVIDIA's Nemotron-Labs-3 Puzzle 75B-A9B NVFP4 checkpoint (53.5 GB, modelopt mixed precision, MTP head): vLLM 0.24 (aeon lineage) with jethac's FlashInfer A4Q attention and an NVFP4 KV cache, expert parallel, flashinfer Mamba SSU, MTP k=3, qwen3_coder tool parser and nemotron_v3 reasoning parser. Defaults follow upstream's puzzle-nvfp4-serve.sh long-context profile (131072 context, 32 sequences, 8192 batched tokens, GPU memory 0.85, eager). Upstream reports (not measured here): 2.71M-token KV pool, C1 25.8 tok/s and C32 220 tok/s, and 1M context (MAXLEN=1048576) with a 3.27M-token pool. Upstream notes: flashinfer_cutlass is the only MoE backend accepted by both the NVFP4 and unquantized layers of this checkpoint; with thinking on the reasoning trace is returned in message.reasoning; coding agents should send chat_template_kwargs force_nonempty_content. Licences: NVIDIA checkpoint OpenMDW-1.1; drowzeys launchers MIT. Not gated. upstream's separate throughput catch-up profile uses another (mutable) image and is not included. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 62,163,444,480 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "drowzeys' single-Spark launch of NVIDIA's Nemotron-Labs-3 Puzzle 75B-A9B NVFP4 checkpoint (53.5 GB, modelopt mixed precision, MTP head): vLLM 0.24 (aeon lineage) with jethac's FlashInfer A4Q attention and an NVFP4 KV cache, expert parallel, flashinfer Mamba SSU, MTP k=3, qwen3_coder tool parser and nemotron_v3 reasoning parser. Defaults follow upstream's puzzle-nvfp4-serve.sh long-context profile (131072 context, 32 sequences, 8192 batched tokens, GPU memory 0.85, eager). Upstream reports (not measured here): 2.71M-token KV pool, C1 25.8 tok/s and C32 220 tok/s, and 1M context (MAXLEN=1048576) with a 3.27M-token pool. Upstream notes: flashinfer_cutlass is the only MoE backend accepted by both the NVFP4 and unquantized layers of this checkpoint; with thinking on the reasoning trace is returned in message.reasoning; coding agents should send chat_template_kwargs force_nonempty_content. Licences: NVIDIA checkpoint OpenMDW-1.1; drowzeys launchers MIT. Not gated. upstream's separate throughput catch-up profile uses another (mutable) image and is not included. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "a4q",
       "candidate",
@@ -318,11 +318,6 @@
             {
               "name": "kv-cache-dtype",
               "value": "fp8"
-            },
-            {
-              "name": "kv-cache-memory-bytes",
-              "setting": null,
-              "value": 659619840
             }
           ],
           "env": {
@@ -387,7 +382,7 @@
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "fp8"
+        "value": "nvfp4"
       },
       {
         "name": "max-model-len",
@@ -403,6 +398,11 @@
         "name": "max-num-batched-tokens",
         "setting": null,
         "value": 8192
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
       },
       {
         "name": "enforce-eager",
@@ -433,11 +433,6 @@
         "name": "enable-prefix-caching",
         "setting": null,
         "value": true
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 659619840
       }
     ],
     "engine": "vllm",
@@ -495,11 +490,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 32
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 131072
     },
     "kind": "generation",
     "knobs": {},
@@ -527,8 +522,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 62163444480,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       }

@@ -73,7 +73,7 @@ def _gemma_root() -> Path:
     return MODEL_ROOT
 
 
-def _verify_synchronized_mp4(output: Path, timeout_seconds: int) -> None:
+def _verify_synchronized_mp4(output: Path, timeout_seconds: int, frames: int = FRAME_COUNT) -> None:
     if not output.is_file() or output.stat().st_size == 0:
         raise SystemExit("LTX FP4 pipeline did not produce a non-empty MP4")
     probe = subprocess.run(
@@ -113,7 +113,7 @@ def _verify_synchronized_mp4(output: Path, timeout_seconds: int) -> None:
         or video.get("width") != WIDTH
         or video.get("height") != HEIGHT
         or video.get("avg_frame_rate") != f"{FPS}/1"
-        or video.get("nb_read_frames") != str(FRAME_COUNT)
+        or video.get("nb_read_frames") != str(frames)
     ):
         raise SystemExit("LTX FP4 output video properties changed")
     if (
@@ -122,7 +122,7 @@ def _verify_synchronized_mp4(output: Path, timeout_seconds: int) -> None:
         or audio.get("channels") != 2
     ):
         raise SystemExit("LTX FP4 output audio properties changed")
-    expected_duration = FRAME_COUNT / FPS
+    expected_duration = frames / FPS
     try:
         video_duration = float(video["duration"])
         audio_duration = float(audio["duration"])
@@ -196,9 +196,15 @@ def main() -> None:
     parser.add_argument("--entrypoint", required=True)
     parser.add_argument("--output-mime", required=True)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--num-frames", type=int, default=FRAME_COUNT)
+    parser.add_argument("--num-inference-steps", type=int, default=40)
     parser.add_argument("--timeout-seconds", type=int, default=3600)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
+    if not 1 <= args.num_inference_steps <= 40:
+        raise SystemExit("num-inference-steps must be between 1 and 40")
+    if not 1 <= args.num_frames <= FRAME_COUNT or args.num_frames % 8 != 1:
+        raise SystemExit(f"num-frames must be 8k+1 between 1 and {FRAME_COUNT}")
 
     if args.entrypoint != "/opt/vonk/source/pipelines/run.py":
         raise SystemExit("unexpected pipeline entrypoint")
@@ -235,7 +241,9 @@ def main() -> None:
         "--width",
         str(WIDTH),
         "--num-frames",
-        str(FRAME_COUNT),
+        str(args.num_frames),
+        "--num-inference-steps",
+        str(args.num_inference_steps),
         "--frame-rate",
         str(FPS),
         "--offload",
@@ -245,7 +253,7 @@ def main() -> None:
     ]
     try:
         subprocess.run(command, check=True, timeout=args.timeout_seconds)
-        _verify_synchronized_mp4(temporary, args.timeout_seconds)
+        _verify_synchronized_mp4(temporary, args.timeout_seconds, args.num_frames)
         os.replace(temporary, destination)
     finally:
         temporary.unlink(missing_ok=True)

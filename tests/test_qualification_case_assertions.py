@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import runpy
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -247,3 +250,211 @@ def test_unparsed_cases_still_fail_an_empty_or_leaking_reply(
 ) -> None:
     with pytest.raises(Exception, match="failed|contains|missing"):
         _functional(case, broken)
+
+
+# These recipes have hardware passes, but no job knobs/request controls for the
+# expensive defaults. Adding them would change the proven Recipe identity.
+PROVEN_FIXED_MEDIA = {
+    "hunyuan-video-foley-xl-pytorch-single",
+    "hunyuan-video-foley-xxl-pytorch-single",
+    "hunyuan3d-omni-pytorch-single",
+    "ltx-2-19b-dev-bf16-diffusers-single",
+    "ltx-2-19b-distilled-fp8-diffusers-single",
+    "ltx-2-3-22b-distilled-1-1-diffusers-single",
+    "minimax-music3-drowzeys-tensorfold-single",
+    "pixal3d-pytorch-single",
+    "step1x-3d-geometry-pytorch-single",
+    "step1x-3d-label-geometry-pytorch-single",
+    "step1x-3d-texture-pytorch-single",
+    "triposg-pytorch-single",
+    "wan-2-2-i2v-14b-comfyui-single",
+    "wan-2-2-t2v-14b-comfyui-single",
+    "wan-2-2-ti2v-5b-comfyui-single",
+}
+MINIMAL_MEDIA_PARAMETERS = {
+    "mova-360p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
+    "mova-720p-diffusers-single": {"num-frames": 1, "num-inference-steps": 2},
+    "hunyuan-video-15-distilled-diffusers-single": {
+        "num-frames": 1,
+        "num-inference-steps": 2,
+    },
+    "hunyuan-video-15-t2v-diffusers-single": {
+        "num-frames": 1,
+        "num-inference-steps": 2,
+    },
+    "hunyuan-video-15-i2v-step-distilled-diffusers-single": {"num-frames": 1},
+    "ltx-2-19b-dev-fp4-pytorch-single": {"num-frames": 1, "num-inference-steps": 2},
+    "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 120},
+}
+# These unproven recipes share their entire context with a hardware pass.
+# Keep the single adapter unchanged rather than fork it for smaller smokes.
+SHARED_PROVEN_MEDIA = {
+    "ltx-2-19b-distilled-diffusers-single": "ltx-2-19b-distilled-fp8-diffusers-single",
+    "trellis-2-4b-pytorch-single": "pixal3d-pytorch-single",
+}
+REQUEST_CONTROLLED_MEDIA = {
+    "minimax-h3-diffusers-single",
+    "minimax-h3-fl2va-diffusers-single",
+    "wan-dancer-14b-pytorch-single",
+    "wan-dancer-14b-disk-offload-pytorch-single",
+}
+
+
+def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
+    """New media cases cannot silently inherit a full-quality generation."""
+    definitions = load_definitions()
+    seen: set[str] = set()
+    for path in sorted((ROOT / "qualification/recipes").glob("*.json")):
+        definition = json.loads(path.read_text())
+        spec = definition.get("recipes", {})
+        if spec.get("interface") not in {"video-job", "audio-job", "mesh-job"}:
+            continue
+        slug = path.stem
+        seen.add(slug)
+        if slug in MINIMAL_MEDIA_PARAMETERS:
+            assert spec["parameters"] == MINIMAL_MEDIA_PARAMETERS[slug]
+            recipe = json.loads((ROOT / "recipes" / path.name).read_text())
+            bindings = {a.get("setting") for a in recipe["runtime"]["arguments"]}
+            assert set(spec["parameters"]) <= bindings
+            assert set(spec["parameters"]) <= recipe["settings"]["knobs"].keys()
+            if "num-frames" in spec["parameters"]:
+                video = next(
+                    a for a in spec["assertions"] if a["kind"] == "video-metadata"
+                )
+                assert video["frame_count"] == spec["parameters"]["num-frames"]
+                duration = video["frame_count"] / video["fps"]
+                assert (
+                    video["minimum_duration_seconds"]
+                    <= duration
+                    <= video["maximum_duration_seconds"]
+                )
+        elif slug in REQUEST_CONTROLLED_MEDIA:
+            fixtures = definitions["fixtures"]
+            for case in [spec, *spec.get("cases", [])]:
+                control = next(
+                    i for i in case["inputs"] if i["slot"] in {"request", "controls"}
+                )
+                request = json.loads(
+                    (
+                        ROOT / "qualification" / fixtures[control["fixture"]]["path"]
+                    ).read_text()
+                )
+                if slug.startswith("minimax"):
+                    assert request["profile"] == "smoke-only"
+                    assert request["num_frames"] == 120
+                    video = next(
+                        a for a in spec["assertions"] if a["kind"] == "video-metadata"
+                    )
+                    assert video["frame_count"] == request["num_frames"]
+                    duration = request["num_frames"] / video["fps"]
+                    assert (
+                        video["minimum_audio_duration_seconds"]
+                        <= duration
+                        <= video["maximum_audio_duration_seconds"]
+                    )
+                else:
+                    assert request["num_inference_steps_global"] == 2
+                    assert request["num_inference_steps_local"] == 2
+        elif slug in SHARED_PROVEN_MEDIA:
+            assert SHARED_PROVEN_MEDIA[slug] in PROVEN_FIXED_MEDIA
+            recipe = json.loads((ROOT / "recipes" / path.name).read_text())
+            proven = json.loads(
+                (ROOT / "recipes" / f"{SHARED_PROVEN_MEDIA[slug]}.json").read_text()
+            )
+            assert recipe["execution"]["build"] == proven["execution"]["build"]
+            assert not spec.get("parameters")
+            assert not recipe["settings"]["knobs"]
+        elif slug == "skintokens-pytorch-single":
+            # One tiny rigged mesh, with no iterative generation controls.
+            assert spec["inputs"] == [
+                {"slot": "mesh", "fixture": "skintokens-rigged-figure"}
+            ]
+        else:
+            assert slug in PROVEN_FIXED_MEDIA, (
+                f"review minimal smoke controls for {slug}"
+            )
+    assert seen == (
+        PROVEN_FIXED_MEDIA
+        | MINIMAL_MEDIA_PARAMETERS.keys()
+        | REQUEST_CONTROLLED_MEDIA
+        | SHARED_PROVEN_MEDIA.keys()
+        | {"skintokens-pytorch-single"}
+    )
+
+
+def test_qualification_parameters_do_not_enter_recipe_content_identity(built_catalog):
+    from vonk_forge_contracts.canonical import document_sha256
+
+    catalog, _ = built_catalog
+    for entry in catalog["recipes"]:
+        if (
+            entry["document"]["identity"]["slug"]
+            in MINIMAL_MEDIA_PARAMETERS.keys()
+            | REQUEST_CONTROLLED_MEDIA
+            | SHARED_PROVEN_MEDIA.keys()
+            | PROVEN_FIXED_MEDIA
+        ):
+            document = json.loads(
+                (
+                    ROOT / "recipes" / f"{entry['document']['identity']['slug']}.json"
+                ).read_text()
+            )
+            assert entry["content_sha256"] == document_sha256(document)
+
+
+# origin/main bytes reviewed against read-only sweep results: LTX FP8 passed
+# 2026-10-21T02:47:59Z; Pixal3D passed 2026-10-20T04:24:58Z. Recipe-only
+# protection misses changes anywhere in these shared image build contexts.
+PROVEN_SHARED_IDENTITIES = {
+    "ltx-2-19b-distilled-fp8-diffusers-single": (
+        "2bdcd7561497a20a66cd02cde2db09e5db89a866ca73c4842ed65e12e2a864c3",
+        "32d29663893be2ac98eeb7ef032d3e0a2fd68a61aa3c613c6b517aea5fb8e62e",
+    ),
+    "pixal3d-pytorch-single": (
+        "fbcc650e981638662e48920c0f867ffc7dd69302fbe8749545c26159ab824b6e",
+        "7d171fe64ef2da27ed5bc9d31da69a3c2ec8dd54139961bba320afd7cc81354a",
+    ),
+}
+
+
+def _assert_proven_shared_identity(root: Path, slug: str) -> None:
+    recipe_path = root / "recipes" / f"{slug}.json"
+    recipe = json.loads(recipe_path.read_text())
+    expected_recipe, expected_source = PROVEN_SHARED_IDENTITIES[slug]
+    assert hashlib.sha256(recipe_path.read_bytes()).hexdigest() == expected_recipe, (
+        f"{slug}: hardware-proven Recipe bytes changed"
+    )
+    bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
+    context = root / recipe["execution"]["build"]["context"]["path"]
+    assert bundle(context)[2] == expected_source, (
+        f"{slug}: hardware-proven image context bytes changed"
+    )
+
+
+@pytest.mark.parametrize("slug", PROVEN_SHARED_IDENTITIES)
+def test_hardware_proven_shared_recipe_and_image_bytes(slug: str) -> None:
+    _assert_proven_shared_identity(ROOT, slug)
+
+
+@pytest.mark.parametrize("slug", PROVEN_SHARED_IDENTITIES)
+@pytest.mark.parametrize("mutate_context", [False, True])
+def test_proven_identity_guard_detects_shared_context_or_document_change(
+    tmp_path: Path, slug: str, mutate_context: bool
+) -> None:
+    recipe_path = Path("recipes") / f"{slug}.json"
+    recipe = json.loads((ROOT / recipe_path).read_text())
+    context = Path(recipe["execution"]["build"]["context"]["path"])
+    (tmp_path / "recipes").mkdir()
+    shutil.copy2(ROOT / recipe_path, tmp_path / recipe_path)
+    shutil.copytree(ROOT / context, tmp_path / context)
+    _assert_proven_shared_identity(tmp_path, slug)
+    # Even an unused helper or whitespace changes the image's source identity.
+    target = (
+        tmp_path / context / "unused-helper.py"
+        if mutate_context
+        else tmp_path / recipe_path
+    )
+    with target.open("a") as stream:
+        stream.write("\n")
+    with pytest.raises(AssertionError, match="hardware-proven .* bytes changed"):
+        _assert_proven_shared_identity(tmp_path, slug)

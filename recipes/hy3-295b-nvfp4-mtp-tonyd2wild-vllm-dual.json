@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Tencent Hunyuan 3 (295B mixture-of-experts, 21B active, Apache-2.0) as kodelow's NVFP4 W4A16 quantization (routed experts 4-bit, MTP layer preserved, Marlin kernels) on two Sparks with vLLM tensor parallel 2, native MTP speculative decoding (1 token), FP8 KV, eager execution, 128K context and hy_v3 tool and reasoning parsers. Basis: tonyd2wild's recipe. Upstream ran an unpublished local image (vLLM 0.23.1rc1.dev190); this recipe uses the published digest-pinned build of the same vLLM (0.23.1rc1.dev190+gab6660699) and applies upstream's ':opensource' special-token parser patch at build time. Upstream launches with Ray; this recipe uses the platform's native multi-node mp executor, which upstream did not test. The upstream repository declares no licence file. Upstream figures (21.8 tok/s single stream, 59.7 tok/s aggregate at six streams) are claims until measured here; Vonk physical two-Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Memory by need (unproven): estimated 99,093,063,332 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Tencent Hunyuan 3 (295B mixture-of-experts, 21B active, Apache-2.0) as kodelow's NVFP4 W4A16 quantization (routed experts 4-bit, MTP layer preserved, Marlin kernels) on two Sparks with vLLM tensor parallel 2, native MTP speculative decoding (1 token), FP8 KV, eager execution, 128K context and hy_v3 tool and reasoning parsers. Basis: tonyd2wild's recipe. Upstream ran an unpublished local image (vLLM 0.23.1rc1.dev190); this recipe uses the published digest-pinned build of the same vLLM (0.23.1rc1.dev190+gab6660699) and applies upstream's ':opensource' special-token parser patch at build time. Upstream launches with Ray; this recipe uses the platform's native multi-node mp executor, which upstream did not test. The upstream repository declares no licence file. Upstream figures (21.8 tok/s single stream, 59.7 tok/s aggregate at six streams) are claims until measured here; Vonk physical two-Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "hunyuan",
       "hy3",
@@ -1305,6 +1305,11 @@
         "value": "fp8_e4m3"
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
         "name": "speculative-config",
         "setting": null,
         "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":1}"
@@ -1328,11 +1333,6 @@
         "name": "enforce-eager",
         "setting": null,
         "value": true
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 671088640
       }
     ],
     "engine": "vllm",
@@ -1394,11 +1394,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 6
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 131072
     },
     "kind": "generation",
     "knobs": {},
@@ -1426,8 +1426,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 99093063332,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1443,8 +1443,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 99093063332,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       }

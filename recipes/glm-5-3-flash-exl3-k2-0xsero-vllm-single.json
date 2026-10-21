@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "0xSero's one-Spark vLLM profile for GLM-5.3-Flash, from GLM-5.3-Flash-EXL3-1x-DGX-Spark at 6ff8595a (CHANGELOG 1.1.2): the public 0xSero/GLM-5.3-Flash-EXL3-TR3-2.0bpw K2 checkpoint (EXL3 2.0 bpw, codebook mcg, about 111 GB; the GitHub repository description says 2.33 bpw while its scripts and docs pin 2.0 bpw), the model's own native MTP layer 45 as a depth-2 speculator (all 288 experts, unquantized; the draft view is derived at container start with upstream's tools/prepare_mtp_draft.py as symlinks plus a filtered index over the same checkpoint), B12X sparse-attention backend, packed fp8_ds_mla KV cache, CUDA graphs on target and draft, glm47 reasoning and tool parsers, image input, 262144-token context, one sequence. The image is upstream's public arm64 b12x-mtp-1xspark-v2 build (a pinned local-inference-lab vLLM fork), pinned by digest. Upstream claims, not measured here: 18.7 to 19.2 tok/s single-stream decode flat across the window with sampling on, about 570 tok/s prefill at 4k, 727449 KV tokens; this kit's docs list 2048 for max-num-batched-tokens while its scripts use 7168, which is what is packaged. Licences are informational: the repository declares MIT while GitHub reports no detected licence, and the weights repository card says MIT. The separate M288-12L mosaic path of upstream (SGLang, no MTP) is a different recipe. Physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.93 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Memory by need (unproven): estimated 263,092,367,536 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "0xSero's one-Spark vLLM profile for GLM-5.3-Flash, from GLM-5.3-Flash-EXL3-1x-DGX-Spark at 6ff8595a (CHANGELOG 1.1.2): the public 0xSero/GLM-5.3-Flash-EXL3-TR3-2.0bpw K2 checkpoint (EXL3 2.0 bpw, codebook mcg, about 111 GB; the GitHub repository description says 2.33 bpw while its scripts and docs pin 2.0 bpw), the model's own native MTP layer 45 as a depth-2 speculator (all 288 experts, unquantized; the draft view is derived at container start with upstream's tools/prepare_mtp_draft.py as symlinks plus a filtered index over the same checkpoint), B12X sparse-attention backend, packed fp8_ds_mla KV cache, CUDA graphs on target and draft, glm47 reasoning and tool parsers, image input, 262144-token context, one sequence. The image is upstream's public arm64 b12x-mtp-1xspark-v2 build (a pinned local-inference-lab vLLM fork), pinned by digest. Upstream claims, not measured here: 18.7 to 19.2 tok/s single-stream decode flat across the window with sampling on, about 570 tok/s prefill at 4k, 727449 KV tokens; this kit's docs list 2048 for max-num-batched-tokens while its scripts use 7168, which is what is packaged. Licences are informational: the repository declares MIT while GitHub reports no detected licence, and the weights repository card says MIT. The separate M288-12L mosaic path of upstream (SGLang, no MTP) is a different recipe. Physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.93 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "0xsero",
       "candidate",
@@ -45,8 +45,7 @@
       "single",
       "spark",
       "tool-use",
-      "vllm",
-      "does-not-fit"
+      "vllm"
     ],
     "title": "GLM 5.3 Flash EXL3 K2 native-MTP vLLM single Spark (0xSero)"
   },
@@ -3488,12 +3487,17 @@
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "fp8"
+        "value": "fp8_ds_mla"
       },
       {
         "name": "block-size",
         "setting": null,
         "value": 256
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
       },
       {
         "name": "max-model-len",
@@ -3569,16 +3573,6 @@
         "name": "speculative-config",
         "setting": null,
         "value": "{\"method\":\"mtp\",\"model\":\"/outputs/mtp\",\"num_speculative_tokens\":2,\"attention_backend\":\"B12X\"}"
-      },
-      {
-        "name": "enforce-eager",
-        "setting": null,
-        "value": true
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 1388314624
       }
     ],
     "engine": "vllm",
@@ -3656,7 +3650,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 262144
     },
     "kind": "generation",
     "knobs": {},
@@ -3687,8 +3681,8 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 263092367536,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       }

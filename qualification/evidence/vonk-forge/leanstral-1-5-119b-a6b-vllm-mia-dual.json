@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/leanstral-1-5-119b-a6b-vllm-mia-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "fa7d5fe1ecc64ac7f5aabc135ae7386a16854b674fb58a6e7ec9ce1424f1e984",
+        "model_digests": [],
+        "required_sparks": 2,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "5f552314783da6abdd2a3e7f47167d2bd7de7e22d82307da9611bca21e460219"
+      ],
+      "tested_at": "2026-10-08T15:14:46.328459Z",
+      "platform": {
+        "controller_source_sha": "d1fe0e460caed88372ec6a409fd3ccdad9cac599",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fa7d5fe1ecc64ac7f5aabc135ae7386a16854b674fb58a6e7ec9ce1424f1e984",
+        "model_digests": [],
+        "required_sparks": 2,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "e1f6c7b43f2aa53c8eb959c3159ce7d5d8174b6d3d08ffff061a8a81f057b00e"
+      ],
+      "tested_at": "2026-10-10T14:37:35.482357Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}

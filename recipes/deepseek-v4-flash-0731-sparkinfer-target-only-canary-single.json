@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable single-Spark Candidate canary for 0xSero's public REAP-K216 EXL3 checkpoint in SparkInfer's physically recorded target-only MODE=mtp0. It preserves the proven padded-FP8 sparse-MLA cache, 262K model limit, four scheduling slots, CUDA graphs, semantic generation, and structured output while omitting the 3.26 GiB K64 DSpark draft load. Its corrected memory envelope includes unified-memory overhead and a separate OS floor; use the original speculative recipe for faster decode after that profile has sufficient memory headroom. GB10 memory correction: GPU utilization 0.95 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Memory by need (unproven): estimated 178,301,670,904 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Executable single-Spark Candidate canary for 0xSero's public REAP-K216 EXL3 checkpoint in SparkInfer's physically recorded target-only MODE=mtp0. It preserves the proven padded-FP8 sparse-MLA cache, 262K model limit, four scheduling slots, CUDA graphs, semantic generation, and structured output while omitting the 3.26 GiB K64 DSpark draft load. Its corrected memory envelope includes unified-memory overhead and a separate OS floor; use the original speculative recipe for faster decode after that profile has sufficient memory headroom. GB10 memory correction: GPU utilization 0.95 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "executable",
       "candidate",
@@ -46,8 +46,7 @@
       "single",
       "sparkinfer",
       "spark",
-      "target-only",
-      "does-not-fit"
+      "target-only"
     ],
     "title": "DeepSeek V4 Flash 0731 REAP-K216 SparkInfer target-only canary single Spark"
   },
@@ -2012,19 +2011,14 @@
         "value": 4
       },
       {
-        "name": "enable-prefix-caching",
-        "setting": null,
-        "value": true
-      },
-      {
         "name": "gpu-memory-utilization",
         "setting": null,
         "value": "0.85"
       },
       {
-        "name": "kv-cache-memory-bytes",
+        "name": "enable-prefix-caching",
         "setting": null,
-        "value": 63484985344
+        "value": true
       }
     ],
     "engine": "vllm",
@@ -2086,8 +2080,8 @@
             "working_bytes": 135000000000
           },
           "memory": {
-            "peak_bytes": 178301670904,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       }

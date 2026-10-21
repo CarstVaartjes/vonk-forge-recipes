@@ -94,6 +94,10 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             "video/mp4",
             "--output-dir",
             str(output),
+            "--num-frames",
+            "1",
+            "--num-inference-steps",
+            "2",
         ]
 
         def run_pipeline(command, **_kwargs):
@@ -127,7 +131,8 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         for flag, expected in (
             ("--width", "768"),
             ("--height", "512"),
-            ("--num-frames", "97"),
+            ("--num-frames", "1"),
+            ("--num-inference-steps", "2"),
             ("--frame-rate", "24"),
             ("--offload", "disk"),
             ("--max-batch-size", "1"),

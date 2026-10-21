@@ -485,8 +485,8 @@
       },
       {
         "name": "num-inference-steps",
-        "setting": null,
-        "value": 50
+        "setting": "num-inference-steps",
+        "value": null
       },
       {
         "name": "guidance-scale",
@@ -497,6 +497,11 @@
         "name": "resolution",
         "setting": null,
         "value": 480
+      },
+      {
+        "name": "num-frames",
+        "setting": "num-frames",
+        "value": null
       }
     ],
     "engine": "diffusers",
@@ -520,7 +525,16 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "num-frames": {
+        "value": 121,
+        "change_effect": "none"
+      },
+      "num-inference-steps": {
+        "value": 50,
+        "change_effect": "none"
+      }
+    }
   },
   "topology": {
     "name": "solo",

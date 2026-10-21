@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's dual-GB10 vLLM 0.21.1 (SM120/SM121 FP4 source build) serving of NVIDIA's ModelOpt NVFP4 checkpoint of MiniMax M2.7: tensor parallel 2 over Ray, FlashInfer-CUTLASS NVFP4 GEMM and MoE, FP8 KV, torch.compile mode 3 with CUDA graphs disabled (upstream found graph replay deadlocks the cross-node shared-memory broadcast). Text and tool calling (minimax_m2 parsers), 196,608 token context, 4 sequences (upstream launch script). Licences: r0b0tlab package MIT, vLLM Apache-2.0; the NVIDIA checkpoint is under the NVIDIA Software and Model Evaluation License (information only; upstream README asks users to accept the model licence). Upstream claims about 25 tok/s single-stream decode (tg128) on two GB10; not measured here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 78,463,817,648 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "r0b0tlab's dual-GB10 vLLM 0.21.1 (SM120/SM121 FP4 source build) serving of NVIDIA's ModelOpt NVFP4 checkpoint of MiniMax M2.7: tensor parallel 2 over Ray, FlashInfer-CUTLASS NVFP4 GEMM and MoE, FP8 KV, torch.compile mode 3 with CUDA graphs disabled (upstream found graph replay deadlocks the cross-node shared-memory broadcast). Text and tool calling (minimax_m2 parsers), 196,608 token context, 4 sequences (upstream launch script). Licences: r0b0tlab package MIT, vLLM Apache-2.0; the NVIDIA checkpoint is under the NVIDIA Software and Model Evaluation License (information only; upstream README asks users to accept the model licence). Upstream claims about 25 tok/s single-stream decode (tg128) on two GB10; not measured here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "candidate",
       "distributed",
@@ -453,6 +453,11 @@
         "value": null
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
+      },
+      {
         "name": "max-num-batched-tokens",
         "setting": null,
         "value": 8192
@@ -501,11 +506,6 @@
         "name": "compilation-config",
         "setting": null,
         "value": "{\"mode\":3,\"cudagraph_mode\":\"none\",\"inductor_compile_config\":{\"combo_kernels\":false,\"benchmark_combo_kernel\":false,\"max_autotune\":false,\"max_autotune_gemm\":false}}"
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 520093696
       }
     ],
     "engine": "vllm",
@@ -555,11 +555,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 4
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 196608
     },
     "kind": "generation",
     "knobs": {},
@@ -587,8 +587,8 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 78463817648,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -604,8 +604,8 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 78463817648,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       }

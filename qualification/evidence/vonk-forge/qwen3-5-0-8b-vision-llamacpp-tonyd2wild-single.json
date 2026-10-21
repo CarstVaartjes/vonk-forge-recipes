@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-5-0-8b-vision-llamacpp-tonyd2wild-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "2f28304f71bcd648569caaf01621a43a7dd81ab49a0c2af656b8699a65999f63",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "f86299e5419193ece70013fdb5a68c080fb604f57f2e108b5a8c57aa0cdecf71"
+      ],
+      "tested_at": "2026-10-10T15:39:39.795453Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "2f28304f71bcd648569caaf01621a43a7dd81ab49a0c2af656b8699a65999f63",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "0b049713af1d385de252127571457b8d3ebb19638fffa62348e86271fd230cb3"
+      ],
+      "tested_at": "2026-10-11T15:31:37.338417Z",
+      "platform": {
+        "controller_source_sha": "96c9994554762b03a74a29efedff43856e08fec0",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "2f28304f71bcd648569caaf01621a43a7dd81ab49a0c2af656b8699a65999f63",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "c5ffed6c3bd37173262a90b53ebd443a905ccc4a8e8083c72ead13d48908542f"
+      ],
+      "tested_at": "2026-10-12T09:19:41.853055Z",
+      "platform": {
+        "controller_source_sha": "6f1fa18dfa3312a14e8ea8931d7290bdbff13e82",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable single-Spark Candidate for 0xSero's public REAP-K216 EXL3 checkpoint and immutable SparkInfer TP1 runtime. The offline adapter losslessly coalesces the hydrated TP4 archive, verifies it, builds the K64 DSpark draft, runs the SparkInfer self-test, and starts the OpenAI-compatible endpoint. GB10 memory correction: GPU utilization 0.9465 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.84 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 365,603,341,808 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Executable single-Spark Candidate for 0xSero's public REAP-K216 EXL3 checkpoint and immutable SparkInfer TP1 runtime. The offline adapter losslessly coalesces the hydrated TP4 archive, verifies it, builds the K64 DSpark draft, runs the SparkInfer self-test, and starts the OpenAI-compatible endpoint. GB10 memory correction: GPU utilization 0.9465 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.84 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "executable",
       "candidate",
@@ -47,8 +47,7 @@
       "single",
       "sparkinfer",
       "spark",
-      "speculative-decoding",
-      "does-not-fit"
+      "speculative-decoding"
     ],
     "title": "DeepSeek V4 Flash 0731 REAP-K216 SparkInfer single Spark"
   },
@@ -2013,19 +2012,14 @@
         "value": 6
       },
       {
-        "name": "enable-prefix-caching",
-        "setting": null,
-        "value": true
-      },
-      {
         "name": "gpu-memory-utilization",
         "setting": null,
         "value": "0.84"
       },
       {
-        "name": "kv-cache-memory-bytes",
+        "name": "enable-prefix-caching",
         "setting": null,
-        "value": 126969970688
+        "value": true
       }
     ],
     "engine": "vllm",
@@ -2091,8 +2085,8 @@
             "working_bytes": 135000000000
           },
           "memory": {
-            "peak_bytes": 365603341808,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119693367686,
+            "reserve_bytes": 8000000000
           }
         }
       }

@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/llama-3-1-8b-instruct-fp8-nvidia-trtllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9f43955d647665aff2a56d32fc4db4d751c4cab6f660429b729f0455a19489d0",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "3ce2104a5dbf57bbbc28e078a67f4279a29028c8645a553c85d4a9cb2b47401d"
+      ],
+      "tested_at": "2026-10-05T15:47:44.541854Z",
+      "platform": {
+        "controller_source_sha": "1fa6518eda63fa57fedcfc78cec3e556638a2c06",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "9f43955d647665aff2a56d32fc4db4d751c4cab6f660429b729f0455a19489d0",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "93007cd5cfa46e05cf00e2c8db0ff6e574e27be0e230927c98d8415f15c388db"
+      ],
+      "tested_at": "2026-10-05T17:46:36.696138Z",
+      "platform": {
+        "controller_source_sha": "26c34a8a98b9c99a8088b8521b815b901c70eab5",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b31f315bdfc19d73f26bc7351972b94e0e8d5c3f0e6c80c6978096d5cd307f1a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "46d681873c473a1be37a3650d0897f186eb39755f0e50c3479f04642f5977131"
+      ],
+      "tested_at": "2026-10-10T20:35:22.224026Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "0feba415ad3b8dffb25fba70c4b30a8d344ca6ac35796db62d783fde82f2d299",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "44ebf7e3233d15f415943160ea7218fb3d9f63181b1a87e8dd788279fde2fe87"
+      ],
+      "tested_at": "2026-10-14T06:47:26.237483Z",
+      "platform": {
+        "controller_source_sha": "9b54cf93c54e2188369dbbc641645086e4f212c5",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "0feba415ad3b8dffb25fba70c4b30a8d344ca6ac35796db62d783fde82f2d299",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "200802b586f7910c110b710631f71dc457eb13947d5ebdc561f13461c4fe1358"
+      ],
+      "tested_at": "2026-10-14T11:46:24.093279Z",
+      "platform": {
+        "controller_source_sha": "80edbb6639b5f420407a1cdf076d2cacf395d832",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

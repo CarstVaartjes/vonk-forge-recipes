@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's boot-fixed jasl sparkrun recipe for the original DeepSeek-V4-Flash on two Sparks: vLLM tensor parallel 2 on scitrera's public jasl-ds4 image (vLLM 0.22.1-jasl-ds4+21a54ea, tag 20260609, digest-pinned, used unmodified), FP8 KV cache, DeepSeek MTP with two drafted tokens, instanttensor loading, a 256,000-token context and jasl's sparse-MLA long-context chunk profile. Upstream states this is a boot fix, not a performance upgrade: it did not beat aidendle94's production-ready image on decode or long prefill on its cluster (43.8 versus 45.1 tok/s decode; 33K prefill 37.1 versus 28.0 s). Same-creator alternative for this model and Spark count: the MTP recipe on the aidendle94 image. Licences (information only): model MIT; the upstream repository declares no licence file; vLLM Apache-2.0. Upstream figures (43.8 tok/s, 79 to 85 percent MTP acceptance) are claims until measured here; Vonk physical two-Spark acceptance is pending. GB10 fit: GPU utilization 0.825 → 0.79 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 88,304,550,968 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "tonyd2wild's boot-fixed jasl sparkrun recipe for the original DeepSeek-V4-Flash on two Sparks: vLLM tensor parallel 2 on scitrera's public jasl-ds4 image (vLLM 0.22.1-jasl-ds4+21a54ea, tag 20260609, digest-pinned, used unmodified), FP8 KV cache, DeepSeek MTP with two drafted tokens, instanttensor loading, a 256,000-token context and jasl's sparse-MLA long-context chunk profile. Upstream states this is a boot fix, not a performance upgrade: it did not beat aidendle94's production-ready image on decode or long prefill on its cluster (43.8 versus 45.1 tok/s decode; 33K prefill 37.1 versus 28.0 s). Same-creator alternative for this model and Spark count: the MTP recipe on the aidendle94 image. Licences (information only): model MIT; the upstream repository declares no licence file; vLLM Apache-2.0. Upstream figures (43.8 tok/s, 79 to 85 percent MTP acceptance) are claims until measured here; Vonk physical two-Spark acceptance is pending. GB10 fit: GPU utilization 0.825 → 0.79 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "deepseek",
       "distributed",
@@ -943,6 +943,11 @@
         "value": true
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.79"
+      },
+      {
         "name": "enable-auto-tool-choice",
         "setting": null,
         "value": true
@@ -1006,11 +1011,6 @@
         "name": "pipeline-parallel-size",
         "setting": null,
         "value": 1
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 495976448
       }
     ],
     "engine": "vllm",
@@ -1072,11 +1072,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 10
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 256000
     },
     "kind": "generation",
     "knobs": {},
@@ -1104,8 +1104,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 88304550968,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119426786898,
+            "reserve_bytes": 6000000000
           }
         }
       },
@@ -1121,8 +1121,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 88304550968,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119426786898,
+            "reserve_bytes": 6000000000
           }
         }
       }

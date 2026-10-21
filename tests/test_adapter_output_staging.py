@@ -58,11 +58,13 @@ def test_mova_publishes_only_validated_output_and_can_retry(
 ) -> None:
     final = outputs / "mova.mp4"
     final.write_bytes(b"previous complete artifact")
-    args = SimpleNamespace(output_dir=outputs, seed=0, timeout_seconds=10)
+    args = SimpleNamespace(
+        output_dir=outputs, seed=0, num_frames=1, num_inference_steps=2
+    )
     staged: list[Path] = []
     replace = runner.os.replace
 
-    def infer(command: list[str], **_kwargs: object) -> None:
+    def infer(command: list[str], *_args: object) -> None:
         path = Path(command[command.index("--output_path") + 1])
         assert path.parent.parent == outputs / "tmp"
         staged.append(path)
@@ -85,6 +87,7 @@ def test_mova_publishes_only_validated_output_and_can_retry(
         replace(source, target)
 
     with (
+        mock.patch.dict(runner.os.environ, {"VONK_JOB_TIMEOUT_SECONDS": "10"}),
         mock.patch.object(runner, "_arguments", return_value=args),
         mock.patch.object(runner, "_input_manifest", return_value=None),
         mock.patch.object(runner, "_prompt", return_value="A lake"),
@@ -93,7 +96,7 @@ def test_mova_publishes_only_validated_output_and_can_retry(
         mock.patch.object(
             runner, "_reference_frame", return_value=outputs / "input.png"
         ),
-        mock.patch.object(runner.subprocess, "run", side_effect=infer),
+        mock.patch.object(runner, "_generate", side_effect=infer),
         mock.patch.object(runner, "_verify_synchronized_mp4", side_effect=verify),
         mock.patch.object(runner.os, "replace", side_effect=publish),
     ):

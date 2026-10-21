@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable single-Spark OpenAI chat recipe for Google's exact instruction-tuned Gemma 4 26B-A4B checkpoint, using its pinned canonical chat template and vLLM's native Gemma 4 reasoning and tool-call parsers. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 91,824,264,636 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Executable single-Spark OpenAI chat recipe for Google's exact instruction-tuned Gemma 4 26B-A4B checkpoint, using its pinned canonical chat template and vLLM's native Gemma 4 reasoning and tool-call parsers. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "executable",
       "candidate",
@@ -210,6 +210,11 @@
         "value": null
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.80"
+      },
+      {
         "name": "reasoning-parser",
         "setting": null,
         "value": "gemma4"
@@ -228,11 +233,6 @@
         "name": "default-chat-template-kwargs",
         "setting": null,
         "value": "{\"enable_thinking\":false}"
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 32212254720
       }
     ],
     "engine": "vllm",
@@ -290,8 +290,8 @@
             "working_bytes": 107288680176
           },
           "memory": {
-            "peak_bytes": 91824264636,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 112530585191,
+            "reserve_bytes": 8000000000
           }
         }
       }

@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Mistral Leanstral 1.5 119B A6B (Lean 4 code agent, 128-expert MoE, FP8, Apache-2.0) on two Sparks with stock vLLM v0.24.0, Ray, tensor parallel 2, 262144-token context, up to 7 concurrent sequences, text and image input, Mistral tool-call and reasoning parsers, eager mode. Basis: MiaAI-Lab's dual-Spark start.sh (no licence file upstream). Optional EAGLE draft (off by default; upstream reports it unstable). Upstream advises reasoning_effort none for general use and a context of 200k or less; Vonk physical two-Spark acceptance is pending. GB10 fit: GPU utilization 0.85 → 0.84 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Memory by need (unproven): estimated 86,054,530,180 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Mistral Leanstral 1.5 119B A6B (Lean 4 code agent, 128-expert MoE, FP8, Apache-2.0) on two Sparks with stock vLLM v0.24.0, Ray, tensor parallel 2, 262144-token context, up to 7 concurrent sequences, text and image input, Mistral tool-call and reasoning parsers, eager mode. Basis: MiaAI-Lab's dual-Spark start.sh (no licence file upstream). Optional EAGLE draft (off by default; upstream reports it unstable). Upstream advises reasoning_effort none for general use and a context of 200k or less; Vonk physical two-Spark acceptance is pending. GB10 fit: GPU utilization 0.85 → 0.84 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "eagle",
       "leanstral",
@@ -348,6 +348,11 @@
               "name": "speculative-config",
               "setting": null,
               "value": "{\"model\":\"/models/eagle\",\"num_speculative_tokens\":3,\"method\":\"eagle\",\"max_model_len\":\"65536\"}"
+            },
+            {
+              "name": "gpu-memory-utilization",
+              "setting": null,
+              "value": "0.6"
             }
           ],
           "help": "Experimental; upstream reports instability. The draft weights are mounted either way. Runs at gpu-memory-utilization 0.6: the draft model holds memory outside that budget.",
@@ -383,6 +388,11 @@
         "name": "tensor-parallel-size",
         "setting": null,
         "value": 2
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.84"
       },
       {
         "name": "max-model-len",
@@ -428,11 +438,6 @@
         "name": "reasoning-parser",
         "setting": null,
         "value": "mistral"
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 199229440
       }
     ],
     "engine": "vllm",
@@ -466,11 +471,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 7
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 262144
     },
     "kind": "generation",
     "knobs": {},
@@ -498,8 +503,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 86054530180,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119493367686,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -515,8 +520,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 86054530180,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119493367686,
+            "reserve_bytes": 8000000000
           }
         }
       }

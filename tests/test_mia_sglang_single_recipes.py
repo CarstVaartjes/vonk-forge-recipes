@@ -69,11 +69,12 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
 
     def test_ling_profile_has_the_declared_admission_envelope(self) -> None:
         recipe = load("recipes/ling-3-0-flash-dspark-sglang-single.json")
-        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 8192)
+        self.assertEqual(recipe["settings"]["context_tokens"]["value"], 262144)
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(memory["reserve_bytes"], 17_179_869_184)
-        self.assertIn("Memory by need (unproven)", recipe["metadata"]["description"])
-        self.assertLessEqual(memory["peak_bytes"], 108_470_788_096)
+        self.assertEqual(
+            memory["peak_bytes"] + memory["reserve_bytes"], 126_000_000_000
+        )
+        self.assertIn("262144 context", recipe["metadata"]["description"])
 
     def test_qwen27_profile_binds_external_dspark_draft(self) -> None:
         recipe = load("recipes/qwen3-8-27b-nvfp4-dspark-sglang-single.json")

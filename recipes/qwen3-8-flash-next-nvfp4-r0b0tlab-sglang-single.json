@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SGLang runtime for NVIDIA's unmodified nvidia/Qwen3.8-Flash-Next-NVFP4 (revision fc694b54, NVIDIA Open Model License plus Qwen terms) on one Spark, from r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang v1.0.1 (1dc3c2f0, MIT). Runs upstream's published v1.0.1-sm121-nextn image (patched SGLang 0.5.19-era, digest-pinned) through its own profile compiler: native NVFP4 W4A4 experts on FlashInfer CUTLASS, FP8 block-scaled integrated MTP (NEXTN, 3 steps), BF16 KV, BF16 vision (image, multi-image, video), a file-backed PLE embedding offload (about 48 GiB prepared once into the platform cache, 4 GiB RSS budget) and full decode CUDA graphs, with 262,144 tokens of context in one shared KV pool. The profile option picks upstream's frozen profiles: production c2 (two requests share the 262K pool), c4, or the same c2 with ViT CUDA graphs off, which upstream ships for sustained mixed-shape vision traffic. Context and request limits are fixed by the profile and are not editable settings. Upstream claims (not measured here): 37.32 tok/s dedicated c1, NEXTN acceptance length 3.38, needle-in-a-haystack 9/9 to 258K, Q200 185/200, vision 11/11; weights load about 9 minutes; needs an otherwise idle Spark with at least 104 GiB host RAM available and does not sustain two consecutive full-window prefills. Upstream's own verdict is runtime and Q200 verified, not a physical Vonk acceptance. Physical Spark acceptance is pending. Memory by need (unproven): estimated 141,803,274,274 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "r0b0tlab's SGLang runtime for NVIDIA's unmodified nvidia/Qwen3.8-Flash-Next-NVFP4 (revision fc694b54, NVIDIA Open Model License plus Qwen terms) on one Spark, from r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang v1.0.1 (1dc3c2f0, MIT). Runs upstream's published v1.0.1-sm121-nextn image (patched SGLang 0.5.19-era, digest-pinned) through its own profile compiler: native NVFP4 W4A4 experts on FlashInfer CUTLASS, FP8 block-scaled integrated MTP (NEXTN, 3 steps), BF16 KV, BF16 vision (image, multi-image, video), a file-backed PLE embedding offload (about 48 GiB prepared once into the platform cache, 4 GiB RSS budget) and full decode CUDA graphs, with 262,144 tokens of context in one shared KV pool. The profile option picks upstream's frozen profiles: production c2 (two requests share the 262K pool), c4, or the same c2 with ViT CUDA graphs off, which upstream ships for sustained mixed-shape vision traffic. Context and request limits are fixed by the profile and are not editable settings. Upstream claims (not measured here): 37.32 tok/s dedicated c1, NEXTN acceptance length 3.38, needle-in-a-haystack 9/9 to 258K, Q200 185/200, vision 11/11; weights load about 9 minutes; needs an otherwise idle Spark with at least 104 GiB host RAM available and does not sustain two consecutive full-window prefills. Upstream's own verdict is runtime and Q200 verified, not a physical Vonk acceptance. Physical Spark acceptance is pending.",
     "tags": [
       "candidate",
       "executable",
@@ -47,8 +47,7 @@
       "single",
       "spark",
       "tool-use",
-      "vision",
-      "does-not-fit"
+      "vision"
     ],
     "title": "Qwen3.8 Flash Next NVFP4 SGLang single Spark (r0b0tlab)"
   },
@@ -376,36 +375,6 @@
         "name": "sources",
         "setting": null,
         "value": "/opt/r0b0tlab/locks/sources.json"
-      },
-      {
-        "name": "context-length",
-        "setting": "context_tokens",
-        "value": null
-      },
-      {
-        "name": "max-running-requests",
-        "setting": "concurrency",
-        "value": null
-      },
-      {
-        "name": "disable-cuda-graph",
-        "setting": null,
-        "value": true
-      },
-      {
-        "name": "max-mamba-cache-size",
-        "setting": null,
-        "value": 2
-      },
-      {
-        "name": "max-total-tokens",
-        "setting": null,
-        "value": 8192
-      },
-      {
-        "name": "mem-fraction-static",
-        "setting": null,
-        "value": "0.95"
       }
     ],
     "engine": "sglang",
@@ -425,15 +394,11 @@
   "settings": {
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 262144
     },
     "kind": "generation",
     "knobs": {},
-    "max_batch_tokens": null,
-    "concurrency": {
-      "change_effect": "restart",
-      "value": 1
-    }
+    "max_batch_tokens": null
   },
   "topology": {
     "name": "solo",
@@ -457,8 +422,8 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 141803274274,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 112000000000,
+            "reserve_bytes": 12000000000
           }
         }
       }

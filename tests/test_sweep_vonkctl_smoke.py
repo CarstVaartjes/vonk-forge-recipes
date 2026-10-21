@@ -106,7 +106,7 @@ def test_a_blocked_review_exits_2_but_is_still_a_document() -> None:
         vk.call("profile", "load", "--review", profile=10)
 
 
-def test_error_documents_are_parsed_from_either_stream() -> None:
+def test_error_documents_are_parsed_from_stdout() -> None:
     error = json.dumps(
         {
             "error": "x",
@@ -115,7 +115,7 @@ def test_error_documents_are_parsed_from_either_stream() -> None:
             "detail": "dockerfile.heredoc_forbidden: no",
         }
     )
-    for out, err in ((error, ""), ("", error)):
+    for out, err in ((error, ""),):
         run, _ = runner_returning(2, out, err)
         with pytest.raises(VonkctlError) as caught:
             Vonkctl("vonkctl", runner=run).call("recipe", "download", "x")
@@ -123,11 +123,13 @@ def test_error_documents_are_parsed_from_either_stream() -> None:
         assert "heredoc" in str(caught.value)
 
 
-def test_progress_lines_before_the_document_are_tolerated() -> None:
-    run, _ = runner_returning(0, 'queued\n{"state": "running"}\n')
-    assert Vonkctl("vonkctl", runner=run).call("recipe", "progress", "op") == {
-        "state": "running"
-    }
+@pytest.mark.parametrize(
+    "out, err", [('queued\n{"state": "running"}\n', ""), ("", '{"state": "running"}')]
+)
+def test_only_a_single_stdout_json_document_is_a_receipt(out: str, err: str) -> None:
+    run, _ = runner_returning(0, out, err)
+    with pytest.raises(VonkctlError):
+        Vonkctl("vonkctl", runner=run).call("recipe", "progress", "op")
 
 
 def test_request_keys_are_deterministic_so_a_restart_reconnects() -> None:

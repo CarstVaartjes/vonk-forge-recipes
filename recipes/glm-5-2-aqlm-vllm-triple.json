@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Historical, offline-serving Candidate TP3 recipe for the GLM 5.2 NVFP4/AQLM hybrid vision checkpoint. It is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 146.3 GB of checkpoint bytes per Spark before KV cache or runtime overhead, above the roughly 126.9 GB-per-node inventory. The executable contract remains installable for a future three-Spark canary; glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-admission-envelope GLM alternative. GB10 memory correction: GPU utilization 0.895 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced. Memory by need (unproven): estimated 106,397,166,568 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "Historical, offline-serving Candidate TP3 recipe for the GLM 5.2 NVFP4/AQLM hybrid vision checkpoint. It is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 146.3 GB of checkpoint bytes per Spark before KV cache or runtime overhead, above the roughly 126.9 GB-per-node inventory. The executable contract remains installable for a future three-Spark canary; glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-admission-envelope GLM alternative. GB10 memory correction: GPU utilization 0.895 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced.",
     "tags": [
       "executable",
       "candidate",
@@ -1749,7 +1749,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 899678208
+        "value": 11811160064
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
       },
       {
         "name": "max-model-len",
@@ -1947,7 +1952,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 348160
     },
     "kind": "generation",
     "knobs": {},
@@ -1975,8 +1980,8 @@
             "working_bytes": 75000000000
           },
           "memory": {
-            "peak_bytes": 106397166568,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1992,8 +1997,8 @@
             "working_bytes": 75000000000
           },
           "memory": {
-            "peak_bytes": 106397166568,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 120000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

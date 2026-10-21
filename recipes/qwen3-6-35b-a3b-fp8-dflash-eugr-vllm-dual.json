@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker qwen3.6-35b-a3b-fp8-dflash recipe: Qwen's official Qwen3.6-35B-A3B-FP8 (block-wise FP8, Apache-2.0; checkpoint revision 95a723d0) with the z-lab Qwen3.6-35B-A3B-DFlash draft model (Apache-2.0; revision f181eece) for DFlash speculative decoding, served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: VLLM_MARLIN_USE_ATOMIC_ADD=1, flash_attn attention, default KV cache dtype, fastsafetensors loading, no prefix caching (upstream's changelog says it was disabled for the DFlash recipe because it caused accuracy issues), qwen3 reasoning and qwen3_xml tool parsing, eugr's fix-qwen3.6-chat-template mod (baked into the image at build time; the chat template it installs is selected with --chat-template), DFlash with 15 speculative tokens (the draft model is mounted as a second model), 262,144-token context, 16,384 batched tokens and memory utilisation 0.8 (upstream defaults); scheduler sequence capacity is left to vLLM as upstream does not set it. This is upstream's recipe as written (tensor parallel 2); the Controller runs it as native multi-node vLLM (eugr's default no-Ray cluster mode, instead of --distributed-executor-backend ray). No upstream performance claims are recorded for this recipe. Upstream repository MIT. The same weights without the draft model are the separate qwen3-6-35b-a3b-fp8 recipes, because options cannot add model files. Physical Spark acceptance is pending. Version 1.0.1 (2026-09-30) adds a single `speculation` selector (DFlash default or native Qwen3.6 MTP) and a `modality` selector (multimodal default or zero-limit language-model-only). On the pinned vLLM release that mode disables multimodal inputs but retains the Qwen3.5 vision tower, so it is not a VRAM-reduction switch. The native MTP choice uses the MTP head already in the pinned FP8 checkpoint and the pinned vLLM parser; it adds no model files, image changes, or runtime downloads. Sources: https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8/tree/95a723d08a9490559dae23d0cff1d9466213d989 and https://github.com/vllm-project/vllm/blob/af5b4857e/vllm/engine/arg_utils.py. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.8) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance. Memory by need (unproven): estimated 58,551,423,426 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker qwen3.6-35b-a3b-fp8-dflash recipe: Qwen's official Qwen3.6-35B-A3B-FP8 (block-wise FP8, Apache-2.0; checkpoint revision 95a723d0) with the z-lab Qwen3.6-35B-A3B-DFlash draft model (Apache-2.0; revision f181eece) for DFlash speculative decoding, served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: VLLM_MARLIN_USE_ATOMIC_ADD=1, flash_attn attention, default KV cache dtype, fastsafetensors loading, no prefix caching (upstream's changelog says it was disabled for the DFlash recipe because it caused accuracy issues), qwen3 reasoning and qwen3_xml tool parsing, eugr's fix-qwen3.6-chat-template mod (baked into the image at build time; the chat template it installs is selected with --chat-template), DFlash with 15 speculative tokens (the draft model is mounted as a second model), 262,144-token context, 16,384 batched tokens and memory utilisation 0.8 (upstream defaults); scheduler sequence capacity is left to vLLM as upstream does not set it. This is upstream's recipe as written (tensor parallel 2); the Controller runs it as native multi-node vLLM (eugr's default no-Ray cluster mode, instead of --distributed-executor-backend ray). No upstream performance claims are recorded for this recipe. Upstream repository MIT. The same weights without the draft model are the separate qwen3-6-35b-a3b-fp8 recipes, because options cannot add model files. Physical Spark acceptance is pending. Version 1.0.1 (2026-09-30) adds a single `speculation` selector (DFlash default or native Qwen3.6 MTP) and a `modality` selector (multimodal default or zero-limit language-model-only). On the pinned vLLM release that mode disables multimodal inputs but retains the Qwen3.5 vision tower, so it is not a VRAM-reduction switch. The native MTP choice uses the MTP head already in the pinned FP8 checkpoint and the pinned vLLM parser; it adds no model files, image changes, or runtime downloads. Sources: https://huggingface.co/Qwen/Qwen3.6-35B-A3B-FP8/tree/95a723d08a9490559dae23d0cff1d9466213d989 and https://github.com/vllm-project/vllm/blob/af5b4857e/vllm/engine/arg_utils.py. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.8) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
     "tags": [
       "candidate",
       "dflash",
@@ -833,6 +833,11 @@
         "value": "Qwen3.6-35B-A3B-FP8"
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.6"
+      },
+      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -876,16 +881,6 @@
         "name": "speculative-config",
         "setting": null,
         "value": "{\"method\":\"dflash\",\"model\":\"/models/drafter\",\"num_speculative_tokens\":15}"
-      },
-      {
-        "name": "max-num-seqs",
-        "setting": "concurrency",
-        "value": null
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 14047772672
       }
     ],
     "engine": "vllm",
@@ -905,10 +900,7 @@
     }
   },
   "settings": {
-    "concurrency": {
-      "change_effect": "restart",
-      "value": 1
-    },
+    "concurrency": null,
     "context_tokens": {
       "change_effect": "restart",
       "value": 262144
@@ -942,8 +934,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 58551423426,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 103397938893,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -959,8 +951,8 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 58551423426,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 103397938893,
+            "reserve_bytes": 8000000000
           }
         }
       }

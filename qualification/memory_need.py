@@ -1,14 +1,21 @@
-"""Offline memory demand; only hardware-proven recipe identities are exempt."""
+"""Offline memory demand, separate from historical engine reservation fractions.
+
+Unchanged catalog documents retain their behavior. A new document must supply
+source-backed cache geometry and an absolute pool sized to its declared workload.
+The Git comparison tree is not a qualification status list.
+"""
 
 from __future__ import annotations
 
+import subprocess
 from collections.abc import Mapping
 from dataclasses import dataclass
-from decimal import ROUND_CEILING, Decimal
+from decimal import Decimal
+from functools import cache
 from itertools import product
 from pathlib import Path
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
 from qualification.vllm_memory_fit import (
@@ -16,7 +23,6 @@ from qualification.vllm_memory_fit import (
     OVERHEAD_BYTES,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
-    VLLM_DEFAULT_UTILIZATION,
 )
 from qualification.vllm_memory_fit import (
     loads_draft_model as configured_draft_model,
@@ -53,24 +59,63 @@ class CacheGeometry(BaseModel):
     token_bytes: int | None = Field(default=None, gt=0)
     state_padding: int = Field(default=0, ge=0)
     resident_expansion_bytes: int = Field(default=0, ge=0)
-    derived_draft_weight_bytes: int = Field(default=0, ge=0)
-    bundled_draft_prefix: str | None = None
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
-
-
-class HardwarePass(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    recorded_at: AwareDatetime
-    content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    catalog_content_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    library_commit: str = Field(pattern=r"^[0-9a-f]{40}$")
-    recipe_revision_id: str
 
 
 class MemoryInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    hardware_passes: dict[str, HardwarePass]
     geometries: dict[str, CacheGeometry]
+
+
+@cache
+def base_document(slug: str) -> RecipeDefinition | None:
+    """Read the comparison tree, never a second persisted qualification list."""
+    result = subprocess.run(
+        ["git", "show", f"origin/main:recipes/{slug}.json"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30,
+    )
+    if result.returncode:
+        # A missing recipe is new; a missing comparison ref is a setup error.
+        subprocess.run(
+            ["git", "rev-parse", "--verify", "origin/main"],
+            cwd=ROOT,
+            capture_output=True,
+            check=True,
+            timeout=30,
+        )
+        return None
+    return RecipeDefinition.model_validate_json(result.stdout)
+
+
+def unchanged_recipe(recipe: RecipeDefinition, document_digest: str) -> bool:
+    # Compare the model too: passing an old digest cannot waive a mutated launch.
+    return bool(document_digest) and recipe == base_document(recipe.identity.slug)
+
+
+def hardware_proven(recipe: RecipeDefinition, document_digest: str) -> bool:
+    """Use the qualification reducer, including later failures and exact reverts."""
+    from vonk_forge_contracts import QualificationStatus, derive_status
+
+    from spark_sweep.qualification import read_evidence
+
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    evidence = read_evidence(ROOT, key)
+    for record in evidence.records:
+        if record.identity.content_sha256 != document_digest:
+            continue
+        identity = record.identity.model_copy(
+            update={"required_sparks": recipe.topology.node_count}
+        )
+        if (
+            derive_status(evidence, identity, recipe.topology.node_count, False).status
+            == QualificationStatus.WORKING
+        ):
+            return True
+    return False
 
 
 def load_inputs(root: Path = ROOT) -> MemoryInputs:
@@ -152,10 +197,9 @@ def loads_draft_model(recipe: RecipeDefinition) -> bool:
     wrapper = ROOT / recipe.execution.build.context.path / "vllm-wrapper.sh"
     if wrapper.is_file() and "export SPEC_MODEL_PATH=" in wrapper.read_text():
         return True
-    return configured_draft_model(recipe) or (
-        argument_value(recipe, "speculative-draft-model-path") is not None
-        and argument_value(recipe, "speculative-draft-model-path")
-        != argument_value(recipe, "model-path")
+    return (
+        configured_draft_model(recipe)
+        or argument_value(recipe, "speculative-draft-model-path") is not None
     )
 
 
@@ -166,29 +210,21 @@ def calculate_need(
 ) -> MemoryNeed:
     """Full declared context times engine concurrency, including selected drafts.
 
-    Supports per-rank ordinary attention and supplied compressed
+    Currently supports single-node ordinary attention and supplied compressed
     geometry. A new topology/automatic scheduler needs explicit inputs rather
     than borrowing a benchmark concurrency or a fraction of physical memory.
-    Auxiliary drafts, recurrent state and resident expansion stay replicated.
     """
     label = recipe.identity.slug
-    parallel = recipe.topology.parallelism
-    tensor, pipeline = parallel.tensor, parallel.pipeline
-    shards = tensor * pipeline
+    if recipe.topology.node_count != 1:
+        raise ValueError(
+            f"{label}: supply a per-rank need model for this multi-Spark recipe id"
+        )
     settings = recipe.settings
-    if settings.kind not in {"generation", "decision"} or settings.concurrency is None:
+    if settings.kind != "generation" or settings.concurrency is None:
         raise ValueError(
             f"{label}: declare engine context and concurrency for memory sizing"
         )
-    derived_draft = loads_draft_model(recipe) and len(recipe.models) == 1
-    primary_geometry = geometries.get(recipe.models[0].model.slug)
-    if derived_draft and (
-        primary_geometry is None
-        or not (
-            primary_geometry.derived_draft_weight_bytes
-            or primary_geometry.bundled_draft_prefix
-        )
-    ):
+    if loads_draft_model(recipe) and len(recipe.models) == 1:
         raise ValueError(
             f"{label}: include the wrapper's draft weights in the need model"
         )
@@ -213,12 +249,6 @@ def calculate_need(
         element_bits = 16
     elif dtype in ("fp8", "fp8_e4m3", "fp8_e5m2"):
         element_bits = 8
-    elif all(
-        geometries.get(selection.model.slug) is not None
-        and geometries[selection.model.slug].token_bytes is not None
-        for selection in recipe.models
-    ):
-        element_bits = 16  # explicit packed-token upper bound supplies storage size
     else:
         raise ValueError(f"{label}: supply cache layout calibration for dtype {dtype}")
     weights: list[int] = []
@@ -258,51 +288,31 @@ def calculate_need(
             raise ValueError(f"{label}: cache geometry does not match the pinned image")
         if (
             geometry.resident_expansion_bytes
-            and argument_value(
-                recipe,
-                "disable-cuda-graph"
-                if recipe.runtime.engine == "sglang"
-                else "enforce-eager",
-            )
-            is not True
+            and argument_value(recipe, "disable-cuda-graph") is not True
         ):
             raise ValueError(
                 f"{label}: calibrated resident bound requires disabled graphs"
             )
         expansion += geometry.resident_expansion_bytes
-        token_layers = context * (
-            (geometry.layers - geometry.sliding_layers + pipeline - 1) // pipeline
-        ) + min(context, geometry.sliding_window) * (
-            (geometry.sliding_layers + pipeline - 1) // pipeline
+        token_layers = (
+            context * (geometry.layers - geometry.sliding_layers)
+            + min(context, geometry.sliding_window) * geometry.sliding_layers
         )
         token_need = (
             token_layers
             * concurrency
-            * ((geometry.kv_heads + tensor - 1) // tensor)
+            * geometry.kv_heads
             * (geometry.key_dim + geometry.value_dim)
             * element_bits
             + 7
         ) // 8
-        rank_tokens = (
-            context
-            * concurrency
-            * (
-                (
-                    geometry.token_bytes
-                    * ((geometry.layers + pipeline - 1) // pipeline)
-                    + geometry.layers
-                    - 1
-                )
-                // geometry.layers
-            )
+        kv += (
+            context * concurrency * geometry.token_bytes
             if geometry.token_bytes is not None
             else token_need
         )
-        # MLA/token bounds are conservatively replicated across tensor ranks;
-        # recurrent state and resident expansion are never divided away.
-        kv += rank_tokens
         slots = concurrency
-        if geometry.state_bytes_per_request and recipe.runtime.engine == "sglang":
+        if geometry.state_padding:
             slots = positive_argument(recipe, "max-mamba-cache-size")
             if slots < concurrency:
                 raise ValueError(
@@ -311,30 +321,11 @@ def calculate_need(
         state += geometry.state_bytes_per_request * (slots + geometry.state_padding)
     # Selected draft weights/cache do not replace the measured outside-budget
     # floor: no replacement calibration exists for the 2026-10-13 Spark freeze.
-    if derived_draft:
-        assert primary_geometry is not None
-        bundled_bytes = 0
-        if primary_geometry.bundled_draft_prefix is not None:
-            selection = recipe.models[0]
-            selected = {item.file_id for item in selection.files}
-            bundled_bytes = sum(
-                item.size_bytes
-                for item in models[selection.model.content_sha256].files
-                if item.id in selected
-                and "weights" in item.roles
-                and item.path.startswith(primary_geometry.bundled_draft_prefix)
-            )
-            if not bundled_bytes:
-                raise ValueError(f"{label}: include the bundled draft weights")
-            weights[0] -= bundled_bytes
-        weights.append(primary_geometry.derived_draft_weight_bytes + bundled_bytes)
-        kv *= 2
-        state *= 2
     overhead = OVERHEAD_BYTES
     if loads_draft_model(recipe):
         overhead += DRAFT_MODEL_OVERHEAD_BYTES
     return MemoryNeed(
-        (weights[0] + shards - 1) // shards,
+        weights[0],
         sum(weights[1:]),
         kv,
         state,
@@ -344,19 +335,23 @@ def calculate_need(
 
 
 def memory_variants(recipe: RecipeDefinition) -> list[RecipeDefinition]:
-    """Base launch and the joint option product; independent choices can overflow."""
-    variants = [recipe]
-    if recipe.options:
-        variants.extend(
-            recipe.with_option_choices(
-                {
-                    option.name: choice.value
-                    for option, choice in zip(recipe.options, choices, strict=True)
-                }
-            )
-            for choices in product(*(option.choices for option in recipe.options))
-        )
-    return variants
+    """Base launch and the joint option product."""
+    return (
+        [
+            recipe,
+            *(
+                recipe.with_option_choices(
+                    {
+                        option.name: choice.value
+                        for option, choice in zip(recipe.options, choices, strict=True)
+                    }
+                )
+                for choices in product(*(option.choices for option in recipe.options))
+            ),
+        ]
+        if recipe.options
+        else [recipe]
+    )
 
 
 def require_memory_need(
@@ -366,12 +361,17 @@ def require_memory_need(
     *,
     document_digest: str,
 ) -> MemoryNeed | None:
-    """Check every unproven vLLM/SGLang document, including existing catalog rows."""
+    """Check new/changed vLLM/SGLang documents without retuning historical ones."""
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return None
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    proven = inputs.hardware_passes.get(key)
-    if proven is not None and document_digest == proven.catalog_content_sha256:
+    if unchanged_recipe(recipe, document_digest):
+        return None
+    if recipe.runtime.engine == "vllm" and recipe.topology.node_count != 1:
+        for variant in memory_variants(recipe):
+            problems = declaration_problems(variant, per_rank_need(variant, models))
+            if problems:
+                raise ValueError(f"{key}: " + "; ".join(problems))
         return None
     result = None
     for variant in memory_variants(recipe):
@@ -399,13 +399,8 @@ def require_memory_need(
             if fraction is not None:
                 static_bytes = Decimal(str(fraction)) * TOTAL_BYTES
                 pool_need = need.total_bytes - need.overhead_bytes
-                if (
-                    not static_bytes.is_finite()
-                    or not 0 < Decimal(str(fraction)) <= 1
-                    or (
-                        static_bytes < pool_need
-                        and need.total_bytes <= need.limit_bytes
-                    )
+                if not static_bytes.is_finite() or (
+                    static_bytes < pool_need and need.total_bytes <= need.limit_bytes
                 ):
                     raise ValueError(
                         f"{key}: static memory budget cannot hold weights and absolute cache ({pool_need} bytes); increase mem-fraction-static while retaining the absolute token cap"
@@ -421,22 +416,52 @@ def require_memory_need(
                     f"{key}: set absolute max-total-tokens={tokens}; a static fraction does not bound KV by need"
                 )
         for role in variant.topology.roles:
-            if (
-                variant.topology.node_count > 1
-                and role.resources.memory.reserve_bytes < GUARD_BYTES
-            ):
-                raise ValueError(
-                    f"{key}/{role.name}: reserve understates host headroom {GUARD_BYTES}"
-                )
             if role.resources.memory.peak_bytes < need.total_bytes:
                 raise ValueError(
-                    f"{key}/{role.name}: peak understates need {need.total_bytes}"
+                    f"{key}/{role.name}: peak_bytes must cover need {need.total_bytes}"
                 )
-            if role.resources.memory.reserve_bytes > role.resources.memory.peak_bytes:
-                raise ValueError(f"{key}/{role.name}: reserve exceeds peak")
-        if result is None or need.total_bytes > result.total_bytes:
-            result = need
+        result = need
     return result
+
+
+def memory_warnings(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+) -> list[str]:
+    """Informative catalog estimates; these never change hardware qualification."""
+    if recipe.runtime.engine not in {"vllm", "sglang"}:
+        return []
+    warnings = []
+    for index, variant in enumerate(memory_variants(recipe)):
+        prefix = f"WARNING {recipe.identity.slug} [{index}]"
+        try:
+            need = calculate_need(variant, models, inputs.geometries)
+        except (ValueError, TypeError) as error:
+            warnings.append(f"{prefix}: full-workload estimate unavailable: {error}")
+        else:
+            warnings.append(
+                f"{prefix}: estimated workload {need.total_bytes} bytes/rank; "
+                f"planning limit {LIMIT_BYTES}; hardware test required"
+            )
+        rank = per_rank_need(variant, models)
+        warnings.append(
+            f"{prefix}: loading floor {rank.peak_bytes} bytes/rank; "
+            f"observed idle capacity {rank.safe_limit_bytes}; no hardware verdict"
+        )
+    return warnings
+
+
+def selected_weight_bytes(
+    recipe: RecipeDefinition, models: Mapping[str, ModelDefinition]
+) -> int:
+    weights: dict[str, int] = {}
+    for selection in recipe.models:
+        selected = {item.file_id for item in selection.files}
+        for item in models[selection.model.content_sha256].files:
+            if item.id in selected and "weights" in item.roles:
+                weights[item.sha256] = item.size_bytes
+    return sum(weights.values())
 
 
 @dataclass(frozen=True)
@@ -457,37 +482,47 @@ class PerRankMemoryNeed:
 def per_rank_need(
     recipe: RecipeDefinition, models: Mapping[str, ModelDefinition]
 ) -> PerRankMemoryNeed:
-    """Lower bound, not a measurement: engine budget and selected weight/KV floor.
+    """Optimistic loading floor, never a proof of full-context or runtime fit.
 
-    Dividing all weights evenly is deliberately optimistic: replicated tensors,
-    quantization expansion and startup peaks can only increase the loading floor.
-    A separate vLLM drafter adds the calibrated 17 GB outside the GPU budget.
+    Selected weights and explicit KV pools are counted once. Adaptive pool
+    ceilings and the host pressure planning margin are warnings, not proof that
+    a workload cannot run. See the calibration sources in recipe-authoring.md.
     """
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         raise ValueError("memory need requires a vLLM/SGLang recipe")
-    fraction_flag = (
-        "gpu-memory-utilization"
-        if recipe.runtime.engine == "vllm"
-        else "mem-fraction-static"
-    )
-    utilization = VLLM_DEFAULT_UTILIZATION
     kv_bytes = 0
-    for argument in recipe.runtime.arguments:
-        if argument.name == fraction_flag:
-            if argument.setting is not None:
-                raise ValueError("memory utilization must be a fixed budget")
-            utilization = Decimal(str(argument.value))
-        elif argument.name == "kv-cache-memory-bytes":
-            if argument.setting is not None:
-                raise ValueError("KV bytes must be a fixed budget")
-            kv_bytes = cache_bytes(argument.value)
-    if not utilization.is_finite() or not 0 < utilization <= 1:
-        raise ValueError("memory utilization must be in (0, 1]")
-    need = calculate_need(recipe, models, load_inputs().geometries)
-    # Absolute vLLM pools supersede utilization; SGLang still profiles its
-    # static fraction before applying the bounded token/state pools.
-    budget = utilization * SPARK_MEMORY_BYTES + need.overhead_bytes
-    if kv_bytes or argument_value(recipe, "max-total-tokens") is not None:
-        budget = Decimal(need.total_bytes)
-    peak = max(int(budget.to_integral_value(rounding=ROUND_CEILING)), need.total_bytes)
-    return PerRankMemoryNeed(peak, LIMIT_BYTES, recipe.topology.node_count)
+    pool = argument_value(recipe, "kv-cache-memory-bytes")
+    if pool is not None:
+        kv_bytes = cache_bytes(pool)
+    parallel = recipe.topology.parallelism
+    shards = parallel.tensor * parallel.pipeline
+    loading_floor = (
+        (selected_weight_bytes(recipe, models) + shards - 1) // shards
+        + kv_bytes
+        + OVERHEAD_BYTES
+    )
+    # Utilization sizes an adaptive pool; it is not irreducible workload demand.
+    # The measured 17 GB term is relative to that utilization budget, not another
+    # allocation beside explicitly counted draft weights. Keep it in the strict
+    # workload/legacy envelope guards, not this optimistic loading floor.
+    # Physical fit uses observed idle availability. The 16 GiB planning guard
+    # remains LIMIT_BYTES and is reported as a warning, not a hardware verdict.
+    return PerRankMemoryNeed(
+        loading_floor, IDLE_AVAILABLE_BYTES, recipe.topology.node_count
+    )
+
+
+def declaration_problems(
+    recipe: RecipeDefinition, need: PerRankMemoryNeed
+) -> list[str]:
+    """An oversized estimate is valid; hiding demand or headroom is not."""
+    problems: list[str] = []
+    for role in recipe.topology.roles:
+        memory = role.resources.memory
+        if memory.peak_bytes < need.peak_bytes:
+            problems.append(f"{role.name}: peak understates need {need.peak_bytes}")
+        if memory.reserve_bytes < GUARD_BYTES:
+            problems.append(
+                f"{role.name}: reserve understates host headroom {GUARD_BYTES}"
+            )
+    return problems

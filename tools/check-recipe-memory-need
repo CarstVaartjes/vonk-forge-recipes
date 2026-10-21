@@ -1,5 +1,5 @@
 #!/usr/bin/env -S uv run --no-project --python 3.14 --with-editable contracts python
-"""Check honest vLLM demand declarations and report estimated Spark capacity."""
+"""Enforce changed documents; report existing estimates as warnings only."""
 
 from __future__ import annotations
 
@@ -13,25 +13,28 @@ sys.path.insert(0, str(ROOT))
 
 from vonk_forge_contracts import (
     ModelDefinition,
+    QualificationOutcome,
     RecipeDefinition,
     document_sha256,
 )
 
 from qualification.memory_need import (
-    calculate_need,
+    hardware_proven,
     load_inputs,
     memory_variants,
+    memory_warnings,
     per_rank_need,
     require_memory_need,
+    unchanged_recipe,
 )
+from spark_sweep.qualification import read_evidence
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("recipes", nargs="*", help="recipe slugs; default: catalog")
     parser.add_argument(
-        "recipes",
-        nargs="*",
-        help="recipe slugs (default: every unproven vLLM/SGLang recipe)",
+        "--calibrate", action="store_true", help="audit hardware passes"
     )
     args = parser.parse_args()
     models: dict[str, ModelDefinition] = {}
@@ -39,7 +42,7 @@ def main() -> int:
         document = json.loads(path.read_text())
         models[document_sha256(document)] = ModelDefinition.model_validate(document)
     inputs = load_inputs()
-    failed = False
+    failed = flagged = proven_count = applicable = 0
     paths = (
         [ROOT / "recipes" / f"{slug}.json" for slug in args.recipes]
         if args.recipes
@@ -48,31 +51,44 @@ def main() -> int:
     for path in paths:
         document = json.loads(path.read_text())
         recipe = RecipeDefinition.model_validate(document)
-        if recipe.runtime.engine not in {"vllm", "sglang"}:
-            continue
         key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
         digest = document_sha256(document)
-        proven = inputs.hardware_passes.get(key)
-        if proven is not None and proven.catalog_content_sha256 == digest:
-            print(f"{key}: hardware-proven; preserved")
+        if args.calibrate:
+            evidence = read_evidence(ROOT, key)
+            if not any(
+                r.outcome == QualificationOutcome.PASSED for r in evidence.records
+            ):
+                continue
+            proven_count += 1
+            if recipe.runtime.engine not in {"vllm", "sglang"}:
+                print(f"{key}: engine outside estimator scope")
+                continue
+            applicable += 1
+            # No evidence-based exemption here: run every applicable variant.
+            needs = [per_rank_need(v, models) for v in memory_variants(recipe)]
+            if any(not n.fits for n in needs):
+                flagged += 1
+            print(
+                f"{key}: maximum loading floor {max(n.peak_bytes for n in needs)} bytes/rank"
+            )
             continue
+        if recipe.runtime.engine not in {"vllm", "sglang"}:
+            continue
+        unchanged = unchanged_recipe(recipe, digest)
         try:
             require_memory_need(recipe, models, inputs, document_digest=digest)
-            for index, variant in enumerate(memory_variants(recipe)):
-                if variant.topology.node_count == 1:
-                    absolute = calculate_need(variant, models, inputs.geometries)
-                    peak, limit = absolute.total_bytes, absolute.limit_bytes
-                else:
-                    rank = per_rank_need(variant, models)
-                    peak, limit = rank.peak_bytes, rank.safe_limit_bytes
-                verdict = "fits" if peak <= limit else "does not fit"
-                print(
-                    f"{key} [{index}]: {verdict} {variant.topology.node_count} Sparks; need {peak} bytes/rank; limit {limit} bytes/rank"
-                )
+            proof = hardware_proven(recipe, digest)
+            print(f"{key}: hardware-proven={proof}; unchanged={unchanged}")
+            for warning in memory_warnings(recipe, models, inputs):
+                print(warning)
         except (ValueError, TypeError) as error:
-            failed = True
+            failed += 1
             print(str(error), file=sys.stderr)
-    return int(failed)
+    if args.calibrate:
+        print(
+            f"Calibration: {proven_count} hardware-pass recipes; {applicable} applicable; {proven_count - applicable} other engines; {flagged} falsely flagged"
+        )
+    return int(bool(failed or flagged))
 
 
 if __name__ == "__main__":

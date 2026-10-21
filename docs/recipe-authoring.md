@@ -6,6 +6,51 @@ and a self-contained downloadable package. A repository recipe is expected to
 work; authors do not maintain a separate approval or readiness lifecycle.
 The repository process and supported-contract policy live in AGENTS.md.
 
+## Hardware qualification status
+
+Qualification is derived from hardware evidence, never an authored recipe label.
+A proven recipe stays proven until a hardware test on the same identity says
+otherwise. Updating a recipe, runtime image or Model creates a re-check, never
+an advance declaration that the recipe is broken. Reverting to a passed exact
+identity restores Working without running hardware again. Quality notes do not
+turn a successful hardware check into a failure. A missing historical Spark
+count does not change a matching recipe digest, which already binds topology;
+local proof survives while public certification still requires recorded platform
+provenance.
+
+The contract 2.4.0 models and `derive_status` are the authority. Evidence lives
+separately in `qualification/evidence/<publisher>/<recipe-slug>.json`; recording
+it never changes the recipe's content digest. Each record binds recipe
+`content_sha256`, resolved runtime image digest/build key, Model digests, test
+date, Controller source/version, agent version, GB10 hardware class and Spark
+count/topology. Unknown historical provenance stays unknown. Public evidence
+has closed summaries/codes and digest references, never raw messages, host
+names, addresses, run/request/operation ids, paths or credentials.
+
+The local sweep view uses these statuses:
+
+- **Working:** passed on the current exact identity; quality notes may remain.
+- **Re-check: worked before:** an identity changed after a pass; show recipe,
+  image and/or Model changes and the last successful test.
+- **Fix to verify:** a recipe failure preceded an identity change.
+- **Failed: recipe:** failed on the current identity; show cause and public fix
+  reference, or “needs fix”.
+- **Blocked: platform:** infrastructure/Controller fault; never recipe blame.
+- **Untested:** no hardware verdict.
+- **Can't test here:** requires more Sparks than are enrolled.
+- **Testing now:** occupies a lane; the prior proof remains visible.
+
+The signed catalog's per-recipe `qualification` is recomputed at publication
+against the recipe, image and Models in that release. It publishes Working,
+Re-check, Fix to verify, Failed: recipe, or **Not yet verified**, with a reason
+(never tested, needs more Sparks, platform issue under fix, or incomplete
+historical provenance). Fleet/lane states remain local. Working requires exact
+resolved identity and recorded platform provenance. The proof includes the
+Controller release, so consumers can show whether it was proven on the user's
+same, older or newer platform; it is not a claim about an untested platform.
+Normal library refresh delivers the newest evidence. Controllers must retain
+published proof and use the shared contract rather than storing a status label.
+
 ## 1. Establish the change
 
 Follow [`AGENTS.md`](../AGENTS.md) for branch isolation and repository checks.
@@ -236,8 +281,7 @@ and [InstantTensor backend selection](https://github.com/scitix/InstantTensor#ba
 **A.** Preserve the runtime settings of every recipe that passed on real hardware.
 Change them only after a hardware failure, or deliberately with hardware retesting.
 
-**B.** Every hardware-unproven vLLM/SGLang recipe, including existing catalog
-documents and every option combination, reserves selected weights (including drafts), KV for
+**B.** New/failing recipes reserve selected weights (including drafts), KV for
 declared context × declared engine concurrency, and runtime overhead. Use absolute
 pools: vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens` with source-backed
 per-token sizing. Never substitute a fraction of RAM or benchmark concurrency.
@@ -258,41 +302,47 @@ utilization 0.7, with about 116.4 GB attributable to the run and still climbing,
 17 GB above utilization × physical memory + 8 GB. Keep this floor alongside
 selected weights/cache until hardware evidence supplies a replacement; weight
 arithmetic alone cannot remove it. Target-only speculation and a draft pointing
-to the served target do not load a second model. An unproven recipe
-whose need exceeds the limit fails the catalog build unless it honestly declares
-`does-not-fit` and the full demand: reduce context/concurrency,
+to the served target do not load a second model. A new/changed single-Spark recipe
+whose need exceeds the limit fails the catalog build: reduce context/concurrency,
 choose a smaller quantization, or author a multi-Spark recipe id. Never omit a
 failing recipe to pass the check.
 
-**C.** Proven recipes are the calibration set. If an estimate rejects one, correct
-the need model or source measurements, never the proven runtime reservation.
-Only keys with a hardware `passed` record are exempt. The single exemption source
-is `hardware_passes` in `qualification/memory-inputs.json`; generate it from the
-complete read-only sweep result history with:
+**C.** Assume an existing recipe works until hardware evidence says otherwise.
+Only new or changed recipe documents are subject to the need guard. Compare
+content with the fetched `origin/main` tree; do not persist a historical-document
+allowlist. Existing untested recipes produce informative **WARNING** lines in
+`tools/build-catalog-index` and `tools/check-recipe-memory-need`; estimates never
+rewrite them or assign a “does not fit” verdict. A memory repair requires a
+hardware memory failure with no later pass. Qualification status comes only
+from `qualification/evidence/` and the shared `derive_status` reducer. There is
+no second pass/failure list in memory inputs; that file contains numerical
+geometry and source references only. Preserve all unrelated recipe bytes.
 
-```bash
-tools/update-memory-hardware-passes /path/to/results.jsonl*
-```
-
-The record retains the observed content digest and snapshots the catalog digest
-being preserved. Historical catalog presence supplies no exemption. A subsequent
-edit to a preserved document must satisfy the guard. The generator reads result
-logs only; it neither operates a sweep nor accesses its mutable state.
+Proven recipes are the calibration set. Run
+`tools/check-recipe-memory-need --calibrate` without exemptions before changing
+an estimator. The catalog loading floor must reject no proven recipe; engines
+outside its vLLM/SGLang scope are reported explicitly. A loading floor does not
+prove full-context capacity, graph peaks, or runtime fit. Missing full-workload
+geometry is an unknown warning, never a hardware failure.
 
 [tests/test_vllm_memory_fit.py](../tests/test_vllm_memory_fit.py) retains the
-hardware-calibrated utilization guard for proven vLLM documents. Its constants
-live in `qualification/vllm_memory_fit.py`; only the two proven draft profiles
-in `PENDING_CREATOR` retain their historical draft-term exceptions. Unproven
-recipes always count draft overhead.
+pre-#1612 calibration guard for historical vLLM documents and options on **each
+role of each node**, including dual/multi-Spark recipes. Its shared
+implementation and constants live in `qualification/vllm_memory_fit.py`: utilization ×
+**130,663,231,488 bytes** + **8 GB** runtime overhead + **17 GB** for a separate
+draft must fit the declared per-node peak; peak + the **6 GB OS floor** must fit
+the **126,600,000,000-byte idle-available floor**. The 2026-10-15/16 incident also
+retains its measured overhead and the lower spark-3542 idle-available value above.
+`PENDING_CREATOR` retains five explicit draft exceptions pending creator changes;
+only their draft term is waived, never utilization, runtime overhead or the OS
+floor, and tests reject stale exceptions once they fit with the draft counted.
 
-[qualification/memory_need.py](../qualification/memory_need.py) uses one demand
-path for single- and multi-Spark vLLM/SGLang recipes. Tensor ranks round KV head
-counts up (including replicated heads); pipeline ranks round layer counts up.
-Selected primary weights are projected across tensor/pipeline shards; auxiliary
-draft weights, recurrent state and resident expansion stay replicated. These are
-offline estimates, not proof of balanced weight placement or physical acceptance.
-Absolute pools bound the workload; options with different cache precision need
-their own matching byte pool. Every rank declares the maximum option demand.
+[qualification/memory_need.py](../qualification/memory_need.py), exercised by
+`tests/test_single_spark_memory_headroom.py`, shares those constants and checks
+absolute single-node need with the measured draft floor. An absolute vLLM KV
+pool overrides utilization, so that path uses need rather than an implicit 0.9
+reservation. Changed multi-Spark documents use the per-rank demand declaration below.
+Existing documents remain unchanged and receive informative warnings.
 
 SGLang profiles loaded weights before applying `max-total-tokens`. A fraction
 below the resident model size can therefore produce a negative hybrid-cache
@@ -319,27 +369,29 @@ Keep the serving assertion strict; response deduplication can discard real calls
 
 ### Multi-Spark memory demand and nonfitting recipes
 
-`tools/check-recipe-memory-need` checks every unproven vLLM/SGLang recipe by
-default; optional recipe slugs restrict the report. It checks the base launch and
-the joint product of options and reports need and limit in bytes per rank.
-`calculate_need` is the shared workload calculator; `per_rank_need` also exposes
-an uncapped engine reservation when no absolute vLLM pool supersedes it.
+`qualification.memory_need.per_rank_need` reports an optimistic loading floor:
+selected weights divided over tensor/pipeline shards, explicit KV bytes, and
+8 GB estimated runtime overhead. The complete selected auxiliary weights are
+counted once. Replicated tensors, graph buffers, recurrent state and loading
+expansion may require more. Use source-backed `calculate_need` where its
+geometry is available; keep unknown full-workload terms visible.
 
-An oversized estimate remains catalog information when the recipe explicitly
-carries `does-not-fit`, declares the entire estimated peak and retains host
-headroom. The label never waives absolute pool bounds, selected weights,
-configuration/image identity, or resource declarations. It is not a live
-admission decision. Recipes that cannot meet the limit need smaller weights or
-a **distinct recipe id** for a larger topology; do not disguise demand by lowering
-a fraction or dividing a declared aggregate peak by the Spark count.
+Calibration separates physical feasibility from planning headroom. The lower
+observed idle MemAvailable is **125,650,657,280 bytes** (spark-3542, 2026-10-15/16,
+retained in `qualification/vllm_memory_fit.py`). Subtracting the host pressure
+floor leaves **108,470,788,096 bytes** for conservative new-document planning;
+that policy margin is not proof that an existing recipe cannot execute.
 
-Source-backed geometries may conservatively count all layers as full attention,
-use the largest configured head layout, and retain BF16 compressed-token bounds.
-These estimates intentionally do not borrow sliding-window, shared-cache or
-compression savings without source-backed engine calibration. Derived drafts
-without a separate authored Model use an explicit source-backed weight bound;
-a bundled draft's selected weights are counted once and its cache remains charged.
-A nonfitting estimate is not a new hardware failure or physical qualification.
+Utilization fractions size adaptive pools; they are not irreducible workload
+demand. [vLLM's cache contract](https://docs.vllm.ai/en/v0.19.1/api/vllm/config/cache/)
+states that absolute KV bytes override utilization. The
+[SGLang memory guide](https://github.com/sgl-project/sglang/blob/main/docs/docs/advanced_features/hyperparameter_tuning.mdx)
+separates weights, KV, graphs and activations. Do not count a fraction-sized
+pool as a required full-context allocation. The measured 17 GB draft floor was
+relative to a utilization budget; adding it again to explicitly selected draft
+weights double counts that measurement. Retain that incident term in the
+strict workload guard and historical utilization-envelope tests, where it was
+calibrated; it is not another allocation in the optimistic catalog loading floor.
 
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`,
@@ -690,6 +742,32 @@ extension, media type and decoded bytes must match the declared slot; include
 all referenced fixtures in the package. `tests/test_qualification_index.py`,
 `tests/test_qualification_case_assertions.py`, `tests/test_optional_inputs.py`
 and `tests/test_media_types.py` enforce closure and slot consistency.
+
+A media smoke proves one small, safe output, not full-quality generation. Keep
+native resolution, topology and output codecs; use the smallest frame count the
+model accepts and a few denoising steps (retain required distilled schedules).
+Declare per-job controls as Recipe knobs bound to runtime arguments, then select
+small values in the qualification `parameters`, or use an existing request slot.
+Do not add undeclared parameters: the Controller refuses them. Qualification
+JSON is outside `document_sha256(recipe)`, although fixture/package bytes and
+image source identities can change. Adding knobs changes the Recipe document;
+preserve hardware-proven documents and their complete image build contexts.
+Review every consumer of a shared context against hardware passes before editing
+it. LTX BF16 distilled and TRELLIS retain their existing smoke settings because
+their contexts are shared with proven LTX FP8 and Pixal3D respectively; do not
+fork these adapters to introduce smaller smokes.
+`tests/test_qualification_case_assertions.py` guards the reviewed media cases
+and the byte identities of those proven documents and shared contexts.
+
+MOVA's pinned temporal rule is `4k+1`, including one frame; smoke uses one frame
+and two steps at 640x352 or 1280x720, with synchronized 48 kHz audio at 24 fps.
+The target is a few minutes on one GB10, with a 600-second job budget including
+adapter preparation, generation and ffprobe. The adapter reads the platform's
+`VONK_JOB_TIMEOUT_SECONDS`, shares one monotonic deadline, and kills torchrun's
+process group on expiry with stderr evidence. The read-only 2026-10-21 sweep
+results record the 360p 193-frame/50-step attempt timing out after 3,606 seconds;
+there is no completed 360p timing from which to estimate a measured speedup.
+The few-minute target remains unverified until a separately authorized GPU run.
 
 ### What the sweep checks
 

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "drowzeys' two-Spark launch of Tencent Hy3 295B-A21B as LibertAI's weight-only NVFP4 quantization (169 GB) on vLLM 0.24 (aeon lineage) with jethac's A4Q FlashInfer attention and an NVFP4 KV cache: TP=2, marlin MoE (the only working NVFP4-MoE path for this checkpoint on sm_121a), eager mode (upstream: CUDA graphs livelock with marlin on GB10), MTP k=2 enabled by drowzeys' MTP loader fix, and patched hy_v3 tool and reasoning parsers for Tencent's :opensource token names. Defaults follow upstream's hy3-a4q-serve.sh: 262144 context, 16 sequences, 2048 batched tokens (larger values spiked memory to a watchdog reboot upstream), GPU memory 0.85. Upstream reports (not measured here): C1 17.2 to 18.4 tok/s with MTP (+52 to 62 percent over 11.35 without), KV pool 347,888 tokens. Upstream's newer 23 tok/s lane (0xSero checkpoint on nvcr.io/nvidia/vllm:26.06 with CUDA graphs and TurboQuant KV) is not included. Known upstream quirk: no visible reasoning trace on this checkpoint. Licence: Tencent Hy Community License for the model (territorial terms apply; information only, from the checkpoint LICENSE), MIT for drowzeys' launchers. Not gated. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Memory by need (unproven): estimated 99,092,765,392 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "drowzeys' two-Spark launch of Tencent Hy3 295B-A21B as LibertAI's weight-only NVFP4 quantization (169 GB) on vLLM 0.24 (aeon lineage) with jethac's A4Q FlashInfer attention and an NVFP4 KV cache: TP=2, marlin MoE (the only working NVFP4-MoE path for this checkpoint on sm_121a), eager mode (upstream: CUDA graphs livelock with marlin on GB10), MTP k=2 enabled by drowzeys' MTP loader fix, and patched hy_v3 tool and reasoning parsers for Tencent's :opensource token names. Defaults follow upstream's hy3-a4q-serve.sh: 262144 context, 16 sequences, 2048 batched tokens (larger values spiked memory to a watchdog reboot upstream), GPU memory 0.85. Upstream reports (not measured here): C1 17.2 to 18.4 tok/s with MTP (+52 to 62 percent over 11.35 without), KV pool 347,888 tokens. Upstream's newer 23 tok/s lane (0xSero checkpoint on nvcr.io/nvidia/vllm:26.06 with CUDA graphs and TurboQuant KV) is not included. Known upstream quirk: no visible reasoning trace on this checkpoint. Licence: Tencent Hy Community License for the model (territorial terms apply; information only, from the checkpoint LICENSE), MIT for drowzeys' launchers. Not gated. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "a4q",
       "candidate",
@@ -1386,11 +1386,6 @@
             {
               "name": "kv-cache-dtype",
               "value": "fp8"
-            },
-            {
-              "name": "kv-cache-memory-bytes",
-              "setting": null,
-              "value": 671088640
             }
           ],
           "env": {
@@ -1451,12 +1446,17 @@
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "fp8"
+        "value": "nvfp4"
       },
       {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.85"
       },
       {
         "name": "max-num-seqs",
@@ -1492,11 +1492,6 @@
         "name": "reasoning-parser",
         "setting": null,
         "value": "hy_v3"
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 671088640
       }
     ],
     "engine": "vllm",
@@ -1570,11 +1565,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 16
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 262144
     },
     "kind": "generation",
     "knobs": {},
@@ -1602,8 +1597,8 @@
             "working_bytes": 50000000000
           },
           "memory": {
-            "peak_bytes": 99092765392,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1619,8 +1614,8 @@
             "working_bytes": 50000000000
           },
           "memory": {
-            "peak_bytes": 99092765392,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 119063746765,
+            "reserve_bytes": 8000000000
           }
         }
       }

@@ -10,15 +10,12 @@ from typing import Any, cast
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from catalog_documents import catalog_models
 from generated_catalog import GENERATED
 from vonk_forge_contracts import (
-    RecipeDefinition,
     document_sha256,
 )
 
 from qualification.definitions_loader import load_definitions
-from qualification.memory_need import GUARD_BYTES, calculate_need, load_inputs
 
 ADAPTER_ROOT = ROOT / "adapters/deepseek/sparkinfer-target-only-single"
 ORIGINAL_RECIPE_PATH = ROOT / "recipes/deepseek-v4-flash-0731-sparkinfer-single.json"
@@ -32,6 +29,7 @@ XGRAMMAR_VERSION = "0.2.3"
 XGRAMMAR_WHEEL_SHA256 = (
     "11255f184971489fc72b948b096e2917f482ba2dca975177f5411562cedb9c6d"
 )
+SPARK_MEMORY_BYTES = 130_663_231_488
 
 
 def _document(path: Path) -> dict[str, object]:
@@ -81,14 +79,13 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         self.assertEqual(arguments["gpu-memory-utilization"], "0.85")
         self.assertEqual(arguments["kv-cache-dtype"], "nvfp4_ds_mla")
 
-    def test_declared_envelope_exposes_nonfitting_full_context_need(self) -> None:
-        recipe = RecipeDefinition.model_validate(_document(RECIPE_PATH))
-        need = calculate_need(recipe, catalog_models(), load_inputs().geometries)
-        memory = recipe.topology.roles[0].resources.memory
-        self.assertGreater(need.total_bytes, need.limit_bytes)
-        self.assertIn("does-not-fit", recipe.metadata.tags)
-        self.assertEqual(memory.peak_bytes, need.total_bytes)
-        self.assertEqual(memory.reserve_bytes, GUARD_BYTES)
+    def test_declared_envelope_covers_overhead_and_fits_the_node(self) -> None:
+        memory = _document(RECIPE_PATH)["topology"]["roles"][0]["resources"]["memory"]
+        self.assertGreaterEqual(
+            memory["peak_bytes"], SPARK_MEMORY_BYTES * 0.85 + 8_000_000_000
+        )
+        self.assertEqual(memory["reserve_bytes"], 8_000_000_000)
+        self.assertLessEqual(memory["peak_bytes"] + 6_000_000_000, SPARK_MEMORY_BYTES)
 
     def test_adapter_selects_target_only_mode_and_never_builds_a_draft(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")

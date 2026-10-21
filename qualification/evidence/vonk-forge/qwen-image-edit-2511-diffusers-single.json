@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen-image-edit-2511-diffusers-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "21e3fdba2d978d0c2a163c2906e20b702805c088b61c391ff3d9d56571e077e0",
+        "model_digests": [
+          "095e243ab0065b593c853d2d8ebd64a4e1d47d7abd15abbcac5d9785dda00a57"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "ab1fea98aa6a8e069cde22b98193cfb82afe2b660f02ba88c6c9ae8cbd23facc"
+      ],
+      "tested_at": "2026-10-21T03:35:47.571519Z",
+      "platform": {
+        "controller_source_sha": "a9583d00aa3b1bf57945692feba3a4a0f0be646c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's four-GB10 SGLang serve of the official DeepSeek V4.1 Flash checkpoint: TP=4 with EP=4, vision retained, a local file-backed Engram lookup, static DSpark K=5 and the overlay-v4 adapter on SGLang da64c5cb. Upstream's production profile is the exclusive C1 512K retrieval envelope (one running request, chunked prefill 256, 0.80 memory fraction, advertised 524,288 tokens); its 8-request candidate profile and K=3 variant are options, the 1M profile is deferred upstream. Upstream reports Q200v2 189/200, 512K needle retrieval passed and about 31 tok/s short single-stream; these are upstream claims, not measured here. Package code MIT; the model is MIT (information only). Memory by need (unproven): estimated 136,245,265,718 bytes per rank; safe limit 108,470,788,096 bytes. Does not fit this topology; requires smaller weights or a distinct larger-topology recipe. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "r0b0tlab's four-GB10 SGLang serve of the official DeepSeek V4.1 Flash checkpoint: TP=4 with EP=4, vision retained, a local file-backed Engram lookup, static DSpark K=5 and the overlay-v4 adapter on SGLang da64c5cb. Upstream's production profile is the exclusive C1 512K retrieval envelope (one running request, chunked prefill 256, 0.80 memory fraction, advertised 524,288 tokens); its 8-request candidate profile and K=3 variant are options, the 1M profile is deferred upstream. Upstream reports Q200v2 189/200, 512K needle retrieval passed and about 31 tok/s short single-stream; these are upstream claims, not measured here. Package code MIT; the model is MIT (information only).",
     "tags": [
       "candidate",
       "deepseek",
@@ -45,8 +45,7 @@
       "r0b0tlab",
       "sglang",
       "spark",
-      "vision",
-      "does-not-fit"
+      "vision"
     ],
     "title": "DeepSeek V4.1 Flash SGLang TP4 four Sparks (r0b0tlab)"
   },
@@ -1141,7 +1140,7 @@
       {
         "name": "max-total-tokens",
         "setting": null,
-        "value": 8192
+        "value": 1100000
       },
       {
         "name": "max-running-requests",
@@ -1156,7 +1155,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.95"
+        "value": "0.80"
       },
       {
         "name": "speculative-dspark-block-size",
@@ -1217,11 +1216,6 @@
         "name": "served-model-name",
         "setting": null,
         "value": "deepseek-v4-1-flash"
-      },
-      {
-        "name": "disable-cuda-graph",
-        "setting": null,
-        "value": true
       }
     ],
     "engine": "sglang",
@@ -1321,7 +1315,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 524288
     },
     "kind": "generation",
     "knobs": {},
@@ -1349,8 +1343,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 136245265718,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1366,8 +1360,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 136245265718,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

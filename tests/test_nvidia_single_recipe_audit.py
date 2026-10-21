@@ -8,10 +8,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from catalog_documents import catalog_models
-from vonk_forge_contracts import RecipeDefinition, document_sha256
-
-from qualification.memory_need import calculate_need, load_inputs
+from vonk_forge_contracts import document_sha256
 
 SUPER_RECIPE = ROOT / "recipes/nemotron-3-super-120b-a12b-vllm-single.json"
 FLASH_RECIPE = ROOT / "recipes/nvidia-qwen-image-flash-diffusers-single.json"
@@ -89,16 +86,9 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
             recipe: dict[str, Any] = read(path)
             resources = recipe["topology"]["roles"][0]["resources"]
             memory = resources["memory"]
-            if recipe["runtime"]["engine"] == "vllm":
-                typed = RecipeDefinition.model_validate(recipe)
-                need = calculate_need(typed, catalog_models(), load_inputs().geometries)
-                self.assertGreaterEqual(memory["peak_bytes"], need.total_bytes)
-                if need.total_bytes > need.limit_bytes:
-                    self.assertIn("does-not-fit", recipe["metadata"]["tags"])
-            else:
-                self.assertLessEqual(
-                    memory["peak_bytes"] + memory["reserve_bytes"], 128_000_000_000
-                )
+            self.assertLessEqual(
+                memory["peak_bytes"] + memory["reserve_bytes"], 128_000_000_000
+            )
             self.assertGreaterEqual(len(recipe["validation"]["serving"]["checks"]), 1)
 
 

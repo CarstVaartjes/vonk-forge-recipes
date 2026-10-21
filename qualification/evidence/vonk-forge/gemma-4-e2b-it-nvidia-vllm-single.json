@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gemma-4-e2b-it-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "f27cd7a9b047f06a24eb62e94af42fa8baa710a43fd68124ce3894c0aff5ee39",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "659c4815856ed367736aa8538b626c7c7fbe09c8f8146e71af65df3304403107"
+      ],
+      "tested_at": "2026-10-05T17:15:56.381015Z",
+      "platform": {
+        "controller_source_sha": "1fa6518eda63fa57fedcfc78cec3e556638a2c06",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "49a391613fb8feb6c1a19d8ce6f9a397b59fe6dfecc8806319ae5ad63aba038c",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "c5682405ba49fbf83ff8cd793a00e9b5d832ed7314152b271ba31fcbcfb7c31c"
+      ],
+      "tested_at": "2026-10-10T22:10:55.332613Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "2daaaf3a76639757f99769a4fa553e0ee1ffdaea20774ae26a55c46b90e74483",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "654cc7ef9765e7c196f6204db9c42d0463cc66cbfe1fd39c2fe24e640571f7fa"
+      ],
+      "tested_at": "2026-10-14T12:11:18.054866Z",
+      "platform": {
+        "controller_source_sha": "80edbb6639b5f420407a1cdf076d2cacf395d832",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

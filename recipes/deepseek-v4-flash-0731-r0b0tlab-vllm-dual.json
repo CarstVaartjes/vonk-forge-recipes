@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's frozen native-v11 dual-GB10 runtime (vLLM 0.26.0+dspark.sm121.3, NCCL 2.30.4, FlashInfer B12X MoE, NVFP4 DS-MLA KV, DSpark K=6, native regular CUDA graphs) for the official DeepSeek V4 Flash 0731 checkpoint at 9e165c30. Text only. Upstream production defaults: 327,680 token context, 16 sequences, KV pool pinned at about 15 GiB (roughly 156k tokens); the repository's 1M-context profile (auto-sized KV, one sequence) is not selectable here. Licences: recipe and runtime MIT AND Apache-2.0, model MIT (information only). Vonk physical dual-Spark acceptance is pending; performance figures are upstream claims. Memory by need (unproven): estimated 91,939,244,116 bytes per rank; safe limit 108,470,788,096 bytes. Absolute cache bounds and declared context/concurrency replace implicit reservation sizing. Estimates are not physical hardware acceptance.",
+    "description": "r0b0tlab's frozen native-v11 dual-GB10 runtime (vLLM 0.26.0+dspark.sm121.3, NCCL 2.30.4, FlashInfer B12X MoE, NVFP4 DS-MLA KV, DSpark K=6, native regular CUDA graphs) for the official DeepSeek V4 Flash 0731 checkpoint at 9e165c30. Text only. Upstream production defaults: 327,680 token context, 16 sequences, KV pool pinned at about 15 GiB (roughly 156k tokens); the repository's 1M-context profile (auto-sized KV, one sequence) is not selectable here. Licences: recipe and runtime MIT AND Apache-2.0, model MIT (information only). Vonk physical dual-Spark acceptance is pending; performance figures are upstream claims.",
     "tags": [
       "candidate",
       "deepseek",
@@ -1035,9 +1035,14 @@
         "value": 16384
       },
       {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.835"
+      },
+      {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 495976448
+        "value": 15998753178
       },
       {
         "name": "enable-prefix-caching",
@@ -1237,11 +1242,11 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 1
+      "value": 16
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 8192
+      "value": 327680
     },
     "kind": "generation",
     "knobs": {},
@@ -1269,8 +1274,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 91939244116,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       },
@@ -1286,8 +1291,8 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 91939244116,
-            "reserve_bytes": 17179869184
+            "peak_bytes": 118000000000,
+            "reserve_bytes": 8000000000
           }
         }
       }

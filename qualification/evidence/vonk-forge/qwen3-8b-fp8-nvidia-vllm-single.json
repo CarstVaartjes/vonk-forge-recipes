@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8b-fp8-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "63dc060de80c87ecbf460127a8911cee0e289dd6cd5007693b111aa2b87e85c2",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "bc3a2afd74985956f6fe31a9ffbd5e75c5612346683cf7ebc34b55cfaecef735"
+      ],
+      "tested_at": "2026-10-05T16:27:18.492401Z",
+      "platform": {
+        "controller_source_sha": "1fa6518eda63fa57fedcfc78cec3e556638a2c06",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "63dc060de80c87ecbf460127a8911cee0e289dd6cd5007693b111aa2b87e85c2",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "627b5efad72035da9ab97e9a23e2c73821a52dbeba3a2354958bb721ea4bb146"
+      ],
+      "tested_at": "2026-10-05T17:51:49.025612Z",
+      "platform": {
+        "controller_source_sha": "26c34a8a98b9c99a8088b8521b815b901c70eab5",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "63dc060de80c87ecbf460127a8911cee0e289dd6cd5007693b111aa2b87e85c2",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "7dd577492b376e5198b8a1d56d1069be4afe9d6d16945d0531c5d07eeb0274be"
+      ],
+      "tested_at": "2026-10-06T08:54:27.928765Z",
+      "platform": {
+        "controller_source_sha": "47e5d29dbb584e5403ba96178cd41065c3b01578",
+        "controller_version": "0.1.1~dev.3863+g47e5d29dbb58",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "8be830e8758b4d2131f86d0d53cc3c3eafa7a33cdf8b4f4484fbbd055fe69b7d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "15fa544fdb40a52f8b37ec81e29b722817a97b30ce6287cb0012a74c445eb64b"
+      ],
+      "tested_at": "2026-10-10T21:21:10.977093Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "bbfffdcf8f2aaa5c4f8f31d947dee2fe5ef0b9bf8f517e1467f80a1a3248d637",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "45d4695ba9cf487de5dcf02a16068e938d28a6fb1a17031018086b0dc0e4c4bc"
+      ],
+      "tested_at": "2026-10-14T12:05:22.297657Z",
+      "platform": {
+        "controller_source_sha": "80edbb6639b5f420407a1cdf076d2cacf395d832",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
