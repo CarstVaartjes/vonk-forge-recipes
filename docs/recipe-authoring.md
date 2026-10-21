@@ -308,15 +308,22 @@ choose a smaller quantization, or author a multi-Spark recipe id. Never omit a
 failing recipe to pass the check.
 
 **C.** Assume an existing recipe works until hardware evidence says otherwise.
-Only new or changed recipe documents are subject to the need guard. Compare
-content with the fetched `origin/main` tree; do not persist a historical-document
-allowlist. Existing untested recipes produce informative **WARNING** lines in
+Only new or changed recipe documents are subject to the need guard. An exact
+`content_sha256` in the committed `historical_documents` snapshot in
+`qualification/memory-inputs.json` or in any `qualification/evidence/` record
+identifies existing content, regardless of its qualification outcome. The snapshot's
+`historical_sources` records its source commits; it is a content baseline, never
+hardware proof. Validation reads these committed identities without Git or remote
+refs. Changed content and new ids must satisfy the need guard; supplying an old
+digest cannot exempt modified recipe bytes or a modified parsed launch. Existing
+untested recipes produce informative **WARNING** lines in
 `tools/build-catalog-index` and `tools/check-recipe-memory-need`; estimates never
 rewrite them or assign a “does not fit” verdict. A memory repair requires a
 hardware memory failure with no later pass. Qualification status comes only
 from `qualification/evidence/` and the shared `derive_status` reducer. There is
 no second pass/failure list in memory inputs; that file contains numerical
-geometry and source references only. Preserve all unrelated recipe bytes.
+geometry, source references and the immutable content baseline only. Preserve all
+unrelated recipe bytes.
 
 Proven recipes are the calibration set. Run
 `tools/check-recipe-memory-need --calibrate` without exemptions before changing

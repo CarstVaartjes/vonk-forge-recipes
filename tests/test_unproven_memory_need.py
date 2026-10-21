@@ -2,6 +2,7 @@
 
 import json
 import runpy
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -51,6 +52,81 @@ def test_unchanged_untested_document_is_informational() -> None:
             catalog_models(),
             load_inputs(),
             document_digest=document_sha256(document),
+        )
+
+
+@pytest.mark.parametrize("use_snapshot", [True, False])
+def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> None:
+    import qualification.memory_need as memory
+
+    slug = "d3-edge-vllm-single"
+    source = ROOT / "recipes" / f"{slug}.json"
+    document = json.loads(source.read_text())
+    recipe = RecipeDefinition.model_validate(document)
+    digest = document_sha256(document)
+    key = f"{recipe.identity.publisher}/{slug}"
+    authored = tmp_path / "recipes" / source.name
+    authored.parent.mkdir()
+    authored.write_text(source.read_text())
+    inputs = load_inputs().model_copy(
+        update={"historical_documents": {key: [digest]} if use_snapshot else {}}
+    )
+    if not use_snapshot:
+        evidence = RecipeQualificationEvidence.model_validate_json(
+            (ROOT / "qualification/evidence" / f"{key}.json").read_text()
+        )
+        assert evidence.records[0].outcome == QualificationOutcome.FAILED
+        assert evidence.records[0].blame == QualificationBlame.PLATFORM
+        target = tmp_path / "qualification/evidence" / f"{key}.json"
+        target.parent.mkdir(parents=True)
+        target.write_text(evidence.model_dump_json())
+    monkeypatch.setattr(memory, "ROOT", tmp_path)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("memory validation must not invoke Git or other subprocesses")
+
+    monkeypatch.setattr(subprocess, "run", forbidden)
+    assert require_memory_need(recipe, {}, inputs, document_digest=digest) is None
+    assert not hardware_proven(recipe, digest)
+
+    # A known digest cannot hide edited bytes, even with the old parsed model.
+    assert recipe.settings.kind == "decision"
+    changed = recipe.model_copy(deep=True)
+    assert changed.settings.kind == "decision"
+    changed.settings.context_tokens.value *= 100
+    authored.write_text(changed.model_dump_json())
+    with pytest.raises(ValueError):
+        require_memory_need(recipe, {}, inputs, document_digest=digest)
+    with pytest.raises(ValueError):
+        require_memory_need(changed, {}, inputs, document_digest=digest)
+    with pytest.raises(ValueError):
+        require_memory_need(
+            changed,
+            {},
+            inputs,
+            document_digest=document_sha256(json.loads(authored.read_text())),
+        )
+
+    # Restoring exact content restores the informational treatment immediately.
+    authored.write_text(source.read_text())
+    assert require_memory_need(recipe, {}, inputs, document_digest=digest) is None
+
+
+def test_new_recipe_without_git_still_requires_memory_inputs(tmp_path, monkeypatch):
+    import qualification.memory_need as memory
+
+    document = json.loads((ROOT / "recipes/d3-edge-vllm-single.json").read_text())
+    document["identity"]["slug"] = "new-memory-need-recipe"
+    recipe = RecipeDefinition.model_validate(document)
+    monkeypatch.setattr(memory, "ROOT", tmp_path)
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("new-document validation must not invoke Git")
+
+    monkeypatch.setattr(subprocess, "run", forbidden)
+    with pytest.raises(ValueError, match="declare engine context and concurrency"):
+        require_memory_need(
+            recipe, {}, load_inputs(), document_digest=document_sha256(document)
         )
 
 

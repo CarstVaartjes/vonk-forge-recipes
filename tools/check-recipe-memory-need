@@ -74,7 +74,7 @@ def main() -> int:
             continue
         if recipe.runtime.engine not in {"vllm", "sglang"}:
             continue
-        unchanged = unchanged_recipe(recipe, digest)
+        unchanged = unchanged_recipe(recipe, digest, inputs)
         try:
             require_memory_need(recipe, models, inputs, document_digest=digest)
             proof = hardware_proven(recipe, digest)

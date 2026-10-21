@@ -2,21 +2,20 @@
 
 Unchanged catalog documents retain their behavior. A new document must supply
 source-backed cache geometry and an absolute pool sized to its declared workload.
-The Git comparison tree is not a qualification status list.
+The committed content snapshot is not a qualification status list.
 """
 
 from __future__ import annotations
 
-import subprocess
+import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
-from functools import cache
 from itertools import product
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 
 from qualification.vllm_memory_fit import (
     DRAFT_MODEL_OVERHEAD_BYTES,
@@ -65,35 +64,34 @@ class CacheGeometry(BaseModel):
 class MemoryInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
     geometries: dict[str, CacheGeometry]
+    historical_sources: list[str]
+    historical_documents: dict[str, list[str]]
 
 
-@cache
-def base_document(slug: str) -> RecipeDefinition | None:
-    """Read the comparison tree, never a second persisted qualification list."""
-    result = subprocess.run(
-        ["git", "show", f"origin/main:recipes/{slug}.json"],
-        cwd=ROOT,
-        capture_output=True,
-        text=True,
-        check=False,
-        timeout=30,
+def unchanged_recipe(
+    recipe: RecipeDefinition, document_digest: str, inputs: MemoryInputs
+) -> bool:
+    """Recognize exact content in the committed snapshot or qualification evidence."""
+    from spark_sweep.qualification import read_evidence
+
+    if not document_digest:
+        return False
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    known = document_digest in inputs.historical_documents.get(key, []) or any(
+        record.identity.content_sha256 == document_digest
+        for record in read_evidence(ROOT, key).records
     )
-    if result.returncode:
-        # A missing recipe is new; a missing comparison ref is a setup error.
-        subprocess.run(
-            ["git", "rev-parse", "--verify", "origin/main"],
-            cwd=ROOT,
-            capture_output=True,
-            check=True,
-            timeout=30,
-        )
-        return None
-    return RecipeDefinition.model_validate_json(result.stdout)
-
-
-def unchanged_recipe(recipe: RecipeDefinition, document_digest: str) -> bool:
-    # Compare the model too: passing an old digest cannot waive a mutated launch.
-    return bool(document_digest) and recipe == base_document(recipe.identity.slug)
+    if not known:
+        return False
+    # Bind the caller's digest AND parsed recipe to the authored bytes. An old
+    # digest cannot waive an edited file or an in-memory launch mutation.
+    document = json.loads(
+        (ROOT / "recipes" / f"{recipe.identity.slug}.json").read_text()
+    )
+    return (
+        document_sha256(document) == document_digest
+        and RecipeDefinition.model_validate(document) == recipe
+    )
 
 
 def hardware_proven(recipe: RecipeDefinition, document_digest: str) -> bool:
@@ -365,7 +363,7 @@ def require_memory_need(
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return None
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    if unchanged_recipe(recipe, document_digest):
+    if unchanged_recipe(recipe, document_digest, inputs):
         return None
     if recipe.runtime.engine == "vllm" and recipe.topology.node_count != 1:
         for variant in memory_variants(recipe):
