@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-labs-3-puzzle-75b-a9b-nvfp4-drowzeys-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "001db10a839592c8524648b00b3167eb30bfacf28609d3ec29e9398b6fbf478d",
+        "runtime_image": {
+          "build_key": "c76a25830539fb06082bd2eb7965d2588dd6c4360b604f34c759ff905cd6423e",
+          "image_digest": "sha256:425a4ab86282a23c493900f1ed86d225e05beaa9b3042f27febf5eae8e28637a"
+        },
+        "model_digests": [
+          "3215c2f6d3a49fb7490d73bd4d705151b8c33b03c80f3beab09c664c0e44dd1e"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "9d00bdcec2d40e734987fec19acf25dfac33615d98056f086c1fb37ef5fb5099"
+      ],
+      "tested_at": "2026-10-21T16:23:43.992989Z",
+      "platform": {
+        "controller_source_sha": "d3da6cc4c0e193f1b194b1fb89610fed3782225c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
