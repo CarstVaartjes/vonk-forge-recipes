@@ -832,9 +832,9 @@
         "value": true
       },
       {
-        "name": "gpu-memory-utilization",
+        "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": "0.86"
+        "value": 14694157312
       }
     ],
     "engine": "vllm",
@@ -951,7 +951,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
+            "peak_bytes": 116522798096,
             "reserve_bytes": 8000000000
           }
         }
@@ -968,7 +968,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
+            "peak_bytes": 116522798096,
             "reserve_bytes": 8000000000
           }
         }

@@ -321,12 +321,18 @@ refs. Changed content and new ids must satisfy the need guard; supplying an old
 digest cannot exempt modified recipe bytes or a modified parsed launch. Existing
 untested recipes produce informative **WARNING** lines in
 `tools/build-catalog-index` and `tools/check-recipe-memory-need`; estimates never
-rewrite them or assign a “does not fit” verdict. A memory repair requires a
-hardware memory failure with no later pass. Qualification status comes only
+rewrite them or assign a “does not fit” verdict. Qualification status comes only
 from `qualification/evidence/` and the shared `derive_status` reducer. There is
 no second pass/failure list in memory inputs; that file contains numerical
 geometry, source references and the immutable content baseline only. Preserve all
 unrelated recipe bytes.
+
+Repair unproven, unadmittable declarations by calculated need, preserving absolute
+cache requirements and bounding engine allocation (vLLM absolute KV bytes;
+SGLang a static budget derived from need). Peak plus reserve must fit the owner's
+idle capacity, which already subtracts host use. The catalog guard rejects changed
+declarations that exceed capacity despite a fitting need. Preserve proven bytes,
+calibrate against hardware passes, and leave unknown or oversized needs unresolved.
 
 Proven recipes are the calibration set. Run
 `tools/check-recipe-memory-need --calibrate` without exemptions before changing

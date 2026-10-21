@@ -348,14 +348,9 @@
               "name": "speculative-config",
               "setting": null,
               "value": "{\"model\":\"/models/eagle\",\"num_speculative_tokens\":3,\"method\":\"eagle\",\"max_model_len\":\"65536\"}"
-            },
-            {
-              "name": "gpu-memory-utilization",
-              "setting": null,
-              "value": "0.6"
             }
           ],
-          "help": "Experimental; upstream reports instability. The draft weights are mounted either way. Runs at gpu-memory-utilization 0.6: the draft model holds memory outside that budget.",
+          "help": "Experimental; upstream reports instability. The mounted draft weights and absolute KV pool are included in the declared memory need.",
           "label": "EAGLE 3 tokens",
           "value": "eagle"
         }
@@ -388,11 +383,6 @@
         "name": "tensor-parallel-size",
         "setting": null,
         "value": 2
-      },
-      {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.84"
       },
       {
         "name": "max-model-len",
@@ -438,6 +428,11 @@
         "name": "reasoning-parser",
         "setting": null,
         "value": "mistral"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 17395077050
       }
     ],
     "engine": "vllm",
@@ -503,7 +498,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119493367686,
+            "peak_bytes": 86054530180,
             "reserve_bytes": 8000000000
           }
         }
@@ -520,7 +515,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119493367686,
+            "peak_bytes": 86054530180,
             "reserve_bytes": 8000000000
           }
         }

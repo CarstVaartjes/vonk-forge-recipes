@@ -372,11 +372,18 @@ def require_memory_need(
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     if unchanged_recipe(recipe, document_digest, inputs):
         return None
-    if recipe.runtime.engine == "vllm" and recipe.topology.node_count != 1:
+    if recipe.topology.node_count != 1:
         for variant in memory_variants(recipe):
-            problems = declaration_problems(variant, per_rank_need(variant, models))
+            need = per_rank_need(variant, models)
+            problems = declaration_problems(variant, need)
             if problems:
                 raise ValueError(f"{key}: " + "; ".join(problems))
+            if all(
+                need.peak_bytes + role.resources.memory.reserve_bytes
+                <= IDLE_AVAILABLE_BYTES
+                for role in variant.topology.roles
+            ):
+                require_admissible_declaration(variant)
         return None
     result = None
     for variant in memory_variants(recipe):
@@ -425,6 +432,8 @@ def require_memory_need(
                 raise ValueError(
                     f"{key}/{role.name}: peak_bytes must cover need {need.total_bytes}"
                 )
+        if need.total_bytes <= need.limit_bytes:
+            require_admissible_declaration(variant)
         result = need
     return result
 
@@ -507,6 +516,8 @@ def per_rank_need(
         raise ValueError("memory need requires a vLLM/SGLang recipe")
     kv_bytes = 0
     pool = argument_value(recipe, "kv-cache-memory-bytes")
+    if pool is None:
+        pool = argument_value(recipe, "kv-cache-memory")
     if pool is not None:
         kv_bytes = cache_bytes(pool)
     parallel = recipe.topology.parallelism
@@ -532,12 +543,44 @@ def declaration_problems(
 ) -> list[str]:
     """An oversized estimate is valid; hiding demand or headroom is not."""
     problems: list[str] = []
+    fraction = argument_value(recipe, "mem-fraction-static")
+    static_peak = (
+        Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        if recipe.runtime.engine == "sglang" and fraction is not None
+        else None
+    )
     for role in recipe.topology.roles:
         memory = role.resources.memory
         if memory.peak_bytes < need.peak_bytes:
             problems.append(f"{role.name}: peak understates need {need.peak_bytes}")
-        if memory.reserve_bytes < GUARD_BYTES:
+        if memory.reserve_bytes < OS_FLOOR_BYTES:
             problems.append(
-                f"{role.name}: reserve understates host headroom {GUARD_BYTES}"
+                f"{role.name}: reserve understates host headroom {OS_FLOOR_BYTES}"
+            )
+        if static_peak is not None and (
+            not static_peak.is_finite() or static_peak > memory.peak_bytes
+        ):
+            problems.append(
+                f"{role.name}: peak understates SGLang static allocation plus overhead"
             )
     return problems
+
+
+def require_admissible_declaration(recipe: RecipeDefinition) -> None:
+    """Check the declared reservation, independently of estimated workload fit.
+
+    The 2026-10-21 deferral observed 4,515,061,760 host bytes. The owner's
+    lower historical idle availability includes 5,012,574,208 host bytes,
+    so use that existing, more conservative baseline without another constant.
+    This is an offline declaration check, not a hardware qualification verdict.
+    """
+    for role in recipe.topology.roles:
+        memory = role.resources.memory
+        demand = memory.peak_bytes + max(memory.reserve_bytes, OS_FLOOR_BYTES)
+        if demand > IDLE_AVAILABLE_BYTES:
+            raise ValueError(
+                f"{recipe.identity.slug}/{role.name}: declared peak plus reserve "
+                f"{demand} bytes exceeds idle Spark capacity {IDLE_AVAILABLE_BYTES} "
+                f"bytes (pool={TOTAL_BYTES}, host={IDLE_USE_BYTES}); "
+                "reserve by need and bound the engine allocation"
+            )
