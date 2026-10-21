@@ -7,7 +7,6 @@ The historical set is an identity boundary, not a numeric memory measurement.
 
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal
@@ -17,11 +16,23 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 
+from qualification.vllm_memory_fit import (
+    DRAFT_MODEL_OVERHEAD_BYTES,
+    OVERHEAD_BYTES,
+    PENDING_CREATOR,
+    SPARK_3542_IDLE_AVAILABLE_BYTES,
+    SPARK_MEMORY_BYTES,
+    assert_memory_fit,
+)
+from qualification.vllm_memory_fit import (
+    loads_draft_model as configured_draft_model,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 # GB10 total and lower idle MemAvailable from spark-3542, 2026-10-15/16;
 # retained from tests/test_vllm_memory_fit.py at the historical source commit.
-TOTAL_BYTES = 130_663_231_488
-IDLE_AVAILABLE_BYTES = 125_650_657_280
+TOTAL_BYTES = SPARK_MEMORY_BYTES
+IDLE_AVAILABLE_BYTES = SPARK_3542_IDLE_AVAILABLE_BYTES
 IDLE_USE_BYTES = TOTAL_BYTES - IDLE_AVAILABLE_BYTES
 # vonk-forge 040c51b8531523bebe542b5e1f7b9403e0767f72:
 # rust/crates/vonk-agent-helper/src/host_memory_guard.rs re-exports
@@ -29,9 +40,6 @@ IDLE_USE_BYTES = TOTAL_BYTES - IDLE_AVAILABLE_BYTES
 # the live guard also requires sustained pressure (30% full PSI, 3 seconds).
 GUARD_BYTES = 16 * 1024**3
 LIMIT_BYTES = TOTAL_BYTES - GUARD_BYTES - IDLE_USE_BYTES
-# Existing producer estimate, not a new physical measurement. Count selected
-# auxiliary weights separately; do not add the old flat 17 GB draft allowance.
-OVERHEAD_BYTES = 8_000_000_000
 
 
 class CacheGeometry(BaseModel):
@@ -143,18 +151,10 @@ def loads_draft_model(recipe: RecipeDefinition) -> bool:
     wrapper = ROOT / recipe.execution.build.context.path / "vllm-wrapper.sh"
     if wrapper.is_file() and "export SPEC_MODEL_PATH=" in wrapper.read_text():
         return True
-    served = set(recipe.runtime.entrypoint) | {
-        str(item.value) for item in recipe.runtime.arguments if item.name == "model"
-    }
-    config = argument_value(recipe, "speculative-config")
-    if isinstance(config, str):
-        try:
-            config = json.loads(config)
-        except json.JSONDecodeError:
-            config = None
-    if isinstance(config, dict) and config.get("model") not in (None, *served):
-        return True
-    return argument_value(recipe, "speculative-draft-model-path") is not None
+    return (
+        configured_draft_model(recipe)
+        or argument_value(recipe, "speculative-draft-model-path") is not None
+    )
 
 
 def calculate_need(
@@ -247,7 +247,12 @@ def calculate_need(
             + 7
         ) // 8
         state += geometry.state_bytes_per_request * concurrency
-    return MemoryNeed(weights[0], sum(weights[1:]), kv, state)
+    # Selected draft weights/cache do not replace the measured outside-budget
+    # floor: no replacement calibration exists for the 2026-10-13 Spark freeze.
+    overhead = OVERHEAD_BYTES
+    if loads_draft_model(recipe):
+        overhead += DRAFT_MODEL_OVERHEAD_BYTES
+    return MemoryNeed(weights[0], sum(weights[1:]), kv, state, overhead_bytes=overhead)
 
 
 def require_memory_need(
@@ -259,6 +264,30 @@ def require_memory_need(
 ) -> MemoryNeed | None:
     """Check new/changed vLLM/SGLang documents without retuning historical ones."""
     if recipe.runtime.engine not in {"vllm", "sglang"}:
+        return None
+    if recipe.runtime.engine == "vllm" and recipe.topology.node_count != 1:
+        # The absolute-need calculator is single-node. Delegate every multi-Spark
+        # document (including historical identities) to the calibrated per-role
+        # guard, never divide an aggregate reservation by node_count.
+        variants = product(*(option.choices for option in recipe.options))
+        for choices in ((), *variants):
+            variant = (
+                recipe.with_option_choices(
+                    {
+                        option.name: choice.value
+                        for option, choice in zip(recipe.options, choices)
+                    }
+                )
+                if choices
+                else recipe
+            )
+            try:
+                assert_memory_fit(
+                    variant,
+                    count_draft_model=recipe.identity.slug not in PENDING_CREATOR,
+                )
+            except AssertionError as exc:
+                raise ValueError(str(exc)) from exc
         return None
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     if (

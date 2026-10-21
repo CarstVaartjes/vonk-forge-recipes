@@ -235,8 +235,14 @@ bytes**. Sources: vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
 incident telemetry, **125,650,657,280 bytes idle MemAvailable**, retained in the
 calculator's historical source. The live guard also requires sustained pressure
 (full PSI 30%, 3 seconds); planning always leaves its floor. Runtime overhead
-currently uses an **8,000,000,000-byte estimate**, not a measurement; count actual
-draft weights separately instead of adding a flat 17 GB. A new/changed recipe
+currently uses an **8,000,000,000-byte estimate**, not a measurement. A separately
+loaded speculative draft also requires the **17,000,000,000-byte measured floor**:
+`qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single` froze a GB10 on 2026-10-13 at
+utilization 0.7, with about 116.4 GB attributable to the run and still climbing,
+17 GB above utilization × physical memory + 8 GB. Keep this floor alongside
+selected weights/cache until hardware evidence supplies a replacement; weight
+arithmetic alone cannot remove it. Target-only speculation and a draft pointing
+to the served target do not load a second model. A new/changed recipe
 whose need exceeds the limit fails the catalog build: reduce context/concurrency,
 choose a smaller quantization, or author a multi-Spark recipe id. Never omit a
 failing recipe to pass the check.
@@ -244,6 +250,27 @@ failing recipe to pass the check.
 **C.** Proven recipes are the calibration set. If an estimate rejects one, correct
 the need model or source measurements, never the proven runtime reservation.
 Historical document identity preserves behavior; it is not numeric calibration.
+Never discard a hardware-calibrated guard because a formula disagrees.
+
+[tests/test_vllm_memory_fit.py](../tests/test_vllm_memory_fit.py) retains the
+pre-#1612 calibration guard for every vLLM recipe and option on **each role of
+each node**, including dual/multi-Spark recipes. Its shared implementation and
+constants live in `qualification/vllm_memory_fit.py`: utilization ×
+**130,663,231,488 bytes** + **8 GB** runtime overhead + **17 GB** for a separate
+draft must fit the declared per-node peak; peak + the **6 GB OS floor** must fit
+the **126,600,000,000-byte idle-available floor**. The 2026-10-15/16 incident also
+retains its measured overhead and the lower spark-3542 idle-available value above.
+`PENDING_CREATOR` retains six explicit draft exceptions pending creator changes;
+only their draft term is waived, never utilization, runtime overhead or the OS
+floor, and tests reject stale exceptions once they fit with the draft counted.
+
+[qualification/memory_need.py](../qualification/memory_need.py), exercised by
+`tests/test_single_spark_memory_headroom.py`, shares those constants and checks
+absolute single-node need with the measured draft floor. An absolute vLLM KV
+pool overrides utilization, so that path uses need rather than an implicit 0.9
+reservation. The calculator explicitly delegates multi-Spark vLLM documents,
+including historical identities and option combinations, to the shared
+per-role calibrated guard; it never divides aggregate memory by node count.
 
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`,

@@ -21,6 +21,7 @@ from qualification.memory_need import (
     load_inputs,
     require_memory_need,
 )
+from qualification.vllm_memory_fit import DRAFT_MODEL_OVERHEAD_BYTES, OVERHEAD_BYTES
 
 ROOT = Path(__file__).resolve().parents[1]
 LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
@@ -134,7 +135,7 @@ def test_failed_recipe_cannot_reuse_its_historical_pass_to_bypass_need() -> None
         )
 
 
-def test_draft_weights_and_cache_are_counted_not_a_flat_allowance() -> None:
+def test_auxiliary_weights_and_cache_are_counted_without_speculation() -> None:
     recipe = llama()
     draft = recipe.models[0].model_copy(deep=True)
     draft.id = "draft"
@@ -142,7 +143,7 @@ def test_draft_weights_and_cache_are_counted_not_a_flat_allowance() -> None:
     need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
     assert need.auxiliary_weights_bytes == need.weights_bytes
     assert need.kv_bytes == 16 * 1024**3
-    assert need.overhead_bytes == 8_000_000_000
+    assert need.overhead_bytes == OVERHEAD_BYTES
 
 
 def test_need_scales_with_context_and_concurrency_and_kv_dtype() -> None:
@@ -256,3 +257,77 @@ def test_real_catalog_build_rejects_an_over_limit_new_recipe(
         match=r"memory need \d+ bytes > limit 108470788096 bytes.*reduce declared context/concurrency",
     ):
         build(package_dir=tmp_path / "packages", source_commit="0" * 40)
+
+
+@pytest.mark.parametrize(
+    "config,separate",
+    [
+        ({"method": "mtp", "num_speculative_tokens": 2}, False),
+        ({"method": "deepseek_mtp", "model": "/models"}, False),
+        ({"method": "dflash", "model": "/models/draft"}, True),
+    ],
+)
+def test_need_keeps_measured_overhead_only_for_a_separate_draft(
+    config: dict[str, str | int], separate: bool
+) -> None:
+    recipe = llama()
+    draft = recipe.models[0].model_copy(deep=True)
+    draft.id = "draft"
+    recipe.models.append(draft)
+    recipe.runtime.arguments.append(
+        RecipeRuntimeArgument(name="speculative-config", value=json.dumps(config))
+    )
+    need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+    assert need.auxiliary_weights_bytes == need.weights_bytes
+    assert need.overhead_bytes == OVERHEAD_BYTES + (
+        DRAFT_MODEL_OVERHEAD_BYTES if separate else 0
+    )
+
+
+def test_need_rejects_a_pool_that_only_fits_without_measured_draft_overhead() -> None:
+    recipe = llama()
+    draft = recipe.models[0].model_copy(deep=True)
+    draft.id = "draft"
+    recipe.models.append(draft)
+    assert recipe.settings.kind == "generation"
+    assert recipe.settings.concurrency is not None
+    recipe.settings.concurrency.value = 5
+    recipe.runtime.arguments.append(
+        RecipeRuntimeArgument(
+            name="speculative-config",
+            value='{"method":"dflash","model":"/models/draft"}',
+        )
+    )
+    need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+    assert need.total_bytes - DRAFT_MODEL_OVERHEAD_BYTES <= need.limit_bytes
+    assert need.total_bytes > need.limit_bytes
+    next(
+        item
+        for item in recipe.runtime.arguments
+        if item.name == "kv-cache-memory-bytes"
+    ).value = need.kv_bytes
+    with pytest.raises(ValueError, match="memory need"):
+        checked(recipe)
+
+
+@pytest.mark.parametrize(
+    "slug",
+    [
+        "deepseek-v4-flash-vision-exp-eugr-vllm-dual",
+        "glm-5-2-aqlm-vllm-triple",
+        "step-5-preview-exl3-vllm-four",
+        "muse-spark-open-nvfp4-vllm-eight",
+    ],
+)
+def test_multispark_delegates_every_role_even_for_historical_identity(
+    slug: str,
+) -> None:
+    recipe = RecipeDefinition.model_validate_json(
+        (ROOT / "recipes" / f"{slug}.json").read_text()
+    )
+    digest = document_sha256(recipe.model_dump(mode="json"))
+    assert require_memory_need(recipe, {}, INPUTS, document_digest=digest) is None
+    worker = recipe.topology.roles[-1]
+    worker.resources.memory.peak_bytes = 0
+    with pytest.raises(ValueError, match=f"{slug}/{worker.name}.*understates"):
+        require_memory_need(recipe, {}, INPUTS, document_digest=digest)
