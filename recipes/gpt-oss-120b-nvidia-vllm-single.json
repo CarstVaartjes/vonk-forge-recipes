@@ -12,7 +12,11 @@
       "network": {
         "hosts": []
       },
-      "patches": []
+      "patches": [
+        {
+          "path": "adapters/nvidia/gpt-oss-120b-nvidia-vllm-single/patch-marlin.py"
+        }
+      ]
     }
   },
   "identity": {
@@ -32,7 +36,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for gpt-oss 120b MXFP4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none), plus TIKTOKEN_ENCODINGS_BASE on the harmony encodings (o200k_base, cl100k_base) vendored into the image and checked against openai_harmony's sha256 digests, as vLLM's GPT-OSS guide documents for the harmony vocab download failure: workloads run offline, and vLLM loads the harmony encoding at start. Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
+    "description": "NVIDIA DGX Spark vLLM 26.05.post1 MXFP4 recipe for the exact OpenAI GPT-OSS 120B revision, with offline Harmony encodings. Backports the MXFP4 Marlin expert repack from vLLM PR #47851 to bound duplicate weight allocations during startup; the 2026-10-21 failure occurred after loading weights on an otherwise idle Spark, before KV profiling. Keeps 131072-token context with one engine sequence, a conservative 9663676416-byte BF16 KV pool charging all 36 layers at full context, 2048-token prefill batches and eager execution. Declared peak is selected weight bytes + absolute KV + 10 GB Marlin padding/scale expansion + 8 GB estimated runtime/loading overhead, not a fraction of host RAM. Physical startup and full-context acceptance remain pending.",
     "tags": [
       "executable",
       "candidate",
@@ -345,8 +349,20 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "value": "0.85"
+        "name": "max-num-seqs",
+        "setting": "concurrency"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "value": 9663676416
+      },
+      {
+        "name": "max-num-batched-tokens",
+        "value": 2048
+      },
+      {
+        "name": "enforce-eager",
+        "value": true
       }
     ],
     "engine": "vllm",
@@ -374,7 +390,10 @@
     }
   },
   "settings": {
-    "concurrency": null,
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
     "context_tokens": {
       "change_effect": "restart",
       "value": 131072
@@ -405,7 +424,7 @@
             "working_bytes": 32638429705
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 92912569600,
             "reserve_bytes": 8000000000
           }
         }
