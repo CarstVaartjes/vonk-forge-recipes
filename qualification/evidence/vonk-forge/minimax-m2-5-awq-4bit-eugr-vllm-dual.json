@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/minimax-m2-5-awq-4bit-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "4bc98771a0f6166310ec1736dbee47ea3bd24473ed2f45dfcc44aea2d55414c7",
+        "runtime_image": {
+          "build_key": "3640dcef14ebbde46f3b1700f3526b251804094c496eab01a2000d4d8d37fbce",
+          "image_digest": "sha256:fbff39f4745a30d80482bd94f530a7b9dad721d10b93a3b6f2d7d465cf8e91ba"
+        },
+        "model_digests": [
+          "02870eddf877fd08ddfff06aad1c7e94c0b1984b17e96f315850f7b539bf0f14"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "f3ef592ec12a34ffec0046a94631fad315345b2df88f92ca1b61ad8125f1a339"
+      ],
+      "tested_at": "2026-10-21T22:11:51.982006Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
