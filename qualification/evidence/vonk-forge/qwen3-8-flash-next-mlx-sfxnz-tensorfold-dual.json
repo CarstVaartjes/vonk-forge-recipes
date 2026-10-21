@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-mlx-sfxnz-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "d753040372ddd507d24fad89974e74062d43bb989f9272cb225592b4ceb69c87",
+        "runtime_image": {
+          "build_key": "bd885b6f731785f25b02772a69ad69d63c480cc8db2d33d76fac3a7d9189296c",
+          "image_digest": "sha256:961dc226d578a2f4638bfe8ad7d4ebe32789378a0fb4d88062344e06f590811b"
+        },
+        "model_digests": [
+          "49d3f5518e98b41b91d72778f85018b5cc9949463ac46bae3b3e02a4ed2bf5a1"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "9f1b11aec4e28e231b036f038f2b8ac007bb03b188d61ecb017c6b1fd27032c4"
+      ],
+      "tested_at": "2026-10-21T18:01:10.000715Z",
+      "platform": {
+        "controller_source_sha": "b3d5ff8abde9b8511afcd8c4f544f2addfb070df",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
