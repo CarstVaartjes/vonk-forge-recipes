@@ -402,6 +402,9 @@ def main() -> None:
             str(concat),
             "-vf",
             "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2:black,setsar=1",
+            # Preserve sparse session timestamps instead of auto-mode CFR duplication.
+            "-fps_mode",
+            "vfr",
             "-c:v",
             "libx264",
             "-pix_fmt",

@@ -242,7 +242,7 @@ utilization 0.7, with about 116.4 GB attributable to the run and still climbing,
 17 GB above utilization × physical memory + 8 GB. Keep this floor alongside
 selected weights/cache until hardware evidence supplies a replacement; weight
 arithmetic alone cannot remove it. Target-only speculation and a draft pointing
-to the served target do not load a second model. A new/changed recipe
+to the served target do not load a second model. A new/changed single-Spark recipe
 whose need exceeds the limit fails the catalog build: reduce context/concurrency,
 choose a smaller quantization, or author a multi-Spark recipe id. Never omit a
 failing recipe to pass the check.
@@ -253,14 +253,14 @@ Historical document identity preserves behavior; it is not numeric calibration.
 Never discard a hardware-calibrated guard because a formula disagrees.
 
 [tests/test_vllm_memory_fit.py](../tests/test_vllm_memory_fit.py) retains the
-pre-#1612 calibration guard for every vLLM recipe and option on **each role of
-each node**, including dual/multi-Spark recipes. Its shared implementation and
-constants live in `qualification/vllm_memory_fit.py`: utilization ×
+pre-#1612 calibration guard for historical vLLM documents and options on **each
+role of each node**, including dual/multi-Spark recipes. Its shared
+implementation and constants live in `qualification/vllm_memory_fit.py`: utilization ×
 **130,663,231,488 bytes** + **8 GB** runtime overhead + **17 GB** for a separate
 draft must fit the declared per-node peak; peak + the **6 GB OS floor** must fit
 the **126,600,000,000-byte idle-available floor**. The 2026-10-15/16 incident also
 retains its measured overhead and the lower spark-3542 idle-available value above.
-`PENDING_CREATOR` retains six explicit draft exceptions pending creator changes;
+`PENDING_CREATOR` retains five explicit draft exceptions pending creator changes;
 only their draft term is waived, never utilization, runtime overhead or the OS
 floor, and tests reject stale exceptions once they fit with the draft counted.
 
@@ -268,9 +268,63 @@ floor, and tests reject stale exceptions once they fit with the draft counted.
 `tests/test_single_spark_memory_headroom.py`, shares those constants and checks
 absolute single-node need with the measured draft floor. An absolute vLLM KV
 pool overrides utilization, so that path uses need rather than an implicit 0.9
-reservation. The calculator explicitly delegates multi-Spark vLLM documents,
-including historical identities and option combinations, to the shared
-per-role calibrated guard; it never divides aggregate memory by node count.
+reservation. Historical multi-Spark vLLM identities retain the shared per-role
+calibrated guard, including option combinations. Changed multi-Spark documents
+use the per-rank demand declaration below; neither path divides aggregate
+memory by node count.
+
+SGLang profiles loaded weights before applying `max-total-tokens`. A fraction
+below the resident model size can therefore produce a negative hybrid-cache
+budget even with a short context. For a large hybrid model, cap both the token
+pool and `max-mamba-cache-size`, bound concurrency and disable graphs, then use
+a fraction that permits profiling. Budget the actual capped allocations,
+including state padding, index storage, resident weight expansion and runtime
+overhead; the fraction alone no longer describes that peak. Tie any geometry
+bound to the exact Model identity and test the pinned engine's sizing path with
+the old failing inputs. Label estimated overhead and retain physical testing as
+an outstanding check. Never raise an uncapped fraction to hide a memory failure.
+The a0 GLM EXL3 geometry in `qualification/memory-inputs.json` binds the exact
+model configuration and image: 64 KiB/token, 150 MiB/state including the padding
+slot, and a 14 GB inferred resident expansion beside the default 8 GB overhead.
+The calculator charges the actual absolute token/state pools, rejects graph or
+image drift, and checks the declared peak against the shared limit.
+
+For a named tool choice that must produce one invocation, use a single native
+grammar rather than a repeating triggered tag. Preserve the argument schema's
+local `$ref`/`$defs` scope and the engine's automatic/parallel tool handling.
+Test the old grammar accepting duplicate calls and the replacement rejecting
+them, plus streaming and non-streaming parsing of the resulting native frame.
+Keep the serving assertion strict; response deduplication can discard real calls.
+
+### Multi-Spark memory demand and nonfitting recipes
+
+Use the shared `qualification.memory_need.per_rank_need` calculator for vLLM
+capacity repairs; `tools/check-recipe-memory-need <recipe-slug>...` checks the
+base launch and every option. It reports estimated capacity separately from
+underdeclared resources: an honest oversized declaration prints **does not fit
+2 Sparks** without failing the producer check. This is a catalog estimate,
+not a live admission decision or a new execution ban.
+
+On each GB10 rank, budget the larger of the utilization fraction times
+130,663,231,488 bytes plus 8 GB runtime overhead (another 17 GB for a separate
+vLLM drafter), and selected weight bytes divided by tensor/pipeline shards plus
+explicit KV-cache bytes and 8 GB. The latter is an optimistic loading floor:
+replicated tensors and startup expansion can require more. Absolute KV bytes
+bypass utilization, so reducing only the fraction cannot hide that floor.
+Use the lower observed idle MemAvailable, 125,650,657,280 bytes, and leave the
+host guard's 16 GiB pressure headroom: the safe workload limit is
+108,470,788,096 bytes per rank. Declare at least the calculated peak and the
+16 GiB reserve; do not shrink either to pass admission or waive a draft term.
+
+Llama 3.1 405B AWQ TP2 needs at least 119,063,746,765 bytes per rank at its
+0.85 fraction; Reederey87 GLM EXL3 DFlash2 TP2 needs at least
+133,450,482,136 at 0.83 including its separate drafter. Both exceed the safe
+two-Spark limit. Their existing model, context and runtime pins stay intact;
+resource declarations expose the demand. A four-Spark memory projection with
+TP4 and a retuned 0.60 fraction fits this estimate for both. That requires a
+**distinct recipe** and porting Reederey87's TP2-only launcher; it is not proof of engine,
+context or physical four-Spark qualification. Never change a proven recipe to
+repair a failing sibling.
 
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`,

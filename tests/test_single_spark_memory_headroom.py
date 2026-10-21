@@ -322,12 +322,130 @@ def test_need_rejects_a_pool_that_only_fits_without_measured_draft_overhead() ->
 def test_multispark_delegates_every_role_even_for_historical_identity(
     slug: str,
 ) -> None:
-    recipe = RecipeDefinition.model_validate_json(
-        (ROOT / "recipes" / f"{slug}.json").read_text()
-    )
-    digest = document_sha256(recipe.model_dump(mode="json"))
+    document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
+    recipe = RecipeDefinition.model_validate(document)
+    digest = document_sha256(document)
     assert require_memory_need(recipe, {}, INPUTS, document_digest=digest) is None
     worker = recipe.topology.roles[-1]
     worker.resources.memory.peak_bytes = 0
     with pytest.raises(ValueError, match=f"{slug}/{worker.name}.*understates"):
         require_memory_need(recipe, {}, INPUTS, document_digest=digest)
+
+
+def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> None:
+    import logging
+    import math
+    import runpy
+    from types import SimpleNamespace
+
+    recipe = RecipeDefinition.model_validate_json(
+        (
+            ROOT / "recipes/glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single.json"
+        ).read_text()
+    )
+    args = {item.name: item.value for item in recipe.runtime.arguments}
+    schedule = SimpleNamespace(
+        mem_fraction_static=float(str(args["mem-fraction-static"])),
+        max_total_tokens=args.get("max-total-tokens"),
+        max_mamba_cache_size=args.get("max-mamba-cache-size"),
+        max_running_requests=1,
+        mamba_full_memory_ratio=1.0,
+    )
+
+    def override(_reason: str, **values: int) -> None:
+        for name, value in values.items():
+            setattr(schedule, name, value)
+
+    namespace = runpy.run_path(
+        str(ROOT / "tests/fixtures/glm-a0-cache-sizing.py.txt"),
+        init_globals={
+            "math": math,
+            "logging": logging,
+            "get_schedule": lambda: schedule,
+            "get_available_gpu_memory": lambda *a, **kw: 30 - 6.32,
+            "get_world_group": lambda: SimpleNamespace(world_size=1, cpu_group=None),
+            "get_mm": lambda: SimpleNamespace(mm_feature_transport=None),
+            "get_memory": lambda: SimpleNamespace(disable_radix_cache=False),
+            "mm_runtime_reservation_gb": lambda **kw: 0,
+            "get_exec": lambda: SimpleNamespace(
+                mamba=SimpleNamespace(enable_linear_replayssm_spec=False)
+            ),
+            "get_context": lambda: SimpleNamespace(override=override),
+            "get_parallel": lambda: SimpleNamespace(config=SimpleNamespace(pp_size=1)),
+        },
+    )
+    sizer = namespace["CacheSizer"]()
+    sizer.device, sizer.gpu_id = "cuda", 0
+    sizer.post_capture_kv_active = False
+    sizer.model_config = SimpleNamespace(is_multimodal=True)
+    sizer.ps = SimpleNamespace(pp_size=1, attn_dp_size=1)
+    sizer.spec_algorithm = SimpleNamespace(is_none=lambda: True)
+    sizer.mambaish_config = SimpleNamespace(
+        mamba2_cache_params=SimpleNamespace(
+            layers=list(range(34)), mamba_cache_per_req=int(140.78 * 1024**2)
+        )
+    )
+    # Same -6.32 GiB residual as operation 3d2ed06e at 0.75. The exact
+    # pre-load free memory was truncated; 120 GiB is a synthetic test input.
+    budget = sizer._profile_available_bytes(120)
+    assert budget > 0
+    assert schedule.max_mamba_cache_size == 2
+    assert sizer._apply_token_constraints(1_000_000) == 8192
+    checked(recipe)
+    need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+    assert need.kv_bytes == 8192 * 65536
+    assert need.state_bytes == 3 * 150 * 1024**2
+    assert need.overhead_bytes == 8_000_000_000
+    assert need.resident_expansion_bytes == 14_000_000_000
+    assert need.total_bytes <= recipe.topology.roles[0].resources.memory.peak_bytes
+    assert recipe.topology.roles[0].resources.memory.peak_bytes <= LIMIT_BYTES
+
+    # Replay the rejected profile through the image's actual sizing functions.
+    schedule.mem_fraction_static = 0.75
+    schedule.max_mamba_cache_size = None
+    with pytest.raises(RuntimeError, match="Not enough GPU memory for hybrid"):
+        sizer._profile_available_bytes(120)
+
+
+@pytest.mark.parametrize(
+    "name,value", [("max-total-tokens", 262144), ("max-mamba-cache-size", 16)]
+)
+def test_capped_sglang_guard_rejects_restored_large_pools(
+    name: str, value: int
+) -> None:
+    recipe = RecipeDefinition.model_validate_json(
+        (
+            ROOT / "recipes/glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single.json"
+        ).read_text()
+    )
+    next(item for item in recipe.runtime.arguments if item.name == name).value = value
+    with pytest.raises(ValueError):
+        checked(recipe)
+
+
+@pytest.mark.parametrize("defect", ["graphs", "image", "state-cap", "peak", "fraction"])
+def test_hybrid_need_rejects_uncalibrated_runtime_or_hidden_demand(defect: str) -> None:
+    recipe = RecipeDefinition.model_validate_json(
+        (
+            ROOT / "recipes/glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single.json"
+        ).read_text()
+    )
+    if defect == "graphs":
+        next(
+            a for a in recipe.runtime.arguments if a.name == "disable-cuda-graph"
+        ).value = False
+    elif defect == "image":
+        recipe.execution.build.base_image.digest = "0" * 64
+    elif defect == "fraction":
+        next(
+            a for a in recipe.runtime.arguments if a.name == "mem-fraction-static"
+        ).value = "0.75"
+    elif defect == "state-cap":
+        recipe.runtime.arguments = [
+            a for a in recipe.runtime.arguments if a.name != "max-mamba-cache-size"
+        ]
+    else:
+        need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+        recipe.topology.roles[0].resources.memory.peak_bytes = need.total_bytes - 1
+    with pytest.raises((ValueError, TypeError)):
+        checked(recipe)

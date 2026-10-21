@@ -1,0 +1,249 @@
+# From ghcr.io/0xsero/glm53-flash-exl3-plain@sha256:85cb3fa86d31a781b94dcf10ee168adf096cfeaac14d2f1e6c560504e58e4eed
+# SGLang contributors; Apache-2.0. Methods reproduced without changes.
+# /sgl-workspace/sglang/python/sglang/srt/mem_cache/kv_cache_configurator.py
+class CacheSizer:
+    def _profile_available_bytes(self, pre_model_load_memory: int) -> int:
+        # KV pool budget = currently-free GPU memory minus the non-static runtime
+        # slack (pre_model_load_memory * (1 - mem_fraction_static)). Whatever is
+        # already resident (model weights, etc.) is thus charged against it.
+        available_gpu_memory = get_available_gpu_memory(
+            self.device,
+            self.gpu_id,
+            distributed=get_world_group().world_size > 1,
+            cpu_group=get_world_group().cpu_group,
+        )
+
+        slack_gb = pre_model_load_memory * (1 - get_schedule().mem_fraction_static)
+        if self.mambaish_config is not None and self.post_capture_kv_active:
+            # Mamba state is a fixed pre-capture allocation, so it can't ride the ~0 post-capture slack.
+            slack_gb = max(
+                slack_gb,
+                pre_capture_activation_reserve_mb(
+                    get_device_memory_capacity(self.device)
+                )
+                / 1024,
+            )
+        mm_reservation_gb = mm_runtime_reservation_gb(
+            is_multimodal=self.model_config.is_multimodal,
+            mm_feature_transport=get_mm().mm_feature_transport,
+        )
+        rest_memory = available_gpu_memory - slack_gb - mm_reservation_gb
+        if self.mambaish_config is not None:
+            rest_memory = self._handle_max_mamba_cache(rest_memory)
+
+        # Loaded weights (target + draft) can exceed the static budget
+        if rest_memory <= 0:
+            minimum_mem_fraction_static = (
+                1 - available_gpu_memory / pre_model_load_memory
+            )
+            suggested_mem_fraction_static = (
+                math.ceil(minimum_mem_fraction_static * 1000) / 1000
+            )
+            raise ValueError(
+                f"Loaded weights leave no GPU memory for the KV cache under "
+                f"--mem-fraction-static={get_schedule().mem_fraction_static}. "
+                f"Raise --mem-fraction-static above "
+                f"{suggested_mem_fraction_static:.3f} "
+                f"(minimum viable = 1 - available/pre = "
+                f"{minimum_mem_fraction_static:.4f}). If using speculative "
+                f"decoding, draft weights are now counted."
+            )
+
+        return int(rest_memory * (1 << 30))  # return in bytes
+
+    def _apply_token_constraints(self, token_capacity: int) -> int:
+        """Apply external constraints to token capacity: user cap, PP sync.
+
+        Page alignment is handled by the configurator, not here.
+        If constraints change the value, the configurator re-runs and re-aligns.
+        """
+        user_limit = get_schedule().max_total_tokens
+
+        # Apply user-specified upper bound
+        if user_limit is not None:
+            if user_limit > token_capacity:
+                logging.warning(
+                    f"max_total_tokens={user_limit} is larger than the profiled value "
+                    f"{token_capacity}. Use the profiled value instead."
+                )
+            token_capacity = min(token_capacity, user_limit)
+
+        # Sync across PP ranks (each may have different layer counts)
+        if get_parallel().config.pp_size > 1:
+            tensor = torch.tensor(token_capacity, dtype=torch.int64)
+            torch.distributed.all_reduce(
+                tensor,
+                op=torch.distributed.ReduceOp.MIN,
+                group=get_world_group().cpu_group,
+            )
+            token_capacity = tensor.item()
+
+        return token_capacity
+
+    def _handle_max_mamba_cache(self, total_rest_memory):
+        config = self.mambaish_config
+        assert config is not None
+
+        # mamba_cache_per_req covers every mamba layer, but under PP a rank only
+        # allocates its own [start_layer, end_layer) slice. Charge the largest
+        # per-stage share so every rank derives the same pool without a collective.
+        all_mamba_layers = config.mamba2_cache_params.layers
+        if self.ps.pp_size > 1 and all_mamba_layers:
+            max_stage_mamba_layers = max(
+                sum(1 for i in all_mamba_layers if start <= i < end)
+                for start, end in (
+                    get_pp_indices(
+                        self.model_config.num_hidden_layers, rank, self.ps.pp_size
+                    )
+                    for rank in range(self.ps.pp_size)
+                )
+            )
+        else:
+            max_stage_mamba_layers = len(all_mamba_layers)
+        pp_layer_scale = max_stage_mamba_layers / max(len(all_mamba_layers), 1)
+        stage_per_req = int(
+            config.mamba2_cache_params.mamba_cache_per_req * pp_layer_scale
+        )
+
+        has_spec_dec = not self.spec_algorithm.is_none()
+        # ReplaySSM drops the per-step intermediate_ssm scratch, so its mamba budget
+        # no longer reserves the (1 + D/ratio) intermediate factor -- the whole
+        # budget goes to persistent slots (K sized like non-spec), which is how the
+        # freed ~9GB turns into higher max_running.
+        # The ring is allocated per slot but is not part of mamba_cache_per_req;
+        # the solve must charge it too or num_slots is over-provisioned.
+        replayssm_active = get_exec().mamba.enable_linear_replayssm_spec and (
+            self.hybrid_gdn_config is not None
+            or kimi_linear_config(self.model_config) is not None
+        )
+        if replayssm_active:
+            # GDN sizes the fold window to the draft maximum; the KDA ring
+            # stays --linear-replayssm-cache-len long (mirrors MambaPool).
+            max_draft_tokens = max_speculative_num_draft_tokens()
+            if kimi_linear_config(self.model_config) is not None:
+                record_len = get_exec().mamba.linear_replayssm_cache_len
+            elif max_draft_tokens is not None:
+                record_len = max_draft_tokens
+            else:
+                record_len = get_exec().mamba.linear_replayssm_cache_len
+            replayssm_ring_per_req = (
+                config.mamba2_cache_params.replayssm_ring_bytes_per_req(
+                    record_len=record_len
+                )
+            )
+        else:
+            replayssm_ring_per_req = 0
+        replayssm_ring_per_req = int(replayssm_ring_per_req * pp_layer_scale)
+        if has_spec_dec:
+            assert get_spec().speculative_num_draft_tokens is not None
+            assert get_schedule().max_running_requests is not None
+
+        if get_schedule().max_mamba_cache_size is not None:
+            # Use explicitly set max_mamba_cache_size
+            get_context().override(
+                "mamba_pool.per_dp_shard",
+                max_mamba_cache_size=get_schedule().max_mamba_cache_size
+                // self.ps.attn_dp_size,
+            )
+            # Reserve intermediate memory based on capped max_num_reqs (+1: the
+            # pool's padding slot, see memory_pool.py). Skipped under replayssm
+            # (no intermediate_ssm allocated).
+            if has_spec_dec and not replayssm_active:
+                ratio = self._calculate_mamba_ratio()
+                capped_reqs = min(
+                    get_schedule().max_running_requests // self.ps.attn_dp_size,
+                    get_schedule().max_mamba_cache_size // ratio,
+                )
+                intermediate_size = (
+                    stage_per_req
+                    * (capped_reqs + 1)
+                    * get_spec().speculative_num_draft_tokens
+                )
+                total_rest_memory = total_rest_memory - (intermediate_size / (1 << 30))
+        elif (
+            get_memory().disable_radix_cache
+            and get_schedule().max_running_requests is not None
+        ):
+            # Use explicitly set max_running_requests when radix cache is disabled
+            get_context().override(
+                "mamba_pool.from_max_running_requests",
+                max_mamba_cache_size=get_schedule().max_running_requests
+                // self.ps.attn_dp_size,
+            )
+            # Reserve intermediate memory based on capped max_num_reqs (+1: the
+            # pool's padding slot). Skipped under replayssm.
+            if has_spec_dec and not replayssm_active:
+                intermediate_size = (
+                    stage_per_req
+                    * (get_schedule().max_mamba_cache_size + 1)
+                    * get_spec().speculative_num_draft_tokens
+                )
+                total_rest_memory = total_rest_memory - (intermediate_size / (1 << 30))
+        else:
+            # Use ratio-based calculation to auto-fit available memory
+            assert stage_per_req > 0
+            per_req = stage_per_req
+
+            # Solve jointly for max_mamba_cache_size (K), including the pool's
+            # +1 padding slot on both buffers (see memory_pool.py):
+            #   (K + 1) * per_req + (K / ratio + 1) * D * per_req = mamba_budget_bytes
+            mamba_budget = (
+                total_rest_memory
+                * get_schedule().mamba_full_memory_ratio
+                / (1 + get_schedule().mamba_full_memory_ratio)
+            )
+            mamba_budget_bytes = mamba_budget * (1 << 30)
+
+            if has_spec_dec and not replayssm_active:
+                ratio = self._calculate_mamba_ratio()
+                D = get_spec().speculative_num_draft_tokens
+                # Joint solve: main_state + intermediate = mamba_budget
+                get_context().override(
+                    "mamba_pool.memory_budget_spec",
+                    max_mamba_cache_size=int(
+                        (mamba_budget_bytes - per_req * (1 + D))
+                        // (per_req * (1 + D / ratio))
+                    ),
+                )
+                # Intermediate memory is included in mamba_budget, subtract it
+                # so the return value only has main_state subtracted from total
+                capped_reqs = min(
+                    get_schedule().max_running_requests // self.ps.attn_dp_size,
+                    get_schedule().max_mamba_cache_size // ratio,
+                )
+                intermediate_size = per_req * (capped_reqs + 1) * D
+                total_rest_memory = total_rest_memory - (intermediate_size / (1 << 30))
+            else:
+                per_slot = per_req + replayssm_ring_per_req
+                get_context().override(
+                    "mamba_pool.memory_budget",
+                    max_mamba_cache_size=int(
+                        (mamba_budget_bytes - per_slot) // per_slot
+                    ),
+                )
+
+        # Validate: max_mamba_cache_size must be positive after memory allocation.
+        # A non-positive value means GPU memory is insufficient for the requested
+        # configuration. Fail fast with actionable advice instead of silently
+        # producing garbled output at runtime.
+        if get_schedule().max_mamba_cache_size <= 0:
+            raise RuntimeError(
+                f"Not enough GPU memory for hybrid (mamba/linear-attention) state cache. "
+                f"Computed max_mamba_cache_size={get_schedule().max_mamba_cache_size} "
+                f"(total_rest_memory={total_rest_memory:.2f} GB, "
+                f"mamba_cache_per_req={stage_per_req / (1 << 20):.2f} MB). "
+                f"Try: (1) reduce --max-running-requests, "
+                f"(2) increase --mem-fraction-static, "
+                f"(3) reduce --speculative-num-draft-tokens, or "
+                f"(4) use GPUs with more memory."
+            )
+
+        # +1: the pool's padding slot is allocated alongside the request slots.
+        # ReplaySSM ring rides on every slot too (replayssm_ring_per_req is 0 when
+        # the ring is not allocated).
+        mamba_state_memory = (
+            (get_schedule().max_mamba_cache_size + 1)
+            * (stage_per_req + replayssm_ring_per_req)
+            / (1 << 30)
+        )
+        return total_rest_memory - mamba_state_memory

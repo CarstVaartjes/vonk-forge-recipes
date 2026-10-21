@@ -1,11 +1,14 @@
 """vLLM's GPU budget excludes unified-memory overhead on each GB10 node."""
 
+import json
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
-from vonk_forge_contracts import RecipeDefinition
+from catalog_documents import catalog_models
+from vonk_forge_contracts import RecipeDefinition, document_sha256
 
+from qualification.memory_need import load_inputs, require_memory_need
 from qualification.vllm_memory_fit import (
     INCIDENT_MEASURED_OVERHEAD_BYTES,
     OS_FLOOR_BYTES,
@@ -25,8 +28,17 @@ ROOT = Path(__file__).resolve().parents[1]
     "path", sorted((ROOT / "recipes").glob("*.json")), ids=lambda path: path.stem
 )
 def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
-    recipe = RecipeDefinition.model_validate_json(path.read_text())
+    document = json.loads(path.read_text())
+    recipe = RecipeDefinition.model_validate(document)
     if recipe.runtime.engine != "vllm":
+        return
+    if recipe.topology.node_count != 1:
+        require_memory_need(
+            recipe,
+            catalog_models(),
+            load_inputs(),
+            document_digest=document_sha256(document),
+        )
         return
     count = path.stem not in PENDING_CREATOR
     assert_memory_fit(recipe, count)

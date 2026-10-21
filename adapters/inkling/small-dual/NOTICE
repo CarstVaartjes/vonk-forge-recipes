@@ -1,0 +1,4 @@
+The detector regression fixture tests/fixtures/inkling-detector.py.txt is from
+sgl-project/sglang, commit 94602c9c2b7cbdb8efd5c52802dac6a1c180089e,
+python/sglang/srt/function_call/inkling_detector.py (Apache-2.0).
+patch-named-tool.py adds a recipe-local grammar; the parser remains upstream's.
