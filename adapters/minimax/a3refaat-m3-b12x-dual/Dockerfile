@@ -57,10 +57,13 @@ ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
 
 WORKDIR $VLLM_BASE_DIR
 
-# NCCL with mesh support (artifacts in /workspace/vllm/nccl/build/pkg/deb)
+# NCCL with mesh support (artifacts in /workspace/vllm/nccl/build/pkg/deb).
+# Generate packaging metadata first and keep the install lists non-executable:
+# dh_install otherwise executes their library paths as shell commands (SIGILL).
 RUN git clone -b dgxspark-3node-ring https://github.com/zyang-dev/nccl.git && \
     cd nccl && git checkout --detach fab1850acd902672d79ca81c2e7fb8e1848c208c && \
     make -j ${BUILD_JOBS} src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121" && \
+    make -C pkg/debian prep && chmod 0644 build/debian/*.install && \
     make pkg.debian.build && apt install -y --no-install-recommends --allow-downgrades ./build/pkg/deb/*.deb
 
 # =========================================================
