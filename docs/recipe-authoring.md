@@ -1039,15 +1039,12 @@ derives each recipe's executable build key (source bundle,
 Dockerfile, pinned base images, build options and capabilities, runtime
 adapter) and the exact Spark build flags and platform adaptation stage. Recipes
 that build the same adapter directory the same way share one key and one
-build. For recipes changed since the last published commit whose image is
-missing, a hosted `ubuntu-24.04-arm` runner builds the image with those flags
+build. Every publication reconciles all current keys against the registry,
+including the first release of a new contract version. For each missing key,
+a hosted `ubuntu-24.04-arm` runner builds the image with those flags
 and pushes it to the public package
 `ghcr.io/<owner>/vonk-forge-recipe-<recipe-id>` as `build-<key>` and
 `<version>`; a key another recipe already has is copied, not rebuilt.
-When the `platform_ref` moved since the last publication, every recipe is
-considered, not only the changed ones, so a platform change that moves build
-keys (for example a new adapter stage) rebuilds exactly the images whose key
-changed instead of leaving them stale.
 
 `tools/prebuilt-images resolve` then looks up every recipe's `build-<key>`
 digest, and the release index records it beside the recipe:
@@ -1063,10 +1060,15 @@ The field is optional and covered by the same signed `SHA256SUMS` as the rest
 of the index; Controllers that do not know it ignore it. A Controller whose own
 key for the revision matches pulls that digest (verified once, at ingress)
 instead of building on a Spark, so updating a running recipe needs no Spark
-build memory. Only recipes explicitly listed in `prebuilt-image-exclusions.json`
-may publish without this field and use a Controller build as a fallback. Publication fails
-if the image workflow fails, its artifacts are missing, or the final index does
-not pin every other planned recipe to its current build key and resolved digest.
+build memory. A recipe whose image is unavailable publishes without this field
+and can use a Controller build. Publication reports each such recipe as image
+pending in its job summary. The signed bundle includes `plan.json`, binding the
+pending keys and recipe content identities to the release. Deferred batches and
+the daily scheduled reconciliation build missing keys and republish the pins;
+declared hosted-build exclusions are retried only on an explicit recipe request.
+Each build has a 120-minute deadline and failures remain visible in the run.
+Publication still fails for missing artifacts, mismatched source identities,
+stale build keys, invalid digests or an index that differs from a resolved pin.
 The plan, index and publication must name the same source commit; verification
 runs before signing or changing the release. A backfill run republishes when it
 finishes so the index picks up the new digests. The recipe `content_sha256`

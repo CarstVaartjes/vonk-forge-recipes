@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import importlib.machinery
 import importlib.util
+import json
 import runpy
-import subprocess
 import sys
 from pathlib import Path
 
@@ -61,16 +61,6 @@ def _registry(tags: dict[tuple[str, str], str]):
         return tags.get((name, tag))
 
     return lookup
-
-
-def test_changed_paths_select_recipes_by_document_or_build_context() -> None:
-    plan = _plan()
-    assert tool.changed_slugs(plan, ["adapters/x/shared/Dockerfile"]) == {
-        "single",
-        "dual",
-    }
-    assert tool.changed_slugs(plan, ["recipes/other.json", "README.md"]) == {"other"}
-    assert tool.changed_slugs(plan, ["adapters/x/shared-older/Dockerfile"]) == set()
 
 
 def test_a_shared_missing_key_is_built_once_for_every_recipe_that_needs_it() -> None:
@@ -126,40 +116,7 @@ def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
     ]
 
 
-OLD_PIN, NEW_PIN = "1" * 40, "2" * 40
-
-
-def _publication_repo(tmp_path: Path, monkeypatch) -> str:
-    """A repo whose last publication pinned OLD_PIN; returns that commit."""
-
-    def git(*args: str) -> str:
-        return subprocess.run(
-            ["git", "-c", "user.name=t", "-c", "user.email=t@t", *args],
-            cwd=tmp_path,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-
-    workflow = tmp_path / ".github/workflows/publish.yml"
-    workflow.parent.mkdir(parents=True)
-    workflow.write_text(f"with:\n  platform_ref: {OLD_PIN}\n", encoding="utf-8")
-    git("init", "-q")
-    git("add", "-A")
-    git("commit", "-q", "-m", "published")
-    baseline = git("rev-parse", "HEAD")
-    monkeypatch.chdir(tmp_path)
-    return baseline
-
-
-def _repin(tmp_path: Path, pin: str) -> None:
-    workflow = tmp_path / ".github/workflows/publish.yml"
-    workflow.write_text(f"with:\n  platform_ref: {pin}\n", encoding="utf-8")
-    subprocess.run(
-        ["git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qam", "next"],
-        cwd=tmp_path,
-        check=True,
-    )
+OLD_PIN = "1" * 40
 
 
 def test_the_platform_pin_is_read_from_the_publication_workflow() -> None:
@@ -169,42 +126,58 @@ def test_the_platform_pin_is_read_from_the_publication_workflow() -> None:
     assert tool.platform_ref(workflow) is not None
 
 
-def test_a_moved_platform_pin_considers_every_recipe(
-    tmp_path: Path, monkeypatch, capsys
+def test_explicit_selection_limits_backfills_only() -> None:
+    assert tool.candidate_slugs([]) is None
+    assert tool.candidate_slugs(["all"]) is None
+    assert tool.candidate_slugs(["other"]) == {"other"}
+
+
+def test_new_contract_publication_reconciles_both_unresolved_tensorfold_keys(
+    tmp_path, monkeypatch
 ) -> None:
-    baseline = _publication_repo(tmp_path, monkeypatch)
-    workflow = Path(".github/workflows/publish.yml")
-
-    # Same pin, nothing changed: nothing is a candidate.
-    unchanged = tool.candidate_slugs(_plan(), [], baseline=baseline, workflow=workflow)
-    assert unchanged == set()
-
-    # A moved pin can move the keys of recipes nobody touched.
-    _repin(tmp_path, NEW_PIN)
-    moved = tool.candidate_slugs(_plan(), [], baseline=baseline, workflow=workflow)
-    assert moved is None
-    assert "platform ref moved" in capsys.readouterr().out
-
-    # Only keys whose image is missing are built, so unchanged images stay.
-    registry = _registry({("vonk-forge-recipe-other", f"build-{OWN}"): DIGEST})
-    selection = tool.select(_plan(), owner=OWNER, candidates=moved, lookup=registry)
-    assert [item["build_key"] for item in selection["builds"]] == [SHARED]
-
-
-def test_explicit_requests_and_a_missing_baseline_ignore_the_pin(
-    tmp_path: Path, monkeypatch
-) -> None:
-    baseline = _publication_repo(tmp_path, monkeypatch)
-    workflow = Path(".github/workflows/publish.yml")
-    _repin(tmp_path, NEW_PIN)
-    assert tool.candidate_slugs(
-        _plan(), ["other"], baseline=baseline, workflow=workflow
-    ) == {"other"}
-    assert (
-        tool.candidate_slugs(_plan(), ["all"], baseline=baseline, workflow=workflow)
-        is None
+    # Run 39667637833: 2.5.0 has no publication tag. Both images were missing,
+    # but select produced zero builds because the default baseline was empty.
+    keys = {
+        "deepseek-v4-1-flash-1017-mia-tensorfold-dual": "05af95ff114943f8d37c3401cbd0ce5febbf5b1c7eb9c3f6256e1bbd664d42f8",
+        "deepseek-v4-1-flash-1017-exl3-2-9bpw-tonyd2wild-tensorfold-dual": "cfd0ced0fee052a50f415790bd090b701c49a3ac14ecfc16604f585660012eeb",
+    }
+    plan = {
+        "images": [
+            {"build_key": key, "recipes": [{"slug": slug}]}
+            for slug, key in keys.items()
+        ]
+    }
+    plan_path, selection_path = tmp_path / "plan.json", tmp_path / "selection.json"
+    plan_path.write_text(json.dumps(plan))
+    select = tool.select
+    monkeypatch.setattr(
+        tool,
+        "select",
+        lambda plan, **kwargs: select(plan, **kwargs, lookup=_registry({})),
     )
-    assert tool.candidate_slugs(_plan(), [], baseline="", workflow=workflow) == set()
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "prebuilt-images",
+            "select",
+            "--plan",
+            str(plan_path),
+            "--owner",
+            OWNER,
+            "--output",
+            str(selection_path),
+        ],
+    )
+    assert tool.main() == 0
+    selection = json.loads(selection_path.read_text())
+    assert {row["build_key"] for row in selection["builds"]} == set(keys.values())
+    # On the next publication only registry evidence suppresses builds, even
+    # when no recipe file changed or the release tag advanced past this run.
+    registry = _registry(
+        {(tool.package(slug), f"build-{key}"): DIGEST for slug, key in keys.items()}
+    )
+    assert select(plan, owner=OWNER, candidates=None, lookup=registry)["builds"] == []
 
 
 def test_a_recipe_declared_unbuildable_is_not_retried_unless_asked_for() -> None:
@@ -239,9 +212,7 @@ def test_declared_exclusions_name_existing_recipes_and_give_a_reason() -> None:
         assert reason.strip(), slug
 
 
-def test_matrix_overflow_continues_after_publication_and_failed_first_batch(
-    tmp_path, monkeypatch
-):
+def test_matrix_overflow_continues_after_publication_and_failed_first_batch():
     plan = {
         "images": [
             {
@@ -264,24 +235,7 @@ def test_matrix_overflow_continues_after_publication_and_failed_first_batch(
         "overflow needs an automatic continuation payload"
     )
     assert len(first["deferred_slugs"]) == 264
-    workflow_path = tmp_path / "publish.yml"
-    workflow_path.write_text(f"platform_ref: {OLD_PIN}\n")
-    monkeypatch.setattr(tool, "_git_file", lambda *_args: workflow_path.read_text())
-    monkeypatch.setattr(
-        tool, "_git_changed", lambda _baseline: ["qualification/shared.json"]
-    )
-    assert (
-        tool.candidate_slugs(
-            plan, [], baseline="published-after-first-batch", workflow=workflow_path
-        )
-        == set()
-    )
-    remaining = tool.candidate_slugs(
-        plan,
-        first["deferred_slugs"],
-        baseline="published-after-first-batch",
-        workflow=workflow_path,
-    )
+    remaining = tool.candidate_slugs(first["deferred_slugs"])
     # Even if the release tag advances and every first-batch build fails, the
     # workflow explicitly carries the tail; registry evidence suppresses success.
     second = tool.select(plan, owner=OWNER, candidates=remaining, lookup=_registry({}))

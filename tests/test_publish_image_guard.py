@@ -1,4 +1,4 @@
-"""Fault injection at publication: missing artifacts and stale images must fail."""
+"""Fault injection at publication: missing builds remain pending; stale pins must fail."""
 
 from __future__ import annotations
 
@@ -54,7 +54,11 @@ def test_publication_cannot_succeed_without_its_image_artifact(tmp_path: Path) -
         "wrong-commit",
         "wrong-content",
         "unresolved",
+        "pending",
         "excluded",
+        "resolved-wrong-key",
+        "invalid-digest",
+        "refused",
     ],
 )
 def test_release_must_pin_current_build_and_resolved_digest(
@@ -79,9 +83,17 @@ def test_release_must_pin_current_build_and_resolved_digest(
     row = index["recipes"][0]
     if fault in {"missing", "excluded"}:
         row.pop("prebuilt_image")
-    if fault == "excluded":
+    if fault in {"pending", "excluded"}:
+        row.pop("prebuilt_image", None)
         images = {}
+    if fault == "excluded":
         exclusions = {"test": "CI cannot build this image"}
+    if fault == "resolved-wrong-key":
+        images = {CONTENT: {**IMAGE, "build_key": "9" * 64}}
+    if fault == "invalid-digest":
+        images = {CONTENT: {**IMAGE, "reference": "ghcr.io/o/r:mutable"}}
+    if fault == "refused":
+        plan["skipped"] = [{"slug": "refused", "reason": "source policy"}]
     if fault == "stale-key":
         row["prebuilt_image"]["build_key"] = "5" * 64
     if fault == "stale-digest":
@@ -117,15 +129,22 @@ def test_release_must_pin_current_build_and_resolved_digest(
         capture_output=True,
         text=True,
     )
-    assert (result.returncode == 0) == (fault in {None, "excluded"}), result.stderr
+    assert (result.returncode == 0) == (fault in {None, "pending", "excluded"}), (
+        result.stderr
+    )
+    if fault in {"pending", "excluded"}:
+        assert f"Image pending: test: {KEY}" in result.stdout
 
 
-def test_publication_requires_successful_images_and_artifact_download() -> None:
+def test_publication_accepts_failed_builds_but_requires_verified_artifacts() -> None:
     workflow = (ROOT / ".github/workflows/publish.yml").read_text()
     publish = workflow.split("\n  publish:\n")[1]
-    assert "needs.images.result == 'success'" in publish
+    assert "needs.images.result" not in publish
+    assert "!cancelled()" in publish
     artifact = publish.split("- name: Download the pinned prebuilt images")[1].split(
         "- name:"
     )[0]
     assert "continue-on-error" not in artifact
     assert "tools/check-published-images" in publish
+    assert '--include "$RUNNER_TEMP/plan/plan.json"' in publish
+    assert 'tee -a "$GITHUB_STEP_SUMMARY"' in publish
