@@ -215,19 +215,21 @@ def test_a_recipe_that_failed_on_an_answer_under_the_old_rules_is_requeued(
     )
     entry.pop("smoke_rules", None)
     entry.pop("quality", None)
+    sweep.state.data["schema"] = 1
     sweep.state.save()
     again, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
     assert again.run() == 0
     assert _entry(again)["status"] == "passed"
     assert _entry(again)["quality"][0]["got"] == "305"
-    requeue = [
-        json.loads(x)
-        for x in (tmp_path / "results.jsonl").read_text().splitlines()
-        if '"requeue"' in x
-    ]
-    assert [x["reason"] for x in requeue] == [
-        "smoke rules changed: answer quality no longer fails a recipe"
-    ]
+    assert any(
+        "adopted " in row["message"]
+        and "smoke rules changed: answer quality no longer fails a recipe"
+        in row["message"]
+        for row in again.state.data["events"]
+    )
+    rows = [row for row in again.log.entries() if row.get("step") == "requeue"]
+    assert len(rows) == 1
+    assert rows[0]["previous"]["status"] == "failed"
 
 
 def test_a_functional_failure_under_the_new_rules_is_not_requeued_again(

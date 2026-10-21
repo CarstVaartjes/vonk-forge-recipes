@@ -375,3 +375,18 @@ def test_changed_content_after_terminal_download_gets_a_fresh_selector_request(
     assert current["request_key"] != original["request_key"]
     assert current["retry_of_operation_id"] is None
     assert current["accepted_intent"]["kind"] == "selector"
+
+
+def test_missing_saved_intent_cannot_authorize_a_terminal_retry(tmp_path):
+    sweep, _, clock, recipe = _failed_download(tmp_path)
+    sweep._schedule_retest(recipe.key, "scheduled-retest")
+    clock.sleep(sweep.prefetcher.config.retry_cooldown)
+    record = sweep.state.downloads[recipe.key]
+    record.pop("accepted_intent")
+    assert not sweep.prefetcher._can_request(recipe, clock.now())
+    # A restart adopts the old record's saved arguments once, before scheduling.
+    sweep.state.data["schema"] = 1
+    sweep.state.save()
+    adopted = State.load(sweep.state.path)
+    sweep.state.data = adopted.data
+    assert sweep.prefetcher._can_request(recipe, clock.now())

@@ -24,7 +24,7 @@ from typing import Any
 from .auth_contract import SmokeAuthClass
 from .catalog import Model, Recipe
 from .identity import legacy_image_unknown, verdict_matches
-from .lifecycle import RecipeStatus, RetestReason
+from .lifecycle import LifecycleState, RecipeStatus, RetestReason
 
 Boost = Callable[[Recipe], float]
 
@@ -695,11 +695,11 @@ def classify(
 
 
 def evidence_of(entry: Mapping[str, Any]) -> dict[str, Any]:
-    """The structured evidence of a result row; a state file from an older run kept a bundle path."""
+    """The structured evidence of a result row."""
     value = entry.get("evidence")
     if isinstance(value, Mapping):
         return dict(value)
-    return {"bundle": value} if value else {}
+    return {}
 
 
 @dataclass(frozen=True)
@@ -789,22 +789,6 @@ class RateTracker:
         return remaining_bytes / self.rate if self.rate > 0 else None
 
 
-_RETRY_REASON = re.compile(
-    r"reconciled by profile retry ([0-9a-z][0-9a-z-]*)", re.IGNORECASE
-)
-_SUPERSEDED_TEXT = (
-    "reconciled by profile retry",
-    "profile intent was superseded",
-    "changed during admission",
-)
-
-
-def superseded_text(reason: object) -> bool:
-    """Legacy rows carry the supersession only as text (older Controllers ended them failed/cancelled)."""
-    text = str(reason or "").lower()
-    return any(marker in text for marker in _SUPERSEDED_TEXT)
-
-
 @dataclass(frozen=True)
 class Supersession:
     """An application the Controller replaced: never a recipe failure."""
@@ -817,18 +801,7 @@ def supersession(document: Mapping[str, Any]) -> Supersession | None:
 
     ``superseded_by`` names the successor to adopt; without one the intent is requeued.
     """
-    code = str(document.get("reason_code") or "")
-    state = str(document.get("state") or "")
-    reason = document.get("status_reason")
-    if not (
-        state == "superseded"
-        or code.startswith("superseded")
-        or code == "effects-changed-during-admission"
-        or (state in ("failed", "cancelled") and superseded_text(reason))
-    ):
+    if document.get("state") != LifecycleState.SUPERSEDED:
         return None
     successor = document.get("superseded_by")
-    if not isinstance(successor, str) or not successor:
-        found = _RETRY_REASON.search(str(reason or ""))
-        successor = found.group(1) if found else None
-    return Supersession(successor)
+    return Supersession(successor if isinstance(successor, str) and successor else None)
