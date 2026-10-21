@@ -308,7 +308,13 @@ def scan_source(
             statement = expression
             while statement in parents and not isinstance(statement, ast.stmt):
                 statement = parents[statement]
-            source = ast.get_source_segment(text, statement) or ""
+            if isinstance(
+                statement, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+            ):
+                # A decorator argument's context is its own line, not the body.
+                source = text.splitlines()[expression.lineno - 1]
+            else:
+                source = ast.get_source_segment(text, statement) or ""
             if _MEMORY_CONTEXT.search(source):
                 hits.append(
                     (expression.lineno, ast.get_source_segment(text, expression) or "")

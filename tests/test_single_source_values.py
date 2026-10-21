@@ -126,6 +126,34 @@ def test_memory_guard_normalizes_expressions_and_preserves_other_domains(
     )
 
 
+def test_memory_guard_reads_decorator_arguments_by_their_own_line() -> None:
+    from qualification.memory_need import OS_FLOOR_BYTES
+
+    registration = Registration(
+        semantic_id="test.memory",
+        owner="qualification/memory_need.py",
+        selector="OS_FLOOR_BYTES",
+        kind=ValueKind.MEMORY_BYTES,
+    )
+    decorated = (
+        "@pytest.mark.parametrize('loading', [{value}]){comment}\n"
+        "def test_memory_need(loading):\n"
+        "    assert loading\n"
+    )
+    assert not scan_source(
+        registration,
+        "test_need.py",
+        decorated.format(value=f"{OS_FLOOR_BYTES:_}", comment=""),
+        OS_FLOOR_BYTES,
+    )
+    assert scan_source(
+        registration,
+        "test_need.py",
+        decorated.format(value=f"{OS_FLOOR_BYTES:_}", comment="  # os_floor"),
+        OS_FLOOR_BYTES,
+    )
+
+
 def test_stale_memory_default_is_rejected_after_owner_changes() -> None:
     registration = Registration(
         semantic_id="test.memory",
