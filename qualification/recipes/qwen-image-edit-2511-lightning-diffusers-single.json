@@ -50,10 +50,12 @@
       {
         "kind": "image-metadata",
         "media_type": "image/png",
-        "width": 1024,
-        "height": 1024,
         "bit_depth": 8,
-        "color_type": 2
+        "color_type": 2,
+        "native_dimensions": {
+          "kind": "qwen-image",
+          "target_size": 1024
+        }
       }
     ],
     "cases": [
