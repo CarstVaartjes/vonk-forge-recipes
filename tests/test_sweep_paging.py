@@ -8,6 +8,7 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep.catalog import fetch_models, fetch_recipes, recipe_listing
+from spark_sweep.catalog_contract import RecipeProjection, RecipeRow
 from spark_sweep.vonkctl import Vonkctl
 
 
@@ -23,6 +24,17 @@ def _fleet_with(n: int):
 
     recipes = [FakeRecipe(f"r{i}", (f"m{i}",)) for i in range(n)]
     return FakeFleet(FakeClock(), recipes, [FakeModel(f"m{i}") for i in range(n)])
+
+
+def test_fake_library_rows_supply_every_consumed_projected_field() -> None:
+    fleet = _fleet_with(1)
+    page = fleet._library(
+        [], "recipes", fleet._recipe_row, list(fleet.recipes.values())
+    )
+    for row in page["recipes"]:
+        assert "document" not in row
+        assert RecipeProjection.model_fields.keys() <= row["projected"].keys()
+        RecipeRow.model_validate(row)
 
 
 def test_an_invalid_cursor_restarts_the_pass_from_the_first_page() -> None:
