@@ -15,7 +15,7 @@ import tomllib
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ValueKind(StrEnum):
@@ -26,9 +26,9 @@ class ValueKind(StrEnum):
 
 class AdversarialFixture(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
-    path: str
-    function: str
-    reason: str
+    path: str = Field(pattern=r"^tests/(?:[A-Za-z0-9_-]+/)*test_[A-Za-z0-9_]+\.py$")
+    function: str = Field(pattern=r"^test_[A-Za-z0-9_]+$")
+    reason: str = Field(min_length=1)
 
 
 class Registration(BaseModel):
@@ -37,6 +37,7 @@ class Registration(BaseModel):
     owner: str
     selector: str
     kind: ValueKind
+    consumer_symbols: tuple[str, ...] = ()
     adversarial_fixtures: tuple[AdversarialFixture, ...] = ()
 
 
@@ -73,7 +74,11 @@ def tracked_files(root: Path) -> list[str]:
 
 def literal(node: ast.AST) -> str | int | float | None:
     """Evaluate only literal arithmetic; never execute repository code."""
-    if isinstance(node, ast.Constant) and type(node.value) in (str, int, float):
+    if (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, (str, int, float))
+        and not isinstance(node.value, bool)
+    ):
         return node.value
     if isinstance(node, ast.BinOp):
         left, right = literal(node.left), literal(node.right)
@@ -84,6 +89,8 @@ def literal(node: ast.AST) -> str | int | float | None:
             ast.Pow: operator.pow,
             ast.Div: operator.truediv,
         }
+        if isinstance(node.op, ast.Div) and right == 0:
+            return None
         if isinstance(left, (int, float)) and isinstance(right, (int, float)):
             if type(node.op) in operations and abs(right) <= 64:
                 return operations[type(node.op)](left, right)
@@ -119,8 +126,8 @@ def owner_value(root: Path, registration: Registration) -> str | int | float:
             value = value[key]
     else:
         value = literal(assignment(ast.parse(text), registration.selector))
-    if type(value) not in (str, int, float):
-        raise ValueError(
+    if not isinstance(value, (str, int, float)) or isinstance(value, bool):
+        raise TypeError(
             f"{registration.owner}:{registration.selector}: missing literal owner"
         )
     return value
@@ -141,6 +148,8 @@ def _byte_value(value: str | float | None) -> int | float | None:
     if isinstance(value, (int, float)):
         return value
     if isinstance(value, str):
+        if re.fullmatch(r"[0-9][0-9_]*", value):
+            return int(value.replace("_", ""))
         match = _UNITS.fullmatch(value)
         if match:
             factors = {
@@ -169,6 +178,22 @@ def scan_source(
                 scan_source(registration, path + ":fence", padding + match[1], value)
             )
         return issues
+    if (
+        registration.kind == ValueKind.PROTOCOL_WHEEL
+        and not _WHEEL.search(text)
+        and not any(
+            fixture.path == path for fixture in registration.adversarial_fixtures
+        )
+    ):
+        return []
+    if registration.kind == ValueKind.CONTRACT_VERSION and not _VERSION.search(text):
+        return []
+    if (
+        registration.kind == ValueKind.MEMORY_BYTES
+        and not _MEMORY_CONTEXT.search(text)
+        and not any(symbol in text for symbol in registration.consumer_symbols)
+    ):
+        return []
     tree = None
     if (
         path.endswith(".py")
@@ -176,6 +201,14 @@ def scan_source(
         and "python" in text.splitlines()[0]
     ):
         tree = ast.parse(text)
+    owned_expression = (
+        assignment(tree, registration.selector)
+        if tree is not None and path == registration.owner
+        else None
+    )
+    owned_nodes = (
+        set(ast.walk(owned_expression)) if owned_expression is not None else set()
+    )
     exempt_lines: set[int] = set()
     for fixture in registration.adversarial_fixtures:
         if fixture.path != path:
@@ -187,76 +220,127 @@ def scan_source(
             for node in tree.body
             if isinstance(node, ast.FunctionDef) and node.name == fixture.function
         ]
-        if (
-            len(functions) != 1
-            or not fixture.function.startswith("test_")
-            or not fixture.reason
-        ):
+        if len(functions) != 1:
             raise ValueError(f"missing named adversarial fixture: {fixture}")
-        node = functions[0]
-        exempt_lines.update(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+        function = functions[0]
+        exempt_lines.update(
+            range(function.lineno, (function.end_lineno or function.lineno) + 1)
+        )
     hits: list[tuple[int, str]] = []
     if registration.kind == ValueKind.PROTOCOL_WHEEL:
+        owner_span = None
+        if path == registration.owner:
+            matches = list(
+                re.finditer(
+                    rf'"{re.escape(registration.selector)}"\s*:\s*("[^"\n]*")', text
+                )
+            )
+            if len(matches) != 1:
+                raise ValueError(
+                    f"owner selector {registration.selector}: expected exactly one definition"
+                )
+            owner_span = matches[0].span(1)
         hits = [
-            (text[: m.start()].count("\n") + 1, m[0]) for m in _WHEEL.finditer(text)
+            (text[: match.start()].count("\n") + 1, match[0])
+            for match in _WHEEL.finditer(text)
+            if owner_span is None
+            or not (owner_span[0] <= match.start() < owner_span[1])
         ]
     elif registration.kind == ValueKind.CONTRACT_VERSION:
-        if "contracts/" not in path and "vonk_forge_contracts" not in text:
-            text = re.sub(r"__version__", "external_version", text)
-        hits = [
-            (text[: m.start()].count("\n") + 1, m[0]) for m in _VERSION.finditer(text)
-        ]
-    elif tree is not None:
-        for node in ast.walk(tree):
-            if not isinstance(
-                node,
-                (
-                    ast.Assign,
-                    ast.AnnAssign,
-                    ast.Assert,
-                    ast.Return,
-                    ast.Expr,
-                    ast.If,
-                    ast.Compare,
-                    ast.Call,
-                ),
-            ):
-                continue
-            source = ast.get_source_segment(text, node) or ""
-            if not _MEMORY_CONTEXT.search(path + " " + source):
-                continue
-            for expression in ast.walk(node):
-                if _byte_value(literal(expression)) == value:
-                    hits.append(
-                        (
-                            expression.lineno,
-                            ast.get_source_segment(text, expression) or "",
-                        )
-                    )
-    else:
-        for line, source in enumerate(text.splitlines(), 1):
-            if not _MEMORY_CONTEXT.search(path + " " + source):
-                continue
-            for token in re.findall(
-                r"\d[\d_]*(?:\.\d+)?(?:\s*(?:GiB|GB|MiB|MB|bytes))?", source
-            ):
-                compact = token.replace("_", "")
-                if _byte_value(compact) == value or compact == str(value):
-                    hits.append((line, token))
-    if path == registration.owner:
         if tree is not None:
-            node = assignment(tree, registration.selector)
-            exempt_lines.update(
-                range(node.lineno, (node.end_lineno or node.lineno) + 1)
-            )
+            names = {"CONTRACT_VERSION", "CONTRACT_MAJOR"}
+            if "contracts/" in path or "vonk_forge_contracts" in text:
+                names.add("__version__")
+            for node in ast.walk(tree):
+                if (
+                    not isinstance(node, (ast.Assign, ast.AnnAssign))
+                    or node.value is None
+                    or node.value is owned_expression
+                ):
+                    continue
+                targets = (
+                    node.targets if isinstance(node, ast.Assign) else [node.target]
+                )
+                if (
+                    any(
+                        isinstance(target, ast.Name) and target.id in names
+                        for target in targets
+                    )
+                    and re.fullmatch(r"\d+(?:\.\d+)*", str(literal(node.value)))
+                    is not None
+                ):
+                    hits.append((node.lineno, ast.get_source_segment(text, node) or ""))
         else:
-            # Metadata values are permitted only on the selected key's line.
-            key = registration.selector.split(".")[-1]
-            exempt_lines.update(
-                i
-                for i, line in enumerate(text.splitlines(), 1)
-                if re.match(rf'\s*["\']?{re.escape(key)}["\']?\s*[:=]', line)
+            hits = [
+                (text[: match.start()].count("\n") + 1, match[0])
+                for match in _VERSION.finditer(text)
+            ]
+    elif tree is not None:
+        parents = {
+            child: parent
+            for parent in ast.walk(tree)
+            for child in ast.iter_child_nodes(parent)
+        }
+        for node in ast.walk(tree):
+            if (
+                not isinstance(node, (ast.Assign, ast.AnnAssign))
+                or node.value is None
+                or node.value is owned_expression
+            ):
+                continue
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            names = {target.id for target in targets if isinstance(target, ast.Name)}
+            if (
+                names.intersection(registration.consumer_symbols)
+                and _byte_value(literal(node.value)) is not None
+            ):
+                hits.append(
+                    (node.value.lineno, ast.get_source_segment(text, node.value) or "")
+                )
+        for expression in ast.walk(tree):
+            if (
+                not isinstance(expression, (ast.Constant, ast.BinOp))
+                or expression in owned_nodes
+            ):
+                continue
+            if _byte_value(literal(expression)) != value:
+                continue
+            statement = expression
+            while statement in parents and not isinstance(statement, ast.stmt):
+                statement = parents[statement]
+            source = ast.get_source_segment(text, statement) or ""
+            if _MEMORY_CONTEXT.search(source):
+                hits.append(
+                    (expression.lineno, ast.get_source_segment(text, expression) or "")
+                )
+    else:
+        # Recipe declarations and historical observations are independent data
+        # selections. Policy/default keys in configuration still belong here.
+        for line, source in enumerate(text.splitlines(), 1):
+            if source.lstrip().startswith("#"):
+                continue
+            if path.endswith((".json", ".jsonl", ".toml")) and not re.search(
+                r"os_(?:floor|allowance)|default_spark_memory|guard_bytes|physical_memory",
+                source,
+                re.IGNORECASE,
+            ):
+                continue
+            if not _MEMORY_CONTEXT.search(source):
+                continue
+            tokens = re.findall(
+                r"\d[\d_]*(?:\.\d+)?(?:\s*(?:GiB|GB|MiB|MB|bytes))", source
             )
+            expressions = re.findall(
+                r"\d[\d_]*(?:\.\d+)?(?:\s*(?:\*\*|[+*/-])\s*\d[\d_]*(?:\.\d+)?)*",
+                source,
+            )
+            for token in tokens + expressions:
+                try:
+                    number = _byte_value(literal(ast.parse(token, mode="eval").body))
+                except SyntaxError:
+                    number = _byte_value(token)
+                if number == value:
+                    hits.append((line, token))
     return [
         Violation(
             semantic_id=registration.semantic_id,
@@ -284,6 +368,11 @@ def check(root: Path, files: list[str] | None = None) -> list[Violation]:
     families: set[tuple[ValueKind, str | int | float]] = set()
     issues = []
     for registration in registrations:
+        if registration.owner not in files:
+            raise ValueError(f"owner is not tracked: {registration.owner}")
+        for fixture in registration.adversarial_fixtures:
+            if fixture.path not in files:
+                raise ValueError(f"adversarial fixture is not tracked: {fixture.path}")
         value = owner_value(root, registration)
         family = (
             registration.kind,

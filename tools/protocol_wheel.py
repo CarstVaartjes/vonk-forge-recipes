@@ -115,6 +115,14 @@ def projections(root: Path = ROOT) -> dict[str, bytes]:
 
 def materialize(root: Path = ROOT, *, check: bool = False) -> None:
     outputs = projections(root)
+    for consumer in selection(root).consumers:
+        directory = root / consumer.context / consumer.wheel_directory
+        for artifact in directory.glob("vonk_agent_protocol-*.whl"):
+            if str(artifact.relative_to(root)) in outputs:
+                continue
+            if check:
+                raise ValueError(f"{artifact}: superseded protocol wheel projection")
+            artifact.unlink()
     for path, expected in outputs.items():
         target = root / path
         if check:

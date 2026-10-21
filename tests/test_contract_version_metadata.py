@@ -65,8 +65,10 @@ def test_metadata_only_bump_reaches_built_wheel_and_external_consumer(
         [
             sys.executable,
             "-c",
-            "from vonk_forge_contracts import CONTRACT_VERSION, CONTRACT_MAJOR, __version__; "
-            "print(CONTRACT_VERSION, CONTRACT_MAJOR, __version__)",
+            (
+                "from vonk_forge_contracts import CONTRACT_VERSION, CONTRACT_MAJOR, __version__; "
+                "print(CONTRACT_VERSION, CONTRACT_MAJOR, __version__)"
+            ),
         ],
         cwd=tmp_path,
         env=env,

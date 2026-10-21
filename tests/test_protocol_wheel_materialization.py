@@ -17,6 +17,10 @@ from tools.single_source_values import check
 
 def fixture_root(tmp_path: Path) -> Path:
     shutil.copytree(ROOT / "tools/protocol-wheel", tmp_path / "tools/protocol-wheel")
+    registry = tmp_path / "tools/protocol-wheel/single-source-values.json"
+    registrations = json.loads(registry.read_text())
+    registrations[0]["adversarial_fixtures"] = []
+    registry.write_text(json.dumps(registrations))
     selected = selection(tmp_path)
     target = tmp_path / selected.artifact
     target.parent.mkdir(parents=True)
@@ -120,3 +124,7 @@ def test_new_reviewed_artifact_drives_filename_hash_and_metadata(
         issue.observed == "stale generated projection"
         for issue in check(root, files(root))
     )
+
+    materialize(root)
+    assert not check(root, files(root))
+    assert len(list(root.glob("adapters/**/*.whl"))) == len(updated.consumers)

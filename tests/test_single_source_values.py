@@ -89,3 +89,71 @@ def test_unrelated_package_version_is_not_recipe_contract_version() -> None:
     assert not scan_source(
         registration, "adapters/upstream/__init__.py", '__version__ = "3.0.0"', "4.0.0"
     )
+
+
+@pytest.mark.parametrize(
+    "symbol", ["OS_FLOOR_BYTES", "SPARK_MEMORY_BYTES", "GUARD_BYTES"]
+)
+def test_memory_guard_normalizes_expressions_and_preserves_other_domains(
+    symbol: str,
+) -> None:
+    from qualification import memory_need
+
+    value = getattr(memory_need, symbol)
+    registration = Registration(
+        semantic_id="test.memory",
+        owner="qualification/memory_need.py",
+        selector=symbol,
+        kind=ValueKind.MEMORY_BYTES,
+    )
+    forms = [str(value), f"{value:_}", f"{value} / 2 * 2"]
+    if symbol == "OS_FLOOR_BYTES":
+        forms += [f"{value // 1000**3} * 1000**3", f'"{value // 1000**3}GB"']
+    if symbol == "GUARD_BYTES":
+        forms += [f"{value // 1024**3} * 1024**3", f'"{value // 1024**3}GiB"']
+    for expression in forms:
+        assert scan_source(
+            registration, "new_memory.py", f"memory_floor = {expression}", value
+        )
+        assert not scan_source(
+            registration, "new_memory.py", f"population = {expression}", value
+        )
+    assert not scan_source(
+        registration,
+        "consumer.py",
+        f"from qualification.memory_need import {symbol}",
+        value,
+    )
+
+
+def test_stale_memory_default_is_rejected_after_owner_changes() -> None:
+    registration = Registration(
+        semantic_id="test.memory",
+        owner="owner.py",
+        selector="SPARK_MEMORY_BYTES",
+        kind=ValueKind.MEMORY_BYTES,
+        consumer_symbols=("default_spark_memory",),
+    )
+    assert scan_source(registration, "consumer.py", "default_spark_memory = 123", 456)
+
+
+def test_registry_rejects_duplicate_allowances_and_broad_exceptions() -> None:
+    from pydantic import ValidationError
+
+    registration = Registration(
+        semantic_id="test.memory",
+        owner="owner.py",
+        selector="FLOOR",
+        kind=ValueKind.MEMORY_BYTES,
+    )
+    with pytest.raises(ValidationError):
+        Registration.model_validate(registration.model_dump() | {"max_count": 3})
+    with pytest.raises(ValidationError):
+        Registration.model_validate(
+            registration.model_dump()
+            | {
+                "adversarial_fixtures": [
+                    {"path": "tests/*.py", "function": "*", "reason": "all fixtures"}
+                ]
+            }
+        )
