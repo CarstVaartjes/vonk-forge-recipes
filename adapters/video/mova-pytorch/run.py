@@ -357,8 +357,7 @@ def main() -> None:
             "--cp_size",
             "1",
             "--offload",
-            "cpu",
-            "--remove_video_dit",
+            "none",
         ]
         environment = dict(os.environ)
         environment.update(
