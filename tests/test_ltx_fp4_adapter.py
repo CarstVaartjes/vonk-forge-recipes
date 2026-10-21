@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest import mock
 
 from generated_catalog import GENERATED
-from ltx_protocol import manifest_bytes
+from ltx_protocol import assert_streaming_quantization_supported, manifest_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/ltx2-pytorch"
@@ -110,6 +110,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         ):
             self.adapter.main()
         command = run.call_args_list[0].args[0]
+        assert_streaming_quantization_supported(command)
         self.assertEqual(
             command[command.index("--prompt") + 1], "Synchronized fox scene"
         )

@@ -6,7 +6,6 @@ import argparse
 import hashlib
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -255,6 +254,13 @@ def _verify_synchronized_mp4(path: Path, *, height: int, width: int) -> None:
         raise SystemExit("MOVA output audio and video durations are not synchronized")
 
 
+def _prepare_output_directory(output_dir: Path) -> tempfile.TemporaryDirectory[str]:
+    # The platform owns tmp/ and cache/; only our unique workspace must be fresh.
+    scratch = output_dir / "tmp"
+    scratch.mkdir(parents=True, exist_ok=True)
+    return tempfile.TemporaryDirectory(prefix="vonk-mova-", dir=scratch)
+
+
 def main() -> None:
     args = _arguments()
     manifest = _input_manifest()
@@ -263,13 +269,8 @@ def main() -> None:
     if not _OFFICIAL_RUNNER.is_file():
         raise SystemExit("the pinned official MOVA inference runner is missing")
 
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    if any(args.output_dir.iterdir()):
-        raise SystemExit(
-            "MOVA requires a fresh output directory for atomic publication"
-        )
     final_output = args.output_dir / "mova.mp4"
-    with tempfile.TemporaryDirectory(prefix="vonk-mova-") as temporary:
+    with _prepare_output_directory(args.output_dir) as temporary:
         temporary_path = Path(temporary)
         reference = _reference_frame(temporary_path, height, width, manifest)
         staged_output = temporary_path / "mova.mp4"
@@ -323,9 +324,7 @@ def main() -> None:
             command, check=True, env=environment, timeout=args.timeout_seconds
         )
         _verify_synchronized_mp4(staged_output, height=height, width=width)
-        temporary_final = args.output_dir / ".mova.mp4.complete"
-        shutil.copyfile(staged_output, temporary_final)
-        os.replace(temporary_final, final_output)
+        os.replace(staged_output, final_output)
 
 
 if __name__ == "__main__":

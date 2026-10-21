@@ -243,6 +243,7 @@ def _pipeline_command(
     artifacts: list[dict[str, object]] | None = None,
 ) -> list[str]:
     artifacts = _runtime_artifacts() if artifacts is None else artifacts
+    name = target.name
     common = [
         "--gemma-root",
         str(gemma_root),
@@ -262,12 +263,12 @@ def _pipeline_command(
         "65",
         "--frame-rate",
         "24",
-        "--offload",
-        "disk",
+        # fp8-scaled-mm requires the non-streaming builder in pinned LTX 1.5.0.
+        # Upstream recommends fp8-cast for BF16 checkpoints, not prequantized FP8.
+        *(() if name == "ltx-2-19b-distilled-fp8.safetensors" else ("--offload", "disk")),
         "--max-batch-size",
         "1",
     ]
-    name = target.name
     if name == "ltx-2-19b-dev.safetensors":
         return [
             "python3",

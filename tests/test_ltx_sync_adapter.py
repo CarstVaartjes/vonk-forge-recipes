@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from ltx_protocol import manifest_bytes
+from ltx_protocol import assert_streaming_quantization_supported, manifest_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = (
@@ -22,6 +22,58 @@ def load(path: Path) -> dict:
 
 
 class LtxSyncAuthorityTests(unittest.TestCase):
+    def test_all_sync_checkpoint_commands_use_supported_streaming_policies(
+        self,
+    ) -> None:
+        # LTX 1.5.0 diffusion_stage.py:150-202 selects streaming for CPU AND disk
+        # offload, then rejects every quantization fuse rule except fp8_cast.
+        for adapter in ("ltx2-sync-native", "ltx23-sync-native-disk"):
+            module = runpy.run_path(str(ROOT / f"adapters/video/{adapter}/run.py"))
+            for checkpoint in module["TARGET_FILENAMES"]:
+                with self.subTest(adapter=adapter, checkpoint=checkpoint):
+                    command_builder = module["_pipeline_command"]
+                    with mock.patch.dict(
+                        command_builder.__globals__,
+                        {
+                            "_spatial_upscaler": lambda *_: Path("/models/upscaler"),
+                            "_single_artifact": lambda *_: Path("/models/lora"),
+                        },
+                    ):
+                        command = command_builder(
+                            Path("/models/target") / checkpoint,
+                            Path("/models/gemma"),
+                            Path("/outputs/video.mp4"),
+                            7,
+                            "Prompt",
+                            [],
+                        )
+                    assert_streaming_quantization_supported(command)
+                    if checkpoint == "ltx-2-19b-distilled-fp8.safetensors":
+                        self.assertNotIn("--offload", command)
+                        self.assertEqual(
+                            command[command.index("--quantization") + 1],
+                            "fp8-scaled-mm",
+                        )
+
+    def test_streaming_guard_rejects_incompatible_quantization_policies(self) -> None:
+        for offload in ("cpu", "disk"):
+            for policy in ("fp8-scaled-mm", "nvfp4-cast", "nvfp4-prequant"):
+                with (
+                    self.subTest(offload=offload, policy=policy),
+                    self.assertRaisesRegex(AssertionError, "block streaming"),
+                ):
+                    assert_streaming_quantization_supported(
+                        ["--offload", offload, "--quantization", policy]
+                    )
+            for policy_args in ([], ["--quantization", "fp8-cast"]):
+                assert_streaming_quantization_supported(
+                    ["--offload", offload, *policy_args]
+                )
+        assert_streaming_quantization_supported(["--quantization", "fp8-scaled-mm"])
+        assert_streaming_quantization_supported(
+            ["--offload", "none", "--quantization", "fp8-scaled-mm"]
+        )
+
     def test_recipes_resolve_exact_runnable_authorities_and_closure(self) -> None:
         for slug in RECIPE_SLUGS:
             recipe = load(ROOT / "recipes" / f"{slug}.json")

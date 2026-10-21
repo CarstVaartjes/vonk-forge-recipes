@@ -82,7 +82,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Still-deployable historical Candidate using the exact official native LTX 1.4.1 distilled FP8 scaled-matmul path, spatial upscaler, and Gemma 3 companion closure; physical Spark acceptance remains pending. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this immutable execution contract remains available for reproducibility.",
+    "description": "Still-deployable historical Candidate using the exact official native LTX 1.5.0 distilled FP8 scaled-matmul path, spatial upscaler, and Gemma 3 companion closure. The FP8 checkpoint uses fp8-scaled-mm without CPU or disk offload because the pinned pipeline cannot stream this quantization policy; physical Spark acceptance remains pending. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this execution contract remains available for reproducibility.",
     "tags": [
       "executable",
       "candidate",
