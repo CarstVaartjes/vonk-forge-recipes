@@ -2,7 +2,7 @@
 
 from enum import IntEnum, StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
 
 class CleanupEndReason(StrEnum):
@@ -217,3 +217,20 @@ class SweepEvidenceMergeState(StrEnum):
     HAS_HOOKS = "HAS_HOOKS"
     UNKNOWN = "UNKNOWN"
     UNSTABLE = "UNSTABLE"
+
+
+class SweepAdoptionReason(StrEnum):
+    LOAD_RULES = "load-timeout rules changed: copying no longer counts"
+    SMOKE_RULES = "smoke rules changed: answer quality no longer fails a recipe"
+    SUPERSESSION = "load-superseded: not a recipe failure"
+    CAPACITY = "review capacity refusal: the fleet was not cleared first"
+
+
+class SweepAdoptionResult(BaseModel):
+    """One normalized saved verdict, awaiting the run's locked result writer."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    recipe: str
+    reason: SweepAdoptionReason
+    previous: dict[str, JsonValue]

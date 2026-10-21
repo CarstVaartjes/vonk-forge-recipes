@@ -310,6 +310,18 @@ def _changes(
     )
 
 
+def _same_content_identity(
+    previous: QualificationIdentity, current: QualificationIdentity
+) -> bool:
+    # The recipe digest binds its topology. A missing historical Spark count
+    # cannot change that content; explicit counts and all other pins must agree.
+    if previous.required_sparks is None:
+        previous = previous.model_copy(
+            update={"required_sparks": current.required_sparks}
+        )
+    return previous == current
+
+
 def derive_status(
     evidence: RecipeQualificationEvidence,
     current_identity: QualificationIdentity,
@@ -336,7 +348,9 @@ def derive_status(
     passes = [r for r in records if r.outcome == QualificationOutcome.PASSED]
     failures = [r for r in records if r.outcome == QualificationOutcome.FAILED]
     behavioural = [r for r in records if r.blame != QualificationBlame.PLATFORM]
-    exact = [r for r in behavioural if r.identity == current_identity]
+    exact = [
+        r for r in behavioural if _same_content_identity(r.identity, current_identity)
+    ]
     last_pass = passes[-1] if passes else None
     last_failure = failures[-1] if failures else None
     changed: tuple[QualificationChange, ...] = ()
@@ -351,7 +365,7 @@ def derive_status(
             last_pass = exact[-1]
         else:
             last_failure = exact[-1]
-    elif any(r.identity == current_identity for r in failures):
+    elif any(_same_content_identity(r.identity, current_identity) for r in failures):
         status = QualificationStatus.BLOCKED_PLATFORM
         reason = QualificationUnverifiedReason.PLATFORM_ISSUE
         if last_pass:
@@ -395,6 +409,7 @@ def published_status(
     if required_sparks is None:
         raise ValueError("current identity requires the recipe's Spark count")
     view = derive_status(evidence, current_identity, required_sparks, False)
+    certified: list[QualificationEvidenceRecord] = []
     if view.status == QualificationStatus.WORKING:
         # A later successful test with incomplete telemetry does not erase a
         # complete proof. A recipe failure on this identity invalidates older
@@ -402,7 +417,8 @@ def published_status(
         failures = [
             r.tested_at
             for r in evidence.records
-            if r.identity == current_identity and r.blame == QualificationBlame.RECIPE
+            if _same_content_identity(r.identity, current_identity)
+            and r.blame == QualificationBlame.RECIPE
         ]
         failed_at = max(failures) if failures else None
         certified = [
@@ -431,11 +447,7 @@ def published_status(
         QualificationStatus.FAILED_RECIPE,
     ) and (
         not current_identity.resolved
-        or (
-            view.status == QualificationStatus.WORKING
-            and view.last_pass is not None
-            and not view.last_pass.platform.resolved
-        )
+        or (view.status == QualificationStatus.WORKING and not certified)
         or (
             view.status == QualificationStatus.FAILED_RECIPE
             and view.last_failure is not None

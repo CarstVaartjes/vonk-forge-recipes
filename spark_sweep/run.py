@@ -73,7 +73,14 @@ from .identity import (
 )
 from .lifecycle import ACTIVE as ACTIVE_APP
 from .lifecycle import TERMINAL as SETTLED
-from .lifecycle import LifecycleState, RecipeStatus, RetestReason
+from .lifecycle import (
+    LifecycleState,
+    RecipeStatus,
+    ReconciliationStatus,
+    ReleaseAuthority,
+    RetestReason,
+    SkipReasonKind,
+)
 from .owner import OwnerGuard, OwnerStatus
 from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
@@ -175,21 +182,21 @@ class RealClock:
         time.sleep(seconds)
 
 
-FLEET_SKIP = "fleet"
+FLEET_SKIP = SkipReasonKind.FLEET
 #: Skipped because the recipe left the complete catalog; undone when it comes back.
-CATALOG_SKIP = "catalog"
+CATALOG_SKIP = SkipReasonKind.CATALOG
 #: Skipped because the platform cannot load this kind of recipe through a fleet profile yet:
 #: the sweep's own decision, neither a recipe verdict nor a platform fault. It heals by itself
 #: once ``_platform_cannot_load`` no longer holds for the recipe.
-PLATFORM_SKIP = "platform"
+PLATFORM_SKIP = SkipReasonKind.PLATFORM
 JOB_SKIP_CODE = "platform.job_recipes_not_loadable"
 
 
 def _fleet_skip(entry: Mapping[str, Any]) -> bool:
-    """A skip that depends on the fleet (also the older state files, which only carry the reason)."""
-    return entry.get("status") == "skipped" and (
-        entry.get("reason_kind") == FLEET_SKIP
-        or str(entry.get("reason", "")).startswith("not testable on this fleet")
+    """A skip whose typed reason depends on the fleet."""
+    return (
+        entry.get("status") == RecipeStatus.SKIPPED
+        and entry.get("reason_kind") == FLEET_SKIP
     )
 
 
@@ -1294,7 +1301,7 @@ class Sweep:
         observed = {
             "sha": identity.source_sha if identity else None,
             "control_contract_sha256": identity.contract_sha256 if identity else None,
-            "authority": "deployed-controller",
+            "authority": ReleaseAuthority.DEPLOYED_CONTROLLER,
         }
         if any(release.get(k) != value for k, value in observed.items()):
             self.state.data["release_history"].append(
@@ -1302,10 +1309,6 @@ class Sweep:
             )
             self.state.event(
                 "deployed Controller observed: " + (observed["sha"] or "unknown")
-            )
-        if release and release.get("authority") != "deployed-controller":
-            self.state.data["release_history"].append(
-                {**release, "authority": "legacy-unverified-publication-proxy"}
             )
         release.clear()
         release.update(**observed, seen_at=self.clock.now())
@@ -1397,7 +1400,7 @@ class Sweep:
         )
         self.state.event(f"scheduled retest {key}: {reason}")
 
-    def requeue_for_rules(self) -> None:
+    def requeue_uncertain(self) -> None:
         """Reopen outcomes whose evidence no longer justifies a terminal result."""
         for key, entry in self.state.recipes.items():
             if (
@@ -1416,61 +1419,6 @@ class Sweep:
                 record = self.state.downloads.get(key)
                 if record is not None:
                     record["retry_at"] = due
-        for key, entry in self.state.recipes.items():
-            if (
-                entry.get("status") == "failed"
-                and entry.get("failure_class") == "timeout"
-                and int(entry.get("rules", 1)) < policy.LOAD_RULES
-                and self._selected_key(key)
-            ):
-                self._requeue_failed(
-                    key, "load-timeout rules changed: copying no longer counts"
-                )
-        for key, entry in self.state.recipes.items():
-            if (
-                entry.get("status") == "failed"
-                and entry.get("phase") == "smoke"
-                and entry.get("failure_class") == "smoke-assertion"
-                and int(entry.get("smoke_rules", 1)) < policy.SMOKE_RULES
-                and self._selected_key(key)
-            ):
-                self._requeue_failed(
-                    key, "smoke rules changed: answer quality no longer fails a recipe"
-                )
-
-    def requeue_superseded_failures(self) -> None:
-        """A load the Controller replaced is not the recipe's failure: records of it are pending again."""
-        for key, entry in self.state.recipes.items():
-            evidence = entry.get("evidence")
-            reason = (
-                evidence.get("reason") if isinstance(evidence, Mapping) else None
-            ) or entry.get("error")
-            if (
-                entry.get("status") == "failed"
-                and (
-                    policy.superseded_text(reason)
-                    or policy.superseded_text(entry.get("error"))
-                )
-                and self._selected_key(key)
-            ):
-                self._requeue_failed(key, "load-superseded: not a recipe failure")
-
-    def requeue_unfreed_capacity_failures(self) -> None:
-        """A capacity refusal recorded before the fleet was cleared and reviewed again is tried again."""
-        for key, entry in self.state.recipes.items():
-            evidence = entry.get("evidence")
-            if (
-                entry.get("status") == "failed"
-                and entry.get("phase") == "review"
-                and entry.get("failure_class") == "capacity"
-                and not (
-                    isinstance(evidence, Mapping) and evidence.get("freeing_attempts")
-                )
-                and self._selected_key(key)
-            ):
-                self._requeue_failed(
-                    key, "review capacity refusal: the fleet was not cleared first"
-                )
 
     def requeue_failed(self) -> int:
         """``--retry-failed``: every failed recipe (within ``--only``), whatever the cause."""
@@ -1575,6 +1523,20 @@ class Sweep:
             lock.release()
 
     def _run(self) -> int:
+        # Adoption parses no remote state and writes nothing during read-only
+        # loads. Publish its evidence only under this run's exclusive lock.
+        for row in self.state.adoptions:
+            if not self.record_result(
+                row.recipe,
+                "requeue",
+                ReconciliationStatus.REQUEUED,
+                reason=row.reason,
+                previous=row.previous,
+            ):
+                return 1
+        if self.state.adoptions:
+            self.state.save()
+            self.state.adoptions.clear()
         self.state.data.pop("end", None)
         # Retired sources may be forgotten, but restarting does not prove that a
         # review/adoption dependency recovered. Its first sighting and budget survive.
@@ -1588,9 +1550,7 @@ class Sweep:
             self.check_client()
             if self.state.data.get("finalization"):
                 self._leave_fleet()
-            self.requeue_for_rules()
-            self.requeue_superseded_failures()
-            self.requeue_unfreed_capacity_failures()
+            self.requeue_uncertain()
             started = False
             for _ in itertools.count():
                 try:
@@ -1835,7 +1795,9 @@ class Sweep:
             cluster=failure.cluster,
             finished_at=now,
             release=self.release_sha,
-            release_authority="deployed-controller" if self.release_sha else None,
+            release_authority=ReleaseAuthority.DEPLOYED_CONTROLLER
+            if self.release_sha
+            else None,
             recovery_basis=recovery.failure_basis(
                 failure.code, self._component_observations()
             ),
@@ -2001,7 +1963,9 @@ class Sweep:
             attempts=int(entry.get("attempts", 0)) + 1,
             finished_at=now,
             release=self.release_sha,
-            release_authority="deployed-controller" if self.release_sha else None,
+            release_authority=ReleaseAuthority.DEPLOYED_CONTROLLER
+            if self.release_sha
+            else None,
             content_sha256=recipe.content_sha256,
             revision_id=recipe.revision_id,
             verdict_identity=content_identity(recipe).model_dump(mode="json"),
@@ -2114,7 +2078,6 @@ class Sweep:
             # one, it did not continue it. This load has ended; its lane requeues.
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
                 "state": "superseded",
-                "superseded": True,
                 "reason": f"superseded by this sweep's own load {owner}",
             }
             self.state.data["loads"].pop(load["request_key"], None)
@@ -2154,29 +2117,10 @@ class Sweep:
             load["state"] = "queued"
             load["copying"] = False
             return True
-        if status == "failed" and replaced is None:
-            try:
-                retry = self._retry_successor(document)
-            except VonkctlError as error:
-                # Unknown is not "ended": keep observing the failed application.
-                self._blind(str(error), error.reply)
-                return False
-            if retry is not None:
-                # The Controller is still retrying this load by itself: a newer retry
-                # application continues it, and only its ending is the recipe's.
-                self.state.event(
-                    f"application {document['id']} failed but the Controller retries it: "
-                    f"following {retry}"
-                )
-                load["app_id"] = retry
-                load["state"] = "queued"
-                load["copying"] = False
-                return True
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
                 "state": status,
-                "superseded": replaced is not None,
                 "reason": document.get("status_reason"),
                 "failure_code": failure_code,
                 "operation_id": document.get("current_operation_id") or document["id"],
@@ -2264,30 +2208,6 @@ class Sweep:
                 self.state.entry(key)["not_before"] = (
                     self.clock.now() + self.cfg.retry_delay
                 )
-
-    def _retry_successor(self, document: Mapping[str, Any]) -> str | None:
-        """The application that continues a failed one the Controller is still retrying, if any.
-
-        A failed application ends for good with the Controller's typed ``profile.failure_repeated``
-        blocker or a terminal assignment failure; otherwise a later application of the profile
-        that names this one as the application it retries is its continuation. An unreadable
-        answer raises: unknown is never "it ended".
-        """
-        if verdict.retry_ended(document):
-            return None
-        reply = self.vk.run("profile", "progress", profile=self.cfg.sweep_profile)
-        latest = reply.document
-        if not reply.ok or not isinstance(latest, dict):
-            raise VonkctlError(
-                reply.argv, reply, "the profile's latest application is unreadable"
-            )
-        if (
-            isinstance(latest.get("id"), str)
-            and latest["id"] != document.get("id")
-            and latest.get("retry_of_application_id") == document.get("id")
-        ):
-            return latest["id"]
-        return None
 
     def _blind(self, message: str, reply: Any = None) -> None:
         """The sweep cannot observe the Controller (outage, 502/503, protocol or version skew)."""
@@ -2470,11 +2390,7 @@ class Sweep:
             return
         app = self.state.data.get("apps", {}).get(slot["request_key"])
         if app is not None:
-            if (
-                app.get("superseded")
-                or policy.superseded_text(app.get("reason"))
-                or (app["state"] == "cancelled" and app.get("cause") == "superseded")
-            ):
+            if app["state"] == LifecycleState.SUPERSEDED:
                 self.requeue(key, "load superseded by another application")
                 return
             if app["state"] == "cancelled":
@@ -3164,24 +3080,6 @@ class Sweep:
             )
             for s in self.sparks()
         }
-        for slot in self.state.slots.values():
-            if slot["phase"] == "finished":
-                continue
-            accepted = AcceptedRequest.read(slot)
-            if accepted is None:
-                continue  # legacy lanes are held by _lane_holds until re-planned
-            recipe = accepted.recipe
-            for node in slot["node_ids"]:
-                if node in bins:
-                    b = bins[node]
-                    bins[node] = policy.SparkBin(
-                        b.id,
-                        b.name,
-                        b.capacity,
-                        b.used + recipe.memory_bytes,
-                        b.ports | frozenset(recipe.ports),
-                        b.aliases | {slot["alias"]},
-                    )
         holds = self._lane_holds()
         return [bin_ for bin_ in bins.values() if bin_.id not in holds]
 
@@ -3595,8 +3493,7 @@ class Sweep:
                 continue
             if not reply.ok:
                 self._defer_cleanup(load, budget, now)
-                # Legacy status entries describe the next actual observation, not
-                # an expired submission retry. This does not pause other lanes.
+                # Status reports the next observation without pausing other lanes.
                 if item := self.state.data["infra"].get("clearing"):
                     item["count"] += 1
                     item["until"] = budget.next_check

@@ -57,3 +57,23 @@ class RetestReason(StrEnum):
     PASSED_OLDER_REVISION = "passed-on-older-revision"
     FAILED_OLDER_REVISION = "failed-on-older-revision"
     DEFERRED_OLDER_REVISION = "deferred-on-older-revision"
+
+
+class ReconciliationStatus(StrEnum):
+    REQUEUED = "requeued"
+    RESTORED = "restored"
+
+
+class SkipReasonKind(StrEnum):
+    FLEET = "fleet"
+    CATALOG = "catalog"
+    PLATFORM = "platform"
+
+
+class ReleaseAuthority(StrEnum):
+    DEPLOYED_CONTROLLER = "deployed-controller"
+
+
+class DownloadIntentKind(StrEnum):
+    SELECTOR = "selector"
+    RETRY = "retry"

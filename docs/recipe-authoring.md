@@ -13,7 +13,10 @@ A proven recipe stays proven until a hardware test on the same identity says
 otherwise. Updating a recipe, runtime image or Model creates a re-check, never
 an advance declaration that the recipe is broken. Reverting to a passed exact
 identity restores Working without running hardware again. Quality notes do not
-turn a successful hardware check into a failure.
+turn a successful hardware check into a failure. A missing historical Spark
+count does not change a matching recipe digest, which already binds topology;
+local proof survives while public certification still requires recorded platform
+provenance.
 
 The contract 2.4.0 models and `derive_status` are the authority. Evidence lives
 separately in `qualification/evidence/<publisher>/<recipe-slug>.json`; recording

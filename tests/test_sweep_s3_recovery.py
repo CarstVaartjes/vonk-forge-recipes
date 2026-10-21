@@ -499,7 +499,7 @@ def test_a_previously_exhausted_uncertainty_resumes_automatically_from_saved_sta
     resumed, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
     resumed.refresh_catalog()
     original_key = resumed.state.downloads[recipe.key]["request_key"]
-    resumed.requeue_for_rules()
+    resumed.requeue_uncertain()
     assert resumed._open(recipe.key)
     assert resumed.state.entry(recipe.key)["attempts"] == 17
     assert resumed.state.downloads[recipe.key]["request_key"] == original_key

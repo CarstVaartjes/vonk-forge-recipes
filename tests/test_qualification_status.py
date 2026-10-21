@@ -978,3 +978,118 @@ def test_unknown_image_library_publication_is_not_a_qualification_change(
     assert view is not None and not view.changed
     if view.last_pass is not None:
         assert view.last_pass.identity.runtime_image is None
+
+
+@pytest.mark.parametrize("schema", [1, 2])
+def test_one_load_adopts_schema_and_verdicts_without_losing_accepted_effects(
+    tmp_path, monkeypatch, schema
+):
+    from vonk_forge_contracts.sweep import SweepAdoptionReason
+
+    from spark_sweep import qualification
+    from spark_sweep import state as state_module
+    from spark_sweep.lifecycle import RecipeStatus
+
+    path = tmp_path / "state.json"
+    saved = {
+        "schema": schema,
+        "nonce": "adoption-test",
+        "updated_at": NOW.timestamp(),
+        "recipes": {
+            KEY: {
+                "status": RecipeStatus.PENDING,
+                "previous": {
+                    "status": RecipeStatus.PASSED,
+                    "content_sha256": A.content_sha256,
+                    "verdict_identity": A.model_dump(mode="json"),
+                    "node_count": 1,
+                    "finished_at": NOW.timestamp(),
+                },
+            },
+        },
+        "loads": {"accepted": {"request_key": "accepted", "deadline": 123}},
+        "downloads": {KEY: {"request_key": "download", "deadline": 456}},
+    }
+    if schema == 1:
+        saved["load"] = saved["loads"].pop("accepted")
+        saved["recipes"]["vonk-forge/obsolete"] = {
+            "status": RecipeStatus.FAILED,
+            "failure_class": "timeout",
+            "attempts": 7,
+        }
+    path.write_text(json.dumps(saved))
+    before = path.read_bytes()
+    adopter = state_module._adopt
+    evidence_adopter = qualification.adopt_state_evidence
+    calls = []
+
+    def adopt(*args):
+        calls.append("state")
+        return adopter(*args)
+
+    def adopt_evidence(*args):
+        calls.append("evidence")
+        return evidence_adopter(*args)
+
+    monkeypatch.setattr(state_module, "_adopt", adopt)
+    monkeypatch.setattr(qualification, "adopt_state_evidence", adopt_evidence)
+    adopted = state_module.State.load(path, clock=lambda: NOW.timestamp())
+    assert calls == ["state", "evidence"]
+    assert path.read_bytes() == before
+    assert adopted.data["schema"] == state_module.SCHEMA
+    assert adopted.data["loads"] == {
+        "accepted": {"request_key": "accepted", "deadline": 123}
+    }
+    assert adopted.downloads == saved["downloads"]
+    imported = Evidence.model_validate(adopted.data["qualification_evidence"][KEY])
+    assert derive_status(imported, A, 2, False).status == Status.WORKING
+    if schema == 1:
+        assert adopted.entry("vonk-forge/obsolete")["status"] == RecipeStatus.PENDING
+        assert adopted.adoptions[0].reason == SweepAdoptionReason.LOAD_RULES
+        assert adopted.adoptions[0].previous["attempts"] == 7
+    # A crash before save repeats the same adoption without manufacturing proof.
+    interrupted = state_module.State.load(path, clock=lambda: NOW.timestamp())
+    assert interrupted.data == adopted.data
+    adopted.save()
+    calls.clear()
+    reloaded = state_module.State.load(path, clock=lambda: NOW.timestamp())
+    assert calls == ["state"]
+    assert reloaded.data == adopted.data
+    assert not reloaded.adoptions
+
+
+@pytest.mark.parametrize("field", ["unchanged", "recipe", "image", "model", "topology"])
+def test_missing_historical_spark_count_preserves_only_matching_content(field):
+    historical = A.model_copy(update={"required_sparks": None})
+    saved = record().model_copy(update={"identity": historical})
+    current = {
+        "unchanged": A,
+        "recipe": B,
+        "image": A.model_copy(update={"runtime_image": None}),
+        "model": A.model_copy(update={"model_digests": ("f" * 64,)}),
+        # A real topology change changes the recipe content digest too.
+        "topology": B.model_copy(update={"required_sparks": 2}),
+    }[field]
+    view = derive_status(evidence(saved), current, 2, False)
+    assert (view.status == Status.WORKING) == (field == "unchanged")
+    assert view.last_pass == saved
+    # Missing historical provenance never becomes public certification.
+    assert published_status(evidence(saved), current).status != Status.WORKING
+
+
+def test_explicit_historical_topology_mismatch_cannot_restore_working():
+    saved = record()
+    current = A.model_copy(update={"required_sparks": 2})
+    assert derive_status(evidence(saved), current, 2, False).status == Status.RECHECK
+
+
+def test_sparse_topology_failure_invalidates_older_public_proof():
+    failed = record(A, Outcome.FAILED, Blame.RECIPE, day=1).model_copy(
+        update={"identity": A.model_copy(update={"required_sparks": None})}
+    )
+    partial = record(day=2).model_copy(
+        update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
+    )
+    history = evidence(record(), failed, partial)
+    assert derive_status(history, A, 2, False).status == Status.WORKING
+    assert published_status(history, A).status == Status.NOT_YET_VERIFIED
