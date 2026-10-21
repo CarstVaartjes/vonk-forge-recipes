@@ -2923,7 +2923,6 @@ def run(
 def verify_steps() -> list[tuple[str, list[str]]]:
     """The data checks of ``validate.yml`` (tests assert none is missing here)."""
     return [
-        ("README overview", [sys.executable, "tools/build-readme-overview"]),
         ("model references", [sys.executable, "tools/check-recipe-model-references"]),
         ("model families", [sys.executable, "tools/check-model-families"]),
         (
@@ -2950,7 +2949,7 @@ def verify_steps() -> list[tuple[str, list[str]]]:
 
 
 def verify(root: Path, recipe_id: str) -> str | None:
-    """Regenerate the README and run every check; returns a failure description."""
+    """Run the producer checks; returns a failure description."""
     steps = verify_steps()
     for name, command in steps:
         result = run(command, cwd=root, check=False)
