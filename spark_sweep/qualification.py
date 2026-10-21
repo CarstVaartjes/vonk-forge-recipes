@@ -36,6 +36,7 @@ from vonk_forge_contracts.qualification_status import (
 
 from .auth_contract import SmokeAuthClass
 from .catalog import Recipe
+from .identity import current_identity
 from .lifecycle import RecipeStatus
 from .state import write_atomic
 
@@ -72,19 +73,6 @@ class HistoricalResult(BaseModel):
     result: HistoricalSmokeResult = Field(default_factory=HistoricalSmokeResult)
     failure_class: str | None = None
     code: str | None = None
-
-
-def current_identity(recipe: Recipe) -> QualificationIdentity:
-    return QualificationIdentity(
-        content_sha256=recipe.content_sha256,
-        runtime_image=QualificationRuntimeImage.model_validate(
-            recipe.runtime_image.model_dump()
-        )
-        if recipe.runtime_image
-        else None,
-        model_digests=tuple(sorted(set(recipe.model_digests))),
-        required_sparks=recipe.node_count,
-    )
 
 
 def evidence_path(root: Path, recipe_key: str) -> Path:
