@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/glm-5-3-flash-exl3-tonyd2wild-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "c059842ee70d0581f08ea8e1fb49df63e16180876dcefe887cf7eb38c94c7d3a",
+        "runtime_image": {
+          "build_key": "32c2e438f537c339378a155a61b6a031f03850fcdb103d2f16cbebea99652510",
+          "image_digest": "sha256:9add43c2fa784528d5cb135b86865f8ce4cfa3e1f8ea61a1ac26f524da2c7f44"
+        },
+        "model_digests": [
+          "43c57f0707622cfa27e81749a79267a89050dd86b9dc148d479b36ab66a9a71b",
+          "73fe71f01ddc4aa6a1501e1bedf04150f295ab6d8d3c08d15e604b7cb0d13e83"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "875973d170207d5c9dd8bd08a0f38e6129f86fa23a4e3ab8b4e94f45e7f58bc9"
+      ],
+      "tested_at": "2026-10-21T18:58:43.854306Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
