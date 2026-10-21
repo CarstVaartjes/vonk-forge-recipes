@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-int4-autoround-mia-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "bae684a803719c40ead8e5bfc99843d6564f0f3067f491d70b2f3e0781113ef9",
+        "runtime_image": {
+          "build_key": "24080009e39d68f14da87efcdd854155cd24988d73a7938059ae73d0b7c9aecc",
+          "image_digest": "sha256:1f7b1707b74f5a46cdca6a6721a8d5330d8c9ce47472cf5423917a9dc7865221"
+        },
+        "model_digests": [
+          "ab8de7a15df47b77a8ae1223f433449af3a036ac7f175d5b2bf151d77d5ddbef"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "1ed78a92688541159de287503d83ce06a12f19a0272c7c95a725c12b7fe5ad32"
+      ],
+      "tested_at": "2026-10-21T17:25:15.937263Z",
+      "platform": {
+        "controller_source_sha": "b3d5ff8abde9b8511afcd8c4f544f2addfb070df",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
