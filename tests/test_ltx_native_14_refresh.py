@@ -8,6 +8,8 @@ from pathlib import Path
 
 from generated_catalog import GENERATED
 
+from tools.protocol_wheel import selection
+
 ROOT = Path(__file__).resolve().parents[1]
 RECIPES = {
     "ltx-2-19b-dev-fp4-pytorch-single": "adapters/video/ltx2-pytorch",
@@ -68,9 +70,9 @@ class LtxNative14RefreshTests(unittest.TestCase):
             self.assertEqual(dockerfile.count(commit.group(1)), 2, slug)
             self.assertEqual(dockerfile.count(digest.group(1)), 2, slug)
             self.assertIn("sha256sum --check --strict", dockerfile)
-            self.assertIn("e6de69b20c098d4df2eb9e0294cede8acc552a3c", dockerfile)
+            self.assertIn(selection(ROOT).platform_source_commit, dockerfile)
             self.assertIn(
-                "e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195",
+                selection(ROOT).artifact_sha256,
                 dockerfile,
             )
             self.assertIn(

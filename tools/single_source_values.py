@@ -128,16 +128,16 @@ def owner_value(root: Path, registration: Registration) -> str | int | float:
 
 _WHEEL = re.compile(r"vonk[_-]agent[_-]protocol-[A-Za-z0-9_.+!\-]+\.whl")
 _MEMORY_CONTEXT = re.compile(
-    r"memory|spark|physical|guard|os_floor|os_allowance|capacity|\bCAP\b", re.I
+    r"memory|spark|physical|guard|os_floor|os_allowance|capacity|\bCAP\b", re.IGNORECASE
 )
 _VERSION = re.compile(
     r"\b(?:CONTRACT_VERSION|CONTRACT_MAJOR|__version__)\s*(?::[^=\n]+)?=\s*"
     r"(?:[\"']\d+(?:\.\d+)*[\"']|\d+(?:\.\d+)*)"
 )
-_UNITS = re.compile(r"(\d+(?:\.\d+)?)\s*(GiB|GB|MiB|MB|bytes)", re.I)
+_UNITS = re.compile(r"(\d+(?:\.\d+)?)\s*(GiB|GB|MiB|MB|bytes)", re.IGNORECASE)
 
 
-def _byte_value(value: str | int | float | None) -> int | float | None:
+def _byte_value(value: str | float | None) -> int | float | None:
     if isinstance(value, (int, float)):
         return value
     if isinstance(value, str):
@@ -158,12 +158,12 @@ def scan_source(
     registration: Registration,
     path: str,
     text: str,
-    value: str | int | float,
+    value: str | float,
 ) -> list[Violation]:
     """Scan parsed Python, executable documentation and line-oriented build inputs."""
     if path.endswith(".md"):
         issues = []
-        for match in re.finditer(r"```[^\n]*\n(.*?)```", text, re.S):
+        for match in re.finditer(r"```[^\n]*\n(.*?)```", text, re.DOTALL):
             padding = "\n" * text[: match.start(1)].count("\n")
             issues.extend(
                 scan_source(registration, path + ":fence", padding + match[1], value)
@@ -201,6 +201,8 @@ def scan_source(
             (text[: m.start()].count("\n") + 1, m[0]) for m in _WHEEL.finditer(text)
         ]
     elif registration.kind == ValueKind.CONTRACT_VERSION:
+        if "contracts/" not in path and "vonk_forge_contracts" not in text:
+            text = re.sub(r"__version__", "external_version", text)
         hits = [
             (text[: m.start()].count("\n") + 1, m[0]) for m in _VERSION.finditer(text)
         ]
@@ -299,6 +301,21 @@ def check(root: Path, files: list[str] | None = None) -> list[Violation]:
 
             generated = projections(root)
         for path in files:
+            if (
+                registration.kind == ValueKind.PROTOCOL_WHEEL
+                and _WHEEL.search(path)
+                and path not in generated
+            ):
+                issues.append(
+                    Violation(
+                        semantic_id=registration.semantic_id,
+                        path=path,
+                        line=1,
+                        observed="unregistered protocol wheel artifact",
+                        owner=registration.owner,
+                        derivation="use only the selected artifact projections",
+                    )
+                )
             payload = (root / path).read_bytes()
             if path in generated:
                 if payload != generated[path]:

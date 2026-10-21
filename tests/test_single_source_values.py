@@ -55,3 +55,37 @@ def test_guard_rejects_duplicate_and_missing_owner_selectors(tmp_path: Path) -> 
     )
     with pytest.raises(ValueError, match="exactly one"):
         check(tmp_path, ["owner.py", "registry/single-source-values.json"])
+
+
+def test_rejects_protocol_wheel_family() -> None:
+    registration = Registration(
+        semantic_id="test.wheel",
+        owner="selection.json",
+        selector="artifact",
+        kind=ValueKind.PROTOCOL_WHEEL,
+    )
+    for name in (
+        "vonk_agent_protocol-0.1.0-py3-none-any.whl",
+        "vonk_agent_protocol-99.0.0-py3-none-any.whl",
+    ):
+        for path, source in (
+            (".github/workflows/new.yml", f"run: pip install {name}\n"),
+            ("adapters/new/Dockerfile", f"COPY {name} /tmp/{name}\n"),
+            ("tools/new", f"#!/bin/sh\npip install {name}\n"),
+            ("docs/recipe-authoring.md", f"```sh\npip install {name}\n```\n"),
+        ):
+            issues = scan_source(registration, path, source, "selected.whl")
+            assert issues and all(issue.semantic_id == "test.wheel" for issue in issues)
+            assert all("selection.json" in str(issue) for issue in issues)
+
+
+def test_unrelated_package_version_is_not_recipe_contract_version() -> None:
+    registration = Registration(
+        semantic_id="test.version",
+        owner="pyproject.toml",
+        selector="project.version",
+        kind=ValueKind.CONTRACT_VERSION,
+    )
+    assert not scan_source(
+        registration, "adapters/upstream/__init__.py", '__version__ = "3.0.0"', "4.0.0"
+    )

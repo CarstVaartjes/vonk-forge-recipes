@@ -766,8 +766,12 @@ Review every consumer of a shared context against hardware passes before editing
 it. LTX BF16 distilled and TRELLIS retain their existing smoke settings because
 their contexts are shared with proven LTX FP8 and Pixal3D respectively; do not
 fork these adapters to introduce smaller smokes.
-`tests/test_qualification_case_assertions.py` guards the reviewed media cases
-and the byte identities of those proven documents and shared contexts.
+An explicitly requested source change, such as a reviewed protocol-wheel
+refresh, updates the reviewed source pin without creating hardware evidence.
+Keep prior passes and unknown image provenance unchanged; reviewed source bytes
+do not certify the new runtime image. `tests/test_qualification_case_assertions.py`
+guards every reviewed shared context and verifies that historical passes do not
+become public proof of the refreshed context.
 
 MOVA's pinned temporal rule is `4k+1`, including one frame; smoke uses one frame
 and two steps at 640x352 or 1280x720, with synchronized 48 kHz audio at 24 fps.

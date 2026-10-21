@@ -1,0 +1,14 @@
+#!/usr/bin/env python3
+"""Render or verify the exact reviewed protocol-wheel adapter inputs."""
+
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from tools.protocol_wheel import materialize
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--check", action="store_true")
+args = parser.parse_args()
+materialize(check=args.check)
