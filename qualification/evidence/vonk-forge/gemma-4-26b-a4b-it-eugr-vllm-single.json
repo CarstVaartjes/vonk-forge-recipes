@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gemma-4-26b-a4b-it-eugr-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "2e42d642115cf701bdfac46dcc150d9a7a57f285d4463260701ac3ac06bb1bed",
+        "runtime_image": {
+          "build_key": "74af231b125d0fb5cb0274a46982f49cbb13036959e59759438901019c044abc",
+          "image_digest": "sha256:a1ad71cc0d7ce7f92e495773c21ee5b58c6b8d848fdb8b87b952bb151b66f155"
+        },
+        "model_digests": [
+          "bd6279d808aa71ceb12ade124ca2f2b7ef41c431c2263abcfbf7af78a8777cfa"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "e5b621d265f259d9df319980fcf3a97b736334f8344d1bdef7685bf7359d0ee8"
+      ],
+      "tested_at": "2026-10-21T13:46:16.671903Z",
+      "platform": {
+        "controller_source_sha": "1629b7b33e507c439b3052f67b670b1404b693d2",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
