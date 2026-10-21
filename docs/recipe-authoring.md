@@ -206,6 +206,13 @@ bound to the exact Model identity and test the pinned engine's sizing path with
 the old failing inputs. Label estimated overhead and retain physical testing as
 an outstanding check. Never raise an uncapped fraction to hide a memory failure.
 
+For a named tool choice that must produce one invocation, use a single native
+grammar rather than a repeating triggered tag. Preserve the argument schema's
+local `$ref`/`$defs` scope and the engine's automatic/parallel tool handling.
+Test the old grammar accepting duplicate calls and the replacement rejecting
+them, plus streaming and non-streaming parsing of the resulting native frame.
+Keep the serving assertion strict; response deduplication can discard real calls.
+
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`).
 `tools/check-recipe-topology` fails validation when a change alters the
