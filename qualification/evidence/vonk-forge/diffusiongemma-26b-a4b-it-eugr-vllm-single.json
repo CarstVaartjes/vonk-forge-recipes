@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/diffusiongemma-26b-a4b-it-eugr-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "e3de58c2ce1b14e8b6a3c2b137313fc666dc143ff7919a1ae8f6dab0f17cdc25",
+        "runtime_image": {
+          "build_key": "6aa0fc53cb83bc86c829f1572b12d49a664dbd4af7929e24e199de3c7b275473",
+          "image_digest": "sha256:afb361d4c4878f8afd3f7dd6f111b912d792c1d6d476c2be0a2ea67492f06d28"
+        },
+        "model_digests": [
+          "8ff6a404f1b7a8709a3cebce797856836e2d6321733a1ec8067a609d9bbaec43"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "cb1456fd6eede9bdd888c5368681a7dac4f0f090d10c505a001bb7385721e7f8"
+      ],
+      "tested_at": "2026-10-21T15:13:19.643218Z",
+      "platform": {
+        "controller_source_sha": "1629b7b33e507c439b3052f67b670b1404b693d2",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
