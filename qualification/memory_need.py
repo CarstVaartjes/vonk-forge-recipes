@@ -432,6 +432,16 @@ def memory_warnings(
     """Informative catalog estimates; these never change hardware qualification."""
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return []
+    missing = {
+        selection.model.content_sha256 for selection in recipe.models
+    } - models.keys()
+    if missing:
+        return [
+            (
+                f"WARNING {recipe.identity.slug}: memory estimate unavailable; "
+                f"missing Model inputs: {', '.join(sorted(missing))}"
+            )
+        ]
     warnings = []
     for index, variant in enumerate(memory_variants(recipe)):
         prefix = f"WARNING {recipe.identity.slug} [{index}]"

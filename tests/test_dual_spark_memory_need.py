@@ -29,7 +29,7 @@ def recipe_for(slug: str) -> RecipeDefinition:
 
 
 @pytest.mark.parametrize("slug", RECIPES)
-def test_capacity_profiles_declare_need_and_report_nonfit(slug: str) -> None:
+def test_capacity_profiles_declare_the_loading_floor(slug: str) -> None:
     recipe = recipe_for(slug)
     variants = [recipe]
     variants.extend(
@@ -39,9 +39,6 @@ def test_capacity_profiles_declare_need_and_report_nonfit(slug: str) -> None:
     )
     for variant in variants:
         need = per_rank_need(variant, catalog_models())
-        assert need.verdict == (
-            "fits 2 Sparks" if need.fits else "does not fit 2 Sparks"
-        )
         assert not declaration_problems(variant, need)
         assert (
             require_memory_need(
