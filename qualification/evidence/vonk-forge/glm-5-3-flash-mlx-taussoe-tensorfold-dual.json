@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/glm-5-3-flash-mlx-taussoe-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "434345bda4ad06991122aa2103fb7310bb75662a761bf29da56a99ff5926f7da",
+        "runtime_image": {
+          "build_key": "ea8f4787a047a98e98a17daa6cb45c3c8e4660a9ebfb05f89fc6f15d6749c710",
+          "image_digest": "sha256:d88bf472ce008e94ae2d46845887f2f093102e16d83ec7ed01badc1b95edda35"
+        },
+        "model_digests": [
+          "b13993e386732c758640d1dbca75c3c2fa609a3c47efdaf934c9279331bce683"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "2252128d3dacaafebb993eebdd0cefc76ec8d7d741a13ce12e5fd88ea5e2968f"
+      ],
+      "tested_at": "2026-10-21T18:37:03.491107Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
