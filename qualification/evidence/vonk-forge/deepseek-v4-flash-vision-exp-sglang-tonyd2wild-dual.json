@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "b0d1077e1840d8ab804d1a2f75e31d8e167bf35d80ffd4e1480c678bf34e8988",
+        "runtime_image": {
+          "build_key": "2ef0184ca36a595af997fdb00c78272df15f9c9fe6ffa365d2b36aced8cf2c78",
+          "image_digest": "sha256:f81f8a27a6f687aaea8687b242e944832bf3a140c169807b8ba18ccfd97b3f53"
+        },
+        "model_digests": [
+          "7a5cff0cc5fb0191cb96282a6b7bce85cac8496921d4d73d282a59aefb00a923"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "0c19b500e07536ade9c61a2082fae11ea74a5a276de811cf465c4cb10ace3fb8"
+      ],
+      "tested_at": "2026-10-21T16:54:15.011741Z",
+      "platform": {
+        "controller_source_sha": "d3da6cc4c0e193f1b194b1fb89610fed3782225c",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    }
+  ]
+}

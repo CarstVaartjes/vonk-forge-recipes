@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "eed43c82f034fc37620f5be25aa872ed4ebe3d40c3fcae75aaddb74beeafee74",
+        "runtime_image": {
+          "build_key": "f046aafc7e471dd57f5cee33978440ac526bf1946aeddc5382f2da1864a44e23",
+          "image_digest": "sha256:b62ab52a3168c039f8282fa66bd73571a2883bb6027541435d79cec9373a5a27"
+        },
+        "model_digests": [
+          "7a5cff0cc5fb0191cb96282a6b7bce85cac8496921d4d73d282a59aefb00a923"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "1890c224fbd0b21e48e1e14f76cae6737400b57ff167282cc17413ffd422c6b4"
+      ],
+      "tested_at": "2026-10-21T16:55:29.879724Z",
+      "platform": {
+        "controller_source_sha": "d3da6cc4c0e193f1b194b1fb89610fed3782225c",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
