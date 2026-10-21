@@ -1,5 +1,5 @@
 {
-  "_comment": "The one hand-maintained input of tools/build-readme-overview: creator rows (aliases are matched case-insensitively against a recipe's source owner and attribution). Families are not configured here; they come from each Model document's identity.family, which tools/check-model-families keeps to one lineage per slug.",
+  "_comment": "Tracked creator metadata for catalog source discovery. Families come from each Model document's identity.family, which tools/check-model-families keeps to one lineage per slug.",
   "creators": [
     {"name": "vLLM project", "url": "https://github.com/vllm-project/recipes", "aliases": ["vllm-project", "vllm semantic router", "vllm"], "focus": "Official vLLM model recipes, including Decision 3.0 native structured decisions with text, image and video inputs."},
     {"name": "MiaAI-Lab", "url": "https://github.com/MiaAI-Lab", "aliases": ["miaai-lab", "miaai lab"], "focus": "Spark cookbooks for SGLang, vLLM and TensorFold; DSpark and EXL3 builds; Qwen, GLM, DeepSeek, Ling."},

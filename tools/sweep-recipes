@@ -4,7 +4,7 @@
 Drives the fleet only through ``vonkctl`` (JSON mode): prefetches models onto the
 NAS while the Sparks test, runs each recipe's reviewed smoke cases, and keeps a
 resumable state file, a results log and a live status page. See
-docs/hardware-sweep.md. Start with ``tools/sweep-recipes plan``.
+AGENTS.md#hardware-sweep-operation. Start with ``tools/sweep-recipes plan``.
 """
 
 from __future__ import annotations
