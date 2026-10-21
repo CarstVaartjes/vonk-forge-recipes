@@ -771,8 +771,9 @@ and the byte identities of those proven documents and shared contexts.
 
 For pipelines that select native buckets, metadata assertions declare
 `native_dimensions` (kind, target size and T2V aspect ratio) instead of fixed
-width/height. The shared loader imports the pinned upstream bucket functions
-and reads the digest-checked image fixture for I2V. Only resolved width/height
+width/height. The shared loader uses a stdlib translation of the pinned upstream
+bucket rule and reads the digest-checked PNG fixture's IHDR dimensions for I2V.
+Only resolved width/height
 reach consumers. `tests/test_native_dimension_expectations.py` guards the
 source pins, automatic-sizing contexts and wrong-dimension rejection.
 

@@ -4,12 +4,18 @@ from __future__ import annotations
 
 import base64
 import hashlib
-import io
+import struct
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from qualification.native_buckets import (
+    calculate_dimensions,
+    generate_crop_size_list,
+    get_closest_ratio,
+)
 
 
 class NativeBucketKind(StrEnum):
@@ -34,16 +40,6 @@ def resolve_native_dimensions(
         if "width" in assertion or "height" in assertion:
             raise ValueError("native dimensions cannot also hard-code width/height")
         native = NativeDimensions.model_validate(assertion.pop("native_dimensions"))
-        # Lazy imports keep non-media definition readers dependency-light.
-        import numpy as np
-        from PIL import Image
-
-        from qualification.native_buckets import (
-            calculate_dimensions,
-            generate_crop_size_list,
-            get_closest_ratio,
-        )
-
         if native.aspect_ratio is not None:
             width, height = native.aspect_ratio
         else:
@@ -58,13 +54,21 @@ def resolve_native_dimensions(
                 raise ValueError(
                     f"fixture {fixture_id} does not match its recorded digest"
                 )
-            with Image.open(io.BytesIO(content)) as image:
-                width, height = image.size
+            # Qualification image fixtures are PNGs; their IHDR dimensions do
+            # not require an image decoder in the catalog build environment.
+            if (
+                len(content) < 33
+                or content[:16] != b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+            ):
+                raise ValueError(f"fixture {fixture_id} must have a PNG IHDR header")
+            width, height = struct.unpack(">II", content[16:24])
+            if not width or not height:
+                raise ValueError(f"fixture {fixture_id} must have positive dimensions")
         if native.kind == NativeBucketKind.HUNYUAN_VIDEO_15:
             buckets = generate_crop_size_list(
                 base_size=native.target_size, patch_size=16
             )
-            ratios = np.array([round(float(h) / float(w), 5) for h, w in buckets])
+            ratios = [round(float(h) / float(w), 5) for h, w in buckets]
             height, width = get_closest_ratio(height, width, ratios, buckets)[0]
         else:
             width, height = calculate_dimensions(native.target_size**2, width / height)

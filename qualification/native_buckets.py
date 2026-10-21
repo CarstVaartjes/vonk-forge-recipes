@@ -20,7 +20,8 @@ Hunyuan: diffusers d035dcd7cc7c88e0a154609b62887d50bba9fdc2,
 pipelines/hunyuan_video1_5/image_processor.py.
 Qwen: diffusers c5469b7ceb606edd7ba6570dcd17d38590a18db6,
 pipelines/qwenimage/pipeline_qwenimage_edit_plus.py (also used by Layered).
-Function bodies are unchanged; the inaccurate upstream ratios annotation is omitted.
+Bucket generation and Qwen rounding are unchanged. Ratio selection uses Python
+floats instead of NumPy float64 subtraction, preserving filtering and first ties.
 Kept outside image contexts: qualification changes must not rebuild images.
 """
 
@@ -56,7 +57,7 @@ def get_closest_ratio(height: float, width: float, ratios, buckets: list):
         the closest size in the buckets and the corresponding ratio
     """
     aspect_ratio = float(height) / float(width)
-    diff_ratios = ratios - aspect_ratio
+    diff_ratios = [ratio - aspect_ratio for ratio in ratios]
 
     if aspect_ratio >= 1:
         indices = [(index, x) for index, x in enumerate(diff_ratios) if x <= 0]

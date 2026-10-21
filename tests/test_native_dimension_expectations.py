@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import base64
+import builtins
 import hashlib
 import io
 import json
@@ -13,6 +14,11 @@ import pytest
 from PIL import Image
 
 from qualification.definitions_loader import load_definitions
+from qualification.native_buckets import (
+    calculate_dimensions,
+    generate_crop_size_list,
+    get_closest_ratio,
+)
 from spark_sweep.job_assertions import Output, evaluate
 from spark_sweep.smoke import AssertionFailed
 
@@ -24,7 +30,7 @@ HUNYUAN = {
 }
 
 
-def test_imported_bucket_bodies_match_pinned_upstream():
+def test_unchanged_bucket_bodies_match_pinned_upstream():
     # AST body hashes of the original functions, fetched at these exact image
     # pins. An image refresh must review its bucket implementation too.
     pins = {
@@ -37,7 +43,6 @@ def test_imported_bucket_bodies_match_pinned_upstream():
         assert pin in (ROOT / context / "Dockerfile").read_text()
     expected = {
         "generate_crop_size_list": "49d5ef08392fe14f6deedf1e9619b974f89d81ca2608f4a3baa1697f2d993dd3",
-        "get_closest_ratio": "95ab9c311cb3bdae61225d52ccbcf079220d3cf36850cdb3020af373711633ac",
         "calculate_dimensions": "591cae36575fcb9cbfe0f2b950fc7f7db71627360d6ecab1c6e925b2ba53e041",
     }
     source = ast.parse((ROOT / "qualification/native_buckets.py").read_text())
@@ -46,9 +51,105 @@ def test_imported_bucket_bodies_match_pinned_upstream():
             ast.dump(ast.Module(body=node.body, type_ignores=[])).encode()
         ).hexdigest()
         for node in source.body
-        if isinstance(node, ast.FunctionDef)
+        if isinstance(node, ast.FunctionDef) and node.name in expected
     }
     assert actual == expected
+
+
+def test_stdlib_buckets_match_recorded_pinned_upstream():
+    # Diffusers cannot import in the producer environment (no torch). These
+    # outputs were recorded with NumPy 2.3.5 by executing the two original
+    # functions extracted by AST from the exact source URL in the fixture.
+    recorded = json.loads(
+        (ROOT / "tests/fixtures/hunyuan-native-buckets-upstream.json").read_text()
+    )
+    assert "d035dcd7cc7c88e0a154609b62887d50bba9fdc2" in recorded["upstream"]
+    sizes = recorded["input_sizes"]
+    for target, grid in zip(
+        recorded["target_sizes"], recorded["height_width_grid"], strict=True
+    ):
+        buckets = generate_crop_size_list(target, 16)
+        ratios = [round(float(h) / float(w), 5) for h, w in buckets]
+        for height, row in zip(sizes, grid, strict=True):
+            for width, expected in zip(sizes, row, strict=True):
+                actual = get_closest_ratio(height, width, ratios, buckets)[0]
+                assert list(actual) == expected, (target, height, width)
+    # Immediately below, on, and above upstream's five-decimal ratios.
+    for target, height, width, expected_h, expected_w in recorded[
+        "rounding_boundaries"
+    ]:
+        buckets = generate_crop_size_list(target, 16)
+        ratios = [round(float(h) / float(w), 5) for h, w in buckets]
+        assert get_closest_ratio(height, width, ratios, buckets)[0] == (
+            expected_h,
+            expected_w,
+        )
+
+
+@pytest.mark.parametrize("height", [0.95, 1.0, 1.05])
+def test_ratio_selection_filters_direction_and_keeps_first_tie(height):
+    buckets = [(90, 100), (100, 100), (200, 200), (110, 100)]
+    assert get_closest_ratio(height, 1, [0.9, 1.0, 1.0, 1.1], buckets) == (
+        (100, 100),
+        1.0,
+    )
+
+
+@pytest.mark.parametrize("side,expected", [(80, 64), (112, 128)])
+def test_qwen_rounds_halfway_dimensions_to_even(side, expected):
+    assert calculate_dimensions(side**2, 1) == (expected, expected)
+
+
+def test_definitions_load_without_media_dependencies(monkeypatch):
+    original_import = builtins.__import__
+
+    def dependency_light_import(name, *args, **kwargs):
+        if name.split(".")[0] in {"numpy", "PIL"}:
+            raise ModuleNotFoundError(f"catalog environment has no {name}")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", dependency_light_import)
+    definitions = load_definitions()
+    for slug, size in HUNYUAN.items():
+        assertion = next(
+            a
+            for a in definitions["recipes"][f"vonk-forge/{slug}"]["assertions"]
+            if a["kind"] == "video-metadata"
+        )
+        assert (assertion["width"], assertion["height"]) == size
+
+
+@pytest.mark.parametrize(
+    "content,message",
+    [
+        (b"not a PNG", "PNG IHDR header"),
+        (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR", "PNG IHDR header"),
+        (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + bytes(17),
+            "positive dimensions",
+        ),
+    ],
+)
+def test_native_fixture_rejects_invalid_png_dimensions(tmp_path, content, message):
+    from qualification.native_dimensions import resolve_native_dimensions
+
+    (tmp_path / "input.png").write_bytes(content)
+    fixtures = {
+        "image": {
+            "name": "input.png",
+            "path": "input.png",
+            "encoding": "identity",
+            "sha256": hashlib.sha256(content).hexdigest(),
+        }
+    }
+    case = {
+        "inputs": [{"slot": "image", "fixture": "image"}],
+        "assertions": [
+            {"native_dimensions": {"kind": "hunyuan-video-15", "target_size": 640}}
+        ],
+    }
+    with pytest.raises(ValueError, match=message):
+        resolve_native_dimensions(case, fixtures, tmp_path)
 
 
 @pytest.mark.parametrize("slug,size", HUNYUAN.items())
