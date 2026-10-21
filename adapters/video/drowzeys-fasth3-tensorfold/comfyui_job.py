@@ -46,7 +46,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-mime", required=True, choices=sorted(MIME_EXTENSIONS))
     parser.add_argument("--seed", required=True, type=int)
     parser.add_argument("--output-dir", default="/outputs")
-    return parser.parse_args()
+    parser.add_argument("--num-frames", type=int, default=124)
+    args = parser.parse_args()
+    if not 120 <= args.num_frames <= 344 or args.num_frames % 4:
+        raise ValueError("num-frames must be a multiple of 4 between 120 and 344")
+    return args
 
 
 def load_workflow(relative_path: str, expected_sha256: str) -> dict[str, Any]:
@@ -518,6 +522,8 @@ def comfyui_command(
 def run_job() -> int:
     args = parse_args()
     document = load_workflow(args.workflow, args.workflow_sha256)
+    document["prompt"]["6"]["inputs"]["length"] = args.num_frames
+    document["result"]["video"]["frames"] = args.num_frames
     manifest = load_input_manifest()
     inputs = input_names(document, manifest)
     replacements = workflow_replacements(document, inputs, args.seed, manifest)

@@ -438,14 +438,19 @@
         "value": "video/mp4"
       },
       {
-        "name": "timeout-seconds",
-        "setting": null,
-        "value": 3600
-      },
-      {
         "name": "seed",
         "setting": null,
         "value": 0
+      },
+      {
+        "name": "num-frames",
+        "setting": "num-frames",
+        "value": null
+      },
+      {
+        "name": "num-inference-steps",
+        "setting": "num-inference-steps",
+        "value": null
       }
     ],
     "engine": "pytorch-pipeline",
@@ -465,7 +470,16 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "num-frames": {
+        "value": 193,
+        "change_effect": "none"
+      },
+      "num-inference-steps": {
+        "value": 50,
+        "change_effect": "none"
+      }
+    }
   },
   "topology": {
     "name": "solo",

@@ -425,6 +425,16 @@
         "name": "seed",
         "setting": null,
         "value": 0
+      },
+      {
+        "name": "num-frames",
+        "setting": "num-frames",
+        "value": null
+      },
+      {
+        "name": "num-inference-steps",
+        "setting": "num-inference-steps",
+        "value": null
       }
     ],
     "engine": "pytorch-pipeline",
@@ -444,7 +454,16 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {}
+    "knobs": {
+      "num-frames": {
+        "value": 97,
+        "change_effect": "none"
+      },
+      "num-inference-steps": {
+        "value": 40,
+        "change_effect": "none"
+      }
+    }
   },
   "topology": {
     "name": "solo",

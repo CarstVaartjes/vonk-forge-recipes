@@ -7,6 +7,8 @@ import hashlib
 import json
 import os
 import socket
+import signal
+import time
 import subprocess
 import sys
 import tempfile
@@ -33,7 +35,8 @@ def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--entrypoint", required=True)
     parser.add_argument("--output-mime", required=True)
-    parser.add_argument("--timeout-seconds", type=int, default=3600)
+    parser.add_argument("--num-frames", type=int, default=_OUTPUT_FRAMES)
+    parser.add_argument("--num-inference-steps", type=int, default=50)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
@@ -41,8 +44,10 @@ def _arguments() -> argparse.Namespace:
         raise SystemExit("unexpected signed-bundle entrypoint")
     if args.output_mime != "video/mp4":
         raise SystemExit("MOVA emits synchronized video/audio as video/mp4 only")
-    if not 1 <= args.timeout_seconds <= 3600:
-        raise SystemExit("timeout must be between 1 and 3600 seconds")
+    if not 1 <= args.num_frames <= _OUTPUT_FRAMES or args.num_frames % 4 != 1:
+        raise SystemExit("num-frames must be 4k+1 between 1 and 193")
+    if not 1 <= args.num_inference_steps <= 50:
+        raise SystemExit("num-inference-steps must be between 1 and 50")
     if not 0 <= args.seed < 2**63:
         raise SystemExit("seed is outside the harness contract")
     return args
@@ -193,7 +198,9 @@ def _stream_duration(stream: dict[str, object]) -> float | None:
     return duration if duration is not None and duration > 0 else None
 
 
-def _verify_synchronized_mp4(path: Path, *, height: int, width: int) -> None:
+def _verify_synchronized_mp4(
+    path: Path, *, height: int, width: int, frames: int = _OUTPUT_FRAMES, timeout: float = 60
+) -> None:
     if not path.is_file() or path.stat().st_size < 1024:
         raise SystemExit("MOVA did not produce a non-empty MP4 artifact")
     probe = subprocess.run(
@@ -211,6 +218,7 @@ def _verify_synchronized_mp4(path: Path, *, height: int, width: int) -> None:
         check=True,
         capture_output=True,
         text=True,
+        timeout=timeout,
     )
     document = json.loads(probe.stdout)
     media_format = document.get("format")
@@ -236,18 +244,18 @@ def _verify_synchronized_mp4(path: Path, *, height: int, width: int) -> None:
         frame_count = int(str(video.get("nb_read_frames", video.get("nb_frames"))))
     except (TypeError, ValueError, ZeroDivisionError) as exc:
         raise SystemExit("MOVA output must expose a bounded frame contract") from exc
-    if abs(frame_rate - _OUTPUT_FPS) > 0.01 or frame_count != _OUTPUT_FRAMES:
-        raise SystemExit("MOVA output must contain exactly 193 frames at 24 fps")
+    if abs(frame_rate - _OUTPUT_FPS) > 0.01 or frame_count != frames:
+        raise SystemExit(f"MOVA output must contain exactly {frames} frames at 24 fps")
     if audio.get("sample_rate") != "48000":
         raise SystemExit("MOVA output audio must retain the native 48 kHz sample rate")
     video_duration = _stream_duration(video)
     audio_duration = _stream_duration(audio)
     if video_duration is None or audio_duration is None:
         raise SystemExit("MOVA output streams must expose bounded durations")
-    expected_duration = _OUTPUT_FRAMES / _OUTPUT_FPS
+    expected_duration = frames / _OUTPUT_FPS
     if abs(video_duration - expected_duration) > 1.0 / _OUTPUT_FPS:
         raise SystemExit(
-            "MOVA output video duration does not match 193 frames at 24 fps"
+            f"MOVA output video duration does not match {frames} frames at 24 fps"
         )
     if abs(audio_duration - expected_duration) > 0.25:
         raise SystemExit("MOVA output audio duration is outside the synchronized bound")
@@ -262,7 +270,38 @@ def _prepare_output_directory(output_dir: Path) -> tempfile.TemporaryDirectory[s
     return tempfile.TemporaryDirectory(prefix="vonk-mova-", dir=scratch)
 
 
+def _job_deadline() -> float:
+    try:
+        seconds = int(os.environ["VONK_JOB_TIMEOUT_SECONDS"])
+    except (KeyError, ValueError) as error:
+        raise SystemExit("job must declare VONK_JOB_TIMEOUT_SECONDS") from error
+    if not 1 <= seconds <= 3600:
+        raise SystemExit("job timeout must be between 1 and 3600 seconds")
+    return time.monotonic() + seconds
+
+
+def _remaining(deadline: float) -> float:
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise SystemExit("MOVA job budget exhausted before artifact publication")
+    return remaining
+
+
+def _generate(command: list[str], environment: dict[str, str], deadline: float) -> None:
+    # torchrun owns worker children: expiry must stop the whole process group.
+    with subprocess.Popen(command, env=environment, start_new_session=True) as process:
+        try:
+            code = process.wait(timeout=_remaining(deadline))
+        except (subprocess.TimeoutExpired, SystemExit) as error:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
+            raise SystemExit("MOVA generation exceeded the declared job budget") from error
+        if code:
+            raise subprocess.CalledProcessError(code, command)
+
+
 def main() -> None:
+    deadline = _job_deadline()
     args = _arguments()
     manifest = _input_manifest()
     prompt = _prompt(manifest)
@@ -300,7 +339,7 @@ def main() -> None:
             "--output_path",
             str(staged_output),
             "--num_frames",
-            str(_OUTPUT_FRAMES),
+            str(args.num_frames),
             "--fps",
             str(_OUTPUT_FPS),
             "--height",
@@ -310,7 +349,7 @@ def main() -> None:
             "--seed",
             str(args.seed),
             "--num_inference_steps",
-            "50",
+            str(args.num_inference_steps),
             "--cfg_scale",
             "5",
             "--sigma_shift",
@@ -329,10 +368,12 @@ def main() -> None:
                 "TRANSFORMERS_OFFLINE": "1",
             }
         )
-        subprocess.run(
-            command, check=True, env=environment, timeout=args.timeout_seconds
+        _generate(command, environment, deadline)
+        _verify_synchronized_mp4(
+            staged_output, height=height, width=width, frames=args.num_frames,
+            timeout=min(60, _remaining(deadline)),
         )
-        _verify_synchronized_mp4(staged_output, height=height, width=width)
+        _remaining(deadline)
         os.replace(staged_output, final_output)
 
 

@@ -2,7 +2,9 @@
   "id": "vonk-forge/fasth3-8step-v2-drowzeys-tensorfold-single",
   "recipes": {
     "interface": "video-job",
-    "parameters": {},
+    "parameters": {
+      "num-frames": 120
+    },
     "inputs": [
       {
         "slot": "prompt",
@@ -44,9 +46,9 @@
         "height": 480,
         "fps": 24,
         "fps_tolerance": 0.01,
-        "frame_count": 124,
-        "minimum_duration_seconds": 5.1,
-        "maximum_duration_seconds": 5.25,
+        "frame_count": 120,
+        "minimum_duration_seconds": 4.958333333333333,
+        "maximum_duration_seconds": 5.041666666666667,
         "stream_count": 2,
         "audio_streams": 1,
         "codec": "h264"

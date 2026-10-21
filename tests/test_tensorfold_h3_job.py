@@ -108,3 +108,39 @@ def test_video_contract_rejects_missing_audio(tmp_path, monkeypatch):
     probe["streams"].pop()
     with pytest.raises(RuntimeError, match="audio stream"):
         JOB.validate_mp4(tmp_path / "result.mp4", contract)
+
+
+def test_smoke_frame_override_updates_graph_and_output_assertion(monkeypatch):
+    document = json.loads((CONTEXT / "workflows/fasth3.json").read_text())
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "job",
+            "--workflow",
+            "fasth3.json",
+            "--workflow-sha256",
+            "unused",
+            "--output-mime",
+            "video/mp4",
+            "--seed",
+            "0",
+            "--num-frames",
+            "120",
+        ],
+    )
+    monkeypatch.setattr(JOB, "load_workflow", lambda *_: document)
+    monkeypatch.setattr(JOB, "load_input_manifest", lambda: None)
+
+    class Observed(Exception):
+        pass
+
+    def inspect_graph(updated, manifest):
+        assert updated["prompt"]["6"]["inputs"]["length"] == 120
+        assert updated["result"]["video"]["frames"] == 120
+        assert updated["prompt"]["10"]["inputs"]["steps"] == 8
+        raise Observed
+
+    monkeypatch.setattr(JOB, "input_names", inspect_graph)
+    with pytest.raises(Observed):
+        JOB.run_job()

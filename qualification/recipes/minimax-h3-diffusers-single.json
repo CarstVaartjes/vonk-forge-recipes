@@ -7,6 +7,10 @@
       {
         "slot": "prompt",
         "fixture": "generic-prompt-text"
+      },
+      {
+        "slot": "request",
+        "fixture": "minimax-smoke-request"
       }
     ],
     "output_limits": {
@@ -50,9 +54,9 @@
         "height": 544,
         "fps": 24,
         "fps_tolerance": 0.001,
-        "frame_count": 124,
-        "minimum_duration_seconds": 5.166,
-        "maximum_duration_seconds": 5.167,
+        "frame_count": 120,
+        "minimum_duration_seconds": 4.958333333333333,
+        "maximum_duration_seconds": 5.041666666666667,
         "codec": "h264",
         "pixel_format": "yuv420p",
         "stream_count": 2,
@@ -60,8 +64,8 @@
         "audio_codec": "aac",
         "audio_channels": 2,
         "audio_sample_rate": 32000,
-        "minimum_audio_duration_seconds": 5.125,
-        "maximum_audio_duration_seconds": 5.208333334,
+        "minimum_audio_duration_seconds": 4.958333333333333,
+        "maximum_audio_duration_seconds": 5.041666666666667,
         "maximum_av_sync_delta_seconds": 0.041666667
       }
     ]

@@ -14,12 +14,15 @@ import pytest
 from test_hunyuan_single_recipes import video_module
 
 
-def test_square_i2v_job_publishes_native_bucket(tmp_path: Path, monkeypatch):
+@pytest.mark.parametrize("frame_count", [1, 121])
+def test_square_i2v_job_publishes_native_bucket(
+    tmp_path: Path, monkeypatch, frame_count
+):
     """The pre-fix main() rejects this 640x640 probe as an invalid 480p MP4."""
     module = video_module()
     np = __import__("numpy")
     frames = np.broadcast_to(
-        np.array([[[0.5, 0.5, 0.5]]], dtype="float32"), (121, 640, 640, 3)
+        np.array([[[0.5, 0.5, 0.5]]], dtype="float32"), (frame_count, 640, 640, 3)
     )
 
     class HunyuanVideo15ImageToVideoPipeline:
@@ -30,6 +33,8 @@ def test_square_i2v_job_publishes_native_bucket(tmp_path: Path, monkeypatch):
         video_processor = MagicMock()
 
         def __call__(self, **kwargs):
+            assert kwargs["num_frames"] == frame_count
+            assert kwargs["num_inference_steps"] == 8
             return SimpleNamespace(frames=[frames])
 
     pipe = HunyuanVideo15ImageToVideoPipeline()
@@ -61,6 +66,8 @@ def test_square_i2v_job_publishes_native_bucket(tmp_path: Path, monkeypatch):
             "480",
             "--seed",
             "1",
+            "--num-frames",
+            str(frame_count),
             "--output-dir",
             str(tmp_path),
         ],
@@ -78,11 +85,14 @@ def test_square_i2v_job_publishes_native_bucket(tmp_path: Path, monkeypatch):
                 "pix_fmt": "yuv420p",
                 "width": 640,
                 "height": 640,
-                "nb_read_frames": "121",
+                "nb_read_frames": str(frame_count),
                 "avg_frame_rate": "24/1",
             }
         ],
-        "format": {"format_name": "mov,mp4,m4a,3gp,3g2,mj2", "duration": "5.041667"},
+        "format": {
+            "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+            "duration": str(frame_count / 24),
+        },
     }
     with (
         patch.object(module, "export_to_video", side_effect=export),
