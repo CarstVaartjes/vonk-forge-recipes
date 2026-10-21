@@ -93,38 +93,19 @@ class Recipe:
 def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None:
     projected = RecipeRow.model_validate(row)
     key = dig(row, "selector")
-    document = dig(row, "projected", default={})
-    if not isinstance(key, str) or not isinstance(document, dict):
+    document = projected.projected
+    if not isinstance(key, str):
         return None
-    interfaces = [
-        item for item in document.get("interfaces", []) if isinstance(item, dict)
-    ]
-    roles = [
-        item
-        for item in dig(document, "topology", "roles", default=[])
-        if isinstance(item, dict)
-    ]
-    models = [item for item in document.get("models", []) if isinstance(item, dict)]
-    aliases: list[str] = []
-    for item in interfaces:
-        aliases += [
-            a for a in dig(item, "model_aliases", default=[]) if isinstance(a, str)
-        ]
+    interfaces = document.interfaces
     return Recipe(
         key=key,
         title=str(dig(row, "identity", "title", default=key)),
-        node_count=as_int(
-            dig(row, "node_count"), as_int(dig(document, "topology", "node_count"), 1)
-        ),
+        node_count=as_int(dig(row, "node_count"), document.topology.node_count),
         usage=tuple(str(u) for u in dig(row, "usage", default=[])),
-        engine=str(
-            dig(row, "engine", default=dig(document, "runtime_engine", default=""))
-        ),
+        engine=str(dig(row, "engine", default=document.runtime_engine)),
         creator=str(dig(row, "creator", default="")),
         model_digests=tuple(
-            sorted(
-                str(m.get("content_sha256")) for m in models if m.get("content_sha256")
-            )
+            sorted(m.content_sha256 for m in document.models if m.content_sha256)
         ),
         model_selectors=tuple(
             sorted(str(s) for s in dig(row, "model_selectors", default=[]))
@@ -132,22 +113,17 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         memory_bytes=as_int(dig(row, "resources", "memory_bytes")),
         image_bytes=as_int(dig(row, "resources", "image_bytes")),
         artifact_bytes=max(
-            (
-                as_int(dig(role, "resources", "disk", "artifact_bytes"))
-                for role in roles
-            ),
+            (role.resources.disk.artifact_bytes for role in document.topology.roles),
             default=0,
         ),
-        ports=tuple(
-            sorted({as_int(i.get("port")) for i in interfaces if i.get("port")})
-        ),
-        adapter=str(interfaces[0].get("adapter", "")) if interfaces else "",
-        aliases=tuple(aliases),
+        ports=tuple(sorted({i.port for i in interfaces if i.port})),
+        adapter=interfaces[0].adapter if interfaces else "",
+        aliases=tuple(alias for item in interfaces for alias in item.model_aliases),
         content_sha256=str(dig(row, "identity", "content_sha256", default="")),
         revision_id=str(dig(row, "identity", "recipe_revision_id", default="")),
         local=str(dig(row, "local", "controller", default="unknown")),
         updated_at=str(dig(row, "updated_at", default="")),
-        base_image=str(dig(document, "base_image_digest", default="")),
+        base_image=document.base_image_digest,
         cache_ready=dig(row, "assessment", "cache", "state") == "ready",
         library_commit=library_commit or None,
         runtime_image=RuntimeImageIdentity(
@@ -157,9 +133,8 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         if projected.prebuilt_image is not None
         else None,
         checks=tuple(
-            c
-            for c in dig(document, "validation", "serving", "checks", default=[])
-            if isinstance(c, dict)
+            c.model_dump(mode="json", exclude_unset=True)
+            for c in document.validation.serving.checks
         ),
     )
 
