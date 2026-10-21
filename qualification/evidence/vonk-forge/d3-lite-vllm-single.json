@@ -12,9 +12,9 @@
         "models_resolved": true
       },
       "outcome": "failed",
-      "blame": "recipe",
-      "cause_code": "qualification.recipe_failure",
-      "cause_summary": "Recipe checks failed; needs fix",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
       "evidence_refs": [
         "093f346bfbcc67abe04b9b8066fc6f444f7530a9bf99b84fa7462f265db7ebea"
       ],
@@ -37,9 +37,9 @@
         "models_resolved": true
       },
       "outcome": "failed",
-      "blame": "recipe",
-      "cause_code": "qualification.recipe_failure",
-      "cause_summary": "Recipe checks failed; needs fix",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
       "evidence_refs": [
         "a28155a1cd853ab770f6aba26d1121ac9106b4ef49a63eb7cfab1f5f150a0888"
       ],
@@ -62,9 +62,9 @@
         "models_resolved": true
       },
       "outcome": "failed",
-      "blame": "recipe",
-      "cause_code": "qualification.recipe_failure",
-      "cause_summary": "Recipe checks failed; needs fix",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
       "evidence_refs": [
         "f7acf51327509d1e2126e8e8cc38d863dcb6e855a72a84ada31f746da2bdc3da"
       ],

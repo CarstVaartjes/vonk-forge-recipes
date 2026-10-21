@@ -11,13 +11,15 @@ from __future__ import annotations
 
 import json
 import statistics
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from vonk_forge_contracts import (
     QualificationDerivationInput,
+    QualificationStatus,
+    QualificationStatusView,
     RecipeQualificationEvidence,
     derive_status,
 )
@@ -308,6 +310,17 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
     }
 
 
+def _qualification_summary(views: Iterable[Mapping[str, Any]]) -> str:
+    tally = Counter(
+        QualificationStatusView.model_validate(view).status for view in views
+    )
+    return ", ".join(
+        f"{status.value} {tally[status]}"
+        for status in QualificationStatus
+        if status in tally
+    )
+
+
 def render_status(status: Mapping[str, Any]) -> str:
     c = status["counts"]
     lines = [
@@ -324,6 +337,8 @@ def render_status(status: Mapping[str, Any]) -> str:
         + (f" - PAUSED: {status['paused']}" if status["paused"] else ""),
         "",
     ]
+    if status.get("qualification"):
+        lines[2] = _qualification_summary(status["qualification"].values())
     if status.get("alerts"):
         lines += ["## ALERTS", *(f"- {a}" for a in status["alerts"]), ""]
     if status.get("model_removal_wait"):
@@ -514,6 +529,12 @@ def render_report(report: Mapping[str, Any]) -> str:
         "| recipe | result | phase / class | reason | download | load | TTFT ms | tok/s |",
         "|---|---|---|---|---|---|---|---|",
     ]
+
+    qualified = [
+        row["qualification"] for row in report["recipes"] if row.get("qualification")
+    ]
+    if qualified:
+        lines[2] = _qualification_summary(qualified)
 
     def seconds(value: Any) -> str:
         return _duration(value) if value is not None else ""

@@ -32,6 +32,7 @@ from vonk_forge_contracts.qualification_status import (
     QualificationSourceFailureClass,
 )
 
+from .auth_contract import SmokeAuthClass
 from .catalog import Recipe
 from .lifecycle import RecipeStatus
 from .state import write_atomic
@@ -145,7 +146,13 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         else (
             QualificationBlame.RECIPE
             if row.status == RecipeStatus.FAILED
-            and (row.code in RECIPE_FAILURE_CODES or row.failure_class in FAIL_CLASSES)
+            and (
+                row.code in RECIPE_FAILURE_CODES
+                or (
+                    row.failure_class in FAIL_CLASSES
+                    and row.failure_class != SmokeAuthClass.REFUSAL
+                )
+            )
             else QualificationBlame.PLATFORM
         )
     )

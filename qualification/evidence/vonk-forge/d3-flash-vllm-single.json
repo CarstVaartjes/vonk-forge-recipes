@@ -12,9 +12,9 @@
         "models_resolved": true
       },
       "outcome": "failed",
-      "blame": "recipe",
-      "cause_code": "qualification.recipe_failure",
-      "cause_summary": "Recipe checks failed; needs fix",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
       "evidence_refs": [
         "db3b6070105172889409a0e69ac75e19712cef367152276949ec16205315d18e"
       ],
@@ -37,9 +37,9 @@
         "models_resolved": true
       },
       "outcome": "failed",
-      "blame": "recipe",
-      "cause_code": "qualification.recipe_failure",
-      "cause_summary": "Recipe checks failed; needs fix",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
       "evidence_refs": [
         "90e6a13e08df0c2bb9dfba00e5a7391fa0408e140a156c9b811b2cc719c640eb"
       ],

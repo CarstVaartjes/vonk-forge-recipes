@@ -477,3 +477,61 @@ def test_fix_to_verify_precedes_untested_even_with_a_limit(tmp_path):
     )
     sweep.cfg.limit = 1
     assert [r.key for r in sweep.pending()] == [fixed.key]
+
+
+def test_authorization_faults_are_platform_evidence_and_preserve_recipe_proof():
+    from spark_sweep.auth_contract import SmokeAuthClass
+
+    row = {
+        **historical(),
+        "status": Outcome.FAILED,
+        "failure_class": SmokeAuthClass.REFUSAL,
+    }
+    imported = from_history(row)
+    assert imported is not None and imported.blame == Blame.PLATFORM
+    assert (
+        derive_status(evidence(record(), imported), A, 2, False).status
+        == Status.WORKING
+    )
+
+
+def test_platform_faults_do_not_count_against_recipes_in_report_headline():
+    from spark_sweep.lifecycle import RecipeStatus
+    from spark_sweep.report import build_report, render_report
+
+    view = derive_status(
+        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, False
+    )
+    report = build_report(
+        {KEY: {"status": RecipeStatus.FAILED}}, {KEY: view.model_dump(mode="json")}
+    )
+    assert render_report(report).splitlines()[2] == f"{Status.BLOCKED_PLATFORM.value} 1"
+
+
+def test_elapsed_time_never_retries_a_failure_with_platform_blame(
+    tmp_path, monkeypatch
+):
+    from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+
+    from spark_sweep.identity import content_identity
+    from spark_sweep.lifecycle import RecipeStatus
+    from spark_sweep.run import RETEST_SECONDS
+
+    fake = FakeRecipe("example")
+    sweep, _, clock = make_sweep(tmp_path, [fake], [FakeModel("m1")], watch_seconds=60)
+    sweep.refresh_catalog()
+    recipe = sweep.recipes[KEY]
+    sweep.state.entry(KEY).update(
+        status=RecipeStatus.FAILED,
+        content_sha256=recipe.content_sha256,
+        verdict_identity=content_identity(recipe).model_dump(mode="json"),
+        finished_at=clock.now() - RETEST_SECONDS,
+    )
+    view = derive_status(
+        evidence(record(A, Outcome.FAILED, Blame.PLATFORM)), A, 2, False
+    )
+    monkeypatch.setattr(sweep, "qualification_view", lambda recipe: view)
+    sweep.tick()
+    assert sweep.state.status(KEY) == RecipeStatus.FAILED
+    assert not sweep.state.data["loads"]
+    assert not sweep.state.entry(KEY).get("recovery_history")

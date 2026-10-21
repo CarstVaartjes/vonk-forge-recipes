@@ -978,6 +978,11 @@ class Sweep:
             for key, entry in list(self.state.recipes.items()):
                 if (
                     entry.get("status") == RecipeStatus.FAILED
+                    and (
+                        key not in self.recipes
+                        or (view := self.qualification_view(self.recipes[key])) is None
+                        or view.status != QualificationStatus.BLOCKED_PLATFORM
+                    )
                     and now >= float(entry.get("finished_at", now)) + RETEST_SECONDS
                     and self._selected_key(key)
                 ):
