@@ -4,6 +4,8 @@
     "commit": "4b69803bf6eca380a775e40b322ac2542dae3a59"
   },
   "ours": [
-    "vllm-wrapper.py"
+    "vllm-wrapper.py",
+    "serve/hybrid-port/b12x/comm/pcie/overlap_probe.py",
+    "serve/hybrid-port/b12x/comm/pcie/plain_allreduce_calibration.py"
   ]
 }

@@ -9,6 +9,8 @@ cannot silently cross a different placement or transport implementation.
 The command writes only the validated policy JSON to standard output.  Status
 and diagnostics use standard error so a launcher can assign stdout directly to
 ``B12X_PCIE_PLAIN_ALLREDUCE_POLICY``.
+Vonk adaptation: local torchrun uses static loopback rendezvous with a 10s timeout.
+Upstream provenance and license: vendored-upstream.json and LICENSE.upstream.
 """
 
 from __future__ import annotations
@@ -20,6 +22,7 @@ import hashlib
 import importlib.metadata
 import json
 import os
+import socket
 from pathlib import Path
 import signal
 import subprocess
@@ -363,11 +366,20 @@ def _terminate_process_group(process: subprocess.Popen[str]) -> str:
 
 
 def _run_probe(args: argparse.Namespace, output: Path) -> dict[str, Any]:
+    # Static rendezvous keeps both the agent and worker store on loopback.
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        rendezvous_port = listener.getsockname()[1]
     command = [
         sys.executable,
         "-m",
         "torch.distributed.run",
-        "--standalone",
+        "--rdzv-backend=static",
+        f"--rdzv-endpoint=127.0.0.1:{rendezvous_port}",
+        "--rdzv-conf=timeout=10",
+        "--node-rank=0",
+        "--max-restarts=0",
+        "--nnodes=1",
         f"--nproc-per-node={args.world_size}",
         "-m",
         "b12x.comm.pcie.plain_allreduce_probe",

@@ -7,7 +7,9 @@ a separate NCCL communicator for each contiguous DCP rank group.
 
 Example::
 
-    torchrun --standalone --nproc-per-node=8 \
+    torchrun --rdzv-backend=c10d --rdzv-endpoint=127.0.0.1:0 \
+      --local-addr=127.0.0.1 --rdzv-conf=join_timeout=10,read_timeout=10 \
+      --nnodes=1 --nproc-per-node=8 \
       -m b12x.comm.pcie.overlap_probe \
       --tp-size 8 --dcp-size 4 --context-tokens 8192,65536,131072
 
@@ -20,6 +22,8 @@ The result is a calibration, not an end-to-end model benchmark. It measures:
 
 The query-split comparison includes the compute it avoids. Transport-only
 numbers must not be used to disable a compute-saving path.
+Vonk adaptation: the example pins both rendezvous stores to loopback.
+Upstream provenance and license: vendored-upstream.json and LICENSE.upstream.
 """
 
 from __future__ import annotations
