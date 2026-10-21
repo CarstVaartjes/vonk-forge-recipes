@@ -216,6 +216,21 @@ copies of a default. Respect the contract's automatic/unspecified settings;
 benchmark request counts are not engine concurrency limits. If a wrapper
 hardcodes a setting, align its implementation with the declared setting.
 
+### Sandbox constraints
+
+The workload sandbox deliberately blocks io_uring. Recipes, option choices and
+image launchers must use a loader with a verified non-io_uring path: standard
+safetensors, InstantTensor automatic/AIO or BUFFERED/MMAP selection (never
+URING-only), or b12x disk PLE/Engram with `B12X_DISK_BACKEND=gds` and
+`CUFILE_FORCE_COMPAT_MODE=true` (requires cuFile >= 1.14 development files).
+Older b12x images without that backend need a tested POSIX reader replacement;
+never request relaxed seccomp. Enforce image-owned transport policy in the
+launcher before exec, including when a kit declares an unsafe backend. b12x
+defaults PLE BF16 tables and disk Engram to io_uring even when no backend is specified.
+See [b12x disk transports](https://github.com/local-inference-lab/b12x/blob/2cc7f66aaef76a9c7cbb660a1efb865cf3f26c88/docs/disk-embedding-backends.md),
+[NVIDIA compatibility I/O](https://docs.nvidia.com/gpudirect-storage/troubleshooting-guide/#tracking-the-io-after-enabling-compatibility-mode),
+and [InstantTensor backend selection](https://github.com/scitix/InstantTensor#backend-selection).
+
 ### Memory: preserve proof, reserve by need
 
 **A.** Preserve the runtime settings of every recipe that passed on real hardware.
