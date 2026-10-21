@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Llama 3.1 8B Instruct NVFP4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Llama 3.1 8B Instruct NVFP4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 \u2192 0.85 (previously implicit). Per-node peak budgets utilization \u00d7 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Following the captured 93.28 GiB automatic KV allocation failure, reserve 8 GiB FP8 KV for 131072 tokens and one engine sequence (32 layers, 8 KV heads, 128 dimensions for K and V). Need is selected weights plus this pool and an 8 GB runtime estimate. Physical requalification is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -215,8 +215,16 @@
         "value": null
       },
       {
-        "name": "gpu-memory-utilization",
-        "value": "0.75"
+        "name": "max-num-seqs",
+        "setting": "concurrency"
+      },
+      {
+        "name": "kv-cache-dtype",
+        "value": "fp8"
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "value": 8589934592
       }
     ],
     "engine": "vllm",
@@ -240,7 +248,10 @@
     }
   },
   "settings": {
-    "concurrency": null,
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 1
+    },
     "context_tokens": {
       "change_effect": "restart",
       "value": 131072
@@ -271,7 +282,7 @@
             "working_bytes": 16000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 22617795968,
             "reserve_bytes": 8000000000
           }
         }

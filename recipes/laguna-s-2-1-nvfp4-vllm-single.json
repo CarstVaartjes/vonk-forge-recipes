@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. GB10 fit: GPU utilization 0.80 \u2192 0.78 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. GB10 fit: GPU utilization 0.80 → 0.78 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
     "tags": [
       "executable",
       "candidate",
@@ -702,7 +702,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.75"
+        "value": "0.78"
       },
       {
         "name": "reasoning-parser",

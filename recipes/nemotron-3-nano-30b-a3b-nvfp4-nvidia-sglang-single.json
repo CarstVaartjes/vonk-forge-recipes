@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's model card for Nemotron 3 Nano 30B-A3B NVFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags, except that the card's reasoning parser nano_v3 is passed under its current SGLang name nemotron_3 (renamed upstream in sgl-project/sglang#19865; the pinned image no longer accepts nano_v3). Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "Executable Candidate recipe of NVIDIA's model card for Nemotron 3 Nano 30B-A3B NVFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags, except that the card's reasoning parser nano_v3 is passed under its current SGLang name nemotron_3 (renamed upstream in sgl-project/sglang#19865; the pinned image no longer accepts nano_v3). Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -294,10 +294,6 @@
         "name": "context-length",
         "setting": "context_tokens",
         "value": null
-      },
-      {
-        "name": "mem-fraction-static",
-        "value": "0.75"
       }
     ],
     "engine": "sglang",

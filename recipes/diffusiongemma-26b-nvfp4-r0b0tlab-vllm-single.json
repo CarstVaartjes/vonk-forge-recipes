@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's SM121 vLLM serve of NVIDIA's NVFP4 checkpoint of Google DeepMind DiffusionGemma 26B A4B IT (discrete block-diffusion language model on a Gemma 4 MoE backbone, 256-token canvases) on one GB10: a Spark day-0 vLLM build with the DiffusionGemma patch set, native FlashInfer-CUTLASS NVFP4 MoE, Triton attention, fp8 KV cache, fastsafetensors loading, prefix caching, Gemma 4 tool and reasoning parsers, thinking off by default. Upstream defaults: 65,536 context, 16 sequences, 0.90 memory utilization; it reports about 146 tok/s at c=1 and 243 tok/s at c=16 (upstream claims, not measured here). Licences: model Apache-2.0 plus Gemma terms and prohibited-use policy, package Apache-2.0 per its LICENSE (information only). Upstream's launcher also passes a chat template file (fixed_chat_template.jinja) that is not in its repository; this recipe uses the checkpoint's own chat template. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking=false (upstream default). GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "r0b0tlab's SM121 vLLM serve of NVIDIA's NVFP4 checkpoint of Google DeepMind DiffusionGemma 26B A4B IT (discrete block-diffusion language model on a Gemma 4 MoE backbone, 256-token canvases) on one GB10: a Spark day-0 vLLM build with the DiffusionGemma patch set, native FlashInfer-CUTLASS NVFP4 MoE, Triton attention, fp8 KV cache, fastsafetensors loading, prefix caching, Gemma 4 tool and reasoning parsers, thinking off by default. Upstream defaults: 65,536 context, 16 sequences, 0.90 memory utilization; it reports about 146 tok/s at c=1 and 243 tok/s at c=16 (upstream claims, not measured here). Licences: model Apache-2.0 plus Gemma terms and prohibited-use policy, package Apache-2.0 per its LICENSE (information only). Upstream's launcher also passes a chat template file (fixed_chat_template.jinja) that is not in its repository; this recipe uses the checkpoint's own chat template. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking=false (upstream default). GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "candidate",
       "diffusion",
@@ -232,7 +232,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.75"
+        "value": "0.85"
       },
       {
         "name": "max-model-len",

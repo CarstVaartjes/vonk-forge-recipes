@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM profile from MiaAI-Lab's Laguna-S-2.1-DGX-Spark-RTX-6000-PRO at 750a52ea: the exact 826aacdf Laguna S 2.1 NVFP4 checkpoint with the exact b3b5921a Laguna S 2.1 DFlash NVFP4 speculative draft (7 tokens), vLLM 0.25.1 with FlashInfer attention, 256K context, 4 sequences, reasoning and tool parsing. Upstream ships no container: the image is the digest-pinned official vLLM v0.25.1 image with upstream's FlashInfer 0.6.15.dev20260712 nightly wheels baked in at build time instead of installed at every start. Upstream code has no licence file; the target model is OpenMDW-1.1 and the draft repository declares no licence. Upstream claims (not measured here) a ~15 minute first start and its own decode-throughput chart. Physical Spark acceptance is pending. Upstream's RTX 6000 PRO variant is not covered. Reasoning by default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking true. GB10 host-guard headroom: explicit engine reservation capped at 0.60; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "Candidate single-Spark vLLM profile from MiaAI-Lab's Laguna-S-2.1-DGX-Spark-RTX-6000-PRO at 750a52ea: the exact 826aacdf Laguna S 2.1 NVFP4 checkpoint with the exact b3b5921a Laguna S 2.1 DFlash NVFP4 speculative draft (7 tokens), vLLM 0.25.1 with FlashInfer attention, 256K context, 4 sequences, reasoning and tool parsing. Upstream ships no container: the image is the digest-pinned official vLLM v0.25.1 image with upstream's FlashInfer 0.6.15.dev20260712 nightly wheels baked in at build time instead of installed at every start. Upstream code has no licence file; the target model is OpenMDW-1.1 and the draft repository declares no licence. Upstream claims (not measured here) a ~15 minute first start and its own decode-throughput chart. Physical Spark acceptance is pending. Upstream's RTX 6000 PRO variant is not covered. Reasoning by default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking true. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
     "tags": [
       "executable",
       "candidate",
@@ -808,7 +808,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.60"
+        "value": "0.85"
       },
       {
         "name": "max-model-len",

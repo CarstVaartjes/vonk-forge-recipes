@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's native-SM121 vLLM profile for Unsloth's mixed-precision Qwen3.6-35B-A3B-NVFP4-Fast (compressed-tensors FP8 dense groups and NVFP4 group-16 experts, trained MTP layer kept; Apache-2.0) with MTP K=2 on one Spark, from r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm at b5c2dd2f (MIT). Runs upstream's published image (vLLM 0.24.1-dev SM121, manifest sha256:3361f68b, used unchanged) with FlashInfer attention and B12X MoE, automatic linear backend (a global B12X linear override is invalid for the FP8 layers), FP8 KV, memory utilisation 0.90, 65,536-token context, 32 sequences, 32,768 batched tokens, text-only, qwen3_xml tool parser and MTP with a Triton drafter MoE. Upstream's NVFP4-KV experiment degenerated and is rejected upstream, so it is not offered. The upstream review names checkpoint revision 11fb65d6, which does not exist on the Hub; the recipe binds 11fb1aff, the commit of that day with the same prefix (later commits change only the model card). Upstream claims (not measured here): its own benchmark run 20260710T145810Z. Physical Spark acceptance is pending. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "r0b0tlab's native-SM121 vLLM profile for Unsloth's mixed-precision Qwen3.6-35B-A3B-NVFP4-Fast (compressed-tensors FP8 dense groups and NVFP4 group-16 experts, trained MTP layer kept; Apache-2.0) with MTP K=2 on one Spark, from r0b0tlab/qwen36-35b-a3b-nvfp4-fast-sm121-vllm at b5c2dd2f (MIT). Runs upstream's published image (vLLM 0.24.1-dev SM121, manifest sha256:3361f68b, used unchanged) with FlashInfer attention and B12X MoE, automatic linear backend (a global B12X linear override is invalid for the FP8 layers), FP8 KV, memory utilisation 0.90, 65,536-token context, 32 sequences, 32,768 batched tokens, text-only, qwen3_xml tool parser and MTP with a Triton drafter MoE. Upstream's NVFP4-KV experiment degenerated and is rejected upstream, so it is not offered. The upstream review names checkpoint revision 11fb65d6, which does not exist on the Hub; the recipe binds 11fb1aff, the commit of that day with the same prefix (later commits change only the model card). Upstream claims (not measured here): its own benchmark run 20260710T145810Z. Physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "candidate",
       "executable",
@@ -341,7 +341,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.75"
+        "value": "0.85"
       },
       {
         "name": "max-model-len",

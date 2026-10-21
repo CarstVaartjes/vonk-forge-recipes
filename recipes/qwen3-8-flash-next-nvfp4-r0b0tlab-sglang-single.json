@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SGLang runtime for NVIDIA's unmodified nvidia/Qwen3.8-Flash-Next-NVFP4 (revision fc694b54, NVIDIA Open Model License plus Qwen terms) on one Spark, from r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang v1.0.1 (1dc3c2f0, MIT). Runs upstream's published v1.0.1-sm121-nextn image (patched SGLang 0.5.19-era, digest-pinned) through its own profile compiler: native NVFP4 W4A4 experts on FlashInfer CUTLASS, FP8 block-scaled integrated MTP (NEXTN, 3 steps), BF16 KV, BF16 vision (image, multi-image, video), a file-backed PLE embedding offload (about 48 GiB prepared once into the platform cache, 4 GiB RSS budget) and full decode CUDA graphs, with 262,144 tokens of context in one shared KV pool. The profile option picks upstream's frozen profiles: production c2 (two requests share the 262K pool), c4, or the same c2 with ViT CUDA graphs off, which upstream ships for sustained mixed-shape vision traffic. Context and request limits are fixed by the profile and are not editable settings. Upstream claims (not measured here): 37.32 tok/s dedicated c1, NEXTN acceptance length 3.38, needle-in-a-haystack 9/9 to 258K, Q200 185/200, vision 11/11; weights load about 9 minutes; needs an otherwise idle Spark with at least 104 GiB host RAM available and does not sustain two consecutive full-window prefills. Upstream's own verdict is runtime and Q200 verified, not a physical Vonk acceptance. Physical Spark acceptance is pending. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "r0b0tlab's SGLang runtime for NVIDIA's unmodified nvidia/Qwen3.8-Flash-Next-NVFP4 (revision fc694b54, NVIDIA Open Model License plus Qwen terms) on one Spark, from r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang v1.0.1 (1dc3c2f0, MIT). Runs upstream's published v1.0.1-sm121-nextn image (patched SGLang 0.5.19-era, digest-pinned) through its own profile compiler: native NVFP4 W4A4 experts on FlashInfer CUTLASS, FP8 block-scaled integrated MTP (NEXTN, 3 steps), BF16 KV, BF16 vision (image, multi-image, video), a file-backed PLE embedding offload (about 48 GiB prepared once into the platform cache, 4 GiB RSS budget) and full decode CUDA graphs, with 262,144 tokens of context in one shared KV pool. The profile option picks upstream's frozen profiles: production c2 (two requests share the 262K pool), c4, or the same c2 with ViT CUDA graphs off, which upstream ships for sustained mixed-shape vision traffic. Context and request limits are fixed by the profile and are not editable settings. Upstream claims (not measured here): 37.32 tok/s dedicated c1, NEXTN acceptance length 3.38, needle-in-a-haystack 9/9 to 258K, Q200 185/200, vision 11/11; weights load about 9 minutes; needs an otherwise idle Spark with at least 104 GiB host RAM available and does not sustain two consecutive full-window prefills. Upstream's own verdict is runtime and Q200 verified, not a physical Vonk acceptance. Physical Spark acceptance is pending.",
     "tags": [
       "candidate",
       "executable",
@@ -375,10 +375,6 @@
         "name": "sources",
         "setting": null,
         "value": "/opt/r0b0tlab/locks/sources.json"
-      },
-      {
-        "name": "mem-fraction-static",
-        "value": "0.75"
       }
     ],
     "engine": "sglang",

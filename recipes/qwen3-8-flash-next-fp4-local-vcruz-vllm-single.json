@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595",
-        "repository": "eugr/spark-vllm-b12x"
+        "repository": "eugr/spark-vllm-b12x",
+        "digest": "03a956544e9f9b4b7ba91690469fbe7848bdbef29a7d2e0f5788368467bb3595"
       },
       "context": {
         "path": "adapters/qwen/vcruz-fp4-local-vllm-single"
@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "FP4-Local checkpoint served by the exact eugr b12x ARM64 image pinned in vcruz305\u2019s kit at 0d727c4e. Eight concurrent sequences, a 262,144-token window, FP8 KV and four-token MTP speculation. Preserves the kit\u2019s b12x load format, disk-backed PLE table and one-worker compilation setting. The 110 GB peak is a conservative runtime estimate for the 0.8 GPU-memory utilization setting and host workspace; physical Spark execution is unmeasured here. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "FP4-Local checkpoint served by the exact eugr b12x ARM64 image pinned in vcruz305\u2019s kit at 0d727c4e. Eight concurrent sequences, a 262,144-token window, FP8 KV and four-token MTP speculation. Preserves the kit\u2019s b12x load format, disk-backed PLE table and one-worker compilation setting. The 110 GB peak is a conservative runtime estimate for the 0.8 GPU-memory utilization setting and host workspace; physical Spark execution is unmeasured here.",
     "tags": [
       "qwen3.8",
       "vllm",
@@ -46,10 +46,17 @@
   },
   "models": [
     {
+      "id": "primary",
+      "model": {
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "qwen3-8-flash-next-fp4-local-b9ce18a6",
+        "content_sha256": "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
+      },
       "files": [
         {
-          "file_id": "metadata-8237eb95e69c-618cd5b83d",
           "id": "metadata-8237eb95e69c-618cd5b83d",
+          "file_id": "metadata-8237eb95e69c-618cd5b83d",
           "mount": {
             "target": "/models"
           },
@@ -58,8 +65,8 @@
           ]
         },
         {
-          "file_id": "readme-b0ad2a8a314c-b335630551",
           "id": "readme-b0ad2a8a314c-b335630551",
+          "file_id": "readme-b0ad2a8a314c-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -68,8 +75,8 @@
           ]
         },
         {
-          "file_id": "chat-template-c3cf9e34abf4-00824420d1",
           "id": "chat-template-c3cf9e34abf4-00824420d1",
+          "file_id": "chat-template-c3cf9e34abf4-00824420d1",
           "mount": {
             "target": "/models"
           },
@@ -78,8 +85,8 @@
           ]
         },
         {
-          "file_id": "config-b50dbc52a0c8-587cb980af",
           "id": "config-b50dbc52a0c8-587cb980af",
+          "file_id": "config-b50dbc52a0c8-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -88,8 +95,8 @@
           ]
         },
         {
-          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
           "id": "generation-config-e70c136c1b78-97dd3d578b",
+          "file_id": "generation-config-e70c136c1b78-97dd3d578b",
           "mount": {
             "target": "/models"
           },
@@ -98,8 +105,8 @@
           ]
         },
         {
-          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "mount": {
             "target": "/models"
           },
@@ -108,8 +115,8 @@
           ]
         },
         {
-          "file_id": "model-safetensors-index-5fa166bbb1cf-0a05be8238",
           "id": "model-safetensors-index-5fa166bbb1cf-0a05be8238",
+          "file_id": "model-safetensors-index-5fa166bbb1cf-0a05be8238",
           "mount": {
             "target": "/models"
           },
@@ -118,8 +125,8 @@
           ]
         },
         {
-          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
           "id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
           "mount": {
             "target": "/models"
           },
@@ -128,8 +135,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-00021-ebf3648c5f4c-560b25b548",
           "id": "model-00001-of-00021-ebf3648c5f4c-560b25b548",
+          "file_id": "model-00001-of-00021-ebf3648c5f4c-560b25b548",
           "mount": {
             "target": "/models"
           },
@@ -138,8 +145,8 @@
           ]
         },
         {
-          "file_id": "model-00002-of-00021-79a643fc5c02-a0564fa2af",
           "id": "model-00002-of-00021-79a643fc5c02-a0564fa2af",
+          "file_id": "model-00002-of-00021-79a643fc5c02-a0564fa2af",
           "mount": {
             "target": "/models"
           },
@@ -148,8 +155,8 @@
           ]
         },
         {
-          "file_id": "model-00003-of-00021-c45f942203db-a1b01cf5b5",
           "id": "model-00003-of-00021-c45f942203db-a1b01cf5b5",
+          "file_id": "model-00003-of-00021-c45f942203db-a1b01cf5b5",
           "mount": {
             "target": "/models"
           },
@@ -158,8 +165,8 @@
           ]
         },
         {
-          "file_id": "model-00004-of-00021-071ab9cf963c-a469002989",
           "id": "model-00004-of-00021-071ab9cf963c-a469002989",
+          "file_id": "model-00004-of-00021-071ab9cf963c-a469002989",
           "mount": {
             "target": "/models"
           },
@@ -168,8 +175,8 @@
           ]
         },
         {
-          "file_id": "model-00005-of-00021-f80d17870eb1-6f424332e6",
           "id": "model-00005-of-00021-f80d17870eb1-6f424332e6",
+          "file_id": "model-00005-of-00021-f80d17870eb1-6f424332e6",
           "mount": {
             "target": "/models"
           },
@@ -178,8 +185,8 @@
           ]
         },
         {
-          "file_id": "model-00006-of-00021-3e9183d4ebb2-21ee8047e1",
           "id": "model-00006-of-00021-3e9183d4ebb2-21ee8047e1",
+          "file_id": "model-00006-of-00021-3e9183d4ebb2-21ee8047e1",
           "mount": {
             "target": "/models"
           },
@@ -188,8 +195,8 @@
           ]
         },
         {
-          "file_id": "model-00007-of-00021-aa1ad959c4d6-e7439820a8",
           "id": "model-00007-of-00021-aa1ad959c4d6-e7439820a8",
+          "file_id": "model-00007-of-00021-aa1ad959c4d6-e7439820a8",
           "mount": {
             "target": "/models"
           },
@@ -198,8 +205,8 @@
           ]
         },
         {
-          "file_id": "model-00008-of-00021-0b18844027be-d09207fa7f",
           "id": "model-00008-of-00021-0b18844027be-d09207fa7f",
+          "file_id": "model-00008-of-00021-0b18844027be-d09207fa7f",
           "mount": {
             "target": "/models"
           },
@@ -208,8 +215,8 @@
           ]
         },
         {
-          "file_id": "model-00009-of-00021-2d0b6c66790c-fa5f133206",
           "id": "model-00009-of-00021-2d0b6c66790c-fa5f133206",
+          "file_id": "model-00009-of-00021-2d0b6c66790c-fa5f133206",
           "mount": {
             "target": "/models"
           },
@@ -218,8 +225,8 @@
           ]
         },
         {
-          "file_id": "model-00010-of-00021-3ed9bd73745a-fd84ab6369",
           "id": "model-00010-of-00021-3ed9bd73745a-fd84ab6369",
+          "file_id": "model-00010-of-00021-3ed9bd73745a-fd84ab6369",
           "mount": {
             "target": "/models"
           },
@@ -228,8 +235,8 @@
           ]
         },
         {
-          "file_id": "model-00011-of-00021-4936ff28c6cc-e4651bb33e",
           "id": "model-00011-of-00021-4936ff28c6cc-e4651bb33e",
+          "file_id": "model-00011-of-00021-4936ff28c6cc-e4651bb33e",
           "mount": {
             "target": "/models"
           },
@@ -238,8 +245,8 @@
           ]
         },
         {
-          "file_id": "model-00012-of-00021-dd7df5a6ff73-420f105f44",
           "id": "model-00012-of-00021-dd7df5a6ff73-420f105f44",
+          "file_id": "model-00012-of-00021-dd7df5a6ff73-420f105f44",
           "mount": {
             "target": "/models"
           },
@@ -248,8 +255,8 @@
           ]
         },
         {
-          "file_id": "model-00013-of-00021-28a455c8ea4e-489cc0a5c5",
           "id": "model-00013-of-00021-28a455c8ea4e-489cc0a5c5",
+          "file_id": "model-00013-of-00021-28a455c8ea4e-489cc0a5c5",
           "mount": {
             "target": "/models"
           },
@@ -258,8 +265,8 @@
           ]
         },
         {
-          "file_id": "model-00014-of-00021-6941676e685a-32ceb9c6ed",
           "id": "model-00014-of-00021-6941676e685a-32ceb9c6ed",
+          "file_id": "model-00014-of-00021-6941676e685a-32ceb9c6ed",
           "mount": {
             "target": "/models"
           },
@@ -268,8 +275,8 @@
           ]
         },
         {
-          "file_id": "model-00015-of-00021-2a1129b5acfc-366abe9dd1",
           "id": "model-00015-of-00021-2a1129b5acfc-366abe9dd1",
+          "file_id": "model-00015-of-00021-2a1129b5acfc-366abe9dd1",
           "mount": {
             "target": "/models"
           },
@@ -278,8 +285,8 @@
           ]
         },
         {
-          "file_id": "model-00016-of-00021-635e97fbad78-5ba816c901",
           "id": "model-00016-of-00021-635e97fbad78-5ba816c901",
+          "file_id": "model-00016-of-00021-635e97fbad78-5ba816c901",
           "mount": {
             "target": "/models"
           },
@@ -288,8 +295,8 @@
           ]
         },
         {
-          "file_id": "model-00017-of-00021-bf60d564d89a-7e13ec5606",
           "id": "model-00017-of-00021-bf60d564d89a-7e13ec5606",
+          "file_id": "model-00017-of-00021-bf60d564d89a-7e13ec5606",
           "mount": {
             "target": "/models"
           },
@@ -298,8 +305,8 @@
           ]
         },
         {
-          "file_id": "model-00018-of-00021-c5bde22f9364-bdae9f3647",
           "id": "model-00018-of-00021-c5bde22f9364-bdae9f3647",
+          "file_id": "model-00018-of-00021-c5bde22f9364-bdae9f3647",
           "mount": {
             "target": "/models"
           },
@@ -308,8 +315,8 @@
           ]
         },
         {
-          "file_id": "model-00019-of-00021-da3dc3b4f428-68d5c40be6",
           "id": "model-00019-of-00021-da3dc3b4f428-68d5c40be6",
+          "file_id": "model-00019-of-00021-da3dc3b4f428-68d5c40be6",
           "mount": {
             "target": "/models"
           },
@@ -318,8 +325,8 @@
           ]
         },
         {
-          "file_id": "model-00020-of-00021-4978bb6b8480-ca1646b853",
           "id": "model-00020-of-00021-4978bb6b8480-ca1646b853",
+          "file_id": "model-00020-of-00021-4978bb6b8480-ca1646b853",
           "mount": {
             "target": "/models"
           },
@@ -328,8 +335,8 @@
           ]
         },
         {
-          "file_id": "model-00021-of-00021-48203838f2c7-6f28fa1bdc",
           "id": "model-00021-of-00021-48203838f2c7-6f28fa1bdc",
+          "file_id": "model-00021-of-00021-48203838f2c7-6f28fa1bdc",
           "mount": {
             "target": "/models"
           },
@@ -338,8 +345,8 @@
           ]
         },
         {
-          "file_id": "tokenizer-0997f410c57a-224931eb13",
           "id": "tokenizer-0997f410c57a-224931eb13",
+          "file_id": "tokenizer-0997f410c57a-224931eb13",
           "mount": {
             "target": "/models"
           },
@@ -348,8 +355,8 @@
           ]
         },
         {
-          "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "mount": {
             "target": "/models"
           },
@@ -358,8 +365,8 @@
           ]
         },
         {
-          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
           "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
           "mount": {
             "target": "/models"
           },
@@ -368,8 +375,8 @@
           ]
         },
         {
-          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "mount": {
             "target": "/models"
           },
@@ -377,28 +384,21 @@
             "entrypoint"
           ]
         }
-      ],
-      "id": "primary",
-      "model": {
-        "content_sha256": "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f",
-        "kind": "model",
-        "publisher": "nvidia",
-        "slug": "qwen3-8-flash-next-fp4-local-b9ce18a6"
-      }
+      ]
     }
   ],
   "provenance": {
+    "source_reference": "https://github.com/vcruz305/Qwen3.8-Flash-Next-FP4-Spark-recipe/tree/0d727c4ec145dadc14ac311508c4bb8c577e1a7a",
     "attribution": [
       "vcruz305",
       "eugr",
       "NVIDIA",
       "Qwen"
-    ],
-    "source_reference": "https://github.com/vcruz305/Qwen3.8-Flash-Next-FP4-Spark-recipe/tree/0d727c4ec145dadc14ac311508c4bb8c577e1a7a"
+    ]
   },
   "release": {
-    "released_at": "2026-10-18",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "released_at": "2026-10-18"
   },
   "runtime": {
     "arguments": [
@@ -507,7 +507,7 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": "0.75"
+        "value": 0.8
       },
       {
         "name": "max-model-len",

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "abliterated",
-    "description": "drowzeys' single-Spark stack for aday777's abliterated (ARA) Qwen3.8 27B NVFP4 checkpoint with a BF16 MTP head: eugr spark-vllm-b12x 0.27 (nightly-20260813) with the NVFP4 KV cache back-ported to GB10 (vLLM PR 49891) and the A4Q fp4 QK attention overlay. Follows upstream's Profile B except for the GPU memory budget: 1,048,576-token context by YaRN x4 (hf-overrides), NVFP4 KV, prefix caching, 4096 batched tokens, MTP 3, qwen3_xml tool parser. Upstream reports a 4.34M-token KV pool (4.14x concurrency at 1M) on one GB10; those are upstream measurements, not measured here. Notes: the abliterated build is very wordy, so clients should allow at least 20000 max_tokens; prefilling 1M tokens takes about an hour cold on one Spark; upstream's 256K Profile A is reached by lowering the context setting, but the YaRN override stays on. Licences: checkpoint Apache-2.0; drowzeys' repository carries no licence file. Not gated. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "drowzeys' single-Spark stack for aday777's abliterated (ARA) Qwen3.8 27B NVFP4 checkpoint with a BF16 MTP head: eugr spark-vllm-b12x 0.27 (nightly-20260813) with the NVFP4 KV cache back-ported to GB10 (vLLM PR 49891) and the A4Q fp4 QK attention overlay. Follows upstream's Profile B except for the GPU memory budget: 1,048,576-token context by YaRN x4 (hf-overrides), NVFP4 KV, prefix caching, 4096 batched tokens, MTP 3, qwen3_xml tool parser. Upstream reports a 4.34M-token KV pool (4.14x concurrency at 1M) on one GB10; those are upstream measurements, not measured here. Notes: the abliterated build is very wordy, so clients should allow at least 20000 max_tokens; prefilling 1M tokens takes about an hour cold on one Spark; upstream's 256K Profile A is reached by lowering the context setting, but the YaRN override stays on. Licences: checkpoint Apache-2.0; drowzeys' repository carries no licence file. Not gated. GB10 memory correction: GPU utilization 0.90 → 0.80. Measured on spark-3542 (2026-10-15/16), the 0.85 build peaked at 122,005,303,296 bytes, 10.94 GB above its utilization share, and could not fit an idle Spark (125.65 GB available) with the 6 GB OS floor. The per-node peak now budgets utilization × 130,663,231,488-byte unified memory plus that measured 11 GB for CUDA context/graphs, FlashInfer workspace, the MTP head and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. The 1,048,576-token (1M) context remains configured; upstream KV-pool/concurrency figures at 0.90 do not apply to this 0.80 pool.",
     "tags": [
       "abliterated",
       "candidate",
@@ -386,7 +386,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.75"
+        "value": "0.80"
       },
       {
         "name": "enable-flashinfer-autotune",

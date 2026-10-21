@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Physical-OOM-gated single-Spark canary for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. It preserves the OpenAI reasoning and tool surface while bounding the FP8 KV cache to 3 GB, one sequence, 32K context, 4K chunked prefills, and eager execution. The 126 GB admission envelope is a conservative canary hypothesis, not measured acceptance; retain the original 65K profile and use Laguna XS as the default fleet-fit alternative until this exact variant passes physical startup, memory, and output checks. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending. Absolute KV cache reduced to 512 MB; startup may reject context capacity until physically qualified.",
+    "description": "Physical-OOM-gated single-Spark canary for the exact Poolside Laguna S 2.1 NVFP4 checkpoint. It preserves the OpenAI reasoning and tool surface while bounding the FP8 KV cache to 3 GB, one sequence, 32K context, 4K chunked prefills, and eager execution. The 126 GB admission envelope is a conservative canary hypothesis, not measured acceptance; retain the original 65K profile and use Laguna XS as the default fleet-fit alternative until this exact variant passes physical startup, memory, and output checks. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced.",
     "tags": [
       "executable",
       "candidate",
@@ -722,7 +722,7 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 512000000
+        "value": 3000000000
       },
       {
         "name": "enforce-eager",
@@ -746,7 +746,7 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": "0.75"
+        "value": "0.85"
       }
     ],
     "engine": "vllm",
