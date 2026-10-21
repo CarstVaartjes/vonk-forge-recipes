@@ -41,7 +41,7 @@ from .state import write_atomic
 class HistoricalIdentity(BaseModel):
     content_sha256: str
     runtime_image: QualificationRuntimeImage | None = None
-    model_digests: tuple[str, ...] = ()
+    model_digests: tuple[str, ...] | None = None
 
 
 class HistoricalResult(BaseModel):

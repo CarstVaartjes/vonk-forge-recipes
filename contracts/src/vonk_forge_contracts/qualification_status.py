@@ -14,7 +14,15 @@ from ._schema_version import QualificationEvidenceSchemaVersion
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
 SourceSHA = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
-Version = Annotated[str, Field(pattern=r"^v?[0-9][0-9A-Za-z.+~_-]{0,95}$")]
+# Public Forge tags, numbered prereleases and source builds. Arbitrary build
+# labels can contain hostnames; they are not public platform version evidence.
+Version = Annotated[
+    str,
+    Field(
+        max_length=96,
+        pattern=r"^v?[0-9]+\.[0-9]+\.[0-9]+(?:(?:~|-)(?:dev|alpha|beta|rc)[.-][0-9]+)?(?:\+g[0-9a-f]{7,40})?$",
+    ),
+]
 RecipeKey = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$")]
 
 

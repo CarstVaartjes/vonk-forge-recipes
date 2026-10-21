@@ -535,3 +535,40 @@ def test_elapsed_time_never_retries_a_failure_with_platform_blame(
     assert sweep.state.status(KEY) == RecipeStatus.FAILED
     assert not sweep.state.data["loads"]
     assert not sweep.state.entry(KEY).get("recovery_history")
+
+
+@pytest.mark.parametrize("field", ["controller_version", "agent_version"])
+@pytest.mark.parametrize(
+    "unsafe",
+    [
+        "192.0.2.10",
+        "2001:db8::1",
+        "spark-1",
+        "nas.private.example",
+        "/private/state",
+        "1.2.3+spark-1.internal",
+        "1.2.3+request-123",
+    ],
+)
+def test_public_versions_cannot_be_used_to_carry_infrastructure_details(field, unsafe):
+    from jsonschema import Draft202012Validator
+    from jsonschema import ValidationError as SchemaValidationError
+
+    with pytest.raises(ValidationError):
+        Platform.model_validate({**PLATFORM.model_dump(), field: unsafe})
+    payload = json.loads(
+        published_status(evidence(record()), A).model_dump_json(exclude_none=True)
+    )
+    payload["last_pass"]["platform"][field] = unsafe
+    with pytest.raises(SchemaValidationError):
+        Draft202012Validator(published_qualification_status_json_schema()).validate(
+            payload
+        )
+
+
+def test_missing_historical_model_bindings_are_unknown_not_an_empty_model_set():
+    row = historical()
+    del row["verdict_identity"]["model_digests"]
+    imported = from_history(row)
+    assert imported is not None
+    assert not imported.identity.models_resolved
