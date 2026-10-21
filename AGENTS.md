@@ -43,6 +43,7 @@ keeping old formats usable alongside it.
   Preserve option names, values, ordering, and setting bindings. Unknown engine
   flags or values alone are not a rejection reason. Keep structural validation
   and enforcement of platform-owned security, mounts, and writable paths.
+- Preserve hardware-proven memory settings; new/failing recipes reserve by need under the GB10 limit, and proven recipes calibrate the check (see the memory section in `docs/recipe-authoring.md`).
 - The platform owns writable caches, temporary directories, and their runtime
   user permissions. Do not duplicate engine invariants in recipes or solve
   permissions with root containers, broad write permissions, or writable roots.

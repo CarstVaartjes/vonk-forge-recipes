@@ -190,10 +190,34 @@ copies of a default. Respect the contract's automatic/unspecified settings;
 benchmark request counts are not engine concurrency limits. If a wrapper
 hardcodes a setting, align its implementation with the declared setting.
 
-Single-Spark vLLM/SGLang reservations must leave the GB10 host guard's
-16 GiB pressure headroom, including runtime overhead and idle host use.
-See [the derivation and absolute KV-cache rules](gb10-memory-headroom.md);
-`tests/test_single_spark_memory_headroom.py` checks every recipe and option.
+### Memory: preserve proof, reserve by need
+
+**A.** Preserve the runtime settings of every recipe that passed on real hardware.
+Change them only after a hardware failure, or deliberately with hardware retesting.
+
+**B.** New/failing recipes reserve selected weights (including drafts), KV for
+declared context × declared engine concurrency, and runtime overhead. Use absolute
+pools: vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens` with source-backed
+per-token sizing. Never substitute a fraction of RAM or benchmark concurrency.
+`qualification/memory_need.py` supplies the shared calculator and catalog guard.
+
+Per GB10, the limit is **130,663,231,488 total bytes − 17,179,869,184 bytes
+(16 GiB host guard floor) − 5,012,574,208 measured idle bytes = 108,470,788,096
+bytes**. Sources: vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
+`rust/crates/vonk-agent-helper/src/host_memory_guard.rs`, re-exporting
+`host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES`; spark-3542 2026-10-15/16
+incident telemetry, **125,650,657,280 bytes idle MemAvailable**, retained in the
+calculator's historical source. The live guard also requires sustained pressure
+(full PSI 30%, 3 seconds); planning always leaves its floor. Runtime overhead
+currently uses an **8,000,000,000-byte estimate**, not a measurement; count actual
+draft weights separately instead of adding a flat 17 GB. A new/changed recipe
+whose need exceeds the limit fails the catalog build: reduce context/concurrency,
+choose a smaller quantization, or author a multi-Spark recipe id. Never omit a
+failing recipe to pass the check.
+
+**C.** Proven recipes are the calibration set. If an estimate rejects one, correct
+the need model or source measurements, never the proven runtime reservation.
+Historical document identity preserves behavior; it is not numeric calibration.
 
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`).

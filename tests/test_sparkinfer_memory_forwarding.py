@@ -7,8 +7,9 @@ import sys
 from pathlib import Path
 
 import pytest
-from test_vllm_memory_fit import loads_draft_model
 from vonk_forge_contracts import RecipeDefinition
+
+from qualification.memory_need import loads_draft_model
 
 ROOT = Path(__file__).resolve().parents[1]
 
