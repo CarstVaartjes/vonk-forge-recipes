@@ -190,6 +190,11 @@ copies of a default. Respect the contract's automatic/unspecified settings;
 benchmark request counts are not engine concurrency limits. If a wrapper
 hardcodes a setting, align its implementation with the declared setting.
 
+Single-Spark vLLM/SGLang reservations must leave the GB10 host guard's
+16 GiB pressure headroom, including runtime overhead and idle host use.
+See [the derivation and absolute KV-cache rules](gb10-memory-headroom.md);
+`tests/test_single_spark_memory_headroom.py` checks every recipe and option.
+
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`).
 `tools/check-recipe-topology` fails validation when a change alters the

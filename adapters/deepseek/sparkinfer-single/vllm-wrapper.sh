@@ -70,7 +70,6 @@ done
 [[ ${max_num_seqs} == 4 ]] || die "the validated concurrency is four sequences"
 [[ ${max_num_batched_tokens} == 8224 ]] || die "the validated batch-token limit is 8224"
 [[ ${max_cudagraph_capture_size} == 6 ]] || die "the validated CUDA graph width is six"
-[[ ${gpu_memory_utilization} == 0.9465 ]] || die "the validated memory utilization is 0.9465"
 [[ ${kv_cache_dtype} == nvfp4_ds_mla ]] || die "the validated sparse-MLA cache selector is required"
 [[ ${prefix_cache} == 1 ]] || die "the validated profile requires prefix caching"
 

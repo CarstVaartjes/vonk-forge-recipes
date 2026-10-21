@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 31B IT on one Spark with stock vLLM v0.25.1: 262144-token context, fp8 KV cache, up to 2 concurrent sequences, MTP speculative decoding (4 tokens) with Google's gemma-4-31B-it-assistant, image and video input, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's start.sh (no licence file upstream; its README says scripts are MIT). Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput and KV-capacity figures are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking true (upstream default); reasoning is returned in the reasoning field via the gemma4 parser. GB10 memory correction: gpu-memory/util-088 utilization 0.95 → 0.88. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.88 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 31B IT on one Spark with stock vLLM v0.25.1: 262144-token context, fp8 KV cache, up to 2 concurrent sequences, MTP speculative decoding (4 tokens) with Google's gemma-4-31B-it-assistant, image and video input, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's start.sh (no licence file upstream; its README says scripts are MIT). Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput and KV-capacity figures are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking true (upstream default); reasoning is returned in the reasoning field via the gemma4 parser. GB10 host-guard headroom: explicit engine reservation capped at 0.60; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "candidate",
       "executable",
@@ -310,7 +310,7 @@
             {
               "name": "gpu-memory-utilization",
               "setting": null,
-              "value": "0.70"
+              "value": "0.60"
             }
           ],
           "help": "--gpu-memory-utilization 0.85; upstream estimates about 740K KV tokens (not measured). Capped at 0.70 (was 0.85): with the draft-model allowance no larger budget fits one Spark.",
@@ -322,7 +322,7 @@
             {
               "name": "gpu-memory-utilization",
               "setting": null,
-              "value": "0.70"
+              "value": "0.60"
             },
             {
               "name": "max-num-batched-tokens",
@@ -388,7 +388,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.70"
+        "value": "0.60"
       },
       {
         "name": "max-model-len",

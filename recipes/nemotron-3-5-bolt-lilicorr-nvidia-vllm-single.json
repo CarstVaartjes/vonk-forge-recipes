@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Official NVIDIA profile, matching eugr’s Bolt recipe: tested image digest 4428520b, checkpoint c6cc2e8f and LiLiCorr 4c6a5613; eight streams, automatic context fit, FP8 KV and seven-token DFlash. Preserves instanttensor loading, Mamba shared-prefix checkpoints and NVIDIA reasoning/tool parsers. Memory is a conservative per-node estimate, not a local measurement. Publication does not establish physical Spark qualification. The managed profile caps GPU utilization at 0.7 to include separate-drafter overhead and the platform OS floor; this capacity adjustment has not been physically qualified.",
+    "description": "Official NVIDIA profile, matching eugr\u2019s Bolt recipe: tested image digest 4428520b, checkpoint c6cc2e8f and LiLiCorr 4c6a5613; eight streams, automatic context fit, FP8 KV and seven-token DFlash. Preserves instanttensor loading, Mamba shared-prefix checkpoints and NVIDIA reasoning/tool parsers. Memory is a conservative per-node estimate, not a local measurement. Publication does not establish physical Spark qualification. The managed profile caps GPU utilization at 0.7 to include separate-drafter overhead and the platform OS floor; this capacity adjustment has not been physically qualified. GB10 host-guard headroom: explicit engine reservation capped at 0.60; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "nemotron",
       "vllm",
@@ -1343,7 +1343,7 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": "0.7"
+        "value": "0.60"
       },
       {
         "name": "speculative-config",

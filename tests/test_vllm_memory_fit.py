@@ -31,9 +31,7 @@ PENDING_CREATOR = frozenset(
     {
         "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",
         "glm-5-3-flash-exl3-dflash2-vllm-dual",
-        "glm-5-3-flash-exl3-k2-0xsero-vllm-single",
         "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
-        "laguna-s-2-1-nvfp4-dflash-vllm-mia-single",
         "minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual",
     }
 )
@@ -41,6 +39,11 @@ PENDING_CREATOR = frozenset(
 
 def loads_draft_model(recipe: RecipeDefinition) -> bool:
     """Whether the speculative config names a model other than the served target."""
+    # SparkInfer builds and selects its DSpark draft inside the recipe wrapper,
+    # rather than an authored speculative-config argument. Budget it too.
+    wrapper = ROOT / recipe.execution.build.context.path / "vllm-wrapper.sh"
+    if wrapper.is_file() and "export SPEC_MODEL_PATH=" in wrapper.read_text():
+        return True
     arguments = recipe.runtime.arguments
     served = set(recipe.runtime.entrypoint) | {
         str(item.value) for item in arguments if item.name == "model"

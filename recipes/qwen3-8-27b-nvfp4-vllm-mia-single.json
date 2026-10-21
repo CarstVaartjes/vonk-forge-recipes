@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "MiaAI-Lab's one-DGX-Spark vLLM profile for Unsloth's Qwen3.8 27B NVFP4 (Dynamic V3.0, compressed-tensors, MTP weights included) from MiaAI-Lab/Qwen3.8-27B-DGX-Spark-RTX-6000 at 608a48de (MIT): 1M-token context via static YaRN (factor 4.0), FP8 KV cache from the checkpoint's calibrated scheme, triton_attn, MTP speculative decoding with 2 tokens, gpu-memory-utilization 0.84, 4 sequences, qwen3 reasoning and qwen3_coder tool parsers, video frames unlimited. Upstream tracks the moving vllm/vllm-openai:nightly-aarch64 tag (needs vLLM 0.25 or newer); this recipe pins the arm64 digest of 2026-09-29 (vLLM build commit 36768d1b) and the Unsloth checkpoint head f0b7c9e7 (upstream downloads whatever is current). The option switches the KV cache to bf16 as upstream documents. The RTX 6000 PRO gpu-memory-utilization advice does not apply to a Spark. Upstream repository licence MIT, checkpoint card Apache-2.0 (the repository has no separate LICENSE file); the Qwen base licence terms apply to the weights. Upstream reports 2,295,133 tokens of FP8 KV cache at 0.84 (its own log, not measured here). Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "MiaAI-Lab's one-DGX-Spark vLLM profile for Unsloth's Qwen3.8 27B NVFP4 (Dynamic V3.0, compressed-tensors, MTP weights included) from MiaAI-Lab/Qwen3.8-27B-DGX-Spark-RTX-6000 at 608a48de (MIT): 1M-token context via static YaRN (factor 4.0), FP8 KV cache from the checkpoint's calibrated scheme, triton_attn, MTP speculative decoding with 2 tokens, gpu-memory-utilization 0.84, 4 sequences, qwen3 reasoning and qwen3_coder tool parsers, video frames unlimited. Upstream tracks the moving vllm/vllm-openai:nightly-aarch64 tag (needs vLLM 0.25 or newer); this recipe pins the arm64 digest of 2026-09-29 (vLLM build commit 36768d1b) and the Unsloth checkpoint head f0b7c9e7 (upstream downloads whatever is current). The option switches the KV cache to bf16 as upstream documents. The RTX 6000 PRO gpu-memory-utilization advice does not apply to a Spark. Upstream repository licence MIT, checkpoint card Apache-2.0 (the repository has no separate LICENSE file); the Qwen base licence terms apply to the weights. Upstream reports 2,295,133 tokens of FP8 KV cache at 0.84 (its own log, not measured here). Physical Spark acceptance is pending. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
     "tags": [
       "executable",
       "candidate",
@@ -281,7 +281,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.84"
+        "value": "0.75"
       },
       {
         "name": "max-model-len",
