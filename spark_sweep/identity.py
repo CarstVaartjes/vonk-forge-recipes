@@ -19,6 +19,7 @@ class VerdictIdentity(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     content_sha256: str
+    source_bundle_sha256: str | None = None
     runtime_image: RuntimeImageIdentity | None = None
     model_digests: tuple[str, ...]
     # Unknown image pins bind accepted work conservatively to its library for
@@ -30,6 +31,7 @@ class VerdictIdentity(BaseModel):
 def content_identity(recipe: Recipe) -> VerdictIdentity:
     return VerdictIdentity(
         content_sha256=recipe.content_sha256,
+        source_bundle_sha256=recipe.source_bundle_sha256,
         runtime_image=recipe.runtime_image,
         model_digests=tuple(sorted(set(recipe.model_digests))),
         image_library_commit=recipe.library_commit
@@ -42,6 +44,7 @@ def current_identity(recipe: Recipe) -> QualificationIdentity:
     identity = content_identity(recipe)
     return QualificationIdentity(
         content_sha256=identity.content_sha256,
+        source_bundle_sha256=identity.source_bundle_sha256,
         runtime_image=QualificationRuntimeImage.model_validate(
             identity.runtime_image.model_dump()
         )

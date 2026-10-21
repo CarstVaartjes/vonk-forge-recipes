@@ -114,6 +114,7 @@ class QualificationQualityNote(StrEnum):
 class QualificationChange(StrEnum):
     RECIPE = "recipe"
     IMAGE = "image"
+    SOURCE = "source"
     MODEL = "model"
 
 
@@ -140,6 +141,7 @@ class QualificationRuntimeImage(PublicQualificationModel):
 
 class QualificationIdentity(PublicQualificationModel):
     content_sha256: Digest
+    source_bundle_sha256: Digest | None = None
     runtime_image: QualificationRuntimeImage | None = None
     model_digests: tuple[Digest, ...] = ()
     required_sparks: int | None = Field(default=None, ge=1)
@@ -302,6 +304,10 @@ def _changes(
                 and previous.runtime_image != current.runtime_image,
             ),
             (
+                QualificationChange.SOURCE,
+                previous.source_bundle_sha256 != current.source_bundle_sha256,
+            ),
+            (
                 QualificationChange.MODEL,
                 (previous.model_digests, previous.models_resolved)
                 != (current.model_digests, current.models_resolved),
@@ -318,6 +324,7 @@ def _same_content_identity(
     # changed pin. Publication separately requires fully resolved exact proof.
     return (
         previous.content_sha256 == current.content_sha256
+        and previous.source_bundle_sha256 == current.source_bundle_sha256
         and previous.model_digests == current.model_digests
         and previous.models_resolved == current.models_resolved
         and previous.required_sparks in (None, current.required_sparks)

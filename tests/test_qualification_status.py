@@ -357,6 +357,7 @@ def test_published_catalog_matches_shared_derivation(built_catalog):
         key = f"{document['identity']['publisher']}/{document['identity']['slug']}"
         identity = Identity(
             content_sha256=entry["content_sha256"],
+            source_bundle_sha256=entry["source_bundle_sha256"],
             model_digests=tuple(
                 sorted({b["model"]["content_sha256"] for b in document["models"]})
             ),
@@ -397,6 +398,7 @@ def test_catalog_derives_after_resolving_release_image(
     image = Image(build_key="b" * 64, image_digest="sha256:" + "c" * 64)
     identity = Identity(
         content_sha256=digest,
+        source_bundle_sha256="1" * 64,
         runtime_image=image,
         model_digests=tuple(
             sorted({b["model"]["content_sha256"] for b in document["models"]})
@@ -409,7 +411,10 @@ def test_catalog_derives_after_resolving_release_image(
     monkeypatch.setitem(
         globals_,
         "recipe_package",
-        lambda *a, **kw: (b"package", {"path": "packages/example.tar.gz"}),
+        lambda *a, **kw: (
+            b"package",
+            {"path": "packages/example.tar.gz", "source_bundle_sha256": "1" * 64},
+        ),
     )
     monkeypatch.setitem(globals_, "_commit_time", lambda *a: NOW.isoformat())
     images = {
@@ -1208,3 +1213,20 @@ def test_unbound_pass_cannot_hide_a_recorded_image_change():
     restored = derive_status(evidence(unbound, pinned), A, 2, False)
     assert restored.status == Status.WORKING
     assert restored.last_pass == pinned
+
+
+def test_adapter_only_fix_invalidates_a_failure_without_a_prebuilt_image():
+    # A recipe built on the Spark has no published image; source still changes
+    # what it builds. Reusing the document-only verdict would suppress retests.
+    previous = A.model_copy(
+        update={"runtime_image": None, "source_bundle_sha256": "1" * 64}
+    )
+    current = previous.model_copy(update={"source_bundle_sha256": "2" * 64})
+    failed = record(previous, Outcome.FAILED, Blame.RECIPE)
+    view = derive_status(evidence(failed), current, 1, False)
+    assert view.status == Status.FIX_TO_VERIFY
+    assert view.changed == (Change.SOURCE,)
+    assert (
+        derive_status(evidence(failed), previous, 1, False).status
+        == Status.FAILED_RECIPE
+    )

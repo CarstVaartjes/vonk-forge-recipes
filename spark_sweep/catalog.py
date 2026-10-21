@@ -71,6 +71,7 @@ class Recipe:
     checks: tuple[dict[str, Any], ...] = field(default=(), compare=False)
     runtime_image: RuntimeImageIdentity | None = None
     library_commit: str | None = None
+    source_bundle_sha256: str | None = None
 
     @property
     def model_set(self) -> frozenset[str]:
@@ -145,6 +146,7 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         base_image=str(dig(document, "base_image_digest", default="")),
         cache_ready=dig(row, "assessment", "cache", "state") == "ready",
         library_commit=library_commit or None,
+        source_bundle_sha256=projected.projected.source_bundle_sha256,
         runtime_image=RuntimeImageIdentity(
             build_key=projected.prebuilt_image.build_key,
             image_digest=projected.prebuilt_image.reference.partition("@")[2],
