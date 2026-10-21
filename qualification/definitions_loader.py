@@ -17,12 +17,14 @@ key, on a file name that does not match its id, and on a leftover
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
 from pydantic import TypeAdapter
 
 from qualification.media_types import CanonicalMediaTypes
+from qualification.native_dimensions import resolve_native_dimensions
 
 QUALIFICATION_ROOT = Path(__file__).resolve().parent
 PER_RECIPE_SECTIONS = ("recipes", "service_recipes")
@@ -78,6 +80,17 @@ def load_definitions(root: Path = QUALIFICATION_ROOT) -> dict[str, Any]:
                     raise ValueError(f"{recipe_id} is defined twice in {section}")
                 if section == "recipes":
                     spec = entry[section]
+                    # Resolve inherited assertions against each case's own
+                    # inputs before replacing the base's native-size marker.
+                    for case in spec.get("cases", []):
+                        if "assertions" not in case and any(
+                            "native_dimensions" in a for a in spec.get("assertions", [])
+                        ):
+                            case["assertions"] = deepcopy(spec["assertions"])
+                        resolve_native_dimensions(
+                            {**spec, **case}, document.get("fixtures", {}), root
+                        )
+                    resolve_native_dimensions(spec, document.get("fixtures", {}), root)
                     for case in [spec, *spec.get("cases", [])]:
                         if "output_limits" in case:
                             try:

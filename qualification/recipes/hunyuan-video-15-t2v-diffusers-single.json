@@ -49,8 +49,6 @@
       {
         "kind": "video-metadata",
         "media_type": "video/mp4",
-        "width": 1280,
-        "height": 720,
         "fps": 24,
         "fps_tolerance": 0.01,
         "frame_count": 1,
@@ -58,7 +56,15 @@
         "stream_count": 1,
         "audio_streams": 0,
         "minimum_duration_seconds": 0.04,
-        "maximum_duration_seconds": 0.08333333333333333
+        "maximum_duration_seconds": 0.08333333333333333,
+        "native_dimensions": {
+          "kind": "hunyuan-video-15",
+          "target_size": 960,
+          "aspect_ratio": [
+            16,
+            9
+          ]
+        }
       }
     ]
   }

@@ -802,6 +802,14 @@ fork these adapters to introduce smaller smokes.
 `tests/test_qualification_case_assertions.py` guards the reviewed media cases
 and the byte identities of those proven documents and shared contexts.
 
+For pipelines that select native buckets, metadata assertions declare
+`native_dimensions` (kind, target size and T2V aspect ratio) instead of fixed
+width/height. The shared loader uses a stdlib translation of the pinned upstream
+bucket rule and reads the digest-checked PNG fixture's IHDR dimensions for I2V.
+Only resolved width/height
+reach consumers. `tests/test_native_dimension_expectations.py` guards the
+source pins, automatic-sizing contexts and wrong-dimension rejection.
+
 MOVA's pinned temporal rule is `4k+1`, including one frame; smoke uses one frame
 and two steps at 640x352 or 1280x720, with synchronized 48 kHz audio at 24 fps.
 The target is a few minutes on one GB10, with a 600-second job budget including

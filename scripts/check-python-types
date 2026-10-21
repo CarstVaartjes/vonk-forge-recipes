@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --no-project --managed-python --python 3.14 --with pyright==1.1.414 --with pytest==9.1.1 --with pydantic==2.13.4 python
+#!/usr/bin/env -S uv run --no-project --managed-python --python 3.14 --with pyright==1.1.414 --with pytest==9.1.1 --with pydantic==2.13.4 --with Pillow==12.0.0 python
 """Fail when a Python type error appears outside the reviewed exception list.
 
 The repository does not type-check cleanly yet, but every surviving error is a
