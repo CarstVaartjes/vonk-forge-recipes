@@ -31,6 +31,7 @@
       "enum": [
         "recipe",
         "image",
+        "source",
         "model"
       ],
       "title": "QualificationChange",
@@ -157,6 +158,19 @@
           "pattern": "^[0-9a-f]{64}$",
           "title": "Content Sha256",
           "type": "string"
+        },
+        "source_bundle_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Bundle Sha256"
         },
         "runtime_image": {
           "anyOf": [

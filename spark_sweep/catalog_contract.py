@@ -52,6 +52,7 @@ class RecipeProjection(Projection):
     interfaces: list[Interface] = Field(default_factory=list)
     topology: Topology = Field(default_factory=Topology)
     models: list[ModelIdentity] = Field(default_factory=list)
+    source_bundle_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     runtime_engine: str = ""
     base_image_digest: str = ""
 

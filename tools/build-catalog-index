@@ -113,20 +113,27 @@ def source_bundle(context: Path) -> tuple[bytes, list[dict[str, object]], str]:
         }
         for relative, content in files
     ]
-    manifest = {
-        "schema_version": 1,
-        "files": [
+    digest = source_manifest_sha256(
+        [
             {
                 "path": relative,
-                "mode": 0o644,
                 "size": len(content),
                 "sha256": hashlib.sha256(content).hexdigest(),
             }
             for relative, content in files
-        ],
-        "total_bytes": sum(len(content) for _, content in files),
+        ]
+    )
+    return stream.getvalue(), metadata, digest
+
+
+def source_manifest_sha256(files: list[dict[str, Any]]) -> str:
+    """The normalized context manifest; callers supply hashes computed at ingress."""
+    manifest = {
+        "schema_version": 1,
+        "files": [{**entry, "mode": 0o644} for entry in files],
+        "total_bytes": sum(entry["size"] for entry in files),
     }
-    return stream.getvalue(), metadata, hashlib.sha256(canonical(manifest)).hexdigest()
+    return hashlib.sha256(canonical(manifest)).hexdigest()
 
 
 def rendered(document: dict[str, object]) -> str:
@@ -632,8 +639,16 @@ def recipe_package(
         }
         for name, payload in files
     ]
+    context_prefix = document["execution"]["build"]["context"]["path"].rstrip("/") + "/"
+    source_files = [
+        {**entry, "path": entry["path"].removeprefix(context_prefix)}
+        for entry in manifest_files
+        if entry["path"].startswith(context_prefix)
+    ]
+    context_digest = source_manifest_sha256(source_files)
     manifest = {
         "schema_version": PACKAGE_SCHEMA_VERSION,
+        "source_bundle_sha256": context_digest,
         "kind": "recipe-package",
         "package_type": "recipe",
         "recipe_content_sha256": recipe_digest,
@@ -653,6 +668,7 @@ def recipe_package(
         "path": f"packages/{document['identity']['slug']}.tar.gz",
         "recipe_content_sha256": recipe_digest,
         "minimum_consumer_schema": 2,
+        "source_bundle_sha256": context_digest,
     }
     return payload, metadata
 
@@ -719,6 +735,7 @@ def build(
             {
                 "source_path": path.relative_to(ROOT).as_posix(),
                 "content_sha256": document_sha256(document),
+                "source_bundle_sha256": metadata["source_bundle_sha256"],
                 "document": document,
                 "package": metadata,
                 "release": document["release"],
@@ -738,6 +755,7 @@ def build(
         image = entry.get("prebuilt_image")
         identity = QualificationIdentity(
             content_sha256=entry["content_sha256"],
+            source_bundle_sha256=entry["source_bundle_sha256"],
             runtime_image=QualificationRuntimeImage(
                 build_key=image["build_key"],
                 image_digest="sha256:" + image["reference"].rsplit("@sha256:", 1)[1],
@@ -798,6 +816,7 @@ def build(
                 "expected_bytes",
                 "recipe_content_sha256",
                 "minimum_consumer_schema",
+                "source_bundle_sha256",
             ],
         },
         "catalog_entities": catalog_entities,

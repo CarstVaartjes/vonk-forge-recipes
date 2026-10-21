@@ -38,7 +38,9 @@ def test_poison_row_advances_cursor_retains_cache_and_cannot_authorize_removal(
     healthy = fleet._recipe_row(FakeRecipe("good"))
     bad = copy.deepcopy(healthy)
     bad["selector"] = "vonk-forge/poison"
-    (bad["projected"] if field in RecipeProjection.model_fields else bad)[field] = None
+    (bad["projected"] if field in RecipeProjection.model_fields else bad)[field] = (
+        "invalid-digest" if field == "source_bundle_sha256" else None
+    )
     rows = [healthy, healthy]
     rows.insert(position, bad)
     pages = iter(
