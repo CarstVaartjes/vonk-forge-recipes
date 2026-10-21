@@ -717,6 +717,58 @@
         "hardware_class": "GB10"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8",
+        "runtime_image": {
+          "build_key": "35938e578d334fc86f12f6b7cde1cfa1a3aa36baeeb58fe5c9d1b6a24e4c52f5",
+          "image_digest": "sha256:9ea6bc0621a7a950bac21b0230acaea8faff574b9bb128c30b7a0dd180348a41"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "29569a79bf578e42c793a7b883892132142c58a90e18121c6d703720ff764d02"
+      ],
+      "tested_at": "2026-10-21T20:16:38.744653Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8",
+        "runtime_image": {
+          "build_key": "35938e578d334fc86f12f6b7cde1cfa1a3aa36baeeb58fe5c9d1b6a24e4c52f5",
+          "image_digest": "sha256:9ea6bc0621a7a950bac21b0230acaea8faff574b9bb128c30b7a0dd180348a41"
+        },
+        "model_digests": [
+          "eaff595822ed81fd7075e9fd20a05d2902a317e7cc9de1f3aa3b91b96f564280"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "c0383e35192a6a66426fcace1fcba1edff550051aee47ec57b535013d78d9a20"
+      ],
+      "tested_at": "2026-10-21T20:22:11.380760Z",
+      "platform": {
+        "controller_source_sha": "99ffd323c929abd6926780b4b2dc5aa534d0d311",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
     }
   ]
 }
