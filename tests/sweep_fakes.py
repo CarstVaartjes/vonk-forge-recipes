@@ -660,9 +660,9 @@ class FakeFleet:
             },
             "local": {"controller": local, "running_on": []},
             "updated_at": r.updated,
-            "document": {
+            "projected": {
                 "models": [
-                    {"model": {"publisher": "hf", "slug": d, "content_sha256": d}}
+                    {"publisher": "hf", "slug": d, "content_sha256": d}
                     for d in r.digests
                 ],
                 "interfaces": [
@@ -676,9 +676,9 @@ class FakeFleet:
                     "node_count": r.node_count,
                     "roles": [{"resources": {"disk": {"artifact_bytes": 20 * GB}}}],
                 },
-                "execution": {"build": {"base_image": {"digest": f"base-{r.engine}"}}},
+                "base_image_digest": f"base-{r.engine}",
                 "validation": {"serving": {"checks": []}},
-                "runtime": {"engine": r.engine},
+                "runtime_engine": r.engine,
             },
         }
 
