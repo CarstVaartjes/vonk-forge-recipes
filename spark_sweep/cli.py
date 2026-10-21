@@ -11,6 +11,8 @@ from pathlib import Path
 
 from vonk_forge_contracts import RecipeDefinition
 
+from qualification.memory_need import SPARK_MEMORY_BYTES
+
 from . import policy
 from .catalog import fetch_fleet, fetch_models, fetch_recipes
 from .definitions import Definitions
@@ -315,7 +317,7 @@ def main(
     defs = definitions or Definitions.load()
     if args.command == "plan":
         recipes, _ = fetch_recipes(vk)
-        fleet = fetch_fleet(vk, 130_663_231_488)
+        fleet = fetch_fleet(vk, SPARK_MEMORY_BYTES)
         # Testable is the enrolled topology, never how many Sparks are online right now.
         enrolled = len(fleet.sparks) if not args.spark else len(args.spark)
         state = State.load(state_path)

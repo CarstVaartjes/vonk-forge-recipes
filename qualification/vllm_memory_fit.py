@@ -6,12 +6,14 @@ from pathlib import Path
 
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 
-# Physical GB10 unified memory, not aggregate memory across the topology.
-SPARK_MEMORY_BYTES = 130_663_231_488
-# Lowest idle MemAvailable observed on a Spark; admission keeps the floor above it.
-SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
-OVERHEAD_BYTES = 8_000_000_000
-OS_FLOOR_BYTES = 6_000_000_000
+from qualification.memory_need import (
+    DRAFT_MODEL_OVERHEAD_BYTES,
+    OS_FLOOR_BYTES,
+    OVERHEAD_BYTES,
+    SPARK_IDLE_AVAILABLE_BYTES,
+    SPARK_MEMORY_BYTES,
+)
+
 VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
 # A separately loaded speculative draft model (DFlash, DSpark, EAGLE, an external
 # MTP checkpoint) holds memory outside `gpu-memory-utilization`. Calibrated from
@@ -19,7 +21,6 @@ VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
 # drove ~116.4e9 bytes attributable to the run (121e9 used less 4.6e9 idle) within
 # twelve minutes and froze the Spark, 17e9 above 0.7 x memory + 8e9. That sample
 # was still climbing, so this is a floor; the sweep's memory-envelope note refines it.
-DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 # Draft-model recipes whose weights leave no KV room once the draft overhead is
 # counted on a fitting envelope: each needs its creator (more Sparks, a smaller
 # context or drafter). Until then only the draft term is waived for them: the
@@ -83,7 +84,6 @@ def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) 
     ):
         # Need-based documents omit utilization: do not invent an implicit 0.9
         # reservation. Keep explicitly authored historical budgets calibrated.
-        # Import here to avoid a module import cycle.
         from qualification.memory_need import load_inputs, require_memory_need
 
         assert recipe.topology.node_count == 1, (
@@ -121,4 +121,3 @@ def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) 
 INCIDENT_MEASURED_OVERHEAD_BYTES = 122_005_303_296 - int(
     Decimal("0.85") * SPARK_MEMORY_BYTES
 )
-SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280

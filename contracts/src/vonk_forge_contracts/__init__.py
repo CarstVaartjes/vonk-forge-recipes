@@ -14,6 +14,8 @@ ignore fields a newer minor release added, and identify a document by the
 
 from __future__ import annotations
 
+from importlib.metadata import version
+
 from .canonical import canonical_json, document_sha256, read_model, read_recipe
 from .endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 from .model import GitHubReleaseAsset, GitHubReleaseSource, ModelDefinition
@@ -59,7 +61,7 @@ from .qualification_status import (
 )
 from .recipe import RecipeDefinition, RecipeOptionError
 
-CONTRACT_VERSION = "2.4.0"
+CONTRACT_VERSION = version("vonk-forge-public-contracts")
 __version__ = CONTRACT_VERSION
 CONTRACT_MAJOR = int(CONTRACT_VERSION.split(".", 1)[0])
 

@@ -7,11 +7,13 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PROTOCOL_WHEEL = "vonk_agent_protocol-4.1.0-py3-none-any.whl"
-PROTOCOL_WHEEL_SHA256 = (
-    "e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195"
-)
-PROTOCOL_SOURCE_COMMIT = "e6de69b20c098d4df2eb9e0294cede8acc552a3c"
+from tools.protocol_wheel import selection, verified_payload
+
+SELECTED_PROTOCOL = selection(ROOT)
+PROTOCOL_WHEEL = Path(SELECTED_PROTOCOL.artifact).name
+PROTOCOL_WHEEL_SHA256 = SELECTED_PROTOCOL.artifact_sha256
+PROTOCOL_SOURCE_COMMIT = SELECTED_PROTOCOL.platform_source_commit
+verified_payload(ROOT, SELECTED_PROTOCOL)
 PROTOCOL_CONTEXTS = (
     ROOT / "adapters/video/ltx2-pytorch",
     ROOT / "adapters/video/ltx2-sync-native",

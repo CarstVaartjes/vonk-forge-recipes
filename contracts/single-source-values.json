@@ -1,0 +1,8 @@
+[
+  {
+    "semantic_id": "recipe_contract.version",
+    "owner": "contracts/pyproject.toml",
+    "selector": "project.version",
+    "kind": "contract-version"
+  }
+]

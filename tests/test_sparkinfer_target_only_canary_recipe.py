@@ -8,6 +8,8 @@ import unittest
 from pathlib import Path
 from typing import Any, cast
 
+from qualification.memory_need import OS_FLOOR_BYTES, SPARK_MEMORY_BYTES
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from generated_catalog import GENERATED
@@ -29,7 +31,6 @@ XGRAMMAR_VERSION = "0.2.3"
 XGRAMMAR_WHEEL_SHA256 = (
     "11255f184971489fc72b948b096e2917f482ba2dca975177f5411562cedb9c6d"
 )
-SPARK_MEMORY_BYTES = 130_663_231_488
 
 
 def _document(path: Path) -> dict[str, object]:
@@ -85,7 +86,7 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
             memory["peak_bytes"], SPARK_MEMORY_BYTES * 0.85 + 8_000_000_000
         )
         self.assertEqual(memory["reserve_bytes"], 8_000_000_000)
-        self.assertLessEqual(memory["peak_bytes"] + 6_000_000_000, SPARK_MEMORY_BYTES)
+        self.assertLessEqual(memory["peak_bytes"] + OS_FLOOR_BYTES, SPARK_MEMORY_BYTES)
 
     def test_adapter_selects_target_only_mode_and_never_builds_a_draft(self) -> None:
         dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text(encoding="utf-8")

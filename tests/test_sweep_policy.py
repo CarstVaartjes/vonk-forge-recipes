@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import pytest
 
+from qualification.memory_need import SPARK_MEMORY_BYTES
+
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
@@ -11,7 +13,7 @@ from spark_sweep import policy, verdict
 from spark_sweep.catalog import Recipe
 
 GB = 10**9
-CAP = 130_663_231_488
+CAP = SPARK_MEMORY_BYTES
 RESERVE = 8 * GB
 
 

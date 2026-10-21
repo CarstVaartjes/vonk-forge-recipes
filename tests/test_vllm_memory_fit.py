@@ -7,11 +7,15 @@ import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-from qualification.memory_need import load_inputs, require_memory_need
-from qualification.vllm_memory_fit import (
+from qualification.memory_need import (
+    GUARD_BYTES,
     OVERHEAD_BYTES,
-    PENDING_CREATOR,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
+    load_inputs,
+    require_memory_need,
+)
+from qualification.vllm_memory_fit import (
+    PENDING_CREATOR,
     assert_memory_fit,
     loads_draft_model,
     non_utilization_bytes,
@@ -51,7 +55,7 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     assert need.kv_bytes == 16 * 4 * (256 + 256) * 1_048_576
     assert need.state_bytes == 160 * 1024**2
     memory = recipe.topology.roles[0].resources.memory
-    assert memory.reserve_bytes == 16 * 1024**3
+    assert memory.reserve_bytes == GUARD_BYTES
     assert memory.peak_bytes >= need.total_bytes + 3_000_000_000
     assert_memory_fit(recipe)
     assert memory.peak_bytes + memory.reserve_bytes <= SPARK_3542_IDLE_AVAILABLE_BYTES

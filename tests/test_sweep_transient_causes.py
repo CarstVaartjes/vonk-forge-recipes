@@ -5,6 +5,8 @@ from __future__ import annotations
 import pytest
 from sweep_fakes import SPARK_MEMORY, FakeModel, FakeRecipe, Gateway, make_sweep
 
+from qualification.memory_need import OS_FLOOR_BYTES
+
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
@@ -52,7 +54,7 @@ def _refusing(fleet, times: int | None, demand: int | None = 40 * 10**9):
                             {
                                 "node_id": node,
                                 "memory_required_bytes": demand,
-                                "memory_floor_bytes": 6 * 10**9,
+                                "memory_floor_bytes": OS_FLOOR_BYTES,
                             }
                             for node, *_ in (fleet.sparks if demand is not None else ())
                         ],

@@ -1,0 +1,36 @@
+[
+  {
+    "semantic_id": "memory.os_floor",
+    "owner": "qualification/memory_need.py",
+    "selector": "OS_FLOOR_BYTES",
+    "kind": "memory-bytes",
+    "consumer_symbols": [
+      "OS_FLOOR_BYTES",
+      "OS_ALLOWANCE_BYTES",
+      "PLATFORM_MEMORY_FLOOR_BYTES"
+    ]
+  },
+  {
+    "semantic_id": "memory.physical_fallback",
+    "owner": "qualification/memory_need.py",
+    "selector": "SPARK_MEMORY_BYTES",
+    "kind": "memory-bytes",
+    "consumer_symbols": [
+      "SPARK_MEMORY_BYTES",
+      "SPARK_MEMORY",
+      "PHYSICAL_MEMORY_BYTES",
+      "CAP",
+      "default_spark_memory"
+    ]
+  },
+  {
+    "semantic_id": "memory.guard_headroom",
+    "owner": "qualification/memory_need.py",
+    "selector": "GUARD_BYTES",
+    "kind": "memory-bytes",
+    "consumer_symbols": [
+      "GUARD_BYTES",
+      "STALL_AVAILABLE_BYTES"
+    ]
+  }
+]

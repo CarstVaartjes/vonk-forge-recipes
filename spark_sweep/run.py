@@ -48,6 +48,8 @@ from vonk_forge_contracts.sweep import (
     SweepWaitReason,
 )
 
+from qualification.memory_need import SPARK_MEMORY_BYTES
+
 from . import cleanup, memory, policy, recovery, verdict
 from .auth_contract import SmokeAuthClass
 from .catalog import (
@@ -209,7 +211,7 @@ class SweepConfig:
     pin_profile: int | None = 13
     sparks: tuple[str, ...] = ()
     reserve_bytes: int = 8_000_000_000
-    default_spark_memory: int = 130_663_231_488
+    default_spark_memory: int = SPARK_MEMORY_BYTES
     poll_seconds: float = 10.0
     catalog_seconds: float = 60.0
     status_seconds: float = 15.0

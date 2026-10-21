@@ -3,8 +3,8 @@ FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a71
 LABEL org.opencontainers.image.source="https://github.com/Lightricks/LTX-2" \
       org.opencontainers.image.revision="e98f6d927d83c92ef2be6aec76c8440b19306e39" \
       org.opencontainers.image.licenses="LTX-2 Community License Agreement" \
-      io.vonk.agent-protocol.source-commit="e6de69b20c098d4df2eb9e0294cede8acc552a3c" \
-      io.vonk.agent-protocol.wheel-sha256="e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195" \
+      io.vonk.agent-protocol.source-commit="cee017ae806f0ac4c0842a3652f8ef7ee57388b8" \
+      io.vonk.agent-protocol.wheel-sha256="9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625" \
       io.vonk.ltx2.source-archive-sha256="80daf4cd8e3b29de8a0282f9fe11998ef60f9e38cff6534fdc5dc8e6f3cc7ff3"
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -35,7 +35,7 @@ COPY wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl /opt/vonk/source/wheels/v
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
         --requirement /opt/vonk/source/requirements.lock \
     && printf '%s  %s\n' \
-        e80a989df7d99ba0e857738ee1daea901865b9fb2f77aca5d481a287e45b7195 \
+        9db7484767d0eaec9a0c20a6f18c1c995570c5588ffed8bee3da4a70022cc625 \
         /opt/vonk/source/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl \
         | sha256sum --check --strict \
     && python3 -m pip install --break-system-packages --no-cache-dir --no-index \
