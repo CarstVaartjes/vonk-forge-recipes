@@ -56,7 +56,7 @@ class HistoricalResult(BaseModel):
     controller_release: str | None = None
     controller_version: str | None = None
     agent_version: str | None = None
-    node_count: int | None = None
+    node_count: int | None = Field(default=None, ge=1)
     node_ids: tuple[str, ...] = ()
     quality: list[Any] = Field(default_factory=list)
     result: dict[str, Any] = Field(default_factory=dict)
@@ -134,7 +134,7 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         runtime_image=recorded.runtime_image if recorded else None,
         model_digests=tuple(sorted(set(models or ()))),
         models_resolved=models is not None,
-        required_sparks=row.node_count or len(row.node_ids) or 1,
+        required_sparks=row.node_count or len(row.node_ids) or None,
     )
     from .policy import RECIPE_FAILURE_CODES
     from .verdict import FAIL_CLASSES
@@ -201,9 +201,13 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
             controller_version=row.controller_version,
             agent_version=row.agent_version,
             spark_count=identity.required_sparks,
-            topology=QualificationTopology.SINGLE
-            if identity.required_sparks == 1
-            else QualificationTopology.MULTI,
+            topology=(
+                QualificationTopology.SINGLE
+                if identity.required_sparks == 1
+                else QualificationTopology.MULTI
+                if identity.required_sparks is not None
+                else None
+            ),
         ),
         evidence_refs=(reference,),
         quality_notes=(QualificationQualityNote.ANSWER_VARIANCE,)

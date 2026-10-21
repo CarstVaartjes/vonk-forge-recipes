@@ -77,7 +77,6 @@
       "identity": {
         "content_sha256": "0feba415ad3b8dffb25fba70c4b30a8d344ca6ac35796db62d783fde82f2d299",
         "model_digests": [],
-        "required_sparks": 1,
         "models_resolved": false
       },
       "outcome": "failed",
@@ -90,9 +89,7 @@
       "tested_at": "2026-10-14T06:47:26.237483Z",
       "platform": {
         "controller_source_sha": "9b54cf93c54e2188369dbbc641645086e4f212c5",
-        "hardware_class": "GB10",
-        "spark_count": 1,
-        "topology": "single"
+        "hardware_class": "GB10"
       },
       "quality_notes": []
     },

@@ -142,7 +142,7 @@ class QualificationIdentity(PublicQualificationModel):
     content_sha256: Digest
     runtime_image: QualificationRuntimeImage | None = None
     model_digests: tuple[Digest, ...] = ()
-    required_sparks: int = Field(default=1, ge=1)
+    required_sparks: int | None = Field(default=None, ge=1)
     # Unknown historical model bindings must not equal a proven empty model set.
     models_resolved: bool = True
 
@@ -162,17 +162,21 @@ class QualificationPlatform(PublicQualificationModel):
     controller_version: Version | None = None
     agent_version: Version | None = None
     hardware_class: QualificationHardware = QualificationHardware.GB10
-    spark_count: int = Field(ge=1)
-    topology: QualificationTopology
+    spark_count: int | None = Field(default=None, ge=1)
+    topology: QualificationTopology | None = None
 
     @model_validator(mode="after")
     def check_topology(self) -> Self:
+        if self.spark_count is None:
+            if self.topology is not None:
+                raise ValueError("topology requires a recorded Spark count")
+            return self
         expected = (
             QualificationTopology.SINGLE
             if self.spark_count == 1
             else QualificationTopology.MULTI
         )
-        if self.topology != expected:
+        if self.topology is not None and self.topology != expected:
             raise ValueError("topology must match Spark count")
         return self
 
@@ -181,6 +185,8 @@ class QualificationPlatform(PublicQualificationModel):
         return bool(
             (self.controller_source_sha or self.controller_version)
             and self.agent_version
+            and self.spark_count is not None
+            and self.topology is not None
         )
 
 
@@ -212,6 +218,8 @@ class QualificationEvidenceRecord(PublicQualificationModel):
     def consistent_verdict(self) -> Self:
         if (
             self.outcome == QualificationOutcome.PASSED
+            and self.platform.spark_count is not None
+            and self.identity.required_sparks is not None
             and self.platform.spark_count != self.identity.required_sparks
         ):
             raise ValueError(
@@ -314,6 +322,9 @@ def derive_status(
     other identities. Simultaneous contradictory results conservatively prefer
     the recipe failure. Input order never determines the outcome.
     """
+    required_sparks = current_identity.required_sparks
+    if required_sparks is None:
+        raise ValueError("current identity requires the recipe's Spark count")
     records = sorted(
         evidence.records,
         key=lambda r: (
@@ -361,7 +372,7 @@ def derive_status(
     else:
         status = QualificationStatus.UNTESTED
         reason = QualificationUnverifiedReason.NEVER_TESTED
-    if fleet_size < current_identity.required_sparks and not exact:
+    if fleet_size < required_sparks and not exact:
         status = QualificationStatus.CANNOT_TEST
         reason = QualificationUnverifiedReason.NEEDS_SPARKS
     if testing_now:
@@ -372,7 +383,7 @@ def derive_status(
         last_pass=last_pass,
         last_failure=last_failure,
         reason=reason,
-        required_sparks=current_identity.required_sparks,
+        required_sparks=required_sparks,
     )
 
 
@@ -380,14 +391,12 @@ def published_status(
     evidence: RecipeQualificationEvidence, current_identity: QualificationIdentity
 ) -> PublishedQualificationStatusView:
     """Release-relative view: no lane state or publisher fleet leaks into the catalog."""
-    view = derive_status(
-        evidence, current_identity, current_identity.required_sparks, False
-    )
+    required_sparks = current_identity.required_sparks
+    if required_sparks is None:
+        raise ValueError("current identity requires the recipe's Spark count")
+    view = derive_status(evidence, current_identity, required_sparks, False)
     reason = view.reason
-    if (
-        view.status == QualificationStatus.UNTESTED
-        and current_identity.required_sparks > 1
-    ):
+    if view.status == QualificationStatus.UNTESTED and required_sparks > 1:
         # Describe the required topology without publishing our enrollment.
         reason = QualificationUnverifiedReason.NEEDS_SPARKS
     if view.status in (

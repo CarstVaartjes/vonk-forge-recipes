@@ -179,10 +179,17 @@
           "type": "array"
         },
         "required_sparks": {
-          "default": 1,
-          "minimum": 1,
-          "title": "Required Sparks",
-          "type": "integer"
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required Sparks"
         },
         "models_resolved": {
           "default": true,
@@ -253,18 +260,30 @@
           "default": "GB10"
         },
         "spark_count": {
-          "minimum": 1,
-          "title": "Spark Count",
-          "type": "integer"
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Spark Count"
         },
         "topology": {
-          "$ref": "#/$defs/QualificationTopology"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualificationTopology"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
-      "required": [
-        "spark_count",
-        "topology"
-      ],
       "title": "QualificationPlatform",
       "type": "object"
     },

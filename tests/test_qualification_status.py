@@ -65,6 +65,7 @@ ROOT = Path(__file__).resolve().parents[1]
 NOW = datetime(2026, 10, 21, tzinfo=UTC)
 KEY = "vonk-forge/example"
 A = Identity(
+    required_sparks=1,
     content_sha256="a" * 64,
     runtime_image=Image(build_key="b" * 64, image_digest="sha256:" + "c" * 64),
     model_digests=("d" * 64,),
@@ -356,6 +357,7 @@ def test_published_catalog_matches_shared_derivation(built_catalog):
             mode="json", exclude_none=True
         )
         if expected.status != Status.NOT_YET_VERIFIED:
+            assert identity.required_sparks is not None
             assert (
                 expected.status
                 == derive_status(
@@ -572,3 +574,18 @@ def test_missing_historical_model_bindings_are_unknown_not_an_empty_model_set():
     imported = from_history(row)
     assert imported is not None
     assert not imported.identity.models_resolved
+
+
+def test_missing_historical_topology_stays_unknown_and_roundtrips():
+    row = {**historical(), "status": Outcome.FAILED}
+    del row["node_ids"]
+    imported = from_history(row)
+    assert imported is not None
+    assert imported.identity.required_sparks is None
+    assert imported.platform.spark_count is None and imported.platform.topology is None
+    restored = Record.model_validate_json(imported.model_dump_json(exclude_none=True))
+    assert restored == imported
+    with pytest.raises(ValueError, match="Spark count"):
+        derive_status(
+            evidence(), A.model_copy(update={"required_sparks": None}), 2, False
+        )

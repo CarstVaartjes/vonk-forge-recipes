@@ -52,7 +52,6 @@
       "identity": {
         "content_sha256": "0c2f1c5c73bd2bd4689c1448a2860e665f6bcec28d39a04bbf148c68d07e645d",
         "model_digests": [],
-        "required_sparks": 1,
         "models_resolved": false
       },
       "outcome": "failed",
@@ -65,9 +64,7 @@
       "tested_at": "2026-10-15T04:10:31.322462Z",
       "platform": {
         "controller_source_sha": "31f812e2b7342eb3d15c18c4d5877ed898b807ea",
-        "hardware_class": "GB10",
-        "spark_count": 1,
-        "topology": "single"
+        "hardware_class": "GB10"
       },
       "quality_notes": []
     },

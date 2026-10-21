@@ -6,7 +6,6 @@
       "identity": {
         "content_sha256": "d804dc4dcc006a545730279055afbd3f4dfed40f9396c463c9b89587614c1db9",
         "model_digests": [],
-        "required_sparks": 1,
         "models_resolved": false
       },
       "outcome": "failed",
@@ -20,9 +19,7 @@
       "platform": {
         "controller_source_sha": "1fa6518eda63fa57fedcfc78cec3e556638a2c06",
         "controller_version": "0.1.1~dev.3824+g862e77324882",
-        "hardware_class": "GB10",
-        "spark_count": 1,
-        "topology": "single"
+        "hardware_class": "GB10"
       },
       "quality_notes": []
     }

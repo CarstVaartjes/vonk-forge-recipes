@@ -53,7 +53,6 @@
       "identity": {
         "content_sha256": "a5c5b82ff5e235009cfdb0cd4f52e3f5063a60740cf7e7b3f93f1a2aa5fe118f",
         "model_digests": [],
-        "required_sparks": 1,
         "models_resolved": false
       },
       "outcome": "failed",
@@ -66,9 +65,7 @@
       "tested_at": "2026-10-12T09:14:15.324536Z",
       "platform": {
         "controller_source_sha": "6f1fa18dfa3312a14e8ea8931d7290bdbff13e82",
-        "hardware_class": "GB10",
-        "spark_count": 1,
-        "topology": "single"
+        "hardware_class": "GB10"
       },
       "quality_notes": []
     },
@@ -76,7 +73,6 @@
       "identity": {
         "content_sha256": "a5c5b82ff5e235009cfdb0cd4f52e3f5063a60740cf7e7b3f93f1a2aa5fe118f",
         "model_digests": [],
-        "required_sparks": 1,
         "models_resolved": false
       },
       "outcome": "failed",
@@ -89,9 +85,7 @@
       "tested_at": "2026-10-12T10:15:53.648803Z",
       "platform": {
         "controller_source_sha": "6f1fa18dfa3312a14e8ea8931d7290bdbff13e82",
-        "hardware_class": "GB10",
-        "spark_count": 1,
-        "topology": "single"
+        "hardware_class": "GB10"
       },
       "quality_notes": []
     },
