@@ -58,10 +58,18 @@ from .catalog import (
 )
 from .definitions import Definitions
 from .finalization import FinalAction, Finalization
-from .identity import AcceptedRequest, IdentityReason, content_identity, verdict_matches
+from .identity import (
+    AcceptedRequest,
+    IdentityReason,
+    LegacyPassedVerdict,
+    PassReconciliationRecord,
+    content_identity,
+    legacy_image_unknown,
+    verdict_matches,
+)
 from .lifecycle import ACTIVE as ACTIVE_APP
 from .lifecycle import TERMINAL as SETTLED
-from .lifecycle import LifecycleState, RecipeStatus, RetestReason
+from .lifecycle import LifecycleState, RecipeStatus, ReconciliationStatus, RetestReason
 from .owner import OwnerGuard, OwnerStatus
 from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
@@ -310,6 +318,10 @@ class Sweep:
         self._wait_event_at = -1e18
         # The latest Controller document of each load (by request key): evidence for its rows.
         self.documents: dict[str, Mapping[str, Any]] = {}
+        # Latest rows only: a later attempt or operator requeue defeats repair.
+        self._startup_results = {
+            row["recipe"]: row for row in log.entries() if row.get("recipe")
+        }
 
     # ------------------------------------------------------------------ setup
 
@@ -673,6 +685,11 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
+        self._restore_legacy_pass(recipe, entry)
+        if entry.get("status") == RecipeStatus.PASSED and legacy_image_unknown(
+            entry, recipe
+        ):
+            entry["verdict_identity"] = content_identity(recipe).model_dump(mode="json")
         why = policy.requeue_reason(
             entry, recipe, revalidate_library_passes=self.cfg.revalidate_library_passes
         )
@@ -730,6 +747,62 @@ class Sweep:
             entry.pop(stale, None)
         self.state.event(f"requeued {recipe.key}: {why}")
 
+    def _restore_legacy_pass(self, recipe: Recipe, entry: dict[str, Any]) -> None:
+        """Repair #1608 from its durable evidence, never after another attempt."""
+        if (
+            entry.get("status") != RecipeStatus.PENDING
+            or entry.get("attempts", 0) != 0
+            or entry.get("requeued_because") != RetestReason.PASSED_OLDER_REVISION
+            or not entry.get("revalidate")
+            or recipe.key in self.state.slots
+        ):
+            return
+        try:
+            record = PassReconciliationRecord.model_validate(
+                self._startup_results.get(recipe.key)
+            )
+            saved = LegacyPassedVerdict.model_validate(entry.get("previous"))
+        except ValidationError:
+            return
+        previous = record.previous.model_dump(mode="json")
+        if not legacy_image_unknown(previous, recipe) or not legacy_image_unknown(
+            entry, recipe
+        ):
+            return
+        # Check the pending entry still belongs to this exact requeue.
+        saved_fields = saved.model_dump(mode="json")
+        if any(value != previous.get(key) for key, value in saved_fields.items()):
+            return
+        if entry.get("content_sha256") != recipe.content_sha256:
+            return
+        identity = content_identity(recipe)
+        if (
+            record.status == ReconciliationStatus.RESTORED
+            and record.verdict_identity != identity
+        ):
+            return
+        restored = record.model_copy(
+            update={
+                "status": ReconciliationStatus.RESTORED,
+                "verdict_identity": identity,
+            }
+        )
+        # Log first; if saving state is interrupted, replay this row without
+        # appending another restoration. A failed append leaves pending intact.
+        if record.status != ReconciliationStatus.RESTORED and not self.record_result(
+            recipe.key,
+            "reconcile",
+            restored.status,
+            **restored.model_dump(mode="json", exclude={"recipe", "status"}),
+        ):
+            return
+        entry.update(previous)
+        entry.update(
+            verdict_identity=identity.model_dump(mode="json"), revalidate=False
+        )
+        entry.pop("requeued_because", None)
+        self.state.event(f"restored {recipe.key}: legacy image identity was unknown")
+
     def pending(self) -> list[Recipe]:
         out: list[Recipe] = []
         for recipe in self.recipes.values():
@@ -743,6 +816,9 @@ class Sweep:
             if not self._selected(recipe) or self._platform_cannot_load(recipe):
                 continue
             out.append(recipe)
+        out.sort(
+            key=lambda recipe: bool(self.state.entry(recipe.key).get("revalidate"))
+        )
         if self.cfg.limit:
             done = sum(
                 1
@@ -1733,7 +1809,7 @@ class Sweep:
         slot: Mapping[str, Any] | None = None,
         document: Mapping[str, Any] | None = None,
         **fields: Any,
-    ) -> None:
+    ) -> bool:
         """The one writer of ``results.jsonl``: every lane exit leaves a row.
 
         The row carries the recipe's facts and the Controller document its load was last
@@ -1755,8 +1831,10 @@ class Sweep:
         except OSError as error:
             # The log is the evidence; a full disk is an infrastructure fact to show.
             self.note_infra("results-log", f"{type(error).__name__}: {error}")
+            return False
         else:
             self.clear_infra("results-log")
+            return True
 
     def _facts(
         self, key: str, entry: Mapping[str, Any], slot: Mapping[str, Any] | None
