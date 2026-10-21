@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gpt-oss-120b-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "4036b68dd07963124d11364948fc2f36c3dfd23f98cfa12a03c863aa68e0706c",
+        "runtime_image": {
+          "build_key": "fefc3f2b2e7b3af30d6d257062a331c66309ee59fa2bb79b8e3c9b0e783e5016",
+          "image_digest": "sha256:76425176fc5c787d62b11783c3680d25d3299a39382a01c7a77b0651824f74c1"
+        },
+        "model_digests": [
+          "43358b54fdc6ef2cb10f658a465217d30db6bcef756812bd7644838096128ba8"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "e0c3f58c74c4811b4834c821676aca5eadb3ad358fec72d7fe90d5443228e9fb"
+      ],
+      "tested_at": "2026-10-21T21:27:00.048993Z",
+      "platform": {
+        "controller_source_sha": "e8ce8d1fa39d705d2dd3e4d571a4ead2bc9051e2",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
