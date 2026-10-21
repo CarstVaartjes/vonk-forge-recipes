@@ -15,6 +15,7 @@ from test_prebuilt_images import INDEX
 from test_refresh_upstream import refresh
 
 from spark_sweep.catalog import parse_recipe, recipe_listing
+from spark_sweep.catalog_contract import RecipeProjection
 from spark_sweep.image_evidence import load_images
 from spark_sweep.policy import classify
 from spark_sweep.report import average_test_seconds, build_report, render_report
@@ -28,7 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 @pytest.mark.parametrize("position", [0, 1, 2])
 @pytest.mark.parametrize(
     "field",
-    ["interfaces", "models", "topology", "usage", "model_selectors", "validation"],
+    [*RecipeProjection.model_fields, "usage", "model_selectors"],
 )
 def test_poison_row_advances_cursor_retains_cache_and_cannot_authorize_removal(
     tmp_path: Path, position: int, field: str
@@ -37,7 +38,7 @@ def test_poison_row_advances_cursor_retains_cache_and_cannot_authorize_removal(
     healthy = fleet._recipe_row(FakeRecipe("good"))
     bad = copy.deepcopy(healthy)
     bad["selector"] = "vonk-forge/poison"
-    (bad if field in ("usage", "model_selectors") else bad["document"])[field] = None
+    (bad["projected"] if field in RecipeProjection.model_fields else bad)[field] = None
     rows = [healthy, healthy]
     rows.insert(position, bad)
     pages = iter(
@@ -60,6 +61,8 @@ def test_poison_row_advances_cursor_retains_cache_and_cannot_authorize_removal(
     assert listing.invalid_rows == 1
     assert listing.diagnostics[0].reason is InputReason.INVALID_ROW
     assert "cached" in listing.rows
+    assert listing.rows[healthy["selector"]] == cached
+    assert bad["selector"] not in listing.rows
     sweep.recipe_list = listing
     sweep.model_list.passes = 1
     sweep.model_remover.tick = Mock()
@@ -343,18 +346,25 @@ def test_poison_refresh_keeps_a_healthy_lane_and_status_advancing(
 
     gateway = Gateway()
     try:
-        sweep, fleet, _ = make_sweep(
+        sweep, fleet, clock = make_sweep(
             tmp_path, [FakeRecipe("good")], [FakeModel("m1")], gateway=gateway
         )
+        deadline = clock.now() + 600
+
+        def check_deadline(now: float) -> None:
+            if now >= deadline:
+                pytest.fail(f"healthy lane stalled: {sweep.state.data['infra']}")
+
+        clock.hooks.append(check_deadline)
+        bad = copy.deepcopy(fleet._recipe_row(FakeRecipe("good")))
+        bad["selector"] = "vonk-forge/poison"
+        bad["projected"]["interfaces"] = None
         real = fleet.runner
 
         def corrupt(argv, timeout):
             code, stdout, stderr = real(argv, timeout)
             document = json.loads(stdout)
             if isinstance(document, dict) and "recipes" in document:
-                bad = copy.deepcopy(fleet._recipe_row(FakeRecipe("good")))
-                bad["selector"] = "vonk-forge/poison"
-                bad["document"]["interfaces"] = None
                 document["recipes"].insert(position, bad)
             return code, json.dumps(document), stderr
 

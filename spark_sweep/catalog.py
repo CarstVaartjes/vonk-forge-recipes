@@ -93,7 +93,7 @@ class Recipe:
 def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None:
     projected = RecipeRow.model_validate(row)
     key = dig(row, "selector")
-    document = dig(row, "document", default={})
+    document = dig(row, "projected", default={})
     if not isinstance(key, str) or not isinstance(document, dict):
         return None
     interfaces = [
@@ -104,11 +104,7 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         for item in dig(document, "topology", "roles", default=[])
         if isinstance(item, dict)
     ]
-    models = [
-        item["model"]
-        for item in document.get("models", [])
-        if isinstance(item, dict) and isinstance(item.get("model"), dict)
-    ]
+    models = [item for item in document.get("models", []) if isinstance(item, dict)]
     aliases: list[str] = []
     for item in interfaces:
         aliases += [
@@ -122,7 +118,7 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         ),
         usage=tuple(str(u) for u in dig(row, "usage", default=[])),
         engine=str(
-            dig(row, "engine", default=dig(document, "runtime", "engine", default=""))
+            dig(row, "engine", default=dig(document, "runtime_engine", default=""))
         ),
         creator=str(dig(row, "creator", default="")),
         model_digests=tuple(
@@ -151,9 +147,7 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         revision_id=str(dig(row, "identity", "recipe_revision_id", default="")),
         local=str(dig(row, "local", "controller", default="unknown")),
         updated_at=str(dig(row, "updated_at", default="")),
-        base_image=str(
-            dig(document, "execution", "build", "base_image", "digest", default="")
-        ),
+        base_image=str(dig(document, "base_image_digest", default="")),
         cache_ready=dig(row, "assessment", "cache", "state") == "ready",
         library_commit=library_commit or None,
         runtime_image=RuntimeImageIdentity(

@@ -197,7 +197,7 @@ def test_requeue_and_removal_decisions_use_the_shared_identity_helper():
 def test_image_projection_reads_signed_pin_and_ignores_registry_alias():
     row = {
         "selector": "vonk-forge/runtime",
-        "document": {},
+        "projected": {},
         "prebuilt_image": {
             "build_key": "a" * 64,
             "reference": "ghcr.io/test/runtime@sha256:" + "b" * 64,
@@ -230,7 +230,7 @@ def test_changed_content_is_ordered_newest_first():
 def test_controller_without_image_pin_invalidates_on_new_library_publication():
     from spark_sweep.identity import content_identity
 
-    row = {"selector": "vonk-forge/runtime", "document": {}}
+    row = {"selector": "vonk-forge/runtime", "projected": {}}
     accepted = parse_recipe(row, "old-library")
     same = parse_recipe(row, "old-library")
     changed = parse_recipe(row, "new-library")
