@@ -23,6 +23,15 @@
       "layers": 32,
       "source": "https://huggingface.co/nvidia/Llama-3.1-8B-Instruct-NVFP4/resolve/bdb54e24298451af785c0ac63c1b485e9b7400a2/config.json",
       "value_dim": 128
+    },
+    "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976": {
+      "configuration_sha256": "0b2c05e53e721307ebcb1696881cead10e01a3ca7f09db28eb0477b55cc5692c",
+      "key_dim": 256,
+      "kv_heads": 4,
+      "layers": 16,
+      "source": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/config.json text_config: 64 layers, full_attention_interval=4, 4 KV heads, head_dim=256. The other 48 layers have FP32 recurrent state (48 value heads x 128 x 128) and BF16 convolution state (4 x (2 x 16 x 128 + 48 x 128)); 154927104 bytes rounded up to 160 MiB per sequence. No MTP speculation.",
+      "state_bytes_per_request": 167772160,
+      "value_dim": 256
     }
   },
   "hardware_passes": {
