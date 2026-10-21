@@ -103,11 +103,12 @@ def _capture_launch(adapter: str, tmp_path: Path) -> list[str]:
         official = tmp_path / "inference.py"
         official.touch()
         with (
+            mock.patch.dict(runner.os.environ, {"VONK_JOB_TIMEOUT_SECONDS": "60"}),
             mock.patch.object(
                 runner,
                 "_arguments",
                 return_value=SimpleNamespace(
-                    output_dir=tmp_path, seed=0, timeout_seconds=60
+                    output_dir=tmp_path, seed=0, num_frames=193, num_inference_steps=50
                 ),
             ),
             mock.patch.object(runner, "_input_manifest", return_value=None),
@@ -117,7 +118,7 @@ def _capture_launch(adapter: str, tmp_path: Path) -> list[str]:
             mock.patch.object(
                 runner, "_reference_frame", return_value=tmp_path / "ref.png"
             ),
-            mock.patch.object(runner.subprocess, "run", launch),
+            mock.patch.object(runner.subprocess, "Popen", launch),
             pytest.raises(RuntimeError, match="captured launch"),
         ):
             runner.main()
