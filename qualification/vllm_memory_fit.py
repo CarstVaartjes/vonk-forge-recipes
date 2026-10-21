@@ -27,7 +27,6 @@ DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 # fails, as soon as the recipe fits with the term counted.
 PENDING_CREATOR = frozenset(
     {
-        "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",
         "glm-5-3-flash-exl3-dflash2-vllm-dual",
         "glm-5-3-flash-exl3-k2-0xsero-vllm-single",
         "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",

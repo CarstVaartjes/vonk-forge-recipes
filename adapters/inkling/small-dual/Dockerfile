@@ -7,8 +7,10 @@ LABEL org.opencontainers.image.source="https://github.com/sgl-project/sglang" \
 
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py
+COPY patch-named-tool.py /opt/vonk/build/patch-named-tool.py
 
-RUN python3 /opt/vonk/build/verify-runtime.py \
+RUN python3 /opt/vonk/build/patch-named-tool.py /sgl-workspace/sglang/python/sglang/srt/function_call/inkling_detector.py \
+    && python3 /opt/vonk/build/verify-runtime.py \
     && rm -rf /opt/vonk/build \
     && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache \
     && test -x /opt/vonk/bin/sglang-serve
