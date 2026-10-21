@@ -1,17 +1,25 @@
 from __future__ import annotations
 
 import ast
+import base64
 import hashlib
 import json
 import runpy
+import shutil
+import subprocess
+import sys
 import tempfile
 import types
 import unittest
 from pathlib import Path
+from unittest import mock
 
+import pytest
 from generated_catalog import GENERATED
 
 from qualification.definitions_loader import load_definitions
+from spark_sweep.job_media import video_metadata
+from spark_sweep.smoke import AssertionFailed
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/moss-vl-realtime"
@@ -206,3 +214,121 @@ class MossRealtimeJobTests(unittest.TestCase):
         self.assertEqual(
             entry["package"]["recipe_content_sha256"], _canonical_digest(RECIPE_PATH)
         )
+
+
+@pytest.mark.parametrize("case_id", ["job", "two-frames"])
+@pytest.mark.parametrize("auto_cfr", [False, True], ids=["host-default", "auto-cfr"])
+def test_replay_preserves_qualified_timeline(
+    tmp_path: Path, monkeypatch, case_id, auto_cfr
+):
+    """Run the real adapter encoder, including hosts whose ffmpeg auto mode uses CFR."""
+    if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
+        pytest.skip("ffmpeg and ffprobe are required for replay behaviour")
+    module = types.ModuleType("moss_replay_adapter")
+    model = mock.MagicMock()
+    model.create_realtime_session.return_value.poll_output.return_value = None
+    transformers = mock.MagicMock()
+    transformers.AutoModelForCausalLM.from_pretrained.return_value = model
+    monkeypatch.setitem(sys.modules, "torch", mock.MagicMock())
+    monkeypatch.setitem(sys.modules, "transformers", transformers)
+    monkeypatch.setitem(sys.modules, "input_contract", _contract_module())
+    exec(  # noqa: S102 - stub model loading; execute the actual adapter and ffmpeg.
+        compile((ADAPTER_ROOT / "run.py").read_text(), "run.py", "exec"),
+        module.__dict__,
+    )
+    definitions = load_definitions(ROOT / "qualification")
+    spec = definitions["recipes"]["vonk-forge/moss-vl-realtime-11b-pytorch-single"]
+    case = spec if case_id == "job" else spec["cases"][0]
+    inputs = tmp_path / "inputs"
+    inputs.mkdir()
+    for binding in case["inputs"]:
+        fixture = definitions["fixtures"][binding["fixture"]]
+        content = (ROOT / "qualification" / fixture["path"]).read_bytes()
+        if fixture.get("encoding") == "base64":
+            content = base64.b64decode(content)
+        (inputs / fixture["name"]).write_bytes(content)
+    session_name = definitions["fixtures"][case["inputs"][0]["fixture"]]["name"]
+    document = json.loads((inputs / session_name).read_text())
+    events = [{**event, "path": inputs / event["path"]} for event in document["events"]]
+    monkeypatch.setattr(module, "load_manifest", lambda: (document, events))
+    output_dir = tmp_path / "outputs"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run.py",
+            "--entrypoint",
+            "/opt/vonk/source/run.py",
+            "--output-mime",
+            "video/mp4",
+            "--timeout-seconds",
+            "1800",
+            "--seed",
+            "0",
+            "--output-dir",
+            str(output_dir),
+        ],
+    )
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    monkeypatch.setenv("TRANSFORMERS_OFFLINE", "1")
+
+    def encode(argv, *, check, **kwargs):
+        # Exercise the other valid ffmpeg auto-mode choice on every CI host.
+        # An explicit mode in the adapter takes precedence over this host default.
+        if auto_cfr and "-fps_mode" not in argv:
+            argv = [*argv[:-1], "-fps_mode", "cfr", argv[-1]]
+        return subprocess.run(argv, check=check, **kwargs)
+
+    monkeypatch.setattr(module, "subprocess", types.SimpleNamespace(run=encode))
+    module.__dict__["main"]()
+    assertion = next(a for a in case["assertions"] if a["kind"] == "video-metadata")
+    content = (output_dir / "output.mp4").read_bytes()
+    video_metadata(content, assertion)
+    assert not (output_dir / "frames.ffconcat").exists()
+
+    # A valid but effectively empty MP4 must fail both existing completeness guards,
+    # independently of the fps comparison that masked them in the live failure.
+    truncated = tmp_path / "truncated.mp4"
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-v",
+            "error",
+            "-i",
+            str(output_dir / "output.mp4"),
+            "-r",
+            "25",
+            "-frames:v",
+            "1",
+            "-c:v",
+            "libx264",
+            "-fps_mode",
+            "cfr",
+            str(truncated),
+        ],
+        check=True,
+        timeout=30,
+    )
+    for field, bounds in (
+        ("frame_count", {"frame_count": assertion["frame_count"]}),
+        (
+            "duration_seconds",
+            {"minimum_duration_seconds": assertion["minimum_duration_seconds"]},
+        ),
+    ):
+        with pytest.raises(AssertionFailed, match=field):
+            video_metadata(truncated.read_bytes(), {"kind": "video-metadata", **bounds})
+
+
+def test_sibling_video_qualifications_check_complete_timeline():
+    """Every video case binds fps to decoded frame count and a bounded duration."""
+    definitions = load_definitions(ROOT / "qualification")
+    for recipe_id, spec in definitions["recipes"].items():
+        for case in (spec, *spec.get("cases", [])):
+            for assertion in case.get("assertions", []):
+                if assertion["kind"] != "video-metadata":
+                    continue
+                assert assertion["frame_count"] > 0, recipe_id
+                duration = assertion["frame_count"] / assertion["fps"]
+                assert 0 < assertion["minimum_duration_seconds"] <= duration, recipe_id
+                assert duration <= assertion["maximum_duration_seconds"], recipe_id
