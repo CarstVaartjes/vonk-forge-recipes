@@ -16,28 +16,16 @@ from typing import Any
 
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
-from spark_sweep import verdict
-from spark_sweep.verdict import Progress
-
 INCIDENT = (
     Path(__file__).parent
     / "fixtures"
     / "sweep-verdicts"
     / "hunyuanocr-cancelled-copy-retry.json"
 )
-HOUR = 3600.0
 
 
 def _incident() -> dict[str, Any]:
     return json.loads(INCIDENT.read_text())
-
-
-def _running_view() -> dict[str, Any]:
-    """The recorded document as the lane saw it before the cancel (same progress)."""
-    document = _incident()
-    document.update(state="running", cancellation=None, status_reason=None)
-    document["progress"].pop("cancellation", None)
-    return document
 
 
 def _loading(tmp_path: Path):
@@ -58,19 +46,6 @@ def _loading(tmp_path: Path):
 
 def _cancels(fleet) -> list[tuple]:
     return [c for _, c in fleet.calls if c[:2] == ("profile", "cancel")]
-
-
-def test_the_recorded_copy_on_a_controller_retry_expires_without_recipe_blame() -> None:
-    signal = verdict.application_signal(_running_view())
-    assert signal.waiting_on == "controller retry"
-    watch: dict[str, Any] = {}
-    assert (
-        verdict.progress_verdict(signal, watch, window=600, now=0) is Progress.WAITING
-    )
-    assert (
-        verdict.progress_verdict(signal, watch, window=600, now=601)
-        is Progress.WAIT_EXPIRED
-    )
 
 
 def test_a_finished_load_never_cancels_the_application_a_live_lane_rides(

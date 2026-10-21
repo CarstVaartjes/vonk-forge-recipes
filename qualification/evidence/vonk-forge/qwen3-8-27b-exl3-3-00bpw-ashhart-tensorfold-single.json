@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-27b-exl3-3-00bpw-ashhart-tensorfold-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "dbd86397926d8ae41c0cac2b2ce11722756043df0265c3fbb2167c1a896ce939",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "38156593aa405141be9f6140ddbae2ef80fdb98288ac0644766a94f0e3809ff6"
+      ],
+      "tested_at": "2026-10-11T02:18:04.371328Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "897b749d1b650b64687674c5585c93ad3e56d94264a6d73f3084ee44defa70a6",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "19d0519ad6d7992d75575954622624beeaa113a7faa2911e1eedb6fb9076b2ee"
+      ],
+      "tested_at": "2026-10-14T23:56:51.920854Z",
+      "platform": {
+        "controller_source_sha": "fadaeb65d44cfbddb4999a3ad9a092efce943d29",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/wan-2-2-i2v-14b-comfyui-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "a36677d803c50a278850d5479db9683fd41591908db95a794515e86003418143",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "214dd6ac282835e46c4d644976539f2a4f4771eb95738cb11646e85ce95913d8"
+      ],
+      "tested_at": "2026-10-17T17:08:54.802595Z",
+      "platform": {
+        "controller_source_sha": "d083b43f558b94ddda479d2e227a6ca7b373b1e3",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "a36677d803c50a278850d5479db9683fd41591908db95a794515e86003418143",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "a058ba8e9b678849b948217562d808c2eda671da1cfd9c67bdf0c55c05f9c87a"
+      ],
+      "tested_at": "2026-10-19T00:36:06.442412Z",
+      "platform": {
+        "controller_source_sha": "197be7a01be8f3401d9c15d930a51d75b5ec204d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "a36677d803c50a278850d5479db9683fd41591908db95a794515e86003418143",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "e78f2bed012928787e3f98ebcb77366025e18c3d67a9274274601b69457ff50d"
+      ],
+      "tested_at": "2026-10-19T03:15:02.958218Z",
+      "platform": {
+        "controller_source_sha": "197be7a01be8f3401d9c15d930a51d75b5ec204d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

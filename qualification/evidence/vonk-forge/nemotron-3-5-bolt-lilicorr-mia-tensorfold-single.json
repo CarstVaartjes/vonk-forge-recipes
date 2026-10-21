@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-5-bolt-lilicorr-mia-tensorfold-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "79552987a533a731e9d52f9ea4426fce1a098c11830ce816b43f92ce28a2f02a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "c0ab2121daf09779dbd065da06f36bf87b5c4a3968e05eb9d7b80d9ea4df9bf3"
+      ],
+      "tested_at": "2026-10-19T02:57:08.423738Z",
+      "platform": {
+        "controller_source_sha": "197be7a01be8f3401d9c15d930a51d75b5ec204d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

@@ -28,6 +28,11 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from pydantic import ValidationError
+from vonk_forge_contracts import (
+    QualificationStatus,
+    QualificationStatusView,
+    RecipeQualificationEvidence,
+)
 from vonk_forge_contracts import sweep as sweep_contract
 from vonk_forge_contracts.sweep import (
     CleanupEnd,
@@ -36,6 +41,7 @@ from vonk_forge_contracts.sweep import (
     CleanupObservationBudget,
     FleetOnlineState,
     InfrastructureIncident,
+    SweepSlotPhase,
     SweepStorageReview,
     SweepStorageWait,
     SweepWait,
@@ -57,22 +63,35 @@ from .catalog import (
     serving_run,
 )
 from .definitions import Definitions
+from .evidence_publisher import EvidencePublisher
 from .finalization import FinalAction, Finalization
 from .identity import (
     AcceptedRequest,
     IdentityReason,
-    LegacyPassedVerdict,
-    PassReconciliationRecord,
     content_identity,
-    legacy_image_unknown,
     verdict_matches,
 )
 from .lifecycle import ACTIVE as ACTIVE_APP
 from .lifecycle import TERMINAL as SETTLED
-from .lifecycle import LifecycleState, RecipeStatus, ReconciliationStatus, RetestReason
+from .lifecycle import (
+    LifecycleState,
+    RecipeStatus,
+    ReconciliationStatus,
+    ReleaseAuthority,
+    RetestReason,
+    SkipReasonKind,
+)
 from .owner import OwnerGuard, OwnerStatus
 from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
+from .qualification import (
+    current_identity,
+    from_history,
+    local_status,
+    merge_evidence,
+    read_evidence,
+    scheduling_priority,
+)
 from .removal import ModelRemover
 from .report import write_status
 from .smoke import (
@@ -163,21 +182,21 @@ class RealClock:
         time.sleep(seconds)
 
 
-FLEET_SKIP = "fleet"
+FLEET_SKIP = SkipReasonKind.FLEET
 #: Skipped because the recipe left the complete catalog; undone when it comes back.
-CATALOG_SKIP = "catalog"
+CATALOG_SKIP = SkipReasonKind.CATALOG
 #: Skipped because the platform cannot load this kind of recipe through a fleet profile yet:
 #: the sweep's own decision, neither a recipe verdict nor a platform fault. It heals by itself
 #: once ``_platform_cannot_load`` no longer holds for the recipe.
-PLATFORM_SKIP = "platform"
+PLATFORM_SKIP = SkipReasonKind.PLATFORM
 JOB_SKIP_CODE = "platform.job_recipes_not_loadable"
 
 
 def _fleet_skip(entry: Mapping[str, Any]) -> bool:
-    """A skip that depends on the fleet (also the older state files, which only carry the reason)."""
-    return entry.get("status") == "skipped" and (
-        entry.get("reason_kind") == FLEET_SKIP
-        or str(entry.get("reason", "")).startswith("not testable on this fleet")
+    """A skip whose typed reason depends on the fleet."""
+    return (
+        entry.get("status") == RecipeStatus.SKIPPED
+        and entry.get("reason_kind") == FLEET_SKIP
     )
 
 
@@ -208,13 +227,13 @@ class SweepConfig:
     limit: int = 0
     variants_last: bool = False
     revalidate_passes: bool = True
-    revalidate_library_passes: bool = False
     restore_owner: int | None = None
     stop_at_end: bool = True
     watch_seconds: float = 0.0
     allow_version_skew: bool = False
     release_seconds: float = 300.0
     retry_failed: bool = False
+    publish_evidence: bool = False
     # The stall window while bytes are copied to a Spark (the learned window covers the rest).
     copy_stall_seconds: float = 600.0
     # Preparation waits use this shorter bound, capped by the lane budget.
@@ -318,10 +337,57 @@ class Sweep:
         self._wait_event_at = -1e18
         # The latest Controller document of each load (by request key): evidence for its rows.
         self.documents: dict[str, Mapping[str, Any]] = {}
-        # Latest rows only: a later attempt or operator requeue defeats repair.
-        self._startup_results = {
-            row["recipe"]: row for row in log.entries() if row.get("recipe")
+        self.retry_failed_pending = config.retry_failed
+        self.qualification_evidence = {
+            key: merge_evidence(
+                read_evidence(Path(__file__).resolve().parents[1], key),
+                RecipeQualificationEvidence.model_validate(value),
+            )
+            for key, value in state.data.get("qualification_evidence", {}).items()
         }
+        self.evidence_publisher = EvidencePublisher(
+            log.path,
+            config.state_dir / "evidence-publisher",
+            Path(__file__).resolve().parents[1] / "tools/sync-qualification-evidence",
+        )
+        for row in log.entries():
+            self._remember_qualification(row)
+
+    def _remember_qualification(self, row: Mapping[str, Any]) -> None:
+        try:
+            record = from_history(row)
+            if record is None:
+                return
+            key = str(row["recipe"])
+            evidence = RecipeQualificationEvidence(recipe_key=key, records=(record,))
+            previous = self.qualification_evidence.get(key) or read_evidence(
+                Path(__file__).resolve().parents[1], key
+            )
+            merged = merge_evidence(previous, evidence)
+            self.qualification_evidence[key] = merged
+            self.state.data.setdefault("qualification_evidence", {})[key] = (
+                merged.model_dump(mode="json")
+            )
+        except (ValueError, TypeError, OSError) as error:
+            self.state.event(
+                f"qualification evidence unavailable: {type(error).__name__}"
+            )
+
+    def qualification_view(self, recipe: Recipe) -> QualificationStatusView | None:
+        try:
+            evidence = self.qualification_evidence.get(recipe.key) or read_evidence(
+                Path(__file__).resolve().parents[1], recipe.key
+            )
+            return local_status(
+                evidence,
+                recipe,
+                len(self.enrolled()),
+                recipe.key in self.state.slots
+                and self.state.slots[recipe.key].get("phase")
+                != SweepSlotPhase.FINISHED,
+            )
+        except (ValueError, TypeError, OSError):
+            return None  # malformed observed identity cannot certify public proof
 
     # ------------------------------------------------------------------ setup
 
@@ -608,6 +674,29 @@ class Sweep:
         slot = self.state.slots.get(recipe.key)
         if slot is not None and slot.get("phase") != "finished":
             return
+        view = self.qualification_view(recipe)
+        if (
+            view is not None
+            and view.status == QualificationStatus.WORKING
+            and view.last_pass is not None
+            and (slot is None or slot.get("phase") == SweepSlotPhase.FINISHED)
+        ):
+            entry.update(
+                status=RecipeStatus.PASSED,
+                content_sha256=recipe.content_sha256,
+                verdict_identity=content_identity(recipe).model_dump(mode="json"),
+                revalidate=False,
+            )
+            for stale in (
+                "reason",
+                "reason_kind",
+                "failure_class",
+                "error",
+                "code",
+                "requeued_because",
+            ):
+                entry.pop(stale, None)
+            return
         # A recipe that left the catalog is decided in _reconcile_all; here it is back.
         if entry.get("reason_kind") == CATALOG_SKIP:
             entry["status"] = "pending"
@@ -685,14 +774,20 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
-        self._restore_legacy_pass(recipe, entry)
-        if entry.get("status") == RecipeStatus.PASSED and legacy_image_unknown(
-            entry, recipe
-        ):
-            entry["verdict_identity"] = content_identity(recipe).model_dump(mode="json")
-        why = policy.requeue_reason(
-            entry, recipe, revalidate_library_passes=self.cfg.revalidate_library_passes
-        )
+        why = None
+        if view is not None:
+            why = {
+                QualificationStatus.RECHECK: RetestReason.PASSED_OLDER_REVISION,
+                QualificationStatus.FIX_TO_VERIFY: RetestReason.FAILED_OLDER_REVISION,
+            }.get(view.status)
+            if (
+                view.status == QualificationStatus.BLOCKED_PLATFORM
+                and view.last_failure is not None
+                and view.last_failure.identity != current_identity(recipe)
+            ):
+                why = RetestReason.DEFERRED_OLDER_REVISION
+        if entry.get("status") == RecipeStatus.PENDING:
+            return
         if why is None:
             return
         if why == RetestReason.PASSED_OLDER_REVISION and not self.cfg.revalidate_passes:
@@ -730,7 +825,7 @@ class Sweep:
             },
         )
         entry.update(
-            status="pending",
+            status=RecipeStatus.PENDING,
             attempts=0,
             revalidate=why == RetestReason.PASSED_OLDER_REVISION,
             requeued_because=why,
@@ -747,62 +842,6 @@ class Sweep:
             entry.pop(stale, None)
         self.state.event(f"requeued {recipe.key}: {why}")
 
-    def _restore_legacy_pass(self, recipe: Recipe, entry: dict[str, Any]) -> None:
-        """Repair #1608 from its durable evidence, never after another attempt."""
-        if (
-            entry.get("status") != RecipeStatus.PENDING
-            or entry.get("attempts", 0) != 0
-            or entry.get("requeued_because") != RetestReason.PASSED_OLDER_REVISION
-            or not entry.get("revalidate")
-            or recipe.key in self.state.slots
-        ):
-            return
-        try:
-            record = PassReconciliationRecord.model_validate(
-                self._startup_results.get(recipe.key)
-            )
-            saved = LegacyPassedVerdict.model_validate(entry.get("previous"))
-        except ValidationError:
-            return
-        previous = record.previous.model_dump(mode="json")
-        if not legacy_image_unknown(previous, recipe) or not legacy_image_unknown(
-            entry, recipe
-        ):
-            return
-        # Check the pending entry still belongs to this exact requeue.
-        saved_fields = saved.model_dump(mode="json")
-        if any(value != previous.get(key) for key, value in saved_fields.items()):
-            return
-        if entry.get("content_sha256") != recipe.content_sha256:
-            return
-        identity = content_identity(recipe)
-        if (
-            record.status == ReconciliationStatus.RESTORED
-            and record.verdict_identity != identity
-        ):
-            return
-        restored = record.model_copy(
-            update={
-                "status": ReconciliationStatus.RESTORED,
-                "verdict_identity": identity,
-            }
-        )
-        # Log first; if saving state is interrupted, replay this row without
-        # appending another restoration. A failed append leaves pending intact.
-        if record.status != ReconciliationStatus.RESTORED and not self.record_result(
-            recipe.key,
-            "reconcile",
-            restored.status,
-            **restored.model_dump(mode="json", exclude={"recipe", "status"}),
-        ):
-            return
-        entry.update(previous)
-        entry.update(
-            verdict_identity=identity.model_dump(mode="json"), revalidate=False
-        )
-        entry.pop("requeued_because", None)
-        self.state.event(f"restored {recipe.key}: legacy image identity was unknown")
-
     def pending(self) -> list[Recipe]:
         out: list[Recipe] = []
         for recipe in self.recipes.values():
@@ -817,7 +856,16 @@ class Sweep:
                 continue
             out.append(recipe)
         out.sort(
-            key=lambda recipe: bool(self.state.entry(recipe.key).get("revalidate"))
+            key=lambda recipe: (
+                scheduling_priority(view)
+                if (view := self.qualification_view(recipe)) is not None
+                else scheduling_priority(
+                    QualificationStatusView(
+                        status=QualificationStatus.UNTESTED,
+                        required_sparks=recipe.node_count,
+                    )
+                )
+            )
         )
         if self.cfg.limit:
             done = sum(
@@ -956,12 +1004,20 @@ class Sweep:
     def _tick(self) -> None:
         now = self.clock.now()
         self.advance_catalog(now)
+        if self.retry_failed_pending and self.catalog_loaded:
+            self.requeue_failed()
+            self.retry_failed_pending = False
         self.observe_lanes()
         self.check_release(now)
         if self.cfg.watch_seconds > 0:
             for key, entry in list(self.state.recipes.items()):
                 if (
-                    entry.get("status") in ("failed", "deferred")
+                    entry.get("status") == RecipeStatus.FAILED
+                    and (
+                        key not in self.recipes
+                        or (view := self.qualification_view(self.recipes[key])) is None
+                        or view.status != QualificationStatus.BLOCKED_PLATFORM
+                    )
                     and now >= float(entry.get("finished_at", now)) + RETEST_SECONDS
                     and self._selected_key(key)
                 ):
@@ -1000,6 +1056,15 @@ class Sweep:
                 )
             },
         )
+        self.queue.sort(
+            key=lambda key: (
+                scheduling_priority(view)
+                if (view := self.qualification_view(self.recipes[key])) is not None
+                else 1
+            )
+        )
+        if self.cfg.publish_evidence and self.qualification_evidence:
+            self.evidence_publisher.tick(now)
         if not self.paused:
             self.schedule(self.clock.now())
             self.cleanup_finished()
@@ -1236,7 +1301,7 @@ class Sweep:
         observed = {
             "sha": identity.source_sha if identity else None,
             "control_contract_sha256": identity.contract_sha256 if identity else None,
-            "authority": "deployed-controller",
+            "authority": ReleaseAuthority.DEPLOYED_CONTROLLER,
         }
         if any(release.get(k) != value for k, value in observed.items()):
             self.state.data["release_history"].append(
@@ -1244,10 +1309,6 @@ class Sweep:
             )
             self.state.event(
                 "deployed Controller observed: " + (observed["sha"] or "unknown")
-            )
-        if release and release.get("authority") != "deployed-controller":
-            self.state.data["release_history"].append(
-                {**release, "authority": "legacy-unverified-publication-proxy"}
             )
         release.clear()
         release.update(**observed, seen_at=self.clock.now())
@@ -1294,6 +1355,10 @@ class Sweep:
         self, key: str, reason: str, *, basis: Mapping[str, str] | None = None
     ) -> None:
         """Schedule an automatic retest without erasing its cause or retry history."""
+        if key in self.recipes:
+            view = self.qualification_view(self.recipes[key])
+            if view is not None and view.status == QualificationStatus.WORKING:
+                return
         entry = self.state.entry(key)
         previous = {
             k: entry.get(k)
@@ -1335,7 +1400,7 @@ class Sweep:
         )
         self.state.event(f"scheduled retest {key}: {reason}")
 
-    def requeue_for_rules(self) -> None:
+    def requeue_uncertain(self) -> None:
         """Reopen outcomes whose evidence no longer justifies a terminal result."""
         for key, entry in self.state.recipes.items():
             if (
@@ -1354,68 +1419,25 @@ class Sweep:
                 record = self.state.downloads.get(key)
                 if record is not None:
                     record["retry_at"] = due
-        for key, entry in self.state.recipes.items():
-            if (
-                entry.get("status") == "failed"
-                and entry.get("failure_class") == "timeout"
-                and int(entry.get("rules", 1)) < policy.LOAD_RULES
-                and self._selected_key(key)
-            ):
-                self._requeue_failed(
-                    key, "load-timeout rules changed: copying no longer counts"
-                )
-        for key, entry in self.state.recipes.items():
-            if (
-                entry.get("status") == "failed"
-                and entry.get("phase") == "smoke"
-                and entry.get("failure_class") == "smoke-assertion"
-                and int(entry.get("smoke_rules", 1)) < policy.SMOKE_RULES
-                and self._selected_key(key)
-            ):
-                self._requeue_failed(
-                    key, "smoke rules changed: answer quality no longer fails a recipe"
-                )
-
-    def requeue_superseded_failures(self) -> None:
-        """A load the Controller replaced is not the recipe's failure: records of it are pending again."""
-        for key, entry in self.state.recipes.items():
-            evidence = entry.get("evidence")
-            reason = (
-                evidence.get("reason") if isinstance(evidence, Mapping) else None
-            ) or entry.get("error")
-            if (
-                entry.get("status") == "failed"
-                and (
-                    policy.superseded_text(reason)
-                    or policy.superseded_text(entry.get("error"))
-                )
-                and self._selected_key(key)
-            ):
-                self._requeue_failed(key, "load-superseded: not a recipe failure")
-
-    def requeue_unfreed_capacity_failures(self) -> None:
-        """A capacity refusal recorded before the fleet was cleared and reviewed again is tried again."""
-        for key, entry in self.state.recipes.items():
-            evidence = entry.get("evidence")
-            if (
-                entry.get("status") == "failed"
-                and entry.get("phase") == "review"
-                and entry.get("failure_class") == "capacity"
-                and not (
-                    isinstance(evidence, Mapping) and evidence.get("freeing_attempts")
-                )
-                and self._selected_key(key)
-            ):
-                self._requeue_failed(
-                    key, "review capacity refusal: the fleet was not cleared first"
-                )
 
     def requeue_failed(self) -> int:
         """``--retry-failed``: every failed recipe (within ``--only``), whatever the cause."""
         keys = [
-            key
-            for key, entry in self.state.recipes.items()
-            if entry.get("status") in ("failed", "deferred") and self._selected_key(key)
+            recipe.key
+            for recipe in self.recipes.values()
+            if self._selected(recipe)
+            and (view := self.qualification_view(recipe)) is not None
+            and view.status
+            in (
+                QualificationStatus.FAILED_RECIPE,
+                QualificationStatus.FIX_TO_VERIFY,
+                QualificationStatus.BLOCKED_PLATFORM,
+            )
+            and self.state.status(recipe.key) != RecipeStatus.PENDING
+            and (
+                recipe.key not in self.state.slots
+                or self.state.slots[recipe.key].get("phase") == SweepSlotPhase.FINISHED
+            )
         ]
         for key in keys:
             self._requeue_failed(key, RetestReason.OPERATOR)
@@ -1426,6 +1448,10 @@ class Sweep:
 
     def _requeue_failed(self, key: str, why: str) -> None:
         """Back to pending; the failure stays in results.jsonl, which is only ever appended to."""
+        if key in self.recipes:
+            view = self.qualification_view(self.recipes[key])
+            if view is not None and view.status == QualificationStatus.WORKING:
+                return
         entry = self.state.entry(key)
         previous = {
             name: entry.get(name)
@@ -1497,6 +1523,20 @@ class Sweep:
             lock.release()
 
     def _run(self) -> int:
+        # Adoption parses no remote state and writes nothing during read-only
+        # loads. Publish its evidence only under this run's exclusive lock.
+        for row in self.state.adoptions:
+            if not self.record_result(
+                row.recipe,
+                "requeue",
+                ReconciliationStatus.REQUEUED,
+                reason=row.reason,
+                previous=row.previous,
+            ):
+                return 1
+        if self.state.adoptions:
+            self.state.save()
+            self.state.adoptions.clear()
         self.state.data.pop("end", None)
         # Retired sources may be forgotten, but restarting does not prove that a
         # review/adoption dependency recovered. Its first sighting and budget survive.
@@ -1510,11 +1550,7 @@ class Sweep:
             self.check_client()
             if self.state.data.get("finalization"):
                 self._leave_fleet()
-            self.requeue_for_rules()
-            self.requeue_superseded_failures()
-            self.requeue_unfreed_capacity_failures()
-            if self.cfg.retry_failed:
-                self.requeue_failed()
+            self.requeue_uncertain()
             started = False
             for _ in itertools.count():
                 try:
@@ -1759,7 +1795,9 @@ class Sweep:
             cluster=failure.cluster,
             finished_at=now,
             release=self.release_sha,
-            release_authority="deployed-controller" if self.release_sha else None,
+            release_authority=ReleaseAuthority.DEPLOYED_CONTROLLER
+            if self.release_sha
+            else None,
             recovery_basis=recovery.failure_basis(
                 failure.code, self._component_observations()
             ),
@@ -1825,7 +1863,8 @@ class Sweep:
         if document:
             row["controller_document"] = _bounded_document(document)
         try:
-            self.log.append(**row)
+            recorded = self.log.append(**row)
+            self._remember_qualification(recorded)
         except OSError as error:
             # The log is the evidence; a full disk is an infrastructure fact to show.
             self.note_infra("results-log", f"{type(error).__name__}: {error}")
@@ -1850,6 +1889,7 @@ class Sweep:
         facts: dict[str, Any] = {
             "phase": entry.get("phase"),
             "failure_class": entry.get("failure_class"),
+            "code": entry.get("code"),
             "signature": entry.get("signature"),
             "cluster": entry.get("cluster"),
             "attempt": entry.get("attempts"),
@@ -1865,6 +1905,9 @@ class Sweep:
             "library_commit": accepted.library_commit if accepted else None,
             "controller_release": entry.get("release"),
             "controller_version": self.state.data["release"].get("version"),
+            "node_count": recipe.node_count if recipe else None,
+            # Agent identity is not inferred from Controller/client versions.
+            "agent_version": self.state.data["platform"].get("agent_version"),
             "engine": recipe.engine if recipe else None,
             "timings": entry.get("timings"),
             "verdict_identity": content_identity(recipe).model_dump(mode="json")
@@ -1920,7 +1963,9 @@ class Sweep:
             attempts=int(entry.get("attempts", 0)) + 1,
             finished_at=now,
             release=self.release_sha,
-            release_authority="deployed-controller" if self.release_sha else None,
+            release_authority=ReleaseAuthority.DEPLOYED_CONTROLLER
+            if self.release_sha
+            else None,
             content_sha256=recipe.content_sha256,
             revision_id=recipe.revision_id,
             verdict_identity=content_identity(recipe).model_dump(mode="json"),
@@ -2033,7 +2078,6 @@ class Sweep:
             # one, it did not continue it. This load has ended; its lane requeues.
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
                 "state": "superseded",
-                "superseded": True,
                 "reason": f"superseded by this sweep's own load {owner}",
             }
             self.state.data["loads"].pop(load["request_key"], None)
@@ -2073,29 +2117,10 @@ class Sweep:
             load["state"] = "queued"
             load["copying"] = False
             return True
-        if status == "failed" and replaced is None:
-            try:
-                retry = self._retry_successor(document)
-            except VonkctlError as error:
-                # Unknown is not "ended": keep observing the failed application.
-                self._blind(str(error), error.reply)
-                return False
-            if retry is not None:
-                # The Controller is still retrying this load by itself: a newer retry
-                # application continues it, and only its ending is the recipe's.
-                self.state.event(
-                    f"application {document['id']} failed but the Controller retries it: "
-                    f"following {retry}"
-                )
-                load["app_id"] = retry
-                load["state"] = "queued"
-                load["copying"] = False
-                return True
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
                 "state": status,
-                "superseded": replaced is not None,
                 "reason": document.get("status_reason"),
                 "failure_code": failure_code,
                 "operation_id": document.get("current_operation_id") or document["id"],
@@ -2183,30 +2208,6 @@ class Sweep:
                 self.state.entry(key)["not_before"] = (
                     self.clock.now() + self.cfg.retry_delay
                 )
-
-    def _retry_successor(self, document: Mapping[str, Any]) -> str | None:
-        """The application that continues a failed one the Controller is still retrying, if any.
-
-        A failed application ends for good with the Controller's typed ``profile.failure_repeated``
-        blocker or a terminal assignment failure; otherwise a later application of the profile
-        that names this one as the application it retries is its continuation. An unreadable
-        answer raises: unknown is never "it ended".
-        """
-        if verdict.retry_ended(document):
-            return None
-        reply = self.vk.run("profile", "progress", profile=self.cfg.sweep_profile)
-        latest = reply.document
-        if not reply.ok or not isinstance(latest, dict):
-            raise VonkctlError(
-                reply.argv, reply, "the profile's latest application is unreadable"
-            )
-        if (
-            isinstance(latest.get("id"), str)
-            and latest["id"] != document.get("id")
-            and latest.get("retry_of_application_id") == document.get("id")
-        ):
-            return latest["id"]
-        return None
 
     def _blind(self, message: str, reply: Any = None) -> None:
         """The sweep cannot observe the Controller (outage, 502/503, protocol or version skew)."""
@@ -2389,11 +2390,7 @@ class Sweep:
             return
         app = self.state.data.get("apps", {}).get(slot["request_key"])
         if app is not None:
-            if (
-                app.get("superseded")
-                or policy.superseded_text(app.get("reason"))
-                or (app["state"] == "cancelled" and app.get("cause") == "superseded")
-            ):
+            if app["state"] == LifecycleState.SUPERSEDED:
                 self.requeue(key, "load superseded by another application")
                 return
             if app["state"] == "cancelled":
@@ -3083,24 +3080,6 @@ class Sweep:
             )
             for s in self.sparks()
         }
-        for slot in self.state.slots.values():
-            if slot["phase"] == "finished":
-                continue
-            accepted = AcceptedRequest.read(slot)
-            if accepted is None:
-                continue  # legacy lanes are held by _lane_holds until re-planned
-            recipe = accepted.recipe
-            for node in slot["node_ids"]:
-                if node in bins:
-                    b = bins[node]
-                    bins[node] = policy.SparkBin(
-                        b.id,
-                        b.name,
-                        b.capacity,
-                        b.used + recipe.memory_bytes,
-                        b.ports | frozenset(recipe.ports),
-                        b.aliases | {slot["alias"]},
-                    )
         holds = self._lane_holds()
         return [bin_ for bin_ in bins.values() if bin_.id not in holds]
 
@@ -3514,8 +3493,7 @@ class Sweep:
                 continue
             if not reply.ok:
                 self._defer_cleanup(load, budget, now)
-                # Legacy status entries describe the next actual observation, not
-                # an expired submission retry. This does not pause other lanes.
+                # Status reports the next observation without pausing other lanes.
                 if item := self.state.data["infra"].get("clearing"):
                     item["count"] += 1
                     item["until"] = budget.next_check

@@ -38,6 +38,35 @@ the installable contracts. Do not add separate guidance files.
   deployment and physical Spark execution separately, with exact commits.
   Passing CI or finding an upstream benchmark proves no physical acceptance.
 
+## Sweep evidence workflow
+
+Hardware qualification uses contract 2.4.0 `RecipeQualificationEvidence` and
+`derive_status`. Store public evidence in
+`qualification/evidence/<publisher>/<recipe-slug>.json`, separate from recipes.
+Proven recipes are never broken pre-emptively: preserve the last pass during a
+re-check; an exact identity revert restores Working without another run. Only
+hardware recipe failures count against recipes; platform faults remain separate.
+Schedule Fix to verify, Untested, platform-blocked work after its fix is observed,
+and Re-check last. `--retry-failed` never requeues Working.
+
+`tools/backfill-qualification-evidence --history <results.jsonl>` reads the log
+and all rotated siblings without opening or mutating sweep state. Missing image,
+Model or platform provenance must remain unknown. Never infer it from today's
+catalog. Public models forbid infrastructure identifiers and raw free text;
+keep private diagnostic artifacts in local state only.
+
+The sweep's background `tools/sync-qualification-evidence` batches evidence onto
+`qualification/evidence`, maintains one open “qualification evidence” PR and
+requests auto-merge. Each attempt has bounded subprocess waits; failures are
+visible on the status page and in `evidence-publisher/publisher.log`. A competing
+push re-plans from a fresh disposable clone on the next batch. GitHub cannot
+block lanes. Keep an open PR's head stable through CI and auto-merge; new results
+accumulate in history until it merges. A behind or conflicted PR gets a fresh
+merge plan. `--no-publish-evidence` disables this optional transport. Never run
+it against a production sweep unless that task explicitly authorizes writing.
+Publication computes every recipe's public view from release identities and
+includes it in the normally signed catalog; publication is not hardware proof.
+
 ## Setup and producer gates
 
 Producer tools, contracts and tests use Python **3.14**. Adapter sources remain
@@ -153,7 +182,7 @@ tools/sweep-recipes file-issues --dry-run
 
 `plan` reads the catalog/fleet and estimates unique bytes/order. `run` accepts
 `--only`, `--limit`, `--spark`, `--seed-list` (JSON slugs), `--boost`,
-`--retry-failed`, `--watch`, `--no-revalidate` and `--revalidate-passes`.
+`--retry-failed`, `--watch` and `--no-revalidate`.
 Use `--job-recipes` only when the deployed Controller supports job profile
 members; otherwise job recipes are skipped before consuming a lane.
 Read `spark_sweep/cli.py` or `--help` for current defaults.
@@ -261,11 +290,10 @@ of an expired key (`tests/test_sweep_auth_refusal.py`,
 `tests/test_sweep_verdicts.py`, `tests/test_sweep_load_blame.py`). What the smoke
 actually executes is specified once in the authoring guide below.
 
-Verdicts bind recipe content, image build key/digest and Model digests. Changed
-content/images requeue; newest publication is considered first. Unknown image
-identity stays unknown: library commit is a conservative invalidator for
-failed/deferred outcomes; passed outcomes need `--revalidate-passes` for that
-fallback-only change. `--no-revalidate` preserves old passes on content changes.
+Qualification evidence binds recipe content, known image build key/digest and
+Model digests. Requeues, exact-identity revert restoration and `--retry-failed`
+use `derive_status` only. Library publication alone is not a content change.
+`--no-revalidate` preserves old passes on content changes.
 Keep prior verdicts visible while retesting. Record deployed API provenance
 separately from signed publication and CLI versions; a publication does not
 prove deployment. Automatic fault recovery requires an exact typed fault and

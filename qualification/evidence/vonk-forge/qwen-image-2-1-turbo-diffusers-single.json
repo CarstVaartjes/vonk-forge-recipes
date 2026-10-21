@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen-image-2-1-turbo-diffusers-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "d6a2e24cd9a47a7a0b0aa4f7a8e9137982d802c0785adc9d729dc71b34886e80",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "4abad0e33b988798423fa9cfac1558e5db018adfaa40bcbb0fdfdac3aff5afb4"
+      ],
+      "tested_at": "2026-10-19T09:01:20.597346Z",
+      "platform": {
+        "controller_source_sha": "440c71ed4f00d4e32a943a038391ec7065723891",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "d6a2e24cd9a47a7a0b0aa4f7a8e9137982d802c0785adc9d729dc71b34886e80",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "aefd6c961fe243c0367c54cb20edf9eaa01d911690e46420091181db8bfebb25"
+      ],
+      "tested_at": "2026-10-19T18:09:12.799565Z",
+      "platform": {
+        "controller_source_sha": "9c520e14342b514fbd2368b64a865ca00e227f2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "d6a2e24cd9a47a7a0b0aa4f7a8e9137982d802c0785adc9d729dc71b34886e80",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "e857bdf44275d99ffc38c6ea2a80ae2d912866cb0182a8ad1e864070b2ad6e1d"
+      ],
+      "tested_at": "2026-10-19T22:16:30.081355Z",
+      "platform": {
+        "controller_source_sha": "9c520e14342b514fbd2368b64a865ca00e227f2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "d6a2e24cd9a47a7a0b0aa4f7a8e9137982d802c0785adc9d729dc71b34886e80",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "d348357294b428e16495b37de6ae58f9ee172c2ca81c2848daba74ba7994b2df"
+      ],
+      "tested_at": "2026-10-20T04:14:39.709823Z",
+      "platform": {
+        "controller_source_sha": "dc0e945ec169f3a9dbd4c426cde44d49463eb0a8",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-5-lightning-30b-a3b-ashhart-tensorfold-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "f86de2f767e20390e15669c29ce81609d3e3fe7ed5e065dc4894012226319a89",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "3267d88de7623ae5c026c73cdea8e86ba2f236c56f29f93806c29e5e26b1533c"
+      ],
+      "tested_at": "2026-10-11T02:38:41.143514Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5999766bb01f779c42f5767d4b571d23aad9b627de3ea1dfea8fb9458575eef4",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "e94444b99322f522f531ee1c3031a34e1893c5c273b0c8d4aa46eeaedc58b718"
+      ],
+      "tested_at": "2026-10-15T00:12:28.540424Z",
+      "platform": {
+        "controller_source_sha": "fadaeb65d44cfbddb4999a3ad9a092efce943d29",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5999766bb01f779c42f5767d4b571d23aad9b627de3ea1dfea8fb9458575eef4",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a5e795816a2f640a4e165fa4b914f452d54f28fd5fa2f864f640fd256bb9954d"
+      ],
+      "tested_at": "2026-10-15T06:16:34.308487Z",
+      "platform": {
+        "controller_source_sha": "31f812e2b7342eb3d15c18c4d5877ed898b807ea",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

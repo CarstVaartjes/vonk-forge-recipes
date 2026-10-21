@@ -20,6 +20,8 @@ def _strict_version(expected: int) -> BeforeValidator:
 
 # Model and Recipe documents carry no schema version: the recipe library
 # release they are published in names the contract version. The qualification
-# authority and its small campaign manifest keep their own document versions.
+# authority, campaign manifest and hardware evidence keep their own document versions.
 QualificationAuthoritySchemaVersion = Annotated[Literal[5], _strict_version(5)]
 QualificationCampaignSchemaVersion = Annotated[Literal[2], _strict_version(2)]
+
+QualificationEvidenceSchemaVersion = Annotated[Literal[1], _strict_version(1)]

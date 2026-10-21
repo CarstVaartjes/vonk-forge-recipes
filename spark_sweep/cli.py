@@ -9,6 +9,8 @@ import time
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
+from vonk_forge_contracts import RecipeDefinition
+
 from . import policy
 from .catalog import fetch_fleet, fetch_models, fetch_recipes
 from .definitions import Definitions
@@ -16,7 +18,7 @@ from .issues import file_issues
 from .job_media import ffprobe
 from .plan import make_plan, render_plan
 from .prefetch import TIB, PrefetchConfig
-from .report import build_report, export_evidence, render_report
+from .report import build_report, export_evidence, render_report, saved_qualification
 from .run import Clock, Sweep, SweepConfig
 from .smoke import HttpConfig
 from .state import ResultsLog, State
@@ -126,11 +128,6 @@ def _parser() -> argparse.ArgumentParser:
         help="test one recipe per model first, variants afterwards",
     )
     run.add_argument(
-        "--revalidate-passes",
-        action="store_true",
-        help="also retest passed recipes when only the fallback library commit changes",
-    )
-    run.add_argument(
         "--no-revalidate",
         action="store_true",
         help="do not retest passed recipes whose document changed",
@@ -152,6 +149,11 @@ def _parser() -> argparse.ArgumentParser:
         default=0.0,
         metavar="SECONDS",
         help="keep polling the library for changed recipes after the queue drains",
+    )
+    run.add_argument(
+        "--no-publish-evidence",
+        action="store_true",
+        help="disable the background evidence PR publisher",
     )
     run.add_argument("--poll-seconds", type=float, default=10.0)
     run.add_argument(
@@ -189,11 +191,11 @@ def _parser() -> argparse.ArgumentParser:
         common(commands.add_parser(name, help=text))
     export = commands.add_parser(
         "export-evidence",
-        help="write qualification/hardware-evidence/<slug>.jsonl files",
+        help="write sanitized qualification/evidence/<publisher>/<slug>.json files",
     )
     common(export)
     export.add_argument(
-        "--output-dir", type=Path, default=Path("qualification/hardware-evidence")
+        "--output-dir", type=Path, default=Path("qualification/evidence")
     )
     issues = commands.add_parser(
         "file-issues", help="file the missing hardware-test issues for failed recipes"
@@ -252,12 +254,12 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         limit=args.limit,
         variants_last=args.variants_last,
         revalidate_passes=not args.no_revalidate,
-        revalidate_library_passes=args.revalidate_passes,
         restore_owner=args.restore_owner,
         stop_at_end=not args.leave_running,
         watch_seconds=args.watch,
         allow_version_skew=args.allow_version_skew,
         retry_failed=args.retry_failed,
+        publish_evidence=not args.no_publish_evidence,
         job_recipes_loadable=args.job_recipes,
         copy_stall_seconds=args.copy_stall_minutes * 60,
     )
@@ -283,7 +285,10 @@ def main(
     if args.command in ("report", "export-evidence", "file-issues"):
         state = State.load(state_path)
         if args.command == "report":
-            report = build_report(state.recipes)
+            report = build_report(
+                state.recipes,
+                saved_qualification(state.data.get("qualification_inputs", {})),
+            )
             args.state_dir.mkdir(parents=True, exist_ok=True)
             (args.state_dir / "report.json").write_text(
                 json.dumps(report, indent=1, sort_keys=True), encoding="utf-8"
@@ -292,12 +297,12 @@ def main(
             (args.state_dir / "report.md").write_text(text, encoding="utf-8")
             print(text)
         elif args.command == "export-evidence":
-            known = [
-                f"vonk-forge/{p.stem}"
-                for p in (Path(__file__).resolve().parents[1] / "recipes").glob(
-                    "*.json"
-                )
-            ]
+            known = []
+            for path in (Path(__file__).resolve().parents[1] / "recipes").glob(
+                "*.json"
+            ):
+                recipe = RecipeDefinition.model_validate_json(path.read_text())
+                known.append(f"{recipe.identity.publisher}/{recipe.identity.slug}")
             for path in export_evidence(results.entries(), args.output_dir, known):
                 print(path)
         else:

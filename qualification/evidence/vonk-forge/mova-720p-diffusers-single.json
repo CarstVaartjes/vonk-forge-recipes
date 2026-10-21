@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/mova-720p-diffusers-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "95ac9dd9679cd4e1f1d952a392c093a0b537c8d214ef093b42e1696952209e38",
+        "model_digests": [
+          "e9ee5114179de6c3dafb94c922a0bb118bffcc6af73b8387cc3f2b14cd4ae50b"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "df7cfc83916565a08c3a19440a5f44c5cf823e01eff4a0fd9222313ef18faacf"
+      ],
+      "tested_at": "2026-10-20T23:49:32.639211Z",
+      "platform": {
+        "controller_source_sha": "f0a25540a78071e1179a5496b363a05af3659a8f",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b4a5b57cecf95e2c647334b05fc47498081aef0cc759550bee1daaef61fa1350",
+        "model_digests": [
+          "e9ee5114179de6c3dafb94c922a0bb118bffcc6af73b8387cc3f2b14cd4ae50b"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "9ef69c315766a86cced5c89a2eb2595b303839bcfe7f5cfdeccb731053f514d7"
+      ],
+      "tested_at": "2026-10-21T04:18:17.574695Z",
+      "platform": {
+        "controller_source_sha": "fe788a24c18de8eefe8b4a6de942673d9f7ca1b9",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b4a5b57cecf95e2c647334b05fc47498081aef0cc759550bee1daaef61fa1350",
+        "model_digests": [
+          "e9ee5114179de6c3dafb94c922a0bb118bffcc6af73b8387cc3f2b14cd4ae50b"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "65357e1f8929e2c8510049e9bedacf5a5491074b640d4f77fdd14f8c2a3bb9c3"
+      ],
+      "tested_at": "2026-10-21T06:07:34.980625Z",
+      "platform": {
+        "controller_source_sha": "fe788a24c18de8eefe8b4a6de942673d9f7ca1b9",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

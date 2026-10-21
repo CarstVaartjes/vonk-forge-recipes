@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/ltx-2-19b-distilled-diffusers-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "72877b3d39fe9c3cf021c237f7241d9dfc1e91194a167b9d93a7cb8f9e88f2a8",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "c8138392952e22b317dcc741fd3c3498e30b6e4ef62cccff8e1763b7ea979d3f"
+      ],
+      "tested_at": "2026-10-19T06:34:15.200532Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "efb1c19deb5bb755ccc293c5969e4e7c2714cf3a3278f5e5a43dad3a91258f99",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "286aac2a74cae72bb887cac1ad919a09389c051509f584c059c1cb6de63997db"
+      ],
+      "tested_at": "2026-10-20T15:20:45.108438Z",
+      "platform": {
+        "controller_source_sha": "3c5fe58e09865a17daa5b483ca85ac2db4a3c9d5",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "efb1c19deb5bb755ccc293c5969e4e7c2714cf3a3278f5e5a43dad3a91258f99",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "3c2f6514087e1da933d0b694b4fb969fb1abfebc82e5683d6421fb30b0f4b6c2"
+      ],
+      "tested_at": "2026-10-20T17:56:42.195479Z",
+      "platform": {
+        "controller_source_sha": "8d7e68c9b2b6f5432ff0832ca7055e0394c36e67",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "efb1c19deb5bb755ccc293c5969e4e7c2714cf3a3278f5e5a43dad3a91258f99",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "bcef7f19d20aed742948f60c7215b62b54445303ada5b0ca11fd9e39c3a4b108"
+      ],
+      "tested_at": "2026-10-20T20:44:12.142556Z",
+      "platform": {
+        "controller_source_sha": "030d3d02dbc175e02c1334e0f1442286aba4723a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

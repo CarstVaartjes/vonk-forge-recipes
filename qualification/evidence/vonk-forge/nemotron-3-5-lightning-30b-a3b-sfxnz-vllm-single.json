@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-5-lightning-30b-a3b-sfxnz-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "67ca2eeeb32423b2fec6ef02344f66299b3e640ffee9176259b4c7541b23649a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "02403785dad3ea9ad8997e60d74f0ea696c5cbd23dd5a1852795356ba8b9603e"
+      ],
+      "tested_at": "2026-10-15T15:08:56.911000Z",
+      "platform": {
+        "controller_source_sha": "a47f4856b87c62a0b38637edb4e431381deb4356",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

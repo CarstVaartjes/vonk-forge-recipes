@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/ltx-2-19b-distilled-fp8-diffusers-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "f57b14fcdd099e82dcdffac0d69b62a56a692e494cfd20ac0ce0acbe76e1b08b",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "786424cd1c38b910fd59e7b97e07ac7d3558385f2903f558e28e74e356d768da"
+      ],
+      "tested_at": "2026-10-19T06:18:48.836679Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "cd108b6d68d9fef8ff8de3092ff8dd45fb569322139959ef976d5527e2a57bc0",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "67b76d66b7e9d57616038999fecb94d7e362115942438219529357672c15f043"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "9dabfb02c605754d9eebc4e40c88026703708b68da804fc6d236e196161bc1de"
+      ],
+      "tested_at": "2026-10-20T16:20:12.209856Z",
+      "platform": {
+        "controller_source_sha": "3c5fe58e09865a17daa5b483ca85ac2db4a3c9d5",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "cd108b6d68d9fef8ff8de3092ff8dd45fb569322139959ef976d5527e2a57bc0",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "67b76d66b7e9d57616038999fecb94d7e362115942438219529357672c15f043"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "56938735a25ed38fc5d6efaa80cf1bdbf69c71457470582d4e4634b661254026"
+      ],
+      "tested_at": "2026-10-20T17:56:42.197452Z",
+      "platform": {
+        "controller_source_sha": "8d7e68c9b2b6f5432ff0832ca7055e0394c36e67",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "cd108b6d68d9fef8ff8de3092ff8dd45fb569322139959ef976d5527e2a57bc0",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "67b76d66b7e9d57616038999fecb94d7e362115942438219529357672c15f043"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "3963f4aded5cfdf6d5cf35e98254dfccb1ae3fa75ea02f20f093cd79f58eb41f"
+      ],
+      "tested_at": "2026-10-20T20:41:28.772010Z",
+      "platform": {
+        "controller_source_sha": "030d3d02dbc175e02c1334e0f1442286aba4723a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "cd108b6d68d9fef8ff8de3092ff8dd45fb569322139959ef976d5527e2a57bc0",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "67b76d66b7e9d57616038999fecb94d7e362115942438219529357672c15f043"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "409450955f6b69b7dfb197871476a40eaf6b3550fedd3e302b80d894ec05e4ce"
+      ],
+      "tested_at": "2026-10-20T21:10:17.851314Z",
+      "platform": {
+        "controller_source_sha": "030d3d02dbc175e02c1334e0f1442286aba4723a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "cd108b6d68d9fef8ff8de3092ff8dd45fb569322139959ef976d5527e2a57bc0",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "67b76d66b7e9d57616038999fecb94d7e362115942438219529357672c15f043"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "e3e9d7e66facca98dd0dbbcd51b917da2b014161236ddab22333300ca585f04c"
+      ],
+      "tested_at": "2026-10-20T23:38:07.066993Z",
+      "platform": {
+        "controller_source_sha": "f0a25540a78071e1179a5496b363a05af3659a8f",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fe6945afbc9b789b59de09ba6b6594d13ece78885e21de5c476f0ce0c590622b",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "67b76d66b7e9d57616038999fecb94d7e362115942438219529357672c15f043"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "232803cbe0cc81f2810c6326e59b5681adc6c423027303feb45d0ad33976973f"
+      ],
+      "tested_at": "2026-10-21T02:47:59.039345Z",
+      "platform": {
+        "controller_source_sha": "a9583d00aa3b1bf57945692feba3a4a0f0be646c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

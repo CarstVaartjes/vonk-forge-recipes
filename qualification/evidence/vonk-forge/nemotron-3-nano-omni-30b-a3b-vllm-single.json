@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-nano-omni-30b-a3b-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "279922a842983053f054039b43d45e0d7216306ab578cea1dafaf9cf1c281a1d",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "4e382299c0da3bd3205356e4175bbdffb6799f903a456a3eb2b7dbd7a98cd5fa"
+      ],
+      "tested_at": "2026-10-11T10:41:03.463191Z",
+      "platform": {
+        "controller_source_sha": "f376c8e5e6c84b0e0199928d4a3a542ef2481132",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "e077494e1201c4a9730e2341289ba8c6a584e5c83cb3ebff8ee4e1e6704a83d2",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "dfb3d94eb3225946e5957d1948ea45ec16b479c2640ec3f210b44a885f138673"
+      ],
+      "tested_at": "2026-10-15T14:54:06.058522Z",
+      "platform": {
+        "controller_source_sha": "a47f4856b87c62a0b38637edb4e431381deb4356",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

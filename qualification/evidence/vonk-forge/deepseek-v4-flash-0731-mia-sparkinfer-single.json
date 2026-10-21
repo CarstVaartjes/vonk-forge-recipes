@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "1968ad9e5a66addcff0b03e8a0cd1db104bee0ab3bf2694eb27ab3458fb66778",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "93c046a28da2b7396f9fd4ad7b546d70488412e569e8e8cf48e5aef8a987e61e"
+      ],
+      "tested_at": "2026-10-19T06:45:12.527207Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    }
+  ]
+}

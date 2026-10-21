@@ -152,13 +152,7 @@ def _parse(text: str) -> Any:
     try:
         return json.loads(text)
     except ValueError:
-        # Tolerate progress lines before the final document.
-        for line in reversed(text.splitlines()):
-            try:
-                return json.loads(line)
-            except ValueError:
-                continue
-    return None
+        return None
 
 
 class Vonkctl:
@@ -197,8 +191,6 @@ class Vonkctl:
             # callers pause and retry.
             return Reply(tuple(argv), 127, None, f"{type(error).__name__}: {error}")
         document = _parse(out)
-        if document is None:
-            document = _parse(err)
         return Reply(tuple(argv), code, document, err)
 
     def call(

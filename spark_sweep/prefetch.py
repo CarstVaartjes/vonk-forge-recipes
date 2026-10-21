@@ -832,18 +832,12 @@ class Prefetcher:
             return False
         original_intent = record.get("accepted_intent")
         observed_intent = document["request"]
-        if isinstance(original_intent, Mapping):
-            # Deterministic identity comparison after installed-CLI wire validation;
-            # this is not another parser or a reconstruction of execution parameters.
-            if observed_intent != original_intent:
-                return False
-        elif (
-            observed_intent.get("kind") != "selector"
-            or observed_intent.get("selector") != recipe.key
-            or observed_intent.get("force", False) is not False
+        # Only the saved exact intent can authorize a retry; load adoption has
+        # already normalized old selector records without consulting the catalog.
+        if (
+            not isinstance(original_intent, Mapping)
+            or observed_intent != original_intent
         ):
-            # An older owned selector receipt can be bound by its original request
-            # UUID plus frozen revision/content; unknown other intent is not guessed.
             return False
         record["terminal_receipt"] = dict(document)
         record["terminal_verified_at"] = now

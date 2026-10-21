@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-32b-nvfp4-nvidia-trtllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "b3696922ae5be5b17cd5b51ce35cd909b5518ea22b7eecb34c2e05cd5292eb05",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "c2a463a9b40470720242e9f0dda16773e63f7aa4997fb1b1bba3d8f3deac88af"
+      ],
+      "tested_at": "2026-10-11T06:41:41.383053Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "18940ef9fd77494d3e6a6724ed488735e371f62239390df26b2a9bdf81607abf",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "6bcf06fb50006f628e7af1385d5d89dd8d8fe8007d55c118ae9071524b8014bf"
+      ],
+      "tested_at": "2026-10-15T13:19:10.030321Z",
+      "platform": {
+        "controller_source_sha": "4a92d0a9566eb62b509c6eee35ea9811900bf103",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

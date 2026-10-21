@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8b-nvfp4-nvidia-trtllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "29597ff87e961e0d5b8c9fc7ab98102da763396d235a0f6020387ed087a46072",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "0740fbf9e4f678f3442963a4cbb80b877ab742819fef9fa20521e95a1fb67432"
+      ],
+      "tested_at": "2026-10-05T14:43:11.831031Z",
+      "platform": {
+        "controller_source_sha": "1fa6518eda63fa57fedcfc78cec3e556638a2c06",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "29597ff87e961e0d5b8c9fc7ab98102da763396d235a0f6020387ed087a46072",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "db9e6640450518e38eb7d1179b5ec5cc2375bd8f70ded12d5a6c5e586728e01f"
+      ],
+      "tested_at": "2026-10-06T07:54:19.452243Z",
+      "platform": {
+        "controller_source_sha": "47e5d29dbb584e5403ba96178cd41065c3b01578",
+        "controller_version": "0.1.1~dev.3863+g47e5d29dbb58",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

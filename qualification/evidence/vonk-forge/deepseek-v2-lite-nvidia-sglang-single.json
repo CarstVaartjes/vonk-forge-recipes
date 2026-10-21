@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v2-lite-nvidia-sglang-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "ee8337426c7702e872bc538a758091a229b40c8f02580a4df8d7d9160ca2bb29",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "87d5a2d5e3f57e97d2c88a835e08a571719354dbf0ef201bd4e00b1713be4264"
+      ],
+      "tested_at": "2026-10-17T15:32:26.079178Z",
+      "platform": {
+        "controller_source_sha": "d083b43f558b94ddda479d2e227a6ca7b373b1e3",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "ee8337426c7702e872bc538a758091a229b40c8f02580a4df8d7d9160ca2bb29",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "0a02408b42597c4ce8c86c3f8a24f1f5a75b910501ce56296d04c3701da2f902"
+      ],
+      "tested_at": "2026-10-18T15:38:03.532699Z",
+      "platform": {
+        "controller_source_sha": "90c5e2066902a77246ac1ca556aca9a511129904",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "39145ed63c05292d249b48147640d908d5a0335c5dda22e0492003a4e98d6517",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "8742a80a919c56a31de7625c450b1eb05cd2f6137a2e2fc440361b9a6ab1a43c"
+      ],
+      "tested_at": "2026-10-19T08:53:51.093226Z",
+      "platform": {
+        "controller_source_sha": "440c71ed4f00d4e32a943a038391ec7065723891",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

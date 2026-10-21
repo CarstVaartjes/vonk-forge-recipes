@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-27b-nvfp4-mtp-r0b0tlab-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "507cd2a5cc3a48ba6d768a258a222d65234b97a3894304c3d740c85c59ad006b",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "67fa1d48991ec16e9f3726ea37e78c2eb23b6984e83c12d26b57f956a5c335e9"
+      ],
+      "tested_at": "2026-10-17T13:20:05.985610Z",
+      "platform": {
+        "controller_source_sha": "d84774d8273983de55752511dfc764ba3c8c200a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

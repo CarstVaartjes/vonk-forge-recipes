@@ -60,8 +60,11 @@ def test_old_state_with_fleet_size_skips_heals_on_the_next_pass(
         status="skipped",
         reason="not testable on this fleet: needs 2 Sparks, 1 usable",
     )  # as an older sweep wrote it: no reason_kind
-    sweep.run()
-    assert _status(sweep, "dual") == "passed"
+    sweep.state.data["schema"] = 1
+    sweep.state.save()
+    again, _, _ = make_sweep(tmp_path, [dual], [FakeModel("m1")], gateway=gateway)
+    again.run()
+    assert _status(again, "dual") == "passed"
 
 
 def test_a_skip_that_is_not_about_the_fleet_is_left_alone(

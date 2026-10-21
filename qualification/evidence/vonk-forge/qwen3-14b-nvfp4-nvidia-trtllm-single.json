@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-14b-nvfp4-nvidia-trtllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "983e97d161a64a3e283236c5d661c45c2d4882b667d2068f22ab411ab5cee3ec",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "c30a316109ffc03414a8b10daf366a69e17288a1c873e1d3cc5576fcfd0a0503"
+      ],
+      "tested_at": "2026-10-05T18:32:27.414035Z",
+      "platform": {
+        "controller_source_sha": "26c34a8a98b9c99a8088b8521b815b901c70eab5",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "983e97d161a64a3e283236c5d661c45c2d4882b667d2068f22ab411ab5cee3ec",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "8ae407154e32240ac879d8ee8c44247969852be8aac2fd8ae25e3ae33f86060e"
+      ],
+      "tested_at": "2026-10-06T09:43:38.092940Z",
+      "platform": {
+        "controller_source_sha": "47e5d29dbb584e5403ba96178cd41065c3b01578",
+        "controller_version": "0.1.1~dev.3863+g47e5d29dbb58",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fb78100b1e5c70ad921267ad4935f9fbd309b894f710bd0b697bb97af44689c4",
+        "model_digests": [
+          "a659ee98b05d03dbba70e8c6410b886e5b5fe86110ca738fb27a39173ab82227"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "4980555c5a50f10f310382d2fcdad6f0071615697ac2f69668fe76cd702bbc9e"
+      ],
+      "tested_at": "2026-10-21T00:37:07.046185Z",
+      "platform": {
+        "controller_source_sha": "f0a25540a78071e1179a5496b363a05af3659a8f",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    }
+  ]
+}

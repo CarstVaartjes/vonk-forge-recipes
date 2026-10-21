@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/minimax-music3-drowzeys-tensorfold-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "2b42aa73af6c38160b4414396458abd77163ffda8b9c33139ee5c7e31d232bb6",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.invalid_definition",
+      "cause_summary": "Recipe definition or build policy check failed; needs fix",
+      "evidence_refs": [
+        "cb3beace4681c4344f1a4f4b077dc6b8894cc8ce0c8c5ed41710a1d3a72429c2"
+      ],
+      "tested_at": "2026-10-19T09:02:52.557333Z",
+      "platform": {
+        "controller_source_sha": "440c71ed4f00d4e32a943a038391ec7065723891",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "2b42aa73af6c38160b4414396458abd77163ffda8b9c33139ee5c7e31d232bb6",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "240fb993a1bbd75244bc9d2455daa8521bc1b37faa6e674ba492f48563d53a2d"
+      ],
+      "tested_at": "2026-10-19T16:24:41.784632Z",
+      "platform": {
+        "controller_source_sha": "9c520e14342b514fbd2368b64a865ca00e227f2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "2b42aa73af6c38160b4414396458abd77163ffda8b9c33139ee5c7e31d232bb6",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "bcb51865230da01728fc8b0b66e9c893dda3246307eb5f81d2c263f57e685b46"
+      ],
+      "tested_at": "2026-10-19T17:26:46.038249Z",
+      "platform": {
+        "controller_source_sha": "9c520e14342b514fbd2368b64a865ca00e227f2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

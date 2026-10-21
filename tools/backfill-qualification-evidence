@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""Import sanitized hardware history without opening or changing sweep state."""
+
+import argparse
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT), str(ROOT / "contracts/src")]
+from spark_sweep.qualification import backfill
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--history", type=Path, required=True, help="results.jsonl path"
+    )
+    parser.add_argument("--output-root", type=Path, default=ROOT)
+    args = parser.parse_args()
+    paths = sorted(args.history.parent.glob(args.history.name + ".*"))
+    if args.history.exists():
+        paths.append(args.history)
+    print(backfill(paths, args.output_root).model_dump_json())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

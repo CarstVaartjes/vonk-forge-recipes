@@ -22,14 +22,11 @@ def _entry(sweep, slug: str) -> dict:
     return sweep.state.recipes[f"vonk-forge/{slug}"]
 
 
-@pytest.mark.parametrize("mode", ["retry", "legacy-retry"])
-def test_an_automatic_retry_is_adopted_and_the_recipe_passes(
-    tmp_path, gateway, mode
-) -> None:
+def test_an_automatic_retry_is_adopted_and_the_recipe_passes(tmp_path, gateway) -> None:
     sweep, fleet, _ = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
     )
-    fleet.supersede = [mode]
+    fleet.supersede = ["retry"]
     assert sweep.run() == 0
     entry = _entry(sweep, "a")
     assert entry["status"] == "passed"
@@ -48,23 +45,22 @@ def test_a_superseded_intent_without_successor_is_requeued_not_failed(
     assert "load superseded" in str(sweep.state.data["events"])
 
 
-def test_supersession_is_read_from_state_code_and_legacy_text() -> None:
+def test_supersession_uses_only_the_controller_state_and_successor() -> None:
     first = policy.supersession({"state": "superseded", "superseded_by": SID})
     assert first is not None and first.successor == SID
-    legacy = {
-        "state": "failed",
-        "status_reason": f"Automatically reconciled by profile retry {SID}",
-    }
-    found = policy.supersession(legacy)
-    assert found is not None and found.successor == SID
-    cancelled = policy.supersession(
-        {
-            "state": "cancelled",
-            "status_reason": "Pending profile intent was superseded: Profile workload effects changed during admission; review again",
-        }
+    assert (
+        policy.supersession({"state": "failed", "reason_code": "superseded-by-retry"})
+        is None
     )
-    assert cancelled is not None and cancelled.successor is None
-    assert policy.supersession({"state": "failed", "status_reason": "boom"}) is None
+    assert (
+        policy.supersession(
+            {
+                "state": "failed",
+                "status_reason": f"Automatically reconciled by profile retry {SID}",
+            }
+        )
+        is None
+    )
     assert policy.supersession({"state": "succeeded"}) is None
 
 
@@ -82,6 +78,7 @@ def test_earlier_failures_recorded_for_a_superseded_load_are_pending_again(
         _entry(sweep, slug).update(
             status="failed", error=error, failure_class="start", phase="start"
         )
+    sweep.state.data["schema"] = 1
     sweep.state.save()
     again, _, _ = make_sweep(tmp_path, recipes, models, fleet=fleet)
     again.run()
@@ -127,4 +124,21 @@ def test_a_load_never_adopts_another_of_our_loads_as_its_continuation(
 
     assert load["app_id"] != NEW_APP or observed["id"] == NEW_APP
     assert "key-old" not in sweep.state.data["loads"]
-    assert sweep.state.data["apps"]["key-old"]["superseded"] is True
+    assert sweep.state.data["apps"]["key-old"]["state"] == "superseded"
+
+
+def test_failed_application_does_not_probe_for_an_untyped_continuation(tmp_path):
+    sweep, _, _ = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
+    calls = []
+
+    def observe(*args, **kwargs):
+        calls.append(args)
+        return Reply(args, 0, {"id": OLD_APP, "state": "failed", "progress": {}}, "")
+
+    sweep.vk.run = observe
+    load = {"request_key": "key", "app_id": OLD_APP}
+    sweep.state.data["loads"]["key"] = load
+    assert sweep._poll_application(load)
+    assert len(calls) == 1
+    assert "key" not in sweep.state.data["loads"]
+    assert sweep.state.data["apps"]["key"]["state"] == "failed"

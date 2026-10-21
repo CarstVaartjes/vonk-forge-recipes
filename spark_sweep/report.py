@@ -11,15 +11,25 @@ from __future__ import annotations
 
 import json
 import statistics
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+
+from vonk_forge_contracts import (
+    QualificationDerivationInput,
+    QualificationStatus,
+    QualificationStatusView,
+    RecipeQualificationEvidence,
+    derive_status,
+)
+from vonk_forge_contracts.sweep import SweepSlotPhase
 
 from . import policy
 from .evidence_contract import read_result
 from .identity import recorded_identity
 from .lifecycle import ACTIVE
+from .qualification import current_identity, from_history, merge_evidence, read_evidence
 from .removal_contract import RecipeVerdict
 from .state import write_atomic
 
@@ -239,6 +249,12 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             for k in sweep.queue[:15]
         ],
         "queue_length": len(sweep.queue),
+        "evidence_publication": sweep.evidence_publisher.message,
+        "qualification": {
+            key: view.model_dump(mode="json", exclude_none=True)
+            for key, recipe in sweep.recipes.items()
+            if (view := sweep.qualification_view(recipe)) is not None
+        },
         "verdict_identities": {
             key: entry.get("verdict_identity") for key, entry in data["recipes"].items()
         },
@@ -294,6 +310,17 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
     }
 
 
+def _qualification_summary(views: Iterable[Mapping[str, Any]]) -> str:
+    tally = Counter(
+        QualificationStatusView.model_validate(view).status for view in views
+    )
+    return ", ".join(
+        f"{status.value} {tally[status]}"
+        for status in QualificationStatus
+        if status in tally
+    )
+
+
 def render_status(status: Mapping[str, Any]) -> str:
     c = status["counts"]
     lines = [
@@ -310,6 +337,8 @@ def render_status(status: Mapping[str, Any]) -> str:
         + (f" - PAUSED: {status['paused']}" if status["paused"] else ""),
         "",
     ]
+    if status.get("qualification"):
+        lines[2] = _qualification_summary(status["qualification"].values())
     if status.get("alerts"):
         lines += ["## ALERTS", *(f"- {a}" for a in status["alerts"]), ""]
     if status.get("model_removal_wait"):
@@ -410,10 +439,41 @@ def render_status(status: Mapping[str, Any]) -> str:
         lines += ["", "## Verdict content identities"]
         for key, value in sorted(status["verdict_identities"].items()):
             lines.append(f"- {key}: `{json.dumps(value, sort_keys=True)}`")
+    if status.get("qualification"):
+        lines += [
+            "",
+            "## Qualification",
+            "",
+            "| Recipe | Status and proof |",
+            "|---|---|",
+        ]
+        lines += [
+            f"| {key} | {_qualification_text(view)} |"
+            for key, view in sorted(status["qualification"].items())
+        ]
+        lines += ["", str(status.get("evidence_publication", ""))]
     return "\n".join(lines) + "\n"
 
 
-def build_report(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
+def _qualification_text(view: Mapping[str, Any]) -> str:
+    text = str(view["status"])
+    if view.get("changed"):
+        text += "; changed: " + ", ".join(view["changed"])
+    if view.get("last_pass"):
+        proof = view["last_pass"]
+        text += "; last pass " + str(proof["tested_at"])
+        release = proof["platform"].get("controller_source_sha") or proof[
+            "platform"
+        ].get("controller_version")
+        if release:
+            text += " on " + release
+    return text
+
+
+def build_report(
+    recipes: Mapping[str, Mapping[str, Any]],
+    qualification: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     rows = []
     for key, entry in sorted(recipes.items()):
         result = read_result(entry, key)
@@ -422,6 +482,7 @@ def build_report(recipes: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
         rows.append(
             {
                 "recipe": key,
+                "qualification": (qualification or {}).get(key),
                 "status": entry.get("status", "pending"),
                 "phase": entry.get("phase"),
                 "failure_class": entry.get("failure_class"),
@@ -469,11 +530,17 @@ def render_report(report: Mapping[str, Any]) -> str:
         "|---|---|---|---|---|---|---|---|",
     ]
 
+    qualified = [
+        row["qualification"] for row in report["recipes"] if row.get("qualification")
+    ]
+    if qualified:
+        lines[2] = _qualification_summary(qualified)
+
     def seconds(value: Any) -> str:
         return _duration(value) if value is not None else ""
 
     for row in report["recipes"]:
-        if row["status"] == "skipped":
+        if row["status"] == "skipped" and not row.get("qualification"):
             continue
         where = (
             f"{row['phase']} / {row['failure_class']}"
@@ -487,6 +554,8 @@ def render_report(report: Mapping[str, Any]) -> str:
             if row["status"] == "passed" and row.get("quality")
             else row["status"]
         )
+        if row.get("qualification"):
+            status = _qualification_text(row["qualification"])
         lines.append(
             f"| {row['recipe']} | {status} | {where} | {reason} | {seconds(row['download_s'])} | "
             f"{seconds(row['load_s'])} | {row['ttft_ms'] or ''} | {row['tokens_per_second'] or ''} |"
@@ -526,16 +595,46 @@ def render_report(report: Mapping[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def saved_qualification(inputs: Mapping[str, Any]) -> dict[str, Any]:
+    root = Path(__file__).resolve().parents[1]
+    views = {}
+    for key, raw in inputs.items():
+        observed = QualificationDerivationInput.model_validate(raw)
+        evidence = merge_evidence(observed.evidence, read_evidence(root, key))
+        views[key] = derive_status(
+            evidence,
+            observed.current_identity,
+            observed.fleet_size,
+            observed.testing_now,
+        ).model_dump(mode="json", exclude_none=True)
+    return views
+
+
 def write_status(sweep: Sweep, final: bool = False) -> None:
     directory = sweep.cfg.state_dir
     status = build_status(sweep)
+    inputs = {}
+    for key, recipe in sweep.recipes.items():
+        if key not in status["qualification"]:
+            continue
+        evidence = sweep.qualification_evidence.get(key) or read_evidence(
+            Path(__file__).resolve().parents[1], key
+        )
+        inputs[key] = QualificationDerivationInput(
+            evidence=evidence,
+            current_identity=current_identity(recipe),
+            fleet_size=len(sweep.enrolled()),
+            testing_now=key in sweep.state.slots
+            and sweep.state.slots[key].get("phase") != SweepSlotPhase.FINISHED,
+        ).model_dump(mode="json", exclude_none=True)
+    sweep.state.data["qualification_inputs"] = inputs
     write_atomic(
         directory / "status.json",
         json.dumps(status, indent=1, sort_keys=True, default=str),
     )
     write_atomic(directory / "status.md", render_status(status))
     if final:
-        report = build_report(sweep.state.recipes)
+        report = build_report(sweep.state.recipes, status.get("qualification"))
         write_atomic(
             directory / "report.json", json.dumps(report, indent=1, sort_keys=True)
         )
@@ -548,33 +647,25 @@ def write_status(sweep: Sweep, final: bool = False) -> None:
 def export_evidence(
     entries: Iterable[Mapping[str, Any]], out_dir: Path, known_recipes: Iterable[str]
 ) -> list[Path]:
-    """One ``<slug>.jsonl`` per recipe: the latest outcome per full content identity."""
+    """Export the canonical public evidence model; raw diagnostics stay in state."""
     known = set(known_recipes)
-    latest: dict[tuple[str, str, str], Mapping[str, Any]] = {}
+    grouped: dict[str, RecipeQualificationEvidence] = {}
     for entry in entries:
-        recipe, digest = entry.get("recipe"), entry.get("content_sha256")
-        if (
-            entry.get("step") == "smoke"
-            and isinstance(recipe, str)
-            and isinstance(digest, str)
-            and recipe in known
-        ):
-            identity = recorded_identity(entry)
-            latest[(recipe, digest, identity.model_dump_json() if identity else "")] = (
-                entry
-            )
-    by_recipe: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
-    for (recipe, _, _), entry in sorted(
-        latest.items(), key=lambda item: str(item[1].get("recorded_at"))
-    ):
-        by_recipe[recipe].append(entry)
-    written: list[Path] = []
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for recipe, items in sorted(by_recipe.items()):
-        path = out_dir / f"{recipe.partition('/')[2]}.jsonl"
-        write_atomic(
-            path,
-            "".join(json.dumps(i, sort_keys=True, default=str) + "\n" for i in items),
-        )
+        key = entry.get("recipe")
+        if not isinstance(key, str) or key not in known:
+            continue
+        record = from_history(entry)
+        if record is None:
+            continue
+        incoming = RecipeQualificationEvidence(recipe_key=key, records=(record,))
+        previous = grouped.get(key, RecipeQualificationEvidence(recipe_key=key))
+        grouped[key] = merge_evidence(previous, incoming)
+    written = []
+    for key, evidence in sorted(grouped.items()):
+        path = out_dir / f"{key}.json"
+        if path.exists():
+            previous = RecipeQualificationEvidence.model_validate_json(path.read_text())
+            evidence = merge_evidence(previous, evidence)
+        write_atomic(path, evidence.model_dump_json(indent=2, exclude_none=True) + "\n")
         written.append(path)
     return written

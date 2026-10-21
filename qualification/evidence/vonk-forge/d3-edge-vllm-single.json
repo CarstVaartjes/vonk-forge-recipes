@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/d3-edge-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "b42b7a0958a349da11be5247b4d75636b424bac2c2f7da2212f1951b7187c7a4",
+        "model_digests": [
+          "9b76e3f6c3e0197bb8c2cd05c1be8df0d7ef2d4aa9d4a77af99e3a173e616a9b"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "f82f9cbd6a1418d6341ab850e3997683c677ee031b8486c996afe0564f076d42"
+      ],
+      "tested_at": "2026-10-20T20:46:54.550602Z",
+      "platform": {
+        "controller_source_sha": "030d3d02dbc175e02c1334e0f1442286aba4723a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

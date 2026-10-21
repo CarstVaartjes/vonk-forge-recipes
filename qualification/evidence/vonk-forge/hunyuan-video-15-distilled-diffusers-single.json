@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/hunyuan-video-15-distilled-diffusers-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9a5f622e8da5af39cf343fe51e412b88bda2512ad6ad35228a1f38d51f1d7e7a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "83a602598c5b78de0a499fd1c13f5c16c932bf46aec238c86993d42de646aa31"
+      ],
+      "tested_at": "2026-10-18T00:55:00.728709Z",
+      "platform": {
+        "controller_source_sha": "86d7c3158f8571e04521e1c7e34921f7269d6b6d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "9a5f622e8da5af39cf343fe51e412b88bda2512ad6ad35228a1f38d51f1d7e7a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "876e32c9d039ca2baa18340c034cd6808b55b6a1835f0506219b47fc9097ac7a"
+      ],
+      "tested_at": "2026-10-18T22:16:55.195606Z",
+      "platform": {
+        "controller_source_sha": "5fc089b45bf7e75401bbaf5b0611cb63b03b5b7a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "9a5f622e8da5af39cf343fe51e412b88bda2512ad6ad35228a1f38d51f1d7e7a",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "cb02aaace35356e23eb3887f105e333074178057a7353adf64d526999dd519a3"
+      ],
+      "tested_at": "2026-10-19T03:54:54.146838Z",
+      "platform": {
+        "controller_source_sha": "197be7a01be8f3401d9c15d930a51d75b5ec204d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "9a5f622e8da5af39cf343fe51e412b88bda2512ad6ad35228a1f38d51f1d7e7a",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "06de9f5b469efd0fe1fe19fe97198f3790aff869f485b26ca6a3b7f7b0aaf881"
+      ],
+      "tested_at": "2026-10-19T05:51:54.057720Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "9a5f622e8da5af39cf343fe51e412b88bda2512ad6ad35228a1f38d51f1d7e7a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "9ef45f17a3b8beff70d7411522302c47e2788e437a0178649455082b686c89e3"
+      ],
+      "tested_at": "2026-10-19T23:48:59.921841Z",
+      "platform": {
+        "controller_source_sha": "cd4c09a951f86a6a4cb62bcbedc03cb0e7cf3aec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "9a5f622e8da5af39cf343fe51e412b88bda2512ad6ad35228a1f38d51f1d7e7a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "06f8131d91e7c305f397277441ba54144071a21b60fa797261ec6302b9ad2acd"
+      ],
+      "tested_at": "2026-10-20T06:19:53.154039Z",
+      "platform": {
+        "controller_source_sha": "891ae3a0697d367b104a291073c72a6c73e32eba",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

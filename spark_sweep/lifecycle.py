@@ -62,3 +62,18 @@ class RetestReason(StrEnum):
 class ReconciliationStatus(StrEnum):
     REQUEUED = "requeued"
     RESTORED = "restored"
+
+
+class SkipReasonKind(StrEnum):
+    FLEET = "fleet"
+    CATALOG = "catalog"
+    PLATFORM = "platform"
+
+
+class ReleaseAuthority(StrEnum):
+    DEPLOYED_CONTROLLER = "deployed-controller"
+
+
+class DownloadIntentKind(StrEnum):
+    SELECTOR = "selector"
+    RETRY = "retry"

@@ -9,7 +9,6 @@ pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 from spark_sweep import policy, verdict
 from spark_sweep.catalog import Recipe
-from spark_sweep.identity import content_identity
 
 GB = 10**9
 CAP = 130_663_231_488
@@ -418,30 +417,6 @@ def test_child_phases_map_to_failure_phases() -> None:
 
 
 # -- fixes feed back ---------------------------------------------------------------------------
-
-
-def test_a_changed_document_digest_invalidates_a_recorded_result() -> None:
-    r = recipe("x", content_sha256="new")
-    assert (
-        policy.requeue_reason({"status": "failed", "content_sha256": "old"}, r)
-        == "failed-on-older-revision"
-    )
-    assert (
-        policy.requeue_reason({"status": "passed", "content_sha256": "old"}, r)
-        == "passed-on-older-revision"
-    )
-    assert (
-        policy.requeue_reason(
-            {
-                "status": "passed",
-                "verdict_identity": content_identity(r).model_dump(mode="json"),
-            },
-            r,
-        )
-        is None
-    )
-    assert policy.requeue_reason({"status": "pending"}, r) is None
-    assert policy.requeue_reason(None, r) is None
 
 
 # -- throughput ----------------------------------------------------------------------------------

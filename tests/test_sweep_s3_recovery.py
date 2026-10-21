@@ -85,13 +85,13 @@ def test_a_slow_useful_stream_outlives_many_inactivity_windows(monkeypatch):
 
 
 def test_typed_download_rejection_is_not_replayed_after_saved_state_reload(tmp_path):
-    recipe = FakeRecipe("a")
-    sweep, fleet, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1")])
+    recipe = FakeRecipe("a", digests=("d" * 64,), content="c" * 64)
+    sweep, fleet, clock = make_sweep(tmp_path, [recipe], [FakeModel("d" * 64)])
     sweep.refresh_catalog()
     fleet.observations.append((("recipe", "download"), 2, SAVED["refusal"]))
     sweep.prefetcher._request(sweep.recipes[recipe.key], "model")
     sweep.state.save()
-    restored, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
+    restored, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("d" * 64)], fleet=fleet)
     restored.refresh_catalog()
     for _ in range(5):
         clock.sleep(600)
@@ -499,7 +499,7 @@ def test_a_previously_exhausted_uncertainty_resumes_automatically_from_saved_sta
     resumed, _, _ = make_sweep(tmp_path, [recipe], [FakeModel("m1")], fleet=fleet)
     resumed.refresh_catalog()
     original_key = resumed.state.downloads[recipe.key]["request_key"]
-    resumed.requeue_for_rules()
+    resumed.requeue_uncertain()
     assert resumed._open(recipe.key)
     assert resumed.state.entry(recipe.key)["attempts"] == 17
     assert resumed.state.downloads[recipe.key]["request_key"] == original_key

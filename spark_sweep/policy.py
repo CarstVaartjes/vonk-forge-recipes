@@ -21,10 +21,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from vonk_forge_contracts import QualificationCauseCode
+
 from .auth_contract import SmokeAuthClass
 from .catalog import Model, Recipe
-from .identity import legacy_image_unknown, verdict_matches
-from .lifecycle import RecipeStatus, RetestReason
+from .lifecycle import LifecycleState
 
 Boost = Callable[[Recipe], float]
 
@@ -493,15 +494,15 @@ _CHILD_PHASE = {
 }
 # The one table of recipe-data codes, for CLI errors and Controller failures alike:
 # attribution follows typed codes; platform detail text is evidence only.
-RECIPE_FAILURE_CODES = {
-    "recipe.invalid_definition": "build-policy",
-    "recipe.invalid_document": "build-policy",
-    "recipe.invalid_option": "build-policy",
-    "recipe.digest_mismatch": "model-integrity",
-    "model.digest_mismatch": "model-integrity",
-    "dockerfile.heredoc_forbidden": "build-policy",
-    "recipe.runtime_oom": "oom",
-    "recipe.runtime_exit": "start",
+RECIPE_FAILURE_CODES: dict[str, str] = {
+    QualificationCauseCode.INVALID_DEFINITION: "build-policy",
+    QualificationCauseCode.INVALID_DOCUMENT: "build-policy",
+    QualificationCauseCode.INVALID_OPTION: "build-policy",
+    QualificationCauseCode.RECIPE_INTEGRITY: "model-integrity",
+    QualificationCauseCode.MODEL_INTEGRITY: "model-integrity",
+    QualificationCauseCode.BUILD_POLICY: "build-policy",
+    QualificationCauseCode.RUNTIME_OOM: "oom",
+    QualificationCauseCode.RUNTIME_EXIT: "start",
 }
 _CODE_CLASSES = {
     **RECIPE_FAILURE_CODES,
@@ -695,11 +696,11 @@ def classify(
 
 
 def evidence_of(entry: Mapping[str, Any]) -> dict[str, Any]:
-    """The structured evidence of a result row; a state file from an older run kept a bundle path."""
+    """The structured evidence of a result row."""
     value = entry.get("evidence")
     if isinstance(value, Mapping):
         return dict(value)
-    return {"bundle": value} if value else {}
+    return {}
 
 
 @dataclass(frozen=True)
@@ -723,40 +724,6 @@ def cluster(entries: Mapping[str, Mapping[str, Any]]) -> list[Cluster]:
             for cid, keys in groups.items()
         ),
         key=lambda c: (-len(c.recipes), c.id),
-    )
-
-
-# --------------------------------------------------------------------------
-# Fixes feed back
-# --------------------------------------------------------------------------
-
-
-def requeue_reason(
-    entry: Mapping[str, Any] | None,
-    recipe: Recipe,
-    *,
-    revalidate_library_passes: bool = False,
-) -> RetestReason | None:
-    """Re-test known changes; unknown legacy images only retry unsuccessful verdicts."""
-    reasons = {
-        RecipeStatus.PASSED: RetestReason.PASSED_OLDER_REVISION,
-        RecipeStatus.FAILED: RetestReason.FAILED_OLDER_REVISION,
-        RecipeStatus.DEFERRED: RetestReason.DEFERRED_OLDER_REVISION,
-    }
-    if not entry or verdict_matches(
-        entry,
-        recipe,
-        ignore_library_commit=entry.get("status") == RecipeStatus.PASSED
-        and not revalidate_library_passes,
-    ):
-        return None
-    if entry.get("status") == RecipeStatus.PASSED and legacy_image_unknown(
-        entry, recipe
-    ):
-        return None
-    return next(
-        (reason for status, reason in reasons.items() if entry.get("status") == status),
-        None,
     )
 
 
@@ -789,22 +756,6 @@ class RateTracker:
         return remaining_bytes / self.rate if self.rate > 0 else None
 
 
-_RETRY_REASON = re.compile(
-    r"reconciled by profile retry ([0-9a-z][0-9a-z-]*)", re.IGNORECASE
-)
-_SUPERSEDED_TEXT = (
-    "reconciled by profile retry",
-    "profile intent was superseded",
-    "changed during admission",
-)
-
-
-def superseded_text(reason: object) -> bool:
-    """Legacy rows carry the supersession only as text (older Controllers ended them failed/cancelled)."""
-    text = str(reason or "").lower()
-    return any(marker in text for marker in _SUPERSEDED_TEXT)
-
-
 @dataclass(frozen=True)
 class Supersession:
     """An application the Controller replaced: never a recipe failure."""
@@ -817,18 +768,7 @@ def supersession(document: Mapping[str, Any]) -> Supersession | None:
 
     ``superseded_by`` names the successor to adopt; without one the intent is requeued.
     """
-    code = str(document.get("reason_code") or "")
-    state = str(document.get("state") or "")
-    reason = document.get("status_reason")
-    if not (
-        state == "superseded"
-        or code.startswith("superseded")
-        or code == "effects-changed-during-admission"
-        or (state in ("failed", "cancelled") and superseded_text(reason))
-    ):
+    if document.get("state") != LifecycleState.SUPERSEDED:
         return None
     successor = document.get("superseded_by")
-    if not isinstance(successor, str) or not successor:
-        found = _RETRY_REASON.search(str(reason or ""))
-        successor = found.group(1) if found else None
-    return Supersession(successor)
+    return Supersession(successor if isinstance(successor, str) and successor else None)

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "304512d867250e6fbea3d7d163d011bb5432361e2f4195c0df7ca2da0b4a6341",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "ed8d85d858ea08bd06c1fa900dcf2fcf984b1fcafc966b954d68df9088f4c426"
+      ],
+      "tested_at": "2026-10-17T09:26:20.291673Z",
+      "platform": {
+        "controller_source_sha": "de194395493ba7dd909bbf7e26302e7d9a97499c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

@@ -14,6 +14,9 @@ from vonk_forge_contracts import (
     campaign_authority_json_schema,
     campaign_manifest_json_schema,
     model_json_schema,
+    published_qualification_status_json_schema,
+    qualification_evidence_json_schema,
+    qualification_status_json_schema,
     recipe_json_schema,
 )
 
@@ -32,6 +35,21 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     targets = (
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/published-qualification-status-v1.schema.json",
+            published_qualification_status_json_schema(),
+        ),
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/qualification-evidence-v1.schema.json",
+            qualification_evidence_json_schema(),
+        ),
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/qualification-status-v1.schema.json",
+            qualification_status_json_schema(),
+        ),
         (
             ROOT
             / "contracts/src/vonk_forge_contracts/schema/model-definition-v2.schema.json",

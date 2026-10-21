@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-5-lightning-dspark-lowmem-canary-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "0016da42f75af82199ddc0b80c15218f36c40f45478104ede890cc22d1e88621",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "ada1fcd6bd58ea4f58ae82c30be86c39fa5f86571a0370679cfaa730a0d24245"
+      ],
+      "tested_at": "2026-10-11T10:52:06.749333Z",
+      "platform": {
+        "controller_source_sha": "f376c8e5e6c84b0e0199928d4a3a542ef2481132",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "f3b3af6ff033024bf91bea27f00438f256c6e34c260c9f70c986650b4cacb40a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "0234511b08e828f48073e61c37291889045e869dcfa238f60577be0fd6b45f9c"
+      ],
+      "tested_at": "2026-10-15T15:35:58.052156Z",
+      "platform": {
+        "controller_source_sha": "a47f4856b87c62a0b38637edb4e431381deb4356",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

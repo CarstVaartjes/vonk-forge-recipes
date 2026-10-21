@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/phi-4-reasoning-plus-nvfp4-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "af5ee00da9787184c546cbefa4fc831b193bff7bfd870c5e157a5cf2f9264c6e",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "154de564fd5a8aa6dd3336d3d3bbee33bb0d235ff8560583fca9c2e876c6ce54"
+      ],
+      "tested_at": "2026-10-05T17:28:15.494640Z",
+      "platform": {
+        "controller_source_sha": "1fa6518eda63fa57fedcfc78cec3e556638a2c06",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "af5ee00da9787184c546cbefa4fc831b193bff7bfd870c5e157a5cf2f9264c6e",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "121963cfb91ab4635808aa728733c9cf2f466149744ea0f5dd291a94430825cc"
+      ],
+      "tested_at": "2026-10-06T09:09:33.402512Z",
+      "platform": {
+        "controller_source_sha": "47e5d29dbb584e5403ba96178cd41065c3b01578",
+        "controller_version": "0.1.1~dev.3863+g47e5d29dbb58",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

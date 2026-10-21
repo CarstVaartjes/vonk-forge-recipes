@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/flux-2-klein-4b-nvfp4-comfyui-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "ac84aef72aff6f6dba7734e1cde5ecc31eff356ae6a1b18d1c58e48ae7c1431d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "5d01942cf343078d2359402fb2f25bb813cb3f8f074970edfd466546b4794191"
+      ],
+      "tested_at": "2026-10-11T02:39:22.117030Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "ac84aef72aff6f6dba7734e1cde5ecc31eff356ae6a1b18d1c58e48ae7c1431d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "7435f94246224cdf3c22bee4c90c3cb694932c0896c0ebc181e298f39dd0d6f0"
+      ],
+      "tested_at": "2026-10-16T04:58:40.862271Z",
+      "platform": {
+        "controller_source_sha": "aed44b796c12d0caeeb86bd5810290641891d2bb",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "bdf28df2aa7655fe38bf92df3f58e6f40589b316c6db510196ec7398ba175f66",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "be0695b2d9d1ea94693cc5edfb37c85903e07c32c5a8dc70e5aebcf6fcbc01ea"
+      ],
+      "tested_at": "2026-10-16T18:50:48.856349Z",
+      "platform": {
+        "controller_source_sha": "3a3284e0a0cddf36dda78a4fa56bb7021fa47631",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "82530a7d8dca7501a959c3e9f182ce5e6eb3fc42b885e138c902c92df3cc1579",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "dcff146f8390a40f6ff15f221842f5488e7e65b92e371509a279cbff6456d223"
+      ],
+      "tested_at": "2026-10-16T21:15:22.282280Z",
+      "platform": {
+        "controller_source_sha": "e3beaee6c8512e9f729c33096a1d3605935ec74c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "82530a7d8dca7501a959c3e9f182ce5e6eb3fc42b885e138c902c92df3cc1579",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "6b1ac25986327674073db9d92d81a2a5fcd70327b6a52d755e66e50009614770"
+      ],
+      "tested_at": "2026-10-18T13:05:34.664685Z",
+      "platform": {
+        "controller_source_sha": "55748e14b713413f5a4da6e5e500eedafcc01ff1",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

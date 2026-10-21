@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-6-35b-a3b-fp8-eugr-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "33c981ed187ff27665709e0b45abafc847a04fb261cad1c222c00fee017f1fc3",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "e23dce15afd25514099ebacfeb7f5d18547b9cab30f1ec5ff6708bd9a59eabc7"
+      ],
+      "tested_at": "2026-10-17T17:47:34.591611Z",
+      "platform": {
+        "controller_source_sha": "4f1199d1fa0319434f68e2017d30bb581e54c4e6",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

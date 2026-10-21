@@ -408,7 +408,7 @@ class FakeFleet:
 
     def _supersede(self, app: dict[str, Any], mode: str) -> None:
         """The Controller replaces a running application, as an automatic retry or a later intent."""
-        if mode in ("retry", "legacy-retry", "failed-retry", "failed-repeated"):
+        if mode in ("retry", "failed-repeated"):
             successor = dict(
                 app, id=self._id("app"), state="running", successor_of=app["id"]
             )
@@ -429,10 +429,6 @@ class FakeFleet:
                 reason_code="superseded-by-retry",
                 reason="Superseded by profile retry",
             )
-        elif mode == "failed-retry":
-            # An older Controller's still-retrying application: failed, no supersession
-            # marker, and the retry names it as its parent.
-            app.update(state="failed", reason="1 assignment(s) need reconciliation")
         elif mode == "failed-repeated":
             app.update(
                 state="failed",
@@ -444,11 +440,6 @@ class FakeFleet:
                         "severity": "error",
                     }
                 ],
-            )
-        elif mode == "legacy-retry":
-            app.update(
-                state="failed",
-                reason=f"Automatically reconciled by profile retry {successor['id']}",
             )
         else:
             stopped = {a["alias"] for a in app["assign"]}

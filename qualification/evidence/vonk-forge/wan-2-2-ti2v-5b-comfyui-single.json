@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/wan-2-2-ti2v-5b-comfyui-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "54239c48b2a2c664a3f9fbfe48db0ac12032684ba622c497bb6c7e512be7de7b",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "ae9ddca9438ee2ce6f03ae528fa6accd91b9578b71594da8dea10e6df43c009e"
+      ],
+      "tested_at": "2026-10-18T20:25:59.868687Z",
+      "platform": {
+        "controller_source_sha": "adcaea8e6c2d2bffe503a49f59c3300d5bc0eba1",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "54239c48b2a2c664a3f9fbfe48db0ac12032684ba622c497bb6c7e512be7de7b",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "45395d8b803ea97cab015610d4bc14eab783f332d55f0480c0c99220e33795cb"
+      ],
+      "tested_at": "2026-10-19T01:41:58.312887Z",
+      "platform": {
+        "controller_source_sha": "197be7a01be8f3401d9c15d930a51d75b5ec204d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

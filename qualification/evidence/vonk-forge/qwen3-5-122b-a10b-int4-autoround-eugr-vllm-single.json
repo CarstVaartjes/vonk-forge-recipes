@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-5-122b-a10b-int4-autoround-eugr-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "17e8aef286dc9a42eb2dffaede8cd802137531b296908d4979ce60a20c0a86c2",
+        "model_digests": [],
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "05bf4b302c199230641ce32ea7fedc96fd9271a9f2e54ba2976b52fe9acaf925"
+      ],
+      "tested_at": "2026-10-19T06:17:36.261734Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    }
+  ]
+}

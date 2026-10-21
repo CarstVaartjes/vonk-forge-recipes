@@ -130,11 +130,6 @@ def test_an_unreadable_observation_is_unknown_and_waits() -> None:
     )
 
 
-def test_the_controllers_typed_end_stops_following_a_failed_application() -> None:
-    assert verdict.retry_ended(_document("failed-repeated"))
-    assert not verdict.retry_ended({"state": "failed", "progress": {}})
-
-
 # -- disposition ---------------------------------------------------------------------------
 
 
@@ -307,3 +302,22 @@ def test_every_requeue_leaves_a_results_row(tmp_path: Path, gateway: Gateway) ->
     for row in requeues:
         assert row["reason"] and row["status"] == "requeued"
         assert row["controller_document"]["id"]  # the application it was last seen in
+
+
+def test_profile_retry_wait_has_one_current_location() -> None:
+    from vonk_forge_contracts.sweep import SweepWaitReason
+
+    from spark_sweep.lifecycle import LifecycleState
+
+    due = "2026-10-21T07:00:00Z"
+    signal = verdict.application_signal(
+        {"state": LifecycleState.RUNNING, "next_attempt_at": due}
+    )
+    assert signal.wait is not None
+    assert signal.wait.reason == SweepWaitReason.CONTROLLER_RETRY
+    assert (
+        verdict.application_signal(
+            {"state": LifecycleState.RUNNING, "progress": {"retry_due_at": due}}
+        ).wait
+        is None
+    )

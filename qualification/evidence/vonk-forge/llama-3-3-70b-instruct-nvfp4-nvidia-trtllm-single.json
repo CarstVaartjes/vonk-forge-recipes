@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/llama-3-3-70b-instruct-nvfp4-nvidia-trtllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "b54a5315c97c9f9e2cb4fd814e6cf60d704b0094b9643711d6c3321e988400ba",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "848f597b5c98922267527e31d42930eef826d148ba19b3a6b19d79bf60b52b1c"
+      ],
+      "tested_at": "2026-10-17T21:50:14.676369Z",
+      "platform": {
+        "controller_source_sha": "761e20821235a4c5a6778f9be07db6e47f937d71",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

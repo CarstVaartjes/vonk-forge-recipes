@@ -261,20 +261,21 @@ def test_a_load_timeout_recorded_under_the_old_rules_is_retried_once(
         error="not serving after 3600s",
     )
     entry.pop("rules", None)
+    sweep.state.data["schema"] = 1
     sweep.state.save()
     again, _, _ = make_sweep(
         tmp_path, [recipe], [FakeModel("m1")], fleet=fleet, timeouts=_timeouts(600)
     )
     assert again.run() == 0
     assert _entry(again)["status"] == "passed"
-    requeue = [
-        json.loads(x)
-        for x in (tmp_path / "results.jsonl").read_text().splitlines()
-        if '"requeue"' in x
-    ]
-    assert [x["reason"] for x in requeue] == [
-        "load-timeout rules changed: copying no longer counts"
-    ]
+    assert any(
+        "adopted " in row["message"]
+        and "load-timeout rules changed: copying no longer counts" in row["message"]
+        for row in again.state.data["events"]
+    )
+    rows = [row for row in again.log.entries() if row.get("step") == "requeue"]
+    assert len(rows) == 1
+    assert rows[0]["previous"]["status"] == "failed"
 
 
 def test_a_timeout_under_the_new_rules_is_not_requeued_again(

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/ling-3-0-flash-fin-iq4-xs-amarjeet-llama-cpp-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9d1987e0cf26e1e77b308fdc4b0a2d4df1f7a0838344c38d13424c5dc95a3b04",
+        "model_digests": [
+          "d4fc25ca195a08ec802fae50b2ce3937e4da1eb2cc9ddbcbc1646af81c04ef18"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "4c1feb164f135355a043a97673ef12e0074f9556ec56c62500874de2380bb016"
+      ],
+      "tested_at": "2026-10-20T23:26:24.762320Z",
+      "platform": {
+        "controller_source_sha": "f0a25540a78071e1179a5496b363a05af3659a8f",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
