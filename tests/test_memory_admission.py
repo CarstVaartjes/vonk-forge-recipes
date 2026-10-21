@@ -5,7 +5,10 @@ from pathlib import Path
 
 import pytest
 from vonk_forge_contracts import RecipeDefinition
-from vonk_forge_contracts.memory_admission import evaluate_memory_admission
+from vonk_forge_contracts.memory_admission import (
+    PLATFORM_MEMORY_FLOOR_BYTES,
+    evaluate_memory_admission,
+)
 
 from qualification import memory_need
 
@@ -14,8 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_declaration_boundary_and_observed_host_are_distinct() -> None:
     pool = 130_663_235_584
-    assert evaluate_memory_admission(pool - 6_000_000_000, pool).admissible
-    assert not evaluate_memory_admission(pool - 6_000_000_000 + 1, pool).admissible
+    assert evaluate_memory_admission(
+        pool - PLATFORM_MEMORY_FLOOR_BYTES, pool
+    ).admissible
+    assert not evaluate_memory_admission(
+        pool - PLATFORM_MEMORY_FLOOR_BYTES + 1, pool
+    ).admissible
     assert evaluate_memory_admission(124_000_000_000, pool).admissible
     assert not evaluate_memory_admission(
         124_000_000_000, pool, occupied_bytes=4_515_061_760
