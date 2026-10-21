@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-exl3-3-05bpw-ashhart-tensorfold-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "be5afa247325e420a0f9bdc9e3b03640a7de7fa72d91378497d0904ee558a041",
+        "model_digests": [
+          "6d165c1b7cdc514e501ae58116a25a1d60a9e84732d0173935645b2253421fe1"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "9c75b3b732cd2274315d0238ad552ceb5dca8e5e7c404859c24b32a126b65310"
+      ],
+      "tested_at": "2026-10-21T01:41:47.851120Z",
+      "platform": {
+        "controller_source_sha": "f0a25540a78071e1179a5496b363a05af3659a8f",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

@@ -4,13 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from enum import StrEnum
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
 from .catalog import Recipe
 from .catalog_contract import RuntimeImageIdentity
-from .lifecycle import RecipeStatus, ReconciliationStatus, RetestReason
 
 
 class VerdictIdentity(BaseModel):
@@ -79,26 +78,6 @@ def legacy_image_unknown(entry: Mapping[str, Any], recipe: Recipe) -> bool:
         and recorded.content_sha256 == current.content_sha256
         and recorded.model_digests == current.model_digests
     )
-
-
-class LegacyPassedVerdict(BaseModel):
-    """The saved verdict, including the evidence the requeue cleared."""
-
-    model_config = ConfigDict(extra="allow")
-
-    status: Literal[RecipeStatus.PASSED]
-    content_sha256: str
-    verdict_identity: VerdictIdentity | None = None
-
-
-class PassReconciliationRecord(BaseModel):
-    """Typed local log record used to repair only the legacy-image requeue."""
-
-    recipe: str
-    status: ReconciliationStatus
-    reason: Literal[RetestReason.PASSED_OLDER_REVISION]
-    previous: LegacyPassedVerdict
-    verdict_identity: VerdictIdentity | None = None
 
 
 class IdentityReason(StrEnum):

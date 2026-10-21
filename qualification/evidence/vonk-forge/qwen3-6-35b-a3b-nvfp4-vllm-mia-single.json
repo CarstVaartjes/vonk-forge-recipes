@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-6-35b-a3b-nvfp4-vllm-mia-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "3f124419bdd83e571b29b10236f45ed4efbea7523be5622d403ff68eeebeb9ff",
+        "model_digests": [
+          "4c8d8c7df620436b6af29d4218cdf75ab02e171e873c011d2f13c8bdc6784038"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "be007a2b936b507bed3323f1840eb43d9b94d46e9481d7a8ca9295f4e1cb7eba"
+      ],
+      "tested_at": "2026-10-21T03:03:54.096165Z",
+      "platform": {
+        "controller_source_sha": "a9583d00aa3b1bf57945692feba3a4a0f0be646c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

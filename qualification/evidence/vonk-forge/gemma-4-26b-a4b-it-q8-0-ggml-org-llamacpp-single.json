@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gemma-4-26b-a4b-it-q8-0-ggml-org-llamacpp-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "2ba8dadd009ec07c2adfdb53bf17089af5c0bfca48f4c86da731902b3269345d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "fd73d7b482d65f2be2ff05c493ce05b45466db84d15b59cbc1150719c8220635"
+      ],
+      "tested_at": "2026-10-17T14:19:24.410839Z",
+      "platform": {
+        "controller_source_sha": "531a8e1620d1cae7a071190c0eb8ba13484f6aed",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

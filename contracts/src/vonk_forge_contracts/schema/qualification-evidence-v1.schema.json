@@ -1,0 +1,339 @@
+{
+  "$defs": {
+    "QualificationBlame": {
+      "enum": [
+        "recipe",
+        "platform"
+      ],
+      "title": "QualificationBlame",
+      "type": "string"
+    },
+    "QualificationCauseCode": {
+      "enum": [
+        "qualification.hardware_pass",
+        "qualification.recipe_failure",
+        "qualification.platform_failure",
+        "recipe.runtime_exit",
+        "recipe.runtime_oom",
+        "model.digest_mismatch",
+        "recipe.digest_mismatch",
+        "recipe.invalid_definition",
+        "recipe.invalid_document",
+        "recipe.invalid_option",
+        "dockerfile.heredoc_forbidden",
+        "qualification.serving_assertion",
+        "qualification.job_failure"
+      ],
+      "title": "QualificationCauseCode",
+      "type": "string"
+    },
+    "QualificationEvidenceRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "identity": {
+          "$ref": "#/$defs/QualificationIdentity"
+        },
+        "outcome": {
+          "$ref": "#/$defs/QualificationOutcome"
+        },
+        "blame": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualificationBlame"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "cause_code": {
+          "$ref": "#/$defs/QualificationCauseCode"
+        },
+        "cause_summary": {
+          "$ref": "#/$defs/QualificationSummary"
+        },
+        "evidence_refs": {
+          "default": [],
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "tested_at": {
+          "format": "date-time",
+          "title": "Tested At",
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/$defs/QualificationPlatform"
+        },
+        "fix_reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualificationFixReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "quality_notes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualificationQualityNote"
+          },
+          "title": "Quality Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "identity",
+        "outcome",
+        "cause_code",
+        "cause_summary",
+        "tested_at",
+        "platform"
+      ],
+      "title": "QualificationEvidenceRecord",
+      "type": "object"
+    },
+    "QualificationFixReference": {
+      "additionalProperties": false,
+      "properties": {
+        "issue_number": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Issue Number"
+        },
+        "source_sha": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Sha"
+        }
+      },
+      "title": "QualificationFixReference",
+      "type": "object"
+    },
+    "QualificationHardware": {
+      "enum": [
+        "GB10"
+      ],
+      "title": "QualificationHardware",
+      "type": "string"
+    },
+    "QualificationIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "runtime_image": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/QualificationRuntimeImage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "model_digests": {
+          "default": [],
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Model Digests",
+          "type": "array"
+        },
+        "required_sparks": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Required Sparks",
+          "type": "integer"
+        },
+        "models_resolved": {
+          "default": true,
+          "title": "Models Resolved",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "content_sha256"
+      ],
+      "title": "QualificationIdentity",
+      "type": "object"
+    },
+    "QualificationOutcome": {
+      "enum": [
+        "passed",
+        "failed"
+      ],
+      "title": "QualificationOutcome",
+      "type": "string"
+    },
+    "QualificationPlatform": {
+      "additionalProperties": false,
+      "properties": {
+        "controller_source_sha": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Controller Source Sha"
+        },
+        "controller_version": {
+          "anyOf": [
+            {
+              "pattern": "^v?[0-9][0-9A-Za-z.+~_-]{0,95}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Controller Version"
+        },
+        "agent_version": {
+          "anyOf": [
+            {
+              "pattern": "^v?[0-9][0-9A-Za-z.+~_-]{0,95}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Version"
+        },
+        "hardware_class": {
+          "$ref": "#/$defs/QualificationHardware",
+          "default": "GB10"
+        },
+        "spark_count": {
+          "minimum": 1,
+          "title": "Spark Count",
+          "type": "integer"
+        },
+        "topology": {
+          "$ref": "#/$defs/QualificationTopology"
+        }
+      },
+      "required": [
+        "spark_count",
+        "topology"
+      ],
+      "title": "QualificationPlatform",
+      "type": "object"
+    },
+    "QualificationQualityNote": {
+      "enum": [
+        "Model output differed from the expected answer"
+      ],
+      "title": "QualificationQualityNote",
+      "type": "string"
+    },
+    "QualificationRuntimeImage": {
+      "additionalProperties": false,
+      "properties": {
+        "build_key": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Build Key",
+          "type": "string"
+        },
+        "image_digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Image Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "build_key",
+        "image_digest"
+      ],
+      "title": "QualificationRuntimeImage",
+      "type": "object"
+    },
+    "QualificationSummary": {
+      "enum": [
+        "Hardware checks passed",
+        "Recipe checks failed; needs fix",
+        "Platform issue under fix",
+        "Recipe runtime exited; needs fix",
+        "Recipe runtime exceeded available memory; needs fix",
+        "Model content integrity check failed; needs fix",
+        "Recipe definition or build policy check failed; needs fix",
+        "Serving checks failed; needs fix",
+        "Artifact job failed; needs fix"
+      ],
+      "title": "QualificationSummary",
+      "type": "string"
+    },
+    "QualificationTopology": {
+      "enum": [
+        "single",
+        "multi"
+      ],
+      "title": "QualificationTopology",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "recipe_key": {
+      "pattern": "^[a-z0-9][a-z0-9-]*/[a-z0-9][a-z0-9-]*$",
+      "title": "Recipe Key",
+      "type": "string"
+    },
+    "records": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/QualificationEvidenceRecord"
+      },
+      "title": "Records",
+      "type": "array"
+    }
+  },
+  "required": [
+    "recipe_key"
+  ],
+  "title": "RecipeQualificationEvidence",
+  "type": "object"
+}

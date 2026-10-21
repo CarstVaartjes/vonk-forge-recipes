@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/lfm2-5-24b-a2b-bf16-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "e3e765a156a95b12f4f536d1f803f82101005237ed85f8386d94a5687dea495d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "a53034b3e049ad28d985a5e98997b9c54d0307e5021e0c282d272d7f36ff0a5b"
+      ],
+      "tested_at": "2026-10-19T09:05:26.330650Z",
+      "platform": {
+        "controller_source_sha": "440c71ed4f00d4e32a943a038391ec7065723891",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "e3e765a156a95b12f4f536d1f803f82101005237ed85f8386d94a5687dea495d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "16284561665cbcce6ab7e0551fdee3981b4b526e8a5da86275e6576d05ae1c03"
+      ],
+      "tested_at": "2026-10-20T04:44:50.177922Z",
+      "platform": {
+        "controller_source_sha": "dc0e945ec169f3a9dbd4c426cde44d49463eb0a8",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

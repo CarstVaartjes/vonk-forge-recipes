@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen-image-2512-diffusers-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "d7cb71677a64194ac35444936ace789c3a7a589b65fec06370ddb7ae0697f7bc",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "7e5d78421475198e49edb40b7c42058f8b90ee5acdc97c623f7dd0fef9067616"
+      ],
+      "tested_at": "2026-10-18T06:19:08.080581Z",
+      "platform": {
+        "controller_source_sha": "0fd719ad2e12c2d32b821d014dd3cf8fafbaa9bd",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "d7cb71677a64194ac35444936ace789c3a7a589b65fec06370ddb7ae0697f7bc",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "a3fc6625c2306e85b9130aac8ea2b0c63ba33df9a1615b5efb7bf4a085856574"
+      ],
+      "tested_at": "2026-10-19T04:03:50.732620Z",
+      "platform": {
+        "controller_source_sha": "197be7a01be8f3401d9c15d930a51d75b5ec204d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "d7cb71677a64194ac35444936ace789c3a7a589b65fec06370ddb7ae0697f7bc",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "18447d392a0a2e286a6ed2870922335065046a8e5ca35f32f75110a4ed23c2e1"
+      ],
+      "tested_at": "2026-10-19T05:53:15.890446Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "d7cb71677a64194ac35444936ace789c3a7a589b65fec06370ddb7ae0697f7bc",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "b12767017c2fc832d45c475294365d24b2c9b7e89017e9dba8ff127be95a6a2f"
+      ],
+      "tested_at": "2026-10-20T05:14:18.878519Z",
+      "platform": {
+        "controller_source_sha": "dc0e945ec169f3a9dbd4c426cde44d49463eb0a8",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

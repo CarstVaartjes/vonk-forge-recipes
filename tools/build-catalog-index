@@ -709,6 +709,40 @@ def build(
             }
         )
     pin_prebuilt_images(recipes, prebuilt_images or {})
+    from vonk_forge_contracts import (
+        QualificationIdentity,
+        QualificationRuntimeImage,
+        published_status,
+    )
+
+    from spark_sweep.qualification import read_evidence
+
+    for entry in recipes:
+        document = entry["document"]
+        image = entry.get("prebuilt_image")
+        identity = QualificationIdentity(
+            content_sha256=entry["content_sha256"],
+            runtime_image=QualificationRuntimeImage(
+                build_key=image["build_key"],
+                image_digest="sha256:" + image["reference"].rsplit("@sha256:", 1)[1],
+            )
+            if image
+            else None,
+            model_digests=tuple(
+                sorted(
+                    {
+                        binding["model"]["content_sha256"]
+                        for binding in document["models"]
+                    }
+                )
+            ),
+            required_sparks=document["topology"]["node_count"],
+        )
+        key = f"{document['identity']['publisher']}/{document['identity']['slug']}"
+        entry["qualification"] = published_status(
+            read_evidence(ROOT, key), identity
+        ).model_dump(mode="json", exclude_none=True)
+
     from vonk_forge_contracts import CONTRACT_VERSION, document_sha256
 
     catalog_entities = [

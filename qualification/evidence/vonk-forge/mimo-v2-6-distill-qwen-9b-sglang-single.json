@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/mimo-v2-6-distill-qwen-9b-sglang-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9a10d5f81873a2d1baeac9603a0f7058dbcead0b30cf2660bcc3a45a492938a5",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "4d01182dac43c688deca339b905c20e02ca88c531117c9b1b6d961724384c833"
+      ],
+      "tested_at": "2026-10-18T20:11:32.215228Z",
+      "platform": {
+        "controller_source_sha": "411ab9d593f036506c63faf205d625794c21c797",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

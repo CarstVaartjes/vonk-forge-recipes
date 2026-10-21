@@ -8,6 +8,48 @@ This is a first-release platform with one supported public contract. Remove
 superseded code, formats, settings, fixtures, and instructions; do not preserve
 them as compatibility paths. Git history retains the previous implementations.
 
+## Hardware qualification status
+
+Qualification is derived from hardware evidence, never an authored recipe label.
+A proven recipe stays proven until a hardware test on the same identity says
+otherwise. Updating a recipe, runtime image or Model creates a re-check, never
+an advance declaration that the recipe is broken. Reverting to a passed exact
+identity restores Working without running hardware again. Quality notes do not
+turn a successful hardware check into a failure.
+
+The contract 2.4.0 models and `derive_status` are the authority. Evidence lives
+separately in `qualification/evidence/<publisher>/<recipe-slug>.json`; recording
+it never changes the recipe's content digest. Each record binds recipe
+`content_sha256`, resolved runtime image digest/build key, Model digests, test
+date, Controller source/version, agent version, GB10 hardware class and Spark
+count/topology. Unknown historical provenance stays unknown. Public evidence
+has closed summaries/codes and digest references, never raw messages, host
+names, addresses, run/request/operation ids, paths or credentials.
+
+The local sweep view uses these statuses:
+
+- **Working:** passed on the current exact identity; quality notes may remain.
+- **Re-check: worked before:** an identity changed after a pass; show recipe,
+  image and/or Model changes and the last successful test.
+- **Fix to verify:** a recipe failure preceded an identity change.
+- **Failed: recipe:** failed on the current identity; show cause and public fix
+  reference, or “needs fix”.
+- **Blocked: platform:** infrastructure/Controller fault; never recipe blame.
+- **Untested:** no hardware verdict.
+- **Can't test here:** requires more Sparks than are enrolled.
+- **Testing now:** occupies a lane; the prior proof remains visible.
+
+The signed catalog's per-recipe `qualification` is recomputed at publication
+against the recipe, image and Models in that release. It publishes Working,
+Re-check, Fix to verify, Failed: recipe, or **Not yet verified**, with a reason
+(never tested, needs more Sparks, platform issue under fix, or incomplete
+historical provenance). Fleet/lane states remain local. Working requires exact
+resolved identity and recorded platform provenance. The proof includes the
+Controller release, so consumers can show whether it was proven on the user's
+same, older or newer platform; it is not a claim about an untested platform.
+Normal library refresh delivers the newest evidence. Controllers must retain
+published proof and use the shared contract rather than storing a status label.
+
 ## 1. Establish the change
 
 Fetch current `origin/main` and use an isolated branch/worktree. Read

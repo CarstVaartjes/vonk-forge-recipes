@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "1b1ec6f21ddd38637aa67b89a70b3d135f840343e6c290a69c1fe37bacf2980f",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "d321175a6fbfcecd855d0914f3c3fb11c2d67338e20d1e9c6c9acb3f4490cb31"
+      ],
+      "tested_at": "2026-10-19T06:43:59.979491Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

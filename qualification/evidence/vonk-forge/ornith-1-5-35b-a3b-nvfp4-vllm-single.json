@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/ornith-1-5-35b-a3b-nvfp4-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "1a64c0cbadcb0b258837759ceb814a8c1437fa4be95756e64606b2f7786ff9b0",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "437b38d44305a2c1c117b549c8c5ed077d76dc418c4a801821e14c8fe7af7869"
+      ],
+      "tested_at": "2026-10-16T20:11:56.505493Z",
+      "platform": {
+        "controller_source_sha": "a847fa59737f2ffcab344fb2efc9c273c5f04cd0",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

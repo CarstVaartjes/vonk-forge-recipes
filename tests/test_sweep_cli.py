@@ -229,35 +229,26 @@ def _real_recipe() -> str:
     return f"vonk-forge/{min((ROOT / 'recipes').glob('*.json')).stem}"
 
 
-def test_evidence_files_carry_the_latest_outcome_per_recipe_document(
+def test_evidence_files_preserve_history_in_the_sanitized_contract(
     tmp_path: Path,
 ) -> None:
+    from vonk_forge_contracts import QualificationOutcome, RecipeQualificationEvidence
+
     log = ResultsLog(tmp_path / "results.jsonl", "auth")
     real = _real_recipe()
-    log.append(
-        batch="sweep",
-        recipe=real,
-        step="smoke",
-        status="failed",
-        content_sha256="old",
-        error="x",
-    )
-    log.append(
-        batch="sweep",
-        recipe=real,
-        step="smoke",
-        status="passed",
-        content_sha256="old",
-        result={"cases": []},
-    )
-    log.append(
-        batch="sweep",
-        recipe=real,
-        step="smoke",
-        status="passed",
-        content_sha256="new",
-        result={"cases": []},
-    )
+    for digest, status in (
+        ("a" * 64, "failed"),
+        ("a" * 64, "passed"),
+        ("b" * 64, "passed"),
+    ):
+        log.append(
+            batch="sweep",
+            recipe=real,
+            step="smoke",
+            status=status,
+            content_sha256=digest,
+            error="private-host /internal/path",
+        )
     log.append(
         batch="sweep",
         recipe="vonk-forge/not-a-recipe",
@@ -266,28 +257,47 @@ def test_evidence_files_carry_the_latest_outcome_per_recipe_document(
         content_sha256="x",
     )
     log.append(
-        batch="sweep", recipe=real, step="stop", status="passed", content_sha256="new"
+        batch="sweep",
+        recipe=real,
+        step="stop",
+        status="passed",
+        content_sha256="b" * 64,
     )
     written = export_evidence(log.entries(), tmp_path / "evidence", [real])
-    assert [p.name for p in written] == [f"{real.partition('/')[2]}.jsonl"]
-    lines = [json.loads(x) for x in written[0].read_text().splitlines()]
-    assert [(x["content_sha256"], x["status"]) for x in lines] == [
-        ("old", "passed"),
-        ("new", "passed"),
+    assert written == [tmp_path / "evidence" / f"{real}.json"]
+    document = RecipeQualificationEvidence.model_validate_json(written[0].read_text())
+    assert [r.outcome for r in document.records] == [
+        QualificationOutcome.FAILED,
+        QualificationOutcome.PASSED,
+        QualificationOutcome.PASSED,
     ]
+    assert "private-host" not in written[0].read_text()
+    assert "/internal/path" not in written[0].read_text()
+    assert export_evidence(log.entries(), tmp_path / "evidence", [real]) == written
+    assert (
+        len(
+            RecipeQualificationEvidence.model_validate_json(
+                written[0].read_text()
+            ).records
+        )
+        == 3
+    )
 
 
-def test_committed_hardware_evidence_names_real_recipes_and_digests() -> None:
-    directory = ROOT / "qualification" / "hardware-evidence"
-    for path in sorted(directory.glob("*.jsonl")) if directory.exists() else []:
-        assert (ROOT / "recipes" / f"{path.stem}.json").exists(), path
-        for line in path.read_text().splitlines():
-            record = json.loads(line)
-            assert (
-                record["recipe"] == f"vonk-forge/{path.stem}"
-                and record["step"] == "smoke"
-            )
-            assert record["status"] in ("passed", "failed") and record["content_sha256"]
+def test_committed_hardware_evidence_validates_without_a_legacy_format() -> None:
+    from vonk_forge_contracts import RecipeQualificationEvidence
+
+    directory = ROOT / "qualification" / "evidence"
+    paths = sorted(directory.rglob("*.json"))
+    assert paths
+    for path in paths:
+        evidence = RecipeQualificationEvidence.model_validate_json(path.read_text())
+        assert (
+            path.relative_to(directory).with_suffix("").as_posix()
+            == evidence.recipe_key
+        )
+        assert evidence.records
+    assert not (ROOT / "qualification/hardware-evidence").exists()
 
 
 # -- issues --------------------------------------------------------------------------------

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-5-lightning-30b-a3b-nvfp4-eugr-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "0726af5ebb43a836dc5770c4c84edf859bba2a04880dfc98ec75fcf727bbf6f9",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "8788dc3bf1af9796bebb2cb8689bce74f766666b4dbecf33e996826e5e0f52f3"
+      ],
+      "tested_at": "2026-10-11T10:45:34.661878Z",
+      "platform": {
+        "controller_source_sha": "f376c8e5e6c84b0e0199928d4a3a542ef2481132",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "a65e7e395a8fe00c82bfe4bcb67aa428d670e4b3cb011c4f65abe85db64ad411",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "76c1f97e05036adcb527bc002815d5cf2fede61d353099d9b058fe9d929cb833"
+      ],
+      "tested_at": "2026-10-15T15:37:12.538758Z",
+      "platform": {
+        "controller_source_sha": "a47f4856b87c62a0b38637edb4e431381deb4356",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

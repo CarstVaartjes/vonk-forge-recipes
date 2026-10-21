@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-6-27b-nvfp4-dflash-vllm-mia-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "cfd0a388a362afdebdf5fd7ff644f0f11740d6ba0b3391da1f63d8da21ee08e7",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "27832334c8acc1863afc40d6e9ca7c915161aca20296c2a34c652510a615fbfe"
+      ],
+      "tested_at": "2026-10-17T11:16:39.330304Z",
+      "platform": {
+        "controller_source_sha": "f7fa1bf23982432b6ec1285493ed83dc2159a86a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

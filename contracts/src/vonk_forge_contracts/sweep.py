@@ -25,6 +25,8 @@ class CleanupObservationBudget(BaseModel):
 
 class SweepSlotPhase(StrEnum):
     LOADING = "loading"
+    SMOKING = "smoking"
+    FINISHED = "finished"
 
 
 class SweepStorageEvidence(BaseModel):

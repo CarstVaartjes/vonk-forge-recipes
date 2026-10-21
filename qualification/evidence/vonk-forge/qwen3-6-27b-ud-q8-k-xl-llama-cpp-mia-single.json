@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-6-27b-ud-q8-k-xl-llama-cpp-mia-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "108ad1e0a0b80661219b3368cd3adc01eedafc2cdc5506caf54b80cca92c733d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "8465120b4ac3c1d39278bee5d85a62030f534ebedc88aa27da217e5774380ccc"
+      ],
+      "tested_at": "2026-10-17T17:23:32.214425Z",
+      "platform": {
+        "controller_source_sha": "b52e16b240cee52f2397b10e2e95058484797688",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

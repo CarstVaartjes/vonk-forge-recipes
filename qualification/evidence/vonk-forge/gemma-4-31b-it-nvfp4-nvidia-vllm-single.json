@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/gemma-4-31b-it-nvfp4-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "0904d63fb88f0bcda0a3b1ea195c843f9c25c920d8bdd5f526135e42c8f1103e",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "737c5cc0ce1490bfffb1b05f71a8d19b4441a3dc946e5a0b88b96337af109484"
+      ],
+      "tested_at": "2026-10-17T15:52:49.760466Z",
+      "platform": {
+        "controller_source_sha": "d083b43f558b94ddda479d2e227a6ca7b373b1e3",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

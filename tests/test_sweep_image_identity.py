@@ -13,7 +13,7 @@ from test_sweep_policy import recipe
 
 from spark_sweep import policy
 from spark_sweep.catalog import parse_recipe
-from spark_sweep.lifecycle import RecipeStatus, ReconciliationStatus, RetestReason
+from spark_sweep.lifecycle import RecipeStatus, RetestReason
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -160,9 +160,8 @@ def test_legacy_unknown_images_preserve_passes_and_retry_unsuccessful_verdicts(
     if status == RecipeStatus.PASSED:
         from spark_sweep.identity import content_identity
 
-        assert entry["verdict_identity"] == content_identity(
-            sweep.recipes[fake.key]
-        ).model_dump(mode="json")
+        # Unknown historical image provenance must never be filled from today's catalog.
+        assert not (entry.get("verdict_identity") or {}).get("runtime_image")
         sweep.state.save()
         again, _, _ = make_sweep(tmp_path, [fake], [FakeModel("m1")])
         again.refresh_catalog()
@@ -251,6 +250,8 @@ def test_evidence_export_keeps_verdicts_for_different_images(tmp_path):
 
     first = recipe(
         "runtime",
+        content_sha256="e" * 64,
+        model_digests=("f" * 64,),
         runtime_image=RuntimeImageIdentity(
             build_key="a" * 64, image_digest="sha256:" + "b" * 64
         ),
@@ -265,6 +266,7 @@ def test_evidence_export_keeps_verdicts_for_different_images(tmp_path):
         {
             "recipe": item.key,
             "step": "smoke",
+            "recorded_at": "2026-10-21T00:00:00Z",
             "status": RecipeStatus.PASSED,
             "content_sha256": item.content_sha256,
             "verdict_identity": content_identity(item).model_dump(mode="json"),
@@ -273,7 +275,16 @@ def test_evidence_export_keeps_verdicts_for_different_images(tmp_path):
     ]
     written = export_evidence(rows, tmp_path, [first.key])
     assert len(written) == 1
-    assert len(written[0].read_text().splitlines()) == 2
+    from vonk_forge_contracts import RecipeQualificationEvidence
+
+    assert (
+        len(
+            RecipeQualificationEvidence.model_validate_json(
+                written[0].read_text()
+            ).records
+        )
+        == 2
+    )
 
 
 @pytest.mark.parametrize(
@@ -314,174 +325,3 @@ def test_library_pass_revalidation_requires_the_explicit_cli_flag():
     assert _config(
         parser.parse_args(["run", "--revalidate-passes"])
     ).revalidate_library_passes
-
-
-@pytest.mark.parametrize(
-    "changed",
-    [
-        "none",
-        "document",
-        "model",
-        "state-model",
-        "image",
-        "attempt",
-        "later-row",
-        "operator",
-        "active",
-        "log-error",
-    ],
-)
-def test_repair_only_legacy_image_requeues_and_replay_after_interrupted_save(
-    tmp_path, changed, monkeypatch
-):
-    from spark_sweep.identity import content_identity
-
-    fake = FakeRecipe("legacy")
-    sweep, fleet, _ = make_sweep(tmp_path, [fake], [FakeModel("m1")])
-    sweep.refresh_catalog()
-    current = sweep.recipes[fake.key]
-    previous = {
-        "status": RecipeStatus.PASSED,
-        "content_sha256": current.content_sha256,
-        "verdict_identity": None,
-        "revision_id": current.revision_id,
-        "cluster": None,
-        "evidence": {"proof": "original pass evidence"},
-        "phase": None,
-    }
-    if changed == "document":
-        previous["content_sha256"] = "different"
-    elif changed == "model":
-        previous["verdict_identity"] = content_identity(
-            replace(current, runtime_image=None, model_digests=("different",))
-        ).model_dump(mode="json")
-    elif changed == "image":
-        assert current.runtime_image is not None
-        previous["verdict_identity"] = content_identity(
-            replace(
-                current,
-                runtime_image=current.runtime_image.model_copy(
-                    update={"build_key": "different"}
-                ),
-            )
-        ).model_dump(mode="json")
-    entry = sweep.state.entry(fake.key)
-    entry.update(
-        status=RecipeStatus.PENDING,
-        attempts=int(changed == "attempt"),
-        content_sha256=previous["content_sha256"],
-        revalidate=True,
-        requeued_because=RetestReason.PASSED_OLDER_REVISION,
-        previous={
-            key: previous[key]
-            for key in (
-                "status",
-                "content_sha256",
-                "verdict_identity",
-                "revision_id",
-                "cluster",
-            )
-        },
-    )
-    sweep.record_result(
-        fake.key,
-        "requeue",
-        ReconciliationStatus.REQUEUED,
-        reason=RetestReason.PASSED_OLDER_REVISION,
-        previous=previous,
-    )
-    if changed == "state-model":
-        entry["model_digests"] = ["different"]
-    if changed == "later-row":
-        sweep.record_result(fake.key, "smoke", RecipeStatus.FAILED)
-    elif changed == "operator":
-        entry["requeued_because"] = RetestReason.OPERATOR
-    sweep.state.save()
-    again, _, _ = make_sweep(tmp_path, [fake], [FakeModel("m1")], fleet=fleet)
-    if changed == "active":
-        again.state.slots[fake.key] = {"phase": "loading"}
-    if changed == "log-error":
-
-        def fail_append(**_fields):
-            raise OSError("injected full disk")
-
-        monkeypatch.setattr(again.log, "append", fail_append)
-    again.refresh_catalog()
-    repaired = again.state.entry(fake.key)
-    rows = again.log.entries()
-    restored = [row for row in rows if row["status"] == ReconciliationStatus.RESTORED]
-    if changed != "none":
-        assert repaired["status"] == RecipeStatus.PENDING
-        assert not restored
-        return
-    assert repaired["status"] == RecipeStatus.PASSED
-    assert repaired["evidence"] == previous["evidence"]
-    assert repaired["verdict_identity"] == content_identity(current).model_dump(
-        mode="json"
-    )
-    assert not repaired["revalidate"]
-    assert "requeued_because" not in repaired
-    assert len(restored) == 1
-    assert restored[0]["previous"] == previous
-    # The restoration is logged, but state is still the original pending snapshot.
-    interrupted, _, _ = make_sweep(tmp_path, [fake], [FakeModel("m1")], fleet=fleet)
-    interrupted.refresh_catalog()
-    assert interrupted.state.entry(fake.key)["status"] == RecipeStatus.PASSED
-    assert interrupted.log.entries() == rows
-    interrupted.state.save()
-    restarted, _, _ = make_sweep(tmp_path, [fake], [FakeModel("m1")], fleet=fleet)
-    restarted.refresh_catalog()
-    assert restarted.state.entry(fake.key)["status"] == RecipeStatus.PASSED
-    assert restarted.log.entries() == rows
-
-
-def test_revalidation_of_newest_cached_pass_follows_untested_failed_and_deferred():
-    items = [
-        recipe(name, updated_at=date, artifact_bytes=size)
-        for name, date, size in [
-            ("passed", "2026-10-21", 1),
-            ("untested", "2026-10-01", 100),
-            ("failed", "2026-10-02", 200),
-            ("deferred", "2026-10-03", 300),
-        ]
-    ]
-    recipes = {item.key: item for item in items}
-    plans = [
-        policy.GroupPlan(item.model_set, (item.key,), item.artifact_bytes)
-        for item in items
-    ]
-    ordered = policy.order_queue(
-        plans,
-        recipes,
-        cached=items[0].model_set,
-        sizes={},
-        revalidate={items[0].key},
-        refreshed={item.key for item in items if item.slug != "untested"},
-        deprioritised={items[-1].key},
-    )
-    assert ordered[-1] == items[0].key
-    assert set(ordered[:-1]) == {item.key for item in items[1:]}
-
-
-@pytest.mark.parametrize("changed", ["document", "model"])
-def test_legacy_pass_does_not_hide_known_content_or_model_change(tmp_path, changed):
-    fake = FakeRecipe("legacy")
-    sweep, _, _ = make_sweep(tmp_path, [fake], [FakeModel("m1")])
-    sweep.refresh_catalog()
-    entry = sweep.state.entry(fake.key)
-    entry.update(status=RecipeStatus.PASSED, content_sha256="c1")
-    if changed == "document":
-        entry["content_sha256"] = "old-content"
-    else:
-        entry["model_digests"] = ["old-model"]
-    sweep._reconcile_entry(sweep.recipes[fake.key], 2)
-    assert entry["status"] == RecipeStatus.PENDING
-    assert entry["requeued_because"] == RetestReason.PASSED_OLDER_REVISION
-
-
-def test_limit_cannot_hide_untested_work_behind_pass_revalidation(tmp_path):
-    fakes = [FakeRecipe("passed"), FakeRecipe("untested")]
-    sweep, _, _ = make_sweep(tmp_path, fakes, [FakeModel("m1")], limit=1)
-    sweep.refresh_catalog()
-    sweep.state.entry(fakes[0].key)["revalidate"] = True
-    assert [item.key for item in sweep.pending()] == [fakes[1].key]

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/hy-memory-30b-a3b-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "64851fc4742ab81ec4092cffbb548a0c04d0d709f7b7fdcce329bb5e4f65a729",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "8502679346a5625111180d30ab10b6a9dbeb2a176efb08228e951188e4f56899"
+      ],
+      "tested_at": "2026-10-20T07:43:23.903081Z",
+      "platform": {
+        "controller_source_sha": "891ae3a0697d367b104a291073c72a6c73e32eba",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

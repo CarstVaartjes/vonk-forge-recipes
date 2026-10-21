@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/phi-4-reasoning-plus-fp8-nvidia-trtllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "607d2bd2d477c0733d06316bc823cd3cd6cb4f0e73d93cdec2488a1755b55f42",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "1a96bcf08b138289939e92ea635fa26bb58357600769e7b737f8f69a624aa315"
+      ],
+      "tested_at": "2026-10-06T10:07:23.828046Z",
+      "platform": {
+        "controller_source_sha": "87d19d9effa5d9ae818a6fab13952092262ce065",
+        "controller_version": "0.1.1~dev.3865+g87d19d9effa5",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "e6fc4d589bfd4f9f62b340beb3c196b58ea310880356d62108bb9cefa9fa7410",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "0cfd664c7a9acacc7fabdb4a5f678e72d140ad296aacb8b110b0750cf53028d3"
+      ],
+      "tested_at": "2026-10-11T00:21:09.974947Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "7da6fc0c6db91ad151cf9876c228bbe795a2014ae3a6cd2d5706c3e2a6d03451",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "d48d3f6c87f12aa845cd9d61301f057c1f65c92176e0e37ebbbb902f7c64b1f0"
+      ],
+      "tested_at": "2026-10-14T23:20:55.583804Z",
+      "platform": {
+        "controller_source_sha": "fadaeb65d44cfbddb4999a3ad9a092efce943d29",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

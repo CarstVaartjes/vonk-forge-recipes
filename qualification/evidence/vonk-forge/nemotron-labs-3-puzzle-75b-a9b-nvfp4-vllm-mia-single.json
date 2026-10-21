@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-labs-3-puzzle-75b-a9b-nvfp4-vllm-mia-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "005497265a424cb39aa8adafaab5aa247b574e62152b36242773d88db19599be",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "2b6b112bbe1c5ea2f3d7ff638751b4565661455b7114f61218c8c3a58e514f9d"
+      ],
+      "tested_at": "2026-10-18T04:58:16.531029Z",
+      "platform": {
+        "controller_source_sha": "0fd719ad2e12c2d32b821d014dd3cf8fafbaa9bd",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/llama-3-3-70b-instruct-nvfp4-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "55defee2390ad092667f8efb363ef6a26491a6ec61ba9edb4331794e33d2ac15",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "54309fc74ed5a3ae5143d608d902d58fcd0b15f8fc9c3fad6511f163d0e4ed36"
+      ],
+      "tested_at": "2026-10-17T19:18:33.359954Z",
+      "platform": {
+        "controller_source_sha": "142de1ab2a2bd0cfbb40a86efb210e55508d5d27",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

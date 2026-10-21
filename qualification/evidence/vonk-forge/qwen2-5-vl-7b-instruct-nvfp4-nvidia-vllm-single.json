@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen2-5-vl-7b-instruct-nvfp4-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "00356b945c6e9265b7bbdcf120d27d7d1629cb7840f0d82e961d4b4bada63c73",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "00a33d878889371f91845470473ddd9c6d62c6f46465ab06f223fd2fdcd3bbec"
+      ],
+      "tested_at": "2026-10-05T15:04:58.816161Z",
+      "platform": {
+        "controller_source_sha": "1fa6518eda63fa57fedcfc78cec3e556638a2c06",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

@@ -300,38 +300,49 @@ def test_failures_are_grouped_by_controller_release_on_the_status_page(
     assert "## Failures by Controller release" in page and f"release {OLD[:12]}" in page
 
 
-def test_watch_retests_after_bounded_cooldown_without_new_release_or_recipe(
+def test_watch_retests_platform_fault_only_after_its_observed_owner_fix(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    recipe = FakeRecipe("recovering", fail_load=IMAGE_BUG)
+    from spark_sweep.identity import content_identity
+    from spark_sweep.lifecycle import RetestReason
+    from spark_sweep.run import RETEST_SECONDS
+
+    recipe = FakeRecipe("recovering")
     sweep, fleet, clock = make_sweep(
         tmp_path, [recipe], [FakeModel("m1")], gateway=gateway, watch_seconds=3600
     )
-    fleet.release_sha = OLD
-    first_finished = []
+    sweep.refresh_catalog()
+    entry = _record_local_argument_fault(sweep, fleet, recipe)
+    entry.update(
+        content_sha256="c1",
+        verdict_identity=content_identity(sweep.recipes[recipe.key]).model_dump(
+            mode="json"
+        ),
+    )
+    since = clock.now()
+    fixed = []
 
     def repair_and_stop(now: float) -> None:
-        assert clock.sleeps < 100, "watch recovery must converge after cooldown"
-        entry = sweep.state.recipes.get(recipe.key, {})
-        if entry.get("status") == "deferred" and not first_finished:
-            first_finished.append(entry["finished_at"])
-            fleet.recipes[recipe.key].fail_load = None
+        assert clock.sleeps < 100, "watch recovery must converge after an observed fix"
+        if not fixed:
+            assert entry["status"] == "deferred"
+            assert not sweep.state.slots
+            if now >= since + RETEST_SECONDS:
+                fleet.client_build["source_sha"] = NEW
+                fixed.append(now)
         if entry.get("status") == "passed":
-            assert now >= first_finished[0] + 24 * 3600
-            clock.hooks.remove(
-                repair_and_stop
-            )  # one user interrupt; finalization keeps its owner
+            assert fixed and now >= fixed[0]
+            clock.hooks.remove(repair_and_stop)
             raise KeyboardInterrupt
 
     clock.hooks.append(repair_and_stop)
     assert sweep.run() == 130
-    assert _entry(sweep, "recovering")["status"] == "passed"
-    assert fleet.release_sha == OLD
+    assert entry["status"] == "passed"
     requeues = [
         row for row in _lines(tmp_path / "results.jsonl") if row["step"] == "retest"
     ]
     assert len(requeues) == 1
-    assert requeues[0]["reason"] == "scheduled-retest"
+    assert requeues[0]["reason"] == RetestReason.OWNER_CHANGED
     assert requeues[0]["previous"]["status"] == "deferred"
 
 

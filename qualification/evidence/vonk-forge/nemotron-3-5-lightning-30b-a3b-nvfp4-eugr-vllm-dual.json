@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-5-lightning-30b-a3b-nvfp4-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "68445d670aa2842eaa75c532a47ce6658c966c76fe530c35e94a992efcc5dc5f",
+        "model_digests": [],
+        "required_sparks": 2,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "da1a6893eecefdbd7e6d8a53ffe62b4cd44e2f6f0c815f800532e4c08022d2b0"
+      ],
+      "tested_at": "2026-10-05T16:54:23.807967Z",
+      "platform": {
+        "controller_source_sha": "1fa6518eda63fa57fedcfc78cec3e556638a2c06",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "81a9b80c2bbce4ab96fc7db470c40af654235639e037bbdb8fdaf4ab078d3c43",
+        "model_digests": [],
+        "required_sparks": 2,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "291063d0c65d7f161e5c084ff9ac4f866b4135b5ae85596d7cfd475721e86cf3"
+      ],
+      "tested_at": "2026-10-05T17:29:50.908536Z",
+      "platform": {
+        "controller_source_sha": "26c34a8a98b9c99a8088b8521b815b901c70eab5",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "81a9b80c2bbce4ab96fc7db470c40af654235639e037bbdb8fdaf4ab078d3c43",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "c753c090063fd32a68f71f7b76738ce52cdc6ffd4fb62a8a50c4de8f52989997"
+      ],
+      "tested_at": "2026-10-05T21:52:33.608400Z",
+      "platform": {
+        "controller_source_sha": "26c34a8a98b9c99a8088b8521b815b901c70eab5",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "81a9b80c2bbce4ab96fc7db470c40af654235639e037bbdb8fdaf4ab078d3c43",
+        "model_digests": [],
+        "required_sparks": 2,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "5b4422a00157ea820cd0c0f30d843f1a14022cc773a504883c69e9f93deca206"
+      ],
+      "tested_at": "2026-10-06T03:34:22.562888Z",
+      "platform": {
+        "controller_source_sha": "a9392d4caf98a86ca54b7b15b861fcc8f1a598a1",
+        "controller_version": "0.1.1~dev.3862+ga9392d4caf98",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "d8bd0d00355bb8cb75ee7c6d44ae281107501af88c239acc4941bd184f2f11ab",
+        "model_digests": [],
+        "required_sparks": 2,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "89b6203747dcfc486140aac6f8739a631a4ac5f78c6ce73ca927fc2f88cc8152"
+      ],
+      "tested_at": "2026-10-06T17:23:21.826033Z",
+      "platform": {
+        "controller_source_sha": "cc8435345fd210e8775dc30faf8aa3a3ab8f1659",
+        "controller_version": "0.1.1~dev.3875+gcc8435345fd2",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

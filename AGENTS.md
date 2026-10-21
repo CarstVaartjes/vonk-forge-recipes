@@ -70,6 +70,33 @@ keeping old formats usable alongside it.
   Report repository checks, publication, Controller deployment, and physical
   Spark execution separately.
 
+## Sweep evidence workflow
+
+Hardware qualification uses contract 2.4.0 `RecipeQualificationEvidence` and
+`derive_status`. Store public evidence in
+`qualification/evidence/<publisher>/<recipe-slug>.json`, separate from recipes.
+Proven recipes are never broken pre-emptively: preserve the last pass during a
+re-check; an exact identity revert restores Working without another run. Only
+hardware recipe failures count against recipes; platform faults remain separate.
+Schedule Fix to verify, Untested, platform-blocked work after its fix is observed,
+and Re-check last. `--retry-failed` never requeues Working.
+
+`tools/backfill-qualification-evidence --history <results.jsonl>` reads the log
+and all rotated siblings without opening or mutating sweep state. Missing image,
+Model or platform provenance must remain unknown. Never infer it from today's
+catalog. Public models forbid infrastructure identifiers and raw free text;
+keep private diagnostic artifacts in local state only.
+
+The sweep's background `tools/sync-qualification-evidence` batches evidence onto
+`qualification/evidence`, maintains one open “qualification evidence” PR and
+requests auto-merge. Each attempt has bounded subprocess waits; failures are
+visible on the status page and in `evidence-publisher/publisher.log`. A competing
+push re-plans from a fresh disposable clone on the next batch. GitHub cannot
+block lanes. `--no-publish-evidence` disables this optional transport. Never run
+it against a production sweep unless that task explicitly authorizes writing.
+Publication computes every recipe's public view from release identities and
+includes it in the normally signed catalog; publication is not hardware proof.
+
 ## Toolchain and gates
 
 Producer tooling, the contracts package, and the test suite run on **Python

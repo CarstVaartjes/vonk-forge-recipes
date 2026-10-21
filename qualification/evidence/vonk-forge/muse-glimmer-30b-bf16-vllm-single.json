@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/muse-glimmer-30b-bf16-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "5c3cd4ee1ab52447e77c1685cbffe18b095b0222ea46c97c43188c5b873121e7",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "be3ebb6ca126ce513068b5d6cf32e1e54797d20f8fe94bb9f3caba1ba0472c3e"
+      ],
+      "tested_at": "2026-10-19T04:06:47.829017Z",
+      "platform": {
+        "controller_source_sha": "197be7a01be8f3401d9c15d930a51d75b5ec204d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5c3cd4ee1ab52447e77c1685cbffe18b095b0222ea46c97c43188c5b873121e7",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "a4b70827d897efe6109365734436ce1c7f8df9bd02b1efeb5c8454996e1fea16"
+      ],
+      "tested_at": "2026-10-19T06:01:46.093031Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5c3cd4ee1ab52447e77c1685cbffe18b095b0222ea46c97c43188c5b873121e7",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "4bbd9fc8b7fdb5a8c4078b48552874d96c8f55b87aa74d682da06ba570e69741"
+      ],
+      "tested_at": "2026-10-20T07:46:40.051653Z",
+      "platform": {
+        "controller_source_sha": "891ae3a0697d367b104a291073c72a6c73e32eba",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

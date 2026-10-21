@@ -145,7 +145,14 @@ def fixed_caps_ending_work(source: str) -> list[int]:
                 )
                 ends = any(
                     _calls(statement, ENDING)
-                    or any(isinstance(s, ast.Raise) for s in ast.walk(statement))
+                    or any(
+                        isinstance(s, ast.Raise)
+                        and not (
+                            isinstance(s.exc, ast.Call)
+                            and _name(s.exc.func) == "EvidencePublicationTimeout"
+                        )
+                        for s in ast.walk(statement)
+                    )
                     for statement in item.body
                 )
                 if clock and cap and ends:
@@ -194,6 +201,23 @@ def test_wait_guard_accepts_progress_and_rejects_fixed_caps() -> None:
         "        self._timeout(slot)\n"
     )
     assert fixed_caps_ending_work(judged) == []
+    # The optional repository publisher has its own bounded transport. Its typed
+    # timeout must not end a hardware lane or spend a recipe attempt.
+    transport = (
+        "def command(now, started):\n"
+        "    if now - started > 240:\n"
+        "        raise EvidencePublicationTimeout('retry metadata transport')\n"
+    )
+    assert fixed_caps_ending_work(transport) == []
+    assert fixed_caps_ending_work(
+        transport.replace("EvidencePublicationTimeout", "TimeoutError")
+    ) == [2]
+    assert fixed_caps_ending_work(
+        transport.replace(
+            "raise EvidencePublicationTimeout",
+            "self._end_load(slot)\n        raise EvidencePublicationTimeout",
+        )
+    ) == [2]
 
 
 @pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)

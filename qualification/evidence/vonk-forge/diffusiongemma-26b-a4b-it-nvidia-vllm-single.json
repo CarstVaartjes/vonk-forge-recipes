@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/diffusiongemma-26b-a4b-it-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "75fb72c42e4a06cf7c20e6923e961709a2daad4dc6ddfcb2cbd440b1ade37158",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a49a74d45f80819aeb261a84d51276462e599f89d8c4cde888ad5e1cf363fd2a"
+      ],
+      "tested_at": "2026-10-17T20:16:43.954635Z",
+      "platform": {
+        "controller_source_sha": "54726480c38db0f23a7ac024143a65d4d5c409ba",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "e1145b89dbb4706281cb52372a61f6c5f16ab6b6b389821733303b2b576b62d1",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "bd4290d0475ffcea04a3643d0a7af196f49f2d0e86fb894c3c6ac718a3efdfa8"
+      ],
+      "tested_at": "2026-10-06T17:53:24.081061Z",
+      "platform": {
+        "controller_source_sha": "63e82e9642c0c2b439646c2c6bc9315cd27ff3ad",
+        "controller_version": "0.1.1~dev.3875+gcc8435345fd2",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "e1145b89dbb4706281cb52372a61f6c5f16ab6b6b389821733303b2b576b62d1",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "8761c8d06f8af86ebc4efa9c40f20cd4586b6c19cb5d11c4a76cb9191cfb3622"
+      ],
+      "tested_at": "2026-10-06T21:48:29.397853Z",
+      "platform": {
+        "controller_source_sha": "f8a65ee9eeb6ab82e3e31004fcc159140f5b2b44",
+        "controller_version": "0.1.1~dev.3885+g5fabe5f09334",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "e1145b89dbb4706281cb52372a61f6c5f16ab6b6b389821733303b2b576b62d1",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "e9e997dd5aeaf486c42e2fd7a73675bfc5ad02849558c5cc52b6a417bb8fcae0"
+      ],
+      "tested_at": "2026-10-11T03:04:22.324289Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "ae462f524e9a279a48d9981a7d9b40f5a26449e1f4f7e83c6e488cc08dd7563d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "5efa85eb656f157980dde07335b34e6945755a8fbe5432e9fad892b8bc5c22f7"
+      ],
+      "tested_at": "2026-10-15T00:25:31.718765Z",
+      "platform": {
+        "controller_source_sha": "fadaeb65d44cfbddb4999a3ad9a092efce943d29",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "ae462f524e9a279a48d9981a7d9b40f5a26449e1f4f7e83c6e488cc08dd7563d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "dd1ff1cd005cc6781232720da05ef9f551add1b5b9d4794fa93244d64f4154a5"
+      ],
+      "tested_at": "2026-10-15T03:55:26.089382Z",
+      "platform": {
+        "controller_source_sha": "31f812e2b7342eb3d15c18c4d5877ed898b807ea",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

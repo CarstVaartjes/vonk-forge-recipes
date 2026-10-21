@@ -28,6 +28,11 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from pydantic import ValidationError
+from vonk_forge_contracts import (
+    QualificationStatus,
+    QualificationStatusView,
+    RecipeQualificationEvidence,
+)
 from vonk_forge_contracts import sweep as sweep_contract
 from vonk_forge_contracts.sweep import (
     CleanupEnd,
@@ -36,6 +41,7 @@ from vonk_forge_contracts.sweep import (
     CleanupObservationBudget,
     FleetOnlineState,
     InfrastructureIncident,
+    SweepSlotPhase,
     SweepStorageReview,
     SweepStorageWait,
     SweepWait,
@@ -57,22 +63,27 @@ from .catalog import (
     serving_run,
 )
 from .definitions import Definitions
+from .evidence_publisher import EvidencePublisher
 from .finalization import FinalAction, Finalization
 from .identity import (
     AcceptedRequest,
     IdentityReason,
-    LegacyPassedVerdict,
-    PassReconciliationRecord,
     content_identity,
-    legacy_image_unknown,
     verdict_matches,
 )
 from .lifecycle import ACTIVE as ACTIVE_APP
 from .lifecycle import TERMINAL as SETTLED
-from .lifecycle import LifecycleState, RecipeStatus, ReconciliationStatus, RetestReason
+from .lifecycle import LifecycleState, RecipeStatus, RetestReason
 from .owner import OwnerGuard, OwnerStatus
 from .prefetch import SWEEP_LABEL, PrefetchConfig, Prefetcher
 from .profile_alias import profile_alias, unique_profile_alias
+from .qualification import (
+    from_history,
+    local_status,
+    merge_evidence,
+    read_evidence,
+    scheduling_priority,
+)
 from .removal import ModelRemover
 from .report import write_status
 from .smoke import (
@@ -215,6 +226,7 @@ class SweepConfig:
     allow_version_skew: bool = False
     release_seconds: float = 300.0
     retry_failed: bool = False
+    publish_evidence: bool = False
     # The stall window while bytes are copied to a Spark (the learned window covers the rest).
     copy_stall_seconds: float = 600.0
     # Preparation waits use this shorter bound, capped by the lane budget.
@@ -318,10 +330,46 @@ class Sweep:
         self._wait_event_at = -1e18
         # The latest Controller document of each load (by request key): evidence for its rows.
         self.documents: dict[str, Mapping[str, Any]] = {}
-        # Latest rows only: a later attempt or operator requeue defeats repair.
-        self._startup_results = {
-            row["recipe"]: row for row in log.entries() if row.get("recipe")
-        }
+        self.qualification_evidence: dict[str, RecipeQualificationEvidence] = {}
+        self.evidence_publisher = EvidencePublisher(
+            log.path,
+            config.state_dir / "evidence-publisher",
+            Path(__file__).resolve().parents[1] / "tools/sync-qualification-evidence",
+        )
+        for row in log.entries():
+            self._remember_qualification(row)
+
+    def _remember_qualification(self, row: Mapping[str, Any]) -> None:
+        try:
+            record = from_history(row)
+            if record is None:
+                return
+            key = str(row["recipe"])
+            evidence = RecipeQualificationEvidence(recipe_key=key, records=(record,))
+            previous = self.qualification_evidence.get(key) or read_evidence(
+                Path(__file__).resolve().parents[1], key
+            )
+            self.qualification_evidence[key] = merge_evidence(previous, evidence)
+        except (ValueError, TypeError, OSError) as error:
+            self.state.event(
+                f"qualification evidence unavailable: {type(error).__name__}"
+            )
+
+    def qualification_view(self, recipe: Recipe) -> QualificationStatusView | None:
+        try:
+            evidence = self.qualification_evidence.get(recipe.key) or read_evidence(
+                Path(__file__).resolve().parents[1], recipe.key
+            )
+            return local_status(
+                evidence,
+                recipe,
+                len(self.enrolled()),
+                recipe.key in self.state.slots
+                and self.state.slots[recipe.key].get("phase")
+                != SweepSlotPhase.FINISHED,
+            )
+        except (ValueError, TypeError, OSError):
+            return None  # malformed observed identity cannot certify public proof
 
     # ------------------------------------------------------------------ setup
 
@@ -608,6 +656,29 @@ class Sweep:
         slot = self.state.slots.get(recipe.key)
         if slot is not None and slot.get("phase") != "finished":
             return
+        view = self.qualification_view(recipe)
+        if (
+            view is not None
+            and view.status == QualificationStatus.WORKING
+            and view.last_pass is not None
+            and (slot is None or slot.get("phase") == SweepSlotPhase.FINISHED)
+        ):
+            entry.update(
+                status=RecipeStatus.PASSED,
+                content_sha256=recipe.content_sha256,
+                verdict_identity=content_identity(recipe).model_dump(mode="json"),
+                revalidate=False,
+            )
+            for stale in (
+                "reason",
+                "reason_kind",
+                "failure_class",
+                "error",
+                "code",
+                "requeued_because",
+            ):
+                entry.pop(stale, None)
+            return
         # A recipe that left the catalog is decided in _reconcile_all; here it is back.
         if entry.get("reason_kind") == CATALOG_SKIP:
             entry["status"] = "pending"
@@ -685,11 +756,6 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
-        self._restore_legacy_pass(recipe, entry)
-        if entry.get("status") == RecipeStatus.PASSED and legacy_image_unknown(
-            entry, recipe
-        ):
-            entry["verdict_identity"] = content_identity(recipe).model_dump(mode="json")
         why = policy.requeue_reason(
             entry, recipe, revalidate_library_passes=self.cfg.revalidate_library_passes
         )
@@ -747,62 +813,6 @@ class Sweep:
             entry.pop(stale, None)
         self.state.event(f"requeued {recipe.key}: {why}")
 
-    def _restore_legacy_pass(self, recipe: Recipe, entry: dict[str, Any]) -> None:
-        """Repair #1608 from its durable evidence, never after another attempt."""
-        if (
-            entry.get("status") != RecipeStatus.PENDING
-            or entry.get("attempts", 0) != 0
-            or entry.get("requeued_because") != RetestReason.PASSED_OLDER_REVISION
-            or not entry.get("revalidate")
-            or recipe.key in self.state.slots
-        ):
-            return
-        try:
-            record = PassReconciliationRecord.model_validate(
-                self._startup_results.get(recipe.key)
-            )
-            saved = LegacyPassedVerdict.model_validate(entry.get("previous"))
-        except ValidationError:
-            return
-        previous = record.previous.model_dump(mode="json")
-        if not legacy_image_unknown(previous, recipe) or not legacy_image_unknown(
-            entry, recipe
-        ):
-            return
-        # Check the pending entry still belongs to this exact requeue.
-        saved_fields = saved.model_dump(mode="json")
-        if any(value != previous.get(key) for key, value in saved_fields.items()):
-            return
-        if entry.get("content_sha256") != recipe.content_sha256:
-            return
-        identity = content_identity(recipe)
-        if (
-            record.status == ReconciliationStatus.RESTORED
-            and record.verdict_identity != identity
-        ):
-            return
-        restored = record.model_copy(
-            update={
-                "status": ReconciliationStatus.RESTORED,
-                "verdict_identity": identity,
-            }
-        )
-        # Log first; if saving state is interrupted, replay this row without
-        # appending another restoration. A failed append leaves pending intact.
-        if record.status != ReconciliationStatus.RESTORED and not self.record_result(
-            recipe.key,
-            "reconcile",
-            restored.status,
-            **restored.model_dump(mode="json", exclude={"recipe", "status"}),
-        ):
-            return
-        entry.update(previous)
-        entry.update(
-            verdict_identity=identity.model_dump(mode="json"), revalidate=False
-        )
-        entry.pop("requeued_because", None)
-        self.state.event(f"restored {recipe.key}: legacy image identity was unknown")
-
     def pending(self) -> list[Recipe]:
         out: list[Recipe] = []
         for recipe in self.recipes.values():
@@ -817,7 +827,13 @@ class Sweep:
                 continue
             out.append(recipe)
         out.sort(
-            key=lambda recipe: bool(self.state.entry(recipe.key).get("revalidate"))
+            key=lambda recipe: (
+                scheduling_priority(view)
+                if (view := self.qualification_view(recipe)) is not None
+                else 3
+                if self.state.entry(recipe.key).get("revalidate")
+                else 1
+            )
         )
         if self.cfg.limit:
             done = sum(
@@ -961,7 +977,7 @@ class Sweep:
         if self.cfg.watch_seconds > 0:
             for key, entry in list(self.state.recipes.items()):
                 if (
-                    entry.get("status") in ("failed", "deferred")
+                    entry.get("status") == RecipeStatus.FAILED
                     and now >= float(entry.get("finished_at", now)) + RETEST_SECONDS
                     and self._selected_key(key)
                 ):
@@ -1000,6 +1016,15 @@ class Sweep:
                 )
             },
         )
+        self.queue.sort(
+            key=lambda key: (
+                scheduling_priority(view)
+                if (view := self.qualification_view(self.recipes[key])) is not None
+                else 1
+            )
+        )
+        if self.cfg.publish_evidence and self.qualification_evidence:
+            self.evidence_publisher.tick(now)
         if not self.paused:
             self.schedule(self.clock.now())
             self.cleanup_finished()
@@ -1294,6 +1319,10 @@ class Sweep:
         self, key: str, reason: str, *, basis: Mapping[str, str] | None = None
     ) -> None:
         """Schedule an automatic retest without erasing its cause or retry history."""
+        if key in self.recipes:
+            view = self.qualification_view(self.recipes[key])
+            if view is not None and view.status == QualificationStatus.WORKING:
+                return
         entry = self.state.entry(key)
         previous = {
             k: entry.get(k)
@@ -1415,7 +1444,13 @@ class Sweep:
         keys = [
             key
             for key, entry in self.state.recipes.items()
-            if entry.get("status") in ("failed", "deferred") and self._selected_key(key)
+            if entry.get("status") in ("failed", "deferred")
+            and self._selected_key(key)
+            and not (
+                key in self.recipes
+                and (view := self.qualification_view(self.recipes[key])) is not None
+                and view.status == QualificationStatus.WORKING
+            )
         ]
         for key in keys:
             self._requeue_failed(key, RetestReason.OPERATOR)
@@ -1426,6 +1461,10 @@ class Sweep:
 
     def _requeue_failed(self, key: str, why: str) -> None:
         """Back to pending; the failure stays in results.jsonl, which is only ever appended to."""
+        if key in self.recipes:
+            view = self.qualification_view(self.recipes[key])
+            if view is not None and view.status == QualificationStatus.WORKING:
+                return
         entry = self.state.entry(key)
         previous = {
             name: entry.get(name)
@@ -1825,7 +1864,8 @@ class Sweep:
         if document:
             row["controller_document"] = _bounded_document(document)
         try:
-            self.log.append(**row)
+            recorded = self.log.append(**row)
+            self._remember_qualification(recorded)
         except OSError as error:
             # The log is the evidence; a full disk is an infrastructure fact to show.
             self.note_infra("results-log", f"{type(error).__name__}: {error}")
@@ -1850,6 +1890,7 @@ class Sweep:
         facts: dict[str, Any] = {
             "phase": entry.get("phase"),
             "failure_class": entry.get("failure_class"),
+            "code": entry.get("code"),
             "signature": entry.get("signature"),
             "cluster": entry.get("cluster"),
             "attempt": entry.get("attempts"),
@@ -1865,6 +1906,9 @@ class Sweep:
             "library_commit": accepted.library_commit if accepted else None,
             "controller_release": entry.get("release"),
             "controller_version": self.state.data["release"].get("version"),
+            "node_count": recipe.node_count if recipe else None,
+            # Agent identity is not inferred from Controller/client versions.
+            "agent_version": self.state.data["platform"].get("agent_version"),
             "engine": recipe.engine if recipe else None,
             "timings": entry.get("timings"),
             "verdict_identity": content_identity(recipe).model_dump(mode="json")

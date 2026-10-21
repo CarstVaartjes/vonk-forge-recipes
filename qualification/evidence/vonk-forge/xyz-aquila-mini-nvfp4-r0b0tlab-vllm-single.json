@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/xyz-aquila-mini-nvfp4-r0b0tlab-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "2b52fedb1b0c8217cca37d94e50d9dfb9419edf383803773632966c7adc677bb",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "fa9f59ef37207f696d0208e951c3733205e35d70557bc005363044476d4ad84d"
+      ],
+      "tested_at": "2026-10-11T09:13:00.314459Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "432e1e316a4f4067d9fb68e16750fdc8d20feb20d41c3e612f7829d996901f72",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "be8b76dac1a4c3b133d9884ac0d2d5caaa8ff3b686e2f09bc3d536ea3a015013"
+      ],
+      "tested_at": "2026-10-15T14:39:39.292623Z",
+      "platform": {
+        "controller_source_sha": "a47f4856b87c62a0b38637edb4e431381deb4356",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "432e1e316a4f4067d9fb68e16750fdc8d20feb20d41c3e612f7829d996901f72",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a2b8e04b535ac4523c47a7bf3a0254fe7115ae5952eed6c7cf2b0cc028a87f3f"
+      ],
+      "tested_at": "2026-10-16T19:13:55.117198Z",
+      "platform": {
+        "controller_source_sha": "3a3284e0a0cddf36dda78a4fa56bb7021fa47631",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-super-120b-a12b-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "07799cf34f84bc5f64a82105e03013c8ed460b55fb83aa96a3090dcf82af5304",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "d03258c966e14b93fcf14fc6bf2ac04a23de7ff43c17a108842daa7abe7c5962"
+      ],
+      "tested_at": "2026-10-19T06:30:08.324158Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "4c7855fb0362ab696e8f23173414e2b5284ac3198c52f7c6ea83c1a23e3f3e9d",
+        "model_digests": [
+          "6aa6f5e0542e5676862996deb985c8017b081fcfe98da045671439c722a5c09c",
+          "8226a040e300fc4c423955926d2e7d7e4a273e934f16e7504dc85be0b3c1a879"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "c379fa529d57de5757273f41dfdbd277eccc74f79f4c3cd0885593b026c848af"
+      ],
+      "tested_at": "2026-10-21T04:39:03.940273Z",
+      "platform": {
+        "controller_source_sha": "fe788a24c18de8eefe8b4a6de942673d9f7ca1b9",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}

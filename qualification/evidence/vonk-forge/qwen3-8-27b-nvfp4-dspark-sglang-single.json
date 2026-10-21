@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "2cc1718c55d3b4a81bead6d4e85519953c558cdc8b9403bef4fc132314b5dfb5",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "74d3315fb56a486b17f0b328dcbd4a6808f1f72eaed258df38be3628bf861c96"
+      ],
+      "tested_at": "2026-10-17T14:09:01.758254Z",
+      "platform": {
+        "controller_source_sha": "531a8e1620d1cae7a071190c0eb8ba13484f6aed",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

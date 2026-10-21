@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/phi-4-multimodal-instruct-fp8-nvidia-sglang-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9ab23cd5093abf72f6fcd5ec2f6642ccc22370dce5fa3ccf65ae66264ca1ccb4",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "94f635c93d70dfbc43923dbd8c58a2823fec4e98482713ad6e0d0d3d577999e1"
+      ],
+      "tested_at": "2026-10-06T09:54:47.168321Z",
+      "platform": {
+        "controller_source_sha": "47e5d29dbb584e5403ba96178cd41065c3b01578",
+        "controller_version": "0.1.1~dev.3863+g47e5d29dbb58",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "8d260a26764937435f92c519ae9304a3095b78f03d0b9b84fde1836020455d55",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "4801df10a133b4ea2198ee7c1c4539d69695e40262e2901ae7a550b5fdf0924b"
+      ],
+      "tested_at": "2026-10-10T22:10:56.870958Z",
+      "platform": {
+        "controller_source_sha": "78b89d7248495ace35dfd209e9bb2d0f44932bec",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "d6fdf1e19448d22630adfcfea72036fd6f33bb9dc10673d3b994989d4245a5e8",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "30a7457424e788d3c7615f8ed409f2112b888ce658a974c5b1b179d544fc7dd4"
+      ],
+      "tested_at": "2026-10-14T12:21:06.354922Z",
+      "platform": {
+        "controller_source_sha": "80edbb6639b5f420407a1cdf076d2cacf395d832",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "091263bae5d528703f8aa9a7d7c7a0ecb81ca398c7b79ffb8a31ddae24acd643",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "d424b7581c178ba8de43a2cb9b4a39317299363eee1cb635c03a1653201ddfef"
+      ],
+      "tested_at": "2026-10-14T22:00:24.022248Z",
+      "platform": {
+        "controller_source_sha": "fadaeb65d44cfbddb4999a3ad9a092efce943d29",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-5-bolt-lilicorr-vcruz-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "cca4a26db3d70671523b3f890ac66afda8dd2e718cff8a2cc03795bd64f0659d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "b109cb9da310b28e4a7818720dffa609f31e2409070b9ee7c1c524533a685648"
+      ],
+      "tested_at": "2026-10-19T02:35:26.356436Z",
+      "platform": {
+        "controller_source_sha": "197be7a01be8f3401d9c15d930a51d75b5ec204d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

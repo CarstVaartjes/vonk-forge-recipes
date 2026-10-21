@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/ternary-bonsai-2-27b-pq2-0-amarjeet-llama-cpp-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "954e4a0862ef18340a96fd60254b93caa73eb22cdab52cd30bd63bb130c7931d",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "29f65ef937b453ce7e0c9590921bbd0e49b5906b38afbe06258954c1fb0b925f"
+      ],
+      "tested_at": "2026-10-05T15:20:15.002412Z",
+      "platform": {
+        "controller_source_sha": "1fa6518eda63fa57fedcfc78cec3e556638a2c06",
+        "controller_version": "0.1.1~dev.3824+g862e77324882",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}
