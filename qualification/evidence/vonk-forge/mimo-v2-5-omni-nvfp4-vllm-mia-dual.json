@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/mimo-v2-5-omni-nvfp4-vllm-mia-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "8b096f4c04afd76948ac0c7050f5b66dcecf4c5dea064afffb04fefded7ef802",
+        "runtime_image": {
+          "build_key": "bba3dda001eca512016fc3950f33bce737868659f56e682b601dd6c2eabc226f",
+          "image_digest": "sha256:ed7a43d15a91e141a4b78eab721f4d6d738c07a7a37185dd99226bc8fda1fca2"
+        },
+        "model_digests": [
+          "d41172378922039d8d51a504d3fff9289534a16d1dea5af6651fac628c47d8d9"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "41b5b862ce04a5eefb68491eeb6f19771e7166bcf07b02492ce0ad207609d602"
+      ],
+      "tested_at": "2026-10-21T18:38:25.551032Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
