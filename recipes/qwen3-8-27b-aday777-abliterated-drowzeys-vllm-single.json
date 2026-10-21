@@ -32,23 +32,21 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "abliterated",
-    "description": "drowzeys' single-Spark stack for aday777's abliterated (ARA) Qwen3.8 27B NVFP4 checkpoint with a BF16 MTP head: eugr spark-vllm-b12x 0.27 (nightly-20260813) with the NVFP4 KV cache back-ported to GB10 (vLLM PR 49891) and the A4Q fp4 QK attention overlay. Follows upstream's Profile B except for the GPU memory budget: 1,048,576-token context by YaRN x4 (hf-overrides), NVFP4 KV, prefix caching, 4096 batched tokens, MTP 3, qwen3_xml tool parser. Upstream reports a 4.34M-token KV pool (4.14x concurrency at 1M) on one GB10; those are upstream measurements, not measured here. Notes: the abliterated build is very wordy, so clients should allow at least 20000 max_tokens; prefilling 1M tokens takes about an hour cold on one Spark; upstream's 256K Profile A is reached by lowering the context setting, but the YaRN override stays on. Licences: checkpoint Apache-2.0; drowzeys' repository carries no licence file. Not gated. GB10 memory correction: GPU utilization 0.90 → 0.80. Measured on spark-3542 (2026-10-15/16), the 0.85 build peaked at 122,005,303,296 bytes, 10.94 GB above its utilization share, and could not fit an idle Spark (125.65 GB available) with the 6 GB OS floor. The per-node peak now budgets utilization × 130,663,231,488-byte unified memory plus that measured 11 GB for CUDA context/graphs, FlashInfer workspace, the MTP head and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. The 1,048,576-token (1M) context remains configured; upstream KV-pool/concurrency figures at 0.90 do not apply to this 0.80 pool.",
+    "description": "aday777's abliterated (ARA) Qwen3.8 27B NVFP4 weights on the pinned drowzeys/eugr vLLM 0.27 image. Recovery baseline after run 452a0f71-d875-4f3b-8ca5-d6da59a898ae died during the 2026-10-21 streaming smoke: the retained EngineCore traceback reports torch.AcceleratorError, CUDA illegal memory access at torch/accelerator/__init__.py:270, with oom_killed=false. The original kernel frames were not retained; the NVFP4-KV/A4Q, MTP and graph combination is suspected, not proven. Use ordinary FP8 KV, eager execution, no speculative decoding or FlashInfer autotune, and one concurrent sequence to avoid those paths. Retains the 1,048,576-token YaRN x4 context, prefix caching, 4096 batched tokens and qwen3_xml tools. The absolute cache pool budgets 16 full-attention layers x 4 KV heads x 256 dimensions x K/V x one byte x context, plus a conservative 160 MiB for 48 linear-attention layers' recurrent state. Selected weights (including the unused MTP file) and an 11 GB runtime allowance are covered by the 67 GB peak; 16 GiB host reserve. These are planning bounds, not a measured peak or hardware pass. Long-context cold prefill is slow; clients should allow adequate output tokens for this verbose checkpoint. Checkpoint Apache-2.0; upstream recipe repository declares no licence file. Not gated.",
     "tags": [
       "abliterated",
       "candidate",
       "executable",
-      "a4q",
-      "mtp",
+      "fp8-kv",
       "multimodal",
       "nvfp4",
-      "nvfp4-kv",
       "qwen3.8",
       "single",
       "spark",
       "tool-use",
       "vllm"
     ],
-    "title": "Qwen3.8 27B ADay777 Abliterated NVFP4 A4Q NVFP4-KV 1M vLLM one Spark"
+    "title": "Qwen3.8 27B ADay777 Abliterated NVFP4 FP8-KV 1M eager vLLM one Spark"
   },
   "models": [
     {
@@ -283,53 +281,7 @@
       }
     }
   ],
-  "options": [
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream default and headline profile.",
-          "label": "MTP 3",
-          "value": "n3"
-        },
-        {
-          "args": [
-            {
-              "name": "speculative-config",
-              "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2}"
-            }
-          ],
-          "help": "Measured by upstream in bench/mtp_ns2.log as the alternative.",
-          "label": "MTP 2",
-          "value": "n2"
-        }
-      ],
-      "help": "Tokens drafted per step by the checkpoint MTP head. Upstream benchmarked depths 2 and 3; 4 or more crashed because the model has one MTP layer.",
-      "label": "MTP speculative depth",
-      "name": "mtp-depth"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Upstream default (VLLM_NVFP4_A4Q=1).",
-          "label": "A4Q on",
-          "value": "on"
-        },
-        {
-          "env": {
-            "VLLM_NVFP4_A4Q": "0"
-          },
-          "help": "NVFP4 KV cache without the fp4 QK path; upstream A/B baseline.",
-          "label": "A4Q off",
-          "value": "off"
-        }
-      ],
-      "help": "Native fp4 QK attention on top of the NVFP4 KV cache. Upstream reports +8 to +10 percent prefill and -7 to -9 percent time to first token at 48K to 96K, decode neutral, and warns it is model sensitive.",
-      "label": "A4Q fp4 attention",
-      "name": "a4q"
-    }
-  ],
+  "options": [],
   "provenance": {
     "attribution": [
       "drowzeys (keyspark)",
@@ -381,17 +333,7 @@
       {
         "name": "kv-cache-dtype",
         "setting": null,
-        "value": "nvfp4"
-      },
-      {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.80"
-      },
-      {
-        "name": "enable-flashinfer-autotune",
-        "setting": null,
-        "value": true
+        "value": "fp8"
       },
       {
         "name": "enable-auto-tool-choice",
@@ -404,9 +346,12 @@
         "value": "qwen3_xml"
       },
       {
-        "name": "speculative-config",
-        "setting": null,
-        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3}"
+        "name": "enforce-eager",
+        "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "value": 34527510528
       }
     ],
     "engine": "vllm",
@@ -438,7 +383,7 @@
       },
       {
         "name": "VLLM_NVFP4_A4Q",
-        "value": "1"
+        "value": "0"
       }
     ],
     "lifecycle": {
@@ -448,7 +393,7 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 4
+      "value": 1
     },
     "context_tokens": {
       "change_effect": "restart",
@@ -480,8 +425,8 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 115530585191,
-            "reserve_bytes": 8000000000
+            "peak_bytes": 67000000000,
+            "reserve_bytes": 17179869184
           }
         }
       }

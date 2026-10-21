@@ -1,7 +1,6 @@
 """vLLM's GPU budget excludes unified-memory overhead on each GB10 node."""
 
 import json
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -10,12 +9,9 @@ from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 from qualification.memory_need import load_inputs, require_memory_need
 from qualification.vllm_memory_fit import (
-    INCIDENT_MEASURED_OVERHEAD_BYTES,
-    OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
     PENDING_CREATOR,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
-    SPARK_MEMORY_BYTES,
     assert_memory_fit,
     loads_draft_model,
     non_utilization_bytes,
@@ -59,20 +55,17 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     )
     assert recipe.settings.kind == "generation"
     assert recipe.settings.context_tokens.value == 1_048_576
-    argument = next(
-        item
-        for item in recipe.runtime.arguments
-        if item.name == "gpu-memory-utilization"
+    need = require_memory_need(
+        recipe, catalog_models(), load_inputs(), document_digest=""
     )
-    utilization = Decimal(str(argument.value))
+    assert need is not None
+    assert need.kv_bytes == 16 * 4 * (256 + 256) * 1_048_576
+    assert need.state_bytes == 160 * 1024**2
     memory = recipe.topology.roles[0].resources.memory
-    assert memory.reserve_bytes == OVERHEAD_BYTES
+    assert memory.reserve_bytes == 16 * 1024**3
+    assert memory.peak_bytes >= need.total_bytes + 3_000_000_000
     assert_memory_fit(recipe)
-    # Declares what it really uses, and that fits the Spark it froze.
-    assert memory.peak_bytes >= (
-        utilization * SPARK_MEMORY_BYTES + INCIDENT_MEASURED_OVERHEAD_BYTES
-    )
-    assert memory.peak_bytes + OS_FLOOR_BYTES <= SPARK_3542_IDLE_AVAILABLE_BYTES
+    assert memory.peak_bytes + memory.reserve_bytes <= SPARK_3542_IDLE_AVAILABLE_BYTES
 
 
 @pytest.mark.parametrize("defect", ["torch-only", "os-floor", "worker", "implicit"])
