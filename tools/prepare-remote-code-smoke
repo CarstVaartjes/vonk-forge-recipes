@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Generate a pinned remote-module import check for each planned recipe image.
+
+Run by recipe-images before its selected build contexts are uploaded. The check
+runs inside the built recipe image before the platform layer or registry push.
+Only small, root-level Hugging Face Python modules are downloaded, never weights;
+all bytes must match the selected Model's manifest. Check all modules (including
+processors), since checking only modeling_*.py misses MOSS's video dependency.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+from urllib.parse import quote
+
+from pydantic import BaseModel, Field
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "contracts/src"))
+from vonk_forge_contracts.model import ModelDefinition, ModelSource
+from vonk_forge_contracts.recipe import RecipeDefinition
+
+
+class PlannedRecipe(BaseModel):
+    source_path: str
+
+
+class PlannedImage(BaseModel):
+    build_key: str = Field(pattern=r"^[0-9a-f]{64}$")
+    recipes: list[PlannedRecipe]
+
+
+class Plan(BaseModel):
+    images: list[PlannedImage]
+
+
+# This program runs under the image's Python (3.12), using its installed
+# transformers and native libraries. Do not import model code or load weights.
+CHECK = """import hashlib
+import tempfile
+import urllib.request
+from pathlib import Path
+
+FILES = {files!r}
+
+if FILES:
+    from transformers.dynamic_module_utils import check_imports
+
+    with tempfile.TemporaryDirectory() as temporary:
+        for url, digest, size, name in FILES:
+            with urllib.request.urlopen(url, timeout=30) as response:
+                content = response.read(size + 1)
+            if len(content) != size or hashlib.sha256(content).hexdigest() != digest:
+                raise RuntimeError("remote-code content mismatch: " + url)
+            path = Path(temporary) / name
+            path.write_bytes(content)
+            print("check_imports: " + url, flush=True)
+            check_imports(str(path))
+"""
+
+
+def model_files(
+    recipe: RecipeDefinition, root: Path
+) -> list[tuple[str, str, int, str]]:
+    files: list[tuple[str, str, int, str]] = []
+    for selection in recipe.models:
+        model = ModelDefinition.model_validate_json(
+            (root / "models" / f"{selection.model.slug}.json").read_bytes()
+        )
+        selected = {item.file_id for item in selection.files}
+        for file in model.files:
+            if (
+                file.id not in selected
+                or not file.path.endswith(".py")
+                or "/" in file.path
+            ):
+                continue
+            # These are HF snapshot modules, not engine/training scripts from
+            # nested inference/ trees. Their exact bytes are model inputs.
+            if not isinstance(
+                model.source, ModelSource
+            ) or not model.source.repository.startswith("https://huggingface.co/"):
+                raise ValueError(f"unsupported remote-code source: {model.source}")
+            url = (
+                f"{model.source.repository}/resolve/{model.source.revision}/"
+                f"{quote(file.path)}"
+            )
+            files.append((url, file.sha256, file.size_bytes, file.path))
+    return files
+
+
+def prepare(plan: Plan, output: Path, root: Path = ROOT) -> None:
+    for image in plan.images:
+        files: set[tuple[str, str, int, str]] = set()
+        for planned in image.recipes:
+            recipe = RecipeDefinition.model_validate_json(
+                (root / planned.source_path).read_bytes()
+            )
+            files.update(model_files(recipe, root))
+        if not files:
+            continue  # Native engines need neither Transformers nor Python.
+        directory = output / image.build_key
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "remote-code-smoke.py").write_text(
+            CHECK.format(files=sorted(files)), encoding="utf-8"
+        )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--plan", type=Path, required=True)
+    parser.add_argument("--output-dir", type=Path, required=True)
+    args = parser.parse_args()
+    prepare(Plan.model_validate_json(args.plan.read_bytes()), args.output_dir)
+
+
+if __name__ == "__main__":
+    main()
