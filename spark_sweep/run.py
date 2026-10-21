@@ -948,8 +948,7 @@ class Sweep:
             self.state.data["owner"]["seen_at"] = now
             self.preempt("an owner profile was loaded")
         if self.owner_status.paused:
-            # An owner's load (or ownership we cannot read: unknown) is waited for while it
-            # lasts; it never ends the sweep.
+            # Readable owner activity holds; unreadable observations have a per-profile budget.
             self.state.data["owner"].setdefault("paused_at", now)
         else:
             self.state.data["owner"].pop("paused_at", None)
@@ -972,8 +971,7 @@ class Sweep:
         self.advance_slots(now)
         self.observe_stalls()
         self.heal_fleet_skips()
-        if not self.paused:
-            self.enqueue_finished_cleanup()
+        self.enqueue_finished_cleanup()
         # Cold-start paging may not yet have seen the owner's seed/priority recipe.
         # Existing receipts still advance above; new work uses the first complete view.
         pending = self.pending() if self.catalog_loaded else []
