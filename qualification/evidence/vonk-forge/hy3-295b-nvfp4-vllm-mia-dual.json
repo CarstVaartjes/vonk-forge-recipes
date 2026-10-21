@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/hy3-295b-nvfp4-vllm-mia-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "4baf24d8cbf12d48c0ec60216a3709e36b137f2158cf862da72e4a89038919ba",
+        "runtime_image": {
+          "build_key": "74c9cd412b7132fd863a080deac0865199ecfa538b90af39076df581c99b1ef3",
+          "image_digest": "sha256:60d239c271018365c2ae16e0cdb96fbc78bb6ce386be6409d75ac6e717c48c64"
+        },
+        "model_digests": [
+          "57a3db6fce272f3aeefe06de50624b8735b2ccae1f51a50eebeb2a5ee1260c1b"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "cf195c66084a41916e7ba1bc2701be66470cb69d7311a86ed9ca67ab85251354"
+      ],
+      "tested_at": "2026-10-21T18:35:39.686650Z",
+      "platform": {
+        "controller_source_sha": "9c0aa76dcc250a89304cbfc1e4d2bac6e434a259",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}

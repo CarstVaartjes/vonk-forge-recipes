@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-0731-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "81fa853ced526d6104d6802a400ea8f3c24d24c231f304856056a7ab818feb67",
+        "runtime_image": {
+          "build_key": "5ab496bf4a535ac63b8136f9b5fadbd3ea8b452b8649d4c68dd0802d563d0654",
+          "image_digest": "sha256:887cf1c19c42ca09b8d0155fbbd2edcfd129642c89028e989ea544c87c443095"
+        },
+        "model_digests": [
+          "178317ff0fa085f65a9a2d75aacb6bb61a7d76be9a08025376af5aa5a77480f3"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "82d2fb94acde7b09af6bac9491a7b979a2e5fe7a3cda863f6d68c9567136499c"
+      ],
+      "tested_at": "2026-10-21T18:27:53.245440Z",
+      "platform": {
+        "controller_source_sha": "b3d5ff8abde9b8511afcd8c4f544f2addfb070df",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}

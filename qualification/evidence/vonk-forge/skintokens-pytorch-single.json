@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/skintokens-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "c954241f7992a96b4d963ecaf27e461587fe7932b709727512ec653e0237dc7a",
+        "model_digests": [
+          "d0a9359ce92499d231fda42fe9f78cec4cf9ede799e623688de548e8f6dfeb82"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "68f3b9ac68b38a312e3b6a18e5db5fc280868dbc81df632cff6463bbf4d6f46b"
+      ],
+      "tested_at": "2026-10-21T18:33:42.809219Z",
+      "platform": {
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
