@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "drowzeys' tuned single-Spark serve of unsloth/Qwen3.8-27B-NVFP4 (MTP head baked in) on vLLM 0.27 (eugr spark-vllm-b12x nightly-20260813, mirrored by drowzeys), native FlashInfer CUTLASS NVFP4 GEMM, FP8 KV cache and MTP speculative decoding at depth 3. Defaults are upstream's Profile A (throughput): 262144 context, GPU memory 0.90, qwen3_xml tool parser, flashinfer autotune; the sequence limit is left to vLLM. Upstream reports (not measured here) 31.7 tok/s single stream (2.85x the 11.1 baseline), 313 tok/s aggregate at 64-way and a 2.31M-token KV pool. Upstream's Profile B (1M context, YaRN 4x via --rope-scaling) is not included: its launcher passes a --rope-scaling flag that drowzeys' own Qwen3.8 repo says eugr 0.27 dropped. Licence: checkpoint Apache-2.0; drowzeys repository declares none. Not gated. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "drowzeys' tuned single-Spark serve of unsloth/Qwen3.8-27B-NVFP4 (MTP head baked in) on vLLM 0.27 (eugr spark-vllm-b12x nightly-20260813, mirrored by drowzeys), native FlashInfer CUTLASS NVFP4 GEMM, FP8 KV cache and MTP speculative decoding at depth 3. Defaults are upstream's Profile A (throughput): 262144 context, GPU memory 0.90, qwen3_xml tool parser, flashinfer autotune; the sequence limit is left to vLLM. Upstream reports (not measured here) 31.7 tok/s single stream (2.85x the 11.1 baseline), 313 tok/s aggregate at 64-way and a 2.31M-token KV pool. Upstream's Profile B (1M context, YaRN 4x via --rope-scaling) is not included: its launcher passes a --rope-scaling flag that drowzeys' own Qwen3.8 repo says eugr 0.27 dropped. Licence: checkpoint Apache-2.0; drowzeys repository declares none. Not gated. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. The 1,048,576-token (1M) context remains configured; upstream KV-pool/concurrency figures at 0.90 do not apply to this 0.85 pool.",
     "tags": [
       "candidate",
       "executable",
@@ -261,7 +261,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.75"
+        "value": "0.85"
       },
       {
         "name": "enable-flashinfer-autotune",

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for gpt-oss 120b MXFP4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none), plus TIKTOKEN_ENCODINGS_BASE on the harmony encodings (o200k_base, cl100k_base) vendored into the image and checked against openai_harmony's sha256 digests, as vLLM's GPT-OSS guide documents for the harmony vocab download failure: workloads run offline, and vLLM loads the harmony encoding at start. Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 host-guard headroom: explicit engine reservation capped at 0.75; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for gpt-oss 120b MXFP4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none), plus TIKTOKEN_ENCODINGS_BASE on the harmony encodings (o200k_base, cl100k_base) vendored into the image and checked against openai_harmony's sha256 digests, as vLLM's GPT-OSS guide documents for the harmony vocab download failure: workloads run offline, and vLLM loads the harmony encoding at start. Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
     "tags": [
       "executable",
       "candidate",
@@ -346,7 +346,7 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": "0.75"
+        "value": "0.85"
       }
     ],
     "engine": "vllm",
