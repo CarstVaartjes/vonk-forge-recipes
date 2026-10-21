@@ -126,6 +126,35 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "0058f1750ba22bfafadb447581926803f1f08d667fcc08c8dfe0ccd0fd7c2b5b",
+        "runtime_image": {
+          "build_key": "e2bfa3cb8a80b3e40529962069ee191f341385fe471468c133408228ab56243d",
+          "image_digest": "sha256:3898722d29ec192d325102ad9d278cb187b0277d60b98773cf560fad029e66b8"
+        },
+        "model_digests": [
+          "e9ee5114179de6c3dafb94c922a0bb118bffcc6af73b8387cc3f2b14cd4ae50b"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "c3f4b689cd2da0a47f45239aaf26e6f11caed2909014087d0534981eb626b263"
+      ],
+      "tested_at": "2026-10-21T13:12:17.802209Z",
+      "platform": {
+        "controller_source_sha": "20aa759b554738c96fddf058a104e2b9f5c1ed2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
     }
   ]
 }
