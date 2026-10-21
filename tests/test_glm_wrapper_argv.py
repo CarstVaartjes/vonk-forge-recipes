@@ -46,6 +46,8 @@ def compile_authored_argv(recipe: dict) -> list[str]:
             "--opaque-engine-option",
             "second",
             "--gpu-memory-utilization",
+            "0.69",
+            "--gpu-memory-utilization",
             "0.71",
             "--speculative-config",
             '{"user_override":true}',

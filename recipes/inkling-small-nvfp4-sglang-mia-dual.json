@@ -449,8 +449,8 @@
       "choices": [
         {
           "default": true,
-          "help": "Upstream default.",
-          "label": "0.85",
+          "help": "Static budget derived from the declared per-rank memory need.",
+          "label": "Need-based (default)",
           "value": "frac-085"
         },
         {
@@ -544,7 +544,7 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.85"
+        "value": "0.803247736511"
       },
       {
         "name": "swa-full-tokens-ratio",
@@ -758,7 +758,7 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
+            "peak_bytes": 112954944938,
             "reserve_bytes": 8000000000
           }
         }
@@ -775,7 +775,7 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 120000000000,
+            "peak_bytes": 112954944938,
             "reserve_bytes": 8000000000
           }
         }

@@ -1035,11 +1035,6 @@
         "value": 16384
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.835"
-      },
-      {
         "name": "kv-cache-memory-bytes",
         "setting": null,
         "value": 15998753178
@@ -1274,7 +1269,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 107442020846,
             "reserve_bytes": 8000000000
           }
         }
@@ -1291,7 +1286,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118000000000,
+            "peak_bytes": 107442020846,
             "reserve_bytes": 8000000000
           }
         }

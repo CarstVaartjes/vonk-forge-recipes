@@ -7,8 +7,8 @@ from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
 
 from qualification.memory_need import (
-    GUARD_BYTES,
     LIMIT_BYTES,
+    OS_FLOOR_BYTES,
     declaration_problems,
     load_inputs,
     per_rank_need,
@@ -59,7 +59,7 @@ def test_guard_rejects_hidden_demand_and_headroom(slug: str, rank: int) -> None:
     with pytest.raises(ValueError, match="peak understates"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
     memory.peak_bytes = need.peak_bytes
-    memory.reserve_bytes = GUARD_BYTES - 1
+    memory.reserve_bytes = OS_FLOOR_BYTES - 1
     assert any("reserve understates" in p for p in declaration_problems(recipe, need))
     with pytest.raises(ValueError, match="reserve understates"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")

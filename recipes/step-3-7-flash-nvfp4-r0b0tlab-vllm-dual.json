@@ -437,11 +437,6 @@
         "value": true
       },
       {
-        "name": "gpu-memory-utilization",
-        "setting": null,
-        "value": "0.85"
-      },
-      {
         "name": "max-model-len",
         "setting": "context_tokens",
         "value": null
@@ -475,6 +470,11 @@
         "name": "enforce-eager",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "kv-cache-memory-bytes",
+        "setting": null,
+        "value": 3019898880
       }
     ],
     "engine": "vllm",
@@ -544,7 +544,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 75640700996,
             "reserve_bytes": 8000000000
           }
         }
@@ -561,7 +561,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 75640700996,
             "reserve_bytes": 8000000000
           }
         }
