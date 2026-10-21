@@ -241,7 +241,6 @@ def _pipeline_command(
     seed: int,
     prompt: str,
     artifacts: list[dict[str, object]] | None = None,
-    frames: int = FRAME_COUNT,
 ) -> list[str]:
     artifacts = _runtime_artifacts() if artifacts is None else artifacts
     name = target.name
@@ -261,7 +260,7 @@ def _pipeline_command(
         "--width",
         "768",
         "--num-frames",
-        str(frames),
+        "65",
         "--frame-rate",
         "24",
         # fp8-scaled-mm requires the non-streaming builder in pinned LTX 1.5.0.
@@ -308,7 +307,7 @@ def _expected_audio_sample_rate(target: Path) -> int:
 
 
 def _verify_synchronized_mp4(
-    output: Path, timeout_seconds: int, *, audio_sample_rate: int, frames: int = FRAME_COUNT
+    output: Path, timeout_seconds: int, *, audio_sample_rate: int
 ) -> None:
     if not output.is_file() or output.stat().st_size == 0:
         raise SystemExit("LTX pipeline did not produce a non-empty MP4")
@@ -349,7 +348,7 @@ def _verify_synchronized_mp4(
         or video.get("width") != WIDTH
         or video.get("height") != HEIGHT
         or video.get("avg_frame_rate") != f"{FPS}/1"
-        or video.get("nb_read_frames") != str(frames)
+        or video.get("nb_read_frames") != str(FRAME_COUNT)
     ):
         raise SystemExit("LTX output video properties changed")
     if (
@@ -358,7 +357,7 @@ def _verify_synchronized_mp4(
         or audio.get("channels") != 2
     ):
         raise SystemExit("LTX output audio properties changed")
-    expected_duration = frames / FPS
+    expected_duration = FRAME_COUNT / FPS
     try:
         video_duration = float(video["duration"])
         audio_duration = float(audio["duration"])
@@ -376,12 +375,9 @@ def main() -> None:
     parser.add_argument("--entrypoint", required=True)
     parser.add_argument("--output-mime", required=True)
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--num-frames", type=int, default=FRAME_COUNT)
     parser.add_argument("--timeout-seconds", type=int, default=3600)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
-    if not 1 <= args.num_frames <= FRAME_COUNT or args.num_frames % 8 != 1:
-        raise SystemExit("num-frames must be 8k+1 between 1 and 65")
 
     if args.entrypoint != "/opt/vonk/source/run.py":
         raise SystemExit("unexpected pipeline entrypoint")
@@ -411,7 +407,7 @@ def main() -> None:
         try:
             subprocess.run(
                 _pipeline_command(
-                    target, gemma_root, temporary, args.seed, prompt, artifacts, args.num_frames
+                    target, gemma_root, temporary, args.seed, prompt, artifacts
                 ),
                 check=True,
                 env=env,
@@ -421,7 +417,6 @@ def main() -> None:
                 temporary,
                 args.timeout_seconds,
                 audio_sample_rate=_expected_audio_sample_rate(target),
-                frames=args.num_frames,
             )
             os.replace(temporary, destination)
         finally:

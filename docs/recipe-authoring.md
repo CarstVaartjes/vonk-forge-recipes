@@ -699,8 +699,13 @@ small values in the qualification `parameters`, or use an existing request slot.
 Do not add undeclared parameters: the Controller refuses them. Qualification
 JSON is outside `document_sha256(recipe)`, although fixture/package bytes and
 image source identities can change. Adding knobs changes the Recipe document;
-preserve hardware-proven documents lacking these controls and report that limit.
-`tests/test_qualification_case_assertions.py` guards the reviewed media cases.
+preserve hardware-proven documents and their complete image build contexts.
+Review every consumer of a shared context against hardware passes before editing
+it. LTX BF16 distilled and TRELLIS retain their existing smoke settings because
+their contexts are shared with proven LTX FP8 and Pixal3D respectively; do not
+fork these adapters to introduce smaller smokes.
+`tests/test_qualification_case_assertions.py` guards the reviewed media cases
+and the byte identities of those proven documents and shared contexts.
 
 MOVA's pinned temporal rule is `4k+1`, including one frame; smoke uses one frame
 and two steps at 640x352 or 1280x720, with synchronized 48 kHz audio at 24 fps.

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import runpy
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -281,9 +284,13 @@ MINIMAL_MEDIA_PARAMETERS = {
     },
     "hunyuan-video-15-i2v-step-distilled-diffusers-single": {"num-frames": 1},
     "ltx-2-19b-dev-fp4-pytorch-single": {"num-frames": 1, "num-inference-steps": 2},
-    "ltx-2-19b-distilled-diffusers-single": {"num-frames": 1},
     "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 120},
-    "trellis-2-4b-pytorch-single": {"sampler-steps": 2},
+}
+# These unproven recipes share their entire context with a hardware pass.
+# Keep the single adapter unchanged rather than fork it for smaller smokes.
+SHARED_PROVEN_MEDIA = {
+    "ltx-2-19b-distilled-diffusers-single": "ltx-2-19b-distilled-fp8-diffusers-single",
+    "trellis-2-4b-pytorch-single": "pixal3d-pytorch-single",
 }
 REQUEST_CONTROLLED_MEDIA = {
     "minimax-h3-diffusers-single",
@@ -348,6 +355,15 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
                 else:
                     assert request["num_inference_steps_global"] == 2
                     assert request["num_inference_steps_local"] == 2
+        elif slug in SHARED_PROVEN_MEDIA:
+            assert SHARED_PROVEN_MEDIA[slug] in PROVEN_FIXED_MEDIA
+            recipe = json.loads((ROOT / "recipes" / path.name).read_text())
+            proven = json.loads(
+                (ROOT / "recipes" / f"{SHARED_PROVEN_MEDIA[slug]}.json").read_text()
+            )
+            assert recipe["execution"]["build"] == proven["execution"]["build"]
+            assert not spec.get("parameters")
+            assert not recipe["settings"]["knobs"]
         elif slug == "skintokens-pytorch-single":
             # One tiny rigged mesh, with no iterative generation controls.
             assert spec["inputs"] == [
@@ -361,6 +377,7 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
         PROVEN_FIXED_MEDIA
         | MINIMAL_MEDIA_PARAMETERS.keys()
         | REQUEST_CONTROLLED_MEDIA
+        | SHARED_PROVEN_MEDIA.keys()
         | {"skintokens-pytorch-single"}
     )
 
@@ -374,6 +391,7 @@ def test_qualification_parameters_do_not_enter_recipe_content_identity(built_cat
             entry["document"]["identity"]["slug"]
             in MINIMAL_MEDIA_PARAMETERS.keys()
             | REQUEST_CONTROLLED_MEDIA
+            | SHARED_PROVEN_MEDIA.keys()
             | PROVEN_FIXED_MEDIA
         ):
             document = json.loads(
@@ -382,3 +400,61 @@ def test_qualification_parameters_do_not_enter_recipe_content_identity(built_cat
                 ).read_text()
             )
             assert entry["content_sha256"] == document_sha256(document)
+
+
+# origin/main bytes reviewed against read-only sweep results: LTX FP8 passed
+# 2026-10-21T02:47:59Z; Pixal3D passed 2026-10-20T04:24:58Z. Recipe-only
+# protection misses changes anywhere in these shared image build contexts.
+PROVEN_SHARED_IDENTITIES = {
+    "ltx-2-19b-distilled-fp8-diffusers-single": (
+        "2bdcd7561497a20a66cd02cde2db09e5db89a866ca73c4842ed65e12e2a864c3",
+        "32d29663893be2ac98eeb7ef032d3e0a2fd68a61aa3c613c6b517aea5fb8e62e",
+    ),
+    "pixal3d-pytorch-single": (
+        "fbcc650e981638662e48920c0f867ffc7dd69302fbe8749545c26159ab824b6e",
+        "7d171fe64ef2da27ed5bc9d31da69a3c2ec8dd54139961bba320afd7cc81354a",
+    ),
+}
+
+
+def _assert_proven_shared_identity(root: Path, slug: str) -> None:
+    recipe_path = root / "recipes" / f"{slug}.json"
+    recipe = json.loads(recipe_path.read_text())
+    expected_recipe, expected_source = PROVEN_SHARED_IDENTITIES[slug]
+    assert hashlib.sha256(recipe_path.read_bytes()).hexdigest() == expected_recipe, (
+        f"{slug}: hardware-proven Recipe bytes changed"
+    )
+    bundle = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["source_bundle"]
+    context = root / recipe["execution"]["build"]["context"]["path"]
+    assert bundle(context)[2] == expected_source, (
+        f"{slug}: hardware-proven image context bytes changed"
+    )
+
+
+@pytest.mark.parametrize("slug", PROVEN_SHARED_IDENTITIES)
+def test_hardware_proven_shared_recipe_and_image_bytes(slug: str) -> None:
+    _assert_proven_shared_identity(ROOT, slug)
+
+
+@pytest.mark.parametrize("slug", PROVEN_SHARED_IDENTITIES)
+@pytest.mark.parametrize("mutate_context", [False, True])
+def test_proven_identity_guard_detects_shared_context_or_document_change(
+    tmp_path: Path, slug: str, mutate_context: bool
+) -> None:
+    recipe_path = Path("recipes") / f"{slug}.json"
+    recipe = json.loads((ROOT / recipe_path).read_text())
+    context = Path(recipe["execution"]["build"]["context"]["path"])
+    (tmp_path / "recipes").mkdir()
+    shutil.copy2(ROOT / recipe_path, tmp_path / recipe_path)
+    shutil.copytree(ROOT / context, tmp_path / context)
+    _assert_proven_shared_identity(tmp_path, slug)
+    # Even an unused helper or whitespace changes the image's source identity.
+    target = (
+        tmp_path / context / "unused-helper.py"
+        if mutate_context
+        else tmp_path / recipe_path
+    )
+    with target.open("a") as stream:
+        stream.write("\n")
+    with pytest.raises(AssertionError, match="hardware-proven .* bytes changed"):
+        _assert_proven_shared_identity(tmp_path, slug)

@@ -2,9 +2,7 @@
   "id": "vonk-forge/trellis-2-4b-pytorch-single",
   "recipes": {
     "interface": "mesh-job",
-    "parameters": {
-      "sampler-steps": 2
-    },
+    "parameters": {},
     "inputs": [
       {
         "slot": "image",

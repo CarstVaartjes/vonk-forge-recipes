@@ -395,11 +395,6 @@
         "name": "seed",
         "setting": null,
         "value": 0
-      },
-      {
-        "name": "num-frames",
-        "setting": "num-frames",
-        "value": null
       }
     ],
     "engine": "pytorch-pipeline",
@@ -423,12 +418,7 @@
   "settings": {
     "concurrency": null,
     "kind": "job",
-    "knobs": {
-      "num-frames": {
-        "value": 65,
-        "change_effect": "none"
-      }
-    }
+    "knobs": {}
   },
   "topology": {
     "name": "solo",
