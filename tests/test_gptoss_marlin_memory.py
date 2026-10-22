@@ -191,7 +191,7 @@ def test_full_context_need_and_absolute_pool_replace_the_failed_fraction():
     assert argument_value(recipe, "max-num-seqs") == 1
     assert argument_value(recipe, "enforce-eager") is True
     assert argument_value(recipe, "max-num-batched-tokens") == 2048
-    assert argument_value(recipe, "gpu-memory-utilization") is None
+    assert argument_value(recipe, "gpu-memory-utilization") == "0.649858"
     assert argument_value(recipe, "kv-cache-memory-bytes") == need.kv_bytes
     assert recipe.topology.roles[0].resources.memory.peak_bytes == need.total_bytes
     require_memory_need(recipe, catalog_models(), inputs, document_digest="")

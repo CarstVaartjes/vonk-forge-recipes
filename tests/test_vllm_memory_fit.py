@@ -11,6 +11,7 @@ from qualification.memory_need import (
     GUARD_BYTES,
     OVERHEAD_BYTES,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
+    SPARK_MEMORY_BYTES,
     load_inputs,
     require_memory_need,
 )
@@ -66,6 +67,21 @@ def test_guard_rejects_unsafe_envelopes(defect: str) -> None:
     recipe = RecipeDefinition.model_validate_json(
         (ROOT / "recipes/deepseek-v4-flash-vision-exp-eugr-vllm-dual.json").read_text()
     )
+    # Exercise this guard's utilization-sized allocation, rather than the
+    # recipe's now-absolute KV pool and independent startup-only budget.
+    recipe.runtime.arguments = [
+        item
+        for item in recipe.runtime.arguments
+        if item.name != "kv-cache-memory-bytes"
+    ]
+    for item in recipe.runtime.arguments:
+        if item.name == "gpu-memory-utilization":
+            item.value = "0.85"
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = (
+            SPARK_MEMORY_BYTES * 85 + 99
+        ) // 100 + OVERHEAD_BYTES
+    assert_memory_fit(recipe)
     if defect == "torch-only":
         recipe.topology.roles[0].resources.memory.peak_bytes = 118_000_000_000
     elif defect == "os-floor":
