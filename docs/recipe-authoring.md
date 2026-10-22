@@ -310,6 +310,20 @@ Absolute KV bytes override cache sizing, but vLLM still checks the utilization
 budget against free memory before loading weights. Omitting it can restore an
 implicit 0.92 startup reservation even for a much smaller absolute pool.
 
+An absolute pool must also hold one request at the declared context (or the
+pinned model default when the engine context is omitted/automatic), including block rounding, packed scales
+and per-rank cache layout. Tensor parallelism shards GQA heads but does not
+halve replicated MLA latents. `require_absolute_kv_capacity` checks every option
+combination; the multi-Spark startup invariant precedes the historical-content
+waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractional
+pools are outside this absolute-pool check. Cache geometry binds configuration
+hashes and records padded/hybrid allocation bounds with their sources.
+For an unproven failing pool, prefer the creator context and reserve enough KV
+for that context times declared concurrency, checking the worst option. If that
+cannot be admitted with selected weights and runtime overhead, cap the explicit
+engine context at what fits and disclose the cap in the recipe description.
+Preserve proven recipe bytes; an estimate is never physical acceptance.
+
 The workload estimator (not declaration admission) uses
 **130,663,231,488 total bytes − 17,179,869,184 bytes
 (16 GiB host guard floor) − 5,012,574,208 measured idle bytes = 108,470,788,096
