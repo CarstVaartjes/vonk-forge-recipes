@@ -46,11 +46,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up uv and Python
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-        with:
-          version: "0.12.19"
-          python-version: "3.14"
-          enable-cache: false
+        uses: ./.github/actions/setup-tooling
 
       # The index and packages are build outputs, not committed files.
       # Consumers reproduce a release by rebuilding its tagged commit, so two
@@ -86,11 +82,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up uv and Python
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-        with:
-          version: "0.12.19"
-          python-version: "3.14"
-          enable-cache: false
+        uses: ./.github/actions/setup-tooling
 
       - name: Decide light (recipe data only) or full checks
         id: scope
@@ -297,11 +289,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up uv and Python
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-        with:
-          version: "0.12.19"
-          python-version: "3.14"
-          enable-cache: false
+        uses: ./.github/actions/setup-tooling
 
       - name: Test, lint, and build public contracts
         shell: bash
