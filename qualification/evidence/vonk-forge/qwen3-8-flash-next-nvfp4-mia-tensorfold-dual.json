@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-nvfp4-mia-tensorfold-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "99842bd99eb9fbb371b95d9d15627958f5ccb926f3af34e72b365c3c1f453008",
+        "source_bundle_sha256": "6b9482485a3ff368e9703330bce1c3aacdeb14d2ee44360e26d115a63e328a03",
+        "runtime_image": {
+          "build_key": "bb20a9ab12ead6a6bb1cf4b5793b6ca4aaca955d473ae36f4216f2b7b6b0f1f2",
+          "image_digest": "sha256:ab3b0d55fbd8333190a29e648d9fdc32533920734118cad8d44cd609a2a09c99"
+        },
+        "model_digests": [
+          "563044819c1c7c2b4559f610e6e93ccea952ddf25958065f2db2ca12982c662c"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "9e2b24d3745361bfe4008852c156fb2ed287ec7303c9eeff1263b250b6796b40"
+      ],
+      "tested_at": "2026-10-22T13:39:41.701105Z",
+      "platform": {
+        "controller_source_sha": "4133da8ec9fa7e455ef565826d4d90770ef0e39e",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
