@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "923666a0571490724ab2037fe0df438747c4a52ec1c826c86250f0a3079598a3",
+        "runtime_image": {
+          "build_key": "e4b156831b554af747a32bb6dfda0f4e4fb96c65c6ce00685fd216e248687092",
+          "image_digest": "sha256:946286a4e98c00156c36307a69652d0d0942b06e4b023363ccca372e230333a5"
+        },
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "2f01e0e265ad91a5c4720a7e83a23ac49b0e19c6077019084ed6ed7f60c3bf67"
+      ],
+      "tested_at": "2026-10-21T23:49:10.058910Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
