@@ -10,8 +10,18 @@ from enum import StrEnum
 from typing import Annotated, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, JsonValue
+from vonk_forge_contracts.sweep import SweepWaitReason
 
 Digest = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+
+
+class RemovalWait(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: SweepWaitReason
+    detail: str
+    since: float
+    next_check: float
 
 
 class RemovalOutcome(StrEnum):

@@ -97,6 +97,7 @@ from .qualification import (
     scheduling_priority,
 )
 from .removal import ModelRemover
+from .removal_contract import RemovalWait
 from .report import write_status
 from .smoke import (
     HttpConfig,
@@ -320,6 +321,9 @@ class Sweep:
         self.rate.samples = int(state.data["rate"].get("samples", 0))
         self.guard = OwnerGuard(vk, state, config.owner_hold_seconds)
         self.model_remover = ModelRemover(vk, state)
+        # This is a projection of live catalog/owner observations, never a
+        # persisted authorization or a gate to carry into a new process.
+        self.state.data.pop("model_removal_wait", None)
         self.prefetcher = Prefetcher(
             vk,
             state,
@@ -490,7 +494,7 @@ class Sweep:
                 self.catalog_active = None
                 assert active is not None
                 try:
-                    active.step(now, reply=future.result())
+                    completed = active.step(now, reply=future.result())
                     self.state.data["catalog_diagnostics"] = [
                         diagnostic.model_dump(mode="json")
                         for listing in (self.recipe_list, self.model_list)
@@ -508,6 +512,13 @@ class Sweep:
                         self.clear_infra("catalog")
                         self.library_commit = self.recipe_list.commit
                         self._reconcile_all()
+                        if completed and not any(
+                            item.in_pass for item in (self.recipe_list, self.model_list)
+                        ):
+                            # Give removal the complete read before opening another
+                            # pass. Slow alternating reads otherwise keep in_pass true
+                            # at every removal check, even when every read succeeds.
+                            return
             incident = self.state.data["infra"].get("catalog", {})
             if now < float(incident.get("until", 0)):
                 return
@@ -516,17 +527,17 @@ class Sweep:
                 None,
             )
             if active is None:
-                active = next(
-                    (
-                        item
-                        for item in (self.recipe_list, self.model_list)
-                        if now - item.pass_done_at >= self.cfg.catalog_seconds
-                    ),
-                    None,
-                )
-                if active is None:
+                listings = (self.recipe_list, self.model_list)
+                if not any(
+                    now - item.pass_done_at >= self.cfg.catalog_seconds
+                    for item in listings
+                ):
                     return
-                active.begin(now)
+                # One refresh round reads both libraries before yielding the
+                # complete view. Neither library can restart ahead of the other.
+                for item in listings:
+                    item.begin(now)
+                active = self.recipe_list
             self.catalog_active = active
             self.catalog_future = self.catalog_executor.submit(active.read_page)
             if not self.catalog_future.done():
@@ -1100,19 +1111,36 @@ class Sweep:
         self.state.save()
 
     def remove_finished_models(self, *, final: bool = False) -> None:
-        if (
-            self.paused
-            or not self.catalog_loaded
-            or not self.model_list.passes
-            or self.recipe_list.in_pass
-            or self.model_list.in_pass
-            or self.recipe_list.last_error
-            or self.model_list.last_error
-            or self.recipe_list.invalid_rows
-            or self.model_list.invalid_rows
-        ):
-            self.state.data["model_removal_wait"] = (
-                "waiting for a complete readable catalog and the sweep pause to clear"
+        now = self.clock.now()
+        causes = []
+        for listing in (self.recipe_list, self.model_list):
+            detail = ""
+            if listing.last_error:
+                detail = listing.last_error
+            elif listing.invalid_rows:
+                detail = f"{listing.invalid_rows} invalid rows"
+                if listing.diagnostics:
+                    detail += f": {listing.diagnostics[0].detail}"
+            elif listing.in_pass:
+                detail = (
+                    f"read in progress; {len(listing.seen)} rows read, "
+                    f"cursor {listing.cursor or 'first page'}, "
+                    f"pass age {max(0, now - listing.pass_started_at):.0f}s"
+                )
+            elif not listing.passes:
+                detail = "no complete read yet"
+            if detail:
+                causes.append(f"{listing.noun} library: {detail}")
+        if self.paused:
+            causes.insert(0, f"owner pause: {self.pause_reason}")
+        if causes:
+            incident = self.state.data["infra"].get("catalog", {})
+            self._removal_wait(
+                SweepWaitReason.OPERATOR
+                if self.paused
+                else SweepWaitReason.OBSERVATION,
+                "; ".join(causes),
+                max(now + self.cfg.poll_seconds, float(incident.get("until", 0))),
             )
             return
         own = {self.cfg.sweep_profile}
@@ -1122,10 +1150,28 @@ class Sweep:
             self.model_remover.tick(self.recipes, own, self.clock.now(), final=final)
             self.state.data.pop("model_removal_wait", None)
         except (ValueError, OSError, VonkctlError) as error:
-            self.state.data["model_removal_wait"] = str(error)
+            self._removal_wait(
+                SweepWaitReason.OBSERVATION, str(error), now + self.cfg.poll_seconds
+            )
             self.state.event(
                 f"model removal observation failed; sweep continues: {error}"
             )
+
+    def _removal_wait(
+        self, reason: SweepWaitReason, detail: str, next_check: float
+    ) -> None:
+        previous = self.state.data.get("model_removal_wait")
+        wait = RemovalWait(
+            reason=reason,
+            detail=detail,
+            since=self.clock.now(),
+            next_check=next_check,
+        )
+        if previous:
+            prior = RemovalWait.model_validate(previous)
+            if prior.reason == reason:
+                wait.since = prior.since
+        self.state.data["model_removal_wait"] = wait.model_dump(mode="json")
 
     def _cached_models(self) -> set[str]:
         """Models on the NAS: the library says so, a download of ours finished, or the library's own

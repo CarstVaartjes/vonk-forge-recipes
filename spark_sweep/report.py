@@ -30,7 +30,7 @@ from .evidence_contract import read_result
 from .identity import recorded_identity
 from .lifecycle import ACTIVE
 from .qualification import current_identity, from_history, merge_evidence, read_evidence
-from .removal_contract import RecipeVerdict
+from .removal_contract import RecipeVerdict, RemovalWait
 from .state import write_atomic
 
 if TYPE_CHECKING:
@@ -342,7 +342,16 @@ def render_status(status: Mapping[str, Any]) -> str:
     if status.get("alerts"):
         lines += ["## ALERTS", *(f"- {a}" for a in status["alerts"]), ""]
     if status.get("model_removal_wait"):
-        lines += [f"Fleet model removal: {status['model_removal_wait']}", ""]
+        wait = RemovalWait.model_validate(status["model_removal_wait"])
+        age = max(0, status["updated_at"] - wait.since)
+        retry = max(0, wait.next_check - status["updated_at"])
+        lines += [
+            (
+                f"Fleet model removal: {wait.reason}: {wait.detail}"
+                f"; age {_duration(age)}; next observation in {_duration(retry)}"
+            ),
+            "",
+        ]
     if status.get("model_removals"):
         lines += ["## Fleet model removal"]
         for digest, item in status["model_removals"].items():
