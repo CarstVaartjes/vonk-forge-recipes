@@ -87,8 +87,10 @@ def test_uv_has_one_exact_owner() -> None:
         ),
         (
             SETUP,
-            'uses: astral-sh/setup-uv@sha\n        version: "1.2.3"\n'
-            '        version: "1.2.3"',
+            (
+                'uses: astral-sh/setup-uv@sha\n        version: "1.2.3"\n'
+                '        version: "1.2.3"'
+            ),
         ),
     ],
 )
