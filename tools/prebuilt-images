@@ -10,7 +10,10 @@ revision and prefers the pinned digest over a Spark build.
 
 ``select``  considers every recipe (or the slugs asked for) whose ``build-<key>``
             tag is missing, one build per distinct key. A key
-            another recipe already has is copied instead of rebuilt.
+            another recipe already has is copied instead of rebuilt. Successful
+            PR builds write ``candidate-<key>``; these are promoted by digest.
+            ``--base-plan`` limits PRs to changed executable keys (including
+            excluded recipes). Publication builds keys without a candidate.
 ``resolve`` looks up every recipe's ``build-<key>`` digest for the signed index.
 
 ``platform-ref`` prints the Vonk Forge commit the library is validated with
@@ -134,6 +137,16 @@ def select(
         missing = [recipe for recipe in wanted if not present[str(recipe["slug"])]]
         if not missing:
             continue
+        # Only a successful build + smoke run writes a candidate tag. Promote
+        # its immutable digest; recipe versions and commits do not affect reuse.
+        if source is None:
+            for recipe in recipes:
+                slug = str(recipe["slug"])
+                digest = lookup(owner, package(slug), f"candidate-{key}")
+                if digest:
+                    source = slug
+                    present[slug] = digest
+                    break
         if source is not None:
             digest = present[source]
             assert digest is not None
@@ -260,6 +273,24 @@ def candidate_slugs(requested: list[str]) -> set[str] | None:
     return set(requested) if requested and requested != ["all"] else None
 
 
+def changed_candidates(
+    plan: Mapping[str, Any], base_plan: Mapping[str, Any]
+) -> set[str]:
+    """Compare executable identities, not paths or recipe document revisions.
+
+    Evidence, Model metadata and recipe options that do not affect the build
+    must not enqueue missing historical images. Shared contexts still enqueue
+    every recipe using a new key, deduplicated by ``select``.
+    """
+
+    previous = {str(recipe["slug"]): key for key, recipe in _recipes(base_plan)}
+    return {
+        str(recipe["slug"])
+        for key, recipe in _recipes(plan)
+        if previous.get(str(recipe["slug"])) != key
+    }
+
+
 def missing_reasons(
     plan: Mapping[str, Any], missing: list[str], excluded: Mapping[str, str]
 ) -> dict[str, str]:
@@ -291,6 +322,7 @@ def main() -> int:
         help="space-separated recipe ids; defaults to every missing image",
     )
     choose.add_argument("--output", type=Path, required=True)
+    choose.add_argument("--base-plan", type=Path)
     pin = commands.add_parser("platform-ref")
     pin.add_argument("--workflow", type=Path, default=PLATFORM_WORKFLOW)
     look = commands.add_parser("resolve")
@@ -307,14 +339,22 @@ def main() -> int:
         return 0
     plan = json.loads(arguments.plan.read_text(encoding="utf-8"))
     if arguments.command == "select":
-        candidates = candidate_slugs(arguments.slugs.split())
-        candidates = without_excluded(
-            plan,
-            candidates,
-            read_exclusions(),
-            requested=arguments.slugs.split(),
-        )
+        if arguments.base_plan is not None:
+            if plan.get("skipped"):
+                raise SystemExit(f"PR image planner refused recipes: {plan['skipped']}")
+            candidates = changed_candidates(
+                plan, json.loads(arguments.base_plan.read_text(encoding="utf-8"))
+            )
+        else:
+            candidates = without_excluded(
+                plan,
+                candidate_slugs(arguments.slugs.split()),
+                read_exclusions(),
+                requested=arguments.slugs.split(),
+            )
         selection = select(plan, owner=arguments.owner, candidates=candidates)
+        if arguments.base_plan is not None and selection["deferred"]:
+            raise SystemExit("PR image matrix exceeds 256 keys; split the change")
         arguments.output.write_text(json.dumps(selection, indent=2), encoding="utf-8")
         print(
             f"{len(selection['builds'])} image build(s), "

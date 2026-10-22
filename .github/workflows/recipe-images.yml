@@ -5,11 +5,10 @@ name: Recipe runtime images
 # (plus :<version>). The key is Vonk Forge's executable build key; Controllers
 # derive the same key and pull the pinned digest instead of building on a Spark.
 #
-# publish.yml calls this on every publication: every missing current key is
-# considered, then every recipe's image is resolved for the signed index. Run
-# it by hand to backfill ("all" or recipe ids); it then republishes so the index
-# picks up the new digests. Publication
-# reports unresolved images as pending until a later build resolves them.
+# validate.yml builds changed keys at the PR head and writes candidate-<key>
+# only after build-time native checks and the remote-code smoke succeed.
+# publish.yml uses the same planner to promote those digests to build-<key>;
+# keys without a candidate use the same build path during publication.
 on:
   # Independent recovery owner; publication tags do not retire missing keys.
   schedule:
@@ -41,8 +40,7 @@ permissions:
 # The Vonk Forge commit whose planner derives the build keys, the exact Spark
 # build flags and the platform adaptation stage is the `platform_ref` that
 # publish.yml validates the library with: one pin, read from there. Controllers
-# compare the same key. Every publication considers every recipe and builds
-# only missing keys.
+# compare the same key. PRs compare base/head keys; publication promotes by key.
 
 jobs:
   plan:
@@ -57,6 +55,10 @@ jobs:
     steps:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Read the platform ref
         id: platform
@@ -85,16 +87,35 @@ jobs:
           repository-root: .vonk-forge
 
       - name: Plan one image per distinct build key
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         shell: bash
         run: |
           set -euo pipefail
-          .vonk-forge/scripts/build-recipe-library "$GITHUB_WORKSPACE"
-          mkdir -p "$RUNNER_TEMP/images"
-          uv run --project .vonk-forge/control --frozen \
-            --with-editable "$GITHUB_WORKSPACE/contracts" \
-            .vonk-forge/scripts/recipe-image-plan \
-            --library-root "$GITHUB_WORKSPACE" --output-dir "$RUNNER_TEMP/images" \
-            > "$RUNNER_TEMP/plan.json"
+          plan_library() {
+            local platform=${4:-$GITHUB_WORKSPACE/.vonk-forge}
+            "$platform/scripts/build-recipe-library" "$1"
+            uv run --project "$platform/control" --frozen \
+              --with-editable "$1/contracts" \
+              "$platform/scripts/recipe-image-plan" \
+              --library-root "$1" --output-dir "$2" > "$3"
+          }
+          plan_library "$GITHUB_WORKSPACE" "$RUNNER_TEMP/images" "$RUNNER_TEMP/plan.json"
+          if [ "$EVENT_NAME" = pull_request ]; then
+            git clone --shared --no-checkout . "$RUNNER_TEMP/image-base"
+            git -C "$RUNNER_TEMP/image-base" checkout --detach "$BASE_SHA"
+            base_ref=$(python3 tools/prebuilt-images platform-ref \
+              --workflow "$RUNNER_TEMP/image-base/.github/workflows/publish.yml")
+            base_platform="$GITHUB_WORKSPACE/.vonk-forge"
+            if [ "$base_ref" != "${{ steps.platform.outputs.ref }}" ]; then
+              git -C .vonk-forge fetch --depth=1 origin "$base_ref"
+              base_platform="$RUNNER_TEMP/base-platform"
+              git -C .vonk-forge worktree add --detach "$base_platform" "$base_ref"
+              "$base_platform/scripts/build-control-wheel"
+            fi
+            plan_library "$RUNNER_TEMP/image-base" "$RUNNER_TEMP/base-images" "$RUNNER_TEMP/base-plan.json" "$base_platform"
+          fi
           uv run --python 3.14 --no-project --with-editable contracts \
             python tools/prepare-remote-code-smoke \
             --plan "$RUNNER_TEMP/plan.json" --output-dir "$RUNNER_TEMP/images"
@@ -102,13 +123,24 @@ jobs:
       - name: Select missing images
         id: select
         env:
+          EVENT_NAME: ${{ github.event_name }}
+          SAME_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
           SLUGS: ${{ github.event_name == 'schedule' && 'all' || inputs.slugs }}
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/prebuilt-images select --plan "$RUNNER_TEMP/plan.json" \
+          select_args=()
+          if [ "$EVENT_NAME" = pull_request ]; then
+            select_args+=(--base-plan "$RUNNER_TEMP/base-plan.json")
+          fi
+          python3 tools/prebuilt-images select "${select_args[@]}" --plan "$RUNNER_TEMP/plan.json" \
             --owner "${{ github.repository_owner }}" \
             --slugs "$SLUGS" --output "$RUNNER_TEMP/selection.json"
+          if [ "$EVENT_NAME" = pull_request ] && [ "$SAME_REPOSITORY" != true ] \
+            && [ "$(jq '.builds | length' "$RUNNER_TEMP/selection.json")" != 0 ]; then
+            echo '::error::Changed images need candidate push permission. Run this head on a trusted repository branch; fork tokens cannot publish proof.'
+            exit 1
+          fi
           # Ship only the plan and the build contexts of the selected keys.
           mkdir -p "$RUNNER_TEMP/upload"
           cp "$RUNNER_TEMP/plan.json" "$RUNNER_TEMP/selection.json" "$RUNNER_TEMP/upload/"
@@ -145,7 +177,7 @@ jobs:
   copy:
     name: Tag shared images
     needs: plan
-    if: needs.plan.outputs.copy_count != '0'
+    if: github.event_name != 'pull_request' && needs.plan.outputs.copy_count != '0'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
@@ -264,6 +296,9 @@ jobs:
           echo "build_seconds=$(( $(date +%s) - start ))" >> "$GITHUB_ENV"
 
       - name: Push to every recipe that uses this image
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_NAME: ${{ github.workflow }}
         shell: bash
         run: |
           set -euo pipefail
@@ -273,26 +308,33 @@ jobs:
           mapfile -t versions < <(jq -r --arg key "$KEY" \
             '.builds[] | select(.build_key == $key) | .recipes[] | (.version // "latest")' "$selection")
           first=${repositories[0]}
+          prefix=build
+          if [ "$EVENT_NAME" = pull_request ]; then prefix=candidate; fi
           sudo TMPDIR="$WORK/tmp" podman push --digestfile "$RUNNER_TEMP/digest" \
-            localhost/vonk/runtime-image "docker://$first:build-$KEY"
+            localhost/vonk/runtime-image "docker://$first:$prefix-$KEY"
           digest=$(cat "$RUNNER_TEMP/digest")
           # Same (root) credentials as the podman login above.
           for index in "${!repositories[@]}"; do
-            for tag in "build-$KEY" "${versions[$index]}"; do
+            tags=("$prefix-$KEY")
+            if [ "$EVENT_NAME" != pull_request ]; then tags+=("${versions[$index]}"); fi
+            for tag in "${tags[@]}"; do
               target="${repositories[$index]}:$tag"
-              [ "$target" = "$first:build-$KEY" ] && continue
+              [ "$target" = "$first:$prefix-$KEY" ] && continue
               sudo skopeo copy --retry-times 3 --preserve-digests "docker://$first@$digest" "docker://$target"
             done
             # Controllers pull anonymously: the package must be public.
             skopeo inspect --no-creds --raw "docker://${repositories[$index]}@$digest" >/dev/null
           done
+          if [ "$WORKFLOW_NAME" = "Publish recipe library release" ]; then
+            echo "- \`$KEY\`: built at publish: no PR candidate" >> "$GITHUB_STEP_SUMMARY"
+          fi
           size=$(sudo podman image inspect --format '{{.Size}}' localhost/vonk/runtime-image)
           echo "- \`${KEY:0:12}\` → \`$first@$digest\` (${size} bytes, built in ${build_seconds}s) for ${#repositories[@]} recipe(s)" >> "$GITHUB_STEP_SUMMARY"
 
   resolve:
     name: Resolve pinned images
     needs: [plan, copy, build]
-    if: ${{ !cancelled() && needs.plan.result == 'success' }}
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.plan.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -332,7 +374,7 @@ jobs:
     needs: [plan, build, copy, resolve]
     # Failed builds in this batch must not starve the deferred tail. Each
     # continuation carries only that tail, independently of the publication tag.
-    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.deferred_slugs != '' }}
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.plan.result == 'success' && needs.plan.outputs.deferred_slugs != '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

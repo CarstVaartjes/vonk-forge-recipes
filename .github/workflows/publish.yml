@@ -22,7 +22,8 @@ concurrency:
 
 # Called workflows fail at startup when a job asks for a permission the caller
 # does not grant, so each job below grants exactly what it (and what it calls)
-# needs. Every validation job needs contents: read only.
+# needs. The producer call must also permit its nested PR-only image jobs,
+# even though those jobs are skipped on main.
 permissions:
   contents: read
 
@@ -40,6 +41,8 @@ jobs:
     name: Validate producer contracts and packages
     permissions:
       contents: read
+      packages: write
+      actions: write
     uses: ./.github/workflows/validate.yml
     with:
       producer_only: true
@@ -74,8 +77,8 @@ jobs:
           "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
 
-  # Reconcile current runtime image keys on hosted ARM64 runners. Missing
-  # images remain pending in the signed library until a later build resolves.
+  # Promote PR-proven content digests; build only keys without a candidate
+  # through the same planner, build and smoke path.
   images:
     name: Recipe runtime images
     if: github.ref == 'refs/heads/main'
@@ -88,14 +91,13 @@ jobs:
   publish:
     name: Create signed library release
     needs: [validate, producer-contracts, catalog-index, images]
-    # Fan-in: publish only when no validation job failed or was cancelled.
-    # Build failures remain visible in the image jobs. Required plan/resolution
-    # artifacts and the release verifier prevent stale pins from being signed.
+    # Image promotion or fallback builds must complete before signing.
     if: >-
       ${{ !cancelled() && github.ref == 'refs/heads/main'
       && needs.validate.result != 'failure'
       && needs.producer-contracts.result != 'failure'
-      && needs.catalog-index.result != 'failure' }}
+      && needs.catalog-index.result != 'failure'
+      && needs.images.result == 'success' }}
     runs-on: ubuntu-24.04
     environment: recipe-release
     # Control planes accept only assets whose SHA256SUMS carries a Sigstore

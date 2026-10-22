@@ -14,6 +14,9 @@ import json
 import runpy
 import sys
 from pathlib import Path
+from typing import Any
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
@@ -31,8 +34,8 @@ SHARED, OWN = "a" * 64, "b" * 64
 DIGEST = "sha256:" + "d" * 64
 
 
-def _plan() -> dict[str, object]:
-    def recipe(slug: str, context: str) -> dict[str, object]:
+def _plan() -> dict[str, Any]:
+    def recipe(slug: str, context: str) -> dict[str, Any]:
         return {
             "slug": slug,
             "version": "1.0",
@@ -94,6 +97,119 @@ def test_an_existing_key_is_copied_not_rebuilt_and_present_images_are_skipped() 
             "version_tag": "ghcr.io/carstvaartjes/vonk-forge-recipe-dual:1.0",
         }
     ]
+
+
+def test_pr_candidate_is_promoted_by_digest_without_rebuilding() -> None:
+    registry = _registry({("vonk-forge-recipe-single", f"candidate-{SHARED}"): DIGEST})
+    selection = tool.select(_plan(), owner=OWNER, candidates=None, lookup=registry)
+    assert [row["build_key"] for row in selection["builds"]] == [OWN]
+    assert {row["from"] for row in selection["copies"]} == {
+        f"{tool.repository(OWNER, 'single')}@{DIGEST}"
+    }
+    assert {row["to"] for row in selection["copies"]} == {
+        f"{tool.repository(OWNER, slug)}:build-{SHARED}" for slug in ("single", "dual")
+    }
+
+
+def test_pr_selection_uses_build_identity_and_ignores_missing_historical_images():
+    base = _plan()
+    head = _plan()
+    # Evidence or model/recipe metadata changes do not change executable keys.
+    head["images"][0]["recipes"][0]["content_sha256"] = "9" * 64
+    candidates = tool.changed_candidates(head, base)
+    assert candidates == set()
+    assert tool.select(
+        head, owner=OWNER, candidates=candidates, lookup=_registry({})
+    ) == {"builds": [], "copies": [], "deferred": [], "deferred_slugs": []}
+    # A shared context change schedules every affected recipe, one ARM64 build.
+    head["images"][0]["build_key"] = "c" * 64
+    candidates = tool.changed_candidates(head, base)
+    assert candidates == {"single", "dual"}
+    selection = tool.select(
+        head, owner=OWNER, candidates=candidates, lookup=_registry({})
+    )
+    assert [row["build_key"] for row in selection["builds"]] == ["c" * 64]
+
+
+def test_new_recipe_using_an_unpublished_shared_key_still_requires_proof():
+    base = _plan()
+    head = _plan()
+    head["images"][1]["recipes"][0]["slug"] = "new-recipe"
+    assert tool.changed_candidates(head, base) == {"new-recipe"}
+
+
+def test_pr_cannot_silently_omit_a_recipe_the_image_planner_refused(
+    tmp_path, monkeypatch
+):
+    plan = tmp_path / "plan.json"
+    plan.write_text(
+        json.dumps(
+            {
+                "images": [],
+                "skipped": [{"slug": "broken", "reason": "bad build inputs"}],
+            }
+        )
+    )
+    output = tmp_path / "selection.json"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "prebuilt-images",
+            "select",
+            "--base-plan",
+            str(plan),
+            "--plan",
+            str(plan),
+            "--owner",
+            OWNER,
+            "--output",
+            str(output),
+        ],
+    )
+    with pytest.raises(SystemExit, match="PR image planner refused.*broken"):
+        tool.main()
+    assert not output.exists()
+
+
+@pytest.mark.parametrize("present", [False, True])
+def test_publish_builds_only_the_changed_key_without_a_pr_candidate(
+    tmp_path, monkeypatch, present
+):
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text(json.dumps(_plan()))
+    # One changed key always has PR proof; inject a missing candidate for
+    # the other key (cancelled/expired PR build or a merge-result key change).
+    tags = {(tool.package("single"), f"candidate-{SHARED}"): DIGEST}
+    if present:
+        tags[(tool.package("other"), f"candidate-{OWN}")] = DIGEST
+    select = tool.select
+    monkeypatch.setattr(
+        tool, "select", lambda plan, **kw: select(plan, **kw, lookup=_registry(tags))
+    )
+    output = tmp_path / "selection.json"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "prebuilt-images",
+            "select",
+            "--plan",
+            str(plan_path),
+            "--owner",
+            OWNER,
+            "--output",
+            str(output),
+        ],
+    )
+    assert tool.main() == 0
+    selection = json.loads(output.read_text())
+    assert [row["build_key"] for row in selection["builds"]] == (
+        [] if present else [OWN]
+    )
+    assert len(selection["copies"]) == (3 if present else 2)
+    assert all(f"@{DIGEST}" in row["from"] for row in selection["copies"])
+    assert selection["deferred"] == []
 
 
 def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:
