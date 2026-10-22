@@ -1,0 +1,12 @@
+{
+  "ours": [
+    "NOTICE.upstream",
+    "requirements-audio.txt",
+    "sglang-serve",
+    "verify-runtime.py"
+  ],
+  "source": {
+    "commit": "201be3e743d215291feee09fe470822ec453c63d",
+    "repo": "MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks"
+  }
+}
