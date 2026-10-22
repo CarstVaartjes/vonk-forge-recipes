@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/nemotron-3-nano-omni-30b-a3b-bf16-nvidia-vllm-single",
+  "service_recipes": {
+    "alias": "nemotron-3-nano-omni",
+    "higher_tiers": {
+      "recovery": [
+        "Controller stop/start, exact alias, and offline warm-cache restart"
+      ],
+      "stress": [
+        "Bounded context and concurrency canaries"
+      ]
+    },
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "V7",
+      "T_PRODUCT"
+    ]
+  }
+}
