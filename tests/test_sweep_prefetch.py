@@ -45,6 +45,37 @@ def test_model_downloads_never_exceed_the_slot_budget(
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
 
 
+def test_preparing_siblings_share_one_model_download_slot(tmp_path: Path) -> None:
+    """One active model with many preparing recipe views cannot exhaust the pool."""
+    recipes = [FakeRecipe(f"shared-{i}", ("shared",)) for i in range(8)]
+    recipes += [FakeRecipe(f"cold-{i}", (f"cold-{i}",)) for i in range(3)]
+    models = [FakeModel("shared"), *(FakeModel(f"cold-{i}") for i in range(3))]
+    sweep, fleet, _ = make_sweep(
+        tmp_path,
+        recipes,
+        models,
+        prefetch=PrefetchConfig(max_model_downloads=3, pin_profile=13),
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep.prefetcher._request(sweep.recipes[recipes[0].key], "model")
+    # All recipes sharing that model report preparing; only one parent exists.
+    for recipe in recipes[:8]:
+        recipe.local = "preparing"
+    sweep.refresh_catalog()
+    result = sweep.prefetcher.tick(
+        sweep.recipes,
+        sweep.models,
+        list(sweep.recipes.values()),
+        sweep.sizes,
+        sweep._present(),
+        sweep.boost,
+    )
+    assert result["model_ops"] == 3
+    assert _active_ops(fleet) == 3
+    assert sum(args[:2] == ("recipe", "download") for _, args in fleet.calls) == 3
+
+
 def test_the_byte_budget_bounds_what_is_downloaded_but_not_yet_tested(
     tmp_path: Path, gateway: Gateway
 ) -> None:

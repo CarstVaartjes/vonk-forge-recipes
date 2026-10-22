@@ -33,7 +33,6 @@ from vonk_forge_contracts import (
     QualificationStatusView,
     RecipeQualificationEvidence,
 )
-from vonk_forge_contracts import sweep as sweep_contract
 from vonk_forge_contracts.sweep import (
     CleanupEnd,
     CleanupEndReason,
@@ -2139,7 +2138,6 @@ class Sweep:
             self.state.data["loads"].pop(load["request_key"], None)
             return True
         self.documents[load["request_key"]] = document
-        self._replan_pending_storage(load, document)
         load["observed_at"] = self.clock.now()
         load["app_id"] = document["id"]
         status = str(document.get("state", ""))
@@ -2192,48 +2190,6 @@ class Sweep:
             }
             self.state.data["loads"].pop(load["request_key"], None)
         return True
-
-    def _replan_pending_storage(
-        self, load: dict[str, Any], document: Mapping[str, Any]
-    ) -> None:
-        """A never-admitted snapshot cannot reserve a healthy sibling's lane.
-
-        Keep its original receipt for observation. The next reviewed whole-fleet
-        snapshot removes the blocked assignment and steers the latest intent;
-        no cancellation can race a newly admitted or adopted child.
-        """
-        if (
-            load.get("replanned_pending")
-            or "current_operation_id" not in document
-            or document.get("current_operation_id") is not None
-        ):
-            return
-        try:
-            pending = sweep_contract.SweepPendingAdmission.model_validate(
-                document.get("progress"), strict=True
-            )
-        except ValidationError:
-            return
-        nodes = pending.storage_wait_nodes
-        if not pending.admission_pending or pending.effects or not nodes:
-            return
-        for key, slot in list(self.state.slots.items()):
-            if (
-                slot.get("request_key") != load["request_key"]
-                or slot["phase"] != sweep_contract.SweepSlotPhase.LOADING
-            ):
-                continue
-            self.requeue(
-                key,
-                "unadmitted storage snapshot: re-planning independent lanes",
-                document=document,
-            )
-            if nodes & set(slot["node_ids"]):
-                self.state.entry(key)["not_before"] = (
-                    self.clock.now() + self.cfg.defer_delay
-                )
-        load["replanned_pending"] = True
-        self.state.save()
 
     def _own_load_request(self, app_id: str) -> str | None:
         """The request key of this sweep's own load whose application ``app_id`` is."""
