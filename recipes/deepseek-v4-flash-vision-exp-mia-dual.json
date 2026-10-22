@@ -1254,6 +1254,11 @@
         "name": "kv-cache-memory-bytes",
         "setting": null,
         "value": 495976448
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.645978"
       }
     ],
     "engine": "vllm",

@@ -304,6 +304,11 @@ declared context × declared engine concurrency, and runtime overhead. Use absol
 pools: vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens` with source-backed
 per-token sizing. Never substitute a fraction of RAM or benchmark concurrency.
 `qualification/memory_need.py` supplies the shared calculator and catalog guard.
+For vLLM, also set an explicit `gpu-memory-utilization` startup budget whose
+fraction of physical memory plus runtime overhead fits the smallest role peak.
+Absolute KV bytes override cache sizing, but vLLM still checks the utilization
+budget against free memory before loading weights. Omitting it can restore an
+implicit 0.92 startup reservation even for a much smaller absolute pool.
 
 The workload estimator (not declaration admission) uses
 **130,663,231,488 total bytes − 17,179,869,184 bytes
@@ -372,8 +377,8 @@ floor, and tests reject stale exceptions once they fit with the draft counted.
 [qualification/memory_need.py](../qualification/memory_need.py), exercised by
 `tests/test_single_spark_memory_headroom.py`, shares those constants and checks
 absolute single-node need with the measured draft floor. An absolute vLLM KV
-pool overrides utilization, so that path uses need rather than an implicit 0.9
-reservation. Changed multi-Spark documents use the per-rank demand declaration below.
+pool overrides cache sizing by utilization; the explicit startup budget is checked
+separately. Changed multi-Spark documents use the per-rank demand declaration below.
 Existing documents remain unchanged and receive informative warnings.
 
 SGLang profiles loaded weights before applying `max-total-tokens`. A fraction

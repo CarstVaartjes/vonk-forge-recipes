@@ -9,6 +9,7 @@ import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
     IDLE_AVAILABLE_BYTES,
@@ -109,7 +110,11 @@ def test_repaired_declarations_and_engine_allocations_fit_every_variant(
         need = per_rank_need(variant, catalog_models())
         assert not declaration_problems(variant, need)
         if variant.runtime.engine == "vllm":
-            assert argument_value(variant, "gpu-memory-utilization") is None
+            fraction = argument_value(variant, "gpu-memory-utilization")
+            assert fraction is not None
+            assert (
+                Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES <= need.peak_bytes
+            )
             assert all(
                 role.resources.memory.peak_bytes == need.peak_bytes
                 for role in variant.topology.roles
@@ -209,3 +214,62 @@ def test_wrapper_cache_alias_counts_toward_actual_rank_demand() -> None:
     pin.value += 1
     assert per_rank_need(recipe, catalog_models()).peak_bytes == initial + 1
     assert declaration_problems(recipe, per_rank_need(recipe, catalog_models()))
+
+
+@pytest.mark.parametrize("rank", [0, 1])
+def test_absolute_kv_launch_survives_observed_startup_memory(rank: int) -> None:
+    import math
+
+    recipe = recipe_for("deepseek-v4-flash-fp8-r0b0tlab-vllm-dual")
+
+    # vLLM dda4668b worker/utils.py::request_memory checks this fraction even
+    # with absolute KV bytes, before the checkpoint loader runs. Both ranks
+    # receive the same arguments. Reproduce the 2026-10-22 startup refusal.
+    def startup(fraction: Decimal) -> None:
+        if math.ceil(TOTAL_BYTES * fraction) > 111.79 * 1024**3:
+            raise ValueError("Free memory on device cuda:0")
+
+    with pytest.raises(ValueError, match="Free memory"):
+        startup(Decimal("0.92"))
+    fraction = argument_value(recipe, "gpu-memory-utilization")
+    assert fraction is not None
+    startup(Decimal(str(fraction)))
+    assert (
+        Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        <= recipe.topology.roles[rank].resources.memory.peak_bytes
+    )
+    assert argument_value(recipe, "kv-cache-memory-bytes") == 495_976_448
+
+
+@pytest.mark.parametrize("defect", ["omitted", "oversized"])
+@pytest.mark.parametrize(
+    "slug",
+    [
+        "deepseek-v4-flash-fp8-r0b0tlab-vllm-dual",
+        "deepseek-v4-flash-vision-exp-sfxnz-vllm-dual",
+    ],
+)
+def test_absolute_kv_cannot_hide_an_implicit_startup_reservation(
+    defect: str, slug: str
+) -> None:
+    recipe = recipe_for(slug)
+    recipe.runtime.arguments = [
+        a for a in recipe.runtime.arguments if a.name != "gpu-memory-utilization"
+    ]
+    if defect == "oversized":
+        recipe.runtime.arguments.append(
+            RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.92")
+        )
+    with pytest.raises(ValueError, match="startup"):
+        require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+
+
+def test_unproven_absolute_kv_recipes_bound_startup_for_every_option() -> None:
+    from qualification.memory_need import require_vllm_startup_budget
+
+    for path in sorted((ROOT / "recipes").glob("*.json")):
+        recipe = RecipeDefinition.model_validate_json(path.read_text())
+        if f"{recipe.identity.publisher}/{recipe.identity.slug}" in PROVEN:
+            continue
+        for variant in memory_variants(recipe):
+            require_vllm_startup_budget(variant)

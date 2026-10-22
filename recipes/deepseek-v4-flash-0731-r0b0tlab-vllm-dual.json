@@ -1108,6 +1108,11 @@
         "name": "moe-backend",
         "setting": null,
         "value": "flashinfer_b12x"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.761055"
       }
     ],
     "engine": "vllm",
