@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-6-35b-a3b-fp8-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "0a03d8716ec162b8b9cc2acd34a948eeb1c7cd3e2ffcb307519c3390cc48adab",
+        "source_bundle_sha256": "14875a4166e013fd30fa40e9095cfe377918ec95da12533514fbdb3a28c7a7f6",
+        "runtime_image": {
+          "build_key": "d6e751f349f562ca5c141f4e8487f3fe458add1a4c38a633ee927a4e44bab7a4",
+          "image_digest": "sha256:7abbea9e609e73a0656f29896a51cc3daff723f9fce6474d497f6c9d28271ee3"
+        },
+        "model_digests": [
+          "84bbd2b6bd96112cd2a3a5d8f08f503028abcf96374b81279466a36d3d2132c2"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a8ca9a299bbe8a24b2731241d4d5719502679fb866346811b70619d54281e2d8"
+      ],
+      "tested_at": "2026-10-22T05:02:47.943162Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
