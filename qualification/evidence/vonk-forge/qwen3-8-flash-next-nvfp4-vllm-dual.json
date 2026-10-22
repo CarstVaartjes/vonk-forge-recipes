@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9a3ede86f05b0e7580eb68a5694adce04801d8a3e6f4ea082444407b0c1c14ae",
+        "source_bundle_sha256": "a4c58afc09c4f10eb3f8b59fde9e5998e104fd14473484b2266d7e8ed43b632f",
+        "runtime_image": {
+          "build_key": "520de6e48bc6576ddd1ecc1e58cd7c13fcdd0751ee4bf7b31e7ac926e3a8e7e1",
+          "image_digest": "sha256:f6b7797d52c43dfb4cd08ab00147c0054d36a0015f348ad802274fd0290222f8"
+        },
+        "model_digests": [
+          "563044819c1c7c2b4559f610e6e93ccea952ddf25958065f2db2ca12982c662c"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "1e91651f747cc93a31f9ea68ad69afb2388ba1d4e0c6df24f1b17ab284b84ce7"
+      ],
+      "tested_at": "2026-10-22T02:21:15.712629Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
