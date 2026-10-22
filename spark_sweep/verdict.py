@@ -175,11 +175,7 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
         if code not in (PHASE_RETRY, STALLED_CODE)
     ]
     wait = None
-    if state == LifecycleState.QUEUED:
-        wait = SweepWait(reason=SweepWaitReason.APPLICATION_QUEUED)
-    elif state == LifecycleState.BACKOFF:
-        wait = SweepWait(reason=SweepWaitReason.APPLICATION_BACKOFF)
-    elif state == LifecycleState.NEEDS_OPERATOR:
+    if state == LifecycleState.NEEDS_OPERATOR:
         wait = SweepWait(
             reason=SweepWaitReason.OPERATOR,
             detail=str(document.get("status_reason") or state),
@@ -188,6 +184,10 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
         wait = SweepWait(
             reason=SweepWaitReason.ADMISSION, detail=held[0] if held else ""
         )
+    elif state == LifecycleState.QUEUED:
+        wait = SweepWait(reason=SweepWaitReason.APPLICATION_QUEUED)
+    elif state == LifecycleState.BACKOFF:
+        wait = SweepWait(reason=SweepWaitReason.APPLICATION_BACKOFF)
     elif held:
         wait = SweepWait(reason=SweepWaitReason.BLOCKER, detail=held[0])
     elif document.get("next_attempt_at"):
