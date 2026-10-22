@@ -107,6 +107,10 @@ class ReviewedCleanupStop(BaseModel):
     node_ids: list[str]
 
 
+class ReviewInfrastructureSource(StrEnum):
+    TRANSPORT = "review-transport"
+
+
 class InfrastructureIncident(BaseModel):
     """Durable local retry history; escalation never invents a Controller ending."""
 
