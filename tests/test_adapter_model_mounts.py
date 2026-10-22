@@ -60,6 +60,12 @@ EXCEPTION_GROUPS: tuple[tuple[tuple[str, ...], str, tuple[str, ...], str], ...] 
         "Vendored GLM arithmetic diagnostic, not called by the MiniMax recipe's build or runtime.",
     ),
     (
+        ("mimo-v2-6-flash-rl-sglang-mia-dual",),
+        "boot.py",
+        ("/models/MiMo-V2.6-Flash-RL",),
+        "Vendored launcher fallback; the image sets MODEL_PATH=/models/target to the recipe's declared mounts, verified by test_image_model_path_overrides_the_vendored_fallback.",
+    ),
+    (
         ("muse-glimmer-30b-nvfp4-vllm-mia-single",),
         "verify-speculative-config.py",
         ("/models/parser-only",),

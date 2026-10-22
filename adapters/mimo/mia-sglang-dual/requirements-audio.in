@@ -1,0 +1,2 @@
+# Compatible with the creator-selected PyTorch 2.13 nightly.
+torchcodec==0.16.0
