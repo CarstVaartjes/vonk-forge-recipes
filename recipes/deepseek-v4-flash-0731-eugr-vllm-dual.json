@@ -969,7 +969,7 @@
       {
         "name": "load-format",
         "setting": null,
-        "value": "b12x"
+        "value": "safetensors"
       },
       {
         "name": "moe-backend",

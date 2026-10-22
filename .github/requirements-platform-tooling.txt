@@ -1,0 +1,3 @@
+# Overlay the pinned platform tooling without editing its lockfile.
+-r requirements-tooling.txt
+sigstore==4.5.1

@@ -8,10 +8,18 @@ arguments = sys.argv[1:]
 # independently of B12X_DISK_BACKEND. Keep its compute kernels, but load the
 # same checkpoint with vLLM's standard safetensors reader in our sandbox.
 SANDBOX_LOAD_FORMAT = "safetensors"
-arguments = [
-    SANDBOX_LOAD_FORMAT if index and arguments[index - 1] == "--load-format" else value
-    for index, value in enumerate(arguments)
-]
+# Normalize both CLI spellings, including omitted/default and repeated options.
+# Always append the image-owned loader so no upstream default can select io_uring.
+safe_arguments = []
+skip_value = False
+for argument in arguments:
+    if skip_value:
+        skip_value = False
+    elif argument == "--load-format":
+        skip_value = True
+    elif not argument.startswith("--load-format="):
+        safe_arguments.append(argument)
+arguments = [*safe_arguments, "--load-format", SANDBOX_LOAD_FORMAT]
 
 address = os.environ.get("VONK_MASTER_ADDR", "")
 local = os.environ.get("VONK_LOCAL_ADDR", "")

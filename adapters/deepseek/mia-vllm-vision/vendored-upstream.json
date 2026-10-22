@@ -21,7 +21,10 @@
     "patches/vision_exp/processor.py",
     "patches/vision_exp/vision.py",
     "verify-dspark-runtime.py",
-    "vllm-wrapper.py"
+    "vllm-wrapper.py",
+    "requirements-tls.in",
+    "requirements-tls.lock",
+    "verify-runtime-tls.py"
   ],
   "renamed": {
     "licenses/MiaAI-Lab-LICENSE": "LICENSE",

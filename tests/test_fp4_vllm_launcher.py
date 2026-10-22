@@ -35,4 +35,4 @@ def test_fp4_launcher_preserves_canonical_serve_command(tmp_path: Path) -> None:
         text=True,
         check=True,
     )
-    assert json.loads(result.stdout) == command
+    assert json.loads(result.stdout) == [*command, "--load-format", "safetensors"]

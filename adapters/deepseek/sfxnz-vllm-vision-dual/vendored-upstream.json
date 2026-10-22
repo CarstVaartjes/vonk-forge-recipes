@@ -17,7 +17,10 @@
     "whole": false
   },
   "ours": [
-    "vllm-wrapper.py"
+    "vllm-wrapper.py",
+    "requirements-tls.in",
+    "requirements-tls.lock",
+    "verify-runtime-tls.py"
   ],
   "source": {
     "commit": "099b90321fa6629ce15b02f909fd9df1921b80ad",

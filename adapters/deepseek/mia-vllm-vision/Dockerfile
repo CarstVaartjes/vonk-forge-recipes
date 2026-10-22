@@ -30,6 +30,19 @@ ENV HF_HUB_OFFLINE=1 \
     VLLM_NO_USAGE_STATS=1 \
     HOME=/state
 WORKDIR /state
+# Refresh both trust stores after upstream installs; fail the build on stale roots.
+# Some base images' Python looks for a CA file that does not exist; urllib and
+# aiohttp then trust nothing. Use the system bundle refreshed below.
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+COPY requirements-tls.lock verify-runtime-tls.py /tmp/runtime-tls/
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends --reinstall ca-certificates \
+    && update-ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m pip install --no-cache-dir --no-deps --require-hashes -r /tmp/runtime-tls/requirements-tls.lock \
+    && python3 /tmp/runtime-tls/verify-runtime-tls.py \
+    && rm -rf /tmp/runtime-tls
+
 USER 10001:10001
 RUN python3 -c 'import getpass, os, pwd; assert os.getuid() == 10001; assert pwd.getpwuid(10001).pw_uid == 10001; assert getpass.getuser()'
 ENTRYPOINT []

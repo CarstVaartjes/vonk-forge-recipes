@@ -20,13 +20,14 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
-from vonk_forge_contracts.sweep import SweepProgress as Progress
 from vonk_forge_contracts.sweep import (
+    SweepFailureClass,
     SweepWait,
     SweepWaitCode,
     SweepWaitExpiry,
     SweepWaitReason,
 )
+from vonk_forge_contracts.sweep import SweepProgress as Progress
 
 from .auth_contract import SmokeAuthClass
 from .lifecycle import LifecycleState
@@ -92,7 +93,15 @@ WAIT_CLASSES = frozenset(
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport
 #: error after its own retries: the cause is uncertain, so it is observed once more.
 SMOKE_TIMEOUT = "smoke-timeout"
-OBSERVE_CLASSES = frozenset({"copy-stalled", "network", SMOKE_TIMEOUT, UNATTRIBUTED})
+OBSERVE_CLASSES = frozenset(
+    {
+        "copy-stalled",
+        "network",
+        SMOKE_TIMEOUT,
+        UNATTRIBUTED,
+        SweepFailureClass.PLATFORM_EXIT,
+    }
+)
 #: The Controller reports the lane's application as stalled (``STALLED_CODE``): the lane is
 #: kept with an ``observe`` row that spends no attempt (never through ``disposition``).
 PLATFORM_STALLED = "platform-stalled"

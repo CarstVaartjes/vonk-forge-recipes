@@ -5,6 +5,45 @@ from enum import IntEnum, StrEnum
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
 
+class WorkloadExitCause(StrEnum):
+    """Controller exit facts from the helper runtime_logs::ExitCause vocabulary."""
+
+    OOM_KILLED = "oom_killed"
+    HOST_MEMORY_EXHAUSTED = "host_memory_exhausted"
+    BAD_ARGUMENTS = "bad_arguments"
+    MISSING_FILE = "missing_file"
+    UNSUPPORTED_GPU_ARCH = "unsupported_gpu_arch"
+    IMAGE_ARCH_MISMATCH = "image_arch_mismatch"
+    START_REFUSED = "start_refused"
+    CRASHED_BY_SIGNAL = "crashed_by_signal"
+    PYTHON_EXCEPTION = "python_exception"
+    UNCLASSIFIED = "unclassified"
+
+
+class WorkloadMemoryTrigger(StrEnum):
+    NVIDIA_ALLOCATION_FAILURE = "nvidia_allocation_failure"
+    SUSTAINED_FULL_PSI = "sustained_full_psi"
+    SUSTAINED_MEMAVAILABLE_EXHAUSTION = "sustained_memavailable_exhaustion"
+
+
+class WorkloadExitFacts(BaseModel):
+    """Only fixed summary facts, never the exception/log text that follows them."""
+
+    exit_cause: WorkloadExitCause
+    trigger: WorkloadMemoryTrigger | None = None
+
+
+class WorkloadFailureCode(StrEnum):
+    APPLICATION_FAILED = "application.failed"
+    RECIPE_START_FAILED = "recipe_start_failed"
+    RUNTIME_PROCESS_EXITED = "runtime_process_exited"
+    HOST_MEMORY_EXHAUSTED = "workload.host_memory_exhausted"
+
+
+class SweepFailureClass(StrEnum):
+    PLATFORM_EXIT = "platform-exit"
+
+
 class CliObservationStatus(StrEnum):
     TIMED_OUT = "timed_out"
     INTERRUPTED = "interrupted"

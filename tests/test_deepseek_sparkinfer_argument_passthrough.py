@@ -3,11 +3,53 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.mark.parametrize(
+    "adapter",
+    ["sparkinfer-single", "sparkinfer-target-only-single", "mia-sparkinfer-single"],
+)
+def test_sparkinfer_console_uses_native_extension_interpreter(
+    tmp_path: Path, adapter: str
+) -> None:
+    """Bypassing the image ENTRYPOINT must still use its Torch ABI environment."""
+    dockerfile = (ROOT / "adapters/deepseek" / adapter / "Dockerfile").read_text()
+    # Execute the shipped build instruction against a local console script,
+    # then invoke that script as the upstream serve-ds4-flash.sh does.
+    instruction = next(
+        line.removeprefix("RUN ").removesuffix(" \\")
+        for line in dockerfile.splitlines()
+        if line.startswith("RUN printf '#!/opt/runtime-venv/bin/python")
+    )
+    interpreter = tmp_path / "runtime-python"
+    interpreter.symlink_to(sys.executable)
+    package = tmp_path / "vllm/entrypoints/cli"
+    package.mkdir(parents=True)
+    (package / "main.py").write_text(
+        "import json, sys\ndef main():\n    print(json.dumps(sys.argv))\n"
+    )
+    console = tmp_path / "vllm-console"
+    instruction = instruction.replace("/opt/runtime-venv/bin/python", str(interpreter))
+    instruction = instruction.replace("/usr/local/bin/vllm", str(console))
+    subprocess.run(["sh", "-c", instruction], check=True, timeout=10)
+    console.chmod(0o755)
+    args = ["serve", "/models", "--gpu-memory-utilization", "0.85"]
+    result = subprocess.run(
+        [str(console), *args],
+        env={**os.environ, "PYTHONPATH": str(tmp_path)},
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=10,
+    )
+    assert json.loads(result.stdout) == [str(console), *args]
+    assert "from vllm.entrypoints.cli.main import main" in console.read_text()
 
 
 @pytest.mark.parametrize(
