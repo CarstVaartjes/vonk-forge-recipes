@@ -94,14 +94,14 @@ jobs:
         run: |
           set -euo pipefail
           plan_library() {
-            local platform=${3:-$GITHUB_WORKSPACE/.vonk-forge}
+            local platform=${4:-$GITHUB_WORKSPACE/.vonk-forge}
             "$platform/scripts/build-recipe-library" "$1"
             uv run --project "$platform/control" --frozen \
               --with-editable "$1/contracts" \
               "$platform/scripts/recipe-image-plan" \
-              --library-root "$1" --output-dir "$2"
+              --library-root "$1" --output-dir "$2" > "$3"
           }
-          plan_library "$GITHUB_WORKSPACE" "$RUNNER_TEMP/images" > "$RUNNER_TEMP/plan.json"
+          plan_library "$GITHUB_WORKSPACE" "$RUNNER_TEMP/images" "$RUNNER_TEMP/plan.json"
           if [ "$EVENT_NAME" = pull_request ]; then
             git clone --shared --no-checkout . "$RUNNER_TEMP/image-base"
             git -C "$RUNNER_TEMP/image-base" checkout --detach "$BASE_SHA"
@@ -114,7 +114,7 @@ jobs:
               git -C .vonk-forge worktree add --detach "$base_platform" "$base_ref"
               "$base_platform/scripts/build-control-wheel"
             fi
-            plan_library "$RUNNER_TEMP/image-base" "$RUNNER_TEMP/base-images" "$base_platform" > "$RUNNER_TEMP/base-plan.json"
+            plan_library "$RUNNER_TEMP/image-base" "$RUNNER_TEMP/base-images" "$RUNNER_TEMP/base-plan.json" "$base_platform"
           fi
           uv run --python 3.14 --no-project --with-editable contracts \
             python tools/prepare-remote-code-smoke \

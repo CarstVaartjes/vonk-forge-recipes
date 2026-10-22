@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
+import sys
 import textwrap
 from pathlib import Path
 
@@ -53,6 +55,89 @@ def test_pr_and_publish_share_planner_build_and_smokes():
     # separate remote-module smoke and the final platform adapter build.
     assert build.index('"${recipe_args[@]}"') < build.index("remote-code-smoke.py")
     assert build.index("remote-code-smoke.py") < build.index('"${adapter_args[@]}"')
+
+
+@pytest.mark.parametrize("event", ["pull_request", "push"])
+def test_workflow_plan_files_exclude_catalog_progress(tmp_path: Path, event: str):
+    workspace = tmp_path / "workspace"
+    subprocess.run(
+        ["git", "clone", "--shared", "--no-checkout", str(ROOT), str(workspace)],
+        check=True,
+        capture_output=True,
+        timeout=15,
+    )
+    scripts = workspace / ".vonk-forge/scripts"
+    scripts.mkdir(parents=True)
+    builder = scripts / "build-recipe-library"
+    builder.write_text('#!/bin/sh\necho "wrote catalog-index.json for $1"\n')
+    builder.chmod(0o755)
+    tools = workspace / "tools"
+    tools.mkdir()
+    shutil.copyfile(ROOT / "tools/prebuilt-images", tools / "prebuilt-images")
+    binary = tmp_path / "bin"
+    binary.mkdir()
+    uv = binary / "uv"
+    # Replace environment setup and the external platform planner only. Keep
+    # noisy catalog stdout and run the real downstream plan consumer.
+    uv.write_text(
+        f"#!{sys.executable}\n"
+        + """
+import json, os, subprocess, sys
+from pathlib import Path
+args = sys.argv[1:]
+if any(arg.endswith('/scripts/recipe-image-plan') for arg in args):
+    library = args[args.index('--library-root') + 1]
+    key = ('a' if library == os.environ['GITHUB_WORKSPACE'] else 'b') * 64
+    Path(args[args.index('--output-dir') + 1]).mkdir(parents=True)
+    print('planner diagnostic', file=sys.stderr)
+    print(json.dumps({'images': [{'build_key': key, 'recipes': []}]}))
+else:
+    script = args.index('python') + 1
+    raise SystemExit(subprocess.run(
+        [sys.executable, os.environ['SMOKE_TOOL'], *args[script + 1:]],
+        check=False, timeout=10,
+    ).returncode)
+"""
+    )
+    uv.chmod(0o755)
+    head = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, timeout=5
+    ).strip()
+    platform_ref = subprocess.check_output(
+        [sys.executable, str(tools / "prebuilt-images"), "platform-ref"],
+        cwd=ROOT,
+        text=True,
+        timeout=5,
+    ).strip()
+    script = _step("Plan one image per distinct build key").replace(
+        "${{ steps.platform.outputs.ref }}", platform_ref
+    )
+    result = subprocess.run(
+        ["bash", "-c", script],
+        cwd=workspace,
+        env={
+            **os.environ,
+            "PATH": f"{binary}:{os.environ['PATH']}",
+            "GITHUB_WORKSPACE": str(workspace),
+            "RUNNER_TEMP": str(tmp_path),
+            "EVENT_NAME": event,
+            "BASE_SHA": head,
+            "SMOKE_TOOL": str(ROOT / "tools/prepare-remote-code-smoke"),
+        },
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    plans = [("plan.json", KEY)]
+    if event == "pull_request":
+        plans.append(("base-plan.json", "b" * 64))
+    for filename, key in plans:
+        assert json.loads((tmp_path / filename).read_text()) == {
+            "images": [{"build_key": key, "recipes": []}]
+        }
+    assert result.stdout.count("wrote catalog-index.json") == len(plans)
 
 
 @pytest.mark.parametrize("result", ["success", "failure", "cancelled", "skipped"])
