@@ -18,25 +18,34 @@ UV_PIN = re.compile(
 )
 
 
+CI_PIN = re.compile(r'^        version: "(\d+\.\d+\.\d+)"$', re.MULTILINE)
+
+
 def uv_pin_problems(sources: list[tuple[str, str]], version: str) -> list[str]:
     problems = []
     for name, text in sources:
         if name == "pyproject.toml":
             continue
+        if name == SETUP:
+            # The setup action owns CI's exact uv; nothing else may name it.
+            if CI_PIN.findall(text) != [version] or UV_PIN.search(text):
+                problems.append(name)
+            continue
         if version in text or UV_PIN.search(text):
             problems.append(name)
         if "uses: astral-sh/setup-uv@" in text:
-            if name != SETUP or "version-file: pyproject.toml" not in text:
-                problems.append(name)
-            if re.search(r"^\s+version:", text, re.MULTILINE):
-                problems.append(name)
+            problems.append(name)
     return sorted(set(problems))
 
 
 def test_uv_has_one_exact_owner() -> None:
+    # CI installs exactly the setup action's uv; local tools accept that
+    # release or newer, so a newer developer uv never blocks a gate.
+    version = CI_PIN.findall((ROOT / SETUP).read_text())
+    assert len(version) == 1
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())
-    pin = project["tool"]["uv"]["required-version"]
-    assert re.fullmatch(r"==\d+\.\d+\.\d+", pin)
+    assert project["tool"]["uv"]["required-version"] == f">={version[0]}"
+    pin = "==" + version[0]
     paths = subprocess.run(
         ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
         cwd=ROOT,
@@ -74,7 +83,12 @@ def test_uv_has_one_exact_owner() -> None:
         ),
         (
             SETUP,
-            'uses: astral-sh/setup-uv@sha\n  version-file: pyproject.toml\n  version: "9.8.7"',
+            'uses: astral-sh/setup-uv@sha\n        version: "9.8.7"',
+        ),
+        (
+            SETUP,
+            'uses: astral-sh/setup-uv@sha\n        version: "1.2.3"\n'
+            '        version: "1.2.3"',
         ),
     ],
 )
