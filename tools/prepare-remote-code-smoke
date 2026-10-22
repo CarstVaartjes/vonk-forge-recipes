@@ -3,9 +3,9 @@
 
 Run by recipe-images before its selected build contexts are uploaded. The check
 runs inside the built recipe image before the platform layer or registry push.
-Only small, root-level Hugging Face Python modules are downloaded, never weights;
-all bytes must match the selected Model's manifest. Check all modules (including
-processors), since checking only modeling_*.py misses MOSS's video dependency.
+Only selected Hugging Face configs and Python modules are downloaded, never
+weights; all bytes must match the selected Model's manifest. Check auto_map
+modules and their relative imports, including processors, but not engine plugins.
 """
 
 from __future__ import annotations
@@ -39,6 +39,7 @@ class Plan(BaseModel):
 # This program runs under the image's Python (3.12), using its installed
 # transformers and native libraries. Do not import model code or load weights.
 CHECK = """import hashlib
+import json
 import tempfile
 import urllib.request
 from pathlib import Path
@@ -46,18 +47,47 @@ from pathlib import Path
 FILES = {files!r}
 
 if FILES:
-    from transformers.dynamic_module_utils import check_imports
-
     with tempfile.TemporaryDirectory() as temporary:
-        for url, digest, size, name in FILES:
+        files = {{Path(temporary) / name: (url, digest, size) for url, digest, size, name in FILES}}
+
+        def download(path):
+            url, digest, size = files[path]
             with urllib.request.urlopen(url, timeout=30) as response:
                 content = response.read(size + 1)
             if len(content) != size or hashlib.sha256(content).hexdigest() != digest:
                 raise RuntimeError("remote-code content mismatch: " + url)
-            path = Path(temporary) / name
+            path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
-            print("check_imports: " + url, flush=True)
-            check_imports(str(path))
+            return content
+
+        pending = set()
+        for path in files:
+            if path.suffix != ".json":
+                continue
+            config = json.loads(download(path))
+            for reference in config.get("auto_map", {{}}).values():
+                for target in reference if isinstance(reference, list) else [reference]:
+                    if target is None or "." not in target:
+                        continue
+                    # External code has no identity in this Model's manifest.
+                    if "--" in target:
+                        raise ValueError("unpinned external auto_map: " + target)
+                    module, _ = target.split(".")
+                    module_path = path.parent / (module + ".py")
+                    if module_path in files:
+                        pending.add(module_path)
+        if pending:
+            from transformers.dynamic_module_utils import check_imports
+        checked = set()
+        while pending:
+            path = pending.pop()
+            if path in checked:
+                continue
+            download(path)
+            print("check_imports: " + files[path][0], flush=True)
+            checked.add(path)
+            for relative in check_imports(str(path)):
+                pending.add(path.parent / (relative + ".py"))
 """
 
 
@@ -70,15 +100,23 @@ def model_files(
             (root / "models" / f"{selection.model.slug}.json").read_bytes()
         )
         selected = {item.file_id for item in selection.files}
+        if not any(
+            file.id in selected and file.path.endswith(".py") for file in model.files
+        ):
+            continue
         for file in model.files:
-            if (
-                file.id not in selected
-                or not file.path.endswith(".py")
-                or "/" in file.path
+            if file.id not in selected or not (
+                file.path.endswith(".py")
+                or file.path
+                in (
+                    "config.json",
+                    "tokenizer_config.json",
+                    "processor_config.json",
+                    "preprocessor_config.json",
+                    "video_preprocessor_config.json",
+                )
             ):
                 continue
-            # These are HF snapshot modules, not engine/training scripts from
-            # nested inference/ trees. Their exact bytes are model inputs.
             if not isinstance(
                 model.source, ModelSource
             ) or not model.source.repository.startswith("https://huggingface.co/"):
@@ -87,7 +125,14 @@ def model_files(
                 f"{model.source.repository}/resolve/{model.source.revision}/"
                 f"{quote(file.path)}"
             )
-            files.append((url, file.sha256, file.size_bytes, file.path))
+            files.append(
+                (
+                    url,
+                    file.sha256,
+                    file.size_bytes,
+                    f"{selection.model.slug}/{file.path}",
+                )
+            )
     return files
 
 
