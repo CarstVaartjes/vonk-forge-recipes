@@ -63,7 +63,8 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
             item["name"]: item["value"] for item in self.recipe["runtime"]["arguments"]
         }
         self.assertEqual(arguments["served-model-name"], "deepseek-v4-flash-vision-exp")
-        self.assertEqual(self.recipe["settings"]["context_tokens"]["value"], 1_048_576)
+        self.assertLess(self.recipe["settings"]["context_tokens"]["value"], 1_048_576)
+        self.assertIn("Context is capped", self.recipe["metadata"]["description"])
         self.assertEqual(json.loads(arguments["limit-mm-per-prompt"]), {"image": 8})
         self.assertEqual(self.recipe["interfaces"][0]["adapter"], "openai")
 

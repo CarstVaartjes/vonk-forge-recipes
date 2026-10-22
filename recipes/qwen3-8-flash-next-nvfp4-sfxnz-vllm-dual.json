@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "sfxnz's two-DGX-Spark vLLM TP2 recipe for NVIDIA's Qwen3.8 Flash Next NVFP4 checkpoint (snapshot fab0aecb, the revision the kit declares) on the digest-pinned official vllm/vllm-openai v0.30.0-aarch64 image, following upstream's default path. Upstream's R11 overlays are baked byte-identically at the vLLM paths it mounts them: deterministic FlashInfer CUTLASS MoE finalize, lazy-commit GDN MTP decode (K3), sorted QSA top-k, streamed tool-call serving fix, MTP local-argmax draft head with an FP8 copy, and online FP8 dense linears (Marlin W8A16), plus the drafter's GB10 Triton MoE config and the reasoning_effort alias chat template. In-band MTP-3 with the Triton draft MoE, async scheduling, a 4800-token long-prefill threshold, GPU memory utilization 0.76 (upstream lowered it after a host OOM), BF16 (auto) KV cache, native 262144-token window, eight sequences (the only occupancy upstream measured), vision limits of 8 images and 1 video per prompt, thinking off by default. Upstream measured 56.9 tok/s per stream prose and 84.3 structured at concurrency 1 on its own lab (claims, not measured here). Licences are information only: recipe scripts MIT (sfxnz), vLLM overlays Apache-2.0, model weights under the NVIDIA Open Model License. Vonk physical acceptance is pending. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking=false; the card template seeds an empty think block.",
+    "description": "sfxnz's two-DGX-Spark vLLM TP2 recipe for NVIDIA's Qwen3.8 Flash Next NVFP4 checkpoint (snapshot fab0aecb, the revision the kit declares) on the digest-pinned official vllm/vllm-openai v0.30.0-aarch64 image, following upstream's default path. Upstream's R11 overlays are baked byte-identically at the vLLM paths it mounts them: deterministic FlashInfer CUTLASS MoE finalize, lazy-commit GDN MTP decode (K3), sorted QSA top-k, streamed tool-call serving fix, MTP local-argmax draft head with an FP8 copy, and online FP8 dense linears (Marlin W8A16), plus the drafter's GB10 Triton MoE config and the reasoning_effort alias chat template. In-band MTP-3 with the Triton draft MoE, async scheduling, a 4800-token long-prefill threshold, GPU memory utilization 0.76 (upstream lowered it after a host OOM), BF16 (auto) KV cache, native 262144-token window, eight sequences (the only occupancy upstream measured), vision limits of 8 images and 1 video per prompt, thinking off by default. Upstream measured 56.9 tok/s per stream prose and 84.3 structured at concurrency 1 on its own lab (claims, not measured here). Licences are information only: recipe scripts MIT (sfxnz), vLLM overlays Apache-2.0, model weights under the NVIDIA Open Model License. Vonk physical acceptance is pending. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking=false; the card template seeds an empty think block. Absolute KV correction: 28,722,593,792 bytes per rank covers 8 simultaneous full-context requests at 262,144 tokens using the pinned cache-geometry allocation bound. The creator context is retained. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "mtp",
       "multimodal",
@@ -502,12 +502,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 561512448
+        "value": 28722593792
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.512015"
+        "value": "0.727539"
       }
     ],
     "engine": "vllm",
@@ -635,7 +635,7 @@
             "working_bytes": 54000000000
           },
           "memory": {
-            "peak_bytes": 74901637137,
+            "peak_bytes": 103062718481,
             "reserve_bytes": 8000000000
           }
         }
@@ -652,7 +652,7 @@
             "working_bytes": 54000000000
           },
           "memory": {
-            "peak_bytes": 74901637137,
+            "peak_bytes": 103062718481,
             "reserve_bytes": 8000000000
           }
         }

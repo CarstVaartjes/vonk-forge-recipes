@@ -1,5 +1,249 @@
 {
   "geometries": {
+    "deepseek-v4-1-flash-exl3-2-77bpw-9e3bbeab": {
+      "configuration_sha256": "8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 40,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/0xSero/DeepSeek-V4.1-Flash-Spark/resolve/9e3bbeabbb39fa2cf6e37e1cecfbd2fd0290329f/config.json; four kv_source_layer_ids and eight index_source_layer_ids: shared compressed KV/index cache. Bound 2048 bytes/token for FP8, 4096 for BF16; bounded SWA and replay state rounded to 64 MiB/request. Allocation estimate, not hardware proof.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 4096,
+        "fp8": 2048,
+        "fp8_ds_mla": 2048,
+        "fp8_e4m3": 2048,
+        "nvfp4_ds_mla": 2048
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6": {
+      "configuration_sha256": "8b2cb821118c407a148bc86a5a280f4cf4c633c82b5273c529e60afc2c702eca",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 40,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-EXL3-2.9bpw/resolve/64ba41b6c916a587db06eae2e19b7845f7be6e6b/config.json; four kv_source_layer_ids and eight index_source_layer_ids: shared compressed KV/index cache. Bound 2048 bytes/token for FP8, 4096 for BF16; bounded SWA and replay state rounded to 64 MiB/request. Allocation estimate, not hardware proof.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 4096,
+        "fp8": 2048,
+        "fp8_ds_mla": 2048,
+        "fp8_e4m3": 2048,
+        "nvfp4_ds_mla": 2048
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-1-flash-exl3-2bpw-mcg-viterbi-982b7045": {
+      "configuration_sha256": "6469adab394edead3eec148323e7471582d08acdf60a438bf0c9e815b69f36c5",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 40,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/sfxnz/DeepSeek-V4.1-Flash-EXL3/resolve/982b70452f399814f56b46272fd30394ae10d58c/config.json; four kv_source_layer_ids and eight index_source_layer_ids: shared compressed KV/index cache. Bound 2048 bytes/token for FP8, 4096 for BF16; bounded SWA and replay state rounded to 64 MiB/request. Allocation estimate, not hardware proof.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 4096,
+        "fp8": 2048,
+        "fp8_ds_mla": 2048,
+        "fp8_e4m3": 2048,
+        "nvfp4_ds_mla": 2048
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-flash-0731-7872f01b": {
+      "configuration_sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 43,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/resolve/7872f01b1d1fe23eabc4c98b48bffcef5a386062/config.json; conservative padded sparse-MLA bound: up to 44 layers including MTP, 584-byte MLA + 132-byte index records, minimum compression 4, rounded above 7876 bytes/token to 8192, plus bounded SWA/state below. Layout: https://github.com/Anemll/dspark-vllm-gx10/blob/47503f8e38dadd4dededca798150db2619594fce/overlay/vllm/v1/kv_cache_interface.py and overlay/vllm/models/deepseek_v4/attention.py. Both fp8_ds_mla and nvfp4_ds_mla retain the 584-byte envelope; not a 4-bit division.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 16384,
+        "fp8": 8192,
+        "fp8_ds_mla": 8192,
+        "fp8_e4m3": 8192,
+        "nvfp4_ds_mla": 8192
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-flash-0731-9e165c30": {
+      "configuration_sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 43,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-0731/resolve/9e165c30e2704aec5d9d593cce3eebd58bbef1cb/config.json; conservative padded sparse-MLA bound: up to 44 layers including MTP, 584-byte MLA + 132-byte index records, minimum compression 4, rounded above 7876 bytes/token to 8192, plus bounded SWA/state below. Layout: https://github.com/Anemll/dspark-vllm-gx10/blob/47503f8e38dadd4dededca798150db2619594fce/overlay/vllm/v1/kv_cache_interface.py and overlay/vllm/models/deepseek_v4/attention.py. Both fp8_ds_mla and nvfp4_ds_mla retain the 584-byte envelope; not a 4-bit division.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 16384,
+        "fp8": 8192,
+        "fp8_ds_mla": 8192,
+        "fp8_e4m3": 8192,
+        "nvfp4_ds_mla": 8192
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-flash-60d8d707": {
+      "configuration_sha256": "b628e63398a645abc711d92207f8737dd8140f7a4ef1e0a5b3616019e0ddd818",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 43,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/resolve/60d8d70770c6776ff598c94bb586a859a38244f1/config.json; conservative padded sparse-MLA bound: up to 44 layers including MTP, 584-byte MLA + 132-byte index records, minimum compression 4, rounded above 7876 bytes/token to 8192, plus bounded SWA/state below. Layout: https://github.com/Anemll/dspark-vllm-gx10/blob/47503f8e38dadd4dededca798150db2619594fce/overlay/vllm/v1/kv_cache_interface.py and overlay/vllm/models/deepseek_v4/attention.py. Both fp8_ds_mla and nvfp4_ds_mla retain the 584-byte envelope; not a 4-bit division.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 16384,
+        "fp8": 8192,
+        "fp8_ds_mla": 8192,
+        "fp8_e4m3": 8192,
+        "nvfp4_ds_mla": 8192
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-flash-dspark-62af8fff": {
+      "configuration_sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 43,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark/resolve/62af8fffb2f7030cac4de2f0169f5b8d1101b646/config.json; conservative padded sparse-MLA bound: up to 44 layers including MTP, 584-byte MLA + 132-byte index records, minimum compression 4, rounded above 7876 bytes/token to 8192, plus bounded SWA/state below. Layout: https://github.com/Anemll/dspark-vllm-gx10/blob/47503f8e38dadd4dededca798150db2619594fce/overlay/vllm/v1/kv_cache_interface.py and overlay/vllm/models/deepseek_v4/attention.py. Both fp8_ds_mla and nvfp4_ds_mla retain the 584-byte envelope; not a 4-bit division.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 16384,
+        "fp8": 8192,
+        "fp8_ds_mla": 8192,
+        "fp8_e4m3": 8192,
+        "nvfp4_ds_mla": 8192
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-flash-dspark-913f0657": {
+      "configuration_sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 43,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark/resolve/913f0657a874f76844e2e91cbe706dbcaceeb6d7/config.json; conservative padded sparse-MLA bound: up to 44 layers including MTP, 584-byte MLA + 132-byte index records, minimum compression 4, rounded above 7876 bytes/token to 8192, plus bounded SWA/state below. Layout: https://github.com/Anemll/dspark-vllm-gx10/blob/47503f8e38dadd4dededca798150db2619594fce/overlay/vllm/v1/kv_cache_interface.py and overlay/vllm/models/deepseek_v4/attention.py. Both fp8_ds_mla and nvfp4_ds_mla retain the 584-byte envelope; not a 4-bit division.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 16384,
+        "fp8": 8192,
+        "fp8_ds_mla": 8192,
+        "fp8_e4m3": 8192,
+        "nvfp4_ds_mla": 8192
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-flash-reap-162b-k144-2b29d032": {
+      "configuration_sha256": "d8c3cb69b55a1e0eb107bdd553e28fa18a3f2261d4d7b7fa4ff20bb42c4fd072",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 43,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/0xSero/DeepSeek-V4-Flash-162B/resolve/2b29d032372f96679bbcd2ec32f6c00bb1d5af3c/config.json; conservative padded sparse-MLA bound: up to 44 layers including MTP, 584-byte MLA + 132-byte index records, minimum compression 4, rounded above 7876 bytes/token to 8192, plus bounded SWA/state below. Layout: https://github.com/Anemll/dspark-vllm-gx10/blob/47503f8e38dadd4dededca798150db2619594fce/overlay/vllm/v1/kv_cache_interface.py and overlay/vllm/models/deepseek_v4/attention.py. Both fp8_ds_mla and nvfp4_ds_mla retain the 584-byte envelope; not a 4-bit division.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 16384,
+        "fp8": 8192,
+        "fp8_ds_mla": 8192,
+        "fp8_e4m3": 8192,
+        "nvfp4_ds_mla": 8192
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-flash-reap-180b-k160-d3c704b7": {
+      "configuration_sha256": "83792681fee1335892df67649aabcd358ed5c202d27aed42d8c9001600c07cda",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 43,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/0xSero/DeepSeek-V4-Flash-180B/resolve/d3c704b7a8144060e122f14e67c1595d1e733cb4/config.json; conservative padded sparse-MLA bound: up to 44 layers including MTP, 584-byte MLA + 132-byte index records, minimum compression 4, rounded above 7876 bytes/token to 8192, plus bounded SWA/state below. Layout: https://github.com/Anemll/dspark-vllm-gx10/blob/47503f8e38dadd4dededca798150db2619594fce/overlay/vllm/v1/kv_cache_interface.py and overlay/vllm/models/deepseek_v4/attention.py. Both fp8_ds_mla and nvfp4_ds_mla retain the 584-byte envelope; not a 4-bit division.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 16384,
+        "fp8": 8192,
+        "fp8_ds_mla": 8192,
+        "fp8_e4m3": 8192,
+        "nvfp4_ds_mla": 8192
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-flash-vision-exp-6821d6ad": {
+      "configuration_sha256": "6cd841bdd6702f5e2ac34671bc78047ed80817102465525ae2a41c502abbcd75",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 43,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/resolve/6821d6ad3681a4b137b066b76094fa82ebd0a380/config.json; conservative padded sparse-MLA bound: up to 44 layers including MTP, 584-byte MLA + 132-byte index records, minimum compression 4, rounded above 7876 bytes/token to 8192, plus bounded SWA/state below. Layout: https://github.com/Anemll/dspark-vllm-gx10/blob/47503f8e38dadd4dededca798150db2619594fce/overlay/vllm/v1/kv_cache_interface.py and overlay/vllm/models/deepseek_v4/attention.py. Both fp8_ds_mla and nvfp4_ds_mla retain the 584-byte envelope; not a 4-bit division.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 16384,
+        "fp8": 8192,
+        "fp8_ds_mla": 8192,
+        "fp8_e4m3": 8192,
+        "nvfp4_ds_mla": 8192
+      },
+      "value_dim": 0
+    },
+    "deepseek-v4-flash-vision-exp-86f746b3": {
+      "configuration_sha256": "6cd841bdd6702f5e2ac34671bc78047ed80817102465525ae2a41c502abbcd75",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 43,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/resolve/86f746b36186f0e567729a5c06a8c918caba82a9/config.json; conservative padded sparse-MLA bound: up to 44 layers including MTP, 584-byte MLA + 132-byte index records, minimum compression 4, rounded above 7876 bytes/token to 8192, plus bounded SWA/state below. Layout: https://github.com/Anemll/dspark-vllm-gx10/blob/47503f8e38dadd4dededca798150db2619594fce/overlay/vllm/v1/kv_cache_interface.py and overlay/vllm/models/deepseek_v4/attention.py. Both fp8_ds_mla and nvfp4_ds_mla retain the 584-byte envelope; not a 4-bit division.",
+      "state_bytes_per_request": 67108864,
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 16384,
+        "fp8": 8192,
+        "fp8_ds_mla": 8192,
+        "fp8_e4m3": 8192,
+        "nvfp4_ds_mla": 8192
+      },
+      "value_dim": 0
+    },
+    "glm-5-2-int4-int8mix": {
+      "configuration_sha256": "c9ebe6b941f9ef85c8d2597ec466b7cbeca0d258d264d0fd8cd33d1ccf0592f4",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 78,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/resolve/1d3bcfe5ec549ecd000fd80b37f191183842e983/config.json",
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "fp8_ds_mla": 61464,
+        "nvfp4_ds_mla": 61464
+      },
+      "value_dim": 64
+    },
+    "glm-5-2-nvfp4-aqlm-hybrid-53e0082e": {
+      "configuration_sha256": "2acea9859afcddc80e997b28eb5ec58d726f611516add37db8f81802f5c3f2ae",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 78,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/resolve/53e0082eedebd806b63e19779c47905937d768ca/config.json",
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "fp8_ds_mla": 61464,
+        "nvfp4_ds_mla": 61464
+      },
+      "value_dim": 64
+    },
     "glm-5-3-flash-exl3-2-05bpw-51058cd5": {
       "configuration_sha256": "43921c0b6dd51805a243649a647417230ef9cb9ba8e26ae06a461c3f7e08d037",
       "key_dim": 512,
@@ -26,6 +270,65 @@
       "token_bytes": 65536,
       "value_dim": 128
     },
+    "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": {
+      "configuration_sha256": "4f5341e048984459471bfb9c894e6bf87e69b9c67402672af901631d1349f265",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 45,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/brandonmusic/GLM-5.3-Flash-tr3-4bpw/resolve/1ae6d70430a12d762917786696db06a7b4f9bbae/config.json; layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration.",
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 65536,
+        "fp8": 12288,
+        "fp8_e4m3": 12288
+      },
+      "value_dim": 0
+    },
+    "glm-5-3-flash-nvfp4-caca4e6a": {
+      "configuration_sha256": "5db46f44956e4a8a0cc8ed54b6d77bf99dd7c1ec90c58975d1952560768513d5",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 45,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/resolve/caca4e6a4ebbd66f159d3d2fc256683fd6e27177/config.json; layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration.",
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 65536,
+        "fp8": 12288,
+        "fp8_e4m3": 12288
+      },
+      "value_dim": 0
+    },
+    "glm-5-3-flash-nvfp4-spark-a6082410": {
+      "configuration_sha256": "e1c0246a44ebefb5fd6383fb57aebbf7ac69ff6e7b23e989c0571b279a0eca23",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 45,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/local-inference-lab/GLM-5.3-Flash-NVFP4-Spark/resolve/a608241037e4c2565356bff7ca293f2133888f88/config.json; layer_types: 11 sparse and 34 linear; bound includes index cache on all 45 layers and MTP, rounded to 12288 bytes/token for FP8; BF16 65536-byte bound as in the existing single-Spark calibration.",
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "auto": 65536,
+        "fp8": 12288,
+        "fp8_e4m3": 12288
+      },
+      "value_dim": 0
+    },
+    "glm-5-3-int4-int8mix-206507bb": {
+      "configuration_sha256": "238781b1049848b65be244adda218845c1a63a4aa49c4941eb59a05dec681f3b",
+      "key_dim": 512,
+      "kv_heads": 1,
+      "layers": 78,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/Tech2wild/GLM-5.3-Int4-Int8Mix/resolve/206507bbb047d8223964a0414cd83230c59428f9/config.json",
+      "tensor_replicated": true,
+      "token_bytes_by_dtype": {
+        "fp8_ds_mla": 61464,
+        "nvfp4_ds_mla": 61464
+      },
+      "value_dim": 64
+    },
     "gpt-oss-120b-mxfp4-b5c939de": {
       "configuration_sha256": "933aeb666a3fd851133ddd7686414f369bc564c4185fb5704416550879f10566",
       "key_dim": 64,
@@ -36,12 +339,119 @@
       "source": "https://huggingface.co/openai/gpt-oss-120b/resolve/b5c939de8f754692c1647ca79fbf85e8c1e70f8a/config.json: 36 layers, 8 KV heads, head_dim 64. Charge every layer at full context, conservatively covering hybrid-cache padding instead of assuming sliding layers save allocation. BF16 KV; one engine sequence. Marlin repack is bounded by the backport of vLLM #47851; 8 GB runtime overhead remains estimated, not a measured peak. https://github.com/vllm-project/vllm/blob/ad7125a431e176d4161099480a66f0169609a690/vllm/model_executor/layers/fused_moe/oracle/mxfp4.py rounds Marlin hidden 2880 to 3072 and intermediate 2880 to 2944; marlin_utils_fp4.py expands uint8 scales to BF16. Across 36 x 128 experts, packed weights add 5181014016 bytes and scales add 4230807552 bytes over checkpoint storage; round their 9411821568-byte expansion to 10 GB, including padded bias. Eager execution bounds the uncalibrated graph term.",
       "value_dim": 64
     },
+    "hy3-295b-nvfp4-w4a16-4f7e1f02": {
+      "configuration_sha256": "7637967434d686c97f9b325d72485c2f5f7637ff10cbd7dc3c542c0e0842509f",
+      "key_dim": 128,
+      "kv_heads": 8,
+      "layers": 80,
+      "max_context_tokens": 262144,
+      "source": "https://huggingface.co/kodelow/Hy3-NVFP4-W4A16/resolve/4f7e1f02f32f4662bdc47f1237f34995088867a9/config.json",
+      "value_dim": 128
+    },
+    "hy3-nvfp4-libertai-8a805d68": {
+      "configuration_sha256": "5f85d4c99708a6f2435cec747721c8c3fe3c3bae346b649dc2dbea9300926cf1",
+      "key_dim": 128,
+      "kv_heads": 8,
+      "layers": 80,
+      "max_context_tokens": 262144,
+      "source": "https://huggingface.co/LibertAIDAI/Hy3-NVFP4/resolve/8a805d687c4bf02b364af15db5ee85e43ed998bf/config.json",
+      "value_dim": 128
+    },
+    "inkling-small-nvfp4": {
+      "configuration_sha256": "dcb5b1d587bce2f1e6b29833d739a724d05b4bfaa2dc1164fbe679330478ba53",
+      "key_dim": 128,
+      "kv_heads": 8,
+      "layers": 7,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/resolve/b6a99534467840620d411e4cd4ad5819b2610d9c/config.json; 7 full-attention layers, 35 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 110100480,
+      "value_dim": 128
+    },
+    "laguna-s-2-1-nvfp4-826aacdf": {
+      "configuration_sha256": "3b3a6e369129eaf628e6b96e417ce06d631d61856ba1d2e8eecdf31dfb8dfe01",
+      "key_dim": 128,
+      "kv_heads": 8,
+      "layers": 12,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/resolve/826aacdf6d8b2699d4e367def6f17c83b06044c2/config.json; 12 full-attention layers, 36 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 113246208,
+      "value_dim": 128
+    },
+    "leanstral-1-5-119b-a6b-81592da9": {
+      "configuration_sha256": "93f5e26c0d88ccf6f46f3a6e7794f1c9e082f66e43980688dcde1a6ca973d0c9",
+      "key_dim": 256,
+      "kv_heads": 1,
+      "layers": 36,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B/resolve/81592da95d94ab0439bfce16df1d55b402e598b6/params.json",
+      "tensor_replicated": true,
+      "value_dim": 64
+    },
     "llama-3-1-8b-instruct-nvfp4-bdb54e24": {
       "configuration_sha256": "017c7a2d285256747f75b01c5fbc7a78fa351ea49958cdf6e16f45b0a8d31afe",
       "key_dim": 128,
       "kv_heads": 8,
       "layers": 32,
       "source": "https://huggingface.co/nvidia/Llama-3.1-8B-Instruct-NVFP4/resolve/bdb54e24298451af785c0ac63c1b485e9b7400a2/config.json",
+      "value_dim": 128
+    },
+    "mimo-v2-5-nvfp4-a147dd04": {
+      "configuration_sha256": "8b414f453bee840c5f5682b2e2fd92f1f33e116df439c1e4eb385258e88b9dd3",
+      "key_dim": 192,
+      "kv_heads": 4,
+      "layers": 9,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/lukealonso/MiMo-V2.5-NVFP4/resolve/a147dd04d6cf861e43b2d783dcde23b53ab7ee68/config.json; 9 full-attention layers, 39 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 76677120,
+      "value_dim": 128
+    },
+    "mimo-v2-6-flash-rl-dcd3fd83": {
+      "configuration_sha256": "61bea4a0f7a0dd8969f8cae528761e26b697dd12ff63e98804c3f0945492e621",
+      "key_dim": 192,
+      "kv_heads": 4,
+      "layers": 9,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/resolve/dcd3fd83fb181622fbc606fbb1709901982a62c2/config.json; 9 full-attention layers, 39 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 76677120,
+      "value_dim": 128
+    },
+    "mimo-v2-6-pro-mopd-arvq-hybrid21-bb83094e": {
+      "configuration_sha256": "86b2b225ed44dc3af7d3c225c87df98f68c9e40709127e355f752734dd792f5b",
+      "key_dim": 192,
+      "kv_heads": 8,
+      "layers": 10,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21/resolve/bb83094e0075076cb0b553c965412e20b061b9c2/config.json; 10 full-attention layers, 60 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 117964800,
+      "value_dim": 128
+    },
+    "minimax-m2-7-nvfp4-e79701cb": {
+      "configuration_sha256": "24abe73e3a7d4d2e8e0d20ea13f322b8823a804e6598a4d0f7bfc0d0d367ea9d",
+      "key_dim": 128,
+      "kv_heads": 8,
+      "layers": 62,
+      "max_context_tokens": 196608,
+      "source": "https://huggingface.co/nvidia/MiniMax-M2.7-NVFP4/resolve/e79701cb1f9dce8fe5395b9ed2b20170beebecde/config.json",
+      "value_dim": 128
+    },
+    "nemotron-3-5-lightning-30b-a3b-nvfp4": {
+      "configuration_sha256": "f1d98b530846087dc08b574a219713a94f945bf6583dc7230a19ebf1e8c50933",
+      "key_dim": 128,
+      "kv_heads": 2,
+      "layers": 6,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/bee7596271d1495f6992ae224aefde4410e816b8/config.json; layers_block_type attention entries; recurrent state bounded separately at 256 MiB/request.",
+      "state_bytes_per_request": 268435456,
+      "value_dim": 128
+    },
+    "nemotron-3-5-super-vl-nvfp4-82d93699": {
+      "configuration_sha256": "35189a8038d1b1f934e58cba50eb7e97b42a4da569424e35b9fd1048058bc7ea",
+      "key_dim": 128,
+      "kv_heads": 2,
+      "layers": 8,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/resolve/82d93699acd3be9e4617c53360fe5b3f5dbeb1b3/config.json; layers_block_type attention entries; recurrent state bounded separately at 256 MiB/request.",
+      "state_bytes_per_request": 268435456,
       "value_dim": 128
     },
     "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976": {
@@ -52,6 +462,37 @@
       "source": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/config.json text_config: 64 layers, full_attention_interval=4, 4 KV heads, head_dim=256. The other 48 layers have FP32 recurrent state (48 value heads x 128 x 128) and BF16 convolution state (4 x (2 x 16 x 128 + 48 x 128)); 154927104 bytes rounded up to 160 MiB per sequence. No MTP speculation.",
       "state_bytes_per_request": 167772160,
       "value_dim": 256
+    },
+    "qwen3-8-flash-next-nvfp4-fab0aecb": {
+      "configuration_sha256": "4156f806efe3b33a892f13634002b2fb2371eb520908a5a110e63eab1822dd49",
+      "key_dim": 256,
+      "kv_heads": 2,
+      "layers": 12,
+      "max_context_tokens": 262144,
+      "replicated_token_bytes": 768,
+      "source": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4/resolve/fab0aecb760cec45227f6656abcaafa11abca87a/config.json; full-attention layers only; recurrent state rounded to 160 MiB/request (same linear dimensions as Qwen3.8-27B). Indexer bound: 12 full-attention layers x indexer_kv_heads=1 x indexer_head_dim=128 x 2 bytes / indexer_compress_ratio=4 = 768 replicated bytes/token (no FP8 storage credit).",
+      "state_bytes_per_request": 167772160,
+      "value_dim": 256
+    },
+    "step-3-7-flash-nvfp4-42755324": {
+      "configuration_sha256": "e09a8654f5c894c50378db85fc950fa127cff800fe75e81caa4692cdd41beab8",
+      "key_dim": 128,
+      "kv_heads": 8,
+      "layers": 12,
+      "max_context_tokens": 262144,
+      "source": "https://huggingface.co/stepfun-ai/Step-3.7-Flash-NVFP4/resolve/4275532ffd9a9496ff36b7a2dc4a9db1048da438/config.json; 12 full-attention layers, 33 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 103809024,
+      "value_dim": 128
+    },
+    "step-5-preview-spark-exl3-51a46a7f": {
+      "configuration_sha256": "2f0a5ae74ad42af3e94203f52f8b320fa6a5f2e691fe3eb789f76e2903bf4f0d",
+      "key_dim": 192,
+      "kv_heads": 4,
+      "layers": 23,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/0xSero/Step-5-Preview-Spark/resolve/51a46a7f62eee1225d124170da903bba23d04a26/config.json; 23 full-attention layers, 69 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 162791424,
+      "value_dim": 192
     }
   },
   "historical_documents": {
