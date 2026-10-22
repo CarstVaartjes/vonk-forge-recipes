@@ -9,6 +9,13 @@
           "reason": "The creator-declared dated tag is gone. Its original ARM64 digest remains available and preserves the verified packed-MXFP4 engine; retain it until the creator changes the image declaration."
         },
         "pattern": "^ARG BASE_IMAGE=(?P<repo>[^:\\s]+):(?P<version>[^\\s]+)$"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "boot.py",
+        "pattern": "^REVISION = '(?P<version>[0-9a-f]{40})'$",
+        "repo_pattern": "^REPO = '(?P<repo>[^']+)'$"
       }
     }
   },

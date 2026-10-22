@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import runpy
 import sys
 from pathlib import Path
@@ -9,6 +10,8 @@ from types import ModuleType, SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
+from vonk_forge_contracts.model import ModelSource
 
 ROOT = Path(__file__).resolve().parents[1]
 VERIFIER = ROOT / "adapters/mimo/mia-sglang-dual/verify-runtime.py"
@@ -103,3 +106,20 @@ def test_declared_alias_reaches_the_creator_launcher(
         )
     assert captured[0]["SERVED_MODEL_NAME"] == "mimo-v2.6-flash"
     assert "--served-model-name" not in captured[0].get("EXTRA_SGLANG_ARGS", "")
+
+
+def test_checkpoint_follows_the_creator_declared_revision() -> None:
+    recipe = RecipeDefinition.model_validate_json(
+        (ROOT / "recipes/mimo-v2-6-flash-rl-sglang-mia-dual.json").read_text()
+    )
+    model = ModelDefinition.model_validate_json(
+        (ROOT / "models" / f"{recipe.models[0].model.slug}.json").read_text()
+    )
+    declaration = re.search(
+        r"^REVISION = '([0-9a-f]{40})'$",
+        (ROOT / "adapters/mimo/mia-sglang-dual/boot.py").read_text(),
+        re.MULTILINE,
+    )
+    assert declaration is not None
+    assert isinstance(model.source, ModelSource)
+    assert model.source.revision == declaration.group(1)

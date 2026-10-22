@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "MiMo-V2.6-Flash-RL on two DGX Sparks using MiaAI-Lab's current SGLang kit and creator-selected CUDA 13 nightly. Restored after correcting the build verifier for SGLang's msgspec ServerArgs contract. The current public checkpoint, packed MXFP4 experts, EAGLE/DFLASH/off choices and multimodal path are retained. New-document memory planning bounds the shared target pool to 65,536 tokens, two 32K requests, static allocation 0.80 and a 112.54 GB per-node peak including estimated runtime overhead. Physical Spark acceptance is pending.",
+    "description": "MiMo-V2.6-Flash-RL on two DGX Sparks using MiaAI-Lab's current SGLang kit and creator-selected CUDA 13 nightly. Restored after correcting the build verifier for SGLang's msgspec ServerArgs contract. The kit-declared 3b38d063 checkpoint, packed MXFP4 experts, EAGLE/DFLASH/off choices and multimodal path are retained. New-document memory planning bounds the shared target pool to 65,536 tokens, two 32K requests, static allocation 0.80 and a 112.54 GB per-node peak including estimated runtime overhead. Physical Spark acceptance is pending.",
     "tags": [
       "audio",
       "dflash",
@@ -67,8 +67,30 @@
           ]
         },
         {
-          "file_id": "readme-132596ea7649-b335630551",
-          "id": "primary-readme-132596ea7649-b335630551",
+          "file_id": "mimo-v2-6-technical-report-7fe42601dc95-338161a248",
+          "id": "primary-mimo-v2-6-technical-report-7fe42601dc95-338161a248",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-f2765dfa631f-b335630551",
+          "id": "primary-readme-f2765dfa631f-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "architecture-d288768e1771-aa0ed6aa56",
+          "id": "primary-architecture-d288768e1771-aa0ed6aa56",
           "mount": {
             "target": "/models/target"
           },
@@ -166,8 +188,8 @@
           ]
         },
         {
-          "file_id": "config-3a65305bd8d9-2ce1459d3b",
-          "id": "primary-config-3a65305bd8d9-2ce1459d3b",
+          "file_id": "config-29f18def0d74-2ce1459d3b",
+          "id": "primary-config-29f18def0d74-2ce1459d3b",
           "mount": {
             "target": "/models/target"
           },
@@ -980,8 +1002,8 @@
           ]
         },
         {
-          "file_id": "preprocessor-config-fbe073ccca94-36afccab5d",
-          "id": "primary-preprocessor-config-fbe073ccca94-36afccab5d",
+          "file_id": "preprocessor-config-b269e51bdc1c-36afccab5d",
+          "id": "primary-preprocessor-config-b269e51bdc1c-36afccab5d",
           "mount": {
             "target": "/models/target"
           },
@@ -1026,10 +1048,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "f4070b32ae67dec49ea385cb59aae69cd651050f0ece3e18d3b4e7281bda69d3",
+        "content_sha256": "ad2a6f0d7fe60dff701666c9e11209fca89371163835e1395a2d215b2f7a72b1",
         "kind": "model",
         "publisher": "xiaomimimo",
-        "slug": "mimo-v2-6-flash-rl-dcd3fd83"
+        "slug": "mimo-v2-6-flash-rl-3b38d063"
       }
     }
   ],
@@ -1314,7 +1336,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 177764192071,
+            "artifact_bytes": 177767644130,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 52000000000
@@ -1331,7 +1353,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 177764192071,
+            "artifact_bytes": 177767644130,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 24000000000,
             "working_bytes": 52000000000
