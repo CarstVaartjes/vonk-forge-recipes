@@ -1230,3 +1230,20 @@ def test_adapter_only_fix_invalidates_a_failure_without_a_prebuilt_image():
         derive_status(evidence(failed), previous, 1, False).status
         == Status.FAILED_RECIPE
     )
+
+
+def test_pass_recorded_before_source_digests_stays_working():
+    # Evidence from before the index carried build-context digests has no
+    # source provenance; missing history is unknown, never a changed pin.
+    legacy = A.model_copy(update={"source_bundle_sha256": None})
+    current = A.model_copy(update={"source_bundle_sha256": "1" * 64})
+    passed = record(legacy)
+    view = derive_status(evidence(passed), current, 2, False)
+    assert view.status == Status.WORKING
+    assert view.changed == ()
+    # Once a digest is recorded, a later adapter-only change is a change.
+    bound = record(current)
+    moved = current.model_copy(update={"source_bundle_sha256": "2" * 64})
+    changed = derive_status(evidence(bound), moved, 2, False)
+    assert changed.status == Status.RECHECK
+    assert changed.changed == (Change.SOURCE,)

@@ -305,7 +305,8 @@ def _changes(
             ),
             (
                 QualificationChange.SOURCE,
-                previous.source_bundle_sha256 != current.source_bundle_sha256,
+                previous.source_bundle_sha256 is not None
+                and previous.source_bundle_sha256 != current.source_bundle_sha256,
             ),
             (
                 QualificationChange.MODEL,
@@ -324,7 +325,10 @@ def _same_content_identity(
     # changed pin. Publication separately requires fully resolved exact proof.
     return (
         previous.content_sha256 == current.content_sha256
-        and previous.source_bundle_sha256 == current.source_bundle_sha256
+        and (
+            previous.source_bundle_sha256 is None
+            or previous.source_bundle_sha256 == current.source_bundle_sha256
+        )
         and previous.model_digests == current.model_digests
         and previous.models_resolved == current.models_resolved
         and previous.required_sparks in (None, current.required_sparks)
