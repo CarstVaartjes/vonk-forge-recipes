@@ -9,10 +9,7 @@
     "verify_sm120_nope_mla.py",
     "patch_sm120_nope_mla.py",
     "register_exl3.py",
-    "tests/__init__.py",
-    "requirements-tls.in",
-    "requirements-tls.lock",
-    "verify-runtime-tls.py"
+    "tests/__init__.py"
   ],
   "renamed": {
     "upstream-LICENSE-MIT": "LICENSE.MIT"

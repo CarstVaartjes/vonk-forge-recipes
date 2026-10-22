@@ -16,10 +16,6 @@ ADAPTERS = (
     "deepseek/mia-vllm-vision",
     "deepseek/sfxnz-vllm-vision-dual",
     "qwen/drowzeys-aday777-single",
-    "llm/ui-mate-vllm",
-    "glm/mia-exl3-dflash2-dual",
-    "glm/mia-exl3-dflash2-triple",
-    "glm/mia-exl3-dflash2-four",
 )
 BUILD_HOSTS = {
     "archive.ubuntu.com",

@@ -1,2 +1,0 @@
-# Runtime trust update; retain the creator engine and its dependencies.
-certifi==2026.10.19

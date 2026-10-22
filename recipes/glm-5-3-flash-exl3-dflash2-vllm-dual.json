@@ -16,10 +16,7 @@
           "flashinfer.ai",
           "github.com",
           "codeload.github.com",
-          "pypi.org",
-          "archive.ubuntu.com",
-          "security.ubuntu.com",
-          "ports.ubuntu.com"
+          "pypi.org"
         ]
       },
       "patches": []

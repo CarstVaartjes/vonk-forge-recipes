@@ -22,10 +22,5 @@
       }
     },
     "whole": false
-  },
-  "ours": [
-    "requirements-tls.in",
-    "requirements-tls.lock",
-    "verify-runtime-tls.py"
-  ]
+  }
 }

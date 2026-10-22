@@ -10,13 +10,7 @@
       },
       "dockerfile": "adapters/llm/ui-mate-vllm/Dockerfile",
       "network": {
-        "hosts": [
-          "archive.ubuntu.com",
-          "security.ubuntu.com",
-          "ports.ubuntu.com",
-          "pypi.org",
-          "files.pythonhosted.org"
-        ]
+        "hosts": []
       },
       "patches": []
     }
