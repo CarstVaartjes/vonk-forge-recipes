@@ -386,7 +386,8 @@
       "f706c274770c2043d5235c6bf474a26b46709ab090b5d9b56402d3e8c17fae88"
     ],
     "vonk-forge/llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single": [
-      "b0d39b6807807eed424e365e8589b4f4f2ce3bfa766817b1f80abc923a18228a"
+      "b0d39b6807807eed424e365e8589b4f4f2ce3bfa766817b1f80abc923a18228a",
+      "c6a5fd6c43041e53c1cf4bd03eb8cdc8e58dfd4fa8cc137c1420fa13f1d29417"
     ],
     "vonk-forge/llama-3-3-70b-instruct-nvfp4-nvidia-sglang-single": [
       "a7972cd271f4452bebf978822c29e4dd0bc6e5b6d59f3470c39d60995182b62c"
@@ -781,6 +782,7 @@
   },
   "historical_sources": [
     "2baabeecab328eed03d63317f3c66bd35b21f412",
-    "db06379397c4f4dd8b6f20d6e5988e3311a306c8"
+    "db06379397c4f4dd8b6f20d6e5988e3311a306c8",
+    "da760c4f46c2414e08d4457968ea8d161fa4ac5a"
   ]
 }

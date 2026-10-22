@@ -1183,6 +1183,11 @@
         "name": "trust-remote-code",
         "setting": null,
         "value": true
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.740794"
       }
     ],
     "engine": "vllm",

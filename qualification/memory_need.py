@@ -387,6 +387,7 @@ def require_memory_need(
             problems = declaration_problems(variant, need)
             if problems:
                 raise ValueError(f"{key}: " + "; ".join(problems))
+            require_vllm_startup_budget(variant)
         return None
     result = None
     for variant in memory_variants(recipe):
@@ -435,8 +436,36 @@ def require_memory_need(
                 raise ValueError(
                     f"{key}/{role.name}: peak_bytes must cover need {need.total_bytes}"
                 )
+        require_vllm_startup_budget(variant)
         result = need
     return result
+
+
+def require_vllm_startup_budget(recipe: RecipeDefinition) -> None:
+    """Absolute KV overrides cache sizing, not vLLM's earlier startup check."""
+    if recipe.runtime.engine != "vllm" or (
+        argument_value(recipe, "kv-cache-memory-bytes") is None
+        and argument_value(recipe, "kv-cache-memory") is None
+    ):
+        return
+    fraction = argument_value(recipe, "gpu-memory-utilization")
+    if fraction is None:
+        raise ValueError(
+            f"{recipe.identity.slug}: absolute KV needs an explicit startup "
+            "gpu-memory-utilization budget"
+        )
+    utilization = Decimal(str(fraction))
+    if not utilization.is_finite() or not 0 < utilization <= 1:
+        raise ValueError(f"{recipe.identity.slug}: invalid vLLM startup budget")
+    for role in recipe.topology.roles:
+        if (
+            utilization * TOTAL_BYTES + OVERHEAD_BYTES
+            > role.resources.memory.peak_bytes
+        ):
+            raise ValueError(
+                f"{recipe.identity.slug}/{role.name}: vLLM startup budget plus "
+                "overhead exceeds declared peak"
+            )
 
 
 def memory_warnings(

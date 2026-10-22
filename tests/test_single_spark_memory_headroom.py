@@ -37,11 +37,16 @@ def llama() -> RecipeDefinition:
 
 
 def checked(recipe: RecipeDefinition) -> None:
+    # Identity belongs to the authored JSON, not defaults added by parsing it.
+    # The guard separately verifies that this parsed recipe still matches it.
+    document = json.loads(
+        (ROOT / "recipes" / f"{recipe.identity.slug}.json").read_text()
+    )
     require_memory_need(
         recipe,
         catalog_models(),
         INPUTS,
-        document_digest=document_sha256(recipe.model_dump(mode="json")),
+        document_digest=document_sha256(document),
     )
 
 

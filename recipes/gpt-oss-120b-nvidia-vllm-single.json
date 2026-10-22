@@ -363,6 +363,11 @@
       {
         "name": "enforce-eager",
         "value": true
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.649858"
       }
     ],
     "engine": "vllm",

@@ -2321,6 +2321,11 @@
         "name": "generation-config",
         "setting": null,
         "value": "vllm"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.806230"
       }
     ],
     "engine": "vllm",

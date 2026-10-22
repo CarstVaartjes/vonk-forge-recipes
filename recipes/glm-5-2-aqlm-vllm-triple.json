@@ -1810,6 +1810,11 @@
         "name": "default-chat-template-kwargs",
         "setting": null,
         "value": "{\"enable_thinking\":false}"
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.836567"
       }
     ],
     "engine": "vllm",
