@@ -140,8 +140,9 @@ the reusable producer job chose its light scope.
 PR validation calls the same image workflow at the PR head, compares base/head
 build keys and builds only changed, unpublished keys (including native checks
 and the remote-code smoke). Successful builds write `candidate-<key>` tags;
-publication promotes their digests without rebuilding. Missing proof fails
-publication; scheduled/manual image runs recover historical missing keys.
+publication promotes their digests without rebuilding. Keys without a candidate
+use the same build and smoke path at publication; scheduled/manual runs also
+recover historical missing keys.
 Changed images from forks need a trusted repository branch to push candidates.
 `tools/build-catalog-index --release-dir DIR` builds catalog/qualification
 indexes, recipe archives, coverage and `SHA256SUMS`. The signed release contains

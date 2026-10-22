@@ -13,7 +13,7 @@ revision and prefers the pinned digest over a Spark build.
             another recipe already has is copied instead of rebuilt. Successful
             PR builds write ``candidate-<key>``; these are promoted by digest.
             ``--base-plan`` limits PRs to changed executable keys (including
-            excluded recipes); ``--reuse-only`` forbids publication rebuilds.
+            excluded recipes). Publication builds keys without a candidate.
 ``resolve`` looks up every recipe's ``build-<key>`` digest for the signed index.
 
 ``platform-ref`` prints the Vonk Forge commit the library is validated with
@@ -323,7 +323,6 @@ def main() -> int:
     )
     choose.add_argument("--output", type=Path, required=True)
     choose.add_argument("--base-plan", type=Path)
-    choose.add_argument("--reuse-only", action="store_true")
     pin = commands.add_parser("platform-ref")
     pin.add_argument("--workflow", type=Path, default=PLATFORM_WORKFLOW)
     look = commands.add_parser("resolve")
@@ -356,13 +355,6 @@ def main() -> int:
         selection = select(plan, owner=arguments.owner, candidates=candidates)
         if arguments.base_plan is not None and selection["deferred"]:
             raise SystemExit("PR image matrix exceeds 256 keys; split the change")
-        if arguments.reuse_only and (selection["builds"] or selection["deferred"]):
-            keys = [row["build_key"] for row in selection["builds"]]
-            raise SystemExit(
-                f"Missing PR image proof for {keys + selection['deferred']}; "
-                "publication never rebuilds. Complete candidate CI or the "
-                "scheduled/manual image recovery workflow first."
-            )
         arguments.output.write_text(json.dumps(selection, indent=2), encoding="utf-8")
         print(
             f"{len(selection['builds'])} image build(s), "

@@ -173,16 +173,16 @@ def test_pr_cannot_silently_omit_a_recipe_the_image_planner_refused(
 
 
 @pytest.mark.parametrize("present", [False, True])
-def test_publish_fails_without_candidate_proof_instead_of_rebuilding(
+def test_publish_builds_only_the_changed_key_without_a_pr_candidate(
     tmp_path, monkeypatch, present
 ):
     plan_path = tmp_path / "plan.json"
     plan_path.write_text(json.dumps(_plan()))
-    tags = {
-        (tool.package(slug), f"candidate-{key}"): DIGEST
-        for key, slug in [(SHARED, "single"), (OWN, "other")]
-        if present
-    }
+    # One changed key always has PR proof; inject a missing candidate for
+    # the other key (cancelled/expired PR build or a merge-result key change).
+    tags = {(tool.package("single"), f"candidate-{SHARED}"): DIGEST}
+    if present:
+        tags[(tool.package("other"), f"candidate-{OWN}")] = DIGEST
     select = tool.select
     monkeypatch.setattr(
         tool, "select", lambda plan, **kw: select(plan, **kw, lookup=_registry(tags))
@@ -194,7 +194,6 @@ def test_publish_fails_without_candidate_proof_instead_of_rebuilding(
         [
             "prebuilt-images",
             "select",
-            "--reuse-only",
             "--plan",
             str(plan_path),
             "--owner",
@@ -203,13 +202,14 @@ def test_publish_fails_without_candidate_proof_instead_of_rebuilding(
             str(output),
         ],
     )
-    if present:
-        assert tool.main() == 0
-        assert json.loads(output.read_text())["builds"] == []
-    else:
-        with pytest.raises(SystemExit, match="Missing PR image proof"):
-            tool.main()
-        assert not output.exists()
+    assert tool.main() == 0
+    selection = json.loads(output.read_text())
+    assert [row["build_key"] for row in selection["builds"]] == (
+        [] if present else [OWN]
+    )
+    assert len(selection["copies"]) == (3 if present else 2)
+    assert all(f"@{DIGEST}" in row["from"] for row in selection["copies"])
+    assert selection["deferred"] == []
 
 
 def test_index_pins_each_recipes_own_digest_and_omits_missing_images() -> None:

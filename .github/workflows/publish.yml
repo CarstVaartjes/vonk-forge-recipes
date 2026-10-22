@@ -77,8 +77,8 @@ jobs:
           "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
 
-  # Promote the PR-proven content digest. Missing proof fails without a build;
-  # the scheduled/manual image workflow owns historical-key recovery.
+  # Promote PR-proven content digests; build only keys without a candidate
+  # through the same planner, build and smoke path.
   images:
     name: Recipe runtime images
     if: github.ref == 'refs/heads/main'
@@ -87,14 +87,11 @@ jobs:
       packages: write
       actions: write
     uses: ./.github/workflows/recipe-images.yml
-    with:
-      reuse_only: true
 
   publish:
     name: Create signed library release
     needs: [validate, producer-contracts, catalog-index, images]
-    # Image proof/promotion must succeed before signing; missing candidates
-    # cannot turn into a green release with pending pins.
+    # Image promotion or fallback builds must complete before signing.
     if: >-
       ${{ !cancelled() && github.ref == 'refs/heads/main'
       && needs.validate.result != 'failure'

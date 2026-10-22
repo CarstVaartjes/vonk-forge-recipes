@@ -29,7 +29,8 @@ def test_pr_and_publish_share_planner_build_and_smokes():
         assert "uses: ./.github/workflows/recipe-images.yml" in caller
         assert "scripts/recipe-image-plan" not in caller
         assert "podman" not in caller
-    assert "reuse_only: true" in publish
+    assert "reuse_only" not in publish
+    assert "--reuse-only" not in WORKFLOW.read_text()
     producer = publish.split("\n  producer-contracts:\n", 1)[1].split(
         "\n  catalog-index:", 1
     )[0]
@@ -70,8 +71,11 @@ def test_required_check_rejects_every_non_success_image_result(result: str):
     assert (checked.returncode == 0) == (result == "success")
 
 
+@pytest.mark.parametrize("event", ["pull_request", "push"])
 @pytest.mark.parametrize("fault", ["", "native", "remote", "adapter"])
-def test_build_or_smoke_failure_cannot_publish_a_candidate(tmp_path: Path, fault: str):
+def test_build_or_smoke_failure_cannot_publish_an_image(
+    tmp_path: Path, fault: str, event: str
+):
     directory = tmp_path / "plan" / KEY
     directory.mkdir(parents=True)
     (directory / "remote-code-smoke.py").touch()
@@ -138,7 +142,10 @@ if 'inspect' in args:
         "GH_TOKEN": "",
         "GITHUB_ENV": str(tmp_path / "env"),
         "GITHUB_STEP_SUMMARY": str(tmp_path / "summary"),
-        "EVENT_NAME": "pull_request",
+        "EVENT_NAME": event,
+        "WORKFLOW_NAME": (
+            "Publish recipe library release" if event == "push" else "Validate recipes"
+        ),
         "COMMAND_LOG": str(log),
         "FAULT": fault,
     }
@@ -169,5 +176,7 @@ if 'inspect' in args:
     commands = log.read_text()
     assert ("push --digestfile" in commands) == (not fault)
     if not fault:
-        assert f"docker://ghcr.io/o/recipe:candidate-{KEY}" in commands
-        assert f"docker://ghcr.io/o/recipe:build-{KEY}" not in commands
+        prefix = "candidate" if event == "pull_request" else "build"
+        assert f"docker://ghcr.io/o/recipe:{prefix}-{KEY}" in commands
+        summary = (tmp_path / "summary").read_text()
+        assert ("built at publish: no PR candidate" in summary) == (event == "push")

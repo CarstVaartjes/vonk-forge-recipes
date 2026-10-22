@@ -8,7 +8,7 @@ name: Recipe runtime images
 # validate.yml builds changed keys at the PR head and writes candidate-<key>
 # only after build-time native checks and the remote-code smoke succeed.
 # publish.yml uses the same planner to promote those digests to build-<key>;
-# it never rebuilds. Scheduled/manual runs recover missing historical keys.
+# keys without a candidate use the same build path during publication.
 on:
   # Independent recovery owner; publication tags do not retire missing keys.
   schedule:
@@ -19,10 +19,6 @@ on:
         description: "Space-separated recipe ids or 'all' (default: every missing image)"
         type: string
         default: ""
-      reuse_only:
-        description: "Promote proven candidates; fail instead of rebuilding missing keys"
-        type: boolean
-        default: false
       republish:
         description: "Dispatch publish.yml afterwards"
         type: boolean
@@ -129,7 +125,6 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           SAME_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-          REUSE_ONLY: ${{ inputs.reuse_only }}
           SLUGS: ${{ github.event_name == 'schedule' && 'all' || inputs.slugs }}
         shell: bash
         run: |
@@ -138,7 +133,6 @@ jobs:
           if [ "$EVENT_NAME" = pull_request ]; then
             select_args+=(--base-plan "$RUNNER_TEMP/base-plan.json")
           fi
-          if [ "$REUSE_ONLY" = true ]; then select_args+=(--reuse-only); fi
           python3 tools/prebuilt-images select "${select_args[@]}" --plan "$RUNNER_TEMP/plan.json" \
             --owner "${{ github.repository_owner }}" \
             --slugs "$SLUGS" --output "$RUNNER_TEMP/selection.json"
@@ -304,6 +298,7 @@ jobs:
       - name: Push to every recipe that uses this image
         env:
           EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_NAME: ${{ github.workflow }}
         shell: bash
         run: |
           set -euo pipefail
@@ -330,6 +325,9 @@ jobs:
             # Controllers pull anonymously: the package must be public.
             skopeo inspect --no-creds --raw "docker://${repositories[$index]}@$digest" >/dev/null
           done
+          if [ "$WORKFLOW_NAME" = "Publish recipe library release" ]; then
+            echo "- \`$KEY\`: built at publish: no PR candidate" >> "$GITHUB_STEP_SUMMARY"
+          fi
           size=$(sudo podman image inspect --format '{{.Size}}' localhost/vonk/runtime-image)
           echo "- \`${KEY:0:12}\` → \`$first@$digest\` (${size} bytes, built in ${build_seconds}s) for ${#repositories[@]} recipe(s)" >> "$GITHUB_STEP_SUMMARY"
 
@@ -376,7 +374,7 @@ jobs:
     needs: [plan, build, copy, resolve]
     # Failed builds in this batch must not starve the deferred tail. Each
     # continuation carries only that tail, independently of the publication tag.
-    if: ${{ !cancelled() && github.event_name != 'pull_request' && !inputs.reuse_only && needs.plan.result == 'success' && needs.plan.outputs.deferred_slugs != '' }}
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.plan.result == 'success' && needs.plan.outputs.deferred_slugs != '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
