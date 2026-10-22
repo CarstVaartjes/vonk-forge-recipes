@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/nemotron-3-nano-omni-30b-a3b-fp8-nvidia-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "13e3d154d48e0b5cdf3c4ea4b3c7b929fcd18a3cc4b7b711274afab918355a95",
+        "source_bundle_sha256": "6970a826eb9dd0a6a68387b56ab6a80e96ce16d0311d95e6ee68c31d7808eb87",
+        "runtime_image": {
+          "build_key": "b54414ae8a69acfa0a616f1675803ed4305f862e4e4de88e93c5f5eec6802672",
+          "image_digest": "sha256:da6f5d5c41e0cc63548320bbef7b732fb5950145bf639ca7f6f564bb93273866"
+        },
+        "model_digests": [
+          "1119ffc2d4b27a30fec0e2cee190f70cd9d91c8944fa878414db3dc4b751d966"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "fa2bb774996bbb011a74f916cca05abdf64d993ec2fa8ca1c15b8e4f88636e24"
+      ],
+      "tested_at": "2026-10-22T21:15:14.608144Z",
+      "platform": {
+        "controller_source_sha": "ec302b880c904d0bd9912ba335a3d93d62141845",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
