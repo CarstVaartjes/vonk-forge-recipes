@@ -246,8 +246,12 @@ def main() -> None:
         str(args.num_inference_steps),
         "--frame-rate",
         str(FPS),
+        # Prequantized NVFP4 emits weight/input scales that block streaming
+        # cannot represent. Use the native loader and its NVFP4 LoRA fuse rule.
+        "--quantization",
+        "nvfp4-prequant",
         "--offload",
-        "disk",
+        "none",
         "--max-batch-size",
         "1",
     ]

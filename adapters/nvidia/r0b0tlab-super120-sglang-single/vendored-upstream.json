@@ -4,6 +4,7 @@
     "commit": "19ab5365aaff58bc3c04ea4a9c9181c9c6482860"
   },
   "ours": [
+    "patch-reasoning-off.py",
     "sglang-serve"
   ]
 }

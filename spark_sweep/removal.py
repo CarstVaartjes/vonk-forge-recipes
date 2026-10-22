@@ -20,7 +20,7 @@ from .removal_contract import (
     RemovalReview,
 )
 from .state import State
-from .vonkctl import Vonkctl
+from .vonkctl import Vonkctl, VonkctlTransportError
 
 RETRY_SECONDS = 60.0
 MAX_BACKOFF_SECONDS = 3600.0
@@ -181,10 +181,17 @@ class ModelRemover:
     def _advance(self, digest: str, record: RemovalRecord, now: float) -> None:
         if record.request_key is None:
             review = self.vk.run(
-                "model", "remove", digest, "--fleet", "--review", timeout=30
+                "model",
+                "remove",
+                digest,
+                "--fleet",
+                "--review",
+                "--timeout-seconds",
+                "20",  # leave time to emit the CLI's observation before our 30s limit
+                timeout=30,
             )
             try:
-                parsed = _REVIEW_REPLY.validate_python(review.document)
+                parsed = _REVIEW_REPLY.validate_python(review.require_document())
                 if isinstance(parsed, RemovalReplyError):
                     self._retry(
                         record,
@@ -204,7 +211,7 @@ class ModelRemover:
                     raise ValueError("; ".join(item.detail for item in parsed.blockers))
                 if not review.ok:
                     raise ValueError(review.error_text)
-            except (ValueError, ValidationError) as error:
+            except (ValueError, VonkctlTransportError) as error:
                 self._retry(record, f"review refused: {error}", now)
                 record.last_response = review.document
                 self._store(digest, record)
@@ -231,7 +238,7 @@ class ModelRemover:
         )
         record.last_response = reply.document
         try:
-            receipt = RemovalReceipt.model_validate(reply.document)
+            receipt = RemovalReceipt.model_validate(reply.require_document())
             if (
                 receipt.request_key != record.request_key
                 or receipt.model_content_sha256 != digest
@@ -239,7 +246,7 @@ class ModelRemover:
                 raise ValueError(
                     "receipt does not bind the original request and model content"
                 )
-        except (ValueError, ValidationError) as error:
+        except (ValueError, VonkctlTransportError) as error:
             # A transport loss or refusal can follow acceptance. Never mint a new key
             # from prose or an HTTP status: reconnect to the same owner after backoff.
             record.message = f"receipt unavailable: {reply.error_text}; {error}"[:1024]
