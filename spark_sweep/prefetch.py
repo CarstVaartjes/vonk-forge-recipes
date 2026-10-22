@@ -565,6 +565,7 @@ class Prefetcher:
     ) -> tuple[int, int]:
         model_ops = image_ops = 0
         counted: set[str] = set()
+        downloading: set[str] = set()
         for key, record in self.state.downloads.items():
             if record.get("state") not in ("retired", "external") and active(
                 record.get("state")
@@ -572,6 +573,9 @@ class Prefetcher:
                 counted.add(key)
                 if record.get("kind") == "model":
                     model_ops += 1
+                    accepted = AcceptedRequest.read(record)
+                    if accepted is not None:
+                        downloading.update(accepted.recipe.model_digests)
                 else:
                     image_ops += 1
         for (
@@ -583,12 +587,17 @@ class Prefetcher:
                 and key not in counted
                 and self.state.downloads.get(key, {}).get("state") != "retired"
             ):
-                missing = any(
-                    models.get(d, Model("", d, 0, "unknown")).local != "cached"
+                missing = {
+                    d
                     for d in recipe.model_digests
-                )
+                    if models.get(d, Model("", d, 0, "unknown")).local != "cached"
+                }
                 if missing:
-                    model_ops += 1
+                    # Preparing recipe views can share the same model download.
+                    # Count new model work, not every recipe waiting for those bytes.
+                    if missing - downloading:
+                        model_ops += 1
+                        downloading.update(missing)
                 else:
                     image_ops += 1
         return model_ops, image_ops
