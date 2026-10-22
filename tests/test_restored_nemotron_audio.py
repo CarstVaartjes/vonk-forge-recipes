@@ -11,7 +11,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize("dtype", ["bf16"])
+@pytest.mark.parametrize("dtype", ["bf16", "fp8"])
 @pytest.mark.parametrize("broken", [None, "librosa", "soundfile"])
 def test_restored_image_rejects_missing_audio(dtype: str, broken: str | None) -> None:
     adapter = (
@@ -37,7 +37,7 @@ def test_restored_image_rejects_missing_audio(dtype: str, broken: str | None) ->
             runpy.run_path(str(adapter / "verify-runtime.py"))
 
 
-@pytest.mark.parametrize("dtype", ["bf16"])
+@pytest.mark.parametrize("dtype", ["bf16", "fp8"])
 def test_audio_install_uses_the_locked_missing_dependency(dtype: str) -> None:
     adapter = (
         ROOT
