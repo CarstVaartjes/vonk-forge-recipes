@@ -10,7 +10,13 @@
       },
       "dockerfile": "adapters/qwen/drowzeys-aday777-single/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "archive.ubuntu.com",
+          "security.ubuntu.com",
+          "ports.ubuntu.com",
+          "pypi.org",
+          "files.pythonhosted.org"
+        ]
       },
       "patches": []
     }
