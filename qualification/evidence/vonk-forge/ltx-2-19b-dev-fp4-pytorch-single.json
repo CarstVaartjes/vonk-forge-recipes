@@ -50,6 +50,32 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "8c720d64b0a896a37ec4c8e6e8f23a70adfaf11ed71490bcde724a47d3fc83d8",
+        "source_bundle_sha256": "079e3c85684d31f55f6b2d453d6000f28bb06ba73e0b11e33c94055563d73373",
+        "model_digests": [
+          "9253bb344fb0bab7f19db2aed480e1e27649848b478a4b5064b7ba99de828e47"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "57f3a2e94f8e8beb0db0c82efba93155764a7b24d2e2aaf263c1d8bdde0e2bf3"
+      ],
+      "tested_at": "2026-10-22T04:48:47.053598Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
     }
   ]
 }
