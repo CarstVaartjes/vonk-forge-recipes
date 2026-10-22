@@ -1,0 +1,12 @@
+{
+  "source": {
+    "repo": "Lightricks/LTX-2",
+    "commit": "9ec55f9f22798a3198d9c923856824821bc3317e"
+  },
+  "ours": [
+    "nvfp4-sm121.patch",
+    "pipelines/",
+    "requirements.lock",
+    "wheels/"
+  ]
+}
