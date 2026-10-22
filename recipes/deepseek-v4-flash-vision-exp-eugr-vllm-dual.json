@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker deepseek-v4-flash-vision-exp recipe for DeepSeek's DeepSeek-V4-Flash-Vision-Exp (checkpoint revision 6821d6ad), MIT, served by vLLM on two Sparks. Runs eugr's published vllm-node-b12x image (nightly-20260929, `--exp-b12x` lane, digest pinned; its build-metadata records spark-vllm-docker 42f62e34 and the local-inference-lab/vllm dev/karmic-kraken vLLM fork with lukealonso's b12x kernels) with upstream's launch: B12X attention, MoE and linear backends, b12x load format, FP8 KV cache with block size 256, DSpark speculative decoding with 6 tokens (probabilistic draft sampling) using the checkpoint's own draft layers, deepseek_v4 tokenizer, tool-call and reasoning parsers with thinking on and high reasoning effort by default, full-and-piecewise CUDA graphs (capture size 48), eight sequences, 8,192 batched tokens and memory utilisation 0.85 (upstream defaults). Upstream sets max-model-len to `auto` and so does this recipe (vLLM picks the largest context that fits; the checkpoint's configured maximum is 1,048,576 tokens, recorded as the context setting but not bound to the launch). Upstream's `--default-chat-template-kwargs.thinking=true` and `.reasoning_effort=high` are passed as one JSON `--default-chat-template-kwargs` value (equivalent). Upstream's instanttensor-hybrid-draft-loader and drop-caches mods are commented out and not applied. The recipe is cluster-only upstream (two Sparks). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker deepseek-v4-flash-vision-exp recipe for DeepSeek's DeepSeek-V4-Flash-Vision-Exp (checkpoint revision 6821d6ad), MIT, served by vLLM on two Sparks. Runs eugr's published vllm-node-b12x image (nightly-20260929, `--exp-b12x` lane, digest pinned; its build-metadata records spark-vllm-docker 42f62e34 and the local-inference-lab/vllm dev/karmic-kraken vLLM fork with lukealonso's b12x kernels) with upstream's launch: B12X attention, MoE and linear backends, b12x load format, FP8 KV cache with block size 256, DSpark speculative decoding with 6 tokens (probabilistic draft sampling) using the checkpoint's own draft layers, deepseek_v4 tokenizer, tool-call and reasoning parsers with thinking on and high reasoning effort by default, full-and-piecewise CUDA graphs (capture size 48), eight sequences, 8,192 batched tokens and memory utilisation 0.85 (upstream defaults). Upstream sets max-model-len to `auto` and so does this recipe (vLLM picks the largest context that fits; the checkpoint's configured maximum is 1,048,576 tokens, recorded as the context setting but not bound to the launch). Upstream's `--default-chat-template-kwargs.thinking=true` and `.reasoning_effort=high` are passed as one JSON `--default-chat-template-kwargs` value (equivalent). Upstream's instanttensor-hybrid-draft-loader and drop-caches mods are commented out and not applied. The recipe is cluster-only upstream (two Sparks). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Absolute KV correction: 27,732,738,048 bytes per rank covers 8 simultaneous full-context requests at 414,976 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 1,048,576 tokens to 414,976 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "b12x",
       "candidate",
@@ -1029,8 +1029,8 @@
       },
       {
         "name": "max-model-len",
-        "setting": null,
-        "value": "auto"
+        "setting": "context_tokens",
+        "value": null
       },
       {
         "name": "max-num-seqs",
@@ -1115,12 +1115,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 495976448
+        "value": 27732738048
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.645978"
+        "value": "0.854428"
       }
     ],
     "engine": "vllm",
@@ -1202,7 +1202,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1048576
+      "value": 414976
     },
     "kind": "generation",
     "knobs": {},
@@ -1233,7 +1233,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 92405678632,
+            "peak_bytes": 119642440232,
             "reserve_bytes": 8000000000
           }
         }
@@ -1250,7 +1250,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 92405678632,
+            "peak_bytes": 119642440232,
             "reserve_bytes": 8000000000
           }
         }

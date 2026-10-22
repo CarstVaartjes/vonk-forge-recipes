@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "MiaAI-Lab's DeepSeek-V4-Flash (base checkpoint, pre-0731) 1M-context profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and FlashInfer autotune on aidendle94's published vLLM fork image (digest-pinned, used unmodified), with upstream's coding-tuned sampling default (temperature 0.6, top_p 0.95), thinking on and reasoning effort high. Upstream marks this kit OLD in favour of its DSpark kit; the current Mia dual recipe is the Vision Experimental one. Licences (information only): recipe repository has no licence file (its README states MIT), model MIT. Upstream states no throughput figures; Vonk physical two-Spark acceptance is pending. The first start compiles and autotunes for several minutes (upstream allows about 20 minutes). Default sampling is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream's coding-tuned default. GB10 fit: GPU utilization 0.83 → 0.80 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "MiaAI-Lab's DeepSeek-V4-Flash (base checkpoint, pre-0731) 1M-context profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and FlashInfer autotune on aidendle94's published vLLM fork image (digest-pinned, used unmodified), with upstream's coding-tuned sampling default (temperature 0.6, top_p 0.95), thinking on and reasoning effort high. Upstream marks this kit OLD in favour of its DSpark kit; the current Mia dual recipe is the Vision Experimental one. Licences (information only): recipe repository has no licence file (its README states MIT), model MIT. Upstream states no throughput figures; Vonk physical two-Spark acceptance is pending. The first start compiles and autotunes for several minutes (upstream allows about 20 minutes). Default sampling is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream's coding-tuned default. GB10 fit: GPU utilization 0.83 → 0.80 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Absolute KV correction: 31,834,767,360 bytes per rank covers 6 simultaneous full-context requests at 639,488 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 1,000,000 tokens to 639,488 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "deepseek",
       "distributed",
@@ -976,12 +976,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 495976448
+        "value": 31834767360
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.614591"
+        "value": "0.854435"
       }
     ],
     "engine": "vllm",
@@ -1063,7 +1063,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1000000
+      "value": 639488
     },
     "kind": "generation",
     "knobs": {},
@@ -1091,7 +1091,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 88304550968,
+            "peak_bytes": 119643341880,
             "reserve_bytes": 6000000000
           }
         }
@@ -1108,7 +1108,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 88304550968,
+            "peak_bytes": 119643341880,
             "reserve_bytes": 6000000000
           }
         }

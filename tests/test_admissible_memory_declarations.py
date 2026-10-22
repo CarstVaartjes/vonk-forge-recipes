@@ -238,7 +238,7 @@ def test_absolute_kv_launch_survives_observed_startup_memory(rank: int) -> None:
         Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
         <= recipe.topology.roles[rank].resources.memory.peak_bytes
     )
-    assert argument_value(recipe, "kv-cache-memory-bytes") == 495_976_448
+    assert argument_value(recipe, "kv-cache-memory-bytes") == 3_414_163_456
 
 
 @pytest.mark.parametrize("defect", ["omitted", "oversized"])

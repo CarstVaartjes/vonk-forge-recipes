@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's dual-GB10 vLLM 0.21.1 (SM120/SM121 FP4 source build) serving of NVIDIA's ModelOpt NVFP4 checkpoint of MiniMax M2.7: tensor parallel 2 over Ray, FlashInfer-CUTLASS NVFP4 GEMM and MoE, FP8 KV, torch.compile mode 3 with CUDA graphs disabled (upstream found graph replay deadlocks the cross-node shared-memory broadcast). Text and tool calling (minimax_m2 parsers), 196,608 token context, 4 sequences (upstream launch script). Licences: r0b0tlab package MIT, vLLM Apache-2.0; the NVIDIA checkpoint is under the NVIDIA Software and Model Evaluation License (information only; upstream README asks users to accept the model licence). Upstream claims about 25 tok/s single-stream decode (tg128) on two GB10; not measured here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "r0b0tlab's dual-GB10 vLLM 0.21.1 (SM120/SM121 FP4 source build) serving of NVIDIA's ModelOpt NVFP4 checkpoint of MiniMax M2.7: tensor parallel 2 over Ray, FlashInfer-CUTLASS NVFP4 GEMM and MoE, FP8 KV, torch.compile mode 3 with CUDA graphs disabled (upstream found graph replay deadlocks the cross-node shared-memory broadcast). Text and tool calling (minimax_m2 parsers), 196,608 token context, 4 sequences (upstream launch script). Licences: r0b0tlab package MIT, vLLM Apache-2.0; the NVIDIA checkpoint is under the NVIDIA Software and Model Evaluation License (information only; upstream README asks users to accept the model licence). Upstream claims about 25 tok/s single-stream decode (tg128) on two GB10; not measured here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Absolute KV correction: 41,705,013,248 bytes per rank covers 4 simultaneous full-context requests at 164,224 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 196,608 tokens to 164,224 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "candidate",
       "distributed",
@@ -505,12 +505,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 520093696
+        "value": 41705013248
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.539278"
+        "value": "0.854477"
       }
     ],
     "engine": "vllm",
@@ -564,7 +564,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 196608
+      "value": 164224
     },
     "kind": "generation",
     "knobs": {},
@@ -592,7 +592,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 78463817648,
+            "peak_bytes": 119648737200,
             "reserve_bytes": 8000000000
           }
         }
@@ -609,7 +609,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 78463817648,
+            "peak_bytes": 119648737200,
             "reserve_bytes": 8000000000
           }
         }

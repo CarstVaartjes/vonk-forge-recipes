@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 1,000,000-token context on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Upstream's 500K rollback profile is a memory option plus the context and concurrency settings (500000 and 8). Same-creator alternatives for this Spark count with the 0731 checkpoint are the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 45.5 tok/s single stream at MTP 2, 2.84M-token KV pool at 1M context) are claims until measured here; Vonk physical two-Spark acceptance is pending. The first request after boot can time out while autotune and warmup finish. GB10 fit: GPU utilization 0.80, 0.82 → 0.79 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 1,000,000-token context on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Upstream's 500K rollback profile is a memory option plus the context and concurrency settings (500000 and 8). Same-creator alternatives for this Spark count with the 0731 checkpoint are the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 45.5 tok/s single stream at MTP 2, 2.84M-token KV pool at 1M context) are claims until measured here; Vonk physical two-Spark acceptance is pending. The first request after boot can time out while autotune and warmup finish. GB10 fit: GPU utilization 0.80, 0.82 → 0.79 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Absolute KV correction: 31,834,767,360 bytes per rank covers 6 simultaneous full-context requests at 639,488 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 1,000,000 tokens to 639,488 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "deepseek",
       "distributed",
@@ -986,12 +986,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 495976448
+        "value": 31834767360
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.614591"
+        "value": "0.854435"
       }
     ],
     "engine": "vllm",
@@ -1065,7 +1065,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1000000
+      "value": 639488
     },
     "kind": "generation",
     "knobs": {},
@@ -1093,7 +1093,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 88304550968,
+            "peak_bytes": 119643341880,
             "reserve_bytes": 6000000000
           }
         }
@@ -1110,7 +1110,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 88304550968,
+            "peak_bytes": 119643341880,
             "reserve_bytes": 6000000000
           }
         }

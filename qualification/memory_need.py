@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from itertools import product
 from pathlib import Path
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
@@ -54,6 +55,12 @@ class CacheGeometry(BaseModel):
     model_config = ConfigDict(extra="forbid")
     configuration_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     source: str
+    max_context_tokens: int | None = Field(default=None, gt=0)
+    tensor_replicated: bool = False
+    replicated_token_bytes: int = Field(default=0, ge=0)
+    token_bytes_by_dtype: dict[str, Annotated[int, Field(gt=0)]] = Field(
+        default_factory=dict
+    )
     layers: int = Field(gt=0)
     kv_heads: int = Field(gt=0)
     key_dim: int = Field(gt=0)
@@ -253,13 +260,6 @@ def calculate_need(
         else (16 if recipe.runtime.engine == "vllm" else 1)
     )
     context = ((context + block - 1) // block) * block
-    dtype = argument_value(recipe, "kv-cache-dtype")
-    if dtype in (None, "auto", "float16", "bfloat16"):
-        element_bits = 16
-    elif dtype in ("fp8", "fp8_e4m3", "fp8_e5m2"):
-        element_bits = 8
-    else:
-        raise ValueError(f"{label}: supply cache layout calibration for dtype {dtype}")
     weights: list[int] = []
     kv = state = expansion = 0
     for selection in recipe.models:
@@ -306,23 +306,7 @@ def calculate_need(
                 f"{label}: calibrated resident bound requires disabled graphs"
             )
         expansion += geometry.resident_expansion_bytes
-        token_layers = (
-            context * (geometry.layers - geometry.sliding_layers)
-            + min(context, geometry.sliding_window) * geometry.sliding_layers
-        )
-        token_need = (
-            token_layers
-            * concurrency
-            * geometry.kv_heads
-            * (geometry.key_dim + geometry.value_dim)
-            * element_bits
-            + 7
-        ) // 8
-        kv += (
-            context * concurrency * geometry.token_bytes
-            if geometry.token_bytes is not None
-            else token_need
-        )
+        kv += cache_need_for_context(recipe, geometry, context) * concurrency
         slots = concurrency
         if geometry.state_padding:
             slots = positive_argument(recipe, "max-mamba-cache-size")
@@ -366,6 +350,146 @@ def memory_variants(recipe: RecipeDefinition) -> list[RecipeDefinition]:
     )
 
 
+def cache_need_for_context(
+    recipe: RecipeDefinition, geometry: CacheGeometry, context: int
+) -> int:
+    """One cache-layout calculation for single-node and per-rank workload sizing."""
+    dtype = str(argument_value(recipe, "kv-cache-dtype") or "auto")
+    parallel = recipe.topology.parallelism
+    layers = (geometry.layers + parallel.pipeline - 1) // parallel.pipeline
+    heads = (
+        geometry.kv_heads
+        if geometry.tensor_replicated
+        else (geometry.kv_heads + parallel.tensor - 1) // parallel.tensor
+    )
+    if dtype not in geometry.token_bytes_by_dtype and dtype not in {
+        "auto",
+        "bfloat16",
+        "float16",
+        "fp8",
+        "fp8_e4m3",
+        "fp8_e5m2",
+        "nvfp4",
+    }:
+        raise ValueError(
+            f"{recipe.identity.slug}: supply cache layout calibration for dtype {dtype}"
+        )
+    if dtype in geometry.token_bytes_by_dtype:
+        token_bytes = (
+            geometry.token_bytes_by_dtype[dtype] * layers + geometry.layers - 1
+        ) // geometry.layers
+    elif geometry.token_bytes is not None:
+        token_bytes = (
+            geometry.token_bytes * layers + geometry.layers - 1
+        ) // geometry.layers
+    elif dtype in ("auto", "bfloat16", "float16"):
+        token_bytes = layers * heads * (geometry.key_dim + geometry.value_dim) * 2
+    elif dtype in ("fp8", "fp8_e4m3", "fp8_e5m2"):
+        token_bytes = layers * heads * (geometry.key_dim + geometry.value_dim)
+    elif dtype == "nvfp4":
+        # Packed data plus one FP8 scale per 16 elements, separately for K/V.
+        token_bytes = (
+            layers
+            * heads
+            * sum(
+                (dim + 1) // 2 + (dim + 15) // 16
+                for dim in (geometry.key_dim, geometry.value_dim)
+            )
+        )
+    else:
+        raise ValueError(f"{recipe.identity.slug}: supply cache layout for {dtype}")
+    needed = context * token_bytes
+    if not geometry.token_bytes_by_dtype.get(dtype) and geometry.token_bytes is None:
+        sliding_layers = (
+            geometry.sliding_layers + parallel.pipeline - 1
+        ) // parallel.pipeline
+        needed -= (
+            (context - min(context, geometry.sliding_window))
+            * sliding_layers
+            * (token_bytes // layers)
+        )
+    replicated_bytes = (
+        geometry.replicated_token_bytes * layers + geometry.layers - 1
+    ) // geometry.layers
+    return needed + context * replicated_bytes
+
+
+def absolute_kv_need(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    *,
+    concurrency: int = 1,
+) -> int:
+    """Per-rank pool for full context, including block rounding and packed scales.
+
+    MLA latents replicate over tensor ranks; ordinary GQA heads shard, with at
+    least one head per rank. Geometry is bound to the selected configuration.
+    Padded/hybrid layouts use a source-backed conservative allocation bound.
+    This is an allocation estimate, not a hardware qualification verdict.
+    """
+    model = models[recipe.models[0].model.content_sha256]
+    geometry = inputs.geometries.get(model.identity.slug)
+    if geometry is None:
+        raise ValueError(f"{recipe.identity.slug}: add source-backed cache geometry")
+    if not any(
+        item.sha256 == geometry.configuration_sha256 and "configuration" in item.roles
+        for item in model.files
+    ):
+        raise ValueError(f"{recipe.identity.slug}: cache geometry configuration drift")
+    context_flag = (
+        "max-model-len" if recipe.runtime.engine == "vllm" else "context-length"
+    )
+    context_value = argument_value(recipe, context_flag)
+    context = (
+        geometry.max_context_tokens
+        if context_value in (None, "auto", -1, "-1")
+        else positive_argument(recipe, context_flag)
+    )
+    if context is None:
+        raise ValueError(f"{recipe.identity.slug}: declare default model context")
+    block_flag = "block-size" if recipe.runtime.engine == "vllm" else "page-size"
+    block = (
+        positive_argument(recipe, block_flag)
+        if argument_value(recipe, block_flag) is not None
+        else 16
+    )
+    context = ((context + block - 1) // block) * block
+    return (
+        cache_need_for_context(recipe, geometry, context)
+        + geometry.state_bytes_per_request
+    ) * concurrency
+
+
+def require_absolute_kv_capacity(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+) -> None:
+    """A fixed pool must hold at least one full-context request, even on TP/PP."""
+    if recipe.runtime.engine not in {"vllm", "sglang"}:
+        return
+    for variant in memory_variants(recipe):
+        if variant.runtime.engine == "sglang":
+            tokens = argument_value(variant, "max-total-tokens")
+            if tokens is not None and positive_argument(
+                variant, "max-total-tokens"
+            ) < positive_argument(variant, "context-length"):
+                raise ValueError(
+                    f"{recipe.identity.slug}: absolute KV token pool cannot hold one full-context request"
+                )
+        elif variant.runtime.engine == "vllm":
+            pool = argument_value(variant, "kv-cache-memory-bytes")
+            if pool is None:
+                pool = argument_value(variant, "kv-cache-memory")
+            if pool is not None:
+                need = absolute_kv_need(variant, models, inputs)
+                if cache_bytes(pool) < need:
+                    raise ValueError(
+                        f"{recipe.identity.slug}: absolute KV pool {cache_bytes(pool)} bytes cannot hold one full-context request ({need} bytes/rank required)"
+                    )
+
+
 def require_memory_need(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
@@ -374,6 +498,8 @@ def require_memory_need(
     document_digest: str,
 ) -> MemoryNeed | None:
     """Check new/changed documents without retuning historical ones."""
+    if recipe.topology.node_count != 1:
+        require_absolute_kv_capacity(recipe, models, inputs)
     # Recorded content is judged by hardware, not by this offline check.
     if unchanged_recipe(recipe, document_digest, inputs):
         return None

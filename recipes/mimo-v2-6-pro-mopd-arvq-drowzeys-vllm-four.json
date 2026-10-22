@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "drowzeys' four-Spark serve of XiaomiMiMo/MiMo-V2.6-Pro-MOPD (MOPD C3, stock) in Jarrelscy's ARVQ / NVFP4 hybrid format (21% NVFP4 hot set): Jarrelscy's vLLM fork built for sm_121a with expert-batched ARVQ prefill, all three MTP heads run non-chain (k=2 default), TP4, 1,048,576-token context, BF16 KV, GPU memory 0.85, 4 sequences, 5120 batched tokens, torch.compile with CUDA graphs, mimo tool-call and reasoning parsers, language-model-only (the live upstream serve is text-only). Server sampling defaults apply only when a client sends none: temperature 0.7, top_p 0.95, max_new_tokens 8192, thinking off. Upstream reports (not measured here): 24.2 tok/s prose and 32.2 tok/s code single stream, 46.3 tok/s at 4 requests, 1.28M-token KV pool, about 83.2 GiB of weights per rank, GSM8K 96.8%, HumanEval 93.9%, MMLU-Pro 77.4% (strict). Jarrelscy marks full-model quality and SM120 / 1M serving as unqualified. Licences: MIT (Xiaomi MiMo weights, Jarrelscy hybrid format, drowzeys checkpoint and serve recipe). Not gated. Needs four Sparks on the 200G RoCE fabric; 363 GB of checkpoint per node. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "drowzeys' four-Spark serve of XiaomiMiMo/MiMo-V2.6-Pro-MOPD (MOPD C3, stock) in Jarrelscy's ARVQ / NVFP4 hybrid format (21% NVFP4 hot set): Jarrelscy's vLLM fork built for sm_121a with expert-batched ARVQ prefill, all three MTP heads run non-chain (k=2 default), TP4, 1,048,576-token context, BF16 KV, GPU memory 0.85, 4 sequences, 5120 batched tokens, torch.compile with CUDA graphs, mimo tool-call and reasoning parsers, language-model-only (the live upstream serve is text-only). Server sampling defaults apply only when a client sends none: temperature 0.7, top_p 0.95, max_new_tokens 8192, thinking off. Upstream reports (not measured here): 24.2 tok/s prose and 32.2 tok/s code single stream, 46.3 tok/s at 4 requests, 1.28M-token KV pool, about 83.2 GiB of weights per rank, GSM8K 96.8%, HumanEval 93.9%, MMLU-Pro 77.4% (strict). Jarrelscy marks full-model quality and SM120 / 1M serving as unqualified. Licences: MIT (Xiaomi MiMo weights, Jarrelscy hybrid format, drowzeys checkpoint and serve recipe). Not gated. Needs four Sparks on the 200G RoCE fabric; 363 GB of checkpoint per node. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Absolute KV correction: 20,872,396,800 bytes per rank covers 4 simultaneous full-context requests at 398,448 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 1,048,576 tokens to 398,448 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "arvq",
       "candidate",
@@ -5918,12 +5918,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 880803840
+        "value": 20872396800
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.701489"
+        "value": "0.854489"
       }
     ],
     "engine": "vllm",
@@ -6005,7 +6005,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 1048576
+      "value": 398448
     },
     "kind": "generation",
     "knobs": {},
@@ -6033,7 +6033,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 99658822432,
+            "peak_bytes": 119650415392,
             "reserve_bytes": 8000000000
           }
         }
@@ -6050,7 +6050,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 99658822432,
+            "peak_bytes": 119650415392,
             "reserve_bytes": 8000000000
           }
         }
