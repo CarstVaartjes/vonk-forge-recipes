@@ -41,6 +41,7 @@ from vonk_forge_contracts.sweep import (
     CleanupObservationBudget,
     FleetOnlineState,
     InfrastructureIncident,
+    ReviewInfrastructureSource,
     SweepSlotPhase,
     SweepStorageReview,
     SweepStorageWait,
@@ -1552,6 +1553,7 @@ class Sweep:
             source: item
             for source, item in self.state.data["infra"].items()
             if source in ("review", "catalog")
+            or source.startswith(f"{ReviewInfrastructureSource.TRANSPORT}:")
         }
         stuck = 0
         try:
@@ -3040,6 +3042,11 @@ class Sweep:
             d in self.cached_models for d in recipe.model_digests
         )
 
+    def _review_transport_source(self, recipe: Recipe) -> str:
+        # Back off the failed review topology, not a recipe verdict or the
+        # whole scheduler. A dual preview outage must leave singles eligible.
+        return f"{ReviewInfrastructureSource.TRANSPORT}:{self.cfg.sweep_profile}:{recipe.node_count}"
+
     def ready_candidates(self) -> list[Recipe]:
         now = self.clock.now()
         out = []
@@ -3053,6 +3060,11 @@ class Sweep:
             if now < float(entry.get("not_before", 0)) or now < float(
                 entry.get("defer_until", 0)
             ):
+                continue
+            incident = self.state.data["infra"].get(
+                self._review_transport_source(recipe)
+            )
+            if incident and now < float(incident["until"]):
                 continue
             out.append(recipe)
         deferred = [r for r in out if self.state.entry(r.key).get("wait_deferral")]
@@ -3269,57 +3281,72 @@ class Sweep:
             return
         if not self._take_over(now, place_ready=True):
             return
-        bins = self._bins()
-        # A gang can drain healthy lanes, but cannot reserve a free lane behind a
-        # stalled application or unresolved cleanup on its other member.
-        if (
-            candidates[0].node_count == 2
-            and len(bins) < 2
-            and (
-                self._cleanup_nodes()
-                or self.state.data.get("released")
-                or self.unobserved_loads
-                or any(
-                    load.get("stalled")
-                    or load.get("app_id") in self.stalled_applications
-                    for load in self.state.data["loads"].values()
-                )
-            )
-        ):
-            candidates = [recipe for recipe in candidates if recipe.node_count == 1]
+        attempted: set[str] = set()
+        # Each plan consumes a candidate; retries happen on a later tick.
+        for _ in range(len(candidates)):
             if not candidates:
                 return
-        # A dual at the head drains both lanes; do not refill one with later singles.
-        if candidates[0].node_count == 2:
-            if len(bins) < 2:
+            if attempted:
+                self._observe_owner(self.clock.now())
+                if self.paused or self.owner_status.new_activity:
+                    return
+            bins = self._bins()
+            if not bins:
                 return
-            self.state.data["mode"] = "dual"
-            dual = policy.place_dual(candidates[:1], bins, self.cfg.reserve_bytes)
-            placements = [dual] if dual else []
-        else:
-            self.state.data["mode"] = "single"
-            singles = []
-            for recipe in candidates:
-                if recipe.node_count == 2:
-                    break
-                singles.append(recipe)
-            placements = policy.place_singles(
-                singles,
-                bins,
-                self.cfg.reserve_bytes,
-                lambda r: alias_for(r, self.defs),
-            )
-        if not placements and not self.state.slots:
-            # Declared demand beyond one Spark: let the platform's review decide.
-            head = candidates[0]
-            width = head.node_count
-            spark_ids = tuple(b.id for b in bins[:width])
-            if len(spark_ids) == width and all(
-                head.key not in b.disk_blocked_recipes for b in bins[:width]
+            # A gang can drain healthy lanes, but cannot reserve a free lane behind a
+            # stalled application or unresolved cleanup on its other member.
+            if (
+                candidates[0].node_count == 2
+                and len(bins) < 2
+                and (
+                    self._cleanup_nodes()
+                    or self.state.data.get("released")
+                    or self.unobserved_loads
+                    or any(
+                        load.get("stalled")
+                        or load.get("app_id") in self.stalled_applications
+                        for load in self.state.data["loads"].values()
+                    )
+                )
             ):
-                placements = [policy.Placement(head, spark_ids)]
-        if placements:
-            self._apply(placements, now)
+                candidates = [recipe for recipe in candidates if recipe.node_count == 1]
+                if not candidates:
+                    return
+            # A dual at the head drains both lanes; do not refill one with later singles.
+            if candidates[0].node_count == 2:
+                if len(bins) < 2:
+                    return
+                self.state.data["mode"] = "dual"
+                dual = policy.place_dual(candidates[:1], bins, self.cfg.reserve_bytes)
+                placements = [dual] if dual else []
+            else:
+                self.state.data["mode"] = "single"
+                singles = []
+                for recipe in candidates:
+                    if recipe.node_count == 2:
+                        break
+                    singles.append(recipe)
+                placements = policy.place_singles(
+                    singles,
+                    bins,
+                    self.cfg.reserve_bytes,
+                    lambda r: alias_for(r, self.defs),
+                )
+            if not placements and not self.state.slots:
+                # Declared demand beyond one Spark: let the platform's review decide.
+                head = candidates[0]
+                width = head.node_count
+                spark_ids = tuple(b.id for b in bins[:width])
+                if len(spark_ids) == width and all(
+                    head.key not in b.disk_blocked_recipes for b in bins[:width]
+                ):
+                    placements = [policy.Placement(head, spark_ids)]
+            if placements:
+                attempted.update(p.recipe.key for p in placements)
+                self._apply(placements, self.clock.now())
+            else:
+                return
+            candidates = [r for r in self.ready_candidates() if r.key not in attempted]
 
     def _cleanup_confirmed(self) -> dict[str, int]:
         confirmed: dict[str, int] = {}
@@ -4018,10 +4045,18 @@ class Sweep:
         }
         review = self.vk.run("profile", "load", "--review", profile=profile)
         document = review.document if isinstance(review.document, dict) else {}
-        if review.is_error_document or not document:
+        if review.is_transport_error or review.is_error_document or not document:
             self._rollback(added, f"review failed: {review.error_text}")
             if verdict.reply_disposition(review) is Disposition.WAIT:
-                self.note_infra("review", review.error_text)
+                # A failed observation says nothing about the recipe. Back off
+                # this review topology, leaving independent reviews eligible.
+                for placement in added:
+                    self.state.entry(placement.recipe.key).pop("not_before", None)
+                    self.note_infra(
+                        self._review_transport_source(placement.recipe),
+                        review.error_text,
+                    )
+                self.state.save()
                 return
             # A recipe-data refusal of the review: a deterministic verdict, recorded once,
             # never the same plan reviewed again and again.
@@ -4034,6 +4069,8 @@ class Sweep:
             for placement in added:
                 self._record_failure(placement.recipe.key, failure, None)
             return
+        for placement in added:
+            self.clear_infra(self._review_transport_source(placement.recipe))
         stopped = [
             r["alias"]
             for r in dig(document, "effects", "runs", default=[])
