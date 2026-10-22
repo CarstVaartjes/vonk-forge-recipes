@@ -8,7 +8,12 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import SweepSlotPhase
+from vonk_forge_contracts.sweep import (
+    SweepSlotPhase,
+    SweepWait,
+    SweepWaitCode,
+    SweepWaitReason,
+)
 
 from spark_sweep import policy, verdict
 from spark_sweep.lifecycle import LifecycleState
@@ -51,62 +56,103 @@ def test_new_single_lanes_have_independent_application_receipts(tmp_path: Path) 
 @pytest.mark.parametrize(
     "admitted,reclaimable", [(False, 0), (False, 300_000_000_000), (True, 0)]
 )
-def test_saved_unadmitted_storage_wait_replans_without_cancelling_children(
-    tmp_path: Path,
-    admitted: bool,
-    reclaimable: int,
+def test_saved_unadmitted_storage_wait_keeps_the_same_load(
+    tmp_path: Path, admitted: bool, reclaimable: int
 ) -> None:
-    """A pending admission has no child to adopt; an accepted effect stays owned."""
-    recipes = [FakeRecipe("a", local="cached"), FakeRecipe("b", local="cached")]
+    """Pending storage is not a final capacity decision, including after restart."""
+    recipe = FakeRecipe("a", node_count=2, local="cached", load_seconds=600)
     sweep, fleet, clock = make_sweep(
-        tmp_path, recipes, [FakeModel("m1", local="cached")]
+        tmp_path, [recipe], [FakeModel("m1", local="cached")]
     )
     sweep.preflight()
     sweep.refresh_catalog()
-    # Reproduce the aggregate receipt written by the previous coordinator.
-    sweep._open_slot(
-        policy.Placement(sweep.recipes[recipes[0].key], ("spk_a",)),
-        "original",
+    sweep._apply(
+        [policy.Placement(sweep.recipes[recipe.key], ("spk_a", "spk_b"))],
         clock.now(),
     )
-    sweep._open_slot(
-        policy.Placement(sweep.recipes[recipes[1].key], ("spk_b",)),
-        "original",
-        clock.now(),
-    )
-    sweep.state.data["loads"]["original"] = {
-        "request_key": "original",
-        "app_id": "old",
-        "state": LifecycleState.QUEUED,
-    }
-    sweep.state.save()
-    restarted, _, _ = make_sweep(
-        tmp_path, recipes, list(fleet.models.values()), fleet=fleet
-    )
-    restarted.refresh_catalog()
-    load = restarted.state.data["loads"]["original"]
+    request = sweep.state.slots[recipe.key]["request_key"]
+    application = sweep.state.data["loads"][request]["app_id"]
     document = json.loads((FIXTURE.parent / "sweep-pending-storage.json").read_text())
+    document["id"] = application
     document["progress"]["blockers"][0]["storage"]["reclaimable_bytes"] = reclaimable
     if admitted:
         document["progress"]["effects"] = [{"effect_id": "accepted-child"}]
-    restarted._replan_pending_storage(load, document)
-    if admitted:
-        assert not load.get("replanned_pending")
-        assert all(
-            s["phase"] == SweepSlotPhase.LOADING for s in restarted.state.slots.values()
-        )
-        return
-    assert load["replanned_pending"]
-    restarted.enqueue_finished_cleanup()
-    restarted.cleanup_finished()
-    restarted.release_orphan_load()
-    assert "original" in restarted.state.data["loads"]
-    fleet.observations.append(
-        (("profile", "progress", "--application", "old"), 0, document)
+    deadline = sweep.state.slots[recipe.key]["deadline"]
+    submissions = sum(
+        args[:2] == ("profile", "load") and "--review" not in args
+        for _, args in fleet.calls
     )
-    restarted.tick()
-    assert recipes[1].key in restarted.state.slots
-    assert recipes[0].key not in restarted.state.slots
+    for cycle in range(4):
+        fleet.observations.append(
+            (("profile", "progress", "--application", application), 0, document)
+        )
+        sweep.tick()
+        slot = sweep.state.slots[recipe.key]
+        assert slot["phase"] == SweepSlotPhase.LOADING
+        assert slot["request_key"] == request
+        assert slot["deadline"] == deadline
+        wait = SweepWait.model_validate(slot["watch"]["wait"])
+        assert wait.reason == SweepWaitReason.ADMISSION
+        assert wait.detail == document["progress"]["blockers"][0]["code"]
+        if cycle == 1:
+            sweep.state.save()
+            sweep, _, _ = make_sweep(
+                tmp_path, [recipe], list(fleet.models.values()), fleet=fleet
+            )
+            sweep.refresh_catalog()
+        clock.sleep(10)
+    # Admission begins the NAS -> Spark copy under the original receipt.
+    copying = fleet._app_doc(fleet.apps[application])
+    copying["progress"]["child_progress"] = {"phase": "target-copy", "bytes": 100}
+    fleet.observations.append(
+        (("profile", "progress", "--application", application), 0, copying)
+    )
+    sweep.tick()
+    assert sweep.state.slots[recipe.key]["copying"]
+    assert sweep.state.slots[recipe.key]["request_key"] == request
+    assert sweep.state.data["loads"][request]["app_id"] == application
+    assert (
+        sum(
+            args[:2] == ("profile", "load") and "--review" not in args
+            for _, args in fleet.calls
+        )
+        == submissions
+    )
+    assert not list(sweep.log.entries())
+    assert not any(args[:2] == ("profile", "cancel") for _, args in fleet.calls)
+
+
+def test_pending_storage_expires_with_evidence_without_recipe_attempt(
+    tmp_path: Path,
+) -> None:
+    recipe = FakeRecipe("a", node_count=2, local="cached", load_seconds=10000)
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [recipe], [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep._apply(
+        [policy.Placement(sweep.recipes[recipe.key], ("spk_a", "spk_b"))], clock.now()
+    )
+    slot = sweep.state.slots[recipe.key]
+    request = slot["request_key"]
+    application = sweep.state.data["loads"][request]["app_id"]
+    document = json.loads((FIXTURE.parent / "sweep-pending-storage.json").read_text())
+    document["id"] = application
+    for expired in (False, True):
+        fleet.observations.append(
+            (("profile", "progress", "--application", application), 0, document)
+        )
+        sweep.advance_slots(clock.now())
+        if not expired:
+            assert slot["watch"]["wait_deadline"] <= slot["deadline"]
+            clock.sleep(slot["deadline"] - clock.now() + 1)
+    assert slot["phase"] == SweepSlotPhase.FINISHED
+    assert request in sweep.state.data["loads"]
+    assert sweep.state.entry(recipe.key).get("attempts", 0) == 0
+    row = list(sweep.log.entries())[-1]
+    assert row["code"] == SweepWaitCode.BUDGET_EXHAUSTED
+    assert row["controller_document"]["id"] == application
     assert not any(args[:2] == ("profile", "cancel") for _, args in fleet.calls)
 
 
