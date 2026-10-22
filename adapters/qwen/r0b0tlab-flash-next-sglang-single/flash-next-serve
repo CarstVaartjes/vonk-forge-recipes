@@ -3,9 +3,23 @@
 
 from __future__ import annotations
 
+import argparse
+import math
 import os
 import sys
 from pathlib import Path
+
+# Consume the platform's endpoint and reservation arguments before the upstream
+# profile parser sees them. Apply the reservation to the compiled server argv.
+parser = argparse.ArgumentParser(add_help=False)
+parser.add_argument("--host", required=True)
+parser.add_argument("--port", required=True, type=int)
+parser.add_argument("--mem-fraction-static", required=True, type=float)
+args, profile_args = parser.parse_known_args()
+if not 0 < args.port <= 65535:
+    parser.error("port must be between 1 and 65535")
+if not math.isfinite(args.mem_fraction_static) or not 0 < args.mem_fraction_static < 1:
+    parser.error("mem-fraction-static must be finite and between 0 and 1")
 
 MODEL = Path("/models")
 CACHE = Path("/outputs/cache")
@@ -25,4 +39,17 @@ sys.path.insert(0, "/opt/r0b0tlab")
 from runtime import entrypoint  # noqa: E402
 
 entrypoint.MODEL_PATH = str(MODEL)
-raise SystemExit(entrypoint.main(sys.argv[1:]))
+entrypoint.SERVE_HOST = args.host
+entrypoint.SERVE_PORT = args.port
+profile_build_argv = entrypoint.build_argv
+
+
+def build_argv(profile, sources):
+    argv = profile_build_argv(profile, sources)
+    position = argv.index("--mem-fraction-static")
+    argv[position + 1] = str(args.mem_fraction_static)
+    return argv
+
+
+entrypoint.build_argv = build_argv
+raise SystemExit(entrypoint.main(profile_args))
