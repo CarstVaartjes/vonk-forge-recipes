@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-0731-dspark-tonyd2wild-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "91c253e65c6ac04f29e6592722abec2ba1f60060b72a6fd9a48db6973ed749e5",
+        "runtime_image": {
+          "build_key": "b67e0a6eaccafb99464369ddc8432df0bdec3312e24f45dae253d0ad7524981f",
+          "image_digest": "sha256:849ae7a9b926698153041b4a0ab62be0b82bf54a8031a83487fef560135c996a"
+        },
+        "model_digests": [
+          "178317ff0fa085f65a9a2d75aacb6bb61a7d76be9a08025376af5aa5a77480f3"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "2fc4eb3777c6b7d3b24e1e36d25dbe3e270465ac18a9f006a9bff392658d48de"
+      ],
+      "tested_at": "2026-10-22T00:30:32.360622Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
