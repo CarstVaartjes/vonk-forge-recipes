@@ -21,7 +21,15 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+from pydantic import ValidationError
 from vonk_forge_contracts import QualificationCauseCode
+from vonk_forge_contracts.sweep import (
+    SweepFailureClass,
+    WorkloadExitCause,
+    WorkloadExitFacts,
+    WorkloadFailureCode,
+    WorkloadMemoryTrigger,
+)
 
 from .auth_contract import SmokeAuthClass
 from .catalog import Model, Recipe
@@ -661,6 +669,51 @@ def excerpt(
 ) -> str:
     """A redacted, bounded piece of a response body or value."""
     return redact(str(text), secrets)[:limit]
+
+
+def classify_application_failure(
+    phase: str, code: str, detail: str, *, evidence: Mapping[str, Any] | None = None
+) -> Failure:
+    """Attribute fixed Controller exit facts only at the workload start boundary.
+
+    Assignment reasons carry the helper's token summary, not a recipe code.
+    Exception text can itself contain exit_cause=...; it is never a fact.
+    Explicit infrastructure codes and installation/admission failures stay platform-owned.
+    """
+    if phase not in {"start", "readiness"} or code not in WorkloadFailureCode:
+        return classify(phase, code, detail, evidence=evidence)
+    facts_text = detail.split(" exception=", 1)[0]
+    facts = re.findall(r"(?:^|\s)(exit_cause|trigger)=([a-z_]+)(?=\s|$)", facts_text)
+    if not facts and WorkloadFailureCode.RUNTIME_PROCESS_EXITED not in facts_text:
+        return classify(phase, code, detail, evidence=evidence)
+    try:
+        if len({name for name, _ in facts}) != len(facts):
+            raise ValueError("ambiguous exit facts")
+        exit_facts = WorkloadExitFacts.model_validate(dict(facts))
+    except (ValidationError, ValueError):
+        exit_facts = None
+    recipe_code = None
+    if exit_facts is not None:
+        if exit_facts.exit_cause in {
+            WorkloadExitCause.BAD_ARGUMENTS,
+            WorkloadExitCause.PYTHON_EXCEPTION,
+            WorkloadExitCause.MISSING_FILE,
+            WorkloadExitCause.UNSUPPORTED_GPU_ARCH,
+            WorkloadExitCause.IMAGE_ARCH_MISMATCH,
+        }:
+            recipe_code = QualificationCauseCode.RUNTIME_EXIT
+        elif exit_facts.exit_cause == WorkloadExitCause.OOM_KILLED or (
+            exit_facts.exit_cause == WorkloadExitCause.HOST_MEMORY_EXHAUSTED
+            and exit_facts.trigger == WorkloadMemoryTrigger.NVIDIA_ALLOCATION_FAILURE
+        ):
+            recipe_code = QualificationCauseCode.RUNTIME_OOM
+    return classify(
+        phase,
+        recipe_code or code,
+        detail,
+        klass="" if recipe_code else SweepFailureClass.PLATFORM_EXIT,
+        evidence={**(evidence or {}), "controller_code": code},
+    )
 
 
 def classify(

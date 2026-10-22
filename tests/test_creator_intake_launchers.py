@@ -221,6 +221,8 @@ def test_fp4_dual_binds_controller_placement(tmp_path: Path, valid: bool) -> Non
         assert result.returncode == 0
         assert json.loads(result.stdout) == [
             *argv,
+            "--load-format",
+            "safetensors",
             "--master-addr",
             "192.0.2.1",
             "--master-port",
