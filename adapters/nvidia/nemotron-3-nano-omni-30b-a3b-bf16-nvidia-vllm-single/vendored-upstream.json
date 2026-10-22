@@ -1,0 +1,8 @@
+{
+  "ours": [
+    "requirements-audio.in",
+    "requirements-audio.lock",
+    "verify-runtime.py",
+    "vllm"
+  ]
+}
