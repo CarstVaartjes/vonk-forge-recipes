@@ -1,9 +1,23 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "Dockerfile",
+        "override": {
+          "digest": "sha256:9e1fb4c395b9c406136e10aa445b8784d06bca3839623b52cbe4a3b231a157a8",
+          "reason": "The creator-declared dated tag is gone. Its original ARM64 digest remains available and preserves the verified packed-MXFP4 engine; retain it until the creator changes the image declaration."
+        },
+        "pattern": "^ARG BASE_IMAGE=(?P<repo>[^:\\s]+):(?P<version>[^\\s]+)$"
+      }
+    }
+  },
   "ours": [
     "NOTICE.upstream",
     "requirements-audio.txt",
     "sglang-serve",
-    "verify-runtime.py"
+    "verify-runtime.py",
+    "requirements-audio.in"
   ],
   "source": {
     "commit": "201be3e743d215291feee09fe470822ec453c63d",

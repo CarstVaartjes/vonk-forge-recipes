@@ -1,4 +1,4 @@
-FROM docker.io/lmsysorg/sglang@sha256:9e1fb4c395b9c406136e10aa445b8784d06bca3839623b52cbe4a3b231a157a8
+FROM lmsysorg/sglang@sha256:9e1fb4c395b9c406136e10aa445b8784d06bca3839623b52cbe4a3b231a157a8
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/MiMo-V2.6-Flash-2x-DGX-Sparks" \
       org.opencontainers.image.revision="201be3e743d215291feee09fe470822ec453c63d" \

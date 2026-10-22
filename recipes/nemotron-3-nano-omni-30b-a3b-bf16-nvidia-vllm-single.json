@@ -3,7 +3,7 @@
     "build": {
       "base_image": {
         "digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
-        "repository": "docker.io/vllm/vllm-openai"
+        "repository": "vllm/vllm-openai"
       },
       "context": {
         "path": "adapters/nvidia/nemotron-3-nano-omni-30b-a3b-bf16-nvidia-vllm-single"
@@ -37,18 +37,19 @@
     "alignment": "unspecified",
     "description": "NVIDIA Nemotron 3 Nano Omni 30B-A3B BF16 on one DGX Spark with the current NVIDIA playbook's vLLM 0.20.0 ARM64 image. Restored with a hash-locked audio dependency closure including librosa, which the audio extra did not install. Keeps the creator's multimodal, reasoning and tool parsers; bounds memory by one 32K request, an absolute 1879048192-byte cache/state pool, eager execution and estimated multimodal/loading overhead. Declared peak 83911356728 bytes; physical Spark acceptance pending.",
     "tags": [
-      "executable",
+      "bf16",
       "candidate",
+      "executable",
+      "multimodal",
+      "nemotron",
       "nvidia",
-      "vllm",
+      "omni",
       "openai",
+      "reasoning",
       "single",
       "spark",
-      "nemotron",
-      "omni",
-      "bf16",
-      "reasoning",
-      "multimodal"
+      "tool-use",
+      "vllm"
     ],
     "title": "Nemotron 3 Nano Omni 30B-A3B BF16 vLLM single Spark (NVIDIA playbook)"
   },
@@ -574,8 +575,8 @@
     "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/990821771c8cee85daa50a2f65fc60c96d8fdbeb/nvidia/nemotron/README.md"
   },
   "release": {
-    "released_at": "2026-10-22",
-    "version": "0.20.1"
+    "released_at": "2026-04-27",
+    "version": "0.20.0"
   },
   "runtime": {
     "arguments": [

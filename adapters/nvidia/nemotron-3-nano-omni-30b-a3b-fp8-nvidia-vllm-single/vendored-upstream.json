@@ -1,4 +1,14 @@
 {
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "nvidia/nemotron/README.md",
+        "pattern": "(?s)## Step 2\\. Pull the vLLM container image\\s+.*?docker pull (?P<repo>vllm/vllm-openai):(?P<version>[^\\s`]+)"
+      }
+    },
+    "whole": false
+  },
   "ours": [
     "requirements-audio.in",
     "requirements-audio.lock",

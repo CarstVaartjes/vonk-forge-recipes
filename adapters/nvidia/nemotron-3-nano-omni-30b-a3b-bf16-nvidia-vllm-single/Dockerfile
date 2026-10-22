@@ -1,4 +1,4 @@
-FROM docker.io/vllm/vllm-openai@sha256:871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8
+FROM vllm/vllm-openai@sha256:871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8
 
 LABEL org.opencontainers.image.source="https://github.com/vllm-project/vllm" \
       org.opencontainers.image.version="0.20.0" \

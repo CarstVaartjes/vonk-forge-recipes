@@ -3,7 +3,7 @@
     "build": {
       "base_image": {
         "digest": "9e1fb4c395b9c406136e10aa445b8784d06bca3839623b52cbe4a3b231a157a8",
-        "repository": "docker.io/lmsysorg/sglang"
+        "repository": "lmsysorg/sglang"
       },
       "context": {
         "path": "adapters/mimo/mia-sglang-dual"
@@ -1097,6 +1097,10 @@
       {
         "name": "max-total-tokens",
         "value": 65536
+      },
+      {
+        "name": "served-model-name",
+        "value": "mimo-v2.6-flash"
       }
     ],
     "engine": "sglang",
@@ -1119,10 +1123,6 @@
       {
         "name": "DP_SIZE",
         "value": "1"
-      },
-      {
-        "name": "SERVED_MODEL_NAME",
-        "value": "mimo-v2.6-flash"
       },
       {
         "name": "CHUNKED_PREFILL_SIZE",
