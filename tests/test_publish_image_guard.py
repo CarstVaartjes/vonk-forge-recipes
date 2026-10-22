@@ -136,10 +136,10 @@ def test_release_must_pin_current_build_and_resolved_digest(
         assert f"Image pending: test: {KEY}" in result.stdout
 
 
-def test_publication_accepts_failed_builds_but_requires_verified_artifacts() -> None:
+def test_publication_requires_image_proof_and_verified_artifacts() -> None:
     workflow = (ROOT / ".github/workflows/publish.yml").read_text()
     publish = workflow.split("\n  publish:\n")[1]
-    assert "needs.images.result" not in publish
+    assert "needs.images.result == 'success'" in publish
     assert "!cancelled()" in publish
     artifact = publish.split("- name: Download the pinned prebuilt images")[1].split(
         "- name:"

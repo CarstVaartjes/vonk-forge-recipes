@@ -131,12 +131,18 @@ repository and accepts `--update`, not positional changed-file arguments.
   ignored build outputs, not committed state.
 
 [publish.yml](.github/workflows/publish.yml) runs on non-Markdown changes to
-`main`, validates first, builds images through
+`main`, validates first, promotes PR image candidates through
 [recipe-images.yml](.github/workflows/recipe-images.yml), and updates
 `v<CONTRACT_VERSION>` in place. It serializes publication and binds release
 assets to the run's `GITHUB_SHA`; it does not rebase that run onto a newer main.
 The final publish job unconditionally repeats lint, format and types, even when
 the reusable producer job chose its light scope.
+PR validation calls the same image workflow at the PR head, compares base/head
+build keys and builds only changed, unpublished keys (including native checks
+and the remote-code smoke). Successful builds write `candidate-<key>` tags;
+publication promotes their digests without rebuilding. Missing proof fails
+publication; scheduled/manual image runs recover historical missing keys.
+Changed images from forks need a trusted repository branch to push candidates.
 `tools/build-catalog-index --release-dir DIR` builds catalog/qualification
 indexes, recipe archives, coverage and `SHA256SUMS`. The signed release contains
 one deterministic `recipe-library.tar`, built by `tools/build-release-bundle`:

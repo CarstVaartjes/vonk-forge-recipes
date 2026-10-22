@@ -21,6 +21,15 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  images:
+    name: Prove changed runtime images
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+      actions: write
+    uses: ./.github/workflows/recipe-images.yml
+
   validate:
     if: ${{ !inputs.producer_only }}
     uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@040c51b8531523bebe542b5e1f7b9403e0767f72
@@ -31,21 +40,30 @@ jobs:
       # runtime policy.
       platform_ref: 040c51b8531523bebe542b5e1f7b9403e0767f72
 
-  # Pull requests and publication runs (push to main) get these checks inside
-  # producer-contracts (one runner, not three); a skipped job still satisfies
-  # its required check.
+  # PR catalog checks run inside producer-contracts. Keep this existing
+  # required check as the image fan-in, so a failed matrix cannot be merged
+  # merely because the other required producer/platform checks are green.
   catalog-index:
-    if: ${{ !inputs.producer_only && github.event_name != 'pull_request' && github.event_name != 'push' }}
+    needs: images
+    if: ${{ always() && !inputs.producer_only && github.event_name != 'push' }}
     name: Verify catalog index
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
+      - name: Require PR image proof
+        if: github.event_name == 'pull_request'
+        env:
+          IMAGE_RESULT: ${{ needs.images.result }}
+        run: test "$IMAGE_RESULT" = success
+
       - name: Check out recipes
+        if: github.event_name != 'pull_request'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Set up uv and Python
+        if: github.event_name != 'pull_request'
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.12.19"
@@ -56,6 +74,7 @@ jobs:
       # Consumers reproduce a release by rebuilding its tagged commit, so two
       # independent builds of this tree must produce identical bytes.
       - name: Build the release asset set twice and require identical bytes
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -68,6 +87,7 @@ jobs:
           echo "RECIPE_CATALOG_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Derive family-aware coverage from the current catalog
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
