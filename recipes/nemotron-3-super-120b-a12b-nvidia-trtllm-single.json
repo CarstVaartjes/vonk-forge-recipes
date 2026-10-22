@@ -486,11 +486,6 @@
         "name": "extra_llm_api_options",
         "setting": null,
         "value": "/opt/vonk/trtllm/llm-api-config.yml"
-      },
-      {
-        "name": "no-telemetry",
-        "setting": null,
-        "value": true
       }
     ],
     "engine": "tensorrt-llm",
