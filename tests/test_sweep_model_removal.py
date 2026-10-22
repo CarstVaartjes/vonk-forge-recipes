@@ -405,3 +405,63 @@ def test_review_error_keeps_typed_cause_and_backoff_then_heals(
     advance(sweep, clock)
     assert peer.submissions
     assert sweep.state.data["model_removals"][A]["outcome"] == RemovalOutcome.RECEIPT
+
+
+@pytest.mark.parametrize("stage", ["review", "receipt", "owners"])
+@pytest.mark.parametrize("out", ["", "null", "invalid", "observation"])
+def test_transport_reply_backs_off_with_cause_and_heals_after_restart(
+    tmp_path, stage, out
+):
+    from spark_sweep.vonkctl import VonkctlTimeout
+
+    sweep, peer, clock = scenario(tmp_path)
+    original_runner = peer.runner
+
+    def runner(argv, timeout):
+        args = list(argv)[3:]
+        if (
+            (stage == "review" and "--review" in args)
+            or (
+                stage == "receipt"
+                and args[:2] == ["model", "remove"]
+                and "--yes" in args
+            )
+            or (stage == "owners" and args == ["profile", "list"])
+        ):
+            if out == "":
+                raise VonkctlTimeout(
+                    argv, None, "vonkctl timed out after 30s", stderr="connection lost"
+                )
+            if out == "observation":
+                return 2, json.dumps(fixture("observation")), ""
+            return 2, out, "connection lost"
+        return original_runner(argv, timeout)
+
+    sweep.model_remover.vk = Vonkctl(runner=runner)
+    sweep.remove_finished_models()
+    record = RemovalRecord.model_validate(sweep.state.data["model_removals"][A])
+    assert "connection" in record.message
+    assert "exit 124" in record.message if out == "" else "exit 2" in record.message
+    assert "validation error" not in record.message
+    assert (
+        record.outcome
+        == {
+            "review": RemovalOutcome.RETRY,
+            "receipt": RemovalOutcome.WAIT,
+            "owners": RemovalOutcome.OWNER,
+        }[stage]
+    )
+    assert bool(record.request_key) is (stage == "receipt")
+    assert clock.now() < record.next_check <= clock.now() + record.backoff_seconds
+    assert not peer.submissions
+    calls = sum(args[2] == A for args in peer.calls)
+    sweep.remove_finished_models()
+    assert sum(args[2] == A for args in peer.calls) == calls
+    sweep.state = State.load(sweep.state.path, clock.now)
+    sweep.model_remover.state = sweep.state
+    sweep.model_remover.vk = Vonkctl(runner=original_runner)
+    advance(sweep, clock)
+    healed = RemovalRecord.model_validate(sweep.state.data["model_removals"][A])
+    assert healed.outcome == RemovalOutcome.RECEIPT
+    if record.request_key:
+        assert healed.request_key == record.request_key

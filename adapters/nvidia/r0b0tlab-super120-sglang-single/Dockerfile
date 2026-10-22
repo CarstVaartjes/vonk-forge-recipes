@@ -5,6 +5,9 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/nemotron3-sup
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
+COPY patch-reasoning-off.py /opt/vonk/patch-reasoning-off.py
+RUN python3 /opt/vonk/patch-reasoning-off.py
+
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \

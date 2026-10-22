@@ -295,9 +295,12 @@ def calculate_need(
             != geometry.runtime_image_digest
         ):
             raise ValueError(f"{label}: cache geometry does not match the pinned image")
+        graph_flag = (
+            "enforce-eager" if recipe.runtime.engine == "vllm" else "disable-cuda-graph"
+        )
         if (
             geometry.resident_expansion_bytes
-            and argument_value(recipe, "disable-cuda-graph") is not True
+            and argument_value(recipe, graph_flag) is not True
         ):
             raise ValueError(
                 f"{label}: calibrated resident bound requires disabled graphs"

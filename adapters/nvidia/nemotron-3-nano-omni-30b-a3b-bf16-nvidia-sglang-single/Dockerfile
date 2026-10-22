@@ -4,6 +4,9 @@ LABEL org.opencontainers.image.source="https://github.com/sgl-project/sglang" \
       org.opencontainers.image.version="1.0.1" \
       io.vonk.upstream-image="lmsysorg/sglang:dev-cu13-nemotronh-nano-omni-reasoning-v3 as named by the Nemotron Omni model card"
 
+COPY patch-reasoning-off.py /opt/vonk/patch-reasoning-off.py
+RUN python3 /opt/vonk/patch-reasoning-off.py
+
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 COPY verify-runtime.py /opt/vonk/verify-runtime.py
 COPY requirements-audio.lock /opt/vonk/requirements-audio.lock

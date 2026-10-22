@@ -5,6 +5,23 @@ from enum import IntEnum, StrEnum
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
 
+class CliObservationStatus(StrEnum):
+    TIMED_OUT = "timed_out"
+    INTERRUPTED = "interrupted"
+
+
+class CliObservation(BaseModel):
+    """Projection of vonkctl's local observation, not a Controller receipt."""
+
+    status: CliObservationStatus
+    error: str | None = None
+
+
+class CliObservationReply(BaseModel):
+    observation: CliObservation
+    result: dict[str, JsonValue]
+
+
 class CleanupEndReason(StrEnum):
     TARGET_ABSENT = "sweep.cleanup_target_absent"
 
