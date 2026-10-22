@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import runpy
+import shlex
 import sys
 import tempfile
 import types
@@ -101,6 +102,13 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         ]
 
         def run_pipeline(command, **_kwargs):
+            # Reproduce the captured failure before the adapter can publish output:
+            # a plain streaming model has no NVFP4 companion parameters.
+            if command[command.index("--offload") + 1] != "none":
+                raise KeyError("attn1.to_k.input_scale")
+            self.assertEqual(
+                command[command.index("--quantization") + 1], "nvfp4-prequant"
+            )
             output_path = Path(command[command.index("--output-path") + 1])
             output_path.write_bytes(b"fixture")
 
@@ -134,7 +142,8 @@ class LtxFp4PromptContractTests(unittest.TestCase):
             ("--num-frames", "1"),
             ("--num-inference-steps", "2"),
             ("--frame-rate", "24"),
-            ("--offload", "disk"),
+            ("--offload", "none"),
+            ("--quantization", "nvfp4-prequant"),
             ("--max-batch-size", "1"),
         ):
             self.assertEqual(command[command.index(flag) + 1], expected)
@@ -145,6 +154,69 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         verify.assert_called_once()
         self.assertTrue((output / "ltx2.mp4").is_file())
         self.assertNotIn("VONK_PROMPT", ADAPTER_PATH.read_text(encoding="utf-8"))
+
+    def test_prequantized_checkpoint_requires_native_loader(self) -> None:
+        checkpoint = ["--checkpoint-path", "/models/ltx-2-19b-dev-fp4.safetensors"]
+        for mode in ("cpu", "disk", "none"):
+            for policy in ([], ["--quantization", "fp8-cast"]):
+                with (
+                    self.subTest(mode=mode, policy=policy),
+                    self.assertRaisesRegex(AssertionError, "NVFP4 checkpoints"),
+                ):
+                    assert_streaming_quantization_supported(
+                        [*checkpoint, "--offload", mode, *policy]
+                    )
+        for mode in ("cpu", "disk"):
+            with self.assertRaisesRegex(AssertionError, "NVFP4 checkpoints"):
+                assert_streaming_quantization_supported(
+                    [*checkpoint, "--offload", mode, "--quantization", "nvfp4-prequant"]
+                )
+        assert_streaming_quantization_supported(
+            [*checkpoint, "--offload", "none", "--quantization", "nvfp4-prequant"]
+        )
+
+    def test_native_nvfp4_kernels_are_built_and_checked_for_spark(self) -> None:
+        dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text()
+        self.assertIn("13.0.2-devel-ubuntu24.04@sha256:", dockerfile)
+        self.assertIn('TORCH_CUDA_ARCH_LIST="12.0 12.1" MAX_JOBS=2', dockerfile)
+        self.assertIn(
+            "--no-deps /opt/vonk/source/ltx2/packages/ltx-kernels", dockerfile
+        )
+        self.assertIn("import torch; import nvfp4_cpp", dockerfile)
+        self.assertIn("cuobjdump --list-elf", dockerfile)
+        self.assertIn("grep --quiet sm_121a", dockerfile)
+        self.assertIn("--fuzz=0", dockerfile)
+        patch = (ADAPTER_ROOT / "nvfp4-sm121.patch").read_text()
+        self.assertIn('+_NVFP4_ARCHES = ["100a", "110a", "120a", "121a"]', patch)
+        self.assertIn('+        elif tok.startswith("12.1"):', patch)
+        self.assertIn('+            sel.append("121a")', patch)
+
+    def test_cuda_compiler_mismatch_fails_before_kernel_build(self) -> None:
+        dockerfile = (ADAPTER_ROOT / "Dockerfile").read_text()
+        command = next(
+            line.removeprefix("RUN ")
+            for line in dockerfile.splitlines()
+            if line.startswith("RUN python3 -c") and "torch.version.cuda" in line
+        )
+        self.assertLess(
+            dockerfile.index(command), dockerfile.index("packages/ltx-kernels")
+        )
+        program = shlex.split(command)[2]
+        torch = types.SimpleNamespace(version=types.SimpleNamespace(cuda="13.0"))
+        for version in ("13.0", "13.4"):
+            with (
+                self.subTest(version=version),
+                mock.patch.dict(sys.modules, {"torch": torch}),
+                mock.patch(
+                    "subprocess.check_output",
+                    return_value=f"Cuda compilation tools, release {version}, V{version}.88",
+                ),
+            ):
+                if version == "13.0":
+                    exec(program, {})
+                else:
+                    with self.assertRaisesRegex(AssertionError, "differs from torch"):
+                        exec(program, {})
 
     def test_named_pipeline_output_contract_is_required(self) -> None:
         pipeline_output = types.SimpleNamespace(
@@ -240,7 +312,7 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
         self.assertEqual(output["slots"][0]["min_files"], 1)
         self.assertEqual(output["slots"][0]["max_files"], 1)
-        self.assertIn("disk-offload", recipe["metadata"]["tags"])
+        self.assertNotIn("disk-offload", recipe["metadata"]["tags"])
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
         self.assertEqual(
             memory,

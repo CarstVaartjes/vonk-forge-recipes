@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962",
+        "digest": "5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6",
         "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
@@ -82,14 +82,13 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Still-deployable historical disk-offload Candidate using the exact official native LTX 1.4.1 two-stage pipeline, FP4 checkpoint, distilled refinement LoRA, spatial upscaler, Gemma 3 companion closure, and ARM64 CUDA 13.2 wheels. The 89 GB startup and 75 GB steady declarations conservatively apply only the pinned upstream's documented 31 GB disk-versus-CPU offload reduction, with 8 GB growth and 8 GB system reserve for a 97 GB admission total; container build and physical Spark acceptance remain required. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this immutable execution contract remains available for reproducibility.",
+    "description": "Historical native LTX 1.4.2 two-stage pipeline using the exact mixed BF16/NVFP4 checkpoint, the nvfp4-prequant loader and NVFP4-aware distilled refinement LoRA fusion, spatial upscaler, and Gemma 3 companion closure. Prequantized companion scales require the resident model loader; CPU/disk block streaming is unsupported. The image builds the pinned native NVFP4 kernels for Spark SM121. The conservative 89 GB peak and 8 GB reserve cover the 49 GB Gemma encoder or 20 GB checkpoint plus 8 GB LoRA, transient fusion and inference buffers; physical Spark acceptance remains required. This historical recipe remains available for reproducibility.",
     "tags": [
       "executable",
       "candidate",
       "build-unvalidated",
       "historical",
       "superseded",
-      "disk-offload",
       "lightricks",
       "ltx",
       "video",
@@ -482,7 +481,7 @@
         "resources": {
           "disk": {
             "artifact_bytes": 77447526016,
-            "image_bytes": 8000000000,
+            "image_bytes": 20000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 162895052032
           },
