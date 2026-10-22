@@ -44,6 +44,28 @@
       "source": "https://huggingface.co/nvidia/Llama-3.1-8B-Instruct-NVFP4/resolve/bdb54e24298451af785c0ac63c1b485e9b7400a2/config.json",
       "value_dim": 128
     },
+    "nemotron-3-nano-omni-30b-a3b-reasoning-bf16-e5e99324": {
+      "configuration_sha256": "bf8859c106ef73d65fd194cbd336584d24dceaf724a408c762db7945e3925957",
+      "key_dim": 128,
+      "kv_heads": 2,
+      "layers": 52,
+      "resident_expansion_bytes": 8000000000,
+      "runtime_image_digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
+      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16/blob/e5e9932441de940c9a62185c870ea5bcd4cd24e2/config.json llm_config: bound all 52 layers as full BF16 attention (2 KV heads, 128 key/value dimensions). Bound every layer's FP32 Mamba state (64 heads x 64 head dimension x 128 state size) plus convolution storage by 128 MiB/request. Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement.",
+      "state_bytes_per_request": 134217728,
+      "value_dim": 128
+    },
+    "nemotron-3-nano-omni-30b-a3b-reasoning-fp8-0acd4b1c": {
+      "configuration_sha256": "ba51d79fe0db8aef1e1c6c1515b18e9e5697f99c004fbe26dc16ae8b6f2dc544",
+      "key_dim": 128,
+      "kv_heads": 2,
+      "layers": 52,
+      "resident_expansion_bytes": 8000000000,
+      "runtime_image_digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
+      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8/blob/0acd4b1c237eab45d3977b1b46631919e9a75774/config.json llm_config: bound all 52 layers as full BF16 attention (2 KV heads, 128 key/value dimensions). Bound every layer's FP32 Mamba state (64 heads x 64 head dimension x 128 state size) plus convolution storage by 128 MiB/request. Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement.",
+      "state_bytes_per_request": 134217728,
+      "value_dim": 128
+    },
     "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976": {
       "configuration_sha256": "0b2c05e53e721307ebcb1696881cead10e01a3ca7f09db28eb0477b55cc5692c",
       "key_dim": 256,
