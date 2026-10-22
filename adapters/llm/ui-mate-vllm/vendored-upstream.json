@@ -2,7 +2,10 @@
   "ours": [
     "NOTICE",
     "ui-mate-step.py",
-    "vllm-wrapper.sh"
+    "vllm-wrapper.sh",
+    "requirements-tls.in",
+    "requirements-tls.lock",
+    "verify-runtime-tls.py"
   ],
   "source": {
     "repo": "Tencent/UI-Mate",
