@@ -30,6 +30,9 @@ ENV HF_HUB_OFFLINE=1 \
 
 WORKDIR /state
 # Refresh both trust stores after upstream installs; fail the build on stale roots.
+# Some base images' Python looks for a CA file that does not exist; urllib and
+# aiohttp then trust nothing. Use the system bundle refreshed below.
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 COPY requirements-tls.lock verify-runtime-tls.py /tmp/runtime-tls/
 RUN apt-get update \
     && apt-get install -y --no-install-recommends --reinstall ca-certificates \
