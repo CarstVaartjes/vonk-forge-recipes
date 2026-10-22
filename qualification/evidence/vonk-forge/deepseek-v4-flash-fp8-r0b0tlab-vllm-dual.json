@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-fp8-r0b0tlab-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9c68fd54a9588d076b97d2b457621300095324b7841ad93ffdd56728025d7cab",
+        "source_bundle_sha256": "2ddc7bc47c7b0c7fb59b9c37db18aca5a1cc030ab7cdc78ceb9934073feedbbe",
+        "runtime_image": {
+          "build_key": "4d00c2ab772043c55898aa37a538b14d177935fdbb92b912bb845b9efe6f5b5a",
+          "image_digest": "sha256:2f386eb00b09ddc80c41a10fea73f830d65f94753d51049068f7d24ed60ae6a6"
+        },
+        "model_digests": [
+          "4d545ba0fbacb2101d3189c282ac4e4a4f1dc135a32b42362141e2d9466640f1"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "93f2f3344e159e613a131c170eabd74ec4e578da4e35dd0d1bd53c30828799f4"
+      ],
+      "tested_at": "2026-10-22T10:42:54.231432Z",
+      "platform": {
+        "controller_source_sha": "4133da8ec9fa7e455ef565826d4d90770ef0e39e",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
