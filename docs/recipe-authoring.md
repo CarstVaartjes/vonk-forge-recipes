@@ -977,10 +977,14 @@ installed engine's refusal before serving (`tests/test_trtllm_speculative_build_
 
 The hosted image build runs `tools/prepare-remote-code-smoke` against its plan.
 For every image, it calls Transformers `check_imports` inside the recipe's
-installed environment on every selected root-level Python module from the pinned
-Model (including processor modules), before adding the platform layer or pushing.
-The check fetches only source code and verifies the Model's hash and size; it
-loads no weights and requires no GPU. Keep remote-code dependencies hash-locked
+installed environment on modules named by `auto_map` in the selected `config.json`,
+`tokenizer_config.json`, `processor_config.json`, `preprocessor_config.json` and
+`video_preprocessor_config.json`,
+plus their relative imports (including processor dependencies), before adding
+the platform layer or pushing. Engine plugins outside that graph belong to the
+engine's build/import checks. The check fetches only pinned configs and source
+code and verifies the Model's hash and size; it loads no weights and requires no
+GPU. Keep remote-code dependencies hash-locked
 and import native decoders during the Dockerfile build so missing wheels or
 shared libraries fail before qualification.
 
