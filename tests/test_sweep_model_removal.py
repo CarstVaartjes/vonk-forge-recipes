@@ -465,3 +465,94 @@ def test_transport_reply_backs_off_with_cause_and_heals_after_restart(
     assert healed.outcome == RemovalOutcome.RECEIPT
     if record.request_key:
         assert healed.request_key == record.request_key
+
+
+@pytest.mark.parametrize("timeout_once", [False, True])
+def test_slow_catalog_refresh_yields_to_removal_after_a_complete_read(
+    tmp_path, timeout_once
+):
+    """A refresh takes longer than its interval, as in the saved sweep incident.
+
+    Each library has two pages. The previous pass is already due when the
+    other library finishes; starting it inline starves removal forever.
+    """
+    sweep, peer, clock = scenario(tmp_path)
+    sweep.cfg.catalog_seconds = 60
+    if timeout_once:
+        peer.fleet.library_faults = [None, "timeout"]
+    # Keep scheduling out of this observation/removal reproduction. All removal
+    # effects go exclusively through RemovalPeer, never a real CLI.
+    for _ in range(12):
+        clock.t += 61
+        sweep.advance_catalog(clock.now())
+        sweep.remove_finished_models()
+        if sweep.recipe_list.in_pass or sweep.model_list.in_pass:
+            assert not peer.submissions
+        if peer.submissions:
+            break
+    assert peer.submissions
+    assert not sweep.recipe_list.in_pass and not sweep.model_list.in_pass
+    assert not sweep.recipe_list.last_error and not sweep.model_list.last_error
+    assert sweep.recipe_list.passes > 1 and sweep.model_list.passes > 1
+    assert not sweep.state.data.get("model_removal_wait")
+
+
+@pytest.mark.parametrize("fault", ["timeout", "cursor"])
+def test_catalog_retry_is_bounded_and_reports_cause_age_and_recovery(tmp_path, fault):
+    from vonk_forge_contracts.sweep import SweepWaitReason
+
+    from spark_sweep.removal_contract import RemovalWait
+
+    sweep, peer, clock = scenario(tmp_path)
+    peer.fleet.library_faults = [fault]
+    clock.t += sweep.cfg.catalog_seconds + 1
+    sweep.advance_catalog(clock.now())
+    sweep.advance_catalog(clock.now())  # observe the failed page
+    sweep.remove_finished_models()
+    assert not peer.calls
+    wait = RemovalWait.model_validate(sweep.state.data["model_removal_wait"])
+    assert wait.reason == SweepWaitReason.OBSERVATION
+    assert "recipe library" in wait.detail
+    assert (
+        "transport_timeout" in wait.detail
+        if fault == "timeout"
+        else "cursor" in wait.detail
+    )
+    assert wait.next_check > clock.now()
+    calls = len(peer.fleet.calls)
+    sweep.advance_catalog(clock.now())
+    assert len(peer.fleet.calls) == calls  # honor the persisted catalog backoff
+    clock.t += 10
+    sweep.remove_finished_models()
+    status = render_status(build_status(sweep))
+    assert "age 0m10s" in status and "next observation in" in status
+    assert "owner pause" not in status
+    for _ in range(8):
+        clock.t += 61
+        sweep.advance_catalog(clock.now())
+        sweep.remove_finished_models()
+        if peer.submissions:
+            break
+    assert peer.submissions
+    assert not sweep.state.data.get("model_removal_wait")
+
+
+def test_removal_reports_the_actual_owner_pause_and_invalid_rows(tmp_path):
+    from spark_sweep.owner import OwnerStatus
+
+    sweep, peer, clock = scenario(tmp_path)
+    sweep.owner_status = OwnerStatus(paused=True, reason="profile 2 is running")
+    sweep.remove_finished_models()
+    clock.t += 65
+    sweep.remove_finished_models()
+    status = render_status(build_status(sweep))
+    assert "owner pause: profile 2 is running" in status and "age 1m05s" in status
+    assert not peer.calls
+    sweep.owner_status = OwnerStatus()
+    sweep.recipe_list.invalid_rows = 1
+    sweep.remove_finished_models()
+    assert "recipe library: 1 invalid rows" in render_status(build_status(sweep))
+    assert not peer.calls
+    sweep.refresh_catalog()
+    sweep.remove_finished_models()
+    assert peer.submissions
