@@ -6,11 +6,133 @@ import os
 import runpy
 import subprocess
 import sys
+import types
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.mark.parametrize("profile", ["c2", "c4", "c2-vit-off"])
+def test_flash_next_profile_receives_platform_endpoint_and_memory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, profile: str
+) -> None:
+    import argparse
+
+    # The pinned upstream parser accepts only profile, sources and print. The
+    # platform also appends endpoint and memory arguments to every SGLang load.
+    entrypoint = types.SimpleNamespace()
+    entrypoint.MODEL_PATH = "/model"
+    entrypoint.SERVE_HOST = "0.0.0.0"
+    entrypoint.SERVE_PORT = 30000
+
+    def build_argv(profile, sources):
+        return [
+            "sglang",
+            "serve",
+            "--model-path",
+            entrypoint.MODEL_PATH,
+            "--host",
+            entrypoint.SERVE_HOST,
+            "--port",
+            str(entrypoint.SERVE_PORT),
+            "--mem-fraction-static",
+            "0.9",
+            "--speculative-num-steps",
+            "3",
+        ]
+
+    entrypoint.build_argv = build_argv
+    captured = []
+
+    def main(argv):
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--profile", required=True)
+        parser.add_argument("--sources", required=True)
+        args = parser.parse_args(argv)
+        assert args.profile == profile
+        assert args.sources == "sources.json"
+        captured.extend(entrypoint.build_argv(args.profile, args.sources))
+        return 0
+
+    entrypoint.main = main
+    runtime = types.ModuleType("runtime")
+    runtime.__dict__["entrypoint"] = entrypoint
+    monkeypatch.setitem(sys.modules, "runtime", runtime)
+    monkeypatch.setattr(os, "chdir", lambda path: None)
+    monkeypatch.setattr(sys, "path", list(sys.path))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "sglang-serve",
+            "--profile",
+            profile,
+            "--sources",
+            "sources.json",
+            "--mem-fraction-static",
+            "0.75",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "31000",
+        ],
+    )
+    for name in (
+        "config.json",
+        "model.safetensors.index.json",
+        "model-fp8-mtp-ple.safetensors",
+    ):
+        (tmp_path / name).touch()
+    source = (
+        ROOT / "adapters/qwen/r0b0tlab-flash-next-sglang-single/flash-next-serve"
+    ).read_text()
+    launcher = tmp_path / "launcher"
+    launcher.write_text(
+        source.replace('Path("/models")', f"Path({str(tmp_path)!r})").replace(
+            'Path("/outputs/cache")', f"Path({str(tmp_path / 'cache')!r})"
+        )
+    )
+    with pytest.raises(SystemExit) as ended:
+        runpy.run_path(str(launcher), run_name="__main__")
+    assert ended.value.code == 0
+    for flag, value in (
+        ("--model-path", str(tmp_path)),
+        ("--host", "127.0.0.1"),
+        ("--port", "31000"),
+        ("--mem-fraction-static", "0.75"),
+        ("--speculative-num-steps", "3"),
+    ):
+        assert captured.count(flag) == 1
+        assert captured[captured.index(flag) + 1] == value
+
+
+@pytest.mark.parametrize("memory", ["nan", "inf", "0", "1", "-0.5"])
+def test_flash_next_rejects_invalid_platform_memory(memory: str) -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(
+                ROOT
+                / "adapters/qwen/r0b0tlab-flash-next-sglang-single/flash-next-serve"
+            ),
+            "--profile",
+            "unused",
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "30000",
+            "--mem-fraction-static",
+            memory,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=10,
+    )
+    assert result.returncode == 2
+    assert "mem-fraction-static must be finite and between 0 and 1" in result.stderr
 
 
 @pytest.mark.parametrize(
@@ -99,6 +221,8 @@ def test_fp4_dual_binds_controller_placement(tmp_path: Path, valid: bool) -> Non
         assert result.returncode == 0
         assert json.loads(result.stdout) == [
             *argv,
+            "--load-format",
+            "safetensors",
             "--master-addr",
             "192.0.2.1",
             "--master-port",

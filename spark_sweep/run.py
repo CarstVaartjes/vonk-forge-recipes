@@ -2506,7 +2506,7 @@ class Sweep:
                     ),
                     None,
                 )
-                failure = policy.classify(
+                failure = policy.classify_application_failure(
                     phase,
                     str(own_failure["code"])
                     if own_failure is not None

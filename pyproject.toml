@@ -5,6 +5,9 @@ name = "vonk-forge-recipes"
 version = "0.0.0"
 requires-python = ">=3.14"
 
+[tool.uv]
+required-version = ">=0.13.5"
+
 [tool.pytest.ini_options]
 # Adapter tests are upstream's (they need torch/vllm) and run only in upstream's
 # image build, never in our CI. Our tests/ validate adapter files from outside.

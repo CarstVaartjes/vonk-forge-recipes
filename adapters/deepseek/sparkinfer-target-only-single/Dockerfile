@@ -22,6 +22,12 @@ RUN cat /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-aa \
          /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ad \
          /tmp/xgrammar-wheel-parts/xgrammar-0.2.3.part-ae
 
+# The base console script uses system Python, but the native extension was built
+# against the Torch ABI in runtime-venv. The image ENTRYPOINT normally selects
+# that interpreter; Vonk replaces ENTRYPOINT, so bind the console script here.
+RUN printf '#!/opt/runtime-venv/bin/python\nfrom vllm.entrypoints.cli.main import main\nraise SystemExit(main())\n' > /usr/local/bin/vllm \
+    && chmod 0755 /usr/local/bin/vllm
+
 LABEL org.opencontainers.image.source="https://github.com/0xSero/deepseek-v4-flash-0731-spark-sparkinfer" \
       org.opencontainers.image.revision="d370c0f0806a9ac994dc5f354715576cc23840b9" \
       org.opencontainers.image.licenses="Apache-2.0" \

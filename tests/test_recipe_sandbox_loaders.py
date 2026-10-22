@@ -210,8 +210,11 @@ def test_guard_rejects_b12x_checkpoint_bounce_even_with_safe_disk_tables() -> No
         for rank in range(recipe(slug).topology.node_count)
     ],
 )
+@pytest.mark.parametrize(
+    "requested_loader", ["b12x", "safetensors", "io_uring", "equals", "omitted"]
+)
 def test_checkpoint_launch_survives_uring_refusal(
-    monkeypatch: pytest.MonkeyPatch, slug: str, rank: int
+    monkeypatch: pytest.MonkeyPatch, slug: str, rank: int, requested_loader: str
 ) -> None:
     document = recipe(slug)
     context = ROOT / document.execution.build.context.path
@@ -222,7 +225,7 @@ def test_checkpoint_launch_survives_uring_refusal(
     )
     arguments = list(document.runtime.entrypoint[1:])
     for argument in document.runtime.arguments:
-        value = argument.value
+        value = requested_loader if argument.name == "load-format" else argument.value
         if argument.setting is not None:
             value = getattr(document.settings, argument.setting).value
         if isinstance(value, bool):
@@ -230,6 +233,11 @@ def test_checkpoint_launch_survives_uring_refusal(
                 arguments.append(f"--{argument.name}")
         else:
             arguments.extend((f"--{argument.name}", str(value)))
+    index = arguments.index("--load-format")
+    if requested_loader == "equals":
+        arguments[index : index + 2] = ["--load-format=b12x"]
+    elif requested_loader == "omitted":
+        del arguments[index : index + 2]
     if document.topology.node_count == 2:
         arguments.extend(
             (
@@ -370,4 +378,14 @@ def test_launcher_replaces_uring_even_when_requested(
     monkeypatch.setattr(os, "execv", exec_without_uring)
     runpy.run_path(str(ROOT / wrapper), run_name="__main__")
     assert len(calls) == 1
-    assert calls[0][-2:] == ["serve", "/models"]
+    assert calls[0][-4:] == ["serve", "/models", "--load-format", "safetensors"]
+
+
+def test_deepseek_declares_safe_checkpoint_loading() -> None:
+    document = recipe("deepseek-v4-flash-0731-eugr-vllm-dual")
+    assert (
+        next(
+            arg.value for arg in document.runtime.arguments if arg.name == "load-format"
+        )
+        == "safetensors"
+    )

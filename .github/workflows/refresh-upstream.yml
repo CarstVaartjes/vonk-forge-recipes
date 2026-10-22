@@ -49,11 +49,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up uv and Python
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
-        with:
-          version: "0.12.19"
-          python-version: "3.14"
-          enable-cache: false
+        uses: ./.github/actions/setup-tooling
 
       # ETags make repeat polls free (a 304 does not count against the API quota);
       # upstream trees and Model inventories are immutable per commit.
