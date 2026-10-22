@@ -1,8 +1,0 @@
---- a/packages/ltx-kernels/setup.py
-+++ b/packages/ltx-kernels/setup.py
-@@ -191 +191 @@
--_NVFP4_ARCHES = ["100a", "110a", "120a"]
-+_NVFP4_ARCHES = ["100a", "110a", "120a", "121a"]
-@@ -208,0 +209,2 @@
-+        elif tok.startswith("12.1"):
-+            sel.append("121a")

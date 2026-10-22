@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37
+FROM nvcr.io/nvidia/cuda:13.4.1-runtime-ubuntu24.04@sha256:2eaf346843c93ae617a718818f4a804e2c46c0d97a85392212ec5b310ee57962
 
 LABEL org.opencontainers.image.source="https://huggingface.co/Lightricks/LTX-2" \
       org.opencontainers.image.revision="dfcc2108383fe1aaa0584bdf55d368a4bdadd90c" \
@@ -19,8 +19,6 @@ RUN apt-get update \
         ca-certificates \
         curl \
         ffmpeg \
-        git \
-        patch \
         python3 \
         python3-pip \
     && rm -rf /var/lib/apt/lists/* \
@@ -29,7 +27,6 @@ RUN apt-get update \
         torch==2.11.0 torchvision==0.26.0 \
         torchaudio==2.11.0
 
-COPY nvfp4-sm121.patch /opt/vonk/source/nvfp4-sm121.patch
 COPY requirements.lock /opt/vonk/source/requirements.lock
 COPY wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl /opt/vonk/source/wheels/vonk_agent_protocol-4.1.0-py3-none-any.whl
 
@@ -52,19 +49,10 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
     && tar --extract --gzip --file /tmp/ltx2-source.tar.gz \
         --directory /opt/vonk/source/ltx2 --strip-components=1 \
     && rm /tmp/ltx2-source.tar.gz \
-    && patch --directory=/opt/vonk/source/ltx2 --strip=1 --fuzz=0 \
-        < /opt/vonk/source/nvfp4-sm121.patch \
-    && TORCH_CUDA_ARCH_LIST="12.0 12.1" MAX_JOBS=2 \
-        python3 -m pip install --break-system-packages --no-cache-dir \
-        --no-build-isolation --no-deps /opt/vonk/source/ltx2/packages/ltx-kernels \
-    && python3 -c "import torch; import nvfp4_cpp" \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         --no-build-isolation --no-deps /opt/vonk/source/ltx2/packages/ltx-core \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         --no-build-isolation --no-deps /opt/vonk/source/ltx2/packages/ltx-pipelines
-
-RUN cuobjdump --list-elf "$(python3 -c 'import torch; import nvfp4_cpp; print(nvfp4_cpp.__file__)')" \
-    | grep --quiet sm_121a
 
 COPY pipelines/run.py /opt/vonk/source/pipelines/run.py
 

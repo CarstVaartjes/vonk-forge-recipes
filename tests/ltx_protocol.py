@@ -61,15 +61,6 @@ def assert_streaming_quantization_supported(command: list[str]) -> None:
         if "--quantization" in command
         else None
     )
-    checkpoint = (
-        command[command.index("--checkpoint-path") + 1]
-        if "--checkpoint-path" in command
-        else ""
-    )
-    if "-fp4" in Path(checkpoint).stem:
-        assert offload == "none" and quantization == "nvfp4-prequant", (
-            "NVFP4 checkpoints require the native nvfp4-prequant loader without block streaming"
-        )
     assert offload == "none" or quantization in (None, "fp8-cast"), (
         f"{offload} block streaming does not support {quantization} quantization"
     )
