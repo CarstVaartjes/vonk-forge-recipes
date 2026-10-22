@@ -123,3 +123,21 @@ def test_checkpoint_follows_the_creator_declared_revision() -> None:
     assert declaration is not None
     assert isinstance(model.source, ModelSource)
     assert model.source.revision == declaration.group(1)
+
+
+def test_image_model_path_overrides_the_vendored_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    adapter = ROOT / "adapters/mimo/mia-sglang-dual"
+    declaration = re.search(
+        r"^ENV MODEL_PATH=(\S+)", (adapter / "Dockerfile").read_text(), re.MULTILINE
+    )
+    assert declaration is not None
+    monkeypatch.setenv("MODEL_PATH", declaration.group(1))
+    launcher = runpy.run_path(str(adapter / "boot.py"))
+    recipe = RecipeDefinition.model_validate_json(
+        (ROOT / "recipes/mimo-v2-6-flash-rl-sglang-mia-dual.json").read_text()
+    )
+    assert {
+        selected.mount.target for model in recipe.models for selected in model.files
+    } == {str(launcher["MODEL"])}
