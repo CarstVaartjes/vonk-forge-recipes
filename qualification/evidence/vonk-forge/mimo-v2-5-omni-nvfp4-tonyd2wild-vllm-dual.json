@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "e6e3b1dd20b5259943f110d92dffa4a137c119d8e859891b28e36ad5d001587d",
+        "source_bundle_sha256": "8722ce5d5fc183892ff04f8cca8691fb81e9cd892917adef7c648ec6b986c8a7",
+        "runtime_image": {
+          "build_key": "79ab6bb6e92cdd8b4d8cd5566320501123493dacde69e11e66112bf254dc9752",
+          "image_digest": "sha256:dc088eb87d8f05fecac2cb8f8e32d2be9f74d873afca31b3c8f3532f8f47ed65"
+        },
+        "model_digests": [
+          "d41172378922039d8d51a504d3fff9289534a16d1dea5af6651fac628c47d8d9"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "ee9a81c7421177abb25b69a303e71f1edc2406d73d09cccd619bc034f9d79aba"
+      ],
+      "tested_at": "2026-10-23T01:58:50.150265Z",
+      "platform": {
+        "controller_source_sha": "ec302b880c904d0bd9912ba335a3d93d62141845",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
