@@ -6,11 +6,13 @@ from collections.abc import Mapping
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from vonk_forge_contracts import QualificationIdentity, QualificationRuntimeImage
+from vonk_forge_contracts.sweep import SweepWait
 
 from .catalog import Recipe
 from .catalog_contract import RuntimeImageIdentity
+from .recovery import Fingerprint, Owner
 
 
 class VerdictIdentity(BaseModel):
@@ -26,6 +28,18 @@ class VerdictIdentity(BaseModel):
     # cache/request matching. Qualification decisions use evidence, not this key.
     # Never substitute the Docker base image.
     image_library_commit: str | None = None
+
+
+class ControllerWaitHold(BaseModel):
+    """An expired dependency observation, not a recipe verdict or a retry counter."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    wait: SweepWait
+    identity: VerdictIdentity
+    application_id: str
+    next_check: float
+    platform: dict[Owner, Fingerprint] = Field(default_factory=dict)
 
 
 def content_identity(recipe: Recipe) -> VerdictIdentity:

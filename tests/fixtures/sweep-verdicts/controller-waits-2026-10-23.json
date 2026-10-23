@@ -1,0 +1,265 @@
+[
+  {
+    "recorded_at": "2026-10-23T06:42:53.739562Z",
+    "recipe": "vonk-forge/wan-2-2-i2v-14b-comfyui-single",
+    "content_sha256": "e0fc58701599520c94a0a3f9fbb9663e163a2265032fa5bfbce81b4b3bded133",
+    "code": "sweep.wait_budget_exhausted",
+    "controller_document": {
+      "id": "ac96b5eb-3396-4012-b462-4c41602207a9",
+      "state": "running",
+      "next_attempt_at": "2026-10-23T06:41:43.239714Z",
+      "wait": {
+        "reason": "receipt-missing",
+        "blockers": [
+          {
+            "code": "receipt-missing",
+            "detail": "Waiting for the exact Run/Switch child receipt",
+            "operation": {
+              "kind": "run-switch"
+            },
+            "severity": "info"
+          }
+        ]
+      },
+      "progress": {
+        "child_progress": {
+          "bytes": 42094700902,
+          "operation": {
+            "activity": "waiting",
+            "completed_bytes": 0,
+            "last_progress_at": "2026-10-23T06:41:38.938118+00:00",
+            "phase": "runtime-preflight"
+          },
+          "phase": "runtime-install"
+        },
+        "operation_kind": "fleet-profile.apply"
+      }
+    }
+  },
+  {
+    "recorded_at": "2026-10-23T10:32:56.700742Z",
+    "recipe": "vonk-forge/qwen3-8b-nvfp4-nvidia-trtllm-single",
+    "content_sha256": "bd7e191c2e237a04f2c5938ea52013849a934f42536349ec69e512f73d3d2380",
+    "code": "sweep.wait_budget_exhausted",
+    "controller_document": {
+      "id": "4c1bc97b-3e47-4bf0-a344-8d8606ecff40",
+      "state": "running",
+      "next_attempt_at": "2026-10-23T10:30:00.295850Z",
+      "wait": {
+        "reason": "receipt-missing",
+        "dependency_deadline": "2026-10-23T11:21:35.204469Z",
+        "blockers": [
+          {
+            "code": "receipt-missing",
+            "detail": "Waiting for the exact Run/Switch child receipt",
+            "operation": {
+              "kind": "run-switch"
+            },
+            "severity": "info"
+          }
+        ]
+      },
+      "progress": {
+        "child_progress": {
+          "bytes": 26357685370,
+          "operation": {
+            "activity": "waiting",
+            "completed_bytes": 0,
+            "last_progress_at": "2026-10-23T10:27:35.269126+00:00",
+            "phase": "prepare"
+          },
+          "phase": "runtime-install"
+        },
+        "operation_kind": "fleet-profile.apply"
+      }
+    }
+  },
+  {
+    "recorded_at": "2026-10-23T10:32:56.701576Z",
+    "recipe": "vonk-forge/qwen3-8b-fp8-nvidia-vllm-single",
+    "content_sha256": "58889bfc0369cda93bcd9e8bc85de31369cd6c14e7e11f216554f04d806d3160",
+    "code": "sweep.wait_budget_exhausted",
+    "controller_document": {
+      "id": "bea7fbc7-40ce-4644-a285-bb89f6dff614",
+      "state": "running",
+      "next_attempt_at": "2026-10-23T10:30:01.045451Z",
+      "wait": {
+        "reason": "observation-unavailable",
+        "dependency_deadline": "2026-10-23T11:24:32.165442Z",
+        "blockers": [
+          {
+            "code": "observation-unavailable",
+            "detail": "observation-unavailable",
+            "operation": {
+              "kind": "recipe.run-switch.v2"
+            },
+            "severity": "warning"
+          }
+        ]
+      },
+      "progress": {
+        "child_progress": {
+          "bytes": 19218208676,
+          "operation": {
+            "activity": "waiting",
+            "completed_bytes": 0,
+            "last_progress_at": "2026-10-23T10:29:57.014836+00:00",
+            "phase": "runtime-preflight"
+          },
+          "phase": "runtime-install"
+        },
+        "operation_kind": "fleet-profile.apply"
+      }
+    }
+  },
+  {
+    "recorded_at": "2026-10-23T10:53:04.827300Z",
+    "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-single",
+    "content_sha256": "a02d17da3151d71270947463ff9c6b1c2a9257c89c1163471f6daca2e4987227",
+    "code": "sweep.wait_budget_exhausted",
+    "controller_document": {
+      "id": "b55488ac-aefd-4b46-af04-e5f47fe09eb6",
+      "state": "running",
+      "next_attempt_at": "2026-10-23T10:51:28.182704Z",
+      "wait": {
+        "reason": "observation-unavailable",
+        "dependency_deadline": "2026-10-23T11:45:32.757782Z",
+        "blockers": [
+          {
+            "code": "observation-unavailable",
+            "detail": "observation-unavailable",
+            "operation": {
+              "kind": "recipe.run-switch.v2"
+            },
+            "severity": "warning"
+          }
+        ]
+      },
+      "progress": {
+        "child_progress": {
+          "bytes": 144004823640,
+          "operation": {
+            "activity": "waiting",
+            "completed_bytes": 0,
+            "last_progress_at": "2026-10-23T10:51:25.815473+00:00",
+            "phase": "runtime-preflight"
+          },
+          "phase": "runtime-install"
+        },
+        "operation_kind": "fleet-profile.apply"
+      }
+    }
+  },
+  {
+    "recorded_at": "2026-10-23T11:07:16.341691Z",
+    "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single",
+    "content_sha256": "08d752c1e3ea271ff44c9743e473f04e065077e844ca06ce2f4e2fa6af0f104e",
+    "code": "sweep.wait_budget_exhausted",
+    "controller_document": {
+      "id": "72e3090e-030e-401d-b8aa-31c78ca08f11",
+      "state": "running",
+      "next_attempt_at": "2026-10-23T11:07:04.023185Z",
+      "wait": {
+        "reason": "receipt-missing",
+        "dependency_deadline": "2026-10-23T11:59:15.912556Z",
+        "blockers": [
+          {
+            "code": "receipt-missing",
+            "detail": "Waiting for the exact Run/Switch child receipt",
+            "operation": {
+              "kind": "run-switch"
+            },
+            "severity": "info"
+          }
+        ]
+      },
+      "progress": {
+        "child_progress": {
+          "bytes": 147893258221,
+          "operation": {
+            "activity": "waiting",
+            "completed_bytes": 132734506847,
+            "phase": "verify"
+          },
+          "phase": "final-verify"
+        },
+        "operation_kind": "fleet-profile.apply"
+      }
+    }
+  },
+  {
+    "recorded_at": "2026-10-23T11:57:40.090079Z",
+    "recipe": "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual",
+    "content_sha256": "aa385fa2e65683a422beb0e7604fa4b2bf68f9ec36dec66ea321d42d73fa52c4",
+    "code": "copy.stalled",
+    "controller_document": {
+      "id": "0cc286ac-d4bf-4768-9e97-48d9cfdd760e",
+      "state": "running",
+      "next_attempt_at": "2026-10-23T11:55:47.359871Z",
+      "wait": {
+        "reason": "observation-unavailable",
+        "dependency_deadline": "2026-10-23T12:14:45.845571Z",
+        "blockers": [
+          {
+            "code": "observation-unavailable",
+            "detail": "observation-unavailable",
+            "operation": {
+              "kind": "recipe.run-switch.v2"
+            },
+            "severity": "warning"
+          }
+        ]
+      },
+      "progress": {
+        "child_progress": {
+          "bytes": 0,
+          "operation": {
+            "activity": "waiting",
+            "completed_bytes": 0,
+            "last_progress_at": "2026-10-23T11:37:24.456685+00:00",
+            "phase": "runtime-preflight"
+          },
+          "phase": "target-copy"
+        },
+        "operation_kind": "fleet-profile.apply"
+      }
+    }
+  },
+  {
+    "recorded_at": "2026-10-23T12:18:03.888120Z",
+    "recipe": "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual",
+    "content_sha256": "d34ccd46bf92d9c436cfe3ac486a56bc104a1f8c420c5aaf562608e402b09b67",
+    "code": "sweep.wait_budget_exhausted",
+    "controller_document": {
+      "id": "b41184f3-b215-4ac2-9c04-dabadb57b81e",
+      "state": "running",
+      "next_attempt_at": "2026-10-23T12:17:50.557018Z",
+      "wait": {
+        "reason": "observation-unavailable",
+        "blockers": [
+          {
+            "code": "observation-unavailable",
+            "detail": "observation-unavailable",
+            "operation": {
+              "kind": "recipe.run-switch.v2"
+            },
+            "severity": "warning"
+          }
+        ]
+      },
+      "progress": {
+        "child_progress": {
+          "bytes": 0,
+          "operation": {
+            "activity": "waiting",
+            "completed_bytes": 0,
+            "last_progress_at": "2026-10-23T11:58:58.317940+00:00",
+            "phase": "runtime-preflight"
+          },
+          "phase": "runtime-install"
+        },
+        "operation_kind": "fleet-profile.apply"
+      }
+    }
+  }
+]

@@ -35,7 +35,7 @@ def _timeouts(seconds: float = 600.0) -> TimeoutPolicy:
 # -- reading the progress document ----------------------------------------------------------
 
 
-def test_copying_is_recognised_from_the_child_phase_or_the_operation_phase() -> None:
+def test_copying_is_recognised_from_moving_bytes_or_the_operation_phase() -> None:
     copying = policy.distribution(
         {
             "progress": {
@@ -45,7 +45,8 @@ def test_copying_is_recognised_from_the_child_phase_or_the_operation_phase() -> 
                     "operation": {"completed_bytes": 9, "last_progress_at": "t1"},
                 }
             }
-        }
+        },
+        previous_bytes=8,
     )
     assert (
         copying.copying
