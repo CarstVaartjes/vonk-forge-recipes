@@ -2129,10 +2129,10 @@ class Sweep:
         self.clear_infra("load-submit")
         owner = self._own_load_request(document["id"])
         if owner not in (None, load["request_key"]):
-            # The application is another load of ours: that load superseded this
-            # one, it did not continue it. This load has ended; its lane requeues.
+            self._carry_loading_slots(owner)
+            # Only lanes absent from the successor's canonical adoption requeue.
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
-                "state": "superseded",
+                "state": LifecycleState.SUPERSEDED,
                 "reason": f"superseded by this sweep's own load {owner}",
             }
             self.state.data["loads"].pop(load["request_key"], None)
@@ -2155,6 +2155,10 @@ class Sweep:
         failure = document.get("failure") or {}
         failure_code = str(failure.get("code") or document.get("code") or "")
         replaced = policy.supersession(document) if status in SETTLED else None
+        if replaced is not None and replaced.successor is not None:
+            successor = self._own_load_request(replaced.successor)
+            if successor is not None:
+                self._carry_loading_slots(successor)
         if (
             replaced is not None
             and replaced.successor not in (None, document["id"])
@@ -2162,8 +2166,7 @@ class Sweep:
             in (None, load["request_key"])
         ):
             # The Controller continued this application as another one: follow it.
-            # A successor that is another load of ours replaced this one instead;
-            # this load then settles as superseded below.
+            # Our own successors carry adopted lanes on their existing receipt.
             self.state.event(
                 f"application {document['id']} was superseded: following {replaced.successor}"
             )
@@ -2177,6 +2180,7 @@ class Sweep:
                 "state": status,
                 "reason": document.get("status_reason"),
                 "failure_code": failure_code,
+                "adopted_requests": load.get("adopted_requests", []),
                 "operation_id": document.get("current_operation_id") or document["id"],
                 "child_phase": child,
                 "cause": dig(document, "cancellation", "cause"),
@@ -2190,6 +2194,26 @@ class Sweep:
             }
             self.state.data["loads"].pop(load["request_key"], None)
         return True
+
+    def _carry_loading_slots(self, request: str) -> None:
+        """Observe unchanged lanes through the latest accepted whole-fleet load.
+
+        Admission already bound each adopted request's exact application, plan,
+        assignment and Spark scope in `_adopted_requests`. Keep its accepted
+        recipe content and deadline; only the aggregate observer changes.
+        """
+        successor = self.state.data["loads"].get(request) or self.state.data.get(
+            "apps", {}
+        ).get(request)
+        if successor is None:
+            return
+        adopted = set(successor.get("adopted_requests") or [])
+        for slot in self.state.slots.values():
+            if (
+                slot["phase"] == SweepSlotPhase.LOADING
+                and slot["request_key"] in adopted
+            ):
+                slot["request_key"] = request
 
     def _own_load_request(self, app_id: str) -> str | None:
         """The request key of this sweep's own load whose application ``app_id`` is."""
