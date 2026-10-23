@@ -50,6 +50,36 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "1968ad9e5a66addcff0b03e8a0cd1db104bee0ab3bf2694eb27ab3458fb66778",
+        "source_bundle_sha256": "0d8c8df6b6f396d9d841037507b9a8b7ce1ba8f66d3037521221050da2d0e824",
+        "runtime_image": {
+          "build_key": "159677f5452e1d95bcda9c0147662afc5e57ec1c8c8854ba593f32f694041ed9",
+          "image_digest": "sha256:93d625b3d36815e4496537ecfa232afbc22594c409aa01b6afd4c7c5a91c7848"
+        },
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "c41b9a371141049afa8b6465dbc3a37956ec2072c465781b3c11f9f5283962ab"
+      ],
+      "tested_at": "2026-10-23T04:33:53.710011Z",
+      "platform": {
+        "controller_source_sha": "ec302b880c904d0bd9912ba335a3d93d62141845",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
     }
   ]
 }
