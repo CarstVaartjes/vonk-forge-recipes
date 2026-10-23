@@ -69,6 +69,7 @@ from .evidence_publisher import EvidencePublisher
 from .finalization import FinalAction, Finalization
 from .identity import (
     AcceptedRequest,
+    ControllerWaitHold,
     IdentityReason,
     VerdictIdentity,
     content_identity,
@@ -2142,11 +2143,26 @@ class Sweep:
         load["app_id"] = document["id"]
         status = str(document.get("state", ""))
         load["state"] = status
-        moving = policy.distribution(document)
+        moving = policy.distribution(
+            document,
+            previous_bytes=int(load["copy_bytes"]) if "copy_bytes" in load else None,
+        )
+        load["copy_bytes"] = moving.completed_bytes
         load["copying"] = moving.copying
         load["phase"] = moving.phase
         load["blockers"] = policy.admission_blockers(document)
         signal = verdict.application_signal(document)
+        # Capture known deployed content before a long wait ages its provenance.
+        if (
+            signal.wait is not None
+            and signal.wait.controller is not None
+            and not load.get("wait_platform")
+        ):
+            load["wait_platform"] = {
+                owner: fingerprint.record()
+                for owner, fingerprint in self._component_observations().items()
+                if owner in ("api", "worker") and fingerprint is not None
+            }
         load["signal"] = {
             "signature": list(signal.signature),
             "wait": signal.wait.model_dump(mode="json") if signal.wait else None,
@@ -2337,7 +2353,11 @@ class Sweep:
             if load["signal"].get("wait")
             else None,
         )
-        if copying and load.get("state") in ACTIVE_APP:
+        if (
+            copying
+            and load.get("state") in ACTIVE_APP
+            and (signal.wait is None or signal.wait.controller is None)
+        ):
             # Distribution retries still own the same copy. Only changed bytes
             # or phases restart its window; a retry timestamp cannot keep a lane
             # forever. The existing stalled-copy path releases and observes it.
@@ -2526,10 +2546,14 @@ class Sweep:
         Observe the original receipt within the lane budget. Expiry re-plans locally
         without asserting a remote ending or spending a recipe attempt.
         """
+        declared = (load.get("signal") or {}).get("wait")
+        wait = SweepWait.model_validate(declared) if declared is not None else None
         if self._wait_slot(
             key,
             slot,
-            SweepWait(
+            wait
+            if wait is not None and wait.controller is not None
+            else SweepWait(
                 reason=SweepWaitReason.CONTROLLER_STALLED,
                 detail=f"application {load.get('app_id')}: {load['stalled']}",
             ),
@@ -2732,6 +2756,31 @@ class Sweep:
         load = self.state.data["loads"].get(slot["request_key"])
         if load is not None:
             load["replanned_pending"] = True
+        accepted = AcceptedRequest.read(slot)
+        if (
+            expiry.wait.controller is not None
+            and expiry.wait.controller.identity is not None
+            and accepted is not None
+            and load is not None
+            and load.get("app_id")
+        ):
+            hold = ControllerWaitHold(
+                wait=expiry.wait,
+                identity=current_identity(accepted.recipe),
+                application_id=load["app_id"],
+                next_check=self.clock.now() + self.cfg.defer_delay,
+                platform=load.get("wait_platform")
+                or {
+                    owner: fingerprint
+                    for owner, fingerprint in self._component_observations().items()
+                    if owner in ("api", "worker") and fingerprint is not None
+                },
+            )
+            self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
+            self.state.event(
+                f"placement waits for Controller dependency: {hold.wait.description}; "
+                f"observing {hold.application_id} again at {hold.next_check}"
+            )
         failure = policy.classify(
             slot["phase"],
             expiry.code,
@@ -3075,12 +3124,17 @@ class Sweep:
 
     def ready_candidates(self) -> list[Recipe]:
         now = self.clock.now()
+        if self.controller_wait_issue() is not None:
+            return []
+        waits = self.controller_wait_holds()
         out = []
         for key in self.queue:
             recipe = self.recipes.get(key)
             entry = self.state.recipes.get(key, {})
             if recipe is None or not self.ready(recipe) or key in self.state.slots:
                 continue
+            if key in waits and waits[key].identity == current_identity(recipe):
+                continue  # re-observe the original receipt, never replay unchanged intent
             if self.lanes_short(recipe):
                 continue  # waits for its lanes to come online; the online ones carry on
             if now < float(entry.get("not_before", 0)) or now < float(
@@ -3299,7 +3353,104 @@ class Sweep:
             self.state.event(message)
         self.state.data["alerts"] = [message]
 
+    def controller_wait_holds(self) -> dict[str, ControllerWaitHold]:
+        return {
+            key: ControllerWaitHold.model_validate(entry["controller_wait"])
+            for key, entry in self.state.recipes.items()
+            if entry.get("controller_wait") is not None
+        }
+
+    def controller_wait_issue(self) -> str | None:
+        holds = list(self.controller_wait_holds().values())
+        for hold in holds:
+            controller = hold.wait.controller
+            if controller is None or controller.identity is None:
+                continue
+            if any(
+                other.identity != hold.identity
+                and other.wait.controller is not None
+                and other.wait.controller.identity == controller.identity
+                for other in holds
+            ):
+                return (
+                    f"shared Controller wait {controller.description} "
+                    f"({controller.identity[1]}); placement paused pending changed evidence"
+                )
+        return None
+
+    def _refresh_controller_waits(self, now: float) -> None:
+        """Probe accepted receipts with bounded reads; time alone never resubmits a load."""
+        documents: dict[str, Mapping[str, Any]] = {}
+        recovered: set[tuple[str, str]] = set()
+        platform = self._component_observations()
+        for key, hold in self.controller_wait_holds().items():
+            recipe = self.recipes.get(key)
+            if recipe is not None and current_identity(recipe) != hold.identity:
+                self.state.entry(key).pop("controller_wait", None)
+                continue  # latest content gets a fresh canonical review
+            if any(
+                platform.get(owner) is not None and platform[owner] != fingerprint
+                for owner, fingerprint in hold.platform.items()
+            ):
+                self.state.entry(key).pop("controller_wait", None)
+                self.state.event(
+                    f"deployed platform changed for {key}; re-planning placement"
+                )
+                continue
+            if now < hold.next_check:
+                continue
+            hold.next_check = now + self.cfg.defer_delay
+            self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
+            if hold.application_id not in documents:
+                reply = self.vk.run(
+                    "profile",
+                    "progress",
+                    "--application",
+                    hold.application_id,
+                    profile=self.cfg.sweep_profile,
+                    timeout=30,
+                )
+                if not reply.ok or not isinstance(reply.document, Mapping):
+                    continue  # unknown is no recovery proof; next probe remains visible
+                if reply.document.get("id") != hold.application_id:
+                    continue
+                documents[hold.application_id] = reply.document
+            document = documents[hold.application_id]
+            if document.get("state") not in ACTIVE_APP | SETTLED:
+                continue
+            if (
+                document.get("state") in SETTLED
+                and document.get("state") != LifecycleState.SUCCEEDED
+            ):
+                continue  # supersession/cancellation is no dependency recovery proof
+            signal = verdict.application_signal(document)
+            observed = signal.wait.controller if signal.wait is not None else None
+            previous = hold.wait.controller
+            resumed = (
+                signal.wait is None or document.get("state") == LifecycleState.SUCCEEDED
+            )
+            if resumed or (
+                observed is not None
+                and previous is not None
+                and (observed.reason, observed.identity)
+                != (previous.reason, previous.identity)
+            ):
+                self.state.entry(key).pop("controller_wait", None)
+                self.state.event(
+                    f"Controller wait changed for {key}; re-planning placement"
+                )
+                if resumed and previous is not None and previous.identity is not None:
+                    recovered.add(previous.identity)
+        # One original receipt resuming is behaviour proof for the shared dependency.
+        for key, hold in self.controller_wait_holds().items():
+            if (
+                hold.wait.controller is not None
+                and hold.wait.controller.identity in recovered
+            ):
+                self.state.entry(key).pop("controller_wait", None)
+
     def schedule(self, now: float) -> None:
+        self._refresh_controller_waits(now)
         self.release_given_up(now)
         self.release_orphan_load()
         candidates = self.ready_candidates()

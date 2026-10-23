@@ -425,10 +425,6 @@ def learn(
 # Distribution: bytes moving to the Spark are watched for progress, not timed
 # --------------------------------------------------------------------------
 
-# Child phases of a profile application while bytes are still being put in place.
-DISTRIBUTION_PHASES = frozenset(
-    {"model-download", "container-download", "target-copy", "transfer"}
-)
 _COPYING = re.compile(r"cop(y|ying)|transfer|distribut|download|sync", re.IGNORECASE)
 # Bumped when the load-timeout rules change; results from older rules may be retried once.
 LOAD_RULES = 3
@@ -444,19 +440,27 @@ class Distribution:
     phase: str | None
     # Changes whenever the transfer moves: completed bytes and the Controller's last-progress time.
     signature: tuple[int, str] | None
+    completed_bytes: int
 
 
-def distribution(document: Mapping[str, Any]) -> Distribution:
+def distribution(
+    document: Mapping[str, Any], *, previous_bytes: int | None = None
+) -> Distribution:
     """Is this profile application still moving bytes, and has it moved since last looked?"""
     child = (document.get("progress") or {}).get("child_progress") or {}
     operation = child.get("operation") or {}
     phase = child.get("phase")
     op_phase = str(operation.get("phase") or "")
-    copying = phase in DISTRIBUTION_PHASES or bool(_COPYING.search(op_phase))
     done = max(int(operation.get("completed_bytes") or 0), int(child.get("bytes") or 0))
+    copying = bool(_COPYING.search(op_phase)) or (
+        previous_bytes is not None and done > previous_bytes
+    )
     signature = (done, str(operation.get("last_progress_at") or ""))
     return Distribution(
-        copying, str(phase) if phase else None, signature if copying else None
+        copying,
+        op_phase or (str(phase) if phase else None),
+        signature if copying else None,
+        done,
     )
 
 

@@ -2,7 +2,7 @@
 
 from enum import IntEnum, StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, JsonValue
 
 
 class WorkloadExitCause(StrEnum):
@@ -188,6 +188,7 @@ class SweepWaitReason(StrEnum):
     ADMISSION = "admission"
     BLOCKER = "controller blocker"
     CONTROLLER_RETRY = "controller retry"
+    CONTROLLER_WAIT = "controller wait"
     OPERATION_QUEUED = "operation queued"
     OPERATION_BACKOFF = "operation backoff"
     OBSERVATION = "observation unavailable"
@@ -203,14 +204,60 @@ class SweepWaitCode(StrEnum):
     BUDGET_EXHAUSTED = "sweep.wait_budget_exhausted"
 
 
+class ControllerWaitOperation(BaseModel):
+    kind: str
+
+
+class ControllerWaitBlocker(BaseModel):
+    code: str
+    detail: str = ""
+    operation: ControllerWaitOperation | None = None
+
+
+class ControllerWait(BaseModel):
+    """Projection of the Controller's declared dependency, irrespective of severity.
+
+    Reason and operation kind are external wire vocabulary, not sweep states.
+    Only an exact reason/operation pair can correlate waits across recipes.
+    """
+
+    reason: str
+    detail: str = ""
+    blockers: list[ControllerWaitBlocker] = Field(default_factory=list)
+    dependency_deadline: AwareDatetime | None = None
+
+    @property
+    def identity(self) -> tuple[str, str] | None:
+        kinds = {
+            blocker.operation.kind
+            for blocker in self.blockers
+            if blocker.operation is not None
+        }
+        return (self.reason, next(iter(kinds))) if len(kinds) == 1 else None
+
+    @property
+    def description(self) -> str:
+        details = self.detail or next(
+            (b.detail for b in self.blockers if b.code == self.reason), ""
+        )
+        return (
+            f"{self.reason}: {details}"
+            if details and details != self.reason
+            else self.reason
+        )
+
+
 class SweepWait(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     reason: SweepWaitReason
     detail: str = ""
+    controller: ControllerWait | None = None
 
     @property
     def description(self) -> str:
+        if self.controller is not None:
+            return self.controller.description
         return f"{self.reason}: {self.detail}" if self.detail else self.reason.value
 
 

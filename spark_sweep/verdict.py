@@ -7,8 +7,8 @@ The original Controller receipt remains authoritative for remote effects.
 The vocabulary is what actually reaches ``vonkctl --json``: the application's
 ``LifecycleState``, its typed blocker codes, ``next_attempt_at`` and admission flags,
 and the CLI error document (``code``, ``retryable``, ``decision``, ``http_status``).
-The Controller's ``WaitReason``/``ErrorCategory`` enums are not on the profile wire, so
-the closed code sets used here are vendored from the platform's published enums and
+The document's typed ``wait`` is authoritative, including informational blockers.
+The closed code sets used for other observations are vendored from published enums and
 checked against ``tests/fixtures/sweep-vocabulary.json``.
 """
 
@@ -21,6 +21,7 @@ from enum import StrEnum
 from typing import Any
 
 from vonk_forge_contracts.sweep import (
+    ControllerWait,
     SweepFailureClass,
     SweepWait,
     SweepWaitCode,
@@ -175,7 +176,12 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
         if code not in (PHASE_RETRY, STALLED_CODE)
     ]
     wait = None
-    if state == LifecycleState.NEEDS_OPERATOR:
+    if document.get("wait") is not None:
+        wait = SweepWait(
+            reason=SweepWaitReason.CONTROLLER_WAIT,
+            controller=ControllerWait.model_validate(document["wait"]),
+        )
+    elif state == LifecycleState.NEEDS_OPERATOR:
         wait = SweepWait(
             reason=SweepWaitReason.OPERATOR,
             detail=str(document.get("status_reason") or state),
@@ -253,6 +259,8 @@ def bounded_wait(
         watch.setdefault("wait_started_at", now if started_at is None else started_at)
     )
     deadline = min(float(watch.get("wait_deadline", since + window)), since + window)
+    if wait.controller is not None and wait.controller.dependency_deadline is not None:
+        deadline = min(deadline, wait.controller.dependency_deadline.timestamp())
     watch.update(
         observed_at=now,
         wait=wait.model_dump(mode="json"),
