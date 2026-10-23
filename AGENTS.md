@@ -269,6 +269,12 @@ All `waiting_on` writes use `SweepWaitReason` and `bounded_wait`. Persisted
 admission/smoke deadlines survive changed reasons, progress and restart. Lane
 budget expiry records `SweepWaitCode.BUDGET_EXHAUSTED`, releases local occupancy
 and requeues without spending an attempt; it never claims remote cancellation.
+The Controller document's typed `wait` names its dependency and caps the budget
+with `dependency_deadline`; a child label alone never proves copying. An expired
+declared wait observes its original receipt before placing identical content.
+Matching reason/operation evidence across distinct recipe content pauses placement
+as a visible platform issue, with bounded probes until changed evidence permits
+a fresh plan; retry counts and supersession alone prove no recovery.
 Preparation blockers use at most five minutes; download observation uses an hour
 without occupying a Spark. Copy time is excluded from learned load time while
 copy inactivity has its own stall window. Route/endpoint publication, busy

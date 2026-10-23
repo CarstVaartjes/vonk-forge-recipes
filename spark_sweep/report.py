@@ -165,7 +165,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         )
         if watch.get("waiting_on"):
             limit = min(limit, float(watch.get("wait_deadline", since + limit)) - since)
-        if not smoking and slot.get("copying"):
+        if not smoking and slot.get("copying") and not watch.get("waiting_on"):
             # Copying has an inactivity window, not the engine startup budget.
             since = watch.get("progressed_at", slot["started_at"])
             limit = sweep.cfg.copy_stall_seconds
@@ -215,6 +215,11 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         "updated_at": now,
         "finalization": data.get("finalization"),
         "paused": sweep.pause_reason or None,
+        "controller_wait_issue": sweep.controller_wait_issue(),
+        "controller_waits": {
+            key: hold.model_dump(mode="json")
+            for key, hold in sweep.controller_wait_holds().items()
+        },
         "mode": data["mode"],
         "counts": counts(data["recipes"]),
         "catalog_diagnostics": data.get("catalog_diagnostics", []),
@@ -384,6 +389,15 @@ def render_status(status: Mapping[str, Any]) -> str:
         lines.append(
             f"- {status['waiting_for_lanes']} queued recipe(s) waiting for more lanes online"
         )
+    if status.get("controller_waits"):
+        lines += ["", "## Controller dependency waits (no recipe attempts)"]
+        if status.get("controller_wait_issue"):
+            lines.append(str(status["controller_wait_issue"]))
+        lines += [
+            f"- {key}: {hold['wait']['controller']['reason']}; "
+            f"next observation in {_duration(max(0, hold['next_check'] - status['updated_at']))}"
+            for key, hold in status["controller_waits"].items()
+        ]
     if status.get("infrastructure"):
         lines += ["", "## Infrastructure problems (not recipe failures; retrying)"]
         lines += [
