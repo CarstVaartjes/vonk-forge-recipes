@@ -41,6 +41,7 @@ from vonk_forge_contracts.sweep import (
     FleetOnlineState,
     InfrastructureIncident,
     ReviewInfrastructureSource,
+    SweepLoadBudget,
     SweepSlotPhase,
     SweepStorageReview,
     SweepStorageWait,
@@ -2447,6 +2448,21 @@ class Sweep:
         app = self.state.data.get("apps", {}).get(slot["request_key"])
         if app is not None:
             if app["state"] == LifecycleState.SUPERSEDED:
+                watch = slot.get("watch", {})
+                if watch.get("wait") and now > float(watch["wait_deadline"]):
+                    self._expire_wait(key, slot, watch)
+                    return
+                # Replacing our own intent is no progress on its dependency.
+                self.state.entry(key)["superseded_budget"] = SweepLoadBudget(
+                    content_sha256=recipe.content_sha256,
+                    started_at=slot["started_at"],
+                    deadline=slot["deadline"],
+                    blocked_seconds=slot.get("blocked_seconds", 0),
+                    wait=SweepWait.model_validate(slot["watch"]["wait"])
+                    if slot.get("watch", {}).get("wait")
+                    else None,
+                    wait_deadline=slot.get("watch", {}).get("wait_deadline"),
+                ).model_dump(mode="json")
                 self.requeue(key, "load superseded by another application")
                 return
             if app["state"] == "cancelled":
@@ -3055,6 +3071,8 @@ class Sweep:
 
     def cleanup_finished(self) -> None:
         self.enqueue_finished_cleanup()
+        if not self._profile_edit_ready():
+            return
         pending = self.state.data.setdefault("cleanup", {})
         live_aliases = {slot["alias"] for slot in self.state.slots.values()}
         for alias, record in list(pending.items()):
@@ -3978,6 +3996,46 @@ class Sweep:
         self.state.data.pop("takeover_fallback", None)
         self.state.data.pop("cleared_by", None)
 
+    def _profile_edit_ready(self) -> bool:
+        """Even a rolled-back edit supersedes an unbound pending admission."""
+        self.state.data.pop("profile_edit_wait", None)
+        loading = [
+            slot
+            for slot in self.state.slots.values()
+            if slot["phase"] == SweepSlotPhase.LOADING
+        ]
+        if not loading:
+            return True
+        reply = self.vk.run(
+            "profile", "load", "--review", profile=self.cfg.sweep_profile
+        )
+        if (
+            not reply.is_transport_error
+            and not reply.is_error_document
+            and isinstance(reply.document, Mapping)
+            and self._adopted_requests(reply.document) is not None
+        ):
+            return True
+        deadline = min(
+            float(slot.get("watch", {}).get("wait_deadline", slot["deadline"]))
+            for slot in loading
+        )
+        applications = [
+            f"{self.state.data['loads'].get(slot['request_key'], {}).get('app_id') or slot['request_key']}"
+            f" ({slot.get('watch', {}).get('waiting_on') or 'admission not yet bound'})"
+            for slot in loading
+        ]
+        verdict.bounded_wait(
+            SweepWait(
+                reason=SweepWaitReason.ADMISSION,
+                detail=f"profile edit awaits bound effects: {', '.join(applications)}",
+            ),
+            self.state.data.setdefault("profile_edit_wait", {}),
+            window=max(0, deadline - self.clock.now()),
+            now=self.clock.now(),
+        )
+        return False  # the pending lane's own bounded wait releases this dependency
+
     def _prune_profile(self) -> bool:
         """Before any load of the sweep profile, it holds only what live lanes need.
 
@@ -3986,6 +4044,8 @@ class Sweep:
         later load, so a clearing or stop load would run the very workload it should end.
         The exact export decides; only names the sweep itself uses are removed.
         """
+        if not self._profile_edit_ready():
+            return False
         reply = self.vk.run("profile", "export", profile=self.cfg.sweep_profile)
         document = reply.document
         assignments = (
@@ -4541,6 +4601,26 @@ class Sweep:
                 if p.alias == alias and p.node_id in placement.spark_ids
             ),
         }
+
+        carried = self.state.entry(recipe.key).pop("superseded_budget", None)
+        if carried is not None:
+            budget = SweepLoadBudget.model_validate(carried)
+            if budget.content_sha256 == recipe.content_sha256:
+                slot = self.state.slots[recipe.key]
+                slot.update(
+                    started_at=budget.started_at,
+                    deadline=budget.deadline,
+                    blocked_seconds=budget.blocked_seconds,
+                    last_tick=now,
+                )
+                if budget.wait is not None and budget.wait_deadline is not None:
+                    verdict.bounded_wait(
+                        budget.wait,
+                        slot.setdefault("watch", {}),
+                        window=budget.wait_deadline - budget.started_at,
+                        now=now,
+                        started_at=budget.started_at,
+                    )
 
     def _remember_own(self, alias: str) -> None:
         own = self.state.data["own_aliases"]

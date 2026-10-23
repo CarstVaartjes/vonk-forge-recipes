@@ -7,7 +7,7 @@ from dataclasses import replace
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
-from vonk_forge_contracts.sweep import SweepSlotPhase
+from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitCode, SweepWaitReason
 
 from spark_sweep import policy
 from spark_sweep.identity import AcceptedRequest
@@ -331,3 +331,181 @@ def test_unbound_adoption_cannot_submit_or_carry_a_lane(
     assert sweep.state.slots[a.key]["request_key"] == request
     assert len(fleet.apps) == 1
     assert not list(sweep.log.entries())
+
+
+def _pending_admission_edits_supersede(fleet, monkeypatch):
+    """An unbound admission is invalidated by saved-profile edits, even rollback."""
+    profile = fleet._profile
+    load = fleet._load
+    app_doc = fleet._app_doc
+    edits = []
+
+    def pending():
+        return [
+            app
+            for app in fleet.apps.values()
+            if app.get("blocked") and app["state"] == LifecycleState.RUNNING
+        ]
+
+    def edit(number, verb, args):
+        if number == 10 and verb in ("add", "remove"):
+            for app in pending():
+                edits.append((fleet.clock.now(), app["id"]))
+                app["state"] = LifecycleState.SUPERSEDED
+        return profile(number, verb, args)
+
+    def review(number, data, args):
+        code, doc = load(number, data, args)
+        if "--review" in args:
+            ids = {app["id"] for app in pending()}
+            doc["effects"]["adopted"] = [
+                item
+                for item in doc["effects"]["adopted"]
+                if item["application_id"] not in ids
+            ]
+        return code, doc
+
+    def document(app):
+        doc = app_doc(app)
+        if app in pending():
+            doc["progress"].update(admission_pending=True, effects=[])
+            doc["wait"] = {
+                "reason": "profile.preparation_unavailable",
+                "blockers": [
+                    {
+                        "code": "profile.preparation_unavailable",
+                        "operation": {"kind": "recipe-build"},
+                    }
+                ],
+            }
+        return doc
+
+    monkeypatch.setattr(fleet, "_profile", edit)
+    monkeypatch.setattr(fleet, "_load", review)
+    monkeypatch.setattr(fleet, "_app_doc", document)
+    return edits
+
+
+@pytest.mark.parametrize("binds", [False, True])
+def test_pending_admission_protects_profile_then_releases_other_lane(
+    tmp_path, monkeypatch, binds
+):
+    from spark_sweep.report import build_status, write_status
+
+    a = FakeRecipe(
+        "a",
+        content="a" * 64,
+        digests=("1" * 64,),
+        local="cached",
+        blocked=True,
+        blocker_code="profile.preparation_unavailable",
+    )
+    b = FakeRecipe("b", content="b" * 64, digests=("1" * 64,), local="cached")
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [a, b],
+        [FakeModel("1" * 64, local="cached")],
+        blocked_release_seconds=30,
+    )
+    edits = _pending_admission_edits_supersede(fleet, monkeypatch)
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep._tick()
+    assert not edits  # no profile mutation while the first admission is unbound
+    slot = sweep.state.slots[a.key]
+    request = slot["request_key"]
+    application = sweep.state.data["loads"][request]["app_id"]
+    sweep._tick()
+    wait = build_status(sweep)["profile_edit_wait"]
+    assert wait["wait"]["reason"] == SweepWaitReason.ADMISSION
+    assert application in wait["waiting_on"]
+    assert wait["wait_deadline"] == slot["watch"]["wait_deadline"]
+    write_status(sweep)
+    assert application in (tmp_path / "status.md").read_text()
+    # Finished-lane cleanup must obey the same pre-edit boundary as placement.
+    sweep.state.data["cleanup"] = {"old-lane": {"next_check": 0, "attempts": 0}}
+    sweep.cleanup_finished()
+    assert "old-lane" in sweep.state.data["cleanup"]
+    for _ in range(4):
+        clock.sleep(10)
+        if binds:
+            fleet.apps[application]["blocked"] = False
+        sweep._tick()
+        if b.key in sweep.state.slots:
+            break
+    assert all(at > slot["watch"]["wait_deadline"] for at, _ in edits)
+    if binds:
+        assert not edits
+        assert fleet.apps[application]["state"] != LifecycleState.SUPERSEDED
+    assert b.key in sweep.state.slots
+    assert sweep.state.slots[b.key]["request_key"] != request
+    assert sweep.state.data["loads"][sweep.state.slots[b.key]["request_key"]]["app_id"]
+    if not binds:
+        entry = sweep.state.entry(a.key)
+        assert entry["wait_deferral"]["code"] == SweepWaitCode.BUDGET_EXHAUSTED
+        assert entry["controller_wait"]["application_id"] == application
+        assert entry.get("attempts", 0) == 0
+        assert clock.now() <= slot["watch"]["wait_deadline"] + 10
+    assert build_status(sweep)["profile_edit_wait"] is None
+
+
+@pytest.mark.parametrize("supersede_again", [False, True])
+def test_superseded_admission_keeps_budget_across_restart(
+    tmp_path, monkeypatch, supersede_again
+):
+    a = FakeRecipe(
+        "a",
+        content="a" * 64,
+        digests=("1" * 64,),
+        local="cached",
+        blocked=True,
+        blocker_code="profile.preparation_unavailable",
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [a],
+        [FakeModel("1" * 64, local="cached")],
+        blocked_release_seconds=30,
+    )
+    _pending_admission_edits_supersede(fleet, monkeypatch)
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep._tick()
+    sweep._tick()
+    slot = sweep.state.slots[a.key]
+    start, deadline = slot["started_at"], slot["deadline"]
+    wait_deadline = slot["watch"]["wait_deadline"]
+    clock.sleep(20)
+    sweep._tick()
+    blocked = slot["blocked_seconds"]
+    # Fault injection: an earlier sweep edit invalidated this admission with no
+    # successor to adopt. Requeueing that receipt must not grant another budget.
+    app = sweep.state.data["loads"][slot["request_key"]]["app_id"]
+    fleet.apps[app]["state"] = LifecycleState.SUPERSEDED
+    sweep.advance_slots(clock.now())
+    sweep.enqueue_finished_cleanup()
+    sweep.state.save()
+    sweep, _, _ = make_sweep(
+        tmp_path,
+        [a],
+        list(fleet.models.values()),
+        fleet=fleet,
+        blocked_release_seconds=30,
+    )
+    sweep.refresh_catalog()
+    sweep._tick()
+    slot = sweep.state.slots[a.key]
+    assert slot["started_at"] == start
+    assert slot["deadline"] == deadline
+    assert slot["blocked_seconds"] >= blocked
+    assert slot["watch"]["wait_deadline"] == wait_deadline
+    clock.sleep(11)
+    if supersede_again:
+        app = sweep.state.data["loads"][slot["request_key"]]["app_id"]
+        fleet.apps[app]["state"] = LifecycleState.SUPERSEDED
+    sweep._tick()
+    assert (
+        sweep.state.entry(a.key)["wait_deferral"]["code"]
+        == SweepWaitCode.BUDGET_EXHAUSTED
+    )
+    assert a.key not in sweep.state.slots
