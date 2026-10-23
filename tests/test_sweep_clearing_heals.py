@@ -234,6 +234,22 @@ def test_a_refused_clearing_is_the_recorded_wait_and_is_decided_again(
 # The pre-edit adoption preview reads the existing intent. Pruning first would
 # itself supersede an unbound admission; the placement review still prunes first.
 REVIEW_WITHOUT_PRUNE = {"observe_cleanup", "_profile_edit_ready"}
+PROFILE_EDIT_WITHOUT_GUARD = {
+    (
+        "run.py",
+        "_rollback",
+    ): "Only undoes edits after guarded placement; no new load is submitted.",
+    (
+        "run.py",
+        "claim_profile",
+    ): "Configures only an empty, newly claimed profile before lanes start.",
+    (
+        "prefetch.py",
+        "_live_assignments",
+    ): "Recreates only the separate never-loaded pin profile after canonical absence.",
+    ("prefetch.py", "release_pins"): "Edits the separate never-loaded pin profile.",
+    ("prefetch.py", "_reconcile_pins"): "Edits the separate never-loaded pin profile.",
+}
 
 
 def test_every_review_of_a_new_intent_reconciles_the_profile_first() -> None:
@@ -265,4 +281,54 @@ def test_every_review_of_a_new_intent_reconciles_the_profile_first() -> None:
         ]
         if reviews and not (prunes and min(prunes) < min(reviews)):
             missing.append(node.name)
+    assert missing == []
+
+    # Include starred CLI args: _apply builds ["add", recipe.key] before its call.
+    for path in (Path(__file__).parents[1] / "spark_sweep").glob("*.py"):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+            if not isinstance(node, ast.FunctionDef):
+                continue
+            if (path.name, node.name) in PROFILE_EDIT_WITHOUT_GUARD:
+                assert PROFILE_EDIT_WITHOUT_GUARD[path.name, node.name]
+                continue
+            calls = [call for call in ast.walk(node) if isinstance(call, ast.Call)]
+            edits = []
+            for call in calls:
+                if not (
+                    isinstance(call.func, ast.Attribute)
+                    and call.func.attr in ("run", "call")
+                    and call.args
+                    and isinstance(call.args[0], ast.Constant)
+                    and call.args[0].value == "profile"
+                ):
+                    continue
+                args = list(call.args[1:])
+                for arg in call.args[1:]:
+                    if isinstance(arg, ast.Starred) and isinstance(arg.value, ast.Name):
+                        args.extend(
+                            value
+                            for assignment in ast.walk(node)
+                            if isinstance(assignment, ast.Assign)
+                            and any(
+                                isinstance(target, ast.Name)
+                                and target.id == arg.value.id
+                                for target in assignment.targets
+                            )
+                            and isinstance(assignment.value, (ast.List, ast.Tuple))
+                            for value in assignment.value.elts
+                        )
+                if any(
+                    isinstance(arg, ast.Constant)
+                    and arg.value in ("add", "remove", "configure", "import")
+                    for arg in args
+                ):
+                    edits.append(call.lineno)
+            guards = [
+                call.lineno
+                for call in calls
+                if isinstance(call.func, ast.Attribute)
+                and call.func.attr in ("_profile_edit_ready", "_prune_profile")
+            ]
+            if edits and not (guards and min(guards) < min(edits)):
+                missing.append(f"{path.name}:{node.name}")
     assert missing == []

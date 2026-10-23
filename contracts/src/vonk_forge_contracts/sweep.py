@@ -271,19 +271,6 @@ class SweepWaitExpiry(BaseModel):
     observed_at: float
 
 
-class SweepLoadBudget(BaseModel):
-    """A same-content load keeps its admission budget when its receipt is superseded."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    content_sha256: str
-    started_at: float
-    deadline: float
-    blocked_seconds: float = 0
-    wait: SweepWait | None = None
-    wait_deadline: float | None = None
-
-
 class SweepProgress(StrEnum):
     PROGRESSING = "progressing"
     WAITING = "waiting"

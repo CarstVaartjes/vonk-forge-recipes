@@ -449,63 +449,175 @@ def test_pending_admission_protects_profile_then_releases_other_lane(
     assert build_status(sweep)["profile_edit_wait"] is None
 
 
-@pytest.mark.parametrize("supersede_again", [False, True])
-def test_superseded_admission_keeps_budget_across_restart(
-    tmp_path, monkeypatch, supersede_again
+@pytest.mark.parametrize("cleanup", [False, True])
+def test_pending_lane_reviews_once_per_tick_with_many_candidates(
+    tmp_path, monkeypatch, cleanup
 ):
-    a = FakeRecipe(
-        "a",
-        content="a" * 64,
-        digests=("1" * 64,),
-        local="cached",
-        blocked=True,
-        blocker_code="profile.preparation_unavailable",
-    )
+    recipes = [
+        FakeRecipe(
+            "a",
+            local="cached",
+            blocked=True,
+            blocker_code="profile.preparation_unavailable",
+        ),
+        *(FakeRecipe(f"r{i}", local="cached") for i in range(5)),
+    ]
     sweep, fleet, clock = make_sweep(
         tmp_path,
-        [a],
-        [FakeModel("1" * 64, local="cached")],
+        recipes,
+        [FakeModel("m1", local="cached")],
         blocked_release_seconds=30,
     )
-    _pending_admission_edits_supersede(fleet, monkeypatch)
+    edits = _pending_admission_edits_supersede(fleet, monkeypatch)
     sweep.preflight()
     sweep.refresh_catalog()
     sweep._tick()
-    sweep._tick()
-    slot = sweep.state.slots[a.key]
-    start, deadline = slot["started_at"], slot["deadline"]
-    wait_deadline = slot["watch"]["wait_deadline"]
-    clock.sleep(20)
-    sweep._tick()
-    blocked = slot["blocked_seconds"]
-    # Fault injection: an earlier sweep edit invalidated this admission with no
-    # successor to adopt. Requeueing that receipt must not grant another budget.
-    app = sweep.state.data["loads"][slot["request_key"]]["app_id"]
-    fleet.apps[app]["state"] = LifecycleState.SUPERSEDED
-    sweep.advance_slots(clock.now())
-    sweep.enqueue_finished_cleanup()
-    sweep.state.save()
-    sweep, _, _ = make_sweep(
-        tmp_path,
-        [a],
-        list(fleet.models.values()),
-        fleet=fleet,
-        blocked_release_seconds=30,
+    if cleanup:
+        sweep.state.data["cleanup"] = {"old-lane": {"next_check": 0, "attempts": 0}}
+    for _ in range(2):
+        fleet.calls.clear()
+        sweep._tick()
+        reviews = [
+            args
+            for number, args in fleet.calls
+            if number == 10 and args[:2] == ("profile", "load") and "--review" in args
+        ]
+        assert len(reviews) == 1
+        assert not edits
+        assert len(sweep.state.slots) == 1
+        clock.sleep(5)
+
+
+@pytest.mark.parametrize(
+    "review",
+    [
+        Reply(("profile",), 1, None, "partitioned"),
+        Reply(("profile",), 0, {"unreadable": True}, ""),
+    ],
+)
+def test_unreadable_profile_review_ends_at_pending_lane_bound(tmp_path, review):
+    from vonk_forge_contracts.sweep import SweepWait
+
+    from spark_sweep import verdict
+
+    sweep, _, clock = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
+    sweep.preflight()
+    sweep.refresh_catalog()
+    recipe = sweep.recipes["vonk-forge/a"]
+    sweep._open_slot(policy.Placement(recipe, ("spk_a",)), "pending", clock.now())
+    slot = sweep.state.slots[recipe.key]
+    deadline = clock.now() + 30
+    verdict.bounded_wait(
+        SweepWait(reason=SweepWaitReason.ADMISSION),
+        slot.setdefault("watch", {}),
+        window=30,
+        now=clock.now(),
     )
+    sweep.vk.run = lambda *args, **kwargs: review
+    assert not sweep._profile_edit_ready()
+    wait = sweep.state.data["profile_edit_wait"]
+    since = wait["wait_started_at"]
+    clock.sleep(20)
+    assert not sweep._profile_edit_ready()
+    assert sweep.state.data["profile_edit_wait"] is wait
+    assert wait["wait_started_at"] == since
+    assert wait["wait_deadline"] == deadline
+    clock.sleep(11)
+    assert sweep._profile_edit_ready()
+    assert not sweep.state.data.get("profile_edit_wait")
+
+
+def test_profile_edit_wait_tracks_progress_after_dependency_wait(tmp_path):
+    from vonk_forge_contracts.sweep import SweepWait
+
+    from spark_sweep import verdict
+
+    sweep, _, clock = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
+    sweep.preflight()
+    sweep.refresh_catalog()
+    recipe = sweep.recipes["vonk-forge/a"]
+    sweep._open_slot(policy.Placement(recipe, ("spk_a",)), "pending", clock.now())
+    slot = sweep.state.slots[recipe.key]
+    watch = slot.setdefault("watch", {})
+    verdict.bounded_wait(
+        SweepWait(reason=SweepWaitReason.ADMISSION), watch, window=30, now=clock.now()
+    )
+    sweep.vk.run = lambda *args, **kwargs: Reply(args, 0, {"effects": {}}, "")
+    assert not sweep._profile_edit_ready()
+    since = sweep.state.data["profile_edit_wait"]["wait_started_at"]
+    clock.sleep(20)
+    slot["copying"] = True
+    verdict.progress_verdict(
+        verdict.Signal(("copying",), None),
+        watch,
+        window=sweep._load_window(slot),
+        now=clock.now(),
+    )
+    assert "wait" not in watch and "wait_deadline" in watch
+    assert not sweep._profile_edit_ready()
+    wait = sweep.state.data["profile_edit_wait"]
+    assert wait["wait_started_at"] == since
+    assert wait["wait_deadline"] == watch["progressed_at"] + sweep._load_window(slot)
+    clock.sleep(wait["wait_deadline"] - clock.now())
+    assert not sweep._profile_edit_ready()
+    clock.sleep(1)
+    assert sweep._profile_edit_ready()
+    assert not sweep.state.data.get("profile_edit_wait")
+
+
+def test_tick_clears_profile_edit_wait_after_last_loading_lane_ends(tmp_path):
+    from vonk_forge_contracts.sweep import SweepWait
+
+    from spark_sweep import verdict
+    from spark_sweep.report import build_status, write_status
+
+    sweep, _, clock = make_sweep(
+        tmp_path, [FakeRecipe("a", local="cached")], [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
     sweep.refresh_catalog()
     sweep._tick()
-    slot = sweep.state.slots[a.key]
-    assert slot["started_at"] == start
-    assert slot["deadline"] == deadline
-    assert slot["blocked_seconds"] >= blocked
-    assert slot["watch"]["wait_deadline"] == wait_deadline
-    clock.sleep(11)
-    if supersede_again:
-        app = sweep.state.data["loads"][slot["request_key"]]["app_id"]
-        fleet.apps[app]["state"] = LifecycleState.SUPERSEDED
-    sweep._tick()
-    assert (
-        sweep.state.entry(a.key)["wait_deferral"]["code"]
-        == SweepWaitCode.BUDGET_EXHAUSTED
+    verdict.bounded_wait(
+        SweepWait(reason=SweepWaitReason.ADMISSION),
+        sweep.state.data.setdefault("profile_edit_wait", {}),
+        window=30,
+        now=clock.now(),
     )
-    assert a.key not in sweep.state.slots
+    # A paused scheduler never reaches the edit guard. Status must still self-heal.
+    sweep._observe_owner = lambda now: None
+    sweep.owner_status = replace(sweep.owner_status, paused=True)
+    clock.sleep(130)
+    sweep._tick()
+    assert not any(
+        slot["phase"] == SweepSlotPhase.LOADING for slot in sweep.state.slots.values()
+    )
+    assert build_status(sweep)["profile_edit_wait"] is None
+    write_status(sweep)
+    assert "Placement waiting on" not in (tmp_path / "status.md").read_text()
+
+
+def test_stale_assignment_prune_reuses_profile_edit_readiness(tmp_path):
+    recipes = [FakeRecipe(name, local="cached") for name in ("a", "b")]
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    a, b = (sweep.recipes[recipe.key] for recipe in recipes)
+    sweep._apply([policy.Placement(a, ("spk_a",))], clock.now())
+    stale = "sweep-stale"
+    sweep._remember_own(stale)
+    fleet.profiles[10]["assignments"].append(
+        {**fleet.profiles[10]["assignments"][0], "assignment_name": stale}
+    )
+    fleet.calls.clear()
+    sweep._apply([policy.Placement(b, ("spk_b",))], clock.now())
+    reviews = [
+        args
+        for number, args in fleet.calls
+        if number == 10 and args[:2] == ("profile", "load") and "--review" in args
+    ]
+    # One pre-edit adoption preview and one admission of the changed profile.
+    assert len(reviews) == 2
+    assert b.key in sweep.state.slots
+    assert stale not in sweep.state.data["cleanup"]
