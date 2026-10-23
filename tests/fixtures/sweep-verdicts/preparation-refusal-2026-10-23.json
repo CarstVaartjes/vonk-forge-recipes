@@ -1,0 +1,54 @@
+{
+  "recipe": "vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single",
+  "recorded_at": [
+    "2026-10-23T15:54:21.824586Z",
+    "2026-10-23T15:57:31.131690Z",
+    "2026-10-23T15:59:54.407779Z",
+    "2026-10-23T16:02:11.027802Z",
+    "2026-10-23T16:04:48.723426Z",
+    "2026-10-23T16:06:58.655326Z",
+    "2026-10-23T16:09:07.358322Z",
+    "2026-10-23T16:12:22.077242Z",
+    "2026-10-23T16:14:24.400498Z",
+    "2026-10-23T16:16:14.891851Z",
+    "2026-10-23T16:16:51.961441Z",
+    "2026-10-23T16:18:28.368473Z",
+    "2026-10-23T16:21:01.712963Z",
+    "2026-10-23T16:23:29.547901Z",
+    "2026-10-23T16:25:56.846838Z",
+    "2026-10-23T16:28:25.256764Z",
+    "2026-10-23T16:30:01.308406Z",
+    "2026-10-23T16:34:45.287507Z",
+    "2026-10-23T16:37:43.182995Z",
+    "2026-10-23T16:39:00.713985Z",
+    "2026-10-23T16:41:31.471264Z",
+    "2026-10-23T16:43:57.336085Z",
+    "2026-10-23T16:47:48.849619Z"
+  ],
+  "content_sha256": "1968ad9e5a66addcff0b03e8a0cd1db104bee0ab3bf2694eb27ab3458fb66778",
+  "status": "requeued",
+  "controller_document": {
+    "state": "superseded",
+    "status_reason": "superseded-by-intent",
+    "blockers": [],
+    "progress": {
+      "blockers": [
+        {
+          "code": "profile.preparation_unavailable",
+          "detail": "1 validation error for RunSwitchPlan\n  Value error, conditional memory stops must stay within the reviewed target scope [type=value_error, input_value={'schema_version': 2, 'ge...before_transfer': False}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.14/v/value_error",
+          "severity": "error"
+        },
+        {
+          "code": "profile.interruption_expected",
+          "detail": "The reviewed plan includes required runtime stops; affected workloads may be unavailable until final starts complete.",
+          "severity": "warning"
+        },
+        {
+          "code": "recipe_image.preparing",
+          "detail": "Preparing the model and runtime image (prepare).",
+          "severity": "info"
+        }
+      ]
+    }
+  }
+}

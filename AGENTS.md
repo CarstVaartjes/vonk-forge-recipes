@@ -275,6 +275,11 @@ declared wait observes its original receipt before placing identical content.
 Matching reason/operation evidence across distinct recipe content pauses placement
 as a visible platform issue, with bounded probes until changed evidence permits
 a fresh plan; retry counts and supersession alone prove no recovery.
+Unresolved preparation/refusal blockers also retain their exact code and full-detail
+SHA-256 for a single recipe. After a terminal receipt or wait expiry, identical
+content stays out of placement until the blocker, deployed platform, fleet runs
+or recipe content changes. Status names this platform issue and its next bounded
+observation; independent recipes continue, with no recipe attempt charged.
 Preparation blockers use at most five minutes; download observation uses an hour
 without occupying a Spark. Copy time is excluded from learned load time while
 copy inactivity has its own stall window. Route/endpoint publication, busy

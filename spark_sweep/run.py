@@ -73,6 +73,7 @@ from .identity import (
     IdentityReason,
     VerdictIdentity,
     content_identity,
+    placement_identity,
     verdict_matches,
 )
 from .lifecycle import ACTIVE as ACTIVE_APP
@@ -2155,7 +2156,9 @@ class Sweep:
         # Capture known deployed content before a long wait ages its provenance.
         if (
             signal.wait is not None
-            and signal.wait.controller is not None
+            and (
+                signal.wait.controller is not None or verdict.refusal_identity(document)
+            )
             and not load.get("wait_platform")
         ):
             load["wait_platform"] = {
@@ -2191,6 +2194,8 @@ class Sweep:
             load["copying"] = False
             return True
         if status in SETTLED:
+            if status != LifecycleState.SUCCEEDED:
+                self._hold_controller_refusal(load, document)
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
                 "state": status,
@@ -2446,6 +2451,14 @@ class Sweep:
             return
         app = self.state.data.get("apps", {}).get(slot["request_key"])
         if app is not None:
+            hold = self.controller_wait_holds().get(key)
+            if (
+                hold is not None
+                and hold.blockers
+                and app["state"] != LifecycleState.SUCCEEDED
+            ):
+                self.requeue(key, hold.wait.description, disposition=Disposition.WAIT)
+                return
             if app["state"] == LifecycleState.SUPERSEDED:
                 self.requeue(key, "load superseded by another application")
                 return
@@ -2766,7 +2779,7 @@ class Sweep:
         ):
             hold = ControllerWaitHold(
                 wait=expiry.wait,
-                identity=current_identity(accepted.recipe),
+                identity=placement_identity(accepted.recipe),
                 application_id=load["app_id"],
                 next_check=self.clock.now() + self.cfg.defer_delay,
                 platform=load.get("wait_platform")
@@ -2780,6 +2793,10 @@ class Sweep:
             self.state.event(
                 f"placement waits for Controller dependency: {hold.wait.description}; "
                 f"observing {hold.application_id} again at {hold.next_check}"
+            )
+        elif load is not None:
+            self._hold_controller_refusal(
+                load, self.documents.get(slot["request_key"], {})
             )
         failure = policy.classify(
             slot["phase"],
@@ -3133,7 +3150,7 @@ class Sweep:
             entry = self.state.recipes.get(key, {})
             if recipe is None or not self.ready(recipe) or key in self.state.slots:
                 continue
-            if key in waits and waits[key].identity == current_identity(recipe):
+            if key in waits and waits[key].identity == placement_identity(recipe):
                 continue  # re-observe the original receipt, never replay unchanged intent
             if self.lanes_short(recipe):
                 continue  # waits for its lanes to come online; the online ones carry on
@@ -3353,6 +3370,47 @@ class Sweep:
             self.state.event(message)
         self.state.data["alerts"] = [message]
 
+    def _fleet_run_identity(self) -> tuple[tuple[str, str], ...]:
+        return tuple(sorted({(p.node_id, p.run_id) for p in self.fleet.presences}))
+
+    def _hold_controller_refusal(
+        self, load: Mapping[str, Any], document: Mapping[str, Any]
+    ) -> None:
+        blockers = verdict.refusal_identity(document)
+        if not blockers or not load.get("app_id"):
+            return
+        for key, slot in self.state.slots.items():
+            if (
+                slot["request_key"] != load["request_key"]
+                or slot["phase"] != SweepSlotPhase.LOADING
+            ):
+                continue
+            accepted = AcceptedRequest.read(slot)
+            if accepted is None:
+                continue
+            hold = ControllerWaitHold(
+                wait=SweepWait(
+                    reason=SweepWaitReason.BLOCKER,
+                    detail="platform refusal: "
+                    + ", ".join(f"{code} ({digest})" for code, digest in blockers),
+                ),
+                identity=placement_identity(accepted.recipe),
+                application_id=load["app_id"],
+                next_check=self.clock.now() + self.cfg.defer_delay,
+                platform=load.get("wait_platform")
+                or {
+                    owner: fingerprint
+                    for owner, fingerprint in self._component_observations().items()
+                    if owner in ("api", "worker") and fingerprint is not None
+                },
+                blockers=blockers,
+                fleet_runs=self._fleet_run_identity(),
+            )
+            self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
+            self.state.event(
+                f"{key}: {hold.wait.description}; next observation {hold.next_check}"
+            )
+
     def controller_wait_holds(self) -> dict[str, ControllerWaitHold]:
         return {
             key: ControllerWaitHold.model_validate(entry["controller_wait"])
@@ -3363,6 +3421,15 @@ class Sweep:
     def controller_wait_issue(self) -> str | None:
         holds = list(self.controller_wait_holds().values())
         for hold in holds:
+            if hold.blockers and any(
+                other.identity != hold.identity
+                and set(other.blockers).intersection(hold.blockers)
+                for other in holds
+            ):
+                return (
+                    f"shared Controller refusal {hold.wait.description}; "
+                    "placement paused pending changed evidence"
+                )
             controller = hold.wait.controller
             if controller is None or controller.identity is None:
                 continue
@@ -3385,7 +3452,7 @@ class Sweep:
         platform = self._component_observations()
         for key, hold in self.controller_wait_holds().items():
             recipe = self.recipes.get(key)
-            if recipe is not None and current_identity(recipe) != hold.identity:
+            if recipe is not None and placement_identity(recipe) != hold.identity:
                 self.state.entry(key).pop("controller_wait", None)
                 continue  # latest content gets a fresh canonical review
             if any(
@@ -3396,6 +3463,14 @@ class Sweep:
                 self.state.event(
                     f"deployed platform changed for {key}; re-planning placement"
                 )
+                continue
+            if (
+                hold.blockers
+                and not self.blind
+                and self._fleet_run_identity() != hold.fleet_runs
+            ):
+                self.state.entry(key).pop("controller_wait", None)
+                self.state.event(f"fleet runs changed for {key}; re-planning placement")
                 continue
             if now < hold.next_check:
                 continue
@@ -3417,6 +3492,17 @@ class Sweep:
                 documents[hold.application_id] = reply.document
             document = documents[hold.application_id]
             if document.get("state") not in ACTIVE_APP | SETTLED:
+                continue
+            if hold.blockers:
+                observed_blockers = verdict.refusal_identity(document)
+                if not set(observed_blockers).intersection(hold.blockers) and (
+                    observed_blockers
+                    or document.get("state") in ACTIVE_APP | {LifecycleState.SUCCEEDED}
+                ):
+                    self.state.entry(key).pop("controller_wait", None)
+                    self.state.event(
+                        f"Controller refusal changed for {key}; re-planning placement"
+                    )
                 continue
             if (
                 document.get("state") in SETTLED

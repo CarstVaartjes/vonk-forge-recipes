@@ -11,6 +11,7 @@ pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 from spark_sweep import verdict
+from spark_sweep.lifecycle import RecipeStatus
 from spark_sweep.run import MAX_REVIEW_FREEING
 
 
@@ -129,16 +130,28 @@ def test_a_capacity_refusal_beyond_an_idle_spark_is_deferred_with_evidence(
     assert rows[-1]["controller_document"]["admission_decisions"][0]["requirements"]
 
 
-def test_a_failed_application_the_controller_gave_up_on_is_recorded(
+def test_a_controller_failure_blocker_waits_without_recipe_blame(
     tmp_path, gateway
 ) -> None:
-    sweep, fleet, _ = make_sweep(
+    sweep, fleet, clock = make_sweep(
         tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
     )
     fleet.supersede = ["failed-repeated"]
-    sweep.run()
+    sweep.preflight()
+    for _ in range(100):
+        sweep.tick()
+        if sweep.controller_wait_holds():
+            break
+        clock.sleep(sweep.cfg.poll_seconds)
+    assert sweep.controller_wait_holds()
+    before = sum(c[:3] == ("profile", "load", "--yes") for _, c in fleet.calls)
+    for _ in range(4):
+        clock.sleep(sweep.cfg.defer_delay + 1)
+        sweep.tick()
+    assert sum(c[:3] == ("profile", "load", "--yes") for _, c in fleet.calls) == before
     entry = _entry(sweep, "a")
-    assert (entry["status"], entry["phase"]) == ("deferred", "start")
+    assert entry["status"] == RecipeStatus.PENDING
+    assert entry.get("attempts", 0) == 0
 
 
 @pytest.mark.parametrize("solo_refused", [False, True])

@@ -18,6 +18,7 @@ import re
 from collections.abc import Mapping, MutableMapping, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
+from hashlib import sha256
 from typing import Any
 
 from vonk_forge_contracts.sweep import (
@@ -150,19 +151,39 @@ class Signal:
         return self.wait.description if self.wait else None
 
 
-def _blocker_codes(document: Mapping[str, Any], *, holding: bool = False) -> list[str]:
-    """The blocker codes; ``holding`` keeps only error severity (a warning is a brief hold)."""
+def refusal_identity(document: Mapping[str, Any]) -> tuple[tuple[str, str], ...]:
+    """Unresolved blockers by full detail bytes, independent of receipt/severity churn.
+
+    Preparation warnings also hold intent; informational progress and expected
+    interruption warnings do not. No text matching guesses a recipe fault.
+    """
     progress = document.get("progress")
-    held = document.get("blockers") or (
-        progress.get("blockers") if isinstance(progress, Mapping) else None
-    )
-    return [
-        str(item.get("code") or "")
-        for item in held or []
-        if isinstance(item, Mapping)
-        and item.get("code")
-        and (not holding or item.get("severity") == "error")
+    blockers = [
+        *(document.get("blockers") or []),
+        *((progress.get("blockers") or []) if isinstance(progress, Mapping) else []),
     ]
+    return tuple(
+        sorted(
+            {
+                (
+                    str(item["code"]),
+                    sha256(str(item.get("detail") or "").encode()).hexdigest(),
+                )
+                for item in blockers or []
+                if isinstance(item, Mapping)
+                and item.get("code")
+                and item["code"] not in (PHASE_RETRY, STALLED_CODE)
+                and item["code"] not in RECIPE_FAILURE_CODES
+                and (
+                    item.get("severity") == "error"
+                    or (
+                        item.get("severity") == "warning"
+                        and item["code"] in PREPARATION_CODES
+                    )
+                )
+            }
+        )
+    )
 
 
 def application_signal(document: Mapping[str, Any]) -> Signal:
@@ -170,11 +191,7 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
     progress = document.get("progress")
     progress = progress if isinstance(progress, Mapping) else {}
     state = str(document.get("state") or "")
-    held = [
-        code
-        for code in _blocker_codes(document, holding=True)
-        if code not in (PHASE_RETRY, STALLED_CODE)
-    ]
+    held = [code for code, _ in refusal_identity(document)]
     wait = None
     if document.get("wait") is not None:
         wait = SweepWait(

@@ -31,15 +31,18 @@ class VerdictIdentity(BaseModel):
 
 
 class ControllerWaitHold(BaseModel):
-    """An expired dependency observation, not a recipe verdict or a retry counter."""
+    """A dependency/refusal observation, never a recipe verdict or a retry counter."""
 
     model_config = ConfigDict(extra="forbid")
 
     wait: SweepWait
-    identity: QualificationIdentity
+    identity: VerdictIdentity
     application_id: str
     next_check: float
     platform: dict[Owner, Fingerprint] = Field(default_factory=dict)
+    # Exact external blocker code/detail SHA-256 pairs; empty for declared waits.
+    blockers: tuple[tuple[str, str], ...] = ()
+    fleet_runs: tuple[tuple[str, str], ...] = ()
 
 
 def content_identity(recipe: Recipe) -> VerdictIdentity:
@@ -52,6 +55,11 @@ def content_identity(recipe: Recipe) -> VerdictIdentity:
         if recipe.runtime_image is None
         else None,
     )
+
+
+def placement_identity(recipe: Recipe) -> VerdictIdentity:
+    """Placement recovery follows content; publication alone is no changed evidence."""
+    return content_identity(recipe).model_copy(update={"image_library_commit": None})
 
 
 def current_identity(recipe: Recipe) -> QualificationIdentity:

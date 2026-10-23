@@ -23,7 +23,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
     derive_status,
 )
-from vonk_forge_contracts.sweep import SweepSlotPhase
+from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWait
 
 from . import policy
 from .evidence_contract import read_result
@@ -394,7 +394,7 @@ def render_status(status: Mapping[str, Any]) -> str:
         if status.get("controller_wait_issue"):
             lines.append(str(status["controller_wait_issue"]))
         lines += [
-            f"- {key}: {hold['wait']['controller']['reason']}; "
+            f"- {key}: {SweepWait.model_validate(hold['wait']).description}; "
             f"next observation in {_duration(max(0, hold['next_check'] - status['updated_at']))}"
             for key, hold in status["controller_waits"].items()
         ]
