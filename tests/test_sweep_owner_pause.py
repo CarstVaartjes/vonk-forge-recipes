@@ -59,6 +59,15 @@ def test_two_hour_owner_outage_does_not_stop_scheduling(
     sweep.guard = OwnerGuard(sweep.vk, sweep.state, sweep.cfg.owner_hold_seconds)
     for _ in range(120):
         clock.sleep(60)
+        if clock.now() - start == 3660:
+            # Identical blocked loads are not scheduling progress. Fresh content
+            # must still get its own plan while owner observations remain down.
+            assert (
+                sum(c[:3] == ("profile", "load", "--yes") for _, c in fleet.calls) == 1
+            )
+            later = FakeRecipe("later", content="b" * 64, local="cached", blocked=True)
+            fleet.recipes[later.key] = later
+            sweep.refresh_catalog()
         sweep._tick()
         if clock.now() - start >= 180:
             assert not sweep.paused
