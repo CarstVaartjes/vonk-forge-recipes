@@ -3150,7 +3150,9 @@ class Sweep:
             entry = self.state.recipes.get(key, {})
             if recipe is None or not self.ready(recipe) or key in self.state.slots:
                 continue
-            if key in waits and waits[key].identity == placement_identity(recipe):
+            if any(
+                hold.identity == placement_identity(recipe) for hold in waits.values()
+            ):
                 continue  # re-observe the original receipt, never replay unchanged intent
             if self.lanes_short(recipe):
                 continue  # waits for its lanes to come online; the online ones carry on

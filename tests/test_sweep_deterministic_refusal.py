@@ -211,3 +211,12 @@ def test_shared_refusal_uses_the_existing_platform_pause(tmp_path, monkeypatch):
     assert "shared Controller refusal" in sweep.controller_wait_issue()
     assert not sweep.ready_candidates()
     assert all(e.get("attempts", 0) == 0 for e in sweep.state.recipes.values())
+
+
+def test_another_name_cannot_bypass_a_content_bound_refusal(tmp_path, monkeypatch):
+    sweep, _, _, key, _ = prepare(tmp_path, monkeypatch, RECORDS[0])
+    sweep.enqueue_finished_cleanup()
+    renamed = replace(sweep.recipes.pop(key), key="vonk-forge/renamed")
+    sweep.recipes[renamed.key] = renamed
+    sweep.queue = [renamed.key]
+    assert not sweep.ready_candidates()
