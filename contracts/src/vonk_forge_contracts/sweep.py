@@ -200,6 +200,10 @@ class SweepWaitReason(StrEnum):
     SMOKE_RESPONSE = "smoke response"
 
 
+class SweepPlacementCode(StrEnum):
+    REFUSAL_HELD = "sweep.placement_refusal_held"
+
+
 class SweepWaitCode(StrEnum):
     BUDGET_EXHAUSTED = "sweep.wait_budget_exhausted"
 

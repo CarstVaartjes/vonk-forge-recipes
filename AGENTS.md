@@ -272,15 +272,17 @@ and requeues without spending an attempt; it never claims remote cancellation.
 The Controller document's typed `wait` names its dependency and caps the budget
 with `dependency_deadline`; a child label alone never proves copying. An expired
 declared wait observes its original receipt before placing identical content.
-Matching reason/operation evidence across distinct applications and recipe content
-pauses placement as a visible platform issue, with bounded probes until changed evidence permits
-a fresh plan; retry counts and supersession alone prove no recovery.
+Matching reason/operation evidence across distinct applications and recipe
+content pauses placement as a visible platform issue, with bounded probes until
+changed evidence permits a fresh plan; retry counts and supersession alone
+prove no recovery.
 Error-severity refusals retain their exact code and full-detail SHA-256 per content.
-After a terminal receipt or wait expiry, identical content backs off for one hour;
-changed blockers, observed platform fingerprints, assigned-node runs or content
-permit an earlier fresh plan. Unknown platform capture yields to its first known
+After a failed receipt or wait expiry, identical content backs off for one hour;
+changed blockers, observed platform fingerprints or content permit an earlier
+fresh plan. Unknown platform capture yields to its first known
 fingerprint. Status shows the reason, next observation and allowed retry time;
-independent recipes continue, with no recipe attempt charged.
+independent recipes continue, with no recipe attempt charged. Superseded and
+cancelled receipts requeue without creating refusal holds.
 Preparation blockers use at most five minutes; download observation uses an hour
 without occupying a Spark. Copy time is excluded from learned load time while
 copy inactivity has its own stall window. Route/endpoint publication, busy

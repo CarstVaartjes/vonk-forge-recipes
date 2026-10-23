@@ -99,6 +99,21 @@ def test_a_warning_blocker_is_a_brief_hold_not_a_wait() -> None:
     assert verdict.application_signal(document).waiting_on is None
 
 
+def test_application_signal_keeps_main_blocker_precedence_and_failure_waits() -> None:
+    document = _document("failed-repeated")
+    document["progress"]["blockers"] = [
+        {"code": "external.other", "severity": "error", "detail": "nested"}
+    ]
+    signal = verdict.application_signal(document)
+    assert signal.wait is not None
+    assert signal.wait.detail == verdict.FAILURE_REPEATED
+    for code in verdict.RECIPE_FAILURE_CODES:
+        document["blockers"][0]["code"] = code
+        signal = verdict.application_signal(document)
+        assert signal.wait is not None
+        assert signal.wait.detail == code
+
+
 def test_movement_restarts_own_progress_but_waits_have_a_separate_budget() -> None:
     watch: dict[str, Any] = {}
     silent = verdict.application_signal(_document("running-silent"))

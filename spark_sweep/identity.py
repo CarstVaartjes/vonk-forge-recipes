@@ -43,8 +43,6 @@ class ControllerWaitHold(BaseModel):
     # Refusal backoff is independent of receipt probes and survives restarts.
     retry_at: float | None = None
     blockers: tuple[tuple[str, str], ...] = ()
-    node_ids: tuple[str, ...] = ()
-    fleet_runs: tuple[tuple[str, str], ...] = ()
 
 
 def content_identity(recipe: Recipe) -> VerdictIdentity:

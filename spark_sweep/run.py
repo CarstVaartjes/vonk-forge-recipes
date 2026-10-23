@@ -41,6 +41,7 @@ from vonk_forge_contracts.sweep import (
     FleetOnlineState,
     InfrastructureIncident,
     ReviewInfrastructureSource,
+    SweepPlacementCode,
     SweepSlotPhase,
     SweepStorageReview,
     SweepStorageWait,
@@ -2101,6 +2102,8 @@ class Sweep:
                 document = self._submit_load(
                     self.cfg.sweep_profile, load["request_key"], "placement"
                 )
+                if document is None:
+                    return True  # the content hold remains visible; no submission
             except VonkctlError as error:
                 self._blind(str(error), error.reply)
                 return False
@@ -2194,7 +2197,7 @@ class Sweep:
             load["copying"] = False
             return True
         if status in SETTLED:
-            if status != LifecycleState.SUCCEEDED:
+            if status == LifecycleState.FAILED:
                 self._hold_controller_refusal(load, document)
             child = dig(document, "progress", "child_progress", "phase")
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
@@ -2455,7 +2458,7 @@ class Sweep:
             if (
                 hold is not None
                 and hold.blockers
-                and app["state"] != LifecycleState.SUCCEEDED
+                and app["state"] == LifecycleState.FAILED
             ):
                 self.requeue(key, hold.wait.description, disposition=Disposition.WAIT)
                 return
@@ -2796,7 +2799,7 @@ class Sweep:
             )
         elif load is not None:
             self._hold_controller_refusal(
-                load, self.documents.get(slot["request_key"], {})
+                load, self.documents.get(slot["request_key"], {}), wait_expired=True
             )
         failure = policy.classify(
             slot["phase"],
@@ -3372,31 +3375,36 @@ class Sweep:
             self.state.event(message)
         self.state.data["alerts"] = [message]
 
-    def _fleet_run_identity(
-        self, node_ids: Sequence[str]
-    ) -> tuple[tuple[str, str], ...]:
-        return tuple(
-            sorted(
-                {
-                    (p.node_id, p.run_id)
-                    for p in self.fleet.presences
-                    if p.node_id in node_ids
-                }
-            )
-        )
-
     def _hold_controller_refusal(
-        self, load: Mapping[str, Any], document: Mapping[str, Any]
+        self,
+        load: Mapping[str, Any],
+        document: Mapping[str, Any],
+        *,
+        wait_expired: bool = False,
     ) -> None:
+        status = document.get("state")
+        if status != LifecycleState.FAILED and (
+            not wait_expired
+            or status not in ACTIVE_APP | {LifecycleState.NEEDS_OPERATOR}
+        ):
+            return
         blockers = verdict.refusal_identity(document)
         if not blockers or not load.get("app_id"):
             return
-        for key, slot in self.state.slots.items():
-            if (
-                slot["request_key"] != load["request_key"]
-                or slot["phase"] != SweepSlotPhase.LOADING
-            ):
-                continue
+        group = [
+            key
+            for key, slot in self.state.slots.items()
+            if slot["request_key"] == load["request_key"]
+            and slot["phase"] == SweepSlotPhase.LOADING
+        ]
+        blamed = policy.blamed(policy.admission_blockers(document), self._lanes(group))
+        culprits, collateral = self._split(group, blamed)
+        self._requeue_collateral(
+            collateral, culprits, "Controller refused its application"
+        )
+        previous = self.controller_wait_holds()
+        for key in culprits:
+            slot = self.state.slots[key]
             accepted = AcceptedRequest.read(slot)
             if accepted is None:
                 continue
@@ -3417,9 +3425,23 @@ class Sweep:
                 },
                 retry_at=self.clock.now() + REFUSAL_BACKOFF_SECONDS,
                 blockers=blockers,
-                node_ids=tuple(slot["node_ids"]),
-                fleet_runs=self._fleet_run_identity(slot["node_ids"]),
             )
+            prior = next(
+                (
+                    old
+                    for old in previous.values()
+                    if old.identity == hold.identity
+                    and old.blockers == blockers
+                    and old.retry_at is not None
+                    and (
+                        old.application_id == hold.application_id
+                        or self.clock.now() < old.retry_at
+                    )
+                ),
+                None,
+            )
+            if prior is not None:
+                hold.retry_at = prior.retry_at
             self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
             self.state.event(
                 f"{key}: {hold.wait.description}; next observation {hold.next_check}"
@@ -3470,14 +3492,6 @@ class Sweep:
                 self.state.event(
                     f"platform changed or refusal backoff ended for {key}; re-planning placement"
                 )
-                continue
-            if (
-                hold.blockers
-                and not self.blind
-                and self._fleet_run_identity(hold.node_ids) != hold.fleet_runs
-            ):
-                self.state.entry(key).pop("controller_wait", None)
-                self.state.event(f"fleet runs changed for {key}; re-planning placement")
                 continue
             if now < hold.next_check:
                 continue
@@ -3838,6 +3852,8 @@ class Sweep:
                         f"cleanup re-entry unanswered, observing: {str(error)[:120]}"
                     )
                     continue
+                if document is None:
+                    continue
                 # Exactly absent receipt permits same-key reentry, never a new UUID.
                 load["app_id"] = document.get("id")
                 load.pop("observation_budget", None)
@@ -4193,6 +4209,9 @@ class Sweep:
         self.state.save()
         try:
             document = self._submit_load(self.cfg.sweep_profile, key, "takeover")
+            if document is None:
+                loads.pop(key, None)
+                return False
             loads[key]["app_id"] = document.get("id")
         except VonkctlError as error:
             self.note_infra("clearing", str(error))
@@ -4232,7 +4251,37 @@ class Sweep:
         self._assigned[recipe.key] = alias
         return alias
 
+    def _refusal_held(self, recipe: Recipe) -> bool:
+        hold = next(
+            (
+                hold
+                for hold in self.controller_wait_holds().values()
+                if hold.blockers
+                and hold.identity == current_identity(recipe)
+                and hold.retry_at is not None
+                and self.clock.now() < hold.retry_at
+            ),
+            None,
+        )
+        if hold is None:
+            return False
+        self.record_result(
+            recipe.key,
+            "placement",
+            Disposition.WAIT,
+            code=SweepPlacementCode.REFUSAL_HELD,
+            reason=SweepWaitReason.BLOCKER,
+            evidence=hold.model_dump(mode="json"),
+        )
+        self.state.event(
+            f"{SweepPlacementCode.REFUSAL_HELD}: {recipe.key}; retry at {hold.retry_at}"
+        )
+        return True
+
     def _apply(self, placements: Sequence[policy.Placement], now: float) -> None:
+        placements = [p for p in placements if not self._refusal_held(p.recipe)]
+        if not placements:
+            return
         if len(placements) > 1:
             # Each new lane has its own receipt. The unchanged lane remains in
             # this same whole-fleet profile and requires canonical adoption.
@@ -4471,6 +4520,16 @@ class Sweep:
                 self._record_failure(placement.recipe.key, failure, None)
                 self.state.slots.pop(placement.recipe.key, None)
             self._rollback(added, f"load refused: {error}")
+            return
+        if submitted is None:
+            self.state.data["loads"].pop(key, None)
+            for placement in added:
+                self.requeue(
+                    placement.recipe.key,
+                    SweepWaitReason.BLOCKER,
+                    disposition=Disposition.WAIT,
+                )
+            self._rollback(added, SweepPlacementCode.REFUSAL_HELD)
             return
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
         if isinstance(submitted, Mapping):
@@ -5051,6 +5110,18 @@ class Sweep:
         after it, so the owner guard can tell it from an owner's load, in this process and
         in the next one (a restore of the owner's profile is otherwise an "owner load").
         """
+        if (
+            profile == self.cfg.sweep_profile
+            and kind in ("placement", "takeover")
+            and any(hold.blockers for hold in self.controller_wait_holds().values())
+        ):
+            definition = self.vk.call("profile", "export", profile=profile)
+            for item in definition.get("assignments", []):
+                if item.get("desired_state") != LifecycleState.RUNNING:
+                    continue
+                recipe = self.recipes.get(item.get("recipe_selector"))
+                if recipe is not None and self._refusal_held(recipe):
+                    return None
         own: list[dict[str, Any]] = self.state.data["own_loads"]
         record = next((item for item in own if item["request_key"] == key), None)
         if record is None:

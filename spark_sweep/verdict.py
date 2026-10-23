@@ -153,6 +153,21 @@ class Signal:
         return self.wait.description if self.wait else None
 
 
+def _blocker_codes(document: Mapping[str, Any], *, holding: bool = False) -> list[str]:
+    """The blocker codes; ``holding`` keeps only error severity (a warning is a brief hold)."""
+    progress = document.get("progress")
+    held = document.get("blockers") or (
+        progress.get("blockers") if isinstance(progress, Mapping) else None
+    )
+    return [
+        str(item.get("code") or "")
+        for item in held or []
+        if isinstance(item, Mapping)
+        and item.get("code")
+        and (not holding or item.get("severity") == "error")
+    ]
+
+
 def refusal_identity(document: Mapping[str, Any]) -> tuple[tuple[str, str], ...]:
     """Error refusals keyed by full detail bytes; warnings never hold placement."""
     progress = document.get("progress")
@@ -183,7 +198,11 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
     progress = document.get("progress")
     progress = progress if isinstance(progress, Mapping) else {}
     state = str(document.get("state") or "")
-    held = [code for code, _ in refusal_identity(document)]
+    held = [
+        code
+        for code in _blocker_codes(document, holding=True)
+        if code not in (PHASE_RETRY, STALLED_CODE)
+    ]
     wait = None
     if document.get("wait") is not None:
         wait = SweepWait(
