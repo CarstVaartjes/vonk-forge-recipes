@@ -3071,9 +3071,9 @@ class Sweep:
 
     def cleanup_finished(self) -> None:
         self.enqueue_finished_cleanup()
-        if not self._profile_edit_ready():
-            return
         pending = self.state.data.setdefault("cleanup", {})
+        if pending and not self._profile_edit_ready():
+            return
         live_aliases = {slot["alias"] for slot in self.state.slots.values()}
         for alias, record in list(pending.items()):
             if alias in live_aliases or self.clock.now() < record["next_check"]:
