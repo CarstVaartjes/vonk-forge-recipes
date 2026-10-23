@@ -13,7 +13,7 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 from vonk_forge_contracts.sweep import SweepWaitReason
 
 from spark_sweep import policy, verdict
-from spark_sweep.identity import ControllerWaitHold, content_identity
+from spark_sweep.identity import AcceptedRequest, ControllerWaitHold, content_identity
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.report import build_status, write_status
 from spark_sweep.state import State
@@ -78,11 +78,19 @@ def test_child_target_copy_is_not_copy_progress() -> None:
 
 
 def prepare(tmp_path, monkeypatch, *, second=False, record=COPY):
-    recipes = [FakeRecipe("a", content="a", local="cached", blocked=True)]
+    recipes = [
+        FakeRecipe(
+            "a", content="a" * 64, digests=("1" * 64,), local="cached", blocked=True
+        )
+    ]
     if second:
-        recipes.append(FakeRecipe("b", content="b", local="cached", blocked=True))
+        recipes.append(
+            FakeRecipe(
+                "b", content="b" * 64, digests=("1" * 64,), local="cached", blocked=True
+            )
+        )
     sweep, fleet, clock = make_sweep(
-        tmp_path, recipes, [FakeModel("m1", local="cached")]
+        tmp_path, recipes, [FakeModel("1" * 64, local="cached")]
     )
     clock.t = datetime.fromisoformat(record["recorded_at"]).timestamp()
     sweep.preflight()
@@ -222,7 +230,7 @@ def test_latest_content_gets_a_new_review(tmp_path, monkeypatch) -> None:
     sweep, _, clock, _ = prepare(tmp_path, monkeypatch)
     expire(sweep, clock)
     recipe = sweep.recipes["vonk-forge/a"]
-    sweep.recipes[recipe.key] = replace(recipe, content_sha256="changed-content")
+    sweep.recipes[recipe.key] = replace(recipe, content_sha256="d" * 64)
     sweep._refresh_controller_waits(clock.now())
     assert not sweep.controller_wait_holds()
     assert content_identity(sweep.recipes[recipe.key]) != content_identity(recipe)
@@ -322,3 +330,23 @@ def test_operation_identity_does_not_depend_on_blocker_code_spelling() -> None:
         "dependency-pending",
         "recipe.run-switch.v2",
     )
+
+
+def test_publication_alone_does_not_release_unknown_image_wait(
+    tmp_path, monkeypatch
+) -> None:
+    sweep, _, clock, _ = prepare(tmp_path, monkeypatch)
+    recipe = sweep.recipes["vonk-forge/a"]
+    unknown = replace(recipe, runtime_image=None, library_commit="publication-a")
+    sweep.recipes[recipe.key] = unknown
+    slot = sweep.state.slots[recipe.key]
+    accepted = AcceptedRequest.read(slot)
+    assert accepted is not None
+    slot["accepted_content"] = accepted.model_copy(
+        update={"recipe": unknown}
+    ).model_dump(mode="json")
+    expire(sweep, clock)
+    sweep.recipes[recipe.key] = replace(unknown, library_commit="publication-b")
+    sweep._refresh_controller_waits(clock.now())
+    assert sweep.controller_wait_holds()
+    assert not sweep.ready_candidates()

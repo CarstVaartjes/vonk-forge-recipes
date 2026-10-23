@@ -2766,7 +2766,7 @@ class Sweep:
         ):
             hold = ControllerWaitHold(
                 wait=expiry.wait,
-                identity=content_identity(accepted.recipe),
+                identity=current_identity(accepted.recipe),
                 application_id=load["app_id"],
                 next_check=self.clock.now() + self.cfg.defer_delay,
                 platform=load.get("wait_platform")
@@ -3133,7 +3133,7 @@ class Sweep:
             entry = self.state.recipes.get(key, {})
             if recipe is None or not self.ready(recipe) or key in self.state.slots:
                 continue
-            if key in waits and waits[key].identity == content_identity(recipe):
+            if key in waits and waits[key].identity == current_identity(recipe):
                 continue  # re-observe the original receipt, never replay unchanged intent
             if self.lanes_short(recipe):
                 continue  # waits for its lanes to come online; the online ones carry on
@@ -3385,7 +3385,7 @@ class Sweep:
         platform = self._component_observations()
         for key, hold in self.controller_wait_holds().items():
             recipe = self.recipes.get(key)
-            if recipe is not None and content_identity(recipe) != hold.identity:
+            if recipe is not None and current_identity(recipe) != hold.identity:
                 self.state.entry(key).pop("controller_wait", None)
                 continue  # latest content gets a fresh canonical review
             if any(

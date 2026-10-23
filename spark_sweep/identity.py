@@ -36,7 +36,7 @@ class ControllerWaitHold(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     wait: SweepWait
-    identity: VerdictIdentity
+    identity: QualificationIdentity
     application_id: str
     next_check: float
     platform: dict[Owner, Fingerprint] = Field(default_factory=dict)
