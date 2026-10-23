@@ -35,9 +35,9 @@ def _timeouts(seconds: float = 600.0) -> TimeoutPolicy:
 
 def _trio(**held):
     recipes = [
-        FakeRecipe("bad", ("m1",), local="cached", **held),
-        FakeRecipe("good1", ("m1",), local="cached"),
-        FakeRecipe("good2", ("m1",), local="cached"),
+        FakeRecipe("bad", ("1" * 64,), content="a" * 64, local="cached", **held),
+        FakeRecipe("good1", ("1" * 64,), content="b" * 64, local="cached"),
+        FakeRecipe("good2", ("1" * 64,), content="c" * 64, local="cached"),
     ]
     return recipes
 
@@ -46,7 +46,10 @@ def _make(tmp_path, gateway, recipes, **overrides):
     return make_sweep(
         tmp_path,
         recipes,
-        [FakeModel("m1", local="cached")],
+        [
+            FakeModel(digest, local="cached")
+            for digest in {d for r in recipes for d in r.digests}
+        ],
         gateway=gateway,
         timeouts=_timeouts(),
         **overrides,

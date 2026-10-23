@@ -58,6 +58,8 @@ PHASE_RETRY = "run-switch.phase-retry"
 #: ProgressAlarmCode.STALLED: the Controller saw the same wait repeat with nothing moving.
 #: A platform problem, never the recipe's: only its lane waits on the original receipt.
 STALLED_CODE = "progress.stalled"
+#: A terminal summary, not a refusal of the accepted content.
+FAILURE_REPEATED = "profile.failure_repeated"
 #: Blockers that name a preparation (build, image, download, install) the Controller runs.
 PREPARATION_CODES = frozenset(
     {
@@ -152,11 +154,7 @@ class Signal:
 
 
 def refusal_identity(document: Mapping[str, Any]) -> tuple[tuple[str, str], ...]:
-    """Unresolved blockers by full detail bytes, independent of receipt/severity churn.
-
-    Preparation warnings also hold intent; informational progress and expected
-    interruption warnings do not. No text matching guesses a recipe fault.
-    """
+    """Error refusals keyed by full detail bytes; warnings never hold placement."""
     progress = document.get("progress")
     blockers = [
         *(document.get("blockers") or []),
@@ -172,15 +170,9 @@ def refusal_identity(document: Mapping[str, Any]) -> tuple[tuple[str, str], ...]
                 for item in blockers or []
                 if isinstance(item, Mapping)
                 and item.get("code")
-                and item["code"] not in (PHASE_RETRY, STALLED_CODE)
+                and item["code"] not in (PHASE_RETRY, STALLED_CODE, FAILURE_REPEATED)
                 and item["code"] not in RECIPE_FAILURE_CODES
-                and (
-                    item.get("severity") == "error"
-                    or (
-                        item.get("severity") == "warning"
-                        and item["code"] in PREPARATION_CODES
-                    )
-                )
+                and item.get("severity") == "error"
             }
         )
     )

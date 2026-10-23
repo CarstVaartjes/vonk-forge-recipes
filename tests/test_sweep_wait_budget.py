@@ -183,8 +183,12 @@ def test_sse_heartbeats_cannot_hold_smoking_lane_forever(tmp_path: Path) -> None
 def test_loading_consumer_releases_each_expired_signal(
     tmp_path: Path, reason: SweepWaitReason
 ) -> None:
-    recipe = FakeRecipe("held", local="cached", blocked=True)
-    sweep, _, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1", local="cached")])
+    recipe = FakeRecipe(
+        "held", ("1" * 64,), content="a" * 64, local="cached", blocked=True
+    )
+    sweep, _, clock = make_sweep(
+        tmp_path, [recipe], [FakeModel("1" * 64, local="cached")]
+    )
     sweep.preflight()
     sweep.refresh_catalog()
     sweep.queue = list(sweep.recipes)
@@ -206,8 +210,12 @@ def test_loading_consumer_releases_each_expired_signal(
 def test_unavailable_observation_releases_even_during_a_blind_pass(
     tmp_path: Path,
 ) -> None:
-    recipe = FakeRecipe("held", local="cached", blocked=True)
-    sweep, _, clock = make_sweep(tmp_path, [recipe], [FakeModel("m1", local="cached")])
+    recipe = FakeRecipe(
+        "held", ("1" * 64,), content="a" * 64, local="cached", blocked=True
+    )
+    sweep, _, clock = make_sweep(
+        tmp_path, [recipe], [FakeModel("1" * 64, local="cached")]
+    )
     sweep.preflight()
     sweep.refresh_catalog()
     sweep.queue = list(sweep.recipes)

@@ -13,6 +13,7 @@ import json
 import statistics
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping, Sequence
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -396,6 +397,11 @@ def render_status(status: Mapping[str, Any]) -> str:
         lines += [
             f"- {key}: {SweepWait.model_validate(hold['wait']).description}; "
             f"next observation in {_duration(max(0, hold['next_check'] - status['updated_at']))}"
+            + (
+                f"; next allowed retry at {datetime.fromtimestamp(hold['retry_at'], UTC).isoformat()}"
+                if hold.get("retry_at") is not None
+                else ""
+            )
             for key, hold in status["controller_waits"].items()
         ]
     if status.get("infrastructure"):

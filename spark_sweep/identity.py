@@ -7,7 +7,7 @@ from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-from vonk_forge_contracts import QualificationIdentity
+from vonk_forge_contracts import QualificationIdentity, QualificationRuntimeImage
 from vonk_forge_contracts.sweep import SweepWait
 
 from .catalog import Recipe
@@ -30,31 +30,20 @@ class VerdictIdentity(BaseModel):
     image_library_commit: str | None = None
 
 
-class PlacementIdentity(BaseModel):
-    """Local accepted load content; public qualification validation is a separate boundary."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    content_sha256: str
-    source_bundle_sha256: str | None = None
-    runtime_image: RuntimeImageIdentity | None = None
-    model_digests: tuple[str, ...]
-    required_sparks: int = Field(ge=1)
-    models_resolved: bool = True
-
-
 class ControllerWaitHold(BaseModel):
-    """A dependency/refusal observation, never a recipe verdict or a retry counter."""
+    """An expired dependency observation, not a recipe verdict or a retry counter."""
 
     model_config = ConfigDict(extra="forbid")
 
     wait: SweepWait
-    identity: PlacementIdentity
+    identity: QualificationIdentity
     application_id: str
     next_check: float
     platform: dict[Owner, Fingerprint] = Field(default_factory=dict)
-    # Exact external blocker code/detail SHA-256 pairs; empty for declared waits.
+    # Refusal backoff is independent of receipt probes and survives restarts.
+    retry_at: float | None = None
     blockers: tuple[tuple[str, str], ...] = ()
+    node_ids: tuple[str, ...] = ()
     fleet_runs: tuple[tuple[str, str], ...] = ()
 
 
@@ -70,20 +59,19 @@ def content_identity(recipe: Recipe) -> VerdictIdentity:
     )
 
 
-def placement_identity(recipe: Recipe) -> PlacementIdentity:
-    """Placement recovery follows content; publication alone is no changed evidence."""
+def current_identity(recipe: Recipe) -> QualificationIdentity:
     identity = content_identity(recipe)
-    return PlacementIdentity(
+    return QualificationIdentity(
         content_sha256=identity.content_sha256,
         source_bundle_sha256=identity.source_bundle_sha256,
-        runtime_image=identity.runtime_image,
+        runtime_image=QualificationRuntimeImage.model_validate(
+            identity.runtime_image.model_dump()
+        )
+        if identity.runtime_image is not None
+        else None,
         model_digests=identity.model_digests,
         required_sparks=recipe.node_count,
     )
-
-
-def current_identity(recipe: Recipe) -> QualificationIdentity:
-    return QualificationIdentity.model_validate(placement_identity(recipe).model_dump())
 
 
 def recorded_identity(entry: Mapping[str, Any]) -> VerdictIdentity | None:

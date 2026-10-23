@@ -125,9 +125,16 @@ def test_saved_unadmitted_storage_wait_keeps_the_same_load(
 def test_pending_storage_expires_with_evidence_without_recipe_attempt(
     tmp_path: Path,
 ) -> None:
-    recipe = FakeRecipe("a", node_count=2, local="cached", load_seconds=10000)
+    recipe = FakeRecipe(
+        "a",
+        ("1" * 64,),
+        content="a" * 64,
+        node_count=2,
+        local="cached",
+        load_seconds=10000,
+    )
     sweep, fleet, clock = make_sweep(
-        tmp_path, [recipe], [FakeModel("m1", local="cached")]
+        tmp_path, [recipe], [FakeModel("1" * 64, local="cached")]
     )
     sweep.preflight()
     sweep.refresh_catalog()

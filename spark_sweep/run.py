@@ -73,7 +73,6 @@ from .identity import (
     IdentityReason,
     VerdictIdentity,
     content_identity,
-    placement_identity,
     verdict_matches,
 )
 from .lifecycle import ACTIVE as ACTIVE_APP
@@ -120,6 +119,7 @@ TAKEOVER_RETRY_SECONDS = 30.0
 SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
+REFUSAL_BACKOFF_SECONDS = 3600.0
 RETEST_SECONDS = 24 * 3600.0
 ENDPOINT_RECHECK_SECONDS = 20.0
 # A results row carries the Controller document it ended on, bounded.
@@ -2779,7 +2779,7 @@ class Sweep:
         ):
             hold = ControllerWaitHold(
                 wait=expiry.wait,
-                identity=placement_identity(accepted.recipe),
+                identity=current_identity(accepted.recipe),
                 application_id=load["app_id"],
                 next_check=self.clock.now() + self.cfg.defer_delay,
                 platform=load.get("wait_platform")
@@ -3151,9 +3151,9 @@ class Sweep:
             if recipe is None or not self.ready(recipe) or key in self.state.slots:
                 continue
             if any(
-                hold.identity == placement_identity(recipe) for hold in waits.values()
+                hold.identity == current_identity(recipe) for hold in waits.values()
             ):
-                continue  # re-observe the original receipt, never replay unchanged intent
+                continue  # held content waits; independent placements stay eligible
             if self.lanes_short(recipe):
                 continue  # waits for its lanes to come online; the online ones carry on
             if now < float(entry.get("not_before", 0)) or now < float(
@@ -3372,8 +3372,18 @@ class Sweep:
             self.state.event(message)
         self.state.data["alerts"] = [message]
 
-    def _fleet_run_identity(self) -> tuple[tuple[str, str], ...]:
-        return tuple(sorted({(p.node_id, p.run_id) for p in self.fleet.presences}))
+    def _fleet_run_identity(
+        self, node_ids: Sequence[str]
+    ) -> tuple[tuple[str, str], ...]:
+        return tuple(
+            sorted(
+                {
+                    (p.node_id, p.run_id)
+                    for p in self.fleet.presences
+                    if p.node_id in node_ids
+                }
+            )
+        )
 
     def _hold_controller_refusal(
         self, load: Mapping[str, Any], document: Mapping[str, Any]
@@ -3396,7 +3406,7 @@ class Sweep:
                     detail="platform refusal: "
                     + ", ".join(f"{code} ({digest})" for code, digest in blockers),
                 ),
-                identity=placement_identity(accepted.recipe),
+                identity=current_identity(accepted.recipe),
                 application_id=load["app_id"],
                 next_check=self.clock.now() + self.cfg.defer_delay,
                 platform=load.get("wait_platform")
@@ -3405,8 +3415,10 @@ class Sweep:
                     for owner, fingerprint in self._component_observations().items()
                     if owner in ("api", "worker") and fingerprint is not None
                 },
+                retry_at=self.clock.now() + REFUSAL_BACKOFF_SECONDS,
                 blockers=blockers,
-                fleet_runs=self._fleet_run_identity(),
+                node_ids=tuple(slot["node_ids"]),
+                fleet_runs=self._fleet_run_identity(slot["node_ids"]),
             )
             self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
             self.state.event(
@@ -3423,20 +3435,12 @@ class Sweep:
     def controller_wait_issue(self) -> str | None:
         holds = list(self.controller_wait_holds().values())
         for hold in holds:
-            if hold.blockers and any(
-                other.identity != hold.identity
-                and set(other.blockers).intersection(hold.blockers)
-                for other in holds
-            ):
-                return (
-                    f"shared Controller refusal {hold.wait.description}; "
-                    "placement paused pending changed evidence"
-                )
             controller = hold.wait.controller
             if controller is None or controller.identity is None:
                 continue
             if any(
-                other.identity != hold.identity
+                other.application_id != hold.application_id
+                and other.identity != hold.identity
                 and other.wait.controller is not None
                 and other.wait.controller.identity == controller.identity
                 for other in holds
@@ -3448,28 +3452,29 @@ class Sweep:
         return None
 
     def _refresh_controller_waits(self, now: float) -> None:
-        """Probe accepted receipts with bounded reads; time alone never resubmits a load."""
+        """Re-plan on relevant evidence changes or the fixed refusal backoff deadline."""
         documents: dict[str, Mapping[str, Any]] = {}
         recovered: set[tuple[str, str]] = set()
         platform = self._component_observations()
         for key, hold in self.controller_wait_holds().items():
             recipe = self.recipes.get(key)
-            if recipe is not None and placement_identity(recipe) != hold.identity:
+            if recipe is not None and current_identity(recipe) != hold.identity:
                 self.state.entry(key).pop("controller_wait", None)
                 continue  # latest content gets a fresh canonical review
             if any(
-                platform.get(owner) is not None and platform[owner] != fingerprint
-                for owner, fingerprint in hold.platform.items()
-            ):
+                platform.get(owner) is not None
+                and platform[owner] != hold.platform.get(owner)
+                for owner in ("api", "worker")
+            ) or (hold.retry_at is not None and now >= hold.retry_at):
                 self.state.entry(key).pop("controller_wait", None)
                 self.state.event(
-                    f"deployed platform changed for {key}; re-planning placement"
+                    f"platform changed or refusal backoff ended for {key}; re-planning placement"
                 )
                 continue
             if (
                 hold.blockers
                 and not self.blind
-                and self._fleet_run_identity() != hold.fleet_runs
+                and self._fleet_run_identity(hold.node_ids) != hold.fleet_runs
             ):
                 self.state.entry(key).pop("controller_wait", None)
                 self.state.event(f"fleet runs changed for {key}; re-planning placement")

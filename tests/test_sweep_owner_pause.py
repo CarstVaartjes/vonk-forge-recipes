@@ -14,6 +14,7 @@ from vonk_forge_contracts.sweep import (
     SweepWaitReason,
 )
 
+from spark_sweep import verdict
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.owner import OwnerGuard
 from spark_sweep.state import State
@@ -42,9 +43,19 @@ def unreadable_owner(sweep, monkeypatch, *, timeout: bool = False) -> list[int]:
 def test_two_hour_owner_outage_does_not_stop_scheduling(
     tmp_path: Path, monkeypatch, timeout: bool
 ) -> None:
-    recipe = FakeRecipe("a", local="cached", blocked=True)
+    recipe = FakeRecipe(
+        "a",
+        ("1" * 64,),
+        content="a" * 64,
+        local="cached",
+        blocked=True,
+        blocker_code=min(verdict.PREPARATION_CODES),
+    )
     sweep, fleet, clock = make_sweep(
-        tmp_path, [recipe], [FakeModel("m1", local="cached")]
+        tmp_path,
+        [recipe],
+        [FakeModel("1" * 64, local="cached")],
+        blocked_release_seconds=60,
     )
     reads = unreadable_owner(sweep, monkeypatch, timeout=timeout)
     sweep.preflight()
@@ -59,15 +70,6 @@ def test_two_hour_owner_outage_does_not_stop_scheduling(
     sweep.guard = OwnerGuard(sweep.vk, sweep.state, sweep.cfg.owner_hold_seconds)
     for _ in range(120):
         clock.sleep(60)
-        if clock.now() - start == 3660:
-            # Identical blocked loads are not scheduling progress. Fresh content
-            # must still get its own plan while owner observations remain down.
-            assert (
-                sum(c[:3] == ("profile", "load", "--yes") for _, c in fleet.calls) == 1
-            )
-            later = FakeRecipe("later", content="b" * 64, local="cached", blocked=True)
-            fleet.recipes[later.key] = later
-            sweep.refresh_catalog()
         sweep._tick()
         if clock.now() - start >= 180:
             assert not sweep.paused
@@ -97,12 +99,14 @@ def test_two_hour_owner_outage_does_not_stop_scheduling(
 def test_over_budget_lane_released_and_download_observed_during_pause(
     tmp_path: Path, monkeypatch
 ) -> None:
-    held = FakeRecipe("held", local="cached", blocked=True)
-    downloading = FakeRecipe("downloading", ("m2",))
+    held = FakeRecipe(
+        "held", ("1" * 64,), content="a" * 64, local="cached", blocked=True
+    )
+    downloading = FakeRecipe("downloading", ("2" * 64,), content="b" * 64)
     sweep, fleet, clock = make_sweep(
         tmp_path,
         [held, downloading],
-        [FakeModel("m1", local="cached"), FakeModel("m2")],
+        [FakeModel("1" * 64, local="cached"), FakeModel("2" * 64)],
     )
     sweep.preflight()
     sweep.refresh_catalog()
@@ -121,7 +125,7 @@ def test_over_budget_lane_released_and_download_observed_during_pause(
     assert row["evidence"]["observed_at"] > row["evidence"]["deadline"]
     assert sweep.state.entry(held.key)["not_before"] > clock.now()
     assert downloading.key in sweep.state.downloads
-    assert fleet.models["m2"].local == "cached"
+    assert fleet.models["2" * 64].local == "cached"
 
 
 def test_readable_active_owner_still_pauses_after_observation_budget(
