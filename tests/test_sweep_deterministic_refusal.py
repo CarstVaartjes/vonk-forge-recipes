@@ -17,6 +17,7 @@ from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep import verdict
 from spark_sweep.catalog import Presence
+from spark_sweep.identity import ControllerWaitHold, current_identity
 from spark_sweep.lifecycle import LifecycleState, RecipeStatus
 from spark_sweep.report import build_status, write_status
 from spark_sweep.state import State
@@ -220,3 +221,13 @@ def test_another_name_cannot_bypass_a_content_bound_refusal(tmp_path, monkeypatc
     sweep.recipes[renamed.key] = renamed
     sweep.queue = [renamed.key]
     assert not sweep.ready_candidates()
+
+
+def test_placement_hold_preserves_the_established_identity_fields(
+    tmp_path, monkeypatch
+):
+    sweep, _, _, key, _ = prepare(tmp_path, monkeypatch, RECORDS[0])
+    hold = sweep.controller_wait_holds()[key]
+    stored = hold.model_dump(mode="json")
+    stored["identity"] = current_identity(sweep.recipes[key]).model_dump(mode="json")
+    assert ControllerWaitHold.model_validate(stored) == hold
