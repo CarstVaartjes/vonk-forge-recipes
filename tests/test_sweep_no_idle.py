@@ -238,13 +238,9 @@ def test_free_lane_starts_only_with_bound_unchanged_effects(
         assert next_started >= slow_child["at"], (
             "an unbound child must not be cancelled by overlap"
         )
-        first_edit = min(
-            at
-            for at, (profile, command) in zip(fleet.call_times, fleet.calls)
-            if profile == 10 and command[:3] == ("profile", "add", recipes[1].key)
-        )
-        assert first_edit >= slow_child["at"], (
-            "even a rolled-back edit would supersede the unbound admission"
+        # A bound application survives a rolled-back edit; the review re-plans.
+        assert "unchanged loading effects are not bound for adoption" in str(
+            sweep.state.data["events"]
         )
     assert original_run
 

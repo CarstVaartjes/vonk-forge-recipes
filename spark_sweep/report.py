@@ -231,6 +231,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         },
         "lanes": lanes,
         "profile_edit_wait": data.get("profile_edit_wait"),
+        "dual_reservation": data.get("dual_reservation"),
         "offline_lanes": offline,
         "waiting_for_lanes": sum(
             1
@@ -392,6 +393,8 @@ def render_status(status: Mapping[str, Any]) -> str:
             f"- Placement waiting on {wait['waiting_on']}; "
             f"pending lane deadline {datetime.fromtimestamp(wait['wait_deadline'], UTC).isoformat()}"
         )
+    if status.get("dual_reservation"):
+        lines.append(f"- Free lane {status['dual_reservation']}")
     if status.get("waiting_for_lanes"):
         lines.append(
             f"- {status['waiting_for_lanes']} queued recipe(s) waiting for more lanes online"

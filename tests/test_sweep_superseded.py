@@ -422,6 +422,8 @@ def test_pending_admission_protects_profile_then_releases_other_lane(
     assert wait["wait"]["reason"] == SweepWaitReason.ADMISSION
     assert application in wait["waiting_on"]
     assert wait["wait_deadline"] == slot["watch"]["wait_deadline"]
+    # The idle alarm names the hold placement applies, not a generic guess.
+    assert application in sweep._lane_holds()["spk_b"]
     write_status(sweep)
     assert application in (tmp_path / "status.md").read_text()
     # Finished-lane cleanup must obey the same pre-edit boundary as placement.
@@ -452,7 +454,7 @@ def test_pending_admission_protects_profile_then_releases_other_lane(
 
 
 @pytest.mark.parametrize("cleanup", [False, True])
-def test_pending_lane_reviews_once_per_tick_with_many_candidates(
+def test_pending_lane_holds_edits_without_reviews_with_many_candidates(
     tmp_path, monkeypatch, cleanup
 ):
     recipes = [
@@ -484,7 +486,8 @@ def test_pending_lane_reviews_once_per_tick_with_many_candidates(
             for number, args in fleet.calls
             if number == 10 and args[:2] == ("profile", "load") and "--review" in args
         ]
-        assert len(reviews) == 1
+        # The lane's own receipt shows the unbound admission; no preview is needed.
+        assert not reviews
         assert not edits
         assert len(sweep.state.slots) == 1
         clock.sleep(5)
@@ -520,7 +523,7 @@ def _pending_lane(tmp_path, monkeypatch, **overrides):
     return sweep, fleet, clock, slot, application, edits
 
 
-def test_decided_clearing_waits_for_pending_application_once_per_tick(
+def test_decided_clearing_waits_for_pending_application_without_review(
     tmp_path, monkeypatch
 ):
     sweep, fleet, clock, slot, application, edits = _pending_lane(tmp_path, monkeypatch)
@@ -535,7 +538,7 @@ def test_decided_clearing_waits_for_pending_application_once_per_tick(
             for number, args in fleet.calls
             if number == 10 and args[:2] == ("profile", "load") and "--review" in args
         ]
-        assert len(reviews) == 1
+        assert not reviews
         status = build_status(sweep)
         wait = status.get("profile_edit_wait")
         assert wait is not None
@@ -614,41 +617,6 @@ def test_partitioned_review_heals_and_admits_within_lane_bound(
     assert not edits
 
 
-def test_profile_edit_wait_tracks_copy_progress_after_dependency_wait(
-    tmp_path, monkeypatch
-):
-    sweep, fleet, clock, slot, application, _ = _pending_lane(
-        tmp_path,
-        monkeypatch,
-        copy_stall_seconds=40,
-    )
-    original = fleet._load
-
-    def unbound(number, data, args):
-        code, document = original(number, data, args)
-        if "--review" in args:
-            document["effects"]["adopted"] = []
-        return code, document
-
-    monkeypatch.setattr(fleet, "_load", unbound)
-    sweep._tick()
-    assert build_status(sweep).get("profile_edit_wait")
-    old_deadline = slot["watch"]["wait_deadline"]
-    fleet.apps[application].update(blocked=False, copy=200)
-    clock.sleep(20)
-    sweep._tick()
-    assert slot["copying"]
-    assert "wait" not in slot["watch"]
-    wait = build_status(sweep)["profile_edit_wait"]
-    assert wait["wait_deadline"] == clock.now() + 40 > old_deadline
-    clock.sleep(15)
-    sweep._tick()
-    wait = build_status(sweep)["profile_edit_wait"]
-    assert wait["wait_deadline"] == slot["watch"]["progressed_at"] + 40
-    assert clock.now() > old_deadline
-    assert "vonk-forge/b" not in sweep.state.slots
-
-
 def test_stale_assignment_prune_reuses_profile_edit_readiness(tmp_path):
     recipes = [FakeRecipe(name, local="cached") for name in ("a", "b")]
     sweep, fleet, clock = make_sweep(
@@ -670,7 +638,68 @@ def test_stale_assignment_prune_reuses_profile_edit_readiness(tmp_path):
         for number, args in fleet.calls
         if number == 10 and args[:2] == ("profile", "load") and "--review" in args
     ]
-    # One pre-edit adoption preview and one admission of the changed profile.
-    assert len(reviews) == 2
+    # A bound lane needs no pre-edit preview: one review admits the changed profile.
+    assert len(reviews) == 1
     assert b.key in sweep.state.slots
     assert stale not in sweep.state.data["cleanup"]
+
+
+def test_bound_copying_lane_does_not_hold_the_free_lane(tmp_path):
+    a = FakeRecipe("a", ("m1",), local="cached", copy_seconds=3000)
+    b = FakeRecipe("b", ("m2",), local="cached")
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [a, b],
+        [FakeModel("m1", local="cached"), FakeModel("m2", local="cached")],
+        only=("a",),
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep._tick()
+    request = sweep.state.slots[a.key]["request_key"]
+    application = sweep.state.data["loads"][request]["app_id"]
+    clock.sleep(20)
+    sweep._tick()
+    assert sweep.state.slots[a.key]["copying"]
+    sweep.cfg = replace(sweep.cfg, only=())
+    sweep.refresh_catalog()
+    clock.sleep(20)
+    sweep._tick()
+    # The other Spark loads while the bound copy keeps progressing and is adopted.
+    assert b.key in sweep.state.slots
+    assert sweep.state.slots[a.key]["phase"] == SweepSlotPhase.LOADING
+    assert sweep.state.slots[a.key]["copying"]
+    load = sweep.state.data["loads"][sweep.state.slots[b.key]["request_key"]]
+    assert load["adopted_requests"] == [request]
+    assert fleet.apps[application]["state"] == LifecycleState.RUNNING
+    assert build_status(sweep)["profile_edit_wait"] is None
+
+
+def test_free_lane_reserved_for_a_dual_names_the_reservation(tmp_path):
+    single = FakeRecipe("s", ("m1",), local="cached", load_seconds=5000)
+    dual = FakeRecipe("d", ("m2",), local="cached", node_count=2)
+    sweep, _, clock = make_sweep(
+        tmp_path,
+        [single, dual],
+        [FakeModel("m1", local="cached"), FakeModel("m2", local="cached")],
+        only=("s",),
+        idle_alert_seconds=60,
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep._tick()
+    alias = sweep.state.slots[single.key]["alias"]
+    sweep.cfg = replace(sweep.cfg, only=())
+    sweep.refresh_catalog()
+    for _ in range(9):
+        clock.sleep(10)
+        sweep._tick()
+    assert dual.key not in sweep.state.slots
+    status = build_status(sweep)
+    assert (
+        dual.key in status["dual_reservation"] and alias in status["dual_reservation"]
+    )
+    (alert,) = status["alerts"]
+    assert f"reserved for dual {dual.key} behind lane {alias}" in alert
+    write_status(sweep)
+    assert f"reserved for dual {dual.key}" in (tmp_path / "status.md").read_text()

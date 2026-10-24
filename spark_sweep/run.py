@@ -24,6 +24,7 @@ import traceback
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import Future
 from dataclasses import dataclass, field, replace
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -1027,8 +1028,9 @@ class Sweep:
             self.state.data["owner"].pop("paused_at", None)
 
     def _tick(self) -> None:
-        # Placement/cleanup re-derive this observation only when asked this pass.
+        # Placement/cleanup re-derive these observations only when asked this pass.
         self.state.data.pop("profile_edit_wait", None)
+        self.state.data.pop("dual_reservation", None)
         now = self.clock.now()
         self.advance_catalog(now)
         if self.retry_failed_pending and self.catalog_loaded:
@@ -2147,6 +2149,7 @@ class Sweep:
             self.state.data["loads"].pop(load["request_key"], None)
             return True
         self.documents[load["request_key"]] = document
+        load["admission_unbound"] = verdict.admission_unbound(document)
         load["observed_at"] = self.clock.now()
         load["app_id"] = document["id"]
         status = str(document.get("state", ""))
@@ -3214,6 +3217,15 @@ class Sweep:
                     + " still shows its workload",
                 )
         online = {s.id for s in self.sparks()}
+        if wait := self.state.data.get("profile_edit_wait"):
+            held = (
+                f"profile edit held on {wait['waiting_on']} until "
+                f"{datetime.fromtimestamp(wait['wait_deadline'], UTC).isoformat()}"
+            )
+        else:
+            held = str(self.state.data.get("dual_reservation") or "")
+        for node in online if held else ():
+            holds.setdefault(node, held)
         return {node: why for node, why in holds.items() if node in online}
 
     def _hold_lanes(self, load: Mapping[str, Any]) -> None:
@@ -3460,6 +3472,7 @@ class Sweep:
                 self.state.entry(key).pop("controller_wait", None)
 
     def schedule(self, now: float) -> None:
+        self.state.data.pop("dual_reservation", None)
         self._refresh_controller_waits(now)
         self.release_given_up(now)
         self.release_orphan_load()
@@ -3502,6 +3515,7 @@ class Sweep:
             # A dual at the head drains both lanes; do not refill one with later singles.
             if candidates[0].node_count == 2:
                 if len(bins) < 2:
+                    self._reserve_for_dual(candidates[0], {b.id for b in bins})
                     return
                 self.state.data["mode"] = "dual"
                 dual = policy.place_dual(candidates[:1], bins, self.cfg.reserve_bytes)
@@ -3535,6 +3549,24 @@ class Sweep:
             else:
                 return
             candidates = [r for r in self.ready_candidates() if r.key not in attempted]
+
+    def _reserve_for_dual(self, recipe: Recipe, free: set[str]) -> None:
+        """Name why a free lane stays empty: the dual at the head drains both lanes."""
+        busy = {why for node, why in self._lane_holds().items() if node not in free}
+        lanes = [
+            float(slot["deadline"])
+            for slot in self.state.slots.values()
+            if slot["phase"] != SweepSlotPhase.FINISHED
+            and not set(slot["node_ids"]) <= free
+        ]
+        until = (
+            f" until {datetime.fromtimestamp(max(lanes), UTC).isoformat()}"
+            if lanes
+            else ""
+        )
+        self.state.data["dual_reservation"] = (
+            f"reserved for dual {recipe.key} behind {'; '.join(sorted(busy))}{until}"
+        )
 
     def _cleanup_confirmed(self) -> dict[str, int]:
         confirmed: dict[str, int] = {}
@@ -3992,24 +4024,20 @@ class Sweep:
         self.state.data.pop("cleared_by", None)
 
     def _profile_edit_ready(self) -> bool:
-        """Even a rolled-back edit supersedes an unbound pending admission."""
+        """Even a rolled-back edit supersedes a lane whose admission is still unbound.
+
+        A bound lane is carried forward: the review of the edited profile must adopt it.
+        The last receipt decides; a load never observed (an unknown submit) is unbound.
+        """
+        loads = self.state.data["loads"]
         loading = [
             slot
             for slot in self.state.slots.values()
             if slot["phase"] == SweepSlotPhase.LOADING
+            and slot["request_key"] in loads
+            and loads[slot["request_key"]].get("admission_unbound", True)
         ]
         if not loading:
-            self.state.data.pop("profile_edit_wait", None)
-            return True
-        reply = self.vk.run(
-            "profile", "load", "--review", profile=self.cfg.sweep_profile
-        )
-        if (
-            not reply.is_transport_error
-            and not reply.is_error_document
-            and isinstance(reply.document, Mapping)
-            and self._adopted_requests(reply.document) is not None
-        ):
             self.state.data.pop("profile_edit_wait", None)
             return True
         deadline = min(
@@ -4032,7 +4060,7 @@ class Sweep:
         progress = verdict.bounded_wait(
             SweepWait(
                 reason=SweepWaitReason.ADMISSION,
-                detail=f"profile edit awaits bound effects: {', '.join(applications)}",
+                detail=f"profile edit awaits bound admission: {', '.join(applications)}",
             ),
             watch,
             window=deadline - since,
@@ -4456,6 +4484,9 @@ class Sweep:
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
         if isinstance(submitted, Mapping):
             self.documents[key] = submitted
+            self.state.data["loads"][key]["admission_unbound"] = (
+                verdict.admission_unbound(submitted)
+            )
         self.state.data["dirty"] = True
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
         self.state.save()

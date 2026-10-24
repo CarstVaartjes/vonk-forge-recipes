@@ -1059,6 +1059,11 @@ class FakeFleet:
         }
         if "--review" in a:
             adopted = []
+            # An identical repeat of an application's whole profile is a new request:
+            # the Controller adopts nothing from it (continuing_effects.py).
+            repeat = hashlib.sha256(
+                json.dumps(data["assignments"], sort_keys=True).encode()
+            ).hexdigest()
             for x in data["assignments"]:
                 existing = running.get(x["assignment_name"])
                 if (
@@ -1069,7 +1074,10 @@ class FakeFleet:
                 ):
                     continue
                 for app in self.apps.values():
-                    if app["state"] not in ("queued", "running"):
+                    if (
+                        app["state"] not in ("queued", "running")
+                        or app.get("plan_digest") == repeat
+                    ):
                         continue
                     child = next(
                         (
