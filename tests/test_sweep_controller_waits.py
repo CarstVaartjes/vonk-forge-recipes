@@ -454,10 +454,11 @@ def test_one_shared_dependency_is_reported_and_holds_only_its_recipes(
         SHARED_OPERATION
     )
     sweep, clock, _ = waits_behind_applications(tmp_path, monkeypatch, shared)
-    issue = sweep.controller_wait_issue()
-    assert issue is not None and SHARED_OPERATION in issue
+    assert sweep.controller_wait_issue() is not None
     assert places(sweep, clock, "vonk-forge/c")
     assert {"vonk-forge/a", "vonk-forge/b"} <= set(sweep.controller_wait_holds())
+    issue = sweep.controller_wait_issue()
+    assert issue is not None and SHARED_OPERATION in issue
     write_status(sweep)
     assert SHARED_OPERATION in (tmp_path / "status.md").read_text()
 
