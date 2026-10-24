@@ -376,7 +376,11 @@ def _pending_admission_edits_supersede(fleet, monkeypatch):
                 "blockers": [
                     {
                         "code": "profile.preparation_unavailable",
-                        "operation": {"kind": "recipe-build"},
+                        # The Controller's BlockingOperation always has an id.
+                        "operation": {
+                            "id": f"{app['id']}/build",
+                            "kind": "recipe-build",
+                        },
                     }
                 ],
             }

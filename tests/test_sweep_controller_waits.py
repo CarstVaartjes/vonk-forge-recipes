@@ -7,10 +7,11 @@ from copy import deepcopy
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
+from uuid import NAMESPACE_URL, uuid5
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import SweepWaitReason
+from vonk_forge_contracts.sweep import ControllerWaitOperation, SweepWaitReason
 
 from spark_sweep import policy, verdict
 from spark_sweep.identity import AcceptedRequest, ControllerWaitHold, content_identity
@@ -31,17 +32,46 @@ OBSERVATION = next(
 )
 
 
+def controller_document(record, app):
+    """A recorded wait as the Controller sends it for one application.
+
+    The recordings keep only the blocker operation's kind; the Controller's
+    ``BlockingOperation`` always names its id too: the application's own pending
+    child (``reconcile.py``). Each application issues its own children, so a retry
+    successor waits behind a new child id, and so does a lost child the Controller
+    dispatches again (``child_operation_id``); a record that names an id keeps it.
+    """
+    document = deepcopy(record["controller_document"])
+    document["id"] = app["id"]
+    child = app.get("child_operation_id") or str(
+        uuid5(NAMESPACE_URL, f"{app['id']}/child")
+    )
+    for blocker in document["wait"]["blockers"]:
+        if "operation" in blocker:
+            blocker["operation"].setdefault("id", child)
+    return document
+
+
+#: One Controller operation that two applications both wait behind.
+SHARED_OPERATION = "5d7f0b8e-4c1a-4e7b-9a52-0d6c3b1e2f40"
+SHARED = deepcopy(COPY)
+SHARED["controller_document"]["wait"]["blockers"][0]["operation"]["id"] = (
+    SHARED_OPERATION
+)
+
+
 @pytest.mark.parametrize("row", RECORDS, ids=lambda row: row["recorded_at"])
 def test_exact_records_preserve_the_declared_wait_and_deadline(row) -> None:
-    document = row["controller_document"]
+    document = controller_document(row, row["controller_document"])
     signal = verdict.application_signal(document)
     assert signal.wait is not None
     assert signal.wait.reason is SweepWaitReason.CONTROLLER_WAIT
     assert signal.wait.controller is not None
     assert signal.wait.controller.reason == document["wait"]["reason"]
+    operation = document["wait"]["blockers"][0]["operation"]
     assert signal.wait.controller.identity == (
         document["wait"]["reason"],
-        document["wait"]["blockers"][0]["operation"]["kind"],
+        frozenset({(operation["kind"], operation["id"])}),
     )
     assert document["wait"]["blockers"][0]["detail"] in signal.waiting_on
     now = datetime.fromisoformat(row["recorded_at"]).timestamp()
@@ -102,8 +132,7 @@ def prepare(tmp_path, monkeypatch, *, second=False, record=COPY):
 
     def held_document(app):
         document = original(app)
-        document.update(deepcopy(record["controller_document"]))
-        document["id"] = app["id"]
+        document.update(controller_document(record, app))
         return document
 
     monkeypatch.setattr(fleet, "_app_doc", held_document)
@@ -186,7 +215,9 @@ def test_expired_wait_reobserves_original_receipt_without_identical_loads(
 def test_shared_wait_is_a_platform_issue_by_content_not_a_retry_count(
     tmp_path, monkeypatch
 ) -> None:
-    sweep, fleet, clock, original = prepare(tmp_path, monkeypatch, second=True)
+    sweep, fleet, clock, original = prepare(
+        tmp_path, monkeypatch, second=True, record=SHARED
+    )
     # Expire both lanes against the same typed platform dependency.
     for slot in sweep.state.slots.values():
         sweep._observe_load(slot, clock.now())
@@ -322,14 +353,28 @@ def test_unscoped_wait_does_not_hold_alternative_placement(
 
 
 def test_operation_identity_does_not_depend_on_blocker_code_spelling() -> None:
-    document = deepcopy(COPY["controller_document"])
+    document = controller_document(SHARED, {"id": "app"})
     document["wait"]["reason"] = "dependency-pending"
     signal = verdict.application_signal(document)
     assert signal.wait is not None and signal.wait.controller is not None
     assert signal.wait.controller.identity == (
         "dependency-pending",
-        "recipe.run-switch.v2",
+        frozenset({("recipe.run-switch.v2", SHARED_OPERATION)}),
     )
+
+
+def test_every_operation_field_separates_wait_identity() -> None:
+    # Guard: a correlating identity that drops an operation field (as it once
+    # dropped the id) makes unrelated waits look like one shared dependency.
+    signal = verdict.application_signal(controller_document(SHARED, {"id": "app"}))
+    assert signal.wait is not None and signal.wait.controller is not None
+    wait = signal.wait.controller
+    for name in ControllerWaitOperation.model_fields:
+        other = wait.model_copy(deep=True)
+        operation = other.blockers[0].operation
+        assert operation is not None
+        setattr(operation, name, "another")
+        assert other.identity != wait.identity, name
 
 
 def test_publication_alone_does_not_release_unknown_image_wait(
@@ -350,3 +395,156 @@ def test_publication_alone_does_not_release_unknown_image_wait(
     sweep._refresh_controller_waits(clock.now())
     assert sweep.controller_wait_holds()
     assert not sweep.ready_candidates()
+
+
+def waits_behind_applications(tmp_path, monkeypatch, record):
+    """Through tick(): a and b expire behind their applications' waits; c is free."""
+    slow = {"digests": ("1" * 64,), "local": "cached", "load_seconds": 10**6}
+    recipes = [FakeRecipe(slug, content=slug * 64, **slow) for slug in "ab"]
+    recipes.append(
+        FakeRecipe("c", content="c" * 64, digests=("1" * 64,), local="cached")
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path, recipes, [FakeModel("1" * 64, local="cached")]
+    )
+    clock.t = datetime.fromisoformat(record["recorded_at"]).timestamp()
+    original = fleet._app_doc
+    resumed: set[str] = set()
+
+    def observed(app):
+        document = original(app)
+        held = {row["alias"] for row in app.get("assign", [])} & {"a", "b"}
+        live = app["state"] in (LifecycleState.QUEUED, LifecycleState.RUNNING)
+        if held and live and app["id"] not in resumed:
+            document.update(controller_document(record, app))
+        return document
+
+    monkeypatch.setattr(fleet, "_app_doc", observed)
+    for _ in range(1000):
+        sweep.tick()
+        if set(sweep.controller_wait_holds()) == {"vonk-forge/a", "vonk-forge/b"}:
+            return sweep, fleet, clock, resumed
+        clock.sleep(sweep.cfg.poll_seconds)
+    raise AssertionError("the waits never expired into Controller wait holds")
+
+
+def places(sweep, clock, key) -> bool:
+    for _ in range(100):
+        sweep.tick()
+        if key in sweep.state.slots:
+            return True
+        clock.sleep(sweep.cfg.poll_seconds)
+    return False
+
+
+def test_unrelated_waits_with_one_reason_do_not_pause_placement(
+    tmp_path, monkeypatch
+) -> None:
+    # 2026-10-24: two unrelated loads, each behind its own Run/Switch child.
+    sweep, _, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    holds = sweep.controller_wait_holds()
+    assert holds["vonk-forge/a"].wait.description == (
+        holds["vonk-forge/b"].wait.description
+    )
+    assert sweep.controller_wait_issue() is None
+    assert places(sweep, clock, "vonk-forge/c")
+
+
+def test_one_shared_dependency_is_reported_and_holds_only_its_recipes(
+    tmp_path, monkeypatch
+) -> None:
+    shared = deepcopy(RECEIPT)
+    shared["controller_document"]["wait"]["blockers"][0]["operation"]["id"] = (
+        SHARED_OPERATION
+    )
+    sweep, _, clock, _ = waits_behind_applications(tmp_path, monkeypatch, shared)
+    assert sweep.controller_wait_issue() is not None
+    assert places(sweep, clock, "vonk-forge/c")
+    assert {"vonk-forge/a", "vonk-forge/b"} <= set(sweep.controller_wait_holds())
+    issue = sweep.controller_wait_issue()
+    assert issue is not None and SHARED_OPERATION in issue
+    write_status(sweep)
+    assert SHARED_OPERATION in (tmp_path / "status.md").read_text()
+
+
+def test_one_receipt_resuming_releases_only_its_own_dependency(
+    tmp_path, monkeypatch
+) -> None:
+    sweep, _, clock, resumed = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    holds = sweep.controller_wait_holds()
+    resumed.add(holds["vonk-forge/a"].application_id)
+    clock.sleep(sweep.cfg.defer_delay + 1)
+    sweep.tick()
+    holds = sweep.controller_wait_holds()
+    assert "vonk-forge/a" not in holds
+    assert "vonk-forge/b" in holds
+
+
+def waited_on(sweep, key) -> set[str]:
+    hold = sweep.controller_wait_holds()[key]
+    assert hold.wait.controller is not None
+    identity = hold.wait.controller.identity
+    assert identity is not None
+    return {operation for _, operation in identity[1]}
+
+
+def test_a_child_dispatched_again_keeps_the_hold(tmp_path, monkeypatch) -> None:
+    # The Controller dispatches a lost child again under a new operation id
+    # (switch_observation.py): the same application waits on, so nothing re-plans
+    # and no identical intent supersedes it.
+    sweep, fleet, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    application = sweep.controller_wait_holds()["vonk-forge/a"].application_id
+    child = str(uuid5(NAMESPACE_URL, f"{application}/dispatched-again"))
+    assert child not in waited_on(sweep, "vonk-forge/a")
+    fleet.apps[application]["child_operation_id"] = child
+    assert not places(sweep, clock, "vonk-forge/a")
+    # The hold now names the operation waited on, for matching across recipes.
+    assert waited_on(sweep, "vonk-forge/a") == {child}
+    assert sweep.state.entry("vonk-forge/a").get("attempts", 0) == 0
+
+
+def test_a_retry_successor_with_new_children_keeps_the_hold(
+    tmp_path, monkeypatch
+) -> None:
+    # A Controller retry builds its successor's children from scratch
+    # (queue_application.py), so the successor waits behind a new child id.
+    sweep, fleet, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    before = waited_on(sweep, "vonk-forge/a")
+    first = fleet.apps[sweep.controller_wait_holds()["vonk-forge/a"].application_id]
+    fleet._supersede(first, "retry")
+    successor = verdict.application_signal(
+        fleet._app_doc(fleet.apps[first["superseded_by"]])
+    )
+    assert successor.wait is not None and successor.wait.controller is not None
+    identity = successor.wait.controller.identity
+    assert identity is not None and not {op for _, op in identity[1]} & before
+    assert not places(sweep, clock, "vonk-forge/a")
+    assert "vonk-forge/a" in sweep.controller_wait_holds()
+    assert sweep.state.entry("vonk-forge/a").get("attempts", 0) == 0
+
+
+def test_hold_saved_without_operation_ids_adopts_them_on_its_next_observation(
+    tmp_path, monkeypatch
+) -> None:
+    # State written before the sweep read operation ids survives the upgrade.
+    sweep, _, clock, resumed = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    for entry in sweep.state.recipes.values():
+        hold = entry.get("controller_wait")
+        for blocker in hold["wait"]["controller"]["blockers"] if hold else []:
+            blocker["operation"].pop("id")
+    sweep.state.save()
+    sweep.state = State.load(tmp_path / "state.json", clock.now)
+    assert sweep.controller_wait_issue() is None
+    # The applications still wait for the same reason: the upgrade keeps their
+    # holds (re-placing would supersede the Controller's own receipt) and the
+    # next observation names the operations they wait on.
+    assert not places(sweep, clock, "vonk-forge/a")
+    assert waited_on(sweep, "vonk-forge/a") != waited_on(sweep, "vonk-forge/b")
+    assert sweep.controller_wait_issue() is None
+    # Once the wait goes away the hold releases and a fresh request is admitted.
+    resumed.add(sweep.controller_wait_holds()["vonk-forge/a"].application_id)
+    clock.sleep(sweep.cfg.defer_delay + 1)
+    assert places(sweep, clock, "vonk-forge/a")
+    assert "vonk-forge/b" in sweep.controller_wait_holds()
+    for key in ("vonk-forge/a", "vonk-forge/b"):
+        assert sweep.state.entry(key).get("attempts", 0) == 0
