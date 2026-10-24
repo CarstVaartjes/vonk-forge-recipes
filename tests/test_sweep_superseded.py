@@ -10,7 +10,7 @@ import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitCode, SweepWaitReason
 
-from spark_sweep import policy
+from spark_sweep import policy, verdict
 from spark_sweep.identity import AcceptedRequest
 from spark_sweep.lifecycle import LifecycleState, RecipeStatus, ReconciliationStatus
 from spark_sweep.report import build_status, write_status
@@ -703,3 +703,27 @@ def test_free_lane_reserved_for_a_dual_names_the_reservation(tmp_path):
     assert f"reserved for dual {dual.key} behind lane {alias}" in alert
     write_status(sweep)
     assert f"reserved for dual {dual.key}" in (tmp_path / "status.md").read_text()
+
+
+@pytest.mark.parametrize(
+    ("state", "operation", "pending", "unbound"),
+    [
+        # Only a pending admission is superseded by a save (pending_admission.py).
+        (LifecycleState.QUEUED, None, True, True),
+        (LifecycleState.NEEDS_OPERATOR, None, True, True),
+        # Bound: a newer decision adopts its unchanged assignments.
+        (LifecycleState.QUEUED, None, False, False),
+        (LifecycleState.RUNNING, "8cb1d3a7-0000-4000-8000-000000000002", False, False),
+    ],
+)
+def test_admission_unbound_mirrors_what_a_profile_save_supersedes(
+    state, operation, pending, unbound
+):
+    document = {
+        "id": "8cb1d3a7-0000-4000-8000-000000000001",
+        "state": state,
+        "current_step": 0,
+        "current_operation_id": operation,
+        "progress": {"admission_pending": pending},
+    }
+    assert verdict.admission_unbound(document) is unbound
