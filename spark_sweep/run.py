@@ -3447,11 +3447,12 @@ class Sweep:
             resumed = (
                 signal.wait is None or document.get("state") == LifecycleState.SUCCEEDED
             )
+            # A new child id under the same reason is the Controller continuing
+            # the same work (a re-dispatched child, a retry), not changed evidence.
             if resumed or (
                 observed is not None
                 and previous is not None
-                and (observed.reason, observed.identity)
-                != (previous.reason, previous.identity)
+                and observed.reason != previous.reason
             ):
                 self.state.entry(key).pop("controller_wait", None)
                 self.state.event(
@@ -3459,6 +3460,10 @@ class Sweep:
                 )
                 if resumed and previous is not None and previous.identity is not None:
                     recovered.add(previous.identity)
+            elif observed is not None and signal.wait is not None:
+                # Matching across recipes uses the operations waited on now.
+                hold.wait = signal.wait
+                self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
         # One original receipt resuming is behaviour proof for the shared dependency.
         for key, hold in self.controller_wait_holds().items():
             if (

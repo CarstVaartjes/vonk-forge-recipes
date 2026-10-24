@@ -36,18 +36,19 @@ def controller_document(record, app):
     """A recorded wait as the Controller sends it for one application.
 
     The recordings keep only the blocker operation's kind; the Controller's
-    ``BlockingOperation`` always names its id too (the load's own child
-    operation), so each load waits behind its own operation unless the record
-    names one.
+    ``BlockingOperation`` always names its id too: the application's own pending
+    child (``reconcile.py``). Each application issues its own children, so a retry
+    successor waits behind a new child id, and so does a lost child the Controller
+    dispatches again (``child_operation_id``); a record that names an id keeps it.
     """
     document = deepcopy(record["controller_document"])
     document["id"] = app["id"]
-    load = app.get("request_key") or app["id"]
+    child = app.get("child_operation_id") or str(
+        uuid5(NAMESPACE_URL, f"{app['id']}/child")
+    )
     for blocker in document["wait"]["blockers"]:
         if "operation" in blocker:
-            blocker["operation"].setdefault(
-                "id", str(uuid5(NAMESPACE_URL, f"{load}/child"))
-            )
+            blocker["operation"].setdefault("id", child)
     return document
 
 
@@ -413,7 +414,8 @@ def waits_behind_applications(tmp_path, monkeypatch, record):
     def observed(app):
         document = original(app)
         held = {row["alias"] for row in app.get("assign", [])} & {"a", "b"}
-        if held and app["id"] not in resumed:
+        live = app["state"] in (LifecycleState.QUEUED, LifecycleState.RUNNING)
+        if held and live and app["id"] not in resumed:
             document.update(controller_document(record, app))
         return document
 
@@ -421,7 +423,7 @@ def waits_behind_applications(tmp_path, monkeypatch, record):
     for _ in range(1000):
         sweep.tick()
         if set(sweep.controller_wait_holds()) == {"vonk-forge/a", "vonk-forge/b"}:
-            return sweep, clock, resumed
+            return sweep, fleet, clock, resumed
         clock.sleep(sweep.cfg.poll_seconds)
     raise AssertionError("the waits never expired into Controller wait holds")
 
@@ -439,7 +441,7 @@ def test_unrelated_waits_with_one_reason_do_not_pause_placement(
     tmp_path, monkeypatch
 ) -> None:
     # 2026-10-24: two unrelated loads, each behind its own Run/Switch child.
-    sweep, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    sweep, _, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
     holds = sweep.controller_wait_holds()
     assert holds["vonk-forge/a"].wait.description == (
         holds["vonk-forge/b"].wait.description
@@ -455,7 +457,7 @@ def test_one_shared_dependency_is_reported_and_holds_only_its_recipes(
     shared["controller_document"]["wait"]["blockers"][0]["operation"]["id"] = (
         SHARED_OPERATION
     )
-    sweep, clock, _ = waits_behind_applications(tmp_path, monkeypatch, shared)
+    sweep, _, clock, _ = waits_behind_applications(tmp_path, monkeypatch, shared)
     assert sweep.controller_wait_issue() is not None
     assert places(sweep, clock, "vonk-forge/c")
     assert {"vonk-forge/a", "vonk-forge/b"} <= set(sweep.controller_wait_holds())
@@ -468,7 +470,7 @@ def test_one_shared_dependency_is_reported_and_holds_only_its_recipes(
 def test_one_receipt_resuming_releases_only_its_own_dependency(
     tmp_path, monkeypatch
 ) -> None:
-    sweep, clock, resumed = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    sweep, _, clock, resumed = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
     holds = sweep.controller_wait_holds()
     resumed.add(holds["vonk-forge/a"].application_id)
     clock.sleep(sweep.cfg.defer_delay + 1)
@@ -478,11 +480,54 @@ def test_one_receipt_resuming_releases_only_its_own_dependency(
     assert "vonk-forge/b" in holds
 
 
-def test_hold_saved_without_operation_ids_heals_on_its_next_observation(
+def waited_on(sweep, key) -> set[str]:
+    hold = sweep.controller_wait_holds()[key]
+    assert hold.wait.controller is not None
+    identity = hold.wait.controller.identity
+    assert identity is not None
+    return {operation for _, operation in identity[1]}
+
+
+def test_a_child_dispatched_again_keeps_the_hold(tmp_path, monkeypatch) -> None:
+    # The Controller dispatches a lost child again under a new operation id
+    # (switch_observation.py): the same application waits on, so nothing re-plans
+    # and no identical intent supersedes it.
+    sweep, fleet, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    application = sweep.controller_wait_holds()["vonk-forge/a"].application_id
+    child = str(uuid5(NAMESPACE_URL, f"{application}/dispatched-again"))
+    assert child not in waited_on(sweep, "vonk-forge/a")
+    fleet.apps[application]["child_operation_id"] = child
+    assert not places(sweep, clock, "vonk-forge/a")
+    # The hold now names the operation waited on, for matching across recipes.
+    assert waited_on(sweep, "vonk-forge/a") == {child}
+    assert sweep.state.entry("vonk-forge/a").get("attempts", 0) == 0
+
+
+def test_a_retry_successor_with_new_children_keeps_the_hold(
+    tmp_path, monkeypatch
+) -> None:
+    # A Controller retry builds its successor's children from scratch
+    # (queue_application.py), so the successor waits behind a new child id.
+    sweep, fleet, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    before = waited_on(sweep, "vonk-forge/a")
+    first = fleet.apps[sweep.controller_wait_holds()["vonk-forge/a"].application_id]
+    fleet._supersede(first, "retry")
+    successor = verdict.application_signal(
+        fleet._app_doc(fleet.apps[first["superseded_by"]])
+    )
+    assert successor.wait is not None and successor.wait.controller is not None
+    identity = successor.wait.controller.identity
+    assert identity is not None and not {op for _, op in identity[1]} & before
+    assert not places(sweep, clock, "vonk-forge/a")
+    assert "vonk-forge/a" in sweep.controller_wait_holds()
+    assert sweep.state.entry("vonk-forge/a").get("attempts", 0) == 0
+
+
+def test_hold_saved_without_operation_ids_adopts_them_on_its_next_observation(
     tmp_path, monkeypatch
 ) -> None:
     # State written before the sweep read operation ids survives the upgrade.
-    sweep, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    sweep, _, clock, resumed = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
     for entry in sweep.state.recipes.values():
         hold = entry.get("controller_wait")
         for blocker in hold["wait"]["controller"]["blockers"] if hold else []:
@@ -490,7 +535,16 @@ def test_hold_saved_without_operation_ids_heals_on_its_next_observation(
     sweep.state.save()
     sweep.state = State.load(tmp_path / "state.json", clock.now)
     assert sweep.controller_wait_issue() is None
+    # The applications still wait for the same reason: the upgrade keeps their
+    # holds (re-placing would supersede the Controller's own receipt) and the
+    # next observation names the operations they wait on.
+    assert not places(sweep, clock, "vonk-forge/a")
+    assert waited_on(sweep, "vonk-forge/a") != waited_on(sweep, "vonk-forge/b")
+    assert sweep.controller_wait_issue() is None
+    # Once the wait goes away the hold releases and a fresh request is admitted.
+    resumed.add(sweep.controller_wait_holds()["vonk-forge/a"].application_id)
     clock.sleep(sweep.cfg.defer_delay + 1)
-    sweep.tick()
-    assert not sweep.controller_wait_holds()
-    assert all(e.get("attempts", 0) == 0 for e in sweep.state.recipes.values())
+    assert places(sweep, clock, "vonk-forge/a")
+    assert "vonk-forge/b" in sweep.controller_wait_holds()
+    for key in ("vonk-forge/a", "vonk-forge/b"):
+        assert sweep.state.entry(key).get("attempts", 0) == 0
