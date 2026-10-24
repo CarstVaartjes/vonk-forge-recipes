@@ -2324,7 +2324,8 @@ class Sweep:
         """What the slot's load is doing: PROGRESSING, WAITING or STALLED (``progress_verdict``).
 
         Moving copies retain their inactivity window. Dependency waits use the lane
-        budget from admission; changing reasons and unreadable observations cannot extend it.
+        budget from admission, restarted only when the work moves; changing reasons and
+        unreadable observations cannot extend it.
         """
         load = self.state.data["loads"].get(slot["request_key"])
         elapsed = now - float(slot.get("last_tick", slot["started_at"]))

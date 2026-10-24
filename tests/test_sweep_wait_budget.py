@@ -127,7 +127,7 @@ def test_each_wait_releases_lane_and_requeues_after_budget(
 
 
 @pytest.mark.parametrize("reason", list(SweepWaitReason))
-def test_wait_reason_and_signature_changes_do_not_extend_budget(
+def test_wait_reason_changes_do_not_extend_budget(
     reason: SweepWaitReason,
 ) -> None:
     watch = {}
@@ -139,7 +139,7 @@ def test_wait_reason_and_signature_changes_do_not_extend_budget(
     )
     assert (
         verdict.progress_verdict(
-            verdict.Signal((2,), SweepWait(reason=SweepWaitReason.OBSERVATION)),
+            verdict.Signal((1,), SweepWait(reason=SweepWaitReason.OBSERVATION)),
             watch,
             window=10,
             now=11,

@@ -254,7 +254,10 @@ def bounded_wait(
     now: float,
     started_at: float | None = None,
 ) -> Progress:
-    """The only waiting_on writer. Changing reasons or heartbeats cannot renew a budget."""
+    """The only waiting_on writer. Changing reasons or heartbeats cannot renew a budget.
+
+    Only ``progress_verdict`` renews it, when the waiting work itself moved.
+    """
     since = float(
         watch.setdefault("wait_started_at", now if started_at is None else started_at)
     )
@@ -287,8 +290,20 @@ def progress_verdict(
     now: float,
     started_at: float | None = None,
 ) -> Progress:
-    """Own-work silence stalls; dependency waits expire through bounded_wait."""
+    """Own-work silence stalls; dependency waits expire through bounded_wait.
+
+    Work that moves under a wait (its signature advanced since the previous wait
+    observation) is progress: the wait's window restarts from that movement, so
+    moving work is bounded by how long it goes without moving, never by a fixed
+    budget. A changed reason, an own-work observation in between or an unreadable
+    observation is no movement and renews nothing.
+    """
     signature = _comparable(signal.signature) if signal is not None else None
+    if signal is not None and signal.wait is not None:
+        if watch.get("wait_signature", signature) != signature:
+            watch["wait_started_at"] = now
+            watch.pop("wait_deadline", None)
+        watch["wait_signature"] = signature
     if signal is None or signal.wait is not None:
         wait = signal.wait if signal is not None else None
         return bounded_wait(
