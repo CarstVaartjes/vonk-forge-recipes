@@ -238,6 +238,72 @@ def test_shared_wait_is_a_platform_issue_by_content_not_a_retry_count(
     assert not sweep.controller_wait_holds()
 
 
+def test_ended_shared_receipts_release_the_incident_and_replan(
+    tmp_path, monkeypatch
+) -> None:
+    sweep, fleet, clock, _ = prepare(tmp_path, monkeypatch, second=True, record=SHARED)
+    for slot in sweep.state.slots.values():
+        sweep._observe_load(slot, clock.now())
+    clock.t = max(s["watch"]["wait_deadline"] for s in sweep.state.slots.values()) + 1
+    for key, slot in list(sweep.state.slots.items()):
+        sweep._advance_loading(key, slot, clock.now())
+    sweep.enqueue_finished_cleanup()
+    assert sweep.controller_wait_issue() is not None
+    holds = sweep.controller_wait_holds()
+    a, b = (holds[f"vonk-forge/{slug}"].application_id for slug in "ab")
+    assert a != b
+    # A's receipt is superseded by B's load (another recipe's request: not
+    # followed); B's is cancelled with no successor. Ended receipts never resume,
+    # so they can neither prove the incident nor hold their recipes for ever.
+    ended = {
+        a: {"id": a, "state": LifecycleState.SUPERSEDED, "superseded_by": b},
+        b: {"id": b, "state": LifecycleState.CANCELLED, "superseded_by": None},
+    }
+    monkeypatch.setattr(fleet, "_app_doc", lambda app: ended[app["id"]])
+    clock.sleep(sweep.cfg.defer_delay + 1)
+    sweep._refresh_controller_waits(clock.now())
+    assert sweep.controller_wait_issue() is None
+    holds = sweep.controller_wait_holds()
+    assert holds["vonk-forge/a"].application_id == a
+    for hold in holds.values():
+        assert not hold.live and hold.not_before is not None
+        assert hold.not_before > clock.now()
+    assert not sweep.ready_candidates()
+    clock.t = max(hold.not_before or 0.0 for hold in holds.values())
+    assert {r.key for r in sweep.ready_candidates()} == set(holds)
+    assert all(e.get("attempts", 0) == 0 for e in sweep.state.recipes.values())
+
+
+def test_a_persisted_ended_hold_is_planned_at_its_time_after_restart(
+    tmp_path, monkeypatch
+) -> None:
+    sweep, fleet, clock, _ = prepare(tmp_path, monkeypatch)
+    expire(sweep, clock)
+    monkeypatch.setattr(
+        fleet,
+        "_app_doc",
+        lambda app: {"id": app["id"], "state": LifecycleState.CANCELLED},
+    )
+    clock.sleep(sweep.cfg.defer_delay + 1)
+    sweep._refresh_controller_waits(clock.now())
+    hold = sweep.controller_wait_holds()["vonk-forge/a"]
+    assert not hold.live and hold.not_before is not None
+    not_before = hold.not_before
+    assert not_before > clock.now()
+    # A restart reloads the ended hold: it is planned at its time, not at once.
+    sweep.state.save()
+    sweep.state = State.load(tmp_path / "state.json", clock.now)
+    probes = len(fleet.calls)
+    clock.sleep(1)
+    sweep._refresh_controller_waits(clock.now())
+    assert not any("--application" in c for _, c in fleet.calls[probes:])
+    hold = sweep.controller_wait_holds()["vonk-forge/a"]
+    assert not hold.live and hold.not_before == not_before
+    assert not sweep.ready_candidates()
+    clock.t = not_before
+    assert [r.key for r in sweep.ready_candidates()] == ["vonk-forge/a"]
+
+
 def test_hold_follows_a_successor_and_replans_once_nothing_waits(
     tmp_path, monkeypatch
 ) -> None:

@@ -442,10 +442,11 @@ class FakeFleet:
     def _admit(self, app: dict[str, Any]) -> None:
         """Admission binds the queued application: its runs and effects start now.
 
-        Taking its Sparks retires every older unbound admission on them, naming this
+        It retires every older unbound admission of the profile, naming this
         application the successor (queue_application.py and apply.py
-        ``supersede(prior, ..., by=application_id)``). A newer one still waiting
-        stays parked.
+        ``supersede(prior, ..., by=application_id)``): an older pending row's intent
+        scope is the whole accepted profile (persistence.py ``_intent_scope``), so any
+        load that fences a Spark overlaps it. A newer one still waiting stays parked.
         """
         for other in list(self.apps.values()):
             if other is app:
@@ -454,7 +455,7 @@ class FakeFleet:
                 other.get("admission_pending")
                 and other["state"] == LifecycleState.QUEUED
                 and other["profile"] == app["profile"]
-                and other["nodes"] & app["nodes"]
+                and app["nodes"]
             ):
                 self._end_pending(other, app["id"])
         replaced = {run["alias"] for run in app.pop("parked_runs")}

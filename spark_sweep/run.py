@@ -3431,7 +3431,11 @@ class Sweep:
         return None
 
     def _refresh_controller_waits(self, now: float) -> None:
-        """Probe accepted receipts with bounded reads; time alone never resubmits a load."""
+        """Probe live receipts with bounded reads.
+
+        Time alone never resubmits a load on a live receipt; an ended receipt's recipe
+        is planned again at its ``not_before``.
+        """
         documents: dict[str, Mapping[str, Any]] = {}
         recovered: set[tuple[str, frozenset[tuple[str, str]]]] = set()
         platform = self._component_observations()

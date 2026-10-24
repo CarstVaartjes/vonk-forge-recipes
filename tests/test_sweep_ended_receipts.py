@@ -60,7 +60,11 @@ def _placed(fleet, key: str) -> list[float]:
 
 
 def _one_dependency(app: dict[str, Any]) -> dict[str, Any]:
-    """Waits on one typed dependency (the same operation for every application)."""
+    """A bound child's typed dependency (child waits of two applications can share it).
+
+    Never a pending admission's wait: the Controller stamps that with the application
+    itself (the fake's default ``_admission_wait``).
+    """
     reason = "observation-unavailable"
     return {
         "reason": reason,
@@ -156,55 +160,38 @@ def test_successor_of_another_recipe_is_not_followed_or_shared(
     assert max(_placed(fleet, later[-1].key)) > min(_placed(fleet, taker.key)) + WAIT
 
 
-def test_two_expired_pending_admissions_heal_and_admit_fresh_requests(
-    tmp_path, gateway, monkeypatch
+def test_two_expired_pending_admissions_replan_and_admit_fresh_requests(
+    tmp_path, gateway
 ) -> None:
-    # A and B wait for admission on one dependency. B's expiry lands while A's
-    # receipt cannot be read, so both holds are live: a shared incident holds both.
-    # The partition heals and both receipts are found ended with no successor (the
-    # sweep's own saves retired them at their next re-plan).
+    # A and B each wait for admission on their own application (the Controller's
+    # defer path: persisted_waits.schedule_wait stamps the application itself), so
+    # their waits are never shared. Each receipt ends superseded with no successor
+    # (the sweep's own saves retired it at its next re-plan) and each recipe gets a
+    # fresh request that is admitted once the Controller's hold ends.
     a = _recipe("a", blocked=True, blocked_for=3600)
     b = _recipe("b", blocked=True, blocked_for=3600)
     sweep, fleet, clock = _make(tmp_path, gateway, [a, b])
-    monkeypatch.setattr(fleet, "_admission_wait", _one_dependency)
-    read = fleet._app_progress
-    unreadable: set[str] = set()
-
-    def progress(data, args):
-        if "--application" in args and args[args.index("--application") + 1] in (
-            unreadable
-        ):
-            return 1, None  # a partitioned read
-        return read(data, args)
-
-    monkeypatch.setattr(fleet, "_app_progress", progress)
-    shared_at: float | None = None
-    healed_at: float | None = None
-    receipts: list[str] = []
+    start = clock.now()
+    receipts: dict[str, str] = {}
     for _ in range(900):
         sweep._tick()
-        holds = sweep.controller_wait_holds()
-        if shared_at is None and a.key in holds:
-            unreadable.add(holds[a.key].application_id)
-        if shared_at is None and sweep.controller_wait_issue() is not None:
-            shared_at = clock.now()
-            receipts = [holds[r.key].application_id for r in (a, b)]
-            assert not {a.key, b.key} & {r.key for r in sweep.ready_candidates()}
-            unreadable.clear()  # the partition heals
-        if shared_at and healed_at is None and sweep.controller_wait_issue() is None:
-            healed_at = clock.now()
+        for recipe in (a, b):
+            hold = sweep.controller_wait_holds().get(recipe.key)
+            if hold is not None:
+                receipts.setdefault(recipe.key, hold.application_id)
+        # Two admission waits, each on its own application: never one incident.
+        assert sweep.controller_wait_issue() is None
         if _passed(sweep, a) and _passed(sweep, b):
             break
         clock.sleep(10)
-    assert shared_at is not None, "the scenario must reach a shared incident"
-    ended = [fleet.apps[app] for app in receipts]
+    assert set(receipts) == {a.key, b.key}
+    assert receipts[a.key] != receipts[b.key]
+    ended = [fleet.apps[app] for app in receipts.values()]
     assert {app["state"] for app in ended} == {LifecycleState.SUPERSEDED}
     assert all(app.get("superseded_by") is None for app in ended)
-    # Ended receipts prove nothing: the incident heals within a few observations,
-    assert healed_at is not None
-    assert healed_at - shared_at <= 3 * sweep.cfg.defer_delay
-    # and each recipe gets a fresh request that is admitted once the hold ends.
+    # Each recipe got a fresh request after its first receipt and passed.
     for recipe in (a, b):
-        assert max(_placed(fleet, recipe.key)) > shared_at
+        first = fleet.apps[receipts[recipe.key]]["created"]
+        assert max(_placed(fleet, recipe.key)) > first
         assert _passed(sweep, recipe)
-    assert clock.now() - shared_at < 3600 + 2 * REPLAN_CAP
+    assert clock.now() - start < 3600 + 2 * REPLAN_CAP
