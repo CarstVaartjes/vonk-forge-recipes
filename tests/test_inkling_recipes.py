@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -240,40 +241,232 @@ def test_named_inkling_choice_constrains_one_call_and_preserves_parser(
     assert target.read_bytes() == patched_bytes
 
 
-def test_sglang_static_budget_profiles_resident_weights_and_capped_pools() -> None:
-    """Replay SGLang's pinned pool profiling with the 2026-10-24 hardware failure.
+DUAL = "recipes/inkling-small-nvfp4-sglang-dual.json"
+# Sweep 2026-10-24, operation 1d9c19ee, content 6010d4a3: both TP ranks raised
+# "Not enough GPU memory for hybrid ... max_mamba_cache_size=-247
+# (total_rest_memory=-6.49 GB, mamba_cache_per_req=2.46 MB)".
+FAILED_FRACTION = "0.696475667681"
+FAILED_REST_GIB = 6.49
 
-    kv_cache_configurator._profile_available_bytes (sglang 94602c9c) charges
-    resident weights and the multimodal reservation against mem_fraction_static
-    times the pre-load free memory. At 0.696475667681 the Sparks reported
-    total_rest_memory=-6.49 GB. Pre-load free memory is estimated from idle
-    MemAvailable (128,488,062,976 bytes) with 4 GiB less on the next start.
+
+def _sglang_sizer(available_bytes: list[int], schedule: object) -> Any:
+    """The pinned image's sizing methods with the Inkling TP2 runtime around them."""
+    import gc
+    import logging
+    import math
+    import runpy
+    from types import SimpleNamespace
+
+    from qualification.memory_need import load_inputs
+
+    def override(_reason: str, **values: int) -> None:
+        for name, value in values.items():
+            setattr(schedule, name, value)
+
+    namespace = runpy.run_path(
+        str(ROOT / "tests/fixtures/inkling-sglang-cache-sizing.py.txt"),
+        init_globals={
+            "gc": gc,
+            "math": math,
+            "logging": logging,
+            "logger": logging.getLogger("sglang"),
+            "envs": SimpleNamespace(
+                SGLANG_OPT_MAMBA_SKIP_DECODE_LOCK=SimpleNamespace(get=lambda: False)
+            ),
+            "get_schedule": lambda: schedule,
+            "get_available_gpu_memory": lambda *a, **kw: available_bytes[0] / (1 << 30),
+            "get_world_group": lambda: SimpleNamespace(world_size=2, cpu_group=None),
+            "get_mm": lambda: SimpleNamespace(mm_feature_transport=None),
+            # The failure's residual already includes the multimodal reservation.
+            "mm_runtime_reservation_gb": lambda **kw: 0.0,
+            "get_memory": lambda: SimpleNamespace(disable_radix_cache=False),
+            "get_exec": lambda: SimpleNamespace(
+                mamba=SimpleNamespace(
+                    enable_linear_replayssm_spec=False,
+                    enable_mamba_extra_buffer=True,
+                    enable_mamba_extra_buffer_lazy=False,
+                )
+            ),
+            "get_context": lambda: SimpleNamespace(override=override),
+            "get_parallel": lambda: SimpleNamespace(pp_size=1),
+            "kimi_linear_config": lambda _config: None,
+        },
+    )
+    geometry = load_inputs().geometries["inkling-small-nvfp4"]
+    sizer = namespace["KVCacheConfigurator"]()
+    sizer.device, sizer.gpu_id = "cuda", 0
+    sizer.post_capture_kv_active = False
+    sizer.hybrid_gdn_config = None
+    sizer.model_config = SimpleNamespace(is_multimodal=True, context_len=65536)
+    sizer.ps = SimpleNamespace(pp_size=1, attn_dp_size=1)
+    sizer.spec_algorithm = SimpleNamespace(is_none=lambda: True)
+    sizer.mambaish_config = SimpleNamespace(
+        mamba2_cache_params=SimpleNamespace(
+            layers=list(range(geometry.sglang_swa_layers)),
+            mamba_cache_per_req=geometry.sglang_state_bytes_per_slot,
+        )
+    )
+    return sizer
+
+
+def test_pinned_sglang_sizing_rejects_failed_fraction_and_holds_the_caps() -> None:
+    """Replay sglang 94602c9c's pool profiling with the hardware failure.
+
+    _profile_available_bytes leaves f * pre - R, where R is everything resident
+    when it runs (weights, their expansion, the multimodal reservation). The
+    failure fixes R = 0.696475667681 * pre + 6.49 GiB for the unknown pre-load
+    free memory of that start. R is largest when pre is the Spark total, and the
+    next start's budget is smallest on the lowest idle Spark, so the new fraction
+    is checked against that pairing of owned constants.
     """
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
+    from decimal import Decimal
+    from types import SimpleNamespace
+
+    import pytest
+
+    from qualification.memory_need import (
+        IDLE_AVAILABLE_BYTES,
+        TOTAL_BYTES,
+        load_inputs,
+    )
 
     gib = 1 << 30
-    failed_fraction, failed_rest = 0.696475667681, -6.49 * gib
-    pre = 128_488_062_976
-    resident = failed_fraction * pre - failed_rest
-    recipe = load("recipes/inkling-small-nvfp4-sglang-dual.json")
-    arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
+    recipe = load(DUAL)
+    arguments = {item["name"]: item["value"] for item in recipe["runtime"]["arguments"]}
     settings = recipe["settings"]
-    context = settings["context_tokens"]["value"]
+    geometry = load_inputs().geometries["inkling-small-nvfp4"]
+    model = load("models/inkling-small-nvfp4.json")
+    assert any(
+        item["sha256"] == geometry.configuration_sha256 for item in model["files"]
+    )
+    resident = Decimal(FAILED_FRACTION) * TOTAL_BYTES + Decimal(FAILED_REST_GIB) * gib
+    available = [int(TOTAL_BYTES - resident)]
+    failed = SimpleNamespace(
+        mem_fraction_static=float(FAILED_FRACTION),
+        max_total_tokens=None,
+        max_mamba_cache_size=None,
+        max_running_requests=None,
+        mamba_full_memory_ratio=float(arguments["mamba-full-memory-ratio"]),
+        disable_overlap_schedule=False,
+    )
+    sizer = _sglang_sizer(available, failed)
+    with pytest.raises(
+        RuntimeError,
+        match=r"Not enough GPU memory for hybrid.*max_mamba_cache_size=-247 "
+        r"\(total_rest_memory=-6.49 GB, mamba_cache_per_req=2.46 MB\)",
+    ):
+        sizer._profile_available_bytes(TOTAL_BYTES / gib)
+
+    # Next start: the printed residual rounded up, on the lowest idle Spark.
+    resident = (
+        Decimal(FAILED_FRACTION) * TOTAL_BYTES + Decimal("6.495") * gib
+    ).to_integral_value()
+    available[0] = int(IDLE_AVAILABLE_BYTES - resident)
+    tokens = arguments["max-total-tokens"]
     concurrency = settings["concurrency"]["value"]
-    assert arguments["max-running-requests"]["setting"] == "concurrency"
-    tokens = arguments["max-total-tokens"]["value"]
-    assert tokens == context * concurrency
-    # extra_buffer with the overlap scheduler keeps five state slots per request.
-    mamba_slots = arguments["max-mamba-cache-size"]["value"]
-    assert mamba_slots >= 5 * concurrency
-    # BF16 K/V, 4 of 8 KV heads per TP rank: 7 full layers plus 35 sliding
-    # layers whose pool is swa-full-tokens-ratio 0.1 of the full pool.
-    per_token = 7 * 4 * 2 * 128 * 2 + 0.1 * 35 * 4 * 2 * 128 * 2
-    pools = tokens * per_token + (mamba_slots + 1) * 2.46 * (1 << 20)
-    fraction = float(arguments["mem-fraction-static"]["value"])
-    assert failed_fraction * pre - resident < 0
-    assert fraction * (pre - 4 * gib) - resident >= pools
+    schedule = SimpleNamespace(
+        mem_fraction_static=float(arguments["mem-fraction-static"]),
+        max_total_tokens=tokens,
+        max_mamba_cache_size=arguments["max-mamba-cache-size"],
+        max_running_requests=concurrency,
+        mamba_full_memory_ratio=float(arguments["mamba-full-memory-ratio"]),
+        disable_overlap_schedule=False,
+    )
+    sizer = _sglang_sizer(available, schedule)
+    # HybridSWAPoolConfigurator cell: full layers plus ratio * SWA layers,
+    # BF16 K and V for this rank's share of the KV heads.
+    heads = geometry.kv_heads // recipe["topology"]["parallelism"]["tensor"]
+    per_layer = heads * (geometry.key_dim + geometry.value_dim) * 2
+    cell = per_layer * (
+        geometry.layers
+        + float(arguments["swa-full-tokens-ratio"]) * geometry.sglang_swa_layers
+    )
+    budget = sizer._profile_available_bytes(IDLE_AVAILABLE_BYTES / gib)
+    assert int(budget // cell) > tokens
+    assert sizer._apply_token_constraints(int(budget // cell)) == tokens
+    assert tokens == settings["context_tokens"]["value"] * concurrency
+    assert sizer._calculate_mamba_ratio() == 5
+    assert sizer.resolve_max_num_reqs(tokens) == concurrency
+
+    # One step lower, the profiled pool no longer holds the token cap.
+    schedule.mem_fraction_static = float(arguments["mem-fraction-static"]) - 0.001
+    budget = sizer._profile_available_bytes(IDLE_AVAILABLE_BYTES / gib)
+    assert sizer._apply_token_constraints(int(budget // cell)) < tokens
+    # The failed fraction cannot profile even with the caps.
+    schedule.mem_fraction_static = float(FAILED_FRACTION)
+    with pytest.raises(ValueError, match="Loaded weights leave no GPU memory"):
+        sizer._profile_available_bytes(IDLE_AVAILABLE_BYTES / gib)
+
+
+def _rank_budget_error(**changes: object) -> str | None:
+    """Run the changed-document guard; the empty digest skips the waiver."""
+    from catalog_documents import catalog_models
+    from vonk_forge_contracts import RecipeDefinition
+
+    from qualification.memory_need import load_inputs, require_memory_need
+
+    document = load(DUAL)
+    arguments = document["runtime"]["arguments"]
+    for name, value in changes.items():
+        if name == "concurrency":
+            document["settings"]["concurrency"] = value
+        elif name == "peak_bytes":
+            for role in document["topology"]["roles"]:
+                role["resources"]["memory"]["peak_bytes"] = value
+        elif value is None:
+            arguments[:] = [item for item in arguments if item["name"] != name]
+        else:
+            next(item for item in arguments if item["name"] == name)["value"] = value
+    try:
+        require_memory_need(
+            RecipeDefinition.model_validate(document),
+            catalog_models(),
+            load_inputs(),
+            document_digest="",
+        )
+    except (TypeError, ValueError) as error:
+        return str(error)
+    return None
+
+
+def test_rank_budget_guard_accepts_the_new_settings() -> None:
+    from decimal import Decimal
+
+    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
+
+    assert _rank_budget_error() is None
+    recipe = load(DUAL)
+    fraction = next(
+        item["value"]
+        for item in recipe["runtime"]["arguments"]
+        if item["name"] == "mem-fraction-static"
+    )
     for role in recipe["topology"]["roles"]:
         assert role["resources"]["memory"]["peak_bytes"] >= (
-            fraction * TOTAL_BYTES + OVERHEAD_BYTES
+            Decimal(fraction) * TOTAL_BYTES + OVERHEAD_BYTES
         )
+
+
+def test_rank_budget_guard_rejects_the_failed_settings() -> None:
+    # Content 6010d4a3's launch: uncapped pools at the failed fraction.
+    failed = _rank_budget_error(
+        **{
+            "mem-fraction-static": FAILED_FRACTION,
+            "max-running-requests": None,
+            "max-total-tokens": None,
+            "max-mamba-cache-size": None,
+            "concurrency": None,
+            "peak_bytes": 99_003_761_392,
+        }
+    )
+    assert failed is not None and "max-running-requests" in failed
+    cases = {
+        "static budget": {"mem-fraction-static": FAILED_FRACTION},
+        "max-total-tokens": {"max-total-tokens": None},
+        "max-mamba-cache-size": {"max-mamba-cache-size": 19},
+    }
+    for message, changes in cases.items():
+        error = _rank_budget_error(**changes)
+        assert error is not None and message in error, (changes, error)
+    lower = _rank_budget_error(**{"mem-fraction-static": "0.825"})
+    assert lower is not None and "static budget" in lower
