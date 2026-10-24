@@ -3138,8 +3138,8 @@ class Sweep:
 
     def ready_candidates(self) -> list[Recipe]:
         now = self.clock.now()
-        if self.controller_wait_issue() is not None:
-            return []
+        # A shared Controller wait holds only the recipes behind it (their own
+        # holds below); unrelated content keeps placing.
         waits = self.controller_wait_holds()
         out = []
         for key in self.queue:
@@ -3386,16 +3386,20 @@ class Sweep:
                 and other.wait.controller.identity == controller.identity
                 for other in holds
             ):
+                operations = ", ".join(
+                    f"{kind} {operation}"
+                    for kind, operation in sorted(controller.identity[1])
+                )
                 return (
-                    f"shared Controller wait {controller.description} "
-                    f"({controller.identity[1]}); placement paused pending changed evidence"
+                    f"shared Controller wait {controller.description} ({operations}); "
+                    "its recipes wait for changed evidence"
                 )
         return None
 
     def _refresh_controller_waits(self, now: float) -> None:
         """Probe accepted receipts with bounded reads; time alone never resubmits a load."""
         documents: dict[str, Mapping[str, Any]] = {}
-        recovered: set[tuple[str, str]] = set()
+        recovered: set[tuple[str, frozenset[tuple[str, str]]]] = set()
         platform = self._component_observations()
         for key, hold in self.controller_wait_holds().items():
             recipe = self.recipes.get(key)
@@ -3443,11 +3447,12 @@ class Sweep:
             resumed = (
                 signal.wait is None or document.get("state") == LifecycleState.SUCCEEDED
             )
+            # A new child id under the same reason is the Controller continuing
+            # the same work (a re-dispatched child, a retry), not changed evidence.
             if resumed or (
                 observed is not None
                 and previous is not None
-                and (observed.reason, observed.identity)
-                != (previous.reason, previous.identity)
+                and observed.reason != previous.reason
             ):
                 self.state.entry(key).pop("controller_wait", None)
                 self.state.event(
@@ -3455,6 +3460,10 @@ class Sweep:
                 )
                 if resumed and previous is not None and previous.identity is not None:
                     recovered.add(previous.identity)
+            elif observed is not None and signal.wait is not None:
+                # Matching across recipes uses the operations waited on now.
+                hold.wait = signal.wait
+                self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
         # One original receipt resuming is behaviour proof for the shared dependency.
         for key, hold in self.controller_wait_holds().items():
             if (

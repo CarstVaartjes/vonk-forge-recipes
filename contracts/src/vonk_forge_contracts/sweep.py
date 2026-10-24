@@ -205,7 +205,11 @@ class SweepWaitCode(StrEnum):
 
 
 class ControllerWaitOperation(BaseModel):
+    """The Controller operation a wait is behind (its ``BlockingOperation``)."""
+
     kind: str
+    #: The Controller always sends it; state written before it was read has none.
+    id: str | None = None
 
 
 class ControllerWaitBlocker(BaseModel):
@@ -218,7 +222,8 @@ class ControllerWait(BaseModel):
     """Projection of the Controller's declared dependency, irrespective of severity.
 
     Reason and operation kind are external wire vocabulary, not sweep states.
-    Only an exact reason/operation pair can correlate waits across recipes.
+    Only the same reason behind the same Controller operations (kind and id)
+    correlates waits across recipes; the same reason text alone never does.
     """
 
     reason: str
@@ -227,13 +232,13 @@ class ControllerWait(BaseModel):
     dependency_deadline: AwareDatetime | None = None
 
     @property
-    def identity(self) -> tuple[str, str] | None:
-        kinds = {
-            blocker.operation.kind
-            for blocker in self.blockers
-            if blocker.operation is not None
-        }
-        return (self.reason, next(iter(kinds))) if len(kinds) == 1 else None
+    def identity(self) -> tuple[str, frozenset[tuple[str, str]]] | None:
+        operations = frozenset(
+            (b.operation.kind, b.operation.id)
+            for b in self.blockers
+            if b.operation is not None and b.operation.id is not None
+        )
+        return (self.reason, operations) if operations else None
 
     @property
     def description(self) -> str:
