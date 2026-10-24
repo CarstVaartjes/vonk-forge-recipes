@@ -205,6 +205,21 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
             self.assertIn("network model loading is disabled", config)
             self.assertNotIn("UnifiedDataset", data_init)
 
+            # Disk offload materializes only wrapped modules; the music encoder's
+            # attention must be wrapped or its in_proj params stay on meta.
+            music_encoder = (unpacked / "diffsynth/models/wantodance.py").read_text()
+            self.assertIn("self.self_attn = nn.MultiheadAttention(", music_encoder)
+            maps_path = unpacked / "diffsynth/configs/vram_management_module_maps.py"
+            maps: dict[str, dict[str, dict[str, str]]] = {}
+            exec(compile(maps_path.read_bytes(), str(maps_path), "exec"), maps)  # noqa: S102
+            wan_model_map = maps["VRAM_MANAGEMENT_MODULE_MAPS"][
+                "diffsynth.models.wan_video_dit.WanModel"
+            ]
+            self.assertEqual(
+                wan_model_map["torch.nn.MultiheadAttention"],
+                "diffsynth.core.vram.layers.AutoWrappedModule",
+            )
+
     def test_runtime_uses_disk_mapping_process_isolation_and_no_downloads(self) -> None:
         generator = (ADAPTER / "generate.py").read_text(encoding="utf-8")
         runner = (ADAPTER / "run.py").read_text(encoding="utf-8")
