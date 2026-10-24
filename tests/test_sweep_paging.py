@@ -7,7 +7,12 @@ from pathlib import Path
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
-from spark_sweep.catalog import fetch_models, fetch_recipes, recipe_listing
+from spark_sweep.catalog import (
+    PAGE_LIMIT,
+    fetch_models,
+    fetch_recipes,
+    recipe_listing,
+)
 from spark_sweep.catalog_contract import RecipeProjection, RecipeRow
 from spark_sweep.vonkctl import Vonkctl
 
@@ -29,12 +34,33 @@ def _fleet_with(n: int):
 def test_fake_library_rows_supply_every_consumed_projected_field() -> None:
     fleet = _fleet_with(1)
     page = fleet._library(
-        [], "recipes", fleet._recipe_row, list(fleet.recipes.values())
+        ["--limit", PAGE_LIMIT],
+        "recipes",
+        fleet._recipe_row,
+        list(fleet.recipes.values()),
     )
     for row in page["recipes"]:
         assert "document" not in row
         assert RecipeProjection.model_fields.keys() <= row["projected"].keys()
         RecipeRow.model_validate(row)
+
+
+@pytest.mark.parametrize("controller_trim", [10_000, 37])
+def test_every_row_is_read_across_pages_and_only_the_cursor_ends_the_list(
+    controller_trim: int,
+) -> None:
+    fleet = _fleet_with(250)
+    fleet.page_size = controller_trim  # the Controller may return fewer rows than asked
+    recipes, _ = fetch_recipes(Vonkctl("vonkctl", runner=fleet.runner))
+    models = fetch_models(Vonkctl("vonkctl", runner=fleet.runner))
+    assert sorted(r.key for r in recipes) == sorted(
+        f"vonk-forge/r{i}" for i in range(250)
+    )
+    assert len(models) == 250
+    calls = [c for _, c in fleet.calls if c[1:2] == ("library",)]
+    assert all(c[c.index("--limit") + 1] == "100" for c in calls)
+    per_noun = -(-250 // min(100, controller_trim))
+    assert len(calls) == 2 * per_noun  # short pages with a cursor kept going
 
 
 def test_an_invalid_cursor_restarts_the_pass_from_the_first_page() -> None:
