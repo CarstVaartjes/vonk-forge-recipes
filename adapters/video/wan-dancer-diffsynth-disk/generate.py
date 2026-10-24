@@ -62,6 +62,17 @@ REQUIRED_MODEL_FILES = (
     "google/umt5-xxl/tokenizer_config.json",
     "google/umt5-xxl/spiece.model",
 )
+# Disk offload builds every parameter on meta and loads back only what a
+# DiffSynth wrapper (or root materialization) covers. A meta parameter outside
+# that set is one this pipeline must never read; each one is listed here with
+# the reviewed reason, and any other one fails the job before inference.
+UNREAD_META_PARAMETERS = {
+    "image_encoder.model.log_scale": (
+        "CLIP contrastive logit scale: WanImageEncoder.encode_image reads only "
+        "model.image_size, transforms and model.visual, and the pipeline only "
+        "onloads image_encoder, never moves it with .to()"
+    ),
+}
 
 
 def _arguments() -> argparse.Namespace:
@@ -133,7 +144,7 @@ def _pipeline(stage: str):
             **disk,
         ),
     ]
-    return WanVideoPipeline.from_pretrained(
+    pipe = WanVideoPipeline.from_pretrained(
         torch_dtype=torch.bfloat16,
         device="cuda",
         model_configs=model_configs,
@@ -142,6 +153,51 @@ def _pipeline(stage: str):
         use_usp=False,
         vram_limit=VRAM_LIMIT_GIB,
     )
+    _require_disk_loadable(pipe)
+    return pipe
+
+
+def _disk_loaded_parameters(model) -> set[str]:
+    """Parameter names a DiffSynth 2.1.5 disk wrapper inside ``model`` loads back."""
+    from diffsynth.core.vram.layers import AutoTorchModule
+
+    covered = set()
+    for path, module in model.named_modules():
+        if not isinstance(module, AutoTorchModule):
+            continue
+        state = vars(module)
+        if not state.get("disk_offload"):
+            continue
+        prefix = f"{path}." if path else ""
+        required = state.get("required_params")
+        if required is None:
+            # AutoWrappedLinear loads its own weight/bias and
+            # AutoWrappedQuantizedModule every disk key under its name.
+            covered.update(prefix + name for name, _ in module.named_parameters())
+        else:
+            # AutoWrappedModule / AutoWrappedNonRecurseModule load
+            # required_params into the wrapped ``module``.
+            covered.update(f"{prefix}module.{name}" for name in required)
+    return covered
+
+
+def _require_disk_loadable(pipe) -> None:
+    uncovered = []
+    for model_name, model in pipe.named_children():
+        covered = _disk_loaded_parameters(model)
+        for name, parameter in model.named_parameters():
+            qualified = f"{model_name}.{name}"
+            if (
+                parameter.is_meta
+                and name not in covered
+                and qualified not in UNREAD_META_PARAMETERS
+            ):
+                uncovered.append(qualified)
+    if uncovered:
+        raise SystemExit(
+            "disk offload leaves parameters on meta that no wrapper loads back: "
+            f"{sorted(uncovered)}"
+        )
 
 
 def _global_keyframes(reference, height: int, width: int):
