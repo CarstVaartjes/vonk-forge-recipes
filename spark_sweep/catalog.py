@@ -15,7 +15,9 @@ from .catalog_contract import ModelRow, RecipeRow, RuntimeImageIdentity
 from .tolerant import InputDiagnostic, InputReason, read_optional
 from .vonkctl import Reply, Vonkctl
 
-PAGE_LIMIT = "512"
+# Rows asked per library page: about what the Controller returns under its ~1 MiB page
+# trim, so it never builds rows it then drops. The end of a list is the absent cursor.
+PAGE_LIMIT = "100"
 MAX_PAGE_FAILURES = 3
 
 
