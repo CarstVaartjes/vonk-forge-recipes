@@ -418,8 +418,8 @@
     "source_reference": "https://github.com/Wan-Video/Wan-Dancer/tree/e6c87a94ec733230dac15b924c015f6e6501e618"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.0.12"
+    "released_at": "2026-10-24",
+    "version": "1.0.13"
   },
   "runtime": {
     "arguments": [
