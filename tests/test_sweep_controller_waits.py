@@ -350,3 +350,17 @@ def test_publication_alone_does_not_release_unknown_image_wait(
     sweep._refresh_controller_waits(clock.now())
     assert sweep.controller_wait_holds()
     assert not sweep.ready_candidates()
+
+
+def test_dependency_hold_with_unknown_platform_survives_new_observation(
+    tmp_path, monkeypatch
+):
+    sweep, _, clock, _ = prepare(tmp_path, monkeypatch)
+    expire(sweep, clock)
+    key = "vonk-forge/a"
+    hold = sweep.controller_wait_holds()[key]
+    hold.platform = {}
+    sweep.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
+    sweep.observe_platform()
+    sweep._refresh_controller_waits(clock.now())
+    assert sweep.controller_wait_holds()[key] == hold

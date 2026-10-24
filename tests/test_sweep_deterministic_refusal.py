@@ -14,12 +14,18 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, make_sweep
-from vonk_forge_contracts.sweep import SweepPlacementCode
+from vonk_forge_contracts import QualificationCauseCode
+from vonk_forge_contracts.sweep import (
+    SweepPlacementCode,
+    SweepSlotPhase,
+    SweepWaitReason,
+)
 
 from spark_sweep import policy, verdict
 from spark_sweep.catalog import Presence
 from spark_sweep.lifecycle import LifecycleState, RecipeStatus
 from spark_sweep.report import build_status, write_status
+from spark_sweep.run import REFUSAL_BACKOFF_SECONDS
 from spark_sweep.state import State
 
 REFUSAL = json.loads(
@@ -202,16 +208,13 @@ def test_refusal_identity_uses_full_details_and_ignores_informational_churn():
     assert not verdict.refusal_identity(document)
 
 
-@pytest.mark.parametrize("batched", [False, True])
-def test_unrelated_recipe_is_placed_during_refusal_holds(
-    tmp_path, monkeypatch, batched
-):
+def test_unrelated_recipe_is_placed_during_refusal_holds(tmp_path, monkeypatch):
     sweep, fleet, clock, key, _ = prepare(
-        tmp_path, monkeypatch, RECORDS[0], second=True, batched=batched
+        tmp_path, monkeypatch, RECORDS[0], second=True
     )
     holds = sweep.controller_wait_holds()
     assert len(holds) == 2
-    assert len({h.application_id for h in holds.values()}) == (1 if batched else 2)
+    assert len({h.application_id for h in holds.values()}) == 2
     assert sweep.controller_wait_issue() is None
     before = loads(fleet)
     fresh = FakeRecipe("fresh", ("1" * 64,), content="e" * 64, local="cached")
@@ -242,12 +245,12 @@ def test_static_refusal_allows_one_fresh_placement_at_persisted_deadline(
     record["controller_document"]["state"] = settled
     sweep, fleet, clock, key, _ = prepare(tmp_path, monkeypatch, record)
     hold = sweep.controller_wait_holds()[key]
-    assert hold.retry_at == clock.now() + 3600
+    assert hold.retry_at == clock.now() + REFUSAL_BACKOFF_SECONDS
     before = loads(fleet)
     sweep.state.save()
     sweep.state = State.load(tmp_path / "state.json", clock.now)
-    for elapsed in (60, 600, 3600 - 1):
-        clock.t = hold.retry_at - 3600 + elapsed
+    for elapsed in (60, 600, REFUSAL_BACKOFF_SECONDS - 1):
+        clock.t = hold.retry_at - REFUSAL_BACKOFF_SECONDS + elapsed
         sweep.observe_platform()
         sweep.schedule(clock.now())
         assert loads(fleet) == before
@@ -284,28 +287,20 @@ def test_preparation_can_heal_without_redeploy(tmp_path, monkeypatch):
     assert sweep.state.entry(key).get("attempts", 0) == 0
 
 
-@pytest.mark.parametrize("known", [(), ("api",), ("worker",)])
-def test_unknown_platform_capture_releases_when_deployment_is_observed(
-    tmp_path, monkeypatch, known
-):
-    from spark_sweep.recovery import Fingerprint
-
-    capture = {owner: Fingerprint(owner, "a" * 40, "c" * 64) for owner in known}
-    # Hide provenance throughout capture, including the _tick refresh.
+def test_unknown_platform_capture_does_not_release_refusal(tmp_path, monkeypatch):
     from spark_sweep.run import Sweep
 
-    monkeypatch.setattr(Sweep, "_component_observations", lambda self: capture)
+    observations = Sweep._component_observations
+    monkeypatch.setattr(Sweep, "_component_observations", lambda self: {})
     sweep, fleet, clock, key, _ = prepare(tmp_path, monkeypatch, RECORDS[0])
-    assert sweep.controller_wait_holds()[key].platform == capture
+    hold = sweep.controller_wait_holds()[key]
+    assert hold.platform == {}
     before = loads(fleet)
-    capture = {
-        **capture,
-        "api": Fingerprint("api", "a" * 40, "c" * 64),
-        "worker": Fingerprint("worker", "a" * 40, "c" * 64),
-    }
+    monkeypatch.setattr(Sweep, "_component_observations", observations)
+    sweep.observe_platform()
     sweep.schedule(clock.now())
-    assert loads(fleet) == before + 1
-    assert not sweep.controller_wait_holds()
+    assert loads(fleet) == before
+    assert sweep.controller_wait_holds()[key].retry_at == hold.retry_at
 
 
 def test_even_own_placements_on_held_node_do_not_release_refusal(tmp_path, monkeypatch):
@@ -313,8 +308,8 @@ def test_even_own_placements_on_held_node_do_not_release_refusal(tmp_path, monke
     hold = sweep.controller_wait_holds()[key]
     before = loads(fleet)
     node = next(iter(sweep.sparks())).id
-    for elapsed in (60, 780, 1560, 2340, 3599):
-        clock.t = hold.retry_at - 3600 + elapsed
+    for elapsed in (60, 780, 1560, 2340, REFUSAL_BACKOFF_SECONDS - 1):
+        clock.t = hold.retry_at - REFUSAL_BACKOFF_SECONDS + elapsed
         # The sweep's own new receipt/run on precisely the refused node.
         sweep.fleet = replace(
             sweep.fleet,
@@ -338,7 +333,7 @@ def test_even_own_placements_on_held_node_do_not_release_refusal(tmp_path, monke
     assert loads(fleet) == before + 1
     sweep._tick()  # the new receipt refuses identical content again
     renewed = sweep.controller_wait_holds()[key]
-    assert renewed.retry_at == hold.retry_at + 3600
+    assert renewed.retry_at == hold.retry_at + REFUSAL_BACKOFF_SECONDS
     clock.sleep(780)
     sweep.schedule(clock.now())
     assert loads(fleet) == before + 1
@@ -349,7 +344,7 @@ def test_static_refusal_blocks_replay_until_one_hour_then_retries(
 ):
     sweep, fleet, clock, _, _ = prepare(tmp_path, monkeypatch, RECORDS[0])
     assert loads(fleet) == 1
-    clock.sleep(3599)
+    clock.sleep(REFUSAL_BACKOFF_SECONDS - 1)
     sweep.observe_platform()
     sweep.schedule(clock.now())
     assert loads(fleet) == 1
@@ -440,7 +435,10 @@ def test_apply_guard_rejects_renamed_held_content_without_scheduler(
     sweep.recipes[renamed.key] = renamed
     fleet.recipes[renamed.key] = replace(fleet.recipes[key], slug="renamed")
     before = loads(fleet)
-    sweep._apply([policy.Placement(renamed, (sweep.sparks()[0].id,))], clock.now())
+    assert (
+        sweep._apply([policy.Placement(renamed, (sweep.sparks()[0].id,))], clock.now())
+        is None
+    )
     assert loads(fleet) == before
     assert sweep.log.entries()[-1]["code"] == SweepPlacementCode.REFUSAL_HELD
 
@@ -472,7 +470,198 @@ def test_reobserving_same_receipt_cannot_renew_retry_after_restart(
     # Interrupt after persisting the hold, before the loading lane was requeued.
     sweep.state.save()
     sweep.state = State.load(tmp_path / "state.json", clock.now)
-    for elapsed in (60, 3599, 3601):
-        clock.t = deadline - 3600 + elapsed
+    for elapsed in (60, REFUSAL_BACKOFF_SECONDS - 1, REFUSAL_BACKOFF_SECONDS + 1):
+        clock.t = deadline - REFUSAL_BACKOFF_SECONDS + elapsed
         sweep._hold_controller_refusal(load, document)
         assert sweep.controller_wait_holds()[key].retry_at == deadline
+
+
+def test_collateral_wait_expires_first_and_replans_without_held_assignment(
+    tmp_path, monkeypatch
+):
+    record = deepcopy(RECORDS[0])
+    record["controller_document"]["progress"]["blockers"][0]["recipe"] = record[
+        "recipe"
+    ]
+    sweep, fleet, clock, key, _ = prepare(
+        tmp_path,
+        monkeypatch,
+        record,
+        active=LifecycleState.RUNNING,
+        second=True,
+        batched=True,
+    )
+    other = "vonk-forge/second"
+    culprit = sweep.state.slots[key]
+    collateral = sweep.state.slots[other]
+    # Preserve a later budget for A; only B's shared-receipt wait expires now.
+    culprit["watch"]["wait_deadline"] = clock.now() + 1000
+    collateral["watch"]["wait_deadline"] = clock.now() - 1
+    before = loads(fleet)
+    for _ in range(5):
+        start = len(fleet.calls)
+        sweep._tick()
+        calls = [args for _, args in fleet.calls[start:]]
+        assert sum(args[:3] == ("profile", "load", "--review") for args in calls) <= 1
+        assert set(sweep.controller_wait_holds()) == {key}
+        assert key not in sweep.state.slots
+        assert sweep.state.slots[other]["phase"] == SweepSlotPhase.LOADING
+        assert loads(fleet) == before + 1
+        assignments = fleet.profiles[sweep.cfg.sweep_profile]["assignments"]
+        assert {item["recipe_selector"] for item in assignments} == {other}
+        clock.sleep(sweep.cfg.poll_seconds)
+    assert all(entry.get("attempts", 0) == 0 for entry in sweep.state.recipes.values())
+    row = next(
+        row
+        for row in sweep.log.entries()
+        if row.get("recipe") == key and row.get("evidence", {}).get("retry_at")
+    )
+    assert row["evidence"]["wait"]["reason"] == SweepWaitReason.BLOCKER
+
+
+@pytest.mark.parametrize("state", [LifecycleState.FAILED, LifecycleState.RUNNING])
+def test_unattributed_shared_refusal_uses_normal_bounded_requeue(
+    tmp_path, monkeypatch, state
+):
+    sweep, _, clock, _, _ = prepare(
+        tmp_path, monkeypatch, RECORDS[0], active=state, second=True, batched=True
+    )
+    if state == LifecycleState.RUNNING:
+        slots = list(sweep.state.slots.values())
+        slots[0]["watch"]["wait_deadline"] = clock.now() + 1000
+        slots[1]["watch"]["wait_deadline"] = clock.now() - 1
+        sweep._tick()
+    assert not sweep.controller_wait_holds()
+    # Preserve main's observational retry for terminal unattributed failures;
+    # active wait expiry spends no recipe attempt.
+    attempts = 1 if state == LifecycleState.FAILED else 0
+    assert all(
+        entry.get("attempts", 0) == attempts for entry in sweep.state.recipes.values()
+    )
+    assert all(
+        entry["status"] == RecipeStatus.PENDING
+        for entry in sweep.state.recipes.values()
+    )
+    assert all(
+        entry["not_before"] > clock.now() for entry in sweep.state.recipes.values()
+    )
+
+
+@pytest.mark.parametrize("attribution", ["document", "assignment"])
+@pytest.mark.parametrize("interrupted", [False, True])
+def test_recipe_attributed_failure_precedes_refusal_hold(
+    tmp_path, monkeypatch, attribution, interrupted
+):
+    record = deepcopy(RECORDS[0])
+    doc = record["controller_document"]
+    doc["progress"]["blockers"][0]["recipe"] = record["recipe"]
+    if attribution == "document":
+        doc["failure"] = {"code": QualificationCauseCode.RUNTIME_EXIT}
+    else:
+        doc["progress"]["switch_adapter"] = {
+            "assignment_failures": [
+                {
+                    "recipe": record["recipe"],
+                    "code": QualificationCauseCode.RUNTIME_EXIT,
+                    "reason": "injected runtime failure",
+                }
+            ]
+        }
+    if interrupted:
+        sweep, _, _, key, observed = prepare(
+            tmp_path, monkeypatch, RECORDS[0], active=LifecycleState.RUNNING
+        )
+        load = next(iter(sweep.state.data["loads"].values()))
+        observed["state"] = LifecycleState.FAILED
+        sweep._hold_controller_refusal(load, observed)
+        sweep.state.slots[key]["phase"] = SweepSlotPhase.LOADING
+        observed.update(doc)
+        sweep._tick()
+    else:
+        sweep, _, _, key, _ = prepare(tmp_path, monkeypatch, record)
+        assert not sweep.controller_wait_holds()
+    entry = sweep.state.entry(key)
+    assert entry["status"] == RecipeStatus.FAILED
+    assert entry["code"] == QualificationCauseCode.RUNTIME_EXIT
+    assert entry["attempts"] == 1
+
+
+def test_submit_guard_ignores_adopted_live_assignment(tmp_path, monkeypatch):
+    sweep, fleet, _clock, key, doc = prepare(
+        tmp_path, monkeypatch, RECORDS[0], active=LifecycleState.RUNNING
+    )
+    load = next(iter(sweep.state.data["loads"].values()))
+    doc["state"] = LifecycleState.FAILED
+    sweep._hold_controller_refusal(load, doc)
+    assert key in sweep.controller_wait_holds()
+    # Inject the interruption window: the hold persisted before its slot ended.
+    sweep.state.slots[key]["phase"] = SweepSlotPhase.LOADING
+    before = loads(fleet)
+    assert (
+        sweep._submit_load(sweep.cfg.sweep_profile, "independent", "placement")
+        is not None
+    )
+    assert loads(fleet) == before + 1
+
+
+@pytest.mark.parametrize("collateral", [False, True])
+def test_submission_refusal_requeues_with_description_and_retry_deadline(
+    tmp_path, monkeypatch, collateral
+):
+    sweep, fleet, clock, held_key, doc = prepare(
+        tmp_path, monkeypatch, RECORDS[0], active=LifecycleState.RUNNING
+    )
+    sweep.requeue(held_key, "injected re-plan")
+    sweep.enqueue_finished_cleanup()
+    key = held_key
+    if collateral:
+        fresh = FakeRecipe("second", ("1" * 64,), content="b" * 64, local="cached")
+        fleet.recipes[fresh.key] = fresh
+        sweep.refresh_catalog()
+        key = fresh.key
+    original = sweep._submit_load
+
+    def hold_before_submission(profile, request, kind, **kwargs):
+        doc["state"] = LifecycleState.FAILED
+        if collateral:
+            # A late stale assignment must defer B with A's actual hold evidence.
+            sweep._open_slot(
+                policy.Placement(sweep.recipes[held_key], (sweep.sparks()[1].id,)),
+                "late-refusal",
+                clock.now(),
+            )
+            sweep._hold_controller_refusal(
+                {"request_key": "late-refusal", "app_id": "late-refusal"}, doc
+            )
+            sweep.vk.call(
+                "profile",
+                "add",
+                held_key,
+                "--spark",
+                sweep.sparks()[1].name,
+                "--as",
+                sweep._alias(sweep.recipes[held_key]),
+                "--state",
+                LifecycleState.RUNNING,
+                "--yes",
+                profile=profile,
+            )
+        else:
+            sweep._hold_controller_refusal(
+                {**sweep.state.data["loads"][request], "app_id": "late-refusal"}, doc
+            )
+        return original(profile, request, kind, **kwargs)
+
+    monkeypatch.setattr(sweep, "_submit_load", hold_before_submission)
+    placement = policy.Placement(sweep.recipes[key], (sweep.sparks()[0].id,))
+    # Inject at the submission boundary, after admission review.
+    assert sweep._apply([placement], clock.now()) is False
+    hold = sweep.controller_wait_holds()[held_key]
+    row = next(
+        row
+        for row in reversed(sweep.log.entries())
+        if row.get("step") == "requeue" and row.get("recipe") == key
+    )
+    assert row["reason"] == hold.wait.description
+    assert row["evidence"]["retry_at"] == hold.retry_at
+    assert sweep.state.entry(key)["not_before"] == hold.retry_at

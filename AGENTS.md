@@ -278,9 +278,10 @@ changed evidence permits a fresh plan; retry counts and supersession alone
 prove no recovery.
 Error-severity refusals retain their exact code and full-detail SHA-256 per content.
 After a failed receipt or wait expiry, identical content backs off for one hour;
-changed blockers, observed platform fingerprints or content permit an earlier
-fresh plan. Unknown platform capture yields to its first known
-fingerprint. Status shows the reason, next observation and allowed retry time;
+changed blockers, changed known platform fingerprints or content permit an earlier
+fresh plan. Unattributed shared refusals use normal bounded requeues without a
+hold; recipe-attributed failures take the existing verdict path first.
+Status shows the reason, next observation and allowed retry time;
 independent recipes continue, with no recipe attempt charged. Superseded and
 cancelled receipts requeue without creating refusal holds.
 Preparation blockers use at most five minutes; download observation uses an hour
