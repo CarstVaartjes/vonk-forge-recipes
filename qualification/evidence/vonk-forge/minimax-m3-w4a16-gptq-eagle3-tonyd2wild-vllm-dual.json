@@ -372,6 +372,33 @@
         "topology": "multi"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "11ecddb9be15c7b0910906cb3778fadd96f1ae6c0362a1897697f61adcc53532",
+        "source_bundle_sha256": "1176e76d3f085949e5ce682fbae912927aac94d84ee4375555ad351a15c14503",
+        "model_digests": [
+          "81c22cf5dd5213987aa85506febfa89042a70f0dfbf99e9f17fe3e0b5666d39d",
+          "b864417bf7f37c45dff02074329b78748eaabab9ab6d7492112e748ad84b4049"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "739dd7a27f7159f3b1ff6c5ebbf51af2cc821992b205d7b90bf95197b9220dad"
+      ],
+      "tested_at": "2026-10-24T10:26:44.643693Z",
+      "platform": {
+        "controller_source_sha": "2cd755700bc1b2bd25203dcb2c520eb290c587bc",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
     }
   ]
 }
