@@ -13,6 +13,7 @@ import json
 import statistics
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping, Sequence
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -389,7 +390,7 @@ def render_status(status: Mapping[str, Any]) -> str:
     if wait := status.get("profile_edit_wait"):
         lines.append(
             f"- Placement waiting on {wait['waiting_on']}; "
-            f"pending lane deadline {wait['wait_deadline']}"
+            f"pending lane deadline {datetime.fromtimestamp(wait['wait_deadline'], UTC).isoformat()}"
         )
     if status.get("waiting_for_lanes"):
         lines.append(

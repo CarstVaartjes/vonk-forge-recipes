@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from concurrent.futures import Future
 from dataclasses import replace
+from datetime import UTC, datetime
 
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
@@ -12,6 +13,7 @@ from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitCode, SweepWaitR
 from spark_sweep import policy
 from spark_sweep.identity import AcceptedRequest
 from spark_sweep.lifecycle import LifecycleState, RecipeStatus, ReconciliationStatus
+from spark_sweep.report import build_status, write_status
 from spark_sweep.smoke import SmokeResult
 from spark_sweep.vonkctl import Reply
 
@@ -488,112 +490,163 @@ def test_pending_lane_reviews_once_per_tick_with_many_candidates(
         clock.sleep(5)
 
 
-@pytest.mark.parametrize(
-    "review",
-    [
-        Reply(("profile",), 1, None, "partitioned"),
-        Reply(("profile",), 0, {"unreadable": True}, ""),
-    ],
-)
-def test_unreadable_profile_review_ends_at_pending_lane_bound(tmp_path, review):
-    from vonk_forge_contracts.sweep import SweepWait
-
-    from spark_sweep import verdict
-
-    sweep, _, clock = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
-    sweep.preflight()
-    sweep.refresh_catalog()
-    recipe = sweep.recipes["vonk-forge/a"]
-    sweep._open_slot(policy.Placement(recipe, ("spk_a",)), "pending", clock.now())
-    slot = sweep.state.slots[recipe.key]
-    deadline = clock.now() + 30
-    verdict.bounded_wait(
-        SweepWait(reason=SweepWaitReason.ADMISSION),
-        slot.setdefault("watch", {}),
-        window=30,
-        now=clock.now(),
+def _pending_lane(tmp_path, monkeypatch, **overrides):
+    recipes = [
+        FakeRecipe(
+            "a",
+            local="cached",
+            blocked=True,
+            blocker_code="profile.preparation_unavailable",
+        ),
+        FakeRecipe("b", local="cached"),
+    ]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        [FakeModel("m1", local="cached")],
+        blocked_release_seconds=30,
+        only=("a",),
+        **overrides,
     )
-    sweep.vk.run = lambda *args, **kwargs: review
-    assert not sweep._profile_edit_ready()
-    wait = sweep.state.data["profile_edit_wait"]
-    since = wait["wait_started_at"]
-    clock.sleep(20)
-    assert not sweep._profile_edit_ready()
-    assert sweep.state.data["profile_edit_wait"] is wait
-    assert wait["wait_started_at"] == since
-    assert wait["wait_deadline"] == deadline
-    clock.sleep(11)
-    assert sweep._profile_edit_ready()
-    assert not sweep.state.data.get("profile_edit_wait")
-
-
-def test_profile_edit_wait_tracks_progress_after_dependency_wait(tmp_path):
-    from vonk_forge_contracts.sweep import SweepWait
-
-    from spark_sweep import verdict
-
-    sweep, _, clock = make_sweep(tmp_path, [FakeRecipe("a")], [FakeModel("m1")])
-    sweep.preflight()
-    sweep.refresh_catalog()
-    recipe = sweep.recipes["vonk-forge/a"]
-    sweep._open_slot(policy.Placement(recipe, ("spk_a",)), "pending", clock.now())
-    slot = sweep.state.slots[recipe.key]
-    watch = slot.setdefault("watch", {})
-    verdict.bounded_wait(
-        SweepWait(reason=SweepWaitReason.ADMISSION), watch, window=30, now=clock.now()
-    )
-    sweep.vk.run = lambda *args, **kwargs: Reply(args, 0, {"effects": {}}, "")
-    assert not sweep._profile_edit_ready()
-    since = sweep.state.data["profile_edit_wait"]["wait_started_at"]
-    clock.sleep(20)
-    slot["copying"] = True
-    verdict.progress_verdict(
-        verdict.Signal(("copying",), None),
-        watch,
-        window=sweep._load_window(slot),
-        now=clock.now(),
-    )
-    assert "wait" not in watch and "wait_deadline" in watch
-    assert not sweep._profile_edit_ready()
-    wait = sweep.state.data["profile_edit_wait"]
-    assert wait["wait_started_at"] == since
-    assert wait["wait_deadline"] == watch["progressed_at"] + sweep._load_window(slot)
-    clock.sleep(wait["wait_deadline"] - clock.now())
-    assert not sweep._profile_edit_ready()
-    clock.sleep(1)
-    assert sweep._profile_edit_ready()
-    assert not sweep.state.data.get("profile_edit_wait")
-
-
-def test_tick_clears_profile_edit_wait_after_last_loading_lane_ends(tmp_path):
-    from vonk_forge_contracts.sweep import SweepWait
-
-    from spark_sweep import verdict
-    from spark_sweep.report import build_status, write_status
-
-    sweep, _, clock = make_sweep(
-        tmp_path, [FakeRecipe("a", local="cached")], [FakeModel("m1", local="cached")]
-    )
+    edits = _pending_admission_edits_supersede(fleet, monkeypatch)
     sweep.preflight()
     sweep.refresh_catalog()
     sweep._tick()
-    verdict.bounded_wait(
-        SweepWait(reason=SweepWaitReason.ADMISSION),
-        sweep.state.data.setdefault("profile_edit_wait", {}),
-        window=30,
-        now=clock.now(),
-    )
-    # A paused scheduler never reaches the edit guard. Status must still self-heal.
-    sweep._observe_owner = lambda now: None
-    sweep.owner_status = replace(sweep.owner_status, paused=True)
-    clock.sleep(130)
     sweep._tick()
-    assert not any(
-        slot["phase"] == SweepSlotPhase.LOADING for slot in sweep.state.slots.values()
-    )
+    slot = sweep.state.slots[recipes[0].key]
+    application = sweep.state.data["loads"][slot["request_key"]]["app_id"]
+    sweep.cfg = replace(sweep.cfg, only=())
+    sweep.refresh_catalog()
+    return sweep, fleet, clock, slot, application, edits
+
+
+def test_decided_clearing_waits_for_pending_application_once_per_tick(
+    tmp_path, monkeypatch
+):
+    sweep, fleet, clock, slot, application, edits = _pending_lane(tmp_path, monkeypatch)
+    # The capacity review already decided to clear. No cleanup receipt exists yet.
+    sweep.state.data["cleared_for"] = ["vonk-forge/b"]
+    sweep._request_clearing(clock.now())
+    for _ in range(2):
+        fleet.calls.clear()
+        sweep._tick()
+        reviews = [
+            args
+            for number, args in fleet.calls
+            if number == 10 and args[:2] == ("profile", "load") and "--review" in args
+        ]
+        assert len(reviews) == 1
+        status = build_status(sweep)
+        wait = status.get("profile_edit_wait")
+        assert wait is not None
+        assert wait["wait"]["reason"] == SweepWaitReason.ADMISSION
+        assert application in sweep.state.data["clearing_refusal"] == wait["waiting_on"]
+        assert wait["wait_deadline"] == slot["watch"]["wait_deadline"]
+        write_status(sweep)
+        text = (tmp_path / "status.md").read_text()
+        assert application in text
+        assert datetime.fromtimestamp(wait["wait_deadline"], UTC).isoformat() in text
+        assert not edits
+        clock.sleep(5)
+        sweep._request_clearing(clock.now())
+
+
+@pytest.mark.parametrize("idle", ["pause", "empty", "takeover"])
+def test_tick_clears_profile_edit_wait_when_placement_does_not_run(
+    tmp_path, monkeypatch, idle
+):
+    sweep, fleet, clock, slot, application, _ = _pending_lane(tmp_path, monkeypatch)
+    sweep._tick()
+    assert build_status(sweep).get("profile_edit_wait")
+    fleet.apps[application]["blocked"] = False
+    if idle == "pause":
+        monkeypatch.setattr(sweep, "_observe_owner", lambda now: None)
+        sweep.owner_status = replace(sweep.owner_status, paused=True)
+    elif idle == "empty":
+        sweep.cfg = replace(sweep.cfg, only=("a",))
+    else:
+        monkeypatch.setattr(sweep, "_take_over", lambda *args, **kwargs: False)
+    clock.sleep(5)
+    # A cleanup still needs a fresh guard when scheduling has no candidates.
+    if idle != "pause":
+        sweep.state.data["cleanup"] = {"old-lane": {"next_check": 0, "attempts": 0}}
+    sweep._tick()
+    assert slot["phase"] == SweepSlotPhase.LOADING
+    assert "vonk-forge/b" not in sweep.state.slots
     assert build_status(sweep)["profile_edit_wait"] is None
+    if idle != "pause":
+        assert not sweep.state.data["cleanup"]
     write_status(sweep)
     assert "Placement waiting on" not in (tmp_path / "status.md").read_text()
+
+
+@pytest.mark.parametrize("unreadable", [False, True])
+def test_partitioned_review_heals_and_admits_within_lane_bound(
+    tmp_path, monkeypatch, unreadable
+):
+    sweep, fleet, clock, slot, application, edits = _pending_lane(tmp_path, monkeypatch)
+    deadline = slot["watch"]["wait_deadline"]
+    original = fleet._load
+    partitioned = True
+
+    def review(number, data, args):
+        if number == 10 and "--review" in args and partitioned:
+            return (0, {"unreadable": True}) if unreadable else (1, None)
+        return original(number, data, args)
+
+    monkeypatch.setattr(fleet, "_load", review)
+    for _ in range(2):
+        clock.sleep(5)
+        sweep._tick()
+        wait = build_status(sweep).get("profile_edit_wait")
+        assert wait is not None
+        assert application in wait["waiting_on"]
+        assert wait["wait_deadline"] == deadline
+        assert "vonk-forge/b" not in sweep.state.slots
+        assert not edits
+    partitioned = False
+    fleet.apps[application]["blocked"] = False
+    clock.sleep(5)
+    sweep._tick()
+    assert "vonk-forge/b" in sweep.state.slots
+    assert clock.now() < deadline
+    assert build_status(sweep)["profile_edit_wait"] is None
+    assert not edits
+
+
+def test_profile_edit_wait_tracks_copy_progress_after_dependency_wait(
+    tmp_path, monkeypatch
+):
+    sweep, fleet, clock, slot, application, _ = _pending_lane(
+        tmp_path,
+        monkeypatch,
+        copy_stall_seconds=40,
+    )
+    original = fleet._load
+
+    def unbound(number, data, args):
+        code, document = original(number, data, args)
+        if "--review" in args:
+            document["effects"]["adopted"] = []
+        return code, document
+
+    monkeypatch.setattr(fleet, "_load", unbound)
+    sweep._tick()
+    assert build_status(sweep).get("profile_edit_wait")
+    old_deadline = slot["watch"]["wait_deadline"]
+    fleet.apps[application].update(blocked=False, copy=200)
+    clock.sleep(20)
+    sweep._tick()
+    assert slot["copying"]
+    assert "wait" not in slot["watch"]
+    wait = build_status(sweep)["profile_edit_wait"]
+    assert wait["wait_deadline"] == clock.now() + 40 > old_deadline
+    clock.sleep(15)
+    sweep._tick()
+    wait = build_status(sweep)["profile_edit_wait"]
+    assert wait["wait_deadline"] == slot["watch"]["progressed_at"] + 40
+    assert clock.now() > old_deadline
+    assert "vonk-forge/b" not in sweep.state.slots
 
 
 def test_stale_assignment_prune_reuses_profile_edit_readiness(tmp_path):

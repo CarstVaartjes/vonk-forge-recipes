@@ -125,6 +125,11 @@ ENDPOINT_RECHECK_SECONDS = 20.0
 DOCUMENT_EVIDENCE_LIMIT = 65536
 
 
+@dataclass(frozen=True)
+class ProfilePruneOutcome:
+    waiting_on: str | None = None
+
+
 class SweepProfileOwnershipError(RuntimeError):
     """Destructive profile edits may not adopt another requester's assignments."""
 
@@ -1022,6 +1027,8 @@ class Sweep:
             self.state.data["owner"].pop("paused_at", None)
 
     def _tick(self) -> None:
+        # Placement/cleanup re-derive this observation only when asked this pass.
+        self.state.data.pop("profile_edit_wait", None)
         now = self.clock.now()
         self.advance_catalog(now)
         if self.retry_failed_pending and self.catalog_loaded:
@@ -1048,11 +1055,6 @@ class Sweep:
         self.observe_stalls()
         self.heal_fleet_skips()
         self.enqueue_finished_cleanup()
-        if not any(
-            slot["phase"] == SweepSlotPhase.LOADING
-            for slot in self.state.slots.values()
-        ):
-            self.state.data.pop("profile_edit_wait", None)
         # Cold-start paging may not yet have seen the owner's seed/priority recipe.
         # Existing receipts still advance above; new work uses the first complete view.
         pending = self.pending() if self.catalog_loaded else []
@@ -3887,6 +3889,8 @@ class Sweep:
             self.state.data.pop("clearing_reason", None)
             self.state.data.pop("clearing_refusal", None)
             return True
+        if self.state.data.get("profile_edit_wait"):
+            return False
         self.state.data["takeover_fallback"] = True
         self.state.event(
             f"{reason}; reviewing free online lanes while clearing retries"
@@ -4039,7 +4043,7 @@ class Sweep:
             return True
         return False
 
-    def _prune_profile(self) -> bool:
+    def _prune_profile(self) -> ProfilePruneOutcome:
         """Before any load of the sweep profile, it holds only what live lanes need.
 
         A load applies the whole profile. An assignment no lane accounts for (a lost cleanup
@@ -4048,17 +4052,18 @@ class Sweep:
         The exact export decides; only names the sweep itself uses are removed.
         """
         if not self._profile_edit_ready():
-            return False
+            return ProfilePruneOutcome(
+                self.state.data["profile_edit_wait"]["waiting_on"]
+            )
         reply = self.vk.run("profile", "export", profile=self.cfg.sweep_profile)
         document = reply.document
         assignments = (
             document.get("assignments") if isinstance(document, dict) else None
         )
         if not reply.ok or not isinstance(assignments, list):
-            self.note_infra(
-                "profile-edit", f"sweep profile unreadable: {reply.error_text[:200]}"
-            )
-            return False
+            waiting_on = f"sweep profile unreadable: {reply.error_text[:200]}"
+            self.note_infra("profile-edit", waiting_on)
+            return ProfilePruneOutcome(waiting_on)
         live = {
             str(s["alias"])
             for s in self.state.slots.values()
@@ -4073,22 +4078,26 @@ class Sweep:
             and item.get("assignment_name") not in live
         }
         if not stale:
-            return True
+            return ProfilePruneOutcome()
         pending = self.state.data.setdefault("cleanup", {})
         for name in stale:
             pending.setdefault(name, {"attempts": 0, "next_check": 0.0})
         self.cleanup_finished(profile_ready=True)
-        return not stale & set(pending)
+        remaining = stale & set(pending)
+        return ProfilePruneOutcome(
+            f"sweep profile still holds unused assignments: {', '.join(sorted(remaining))}"
+            if remaining
+            else None
+        )
 
     def _renew_cleanup(self, now: float) -> bool:
         # Every new clear starts from current physical facts, including after
         # a terminal receipt with an absent or incomplete child projection.
         self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
         loads = self.state.data["cleanup_loads"]
-        if not self._prune_profile():
-            return self._clearing_refused(
-                "the sweep profile still holds assignments no lane needs"
-            )
+        pruned = self._prune_profile()
+        if pruned.waiting_on is not None:
+            return self._clearing_refused(pruned.waiting_on)
         review = self.vk.run(
             "profile", "load", "--review", profile=self.cfg.sweep_profile
         )
@@ -4219,7 +4228,7 @@ class Sweep:
                 self.advance_slots(now)
             return
         profile = self.cfg.sweep_profile
-        if not self._prune_profile():
+        if self._prune_profile().waiting_on is not None:
             return False
         self._assigned = {}
         added: list[policy.Placement] = []
@@ -4984,8 +4993,10 @@ class Sweep:
         self, profile: int, kind: str, *, owner: bool = False, key: str | None = None
     ) -> Any:
         """Persist reviewed stop intent, including an empty scope, before effects."""
-        if profile == self.cfg.sweep_profile and not self._prune_profile():
-            raise RuntimeError("the sweep profile holds assignments no lane needs")
+        if profile == self.cfg.sweep_profile:
+            pruned = self._prune_profile()
+            if pruned.waiting_on is not None:
+                raise RuntimeError(pruned.waiting_on)
         review = self.vk.call(
             "profile",
             "load",
