@@ -16,50 +16,77 @@ from spark_sweep.report import build_status, write_status
 ROOT = Path(__file__).resolve().parents[1]
 
 
+# Who may write a wait: bounded_wait writes all of it; only progress_verdict renews a
+# wait's window (forward movement), so only it may also move the start or drop the deadline.
+WAIT_WRITERS = {
+    "waiting_on": {"bounded_wait"},
+    "wait_started_at": {"bounded_wait", "progress_verdict"},
+    "wait_deadline": {"bounded_wait", "progress_verdict"},
+}
+
+
+def _key(node: ast.AST) -> str | None:
+    return (
+        node.value
+        if isinstance(node, ast.Constant) and node.value in WAIT_WRITERS
+        else None
+    )
+
+
+def _written_keys(node: ast.AST) -> set[str]:
+    """The wait keys a node sets; dropping a start or deadline renews it too."""
+    targets = (
+        node.targets
+        if isinstance(node, (ast.Assign, ast.Delete))
+        else [node.target]
+        if isinstance(node, (ast.AnnAssign, ast.AugAssign))
+        else []
+    )
+    keys = {
+        key
+        for t in targets
+        if isinstance(t, ast.Subscript) and (key := _key(t.slice)) is not None
+    }
+    if isinstance(node, ast.Delete):
+        keys.discard("waiting_on")  # clearing what a wait names is no renewal
+    if isinstance(node, ast.Call):
+        keys |= {k.arg for k in node.keywords if k.arg in WAIT_WRITERS}
+        method = node.func.attr if isinstance(node.func, ast.Attribute) else None
+        if method in {"update", "setdefault", "pop"}:
+            keys |= {
+                key
+                for arg in node.args
+                for n in ast.walk(arg)
+                if (key := _key(n)) is not None
+                and (method != "pop" or key != "waiting_on")
+            }
+    if isinstance(node, ast.Dict):
+        keys |= {
+            key
+            for k, v in zip(node.keys, node.values)
+            if k is not None
+            and (key := _key(k)) is not None
+            and (key != "waiting_on" or isinstance(v, (ast.Constant, ast.JoinedStr)))
+        }
+    if (
+        isinstance(node, ast.Attribute)
+        and node.attr == "waiting_on"
+        and isinstance(node.ctx, ast.Store)
+    ):
+        keys.add("waiting_on")
+    return keys
+
+
 def wait_bypasses(source: str, *, primitive: bool = False) -> list[int]:
     bad = []
     for function in ast.walk(ast.parse(source)):
         if not isinstance(function, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
         for node in ast.walk(function):
-            targets = (
-                node.targets
-                if isinstance(node, ast.Assign)
-                else [node.target]
-                if isinstance(node, (ast.AnnAssign, ast.AugAssign))
-                else []
-            )
-            writes = any(
-                isinstance(t, ast.Subscript)
-                and isinstance(t.slice, ast.Constant)
-                and t.slice.value == "waiting_on"
-                for t in targets
-            )
-            if isinstance(node, ast.Call):
-                writes |= any(k.arg == "waiting_on" for k in node.keywords)
-                if isinstance(node.func, ast.Attribute) and node.func.attr in {
-                    "update",
-                    "setdefault",
-                }:
-                    writes |= any(
-                        isinstance(n, ast.Constant) and n.value == "waiting_on"
-                        for arg in node.args
-                        for n in ast.walk(arg)
-                    )
-            if isinstance(node, ast.Dict):
-                writes |= any(
-                    isinstance(k, ast.Constant)
-                    and k.value == "waiting_on"
-                    and isinstance(v, (ast.Constant, ast.JoinedStr))
-                    for k, v in zip(node.keys, node.values)
-                )
-            if (
-                isinstance(node, ast.Attribute)
-                and node.attr == "waiting_on"
-                and isinstance(node.ctx, ast.Store)
+            if any(
+                not (primitive and function.name in WAIT_WRITERS[key])
+                for key in _written_keys(node)
             ):
-                writes = True
-            if writes and not (primitive and function.name == "bounded_wait"):
                 bad.append(getattr(node, "lineno", function.lineno))
     return bad
 
@@ -69,6 +96,25 @@ def test_every_waiting_on_producer_uses_the_primitive() -> None:
     assert wait_bypasses("def bad(w):\n    w.update(waiting_on='new reason')\n")
     assert wait_bypasses("def bad(w):\n    w.update({'waiting_on': 'new reason'})\n")
     assert wait_bypasses("def bad():\n    return {'waiting_on': 'new reason'}\n")
+    # A wait's start and deadline are renewed only by the primitive pair.
+    for write in (
+        "w['wait_started_at'] = now",
+        "w['wait_deadline'] = later",
+        "w.setdefault('wait_started_at', now)",
+        "w.update(wait_deadline=later)",
+        "w.pop('wait_deadline', None)",
+        "del w['wait_deadline']",
+        "return {'wait_started_at': now}",
+    ):
+        assert wait_bypasses(f"def bad(w, now, later):\n    {write}\n")
+        for writer in ("bounded_wait", "progress_verdict"):
+            assert not wait_bypasses(
+                f"def {writer}(w, now, later):\n    {write}\n", primitive=True
+            )
+    assert wait_bypasses(
+        "def progress_verdict(w):\n    w['waiting_on'] = 'x'\n", primitive=True
+    )
+    assert not wait_bypasses("def ok(w):\n    return w.get('wait_deadline')\n")
     for path in (ROOT / "spark_sweep").rglob("*.py"):
         assert not wait_bypasses(
             path.read_text(), primitive=path.name == "verdict.py"
@@ -127,7 +173,7 @@ def test_each_wait_releases_lane_and_requeues_after_budget(
 
 
 @pytest.mark.parametrize("reason", list(SweepWaitReason))
-def test_wait_reason_and_signature_changes_do_not_extend_budget(
+def test_wait_reason_changes_do_not_extend_budget(
     reason: SweepWaitReason,
 ) -> None:
     watch = {}
@@ -139,7 +185,7 @@ def test_wait_reason_and_signature_changes_do_not_extend_budget(
     )
     assert (
         verdict.progress_verdict(
-            verdict.Signal((2,), SweepWait(reason=SweepWaitReason.OBSERVATION)),
+            verdict.Signal((1,), SweepWait(reason=SweepWaitReason.OBSERVATION)),
             watch,
             window=10,
             now=11,
