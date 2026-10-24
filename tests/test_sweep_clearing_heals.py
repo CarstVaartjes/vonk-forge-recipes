@@ -231,9 +231,7 @@ def test_a_refused_clearing_is_the_recorded_wait_and_is_decided_again(
 
 # Same-key re-entry of a clearing whose reviewed stops were already recorded: it
 # submits only when the fresh review equals the original intent, never a new one.
-# The pre-edit adoption preview reads the existing intent. Pruning first would
-# itself supersede an unbound admission; the placement review still prunes first.
-REVIEW_WITHOUT_PRUNE = {"observe_cleanup", "_profile_edit_ready"}
+REVIEW_WITHOUT_PRUNE = {"observe_cleanup"}
 PROFILE_EDIT_WITHOUT_GUARD = {
     (
         "run.py",

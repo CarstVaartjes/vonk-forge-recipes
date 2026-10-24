@@ -231,6 +231,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         },
         "lanes": lanes,
         "profile_edit_wait": data.get("profile_edit_wait"),
+        "dual_reservation": data.get("dual_reservation"),
         "offline_lanes": offline,
         "waiting_for_lanes": sum(
             1
@@ -392,6 +393,8 @@ def render_status(status: Mapping[str, Any]) -> str:
             f"- Placement waiting on {wait['waiting_on']}; "
             f"pending lane deadline {datetime.fromtimestamp(wait['wait_deadline'], UTC).isoformat()}"
         )
+    if status.get("dual_reservation"):
+        lines.append(f"- Free lane {status['dual_reservation']}")
     if status.get("waiting_for_lanes"):
         lines.append(
             f"- {status['waiting_for_lanes']} queued recipe(s) waiting for more lanes online"
@@ -402,7 +405,12 @@ def render_status(status: Mapping[str, Any]) -> str:
             lines.append(str(status["controller_wait_issue"]))
         lines += [
             f"- {key}: {hold['wait']['controller']['reason']}; "
-            f"next observation in {_duration(max(0, hold['next_check'] - status['updated_at']))}"
+            + (
+                f"next observation in {_duration(max(0, hold['next_check'] - status['updated_at']))}"
+                if hold.get("not_before") is None
+                else "receipt ended; planned again at "
+                f"{datetime.fromtimestamp(hold['not_before'], UTC).isoformat()}"
+            )
             for key, hold in status["controller_waits"].items()
         ]
     if status.get("infrastructure"):

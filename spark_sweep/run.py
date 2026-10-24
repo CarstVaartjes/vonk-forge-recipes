@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import random
 import signal
 import threading
 import time
@@ -24,6 +25,7 @@ import traceback
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import Future
 from dataclasses import dataclass, field, replace
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -119,6 +121,8 @@ TAKEOVER_RETRY_SECONDS = 30.0
 SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
+# Ceiling of the growing re-plan delay after a wait receipt ended without a successor.
+ENDED_RECEIPT_REPLAN_CAP = 3600.0
 RETEST_SECONDS = 24 * 3600.0
 ENDPOINT_RECHECK_SECONDS = 20.0
 # A results row carries the Controller document it ended on, bounded.
@@ -319,6 +323,8 @@ class Sweep:
         self.idle_since: float | None = None
         self.blind = False  # this tick could not observe the Controller
         self.unobserved_loads: set[str] = set()
+        # This pass's free Sparks whose placement review did not adopt a loading lane.
+        self.adoption_holds: dict[str, str] = {}
         self._skew_checked_at = float("-inf")
         self.library_commit = ""
         self.rate = policy.RateTracker()
@@ -1027,8 +1033,10 @@ class Sweep:
             self.state.data["owner"].pop("paused_at", None)
 
     def _tick(self) -> None:
-        # Placement/cleanup re-derive this observation only when asked this pass.
+        # Placement/cleanup re-derive these observations only when asked this pass.
         self.state.data.pop("profile_edit_wait", None)
+        self.state.data.pop("dual_reservation", None)
+        self.adoption_holds.clear()
         now = self.clock.now()
         self.advance_catalog(now)
         if self.retry_failed_pending and self.catalog_loaded:
@@ -2147,6 +2155,7 @@ class Sweep:
             self.state.data["loads"].pop(load["request_key"], None)
             return True
         self.documents[load["request_key"]] = document
+        load["admission_unbound"] = verdict.admission_unbound(document)
         load["observed_at"] = self.clock.now()
         load["app_id"] = document["id"]
         status = str(document.get("state", ""))
@@ -2198,6 +2207,8 @@ class Sweep:
             load["app_id"] = replaced.successor
             load["state"] = "queued"
             load["copying"] = False
+            # Unobserved, the successor may still be pending admission.
+            load.pop("admission_unbound", None)
             return True
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
@@ -2776,11 +2787,18 @@ class Sweep:
             and load is not None
             and load.get("app_id")
         ):
+            identity = current_identity(accepted.recipe)
+            previous = self.controller_wait_holds().get(key)
             hold = ControllerWaitHold(
                 wait=expiry.wait,
-                identity=current_identity(accepted.recipe),
+                identity=identity,
                 application_id=load["app_id"],
                 next_check=self.clock.now() + self.cfg.defer_delay,
+                request_key=slot["request_key"],
+                # Content that kept ending keeps its re-plan pace.
+                ended_since=previous.ended_since
+                if previous is not None and previous.identity == identity
+                else None,
                 platform=load.get("wait_platform")
                 or {
                     owner: fingerprint
@@ -3147,7 +3165,11 @@ class Sweep:
             entry = self.state.recipes.get(key, {})
             if recipe is None or not self.ready(recipe) or key in self.state.slots:
                 continue
-            if key in waits and waits[key].identity == current_identity(recipe):
+            if (
+                key in waits
+                and waits[key].identity == current_identity(recipe)
+                and (waits[key].live or now < float(waits[key].not_before or 0))
+            ):
                 continue  # re-observe the original receipt, never replay unchanged intent
             if self.lanes_short(recipe):
                 continue  # waits for its lanes to come online; the online ones carry on
@@ -3217,7 +3239,18 @@ class Sweep:
                     + ", ".join(record.get("aliases", ()))
                     + " still shows its workload",
                 )
+        for node, why in self.adoption_holds.items():
+            holds.setdefault(node, why)
         online = {s.id for s in self.sparks()}
+        if wait := self.state.data.get("profile_edit_wait"):
+            held = (
+                f"profile edit held on {wait['waiting_on']} until "
+                f"{datetime.fromtimestamp(wait['wait_deadline'], UTC).isoformat()}"
+            )
+        else:
+            held = str(self.state.data.get("dual_reservation") or "")
+        for node in online if held else ():
+            holds.setdefault(node, held)
         return {node: why for node, why in holds.items() if node in online}
 
     def _hold_lanes(self, load: Mapping[str, Any]) -> None:
@@ -3375,7 +3408,8 @@ class Sweep:
         }
 
     def controller_wait_issue(self) -> str | None:
-        holds = list(self.controller_wait_holds().values())
+        # An ended receipt never resumes: it can neither prove nor release an incident.
+        holds = [hold for hold in self.controller_wait_holds().values() if hold.live]
         for hold in holds:
             controller = hold.wait.controller
             if controller is None or controller.identity is None:
@@ -3397,7 +3431,11 @@ class Sweep:
         return None
 
     def _refresh_controller_waits(self, now: float) -> None:
-        """Probe accepted receipts with bounded reads; time alone never resubmits a load."""
+        """Probe live receipts with bounded reads.
+
+        Time alone never resubmits a load on a live receipt; an ended receipt's recipe
+        is planned again at its ``not_before``.
+        """
         documents: dict[str, Mapping[str, Any]] = {}
         recovered: set[tuple[str, frozenset[tuple[str, str]]]] = set()
         platform = self._component_observations()
@@ -3415,6 +3453,10 @@ class Sweep:
                     f"deployed platform changed for {key}; re-planning placement"
                 )
                 continue
+            if not hold.live:
+                if self.state.entry(key).get("status") != RecipeStatus.PENDING:
+                    self.state.entry(key).pop("controller_wait", None)  # a verdict
+                continue  # planned again at its not_before; nothing left to observe
             if now < hold.next_check:
                 continue
             hold.next_check = now + self.cfg.defer_delay
@@ -3428,6 +3470,13 @@ class Sweep:
                     profile=self.cfg.sweep_profile,
                     timeout=30,
                 )
+                if reply.is_not_found:
+                    # The Controller's definite answer: no such receipt waits any more.
+                    self._replan_ended(key, hold, "is absent at the Controller", now)
+                    self.state.entry(key)["controller_wait"] = hold.model_dump(
+                        mode="json"
+                    )
+                    continue
                 if not reply.ok or not isinstance(reply.document, Mapping):
                     continue  # unknown is no recovery proof; next probe remains visible
                 if reply.document.get("id") != hold.application_id:
@@ -3440,7 +3489,25 @@ class Sweep:
                 document.get("state") in SETTLED
                 and document.get("state") != LifecycleState.SUCCEEDED
             ):
-                continue  # supersession/cancellation is no dependency recovery proof
+                # An ending is no recovery proof. The Controller's continuation of
+                # this request carries the wait (as the poll path follows it); another
+                # recipe's load does not, and then nothing waits on this receipt.
+                replaced = policy.supersession(document)
+                successor = replaced.successor if replaced is not None else None
+                if successor not in (None, document["id"]) and self._own_load_request(
+                    str(successor)
+                ) in (None, hold.request_key):
+                    hold.application_id = str(successor)
+                else:
+                    self._replan_ended(
+                        key,
+                        hold,
+                        f"ended {document.get('state')}"
+                        + (f", taken over by {successor}" if successor else ""),
+                        now,
+                    )
+                self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
+                continue
             signal = verdict.application_signal(document)
             observed = signal.wait.controller if signal.wait is not None else None
             previous = hold.wait.controller
@@ -3467,12 +3534,33 @@ class Sweep:
         # One original receipt resuming is behaviour proof for the shared dependency.
         for key, hold in self.controller_wait_holds().items():
             if (
-                hold.wait.controller is not None
+                hold.live
+                and hold.wait.controller is not None
                 and hold.wait.controller.identity in recovered
             ):
                 self.state.entry(key).pop("controller_wait", None)
 
+    def _replan_ended(
+        self, key: str, hold: ControllerWaitHold, why: str, now: float
+    ) -> None:
+        """Plan a recipe whose wait receipt ended again later, never straight back.
+
+        The unchanged recipe would meet the same admission wait at once. The delay is
+        as long as it has kept ending (doubling by time, no attempt count), jittered,
+        from the sweep's retry pace up to ENDED_RECEIPT_REPLAN_CAP.
+        """
+        since = hold.ended_since if hold.ended_since is not None else now
+        delay = min(ENDED_RECEIPT_REPLAN_CAP, max(self.cfg.defer_delay, now - since))
+        hold.ended_since = since
+        hold.not_before = now + delay * random.uniform(1.0, 1.25)
+        self.state.event(
+            f"Controller wait receipt {hold.application_id} for {key} {why}; "
+            f"planning it again at {datetime.fromtimestamp(hold.not_before, UTC).isoformat()}"
+        )
+
     def schedule(self, now: float) -> None:
+        self.state.data.pop("dual_reservation", None)
+        self.adoption_holds.clear()
         self._refresh_controller_waits(now)
         self.release_given_up(now)
         self.release_orphan_load()
@@ -3515,6 +3603,7 @@ class Sweep:
             # A dual at the head drains both lanes; do not refill one with later singles.
             if candidates[0].node_count == 2:
                 if len(bins) < 2:
+                    self._reserve_for_dual(candidates[0], {b.id for b in bins})
                     return
                 self.state.data["mode"] = "dual"
                 dual = policy.place_dual(candidates[:1], bins, self.cfg.reserve_bytes)
@@ -3548,6 +3637,24 @@ class Sweep:
             else:
                 return
             candidates = [r for r in self.ready_candidates() if r.key not in attempted]
+
+    def _reserve_for_dual(self, recipe: Recipe, free: set[str]) -> None:
+        """Name why a free lane stays empty: the dual at the head drains both lanes."""
+        busy = {why for node, why in self._lane_holds().items() if node not in free}
+        lanes = [
+            float(slot["deadline"])
+            for slot in self.state.slots.values()
+            if slot["phase"] != SweepSlotPhase.FINISHED
+            and not set(slot["node_ids"]) <= free
+        ]
+        until = (
+            f" until {datetime.fromtimestamp(max(lanes), UTC).isoformat()}"
+            if lanes
+            else ""
+        )
+        self.state.data["dual_reservation"] = (
+            f"reserved for dual {recipe.key} behind {'; '.join(sorted(busy))}{until}"
+        )
 
     def _cleanup_confirmed(self) -> dict[str, int]:
         confirmed: dict[str, int] = {}
@@ -4005,24 +4112,20 @@ class Sweep:
         self.state.data.pop("cleared_by", None)
 
     def _profile_edit_ready(self) -> bool:
-        """Even a rolled-back edit supersedes an unbound pending admission."""
+        """Even a rolled-back edit supersedes a lane whose admission is still unbound.
+
+        A bound lane is carried forward: the review of the edited profile must adopt it.
+        The last receipt decides; a load never observed (an unknown submit) is unbound.
+        """
+        loads = self.state.data["loads"]
         loading = [
             slot
             for slot in self.state.slots.values()
             if slot["phase"] == SweepSlotPhase.LOADING
+            and slot["request_key"] in loads
+            and loads[slot["request_key"]].get("admission_unbound", True)
         ]
         if not loading:
-            self.state.data.pop("profile_edit_wait", None)
-            return True
-        reply = self.vk.run(
-            "profile", "load", "--review", profile=self.cfg.sweep_profile
-        )
-        if (
-            not reply.is_transport_error
-            and not reply.is_error_document
-            and isinstance(reply.document, Mapping)
-            and self._adopted_requests(reply.document) is not None
-        ):
             self.state.data.pop("profile_edit_wait", None)
             return True
         deadline = min(
@@ -4047,7 +4150,7 @@ class Sweep:
         progress = verdict.bounded_wait(
             SweepWait(
                 reason=SweepWaitReason.ADMISSION,
-                detail=f"profile edit awaits bound effects: {', '.join(applications)}",
+                detail=f"profile edit awaits bound admission: {', '.join(applications)}",
             ),
             watch,
             window=deadline - since,
@@ -4367,6 +4470,21 @@ class Sweep:
             self.note_infra(
                 "review", "observing unchanged loading effects before overlap"
             )
+            # The rest of this pass would pay the same add, review and remove.
+            loading = sorted(
+                s["alias"]
+                for s in self.state.slots.values()
+                if s["phase"] == SweepSlotPhase.LOADING
+            )
+            retry = datetime.fromtimestamp(self.clock.now() + self.cfg.retry_delay, UTC)
+            why = (
+                f"loading lane(s) {', '.join(loading)} not adopted by the review of "
+                f"the edited profile; {', '.join(p.recipe.key for p in added)} "
+                f"retry at {retry.isoformat()}"
+            )
+            self.adoption_holds.update(
+                {node: why for p in added for node in p.spark_ids}
+            )
             return
         # The Controller's disk decision includes reservations, reused objects
         # and evictable installations. Preparation being waitable cannot turn
@@ -4472,6 +4590,9 @@ class Sweep:
         self.state.data["loads"][key]["app_id"] = submitted.get("id")
         if isinstance(submitted, Mapping):
             self.documents[key] = submitted
+            self.state.data["loads"][key]["admission_unbound"] = (
+                verdict.admission_unbound(submitted)
+            )
         self.state.data["dirty"] = True
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
         self.state.save()

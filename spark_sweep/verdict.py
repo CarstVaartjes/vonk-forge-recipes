@@ -210,6 +210,17 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
     return Signal(tuple(activity(document)), wait, forward_marks(document))
 
 
+def admission_unbound(document: Mapping[str, Any]) -> bool:
+    """Whether a newer saved profile would supersede this application.
+
+    The Controller's pending-admission observer supersedes only an application
+    still pending admission once the profile was saved again. A bound application
+    continues: a newer decision adopts its unchanged assignments.
+    """
+    progress = document.get("progress")
+    return isinstance(progress, Mapping) and progress.get("admission_pending") is True
+
+
 def stalled_detail(document: Mapping[str, Any]) -> str | None:
     """The Controller's stalled-work alarm on an application, or ``None`` (absent: no stall)."""
     progress = document.get("progress")
