@@ -363,7 +363,10 @@
       "kv_heads": 8,
       "layers": 7,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/resolve/b6a99534467840620d411e4cd4ad5819b2610d9c/config.json; 7 full-attention layers, 35 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "resident_expansion_bytes": 12611097723,
+      "sglang_state_bytes_per_slot": 2584739,
+      "sglang_swa_layers": 35,
+      "source": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/resolve/b6a99534467840620d411e4cd4ad5819b2610d9c/config.json; 7 full-attention layers, 35 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term. SGLang terms (image b0d8718a, sglang 94602c9c) from the 2026-10-24 TP2 start failure (operation 1d9c19ee, run 668e2361, content 6010d4a3): total_rest_memory=-6.49 GB at mem-fraction-static 0.696475667681 and mamba_cache_per_req=2.46 MB per rank. Resident weights, expansion and multimodal reservation are at most 0.696475667681 x SPARK_MEMORY_BYTES + 6.495 GiB (pre-load free memory cannot exceed total); minus ceil(selected weights / 2) that leaves a 12,611,097,723-byte resident expansion. The 35 local_layer_ids are pooled by SGLang's swa-full-tokens-ratio; the per-slot state is 2,584,739 bytes, the largest byte count SGLang prints as 2.46 MB. Decode graph capture follows this profiling and is outside it.",
       "state_bytes_per_request": 110100480,
       "value_dim": 128
     },
@@ -771,13 +774,15 @@
       "4baf24d8cbf12d48c0ec60216a3709e36b137f2158cf862da72e4a89038919ba"
     ],
     "vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight": [
-      "e735758f705331b89ac3984e79a2d21c289cff1abac4de763fe5b7b8e5ac781d"
+      "e735758f705331b89ac3984e79a2d21c289cff1abac4de763fe5b7b8e5ac781d",
+      "a3c68c4653bd04ccfb1b6ccfcc8de0a901369ed696064d83c1d18fbba35f1ca0"
     ],
     "vonk-forge/inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual": [
       "b5e6c34bbefab52c0633fe2d10fbad344a41e2345dce1d101470f24551db4360"
     ],
     "vonk-forge/inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual": [
-      "ff535a0cad31392e7db97778dd80347e06d66726ccea57136c727e50682a8bd6"
+      "ff535a0cad31392e7db97778dd80347e06d66726ccea57136c727e50682a8bd6",
+      "c04cd325ac3faeecf4846d0e025553b8423c3a48ae79dace1a34946179f50a62"
     ],
     "vonk-forge/inkling-small-nvfp4-mtp-tonyd2wild-vllm-dual": [
       "82ca08c7af6f4379597a55f8a99a92aa50b564394761efaaa4b48ef8d2a40db8"
@@ -786,7 +791,8 @@
       "2bd42c7950122598f6eeedca4bc1b363162c0bd551c6208b2408fc1d3cc28630"
     ],
     "vonk-forge/inkling-small-nvfp4-sglang-mia-dual": [
-      "63c2735f46df91e528bc173c839c6140c2d961062203f8bf5ff9632a76887250"
+      "63c2735f46df91e528bc173c839c6140c2d961062203f8bf5ff9632a76887250",
+      "c36e6cab36b17c3a1dce6a2e058ec734b5d146177597fa4b3a023f5c1fa69b58"
     ],
     "vonk-forge/laguna-m-1-nvfp4-r0b0tlab-vllm-dual": [
       "630397ec0aecb2be0d6a261b9259e0927345ef63c8711135b79bda2de2eecfca"
@@ -874,7 +880,11 @@
       "9a10d5f81873a2d1baeac9603a0f7058dbcead0b30cf2660bcc3a45a492938a5"
     ],
     "vonk-forge/mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual": [
-      "85dd493254a5cf007ca58da514a2d48213caf9fcf892255ef624a1e9dfa0f255"
+      "85dd493254a5cf007ca58da514a2d48213caf9fcf892255ef624a1e9dfa0f255",
+      "8df0b041d5cbc849301b4769b3c2db42daad6819f1b86bb65adb6af79214ce1e"
+    ],
+    "vonk-forge/mimo-v2-6-flash-rl-sglang-mia-dual": [
+      "dc25ec541f4655dda677ad6a155d5e5aeb1e14652c38b82bf175c2d5bc28af37"
     ],
     "vonk-forge/mimo-v2-6-flash-rl-vllm-dual": [
       "650e42b17f8e5d136ad06ab36e4eacd71ef22f0e16cd9783d69d9f9971314292"
@@ -1194,7 +1204,8 @@
       "1b1ec6f21ddd38637aa67b89a70b3d135f840343e6c290a69c1fe37bacf2980f"
     ],
     "vonk-forge/qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual": [
-      "7c52c0c3c837ecb0c232b9ad1dbcfdbd91deede3bc7b839416d6998517e4a540"
+      "7c52c0c3c837ecb0c232b9ad1dbcfdbd91deede3bc7b839416d6998517e4a540",
+      "9b60b9a7b0ab85267296f0c60d5573c876d780f0d85434514973185d3e441c73"
     ],
     "vonk-forge/qwen3-8b-fp8-nvidia-sglang-single": [
       "1d9462a46960fe86463027122044f4c4495d312c494cb2b3a8d8c2e0abab297d",
@@ -1246,6 +1257,7 @@
   "historical_sources": [
     "2baabeecab328eed03d63317f3c66bd35b21f412",
     "db06379397c4f4dd8b6f20d6e5988e3311a306c8",
-    "da760c4f46c2414e08d4457968ea8d161fa4ac5a"
+    "da760c4f46c2414e08d4457968ea8d161fa4ac5a",
+    "c8cbdb9172c0e0bc9c092544f491d8903162a9c0"
   ]
 }

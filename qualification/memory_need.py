@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import ROUND_CEILING, Decimal
 from itertools import product
 from pathlib import Path
 from typing import Annotated
@@ -32,6 +32,9 @@ SPARK_MEMORY_BYTES = 130_663_231_488
 SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
 SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 OVERHEAD_BYTES = 8_000_000_000
+# sglang 94602c9c kv_cache_configurator._calculate_mamba_ratio: at most 3 base
+# plus 2 extra_buffer overlap state slots per running request.
+SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
 # Separate speculative-model calibration; see vllm_memory_fit.py for the incident.
 DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 
@@ -72,6 +75,11 @@ class CacheGeometry(BaseModel):
     token_bytes: int | None = Field(default=None, gt=0)
     state_padding: int = Field(default=0, ge=0)
     resident_expansion_bytes: int = Field(default=0, ge=0)
+    # SGLang HybridSWAPoolConfigurator pools these sliding layers, outside
+    # `layers`, at swa-full-tokens-ratio of max-total-tokens.
+    sglang_swa_layers: int = Field(default=0, ge=0)
+    # SGLang per-rank hybrid state per max-mamba-cache-size slot (+1 padding).
+    sglang_state_bytes_per_slot: int = Field(default=0, ge=0)
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
 
@@ -272,19 +280,7 @@ def calculate_need(
                 if item.id in selected and "weights" in item.roles
             )
         )
-        geometry = geometries.get(selection.model.slug)
-        if geometry is None:
-            raise ValueError(
-                f"{label}: add source-backed cache geometry for {selection.model.slug} to qualification/memory-inputs.json"
-            )
-        if not any(
-            item.sha256 == geometry.configuration_sha256
-            and "configuration" in item.roles
-            for item in model.files
-        ):
-            raise ValueError(
-                f"{label}: cache geometry does not match the pinned model configuration"
-            )
+        geometry = pinned_geometry(label, selection.model.slug, model, geometries)
         if geometry.sliding_layers > geometry.layers or (
             geometry.sliding_layers and not geometry.sliding_window
         ):
@@ -328,6 +324,106 @@ def calculate_need(
         resident_expansion_bytes=expansion,
         overhead_bytes=overhead,
     )
+
+
+def pinned_geometry(
+    label: str,
+    slug: str,
+    model: ModelDefinition,
+    geometries: Mapping[str, CacheGeometry],
+) -> CacheGeometry:
+    geometry = geometries.get(slug)
+    if geometry is None:
+        raise ValueError(
+            f"{label}: add source-backed cache geometry for {slug} to qualification/memory-inputs.json"
+        )
+    if not any(
+        item.sha256 == geometry.configuration_sha256 and "configuration" in item.roles
+        for item in model.files
+    ):
+        raise ValueError(
+            f"{label}: cache geometry does not match the pinned model configuration"
+        )
+    return geometry
+
+
+def sglang_token_cap(recipe: RecipeDefinition, key: str) -> int:
+    """The absolute token pool must equal full context times concurrency."""
+    tokens = positive_argument(recipe, "context-length") * positive_argument(
+        recipe, "max-running-requests"
+    )
+    if (
+        argument_value(recipe, "max-total-tokens") is None
+        or positive_argument(recipe, "max-total-tokens") != tokens
+    ):
+        raise ValueError(
+            f"{key}: set absolute max-total-tokens={tokens}; a static fraction does not bound KV by need"
+        )
+    return tokens
+
+
+def require_sglang_rank_budget(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    geometries: Mapping[str, CacheGeometry],
+    key: str,
+) -> None:
+    """Multi-Spark SGLang profiles its pools after the weights are resident.
+
+    sglang 94602c9c kv_cache_configurator._profile_available_bytes charges
+    everything resident against mem-fraction-static times pre-load free memory,
+    so that budget on the lowest idle Spark must hold the sharded weights, their
+    resident expansion and the capped token and state pools.
+    """
+    label = recipe.identity.slug
+    tokens = sglang_token_cap(recipe, key)
+    concurrency = positive_argument(recipe, "max-running-requests")
+    fraction = argument_value(recipe, "mem-fraction-static")
+    if fraction is None:
+        raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
+    parallel = recipe.topology.parallelism
+    shards = parallel.tensor * parallel.pipeline
+    need = (selected_weight_bytes(recipe, models) + shards - 1) // shards
+    for selection in recipe.models:
+        model = models[selection.model.content_sha256]
+        geometry = pinned_geometry(label, selection.model.slug, model, geometries)
+        need += geometry.resident_expansion_bytes
+        need += cache_need_for_context(recipe, geometry, tokens)
+        if geometry.sglang_swa_layers:
+            ratio = argument_value(recipe, "swa-full-tokens-ratio")
+            if ratio is None:
+                raise ValueError(f"{key}: declare swa-full-tokens-ratio")
+            swa = geometry.model_copy(
+                update={
+                    "layers": geometry.sglang_swa_layers,
+                    "sliding_layers": 0,
+                    "token_bytes": None,
+                    "token_bytes_by_dtype": {},
+                    "replicated_token_bytes": 0,
+                }
+            )
+            swa_tokens = int(
+                (Decimal(str(ratio)) * tokens).to_integral_value(ROUND_CEILING)
+            )
+            need += cache_need_for_context(recipe, swa, swa_tokens)
+        if geometry.sglang_state_bytes_per_slot:
+            if argument_value(recipe, "max-mamba-cache-size") is None:
+                raise ValueError(f"{key}: set absolute max-mamba-cache-size")
+            slots = positive_argument(recipe, "max-mamba-cache-size")
+            if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST * concurrency:
+                raise ValueError(
+                    f"{key}: max-mamba-cache-size {slots} cannot hold "
+                    f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots per request at concurrency {concurrency}"
+                )
+            need += geometry.sglang_state_bytes_per_slot * (slots + 1)
+    static_bytes = Decimal(str(fraction)) * IDLE_AVAILABLE_BYTES
+    if not static_bytes.is_finite() or static_bytes < need:
+        raise ValueError(
+            f"{key}: static budget {static_bytes:.0f} bytes (mem-fraction-static x "
+            f"idle available {IDLE_AVAILABLE_BYTES}) cannot hold sharded weights, "
+            f"resident expansion and capped pools ({need} bytes/rank); increase "
+            "mem-fraction-static while retaining the absolute caps"
+        )
 
 
 def memory_variants(recipe: RecipeDefinition) -> list[RecipeDefinition]:
@@ -513,6 +609,8 @@ def require_memory_need(
             problems = declaration_problems(variant, need)
             if problems:
                 raise ValueError(f"{key}: " + "; ".join(problems))
+            if variant.runtime.engine == "sglang":
+                require_sglang_rank_budget(variant, models, inputs.geometries, key)
             require_vllm_startup_budget(variant)
         return None
     result = None
@@ -547,16 +645,7 @@ def require_memory_need(
                     raise ValueError(
                         f"{key}: static memory budget cannot hold weights and absolute cache ({pool_need} bytes); increase mem-fraction-static while retaining the absolute token cap"
                     )
-            tokens = positive_argument(variant, "context-length") * positive_argument(
-                variant, "max-running-requests"
-            )
-            if (
-                argument_value(variant, "max-total-tokens") is None
-                or positive_argument(variant, "max-total-tokens") != tokens
-            ):
-                raise ValueError(
-                    f"{key}: set absolute max-total-tokens={tokens}; a static fraction does not bound KV by need"
-                )
+            sglang_token_cap(variant, key)
         for role in variant.topology.roles:
             if role.resources.memory.peak_bytes < need.total_bytes:
                 raise ValueError(
