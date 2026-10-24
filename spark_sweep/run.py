@@ -3138,8 +3138,8 @@ class Sweep:
 
     def ready_candidates(self) -> list[Recipe]:
         now = self.clock.now()
-        if self.controller_wait_issue() is not None:
-            return []
+        # A shared Controller wait holds only the recipes behind it (their own
+        # holds below); unrelated content keeps placing.
         waits = self.controller_wait_holds()
         out = []
         for key in self.queue:
@@ -3386,16 +3386,20 @@ class Sweep:
                 and other.wait.controller.identity == controller.identity
                 for other in holds
             ):
+                operations = ", ".join(
+                    f"{kind} {operation}"
+                    for kind, operation in sorted(controller.identity[1])
+                )
                 return (
-                    f"shared Controller wait {controller.description} "
-                    f"({controller.identity[1]}); placement paused pending changed evidence"
+                    f"shared Controller wait {controller.description} ({operations}); "
+                    "its recipes wait for changed evidence"
                 )
         return None
 
     def _refresh_controller_waits(self, now: float) -> None:
         """Probe accepted receipts with bounded reads; time alone never resubmits a load."""
         documents: dict[str, Mapping[str, Any]] = {}
-        recovered: set[tuple[str, str]] = set()
+        recovered: set[tuple[str, frozenset[tuple[str, str]]]] = set()
         platform = self._component_observations()
         for key, hold in self.controller_wait_holds().items():
             recipe = self.recipes.get(key)
