@@ -13,6 +13,7 @@ import json
 import statistics
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping, Sequence
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -229,6 +230,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             key: len(notes) for key, notes in quality_notes(data["recipes"]).items()
         },
         "lanes": lanes,
+        "profile_edit_wait": data.get("profile_edit_wait"),
         "offline_lanes": offline,
         "waiting_for_lanes": sum(
             1
@@ -385,6 +387,11 @@ def render_status(status: Mapping[str, Any]) -> str:
                 "lane kept, waiting for the Spark"
             )
         lines.append(f"- {spark}: {text or 'idle'}")
+    if wait := status.get("profile_edit_wait"):
+        lines.append(
+            f"- Placement waiting on {wait['waiting_on']}; "
+            f"pending lane deadline {datetime.fromtimestamp(wait['wait_deadline'], UTC).isoformat()}"
+        )
     if status.get("waiting_for_lanes"):
         lines.append(
             f"- {status['waiting_for_lanes']} queued recipe(s) waiting for more lanes online"

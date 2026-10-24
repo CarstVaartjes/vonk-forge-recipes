@@ -84,6 +84,18 @@ def test_lanes_run_in_parallel_one_per_spark(tmp_path: Path, gateway: Gateway) -
     ]
     first_load = writes.index("load")
     assert writes[:first_load].count("add") == 1
-    loads = [c for p, c in fleet.calls if p == 10 and c[:2] == ("profile", "load")]
-    assert len([c for c in loads if "--review" in c]) == 3
-    assert len([c for c in loads if "--yes" in c]) == 3
+    reviewed = False
+    admissions = 0
+    for profile, command in fleet.calls:
+        if profile != 10 or command[0] != "profile":
+            continue
+        if command[1] in ("add", "remove"):
+            reviewed = False
+        elif command[1] == "load":
+            if "--review" in command:
+                reviewed = True
+            else:
+                assert reviewed, "each admission needs a review after the last edit"
+                admissions += 1
+                reviewed = False
+    assert admissions == 3

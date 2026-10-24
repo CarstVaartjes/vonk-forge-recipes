@@ -125,6 +125,11 @@ ENDPOINT_RECHECK_SECONDS = 20.0
 DOCUMENT_EVIDENCE_LIMIT = 65536
 
 
+@dataclass(frozen=True)
+class ProfilePruneOutcome:
+    waiting_on: str | None = None
+
+
 class SweepProfileOwnershipError(RuntimeError):
     """Destructive profile edits may not adopt another requester's assignments."""
 
@@ -1022,6 +1027,8 @@ class Sweep:
             self.state.data["owner"].pop("paused_at", None)
 
     def _tick(self) -> None:
+        # Placement/cleanup re-derive this observation only when asked this pass.
+        self.state.data.pop("profile_edit_wait", None)
         now = self.clock.now()
         self.advance_catalog(now)
         if self.retry_failed_pending and self.catalog_loaded:
@@ -1087,7 +1094,8 @@ class Sweep:
             self.evidence_publisher.tick(now)
         if not self.paused:
             self.schedule(self.clock.now())
-            self.cleanup_finished()
+            if not self.state.data.get("profile_edit_wait"):
+                self.cleanup_finished()
         # Previously confirmed immutable stop receipts may feed a fresh canonical
         # admission before optional progress reads of an offline borrowed child.
         self.observe_cleanup()
@@ -3053,9 +3061,11 @@ class Sweep:
         if changed:
             self.state.save()
 
-    def cleanup_finished(self) -> None:
+    def cleanup_finished(self, *, profile_ready: bool = False) -> None:
         self.enqueue_finished_cleanup()
         pending = self.state.data.setdefault("cleanup", {})
+        if pending and not profile_ready and not self._profile_edit_ready():
+            return
         live_aliases = {slot["alias"] for slot in self.state.slots.values()}
         for alias, record in list(pending.items()):
             if alias in live_aliases or self.clock.now() < record["next_check"]:
@@ -3520,7 +3530,8 @@ class Sweep:
                     placements = [policy.Placement(head, spark_ids)]
             if placements:
                 attempted.update(p.recipe.key for p in placements)
-                self._apply(placements, self.clock.now())
+                if self._apply(placements, self.clock.now()) is False:
+                    return
             else:
                 return
             candidates = [r for r in self.ready_candidates() if r.key not in attempted]
@@ -3878,6 +3889,8 @@ class Sweep:
             self.state.data.pop("clearing_reason", None)
             self.state.data.pop("clearing_refusal", None)
             return True
+        if self.state.data.get("profile_edit_wait"):
+            return False
         self.state.data["takeover_fallback"] = True
         self.state.event(
             f"{reason}; reviewing free online lanes while clearing retries"
@@ -3978,7 +3991,59 @@ class Sweep:
         self.state.data.pop("takeover_fallback", None)
         self.state.data.pop("cleared_by", None)
 
-    def _prune_profile(self) -> bool:
+    def _profile_edit_ready(self) -> bool:
+        """Even a rolled-back edit supersedes an unbound pending admission."""
+        loading = [
+            slot
+            for slot in self.state.slots.values()
+            if slot["phase"] == SweepSlotPhase.LOADING
+        ]
+        if not loading:
+            self.state.data.pop("profile_edit_wait", None)
+            return True
+        reply = self.vk.run(
+            "profile", "load", "--review", profile=self.cfg.sweep_profile
+        )
+        if (
+            not reply.is_transport_error
+            and not reply.is_error_document
+            and isinstance(reply.document, Mapping)
+            and self._adopted_requests(reply.document) is not None
+        ):
+            self.state.data.pop("profile_edit_wait", None)
+            return True
+        deadline = min(
+            float(slot["watch"]["wait_deadline"])
+            if slot.get("watch", {}).get("wait")
+            else float(slot.get("watch", {}).get("progressed_at", slot["started_at"]))
+            + self._load_window(slot)
+            for slot in loading
+        )
+        applications = [
+            f"{self.state.data['loads'].get(slot['request_key'], {}).get('app_id') or slot['request_key']}"
+            f" ({slot.get('watch', {}).get('waiting_on') or 'admission not yet bound'})"
+            for slot in loading
+        ]
+        watch = self.state.data.setdefault("profile_edit_wait", {})
+        now = self.clock.now()
+        since = float(watch.setdefault("wait_started_at", now))
+        # The lane owns this bound; resumed progress may replace an old dependency wait.
+        watch["wait_deadline"] = deadline
+        progress = verdict.bounded_wait(
+            SweepWait(
+                reason=SweepWaitReason.ADMISSION,
+                detail=f"profile edit awaits bound effects: {', '.join(applications)}",
+            ),
+            watch,
+            window=deadline - since,
+            now=now,
+        )
+        if progress is Progress.WAIT_EXPIRED:
+            self.state.data.pop("profile_edit_wait", None)
+            return True
+        return False
+
+    def _prune_profile(self) -> ProfilePruneOutcome:
         """Before any load of the sweep profile, it holds only what live lanes need.
 
         A load applies the whole profile. An assignment no lane accounts for (a lost cleanup
@@ -3986,16 +4051,19 @@ class Sweep:
         later load, so a clearing or stop load would run the very workload it should end.
         The exact export decides; only names the sweep itself uses are removed.
         """
+        if not self._profile_edit_ready():
+            return ProfilePruneOutcome(
+                self.state.data["profile_edit_wait"]["waiting_on"]
+            )
         reply = self.vk.run("profile", "export", profile=self.cfg.sweep_profile)
         document = reply.document
         assignments = (
             document.get("assignments") if isinstance(document, dict) else None
         )
         if not reply.ok or not isinstance(assignments, list):
-            self.note_infra(
-                "profile-edit", f"sweep profile unreadable: {reply.error_text[:200]}"
-            )
-            return False
+            waiting_on = f"sweep profile unreadable: {reply.error_text[:200]}"
+            self.note_infra("profile-edit", waiting_on)
+            return ProfilePruneOutcome(waiting_on)
         live = {
             str(s["alias"])
             for s in self.state.slots.values()
@@ -4010,22 +4078,26 @@ class Sweep:
             and item.get("assignment_name") not in live
         }
         if not stale:
-            return True
+            return ProfilePruneOutcome()
         pending = self.state.data.setdefault("cleanup", {})
         for name in stale:
             pending.setdefault(name, {"attempts": 0, "next_check": 0.0})
-        self.cleanup_finished()
-        return not stale & set(pending)
+        self.cleanup_finished(profile_ready=True)
+        remaining = stale & set(pending)
+        return ProfilePruneOutcome(
+            f"sweep profile still holds unused assignments: {', '.join(sorted(remaining))}"
+            if remaining
+            else None
+        )
 
     def _renew_cleanup(self, now: float) -> bool:
         # Every new clear starts from current physical facts, including after
         # a terminal receipt with an absent or incomplete child projection.
         self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
         loads = self.state.data["cleanup_loads"]
-        if not self._prune_profile():
-            return self._clearing_refused(
-                "the sweep profile still holds assignments no lane needs"
-            )
+        pruned = self._prune_profile()
+        if pruned.waiting_on is not None:
+            return self._clearing_refused(pruned.waiting_on)
         review = self.vk.run(
             "profile", "load", "--review", profile=self.cfg.sweep_profile
         )
@@ -4139,7 +4211,8 @@ class Sweep:
         self._assigned[recipe.key] = alias
         return alias
 
-    def _apply(self, placements: Sequence[policy.Placement], now: float) -> None:
+    def _apply(self, placements: Sequence[policy.Placement], now: float) -> bool | None:
+        """Return False when the shared profile cannot be edited this pass."""
         if len(placements) > 1:
             # Each new lane has its own receipt. The unchanged lane remains in
             # this same whole-fleet profile and requires canonical adoption.
@@ -4148,14 +4221,15 @@ class Sweep:
                     self._observe_owner(self.clock.now())
                     if self.paused or self.owner_status.new_activity:
                         return
-                self._apply([placement], now)
+                if self._apply([placement], now) is False:
+                    return False
                 # Resolve a first lane's admission wait before reviewing the
                 # next snapshot; a pending application has no effect to adopt.
                 self.advance_slots(now)
             return
         profile = self.cfg.sweep_profile
-        if not self._prune_profile():
-            return  # a load now would also start what no lane needs; the next pass retries
+        if self._prune_profile().waiting_on is not None:
+            return False
         self._assigned = {}
         added: list[policy.Placement] = []
         names = {s.id: s.name for s in self.sparks()}
@@ -4919,8 +4993,10 @@ class Sweep:
         self, profile: int, kind: str, *, owner: bool = False, key: str | None = None
     ) -> Any:
         """Persist reviewed stop intent, including an empty scope, before effects."""
-        if profile == self.cfg.sweep_profile and not self._prune_profile():
-            raise RuntimeError("the sweep profile holds assignments no lane needs")
+        if profile == self.cfg.sweep_profile:
+            pruned = self._prune_profile()
+            if pruned.waiting_on is not None:
+                raise RuntimeError(pruned.waiting_on)
         review = self.vk.call(
             "profile",
             "load",
