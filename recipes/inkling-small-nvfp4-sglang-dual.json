@@ -361,7 +361,22 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.696475667681"
+        "value": "0.823"
+      },
+      {
+        "name": "max-running-requests",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "max-total-tokens",
+        "setting": null,
+        "value": 262144
+      },
+      {
+        "name": "max-mamba-cache-size",
+        "setting": null,
+        "value": 20
       },
       {
         "name": "swa-full-tokens-ratio",
@@ -422,7 +437,10 @@
     }
   },
   "settings": {
-    "concurrency": null,
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
     "context_tokens": {
       "change_effect": "restart",
       "value": 65536
@@ -453,7 +471,7 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 99003761392,
+            "peak_bytes": 115535839515,
             "reserve_bytes": 8000000000
           }
         }
@@ -470,7 +488,7 @@
             "working_bytes": 52000000000
           },
           "memory": {
-            "peak_bytes": 99003761392,
+            "peak_bytes": 115535839515,
             "reserve_bytes": 8000000000
           }
         }

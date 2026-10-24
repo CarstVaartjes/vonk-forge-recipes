@@ -238,3 +238,40 @@ def test_named_inkling_choice_constrains_one_call_and_preserves_parser(
     assert drift.returncode != 0
     assert b"detector grammar changed" in drift.stderr
     assert target.read_bytes() == patched_bytes
+
+
+def test_sglang_static_budget_profiles_resident_weights_and_capped_pools() -> None:
+    """Replay SGLang's pinned pool profiling with the 2026-10-24 hardware failure.
+
+    kv_cache_configurator._profile_available_bytes (sglang 94602c9c) charges
+    resident weights and the multimodal reservation against mem_fraction_static
+    times the pre-load free memory. At 0.696475667681 the Sparks reported
+    total_rest_memory=-6.49 GB. Pre-load free memory is estimated from idle
+    MemAvailable (128,488,062,976 bytes) with 4 GiB less on the next start.
+    """
+    gib = 1 << 30
+    failed_fraction, failed_rest = 0.696475667681, -6.49 * gib
+    pre = 128_488_062_976
+    resident = failed_fraction * pre - failed_rest
+    recipe = load("recipes/inkling-small-nvfp4-sglang-dual.json")
+    arguments = {item["name"]: item for item in recipe["runtime"]["arguments"]}
+    settings = recipe["settings"]
+    context = settings["context_tokens"]["value"]
+    concurrency = settings["concurrency"]["value"]
+    assert arguments["max-running-requests"]["setting"] == "concurrency"
+    tokens = arguments["max-total-tokens"]["value"]
+    assert tokens == context * concurrency
+    # extra_buffer with the overlap scheduler keeps five state slots per request.
+    mamba_slots = arguments["max-mamba-cache-size"]["value"]
+    assert mamba_slots >= 5 * concurrency
+    # BF16 K/V, 4 of 8 KV heads per TP rank: 7 full layers plus 35 sliding
+    # layers whose pool is swa-full-tokens-ratio 0.1 of the full pool.
+    per_token = 7 * 4 * 2 * 128 * 2 + 0.1 * 35 * 4 * 2 * 128 * 2
+    pools = tokens * per_token + (mamba_slots + 1) * 2.46 * (1 << 20)
+    fraction = float(arguments["mem-fraction-static"]["value"])
+    assert failed_fraction * pre - resident < 0
+    assert fraction * (pre - 4 * gib) - resident >= pools
+    for role in recipe["topology"]["roles"]:
+        assert role["resources"]["memory"]["peak_bytes"] >= (
+            fraction * 130_663_231_488 + 8_000_000_000
+        )
