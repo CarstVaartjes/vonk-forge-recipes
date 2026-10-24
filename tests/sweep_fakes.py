@@ -28,6 +28,7 @@ from uuid import NAMESPACE_URL, uuid5
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
+from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.run import DaemonExecutor
 
 _ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
@@ -83,7 +84,9 @@ class FakeRecipe:
     orphan_seconds: float = (
         0.0  # after a cancel its run keeps showing on the Spark this long
     )
-    blocked: bool = False  # the Controller holds the application back (admission)
+    # The Controller holds the application back before admission: it stays queued with
+    # ``admission_pending``, owns no run or effect, and a newer save supersedes it.
+    blocked: bool = False
     # How long the Controller keeps preparing/holding it, from the first load that asks
     # (None: for ever). It keeps going across later loads, as a real preparation does.
     blocked_for: float | None = None
@@ -285,6 +288,8 @@ class FakeFleet:
         self.assessments = False
         # recipe key -> when the Controller stops holding it (see FakeRecipe.blocked_for)
         self.held_until: dict[str, float] = {}
+        # (when, application id) of each pending admission a newer request retired.
+        self.superseded_pending: list[tuple[float, str]] = []
         # Artifact jobs by create request key, and every ``recipe job`` step seen.
         self.jobs: dict[str, dict[str, Any]] = {}
         self.job_calls: list[tuple[str, str]] = []
@@ -350,6 +355,12 @@ class FakeFleet:
         for app in list(self.apps.values()):
             if app["state"] not in ("queued", "running"):
                 continue
+            if app.get("admission_pending"):
+                if now >= app.get("held_until", float("inf")):
+                    app["blocked"] = False
+                if app.get("blocked"):
+                    continue  # no effect or child exists before admission
+                self._admit(app)
             if app.get("owner"):
                 if now >= app["created"] + app["duration"]:
                     app["state"] = "succeeded"
@@ -374,10 +385,8 @@ class FakeFleet:
                     run for run in self.runs if run["run_id"] != effect["target_id"]
                 ]
             pending = [a for a in app["assign"] if not a["resolved"]]
-            if app.get("blocked") and now >= app.get("held_until", float("inf")):
-                app["blocked"] = False  # admitted: the Controller stops holding it
             if app.get("blocked"):
-                continue  # the Controller holds the whole application back
+                continue  # the Controller holds the bound application's child
             if pending and self.supersede and not app.get("successor_of"):
                 self._supersede(app, self.supersede.pop(0))
                 continue
@@ -406,6 +415,35 @@ class FakeFleet:
             ):
                 failed = any(a["fail"] for a in app["assign"])
                 app["state"] = "failed" if failed else "succeeded"
+
+    def _admit(self, app: dict[str, Any]) -> None:
+        """Admission binds the queued application: its runs and effects start now."""
+        replaced = {run["alias"] for run in app.pop("parked_runs")}
+        self.runs = [run for run in self.runs if run["alias"] not in replaced]
+        self.runs.extend(app["parked_runs_new"])
+        del app["parked_runs_new"]
+        app["effects"] = app.pop("parked_effects")
+        app.update(state=LifecycleState.RUNNING, admission_pending=False)
+
+    def _supersede_pending(self, profile: int, nodes: set[str] | None = None) -> None:
+        """A newer save, or a later load on its Sparks, retires an unbound admission.
+
+        pending_admission.py ``_replan_pending_application`` (profile saved since it
+        was accepted) and queue_application.py (a later overlapping acceptance).
+        """
+        for app in self.apps.values():
+            if (
+                app.get("admission_pending")
+                and app["state"] == LifecycleState.QUEUED
+                and app["profile"] == profile
+                and (nodes is None or nodes & app["nodes"])
+            ):
+                self.superseded_pending.append((self.clock.now(), app["id"]))
+                app.update(
+                    state=LifecycleState.SUPERSEDED,
+                    reason_code="superseded-by-intent",
+                    reason="Profile order was replaced before admission",
+                )
 
     def _supersede(self, app: dict[str, Any], mode: str) -> None:
         """The Controller replaces a running application, as an automatic retry or a later intent."""
@@ -947,6 +985,7 @@ class FakeFleet:
                 }
             )
             data["revision"] += 1
+            self._supersede_pending(n)
             return 0, {"revision": data["revision"]}
         if verb == "remove":
             before = len(data["assignments"])
@@ -958,6 +997,7 @@ class FakeFleet:
                     "selector.absent", "assignment is absent or ambiguous"
                 )
             data["revision"] += 1
+            self._supersede_pending(n)
             return 0, {"revision": data["revision"]}
         if verb == "export":
             return 0, {
@@ -1076,9 +1116,10 @@ class FakeFleet:
                 for app in self.apps.values():
                     if (
                         app["state"] not in ("queued", "running")
+                        or app.get("admission_pending")
                         or app.get("plan_digest") == repeat
                     ):
-                        continue
+                        continue  # continuing_effects.py: pending and repeats adopt nothing
                     child = next(
                         (
                             item
@@ -1230,6 +1271,8 @@ class FakeFleet:
             pass
         assign = []
         held_by: list[dict[str, str]] = []
+        replaced: list[dict[str, Any]] = []
+        started: list[dict[str, Any]] = []
         for x in data["assignments"]:
             alias = x["assignment_name"]
             if x["desired_state"] != "running":
@@ -1259,9 +1302,9 @@ class FakeFleet:
                         assign.append(child)
                 continue
             if existing is not None:
-                self.runs = [run for run in self.runs if run["alias"] != alias]
+                replaced.append(existing)
             recipe = self.recipes[x["recipe_selector"]]
-            self.runs.append(
+            started.append(
                 {
                     "alias": alias,
                     "recipe": recipe.key,
@@ -1302,14 +1345,21 @@ class FakeFleet:
                     "resolved": False,
                 }
             )
+        nodes = {names[s] for x in data["assignments"] for s in x["spark_ids"]}
+        # A later accepted load retires older unbound admissions on its Sparks.
+        self._supersede_pending(n, nodes)
         self.apps[app_id] = {
             "id": app_id,
             "profile": n,
             "plan_digest": plan_digest,
-            "effects": effects + borrowed_effects,
+            "nodes": nodes,
+            "parked_effects": effects + borrowed_effects,
+            "parked_runs": replaced,
+            "parked_runs_new": started,
             "created": self.clock.now(),
             "assign": assign,
-            "state": "running",
+            "state": LifecycleState.QUEUED if held_by else LifecycleState.RUNNING,
+            "admission_pending": bool(held_by),
             "request_key": request,
             "copy": max(
                 (
@@ -1342,6 +1392,8 @@ class FakeFleet:
                 if x["assignment_name"] not in running
             ),
         }
+        if not held_by:
+            self._admit(self.apps[app_id])
         data["latest"] = app_id
         self.by_request[request] = app_id
         self._tick()
@@ -1373,6 +1425,8 @@ class FakeFleet:
         return {"phase": app.get("phase")}
 
     def _app_doc(self, app: dict[str, Any]) -> dict[str, Any]:
+        # pending_application.py: queued, no operation or child, step 0, with a wait.
+        pending = app.get("admission_pending") and app["state"] == LifecycleState.QUEUED
         return {
             "id": app["id"],
             "request_key": app.get("request_key", ""),
@@ -1382,8 +1436,14 @@ class FakeFleet:
             "reason_code": app.get("reason_code"),
             "retry_of_application_id": app.get("successor_of"),
             "blockers": app.get("blockers", []),
-            "current_operation_id": app["id"],
+            "current_operation_id": None if pending else app["id"],
+            **(
+                {"current_step": 0, "wait": self._admission_wait(app)}
+                if pending
+                else {}
+            ),
             "progress": {
+                "admission_pending": bool(pending),
                 **(
                     {
                         "effects": [
@@ -1398,7 +1458,7 @@ class FakeFleet:
                     if self.cleanup_projection
                     else {}
                 ),
-                "child_progress": self._child_progress(app),
+                "child_progress": {} if pending else self._child_progress(app),
                 "switch_adapter": {"assignment_failures": app.get("failures", [])},
                 "blockers": (
                     app.get("held_by", [])
@@ -1411,6 +1471,22 @@ class FakeFleet:
                 if app.get("cancel")
                 else {}
             ),
+        }
+
+    @staticmethod
+    def _admission_wait(app: dict[str, Any]) -> dict[str, Any]:
+        """The deferred admission's wait (persisted_waits.schedule_wait on the application)."""
+        reason = "observation-unavailable"
+        return {
+            "reason": reason,
+            "blockers": [
+                {
+                    "code": reason,
+                    "detail": reason,
+                    "operation": {"id": app["id"], "kind": "fleet-profile"},
+                    "severity": "warning",
+                }
+            ],
         }
 
     def _app_progress(self, data: dict[str, Any], a: list[str]) -> tuple[int, Any]:

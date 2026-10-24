@@ -42,9 +42,10 @@ def unreadable_owner(sweep, monkeypatch, *, timeout: bool = False) -> list[int]:
 def test_two_hour_owner_outage_does_not_stop_scheduling(
     tmp_path: Path, monkeypatch, timeout: bool
 ) -> None:
-    recipe = FakeRecipe("a", local="cached", blocked=True)
+    # Bound loads that pass in waves: scheduling keeps placing through the outage.
+    recipes = [FakeRecipe(f"r{i}", local="cached", load_seconds=3500) for i in range(4)]
     sweep, fleet, clock = make_sweep(
-        tmp_path, [recipe], [FakeModel("m1", local="cached")]
+        tmp_path, recipes, [FakeModel("m1", local="cached")]
     )
     reads = unreadable_owner(sweep, monkeypatch, timeout=timeout)
     sweep.preflight()
@@ -88,12 +89,15 @@ def test_two_hour_owner_outage_does_not_stop_scheduling(
 def test_over_budget_lane_released_and_download_observed_during_pause(
     tmp_path: Path, monkeypatch
 ) -> None:
-    held = FakeRecipe("held", local="cached", blocked=True)
+    # A held admission's wait is the Controller's: its expiry records the content identity.
+    held = FakeRecipe(
+        "held", ("1" * 64,), content="b" * 64, local="cached", blocked=True
+    )
     downloading = FakeRecipe("downloading", ("m2",))
     sweep, fleet, clock = make_sweep(
         tmp_path,
         [held, downloading],
-        [FakeModel("m1", local="cached"), FakeModel("m2")],
+        [FakeModel("1" * 64, local="cached"), FakeModel("m2")],
     )
     sweep.preflight()
     sweep.refresh_catalog()

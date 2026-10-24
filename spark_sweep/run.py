@@ -320,6 +320,8 @@ class Sweep:
         self.idle_since: float | None = None
         self.blind = False  # this tick could not observe the Controller
         self.unobserved_loads: set[str] = set()
+        # This pass's free Sparks whose placement review did not adopt a loading lane.
+        self.adoption_holds: dict[str, str] = {}
         self._skew_checked_at = float("-inf")
         self.library_commit = ""
         self.rate = policy.RateTracker()
@@ -1031,6 +1033,7 @@ class Sweep:
         # Placement/cleanup re-derive these observations only when asked this pass.
         self.state.data.pop("profile_edit_wait", None)
         self.state.data.pop("dual_reservation", None)
+        self.adoption_holds.clear()
         now = self.clock.now()
         self.advance_catalog(now)
         if self.retry_failed_pending and self.catalog_loaded:
@@ -2200,6 +2203,8 @@ class Sweep:
             load["app_id"] = replaced.successor
             load["state"] = "queued"
             load["copying"] = False
+            # Unobserved, the successor may still be pending admission.
+            load.pop("admission_unbound", None)
             return True
         if status in SETTLED:
             child = dig(document, "progress", "child_progress", "phase")
@@ -3216,6 +3221,8 @@ class Sweep:
                     + ", ".join(record.get("aliases", ()))
                     + " still shows its workload",
                 )
+        for node, why in self.adoption_holds.items():
+            holds.setdefault(node, why)
         online = {s.id for s in self.sparks()}
         if wait := self.state.data.get("profile_edit_wait"):
             held = (
@@ -3444,7 +3451,21 @@ class Sweep:
                 document.get("state") in SETTLED
                 and document.get("state") != LifecycleState.SUCCEEDED
             ):
-                continue  # supersession/cancellation is no dependency recovery proof
+                # An ending is no recovery proof. A successor carries the wait;
+                # without one nothing waits any more, so re-plan unless shared.
+                replaced = policy.supersession(document)
+                if replaced is not None and replaced.successor is not None:
+                    hold.application_id = replaced.successor
+                    self.state.entry(key)["controller_wait"] = hold.model_dump(
+                        mode="json"
+                    )
+                elif self.controller_wait_issue() is None:
+                    self.state.entry(key).pop("controller_wait", None)
+                    self.state.event(
+                        f"Controller wait receipt for {key} ended "
+                        f"{document.get('state')} without a successor; re-planning"
+                    )
+                continue
             signal = verdict.application_signal(document)
             observed = signal.wait.controller if signal.wait is not None else None
             previous = hold.wait.controller
@@ -3473,6 +3494,7 @@ class Sweep:
 
     def schedule(self, now: float) -> None:
         self.state.data.pop("dual_reservation", None)
+        self.adoption_holds.clear()
         self._refresh_controller_waits(now)
         self.release_given_up(now)
         self.release_orphan_load()
@@ -4378,6 +4400,21 @@ class Sweep:
             )
             self.note_infra(
                 "review", "observing unchanged loading effects before overlap"
+            )
+            # The rest of this pass would pay the same add, review and remove.
+            loading = sorted(
+                s["alias"]
+                for s in self.state.slots.values()
+                if s["phase"] == SweepSlotPhase.LOADING
+            )
+            retry = datetime.fromtimestamp(self.clock.now() + self.cfg.retry_delay, UTC)
+            why = (
+                f"loading lane(s) {', '.join(loading)} not adopted by the review of "
+                f"the edited profile; {', '.join(p.recipe.key for p in added)} "
+                f"retry at {retry.isoformat()}"
+            )
+            self.adoption_holds.update(
+                {node: why for p in added for node in p.spark_ids}
             )
             return
         # The Controller's disk decision includes reservations, reused objects

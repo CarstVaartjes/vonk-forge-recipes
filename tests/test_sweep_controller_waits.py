@@ -78,17 +78,11 @@ def test_child_target_copy_is_not_copy_progress() -> None:
 
 
 def prepare(tmp_path, monkeypatch, *, second=False, record=COPY):
-    recipes = [
-        FakeRecipe(
-            "a", content="a" * 64, digests=("1" * 64,), local="cached", blocked=True
-        )
-    ]
+    # Every record is a bound (admitted) application whose child waits.
+    slow = {"digests": ("1" * 64,), "local": "cached", "load_seconds": 10**6}
+    recipes = [FakeRecipe("a", content="a" * 64, **slow)]
     if second:
-        recipes.append(
-            FakeRecipe(
-                "b", content="b" * 64, digests=("1" * 64,), local="cached", blocked=True
-            )
-        )
+        recipes.append(FakeRecipe("b", content="b" * 64, **slow))
     sweep, fleet, clock = make_sweep(
         tmp_path, recipes, [FakeModel("1" * 64, local="cached")]
     )
@@ -176,8 +170,6 @@ def test_expired_wait_reobserves_original_receipt_without_identical_loads(
     assert build_status(sweep)["controller_waits"]
     # Fault recovery changes observed behaviour, then permits canonical re-planning.
     monkeypatch.setattr(fleet, "_app_doc", original)
-    for app in fleet.apps.values():
-        app["blocked"] = False
     clock.sleep(sweep.cfg.defer_delay + 1)
     sweep._refresh_controller_waits(clock.now())
     assert not sweep.controller_wait_holds()
@@ -219,11 +211,46 @@ def test_shared_wait_is_a_platform_issue_by_content_not_a_retry_count(
     assert sweep.controller_wait_issue() is not None
     # One original receipt genuinely resumes: both observations converge away.
     monkeypatch.setattr(fleet, "_app_doc", original)
-    for app in fleet.apps.values():
-        app["blocked"] = False
     clock.sleep(sweep.cfg.defer_delay + 1)
     sweep._refresh_controller_waits(clock.now())
     assert not sweep.controller_wait_holds()
+
+
+def test_hold_follows_a_successor_and_replans_once_nothing_waits(
+    tmp_path, monkeypatch
+) -> None:
+    sweep, fleet, clock, _ = prepare(tmp_path, monkeypatch)
+    expire(sweep, clock)
+    held = fleet._app_doc
+    (first,) = fleet.apps
+    successor = "8cb1d3a7-0000-4000-8000-0000000000b1"
+    fleet.apps[successor] = dict(fleet.apps[first], id=successor)
+    ended: dict[str, tuple[LifecycleState, str | None]] = {
+        first: (LifecycleState.SUPERSEDED, successor)
+    }
+
+    def document(app):
+        if app["id"] not in ended:
+            return held(app)
+        state, by = ended[app["id"]]
+        return {"id": app["id"], "state": state, "superseded_by": by}
+
+    monkeypatch.setattr(fleet, "_app_doc", document)
+    clock.sleep(sweep.cfg.defer_delay + 1)
+    sweep._refresh_controller_waits(clock.now())
+    # The Controller continued the receipt: the successor carries the same wait.
+    assert sweep.controller_wait_holds()["vonk-forge/a"].application_id == successor
+    clock.sleep(sweep.cfg.defer_delay + 1)
+    sweep._refresh_controller_waits(clock.now())
+    assert sweep.controller_wait_holds()["vonk-forge/a"].application_id == successor
+    assert not sweep.ready_candidates()
+    # Ended without a successor (a newer save, a cancel): nothing waits any more.
+    ended[successor] = (LifecycleState.CANCELLED, None)
+    clock.sleep(sweep.cfg.defer_delay + 1)
+    sweep._refresh_controller_waits(clock.now())
+    assert not sweep.controller_wait_holds()
+    assert [r.key for r in sweep.ready_candidates()] == ["vonk-forge/a"]
+    assert sweep.state.entry("vonk-forge/a").get("attempts", 0) == 0
 
 
 def test_latest_content_gets_a_new_review(tmp_path, monkeypatch) -> None:

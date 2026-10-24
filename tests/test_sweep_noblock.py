@@ -227,7 +227,8 @@ def test_saved_incidents_do_not_back_off_unrelated_cached_work(
 def test_stuck_receipt_keeps_only_its_lane_after_restart(
     tmp_path: Path, alarm: str
 ) -> None:
-    held = FakeRecipe("held", local="cached", blocked=True, blocked_for=3600)
+    # Admitted (bound), its child holds: a profile save carries it by adoption.
+    held = FakeRecipe("held", local="cached", load_seconds=3600)
     ready = FakeRecipe("ready", local="cached")
     gang = FakeRecipe("00-gang", node_count=2, local="cached")
     recipes = [held, ready, gang]
