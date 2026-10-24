@@ -610,6 +610,16 @@ def _mentions(text: str, name: str) -> bool:
     )
 
 
+def assignment_failures(document: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    """The per-assignment failures the switch adapter reported for an application."""
+    progress = document.get("progress")
+    adapter = progress.get("switch_adapter") if isinstance(progress, Mapping) else None
+    failures = (
+        adapter.get("assignment_failures") if isinstance(adapter, Mapping) else None
+    )
+    return [item for item in failures or [] if isinstance(item, Mapping)]
+
+
 def blamed(
     items: Iterable[Mapping[str, Any]], lanes: Mapping[str, Mapping[str, Sequence[str]]]
 ) -> set[str]:

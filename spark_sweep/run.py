@@ -3400,13 +3400,10 @@ class Sweep:
             and slot["phase"] == SweepSlotPhase.LOADING
         ]
         lanes = self._lanes(group)
-        failures = (
-            dig(document, "progress", "switch_adapter", "assignment_failures") or []
-        )
         if (document.get("failure") or {}).get(
             "code"
         ) in policy.RECIPE_FAILURE_CODES or policy.blamed(
-            [item for item in failures if isinstance(item, Mapping)], lanes
+            policy.assignment_failures(document), lanes
         ):
             return  # the existing application verdict path owns attributed failures
         blamed = policy.blamed(policy.admission_blockers(document), lanes)
