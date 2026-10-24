@@ -198,6 +198,8 @@ class WanDancerAuthorityTests(unittest.TestCase):
             self.assertNotIn("use_usp=True", global_stage + local_stage)
             self.assertNotIn("dist.get_rank()", global_stage + local_stage)
             self.assertIn("cfg_scale=args.cfg_scale", local_stage)
+            for stage in (global_stage, local_stage):
+                self.assertIn('"--cfg_scale",\n        type=float,', stage)
 
     def test_runtime_has_no_model_download_path(self) -> None:
         runner = (ADAPTER / "run.py").read_text(encoding="utf-8")

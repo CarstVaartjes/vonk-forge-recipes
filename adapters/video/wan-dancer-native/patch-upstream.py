@@ -124,6 +124,16 @@ def main() -> None:
     patch_stage(root / "gen_video/gen_video_global.py", "global_model.safetensors")
     patch_stage(root / "gen_video/gen_video_local.py", "local_model.safetensors")
 
+    # Upstream parses --cfg_scale as int, so any fractional guidance scale
+    # (including the adapter's 5.0 default) exits before loading a model. The
+    # pipelines take a float guidance scale.
+    for stage in ("gen_video_global.py", "gen_video_local.py"):
+        replace_once(
+            root / "gen_video" / stage,
+            '        "--cfg_scale",\n        type=int,',
+            '        "--cfg_scale",\n        type=float,',
+        )
+
     # Preserve the signed local-stage CFG argument instead of silently dropping it.
     local = root / "gen_video/gen_video_local.py"
     replace_once(

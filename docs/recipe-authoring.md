@@ -392,14 +392,18 @@ floor, and tests reject stale exceptions once they fit with the draft counted.
 `tests/test_single_spark_memory_headroom.py`, shares those constants and checks
 absolute single-node need with the measured draft floor. An absolute vLLM KV
 pool overrides cache sizing by utilization; the explicit startup budget is checked
-separately. Changed multi-Spark documents use the per-rank demand declaration below.
+separately. Changed multi-Spark documents use the per-rank demand declaration below;
+a changed multi-Spark SGLang document must also fit its sharded weights, resident
+expansion and capped token/state pools in `mem-fraction-static` × the lowest idle
+available bytes.
 Existing documents remain unchanged and receive informative warnings.
 
 SGLang profiles loaded weights before applying `max-total-tokens`. A fraction
 below the resident model size can therefore produce a negative hybrid-cache
 budget even with a short context. For a large hybrid model, cap both the token
-pool and `max-mamba-cache-size`, bound concurrency and disable graphs, then use
-a fraction that permits profiling. Budget the actual capped allocations,
+pool and `max-mamba-cache-size`, bound concurrency and disable graphs (or state
+in the description why capture stays in the non-static slack), then use a
+fraction that permits profiling. Budget the actual capped allocations,
 including state padding, index storage, resident weight expansion and runtime
 overhead; the fraction alone no longer describes that peak. Tie any geometry
 bound to the exact Model identity and test the pinned engine's sizing path with
