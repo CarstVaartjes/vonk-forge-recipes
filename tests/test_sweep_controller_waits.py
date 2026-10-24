@@ -32,19 +32,21 @@ OBSERVATION = next(
 )
 
 
-def controller_document(record, application_id):
+def controller_document(record, app):
     """A recorded wait as the Controller sends it for one application.
 
     The recordings keep only the blocker operation's kind; the Controller's
-    ``BlockingOperation`` always names its id too (its own child operation), so
-    each application waits behind its own operation unless the record names one.
+    ``BlockingOperation`` always names its id too (the load's own child
+    operation), so each load waits behind its own operation unless the record
+    names one.
     """
     document = deepcopy(record["controller_document"])
-    document["id"] = application_id
+    document["id"] = app["id"]
+    load = app.get("request_key") or app["id"]
     for blocker in document["wait"]["blockers"]:
         if "operation" in blocker:
             blocker["operation"].setdefault(
-                "id", str(uuid5(NAMESPACE_URL, f"{application_id}/child"))
+                "id", str(uuid5(NAMESPACE_URL, f"{load}/child"))
             )
     return document
 
@@ -59,7 +61,7 @@ SHARED["controller_document"]["wait"]["blockers"][0]["operation"]["id"] = (
 
 @pytest.mark.parametrize("row", RECORDS, ids=lambda row: row["recorded_at"])
 def test_exact_records_preserve_the_declared_wait_and_deadline(row) -> None:
-    document = controller_document(row, row["controller_document"]["id"])
+    document = controller_document(row, row["controller_document"])
     signal = verdict.application_signal(document)
     assert signal.wait is not None
     assert signal.wait.reason is SweepWaitReason.CONTROLLER_WAIT
@@ -129,7 +131,7 @@ def prepare(tmp_path, monkeypatch, *, second=False, record=COPY):
 
     def held_document(app):
         document = original(app)
-        document.update(controller_document(record, app["id"]))
+        document.update(controller_document(record, app))
         return document
 
     monkeypatch.setattr(fleet, "_app_doc", held_document)
@@ -350,7 +352,7 @@ def test_unscoped_wait_does_not_hold_alternative_placement(
 
 
 def test_operation_identity_does_not_depend_on_blocker_code_spelling() -> None:
-    document = controller_document(SHARED, "app")
+    document = controller_document(SHARED, {"id": "app"})
     document["wait"]["reason"] = "dependency-pending"
     signal = verdict.application_signal(document)
     assert signal.wait is not None and signal.wait.controller is not None
@@ -363,7 +365,7 @@ def test_operation_identity_does_not_depend_on_blocker_code_spelling() -> None:
 def test_every_operation_field_separates_wait_identity() -> None:
     # Guard: a correlating identity that drops an operation field (as it once
     # dropped the id) makes unrelated waits look like one shared dependency.
-    signal = verdict.application_signal(controller_document(SHARED, "app"))
+    signal = verdict.application_signal(controller_document(SHARED, {"id": "app"}))
     assert signal.wait is not None and signal.wait.controller is not None
     wait = signal.wait.controller
     for name in ControllerWaitOperation.model_fields:
@@ -412,7 +414,7 @@ def waits_behind_applications(tmp_path, monkeypatch, record):
         document = original(app)
         held = {row["alias"] for row in app.get("assign", [])} & {"a", "b"}
         if held and app["id"] not in resumed:
-            document.update(controller_document(record, app["id"]))
+            document.update(controller_document(record, app))
         return document
 
     monkeypatch.setattr(fleet, "_app_doc", observed)
