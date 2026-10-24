@@ -679,11 +679,13 @@ class FakeFleet:
         items: list[Any],
     ) -> dict[str, Any]:
         start = int(a[a.index("--cursor") + 1][1:]) if "--cursor" in a else 0
-        page = items[start : start + self.page_size]
-        more = start + self.page_size < len(items)
+        # The Controller honours --limit and may trim a page further (its byte cap).
+        size = min(int(a[a.index("--limit") + 1]), self.page_size)
+        page = items[start : start + size]
+        more = start + size < len(items)
         return {
             name: [row(i) for i in page],
-            "next_cursor": f"c{start + self.page_size}" if more else None,
+            "next_cursor": f"c{start + size}" if more else None,
             "library": {"commit": "lib-commit-1", "version": "2.1.0"},
         }
 
