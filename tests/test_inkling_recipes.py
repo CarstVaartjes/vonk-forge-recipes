@@ -249,6 +249,8 @@ def test_sglang_static_budget_profiles_resident_weights_and_capped_pools() -> No
     total_rest_memory=-6.49 GB. Pre-load free memory is estimated from idle
     MemAvailable (128,488,062,976 bytes) with 4 GiB less on the next start.
     """
+    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
+
     gib = 1 << 30
     failed_fraction, failed_rest = 0.696475667681, -6.49 * gib
     pre = 128_488_062_976
@@ -273,5 +275,5 @@ def test_sglang_static_budget_profiles_resident_weights_and_capped_pools() -> No
     assert fraction * (pre - 4 * gib) - resident >= pools
     for role in recipe["topology"]["roles"]:
         assert role["resources"]["memory"]["peak_bytes"] >= (
-            fraction * 130_663_231_488 + 8_000_000_000
+            fraction * TOTAL_BYTES + OVERHEAD_BYTES
         )
