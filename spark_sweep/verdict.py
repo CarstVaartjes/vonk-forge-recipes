@@ -32,7 +32,13 @@ from vonk_forge_contracts.sweep import SweepProgress as Progress
 
 from .auth_contract import SmokeAuthClass
 from .lifecycle import LifecycleState
-from .policy import CLIENT_CREDENTIAL, RECIPE_FAILURE_CODES, Failure, activity
+from .policy import (
+    CLIENT_CREDENTIAL,
+    RECIPE_FAILURE_CODES,
+    Failure,
+    activity,
+    forward_marks,
+)
 from .vonkctl import Reply
 
 
@@ -140,10 +146,13 @@ class Signal:
     the Controller's last-progress time, a run turning healthy). ``waiting_on`` names what
     the Controller reports owning while the work waits (a queue, admission, a blocker, a
     retry, a route publication); ``None`` means the work itself should be moving.
+    ``marks`` are the work's forward-only counters (``None``: not reported); only one
+    rising past its high-water mark renews a wait (``progress_verdict``).
     """
 
     signature: tuple[Any, ...]
     wait: SweepWait | None = None
+    marks: tuple[int | None, ...] = ()
 
     @property
     def waiting_on(self) -> str | None:
@@ -198,7 +207,7 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
         wait = SweepWait(reason=SweepWaitReason.BLOCKER, detail=held[0])
     elif document.get("next_attempt_at"):
         wait = SweepWait(reason=SweepWaitReason.CONTROLLER_RETRY)
-    return Signal(tuple(activity(document)), wait)
+    return Signal(tuple(activity(document)), wait, forward_marks(document))
 
 
 def stalled_detail(document: Mapping[str, Any]) -> str | None:
@@ -236,7 +245,8 @@ def download_signal(document: Mapping[str, Any]) -> Signal:
         wait = SweepWait(reason=SweepWaitReason.OPERATION_QUEUED)
     elif state == LifecycleState.BACKOFF:
         wait = SweepWait(reason=SweepWaitReason.OPERATION_BACKOFF)
-    return Signal(signature, wait)
+    marks = (progress.get("completed_bytes"), progress.get("completed_items"))
+    return Signal(signature, wait, marks)
 
 
 def _comparable(value: Any) -> Any:
@@ -292,18 +302,30 @@ def progress_verdict(
 ) -> Progress:
     """Own-work silence stalls; dependency waits expire through bounded_wait.
 
-    Work that moves under a wait (its signature advanced since the previous wait
-    observation) is progress: the wait's window restarts from that movement, so
-    moving work is bounded by how long it goes without moving, never by a fixed
-    budget. A changed reason, an own-work observation in between or an unreadable
-    observation is no movement and renews nothing.
+    A wait renews only when the waiting work moves strictly forward: one of its
+    ``marks`` rises above the highest value seen (``wait_marks``). The window then
+    restarts from that movement, so moving work is bounded by how long it goes
+    without moving. A retry that re-copies the same bytes, a flapping phase, a new
+    run, a changed reason or an unreadable observation raises no mark and renews
+    nothing; the Controller's ``dependency_deadline`` still caps every renewal.
     """
     signature = _comparable(signal.signature) if signal is not None else None
-    if signal is not None and signal.wait is not None:
-        if watch.get("wait_signature", signature) != signature:
+    if signal is not None:
+        seen = watch.get("wait_marks")
+        if not isinstance(seen, list) or len(seen) != len(signal.marks):
+            # A first look or an older watch records the marks and renews nothing.
+            seen = list(signal.marks)
+        rose = any(
+            value is not None and mark is not None and value > mark
+            for value, mark in zip(signal.marks, seen, strict=True)
+        )
+        watch["wait_marks"] = [
+            mark if value is None else value if mark is None else max(value, mark)
+            for value, mark in zip(signal.marks, seen, strict=True)
+        ]
+        if rose and signal.wait is not None:
             watch["wait_started_at"] = now
             watch.pop("wait_deadline", None)
-        watch["wait_signature"] = signature
     if signal is None or signal.wait is not None:
         wait = signal.wait if signal is not None else None
         return bounded_wait(
