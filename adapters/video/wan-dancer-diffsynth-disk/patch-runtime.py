@@ -24,6 +24,7 @@ def main() -> None:
         root / "diffsynth/core/loader/config.py",
         root / "diffsynth/core/data/__init__.py",
         root / "diffsynth/pipelines/wan_video.py",
+        root / "diffsynth/configs/vram_management_module_maps.py",
     )
     missing = [str(path.relative_to(root)) for path in required if not path.is_file()]
     if missing:
@@ -58,6 +59,19 @@ def main() -> None:
     value = config.read_text(encoding="utf-8")
     if "from modelscope" in value or "from huggingface_hub" in value:
         raise SystemExit("runtime downloader imports remain")
+
+    # Disk offload builds parameters on meta and only wrapped modules load them
+    # back. The WanToDance music encoder's nn.MultiheadAttention is not in the
+    # WanModel map, so its in_proj_weight/in_proj_bias stayed meta and the
+    # pipeline's `music_encoder.to(...)` failed. Wrap it as a whole module, as
+    # upstream already does for SiglipVisionModelSO400M.
+    replace_once(
+        required[5],
+        '    "diffsynth.models.wan_video_dit.WanModel": {\n',
+        '    "diffsynth.models.wan_video_dit.WanModel": {\n'
+        '        "torch.nn.MultiheadAttention": '
+        '"diffsynth.core.vram.layers.AutoWrappedModule",\n',
+    )
 
 
 if __name__ == "__main__":
