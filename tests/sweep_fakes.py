@@ -79,6 +79,11 @@ class FakeRecipe:
         0.0  # NAS to Spark distribution, before the install and start phases
     )
     copy_stalls: bool = False  # the copy stops making progress part-way
+    # Each copy attempt fails at 20 % and its retry restarts from 0: the per-attempt
+    # operation snapshot resets while the max-merged child bytes stay at 20 %.
+    copy_retries: bool = False
+    # The child flaps between two phases without moving a byte (recorded 2026-10-23).
+    phase_flap: bool = False
     start_progress: bool = False  # the start keeps reporting progress (it is just slow)
     orphan_seconds: float = (
         0.0  # after a cancel its run keeps showing on the Spark this long
@@ -1333,6 +1338,16 @@ class FakeFleet:
                 for x in data["assignments"]
                 if x["assignment_name"] not in running
             ),
+            "copy_retries": any(
+                self.recipes[x["recipe_selector"]].copy_retries
+                for x in data["assignments"]
+                if x["assignment_name"] not in running
+            ),
+            "phase_flap": any(
+                self.recipes[x["recipe_selector"]].phase_flap
+                for x in data["assignments"]
+                if x["assignment_name"] not in running
+            ),
         }
         data["latest"] = app_id
         self.by_request[request] = app_id
@@ -1342,24 +1357,63 @@ class FakeFleet:
         return 0, self._app_doc(self.apps[app_id])
 
     def _child_progress(self, app: dict[str, Any]) -> dict[str, Any]:
-        elapsed = self.clock.now() - app.get("created", 0)
+        """The Controller's child progress, shaped as run_switch_progress.py merges it.
+
+        ``bytes`` is the max-merged aggregate; ``operation`` is the current attempt's
+        snapshot, replaced on every merge (a retry resets it), whose
+        ``last_progress_at`` is restamped only when its bytes, items or phase advance.
+        """
+        now = self.clock.now()
+        elapsed = now - app.get("created", 0)
         copy = app.get("copy", 0.0)
+        total = 318 * 2**30
+
+        def stamp(at: float) -> str:
+            return datetime.fromtimestamp(at, UTC).isoformat()
+
         if app["state"] in ("queued", "running") and 0 < copy and elapsed < copy:
-            done = int(318 * 2**30 * elapsed / copy)
-            if app.get("copy_stalls"):
-                done = min(done, int(318 * 2**30 * 0.2))  # frozen at 20 %
+            moved_at = now
+            done = int(total * elapsed / copy)
+            attempt_bytes, retry = done, None
+            if app.get("copy_stalls") and done > total * 0.2:
+                done = attempt_bytes = int(total * 0.2)  # frozen at 20 %
+                moved_at = app["created"] + copy * 0.2
+            elif app.get("copy_retries"):
+                attempt = int(elapsed // (copy * 0.2))  # every attempt fails at 20 %
+                attempt_bytes = int(total * (elapsed - attempt * copy * 0.2) / copy)
+                done = max(attempt_bytes, int(total * 0.2) if attempt else 0)
+                retry = attempt + 1 if attempt else None
             return {
                 "phase": "target-copy",
                 "bytes": done,
-                "total_bytes": 318 * 2**30,
-                "operation": {"phase": "copying", "completed_bytes": done},
+                "total_bytes": total,
+                "retry_attempt": retry,
+                "operation": {
+                    "phase": "copying",
+                    "completed_bytes": attempt_bytes,
+                    "last_progress_at": stamp(moved_at),
+                },
+            }
+        if app.get("phase_flap") and app["state"] in ("queued", "running"):
+            flips = int(elapsed // 30)  # a phase change restamps the progress time
+            return {
+                "phase": "runtime-install",
+                "bytes": 0,
+                "operation": {
+                    "phase": ("prepare", "runtime-preflight")[flips % 2],
+                    "activity": "waiting",
+                    "completed_bytes": 0,
+                    "last_progress_at": stamp(app["created"] + flips * 30),
+                },
             }
         if app.get("start_progress") and app["state"] in ("queued", "running"):
+            items = int(elapsed // 60)
             return {
                 "phase": "start",
                 "operation": {
                     "phase": "start",
-                    "completed_items": int(elapsed // 60),
+                    "completed_items": items,
+                    "last_progress_at": stamp(app["created"] + items * 60),
                 },
             }
         return {"phase": app.get("phase")}

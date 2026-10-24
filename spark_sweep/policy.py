@@ -487,6 +487,24 @@ def activity(document: Mapping[str, Any]) -> tuple[Any, ...]:
     )
 
 
+def forward_marks(document: Mapping[str, Any]) -> tuple[int | None, ...]:
+    """The load's counters that only move forward while it really advances.
+
+    The Controller max-merges ``child_progress.bytes`` (run_switch_progress.py) and only
+    raises ``completed_steps``; ``operation`` is the child's per-attempt snapshot, which a
+    retry resets, so only its item count is kept and only as a high-water mark
+    (``verdict.progress_verdict``). Phases and progress times are not counters: they flap.
+    """
+    progress = document.get("progress") or {}
+    child = progress.get("child_progress") or {}
+    operation = child.get("operation") or {}
+    return (
+        child.get("bytes"),
+        progress.get("completed_steps"),
+        operation.get("completed_items"),
+    )
+
+
 # --------------------------------------------------------------------------
 # Failure classes, retry, clusters
 # --------------------------------------------------------------------------
