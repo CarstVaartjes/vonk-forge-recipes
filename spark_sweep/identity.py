@@ -40,6 +40,21 @@ class ControllerWaitHold(BaseModel):
     application_id: str
     next_check: float
     platform: dict[Owner, Fingerprint] = Field(default_factory=dict)
+    # This sweep's own load request the receipt answers: a successor is followed only
+    # within it, never into another recipe's load.
+    request_key: str | None = None
+    # Followed into the Controller's continuation: its first observed wait of the same
+    # reason is the new baseline (a successor has its own operation ids).
+    followed: bool = False
+    # Set once the receipt ended without a successor of its own: the recipe is
+    # planned again at ``not_before``, which grows with how long it has kept ending.
+    ended_since: float | None = None
+    not_before: float | None = None
+
+    @property
+    def live(self) -> bool:
+        """The receipt still waits; only a live receipt can prove or release a wait."""
+        return self.not_before is None
 
 
 def content_identity(recipe: Recipe) -> VerdictIdentity:

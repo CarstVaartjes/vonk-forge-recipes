@@ -405,7 +405,12 @@ def render_status(status: Mapping[str, Any]) -> str:
             lines.append(str(status["controller_wait_issue"]))
         lines += [
             f"- {key}: {hold['wait']['controller']['reason']}; "
-            f"next observation in {_duration(max(0, hold['next_check'] - status['updated_at']))}"
+            + (
+                f"next observation in {_duration(max(0, hold['next_check'] - status['updated_at']))}"
+                if hold.get("not_before") is None
+                else "receipt ended; planned again at "
+                f"{datetime.fromtimestamp(hold['not_before'], UTC).isoformat()}"
+            )
             for key, hold in status["controller_waits"].items()
         ]
     if status.get("infrastructure"):

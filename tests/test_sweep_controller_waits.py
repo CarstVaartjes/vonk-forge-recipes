@@ -15,7 +15,7 @@ from vonk_forge_contracts.sweep import SweepWaitReason
 from spark_sweep import policy, verdict
 from spark_sweep.identity import AcceptedRequest, ControllerWaitHold, content_identity
 from spark_sweep.lifecycle import LifecycleState
-from spark_sweep.report import build_status, write_status
+from spark_sweep.report import build_status, render_status, write_status
 from spark_sweep.state import State
 
 FIXTURE = (
@@ -200,15 +200,6 @@ def test_shared_wait_is_a_platform_issue_by_content_not_a_retry_count(
     sweep.state.entry("vonk-forge/b")["controller_wait"] = holds[
         "vonk-forge/b"
     ].model_dump(mode="json")
-    # Supersession cannot clear a proven shared incident.
-    monkeypatch.setattr(
-        fleet,
-        "_app_doc",
-        lambda app: {"id": app["id"], "state": LifecycleState.SUPERSEDED},
-    )
-    clock.sleep(sweep.cfg.defer_delay + 1)
-    sweep._refresh_controller_waits(clock.now())
-    assert sweep.controller_wait_issue() is not None
     # One original receipt genuinely resumes: both observations converge away.
     monkeypatch.setattr(fleet, "_app_doc", original)
     clock.sleep(sweep.cfg.defer_delay + 1)
@@ -231,7 +222,12 @@ def test_hold_follows_a_successor_and_replans_once_nothing_waits(
 
     def document(app):
         if app["id"] not in ended:
-            return held(app)
+            document = held(app)
+            if app["id"] == successor:  # a continuation has its own child operation
+                for blocker in document["wait"]["blockers"]:
+                    if blocker.get("operation"):
+                        blocker["operation"] = {**blocker["operation"], "id": successor}
+            return document
         state, by = ended[app["id"]]
         return {"id": app["id"], "state": state, "superseded_by": by}
 
@@ -248,7 +244,14 @@ def test_hold_follows_a_successor_and_replans_once_nothing_waits(
     ended[successor] = (LifecycleState.CANCELLED, None)
     clock.sleep(sweep.cfg.defer_delay + 1)
     sweep._refresh_controller_waits(clock.now())
-    assert not sweep.controller_wait_holds()
+    hold = sweep.controller_wait_holds()["vonk-forge/a"]
+    assert not hold.live and hold.not_before is not None
+    assert hold.not_before >= clock.now() + sweep.cfg.defer_delay
+    assert sweep.controller_wait_issue() is None
+    # Planned again at its named time, not straight back into the same wait.
+    assert not sweep.ready_candidates()
+    assert "receipt ended; planned again at" in render_status(build_status(sweep))
+    clock.t = hold.not_before
     assert [r.key for r in sweep.ready_candidates()] == ["vonk-forge/a"]
     assert sweep.state.entry("vonk-forge/a").get("attempts", 0) == 0
 

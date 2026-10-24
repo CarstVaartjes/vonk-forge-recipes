@@ -395,13 +395,21 @@ def test_pending_admission_protects_profile_then_releases_other_lane(tmp_path, b
         assert entry["controller_wait"]["application_id"] == application
         assert entry.get("attempts", 0) == 0
         assert clock.now() <= slot["watch"]["wait_deadline"] + 10
-        # B's save retired A's unbound admission (no successor): nothing waits on
-        # that receipt any more, so A is planned afresh rather than held for ever.
+        # B's request retired A's unbound admission: nothing waits on that receipt
+        # any more (B's load is not A's), so A is planned again at a named time
+        # rather than held for ever.
+        for _ in range(4):
+            if not sweep.controller_wait_holds()[a.key].live:
+                break
+            clock.sleep(fleet.admission_retry_seconds)
+            sweep._refresh_controller_waits(clock.now())
         assert [app for _, app in edits] == [application]
         assert fleet.apps[application]["state"] == LifecycleState.SUPERSEDED
-        clock.sleep(sweep.cfg.defer_delay + 1)
-        sweep._refresh_controller_waits(clock.now())
-        assert "controller_wait" not in sweep.state.entry(a.key)
+        hold = sweep.controller_wait_holds()[a.key]
+        assert hold.application_id == application
+        assert not hold.live and hold.not_before is not None
+        assert a.key not in {r.key for r in sweep.ready_candidates()}
+        clock.t = hold.not_before
         assert a.key in {r.key for r in sweep.ready_candidates()}
     assert build_status(sweep)["profile_edit_wait"] is None
 

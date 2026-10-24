@@ -39,13 +39,21 @@ def unreadable_owner(sweep, monkeypatch, *, timeout: bool = False) -> list[int]:
 
 
 @pytest.mark.parametrize("timeout", [False, True])
+@pytest.mark.parametrize("wave", [False, True])
 def test_two_hour_owner_outage_does_not_stop_scheduling(
-    tmp_path: Path, monkeypatch, timeout: bool
+    tmp_path: Path, monkeypatch, timeout: bool, wave: bool
 ) -> None:
-    # Bound loads that pass in waves: scheduling keeps placing through the outage.
-    recipes = [FakeRecipe(f"r{i}", local="cached", load_seconds=3500) for i in range(4)]
+    # A recipe the Controller holds for ever is planned again through the outage;
+    # bound loads passing in waves keep the lanes placing.
+    recipes = (
+        [FakeRecipe(f"r{i}", local="cached", load_seconds=3500) for i in range(4)]
+        if wave
+        else [
+            FakeRecipe("a", ("1" * 64,), content="a" * 64, local="cached", blocked=True)
+        ]
+    )
     sweep, fleet, clock = make_sweep(
-        tmp_path, recipes, [FakeModel("m1", local="cached")]
+        tmp_path, recipes, [FakeModel("m1" if wave else "1" * 64, local="cached")]
     )
     reads = unreadable_owner(sweep, monkeypatch, timeout=timeout)
     sweep.preflight()

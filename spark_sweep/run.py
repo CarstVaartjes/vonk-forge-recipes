@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import random
 import signal
 import threading
 import time
@@ -120,6 +121,8 @@ TAKEOVER_RETRY_SECONDS = 30.0
 SKEW_CHECK_INTERVAL = 300.0
 INFRA_BASE = 30.0
 INFRA_CAP = 600.0
+# Ceiling of the growing re-plan delay after a wait receipt ended without a successor.
+ENDED_RECEIPT_REPLAN_CAP = 3600.0
 RETEST_SECONDS = 24 * 3600.0
 ENDPOINT_RECHECK_SECONDS = 20.0
 # A results row carries the Controller document it ended on, bounded.
@@ -2784,11 +2787,18 @@ class Sweep:
             and load is not None
             and load.get("app_id")
         ):
+            identity = current_identity(accepted.recipe)
+            previous = self.controller_wait_holds().get(key)
             hold = ControllerWaitHold(
                 wait=expiry.wait,
-                identity=current_identity(accepted.recipe),
+                identity=identity,
                 application_id=load["app_id"],
                 next_check=self.clock.now() + self.cfg.defer_delay,
+                request_key=slot["request_key"],
+                # Content that kept ending keeps its re-plan pace.
+                ended_since=previous.ended_since
+                if previous is not None and previous.identity == identity
+                else None,
                 platform=load.get("wait_platform")
                 or {
                     owner: fingerprint
@@ -3155,7 +3165,11 @@ class Sweep:
             entry = self.state.recipes.get(key, {})
             if recipe is None or not self.ready(recipe) or key in self.state.slots:
                 continue
-            if key in waits and waits[key].identity == current_identity(recipe):
+            if (
+                key in waits
+                and waits[key].identity == current_identity(recipe)
+                and (waits[key].live or now < float(waits[key].not_before or 0))
+            ):
                 continue  # re-observe the original receipt, never replay unchanged intent
             if self.lanes_short(recipe):
                 continue  # waits for its lanes to come online; the online ones carry on
@@ -3394,7 +3408,8 @@ class Sweep:
         }
 
     def controller_wait_issue(self) -> str | None:
-        holds = list(self.controller_wait_holds().values())
+        # An ended receipt never resumes: it can neither prove nor release an incident.
+        holds = [hold for hold in self.controller_wait_holds().values() if hold.live]
         for hold in holds:
             controller = hold.wait.controller
             if controller is None or controller.identity is None:
@@ -3430,6 +3445,10 @@ class Sweep:
                     f"deployed platform changed for {key}; re-planning placement"
                 )
                 continue
+            if not hold.live:
+                if self.state.entry(key).get("status") != RecipeStatus.PENDING:
+                    self.state.entry(key).pop("controller_wait", None)  # a verdict
+                continue  # planned again at its not_before; nothing left to observe
             if now < hold.next_check:
                 continue
             hold.next_check = now + self.cfg.defer_delay
@@ -3455,24 +3474,34 @@ class Sweep:
                 document.get("state") in SETTLED
                 and document.get("state") != LifecycleState.SUCCEEDED
             ):
-                # An ending is no recovery proof. A successor carries the wait;
-                # without one nothing waits any more, so re-plan unless shared.
+                # An ending is no recovery proof. The Controller's continuation of
+                # this request carries the wait (as the poll path follows it); another
+                # recipe's load does not, and then nothing waits on this receipt.
                 replaced = policy.supersession(document)
-                if replaced is not None and replaced.successor is not None:
-                    hold.application_id = replaced.successor
-                    self.state.entry(key)["controller_wait"] = hold.model_dump(
-                        mode="json"
-                    )
-                elif self.controller_wait_issue() is None:
-                    self.state.entry(key).pop("controller_wait", None)
-                    self.state.event(
-                        f"Controller wait receipt for {key} ended "
-                        f"{document.get('state')} without a successor; re-planning"
-                    )
+                successor = replaced.successor if replaced is not None else None
+                if successor not in (None, document["id"]) and self._own_load_request(
+                    str(successor)
+                ) in (None, hold.request_key):
+                    hold.application_id = str(successor)
+                    hold.followed = True
+                else:
+                    self._replan_ended(key, hold, document, now)
+                self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
                 continue
             signal = verdict.application_signal(document)
             observed = signal.wait.controller if signal.wait is not None else None
             previous = hold.wait.controller
+            if (
+                hold.followed
+                and signal.wait is not None
+                and observed is not None
+                and previous is not None
+                and observed.reason == previous.reason
+                and document.get("state") != LifecycleState.SUCCEEDED
+            ):
+                hold.wait, hold.followed = signal.wait, False
+                self.state.entry(key)["controller_wait"] = hold.model_dump(mode="json")
+                continue
             resumed = (
                 signal.wait is None or document.get("state") == LifecycleState.SUCCEEDED
             )
@@ -3491,10 +3520,37 @@ class Sweep:
         # One original receipt resuming is behaviour proof for the shared dependency.
         for key, hold in self.controller_wait_holds().items():
             if (
-                hold.wait.controller is not None
+                hold.live
+                and hold.wait.controller is not None
                 and hold.wait.controller.identity in recovered
             ):
                 self.state.entry(key).pop("controller_wait", None)
+
+    def _replan_ended(
+        self,
+        key: str,
+        hold: ControllerWaitHold,
+        document: Mapping[str, Any],
+        now: float,
+    ) -> None:
+        """Plan a recipe whose wait receipt ended again later, never straight back.
+
+        The unchanged recipe would meet the same admission wait at once. The delay is
+        as long as it has kept ending (doubling by time, no attempt count), jittered,
+        from the sweep's retry pace up to ENDED_RECEIPT_REPLAN_CAP.
+        """
+        since = hold.ended_since if hold.ended_since is not None else now
+        delay = min(ENDED_RECEIPT_REPLAN_CAP, max(self.cfg.defer_delay, now - since))
+        hold.ended_since = since
+        hold.not_before = now + delay * random.uniform(1.0, 1.25)
+        successor = document.get("superseded_by")
+        self.state.event(
+            f"Controller wait receipt {hold.application_id} for {key} ended "
+            f"{document.get('state')}"
+            + (f" (taken over by application {successor})" if successor else "")
+            + "; planning it again at "
+            + datetime.fromtimestamp(hold.not_before, UTC).isoformat()
+        )
 
     def schedule(self, now: float) -> None:
         self.state.data.pop("dual_reservation", None)
