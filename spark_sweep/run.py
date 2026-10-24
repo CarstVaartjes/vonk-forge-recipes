@@ -2174,6 +2174,7 @@ class Sweep:
         load["signal"] = {
             "signature": list(signal.signature),
             "wait": signal.wait.model_dump(mode="json") if signal.wait else None,
+            "marks": list(signal.marks),
         }
         load["stalled"] = verdict.stalled_detail(document)
         failure = document.get("failure") or {}
@@ -2324,7 +2325,8 @@ class Sweep:
         """What the slot's load is doing: PROGRESSING, WAITING or STALLED (``progress_verdict``).
 
         Moving copies retain their inactivity window. Dependency waits use the lane
-        budget from admission; changing reasons and unreadable observations cannot extend it.
+        budget from admission, restarted only when a forward-only counter rises; changing
+        reasons, retries and unreadable observations cannot extend it.
         """
         load = self.state.data["loads"].get(slot["request_key"])
         elapsed = now - float(slot.get("last_tick", slot["started_at"]))
@@ -2360,6 +2362,7 @@ class Sweep:
             SweepWait.model_validate(load["signal"]["wait"])
             if load["signal"].get("wait")
             else None,
+            tuple(load["signal"].get("marks") or ()),
         )
         if (
             copying
@@ -2388,7 +2391,8 @@ class Sweep:
 
         A healthy run whose route is not published yet waits on the Controller's route
         publication; a run that is missing or unhealthy is the recipe's own work and stalls
-        after the lane's window without any change.
+        after the lane's window without any change. The publication wait has no forward
+        counter, so a new run or route state never renews it.
         """
         prior = set(slot.get("prior_runs", ()))
         found = [
@@ -4024,11 +4028,13 @@ class Sweep:
             f" ({slot.get('watch', {}).get('waiting_on') or 'admission not yet bound'})"
             for slot in loading
         ]
-        watch = self.state.data.setdefault("profile_edit_wait", {})
         now = self.clock.now()
-        since = float(watch.setdefault("wait_started_at", now))
-        # The lane owns this bound; resumed progress may replace an old dependency wait.
-        watch["wait_deadline"] = deadline
+        since = float(
+            (self.state.data.get("profile_edit_wait") or {}).get("wait_started_at", now)
+        )
+        # The lane owns this bound, re-derived each pass: resumed progress may replace
+        # an old dependency wait, so the watch starts fresh from the same start.
+        watch = self.state.data["profile_edit_wait"] = {}
         progress = verdict.bounded_wait(
             SweepWait(
                 reason=SweepWaitReason.ADMISSION,
@@ -4037,6 +4043,7 @@ class Sweep:
             watch,
             window=deadline - since,
             now=now,
+            started_at=since,
         )
         if progress is Progress.WAIT_EXPIRED:
             self.state.data.pop("profile_edit_wait", None)
