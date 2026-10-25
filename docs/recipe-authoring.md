@@ -939,7 +939,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_recipe_releases.py`, `tests/test_recipe_refresh_repairs.py` | Current release metadata, valid dates/version shape and bounded source closure. Correct release data or repair the specific refresh regression. |
 | `tests/test_job_writable_paths.py`, `tests/test_adapter_output_staging.py`, `tests/test_local_media_path_exists.py` | Managed writable paths, atomic outputs, existing local media inputs. Fix path handling; do not add root/broad-write workarounds. |
 | `tests/test_job_runtime_toolchain.py`, `tests/test_cuda_extension_builds.py`, `tests/test_torchaudio_torchcodec.py` | Required compilers, ABI-compatible media/native dependencies and build flags exist. Fix the locked image environment and import/build smoke. |
-| `tools/prepare-remote-code-smoke`, `tests/test_remote_code_build_smoke.py` | Pinned selected remote Python modules pass check_imports in the installed image. Add hash-locked dependencies and build-time native import checks, not runtime installation. |
+| `tools/prepare-remote-code-smoke`, `tests/test_remote_code_build_smoke.py` | Pinned selected remote Python modules that the recipe's engine imports pass check_imports in the installed image. Add hash-locked dependencies and build-time native import checks, not runtime installation. |
 | `tests/test_recipe_packages.py`, `tests/test_recipe_package_closure.py`, `tests/test_exact_model_file_closure.py`, `tests/test_explicit_hf_file_manifest_closure.py` | Self-contained source/fixture/Model closure, deterministic bytes, no weights/OCI payloads. Include required local inputs and recalculate generated manifests through the builder. |
 | `tests/test_qualification_definitions_loader.py`, `tests/test_qualification_index.py`, `tests/test_qualification_case_assertions.py`, `tests/test_qualification_service_aliases.py` | Every recipe is defined/scheduled; ids, aliases, fixtures and assertions resolve. Repair the per-recipe source definition, not generated outputs. |
 | `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
@@ -1010,10 +1010,13 @@ installed environment on modules named by `auto_map` in the selected `config.jso
 `tokenizer_config.json`, `processor_config.json`, `preprocessor_config.json` and
 `video_preprocessor_config.json`,
 plus their relative imports (including processor dependencies), before adding
-the platform layer or pushing. Engine plugins outside that graph belong to the
-engine's build/import checks. The check fetches only pinned configs and source
-code and verifies the Model's hash and size; it loads no weights and requires no
-GPU. Keep remote-code dependencies hash-locked
+the platform layer or pushing. vLLM and SGLang build registered architectures
+natively, so their `AutoModel*` entries are checked only with `model-impl`
+`transformers` or SGLang `modelopt-quant`; other engines check every entry.
+Engine plugins outside that graph belong to the engine's build/import checks.
+The check fetches only pinned configs and source code and verifies the Model's
+hash and size; it loads no weights and requires no GPU. Keep remote-code
+dependencies hash-locked
 and import native decoders during the Dockerfile build so missing wheels or
 shared libraries fail before qualification.
 

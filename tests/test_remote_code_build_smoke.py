@@ -20,6 +20,16 @@ MOSS = ROOT / "adapters/video/moss-vl-realtime"
 KEY = "a" * 64
 
 
+def emitted_model_code(program: str) -> list[str]:
+    for node in ast.parse(program).body:
+        if (
+            isinstance(node, ast.Assign)
+            and ast.unparse(node.targets[0]) == "MODEL_CODE"
+        ):
+            return ast.literal_eval(node.value)
+    raise AssertionError("MODEL_CODE missing")
+
+
 def test_moss_has_hash_locked_arm64_torchcodec_and_imports_native_decoder() -> None:
     lock = (MOSS / "requirements.lock").read_text()
     assert "torchcodec-0.17.0%2Bcpu-cp312-cp312-manylinux_2_27_aarch64" in lock
@@ -68,6 +78,8 @@ def test_moss_smoke_covers_pinned_model_and_processor_imports(tmp_path: Path) ->
         for item in files
     )
     assert "check_imports(str(path))" in program
+    # pytorch-pipeline loads the model through Transformers' AutoModel.
+    assert emitted_model_code(program) == ["moss-vl-realtime-11b-bf16-d1f71a58"]
     assert "video_processing_moss_vl.py" in program
     assert "video_preprocessor_config.json" in program
 
@@ -87,7 +99,9 @@ def test_image_workflow_checks_imports_before_platform_layer_and_push() -> None:
     )
 
 
-def run_smoke(tmp_path: Path, sources: dict[str, bytes]) -> list[str]:
+def run_smoke(
+    tmp_path: Path, sources: dict[str, bytes], model_code: list[str]
+) -> list[str]:
     """Run the emitted program on pinned bytes without installing model engines."""
     files = []
     for name, content in sources.items():
@@ -97,10 +111,12 @@ def run_smoke(tmp_path: Path, sources: dict[str, bytes]) -> list[str]:
         files.append(
             (path.as_uri(), hashlib.sha256(content).hexdigest(), len(content), name)
         )
-    return execute_smoke(tmp_path, files)
+    return execute_smoke(tmp_path, files, model_code)
 
 
-def execute_smoke(tmp_path: Path, files: list[tuple[str, str, int, str]]) -> list[str]:
+def execute_smoke(
+    tmp_path: Path, files: list[tuple[str, str, int, str]], model_code: list[str]
+) -> list[str]:
     module = types.ModuleType("transformers.dynamic_module_utils")
     checked: list[str] = []
 
@@ -121,7 +137,7 @@ def execute_smoke(tmp_path: Path, files: list[tuple[str, str, int, str]]) -> lis
 
     module.__dict__["check_imports"] = check_imports
     script = tmp_path / "remote-code-smoke.py"
-    script.write_text(TOOL["CHECK"].format(files=files))
+    script.write_text(TOOL["CHECK"].format(files=files, model_code=model_code))
     with patch.dict(sys.modules, {"transformers.dynamic_module_utils": module}):
         runpy.run_path(str(script))
     return checked
@@ -146,6 +162,7 @@ def test_nemotron_auto_map_excludes_engine_parser(tmp_path: Path, parser: str) -
             "modeling_nemotron_h.py": b"from .configuration_nemotron_h import NemotronHConfig\n",
             parser: b"import absent_vllm_engine_dependency\n",
         },
+        ["."],
     )
     assert set(checked) == {"configuration_nemotron_h.py", "modeling_nemotron_h.py"}
     assert len(checked) == 2
@@ -164,7 +181,7 @@ def test_moss_processor_and_video_auto_maps_are_checked(
         "video_processing_moss_vl.py": b"from .processing_moss_vl import MossVLProcessor\n",
         "unused_plugin.py": b"import absent_engine_dependency\n",
     }
-    assert set(run_smoke(tmp_path, sources)) == {
+    assert set(run_smoke(tmp_path, sources, ["."])) == {
         "modeling_moss_vl.py",
         "configuration_moss_vl.py",
         "processing_moss_vl.py",
@@ -172,7 +189,7 @@ def test_moss_processor_and_video_auto_maps_are_checked(
     }
     sources["video_processing_moss_vl.py"] = b"import absent_torchcodec_dependency\n"
     with pytest.raises(ImportError, match="absent_torchcodec_dependency"):
-        run_smoke(tmp_path, sources)
+        run_smoke(tmp_path, sources, ["."])
 
 
 def test_all_config_roots_tokenizer_pairs_and_model_isolation(tmp_path: Path) -> None:
@@ -188,7 +205,7 @@ def test_all_config_roots_tokenizer_pairs_and_model_isolation(tmp_path: Path) ->
         "two/config.json": b"{}",
         "two/configuration.py": b"import absent_engine_dependency\n",
     }
-    assert set(run_smoke(tmp_path, sources)) == {
+    assert set(run_smoke(tmp_path, sources, [])) == {
         "configuration.py",
         "tokenization.py",
         "processing.py",
@@ -214,13 +231,15 @@ def test_smoke_fails_on_missing_dependency_or_changed_source(
             (source.as_uri(), hashlib.sha256(content).hexdigest(), len(content), name)
         )
     with pytest.raises(RuntimeError if corrupt else ImportError):
-        execute_smoke(tmp_path, files)
+        execute_smoke(tmp_path, files, ["."])
 
 
 def test_smoke_does_not_fetch_unselected_auto_map_module(tmp_path: Path) -> None:
     assert (
         run_smoke(
-            tmp_path, {"config.json": b'{"auto_map":{"AutoModel":"unselected.Model"}}'}
+            tmp_path,
+            {"config.json": b'{"auto_map":{"AutoModel":"unselected.Model"}}'},
+            ["."],
         )
         == []
     )
@@ -234,4 +253,97 @@ def test_smoke_requires_selected_relative_import(tmp_path: Path) -> None:
                 "config.json": b'{"auto_map":{"AutoModel":"modeling.Model"}}',
                 "modeling.py": b"from .unselected import Dependency\n",
             },
+            ["."],
         )
+
+
+# DSpark drafters (RadixArk/Inkling-Small-DSpark-Preview, Qwen3.8-27B-DSpark)
+# map only AutoModel to a module that needs specforge. vLLM and SGLang serve
+# the registered architecture natively and never import it.
+DSPARK = {
+    "config.json": b'{"architectures":["DSparkDraftModel"],"auto_map":{"AutoModel":"dspark.DSparkDraftModel"}}',
+    "dspark.py": b"import absent_specforge_dependency\n",
+}
+
+
+def test_native_engine_skips_auto_model_only_auto_map(tmp_path: Path) -> None:
+    assert run_smoke(tmp_path, DSPARK, []) == []
+    with pytest.raises(ImportError, match="absent_specforge_dependency"):
+        run_smoke(tmp_path / "transformers", DSPARK, ["."])
+
+
+def test_native_engine_still_refuses_unpinned_external_auto_model(
+    tmp_path: Path,
+) -> None:
+    config = b'{"auto_map":{"AutoModel":"other/repo--dspark.DSparkDraftModel"}}'
+    with pytest.raises(ValueError, match="unpinned external auto_map"):
+        run_smoke(tmp_path, {"config.json": config}, [])
+
+
+def test_native_engine_still_verifies_config_bytes(tmp_path: Path) -> None:
+    files = []
+    for name, content in DSPARK.items():
+        source = tmp_path / name
+        source.write_bytes(content + b" ")
+        files.append(
+            (source.as_uri(), hashlib.sha256(content).hexdigest(), len(content), name)
+        )
+    with pytest.raises(RuntimeError, match="content mismatch"):
+        execute_smoke(tmp_path, files, [])
+
+
+def test_native_engine_still_checks_auto_config(tmp_path: Path) -> None:
+    sources = {
+        "config.json": b'{"auto_map":{"AutoConfig":"configuration.Config","AutoModelForCausalLM":"modeling.Model"}}',
+        "configuration.py": b"import json\n",
+        "modeling.py": b"import absent_engine_unused_dependency\n",
+    }
+    assert run_smoke(tmp_path, sources, []) == ["configuration.py"]
+    sources["configuration.py"] = b"import absent_config_dependency\n"
+    with pytest.raises(ImportError, match="absent_config_dependency"):
+        run_smoke(tmp_path / "missing", sources, [])
+
+
+def recipe(source: str) -> RecipeDefinition:
+    return RecipeDefinition.model_validate_json((ROOT / source).read_bytes())
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "recipes/inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual.json",
+        "recipes/inkling-small-nvfp4-sglang-mia-dual.json",
+        "recipes/inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual.json",
+        "recipes/qwen3-8-27b-nvfp4-dspark-sglang-single.json",
+    ],
+)
+def test_dspark_recipes_do_not_import_drafter_model_code(
+    tmp_path: Path, source: str
+) -> None:
+    plan = TOOL["Plan"].model_validate(
+        {"images": [{"build_key": KEY, "recipes": [{"source_path": source}]}]}
+    )
+    TOOL["prepare"](plan, tmp_path)
+    assert (
+        emitted_model_code((tmp_path / KEY / "remote-code-smoke.py").read_text()) == []
+    )
+
+
+def test_transformers_backend_imports_remote_model() -> None:
+    native = recipe("recipes/inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual.json")
+    assert not TOOL["imports_remote_model"](native)
+    for name, value, imports in (
+        ("model-impl", "auto", False),
+        ("model-impl", "vllm", False),
+        ("model-impl", "transformers", True),
+        ("modelopt-quant", "fp8", True),
+    ):
+        runtime = native.runtime.model_dump()
+        runtime["arguments"].append({"name": name, "value": value})
+        changed = native.model_copy(
+            update={"runtime": type(native.runtime).model_validate(runtime)}
+        )
+        assert TOOL["imports_remote_model"](changed) is imports
+    assert TOOL["imports_remote_model"](
+        recipe("recipes/moss-vl-realtime-11b-pytorch-single.json")
+    )
