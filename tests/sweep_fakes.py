@@ -118,6 +118,118 @@ class FakeRecipe:
         return f"vonk-forge/{self.slug}"
 
 
+#: progress_stall.PROGRESS_STALL_WINDOW (settings.PROFILE_STALL_WINDOW_SECONDS).
+PROGRESS_STALL_WINDOW = 1800.0
+#: ProgressAlarmCode.STALLED.
+STALLED = "progress.stalled"
+#: progress_stall.WAITING_STATES.
+_STALL_STATES = ("queued", "running", "backoff")
+
+
+class StallAlarm:
+    """The Controller's stall alarm on a waiting application (vonk-forge #1899).
+
+    Only the stall is stored (``next_stall``): which wait it is (state, step, child
+    operation, completed steps, admission, each wait blocker's code and Sparks) and,
+    per child phase, the highest child bytes, operation bytes, items and activity
+    reached. A new wait, a phase not seen yet or a new high restarts the window; a
+    retry rising again below its old mark, a flapping operation phase or a fresh
+    progress time does not. At read time (application_projection.py) a stall older
+    than ``PROGRESS_STALL_WINDOW`` appends one ``progress.stalled`` blocker last,
+    after the wait it repeats, to the view's ``blockers``, ``progress.blockers`` and
+    ``wait.blockers`` alike; the application keeps its state. Install it after any
+    wait overlay: it observes what the Controller would show.
+    """
+
+    def __init__(self, fleet: Any) -> None:
+        self.fleet = fleet
+        self.stalls: dict[str, dict[str, Any]] = {}
+        self.alarmed: list[tuple[float, str]] = []
+
+    def install(self, monkeypatch: Any) -> StallAlarm:
+        shown = self.fleet._app_doc
+        monkeypatch.setattr(self.fleet, "_app_doc", lambda app: self.view(shown(app)))
+        return self
+
+    @staticmethod
+    def _marks(previous: dict[Any, list[int]], child: dict[str, Any]) -> dict:
+        if not child:
+            return dict(previous)
+        operation = child.get("operation") or {}
+        counters = [
+            child.get("bytes") or 0,
+            operation.get("completed_bytes") or 0,
+            operation.get("completed_items") or 0,
+            operation.get("activity_sequence") or 0,
+        ]
+        old = previous.get(child.get("phase"), [0, 0, 0, 0])
+        return {
+            **previous,
+            child.get("phase"): [max(a, b) for a, b in zip(old, counters, strict=True)],
+        }
+
+    def view(self, document: dict[str, Any]) -> dict[str, Any]:
+        now = self.fleet.clock.now()
+        progress = document.setdefault("progress", {})
+        wait = document.get("wait")
+        causes = [b for b in progress.get("blockers") or [] if b.get("code") != STALLED]
+        seen = {(b.get("code"), tuple(sorted(b.get("node_ids") or []))) for b in causes}
+        waits = [
+            *causes,
+            *(
+                b
+                for b in (wait or {}).get("blockers") or []
+                if b.get("code") != STALLED
+                and (b.get("code"), tuple(sorted(b.get("node_ids") or []))) not in seen
+            ),
+        ]
+        if document.get("state") not in _STALL_STATES or not waits:
+            self.stalls.pop(document["id"], None)
+            return document
+        signature = json.dumps(
+            [
+                document.get("state"),
+                document.get("current_step"),
+                document.get("current_operation_id"),
+                progress.get("completed_steps"),
+                progress.get("admission_pending"),
+                sorted((b.get("code"), sorted(b.get("node_ids") or [])) for b in waits),
+            ],
+            default=str,
+        )
+        child = progress.get("child_progress") or {}
+        previous = self.stalls.get(document["id"])
+        if previous is None or previous["signature"] != signature:
+            stall = {"signature": signature, "first_seen_at": now, "marks": {}}
+            stall["marks"] = self._marks({}, child)
+        else:
+            stall = previous
+            marks = self._marks(previous["marks"], child)
+            if marks != previous["marks"]:
+                stall.update(first_seen_at=now, marks=marks)
+        stall["detail"] = f"{waits[0].get('code')}: {waits[0].get('detail')}"[:512]
+        self.stalls[document["id"]] = stall
+        if now - stall["first_seen_at"] <= PROGRESS_STALL_WINDOW:
+            return document
+        first = datetime.fromtimestamp(stall["first_seen_at"], UTC).isoformat()
+        alarm = {
+            "code": STALLED,
+            "severity": "error",
+            "detail": f"No progress since {first}: {stall['detail']}",
+        }
+        self.alarmed.append((now, document["id"]))
+        held = (
+            [b for b in wait.get("blockers") or [] if b.get("code") != STALLED]
+            if wait is not None
+            else causes
+        )
+        progress["blockers"] = [*held, alarm]
+        document["blockers"] = [*held, alarm]
+        if wait is not None:
+            wait["blockers"] = [*held, alarm]
+        return document
+
+
 @dataclass
 class Gateway:
     """An OpenAI-compatible endpoint on loopback; aliases in ``broken`` answer 500."""

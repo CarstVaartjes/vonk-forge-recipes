@@ -5,8 +5,10 @@ wait (its run-switch child pending) while the distribution moved, froze, retried
 flapped. The Controller still works that receipt, so neither the lane's local window nor
 a dependency deadline the Controller does not act on releases it: releasing would prune
 its assignment and the sweep's next load would supersede the receipt. The receipt's own
-end or the Controller's stall alarm does. Forward-only marks still renew other waits
-(``test_only_a_rising_mark_renews_a_wait``).
+end or the Controller's stall alarm does: one ``PROGRESS_STALL_WINDOW`` after the last
+new high or new child phase (``StallAlarm``, the alarm of vonk-forge #1899, which this
+behaviour depends on for wait-only receipts). Forward-only marks still renew other
+waits (``test_only_a_rising_mark_renews_a_wait``).
 """
 
 from __future__ import annotations
@@ -18,7 +20,16 @@ from itertools import pairwise
 from pathlib import Path
 
 import pytest
-from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import (
+    GB,
+    PROGRESS_STALL_WINDOW,
+    STALLED,
+    FakeModel,
+    FakeRecipe,
+    Gateway,
+    StallAlarm,
+    make_sweep,
+)
 from vonk_forge_contracts.sweep import SweepWait, SweepWaitCode, SweepWaitReason
 
 from spark_sweep import verdict
@@ -149,29 +160,13 @@ def test_bytes_moving_under_a_controller_wait_outlast_the_lane_budget(
     assert not any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
 
 
-def _alarm(fleet, monkeypatch) -> None:
-    """The Controller raises its read-time stall alarm on every running application.
-
-    On a ``receipt-missing`` wait this needs the Controller change that raises
-    ``progress.stalled`` for wait-only applications (receipt-missing,
-    STOP_UNCONFIRMED) after PROFILE_STALL_WINDOW; today it reads progress.blockers only.
-    """
-    shown = fleet._app_doc
-
-    def alarmed(app):
-        document = shown(app)
-        if document["state"] == LifecycleState.RUNNING:
-            document["progress"]["blockers"] = [
-                *document["progress"]["blockers"],
-                {
-                    "code": verdict.STALLED_CODE,
-                    "detail": "unchanged",
-                    "severity": "error",
-                },
-            ]
-        return document
-
-    monkeypatch.setattr(fleet, "_app_doc", alarmed)
+def _alarm_since(evidence: dict) -> float:
+    """When the Controller's alarm says the wait last moved (``No progress since``)."""
+    (alarm,) = [
+        b for b in evidence["wait"]["controller"]["blockers"] if b["code"] == STALLED
+    ]
+    since = alarm["detail"].removeprefix("No progress since ").split(": ", 1)[0]
+    return datetime.fromisoformat(since).timestamp()
 
 
 def test_a_frozen_copy_keeps_its_held_lane_until_the_controller_alarms(
@@ -198,32 +193,39 @@ def test_a_frozen_copy_keeps_its_held_lane_until_the_controller_alarms(
     )
     fleet.sparks = fleet.sparks[:1]  # one lane: the next recipe needs the held Spark
     _held_by_receipt_wait(fleet, monkeypatch)
+    alarm = StallAlarm(fleet).install(monkeypatch)
     sweep.preflight()
     _until(sweep, clock, lambda: stuck.key in sweep.state.slots)
     first_load = _loads(fleet)[0]
-    _until(sweep, clock, lambda: clock.now() > first_load + 6 * WINDOW)
-    # The Controller still works the bound receipt: the local window never ends it.
+    frozen = first_load + 2 * WINDOW
+    # Past the lane window, before the Controller's: still held, nothing else placed.
+    _until(sweep, clock, lambda: clock.now() > frozen + WINDOW)
+    assert not alarm.alarmed
     assert sweep.state.slots[stuck.key]["phase"] == "loading"
     assert not _expired(tmp_path, stuck.key)
     assert _loads(fleet) == [first_load]
-    assert good.key not in sweep.state.slots
-    # The Controller's stall alarm ends the hold; the freed lane goes to the next one.
-    _alarm(fleet, monkeypatch)
+    # The Controller alarms one stall window after the last new high; the freed
+    # lane goes to the next recipe.
     _until(sweep, clock, lambda: sweep.state.status(good.key) == "passed")
     (evidence,) = _expired(tmp_path, stuck.key)
     assert evidence["wait"]["reason"] == SweepWaitReason.CONTROLLER_WAIT
     assert evidence["wait"]["controller"]["reason"] == RECEIPT_WAIT["reason"]
+    since = _alarm_since(evidence)
+    poll = sweep.cfg.poll_seconds
+    assert frozen - 2 * poll <= since <= frozen + poll
+    assert evidence["observed_at"] - since > PROGRESS_STALL_WINDOW
     assert sweep.state.entry(stuck.key).get("attempts", 0) == 0
     assert _loads(fleet)[-1] >= evidence["observed_at"]
 
 
-@pytest.mark.parametrize("case", ["retried-copy", "flapping-phase", "deadline"])
-def test_no_local_window_or_dependency_deadline_releases_a_held_receipt(
+@pytest.mark.parametrize("case", ["retried-copy", "flapping-phase"])
+def test_a_retried_or_flapping_child_reaches_the_controllers_alarm(
     tmp_path: Path, gateway: Gateway, monkeypatch, case: str
 ) -> None:
-    # Every copy attempt fails at 20 % and restarts from 0; or the child flaps
-    # prepare <-> runtime-preflight with 0 bytes; or the Controller declares a
-    # dependency deadline it does not act on (no fleet-profile code reads it).
+    # Every copy attempt fails at 20 % and restarts from 0, rising again below its
+    # old mark; or the child's operation flaps prepare <-> runtime-preflight with 0
+    # bytes and a fresh progress time each flip. Neither is a new high or a new
+    # child phase, so the Controller's window runs from the last real movement.
     recipe = FakeRecipe(
         case,
         content="a" * 64,
@@ -236,25 +238,60 @@ def test_no_local_window_or_dependency_deadline_releases_a_held_receipt(
     sweep, fleet, clock = make_sweep(
         tmp_path, [recipe], [FakeModel(MODEL)], gateway=gateway, timeouts=_timeouts()
     )
+    shown = _held_by_receipt_wait(fleet, monkeypatch)
+    alarm = StallAlarm(fleet).install(monkeypatch)
+    sweep.preflight()
+    _until(sweep, clock, lambda: _expired(tmp_path, recipe.key))
+    first_load = _loads(fleet)[0]
+    poll = sweep.cfg.poll_seconds
+    if case == "retried-copy":
+        attempts = [child["operation"]["completed_bytes"] for child in shown]
+        assert any(b < a for a, b in pairwise(attempts))
+        last_high = first_load + 2 * WINDOW  # the first attempt's 20 %
+    else:
+        assert len({child["operation"]["phase"] for child in shown}) == 2
+        assert len({child["operation"]["last_progress_at"] for child in shown}) > 2
+        last_high = first_load  # the first look: nothing new after it
+    (evidence,) = _expired(tmp_path, recipe.key)
+    since = _alarm_since(evidence)
+    assert last_high - 2 * poll <= since <= last_high + 2 * poll
+    assert alarm.alarmed[0][0] - since > PROGRESS_STALL_WINDOW
+    # Held until the Controller's alarm: no earlier release, no second load.
+    assert evidence["observed_at"] >= alarm.alarmed[0][0]
+    assert _loads(fleet) == [first_load]
+    assert sweep.state.entry(recipe.key).get("attempts", 0) == 0
+
+
+@pytest.mark.parametrize("case", ["rising-copy", "deadline"])
+def test_a_copy_reaching_new_highs_stays_held_without_an_alarm(
+    tmp_path: Path, gateway: Gateway, monkeypatch, case: str
+) -> None:
+    # The copy keeps reaching new highs past the lane window and past the
+    # Controller's stall window; in "deadline" the Controller also declares a
+    # dependency deadline it does not act on (no fleet-profile code reads it).
+    recipe = FakeRecipe(
+        case, content="a" * 64, digests=(MODEL,), copy_seconds=20 * WINDOW
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [recipe], [FakeModel(MODEL)], gateway=gateway, timeouts=_timeouts()
+    )
     wait = RECEIPT_WAIT
     if case == "deadline":
         clock.t = datetime.fromisoformat(DEADLINE_RECORD["recorded_at"]).timestamp()
         wait = DEADLINE_RECORD["controller_document"]["wait"]
-    shown = _held_by_receipt_wait(fleet, monkeypatch, wait)
+    _held_by_receipt_wait(fleet, monkeypatch, wait)
+    alarm = StallAlarm(fleet).install(monkeypatch)
     sweep.preflight()
     _until(sweep, clock, lambda: recipe.key in sweep.state.slots)
     first_load = _loads(fleet)[0]
     _until(sweep, clock, lambda: clock.now() > first_load + 6 * WINDOW)
-    if case == "retried-copy":
-        attempts = [child["operation"]["completed_bytes"] for child in shown]
-        assert any(b < a for a, b in pairwise(attempts))
-    if case == "flapping-phase":
-        assert len({child["operation"]["phase"] for child in shown}) == 2
+    assert 6 * WINDOW > PROGRESS_STALL_WINDOW
     if case == "deadline":
         assert (
             clock.now()
             > datetime.fromisoformat(wait["dependency_deadline"]).timestamp()
         )
+    assert not alarm.alarmed
     assert sweep.state.slots[recipe.key]["phase"] == "loading"
     assert not _expired(tmp_path, recipe.key)
     assert _loads(fleet) == [first_load]

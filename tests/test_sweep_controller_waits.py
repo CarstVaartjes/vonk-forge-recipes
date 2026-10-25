@@ -10,7 +10,7 @@ from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 import pytest
-from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, StallAlarm, make_sweep
 from vonk_forge_contracts.sweep import ControllerWaitOperation, SweepWaitReason
 
 from spark_sweep import policy, verdict
@@ -511,19 +511,11 @@ def test_publication_alone_does_not_release_unknown_image_wait(
     assert not sweep.ready_candidates()
 
 
-def raise_stall_alarm(document):
-    """The Controller's read-time stall alarm on an application (progress_stall.py)."""
-    progress = document.setdefault("progress", {})
-    progress["blockers"] = [
-        *(progress.get("blockers") or []),
-        {"code": verdict.STALLED_CODE, "detail": "unchanged", "severity": "error"},
-    ]
-
-
 def waits_behind_applications(tmp_path, monkeypatch, record, *, free=True):
     """Through tick(): a and b wait until the Controller alarms; c (``free``) is free.
 
-    The Controller's stall alarm ends each hold; the local window alone never does.
+    The Controller's stall alarm (``StallAlarm``, vonk-forge #1899) ends each hold one
+    stall window after the wait last moved; the local window alone never does.
     """
     slow = {"digests": ("1" * 64,), "local": "cached", "load_seconds": 10**6}
     recipes = [FakeRecipe(slug, content=slug * 64, **slow) for slug in "ab"]
@@ -544,10 +536,10 @@ def waits_behind_applications(tmp_path, monkeypatch, record, *, free=True):
         live = app["state"] in (LifecycleState.QUEUED, LifecycleState.RUNNING)
         if held and live and app["id"] not in resumed:
             document.update(controller_document(record, app))
-            raise_stall_alarm(document)
         return document
 
     monkeypatch.setattr(fleet, "_app_doc", observed)
+    StallAlarm(fleet).install(monkeypatch)
     for _ in range(1000):
         sweep.tick()
         if set(sweep.controller_wait_holds()) == {"vonk-forge/a", "vonk-forge/b"}:
@@ -667,7 +659,8 @@ def test_hold_saved_without_operation_ids_adopts_them_on_its_next_observation(
     for entry in sweep.state.recipes.values():
         hold = entry.get("controller_wait")
         for blocker in hold["wait"]["controller"]["blockers"] if hold else []:
-            blocker["operation"].pop("id")
+            if blocker.get("operation"):  # the stall alarm names no operation
+                blocker["operation"].pop("id")
     sweep.state.save()
     sweep.state = State.load(tmp_path / "state.json", clock.now)
     assert sweep.controller_wait_issue() is None
