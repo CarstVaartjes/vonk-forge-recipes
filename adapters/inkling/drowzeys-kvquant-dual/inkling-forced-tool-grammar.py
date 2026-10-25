@@ -42,7 +42,14 @@ ONE_INVOCATION = '''    def get_structural_tag(
     ):
         # Vonk: forced Inkling tool call: exactly one native invocation of the
         # required or named tool; auto keeps upstream's grammar.
+        from sglang.srt.environ import ToolStrictLevel, envs
+
         del thinking_mode, parallel_tool_calls
+        # Upstream's rule (get_legacy_structural_tag): arguments follow the
+        # schema only for a strict tool or a PARAMETER strict level.
+        all_strict = (
+            envs.SGLANG_TOOL_STRICT_LEVEL.get() >= ToolStrictLevel.PARAMETER
+        )
         if tool_choice == "required":
             chosen = list(tools or [])
         elif isinstance(tool_choice, str):
@@ -59,7 +66,11 @@ ONE_INVOCATION = '''    def get_structural_tag(
                 ),
                 "content": {
                     "type": "json_schema",
-                    "json_schema": tool.function.parameters or {"type": "object"},
+                    "json_schema": (
+                        (tool.function.parameters or {})
+                        if tool.function.strict or all_strict
+                        else {}
+                    ),
                 },
                 "end": "}" + END_MESSAGE,
             }

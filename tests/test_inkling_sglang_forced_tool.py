@@ -13,11 +13,13 @@ by the same entry point the images run.
 from __future__ import annotations
 
 import ast
+import enum
 import json
 import logging
 import os
 import subprocess
 import sys
+import types
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -25,6 +27,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import jsonschema
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PATCH = "inkling-forced-tool-grammar.py"
@@ -48,7 +51,9 @@ def _inkling_sglang_contexts() -> set[Path]:
             runtime["engine"] == "sglang"
             and arguments.get("reasoning-parser") == "inkling"
         ):
-            contexts.add(ROOT / recipe["execution"]["build"]["context"]["path"])
+            build = recipe.get("execution", {}).get("build")
+            assert build is not None, f"{path.name}: no execution.build to patch"
+            contexts.add(ROOT / build["context"]["path"])
     return contexts
 
 
@@ -91,6 +96,25 @@ def _apply(package: Path) -> subprocess.CompletedProcess[str]:
 
 class ToolChoice(SimpleNamespace):
     pass
+
+
+class ToolStrictLevel(enum.IntEnum):
+    OFF = 0
+    FUNCTION = 1
+    PARAMETER = 2
+
+
+@pytest.fixture(autouse=True)
+def strict_level(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
+    """sglang.srt.environ as the patched detector imports it (SGLANG_TOOL_STRICT_LEVEL)."""
+    level = SimpleNamespace(value=ToolStrictLevel.OFF)
+    environ = types.ModuleType("sglang.srt.environ")
+    environ.ToolStrictLevel = ToolStrictLevel  # type: ignore[attr-defined]
+    environ.envs = SimpleNamespace(  # type: ignore[attr-defined]
+        SGLANG_TOOL_STRICT_LEVEL=SimpleNamespace(get=lambda: level.value)
+    )
+    monkeypatch.setitem(sys.modules, "sglang.srt.environ", environ)
+    return level
 
 
 def _get_reasoning(source: str) -> Callable[[Any], bool]:
@@ -291,7 +315,9 @@ def _t_report() -> tuple[SimpleNamespace, list[SimpleNamespace]]:
     shared = json.loads((ROOT / "qualification/shared.json").read_text())
     body = shared["service_case_templates"]["T_REPORT"]["body"]
     tools = [
-        SimpleNamespace(function=SimpleNamespace(**tool["function"]))
+        SimpleNamespace(
+            function=SimpleNamespace(**{"strict": False, **tool["function"]})
+        )
         for tool in body["tools"]
     ]
     choice = body["tool_choice"]
@@ -363,7 +389,9 @@ def test_required_grammar_is_one_call_of_any_tool(tmp_path: Path) -> None:
     assert _apply(package).returncode == 0
     detector = _detector((package / DETECTOR).read_text())
     _request, tools = _t_report()
-    other = SimpleNamespace(function=SimpleNamespace(name="other", parameters=None))
+    other = SimpleNamespace(
+        function=SimpleNamespace(name="other", parameters=None, strict=False)
+    )
     tag = detector.get_structural_tag(tools=[*tools, other], tool_choice="required")
     frame = tag["format"]
     assert frame["type"] == "or"
@@ -371,7 +399,10 @@ def test_required_grammar_is_one_call_of_any_tool(tmp_path: Path) -> None:
         f'{MESSAGE_MODEL}{name}{INVOKE_JSON}{{"name":"{name}","args":'
         for name in ("report_temperature", "other")
     ]
-    assert frame["elements"][1]["content"]["json_schema"] == {"type": "object"}
+    assert [element["content"]["json_schema"] for element in frame["elements"]] == [
+        {},
+        {},
+    ]
     output = _generate(_reasoner_wrapper(TagGrammar(tag), False))
     assert _calls(output, detector, tools) == [
         ("report_temperature", {"city": "Amsterdam"})
@@ -380,7 +411,9 @@ def test_required_grammar_is_one_call_of_any_tool(tmp_path: Path) -> None:
     for token in [MESSAGE_MODEL, "report_temperature", INVOKE_JSON]:
         grammar.accept_token(token)
     assert not grammar.allows(END_SAMPLING)
-    bad = TagGrammar(tag)
+    tools[0].function.strict = True
+    strict = detector.get_structural_tag(tools=[*tools, other], tool_choice="required")
+    bad = TagGrammar(strict)
     for token in CALL[:6]:
         bad.accept_token(token)
     assert not bad.allows('{"city":3}' + "}" + END_MESSAGE)
@@ -405,3 +438,28 @@ def test_changed_upstream_code_fails_the_build_and_writes_nothing(
     result = _apply(package)
     assert result.returncode != 0 and "pinned SGLang code changed" in result.stderr
     assert (package / CHAT).read_bytes() == chat
+
+
+def test_arguments_follow_upstream_strictness(
+    tmp_path: Path, strict_level: SimpleNamespace
+) -> None:
+    """Upstream's get_legacy_structural_tag rule: the schema binds the arguments
+    only for a strict tool or SGLANG_TOOL_STRICT_LEVEL >= PARAMETER, else {}."""
+    package = _tree(tmp_path)
+    assert _apply(package).returncode == 0
+    detector = _detector((package / DETECTOR).read_text())
+    request, tools = _t_report()
+    schema = tools[0].function.parameters
+
+    def arguments() -> object:
+        tag = detector.get_structural_tag(tools=tools, tool_choice=request.tool_choice)
+        return tag["format"]["content"]["json_schema"]
+
+    assert arguments() == {}
+    tools[0].function.strict = True
+    assert arguments() == schema
+    tools[0].function.strict = False
+    strict_level.value = ToolStrictLevel.FUNCTION
+    assert arguments() == {}
+    strict_level.value = ToolStrictLevel.PARAMETER
+    assert arguments() == schema
