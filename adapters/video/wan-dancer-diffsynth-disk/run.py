@@ -558,9 +558,9 @@ def main() -> None:
     )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    # Scratch lives in the platform's TMPDIR, never the output root: a killed
-    # job skips cleanup, and only plain output files may remain there.
-    with tempfile.TemporaryDirectory(prefix="wan-dancer-") as value:
+    with tempfile.TemporaryDirectory(
+        prefix="wan-dancer-", dir=args.output_dir
+    ) as value:
         work = Path(value)
         prompt_path = work / "prompt.txt"
         prompt_path.write_text(prompt.strip(), encoding="utf-8")

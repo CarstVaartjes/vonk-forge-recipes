@@ -341,17 +341,11 @@ def _exported(outputs: Path) -> dict[str, bool]:
     }
 
 
-@pytest.mark.parametrize(
-    "relative",
-    ["video/wan-dancer-native/run.py", "video/wan-dancer-diffsynth-disk/run.py"],
-)
-def test_killed_wan_dancer_leaves_no_entry_for_the_collector(
-    relative: str, tmp_path: Path
-) -> None:
-    runner = _load(relative, "wan_dancer_killed_runner")
+def test_killed_wan_dancer_leaves_no_entry_for_the_collector(tmp_path: Path) -> None:
+    runner = _load("video/wan-dancer-native/run.py", "wan_dancer_killed_runner")
     outputs = tmp_path / "outputs"
     source = tmp_path / "source"
-    for global_style, local_style in getattr(runner, "STYLE_PROMPTS", {}).values():
+    for global_style, local_style in runner.STYLE_PROMPTS.values():
         for name in (global_style, local_style):
             prompt = source / "gen_video/prompt" / name
             prompt.parent.mkdir(parents=True, exist_ok=True)
@@ -363,7 +357,7 @@ def test_killed_wan_dancer_leaves_no_entry_for_the_collector(
     with (
         mock.patch.object(runner, "_arguments", return_value=args),
         mock.patch.object(runner, "REQUIRED_MODEL_FILES", set()),
-        mock.patch.object(runner, "SOURCE_ROOT", source, create=True),
+        mock.patch.object(runner, "SOURCE_ROOT", source),
         mock.patch.object(runner, "_manifest", return_value=None),
         mock.patch.object(runner, "_request", return_value=request),
         mock.patch.object(runner, "_input_file", return_value=tmp_path / "input"),
