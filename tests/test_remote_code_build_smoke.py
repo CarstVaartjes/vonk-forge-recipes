@@ -329,7 +329,9 @@ def test_dspark_recipes_do_not_import_drafter_model_code(
     )
 
 
-def with_argument(source: str, name: str, value: str, choice: bool) -> RecipeDefinition:
+def with_argument(
+    source: str, name: str, value: object, choice: bool
+) -> RecipeDefinition:
     document = recipe(source).model_dump(mode="json")
     argument = {"name": name, "value": value}
     if choice:
@@ -357,6 +359,9 @@ SGLANG_OPTIONS = "recipes/qwen3-8-27b-nvfp4-mtp-r0b0tlab-sglang-single.json"
         (SGLANG_OPTIONS, "quantization", "modelopt_fp8", True),
         (SGLANG_OPTIONS, "modelopt-quant", "fp8", True),
         (SGLANG_OPTIONS, "modelopt-export-path", "/tmp/export", True),
+        # The draft's quantization drives its ModelConfig the same way.
+        (SGLANG_OPTIONS, "speculative-draft-model-quantization", "modelopt_fp8", True),
+        (SGLANG_OPTIONS, "speculative-draft-model-quantization", "unquant", False),
     ],
 )
 def test_transformers_backend_imports_remote_model(
@@ -372,3 +377,8 @@ def test_transformers_engines_import_remote_model() -> None:
     assert TOOL["imports_remote_model"](
         recipe("recipes/moss-vl-realtime-11b-pytorch-single.json")
     )
+
+
+def test_a_list_valued_quantization_does_not_crash_the_plan() -> None:
+    changed = with_argument(SGLANG_OPTIONS, "quantization", ["a", "b"], False)
+    assert TOOL["imports_remote_model"](changed) is False

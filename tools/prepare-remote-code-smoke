@@ -65,14 +65,20 @@ def imports_remote_model(recipe: RecipeDefinition) -> bool:
             and (
                 argument.name.startswith("modelopt-")
                 or (
-                    argument.name == "quantization"
+                    # The draft's quantization drives its ModelConfig the same way.
+                    argument.name
+                    in ("quantization", "speculative-draft-model-quantization")
+                    and isinstance(argument.value, str)
                     and argument.value in MODELOPT_QUANTIZE
                 )
             )
         )
         or (
             argument.name == "model-impl"
-            and argument.value not in ("auto", runtime.engine)
+            and (
+                not isinstance(argument.value, str)
+                or argument.value not in ("auto", runtime.engine)
+            )
         )
         for argument in arguments
     )
