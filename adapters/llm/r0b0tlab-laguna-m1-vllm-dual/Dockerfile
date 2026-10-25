@@ -10,6 +10,8 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/laguna-m1-nvf
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
 RUN test -x "$(command -v vllm)" \
+    && test -x "$(command -v ray)" \
+    && python3 -c "import ray" \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner 10001 --group 10001 /state /outputs

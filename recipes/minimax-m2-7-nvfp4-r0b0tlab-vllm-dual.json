@@ -10,7 +10,10 @@
       },
       "dockerfile": "adapters/minimax/r0b0tlab-vllm-nvfp4-dual/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "files.pythonhosted.org",
+          "pypi.org"
+        ]
       },
       "patches": []
     }
@@ -402,8 +405,8 @@
     "source_reference": "https://github.com/r0b0tlab/minimax-m27-nvfp4-gb10-benchmark/tree/32c395f75ff44f744e6b27991d17775623de071a"
   },
   "release": {
-    "released_at": "2026-05-23",
-    "version": "1.0.0"
+    "released_at": "2026-10-25",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [

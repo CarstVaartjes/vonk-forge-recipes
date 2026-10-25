@@ -11,6 +11,8 @@
     "whole": false
   },
   "ours": [
+    "requirements.in",
+    "requirements.lock",
     "vllm-wrapper.py"
   ],
   "source": {
