@@ -10,7 +10,7 @@ from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 import pytest
-from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, StallAlarm, make_sweep
 from vonk_forge_contracts.sweep import ControllerWaitOperation, SweepWaitReason
 
 from spark_sweep import policy, verdict
@@ -135,11 +135,16 @@ def prepare(tmp_path, monkeypatch, *, second=False, record=COPY):
 
 
 def expire(sweep, clock):
-    for key, slot in list(sweep.state.slots.items()):
+    """Each bound lane is held until the Controller raises its stall alarm on it."""
+    slots = list(sweep.state.slots.items())
+    for _, slot in slots:
         assert sweep._observe_load(slot, clock.now()) is verdict.Progress.WAITING
-        # Advance beyond the smaller local/Controller budget, then consume it.
-        deadline = slot["watch"]["wait_deadline"]
-        clock.t = max(clock.now(), deadline + 1)
+    clock.t = max(clock.now(), *(s["watch"]["wait_deadline"] + 1 for _, s in slots))
+    for key, slot in slots:
+        # The local window alone never releases a receipt the Controller still works.
+        sweep._advance_loading(key, slot, clock.now())
+        assert slot["phase"] == "loading"
+        sweep.state.data["loads"][slot["request_key"]]["stalled"] = verdict.STALLED_CODE
         sweep._advance_loading(key, slot, clock.now())
         assert slot["phase"] == "finished"
     sweep.enqueue_finished_cleanup()
@@ -211,12 +216,7 @@ def test_shared_wait_is_a_platform_issue_by_content_not_a_retry_count(
         tmp_path, monkeypatch, second=True, record=SHARED
     )
     # Expire both lanes against the same typed platform dependency.
-    for slot in sweep.state.slots.values():
-        sweep._observe_load(slot, clock.now())
-    clock.t = max(s["watch"]["wait_deadline"] for s in sweep.state.slots.values()) + 1
-    for key, slot in list(sweep.state.slots.items()):
-        sweep._advance_loading(key, slot, clock.now())
-    sweep.enqueue_finished_cleanup()
+    expire(sweep, clock)
     assert sweep.controller_wait_issue() is not None
     assert "recipe.run-switch.v2" in sweep.controller_wait_issue()
     assert not sweep.ready_candidates()
@@ -242,12 +242,7 @@ def test_ended_shared_receipts_release_the_incident_and_replan(
     tmp_path, monkeypatch
 ) -> None:
     sweep, fleet, clock, _ = prepare(tmp_path, monkeypatch, second=True, record=SHARED)
-    for slot in sweep.state.slots.values():
-        sweep._observe_load(slot, clock.now())
-    clock.t = max(s["watch"]["wait_deadline"] for s in sweep.state.slots.values()) + 1
-    for key, slot in list(sweep.state.slots.items()):
-        sweep._advance_loading(key, slot, clock.now())
-    sweep.enqueue_finished_cleanup()
+    expire(sweep, clock)
     assert sweep.controller_wait_issue() is not None
     holds = sweep.controller_wait_holds()
     a, b = (holds[f"vonk-forge/{slug}"].application_id for slug in "ab")
@@ -394,11 +389,7 @@ def test_same_reason_with_different_operation_kind_is_not_shared(
     tmp_path, monkeypatch
 ) -> None:
     sweep, _, clock, _ = prepare(tmp_path, monkeypatch, second=True)
-    for slot in sweep.state.slots.values():
-        sweep._observe_load(slot, clock.now())
-    clock.t = max(s["watch"]["wait_deadline"] for s in sweep.state.slots.values()) + 1
-    for key, slot in list(sweep.state.slots.items()):
-        sweep._advance_loading(key, slot, clock.now())
+    expire(sweep, clock)
     hold = sweep.controller_wait_holds()["vonk-forge/b"]
     assert hold.wait.controller is not None
     operation = hold.wait.controller.blockers[0].operation
@@ -520,13 +511,18 @@ def test_publication_alone_does_not_release_unknown_image_wait(
     assert not sweep.ready_candidates()
 
 
-def waits_behind_applications(tmp_path, monkeypatch, record):
-    """Through tick(): a and b expire behind their applications' waits; c is free."""
+def waits_behind_applications(tmp_path, monkeypatch, record, *, free=True):
+    """Through tick(): a and b wait until the Controller alarms; c (``free``) is free.
+
+    The Controller's stall alarm (``StallAlarm``, vonk-forge #1899) ends each hold one
+    stall window after the wait last moved; the local window alone never does.
+    """
     slow = {"digests": ("1" * 64,), "local": "cached", "load_seconds": 10**6}
     recipes = [FakeRecipe(slug, content=slug * 64, **slow) for slug in "ab"]
-    recipes.append(
-        FakeRecipe("c", content="c" * 64, digests=("1" * 64,), local="cached")
-    )
+    if free:
+        recipes.append(
+            FakeRecipe("c", content="c" * 64, digests=("1" * 64,), local="cached")
+        )
     sweep, fleet, clock = make_sweep(
         tmp_path, recipes, [FakeModel("1" * 64, local="cached")]
     )
@@ -543,6 +539,7 @@ def waits_behind_applications(tmp_path, monkeypatch, record):
         return document
 
     monkeypatch.setattr(fleet, "_app_doc", observed)
+    StallAlarm(fleet).install(monkeypatch)
     for _ in range(1000):
         sweep.tick()
         if set(sweep.controller_wait_holds()) == {"vonk-forge/a", "vonk-forge/b"}:
@@ -593,7 +590,9 @@ def test_one_shared_dependency_is_reported_and_holds_only_its_recipes(
 def test_one_receipt_resuming_releases_only_its_own_dependency(
     tmp_path, monkeypatch
 ) -> None:
-    sweep, _, clock, resumed = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    sweep, _, clock, resumed = waits_behind_applications(
+        tmp_path, monkeypatch, RECEIPT, free=False
+    )
     holds = sweep.controller_wait_holds()
     resumed.add(holds["vonk-forge/a"].application_id)
     clock.sleep(sweep.cfg.defer_delay + 1)
@@ -615,7 +614,9 @@ def test_a_child_dispatched_again_keeps_the_hold(tmp_path, monkeypatch) -> None:
     # The Controller dispatches a lost child again under a new operation id
     # (switch_observation.py): the same application waits on, so nothing re-plans
     # and no identical intent supersedes it.
-    sweep, fleet, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    sweep, fleet, clock, _ = waits_behind_applications(
+        tmp_path, monkeypatch, RECEIPT, free=False
+    )
     application = sweep.controller_wait_holds()["vonk-forge/a"].application_id
     child = str(uuid5(NAMESPACE_URL, f"{application}/dispatched-again"))
     assert child not in waited_on(sweep, "vonk-forge/a")
@@ -631,7 +632,9 @@ def test_a_retry_successor_with_new_children_keeps_the_hold(
 ) -> None:
     # A Controller retry builds its successor's children from scratch
     # (queue_application.py), so the successor waits behind a new child id.
-    sweep, fleet, clock, _ = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    sweep, fleet, clock, _ = waits_behind_applications(
+        tmp_path, monkeypatch, RECEIPT, free=False
+    )
     before = waited_on(sweep, "vonk-forge/a")
     first = fleet.apps[sweep.controller_wait_holds()["vonk-forge/a"].application_id]
     fleet._supersede(first, "retry")
@@ -650,11 +653,14 @@ def test_hold_saved_without_operation_ids_adopts_them_on_its_next_observation(
     tmp_path, monkeypatch
 ) -> None:
     # State written before the sweep read operation ids survives the upgrade.
-    sweep, _, clock, resumed = waits_behind_applications(tmp_path, monkeypatch, RECEIPT)
+    sweep, _, clock, resumed = waits_behind_applications(
+        tmp_path, monkeypatch, RECEIPT, free=False
+    )
     for entry in sweep.state.recipes.values():
         hold = entry.get("controller_wait")
         for blocker in hold["wait"]["controller"]["blockers"] if hold else []:
-            blocker["operation"].pop("id")
+            if blocker.get("operation"):  # the stall alarm names no operation
+                blocker["operation"].pop("id")
     sweep.state.save()
     sweep.state = State.load(tmp_path / "state.json", clock.now)
     assert sweep.controller_wait_issue() is None

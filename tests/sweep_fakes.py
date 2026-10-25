@@ -83,6 +83,9 @@ class FakeRecipe:
     # Each copy attempt fails at 20 % and its retry restarts from 0: the per-attempt
     # operation snapshot resets while the max-merged child bytes stay at 20 %.
     copy_retries: bool = False
+    # Half-way the agent re-executes the copy (an agent restart): a new checkpoint
+    # key under the same child attempt, its operation counters from 0 again.
+    copy_reexecutes: bool = False
     # The child flaps between two phases without moving a byte (recorded 2026-10-23).
     phase_flap: bool = False
     start_progress: bool = False  # the start keeps reporting progress (it is just slow)
@@ -116,6 +119,179 @@ class FakeRecipe:
     @property
     def key(self) -> str:
         return f"vonk-forge/{self.slug}"
+
+
+#: progress_stall.PROGRESS_STALL_WINDOW (settings.PROFILE_STALL_WINDOW_SECONDS).
+PROGRESS_STALL_WINDOW = 1800.0
+#: ProgressAlarmCode.STALLED.
+STALLED = "progress.stalled"
+#: progress_stall.WAITING_STATES.
+_STALL_STATES = ("queued", "running", "backoff")
+
+
+class StallAlarm:
+    """The Controller's stall alarm on a waiting application (vonk-forge #1899, 8ea8073a).
+
+    Only the stall is stored (``progress_stall.next_stall``). Its signature is where
+    the load waits: state, step, child operation, completed steps, admission; a new
+    place starts a new stall. At one place only forward movement restarts the window:
+    a wait (code and Sparks) not seen before at this place, a counter past its
+    per-child-phase mark (child bytes; operation bytes, items, activity), an
+    operation phase not seen before, or later preparation progress. The operation's
+    counters count within one checkpoint key: a new key under the child retry attempt
+    that first showed the old key is a re-execution and starts them over; a new key
+    under a later attempt is a retry and must pass the old marks; an unkeyed sample
+    merges by max. A first observation of an old row begins at the later of its
+    ``updated_at`` and its wait's ``first_blocked_at``.
+
+    At read time (application_projection.py) a stall older than
+    ``PROGRESS_STALL_WINDOW`` appends one ``progress.stalled`` blocker last, after the
+    waits the load shows now, to the view's ``blockers``, ``progress.blockers`` and
+    ``wait.blockers`` alike; the application keeps its state. Install it after any
+    wait overlay: it observes what the Controller would show.
+    """
+
+    def __init__(self, fleet: Any) -> None:
+        self.fleet = fleet
+        self.stalls: dict[str, dict[str, Any]] = {}
+        self.alarmed: list[tuple[float, str]] = []
+
+    def install(self, monkeypatch: Any) -> StallAlarm:
+        shown = self.fleet._app_doc
+        monkeypatch.setattr(
+            self.fleet, "_app_doc", lambda app: self.view(shown(app), app)
+        )
+        return self
+
+    @staticmethod
+    def _advance(
+        previous: dict[Any, dict[str, Any]], child: dict[str, Any]
+    ) -> tuple[dict[Any, dict[str, Any]], bool]:
+        """progress_stall._advance: the marks the child raised, and whether it moved."""
+        if not child:
+            return dict(previous), False
+        operation = child.get("operation")
+        old = previous.get(child.get("phase"))
+        base: dict[str, Any] = dict(
+            old
+            or {
+                "child_bytes": 0,
+                "checkpoint_key": None,
+                "key_attempt": None,
+                "operation_bytes": 0,
+                "operation_items": 0,
+                "activity": 0,
+                "operation_phases": [],
+            }
+        )
+        key = ((operation or {}).get("checkpoint") or {}).get("key")
+        if key is not None and key != base["checkpoint_key"]:
+            if base["checkpoint_key"] is not None and base["key_attempt"] == child.get(
+                "retry_attempt"
+            ):
+                base.update(operation_bytes=0, operation_items=0, activity=0)
+            base.update(checkpoint_key=key, key_attempt=child.get("retry_attempt"))
+        operation = operation or {}
+        reached = {
+            "child_bytes": child.get("bytes") or 0,
+            "operation_bytes": operation.get("completed_bytes") or 0,
+            "operation_items": operation.get("completed_items") or 0,
+            "activity": operation.get("activity_sequence") or 0,
+        }
+        raised = {name: value for name, value in reached.items() if value > base[name]}
+        phases = list(base["operation_phases"])
+        if child.get("operation") is not None and operation.get("phase") not in phases:
+            phases.append(operation.get("phase"))
+        moved = (
+            old is None or bool(raised) or len(phases) > len(base["operation_phases"])
+        )
+        marks = {
+            **previous,
+            child.get("phase"): {**base, **raised, "operation_phases": phases},
+        }
+        return marks, moved
+
+    def view(self, document: dict[str, Any], app: dict[str, Any]) -> dict[str, Any]:
+        now = self.fleet.clock.now()
+        progress = document.setdefault("progress", {})
+        wait = document.get("wait")
+        causes = [b for b in progress.get("blockers") or [] if b.get("code") != STALLED]
+        keys = {(b.get("code"), tuple(sorted(b.get("node_ids") or []))) for b in causes}
+        waits = [
+            *causes,
+            *(
+                b
+                for b in (wait or {}).get("blockers") or []
+                if b.get("code") != STALLED
+                and (b.get("code"), tuple(sorted(b.get("node_ids") or []))) not in keys
+            ),
+        ]
+        if document.get("state") not in _STALL_STATES or not waits:
+            self.stalls.pop(document["id"], None)
+            return document
+        signature = [
+            document.get("state"),
+            document.get("current_step"),
+            document.get("current_operation_id"),
+            progress.get("completed_steps"),
+            progress.get("admission_pending"),
+        ]
+        seen_now = {
+            (b.get("code"), tuple(sorted(b.get("node_ids") or []))) for b in waits
+        }
+        detail = f"{waits[0].get('code')}: {waits[0].get('detail')}"[:512]
+        prepared = progress.get("preparation_progressed_at")
+        child = progress.get("child_progress") or {}
+        previous = self.stalls.get(document["id"])
+        if previous is None or previous["signature"] != signature:
+            observed = now
+            blocked = (wait or {}).get("first_blocked_at")
+            if previous is None and app.get("updated_at") is not None:
+                # An old row first seen: its last write, or its wait's start if later.
+                observed = max(
+                    float(app["updated_at"]),
+                    datetime.fromisoformat(blocked).timestamp() if blocked else 0.0,
+                )
+            stall = {
+                "signature": signature,
+                "first_seen_at": observed,
+                "detail": detail,
+                "marks": self._advance({}, child)[0],
+                "waits": seen_now,
+                "prepared": prepared,
+            }
+        else:
+            stall = previous
+            marks, advanced = self._advance(previous["marks"], child)
+            new_wait = not seen_now <= previous["waits"]
+            later = prepared is not None and (
+                previous["prepared"] is None or prepared > previous["prepared"]
+            )
+            stall.update(marks=marks, waits=previous["waits"] | seen_now)
+            if later:
+                stall["prepared"] = prepared
+            if advanced or new_wait or later:
+                stall.update(first_seen_at=now, detail=detail)
+        self.stalls[document["id"]] = stall
+        if now - stall["first_seen_at"] <= PROGRESS_STALL_WINDOW:
+            return document
+        first = datetime.fromtimestamp(stall["first_seen_at"], UTC).isoformat()
+        alarm = {
+            "code": STALLED,
+            "severity": "error",
+            "detail": f"No progress since {first}: {stall['detail']}",
+        }
+        self.alarmed.append((now, document["id"]))
+        shown = (
+            [b for b in wait.get("blockers") or [] if b.get("code") != STALLED]
+            if wait is not None
+            else causes
+        )
+        progress["blockers"] = [*shown, alarm]
+        document["blockers"] = [*shown, alarm]
+        if wait is not None:
+            wait["blockers"] = [*shown, alarm]
+        return document
 
 
 @dataclass
@@ -1381,6 +1557,27 @@ class FakeFleet:
             for item in [*started, *effects, *borrowed_effects]
             for node in item["node_ids"]
         }
+        # queue_application.py:622-677: an older bound load whose intent scope meets
+        # this load's fence, and that keeps no adopted (unchanged) child, is
+        # superseded by this one, naming it; a removed assignment's child is
+        # cancelled (run_switch_operations/advance.py) and its run stopped above.
+        adopted_children = {id(item) for item in assign}
+        for older in self.apps.values():
+            if (
+                older["profile"] == n
+                and older["state"] in ("queued", "running")
+                and not older.get("admission_pending")
+                and not older.get("owner")
+                and older.get("nodes", set()) & nodes
+                and any(not item["resolved"] for item in older["assign"])
+                and not any(id(item) in adopted_children for item in older["assign"])
+            ):
+                older.update(
+                    state=LifecycleState.SUPERSEDED,
+                    superseded_by=app_id,
+                    reason_code="superseded-by-intent",
+                    reason="Profile order was replaced by a later scoped intent",
+                )
         self.apps[app_id] = {
             "id": app_id,
             "profile": n,
@@ -1426,6 +1623,11 @@ class FakeFleet:
                 for x in data["assignments"]
                 if x["assignment_name"] not in running
             ),
+            "copy_reexecutes": any(
+                self.recipes[x["recipe_selector"]].copy_reexecutes
+                for x in data["assignments"]
+                if x["assignment_name"] not in running
+            ),
             "copy_retries": any(
                 self.recipes[x["recipe_selector"]].copy_retries
                 for x in data["assignments"]
@@ -1464,8 +1666,14 @@ class FakeFleet:
         if app["state"] in ("queued", "running") and 0 < copy and elapsed < copy:
             moved_at = now
             done = int(total * elapsed / copy)
-            attempt_bytes, retry = done, None
-            if app.get("copy_stalls") and done > total * 0.2:
+            attempt_bytes, retry, key = done, None, None
+            if app.get("copy_reexecutes"):
+                key = "copy-1"
+                if elapsed > copy * 0.5:  # re-executed from zero under attempt 1
+                    key = "copy-2"
+                    attempt_bytes = int(total * (elapsed - copy * 0.5) / copy)
+                    done = max(attempt_bytes, int(total * 0.5))
+            elif app.get("copy_stalls") and done > total * 0.2:
                 done = attempt_bytes = int(total * 0.2)  # frozen at 20 %
                 moved_at = app["created"] + copy * 0.2
             elif app.get("copy_retries"):
@@ -1482,6 +1690,7 @@ class FakeFleet:
                     "phase": "copying",
                     "completed_bytes": attempt_bytes,
                     "last_progress_at": stamp(moved_at),
+                    **({"checkpoint": {"key": key}} if key else {}),
                 },
             }
         if app.get("phase_flap") and app["state"] in ("queued", "running"):
