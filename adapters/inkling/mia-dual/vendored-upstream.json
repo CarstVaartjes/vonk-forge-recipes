@@ -12,6 +12,7 @@
   },
   "ours": [
     "NOTICE.upstream",
+    "inkling-forced-tool-grammar.py",
     "sglang-serve",
     "verify-runtime.py"
   ],

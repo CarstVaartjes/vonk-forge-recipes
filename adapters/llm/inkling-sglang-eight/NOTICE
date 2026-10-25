@@ -9,3 +9,6 @@ at the same v0.5.20 commit): Triton attention, Marlin FP4/MoE, disabled prefill
 CUDA graphs, and the extra-buffer Mamba radix-cache strategy. The flagship TP8
 topology is source-complete but remains Pending until an eight-Spark physical
 canary succeeds.
+
+inkling-forced-tool-grammar.py (shared by every SGLang Inkling adapter) makes a
+required or named tool choice one native call; the parsers remain upstream's.
