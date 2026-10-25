@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
-"""Reject new eager or device-pinned model construction in adapter Python.
+"""Reject new eager or device-pinned model construction in adapter runtime code.
 
 On GB10, CPU and CUDA share one physical memory pool. Building a full model as
 real tensors on CPU (DiffSynth ``init_weights_on_device(device=torch.device("cpu"))``,
 diffusers/transformers ``low_cpu_mem_usage=False``) adds a whole FP32 copy of the
-model beside its state dict, and pinning ``device="cuda"`` inside a model
+model beside its state dict, and pinning a CUDA device inside a model
 constructor makes construction the process's first CUDA use. Wan-Dancer native
 ran out of memory exactly there on 2026-10-25. Build on meta and let the loader
 place the loaded model.
 
-Only lines added since the merge base with ``--base`` (working tree included) are checked, in adapter-authored Python and
-in the replacement text that adapter patch scripts insert into upstream source.
-Vendored archives and the text a patch removes are not checked.
+Only code (never comments or string literals) on lines added since the merge
+base with ``--base`` is checked, working tree included, in adapter-authored
+Python. Vendored archives and files that ``vendored-upstream.json`` classifies
+as verbatim creator copies are not checked. Upstream source that a patch script
+rewrites is text, not code here: each adapter's patched-source behaviour test
+covers it (for example ``WanDancerLoaderTests``).
 """
 
 from __future__ import annotations
 
 import argparse
 import ast
+import json
 import os
 import re
 import subprocess
@@ -28,21 +32,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTERS = "adapters"
-REPLACEMENT_CALLS = {"replace_once": 1, "replace_all": 1, "_replace_one": 1}
+MANIFEST = "vendored-upstream.json"
 HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
-PATTERNS = {
-    "CPU model construction": re.compile(
-        r"init_weights_on_device\(\s*device\s*=\s*torch\.device\(\s*[\"']cpu[\"']"
-    ),
-    "eager full-model construction": re.compile(r"low_cpu_mem_usage\s*=\s*False"),
-}
+CPU_BUILD = "CPU model construction"
+EAGER_BUILD = "eager full-model construction"
 CUDA_PLACEMENT = "CUDA placement in a model constructor"
-CUDA_PATCHED = "CUDA placement inserted into upstream source"
-CUDA_KEYWORD = re.compile(
-    r"\bdevice\s*=\s*[\"']cuda(?::\d+)?[\"']|torch\.device\(\s*[\"']cuda"
-)
-MODEL_BASE = re.compile(r"Module|Model")
-CUDA_DEVICE = re.compile(r"cuda(?::\d+)?")
 ADVICE = (
     "build on meta and assign the checkpoint (fail on any parameter left on meta), "
     "then let the loader move the loaded model to its device; see "
@@ -110,6 +104,8 @@ def added_lines(root: Path, base: str) -> dict[str, set[int]]:
 def _is_adapter_python(root: Path, name: str) -> bool:
     if "/vendor/" in name or not name.startswith(f"{ADAPTERS}/"):
         return False
+    if _is_verbatim_copy(root, name):
+        return False
     if name.endswith(".py"):
         return True
     try:
@@ -120,153 +116,87 @@ def _is_adapter_python(root: Path, name: str) -> bool:
     return first.startswith(b"#!") and b"python" in first
 
 
-def _string(node: ast.expr) -> str | None:
-    if isinstance(node, ast.Constant) and isinstance(node.value, str):
-        return node.value
-    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
-        left, right = _string(node.left), _string(node.right)
-        if left is not None and right is not None:
-            return left + right
-    return None
-
-
-def _replacement(call: ast.Call) -> tuple[ast.expr, ast.expr] | None:
-    """(removed text, inserted text) of a patch-script replacement call."""
-    func = call.func
-    if isinstance(func, ast.Name) and func.id in REPLACEMENT_CALLS:
-        index = REPLACEMENT_CALLS[func.id]
-        if len(call.args) > index + 1:
-            return call.args[index], call.args[index + 1]
-    if (
-        isinstance(func, ast.Attribute)
-        and func.attr == "replace"
-        and len(call.args) >= 2
-    ):
-        return call.args[0], call.args[1]
-    return None
-
-
-def _spans(node: ast.AST) -> range:
-    end = getattr(node, "end_lineno", None) or getattr(node, "lineno", 0)
-    return range(getattr(node, "lineno", 0), end + 1)
-
-
-def _constants(tree: ast.Module) -> dict[str, tuple[str, range]]:
-    """Module-level string constants: name -> (text, lines of the assignment)."""
-    result: dict[str, tuple[str, range]] = {}
-    for node in tree.body:
-        if isinstance(node, ast.Assign) and len(node.targets) == 1:
-            target, value = node.targets[0], node.value
-        elif isinstance(node, ast.AnnAssign) and node.value is not None:
-            target, value = node.target, node.value
-        else:
-            continue
-        text = _string(value)
-        if isinstance(target, ast.Name) and text is not None:
-            result[target.id] = (text, _spans(node))
-    return result
-
-
-def _text(
-    node: ast.expr, constants: dict[str, tuple[str, range]]
-) -> tuple[str, range] | None:
-    """Readable replacement text and the lines that spell it, else None."""
-    text = _string(node)
-    if text is not None:
-        return text, _spans(node)
-    if isinstance(node, ast.Name) and node.id in constants:
-        return constants[node.id]
-    return None
-
-
-def findings(path: str, source: str, added: set[int]) -> Iterator[Finding]:
-    lines = source.splitlines()
-    try:
-        tree = ast.parse(source, filename=path)
-    except SyntaxError:
-        # Not parseable here: still check every added line's own text.
-        tree = ast.Module(body=[], type_ignores=[])
-    constants = _constants(tree)
-    removed: set[int] = set()
-    inserted: set[int] = set()
-    patch_script = _is_patch_script(tree)
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.Call) or (pair := _replacement(node)) is None:
-            continue
-        old, new = (_text(item, constants) for item in pair)
-        if old is not None:
-            removed.update(old[1])
-        # Unreadable inserted text (an f-string, an unresolved name) falls
-        # through to the per-line scan below.
-        if new is None or not added & set(new[1]):
-            continue
-        inserted.update(new[1])
-        old_text = old[0] if old is not None else ""
-        for kind, pattern in {**PATTERNS, CUDA_PATCHED: CUDA_KEYWORD}.items():
-            if len(pattern.findall(new[0])) > len(pattern.findall(old_text)):
-                yield Finding(path, new[1].start, kind)
-    # A patch script's own lines may spell upstream source in forms read
-    # nowhere above (f-strings, computed text): judge their text directly.
-    scanned = {**PATTERNS, CUDA_PATCHED: CUDA_KEYWORD} if patch_script else PATTERNS
-    checked = added - removed - inserted
-    for number in sorted(checked):
-        if number <= len(lines):
-            for kind, pattern in scanned.items():
-                if pattern.search(lines[number - 1]):
-                    yield Finding(path, number, kind)
-    if not patch_script:
-        for number in sorted(_model_constructor_cuda_keywords(tree) & checked):
-            yield Finding(path, number, CUDA_PLACEMENT)
-
-
-def _is_patch_script(tree: ast.AST) -> bool:
-    """Calls a replace helper, or rewrites a file with ``str.replace`` results."""
-    calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)]
-    if any(
-        isinstance(call.func, ast.Name) and call.func.id in REPLACEMENT_CALLS
-        for call in calls
-    ):
-        return True
-    methods = {
-        call.func.attr
-        for call in calls
-        if isinstance(call.func, ast.Attribute)
-        and ast.unparse(call.func) != "os.replace"
-    }
-    return {"replace", "write_text"} <= methods
-
-
-def _is_cuda(node: ast.expr) -> bool:
-    """``"cuda"``/``"cuda:N"``, bare or as ``torch.device(...)``."""
-    if isinstance(node, ast.Call) and ast.unparse(node.func) == "torch.device":
-        if not node.args:
+def _is_verbatim_copy(root: Path, name: str) -> bool:
+    """A file the nearest vendored-upstream.json does not list under ``ours``."""
+    path = Path(name)
+    for adapter in path.parents:
+        if adapter == Path(ADAPTERS) or adapter == Path("."):
             return False
-        node = node.args[0]
+        manifest_path = root / adapter / MANIFEST
+        if not manifest_path.is_file():
+            continue
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if not set(manifest) - {"kit"}:
+            return False  # a kit-only manifest claims no vendored files
+        relative = path.relative_to(adapter).as_posix()
+        ours = manifest.get("ours", [])
+        return not any(
+            relative == entry or (entry.endswith("/") and relative.startswith(entry))
+            for entry in ours
+        )
+    return False
+
+
+def _is_device(node: ast.expr, kind: str) -> bool:
+    """``"kind"``/``"kind:N"``, bare or as ``torch.device(...)``."""
+    if isinstance(node, ast.Call) and ast.unparse(node.func) == "torch.device":
+        values = [*node.args[:1], *(k.value for k in node.keywords if k.arg == "type")]
+        return bool(values) and _is_device(values[0], kind)
     return (
         isinstance(node, ast.Constant)
         and isinstance(node.value, str)
-        and CUDA_DEVICE.fullmatch(node.value) is not None
+        and node.value.split(":", 1)[0] == kind
     )
 
 
-def _model_constructor_cuda_keywords(tree: ast.AST) -> set[int]:
-    """Lines placing tensors on CUDA inside a model class's ``__init__``."""
-    result: set[int] = set()
+def _model_constructors(tree: ast.AST) -> Iterator[ast.FunctionDef]:
     for owner in ast.walk(tree):
-        if not isinstance(owner, ast.ClassDef) or not any(
-            MODEL_BASE.search(ast.unparse(base)) for base in owner.bases
+        if isinstance(owner, ast.ClassDef) and any(
+            "Module" in ast.unparse(base) or "Model" in ast.unparse(base)
+            for base in owner.bases
         ):
+            for init in owner.body:
+                if isinstance(init, ast.FunctionDef) and init.name == "__init__":
+                    yield init
+
+
+def findings(path: str, source: str, added: set[int]) -> Iterator[Finding]:
+    try:
+        tree = ast.parse(source, filename=path)
+    except SyntaxError:
+        return  # not runnable Python; nothing it could construct
+    found: set[tuple[int, str]] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
             continue
-        for init in owner.body:
-            if not isinstance(init, ast.FunctionDef) or init.name != "__init__":
-                continue
-            for node in ast.walk(init):
-                if isinstance(node, ast.keyword) and node.arg == "device":
-                    if _is_cuda(node.value):
-                        result.add(node.lineno)
-                elif isinstance(node, ast.Call) and _is_cuda(node):
-                    result.add(node.lineno)
-    return result
+        if ast.unparse(node.func).endswith("init_weights_on_device"):
+            device = [
+                *node.args[:1],
+                *(k.value for k in node.keywords if k.arg == "device"),
+            ]
+            if device and _is_device(device[0], "cpu"):
+                found.add((node.lineno, CPU_BUILD))
+        for keyword in node.keywords:
+            value = keyword.value
+            if (
+                keyword.arg == "low_cpu_mem_usage"
+                and isinstance(value, ast.Constant)
+                and value.value is False
+            ):
+                found.add((keyword.value.lineno, EAGER_BUILD))
+    for init in _model_constructors(tree):
+        for node in ast.walk(init):
+            if (
+                isinstance(node, ast.keyword)
+                and node.arg == "device"
+                and _is_device(node.value, "cuda")
+            ):
+                found.add((node.value.lineno, CUDA_PLACEMENT))
+            elif isinstance(node, ast.Call) and _is_device(node, "cuda"):
+                found.add((node.lineno, CUDA_PLACEMENT))
+    for line, kind in sorted(found):
+        if line in added:
+            yield Finding(path, line, kind)
 
 
 def violations(root: Path, base: str) -> list[Finding]:

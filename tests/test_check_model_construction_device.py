@@ -1,4 +1,4 @@
-"""New adapter code may not build models eagerly on CPU or pin them to CUDA."""
+"""New adapter runtime code may not build models eagerly on CPU or pin them to CUDA."""
 
 from __future__ import annotations
 
@@ -41,10 +41,16 @@ def _repo(tmp_path: Path) -> Path:
 
 def _change(root: Path, files: dict[str, str]) -> list[str]:
     for name, text in files.items():
-        (root / "adapters/video/demo" / name).write_text(text)
+        path = root / "adapters/video/demo" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
     _git(root, "add", "-A")
     _git(root, "commit", "-q", "-m", "change")
     return [finding.message() for finding in guard.violations(root, "HEAD~1")]
+
+
+def _lines(problems: list[str]) -> list[str]:
+    return [problem.split(": ")[0] for problem in problems]
 
 
 def test_existing_lines_pass_and_new_eager_construction_fails(tmp_path) -> None:
@@ -55,15 +61,21 @@ def test_existing_lines_pass_and_new_eager_construction_fails(tmp_path) -> None:
             "run.py": EXISTING + "x = 1\n",
             "load.py": "m = Model.from_pretrained(p, low_cpu_mem_usage=False)\n"
             + CPU_BUILD
+            + "    model = Model()\n"
+            + "with init_weights_on_device('cpu'):\n"
+            + "    model = Model()\n"
+            + "with init_weights_on_device(device=torch.device('meta')):\n"
             + "    model = Model()\n",
         },
     )
-    assert len(problems) == 2
-    assert problems[0].startswith("adapters/video/demo/load.py:1: ")
-    assert problems[1].startswith("adapters/video/demo/load.py:2: ")
+    assert _lines(problems) == [
+        "adapters/video/demo/load.py:1",
+        "adapters/video/demo/load.py:2",
+        "adapters/video/demo/load.py:4",
+    ]
 
 
-def test_cuda_pinned_only_inside_a_model_constructor(tmp_path) -> None:
+def test_cuda_device_only_inside_a_model_constructor(tmp_path) -> None:
     root = _repo(tmp_path)
     problems = _change(
         root,
@@ -72,6 +84,9 @@ def test_cuda_pinned_only_inside_a_model_constructor(tmp_path) -> None:
                 "class Encoder(nn.Module):\n"
                 "    def __init__(self):\n"
                 "        self.attn = nn.MultiheadAttention(8, 2, device='cuda')\n"
+                "        self.proj = nn.Linear(4, 4, device=torch.device('cuda'))\n"
+                '        self.where = torch.device(type="cuda", index=0)\n'
+                "        self.cpu = torch.device('cpu')\n"
                 "class Runner:\n"
                 "    def __init__(self):\n"
                 '        self.flag = torch.zeros((1,), device="cuda")\n'
@@ -80,94 +95,46 @@ def test_cuda_pinned_only_inside_a_model_constructor(tmp_path) -> None:
             )
         },
     )
-    assert len(problems) == 1
-    assert problems[0].startswith("adapters/video/demo/model.py:3: ")
-
-
-def test_patch_scripts_are_judged_by_the_text_they_insert(tmp_path) -> None:
-    root = _repo(tmp_path)
-    fix = (
-        "replace_once(\n"
-        "    manager,\n"
-        f"    {CPU_BUILD.strip()!r},\n"
-        "    'with init_weights_on_device(device=torch.device(\"meta\")):',\n"
-        ")\n"
-        "replace_once(dit, \"rotary=rotary,\\n    device='cuda',\\n\", 'rotary=rotary,\\n')\n"
-    )
-    assert _change(root, {"patch-upstream.py": fix}) == []
-
-    pin = (
-        "replace_once(dit, 'rotary=rotary,\\n', \"rotary=rotary, device='cuda',\\n\")\n"
-    )
-    problems = _change(root, {"patch-upstream.py": fix + pin})
-    assert len(problems) == 1
-    assert problems[0].startswith("adapters/video/demo/patch-upstream.py:7: ")
-
-
-def test_torch_device_cuda_in_a_model_constructor_fails(tmp_path) -> None:
-    root = _repo(tmp_path)
-    problems = _change(
-        root,
-        {
-            "model.py": (
-                "class Encoder(nn.Module):\n"
-                "    def __init__(self):\n"
-                "        self.proj = nn.Linear(4, 4, device=torch.device('cuda'))\n"
-                '        self.where = torch.device("cuda:0")\n'
-                "        self.cpu = torch.device('cpu')\n"
-            )
-        },
-    )
-    assert [problem.split(": ")[0] for problem in problems] == [
+    assert _lines(problems) == [
         "adapters/video/demo/model.py:3",
         "adapters/video/demo/model.py:4",
+        "adapters/video/demo/model.py:5",
     ]
 
 
-def test_torch_device_cuda_inserted_by_a_patch_fails(tmp_path) -> None:
+def test_comment_only_edit_passes(tmp_path) -> None:
     root = _repo(tmp_path)
-    pin = "replace_once(dit, 'layer(x)', 'layer(x, device=torch.device(\"cuda\"))')\n"
-    problems = _change(root, {"patch-upstream.py": pin})
-    assert len(problems) == 1
-    assert problems[0].startswith("adapters/video/demo/patch-upstream.py:1: ")
+    edit = "# keep low_cpu_mem_usage=False until TorchAo loads on meta\n" + EXISTING
+    assert _change(root, {"run.py": edit}) == []
 
 
-def test_replace_one_helpers_are_judged_by_the_text_they_insert(tmp_path) -> None:
+def test_patch_script_text_is_out_of_scope(tmp_path) -> None:
+    # Upstream source a patch inserts is text here; the adapter's own
+    # patched-source behaviour test covers it.
     root = _repo(tmp_path)
-    fix = "src = _replace_one(src, \"device='cuda',\\n\", '', 'dit')\n"
-    assert _change(root, {"widen.py": fix}) == []
-
-    pin = "src = _replace_one(src, 'rotary,', \"rotary, device='cuda',\", 'dit')\n"
-    problems = _change(root, {"widen.py": fix + pin})
-    assert len(problems) == 1
-    assert problems[0].startswith("adapters/video/demo/widen.py:2: ")
-
-
-def test_module_constants_passed_to_str_replace(tmp_path) -> None:
-    root = _repo(tmp_path)
-    write = "target.write_text(target.read_text().replace(OLD, NEW, 1))\n"
-    fix = f"OLD = {CPU_BUILD!r}\nNEW = 'with init_weights_on_device():\\n'\n" + write
-    assert _change(root, {"patch-loader.py": fix}) == []
-
-    pin = "OLD = 'rotary,'\nNEW = \"rotary, device='cuda',\"\n" + write
-    problems = _change(root, {"patch-loader.py": pin})
-    assert len(problems) == 1
-    assert problems[0].startswith("adapters/video/demo/patch-loader.py:2: ")
-
-
-def test_unreadable_inserted_text_is_scanned_line_by_line(tmp_path) -> None:
-    root = _repo(tmp_path)
-    pin = (
-        "kind = 'cuda'\n"
-        "replace_once(\n"
-        "    dit,\n"
-        "    'rotary,',\n"
-        "    f\"rotary, device='cuda', name={kind!r},\",\n"
-        ")\n"
+    pin = "replace_once(dit, 'rotary,', \"rotary, device='cuda',\")\n" + (
+        "replace_once(mm, 'meta', 'init_weights_on_device(device=torch.device(\"cpu\"))')\n"
     )
-    problems = _change(root, {"patch-upstream.py": pin})
-    assert len(problems) == 1
-    assert problems[0].startswith("adapters/video/demo/patch-upstream.py:5: ")
+    assert _change(root, {"patch-upstream.py": pin}) == []
+
+
+def test_vendored_and_verbatim_creator_files_are_not_checked(tmp_path) -> None:
+    root = _repo(tmp_path)
+    manifest = '{"source": {"repo": "o/r", "commit": "c"}, "ours": ["job.py", "ours/"]}'
+    problems = _change(
+        root,
+        {
+            "vendor/upstream.py": CPU_BUILD + "    m()\n",
+            "vendored-upstream.json": manifest,
+            "creator.py": CPU_BUILD + "    m()\n",
+            "job.py": CPU_BUILD + "    m()\n",
+            "ours/load.py": CPU_BUILD + "    m()\n",
+        },
+    )
+    assert _lines(problems) == [
+        "adapters/video/demo/job.py:1",
+        "adapters/video/demo/ours/load.py:1",
+    ]
 
 
 def test_uncommitted_and_untracked_edits_are_checked(tmp_path) -> None:
@@ -178,15 +145,10 @@ def test_uncommitted_and_untracked_edits_are_checked(tmp_path) -> None:
         "x = load(low_cpu_mem_usage=False)\n"
     )
     problems = [finding.message() for finding in guard.violations(root, "HEAD")]
-    assert [problem.split(": ")[0] for problem in problems] == [
+    assert _lines(problems) == [
         "adapters/video/demo/new.py:1",
         "adapters/video/demo/run.py:2",
     ]
-
-
-def test_vendored_sources_are_not_checked(tmp_path) -> None:
-    root = _repo(tmp_path)
-    assert _change(root, {"vendor/upstream.py": CPU_BUILD}) == []
 
 
 def test_main_reports_failure(tmp_path, capsys) -> None:
