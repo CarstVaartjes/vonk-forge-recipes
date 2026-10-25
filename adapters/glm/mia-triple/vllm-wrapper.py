@@ -29,7 +29,7 @@ def _executable(*candidates: str) -> str:
     raise SystemExit(f"runtime executable is missing: {candidates}")
 
 
-def _alive_ray_nodes(python: str, address: str) -> int:
+def _alive_ray_nodes(address: str) -> int:
     program = (
         "import ray; "
         f"ray.init(address={address!r}, logging_level='ERROR'); "
@@ -37,7 +37,7 @@ def _alive_ray_nodes(python: str, address: str) -> int:
         "ray.shutdown()"
     )
     result = subprocess.run(
-        [python, "-c", program],
+        [sys.executable, "-c", program],
         check=False,
         capture_output=True,
         text=True,
@@ -142,9 +142,8 @@ if node_count is not None:
         check=True,
         timeout=120,
     )
-    python = _executable("/opt/vllm/.venv/bin/python", "/usr/local/bin/python3")
     deadline = time.monotonic() + 900
-    while _alive_ray_nodes(python, address) != int(node_count):
+    while _alive_ray_nodes(address) != int(node_count):
         if time.monotonic() >= deadline:
             raise SystemExit("Ray cluster did not reach the declared node count")
         time.sleep(2)
