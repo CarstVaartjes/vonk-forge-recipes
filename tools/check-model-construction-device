@@ -1,0 +1,231 @@
+#!/usr/bin/env python3
+"""Reject new eager or device-pinned model construction in adapter runtime code.
+
+On GB10, CPU and CUDA share one physical memory pool. Building a full model as
+real tensors on CPU (DiffSynth ``init_weights_on_device(device=torch.device("cpu"))``,
+diffusers/transformers ``low_cpu_mem_usage=False``) adds a whole FP32 copy of the
+model beside its state dict, and pinning a CUDA device inside a model
+constructor makes construction the process's first CUDA use. Wan-Dancer native
+ran out of memory exactly there on 2026-10-25. Build on meta and let the loader
+place the loaded model.
+
+Only code (never comments or string literals) on lines added since the merge
+base with ``--base`` is checked, working tree included, in adapter-authored
+Python. Vendored archives and files that ``vendored-upstream.json`` classifies
+as verbatim creator copies are not checked. Upstream source that a patch script
+rewrites is text, not code here: each adapter's patched-source behaviour test
+covers it (for example ``WanDancerLoaderTests``).
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import json
+import os
+import re
+import subprocess
+import sys
+from collections.abc import Iterator
+from dataclasses import dataclass
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+ADAPTERS = "adapters"
+MANIFEST = "vendored-upstream.json"
+HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+CPU_BUILD = "CPU model construction"
+EAGER_BUILD = "eager full-model construction"
+CUDA_PLACEMENT = "CUDA placement in a model constructor"
+ADVICE = (
+    "build on meta and assign the checkpoint (fail on any parameter left on meta), "
+    "then let the loader move the loaded model to its device; see "
+    "docs/recipe-authoring.md (Memory)."
+)
+
+
+class DiffError(RuntimeError):
+    """The base revision could not be compared."""
+
+
+@dataclass(frozen=True)
+class Finding:
+    path: str
+    line: int
+    kind: str
+
+    def message(self) -> str:
+        return f"{self.path}:{self.line}: new {self.kind}; {ADVICE}"
+
+
+def _git(root: Path, *args: str) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, text=True, check=False
+    )
+    if completed.returncode != 0:
+        raise DiffError(completed.stderr.strip())
+    return completed.stdout
+
+
+def added_lines(root: Path, base: str) -> dict[str, set[int]]:
+    """Adapter Python path -> lines added since the merge base with ``base``.
+
+    Compares the working tree, so uncommitted edits (the upstream refresh
+    verifies before committing) and untracked new files count as added.
+    """
+    diff = _git(
+        root,
+        "diff",
+        "--unified=0",
+        "--no-color",
+        "--diff-filter=AMR",
+        "--merge-base",
+        base,
+        "--",
+        ADAPTERS,
+    )
+    result: dict[str, set[int]] = {}
+    untracked = _git(root, "ls-files", "--others", "--exclude-standard", "--", ADAPTERS)
+    for name in untracked.splitlines():
+        if _is_adapter_python(root, name):
+            text = (root / name).read_text(encoding="utf-8", errors="replace")
+            result[name] = set(range(1, text.count("\n") + 2))
+    path: str | None = None
+    for line in diff.splitlines():
+        if line.startswith("+++ "):
+            name = line[4:].removeprefix("b/")
+            path = name if _is_adapter_python(root, name) else None
+        elif path is not None and (match := HUNK.match(line)):
+            start, count = int(match[1]), int(match[2] or "1")
+            result.setdefault(path, set()).update(range(start, start + count))
+    return result
+
+
+def _is_adapter_python(root: Path, name: str) -> bool:
+    if "/vendor/" in name or not name.startswith(f"{ADAPTERS}/"):
+        return False
+    if _is_verbatim_copy(root, name):
+        return False
+    if name.endswith(".py"):
+        return True
+    try:
+        with (root / name).open("rb") as handle:
+            first = handle.readline()
+    except OSError:
+        return False
+    return first.startswith(b"#!") and b"python" in first
+
+
+def _is_verbatim_copy(root: Path, name: str) -> bool:
+    """A file the nearest vendored-upstream.json does not list under ``ours``."""
+    path = Path(name)
+    for adapter in path.parents:
+        if adapter == Path(ADAPTERS) or adapter == Path("."):
+            return False
+        manifest_path = root / adapter / MANIFEST
+        if not manifest_path.is_file():
+            continue
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if not set(manifest) - {"kit"}:
+            return False  # a kit-only manifest claims no vendored files
+        relative = path.relative_to(adapter).as_posix()
+        ours = manifest.get("ours", [])
+        return not any(
+            relative == entry or (entry.endswith("/") and relative.startswith(entry))
+            for entry in ours
+        )
+    return False
+
+
+def _is_device(node: ast.expr, kind: str) -> bool:
+    """``"kind"``/``"kind:N"``, bare or as ``torch.device(...)``."""
+    if isinstance(node, ast.Call) and ast.unparse(node.func) == "torch.device":
+        values = [*node.args[:1], *(k.value for k in node.keywords if k.arg == "type")]
+        return bool(values) and _is_device(values[0], kind)
+    return (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and node.value.split(":", 1)[0] == kind
+    )
+
+
+def _model_constructors(tree: ast.AST) -> Iterator[ast.FunctionDef]:
+    for owner in ast.walk(tree):
+        if isinstance(owner, ast.ClassDef) and any(
+            "Module" in ast.unparse(base) or "Model" in ast.unparse(base)
+            for base in owner.bases
+        ):
+            for init in owner.body:
+                if isinstance(init, ast.FunctionDef) and init.name == "__init__":
+                    yield init
+
+
+def findings(path: str, source: str, added: set[int]) -> Iterator[Finding]:
+    try:
+        tree = ast.parse(source, filename=path)
+    except SyntaxError:
+        return  # not runnable Python; nothing it could construct
+    found: set[tuple[int, str]] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        if ast.unparse(node.func).endswith("init_weights_on_device"):
+            device = [
+                *node.args[:1],
+                *(k.value for k in node.keywords if k.arg == "device"),
+            ]
+            if device and _is_device(device[0], "cpu"):
+                found.add((node.lineno, CPU_BUILD))
+        for keyword in node.keywords:
+            value = keyword.value
+            if (
+                keyword.arg == "low_cpu_mem_usage"
+                and isinstance(value, ast.Constant)
+                and value.value is False
+            ):
+                found.add((keyword.value.lineno, EAGER_BUILD))
+    for init in _model_constructors(tree):
+        for node in ast.walk(init):
+            if (
+                isinstance(node, ast.keyword)
+                and node.arg == "device"
+                and _is_device(node.value, "cuda")
+            ):
+                found.add((node.value.lineno, CUDA_PLACEMENT))
+            elif isinstance(node, ast.Call) and _is_device(node, "cuda"):
+                found.add((node.lineno, CUDA_PLACEMENT))
+    for line, kind in sorted(found):
+        if line in added:
+            yield Finding(path, line, kind)
+
+
+def violations(root: Path, base: str) -> list[Finding]:
+    result: list[Finding] = []
+    for path, added in sorted(added_lines(root, base).items()):
+        source = (root / path).read_text(encoding="utf-8")
+        result.extend(findings(path, source, added))
+    return result
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--base", default="origin/main")
+    arguments = parser.parse_args(argv)
+    try:
+        problems = violations(arguments.root, arguments.base)
+    except DiffError as error:
+        print(f"Cannot compare with {arguments.base}: {error}", file=sys.stderr)
+        return 2
+    in_actions = os.environ.get("GITHUB_ACTIONS") == "true"
+    for problem in problems:
+        text = problem.message()
+        print(f"::error::{text}" if in_actions else text, file=sys.stderr)
+    if problems:
+        return 1
+    print(f"No new eager or CUDA-pinned model construction against {arguments.base}.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -114,6 +114,37 @@ def main() -> None:
         "def _single_spark_only(*args, **kwargs):\n    raise RuntimeError('sequence parallelism is disabled for the single-Spark runtime')\n\nget_sequence_parallel_rank = _single_spark_only\nget_sequence_parallel_world_size = _single_spark_only\nget_sp_group = _single_spark_only\nLongContextAttention = _single_spark_only",
     )
 
+    # The music encoder's attention is the only DiT layer pinned to CUDA at
+    # construction. That made the WanModel constructor the process's first
+    # CUDA use; the model is moved to its device after its weights load.
+    replace_once(
+        dit,
+        "                        rotary=rotary,\n                        device='cuda',\n",
+        "                        rotary=rotary,\n",
+    )
+
+    # Upstream builds every model as real FP32 tensors on CPU (about 69 GB for
+    # the 17.2 B-parameter DiT) while its BF16 state dict is also resident, all
+    # in GB10 unified memory. Build on meta and take every parameter from the
+    # checkpoint; a parameter the checkpoint lacks fails with its name instead
+    # of loading with random initialization (the loader is strict=False).
+    manager = root / "diffsynth/models/model_manager.py"
+    replace_once(
+        manager,
+        '        with init_weights_on_device(device = torch.device("cpu")):',
+        '        with init_weights_on_device(device=torch.device("meta")):',
+    )
+    replace_once(
+        manager,
+        "        model.load_state_dict(model_state_dict, assign=True, strict=False)\n"
+        "        model = model.to(dtype=torch_dtype, device=device)\n",
+        "        model.load_state_dict(model_state_dict, assign=True, strict=False)\n"
+        "        unloaded = [name for name, parameter in model.named_parameters() if parameter.is_meta]\n"
+        "        if unloaded:\n"
+        "            raise RuntimeError(f'{model_name}: checkpoint has no tensor for parameters {unloaded}')\n"
+        "        model = model.to(dtype=torch_dtype, device=device)\n",
+    )
+
     downloader = root / "diffsynth/models/downloader.py"
     replace_once(
         downloader,
