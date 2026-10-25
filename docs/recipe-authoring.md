@@ -546,8 +546,8 @@ plain files matching signed output slots. Clean up only the scratch directory
 you created; preserve caches, other scratch and existing final output on failed
 generation, validation or rename. Retries may retain all those entries.
 `tests/test_adapter_output_staging.py` rejects output-root emptiness checks and
-scratch created in the output root, and exercises atomic publication, killed
-jobs, failures and retries with retained entries.
+newly added output-root scratch, and exercises atomic publication, killed jobs,
+failures and retries with retained entries.
 `tests/test_job_writable_paths.py` catches cache/lock/temp writes into image paths.
 
 A delivery-only retry observes a durable exit receipt and retained outputs; it

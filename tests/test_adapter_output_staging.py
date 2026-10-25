@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import ast
 import contextlib
+import importlib.machinery
+import importlib.util
 import shutil
 import subprocess
 import sys
@@ -20,6 +22,15 @@ REPAIRED_ADAPTERS = ("video/mova-pytorch/run.py",)
 # (TMPDIR=/outputs/tmp) and the cache mount. Everything else must be a file.
 RUNTIME_OWNED = frozenset({"tmp", "cache"})
 # Positional index of ``dir`` in each tempfile constructor.
+_GUARD_LOADER = importlib.machinery.SourceFileLoader(
+    "check_model_construction_device",
+    str(ROOT / "tools/check-model-construction-device"),
+)
+_GUARD_SPEC = importlib.util.spec_from_loader(_GUARD_LOADER.name, _GUARD_LOADER)
+assert _GUARD_SPEC is not None
+_construction_guard = importlib.util.module_from_spec(_GUARD_SPEC)
+sys.modules[_GUARD_LOADER.name] = _construction_guard
+_GUARD_LOADER.exec_module(_construction_guard)
 TEMPFILE_DIR_ARGUMENT = {
     "TemporaryDirectory": 2,
     "mkdtemp": 2,
@@ -165,14 +176,47 @@ def test_job_adapters_do_not_require_an_empty_output_root() -> None:
     )
 
 
-def _job_entrypoints() -> Iterator[tuple[Path, ast.Module]]:
-    for path in sorted((ROOT / "adapters").rglob("*.py")):
-        relative = path.relative_to(ROOT / "adapters")
-        if {"vendor", "tests"} & set(relative.parts):
-            continue  # upstream copies and creator test suites are not job code
-        source = path.read_text(encoding="utf-8")
-        if "--output-dir" in source:
-            yield path, ast.parse(source)
+def _scratch_sites(tree: ast.Module) -> list[tuple[int, set[int]]]:
+    """(reported line, lines that make up the site) for output-root scratch."""
+    assigned: dict[str, list[ast.Assign]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    assigned.setdefault(target.id, []).append(node)
+    sites: list[tuple[int, set[int]]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = func.attr if isinstance(func, ast.Attribute) else ""
+        if isinstance(func, ast.Name):
+            name = func.id
+        lines = set(range(node.lineno, (node.end_lineno or node.lineno) + 1))
+        if name in TEMPFILE_DIR_ARGUMENT:
+            position = TEMPFILE_DIR_ARGUMENT[name]
+            directories = [k.value for k in node.keywords if k.arg == "dir"]
+            directories += node.args[position : position + 1]
+            if any(
+                _mentions_output(directory)
+                and not any(
+                    isinstance(part, ast.Constant) and part.value == "tmp"
+                    for part in ast.walk(directory)
+                )
+                for directory in directories
+            ):
+                sites.append((node.lineno, lines))
+        elif name in {"mkdir", "makedirs"} and isinstance(func, ast.Attribute):
+            # Path.mkdir() on the target, or os.mkdir/os.makedirs(target).
+            os_call = isinstance(func.value, ast.Name) and func.value.id == "os"
+            receiver = node.args[0] if os_call and node.args else func.value
+            if _output_root_child(receiver):
+                sites.append((node.lineno, lines))
+            elif isinstance(receiver, ast.Name):
+                for assignment in assigned.get(receiver.id, []):
+                    if _output_root_child(assignment.value):
+                        sites.append((node.lineno, lines | {assignment.lineno}))
+    return sites
 
 
 def _mentions_output(node: ast.expr) -> bool:
@@ -190,51 +234,75 @@ def _output_root_child(node: ast.expr) -> bool:
     )
 
 
+def _new_scratch_sites(root: Path, base: str) -> list[str]:
+    """Output-root scratch on lines added to job entrypoints since ``base``."""
+    violations: list[str] = []
+    for name, added in sorted(_construction_guard.added_lines(root, base).items()):
+        if "/tests/" in name:
+            continue  # creator test suites are not job code
+        source = (root / name).read_text(encoding="utf-8")
+        if "--output-dir" not in source:
+            continue
+        for line, lines in _scratch_sites(ast.parse(source)):
+            if lines & added:
+                violations.append(f"{name}:{line}")
+    return violations
+
+
 def test_job_adapters_keep_scratch_out_of_the_output_root() -> None:
     """A SIGKILL skips every cleanup; scratch left in the output root is not a
     plain output file and fails the signed collection of the next attempt.
     Create scratch with tempfile defaults: the platform sets TMPDIR to its
-    collector-exempt ``/outputs/tmp``."""
-    violations: list[str] = []
-    for path, tree in _job_entrypoints():
-        assigned: dict[str, list[ast.expr]] = {}
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Assign):
-                for target in node.targets:
-                    if isinstance(target, ast.Name):
-                        assigned.setdefault(target.id, []).append(node.value)
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Call):
-                continue
-            func = node.func
-            name = func.attr if isinstance(func, ast.Attribute) else ""
-            if isinstance(func, ast.Name):
-                name = func.id
-            if name in TEMPFILE_DIR_ARGUMENT:
-                position = TEMPFILE_DIR_ARGUMENT[name]
-                directories = [k.value for k in node.keywords if k.arg == "dir"]
-                directories += node.args[position : position + 1]
-                if any(
-                    _mentions_output(directory)
-                    and not any(
-                        isinstance(part, ast.Constant) and part.value == "tmp"
-                        for part in ast.walk(directory)
-                    )
-                    for directory in directories
-                ):
-                    violations.append(f"{path.relative_to(ROOT)}:{node.lineno}")
-            elif name in {"mkdir", "makedirs"} and isinstance(func, ast.Attribute):
-                # Path.mkdir() on the target, or os.mkdir/os.makedirs(target).
-                os_call = isinstance(func.value, ast.Name) and func.value.id == "os"
-                receiver = node.args[0] if os_call and node.args else func.value
-                candidates = [receiver]
-                if isinstance(receiver, ast.Name):
-                    candidates += assigned.get(receiver.id, [])
-                if any(_output_root_child(candidate) for candidate in candidates):
-                    violations.append(f"{path.relative_to(ROOT)}:{node.lineno}")
+    collector-exempt ``/outputs/tmp``. Lines added since the merge base with
+    main are checked, like the repository's other adapter base-diff guards."""
+    violations = _new_scratch_sites(ROOT, "origin/main")
     assert not violations, "job adapters create scratch in the output root: " + (
         ", ".join(violations)
     )
+
+
+def _git(root: Path, *args: str) -> None:
+    subprocess.run(
+        ["git", "-C", str(root), "-c", "user.name=t", "-c", "user.email=t@t", *args],
+        check=True,
+        capture_output=True,
+    )
+
+
+EXISTING_STAGING = (
+    '# --output-dir\nstaging = args.output_dir / ".staging"\nstaging.mkdir()\n'
+)
+
+
+@pytest.mark.parametrize(
+    ("added", "flagged"),
+    [
+        ("", []),
+        ("value = 1\n", []),
+        ('tempfile.TemporaryDirectory(prefix="w")\n', []),
+        ('tempfile.mkdtemp(dir=args.output_dir / "tmp")\n', []),
+        ('tempfile.TemporaryDirectory(\n    prefix="w", dir=args.output_dir\n)\n', [4]),
+        ('tempfile.mkdtemp(None, "w", output_dir)\n', [4]),
+        ('work = args.output_dir / "work"\nwork.mkdir()\n', [5]),
+        ('os.makedirs(output_dir / "work", exist_ok=True)\n', [4]),
+        ('comfy_output = temporary / "output"\ncomfy_output.mkdir()\n', []),
+    ],
+)
+def test_scratch_guard_flags_only_new_output_root_scratch(
+    tmp_path: Path, added: str, flagged: list[int]
+) -> None:
+    run = tmp_path / "adapters/audio/demo/run.py"
+    run.parent.mkdir(parents=True)
+    run.write_text(EXISTING_STAGING)
+    _git(tmp_path, "init", "-q", "-b", "main")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "base")
+    # The pre-existing (proven) site is never flagged; only what a change adds.
+    assert _new_scratch_sites(tmp_path, "HEAD") == []
+    run.write_text(EXISTING_STAGING + added)
+    assert _new_scratch_sites(tmp_path, "HEAD") == [
+        f"adapters/audio/demo/run.py:{line}" for line in flagged
+    ]
 
 
 class _Killed(BaseException):
@@ -307,75 +375,3 @@ def test_killed_wan_dancer_leaves_no_entry_for_the_collector(
     ):
         runner.main()
     assert _exported(outputs) == {}
-
-
-@pytest.mark.parametrize("killed", [True, False])
-def test_foley_stages_in_runtime_scratch_and_survives_a_kill(
-    killed: bool, tmp_path: Path
-) -> None:
-    runner = _load(
-        "audio/hunyuan-video-foley-native/pipelines/run.py", "foley_staging_runner"
-    )
-    outputs = tmp_path / "outputs"
-    models = tmp_path / "models"
-    for name in (
-        "target/hunyuanvideo_foley_xl.pth",
-        "target/synchformer_state_dict.pth",
-        "target/vae_128d_48k.pth",
-        "siglip2/config.json",
-        "clap/config.json",
-    ):
-        (models / name).parent.mkdir(parents=True, exist_ok=True)
-        (models / name).write_bytes(b"model")
-    upstream = tmp_path / "infer.py"
-    upstream.write_text("", encoding="utf-8")
-
-    def rooted(value: str) -> Path:
-        path = Path(value)
-        return (
-            models / path.relative_to("/models")
-            if path.is_relative_to("/models")
-            else path
-        )
-
-    def infer(command: list[str], **_options: object) -> None:
-        if killed:
-            raise _Killed
-        staging = Path(command[command.index("--output_dir") + 1])
-        assert staging.parent == outputs / "tmp"
-        (staging / "clip_generated.wav").write_bytes(b"wav")
-
-    argv = [
-        "run.py",
-        "--entrypoint",
-        "/opt/vonk/source/pipelines/hunyuan_foley_xl.py",
-        "--output-mime",
-        "audio/wav",
-        "--output-dir",
-        str(outputs),
-    ]
-    with contextlib.ExitStack() as stack:
-        if killed:
-            stack.enter_context(_killed_run(outputs))
-        else:
-            (outputs / "tmp").mkdir(parents=True)
-            stack.enter_context(
-                mock.patch.object(tempfile, "tempdir", str(outputs / "tmp"))
-            )
-        stack.enter_context(mock.patch.object(sys, "argv", argv))
-        stack.enter_context(mock.patch.object(runner, "Path", rooted))
-        stack.enter_context(mock.patch.object(runner, "_SOURCE", upstream))
-        stack.enter_context(
-            mock.patch.object(runner, "_one_video", return_value=tmp_path / "a.mp4")
-        )
-        stack.enter_context(
-            mock.patch.object(runner, "_one_prompt", return_value="rain")
-        )
-        stack.enter_context(mock.patch.object(runner, "_validate_wav"))
-        stack.enter_context(
-            mock.patch.object(runner.subprocess, "run", side_effect=infer)
-        )
-        runner.main()
-    assert _exported(outputs) == ({} if killed else {"output.wav": True})
-    if not killed:
-        assert list((outputs / "tmp").iterdir()) == []

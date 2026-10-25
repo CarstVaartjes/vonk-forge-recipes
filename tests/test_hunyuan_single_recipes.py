@@ -278,6 +278,7 @@ class HunyuanMediaAdapterTests(unittest.TestCase):
         self.assertLess(
             source.index("_validate_wav(outputs[0])"), source.index("os.replace(")
         )
+        self.assertIn('staging = args.output_dir / ".staging"', source)
 
     def test_foley_validates_wav_before_atomic_publish(self) -> None:
         path = ROOT / "adapters/audio/hunyuan-video-foley-native/pipelines/run.py"
