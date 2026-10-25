@@ -6,6 +6,7 @@ runs inside the built recipe image before the platform layer or registry push.
 Only selected Hugging Face configs and Python modules are downloaded, never
 weights; all bytes must match the selected Model's manifest. Check auto_map
 modules and their relative imports, including processors, but not engine plugins.
+AutoModel* modules are checked only where the recipe's engine imports them.
 """
 
 from __future__ import annotations
@@ -36,6 +37,53 @@ class Plan(BaseModel):
     images: list[PlannedImage]
 
 
+# vLLM and SGLang build registered architectures from their own model registry.
+# They import auto_map AutoModel* classes only on their Transformers backend
+# (`model-impl transformers`, or an unregistered architecture, whose failed
+# import ends the load with evidence) and in SGLang's ModelOpt quantization
+# load (`modelopt-*` arguments, or quantization to these formats, which
+# SGLang applies to an unquantized checkpoint). Other engines
+# keep every module checked. Option choices can add or replace arguments.
+NATIVE_MODEL_ENGINES = {"vllm", "sglang"}
+MODELOPT_QUANTIZE = {"modelopt", "modelopt_fp8", "modelopt_mixed"}
+
+
+def imports_remote_model(recipe: RecipeDefinition) -> bool:
+    runtime = recipe.runtime
+    arguments = [
+        *runtime.arguments,
+        *(
+            argument
+            for option in recipe.options
+            for choice in option.choices
+            for argument in choice.args
+        ),
+    ]
+    return runtime.engine not in NATIVE_MODEL_ENGINES or any(
+        (
+            runtime.engine == "sglang"
+            and (
+                argument.name.startswith("modelopt-")
+                or (
+                    # The draft's quantization drives its ModelConfig the same way.
+                    argument.name
+                    in ("quantization", "speculative-draft-model-quantization")
+                    and isinstance(argument.value, str)
+                    and argument.value in MODELOPT_QUANTIZE
+                )
+            )
+        )
+        or (
+            argument.name == "model-impl"
+            and (
+                not isinstance(argument.value, str)
+                or argument.value not in ("auto", runtime.engine)
+            )
+        )
+        for argument in arguments
+    )
+
+
 # This program runs under the image's Python (3.12), using its installed
 # transformers and native libraries. Do not import model code or load weights.
 CHECK = """import hashlib
@@ -45,6 +93,8 @@ import urllib.request
 from pathlib import Path
 
 FILES = {files!r}
+# Model directories whose AutoModel* classes the serving engine imports.
+MODEL_CODE = {model_code!r}
 
 if FILES:
     with tempfile.TemporaryDirectory() as temporary:
@@ -65,13 +115,16 @@ if FILES:
             if path.suffix != ".json":
                 continue
             config = json.loads(download(path))
-            for reference in config.get("auto_map", {{}}).values():
+            model_code = path.parent.relative_to(temporary).as_posix() in MODEL_CODE
+            for key, reference in config.get("auto_map", {{}}).items():
                 for target in reference if isinstance(reference, list) else [reference]:
                     if target is None or "." not in target:
                         continue
                     # External code has no identity in this Model's manifest.
                     if "--" in target:
                         raise ValueError("unpinned external auto_map: " + target)
+                    if key.startswith("AutoModel") and not model_code:
+                        continue  # The engine never imports this module.
                     module, _ = target.split(".")
                     module_path = path.parent / (module + ".py")
                     if module_path in files:
@@ -139,17 +192,21 @@ def model_files(
 def prepare(plan: Plan, output: Path, root: Path = ROOT) -> None:
     for image in plan.images:
         files: set[tuple[str, str, int, str]] = set()
+        model_code: set[str] = set()
         for planned in image.recipes:
             recipe = RecipeDefinition.model_validate_json(
                 (root / planned.source_path).read_bytes()
             )
             files.update(model_files(recipe, root))
+            if imports_remote_model(recipe):
+                model_code.update(selection.model.slug for selection in recipe.models)
         if not files:
             continue  # Native engines need neither Transformers nor Python.
         directory = output / image.build_key
         directory.mkdir(parents=True, exist_ok=True)
         (directory / "remote-code-smoke.py").write_text(
-            CHECK.format(files=sorted(files)), encoding="utf-8"
+            CHECK.format(files=sorted(files), model_code=sorted(model_code)),
+            encoding="utf-8",
         )
 
 
