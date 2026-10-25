@@ -230,8 +230,8 @@ def _local_keyframes(path: Path, output_frames: int, height: int, width: int):
     mask = [0] * FRAME_COUNT
     # Both stages get the same music and FRAME_COUNT window, and DiffSynth
     # interpolates the music features over the whole window whatever
-    # wantodance_fps is, so global keyframe k belongs at local frame 4k (native
-    # spaces one segment's keyframes total_frames / len(global) apart, 149/38).
+    # wantodance_fps is, so global keyframe k belongs at local frame 4k, the
+    # first frame of latent k.
     for index, destination in enumerate(range(0, FRAME_COUNT, VAE_TEMPORAL_STRIDE)):
         keyframes[destination] = source[index]
         mask[destination] = 1
