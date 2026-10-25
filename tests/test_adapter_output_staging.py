@@ -21,7 +21,6 @@ REPAIRED_ADAPTERS = ("video/mova-pytorch/run.py",)
 # Entries the platform's output collector leaves to the runtime: its scratch
 # (TMPDIR=/outputs/tmp) and the cache mount. Everything else must be a file.
 RUNTIME_OWNED = frozenset({"tmp", "cache"})
-# Positional index of ``dir`` in each tempfile constructor.
 _GUARD_LOADER = importlib.machinery.SourceFileLoader(
     "check_model_construction_device",
     str(ROOT / "tools/check-model-construction-device"),
@@ -31,6 +30,7 @@ assert _GUARD_SPEC is not None
 _construction_guard = importlib.util.module_from_spec(_GUARD_SPEC)
 sys.modules[_GUARD_LOADER.name] = _construction_guard
 _GUARD_LOADER.exec_module(_construction_guard)
+# Positional index of ``dir`` in each tempfile constructor.
 TEMPFILE_DIR_ARGUMENT = {
     "TemporaryDirectory": 2,
     "mkdtemp": 2,
@@ -229,6 +229,8 @@ def _output_root_child(node: ast.expr) -> bool:
         isinstance(node, ast.BinOp)
         and isinstance(node.op, ast.Div)
         and _mentions_output(node.left)
+        # Only direct children: ``<output>/"tmp"/"work"`` sits under runtime scratch.
+        and not (isinstance(node.left, ast.BinOp) and isinstance(node.left.op, ast.Div))
         and isinstance(node.right, ast.Constant)
         and node.right.value not in RUNTIME_OWNED
     )
@@ -286,6 +288,8 @@ EXISTING_STAGING = (
         ('work = args.output_dir / "work"\nwork.mkdir()\n', [5]),
         ('os.makedirs(output_dir / "work", exist_ok=True)\n', [4]),
         ('comfy_output = temporary / "output"\ncomfy_output.mkdir()\n', []),
+        ('(args.output_dir / "tmp" / "work").mkdir(parents=True)\n', []),
+        ('(args.output_dir / "cache" / "hf").mkdir(parents=True)\n', []),
     ],
 )
 def test_scratch_guard_flags_only_new_output_root_scratch(
