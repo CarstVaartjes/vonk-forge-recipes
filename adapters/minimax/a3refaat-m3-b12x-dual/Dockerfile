@@ -74,14 +74,17 @@ RUN git clone --recursive https://github.com/flashinfer-ai/flashinfer.git /works
     git submodule update --init --recursive
 WORKDIR /workspace/flashinfer
 
-# Upstream's patch to avoid re-downloading existing cubins
-COPY flashinfer_cache.patch .
-RUN patch -p1 < flashinfer_cache.patch && \
+# Upstream's patch to avoid re-downloading existing cubins, and a backport that builds FA3 attention-sink kernels
+# only for SM90 builds (at this pin they are compiled for sm_90a regardless of FLASHINFER_CUDA_ARCH_LIST, and nvcc
+# ran out of memory on them). The AOT cache compiles three kernels at a time: its CUTLASS GEMMs peak at 7.3 GB per
+# compiler, and a Spark build is limited to the recipe's image_bytes of memory.
+COPY flashinfer_cache.patch flashinfer-aot-sink-sm90.patch ./
+RUN patch -p1 < flashinfer_cache.patch && patch -p1 < flashinfer-aot-sink-sm90.patch && \
     sed -i -e 's/license = "Apache-2.0"/license = { text = "Apache-2.0" }/' -e '/license-files/d' pyproject.toml && \
     uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
     cd flashinfer-cubin && uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
     cd ../flashinfer-jit-cache && \
-    uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
+    MAX_JOBS=3 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
     cd .. && git rev-parse HEAD > /workspace/wheels-flashinfer/.flashinfer-commit
 
 # =========================================================

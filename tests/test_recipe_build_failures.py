@@ -195,3 +195,49 @@ def test_skintokens_verifies_download_before_use(tmp_path: Path, corrupt: bool) 
     )
     assert (result.returncode == 0) is not corrupt, result.stderr
     assert (tmp_path / "consumed").exists() is not corrupt
+
+
+@pytest.mark.parametrize(
+    ("cubins", "accepted"),
+    [
+        (["sm_121a"], True),
+        (["sm_121a", "sm_90a"], False),
+        ([], False),
+    ],
+)
+def test_minimax_dual_verifier_requires_gb10_only_flashinfer_aot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    cubins: list[str],
+    accepted: bool,
+) -> None:
+    # The CI build compiled sm_90a attention-sink kernels despite the 12.1a
+    # arch list (and nvcc ran out of memory); the image must reject that.
+    verifier = load_minimax_dual_verifier()
+    package = tmp_path / "flashinfer_jit_cache"
+    (package / "jit_cache/host_only").mkdir(parents=True)
+    (package / "jit_cache/host_only/host.so").touch()
+    for arch in cubins:
+        (package / f"jit_cache/{arch}").mkdir()
+        (package / f"jit_cache/{arch}/kernel.so").touch()
+    spec = importlib.util.spec_from_loader("flashinfer_jit_cache", loader=None)
+    assert spec is not None
+    spec.submodule_search_locations = [str(package)]
+    monkeypatch.setattr(verifier.importlib.util, "find_spec", lambda name: spec)
+
+    def cuobjdump(
+        command: list[str], **_kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        library = Path(command[-1])
+        if library.parent.name == "host_only":
+            message = f"cuobjdump info : File '{library}' does not contain device code"
+            return subprocess.CompletedProcess(command, 255, stdout=message, stderr="")
+        listing = f"ELF file    1: kernel.cuda.1.{library.parent.name}.cubin\n"
+        return subprocess.CompletedProcess(command, 0, stdout=listing, stderr="")
+
+    monkeypatch.setattr(verifier.subprocess, "run", cuobjdump)
+    if accepted:
+        verifier.verify_flashinfer_aot()
+    else:
+        with pytest.raises(SystemExit, match="must target sm_12x"):
+            verifier.verify_flashinfer_aot()

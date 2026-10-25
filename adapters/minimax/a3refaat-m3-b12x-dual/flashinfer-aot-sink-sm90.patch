@@ -1,0 +1,15 @@
+Backport of flashinfer-ai/flashinfer 5454d231c655e80fa62adf13281654b2923174f3 (#4514), aot.py only:
+build the FA3 attention-sink AOT modules only when the build targets SM90. At d768c14e they are
+compiled for sm_90a whatever FLASHINFER_CUDA_ARCH_LIST says (useless on GB10, and nvcc runs out of memory).
+
+--- a/flashinfer/aot.py
++++ b/flashinfer/aot.py
+@@ -321,7 +321,7 @@
+         from .jit.attention import gen_batch_prefill_attention_sink_module
+ 
+         for dtype in f16_dtype_:
+-            for backend in ["fa2", "fa3"]:
++            for backend in ["fa2"] + (["fa3"] if has_sm90 else []):
+                 for use_swa in [True, False]:
+                     yield gen_batch_prefill_attention_sink_module(
+                         backend=backend,
