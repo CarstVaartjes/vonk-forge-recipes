@@ -6,6 +6,8 @@ CUDA-only branches (v1/attention/backends/fa_utils.py:17-23 imports
 vllm.vllm_flash_attn), which a GPU-less builder never resolves. Resolve vLLM's
 own non-NVML CUDA platform with the GB10 compute capability (12.1) instead, so
 a missing CUDA extension on that path fails the image build, not the Spark.
+The builder has no driver either, so the Dockerfile runs this check (only) with
+the CUDA toolkit's libcuda stub as libcuda.so.1, which vllm._C links against.
 """
 
 from __future__ import annotations

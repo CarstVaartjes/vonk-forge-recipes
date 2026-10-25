@@ -25,7 +25,10 @@ COPY patch-vllm-flash-attn-optional.py check-model-import.py /opt/vonk/build/
 
 RUN python3 /opt/vonk/build/patch-vllm-flash-attn-optional.py \
     && python3 -c "import vllm.vllm_flash_attn" \
-    && python3 /opt/vonk/build/check-model-import.py \
+    && mkdir /opt/vonk/build/cuda-stub \
+    && ln -s /usr/local/cuda/lib64/stubs/libcuda.so /opt/vonk/build/cuda-stub/libcuda.so.1 \
+    && test -e /opt/vonk/build/cuda-stub/libcuda.so.1 \
+    && LD_LIBRARY_PATH="/opt/vonk/build/cuda-stub:$LD_LIBRARY_PATH" python3 /opt/vonk/build/check-model-import.py \
     && rm -rf /opt/vonk/build \
     && test -x /usr/local/bin/vllm \
     && test -x "$(command -v ray)" \
