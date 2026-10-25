@@ -50,6 +50,8 @@ jobs:
     outputs:
       builds: ${{ steps.select.outputs.builds }}
       build_count: ${{ steps.select.outputs.build_count }}
+      bounded: ${{ steps.select.outputs.bounded }}
+      bounded_count: ${{ steps.select.outputs.bounded_count }}
       copy_count: ${{ steps.select.outputs.copy_count }}
       deferred_slugs: ${{ steps.select.outputs.deferred_slugs }}
     steps:
@@ -142,12 +144,14 @@ jobs:
           mkdir -p "$RUNNER_TEMP/upload"
           cp "$RUNNER_TEMP/plan.json" "$RUNNER_TEMP/selection.json" "$RUNNER_TEMP/upload/"
           cp "$SSL_CERT_FILE" "$RUNNER_TEMP/upload/ca-bundle.crt"
-          for key in $(jq -r '.builds[].build_key' "$RUNNER_TEMP/selection.json"); do
+          for key in $(jq -r '.builds[].build_key, .bounded[].build_key' "$RUNNER_TEMP/selection.json"); do
             cp -r "$RUNNER_TEMP/images/$key" "$RUNNER_TEMP/upload/$key"
           done
           {
             echo "builds=$(jq -c '[.builds[] | {build_key}]' "$RUNNER_TEMP/selection.json")"
             echo "build_count=$(jq '.builds | length' "$RUNNER_TEMP/selection.json")"
+            echo "bounded=$(jq -c '[.bounded[] | {build_key}]' "$RUNNER_TEMP/selection.json")"
+            echo "bounded_count=$(jq '.bounded | length' "$RUNNER_TEMP/selection.json")"
             echo "deferred_slugs=$(jq -r '.deferred_slugs | join(" ")' "$RUNNER_TEMP/selection.json")"
             echo "copy_count=$(jq '.copies | length' "$RUNNER_TEMP/selection.json")"
           } >> "$GITHUB_OUTPUT"
@@ -156,6 +160,7 @@ jobs:
             echo "Requested: \`${SLUGS:-all}\`; platform: \`${{ steps.platform.outputs.ref }}\`"
             echo
             jq -r '.builds[] | "- build `\(.build_key[0:12])` for \([.recipes[].slug] | join(", "))"' "$RUNNER_TEMP/selection.json"
+            jq -r '.bounded[] | "- bounded proof `\(.build_key[0:12])` for \([.recipes[].slug] | join(", ")) (prebuilt-image-exclusions.json: the Spark build is the full proof)"' "$RUNNER_TEMP/selection.json"
             jq -r '.copies[] | "- copy to `\(.to)`"' "$RUNNER_TEMP/selection.json"
             jq -r '.deferred[] | "- deferred to a later run: `\(.[0:12])`"' "$RUNNER_TEMP/selection.json"
             jq -r '.skipped[]? | "- not planned: \(.slug): \(.reason)"' "$RUNNER_TEMP/plan.json"
@@ -207,6 +212,41 @@ jobs:
               skopeo copy --retry-times 3 --preserve-digests "docker://$from" "docker://$target"
             done
           done
+
+  # A changed key that only recipes in prebuilt-image-exclusions.json use
+  # cannot finish on a hosted runner; the Spark build and the hardware sweep
+  # are its full proof. Check what a build would read first instead: the
+  # Dockerfile parses for linux/arm64 and every base image resolves.
+  bounded:
+    name: Bounded proof ${{ matrix.build_key }}
+    needs: plan
+    if: needs.plan.outputs.bounded_count != '0' && needs.plan.outputs.bounded_count != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.bounded) }}
+    env:
+      KEY: ${{ matrix.build_key }}
+    steps:
+      - name: Download the image plan
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: recipe-image-plan
+          path: ${{ runner.temp }}/plan
+
+      - name: Check the Dockerfile and its base images without building
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/plan/$KEY"
+          # BuildKit's check parses every stage, resolves each FROM for the
+          # target platform and runs no instruction.
+          docker buildx build --check --platform linux/arm64 \
+            --build-arg BUILDKIT_SYNTAX=docker/dockerfile:1.12@sha256:93bfd3b68c109427185cd78b4779fc82b484b0b7618e36d0f104d4d801e66d25 \
+            --file context/Dockerfile context
+          echo "- \`${KEY:0:12}\`: bounded proof (Dockerfile check); full proof is the Spark build" >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: Build ${{ matrix.build_key }}

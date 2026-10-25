@@ -309,6 +309,53 @@ def test_a_recipe_declared_unbuildable_is_not_retried_unless_asked_for() -> None
     }
 
 
+def test_pr_bounds_only_keys_that_excluded_recipes_alone_use() -> None:
+    # An excluded recipe cannot finish a hosted build; its PR gate must not
+    # wait on one. A key a buildable recipe shares still needs the full build.
+    base, head = _plan(), _plan()
+    for image, key in zip(head["images"], ("c" * 64, "e" * 64), strict=True):
+        image["build_key"] = key
+    candidates = tool.changed_candidates(head, base)
+    selection = tool.select(
+        head, owner=OWNER, candidates=candidates, lookup=_registry({})
+    )
+    assert sorted(item["build_key"] for item in selection["builds"]) == [
+        "c" * 64,
+        "e" * 64,
+    ]
+
+    only_other = tool.bound_excluded(head, selection, {"other": "hours"})
+    assert [item["build_key"] for item in only_other["builds"]] == ["c" * 64]
+    assert [item["build_key"] for item in only_other["bounded"]] == ["e" * 64]
+
+    # "dual" shares its key with the buildable "single": full build stays.
+    one_of_shared = tool.bound_excluded(head, selection, {"dual": "hours"})
+    assert sorted(item["build_key"] for item in one_of_shared["builds"]) == [
+        "c" * 64,
+        "e" * 64,
+    ]
+    assert one_of_shared["bounded"] == []
+
+    everything = tool.bound_excluded(
+        head, selection, {"single": "hours", "dual": "hours", "other": "hours"}
+    )
+    assert everything["builds"] == []
+    assert len(everything["bounded"]) == 2
+
+
+def test_bounded_proof_checks_without_building_and_gates_the_image_result() -> None:
+    workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
+    bounded = workflow.split("\n  bounded:\n", 1)[1].split("\n  build:\n", 1)[0]
+    assert "fromJSON(needs.plan.outputs.bounded)" in bounded
+    assert "docker buildx build --check" in bounded
+    assert "podman" not in bounded
+    build = workflow.split("\n  build:\n", 1)[1].split("\n  resolve:\n", 1)[0]
+    # Bounded keys never enter the full-build matrix, and buildable keys
+    # never leave it.
+    assert "fromJSON(needs.plan.outputs.builds)" in build
+    assert "bounded" not in build
+
+
 def test_every_recipe_without_an_image_says_why() -> None:
     plan = _plan()
     plan["skipped"] = [{"slug": "refused", "reason": "dockerfile.heredoc_forbidden"}]
