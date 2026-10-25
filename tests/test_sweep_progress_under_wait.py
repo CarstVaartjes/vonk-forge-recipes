@@ -251,7 +251,8 @@ def test_a_retried_or_flapping_child_reaches_the_controllers_alarm(
     else:
         assert len({child["operation"]["phase"] for child in shown}) == 2
         assert len({child["operation"]["last_progress_at"] for child in shown}) > 2
-        last_high = first_load  # the first look: nothing new after it
+        # The second operation phase is the last one not seen before.
+        last_high = first_load + 30
     (evidence,) = _expired(tmp_path, recipe.key)
     since = _alarm_since(evidence)
     assert last_high - 2 * poll <= since <= last_high + 2 * poll
@@ -260,6 +261,131 @@ def test_a_retried_or_flapping_child_reaches_the_controllers_alarm(
     assert evidence["observed_at"] >= alarm.alarmed[0][0]
     assert _loads(fleet) == [first_load]
     assert sweep.state.entry(recipe.key).get("attempts", 0) == 0
+
+
+#: The 2026-10-24 incident's rotating lead wait: each stays this long.
+ROTATION = 900.0
+ROTATING = [
+    {
+        "reason": "receipt-missing",
+        "blockers": [
+            {
+                "code": "receipt-missing",
+                "detail": "Waiting for the exact Run/Switch child receipt",
+                "operation": {"kind": "run-switch"},
+                "severity": "info",
+            }
+        ],
+    },
+    {
+        "reason": "run-switch.phase-retry",
+        "blockers": [
+            {
+                "code": "run-switch.phase-retry",
+                "detail": "admission.capacity_busy",
+                "node_ids": ["spk_a"],
+                "severity": "warning",
+            }
+        ],
+    },
+    {
+        "reason": "runtime_preflight.stale",
+        "blockers": [
+            {
+                "code": "runtime_preflight.stale",
+                "detail": "runtime_preflight.stale",
+                "operation": {"kind": "fleet-profile"},
+                "severity": "warning",
+            }
+        ],
+    },
+]
+
+
+def test_a_rotating_wait_on_a_retried_copy_alarms_one_window_after_its_cycle(
+    tmp_path: Path, gateway: Gateway, monkeypatch
+) -> None:
+    # receipt-missing -> run-switch.phase-retry -> runtime_preflight.stale ->
+    # receipt-missing ..., each copy attempt failing at 20 % and retried from 0.
+    # A wait recurring is not movement: once the cycle showed every wait, the
+    # Controller alarms one stall window after the last of them first showed.
+    recipe = FakeRecipe(
+        "rotating",
+        content="a" * 64,
+        digests=(MODEL,),
+        copy_seconds=10 * WINDOW,
+        copy_retries=True,
+        load_seconds=10 * WINDOW,
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [recipe], [FakeModel(MODEL)], gateway=gateway, timeouts=_timeouts()
+    )
+    original = fleet._app_doc
+
+    def rotating(app):
+        document = original(app)
+        if document["state"] == LifecycleState.RUNNING:
+            turn = int((clock.now() - app["created"]) // ROTATION) % len(ROTATING)
+            document["wait"] = deepcopy(ROTATING[turn])
+        return document
+
+    monkeypatch.setattr(fleet, "_app_doc", rotating)
+    alarm = StallAlarm(fleet).install(monkeypatch)
+    sweep.preflight()
+    _until(sweep, clock, lambda: _expired(tmp_path, recipe.key))
+    first_load = _loads(fleet)[0]
+    cycle = first_load + 2 * ROTATION  # the third wait first shows
+    assert cycle > first_load + 2 * WINDOW  # after the copy's last new high
+    poll = sweep.cfg.poll_seconds
+    (evidence,) = _expired(tmp_path, recipe.key)
+    since = _alarm_since(evidence)
+    assert cycle - poll <= since <= cycle + 2 * poll
+    assert alarm.alarmed[0][0] - since > PROGRESS_STALL_WINDOW
+    # Held until then; the alarm follows the wait the load shows at that moment.
+    assert _loads(fleet) == [first_load]
+    turn = int((alarm.alarmed[0][0] - first_load) // ROTATION) % len(ROTATING)
+    blockers = evidence["wait"]["controller"]["blockers"]
+    assert [b["code"] for b in blockers][-2:] == [
+        ROTATING[turn]["blockers"][0]["code"],
+        STALLED,
+    ]
+    assert sweep.state.entry(recipe.key).get("attempts", 0) == 0
+
+
+def test_an_agent_re_execution_mid_copy_stays_held_without_an_alarm(
+    tmp_path: Path, gateway: Gateway, monkeypatch
+) -> None:
+    # Half-way the agent restarts the copy: a new checkpoint key under the same
+    # attempt, its bytes from 0 while the child's max-merged bytes stand still for
+    # longer than the Controller's stall window. The re-execution's counters start
+    # over, so each new byte is movement.
+    recipe = FakeRecipe(
+        "re-executed",
+        content="a" * 64,
+        digests=(MODEL,),
+        copy_seconds=8 * WINDOW,
+        copy_reexecutes=True,
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [recipe], [FakeModel(MODEL)], gateway=gateway, timeouts=_timeouts()
+    )
+    shown = _held_by_receipt_wait(fleet, monkeypatch)
+    alarm = StallAlarm(fleet).install(monkeypatch)
+    sweep.preflight()
+    _until(sweep, clock, lambda: recipe.key in sweep.state.slots)
+    first_load = _loads(fleet)[0]
+    restart = first_load + 4 * WINDOW
+    assert 4 * WINDOW > PROGRESS_STALL_WINDOW  # the child bytes stand still that long
+    _until(sweep, clock, lambda: clock.now() > restart + 4 * WINDOW - 3 * 10)
+    keys = [child["operation"].get("checkpoint", {}).get("key") for child in shown]
+    assert {"copy-1", "copy-2"} <= set(keys)
+    attempts = [child["operation"]["completed_bytes"] for child in shown]
+    assert any(b < a for a, b in pairwise(attempts))
+    assert len({child["retry_attempt"] for child in shown}) == 1
+    assert not alarm.alarmed
+    assert sweep.state.slots[recipe.key]["phase"] == "loading"
+    assert not _expired(tmp_path, recipe.key)
+    assert _loads(fleet) == [first_load]
 
 
 @pytest.mark.parametrize("case", ["rising-copy", "deadline"])

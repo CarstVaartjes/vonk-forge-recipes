@@ -19,7 +19,7 @@ application fails (reconcile.py:440-450).
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sweep_fakes import (
     PROGRESS_STALL_WINDOW,
@@ -279,3 +279,23 @@ def test_the_fake_alarm_has_the_controllers_shape(tmp_path, monkeypatch) -> None
     assert view["state"] == LifecycleState.RUNNING
     assert app["state"] == LifecycleState.RUNNING and "stalled" not in app
     assert alarm.alarmed
+
+
+def test_an_old_wait_only_row_alarms_at_its_first_re_check(
+    tmp_path, monkeypatch
+) -> None:
+    """vonk-forge #1899: a first observation begins at the row's own write or wait."""
+    _, fleet, clock, _, _, application, _, _ = held_lane(tmp_path, monkeypatch)
+    app = fleet.apps[application]
+    for written, alarmed in (
+        (clock.now() - PROGRESS_STALL_WINDOW - 60, True),
+        (clock.now() - 60, False),
+    ):
+        app["updated_at"] = written
+        document = fleet._app_doc(app)
+        document["wait"]["first_blocked_at"] = datetime.fromtimestamp(
+            written - 10, UTC
+        ).isoformat()
+        view = StallAlarm(fleet).view(document, app)  # the upgraded Controller
+        codes = [b["code"] for b in view["wait"]["blockers"]]
+        assert (codes[-1] == STALLED) is alarmed
