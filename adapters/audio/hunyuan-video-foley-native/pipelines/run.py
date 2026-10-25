@@ -8,6 +8,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import wave
 from pathlib import Path
 
@@ -123,9 +124,9 @@ def main() -> None:
     if not _SOURCE.is_file():
         raise SystemExit("pinned HunyuanVideo-Foley source is missing")
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    staging = args.output_dir / ".staging"
-    shutil.rmtree(staging, ignore_errors=True)
-    staging.mkdir()
+    # Stage in the platform's TMPDIR (on the output filesystem, exempt from
+    # collection): a killed job skips the cleanup below.
+    staging = Path(tempfile.mkdtemp(prefix="vonk-foley-"))
 
     env = dict(os.environ)
     env["PYTHONHASHSEED"] = str(args.seed)

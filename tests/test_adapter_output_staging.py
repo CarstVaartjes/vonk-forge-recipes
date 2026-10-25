@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import ast
+import contextlib
+import shutil
 import subprocess
+import sys
+import tempfile
 import types
+from collections.abc import Iterator
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -11,14 +16,30 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 REPAIRED_ADAPTERS = ("video/mova-pytorch/run.py",)
+# Entries the platform's output collector leaves to the runtime: its scratch
+# (TMPDIR=/outputs/tmp) and the cache mount. Everything else must be a file.
+RUNTIME_OWNED = frozenset({"tmp", "cache"})
+# Positional index of ``dir`` in each tempfile constructor.
+TEMPFILE_DIR_ARGUMENT = {
+    "TemporaryDirectory": 2,
+    "mkdtemp": 2,
+    "mkstemp": 2,
+    "NamedTemporaryFile": 6,
+    "TemporaryFile": 6,
+    "SpooledTemporaryFile": 7,
+}
+
+
+def _load(relative: str, name: str) -> types.ModuleType:
+    path = ROOT / "adapters" / relative
+    module = types.ModuleType(name)
+    exec(compile(path.read_bytes(), str(path), "exec"), module.__dict__)  # noqa: S102
+    return module
 
 
 @pytest.fixture(params=REPAIRED_ADAPTERS)
 def runner(request: pytest.FixtureRequest) -> types.ModuleType:
-    path = ROOT / "adapters" / request.param
-    module = types.ModuleType("output_staging_runner")
-    exec(compile(path.read_bytes(), str(path), "exec"), module.__dict__)  # noqa: S102
-    return module
+    return _load(request.param, "output_staging_runner")
 
 
 @pytest.fixture
@@ -142,3 +163,219 @@ def test_job_adapters_do_not_require_an_empty_output_root() -> None:
     assert not violations, "job adapters check output-root contents: " + ", ".join(
         violations
     )
+
+
+def _job_entrypoints() -> Iterator[tuple[Path, ast.Module]]:
+    for path in sorted((ROOT / "adapters").rglob("*.py")):
+        relative = path.relative_to(ROOT / "adapters")
+        if {"vendor", "tests"} & set(relative.parts):
+            continue  # upstream copies and creator test suites are not job code
+        source = path.read_text(encoding="utf-8")
+        if "--output-dir" in source:
+            yield path, ast.parse(source)
+
+
+def _mentions_output(node: ast.expr) -> bool:
+    return "output" in ast.unparse(node).lower()
+
+
+def _output_root_child(node: ast.expr) -> bool:
+    """``<output dir> / "<name>"``: a fixed entry directly in the output root."""
+    return (
+        isinstance(node, ast.BinOp)
+        and isinstance(node.op, ast.Div)
+        and _mentions_output(node.left)
+        and isinstance(node.right, ast.Constant)
+        and node.right.value not in RUNTIME_OWNED
+    )
+
+
+def test_job_adapters_keep_scratch_out_of_the_output_root() -> None:
+    """A SIGKILL skips every cleanup; scratch left in the output root is not a
+    plain output file and fails the signed collection of the next attempt.
+    Create scratch with tempfile defaults: the platform sets TMPDIR to its
+    collector-exempt ``/outputs/tmp``."""
+    violations: list[str] = []
+    for path, tree in _job_entrypoints():
+        assigned: dict[str, list[ast.expr]] = {}
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        assigned.setdefault(target.id, []).append(node.value)
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            func = node.func
+            name = func.attr if isinstance(func, ast.Attribute) else ""
+            if isinstance(func, ast.Name):
+                name = func.id
+            if name in TEMPFILE_DIR_ARGUMENT:
+                position = TEMPFILE_DIR_ARGUMENT[name]
+                directories = [k.value for k in node.keywords if k.arg == "dir"]
+                directories += node.args[position : position + 1]
+                if any(
+                    _mentions_output(directory)
+                    and not any(
+                        isinstance(part, ast.Constant) and part.value == "tmp"
+                        for part in ast.walk(directory)
+                    )
+                    for directory in directories
+                ):
+                    violations.append(f"{path.relative_to(ROOT)}:{node.lineno}")
+            elif name in {"mkdir", "makedirs"} and isinstance(func, ast.Attribute):
+                # Path.mkdir() on the target, or os.mkdir/os.makedirs(target).
+                os_call = isinstance(func.value, ast.Name) and func.value.id == "os"
+                receiver = node.args[0] if os_call and node.args else func.value
+                candidates = [receiver]
+                if isinstance(receiver, ast.Name):
+                    candidates += assigned.get(receiver.id, [])
+                if any(_output_root_child(candidate) for candidate in candidates):
+                    violations.append(f"{path.relative_to(ROOT)}:{node.lineno}")
+    assert not violations, "job adapters create scratch in the output root: " + (
+        ", ".join(violations)
+    )
+
+
+class _Killed(BaseException):
+    """The job process is killed (SIGKILL): no ``finally`` or ``__exit__`` runs."""
+
+
+@contextlib.contextmanager
+def _killed_run(outputs: Path) -> Iterator[None]:
+    """Run with the platform's TMPDIR and with every cleanup path skipped."""
+
+    @contextlib.contextmanager
+    def uncleaned(
+        suffix: str | None = None,
+        prefix: str | None = None,
+        dir: str | Path | None = None,
+        **_options: object,
+    ) -> Iterator[str]:
+        yield tempfile.mkdtemp(suffix, prefix, dir)
+
+    (outputs / "tmp").mkdir(parents=True, exist_ok=True)
+    with (
+        mock.patch.object(tempfile, "tempdir", str(outputs / "tmp")),
+        mock.patch.object(tempfile, "TemporaryDirectory", uncleaned),
+        mock.patch.object(shutil, "rmtree"),
+        pytest.raises(_Killed),
+    ):
+        yield
+
+
+def _exported(outputs: Path) -> dict[str, bool]:
+    """What the output collector inspects: name -> is a plain file."""
+    return {
+        path.name: path.is_file() and not path.is_symlink()
+        for path in outputs.iterdir()
+        if not (path.name in RUNTIME_OWNED and path.is_dir())
+    }
+
+
+@pytest.mark.parametrize(
+    "relative",
+    ["video/wan-dancer-native/run.py", "video/wan-dancer-diffsynth-disk/run.py"],
+)
+def test_killed_wan_dancer_leaves_no_entry_for_the_collector(
+    relative: str, tmp_path: Path
+) -> None:
+    runner = _load(relative, "wan_dancer_killed_runner")
+    outputs = tmp_path / "outputs"
+    source = tmp_path / "source"
+    for global_style, local_style in getattr(runner, "STYLE_PROMPTS", {}).values():
+        for name in (global_style, local_style):
+            prompt = source / "gen_video/prompt" / name
+            prompt.parent.mkdir(parents=True, exist_ok=True)
+            prompt.write_text("style", encoding="utf-8")
+    args = SimpleNamespace(
+        output_mime="video/mp4", seed=0, timeout_seconds=600, output_dir=outputs
+    )
+    request = {"reference_image": "a.png", "music": "a.wav", "prompt": "Dance"}
+    with (
+        mock.patch.object(runner, "_arguments", return_value=args),
+        mock.patch.object(runner, "REQUIRED_MODEL_FILES", set()),
+        mock.patch.object(runner, "SOURCE_ROOT", source, create=True),
+        mock.patch.object(runner, "_manifest", return_value=None),
+        mock.patch.object(runner, "_request", return_value=request),
+        mock.patch.object(runner, "_input_file", return_value=tmp_path / "input"),
+        mock.patch.object(runner, "_generation_dimensions", return_value=(512, 512)),
+        mock.patch.object(runner, "_probe_duration", return_value=1.0),
+        mock.patch.object(runner, "_expected_output", return_value=(512, 512, 24, 0.8)),
+        mock.patch.object(runner, "_run", side_effect=_Killed),
+        _killed_run(outputs),
+    ):
+        runner.main()
+    assert _exported(outputs) == {}
+
+
+@pytest.mark.parametrize("killed", [True, False])
+def test_foley_stages_in_runtime_scratch_and_survives_a_kill(
+    killed: bool, tmp_path: Path
+) -> None:
+    runner = _load(
+        "audio/hunyuan-video-foley-native/pipelines/run.py", "foley_staging_runner"
+    )
+    outputs = tmp_path / "outputs"
+    models = tmp_path / "models"
+    for name in (
+        "target/hunyuanvideo_foley_xl.pth",
+        "target/synchformer_state_dict.pth",
+        "target/vae_128d_48k.pth",
+        "siglip2/config.json",
+        "clap/config.json",
+    ):
+        (models / name).parent.mkdir(parents=True, exist_ok=True)
+        (models / name).write_bytes(b"model")
+    upstream = tmp_path / "infer.py"
+    upstream.write_text("", encoding="utf-8")
+
+    def rooted(value: str) -> Path:
+        path = Path(value)
+        return (
+            models / path.relative_to("/models")
+            if path.is_relative_to("/models")
+            else path
+        )
+
+    def infer(command: list[str], **_options: object) -> None:
+        if killed:
+            raise _Killed
+        staging = Path(command[command.index("--output_dir") + 1])
+        assert staging.parent == outputs / "tmp"
+        (staging / "clip_generated.wav").write_bytes(b"wav")
+
+    argv = [
+        "run.py",
+        "--entrypoint",
+        "/opt/vonk/source/pipelines/hunyuan_foley_xl.py",
+        "--output-mime",
+        "audio/wav",
+        "--output-dir",
+        str(outputs),
+    ]
+    with contextlib.ExitStack() as stack:
+        if killed:
+            stack.enter_context(_killed_run(outputs))
+        else:
+            (outputs / "tmp").mkdir(parents=True)
+            stack.enter_context(
+                mock.patch.object(tempfile, "tempdir", str(outputs / "tmp"))
+            )
+        stack.enter_context(mock.patch.object(sys, "argv", argv))
+        stack.enter_context(mock.patch.object(runner, "Path", rooted))
+        stack.enter_context(mock.patch.object(runner, "_SOURCE", upstream))
+        stack.enter_context(
+            mock.patch.object(runner, "_one_video", return_value=tmp_path / "a.mp4")
+        )
+        stack.enter_context(
+            mock.patch.object(runner, "_one_prompt", return_value="rain")
+        )
+        stack.enter_context(mock.patch.object(runner, "_validate_wav"))
+        stack.enter_context(
+            mock.patch.object(runner.subprocess, "run", side_effect=infer)
+        )
+        runner.main()
+    assert _exported(outputs) == ({} if killed else {"output.wav": True})
+    if not killed:
+        assert list((outputs / "tmp").iterdir()) == []
