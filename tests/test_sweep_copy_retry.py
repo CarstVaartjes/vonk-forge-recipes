@@ -54,8 +54,15 @@ def test_stalled_copy_retry_releases_and_requeues_instead_of_holding_lane(
 ) -> None:
     import json
 
-    stuck = FakeRecipe("copy", copy_seconds=2000, copy_stalls=True)
-    sweep, fleet, clock = make_sweep(tmp_path, [stuck], [FakeModel("m1")])
+    # Real content identities: the held-receipt check compares them.
+    stuck = FakeRecipe(
+        "copy",
+        ("1" * 64,),
+        content="a" * 64,
+        copy_seconds=2000,
+        copy_stalls=True,
+    )
+    sweep, fleet, clock = make_sweep(tmp_path, [stuck], [FakeModel("1" * 64)])
     original = sweep.vk.runner
 
     def retrying(argv, timeout):

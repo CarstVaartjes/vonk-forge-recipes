@@ -31,7 +31,7 @@ from vonk_forge_contracts.sweep import (
 from vonk_forge_contracts.sweep import SweepProgress as Progress
 
 from .auth_contract import SmokeAuthClass
-from .lifecycle import LifecycleState
+from .lifecycle import ACTIVE, LifecycleState
 from .policy import (
     CLIENT_CREDENTIAL,
     RECIPE_FAILURE_CODES,
@@ -219,6 +219,27 @@ def admission_unbound(document: Mapping[str, Any]) -> bool:
     """
     progress = document.get("progress")
     return isinstance(progress, Mapping) and progress.get("admission_pending") is True
+
+
+def held_receipt(load: Mapping[str, Any] | None) -> bool:
+    """Whether the Controller works this load's bound, live receipt behind a wait it reports.
+
+    Only the Controller ends such a wait: the receipt's end, its stall alarm
+    (``stalled_detail``) or a newer request. Releasing the lane on a local window
+    would drop its assignment from the sweep profile, and the next whole-profile
+    load would supersede the very receipt the Controller is still working on
+    (2026-10-24). An unbound admission is not held: any saved profile supersedes
+    it anyway, so its bounded profile-edit wait stays.
+    """
+    if (
+        load is None
+        or load.get("state") not in ACTIVE
+        or load.get("admission_unbound", True) is not False
+        or load.get("stalled")
+    ):
+        return False
+    signal = load.get("signal")
+    return isinstance(signal, Mapping) and signal.get("wait") is not None
 
 
 def stalled_detail(document: Mapping[str, Any]) -> str | None:
