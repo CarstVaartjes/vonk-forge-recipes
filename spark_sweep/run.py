@@ -2441,8 +2441,22 @@ class Sweep:
             self.requeue(key, IdentityReason.UNBOUND)
             return
         recipe = accepted.recipe
+        latest = self.recipes.get(key)
+        # The Controller owns a held receipt's end; newer content steers past it.
+        held = (
+            verdict.held_receipt(self.state.data["loads"].get(slot["request_key"]))
+            and latest is not None
+            # A new publication alone is no new content (as for a Controller wait hold).
+            and content_identity(latest).model_copy(
+                update={"image_library_commit": None}
+            )
+            == content_identity(recipe).model_copy(
+                update={"image_library_commit": None}
+            )
+        )
         if self.blind or slot["request_key"] in self.unobserved_loads:
-            if self._observe_load(slot, now) is Progress.WAIT_EXPIRED:
+            # Unknown is no ending: a receipt last seen held stays held.
+            if self._observe_load(slot, now) is Progress.WAIT_EXPIRED and not held:
                 self._expire_wait(key, slot, slot["watch"])
             return
         run_id = serving_run(
@@ -2463,7 +2477,11 @@ class Sweep:
                 self.state.data["learned"],
                 recipe.engine,
                 slot["model_bytes"],
-                now - slot["started_at"] - float(slot.get("copy_seconds", 0)),
+                # Held Controller waits are not the engine's load time.
+                now
+                - slot["started_at"]
+                - float(slot.get("copy_seconds", 0))
+                - float(slot.get("waited_seconds", 0)),
             )
             self._submit_smoke(key, slot)
             return
@@ -2556,7 +2574,9 @@ class Sweep:
         slot.pop("waiting_on", None)
         progress = self._observe_load(slot, now)
         if progress is Progress.WAIT_EXPIRED:
-            self._expire_wait(key, slot, slot["watch"])
+            # The local window alone never ends a receipt the Controller still works.
+            if not held:
+                self._expire_wait(key, slot, slot["watch"])
             return
         if progress is Progress.STALLED:
             self._stalled(key, slot, now)

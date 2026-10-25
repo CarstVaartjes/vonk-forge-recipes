@@ -120,7 +120,8 @@ def test_successor_of_another_recipe_is_not_followed_or_shared(
 ) -> None:
     # A waits for admission on spark-a for ever. Once its lane is released, B takes
     # spark-a: B's admission retires A's receipt (superseded_by = B's load), and B's
-    # bound child then waits on the same typed dependency until its own budget ends.
+    # bound child then waits on the same typed dependency: the Controller still works
+    # that receipt, so B keeps its lane while the other Spark keeps taking work.
     held = _recipe("a", blocked=True)
     taker = _recipe("b", load_seconds=10**6)
     later = [_recipe(f"{slug}x", load_seconds=300) for slug in "cdef"]
@@ -150,12 +151,17 @@ def test_successor_of_another_recipe_is_not_followed_or_shared(
         clock.sleep(10)
     assert first is not None
     holds = sweep.controller_wait_holds()
+    slot = sweep.state.slots[taker.key]
+    assert slot["phase"] == "loading" and taker.key not in holds
     assert fleet.apps[first]["state"] == LifecycleState.SUPERSEDED
-    assert fleet.apps[first]["superseded_by"] == holds[taker.key].application_id
+    assert (
+        fleet.apps[first]["superseded_by"]
+        == sweep.state.data["loads"][slot["request_key"]]["app_id"]
+    )
     # A's hold never followed into B's load: it ended and plans A again later.
     assert holds[held.key].application_id == first
     assert held.key not in {r.key for r in sweep.ready_candidates()}
-    # Unrelated recipes kept being placed after B's wait expired.
+    # Unrelated recipes kept being placed on the other Spark past B's local window.
     assert all(_passed(sweep, r) for r in later)
     assert max(_placed(fleet, later[-1].key)) > min(_placed(fleet, taker.key)) + WAIT
 

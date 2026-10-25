@@ -1375,6 +1375,25 @@ class FakeFleet:
                     "resolved": False,
                 }
             )
+        # queue_application.py: an older bound load that keeps no adopted (unchanged)
+        # child is superseded by this one, naming it; a removed assignment's child is
+        # cancelled (run_switch_operations/advance.py) and its run stopped above.
+        adopted_children = {id(item) for item in assign}
+        for older in self.apps.values():
+            if (
+                older["profile"] == n
+                and older["state"] in ("queued", "running")
+                and not older.get("admission_pending")
+                and not older.get("owner")
+                and any(not item["resolved"] for item in older["assign"])
+                and not any(id(item) in adopted_children for item in older["assign"])
+            ):
+                older.update(
+                    state=LifecycleState.SUPERSEDED,
+                    superseded_by=app_id,
+                    reason_code="superseded-by-intent",
+                    reason="Profile order was replaced by a later scoped intent",
+                )
         # The load fences the Sparks it changes: new runs and stopped ones.
         nodes = {
             node

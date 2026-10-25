@@ -26,7 +26,7 @@ from vonk_forge_contracts import (
 )
 from vonk_forge_contracts.sweep import SweepSlotPhase
 
-from . import policy
+from . import policy, verdict
 from .evidence_contract import read_result
 from .identity import recorded_identity
 from .lifecycle import ACTIVE
@@ -170,6 +170,13 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             # Copying has an inactivity window, not the engine startup budget.
             since = watch.get("progressed_at", slot["started_at"])
             limit = sweep.cfg.copy_stall_seconds
+        load = data["loads"].get(slot.get("request_key"))
+        # A held receipt ends with the Controller, not at the local window.
+        held = (
+            load.get("app_id")
+            if slot["phase"] == SweepSlotPhase.LOADING and verdict.held_receipt(load)
+            else None
+        )
         for name in slot.get("spark_names", []):
             lanes.setdefault(name, []).append(
                 {
@@ -183,10 +190,13 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     if watch
                     else slot.get("waiting_on"),
                     "wait": watch.get("wait"),
+                    "held_receipt": held,
                     "silent_s": round(
                         max(0.0, now - float(watch.get("progressed_at", now)))
                     ),
-                    "over_budget_s": max(
+                    "over_budget_s": 0
+                    if held
+                    else max(
                         0,
                         round(
                             now
@@ -376,6 +386,11 @@ def render_status(status: Mapping[str, Any]) -> str:
                 f" OVER BUDGET by {_duration(i['over_budget_s'])}"
                 + ("; re-plan due" if i.get("waiting_on") else "")
                 if i.get("over_budget_s")
+                else ""
+            )
+            + (
+                f" held on Controller receipt {i['held_receipt']}"
+                if i.get("held_receipt")
                 else ""
             )
             + (f" waiting on {i['waiting_on']}" if i.get("waiting_on") else "")

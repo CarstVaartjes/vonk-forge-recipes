@@ -13,7 +13,7 @@ from spark_sweep.lifecycle import ACTIVE
 from spark_sweep.policy import RECIPE_FAILURE_CODES
 from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS
 from spark_sweep.state import State
-from spark_sweep.verdict import Disposition, reply_disposition
+from spark_sweep.verdict import STALLED_CODE, Disposition, reply_disposition
 from spark_sweep.vonkctl import Reply
 
 pytest_plugins = ["sweep_bounds"]
@@ -208,6 +208,16 @@ def test_a_controller_hold_releases_the_local_lane_without_ending_remote_work(
         (("profile", "progress"), 0, {"id": load["app_id"], **held})
     )
     sweep.advance_slots(clock.now())
+    if reason != "needs-operator":
+        # The Controller still works the bound receipt behind its own wait: the
+        # local window alone keeps the lane; its stall alarm releases it.
+        assert sweep.state.slots["vonk-forge/a"]["phase"] == "loading"
+        alarm = {"code": STALLED_CODE, "severity": "error", "detail": "x"}
+        held = {**held, "blockers": [*held.get("blockers", []), alarm]}
+        fleet.observations.append(
+            (("profile", "progress"), 0, {"id": load["app_id"], **held})
+        )
+        sweep.advance_slots(clock.now())
     assert load["request_key"] in sweep.state.data["loads"]
     sweep.enqueue_finished_cleanup()
     assert "vonk-forge/a" not in sweep.state.slots

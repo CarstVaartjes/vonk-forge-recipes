@@ -1,10 +1,12 @@
-"""Work that moves forward under a Controller wait is progress; anything else still ends.
+"""Work under a Controller wait on a bound receipt ends only with the Controller.
 
 Replays the 2026-10-24 incident: a lane held by the Controller's info ``receipt-missing``
-wait (its run-switch child pending) while the distribution kept moving bytes. The lane's
-window is measured from the last time a forward-only counter rose (the Controller's
-max-merged child bytes, completed steps, items), never as a fixed budget from slot open,
-and never renewed by a flapping phase, a retry that re-copies the same bytes or a restart.
+wait (its run-switch child pending) while the distribution moved, froze, retried or
+flapped. The Controller still works that receipt, so neither the lane's local window nor
+a dependency deadline the Controller does not act on releases it: releasing would prune
+its assignment and the sweep's next load would supersede the receipt. The receipt's own
+end or the Controller's stall alarm does. Forward-only marks still renew other waits
+(``test_only_a_rising_mark_renews_a_wait``).
 """
 
 from __future__ import annotations
@@ -147,7 +149,27 @@ def test_bytes_moving_under_a_controller_wait_outlast_the_lane_budget(
     assert not any(c[:2] == ("profile", "cancel") for _, c in fleet.calls)
 
 
-def test_a_wait_without_movement_expires_one_window_after_the_last_bytes(
+def _alarm(fleet, monkeypatch) -> None:
+    """The Controller raises its read-time stall alarm on every running application."""
+    shown = fleet._app_doc
+
+    def alarmed(app):
+        document = shown(app)
+        if document["state"] == LifecycleState.RUNNING:
+            document["progress"]["blockers"] = [
+                *document["progress"]["blockers"],
+                {
+                    "code": verdict.STALLED_CODE,
+                    "detail": "unchanged",
+                    "severity": "error",
+                },
+            ]
+        return document
+
+    monkeypatch.setattr(fleet, "_app_doc", alarmed)
+
+
+def test_a_frozen_copy_keeps_its_held_lane_until_the_controller_alarms(
     tmp_path: Path, gateway: Gateway, monkeypatch
 ) -> None:
     # The copy moves for 2 windows (20 % of 10), then freezes under the same wait.
@@ -172,89 +194,69 @@ def test_a_wait_without_movement_expires_one_window_after_the_last_bytes(
     fleet.sparks = fleet.sparks[:1]  # one lane: the next recipe needs the held Spark
     _held_by_receipt_wait(fleet, monkeypatch)
     sweep.preflight()
-    for _ in range(600):
-        sweep.tick()
-        if sweep.state.status(good.key) == "passed":
-            break
-        clock.sleep(sweep.cfg.poll_seconds)
-    else:
-        raise AssertionError("the next recipe was never placed after the wait expired")
+    _until(sweep, clock, lambda: stuck.key in sweep.state.slots)
     first_load = _loads(fleet)[0]
-    (expired,) = [
-        row
-        for row in _rows(tmp_path)
-        if row.get("recipe") == stuck.key
-        and row.get("code") == SweepWaitCode.BUDGET_EXHAUSTED
-    ]
-    evidence = expired["evidence"]
+    _until(sweep, clock, lambda: clock.now() > first_load + 6 * WINDOW)
+    # The Controller still works the bound receipt: the local window never ends it.
+    assert sweep.state.slots[stuck.key]["phase"] == "loading"
+    assert not _expired(tmp_path, stuck.key)
+    assert _loads(fleet) == [first_load]
+    assert good.key not in sweep.state.slots
+    # The Controller's stall alarm ends the hold; the freed lane goes to the next one.
+    _alarm(fleet, monkeypatch)
+    _until(sweep, clock, lambda: sweep.state.status(good.key) == "passed")
+    (evidence,) = _expired(tmp_path, stuck.key)
     assert evidence["wait"]["reason"] == SweepWaitReason.CONTROLLER_WAIT
     assert evidence["wait"]["controller"]["reason"] == RECEIPT_WAIT["reason"]
-    # Measured from the last movement (the copy froze 2 windows in), not from slot open.
-    assert evidence["started_at"] >= first_load + 2 * WINDOW - sweep.cfg.poll_seconds
-    assert evidence["observed_at"] - evidence["started_at"] > WINDOW
     assert sweep.state.entry(stuck.key).get("attempts", 0) == 0
-    # The freed lane goes to the next recipe in the same pass.
     assert _loads(fleet)[-1] >= evidence["observed_at"]
 
 
-def test_a_retried_copy_expires_one_window_after_its_bytes_last_rose(
-    tmp_path: Path, gateway: Gateway, monkeypatch
+@pytest.mark.parametrize("case", ["retried-copy", "flapping-phase", "deadline"])
+def test_no_local_window_or_dependency_deadline_releases_a_held_receipt(
+    tmp_path: Path, gateway: Gateway, monkeypatch, case: str
 ) -> None:
-    # Every attempt fails at 20 % (2 windows in) and the retry restarts from 0: the
-    # operation snapshot resets and moves again, the max-merged bytes stay at 20 %.
-    retried = FakeRecipe(
-        "retried",
+    # Every copy attempt fails at 20 % and restarts from 0; or the child flaps
+    # prepare <-> runtime-preflight with 0 bytes; or the Controller declares a
+    # dependency deadline it does not act on (no fleet-profile code reads it).
+    recipe = FakeRecipe(
+        case,
         content="a" * 64,
         digests=(MODEL,),
-        copy_seconds=10 * WINDOW,
-        copy_retries=True,
-    )
-    sweep, fleet, clock = make_sweep(
-        tmp_path, [retried], [FakeModel(MODEL)], gateway=gateway, timeouts=_timeouts()
-    )
-    shown = _held_by_receipt_wait(fleet, monkeypatch)
-    sweep.preflight()
-    _until(sweep, clock, lambda: _expired(tmp_path, retried.key))
-    attempts = [child["operation"]["completed_bytes"] for child in shown]
-    assert any(b < a for a, b in pairwise(attempts))
-    assert [child["bytes"] for child in shown] == sorted(c["bytes"] for c in shown)
-    (evidence,) = _expired(tmp_path, retried.key)
-    first_load = _loads(fleet)[0]
-    poll = sweep.cfg.poll_seconds
-    # The window runs from the last rise of the bytes, not from the resets after it.
-    assert first_load + 2 * WINDOW - 2 * poll <= evidence["started_at"]
-    assert evidence["started_at"] <= first_load + 2 * WINDOW + poll
-    assert WINDOW < evidence["observed_at"] - evidence["started_at"] <= WINDOW + poll
-    assert sweep.state.entry(retried.key).get("attempts", 0) == 0
-
-
-def test_a_flapping_phase_without_bytes_expires_one_window_after_the_wait_began(
-    tmp_path: Path, gateway: Gateway, monkeypatch
-) -> None:
-    # prepare <-> runtime-preflight with 0 bytes and a fresh progress time each flip.
-    flapping = FakeRecipe(
-        "flapping",
-        content="a" * 64,
-        digests=(MODEL,),
+        copy_seconds=0 if case == "flapping-phase" else 10 * WINDOW,
+        copy_retries=case == "retried-copy",
         load_seconds=10 * WINDOW,
-        phase_flap=True,
+        phase_flap=case == "flapping-phase",
     )
     sweep, fleet, clock = make_sweep(
-        tmp_path, [flapping], [FakeModel(MODEL)], gateway=gateway, timeouts=_timeouts()
+        tmp_path, [recipe], [FakeModel(MODEL)], gateway=gateway, timeouts=_timeouts()
     )
-    shown = _held_by_receipt_wait(fleet, monkeypatch)
+    wait = RECEIPT_WAIT
+    if case == "deadline":
+        clock.t = datetime.fromisoformat(DEADLINE_RECORD["recorded_at"]).timestamp()
+        wait = DEADLINE_RECORD["controller_document"]["wait"]
+    shown = _held_by_receipt_wait(fleet, monkeypatch, wait)
     sweep.preflight()
-    _until(sweep, clock, lambda: _expired(tmp_path, flapping.key))
-    assert {child["operation"]["phase"] for child in shown} == {
-        "prepare",
-        "runtime-preflight",
-    }
-    assert len({child["operation"]["last_progress_at"] for child in shown}) > 2
-    (evidence,) = _expired(tmp_path, flapping.key)
+    _until(sweep, clock, lambda: recipe.key in sweep.state.slots)
     first_load = _loads(fleet)[0]
-    assert evidence["started_at"] <= first_load
-    assert evidence["observed_at"] - first_load <= WINDOW + 2 * sweep.cfg.poll_seconds
-    assert sweep.state.entry(flapping.key).get("attempts", 0) == 0
+    _until(sweep, clock, lambda: clock.now() > first_load + 6 * WINDOW)
+    if case == "retried-copy":
+        attempts = [child["operation"]["completed_bytes"] for child in shown]
+        assert any(b < a for a, b in pairwise(attempts))
+    if case == "flapping-phase":
+        assert len({child["operation"]["phase"] for child in shown}) == 2
+    if case == "deadline":
+        assert (
+            clock.now()
+            > datetime.fromisoformat(wait["dependency_deadline"]).timestamp()
+        )
+    assert sweep.state.slots[recipe.key]["phase"] == "loading"
+    assert not _expired(tmp_path, recipe.key)
+    assert _loads(fleet) == [first_load]
+    assert not any(
+        c[:2] in (("profile", "cancel"), ("profile", "remove")) for _, c in fleet.calls
+    )
+    assert sweep.state.entry(recipe.key).get("attempts", 0) == 0
 
 
 @pytest.mark.parametrize("marks", [True, False], ids=["with-marks", "older-watch"])
@@ -288,28 +290,6 @@ def test_a_restart_adopts_a_moving_wait(
     again.preflight()
     _until(again, clock, lambda: again.state.status(big.key) == "passed")
     assert not _expired(tmp_path, big.key)
-
-
-def test_the_controller_deadline_caps_a_renewing_wait(
-    tmp_path: Path, gateway: Gateway, monkeypatch
-) -> None:
-    big = FakeRecipe(
-        "big", content="a" * 64, digests=(MODEL,), copy_seconds=20 * WINDOW
-    )
-    sweep, fleet, clock = make_sweep(
-        tmp_path, [big], [FakeModel(MODEL)], gateway=gateway, timeouts=_timeouts()
-    )
-    clock.t = datetime.fromisoformat(DEADLINE_RECORD["recorded_at"]).timestamp()
-    wait = DEADLINE_RECORD["controller_document"]["wait"]
-    deadline = datetime.fromisoformat(wait["dependency_deadline"]).timestamp()
-    assert deadline - clock.now() > 2 * WINDOW  # the copy renews before the cap
-    _held_by_receipt_wait(fleet, monkeypatch, wait)
-    sweep.preflight()
-    _until(sweep, clock, lambda: _expired(tmp_path, big.key))
-    (evidence,) = _expired(tmp_path, big.key)
-    assert evidence["started_at"] > _loads(fleet)[0] + WINDOW  # it did renew
-    assert evidence["deadline"] == deadline
-    assert deadline < evidence["observed_at"] <= deadline + sweep.cfg.poll_seconds
 
 
 def test_only_a_rising_mark_renews_a_wait() -> None:
