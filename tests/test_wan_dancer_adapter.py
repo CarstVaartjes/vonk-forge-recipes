@@ -1,16 +1,21 @@
 from __future__ import annotations
 
+import ast
+import contextlib
 import hashlib
 import io
 import json
+import re
 import subprocess
 import sys
 import tarfile
 import tempfile
 import types
 import unittest
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any, ClassVar
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -456,6 +461,148 @@ class WanDancerInputTests(unittest.TestCase):
             write_manifest("prompt", "application/json")
             with self.assertRaisesRegex(ValueError, "prompt slot contract"):
                 runner._manifest()
+
+
+class _Device:
+    def __init__(self, kind: str) -> None:
+        self.type = kind
+
+
+class _Parameter:
+    def __init__(self, *, is_meta: bool) -> None:
+        self.is_meta = is_meta
+
+
+class _Construction:
+    """Records the device the pinned init_weights_on_device builds under."""
+
+    devices: ClassVar[list[str]] = []
+
+    @classmethod
+    @contextlib.contextmanager
+    def init_weights_on_device(cls, device: _Device) -> Iterator[None]:
+        cls.devices.append(device.type)
+        yield
+
+
+class _Model:
+    """The torch.nn.Module surface load_model_from_single_file uses (no torch in CI).
+
+    Parameters are real tensors unless the constructor runs under meta, and
+    load_state_dict(assign=True) replaces the ones the checkpoint names.
+    """
+
+    PARAMETERS = ("blocks.0.ffn.weight", "music_encoder.0.self_attn.in_proj_weight")
+
+    def __init__(self, **_config: object) -> None:
+        on_meta = _Construction.devices[-1] == "meta"
+        self.parameters = {
+            name: _Parameter(is_meta=on_meta) for name in self.PARAMETERS
+        }
+        self.moved = False
+
+    @staticmethod
+    def state_dict_converter() -> SimpleNamespace:
+        return SimpleNamespace(from_civitai=lambda state_dict, **_: (state_dict, {}))
+
+    def eval(self) -> _Model:
+        return self
+
+    def load_state_dict(
+        self, state_dict: dict[str, object], *, assign: bool, strict: bool
+    ) -> None:
+        assert assign and not strict  # the pinned call
+        for name in state_dict:
+            if name in self.parameters:
+                self.parameters[name] = _Parameter(is_meta=False)
+
+    def named_parameters(self) -> Iterator[tuple[str, _Parameter]]:
+        return iter(self.parameters.items())
+
+    def to(self, *, dtype: object, device: object) -> _Model:
+        if any(parameter.is_meta for parameter in self.parameters.values()):
+            raise NotImplementedError("Cannot copy out of meta tensor; no data!")
+        self.moved = True
+        return self
+
+
+class WanDancerLoaderTests(unittest.TestCase):
+    """The patched pinned loader, executed from the patched source itself."""
+
+    source: Path
+    _directory: tempfile.TemporaryDirectory[str]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls._directory = tempfile.TemporaryDirectory()
+        root = Path(cls._directory.name)
+        archive = b"".join(
+            part.read_bytes() for part in sorted((ADAPTER / "vendor").glob("*.part-*"))
+        )
+        with tarfile.open(fileobj=io.BytesIO(archive), mode="r:gz") as source:
+            source.extractall(root, filter="data")
+        cls.source = next(root.iterdir())
+        subprocess.run(
+            [sys.executable, str(ADAPTER / "patch-upstream.py"), str(cls.source)],
+            check=True,
+        )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls._directory.cleanup()
+
+    def _loader(self) -> Callable[..., tuple[list[str], list[_Model]]]:
+        path = self.source / "diffsynth/models/model_manager.py"
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        function = next(
+            node
+            for node in tree.body
+            if isinstance(node, ast.FunctionDef)
+            and node.name == "load_model_from_single_file"
+        )
+        namespace: dict[str, Any] = {
+            "torch": SimpleNamespace(device=_Device, float32="float32"),
+            "init_weights_on_device": _Construction.init_weights_on_device,
+            "logger": SimpleNamespace(info=lambda *_: None),
+        }
+        module = ast.Module(body=[function], type_ignores=[])
+        exec(compile(module, str(path), "exec"), namespace)  # noqa: S102
+        return namespace["load_model_from_single_file"]
+
+    def _load(self, state_dict: dict[str, object]) -> _Model:
+        _Construction.devices.clear()
+        _, models = self._loader()(
+            state_dict, ["wan_video_dit"], [_Model], "civitai", "bf16", "cuda"
+        )
+        return models[0]
+
+    def test_models_are_built_on_meta_and_moved_once_loaded(self) -> None:
+        model = self._load({name: object() for name in _Model.PARAMETERS})
+        self.assertEqual(_Construction.devices, ["meta"])
+        self.assertTrue(model.moved)
+
+    def test_parameter_missing_from_the_checkpoint_fails_with_its_name(self) -> None:
+        missing = "music_encoder.0.self_attn.in_proj_weight"
+        complete = {name: object() for name in _Model.PARAMETERS}
+        with self.assertRaisesRegex(RuntimeError, re.escape(missing)):
+            self._load({k: v for k, v in complete.items() if k != missing})
+
+    def test_dit_constructor_leaves_device_placement_to_the_loader(self) -> None:
+        tree = ast.parse(
+            (self.source / "diffsynth/models/wan_video_dit.py").read_text(
+                encoding="utf-8"
+            )
+        )
+        calls = [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "MusicEncoderLayer"
+        ]
+        self.assertTrue(calls)
+        for call in calls:
+            self.assertNotIn("device", {keyword.arg for keyword in call.keywords})
 
 
 if __name__ == "__main__":
