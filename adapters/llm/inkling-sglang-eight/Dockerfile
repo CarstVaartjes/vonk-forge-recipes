@@ -7,8 +7,10 @@ LABEL org.opencontainers.image.source="https://github.com/sgl-project/sglang" \
 
 COPY --chmod=0755 sglang-wrapper.py /opt/vonk/bin/sglang-serve
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py
+COPY inkling-forced-tool-grammar.py /opt/vonk/build/inkling-forced-tool-grammar.py
 
-RUN python3 /opt/vonk/build/verify-runtime.py \
+RUN python3 /opt/vonk/build/inkling-forced-tool-grammar.py \
+    && python3 /opt/vonk/build/verify-runtime.py \
     && install --directory --owner 10001 --group 10001 /state /state/torch /outputs \
     && rm -rf /opt/vonk/build
 
