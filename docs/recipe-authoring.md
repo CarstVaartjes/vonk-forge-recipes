@@ -570,7 +570,11 @@ multimodal recipe. When a kit's entrypoint injects the flags from inside its
 image, record them with their source in `qualification/kit-engine-flags.json`.
 `qualification/capabilities.py` derives all of this and
 `tests/test_recipe_capabilities.py` fails CI when a recipe's tags or smoke cases
-disagree with its launch.
+disagree with its launch. An SGLang recipe with `--reasoning-parser inkling`
+copies and runs the shared `inkling-forced-tool-grammar.py` build patch, so a
+required or named tool choice is one call; without it the reasoning wrapper
+defers the grammar past Inkling's first call and forces a second
+(`tests/test_inkling_sglang_forced_tool.py`).
 
 ### Options: user-selectable runtime variants
 
