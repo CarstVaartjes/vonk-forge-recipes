@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ctypes
 import os
 from pathlib import Path
 
@@ -10,9 +11,22 @@ MARKERS = {
     SITE / "models/minimax_m3/common/b12x_backend.py": "b12x.vllm.minimax_m3.backend",
 }
 WRAPPER = Path("/opt/vonk/bin/vllm")
+NCCL = Path("/opt/nccl/lib/libnccl.so.2")
+PIP_NCCL = Path("/usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2")
+
+
+def verify_nccl() -> None:
+    # torch loads NCCL through the pip package's path: it must resolve to the mesh build, which must load without a GPU.
+    if PIP_NCCL.resolve() != NCCL.resolve():
+        raise SystemExit(f"torch's NCCL {PIP_NCCL} is not the mesh build {NCCL}")
+    version = ctypes.c_int()
+    if ctypes.CDLL(str(PIP_NCCL)).ncclGetVersion(ctypes.byref(version)) != 0:
+        raise SystemExit(f"ncclGetVersion failed for {PIP_NCCL}")
+    print("NCCL mesh build OK:", version.value)
 
 
 def main() -> None:
+    verify_nccl()
     # Upstream Dockerfile.deploy smoke imports, run after the mods so a broken layer fails the build, not the launch.
     import importlib.util
 

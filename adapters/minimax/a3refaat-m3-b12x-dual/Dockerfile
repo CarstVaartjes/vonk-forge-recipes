@@ -43,7 +43,6 @@ RUN apt update && \
     libcudnn9-cuda-13 libcudnn9-dev-cuda-13 \
     python3-dev python3-pip git wget \
     libibverbs1 libibverbs-dev rdma-core \
-    devscripts debhelper fakeroot \
     && rm -rf /var/lib/apt/lists/* \
     && pip install uv
 
@@ -57,14 +56,11 @@ ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
 
 WORKDIR $VLLM_BASE_DIR
 
-# NCCL with mesh support (artifacts in /workspace/vllm/nccl/build/pkg/deb).
-# Generate packaging metadata first and keep the install lists non-executable:
-# dh_install otherwise executes their library paths as shell commands (SIGILL).
+# NCCL with mesh support (shared library in /workspace/vllm/nccl/build/lib). Upstream wraps it in Debian
+# packages only to apt-install them; the runner uses the built library directly, as the tonyd2wild M3 triple does.
 RUN git clone -b dgxspark-3node-ring https://github.com/zyang-dev/nccl.git && \
     cd nccl && git checkout --detach fab1850acd902672d79ca81c2e7fb8e1848c208c && \
-    make -j ${BUILD_JOBS} src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121" && \
-    make -C pkg/debian prep && chmod 0644 build/debian/*.install && \
-    make pkg.debian.build && apt install -y --no-install-recommends --allow-downgrades ./build/pkg/deb/*.deb
+    make -j ${BUILD_JOBS} src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121"
 
 # =========================================================
 # (still stage 1) FlashInfer wheels from source
@@ -148,15 +144,14 @@ ENV MAX_JOBS=${BUILD_JOBS} \
     UV_EXCLUDE_NEWER=2026-07-05T00:00:00Z \
     VLLM_BASE_DIR=/workspace/vllm
 
-COPY --from=base /workspace/vllm/nccl/build/pkg/deb /workspace/nccl-pkg
+COPY --from=base /workspace/vllm/nccl/build/lib /opt/nccl/lib
 RUN apt update && \
     apt install -y --no-install-recommends \
     python3 python3-pip python3-dev vim curl git wget patch \
     libcudnn9-cuda-13 \
     libibverbs1 libibverbs-dev rdma-core \
     libxcb1 \
-    && cd /workspace/nccl-pkg && apt install -y --no-install-recommends --allow-downgrades ./*.deb \
-    && rm -rf /var/lib/apt/lists/* /workspace/nccl-pkg \
+    && rm -rf /var/lib/apt/lists/* \
     && pip install uv
 
 WORKDIR $VLLM_BASE_DIR
@@ -185,7 +180,7 @@ ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
 RUN uv pip install ray[default] fastsafetensors instanttensor
 
 RUN rm /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2 && \
-    ln -s /usr/lib/aarch64-linux-gnu/libnccl.so.2 /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2
+    ln -s /opt/nccl/lib/libnccl.so.2 /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2
 
 # Dockerfile.deploy: vendored b12x kernel library on sys.path via a .pth (smoke-imported by verify-runtime.py,
 # together with the vLLM surfaces the mods patch, as upstream's build does).
