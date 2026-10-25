@@ -231,7 +231,10 @@ settings; put multi-line scripts in vendored files and `COPY` them). For the
 launcher rule, the platform's runtime adapter verifies the engine's canonical
 launcher in the built image (`/opt/vonk/bin/vllm`, `sglang-serve`,
 `exllamav3-serve`, and so on), so the Dockerfile installs your wrapper at that
-exact path and `runtime.entrypoint` names it. The image workflow lists, in each
+exact path and `runtime.entrypoint` names it. A launcher for the `ray`
+parallelism backend starts Ray, so a build step must check the Ray CLI or
+package it uses; install a pinned Ray (and declare its PyPI hosts) when the
+parent image has none (`tests/test_ray_vllm_launchers.py`). The image workflow lists, in each
 run summary, why a recipe has no prebuilt image; recipes that genuinely cannot
 build on a hosted runner are declared with the reason in
 `prebuilt-image-exclusions.json`.

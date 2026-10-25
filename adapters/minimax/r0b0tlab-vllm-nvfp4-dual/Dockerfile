@@ -7,11 +7,16 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/minimax-m27-n
 
 # Parent: upstream's published runtime image (arm64, NGC PyTorch 26.02 base, vLLM 0.21.1 source
 # build with SM120/SM121 FP4 kernels; docker/Dockerfile in this directory is upstream's recipe for
-# it). This layer only adds the placement wrapper (Ray head/worker) and the non-root user.
+# it). The image ships no Ray, which the placement wrapper (Ray head/worker) starts; this layer
+# adds a pinned Ray, the wrapper and the non-root user.
+RUN python3 -m pip install --no-cache-dir "ray[default]==2.58.0"
+
 COPY LICENSE /opt/vonk/licenses/r0b0tlab-LICENSE
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
 
 RUN test -x /usr/local/bin/vllm \
+    && test -x "$(command -v ray)" \
+    && python3 -c "import ray; assert ray.__version__ == '2.58.0', ray.__version__" \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner 10001 --group 10001 /state /outputs

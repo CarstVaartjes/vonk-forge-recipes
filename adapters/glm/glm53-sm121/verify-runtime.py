@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 from pathlib import Path
 
 REQUIRED = (
@@ -10,6 +11,16 @@ REQUIRED = (
     Path("/opt/vonk/bin/vllm"),
     Path("/opt/vonk/templates/glm53-chat-template-mm.jinja"),
 )
+# The wrapper's Ray launch: the first of each that exists is what it runs.
+RAY = (Path("/opt/vllm/.venv/bin/ray"), Path("/usr/local/bin/ray"))
+PYTHON = (Path("/opt/vllm/.venv/bin/python"), Path("/usr/local/bin/python3"))
+
+
+def _first_executable(candidates: tuple[Path, ...]) -> Path:
+    for candidate in candidates:
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate
+    raise SystemExit(f"required GLM runtime executable is missing: {candidates}")
 
 
 def main() -> None:
@@ -20,6 +31,8 @@ def main() -> None:
         raise SystemExit("NCCL runtime is not an ELF library")
     if not os.access(REQUIRED[1], os.X_OK):
         raise SystemExit("vLLM wrapper is not executable")
+    _first_executable(RAY)
+    subprocess.run([_first_executable(PYTHON), "-c", "import ray"], check=True)
 
 
 if __name__ == "__main__":
