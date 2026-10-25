@@ -8,6 +8,12 @@ from pathlib import Path
 
 MODEL_ROOT = Path("/models")
 FRAME_COUNT = 149
+# The Wan VAE packs 4 frames per latent after the first, so a FRAME_COUNT
+# window has (FRAME_COUNT - 1) // 4 + 1 latents (DiffSynth NoiseInitializer).
+# The global stage decodes framewise, one keyframe per latent, and latent k sits
+# at window frame 4k.
+VAE_TEMPORAL_STRIDE = 4
+GLOBAL_KEYFRAMES = (FRAME_COUNT - 1) // VAE_TEMPORAL_STRIDE + 1
 VRAM_LIMIT_GIB = 64.0
 NEGATIVE_PROMPT = (
     "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，"
@@ -214,19 +220,20 @@ def _local_keyframes(path: Path, output_frames: int, height: int, width: int):
     if not 1 <= output_frames <= FRAME_COUNT:
         raise SystemExit("output frame count is outside the one-segment canary bound")
     source = VideoData(video_file=str(path), height=height, width=width)
-    if len(source) != FRAME_COUNT:
+    if len(source) != GLOBAL_KEYFRAMES:
         raise SystemExit(
-            f"global stage emitted {len(source)} frames, expected {FRAME_COUNT}"
+            f"global stage emitted {len(source)} frames, expected {GLOBAL_KEYFRAMES}"
         )
 
     black = Image.new("RGB", (width, height), (0, 0, 0))
     keyframes = [black] * FRAME_COUNT
     mask = [0] * FRAME_COUNT
-    # Preserve the official native adapter's one-segment mapping: for a music
-    # clip shorter than 149/30 seconds, consume the leading global keyframes at
-    # the corresponding local-frame positions and leave the tail unconditioned.
-    for destination in range(output_frames):
-        keyframes[destination] = source[destination]
+    # Both stages get the same music and FRAME_COUNT window, and DiffSynth
+    # interpolates the music features over the whole window whatever
+    # wantodance_fps is, so global keyframe k belongs at local frame 4k, the
+    # first frame of latent k.
+    for index, destination in enumerate(range(0, FRAME_COUNT, VAE_TEMPORAL_STRIDE)):
+        keyframes[destination] = source[index]
         mask[destination] = 1
     return keyframes, mask
 

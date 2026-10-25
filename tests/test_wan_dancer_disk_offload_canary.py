@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 import io
 import json
@@ -9,8 +10,10 @@ import tarfile
 import tempfile
 import types
 import unittest
+from collections.abc import Callable
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -220,6 +223,81 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
                 "diffsynth.core.vram.layers.AutoWrappedModule",
             )
 
+    def test_pinned_global_stage_emits_one_keyframe_per_latent(self) -> None:
+        generator = load_module("generate.py", "wan_dancer_disk_generator")
+        with tarfile.open(ARCHIVE, "r:gz") as source:
+            members = {
+                Path(member.name).relative_to(Path(member.name).parts[0]).as_posix(): (
+                    member
+                )
+                for member in source.getmembers()
+                if member.isfile()
+            }
+
+            def pinned_method(
+                path: str, class_name: str, method: str, namespace: dict[str, Any]
+            ) -> Callable[..., Any]:
+                payload = source.extractfile(members[path])
+                assert payload is not None
+                tree = ast.parse(payload.read())
+                owner = next(
+                    node
+                    for node in tree.body
+                    if isinstance(node, ast.ClassDef) and node.name == class_name
+                )
+                function = next(
+                    node
+                    for node in owner.body
+                    if isinstance(node, ast.FunctionDef) and node.name == method
+                )
+                module = ast.Module(body=[function], type_ignores=[])
+                exec(compile(module, path, "exec"), namespace)  # noqa: S102
+                return namespace[method]
+
+            initialize_noise = pinned_method(
+                "diffsynth/pipelines/wan_video.py",
+                "WanVideoUnit_NoiseInitializer",
+                "process",
+                {"WanVideoPipeline": object},
+            )
+            decode_framewise = pinned_method(
+                "diffsynth/models/wan_video_vae.py",
+                "WanVideoVAE",
+                "decode_framewise",
+                {
+                    "torch": SimpleNamespace(
+                        concat=lambda parts, dim: [
+                            frame for part in parts for frame in part
+                        ]
+                    )
+                },
+            )
+
+        pipe = SimpleNamespace(
+            vae=SimpleNamespace(model=SimpleNamespace(z_dim=16), upsampling_factor=8),
+            generate_noise=lambda shape, seed, rand_device: shape,
+        )
+        noise = initialize_noise(
+            None, pipe, 1280, 720, generator.FRAME_COUNT, 0, "cpu", None, None
+        )["noise"]
+        self.assertEqual(noise[2], generator.GLOBAL_KEYFRAMES)
+
+        class Latents:
+            shape = noise
+
+            def __getitem__(self, key):
+                return key
+
+        decoded = []
+        vae = SimpleNamespace(
+            single_decode=lambda latent, _device: decoded.append(latent[2]) or [latent]
+        )
+        frames = decode_framewise(vae, Latents(), "cuda")
+        self.assertEqual(len(frames), generator.GLOBAL_KEYFRAMES)
+        self.assertEqual(
+            decoded, [slice(k, k + 1) for k in range(generator.GLOBAL_KEYFRAMES)]
+        )
+
     def test_runtime_uses_disk_mapping_process_isolation_and_no_downloads(self) -> None:
         generator = (ADAPTER / "generate.py").read_text(encoding="utf-8")
         runner = (ADAPTER / "run.py").read_text(encoding="utf-8")
@@ -249,7 +327,7 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "at most 921600 pixels"):
             runner._generation_dimensions({"height": 1280, "width": 1280})
 
-    def test_local_keyframes_preserve_native_leading_frame_mapping(self) -> None:
+    def _local_keyframes(self, source_frames: int, output_frames: int):
         generator = load_module("generate.py", "wan_dancer_disk_generator")
 
         class Image:
@@ -259,7 +337,7 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
 
         class VideoData:
             def __init__(self, **_kwargs):
-                self.frames = list(range(149))
+                self.frames = [f"keyframe-{index}" for index in range(source_frames)]
 
             def __len__(self):
                 return len(self.frames)
@@ -274,10 +352,46 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
             "diffsynth.utils.data": SimpleNamespace(VideoData=VideoData),
         }
         with mock.patch.dict(sys.modules, modules):
-            frames, mask = generator._local_keyframes(Path("global.mp4"), 24, 1280, 720)
-        self.assertEqual(frames[:24], list(range(24)))
-        self.assertEqual(frames[24:], ["black"] * 125)
-        self.assertEqual(mask, [1] * 24 + [0] * 125)
+            return generator._local_keyframes(
+                Path("global.mp4"), output_frames, 1280, 720
+            )
+
+    def test_local_keyframes_place_every_global_keyframe_on_its_latent_frame(
+        self,
+    ) -> None:
+        generator = load_module("generate.py", "wan_dancer_disk_generator")
+        runner = load_module("run.py", "wan_dancer_disk_runner")
+        from PIL import Image
+
+        with tempfile.TemporaryDirectory() as value:
+            image = Path(value) / "reference.png"
+            Image.new("RGB", (720, 1280)).save(image)
+            # The longest music run.py accepts gives the most output frames.
+            *_, output_frames, _ = runner._expected_output(
+                image, target_height=1280, target_width=720, music_duration=5.0
+            )
+        self.assertEqual(output_frames, 144)
+
+        frames, mask = self._local_keyframes(generator.GLOBAL_KEYFRAMES, output_frames)
+        positions = [index for index, flag in enumerate(mask) if flag]
+        self.assertEqual(len(mask), generator.FRAME_COUNT)
+        self.assertEqual(positions, [4 * k for k in range(38)])
+        self.assertEqual(positions[-1], generator.FRAME_COUNT - 1)
+        self.assertEqual(
+            [frames[index] for index in positions],
+            [f"keyframe-{k}" for k in range(38)],
+        )
+        self.assertEqual(
+            {frames[index] for index in range(len(frames)) if not mask[index]},
+            {"black"},
+        )
+
+    def test_local_stage_rejects_a_global_video_with_one_frame_per_local_frame(
+        self,
+    ) -> None:
+        generator = load_module("generate.py", "wan_dancer_disk_generator")
+        with self.assertRaisesRegex(SystemExit, "expected 38"):
+            self._local_keyframes(generator.FRAME_COUNT, 24)
 
 
 class _FakeParameter:
