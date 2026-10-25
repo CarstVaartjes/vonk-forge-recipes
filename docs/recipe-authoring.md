@@ -538,12 +538,16 @@ manifest-producer-to-adapter tests before rebuilding the catalog.
 `/outputs` is a writable artifact root with platform-owned `tmp/` and persistent
 `cache/` entries, not an empty working directory. Keep incomplete artifacts in a
 unique directory under `/outputs/tmp`; generate and validate there, then
-`os.replace` each final file into `/outputs` on the same filesystem. Export only
+`os.replace` each final file into `/outputs` on the same filesystem. Create it
+with `tempfile` defaults (the platform sets `TMPDIR=/outputs/tmp`); never pass
+the output root as `dir=` or make directories in it. A killed job runs no
+cleanup, and any non-file entry left there fails output collection. Export only
 plain files matching signed output slots. Clean up only the scratch directory
 you created; preserve caches, other scratch and existing final output on failed
 generation, validation or rename. Retries may retain all those entries.
 `tests/test_adapter_output_staging.py` rejects output-root emptiness checks and
-exercises atomic publication, failures and retries with retained entries.
+newly added output-root scratch, and exercises atomic publication, killed jobs,
+failures and retries with retained entries.
 `tests/test_job_writable_paths.py` catches cache/lock/temp writes into image paths.
 
 A delivery-only retry observes a durable exit receipt and retained outputs; it
