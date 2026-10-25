@@ -171,8 +171,13 @@ def test_download_wait_preserves_owned_request_without_cancellation(
 def _loading(tmp_path: Path):
     sweep, fleet, clock = make_sweep(
         tmp_path,
-        [FakeRecipe("a", local="cached", copy_seconds=9000)],
-        [FakeModel("m1", local="cached")],
+        # Real content identities: the held-receipt check compares them.
+        [
+            FakeRecipe(
+                "a", ("1" * 64,), content="a" * 64, local="cached", copy_seconds=9000
+            )
+        ],
+        [FakeModel("1" * 64, local="cached")],
     )
     sweep.preflight()
     sweep.refresh_catalog()
@@ -523,7 +528,7 @@ def test_removed_catalog_recipe_releases_lane_and_fresh_recipe_is_admitted(
     sweep.cleanup_finished()
     sweep.release_orphan_load()
     assert not sweep.state.slots and not sweep.state.data["loads"]
-    fresh = FakeRecipe("fresh", local="cached")
+    fresh = FakeRecipe("fresh", ("1" * 64,), content="f" * 64, local="cached")
     fleet.recipes[fresh.key] = fresh
     sweep.refresh_catalog()
     sweep.queue = list(sweep.recipes)

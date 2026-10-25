@@ -150,7 +150,12 @@ def test_bytes_moving_under_a_controller_wait_outlast_the_lane_budget(
 
 
 def _alarm(fleet, monkeypatch) -> None:
-    """The Controller raises its read-time stall alarm on every running application."""
+    """The Controller raises its read-time stall alarm on every running application.
+
+    On a ``receipt-missing`` wait this needs the Controller change that raises
+    ``progress.stalled`` for wait-only applications (receipt-missing,
+    STOP_UNCONFIRMED) after PROFILE_STALL_WINDOW; today it reads progress.blockers only.
+    """
     shown = fleet._app_doc
 
     def alarmed(app):

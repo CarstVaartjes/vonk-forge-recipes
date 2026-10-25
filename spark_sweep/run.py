@@ -2446,13 +2446,7 @@ class Sweep:
         held = (
             verdict.held_receipt(self.state.data["loads"].get(slot["request_key"]))
             and latest is not None
-            # A new publication alone is no new content (as for a Controller wait hold).
-            and content_identity(latest).model_copy(
-                update={"image_library_commit": None}
-            )
-            == content_identity(recipe).model_copy(
-                update={"image_library_commit": None}
-            )
+            and current_identity(latest) == current_identity(recipe)
         )
         if self.blind or slot["request_key"] in self.unobserved_loads:
             # Unknown is no ending: a receipt last seen held stays held.
