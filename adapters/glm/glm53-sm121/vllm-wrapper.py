@@ -145,8 +145,7 @@ if mechanism == "ray":
         check=True,
         timeout=120,
     )
-    # The wrapper's own interpreter: the image has no venv or /usr/local/bin/python3.
-    python = sys.executable
+    python = _executable("/opt/vllm/.venv/bin/python", "/usr/local/bin/python3")
     deadline = time.monotonic() + 900
     while _alive_ray_nodes(python, address) != int(node_count):
         if time.monotonic() >= deadline:

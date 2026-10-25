@@ -233,8 +233,9 @@ launcher in the built image (`/opt/vonk/bin/vllm`, `sglang-serve`,
 `exllamav3-serve`, and so on), so the Dockerfile installs your wrapper at that
 exact path and `runtime.entrypoint` names it. A launcher for the `ray`
 parallelism backend starts Ray, so a build step must check the Ray CLI or
-package it uses; install a pinned Ray (and declare its PyPI hosts) when the
-parent image has none (`tests/test_ray_vllm_launchers.py`). The image workflow lists, in each
+package it uses (`tests/test_ray_vllm_launchers.py`). When the parent image
+has no Ray, install it from a hash lock as described in
+[Dependency locks and build-time smokes](#dependency-locks-and-build-time-smokes). The image workflow lists, in each
 run summary, why a recipe has no prebuilt image; recipes that genuinely cannot
 build on a hosted runner are declared with the reason in
 `prebuilt-image-exclusions.json`.

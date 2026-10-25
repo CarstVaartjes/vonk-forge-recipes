@@ -11,8 +11,7 @@ REQUIRED = (
     Path("/opt/vonk/bin/vllm"),
     Path("/opt/vonk/templates/glm53-chat-template-mm.jinja"),
 )
-# The wrapper's Ray launch: it starts the first of these and imports ray in its
-# own python3 interpreter, the one running this check.
+# The Ray CLI the wrapper starts (the first that exists), and the image's ray package.
 RAY = (Path("/opt/vllm/.venv/bin/ray"), Path("/usr/local/bin/ray"))
 
 
