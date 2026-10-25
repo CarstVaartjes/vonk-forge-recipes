@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import os
 from pathlib import Path
 
@@ -19,6 +20,8 @@ def main() -> None:
     nccl = Path("/opt/vonk/lib/libnccl.so.2")
     if not nccl.is_file() or nccl.read_bytes()[:4] != b"\x7fELF":
         raise SystemExit("NCCL runtime is missing or is not an ELF library")
+    # The wrapper polls Ray with its own interpreter: the python3 running this check.
+    importlib.import_module("ray")
 
 
 if __name__ == "__main__":

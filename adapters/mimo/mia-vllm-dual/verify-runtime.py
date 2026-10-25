@@ -7,6 +7,7 @@ has no GPU.
 
 from __future__ import annotations
 
+import importlib
 import os
 import re
 from pathlib import Path
@@ -39,6 +40,8 @@ def main() -> None:
         raise SystemExit("the DiffKV kernel lacks the USE_CAUSAL patch")
     if "NCCL_IB_HCA" not in CONFIG_ROOT.read_text(encoding="utf-8"):
         raise SystemExit("NCCL_IB_HCA is not excluded from Ray env carry-over")
+    # The wrapper polls Ray with its own interpreter: the python3 running this check.
+    importlib.import_module("ray")
 
 
 if __name__ == "__main__":
