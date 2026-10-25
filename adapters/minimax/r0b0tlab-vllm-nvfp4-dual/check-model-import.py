@@ -5,7 +5,10 @@ vllm.model_executor.models.minimax_m2. On a CUDA platform that import takes
 CUDA-only branches (v1/attention/backends/fa_utils.py:17-23 imports
 vllm.vllm_flash_attn), which a GPU-less builder never resolves. Resolve vLLM's
 own non-NVML CUDA platform with the GB10 compute capability (12.1) instead, so
-a missing CUDA extension on that path fails the image build, not the Spark.
+a missing CUDA extension on that Triton-independent path (including the FA2/FA3
+fault) fails the image build, not the Spark. Triton finds no driver here and is
+disabled, so Triton-gated imports (fused MoE kernels, sampler ops) are proven
+only on hardware.
 The builder has no driver either, so the Dockerfile runs this check (only) with
 the CUDA toolkit's libcuda stub as libcuda.so.1, which vllm._C links against.
 """

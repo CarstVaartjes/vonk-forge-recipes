@@ -5,8 +5,9 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/minimax-m27-n
       org.opencontainers.image.licenses="MIT AND Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
-# Parent: upstream's published runtime image (arm64, NGC PyTorch 26.02 base, vLLM 0.21.1 source
-# build with SM120/SM121 FP4 kernels; docker/Dockerfile in this directory is upstream's recipe for
+# Parent: upstream's published runtime image (arm64, NGC PyTorch 26.02 base, vLLM v0.21.0 source
+# build whose version string reads 0.21.1, with SM120/SM121 FP4 kernels; docker/Dockerfile in
+# this directory is upstream's recipe for
 # it). The image ships no Ray, which the placement wrapper (Ray head/worker) starts; this layer
 # adds the hash-locked Ray (requirements.lock, no dependency changes), the wrapper and the
 # non-root user.
