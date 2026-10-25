@@ -170,6 +170,20 @@ def test_unreadable_inserted_text_is_scanned_line_by_line(tmp_path) -> None:
     assert problems[0].startswith("adapters/video/demo/patch-upstream.py:5: ")
 
 
+def test_uncommitted_and_untracked_edits_are_checked(tmp_path) -> None:
+    # The upstream refresh verifies its edits before it commits them.
+    root = _repo(tmp_path)
+    (root / "adapters/video/demo/run.py").write_text(EXISTING + CPU_BUILD + "    m()\n")
+    (root / "adapters/video/demo/new.py").write_text(
+        "x = load(low_cpu_mem_usage=False)\n"
+    )
+    problems = [finding.message() for finding in guard.violations(root, "HEAD")]
+    assert [problem.split(": ")[0] for problem in problems] == [
+        "adapters/video/demo/new.py:1",
+        "adapters/video/demo/run.py:2",
+    ]
+
+
 def test_vendored_sources_are_not_checked(tmp_path) -> None:
     root = _repo(tmp_path)
     assert _change(root, {"vendor/upstream.py": CPU_BUILD}) == []

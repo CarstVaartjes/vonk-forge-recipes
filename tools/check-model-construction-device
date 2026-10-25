@@ -9,7 +9,7 @@ constructor makes construction the process's first CUDA use. Wan-Dancer native
 ran out of memory exactly there on 2026-10-25. Build on meta and let the loader
 place the loaded model.
 
-Only lines added against ``--base`` are checked, in adapter-authored Python and
+Only lines added since the merge base with ``--base`` (working tree included) are checked, in adapter-authored Python and
 in the replacement text that adapter patch scripts insert into upstream source.
 Vendored archives and the text a patch removes are not checked.
 """
@@ -64,30 +64,40 @@ class Finding:
         return f"{self.path}:{self.line}: new {self.kind}; {ADVICE}"
 
 
-def added_lines(root: Path, base: str) -> dict[str, set[int]]:
-    """Adapter Python path -> line numbers added against ``base`` (HEAD side)."""
+def _git(root: Path, *args: str) -> str:
     completed = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(root),
-            "diff",
-            "--unified=0",
-            "--no-color",
-            "--diff-filter=AMR",
-            f"{base}...HEAD",
-            "--",
-            ADAPTERS,
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
+        ["git", "-C", str(root), *args], capture_output=True, text=True, check=False
     )
     if completed.returncode != 0:
         raise DiffError(completed.stderr.strip())
+    return completed.stdout
+
+
+def added_lines(root: Path, base: str) -> dict[str, set[int]]:
+    """Adapter Python path -> lines added since the merge base with ``base``.
+
+    Compares the working tree, so uncommitted edits (the upstream refresh
+    verifies before committing) and untracked new files count as added.
+    """
+    diff = _git(
+        root,
+        "diff",
+        "--unified=0",
+        "--no-color",
+        "--diff-filter=AMR",
+        "--merge-base",
+        base,
+        "--",
+        ADAPTERS,
+    )
     result: dict[str, set[int]] = {}
+    untracked = _git(root, "ls-files", "--others", "--exclude-standard", "--", ADAPTERS)
+    for name in untracked.splitlines():
+        if _is_adapter_python(root, name):
+            text = (root / name).read_text(encoding="utf-8", errors="replace")
+            result[name] = set(range(1, text.count("\n") + 2))
     path: str | None = None
-    for line in completed.stdout.splitlines():
+    for line in diff.splitlines():
         if line.startswith("+++ "):
             name = line[4:].removeprefix("b/")
             path = name if _is_adapter_python(root, name) else None
