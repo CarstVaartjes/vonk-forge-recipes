@@ -509,9 +509,9 @@ def main() -> None:
     )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(
-        prefix="wan-dancer-", dir=args.output_dir
-    ) as value:
+    # Scratch lives in the platform's TMPDIR, never the output root: a killed
+    # job skips cleanup, and only plain output files may remain there.
+    with tempfile.TemporaryDirectory(prefix="wan-dancer-") as value:
         work = Path(value)
         prompt_root = SOURCE_ROOT / "gen_video/prompt"
         global_style, local_style = STYLE_PROMPTS[style]
