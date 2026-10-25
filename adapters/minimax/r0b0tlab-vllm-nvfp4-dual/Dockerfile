@@ -17,8 +17,17 @@ RUN python3 -m pip install --no-cache-dir --no-deps --require-hashes --only-bina
 
 COPY LICENSE /opt/vonk/licenses/r0b0tlab-LICENSE
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+# The parent drops vLLM's _vllm_fa2_C/_vllm_fa3_C extensions, and vLLM v0.21.0
+# then refuses to import vllm.vllm_flash_attn, which every model import reaches
+# on CUDA. Make the missing extensions a warning (FlashInfer serves attention)
+# and prove at build that the MiniMax M2 model module imports as on a GB10.
+COPY patch-vllm-flash-attn-optional.py check-model-import.py /opt/vonk/build/
 
-RUN test -x /usr/local/bin/vllm \
+RUN python3 /opt/vonk/build/patch-vllm-flash-attn-optional.py \
+    && python3 -c "import vllm.vllm_flash_attn" \
+    && python3 /opt/vonk/build/check-model-import.py \
+    && rm -rf /opt/vonk/build \
+    && test -x /usr/local/bin/vllm \
     && test -x "$(command -v ray)" \
     && python3 -c "from vllm.v1.executor.ray_utils import assert_ray_available; assert_ray_available()" \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
