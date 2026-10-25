@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import os
 from pathlib import Path
 
@@ -22,6 +23,8 @@ def main() -> None:
     for path in (REASONING, TOOLS):
         if ":opensource>" not in path.read_text():
             raise SystemExit(f"the :opensource token patch is missing from {path}")
+    # The wrapper polls Ray with its own interpreter: the python3 running this check.
+    importlib.import_module("ray")
 
 
 if __name__ == "__main__":
