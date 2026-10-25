@@ -104,6 +104,72 @@ def test_patch_scripts_are_judged_by_the_text_they_insert(tmp_path) -> None:
     assert problems[0].startswith("adapters/video/demo/patch-upstream.py:7: ")
 
 
+def test_torch_device_cuda_in_a_model_constructor_fails(tmp_path) -> None:
+    root = _repo(tmp_path)
+    problems = _change(
+        root,
+        {
+            "model.py": (
+                "class Encoder(nn.Module):\n"
+                "    def __init__(self):\n"
+                "        self.proj = nn.Linear(4, 4, device=torch.device('cuda'))\n"
+                '        self.where = torch.device("cuda:0")\n'
+                "        self.cpu = torch.device('cpu')\n"
+            )
+        },
+    )
+    assert [problem.split(": ")[0] for problem in problems] == [
+        "adapters/video/demo/model.py:3",
+        "adapters/video/demo/model.py:4",
+    ]
+
+
+def test_torch_device_cuda_inserted_by_a_patch_fails(tmp_path) -> None:
+    root = _repo(tmp_path)
+    pin = "replace_once(dit, 'layer(x)', 'layer(x, device=torch.device(\"cuda\"))')\n"
+    problems = _change(root, {"patch-upstream.py": pin})
+    assert len(problems) == 1
+    assert problems[0].startswith("adapters/video/demo/patch-upstream.py:1: ")
+
+
+def test_replace_one_helpers_are_judged_by_the_text_they_insert(tmp_path) -> None:
+    root = _repo(tmp_path)
+    fix = "src = _replace_one(src, \"device='cuda',\\n\", '', 'dit')\n"
+    assert _change(root, {"widen.py": fix}) == []
+
+    pin = "src = _replace_one(src, 'rotary,', \"rotary, device='cuda',\", 'dit')\n"
+    problems = _change(root, {"widen.py": fix + pin})
+    assert len(problems) == 1
+    assert problems[0].startswith("adapters/video/demo/widen.py:2: ")
+
+
+def test_module_constants_passed_to_str_replace(tmp_path) -> None:
+    root = _repo(tmp_path)
+    write = "target.write_text(target.read_text().replace(OLD, NEW, 1))\n"
+    fix = f"OLD = {CPU_BUILD!r}\nNEW = 'with init_weights_on_device():\\n'\n" + write
+    assert _change(root, {"patch-loader.py": fix}) == []
+
+    pin = "OLD = 'rotary,'\nNEW = \"rotary, device='cuda',\"\n" + write
+    problems = _change(root, {"patch-loader.py": pin})
+    assert len(problems) == 1
+    assert problems[0].startswith("adapters/video/demo/patch-loader.py:2: ")
+
+
+def test_unreadable_inserted_text_is_scanned_line_by_line(tmp_path) -> None:
+    root = _repo(tmp_path)
+    pin = (
+        "kind = 'cuda'\n"
+        "replace_once(\n"
+        "    dit,\n"
+        "    'rotary,',\n"
+        "    f\"rotary, device='cuda', name={kind!r},\",\n"
+        ")\n"
+    )
+    problems = _change(root, {"patch-upstream.py": pin})
+    assert len(problems) == 1
+    assert problems[0].startswith("adapters/video/demo/patch-upstream.py:5: ")
+
+
 def test_vendored_sources_are_not_checked(tmp_path) -> None:
     root = _repo(tmp_path)
     assert _change(root, {"vendor/upstream.py": CPU_BUILD}) == []

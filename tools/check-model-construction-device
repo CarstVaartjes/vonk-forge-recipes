@@ -28,7 +28,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTERS = "adapters"
-REPLACEMENT_CALLS = {"replace_once": 1, "replace_all": 1}
+REPLACEMENT_CALLS = {"replace_once": 1, "replace_all": 1, "_replace_one": 1}
 HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 PATTERNS = {
     "CPU model construction": re.compile(
@@ -37,7 +37,10 @@ PATTERNS = {
     "eager full-model construction": re.compile(r"low_cpu_mem_usage\s*=\s*False"),
 }
 CUDA_PLACEMENT = "CUDA placement in a model constructor"
-CUDA_KEYWORD = re.compile(r"\bdevice\s*=\s*[\"']cuda(?::\d+)?[\"']")
+CUDA_PATCHED = "CUDA placement inserted into upstream source"
+CUDA_KEYWORD = re.compile(
+    r"\bdevice\s*=\s*[\"']cuda(?::\d+)?[\"']|torch\.device\(\s*[\"']cuda"
+)
 MODEL_BASE = re.compile(r"Module|Model")
 CUDA_DEVICE = re.compile(r"cuda(?::\d+)?")
 ADVICE = (
@@ -124,15 +127,46 @@ def _replacement(call: ast.Call) -> tuple[ast.expr, ast.expr] | None:
         index = REPLACEMENT_CALLS[func.id]
         if len(call.args) > index + 1:
             return call.args[index], call.args[index + 1]
-    if isinstance(func, ast.Attribute) and func.attr == "replace":
-        if len(call.args) >= 2:
-            return call.args[0], call.args[1]
+    if (
+        isinstance(func, ast.Attribute)
+        and func.attr == "replace"
+        and len(call.args) >= 2
+    ):
+        return call.args[0], call.args[1]
     return None
 
 
 def _spans(node: ast.AST) -> range:
     end = getattr(node, "end_lineno", None) or getattr(node, "lineno", 0)
     return range(getattr(node, "lineno", 0), end + 1)
+
+
+def _constants(tree: ast.Module) -> dict[str, tuple[str, range]]:
+    """Module-level string constants: name -> (text, lines of the assignment)."""
+    result: dict[str, tuple[str, range]] = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target, value = node.targets[0], node.value
+        elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            target, value = node.target, node.value
+        else:
+            continue
+        text = _string(value)
+        if isinstance(target, ast.Name) and text is not None:
+            result[target.id] = (text, _spans(node))
+    return result
+
+
+def _text(
+    node: ast.expr, constants: dict[str, tuple[str, range]]
+) -> tuple[str, range] | None:
+    """Readable replacement text and the lines that spell it, else None."""
+    text = _string(node)
+    if text is not None:
+        return text, _spans(node)
+    if isinstance(node, ast.Name) and node.id in constants:
+        return constants[node.id]
+    return None
 
 
 def findings(path: str, source: str, added: set[int]) -> Iterator[Finding]:
@@ -142,32 +176,71 @@ def findings(path: str, source: str, added: set[int]) -> Iterator[Finding]:
     except SyntaxError:
         # Not parseable here: still check every added line's own text.
         tree = ast.Module(body=[], type_ignores=[])
+    constants = _constants(tree)
     removed: set[int] = set()
     inserted: set[int] = set()
+    patch_script = _is_patch_script(tree)
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call) or (pair := _replacement(node)) is None:
             continue
-        old, new = pair
-        removed.update(_spans(old))
-        old_text, new_text = _string(old), _string(new)
-        if old_text is None or new_text is None or not added & set(_spans(new)):
+        old, new = (_text(item, constants) for item in pair)
+        if old is not None:
+            removed.update(old[1])
+        # Unreadable inserted text (an f-string, an unresolved name) falls
+        # through to the per-line scan below.
+        if new is None or not added & set(new[1]):
             continue
-        inserted.update(_spans(new))
-        for kind, pattern in {**PATTERNS, CUDA_PLACEMENT: CUDA_KEYWORD}.items():
-            if len(pattern.findall(new_text)) > len(pattern.findall(old_text)):
-                yield Finding(path, new.lineno, kind)
+        inserted.update(new[1])
+        old_text = old[0] if old is not None else ""
+        for kind, pattern in {**PATTERNS, CUDA_PATCHED: CUDA_KEYWORD}.items():
+            if len(pattern.findall(new[0])) > len(pattern.findall(old_text)):
+                yield Finding(path, new[1].start, kind)
+    # A patch script's own lines may spell upstream source in forms read
+    # nowhere above (f-strings, computed text): judge their text directly.
+    scanned = {**PATTERNS, CUDA_PATCHED: CUDA_KEYWORD} if patch_script else PATTERNS
     checked = added - removed - inserted
     for number in sorted(checked):
         if number <= len(lines):
-            for kind, pattern in PATTERNS.items():
+            for kind, pattern in scanned.items():
                 if pattern.search(lines[number - 1]):
                     yield Finding(path, number, kind)
-    for number in sorted(_model_constructor_cuda_keywords(tree) & checked):
-        yield Finding(path, number, CUDA_PLACEMENT)
+    if not patch_script:
+        for number in sorted(_model_constructor_cuda_keywords(tree) & checked):
+            yield Finding(path, number, CUDA_PLACEMENT)
+
+
+def _is_patch_script(tree: ast.AST) -> bool:
+    """Calls a replace helper, or rewrites a file with ``str.replace`` results."""
+    calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)]
+    if any(
+        isinstance(call.func, ast.Name) and call.func.id in REPLACEMENT_CALLS
+        for call in calls
+    ):
+        return True
+    methods = {
+        call.func.attr
+        for call in calls
+        if isinstance(call.func, ast.Attribute)
+        and ast.unparse(call.func) != "os.replace"
+    }
+    return {"replace", "write_text"} <= methods
+
+
+def _is_cuda(node: ast.expr) -> bool:
+    """``"cuda"``/``"cuda:N"``, bare or as ``torch.device(...)``."""
+    if isinstance(node, ast.Call) and ast.unparse(node.func) == "torch.device":
+        if not node.args:
+            return False
+        node = node.args[0]
+    return (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and CUDA_DEVICE.fullmatch(node.value) is not None
+    )
 
 
 def _model_constructor_cuda_keywords(tree: ast.AST) -> set[int]:
-    """Lines of ``device="cuda"`` keywords inside a model class's ``__init__``."""
+    """Lines placing tensors on CUDA inside a model class's ``__init__``."""
     result: set[int] = set()
     for owner in ast.walk(tree):
         if not isinstance(owner, ast.ClassDef) or not any(
@@ -179,13 +252,10 @@ def _model_constructor_cuda_keywords(tree: ast.AST) -> set[int]:
                 continue
             for node in ast.walk(init):
                 if isinstance(node, ast.keyword) and node.arg == "device":
-                    value = node.value
-                    if (
-                        isinstance(value, ast.Constant)
-                        and isinstance(value.value, str)
-                        and CUDA_DEVICE.fullmatch(value.value)
-                    ):
+                    if _is_cuda(node.value):
                         result.add(node.lineno)
+                elif isinstance(node, ast.Call) and _is_cuda(node):
+                    result.add(node.lineno)
     return result
 
 
