@@ -11,8 +11,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TORCH_CUDA_ARCH_LIST=12.1
 
 # flash-attn 2.8.3.post1 compiles from source (no aarch64 CUDA 13 wheel). With its defaults (four architectures,
-# psutil-sized parallelism) nvcc was OOM-killed in a reproduction; build sm_120 only (runs on GB10's sm_121) with
-# four jobs, skip its GitHub wheel probe, and pin its setup_requires so setuptools fetches nothing unpinned.
+# psutil-sized parallelism) nvcc was OOM-killed in a reproduction. Build sm_120 only (runs on GB10's sm_121) with two
+# jobs (8-9 GB each on the hdim256 backward kernels), skip its GitHub wheel probe, and pin its setup_requires so
+# setuptools fetches nothing unpinned.
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes \
         build-essential ca-certificates curl ninja-build python3 python3-dev python3-pip \
@@ -34,7 +35,7 @@ RUN apt-get update \
         torch==2.13.0 torchvision==0.28.0 \
     && python3 -m pip install --break-system-packages --no-cache-dir \
         packaging==26.3 psutil==7.2.2 ninja==1.13.2 \
-    && MAX_JOBS=4 FLASH_ATTN_CUDA_ARCHS=120 FLASH_ATTENTION_FORCE_BUILD=TRUE \
+    && MAX_JOBS=2 FLASH_ATTN_CUDA_ARCHS=120 FLASH_ATTENTION_FORCE_BUILD=TRUE \
        python3 -m pip install --break-system-packages --no-cache-dir \
         transformers==5.17.0 diffusers==0.40.0 einops==0.8.2 \
         omegaconf==2.3.1 lightning==2.6.6 scipy==1.18.1 \
