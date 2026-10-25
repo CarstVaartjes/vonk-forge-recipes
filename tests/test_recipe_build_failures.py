@@ -149,3 +149,49 @@ def test_skintokens_verifies_download_before_use(tmp_path: Path, corrupt: bool) 
     )
     assert (result.returncode == 0) is not corrupt, result.stderr
     assert (tmp_path / "consumed").exists() is not corrupt
+
+
+def test_skintokens_flash_attn_builds_one_architecture_offline(tmp_path: Path) -> None:
+    # Run the authored pip commands with a recording python3. flash-attn's
+    # defaults (four architectures, psutil-sized job count) ran nvcc out of
+    # memory; its setup_requires would otherwise be fetched unpinned.
+    step = next(
+        step for step in run_steps(SKIN_CONTEXT / "Dockerfile") if "flash-attn" in step
+    )
+    pip = step[step.index("python3 -m pip install") : step.index("&& cuobjdump")]
+    python = tmp_path / "python3"
+    python.write_text(
+        "#!/bin/sh\n"
+        'printf \'%s|%s|%s|%s\\n\' "${MAX_JOBS-}" "${FLASH_ATTN_CUDA_ARCHS-}" '
+        '"${FLASH_ATTENTION_FORCE_BUILD-}" "$*" >> "$CALLS"\n'
+    )
+    python.chmod(0o755)
+    calls = tmp_path / "calls"
+    environment = {
+        name: value
+        for name, value in os.environ.items()
+        if name not in {"MAX_JOBS", "FLASH_ATTN_CUDA_ARCHS"}
+    }
+    result = subprocess.run(
+        ["sh", "-ec", pip],
+        env={
+            **environment,
+            "PATH": f"{tmp_path}:{os.environ['PATH']}",
+            "CALLS": str(calls),
+        },
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    invocations = [line.split("|", 3) for line in calls.read_text().splitlines()]
+    build = next(i for i, call in enumerate(invocations) if "flash-attn==" in call[3])
+    jobs, archs, force, arguments = invocations[build]
+    assert int(jobs) > 0
+    assert archs == "120"
+    assert force == "TRUE"
+    assert "--no-build-isolation" in arguments
+    installed = " ".join(call[3] for call in invocations[:build]).split()
+    for requirement in ("packaging", "psutil", "ninja"):
+        assert any(word.startswith(f"{requirement}==") for word in installed)
