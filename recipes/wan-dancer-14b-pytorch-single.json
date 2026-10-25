@@ -151,7 +151,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX Spark candidate for Wan-Dancer's official global-planning and local-refinement pipeline, bounded to a 262,144-pixel canvas (512x512 by default) and 1-5 seconds of music. Height/width controls are passed to BOTH creator stages, reducing latent/attention/decoding allocations from the former 921,600-pixel canvas. Both stages run in separate subprocesses: one 34,490,546,744-byte DiT plus T5 (11,361,920,418), CLIP (4,772,359,047) and VAE (507,609,880) totals 51,132,436,089 resident weight-file bytes per stage. Pinned model_manager.py constructs on meta, assigns the CPU state dict then transfers to CUDA; allow 35 GB for a complete extra largest checkpoint during loading (not the old 12 GB allowance). Add 12 GB estimated activation/decoding workspace at the reduced canvas (at most 40 latent frames including reference/padding, 1,024 spatial tokens/frame; 16 live BF16 5,120-wide vectors plus two FP32 13,824-wide FFN buffers and 0.5 GB decode slack is under 12 GB) and 8 GB runtime overhead: peak 106,132,436,089 bytes, with 8 GB separate reserve. The former 120 GB declaration was an inherited startup estimate (110 GB steady, 8 GB growth), not an engine allocation cap or measured peak. Models stay on CUDA; CPU offload is not extra memory on GB10. Physical memory, quality and latency acceptance remain pending.",
+    "description": "Single-DGX Spark candidate for Wan-Dancer's official global-planning and local-refinement pipeline, bounded to a 262,144-pixel canvas (512x512 by default) and 1-5 seconds of music. Height/width controls are passed to BOTH creator stages, reducing latent/attention/decoding allocations from the former 921,600-pixel canvas. Both stages run in separate subprocesses: one 34,490,546,744-byte DiT plus T5 (11,361,920,418), CLIP (4,772,359,047) and VAE (507,609,880) totals 51,132,436,089 resident weight-file bytes per stage. Pinned model_manager.py builds each model as real FP32 tensors on CPU (69 GB for the 17,244,865,664-parameter DiT beside its BF16 state dict); the adapter patch builds on meta instead, assigns every parameter from the checkpoint (a missing one fails the job with its name) then transfers to CUDA, so loading adds one complete extra largest checkpoint: allow 35 GB. Add 12 GB estimated activation/decoding workspace at the reduced canvas (at most 40 latent frames including reference/padding, 1,024 spatial tokens/frame; 16 live BF16 5,120-wide vectors plus two FP32 13,824-wide FFN buffers and 0.5 GB decode slack is under 12 GB) and 8 GB runtime overhead: peak 106,132,436,089 bytes, with 8 GB separate reserve. The former 120 GB declaration was an inherited startup estimate (110 GB steady, 8 GB growth), not an engine allocation cap or measured peak. Models stay on CUDA; CPU offload is not extra memory on GB10. Physical memory, quality and latency acceptance remain pending.",
     "tags": [
       "executable",
       "candidate",
@@ -418,8 +418,8 @@
     "source_reference": "https://github.com/Wan-Video/Wan-Dancer/tree/e6c87a94ec733230dac15b924c015f6e6501e618"
   },
   "release": {
-    "released_at": "2026-10-24",
-    "version": "1.0.13"
+    "released_at": "2026-10-25",
+    "version": "1.0.14"
   },
   "runtime": {
     "arguments": [
