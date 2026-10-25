@@ -2478,10 +2478,13 @@ class Sweep:
                 recipe.engine,
                 slot["model_bytes"],
                 # Held Controller waits are not the engine's load time.
-                now
-                - slot["started_at"]
-                - float(slot.get("copy_seconds", 0))
-                - float(slot.get("waited_seconds", 0)),
+                max(
+                    0.0,
+                    now
+                    - slot["started_at"]
+                    - float(slot.get("copy_seconds", 0))
+                    - float(slot.get("waited_seconds", 0)),
+                ),
             )
             self._submit_smoke(key, slot)
             return
@@ -2573,6 +2576,9 @@ class Sweep:
         load.pop("stall_released", None)
         slot.pop("waiting_on", None)
         progress = self._observe_load(slot, now)
+        if held and progress in (Progress.WAITING, Progress.WAIT_EXPIRED):
+            # Held time is the Controller's, never the recipe's own silence.
+            slot["watch"]["progressed_at"] = now
         if progress is Progress.WAIT_EXPIRED:
             # The local window alone never ends a receipt the Controller still works.
             if not held:

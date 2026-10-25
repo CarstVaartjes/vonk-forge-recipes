@@ -137,3 +137,36 @@ def test_newer_content_steers_past_a_held_receipt(tmp_path, monkeypatch) -> None
     clock.sleep(sweep.cfg.defer_delay + 1)
     assert a.key in {r.key for r in sweep.ready_candidates()}
     assert sweep.state.entry(a.key).get("attempts", 0) == 0
+
+
+def test_a_hold_that_clears_without_movement_is_no_recipe_silence(
+    tmp_path, monkeypatch
+) -> None:
+    sweep, fleet, clock, a, _, _, _ = held_lane(tmp_path, monkeypatch)
+    shown = fleet._app_doc
+    declared = {"wait": False}
+
+    def document(app):
+        # The recorded child snapshot throughout; only the Controller's wait comes and goes.
+        observed = shown(app)
+        if not declared["wait"]:
+            observed.pop("wait", None)
+            observed.pop("next_attempt_at", None)
+        return observed
+
+    monkeypatch.setattr(fleet, "_app_doc", document)
+    slot = sweep.state.slots[a.key]
+    sweep.advance_slots(clock.now())  # own work seen moving
+    assert "progressed_at" in slot["watch"]
+    declared["wait"] = True
+    window = slot["deadline"] - slot["started_at"]
+    for _ in range(3):
+        clock.sleep(window)
+        sweep.advance_slots(clock.now())
+        assert slot["phase"] == "loading"
+    # The wait clears and the child shows exactly what it showed before the hold.
+    declared["wait"] = False
+    clock.sleep(sweep.cfg.poll_seconds)
+    sweep.advance_slots(clock.now())
+    assert slot["phase"] == "loading"
+    assert sweep.state.entry(a.key).get("attempts", 0) == 0
