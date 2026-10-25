@@ -1011,8 +1011,11 @@ installed environment on modules named by `auto_map` in the selected `config.jso
 `video_preprocessor_config.json`,
 plus their relative imports (including processor dependencies), before adding
 the platform layer or pushing. vLLM and SGLang build registered architectures
-natively, so their `AutoModel*` entries are checked only with `model-impl`
-`transformers` or SGLang `modelopt-quant`; other engines check every entry.
+natively, so their `AutoModel*` entries are checked only when a base or option
+argument selects `model-impl` `transformers` or SGLang's ModelOpt quantization
+load (`modelopt-*`, or `quantization` `modelopt`, `modelopt_fp8` or
+`modelopt_mixed`); other engines check every entry. An unregistered
+architecture's Transformers fallback is not checked and fails at load.
 Engine plugins outside that graph belong to the engine's build/import checks.
 The check fetches only pinned configs and source code and verifies the Model's
 hash and size; it loads no weights and requires no GPU. Keep remote-code

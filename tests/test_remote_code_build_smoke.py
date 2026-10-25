@@ -329,21 +329,46 @@ def test_dspark_recipes_do_not_import_drafter_model_code(
     )
 
 
-def test_transformers_backend_imports_remote_model() -> None:
-    native = recipe("recipes/inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual.json")
-    assert not TOOL["imports_remote_model"](native)
-    for name, value, imports in (
-        ("model-impl", "auto", False),
-        ("model-impl", "vllm", False),
-        ("model-impl", "transformers", True),
-        ("modelopt-quant", "fp8", True),
-    ):
-        runtime = native.runtime.model_dump()
-        runtime["arguments"].append({"name": name, "value": value})
-        changed = native.model_copy(
-            update={"runtime": type(native.runtime).model_validate(runtime)}
-        )
-        assert TOOL["imports_remote_model"](changed) is imports
+def with_argument(source: str, name: str, value: str, choice: bool) -> RecipeDefinition:
+    document = recipe(source).model_dump(mode="json")
+    argument = {"name": name, "value": value}
+    if choice:
+        document["options"][0]["choices"][-1]["args"].append(argument)
+    else:
+        document["runtime"]["arguments"].append(argument)
+    return RecipeDefinition.model_validate(document)
+
+
+VLLM_OPTIONS = "recipes/step-3-7-flash-nvfp4-vllm-mia-dual.json"
+SGLANG_OPTIONS = "recipes/qwen3-8-27b-nvfp4-mtp-r0b0tlab-sglang-single.json"
+
+
+@pytest.mark.parametrize("choice", [False, True])
+@pytest.mark.parametrize(
+    ("source", "name", "value", "imports"),
+    [
+        (VLLM_OPTIONS, "model-impl", "auto", False),
+        (VLLM_OPTIONS, "model-impl", "vllm", False),
+        (VLLM_OPTIONS, "model-impl", "transformers", True),
+        # vLLM serves ModelOpt checkpoints natively (this recipe already does).
+        (VLLM_OPTIONS, "quantization", "modelopt_fp8", False),
+        (SGLANG_OPTIONS, "model-impl", "transformers", True),
+        (SGLANG_OPTIONS, "quantization", "modelopt_fp4", False),
+        (SGLANG_OPTIONS, "quantization", "modelopt_fp8", True),
+        (SGLANG_OPTIONS, "modelopt-quant", "fp8", True),
+        (SGLANG_OPTIONS, "modelopt-export-path", "/tmp/export", True),
+    ],
+)
+def test_transformers_backend_imports_remote_model(
+    source: str, name: str, value: str, imports: bool, choice: bool
+) -> None:
+    # Base arguments and option-choice arguments both reach the engine.
+    assert not TOOL["imports_remote_model"](recipe(source))
+    changed = with_argument(source, name, value, choice)
+    assert TOOL["imports_remote_model"](changed) is imports
+
+
+def test_transformers_engines_import_remote_model() -> None:
     assert TOOL["imports_remote_model"](
         recipe("recipes/moss-vl-realtime-11b-pytorch-single.json")
     )

@@ -40,20 +40,41 @@ class Plan(BaseModel):
 # vLLM and SGLang build registered architectures from their own model registry.
 # They import auto_map AutoModel* classes only on their Transformers backend
 # (`model-impl transformers`, or an unregistered architecture, whose failed
-# import ends the load with evidence) and in SGLang's `modelopt-quant`
-# quantize-and-serve load. Other engines keep every module checked.
+# import ends the load with evidence) and in SGLang's ModelOpt quantization
+# load (`modelopt-*` arguments, or quantization to these formats, which
+# SGLang applies to an unquantized checkpoint). Other engines
+# keep every module checked. Option choices can add or replace arguments.
 NATIVE_MODEL_ENGINES = {"vllm", "sglang"}
+MODELOPT_QUANTIZE = {"modelopt", "modelopt_fp8", "modelopt_mixed"}
 
 
 def imports_remote_model(recipe: RecipeDefinition) -> bool:
     runtime = recipe.runtime
+    arguments = [
+        *runtime.arguments,
+        *(
+            argument
+            for option in recipe.options
+            for choice in option.choices
+            for argument in choice.args
+        ),
+    ]
     return runtime.engine not in NATIVE_MODEL_ENGINES or any(
-        argument.name == "modelopt-quant"
+        (
+            runtime.engine == "sglang"
+            and (
+                argument.name.startswith("modelopt-")
+                or (
+                    argument.name == "quantization"
+                    and argument.value in MODELOPT_QUANTIZE
+                )
+            )
+        )
         or (
             argument.name == "model-impl"
             and argument.value not in ("auto", runtime.engine)
         )
-        for argument in runtime.arguments
+        for argument in arguments
     )
 
 
