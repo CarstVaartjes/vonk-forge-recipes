@@ -399,7 +399,10 @@ pool overrides cache sizing by utilization; the explicit startup budget is check
 separately. Changed multi-Spark documents use the per-rank demand declaration below;
 a changed multi-Spark SGLang document must also fit its sharded weights, resident
 expansion and capped token/state pools in `mem-fraction-static` × the lowest idle
-available bytes.
+available bytes. A multi-Spark vLLM recipe file a change touches must set
+`kv-cache-memory-bytes` to at least declared context × `max-num-seqs` per rank
+(`tools/check-recipe-memory-need --base origin/main`); a utilization-sized pool
+left Laguna M.1's entrypoint at the 16 GiB host guard floor on 2026-10-26.
 Existing documents remain unchanged and receive informative warnings.
 
 SGLang profiles loaded weights before applying `max-total-tokens`. A fraction

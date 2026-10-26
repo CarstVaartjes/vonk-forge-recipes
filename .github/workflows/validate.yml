@@ -176,6 +176,12 @@ jobs:
           git fetch --no-tags origin main:refs/remotes/origin/main
           python3 tools/check-recipe-topology --base origin/main
 
+      - name: Require touched multi-Spark vLLM recipes to bound KV by need
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/check-recipe-memory-need --base origin/main
+
       - name: Require every recipe to reference Models this library holds
         shell: bash
         run: |
