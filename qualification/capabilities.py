@@ -39,7 +39,14 @@ UNPARSED_ARITHMETIC = {"A391": "A391_UNPARSED", "A323": "A323_UNPARSED"}
 
 _TOOL_PARSER = re.compile(r"(?<![\w-])--?tool[-_](?:call[-_])?parser\b")
 _AUTO_TOOL = re.compile(r"(?<![\w-])--enable-auto-tool-choice\b")
-_REASONING_PARSER = re.compile(r"(?<![\w-])--?reasoning[-_]parser\b")
+# A reasoning-parser flag and, when written as one, its value.
+_REASONING_PARSER = re.compile(
+    r"(?<![\w-])--?reasoning[-_]parser\b(?:[=\s]+[\"']?([^\s\"']+))?"
+)
+# vLLM parsers that keep the thinking in ``content`` instead of splitting it
+# out: MiniMaxM2AppendThinkReasoningParser returns (None, "<think>" + output)
+# (vllm/reasoning/minimax_m2_reasoning_parser.py, vLLM ad7125a4).
+CONTENT_REASONING_PARSERS = frozenset({"minimax_m2_append_think"})
 _YAML_TOOL = re.compile(r"^\s*tool_parser\s*:", re.MULTILINE)
 _YAML_REASONING = re.compile(r"^\s*reasoning_parser\s*:", re.MULTILINE)
 _SKIPPED_DIRS = frozenset({"vendor", "patches", "tests", "licenses", "model-cards"})
@@ -160,7 +167,10 @@ def serving_capabilities(
         tools = bool(_TOOL_PARSER.search(both) and _AUTO_TOOL.search(both))
     else:
         tools = bool(_TOOL_PARSER.search(both) or _YAML_TOOL.search(both))
-    reasoning = bool(_REASONING_PARSER.search(both) or _YAML_REASONING.search(both))
+    reasoning = any(
+        match.group(1) not in CONTENT_REASONING_PARSERS
+        for match in _REASONING_PARSER.finditer(both)
+    ) or bool(_YAML_REASONING.search(both))
     kit = _kit_flags().get(slug)
     if kit:
         tools = tools or bool(kit.get("tool_parser"))

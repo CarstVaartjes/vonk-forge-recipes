@@ -118,6 +118,20 @@ def test_a_reasoning_model_without_a_parser_uses_the_unparsed_arithmetic_case() 
     assert generic_case_problems("x", parsed, ["M0", "A323_UNPARSED"], parsed_caps)
 
 
+def test_a_parser_that_keeps_thinking_in_content_does_not_parse_reasoning() -> None:
+    appended = _vllm(
+        ("reasoning-parser", "minimax_m2_append_think"), tags=("reasoning",)
+    )
+    caps = serving_capabilities(appended, "x", {})
+    assert not caps.reasoning_parser
+    assert generic_case_problems("x", appended, ["M0", "A391"], caps)
+    assert not generic_case_problems("x", appended, ["M0", "A391_UNPARSED"], caps)
+    split = _vllm(("reasoning-parser", "minimax_m2"), tags=("reasoning",))
+    split_caps = serving_capabilities(split, "x", {})
+    assert split_caps.reasoning_parser
+    assert not generic_case_problems("x", split, ["M0", "A391"], split_caps)
+
+
 def test_an_image_case_needs_a_multimodal_recipe() -> None:
     recipe = _vllm()
     assert generic_case_problems(
