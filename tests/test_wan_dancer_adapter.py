@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import ast
+import base64
 import contextlib
 import hashlib
 import io
 import json
+import math
 import re
 import subprocess
 import sys
@@ -12,6 +14,7 @@ import tarfile
 import tempfile
 import types
 import unittest
+import wave
 from collections.abc import Callable, Iterator
 from pathlib import Path
 from types import SimpleNamespace
@@ -603,6 +606,58 @@ class WanDancerLoaderTests(unittest.TestCase):
         self.assertTrue(calls)
         for call in calls:
             self.assertNotIn("device", {keyword.arg for keyword in call.keywords})
+
+
+class WanDancerSmokeMusicTests(unittest.TestCase):
+    """The smoke music must satisfy upstream's frame math, not only the adapter.
+
+    gen_video_global.py:353 computes ``30 / int(rows / 149 + 0.5)``, where rows
+    is the 30 fps onset-envelope length (``1 + samples // 512`` at 15,360 Hz), so
+    music shorter than about 2.47 s divides by zero after the models load.
+    gen_video_local.py keeps one 149-frame segment only up to 149 / 30 seconds.
+    """
+
+    def test_smoke_music_fits_upstream_frame_math_and_the_output_assertion(
+        self,
+    ) -> None:
+        runner = load_runner()
+        definition = json.loads(
+            (
+                ROOT / "qualification/recipes/wan-dancer-14b-pytorch-single.json"
+            ).read_text(encoding="utf-8")
+        )["recipes"]
+        fixtures = json.loads(
+            (ROOT / "qualification/shared.json").read_text(encoding="utf-8")
+        )["fixtures"]
+        recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
+        validation = recipe["validation"]["serving"]["checks"][0]["request"]
+        sources = [
+            base64.b64decode(
+                (ROOT / "qualification" / fixtures[item["fixture"]]["path"]).read_text()
+            )
+            for inputs in [definition["inputs"]]
+            + [case["inputs"] for case in definition["cases"]]
+            for item in inputs
+            if item["slot"] == "music"
+        ]
+        sources.append((ROOT / validation["input_slots"]["music"]).read_bytes())
+        (metadata,) = [
+            item
+            for item in definition["assertions"]
+            if item["kind"] == "video-metadata"
+        ]
+        for content in sources:
+            with wave.open(io.BytesIO(content), "rb") as source:
+                frames, rate = source.getnframes(), source.getframerate()
+            duration = frames / rate
+            rows = 1 + math.ceil(frames * 30 * 512 / rate) // 512
+            self.assertGreaterEqual(int(rows / 149.0 + 0.5), 1, (duration, rows))
+            self.assertLess(duration, 149 / 30)
+            self.assertLessEqual(1.0, duration)
+            output_frames = int(
+                (duration - runner.OUTPUT_TRIM_SECONDS) * runner.OUTPUT_FPS
+            )
+            self.assertEqual(metadata["frame_count"], output_frames)
 
 
 if __name__ == "__main__":
