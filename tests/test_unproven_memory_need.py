@@ -144,7 +144,7 @@ def test_mosaic_failure_has_honest_demand_without_retuning_siblings() -> None:
     recipe = RecipeDefinition.model_validate_json(
         (ROOT / "recipes" / f"{MOSAIC}.json").read_text()
     )
-    need = calculate_need(recipe, catalog_models(), load_inputs().geometries)
+    need = calculate_need(recipe, catalog_models(), load_inputs())
     assert need.total_bytes == 119_029_287_744 > need.limit_bytes == 108_470_788_096
     assert "does-not-fit" in recipe.metadata.tags
     assert all(
@@ -169,7 +169,9 @@ def test_calibration_runs_every_hardware_pass_without_exemptions() -> None:
         if recipe.runtime.engine not in {"vllm", "sglang"}:
             continue
         for variant in memory_variants(recipe):
-            assert per_rank_need(variant, catalog_models()).fits, evidence.recipe_key
+            assert per_rank_need(variant, catalog_models(), load_inputs()).fits, (
+                evidence.recipe_key
+            )
         checked += 1
     assert checked > 100
 

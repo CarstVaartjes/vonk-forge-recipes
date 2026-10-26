@@ -100,7 +100,7 @@ def test_proven_set_calibrates_need_without_false_rejections() -> None:
         if recipe.runtime.engine not in {"vllm", "sglang"}:
             continue
         for variant in memory_variants(recipe):
-            need = per_rank_need(variant, catalog_models())
+            need = per_rank_need(variant, catalog_models(), load_inputs())
             assert all(
                 need.peak_bytes + role.resources.memory.reserve_bytes
                 <= IDLE_AVAILABLE_BYTES
@@ -118,7 +118,7 @@ def test_repaired_declarations_and_engine_allocations_fit_every_variant(
     assert f"{recipe.identity.publisher}/{slug}" not in PROVEN
     for variant in memory_variants(recipe):
         require_admissible_declaration(variant)
-        need = per_rank_need(variant, catalog_models())
+        need = per_rank_need(variant, catalog_models(), load_inputs())
         assert not declaration_problems(variant, need)
         if variant.runtime.engine == "vllm":
             fraction = argument_value(variant, "gpu-memory-utilization")
@@ -224,13 +224,17 @@ def test_recorded_content_precedes_admission(monkeypatch) -> None:
 
 def test_wrapper_cache_alias_counts_toward_actual_rank_demand() -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sfxnz-vllm-dual")
-    initial = per_rank_need(recipe, catalog_models()).peak_bytes
+    initial = per_rank_need(recipe, catalog_models(), load_inputs()).peak_bytes
     pin = next(a for a in recipe.runtime.arguments if a.name == "kv-cache-memory")
     assert isinstance(pin.value, int)
     assert pin.value == 12 * 1024**3
     pin.value += 1
-    assert per_rank_need(recipe, catalog_models()).peak_bytes == initial + 1
-    assert declaration_problems(recipe, per_rank_need(recipe, catalog_models()))
+    assert (
+        per_rank_need(recipe, catalog_models(), load_inputs()).peak_bytes == initial + 1
+    )
+    assert declaration_problems(
+        recipe, per_rank_need(recipe, catalog_models(), load_inputs())
+    )
 
 
 @pytest.mark.parametrize("rank", [0, 1])
