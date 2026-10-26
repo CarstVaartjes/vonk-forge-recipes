@@ -152,9 +152,12 @@ def test_a_controller_space_hold_longer_than_the_window_pauses_no_other_work(
     )
     # Its window restarts: it is looked at again once per window, not once per poll.
     assert any(
-        w.get("wait_started_at", start) > start + DOWNLOAD_STALL_SECONDS for w in watches
+        w.get("wait_started_at", start) > start + DOWNLOAD_STALL_SECONDS
+        for w in watches
     )
-    renewals = [e for e in sweep.state.data["events"] if "waits for NAS space" in e["message"]]
+    renewals = [
+        e for e in sweep.state.data["events"] if "waits for NAS space" in e["message"]
+    ]
     assert 1 <= len(renewals) <= (during[-1][0] - start) // DOWNLOAD_STALL_SECONDS
     shown = [
         item["waiting_on"]
@@ -213,7 +216,7 @@ def test_new_model_downloads_wait_for_pin_capacity_and_resume_as_pins_drain(
             )
         }
         unprotected.append(untested - pinned)
-        if (hold := build_status(sweep)["downloads"]["pin_capacity"]) is not None:
+        if (hold := build_status(sweep)["downloads"].get("pin_capacity")) is not None:
             holds.append(hold)
 
     clock.hooks.append(observe)

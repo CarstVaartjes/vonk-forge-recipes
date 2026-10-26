@@ -9,14 +9,17 @@ pulls in flight.
 The Controller owns NAS space: it admits a download only into the free space
 the running transfers leave, and a shortfall is a queued ``download_blocked``
 wait while retention evicts unused model files, least recently used first.
-The sweep observes that wait like any other (bounded, visible, no attempt
-spent); a terminal ``free_space`` failure is a wait too and pauses new model
-downloads for a while.
+The sweep shows it as a typed NAS-space wait whose window restarts while the
+Controller holds it: no attempt spent, no infrastructure problem, no pause of
+other downloads or pulls. A terminal ``free_space`` failure is a wait too and
+pauses new model downloads for a while.
 
 The Controller never evicts what a saved profile names, loaded or not. The
 prefetcher therefore keeps one never-loaded *pin profile* that names every
 recipe that has been downloaded (or is downloading) and not yet tested, and
-removes each recipe from it once tested.
+removes each recipe from it once tested. While those sets fill the profile, a
+new model download waits for pin capacity: an unpinned untested set would be
+evicted and downloaded again.
 """
 
 from __future__ import annotations
@@ -251,6 +254,7 @@ class Prefetcher:
             if record["bytes_done"] != old_bytes:
                 record["progress_at"] = now
             signal = download_signal(document)
+            window = dict(watch)  # the wait window before this observation
             moving = progress_verdict(
                 signal,
                 watch,
@@ -264,18 +268,16 @@ class Prefetcher:
             )
             record["bps"] = speed
             if (
-                moving is Progress.WAIT_EXPIRED
-                and signal.wait is not None
+                signal.wait is not None
                 and signal.wait.reason is SweepWaitReason.NAS_SPACE
+                and now > float(window.get("wait_deadline", now))
             ):
                 # The Controller owns a NAS-space wait (its own window; eviction frees
-                # the space). Keep the evidence and look again once per window: it is
-                # no infrastructure problem and pauses no other download or pull.
-                record["wait_deferral"] = wait_expiry(watch, now).model_dump(
+                # the space): progress_verdict renewed ours. Keep the expired window as
+                # evidence; it is no infrastructure problem and pauses no other work.
+                record["wait_deferral"] = wait_expiry(window, now).model_dump(
                     mode="json"
                 )
-                watch.pop("wait_started_at", None)
-                watch.pop("wait_deadline", None)
                 self.state.event(f"download still waits for NAS space: {key}")
             elif moving is Progress.WAIT_EXPIRED:
                 record["wait_deferral"] = wait_expiry(watch, now).model_dump(

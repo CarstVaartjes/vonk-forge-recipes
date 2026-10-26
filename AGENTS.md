@@ -250,7 +250,10 @@ two image pulls. Follow existing downloads; never cancel/recreate one because
 observations stall. A never-loaded pin profile (default 13) protects
 downloaded/untested sets; a pin failure is visible but cannot stop cached work.
 The Controller alone owns NAS space: a download it blocks for space is a queued
-`download_blocked` wait while LRU eviction frees unpinned model files.
+`download_blocked` wait while LRU eviction frees unpinned model files; the sweep
+shows a typed NAS-space wait that pauses no other work. While untested sets fill
+the pin profile, new model downloads wait (typed pin-capacity hold) so no
+untested set is evicted and downloaded again.
 Model-removal intents need complete catalog/owner observations, protect every
 saved owner profile and nonterminal consumer, and persist keys before submission.
 Uncertain receipts reconnect to the same request; terminal failures re-review.

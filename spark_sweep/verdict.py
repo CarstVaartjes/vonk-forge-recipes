@@ -379,6 +379,16 @@ def progress_verdict(
             watch.pop("wait_deadline", None)
     if signal is None or signal.wait is not None:
         wait = signal.wait if signal is not None else None
+        if (
+            wait is not None
+            and wait.reason is SweepWaitReason.NAS_SPACE
+            and now > float(watch.get("wait_deadline", now))
+        ):
+            # The Controller holds a NAS-space wait under its own bounded window while
+            # retention evicts: each expiry of ours renews it (the caller records the
+            # expired window), so it is looked at once per window and pauses no work.
+            watch["wait_started_at"] = now
+            watch.pop("wait_deadline", None)
         return bounded_wait(
             wait or SweepWait(reason=SweepWaitReason.OBSERVATION),
             watch,
