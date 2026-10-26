@@ -205,12 +205,12 @@ FIXTURES = ROOT / "tests/fixtures"
     [
         (
             [
-                "flashinfer-aot-sm121a-list-elf.txt",
-                "flashinfer-aot-host-only-list-elf.txt",
+                "flashinfer-aot-sm121a-list-elf.json",
+                "flashinfer-aot-host-only-list-elf.json",
             ],
             True,
         ),
-        (["flashinfer-aot-host-only-list-elf.txt"], False),
+        (["flashinfer-aot-host-only-list-elf.json"], False),
     ],
 )
 def test_minimax_dual_verifier_requires_gb10_flashinfer_aot_kernels(
@@ -219,9 +219,11 @@ def test_minimax_dual_verifier_requires_gb10_flashinfer_aot_kernels(
     listings: list[str],
     accepted: bool,
 ) -> None:
-    # Fixtures are real `cuobjdump --list-elf` output from this image's AOT
-    # build (d768c14e, FLASHINFER_CUDA_ARCH_LIST=12.1a): a single_prefill module
-    # and the host-only spdlog module (exit 255, "does not contain device code").
+    # Fixtures are real `cuobjdump --list-elf` runs captured from this image's
+    # AOT build (d768c14e, FLASHINFER_CUDA_ARCH_LIST=12.1a), with stdout, stderr
+    # and exit code exactly as observed: the norm module (2 sm_121a cubins,
+    # exit 0) and the host-only spdlog module (exit 255, "does not contain
+    # device code" on stderr). The fake replays all three.
     verifier = load_minimax_dual_verifier()
     package = tmp_path / "flashinfer_jit_cache"
     for listing in listings:
@@ -236,9 +238,10 @@ def test_minimax_dual_verifier_requires_gb10_flashinfer_aot_kernels(
     def cuobjdump(
         command: list[str], **_kwargs: object
     ) -> subprocess.CompletedProcess[str]:
-        listing = (FIXTURES / Path(command[-1]).parent.name).read_text()
-        code = 255 if "does not contain device code" in listing else 0
-        return subprocess.CompletedProcess(command, code, stdout=listing, stderr="")
+        run = json.loads((FIXTURES / Path(command[-1]).parent.name).read_text())
+        return subprocess.CompletedProcess(
+            command, run["returncode"], stdout=run["stdout"], stderr=run["stderr"]
+        )
 
     monkeypatch.setattr(verifier.subprocess, "run", cuobjdump)
     if accepted:

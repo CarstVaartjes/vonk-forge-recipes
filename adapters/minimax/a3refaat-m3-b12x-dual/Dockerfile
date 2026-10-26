@@ -58,7 +58,7 @@ WORKDIR $VLLM_BASE_DIR
 
 # NCCL with mesh support (shared library in /workspace/vllm/nccl/build/lib). Upstream wraps it in Debian
 # packages only to apt-install them; the runner uses the built library directly, as the tonyd2wild M3 triple does.
-# BUILD_JOBS (16) jobs: its compiles peak at 0.6 GiB each, well inside the Spark build's image_bytes memory limit.
+# BUILD_JOBS jobs (ARG above): its compiles peak at 0.6 GiB each, well inside the Spark build's memory limit.
 RUN git clone -b dgxspark-3node-ring https://github.com/zyang-dev/nccl.git && \
     cd nccl && git checkout --detach fab1850acd902672d79ca81c2e7fb8e1848c208c && \
     make -j ${BUILD_JOBS} src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121"
@@ -77,8 +77,8 @@ WORKDIR /workspace/flashinfer
 
 # Upstream's patch to avoid re-downloading existing cubins, and a backport that builds FA3 attention-sink kernels
 # only for SM90 builds (at this pin they are compiled for sm_90a regardless of FLASHINFER_CUDA_ARCH_LIST, and nvcc
-# ran out of memory on them). The AOT cache compiles three kernels at a time: its CUTLASS GEMMs peak at 7.3 GB per
-# compiler, and a Spark build is limited to the recipe's image_bytes of memory.
+# ran out of memory on them). The AOT cache compiles three kernels at a time: its CUTLASS GEMMs peak at 7.15 GiB per
+# compiler, and a Spark build is limited to memory derived from the recipe's image_bytes.
 COPY flashinfer_cache.patch flashinfer-aot-sink-sm90.patch ./
 RUN patch -p1 < flashinfer_cache.patch && patch -p1 < flashinfer-aot-sink-sm90.patch && \
     sed -i -e 's/license = "Apache-2.0"/license = { text = "Apache-2.0" }/' -e '/license-files/d' pyproject.toml && \
@@ -126,7 +126,8 @@ RUN set -eux; \
     python3 /workspace/local-patches/strip-vllm-rs-binary.py .
 
 # Three compile jobs: CUTLASS sm120 scaled-mm and qutlass GEMMs peak at 8.2 GiB per compiler, and a Spark build is
-# limited to the recipe's image_bytes of memory (29.8 GiB).
+# limited to memory derived from the recipe's image_bytes (vonk-forge catalog_entities.py; checked by
+# tests/test_recipe_build_failures.py).
 RUN MAX_JOBS=3 VLLM_REQUIRE_RUST_FRONTEND=1 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-vllm -v && \
     git rev-parse HEAD > /workspace/wheels-vllm/.vllm-commit
 
