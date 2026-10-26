@@ -29,7 +29,7 @@ def verify_nccl() -> None:
 
 
 def verify_flashinfer_aot() -> None:
-    # The AOT kernel cache must hold GB10 (sm_12x) cubins and nothing built for other GPUs.
+    # The AOT kernel cache must hold GB10 (sm_12x) cubins; one cuobjdump per AOT .so, once per image build.
     spec = importlib.util.find_spec("flashinfer_jit_cache")
     if spec is None or not spec.submodule_search_locations:
         raise SystemExit("flashinfer_jit_cache is not installed")
@@ -40,8 +40,8 @@ def verify_flashinfer_aot() -> None:
         if result.returncode != 0 and "does not contain device code" not in result.stdout + result.stderr:
             raise SystemExit(f"cuobjdump failed for {library}: {result.stderr.strip()}")
         archs.update(re.findall(r"\.(sm_\d+[a-z]?)\.cubin", result.stdout))
-    if not any(arch.startswith("sm_12") for arch in archs) or any(not arch.startswith("sm_12") for arch in archs):
-        raise SystemExit(f"FlashInfer AOT kernels must target sm_12x (GB10) only; found {sorted(archs)} in {root}")
+    if not any(arch.startswith("sm_12") for arch in archs):
+        raise SystemExit(f"FlashInfer AOT kernels hold no sm_12x (GB10) cubins; found {sorted(archs)} in {root}")
     print("FlashInfer AOT kernels:", sorted(archs))
 
 

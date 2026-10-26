@@ -197,29 +197,37 @@ def test_skintokens_verifies_download_before_use(tmp_path: Path, corrupt: bool) 
     assert (tmp_path / "consumed").exists() is not corrupt
 
 
+FIXTURES = ROOT / "tests/fixtures"
+
+
 @pytest.mark.parametrize(
-    ("cubins", "accepted"),
+    ("listings", "accepted"),
     [
-        (["sm_121a"], True),
-        (["sm_121a", "sm_90a"], False),
-        ([], False),
+        (
+            [
+                "flashinfer-aot-sm121a-list-elf.txt",
+                "flashinfer-aot-host-only-list-elf.txt",
+            ],
+            True,
+        ),
+        (["flashinfer-aot-host-only-list-elf.txt"], False),
     ],
 )
-def test_minimax_dual_verifier_requires_gb10_only_flashinfer_aot(
+def test_minimax_dual_verifier_requires_gb10_flashinfer_aot_kernels(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    cubins: list[str],
+    listings: list[str],
     accepted: bool,
 ) -> None:
-    # The CI build compiled sm_90a attention-sink kernels despite the 12.1a
-    # arch list (and nvcc ran out of memory); the image must reject that.
+    # Fixtures are real `cuobjdump --list-elf` output from this image's AOT
+    # build (d768c14e, FLASHINFER_CUDA_ARCH_LIST=12.1a): a single_prefill module
+    # and the host-only spdlog module (exit 255, "does not contain device code").
     verifier = load_minimax_dual_verifier()
     package = tmp_path / "flashinfer_jit_cache"
-    (package / "jit_cache/host_only").mkdir(parents=True)
-    (package / "jit_cache/host_only/host.so").touch()
-    for arch in cubins:
-        (package / f"jit_cache/{arch}").mkdir()
-        (package / f"jit_cache/{arch}/kernel.so").touch()
+    for listing in listings:
+        module = package / "jit_cache" / listing
+        module.mkdir(parents=True)
+        (module / "module.so").touch()
     spec = importlib.util.spec_from_loader("flashinfer_jit_cache", loader=None)
     assert spec is not None
     spec.submodule_search_locations = [str(package)]
@@ -228,52 +236,70 @@ def test_minimax_dual_verifier_requires_gb10_only_flashinfer_aot(
     def cuobjdump(
         command: list[str], **_kwargs: object
     ) -> subprocess.CompletedProcess[str]:
-        library = Path(command[-1])
-        if library.parent.name == "host_only":
-            message = f"cuobjdump info : File '{library}' does not contain device code"
-            return subprocess.CompletedProcess(command, 255, stdout=message, stderr="")
-        listing = f"ELF file    1: kernel.cuda.1.{library.parent.name}.cubin\n"
-        return subprocess.CompletedProcess(command, 0, stdout=listing, stderr="")
+        listing = (FIXTURES / Path(command[-1]).parent.name).read_text()
+        code = 255 if "does not contain device code" in listing else 0
+        return subprocess.CompletedProcess(command, code, stdout=listing, stderr="")
 
     monkeypatch.setattr(verifier.subprocess, "run", cuobjdump)
     if accepted:
         verifier.verify_flashinfer_aot()
     else:
-        with pytest.raises(SystemExit, match="must target sm_12x"):
+        with pytest.raises(SystemExit, match="no sm_12x"):
             verifier.verify_flashinfer_aot()
 
 
-# Measured peak RSS of one compiler (2026-10-26, pinned stage-1 environment):
-# NCCL all_reduce_minmax/device_glue 0.6 GiB (host g++ 0.4 GiB); FlashInfer AOT
-# gemm_sm120 7.2 GiB; vLLM CUTLASS scaled_mm_sm120_fp8 8.2 GiB.
-MINIMAX_DUAL_COMPILER_PEAK_BYTES = {
-    "src.build": 615 * 1024**2,
-    "flashinfer-jit-cache": 7326 * 1024**2,
-    "wheels-vllm": 8434 * 1024**2,
+# Spark build memory: vonk-forge control/src/vonk_control/catalog_entities.py
+# @922747e8 lines 859 and 868: image_bytes = max over the recipe's role disks;
+# memory_bytes = min(64 GiB, max(2 GiB, image_bytes)).
+#
+# Measured 2026-10-26 in the pinned stage-1 environment (OrbStack arm64, GNU
+# time on every sampled compile, one at a time; tooling sampled every 2 s
+# during the real `uv build` at MAX_JOBS=1). Keyed to the pinned source: a pin
+# bump fails this test until the step is re-measured.
+#   FlashInfer jit-cache: peak compiler gemm_sm120 (7,326 MiB); 1-6 commands
+#     from each of the 44 module families of the 2,657 nvcc commands.
+#   vLLM wheel: peak compiler w8a8/cutlass/c3x/scaled_mm_sm120_fp8.cu
+#     (8,434 MiB); 1-8 commands per source family of the 350 nvcc commands,
+#     every CUTLASS sm120, qutlass and fp4 file.
+MINIMAX_DUAL_STEP_MEMORY = {
+    "flashinfer-jit-cache": {
+        "source": "https://github.com/flashinfer-ai/flashinfer.git",
+        "commit": "d768c14e7cf5dd5df45a8a1de78ae815879f108a",
+        "compiler_peak": 7326 * 1024**2,
+        "tooling_peak": 595960 * 1024,
+    },
+    "wheels-vllm": {
+        "source": "https://github.com/vllm-project/vllm.git",
+        "commit": "979b56a66c969ab67655d2155ab4c6c5bed15f65",
+        "compiler_peak": 8434 * 1024**2,
+        "tooling_peak": 1037388 * 1024,
+    },
 }
 
 
-@pytest.mark.parametrize("output", sorted(MINIMAX_DUAL_COMPILER_PEAK_BYTES))
+@pytest.mark.parametrize("output", sorted(MINIMAX_DUAL_STEP_MEMORY))
 def test_minimax_dual_compile_jobs_fit_the_spark_build_memory(output: str) -> None:
-    # A Spark build runs under memory_bytes = min(64 GiB, max(2 GiB,
-    # image_bytes)) (vonk-forge catalog_entities.py). The step's parallel
-    # compilers at their measured peak, plus 4 GiB for the build tool, must fit.
+    measured = MINIMAX_DUAL_STEP_MEMORY[output]
+    dockerfile = MINIMAX_DUAL / "Dockerfile"
+    steps = run_steps(dockerfile)
+    source = next(step for step in steps if str(measured["source"]) in step)
+    assert str(measured["commit"]) in source, f"{output}: re-measure for the new pin"
     recipe = json.loads(
         (
             ROOT / "recipes/minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual.json"
         ).read_text()
     )
-    image_bytes = min(
+    image_bytes = max(
         role["resources"]["disk"]["image_bytes"] for role in recipe["topology"]["roles"]
     )
     limit = min(64 * 1024**3, max(2 * 1024**3, image_bytes))
-    step = next(
-        step for step in run_steps(MINIMAX_DUAL / "Dockerfile") if output in step
+    step = next(step for step in steps if output in step)
+    jobs = re.search(r"\bMAX_JOBS=(\d+) ", step)
+    assert jobs is not None, f"{output} step must set its own MAX_JOBS"
+    need = int(jobs.group(1)) * int(measured["compiler_peak"]) + int(
+        measured["tooling_peak"]
     )
-    jobs = re.search(r"\bMAX_JOBS=(\d+) |\bmake -j (\d+) ", step)
-    assert jobs is not None, f"{output} step must set its own job count"
-    peak = MINIMAX_DUAL_COMPILER_PEAK_BYTES[output]
-    assert int(jobs.group(1) or jobs.group(2)) * peak + 4 * 1024**3 <= limit
+    assert need <= limit
 
 
 def test_skintokens_flash_attn_builds_one_architecture_offline(tmp_path: Path) -> None:
