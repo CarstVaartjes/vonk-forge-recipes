@@ -18,6 +18,7 @@ from vonk_forge_contracts import (
 )
 
 from qualification.memory_need import (
+    SPARK_MEMORY_BYTES,
     calculate_need,
     hardware_proven,
     load_inputs,
@@ -45,9 +46,9 @@ def test_unchanged_untested_document_is_informational() -> None:
         is None
     )
     # Fault injection: an old digest must never waive a modified launch.
-    assert recipe.settings.kind == "decision"
-    recipe.settings.context_tokens.value *= 100
-    with pytest.raises(ValueError):
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = SPARK_MEMORY_BYTES
+    with pytest.raises(ValueError, match="not admissible"):
         require_memory_need(
             recipe,
             catalog_models(),
@@ -91,13 +92,11 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
     assert not hardware_proven(recipe, digest)
 
     # A known digest cannot hide edited bytes, even with the old parsed model.
-    assert recipe.settings.kind == "decision"
     changed = recipe.model_copy(deep=True)
-    assert changed.settings.kind == "decision"
-    changed.settings.context_tokens.value *= 100
+    for role in changed.topology.roles:
+        role.resources.memory.peak_bytes = SPARK_MEMORY_BYTES
     authored.write_text(changed.model_dump_json())
-    with pytest.raises(ValueError):
-        require_memory_need(recipe, {}, inputs, document_digest=digest)
+    assert not memory.unchanged_recipe(recipe, digest, inputs)
     with pytest.raises(ValueError):
         require_memory_need(changed, {}, inputs, document_digest=digest)
     with pytest.raises(ValueError):
@@ -116,18 +115,24 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
 def test_new_recipe_without_git_still_requires_memory_inputs(tmp_path, monkeypatch):
     import qualification.memory_need as memory
 
-    document = json.loads((ROOT / "recipes/d3-edge-vllm-single.json").read_text())
+    document = json.loads(
+        (
+            ROOT / "recipes/llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single.json"
+        ).read_text()
+    )
     document["identity"]["slug"] = "new-memory-need-recipe"
     recipe = RecipeDefinition.model_validate(document)
+    inputs = load_inputs().model_copy(update={"geometries": {}})
     monkeypatch.setattr(memory, "ROOT", tmp_path)
 
     def forbidden(*args, **kwargs):
         pytest.fail("new-document validation must not invoke Git")
 
     monkeypatch.setattr(subprocess, "run", forbidden)
-    with pytest.raises(ValueError, match="declare engine context and concurrency"):
+    # Its absolute pool must be shown to hold one request by pinned geometry.
+    with pytest.raises(ValueError, match="source-backed cache geometry"):
         require_memory_need(
-            recipe, {}, load_inputs(), document_digest=document_sha256(document)
+            recipe, catalog_models(), inputs, document_digest=document_sha256(document)
         )
 
 
@@ -152,10 +157,8 @@ def test_mosaic_failure_has_honest_demand_without_retuning_siblings() -> None:
         role.resources.memory.peak_bytes >= need.total_bytes
         for role in recipe.topology.roles
     )
+    # The estimate is informative: the tag no longer gates the document.
     require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
-    recipe.metadata.tags.remove("does-not-fit")
-    with pytest.raises(ValueError, match="memory need"):
-        require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
 
 
 def test_calibration_runs_every_hardware_pass_without_exemptions() -> None:

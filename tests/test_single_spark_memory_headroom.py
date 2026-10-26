@@ -23,6 +23,7 @@ from qualification.memory_need import (
     hardware_proven,
     load_inputs,
     require_memory_need,
+    vllm_utilization_envelope,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -81,39 +82,87 @@ def test_proven_identity_is_not_an_exemption_for_a_mutated_recipe() -> None:
     recipe.identity.slug = "gpt-oss-20b-nvidia-vllm-single"
     assert recipe.settings.kind == "generation"
     recipe.settings.context_tokens.value *= 100
-    with pytest.raises(
-        ValueError,
-        match="reduce declared context/concurrency.*smaller quantization.*multi-Spark recipe id",
-    ):
+    with pytest.raises(ValueError, match="cannot hold one full-context request"):
         checked(recipe)
 
 
 @pytest.mark.parametrize(
-    "name,value",
-    [
-        ("kv-cache-memory-bytes", "120G"),
-        ("kv-cache-memory-bytes", "1G"),
-        ("max-num-seqs", 256),
-    ],
+    "value,match",
+    [("120G", "peak understates need"), ("1G", "one full-context request")],
 )
-def test_guard_rejects_pool_or_scheduler_drift(name: str, value: str | int) -> None:
+def test_guard_rejects_pool_drift(value: str, match: str) -> None:
     recipe = llama()
-    argument = next(item for item in recipe.runtime.arguments if item.name == name)
-    argument.setting = None
+    argument = next(
+        item
+        for item in recipe.runtime.arguments
+        if item.name == "kv-cache-memory-bytes"
+    )
     argument.value = value
-    with pytest.raises(ValueError, match="absolute kv-cache|memory need"):
+    with pytest.raises(ValueError, match=match):
         checked(recipe)
 
 
-def test_fraction_is_not_a_substitute_for_an_absolute_pool() -> None:
+def test_pool_holds_one_request_at_any_engine_concurrency() -> None:
+    # vLLM schedules sequences within the pool: concurrency does not size it.
+    recipe = llama()
+    argument = next(
+        item for item in recipe.runtime.arguments if item.name == "max-num-seqs"
+    )
+    argument.setting = None
+    argument.value = 256
+    checked(recipe)
+    require_memory_need(
+        recipe, catalog_models(), INPUTS, document_digest="", touched=True
+    )
+
+
+def declare_envelope(recipe: RecipeDefinition) -> None:
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = envelope
+
+
+def test_utilization_sized_peak_covers_the_vllm_budget_on_one_spark() -> None:
+    # The Controller reserves the declared peak: it must cover the budget.
+    recipe = llama()
+    recipe.runtime.arguments = [
+        item
+        for item in recipe.runtime.arguments
+        if item.name != "kv-cache-memory-bytes"
+    ] + [RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.70")]
+    with pytest.raises(ValueError, match="peak understates vLLM budget"):
+        checked(recipe)
+    declare_envelope(recipe)
+    checked(recipe)
+
+
+def test_touched_utilization_budget_must_be_admissible_on_one_spark() -> None:
+    # The proven set runs single-Spark utilization pools up to 0.86, whose
+    # share plus overhead is the largest admitted peak; vLLM's 0.90 default and
+    # 0.87 are not admissible.
     recipe = llama()
     recipe.runtime.arguments = [
         item
         for item in recipe.runtime.arguments
         if item.name != "kv-cache-memory-bytes"
     ]
-    with pytest.raises(ValueError, match="absolute kv-cache-memory-bytes"):
-        checked(recipe)
+
+    def touched() -> None:
+        declare_envelope(recipe)
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
+
+    with pytest.raises(ValueError, match="not admissible"):
+        touched()
+    recipe.runtime.arguments.append(
+        RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.87")
+    )
+    with pytest.raises(ValueError, match="not admissible"):
+        touched()
+    recipe.runtime.arguments[-1].value = "0.86"
+    touched()
 
 
 def test_failed_recipe_cannot_reuse_its_historical_pass_to_bypass_need() -> None:
@@ -123,12 +172,13 @@ def test_failed_recipe_cannot_reuse_its_historical_pass_to_bypass_need() -> None
         for item in recipe.runtime.arguments
         if item.name != "kv-cache-memory-bytes"
     ]
-    with pytest.raises(ValueError, match="absolute kv-cache-memory-bytes"):
+    with pytest.raises(ValueError, match="peak understates vLLM budget"):
         require_memory_need(
             recipe,
             catalog_models(),
             INPUTS,
             document_digest="stale-passed-digest",
+            touched=True,
         )
 
 
@@ -170,33 +220,48 @@ def test_unknown_new_model_requires_source_backed_geometry() -> None:
         )
 
 
-def test_sglang_requires_an_absolute_token_pool() -> None:
+def test_single_spark_sglang_token_cap_holds_one_request() -> None:
     recipe = llama()
     recipe.runtime.engine = "sglang"
     next(
         item for item in recipe.runtime.arguments if item.name == "max-model-len"
     ).name = "context-length"
-    next(
+    concurrency = next(
         item for item in recipe.runtime.arguments if item.name == "max-num-seqs"
-    ).name = "max-running-requests"
-    with pytest.raises(ValueError, match="absolute max-total-tokens=131072"):
-        checked(recipe)
-    next(
+    )
+    concurrency.name = "max-running-requests"
+    cap = next(
         item
         for item in recipe.runtime.arguments
         if item.name == "kv-cache-memory-bytes"
-    ).name = "max-total-tokens"
-    next(
-        item for item in recipe.runtime.arguments if item.name == "max-total-tokens"
-    ).value = 131072
-    checked(recipe)
-    recipe.runtime.arguments.append(
-        RecipeRuntimeArgument(name="mem-fraction-static", value="0.01")
     )
-    with pytest.raises(ValueError, match="static memory budget cannot hold weights"):
-        checked(recipe)
-    recipe.runtime.arguments[-1].value = "0.90"
+    cap.name = "max-total-tokens"
+    # One context at any concurrency: SGLang schedules within the cap.
+    cap.value = 131072
+    concurrency.setting = None
+    concurrency.value = 8
     checked(recipe)
+    cap.value = 131071
+    with pytest.raises(ValueError, match="one full-context request"):
+        checked(recipe)
+    recipe.runtime.arguments.remove(cap)
+    # SGLang derives an omitted fraction at launch; a declared one is bounded.
+    require_memory_need(
+        recipe, catalog_models(), INPUTS, document_digest="", touched=True
+    )
+    recipe.runtime.arguments.append(
+        RecipeRuntimeArgument(name="mem-fraction-static", value="0.90")
+    )
+    with pytest.raises(
+        ValueError, match="mem-fraction-static 0.90 share.*not admissible"
+    ):
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
+    recipe.runtime.arguments[-1].value = "0.85"
+    require_memory_need(
+        recipe, catalog_models(), INPUTS, document_digest="", touched=True
+    )
 
 
 def test_sliding_layers_use_their_window_and_recurrent_state_uses_concurrency() -> None:
@@ -233,7 +298,7 @@ def test_invalid_absolute_cache_bytes(value: str) -> None:
         cache_bytes(value)
 
 
-def test_real_catalog_build_rejects_an_over_limit_new_recipe(
+def test_real_catalog_build_rejects_a_new_recipe_whose_pool_cannot_hold_a_request(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     tool = runpy.run_path(str(ROOT / "tools/build-catalog-index"))
@@ -241,11 +306,11 @@ def test_real_catalog_build_rejects_an_over_limit_new_recipe(
     # Use the actual publisher entry point and the original pinned Model. Only
     # the synthetic Recipe is new, so this fails on the old unguarded builder.
     recipe = llama()
-    recipe.identity.slug = "synthetic-over-limit-new"
+    recipe.identity.slug = "synthetic-pool-below-request-new"
     assert recipe.settings.kind == "generation"
     recipe.settings.context_tokens.value *= 100
     (tmp_path / "recipes").mkdir()
-    (tmp_path / "recipes/synthetic-over-limit-new.json").write_text(
+    (tmp_path / "recipes/synthetic-pool-below-request-new.json").write_text(
         recipe.model_dump_json()
     )
     (tmp_path / "models").symlink_to(ROOT / "models", target_is_directory=True)
@@ -257,7 +322,7 @@ def test_real_catalog_build_rejects_an_over_limit_new_recipe(
     monkeypatch.setitem(build.__globals__, "recipe_package", forbidden_package)
     with pytest.raises(
         SystemExit,
-        match=r"memory need \d+ bytes > limit 108470788096 bytes.*reduce declared context/concurrency",
+        match="cannot hold one full-context request",
     ):
         build(package_dir=tmp_path / "packages", source_commit="0" * 40)
 
@@ -287,30 +352,45 @@ def test_need_keeps_measured_overhead_only_for_a_separate_draft(
     )
 
 
-def test_need_rejects_a_pool_that_only_fits_without_measured_draft_overhead() -> None:
+def test_peak_and_budget_count_the_measured_draft_floor() -> None:
+    # A separately loaded draft holds its measured 17 GB floor beside vLLM's
+    # budget: at 0.75 a declared peak without it understates, and with it the
+    # peak is not admissible. The proven 0.7 singles with a draft fit.
     recipe = llama()
     draft = recipe.models[0].model_copy(deep=True)
     draft.id = "draft"
     recipe.models.append(draft)
-    assert recipe.settings.kind == "generation"
-    assert recipe.settings.concurrency is not None
-    recipe.settings.concurrency.value = 5
+    recipe.runtime.arguments = [
+        item
+        for item in recipe.runtime.arguments
+        if item.name != "kv-cache-memory-bytes"
+    ] + [RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.75")]
+
+    def touched() -> None:
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
+
+    declare_envelope(recipe)
+    touched()
     recipe.runtime.arguments.append(
         RecipeRuntimeArgument(
             name="speculative-config",
             value='{"method":"dflash","model":"/models/draft"}',
         )
     )
-    need = calculate_need(recipe, catalog_models(), INPUTS)
-    assert need.total_bytes - DRAFT_MODEL_OVERHEAD_BYTES <= need.limit_bytes
-    assert need.total_bytes > need.limit_bytes
+    with pytest.raises(ValueError, match="peak understates vLLM budget"):
+        touched()
+    declare_envelope(recipe)
+    with pytest.raises(ValueError, match="not admissible"):
+        touched()
     next(
         item
         for item in recipe.runtime.arguments
-        if item.name == "kv-cache-memory-bytes"
-    ).value = need.kv_bytes
-    with pytest.raises(ValueError, match="memory need"):
-        checked(recipe)
+        if item.name == "gpu-memory-utilization"
+    ).value = "0.70"
+    declare_envelope(recipe)
+    touched()
 
 
 @pytest.mark.parametrize(
@@ -413,24 +493,43 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
         sizer._profile_available_bytes(120)
 
 
-@pytest.mark.parametrize(
-    "name,value", [("max-total-tokens", 262144), ("max-mamba-cache-size", 16)]
-)
-def test_capped_sglang_guard_rejects_restored_large_pools(
-    name: str, value: int
-) -> None:
-    recipe = RecipeDefinition.model_validate_json(
+def glm_a0() -> RecipeDefinition:
+    return RecipeDefinition.model_validate_json(
         (
             ROOT / "recipes/glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single.json"
         ).read_text()
     )
+
+
+@pytest.mark.parametrize(
+    "name,value,match",
+    [
+        # 116.8 GB of weights, expansion and capped pools: beyond the declared
+        # peak and the 106.8 GB static budget of 0.85 x 125.65 GB.
+        ("max-total-tokens", 262144, "peak understates SGLang static need"),
+        ("max-mamba-cache-size", 16, "peak understates SGLang static need"),
+        # The OOM-killed fa86311a fraction, and a capped launch's 0.95.
+        ("mem-fraction-static", "0.75", "cannot hold the selected weights"),
+        ("mem-fraction-static", "0.95", "not admissible on an idle Spark"),
+    ],
+)
+def test_capped_sglang_guard_rejects_restored_large_pools(
+    name: str, value: int | str, match: str
+) -> None:
+    recipe = glm_a0()
+    require_memory_need(
+        recipe, catalog_models(), INPUTS, document_digest="", touched=True
+    )
     next(item for item in recipe.runtime.arguments if item.name == name).value = value
-    with pytest.raises(ValueError):
-        checked(recipe)
+    with pytest.raises(ValueError, match=match):
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
 
 
-@pytest.mark.parametrize("defect", ["graphs", "image", "state-cap", "peak", "fraction"])
-def test_hybrid_need_rejects_uncalibrated_runtime_or_hidden_demand(defect: str) -> None:
+@pytest.mark.parametrize("defect", ["graphs", "image", "state-cap"])
+def test_hybrid_estimate_rejects_uncalibrated_runtime(defect: str) -> None:
+    # The informative full-workload estimate refuses geometry it cannot apply.
     recipe = RecipeDefinition.model_validate_json(
         (
             ROOT / "recipes/glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single.json"
@@ -442,16 +541,9 @@ def test_hybrid_need_rejects_uncalibrated_runtime_or_hidden_demand(defect: str) 
         ).value = False
     elif defect == "image":
         recipe.execution.build.base_image.digest = "0" * 64
-    elif defect == "fraction":
-        next(
-            a for a in recipe.runtime.arguments if a.name == "mem-fraction-static"
-        ).value = "0.75"
-    elif defect == "state-cap":
+    else:
         recipe.runtime.arguments = [
             a for a in recipe.runtime.arguments if a.name != "max-mamba-cache-size"
         ]
-    else:
-        need = calculate_need(recipe, catalog_models(), INPUTS)
-        recipe.topology.roles[0].resources.memory.peak_bytes = need.total_bytes - 1
     with pytest.raises((ValueError, TypeError)):
-        checked(recipe)
+        calculate_need(recipe, catalog_models(), INPUTS)
