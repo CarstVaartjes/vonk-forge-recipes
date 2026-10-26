@@ -294,7 +294,11 @@ The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` own
 admission, explanatory headroom and the 6 GB platform floor. Every recipe and
 option variant, on every role, must pass its empty-target-pool check: peak plus platform floor fits the
 pool. `reserve_bytes` is informational and is never charged. Offline validation
-assumes no host occupancy; it proves declaration admissibility, not live fit.
+(`require_admissible_declaration`, `qualification/vllm_memory_fit.py`) charges
+one idle host baseline, `ADMISSION_IDLE_USE_BYTES` (130,663,231,488 −
+126,600,000,000 idle-available bytes), calibrated on the proven set: the live
+Controller admitted proven 120,370,379,081-byte peaks on both Sparks of a dual.
+It proves declaration admissibility, not live fit.
 The Controller supplies observed host use, exact commitments, unmaterialized
 claims and unknown resident upper bounds to this same function. It does not
 assume the historical idle baseline below. Proven recipes are calibration inputs,
