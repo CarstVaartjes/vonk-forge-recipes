@@ -9,6 +9,7 @@ from vonk_forge_contracts import RecipeDefinition
 from qualification.memory_need import (
     LIMIT_BYTES,
     OS_FLOOR_BYTES,
+    OVERHEAD_BYTES,
     declaration_problems,
     load_inputs,
     per_rank_need,
@@ -105,3 +106,44 @@ def test_four_rank_memory_projection_with_retuned_budget(slug: str) -> None:
     need = per_rank_need(recipe, catalog_models())
     assert need.fits
     assert need.verdict == "fits 4 Sparks"
+
+
+ENGRAM = "deepseek-v4-1-flash-exl3-mia-dual"
+
+
+def test_file_backed_engram_tables_are_not_resident_weights(monkeypatch) -> None:
+    # Hardware-passed (aa385fa2) with a 120,370,379,081-byte peak: only the
+    # EXL3 target is loaded; the official shards 47/48 are read row by row.
+    import qualification.memory_need as memory
+
+    recipe = recipe_for(ENGRAM)
+    models = catalog_models()
+    target = models[recipe.models[0].model.content_sha256]
+    selected = {f.file_id for f in recipe.models[0].files}
+    target_bytes = sum(
+        f.size_bytes for f in target.files if f.id in selected and "weights" in f.roles
+    )
+    need = per_rank_need(recipe, models)
+    assert need.fits
+    assert need.peak_bytes == (target_bytes + 1) // 2 + 2_684_354_560 + OVERHEAD_BYTES
+    assert not declaration_problems(recipe, need)
+
+    # Fault injection: without the pinned fact, or under another image, the
+    # same selection counts as loaded weights again and cannot fit.
+    inputs = load_inputs()
+    for facts in (
+        {},
+        {
+            key: fact.model_copy(update={"runtime_image_digest": "0" * 64})
+            for key, fact in inputs.file_backed_weights.items()
+        },
+    ):
+        changed = inputs.model_copy(update={"file_backed_weights": facts})
+        monkeypatch.setattr(
+            memory, "load_inputs", lambda root, changed=changed: changed
+        )
+        assert not per_rank_need(recipe, models).fits
+        assert any(
+            "peak understates" in p
+            for p in declaration_problems(recipe, per_rank_need(recipe, models))
+        )

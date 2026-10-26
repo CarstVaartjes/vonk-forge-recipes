@@ -533,6 +533,12 @@
       "value_dim": 192
     }
   },
+  "file_backed_weights": {
+    "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771": {
+      "runtime_image_digest": "2f0cf3adc0f989c1d446be274df864eb799630175f604c3b22b71b7205971dce",
+      "source": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks/blob/6f7d1590ad49a2b8995188e45d7b9db31e677452/overlay/engram_file_backend.py (in the pinned image): the Engram tables in shards 47 and 48 keep 0-size parameters with a skip loader and are read row by row through row_store from the mounted files; only a DSV41_CACHE_GIB row cache (0 in the recipe) and per-batch staging buffers are resident. Upstream README Memory: Engram tables are never pinned. Mounted data, not loaded weights."
+    }
+  },
   "historical_documents": {
     "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single": [
       "304512d867250e6fbea3d7d163d011bb5432361e2f4195c0df7ca2da0b4a6341"

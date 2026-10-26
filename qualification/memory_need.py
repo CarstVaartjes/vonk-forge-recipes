@@ -83,9 +83,20 @@ class CacheGeometry(BaseModel):
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
 
+class FileBackedWeights(BaseModel):
+    """A pinned runtime reads this Model's selected weight files from disk on
+    demand; they are never loaded as resident weights on any rank."""
+
+    model_config = ConfigDict(extra="forbid")
+    runtime_image_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source: str
+
+
 class MemoryInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
     geometries: dict[str, CacheGeometry]
+    # Keyed by Model content_sha256.
+    file_backed_weights: dict[str, FileBackedWeights]
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
 
@@ -279,6 +290,8 @@ def calculate_need(
                 for item in model.files
                 if item.id in selected and "weights" in item.roles
             )
+            if loads_weights(recipe, selection.model.content_sha256)
+            else 0
         )
         geometry = pinned_geometry(label, selection.model.slug, model, geometries)
         if geometry.sliding_layers > geometry.layers or (
@@ -762,11 +775,22 @@ def memory_warnings(
     return warnings
 
 
+def loads_weights(recipe: RecipeDefinition, model_sha256: str) -> bool:
+    """False only for a Model the recipe's pinned runtime reads file-backed."""
+    entry = load_inputs(ROOT).file_backed_weights.get(model_sha256)
+    return (
+        entry is None
+        or entry.runtime_image_digest != recipe.execution.build.base_image.digest
+    )
+
+
 def selected_weight_bytes(
     recipe: RecipeDefinition, models: Mapping[str, ModelDefinition]
 ) -> int:
     weights: dict[str, int] = {}
     for selection in recipe.models:
+        if not loads_weights(recipe, selection.model.content_sha256):
+            continue
         selected = {item.file_id for item in selection.files}
         for item in models[selection.model.content_sha256].files:
             if item.id in selected and "weights" in item.roles:
