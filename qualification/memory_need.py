@@ -37,8 +37,9 @@ SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 # 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
 ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
-# sglang 94602c9c kv_cache_configurator._calculate_mamba_ratio: at most 3 base
-# plus 2 extra_buffer overlap state slots per running request.
+# sglang 94602c9c (and the Qwen3.8 Flash Next r0b0tlab image's qwen4_exp copy)
+# kv_cache_configurator._calculate_mamba_ratio: at most 3 base plus 2
+# extra_buffer overlap state slots per running request.
 SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
 # The DeepSeek V4.1 Engram row store's resident cache size (GiB per Spark).
 ENGRAM_ROW_CACHE_ENVIRONMENT = "DSV41_CACHE_GIB"
@@ -293,18 +294,12 @@ def calculate_need(
             )
         )
         geometry = pinned_geometry(
-            label, selection.model.slug, model, inputs.geometries
+            recipe, selection.model.slug, model, inputs.geometries
         )
         if geometry.sliding_layers > geometry.layers or (
             geometry.sliding_layers and not geometry.sliding_window
         ):
             raise ValueError(f"{label}: invalid sliding-window cache geometry")
-        if (
-            geometry.runtime_image_digest is not None
-            and recipe.execution.build.base_image.digest
-            != geometry.runtime_image_digest
-        ):
-            raise ValueError(f"{label}: cache geometry does not match the pinned image")
         graph_flag = (
             "enforce-eager" if recipe.runtime.engine == "vllm" else "disable-cuda-graph"
         )
@@ -341,11 +336,13 @@ def calculate_need(
 
 
 def pinned_geometry(
-    label: str,
+    recipe: RecipeDefinition,
     slug: str,
     model: ModelDefinition,
     geometries: Mapping[str, CacheGeometry],
 ) -> CacheGeometry:
+    """Geometry bound to the selected configuration and, if pinned, the image."""
+    label = recipe.identity.slug
     geometry = geometries.get(slug)
     if geometry is None:
         raise ValueError(
@@ -358,6 +355,11 @@ def pinned_geometry(
         raise ValueError(
             f"{label}: cache geometry does not match the pinned model configuration"
         )
+    if (
+        geometry.runtime_image_digest is not None
+        and recipe.execution.build.base_image.digest != geometry.runtime_image_digest
+    ):
+        raise ValueError(f"{label}: cache geometry does not match the pinned image")
     return geometry
 
 
@@ -388,10 +390,22 @@ def require_sglang_rank_budget(
     everything resident against mem-fraction-static times pre-load free memory,
     so that budget on the lowest idle Spark must hold the sharded weights, their
     resident expansion and the capped token and state pools.
+
+    The token cap must hold one full-context request
+    (require_absolute_kv_capacity), not context x max-running-requests: SGLang
+    schedules requests within it. The proven Qwen3.8 Flash Next W4A16 r0b0tlab
+    dual caps one 262,144-token context at concurrency 4. The state cap must
+    hold one request's slots: at startup kv_cache_configurator
+    .resolve_max_num_reqs lowers max-running-requests to max-mamba-cache-size
+    // 5 and fails only below one, so 5 slots serve concurrency 1. With
+    speculation, _handle_max_mamba_cache adds intermediate state for those
+    running requests plus the padding slot, per draft token.
     """
-    label = recipe.identity.slug
-    tokens = sglang_token_cap(recipe, key)
-    concurrency = positive_argument(recipe, "max-running-requests")
+    if argument_value(recipe, "max-total-tokens") is None:
+        raise ValueError(
+            f"{key}: set absolute max-total-tokens; a static fraction does not bound KV by need"
+        )
+    tokens = positive_argument(recipe, "max-total-tokens")
     fraction = argument_value(recipe, "mem-fraction-static")
     if fraction is None:
         raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
@@ -399,7 +413,7 @@ def require_sglang_rank_budget(
     for selection in recipe.models:
         model = models[selection.model.content_sha256]
         geometry = pinned_geometry(
-            label, selection.model.slug, model, inputs.geometries
+            recipe, selection.model.slug, model, inputs.geometries
         )
         need += geometry.resident_expansion_bytes
         need += cache_need_for_context(recipe, geometry, tokens)
@@ -424,12 +438,24 @@ def require_sglang_rank_budget(
             if argument_value(recipe, "max-mamba-cache-size") is None:
                 raise ValueError(f"{key}: set absolute max-mamba-cache-size")
             slots = positive_argument(recipe, "max-mamba-cache-size")
-            if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST * concurrency:
+            if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST:
                 raise ValueError(
-                    f"{key}: max-mamba-cache-size {slots} cannot hold "
-                    f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots per request at concurrency {concurrency}"
+                    f"{key}: max-mamba-cache-size {slots} cannot hold the "
+                    f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots of one request"
                 )
             need += geometry.sglang_state_bytes_per_slot * (slots + 1)
+            if argument_value(recipe, "speculative-algorithm") is not None:
+                # _handle_max_mamba_cache: per-step intermediate state for the
+                # running requests the slots admit, plus the padding slot.
+                running = min(
+                    positive_argument(recipe, "max-running-requests"),
+                    slots // SGLANG_MAMBA_SLOTS_PER_REQUEST,
+                )
+                need += (
+                    geometry.sglang_state_bytes_per_slot
+                    * (running + 1)
+                    * positive_argument(recipe, "speculative-num-draft-tokens")
+                )
     static_bytes = Decimal(str(fraction)) * IDLE_AVAILABLE_BYTES
     if not static_bytes.is_finite() or static_bytes < need:
         raise ValueError(
@@ -538,15 +564,9 @@ def absolute_kv_need(
     Padded/hybrid layouts use a source-backed conservative allocation bound.
     This is an allocation estimate, not a hardware qualification verdict.
     """
-    model = models[recipe.models[0].model.content_sha256]
-    geometry = inputs.geometries.get(model.identity.slug)
-    if geometry is None:
-        raise ValueError(f"{recipe.identity.slug}: add source-backed cache geometry")
-    if not any(
-        item.sha256 == geometry.configuration_sha256 and "configuration" in item.roles
-        for item in model.files
-    ):
-        raise ValueError(f"{recipe.identity.slug}: cache geometry configuration drift")
+    selection = recipe.models[0]
+    model = models[selection.model.content_sha256]
+    geometry = pinned_geometry(recipe, selection.model.slug, model, inputs.geometries)
     context_flag = (
         "max-model-len" if recipe.runtime.engine == "vllm" else "context-length"
     )
