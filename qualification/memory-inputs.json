@@ -545,11 +545,11 @@
       "value_dim": 192
     }
   },
-  "file_backed_weights": {
-    "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771": {
-      "runtime_image_digest": "2f0cf3adc0f989c1d446be274df864eb799630175f604c3b22b71b7205971dce",
-      "source": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks/blob/6f7d1590ad49a2b8995188e45d7b9db31e677452/overlay/engram_file_backend.py (in the pinned image): the Engram tables in shards 47 and 48 keep 0-size parameters with a skip loader and are read row by row through row_store from the mounted files; only a DSV41_CACHE_GIB row cache (0 in the recipe) and per-batch staging buffers are resident. Upstream README Memory: Engram tables are never pinned. Mounted data, not loaded weights."
-    }
+  "engram_files": {
+    "824db4881320407ac340736d14dcee5ecd748c27d0f5836b8127ecc2e3781b0f": "V4.1 Flash Engram tables (layers 1 and 14), byte-identical in every V4.1 Flash checkpoint that carries them: shards 47/48 of https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/tree/dba1be0a (official, sfxnz, TR3 hybrid, r0b0tlab) and model-00005/00006 of 0xSero/DeepSeek-V4.1-Flash-Spark@9e3bbeab. MiaAI-Lab README @6f7d1590: shards 47+48 are the Engram tables.",
+    "976330f4954338e1ad8b508c32aa912032c7ad908959fd53c8307650fe4520ed": "V4.1 Flash Engram tables (layers 1 and 14), byte-identical in every V4.1 Flash checkpoint that carries them: shards 47/48 of https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/tree/dba1be0a (official, sfxnz, TR3 hybrid, r0b0tlab) and model-00005/00006 of 0xSero/DeepSeek-V4.1-Flash-Spark@9e3bbeab. MiaAI-Lab README @6f7d1590: shards 47+48 are the Engram tables.",
+    "76a05106ece259be83d1bfea0dcb54f23377864ee60fd321690f35e6698a2af5": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards.",
+    "9dc51433e195bc78b5ad846b68643cc0351d3b174e5e4309222d3b7402c83afd": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards."
   },
   "historical_documents": {
     "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single": [

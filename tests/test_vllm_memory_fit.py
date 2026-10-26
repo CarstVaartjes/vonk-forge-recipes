@@ -51,7 +51,7 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     assert recipe.settings.kind == "generation"
     assert recipe.settings.context_tokens.value == 1_048_576
     require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
-    need = calculate_need(recipe, catalog_models(), load_inputs().geometries)
+    need = calculate_need(recipe, catalog_models(), load_inputs())
     assert need.kv_bytes == 16 * 4 * (256 + 256) * 1_048_576
     assert need.state_bytes == 160 * 1024**2
     memory = recipe.topology.roles[0].resources.memory

@@ -302,7 +302,7 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
                 elif arg.name == "speculative-num-draft-tokens" and draft_tokens:
                     arg.value = draft_tokens
             if argument_value(variant, "speculative-algorithm") is None:
-                require_sglang_rank_budget(variant, models, inputs.geometries, "k")
+                require_sglang_rank_budget(variant, models, inputs, "k")
             else:
                 speculative.append(variant)
 
@@ -311,17 +311,17 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
     assert speculative
     for variant in speculative:
         with pytest.raises(ValueError, match="static budget"):
-            require_sglang_rank_budget(variant, models, inputs.geometries, "k")
+            require_sglang_rank_budget(variant, models, inputs, "k")
     speculative.clear()
     rank_budget("0.572")
     for variant in speculative:
-        require_sglang_rank_budget(variant, models, inputs.geometries, "k")
+        require_sglang_rank_budget(variant, models, inputs, "k")
     # Eight draft tokens double the intermediate state past that edge.
     speculative.clear()
     rank_budget("0.572", draft_tokens=8)
     for variant in speculative:
         with pytest.raises(ValueError, match="static budget"):
-            require_sglang_rank_budget(variant, models, inputs.geometries, "k")
+            require_sglang_rank_budget(variant, models, inputs, "k")
 
 
 def test_geometry_bound_to_an_image_rejects_another_image() -> None:

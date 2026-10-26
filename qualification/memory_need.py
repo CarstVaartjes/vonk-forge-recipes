@@ -12,6 +12,7 @@ import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import ROUND_CEILING, Decimal
+from functools import cache
 from itertools import product
 from pathlib import Path
 from typing import Annotated
@@ -42,6 +43,8 @@ OVERHEAD_BYTES = 8_000_000_000
 # kv_cache_configurator._calculate_mamba_ratio: at most 3 base plus 2
 # extra_buffer overlap state slots per running request.
 SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
+# The DeepSeek V4.1 Engram row store's resident cache size (GiB per Spark).
+ENGRAM_ROW_CACHE_ENVIRONMENT = "DSV41_CACHE_GIB"
 # Separate speculative-model calibration; see vllm_memory_fit.py for the incident.
 DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 # vLLM's gpu-memory-utilization when a launch omits it.
@@ -92,20 +95,12 @@ class CacheGeometry(BaseModel):
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
 
-class FileBackedWeights(BaseModel):
-    """A pinned runtime reads this Model's selected weight files from disk on
-    demand; they are never loaded as resident weights on any rank."""
-
-    model_config = ConfigDict(extra="forbid")
-    runtime_image_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
-    source: str
-
-
 class MemoryInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
     geometries: dict[str, CacheGeometry]
-    # Keyed by Model content_sha256.
-    file_backed_weights: dict[str, FileBackedWeights]
+    # Engram n-gram table files, by content digest, with their source. Owner
+    # rule (2026-10-26): Engram tables are never memory usage.
+    engram_files: dict[str, str]
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
 
@@ -238,8 +233,9 @@ def loads_draft_model(recipe: RecipeDefinition) -> bool:
         loads_draft_model as configured_draft_model,
     )
 
-    wrapper = ROOT / recipe.execution.build.context.path / "vllm-wrapper.sh"
-    if wrapper.is_file() and "export SPEC_MODEL_PATH=" in wrapper.read_text():
+    if wrapper_loads_draft(
+        ROOT / recipe.execution.build.context.path / "vllm-wrapper.sh"
+    ):
         return True
     return (
         configured_draft_model(recipe)
@@ -247,10 +243,16 @@ def loads_draft_model(recipe: RecipeDefinition) -> bool:
     )
 
 
+@cache
+def wrapper_loads_draft(wrapper: Path) -> bool:
+    """Read each committed wrapper once per process, not once per check."""
+    return wrapper.is_file() and "export SPEC_MODEL_PATH=" in wrapper.read_text()
+
+
 def calculate_need(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
-    geometries: Mapping[str, CacheGeometry],
+    inputs: MemoryInputs,
 ) -> MemoryNeed:
     """Informative full workload: declared context times engine concurrency,
     including selected drafts. Warnings only; require_memory_need gates.
@@ -298,12 +300,14 @@ def calculate_need(
             sum(
                 item.size_bytes
                 for item in model.files
-                if item.id in selected and "weights" in item.roles
+                if item.id in selected
+                and "weights" in item.roles
+                and item.sha256 not in inputs.engram_files
             )
-            if loads_weights(recipe, selection.model.content_sha256)
-            else 0
         )
-        geometry = pinned_geometry(recipe, selection.model.slug, model, geometries)
+        geometry = pinned_geometry(
+            recipe, selection.model.slug, model, inputs.geometries
+        )
         if geometry.sliding_layers > geometry.layers or (
             geometry.sliding_layers and not geometry.sliding_window
         ):
@@ -374,7 +378,7 @@ def pinned_geometry(
 def require_sglang_rank_budget(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
-    geometries: Mapping[str, CacheGeometry],
+    inputs: MemoryInputs,
     key: str,
 ) -> None:
     """Multi-Spark SGLang profiles its pools after the weights are resident.
@@ -402,12 +406,12 @@ def require_sglang_rank_budget(
     fraction = argument_value(recipe, "mem-fraction-static")
     if fraction is None:
         raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
-    parallel = recipe.topology.parallelism
-    shards = parallel.tensor * parallel.pipeline
-    need = (selected_weight_bytes(recipe, models) + shards - 1) // shards
+    need = rank_weight_bytes(recipe, models, inputs)
     for selection in recipe.models:
         model = models[selection.model.content_sha256]
-        geometry = pinned_geometry(recipe, selection.model.slug, model, geometries)
+        geometry = pinned_geometry(
+            recipe, selection.model.slug, model, inputs.geometries
+        )
         need += geometry.resident_expansion_bytes
         need += cache_need_for_context(recipe, geometry, tokens)
         if geometry.sglang_swa_layers:
@@ -639,7 +643,7 @@ def require_memory_need(
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     single = recipe.topology.node_count == 1
     for variant in memory_variants(recipe):
-        need = per_rank_need(variant, models)
+        need = per_rank_need(variant, models, inputs)
         # Proven single-Spark documents run below the multi-Spark reserve and
         # SGLang static-peak declarations; the loading floor and vLLM's budget
         # hold there, because the Controller reserves the declared peak.
@@ -661,9 +665,9 @@ def require_memory_need(
         if problems:
             raise ValueError(f"{key}: " + "; ".join(problems))
         if not single and variant.runtime.engine == "sglang":
-            require_sglang_rank_budget(variant, models, inputs.geometries, key)
+            require_sglang_rank_budget(variant, models, inputs, key)
         elif touched:
-            require_bounded_kv_pool(variant, models, inputs.geometries, key)
+            require_bounded_kv_pool(variant, models, inputs, key)
         if not single:
             require_vllm_startup_budget(variant)
 
@@ -713,7 +717,7 @@ def applicable_expansion(
 def require_bounded_kv_pool(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
-    geometries: Mapping[str, CacheGeometry],
+    inputs: MemoryInputs,
     key: str,
 ) -> None:
     """A touched recipe bounds KV, calibrated on the proven set.
@@ -757,14 +761,14 @@ def require_bounded_kv_pool(
         ceiling = f"leaves the {GUARD_BYTES}-byte host memory guard"
         bounded = share * TOTAL_BYTES + OVERHEAD_BYTES <= TOTAL_BYTES - GUARD_BYTES
     else:
-        expansion = applicable_expansion(recipe, models, geometries)
+        expansion = applicable_expansion(recipe, models, inputs.geometries)
         if vllm:
             budget = (vllm_utilization_envelope(recipe) or 0) + expansion
         else:
             # SGLang profiles after loading: the static budget must hold the
             # weights and their expansion (GLM a0 at 0.75 was OOM-killed).
             budget = int(share * TOTAL_BYTES) + OVERHEAD_BYTES
-            resident = selected_weight_bytes(recipe, models) + expansion
+            resident = rank_weight_bytes(recipe, models, inputs) + expansion
             if share * IDLE_AVAILABLE_BYTES < resident:
                 raise ValueError(
                     f"{key}: mem-fraction-static {fraction} x idle available "
@@ -831,7 +835,7 @@ def memory_warnings(
     for index, variant in enumerate(memory_variants(recipe)):
         prefix = f"WARNING {recipe.identity.slug} [{index}]"
         try:
-            need = calculate_need(variant, models, inputs.geometries)
+            need = calculate_need(variant, models, inputs)
         except (ValueError, TypeError) as error:
             warnings.append(f"{prefix}: full-workload estimate unavailable: {error}")
         else:
@@ -839,7 +843,7 @@ def memory_warnings(
                 f"{prefix}: estimated workload {need.total_bytes} bytes/rank; "
                 f"planning limit {LIMIT_BYTES}; hardware test required"
             )
-        rank = per_rank_need(variant, models)
+        rank = per_rank_need(variant, models, inputs)
         warnings.append(
             f"{prefix}: loading floor {rank.peak_bytes} bytes/rank; "
             f"observed idle capacity {rank.safe_limit_bytes}; no hardware verdict"
@@ -847,27 +851,37 @@ def memory_warnings(
     return warnings
 
 
-def loads_weights(recipe: RecipeDefinition, model_sha256: str) -> bool:
-    """False only for a Model the recipe's pinned runtime reads file-backed."""
-    entry = load_inputs(ROOT).file_backed_weights.get(model_sha256)
-    return (
-        entry is None
-        or entry.runtime_image_digest != recipe.execution.build.base_image.digest
-    )
-
-
-def selected_weight_bytes(
-    recipe: RecipeDefinition, models: Mapping[str, ModelDefinition]
+def rank_weight_bytes(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
 ) -> int:
+    """Selected weights per rank, Engram tables excluded, plus an explicit row cache.
+
+    Engram files are identified by content digest, for every recipe and engine.
+    A row cache counts only when the recipe sets a positive DSV41_CACHE_GIB
+    (GiB per Spark, shared by the ranks on that Spark).
+    """
     weights: dict[str, int] = {}
     for selection in recipe.models:
-        if not loads_weights(recipe, selection.model.content_sha256):
-            continue
         selected = {item.file_id for item in selection.files}
         for item in models[selection.model.content_sha256].files:
-            if item.id in selected and "weights" in item.roles:
+            if (
+                item.id in selected
+                and "weights" in item.roles
+                and item.sha256 not in inputs.engram_files
+            ):
                 weights[item.sha256] = item.size_bytes
-    return sum(weights.values())
+    parallel = recipe.topology.parallelism
+    shards = parallel.tensor * parallel.pipeline
+    cache = 0
+    for item in recipe.runtime.environment:
+        if item.name == ENGRAM_ROW_CACHE_ENVIRONMENT and Decimal(str(item.value)) > 0:
+            per_spark = int(
+                (Decimal(str(item.value)) * 2**30).to_integral_value(ROUND_CEILING)
+            )
+            cache = -(-per_spark * recipe.topology.node_count // shards)
+    return (sum(weights.values()) + shards - 1) // shards + cache
 
 
 @dataclass(frozen=True)
@@ -886,7 +900,9 @@ class PerRankMemoryNeed:
 
 
 def per_rank_need(
-    recipe: RecipeDefinition, models: Mapping[str, ModelDefinition]
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
 ) -> PerRankMemoryNeed:
     """Optimistic loading floor, never a proof of full-context or runtime fit.
 
@@ -902,12 +918,8 @@ def per_rank_need(
         pool = argument_value(recipe, "kv-cache-memory")
     if pool is not None:
         kv_bytes = cache_bytes(pool)
-    parallel = recipe.topology.parallelism
-    shards = parallel.tensor * parallel.pipeline
     loading_floor = (
-        (selected_weight_bytes(recipe, models) + shards - 1) // shards
-        + kv_bytes
-        + OVERHEAD_BYTES
+        rank_weight_bytes(recipe, models, inputs) + kv_bytes + OVERHEAD_BYTES
     )
     # Utilization sizes an adaptive pool; it is not irreducible workload demand.
     # The measured 17 GB term is relative to that utilization budget, not another

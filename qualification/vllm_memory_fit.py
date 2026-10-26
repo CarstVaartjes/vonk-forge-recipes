@@ -97,7 +97,7 @@ def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) 
                 (root / "models" / f"{selection.model.slug}.json").read_text()
             )
             models[document_sha256(document)] = ModelDefinition.model_validate(document)
-        need = calculate_need(recipe, models, load_inputs().geometries)
+        need = calculate_need(recipe, models, load_inputs())
         required_peak = Decimal(need.total_bytes)
     else:
         required_peak = utilization * SPARK_MEMORY_BYTES + non_utilization_bytes(
