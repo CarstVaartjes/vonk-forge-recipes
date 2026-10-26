@@ -12,8 +12,8 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
+    ADMISSION_IDLE_USE_BYTES,
     IDLE_AVAILABLE_BYTES,
-    IDLE_USE_BYTES,
     OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
     TOTAL_BYTES,
@@ -180,18 +180,21 @@ def test_static_budget_drift_cannot_hide_behind_a_smaller_declaration() -> None:
 
 def test_repaired_deferral_uses_shared_admission_with_owned_idle_host() -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
-    assert 4_515_061_760 < IDLE_USE_BYTES
-    assert IDLE_AVAILABLE_BYTES == TOTAL_BYTES - IDLE_USE_BYTES
+    # Proven 120,370,379,081-byte peaks were admitted live; the offline host
+    # baseline must admit them too (it is not the estimator's 3542 incident).
+    assert ADMISSION_IDLE_USE_BYTES <= TOTAL_BYTES - OS_FLOOR_BYTES - 120_370_379_081
     for role in recipe.topology.roles:
         assert role.resources.memory.peak_bytes == 92_405_678_632
         assert evaluate_memory_admission(
-            role.resources.memory.peak_bytes, TOTAL_BYTES, occupied_bytes=IDLE_USE_BYTES
+            role.resources.memory.peak_bytes,
+            TOTAL_BYTES,
+            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
         ).admissible
         # Informational reserve is not another claim in the shared predicate.
         role.resources.memory.reserve_bytes = TOTAL_BYTES
     require_admissible_declaration(recipe)
     recipe.topology.roles[1].resources.memory.peak_bytes = (
-        IDLE_AVAILABLE_BYTES - OS_FLOOR_BYTES + 1
+        TOTAL_BYTES - ADMISSION_IDLE_USE_BYTES - OS_FLOOR_BYTES + 1
     )
     with pytest.raises(ValueError, match="worker.*not admissible"):
         require_admissible_declaration(recipe)

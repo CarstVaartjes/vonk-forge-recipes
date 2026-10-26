@@ -106,7 +106,7 @@ def test_guard_rejects_a_second_admission_formula() -> None:
             "not evaluate_memory_admission(\n"
             "                role.resources.memory.peak_bytes,\n"
             "                pool_bytes,\n"
-            "                occupied_bytes=IDLE_USE_BYTES,\n"
+            "                occupied_bytes=ADMISSION_IDLE_USE_BYTES,\n"
             "            ).admissible",
             "role.resources.memory.peak_bytes + role.resources.memory.reserve_bytes > pool_bytes",
         )
