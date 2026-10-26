@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 import tempfile
 from pathlib import Path
 
@@ -36,6 +37,7 @@ from pygltflib import (
     Asset as GltfAsset,
 )
 
+SOURCE = Path("/opt/skintokens")
 INPUTS = Path("/inputs")
 CHECKPOINT = Path(
     "/models/target/experiments/articulation_xl_quantization_256_token_4/grpo_1400.ckpt"
@@ -191,6 +193,9 @@ def main() -> None:
     if not isinstance(loaded, trimesh.Trimesh) or loaded.is_empty:
         raise SystemExit("input GLB does not contain a mesh")
 
+    # The image runs this file as a script, so only /opt/vonk/source is on
+    # sys.path; the upstream `src` package lives in the SkinTokens tree.
+    sys.path.insert(0, str(SOURCE))
     from src.data.dataset import DatasetConfig, RigDatasetModule
     from src.data.transform import Transform
     from src.model.tokenrig import TokenRigResult

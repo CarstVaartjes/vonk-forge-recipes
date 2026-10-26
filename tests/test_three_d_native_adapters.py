@@ -5,6 +5,7 @@ import hashlib
 import importlib.machinery
 import importlib.util
 import json
+import re
 import sys
 import tarfile
 import tempfile
@@ -292,6 +293,52 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                     self.assertNotIn(marker, source)
                 self.assertIn("output.glb", source)
                 self.assertIn("validate_mesh_glb(", source)
+
+    def test_entrypoints_put_the_extracted_upstream_tree_on_sys_path_first(
+        self,
+    ) -> None:
+        # The image runs run.py as a script, so only /opt/vonk/source is on
+        # sys.path; every deferred upstream import needs the tree the
+        # Dockerfile extracted inserted before it (SkinTokens lacked this).
+        for case in CASES.values():
+            context = ROOT / case["context"]
+            with self.subTest(context=case["context"]):
+                dockerfile = (context / "Dockerfile").read_text()
+                extracted = re.search(
+                    rf"--file /tmp/{re.escape(case['source_archive'])}\b.*?"
+                    r"--directory (\S+)",
+                    dockerfile,
+                )
+                assert extracted is not None
+                tree = ast.parse((context / "run.py").read_text())
+                roots = [
+                    node.value
+                    for node in tree.body
+                    if isinstance(node, ast.Assign)
+                    and [ast.unparse(target) for target in node.targets] == ["SOURCE"]
+                ]
+                self.assertEqual(
+                    [ast.unparse(value) for value in roots],
+                    [f"Path({extracted.group(1)!r})"],
+                )
+                deferred = 0
+                for function in ast.walk(tree):
+                    if not isinstance(function, ast.FunctionDef):
+                        continue
+                    inserts = [
+                        node.lineno
+                        for node in ast.walk(function)
+                        if isinstance(node, ast.Call)
+                        and ast.unparse(node) == "sys.path.insert(0, str(SOURCE))"
+                    ]
+                    for node in ast.walk(function):
+                        if isinstance(node, (ast.Import, ast.ImportFrom)):
+                            deferred += 1
+                            self.assertTrue(
+                                inserts and min(inserts) < node.lineno,
+                                f"{ast.unparse(node)} precedes the SOURCE path entry",
+                            )
+                self.assertGreater(deferred, 0)
 
     def test_hunyuan_declares_and_forces_exact_local_dinov2(self) -> None:
         recipe = json.loads(
