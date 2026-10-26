@@ -240,7 +240,7 @@ def loads_draft_model(recipe: RecipeDefinition) -> bool:
 def calculate_need(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
-    geometries: Mapping[str, CacheGeometry],
+    inputs: MemoryInputs,
 ) -> MemoryNeed:
     """Full declared context times engine concurrency, including selected drafts.
 
@@ -287,10 +287,14 @@ def calculate_need(
             sum(
                 item.size_bytes
                 for item in model.files
-                if item.id in selected and "weights" in item.roles
+                if item.id in selected
+                and "weights" in item.roles
+                and item.sha256 not in inputs.engram_files
             )
         )
-        geometry = pinned_geometry(label, selection.model.slug, model, geometries)
+        geometry = pinned_geometry(
+            label, selection.model.slug, model, inputs.geometries
+        )
         if geometry.sliding_layers > geometry.layers or (
             geometry.sliding_layers and not geometry.sliding_window
         ):
@@ -632,7 +636,7 @@ def require_memory_need(
         return None
     result = None
     for variant in memory_variants(recipe):
-        need = calculate_need(variant, models, inputs.geometries)
+        need = calculate_need(variant, models, inputs)
         if (
             need.total_bytes > need.limit_bytes
             and "does-not-fit" not in recipe.metadata.tags
@@ -757,7 +761,7 @@ def memory_warnings(
     for index, variant in enumerate(memory_variants(recipe)):
         prefix = f"WARNING {recipe.identity.slug} [{index}]"
         try:
-            need = calculate_need(variant, models, inputs.geometries)
+            need = calculate_need(variant, models, inputs)
         except (ValueError, TypeError) as error:
             warnings.append(f"{prefix}: full-workload estimate unavailable: {error}")
         else:
