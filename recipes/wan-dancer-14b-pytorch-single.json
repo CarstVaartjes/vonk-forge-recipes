@@ -418,8 +418,8 @@
     "source_reference": "https://github.com/Wan-Video/Wan-Dancer/tree/e6c87a94ec733230dac15b924c015f6e6501e618"
   },
   "release": {
-    "released_at": "2026-10-25",
-    "version": "1.0.14"
+    "released_at": "2026-10-26",
+    "version": "1.0.15"
   },
   "runtime": {
     "arguments": [
@@ -510,9 +510,9 @@
           "kind": "video-job.output",
           "name": "job-output",
           "request": {
-            "fixture": "qualification/fixtures/music-1s.wav",
+            "fixture": "qualification/fixtures/music-3s.wav",
             "input_slots": {
-              "music": "qualification/fixtures/music-1s.wav",
+              "music": "qualification/fixtures/music-3s.wav",
               "prompt": "qualification/fixtures/prompt.txt",
               "reference-image": "qualification/fixtures/tiny.png"
             },
