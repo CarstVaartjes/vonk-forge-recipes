@@ -1,0 +1,10 @@
+{
+  "command": [
+    "cuobjdump",
+    "--list-elf",
+    "/workspace/flashinfer/build/aot/cached_ops/norm/norm.so"
+  ],
+  "returncode": 0,
+  "stdout": "ELF file    1: norm.1.sm_121a.cubin\nELF file    2: norm.2.sm_121a.cubin\n",
+  "stderr": ""
+}

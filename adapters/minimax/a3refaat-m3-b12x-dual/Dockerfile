@@ -43,7 +43,6 @@ RUN apt update && \
     libcudnn9-cuda-13 libcudnn9-dev-cuda-13 \
     python3-dev python3-pip git wget \
     libibverbs1 libibverbs-dev rdma-core \
-    devscripts debhelper fakeroot \
     && rm -rf /var/lib/apt/lists/* \
     && pip install uv
 
@@ -57,14 +56,12 @@ ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
 
 WORKDIR $VLLM_BASE_DIR
 
-# NCCL with mesh support (artifacts in /workspace/vllm/nccl/build/pkg/deb).
-# Generate packaging metadata first and keep the install lists non-executable:
-# dh_install otherwise executes their library paths as shell commands (SIGILL).
+# NCCL with mesh support (shared library in /workspace/vllm/nccl/build/lib). Upstream wraps it in Debian
+# packages only to apt-install them; the runner uses the built library directly, as the tonyd2wild M3 triple does.
+# BUILD_JOBS jobs (ARG above): its compiles peak at 0.6 GiB each, well inside the Spark build's memory limit.
 RUN git clone -b dgxspark-3node-ring https://github.com/zyang-dev/nccl.git && \
     cd nccl && git checkout --detach fab1850acd902672d79ca81c2e7fb8e1848c208c && \
-    make -j ${BUILD_JOBS} src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121" && \
-    make -C pkg/debian prep && chmod 0644 build/debian/*.install && \
-    make pkg.debian.build && apt install -y --no-install-recommends --allow-downgrades ./build/pkg/deb/*.deb
+    make -j ${BUILD_JOBS} src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121"
 
 # =========================================================
 # (still stage 1) FlashInfer wheels from source
@@ -78,14 +75,17 @@ RUN git clone --recursive https://github.com/flashinfer-ai/flashinfer.git /works
     git submodule update --init --recursive
 WORKDIR /workspace/flashinfer
 
-# Upstream's patch to avoid re-downloading existing cubins
-COPY flashinfer_cache.patch .
-RUN patch -p1 < flashinfer_cache.patch && \
+# Upstream's patch to avoid re-downloading existing cubins, and a backport that builds FA3 attention-sink kernels
+# only for SM90 builds (at this pin they are compiled for sm_90a regardless of FLASHINFER_CUDA_ARCH_LIST, and nvcc
+# ran out of memory on them). The AOT cache compiles three kernels at a time: its CUTLASS GEMMs peak at 7.15 GiB per
+# compiler, and a Spark build is limited to memory derived from the recipe's image_bytes.
+COPY flashinfer_cache.patch flashinfer-aot-sink-sm90.patch ./
+RUN patch -p1 < flashinfer_cache.patch && patch -p1 < flashinfer-aot-sink-sm90.patch && \
     sed -i -e 's/license = "Apache-2.0"/license = { text = "Apache-2.0" }/' -e '/license-files/d' pyproject.toml && \
     uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
     cd flashinfer-cubin && uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
     cd ../flashinfer-jit-cache && \
-    uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
+    MAX_JOBS=3 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
     cd .. && git rev-parse HEAD > /workspace/wheels-flashinfer/.flashinfer-commit
 
 # =========================================================
@@ -125,7 +125,10 @@ RUN set -eux; \
     rustc --version; cargo --version; \
     python3 /workspace/local-patches/strip-vllm-rs-binary.py .
 
-RUN VLLM_REQUIRE_RUST_FRONTEND=1 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-vllm -v && \
+# Three compile jobs: CUTLASS sm120 scaled-mm and qutlass GEMMs peak at 8.2 GiB per compiler, and a Spark build is
+# limited to memory derived from the recipe's image_bytes (vonk-forge catalog_entities.py; checked by
+# tests/test_recipe_build_failures.py).
+RUN MAX_JOBS=3 VLLM_REQUIRE_RUST_FRONTEND=1 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-vllm -v && \
     git rev-parse HEAD > /workspace/wheels-vllm/.vllm-commit
 
 # =========================================================
@@ -148,15 +151,14 @@ ENV MAX_JOBS=${BUILD_JOBS} \
     UV_EXCLUDE_NEWER=2026-07-05T00:00:00Z \
     VLLM_BASE_DIR=/workspace/vllm
 
-COPY --from=base /workspace/vllm/nccl/build/pkg/deb /workspace/nccl-pkg
+COPY --from=base /workspace/vllm/nccl/build/lib /opt/nccl/lib
 RUN apt update && \
     apt install -y --no-install-recommends \
     python3 python3-pip python3-dev vim curl git wget patch \
     libcudnn9-cuda-13 \
     libibverbs1 libibverbs-dev rdma-core \
     libxcb1 \
-    && cd /workspace/nccl-pkg && apt install -y --no-install-recommends --allow-downgrades ./*.deb \
-    && rm -rf /var/lib/apt/lists/* /workspace/nccl-pkg \
+    && rm -rf /var/lib/apt/lists/* \
     && pip install uv
 
 WORKDIR $VLLM_BASE_DIR
@@ -185,7 +187,7 @@ ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
 RUN uv pip install ray[default] fastsafetensors instanttensor
 
 RUN rm /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2 && \
-    ln -s /usr/lib/aarch64-linux-gnu/libnccl.so.2 /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2
+    ln -s /opt/nccl/lib/libnccl.so.2 /usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2
 
 # Dockerfile.deploy: vendored b12x kernel library on sys.path via a .pth (smoke-imported by verify-runtime.py,
 # together with the vLLM surfaces the mods patch, as upstream's build does).
