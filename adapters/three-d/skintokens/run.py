@@ -175,6 +175,12 @@ def export_rigged_glb(asset: object, output: Path) -> None:
     gltf.save_binary(output)
 
 
+def bf16_output(
+    _module: torch.nn.Module, _inputs: object, output: torch.Tensor
+) -> torch.Tensor:
+    return output.to(torch.bfloat16)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--entrypoint", required=True)
@@ -211,6 +217,12 @@ def main() -> None:
             npz, vertices=np.asarray(loaded.vertices), faces=np.asarray(loaded.faces)
         )
         model = get_model(str(CHECKPOINT))
+        # Upstream runs on torch 2.7, where nn.RMSNorm under its bf16 autocast
+        # stays bf16. Since torch 2.12 CUDA autocast runs rms_norm in fp32, so
+        # output_proj's mesh condition makes the LLM prefill fp32, the KV cache
+        # keeps fp32 keys, and the first decode step hands flash-attn bf16
+        # queries with fp32 keys. Keep the mesh condition bf16 as upstream had.
+        model.output_proj.register_forward_hook(bf16_output)
         assert model.tokenizer_config is not None
         tokenizer = get_tokenizer(**model.tokenizer_config)
         transform = Transform.parse(**model.transform_config["predict_transform"])
