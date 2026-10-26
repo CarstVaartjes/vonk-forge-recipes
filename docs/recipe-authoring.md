@@ -403,7 +403,15 @@ pool overrides cache sizing by utilization; the explicit startup budget is check
 separately. Changed multi-Spark documents use the per-rank demand declaration below;
 a changed multi-Spark SGLang document must also fit its sharded weights, resident
 expansion and capped token/state pools in `mem-fraction-static` × the lowest idle
-available bytes. A multi-Spark vLLM recipe file a change touches must bound KV
+available bytes. Its absolute `max-total-tokens` cap must hold one full-context
+request, not context × `max-running-requests`: SGLang schedules requests within
+it, and the proven Qwen3.8 Flash Next W4A16 dual caps one 262,144-token context
+at concurrency 4. A hybrid model's `max-mamba-cache-size` must hold one
+request's five state slots; at startup SGLang lowers `max-running-requests` to
+slots // 5, so 5 slots serve concurrency 1. With speculation the budget also
+charges (min(`max-running-requests`, slots // 5) + 1) ×
+`speculative-num-draft-tokens` intermediate state slots. Geometry that names a
+`runtime_image_digest` applies only to that image. A multi-Spark vLLM recipe file a change touches must bound KV
 (`tools/check-recipe-memory-need --base origin/main`): an absolute
 `kv-cache-memory-bytes` pool that holds one full-context request per rank, or a
 `gpu-memory-utilization` whose share of physical memory plus the 8 GB overhead

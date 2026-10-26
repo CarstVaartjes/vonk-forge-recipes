@@ -19,11 +19,13 @@ from qualification.memory_need import (
     memory_variants,
     require_absolute_kv_capacity,
     require_memory_need,
+    require_sglang_rank_budget,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 VISION = "deepseek-v4-flash-vision-exp-mia-dual"
 LAGUNA = "laguna-m-1-nvfp4-r0b0tlab-vllm-dual"
+QWEN_NEXT = "qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual"
 
 
 def recipe_for(slug: str = VISION) -> RecipeDefinition:
@@ -117,7 +119,7 @@ def test_geometry_must_match_selected_configuration() -> None:
     inputs = load_inputs()
     recipe = recipe_for()
     inputs.geometries[recipe.models[0].model.slug].configuration_sha256 = "0" * 64
-    with pytest.raises(ValueError, match="configuration drift"):
+    with pytest.raises(ValueError, match="pinned model configuration"):
         absolute_kv_need(recipe, catalog_models(), inputs)
 
 
@@ -185,7 +187,8 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 
-def test_touching_any_proven_multi_spark_vllm_document_keeps_it_valid() -> None:
+@pytest.mark.parametrize("engine", ["vllm", "sglang"])
+def test_touching_any_proven_multi_spark_document_keeps_it_valid(engine: str) -> None:
     # Calibration: every hardware-proven document passes the touched rules.
     models, inputs = catalog_models(), load_inputs()
     checked = 0
@@ -196,7 +199,7 @@ def test_touching_any_proven_multi_spark_vllm_document_keeps_it_valid() -> None:
         )
         recipe = RecipeDefinition.model_validate(document)
         if (
-            recipe.runtime.engine != "vllm"
+            recipe.runtime.engine != engine
             or recipe.topology.node_count == 1
             or not hardware_proven(recipe, document_sha256(document))
         ):
@@ -204,6 +207,78 @@ def test_touching_any_proven_multi_spark_vllm_document_keeps_it_valid() -> None:
         require_memory_need(recipe, models, inputs, document_digest="", touched=True)
         checked += 1
     assert checked > 0
+
+
+def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> None:
+    # Proven (9b60b9a7): one 262,144-token context capped at concurrency 4.
+    recipe = recipe_for(QWEN_NEXT)
+    models, inputs = catalog_models(), load_inputs()
+    assert recipe.settings.kind == "generation"
+    assert recipe.settings.concurrency is not None
+    assert recipe.settings.concurrency.value == 4
+    context = recipe.settings.context_tokens.value
+    assert argument_value(recipe, "max-total-tokens") == context
+    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    cap = next(
+        arg for arg in recipe.runtime.arguments if arg.name == "max-total-tokens"
+    )
+    cap.value = context - 1
+    with pytest.raises(ValueError, match="one full-context request"):
+        require_memory_need(recipe, models, inputs, document_digest="")
+    recipe.runtime.arguments.remove(cap)
+    with pytest.raises(ValueError, match="set absolute max-total-tokens"):
+        require_memory_need(recipe, models, inputs, document_digest="")
+    # The state cap holds one request's five slots, not five per running request.
+    recipe = recipe_for(QWEN_NEXT)
+    slots = next(
+        arg for arg in recipe.runtime.arguments if arg.name == "max-mamba-cache-size"
+    )
+    slots.value = 5
+    require_memory_need(recipe, models, inputs, document_digest="")
+    slots.value = 4
+    with pytest.raises(ValueError, match="state slots of one request"):
+        require_memory_need(recipe, models, inputs, document_digest="")
+
+    # Fault injection at the budget edge: without speculation 0.571 holds the
+    # sharded weights, the capped token pool and the 21 state slots; the
+    # default NEXTN option adds (min(4, 20 // 5) + 1) x 4 intermediate slot
+    # states, which need 0.572.
+    def rank_budget(fraction: str, draft_tokens: int | None = None) -> None:
+        for variant in memory_variants(recipe_for(QWEN_NEXT)):
+            for arg in variant.runtime.arguments:
+                if arg.name == "mem-fraction-static":
+                    arg.value = fraction
+                elif arg.name == "speculative-num-draft-tokens" and draft_tokens:
+                    arg.value = draft_tokens
+            if argument_value(variant, "speculative-algorithm") is None:
+                require_sglang_rank_budget(variant, models, inputs, "k")
+            else:
+                speculative.append(variant)
+
+    speculative: list[RecipeDefinition] = []
+    rank_budget("0.571")
+    assert speculative
+    for variant in speculative:
+        with pytest.raises(ValueError, match="static budget"):
+            require_sglang_rank_budget(variant, models, inputs, "k")
+    speculative.clear()
+    rank_budget("0.572")
+    for variant in speculative:
+        require_sglang_rank_budget(variant, models, inputs, "k")
+    # Eight draft tokens double the intermediate state past that edge.
+    speculative.clear()
+    rank_budget("0.572", draft_tokens=8)
+    for variant in speculative:
+        with pytest.raises(ValueError, match="static budget"):
+            require_sglang_rank_budget(variant, models, inputs, "k")
+
+
+def test_geometry_bound_to_an_image_rejects_another_image() -> None:
+    recipe = recipe_for(QWEN_NEXT)
+    models, inputs = catalog_models(), load_inputs()
+    recipe.execution.build.base_image.digest = "0" * 64
+    with pytest.raises(ValueError, match="does not match the pinned image"):
+        require_memory_need(recipe, models, inputs, document_digest="")
 
 
 def test_only_recipe_files_changed_since_the_merge_base_are_touched(
