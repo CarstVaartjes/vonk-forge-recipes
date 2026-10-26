@@ -3,7 +3,7 @@
 
 ``model-definition.json`` and ``recipe-source-build.json`` are the authored
 seeds. This tool points the build recipe at the model's document digest and
-derives the job and dual-node variants from it.
+derives the job and dual-node variants from it, plus the Git LFS model variant.
 """
 
 from __future__ import annotations
@@ -25,9 +25,42 @@ def _read(name: str) -> dict[str, Any]:
     return json.loads((EXAMPLES / name).read_text(encoding="utf-8"))
 
 
+def _write(name: str, document: dict[str, Any]) -> None:
+    (EXAMPLES / name).write_text(
+        json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+
+def _lfs_model(model: dict[str, Any]) -> dict[str, Any]:
+    """The seed model re-sourced to one real Git LFS object at a pinned commit."""
+
+    lfs = copy.deepcopy(model)
+    lfs["identity"]["slug"] = "synthetic-tiny-lfs"
+    lfs["metadata"]["description"] = "A Git LFS model used only for contract examples."
+    lfs["files"] = [
+        {
+            "id": "weights",
+            "path": "motionbricks/out/G1-clip.ckpt",
+            "roles": ["weights"],
+            "sha256": "84afc7c229473351a24b0a7d79fc47be9dbb81bd12774285f2f60a3c0e9028df",
+            "size_bytes": 7761041,
+        }
+    ]
+    lfs["source"] = {
+        "provider": "github-lfs",
+        "repository": "https://github.com/NVlabs/GR00T-WholeBodyControl",
+        "revision": "45c03facbf848e0c743091b7d9c17952096ff908",
+    }
+    return lfs
+
+
 def main() -> int:
     model = _read("model-definition.json")
     ModelDefinition.model_validate(model)
+    lfs = _lfs_model(model)
+    ModelDefinition.model_validate(lfs)
+    _write("model-definition-github-lfs.json", lfs)
     build = _read("recipe-source-build.json")
     build["identity"]["slug"] = "synthetic-tiny-build"
     build["metadata"]["title"] = "Synthetic Tiny build"
@@ -97,10 +130,7 @@ def main() -> int:
         ("recipe-dual.json", dual),
     ):
         RecipeDefinition.model_validate(document)
-        (EXAMPLES / name).write_text(
-            json.dumps(document, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
+        _write(name, document)
     return 0
 
 
