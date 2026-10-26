@@ -450,6 +450,7 @@ def test_verdict_codes_match_the_published_enums() -> None:
         *SweepStorageCode,
         verdict.PHASE_RETRY,
         verdict.STALLED_CODE,
+        verdict.NAS_SPACE_CODE,
         *verdict.PREPARATION_CODES,
         *verdict.CLIENT_WAIT_DECISIONS,
         verdict.CLIENT_EXIT_DECISION,

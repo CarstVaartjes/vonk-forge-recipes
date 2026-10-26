@@ -24,7 +24,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
     derive_status,
 )
-from vonk_forge_contracts.sweep import SweepSlotPhase
+from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitReason
 
 from . import policy, verdict
 from .evidence_contract import read_result
@@ -295,6 +295,13 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             "pinned": len(data["pins"]),
             "pin_error": sweep.prefetcher.pin_error,
             "nas_pressure": bool(sweep.last_prefetch.get("pressure")),
+            "pin_capacity": None
+            if (hold := sweep.prefetcher.pin_hold) is None
+            else {
+                "reason": SweepWaitReason.PIN_CAPACITY,
+                "sets": hold[0],
+                "pins": hold[1],
+            },
         },
         "eta": {
             "downloads_s": eta_download,
@@ -447,6 +454,11 @@ def render_status(status: Mapping[str, Any]) -> str:
         "## Downloads",
         f"- rate {d['rate_bps'] / 1e6:,.0f} MB/s - {len(d['in_flight'])} in flight - {d['pinned']} recipes pinned"
         + (" - NAS pressure, new model downloads paused" if d["nas_pressure"] else "")
+        + (
+            f" - new model downloads wait for pin capacity ({hold['sets']} sets to protect, {hold['pins']} pins)"
+            if (hold := d.get("pin_capacity"))
+            else ""
+        )
         + (f" - pin profile problem: {d['pin_error']}" if d["pin_error"] else ""),
         f"- remaining unique model bytes {_gib(d['remaining_unique_bytes'])}",
         "",

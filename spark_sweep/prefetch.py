@@ -26,6 +26,8 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from vonk_forge_contracts.sweep import SweepWaitReason
+
 from .catalog import Model, Recipe
 from .identity import AcceptedRequest, content_identity, verdict_matches
 from .lifecycle import TERMINAL, WAITING, LifecycleState, RetestReason, active
@@ -112,6 +114,10 @@ class Prefetcher:
         self.pin_error: str | None = None
         self.pin_failures = 0
         self.pin_retry_at = 0.0
+        # Free assignments in the pin profile at its last read (None: not read yet).
+        self.pin_room: int | None = None
+        # (sets to protect, free pins) while new model downloads wait for pin capacity.
+        self.pin_hold: tuple[int, int] | None = None
         self.last_plans: list[GroupPlan] = []
 
     # -- operations ---------------------------------------------------------
@@ -244,8 +250,9 @@ class Prefetcher:
             record["bytes_total"] = progress.get("total_bytes")
             if record["bytes_done"] != old_bytes:
                 record["progress_at"] = now
+            signal = download_signal(document)
             moving = progress_verdict(
-                download_signal(document),
+                signal,
                 watch,
                 window=DOWNLOAD_STALL_SECONDS,
                 now=now,
@@ -256,7 +263,21 @@ class Prefetcher:
                 or 0
             )
             record["bps"] = speed
-            if moving is Progress.WAIT_EXPIRED:
+            if (
+                moving is Progress.WAIT_EXPIRED
+                and signal.wait is not None
+                and signal.wait.reason is SweepWaitReason.NAS_SPACE
+            ):
+                # The Controller owns a NAS-space wait (its own window; eviction frees
+                # the space). Keep the evidence and look again once per window: it is
+                # no infrastructure problem and pauses no other download or pull.
+                record["wait_deferral"] = wait_expiry(watch, now).model_dump(
+                    mode="json"
+                )
+                watch.pop("wait_started_at", None)
+                watch.pop("wait_deadline", None)
+                self.state.event(f"download still waits for NAS space: {key}")
+            elif moving is Progress.WAIT_EXPIRED:
                 record["wait_deferral"] = wait_expiry(watch, now).model_dump(
                     mode="json"
                 )
@@ -627,9 +648,25 @@ class Prefetcher:
         now = self.clock()
         live_rate = self._poll()
         self._track_external(recipes, now)
+        # Sets that landed in this poll are on the NAS before the library says so: they
+        # are pinned (and count against the pin room) from this tick on.
+        present = present | {
+            digest
+            for record in self.state.downloads.values()
+            if record.get("state") == LifecycleState.SUCCEEDED
+            and float(record.get("done_at", now - 1)) >= now
+            and (accepted := AcceptedRequest.read(record)) is not None
+            for digest in accepted.recipe.model_digests
+        }
         plans = self.plan_queue(pending, sizes, present, boost)
         model_ops, image_ops = self._in_flight(recipes, models)
         by_key = {r.key: r for r in pending}
+        # A new model set needs a pin of its own: when the profile has no room left,
+        # starting one would leave a downloaded, untested set unprotected from eviction.
+        pinning = self.config.pin_profile is not None and bool(self.config.pin_spark)
+        room = PIN_PROFILE_MAX_ASSIGNMENTS if self.pin_room is None else self.pin_room
+        wanted = len(self.desired_pins(plans, by_key, models, present))
+        held = None
 
         if cached is None:
             cached = {d for d, model in models.items() if model.local == "cached"}
@@ -656,8 +693,12 @@ class Prefetcher:
                     and model_ops < self.config.max_model_downloads
                     and now >= self.pressure_until
                 ):
+                    if pinning and wanted >= room:
+                        held = (wanted, room)  # tests drain pins; then downloads go on
+                        continue
                     self._request(lead, "model")
                     model_ops += 1
+                    wanted += 1
                 continue
             for recipe in leads:  # model cached: only the runtime image is missing
                 if (
@@ -672,6 +713,11 @@ class Prefetcher:
                 ):
                     self._request(recipe, "image")
                     image_ops += 1
+        if held is not None and self.pin_hold is None:
+            self.state.event(
+                f"new model downloads wait for pin capacity: {held[0]} sets to protect, {held[1]} pins"
+            )
+        self.pin_hold = held
         self._reconcile_pins(plans, by_key, models, present)
         return {
             "model_ops": model_ops,
@@ -942,7 +988,7 @@ class Prefetcher:
                 if (i == 0 and plan.digests not in covered)
                 or by_key[k].model_set != plan.digests
             ]
-        return wanted[:PIN_PROFILE_MAX_ASSIGNMENTS]  # nearest in the queue first
+        return wanted  # nearest in the queue first; the reconcile caps it to the room
 
     def _reconcile_pins(
         self,
@@ -965,6 +1011,7 @@ class Prefetcher:
         # Everything that is not one of our pins counts against the limit and is never removed.
         foreign = [n for n in live if not n.startswith(PIN_ALIAS_PREFIX)]
         cap = max(PIN_PROFILE_MAX_ASSIGNMENTS - len(foreign), 0)
+        self.pin_room = cap
         wanted = self.desired_pins(plans, by_key, models, present)[:cap]
         wanted_aliases = {pin_alias(k): k for k in wanted}
         held = [n for n in live if n.startswith(PIN_ALIAS_PREFIX)]
