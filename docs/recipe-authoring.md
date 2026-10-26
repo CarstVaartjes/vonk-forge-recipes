@@ -161,7 +161,13 @@ Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
 For GitHub release assets, bind the numeric release ID and each file's numeric
 asset ID; do not use a mutable tag or browser download URL as the source
-identity. This provider supports public, anonymous assets only. Keep the file
+identity. This provider supports public, anonymous assets only. For Git LFS
+objects in a public GitHub repository, use the `github-lfs` source: pin the
+full commit SHA as `revision`, make every file of the Model one LFS object
+(`sha256` is the LFS oid, `size_bytes` the LFS size, `path` the repository path
+at that commit; no empty files, no split parts, no token), and vendor the
+repository's plain git files in the recipe package, where
+`check-vendored-upstream` proves them byte for byte. Keep the file
 path, SHA-256, and byte size in the Model file manifest. Record actual file
 paths, IDs, hashes, sizes, and purposes. Preserve legitimate
 empty supporting files with their real empty-content digest. Do not invent

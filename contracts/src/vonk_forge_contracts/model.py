@@ -96,6 +96,29 @@ class ModelSource(_ModelContract):
         return _https_or_http(value, "source.repository")
 
 
+def _canonical_github_repository(value: str) -> str:
+    parsed = urlsplit(value)
+    path = parsed.path.removeprefix("/")
+    parts = path.split("/")
+    if (
+        parsed.scheme != "https"
+        or parsed.netloc != "github.com"
+        or parsed.query
+        or parsed.fragment
+        or len(parts) != 2
+        or any(
+            not part
+            or part in {".", ".."}
+            or part.lower().endswith(".git")
+            or re.fullmatch(r"[A-Za-z0-9_.-]+", part) is None
+            for part in parts
+        )
+        or value != f"https://github.com/{parts[0]}/{parts[1]}"
+    ):
+        raise ValueError("source.repository must be a canonical GitHub repository URL")
+    return value
+
+
 class GitHubReleaseAsset(_ModelContract):
     """One GitHub release asset selected for an existing model file."""
 
@@ -116,28 +139,7 @@ class GitHubReleaseSource(_ModelContract):
     @field_validator("repository")
     @classmethod
     def canonical_github_repository(cls, value: str) -> str:
-        parsed = urlsplit(value)
-        path = parsed.path.removeprefix("/")
-        parts = path.split("/")
-        if (
-            parsed.scheme != "https"
-            or parsed.netloc != "github.com"
-            or parsed.query
-            or parsed.fragment
-            or len(parts) != 2
-            or any(
-                not part
-                or part in {".", ".."}
-                or part.lower().endswith(".git")
-                or re.fullmatch(r"[A-Za-z0-9_.-]+", part) is None
-                for part in parts
-            )
-            or value != f"https://github.com/{parts[0]}/{parts[1]}"
-        ):
-            raise ValueError(
-                "source.repository must be a canonical GitHub repository URL"
-            )
-        return value
+        return _canonical_github_repository(value)
 
     @field_validator("assets")
     @classmethod
@@ -151,6 +153,26 @@ class GitHubReleaseSource(_ModelContract):
         if len(asset_ids) != len(set(asset_ids)):
             raise ValueError("GitHub release asset IDs must be unique")
         return sorted(value, key=lambda asset: asset.file_id)
+
+
+class GitHubLfsSource(_ModelContract):
+    """Git LFS objects at one commit of a canonical public GitHub repository.
+
+    Every model file is one LFS object: its ``sha256`` is the LFS oid, its
+    ``size_bytes`` the LFS size, and its ``path`` the file's path in the
+    repository at ``revision`` (the full commit SHA). The bytes are fetched by
+    oid and verified at ingress; the commit and path record where the binding
+    of path to oid was read.
+    """
+
+    provider: Literal["github-lfs"]
+    repository: StrictStr = Field(min_length=1, max_length=512)
+    revision: Revision
+
+    @field_validator("repository")
+    @classmethod
+    def canonical_github_repository(cls, value: str) -> str:
+        return _canonical_github_repository(value)
 
 
 def _safe_relative_path(value: str) -> str:
@@ -299,7 +321,7 @@ class ModelDefinition(_ModelContract):
     modalities: list[Literal["text", "image", "audio", "video", "3d", "embeddings"]] = (
         Field(min_length=1, max_length=6)
     )
-    source: ModelSource | GitHubReleaseSource
+    source: ModelSource | GitHubReleaseSource | GitHubLfsSource
     format: ModelFormat
     license: ModelLicense
     files: list[ModelFile] = Field(min_length=1)
@@ -321,6 +343,17 @@ class ModelDefinition(_ModelContract):
                 raise ValueError(
                     "GitHub release asset file IDs must exactly cover the model files"
                 )
+        if isinstance(self.source, GitHubLfsSource):
+            if self.requires_token:
+                raise ValueError(
+                    "GitHub LFS sources require public, anonymous model access"
+                )
+            if any(item.parts is not None for item in self.files):
+                raise ValueError(
+                    "GitHub LFS sources publish whole objects; file parts are not allowed"
+                )
+            if any(item.size_bytes == 0 for item in self.files):
+                raise ValueError("Git LFS objects are never empty")
         if len(paths) != len(set(paths)):
             raise ValueError("file paths must be unique")
         if len(self.modalities) != len(set(self.modalities)):

@@ -1,0 +1,63 @@
+{
+  "capabilities": [
+    "image-generation",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "weights",
+      "path": "motionbricks/out/G1-clip.ckpt",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "84afc7c229473351a24b0a7d79fc47be9dbb81bd12774285f2f60a3c0e9028df",
+      "size_bytes": 7761041
+    }
+  ],
+  "format": {
+    "precision": "fp16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "vonk-forge",
+      "slug": "synthetic",
+      "title": "Synthetic"
+    },
+    "model": {
+      "publisher": "vonk-forge",
+      "slug": "synthetic-tiny",
+      "title": "Synthetic Tiny"
+    },
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-lfs",
+    "variant": "fp16",
+    "version": "1.0.0"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Vonk Forge"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0"
+  },
+  "metadata": {
+    "description": "A Git LFS model used only for contract examples.",
+    "tags": [
+      "synthetic",
+      "text"
+    ]
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "requires_token": false,
+  "source": {
+    "provider": "github-lfs",
+    "repository": "https://github.com/NVlabs/GR00T-WholeBodyControl",
+    "revision": "45c03facbf848e0c743091b7d9c17952096ff908"
+  }
+}

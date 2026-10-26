@@ -17,7 +17,12 @@ from __future__ import annotations
 from ._version import __version__
 from .canonical import canonical_json, document_sha256, read_model, read_recipe
 from .endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
-from .model import GitHubReleaseAsset, GitHubReleaseSource, ModelDefinition
+from .model import (
+    GitHubLfsSource,
+    GitHubReleaseAsset,
+    GitHubReleaseSource,
+    ModelDefinition,
+)
 from .qualification_authority import (
     QualificationAuthority,
     QualificationBatch,
@@ -68,6 +73,7 @@ __all__ = [
     "CONTRACT_VERSION",
     "ENDPOINT_ALIAS_PATTERN",
     "EndpointAlias",
+    "GitHubLfsSource",
     "GitHubReleaseAsset",
     "GitHubReleaseSource",
     "ModelDefinition",

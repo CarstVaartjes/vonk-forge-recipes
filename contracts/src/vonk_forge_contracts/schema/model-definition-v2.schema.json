@@ -2,6 +2,35 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://api.vonkforge.ai/contracts/model-definition-v2.schema.json",
   "$defs": {
+    "GitHubLfsSource": {
+      "additionalProperties": false,
+      "description": "Git LFS objects at one commit of a canonical public GitHub repository.\n\nEvery model file is one LFS object: its ``sha256`` is the LFS oid, its\n``size_bytes`` the LFS size, and its ``path`` the file's path in the\nrepository at ``revision`` (the full commit SHA). The bytes are fetched by\noid and verified at ingress; the commit and path record where the binding\nof path to oid was read.",
+      "properties": {
+        "provider": {
+          "const": "github-lfs",
+          "title": "Provider",
+          "type": "string"
+        },
+        "repository": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Repository",
+          "type": "string"
+        },
+        "revision": {
+          "pattern": "^[a-f0-9]{40,64}$",
+          "title": "Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "repository",
+        "revision"
+      ],
+      "title": "GitHubLfsSource",
+      "type": "object"
+    },
     "GitHubReleaseAsset": {
       "additionalProperties": false,
       "description": "One GitHub release asset selected for an existing model file.",
@@ -501,6 +530,9 @@
         },
         {
           "$ref": "#/$defs/GitHubReleaseSource"
+        },
+        {
+          "$ref": "#/$defs/GitHubLfsSource"
         }
       ],
       "title": "Source"
