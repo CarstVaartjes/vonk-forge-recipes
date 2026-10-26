@@ -110,6 +110,10 @@ class FakeRecipe:
     fail_code: str = "application.failed"
     fail_download: str | None = None
     fail_download_code: str = "model.download_failed"
+    # The Controller holds the model download back for NAS space (a ``download_blocked``
+    # backoff) until eviction can free this model digest's files: once its pin, seen in
+    # the pin profile, is gone (its recipes tested), the download runs.
+    download_blocked_behind: str = ""
     alias: str | None = None
     # What its run really holds on a Spark once serving (the node telemetry shows it).
     observed_memory: int = 0
@@ -526,6 +530,16 @@ class FakeFleet:
                 del self.orphans[alias]
                 self.runs = [r for r in self.runs if r["alias"] != alias]
         for op in self.ops.values():
+            if op["state"] == "backoff":
+                behind = self.recipes[op["recipe"]].download_blocked_behind
+                if any(
+                    behind in self.recipes[a["recipe_selector"]].digests
+                    for a in self.profiles.get(13, {}).get("assignments", [])
+                    if a.get("recipe_selector") in self.recipes
+                ):
+                    op["behind_pinned"] = True
+                elif op.get("behind_pinned"):
+                    op.update(state="running", started=now)  # eviction freed the space
             if (
                 op["state"] in ("queued", "running")
                 and now >= op["started"] + op["duration"]
@@ -970,11 +984,12 @@ class FakeFleet:
             return 0, self._op_doc(self.ops[self.by_request[request]])
         recipe = self.recipes[key]
         model_missing = any(self.models[d].local != "cached" for d in recipe.digests)
+        blocked = model_missing and bool(recipe.download_blocked_behind)
         op_id = self._id("op")
         self.ops[op_id] = {
             "id": op_id,
             "recipe": key,
-            "state": "running",
+            "state": "backoff" if blocked else "running",
             "started": self.clock.now(),
             "duration": self.download_seconds if model_missing else 5.0,
             "request": request,
@@ -1019,6 +1034,8 @@ class FakeFleet:
         done = (
             op["bytes"]
             if op["state"] == "succeeded"
+            else 0
+            if op["state"] == "backoff"
             else int(op["bytes"] * min(elapsed / op["duration"], 0.99))
         )
         doc: dict[str, Any] = {
@@ -1037,6 +1054,20 @@ class FakeFleet:
             },
             "children": [],
         }
+        if op["state"] == "backoff":
+            # vonk-forge model_cache/repair.py ``_capacity_holds``: a retryable wait.
+            doc["children"] = [
+                {
+                    "kind": "model-cache",
+                    "state": "backoff",
+                    "failure": {
+                        "code": "model_cache.download_blocked",
+                        "detail": "insufficient-reserved-storage",
+                        "retryable": True,
+                        "recovery_actions": ["free_space", "resume"],
+                    },
+                }
+            ]
         if op["state"] == "failed":
             doc["failure"] = {
                 "code": (

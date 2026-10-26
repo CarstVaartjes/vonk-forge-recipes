@@ -19,7 +19,7 @@ from .definitions import Definitions
 from .issues import file_issues
 from .job_media import ffprobe
 from .plan import make_plan, render_plan
-from .prefetch import TIB, PrefetchConfig
+from .prefetch import PrefetchConfig
 from .report import build_report, export_evidence, render_report, saved_qualification
 from .run import Clock, Sweep, SweepConfig
 from .smoke import HttpConfig
@@ -102,12 +102,6 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--client-key-file", type=Path)
     run.add_argument("--ca-file", type=Path)
     run.add_argument("--insecure-tls", action="store_true")
-    run.add_argument(
-        "--nas-budget-tib",
-        type=float,
-        default=2.0,
-        help="bytes of downloaded-but-untested models to hold",
-    )
     run.add_argument("--max-model-downloads", type=int, default=3)
     run.add_argument("--max-image-pulls", type=int, default=2)
     run.add_argument(
@@ -241,7 +235,6 @@ def _config(args: argparse.Namespace) -> SweepConfig:
         prefetch=PrefetchConfig(
             max_model_downloads=args.max_model_downloads,
             max_image_pulls=args.max_image_pulls,
-            nas_budget_bytes=int(args.nas_budget_tib * TIB),
             pin_profile=None if args.no_pin else args.pin_profile,
         ),
         timeouts=policy.TimeoutPolicy(
