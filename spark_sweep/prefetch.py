@@ -3,17 +3,24 @@
 ``recipe download`` fetches a recipe's model (Hugging Face) and its runtime
 image (GHCR) as children of one operation, so the two sources already run
 concurrently inside an operation; the prefetcher adds concurrency across
-operations. Two budgets bound it (model downloads in flight, image-only pulls
-in flight) plus a byte budget for everything downloaded but not yet tested.
+operations. Two budgets bound it: model downloads in flight and image-only
+pulls in flight.
 
-Nothing in vonkctl or the Controller reports the NAS's free space, so the byte
-budget is the operator's (``--nas-budget``); a ``free_space`` failure also
+The Controller owns NAS space: it admits a download only into the free space
+the running transfers leave, and a shortfall is a queued ``download_blocked``
+wait while retention evicts unused model files, least recently used first.
+The sweep shows it as a typed NAS-space wait whose window restarts while the
+Controller holds it: no attempt spent, no infrastructure problem, no pause of
+other downloads or pulls. A terminal ``free_space`` failure is a wait too and
 pauses new model downloads for a while.
 
 The Controller never evicts what a saved profile names, loaded or not. The
 prefetcher therefore keeps one never-loaded *pin profile* that names every
 recipe that has been downloaded (or is downloading) and not yet tested, and
-removes each recipe from it once tested.
+removes each recipe from it once tested. While sets the online lanes can test
+fill the profile, a new model download waits for pin capacity: an unpinned
+untested set would be evicted and downloaded again. Sets no online topology can
+test hold nothing, and are downloaded when their lanes return.
 """
 
 from __future__ import annotations
@@ -22,6 +29,8 @@ import hashlib
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
+
+from vonk_forge_contracts.sweep import SweepWaitReason
 
 from .catalog import Model, Recipe
 from .identity import AcceptedRequest, content_identity, verdict_matches
@@ -50,7 +59,6 @@ from .verdict import (
 )
 from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 
-TIB = 1024**4
 # The stall window of a download: no bytes, items, phase or last-progress change for this long.
 DOWNLOAD_STALL_SECONDS = 3600.0
 FailureHandler = Callable[[str, Failure, str | None, bool], None]
@@ -61,7 +69,6 @@ DoneHandler = Callable[[str], None]
 class PrefetchConfig:
     max_model_downloads: int = 3
     max_image_pulls: int = 2
-    nas_budget_bytes: int = 2 * TIB
     pin_profile: int | None = None
     pins_per_tick: int = 8
     retry_cooldown: float = 120.0
@@ -105,12 +112,18 @@ class Prefetcher:
         # Set by the sweep: a client, protocol or transport problem is reported, never a recipe's failure.
         self.on_infra: Callable[[str, str], None] = lambda _source, _message: None
         self.on_ok: Callable[[str], None] = lambda _source: None
+        # Set by the sweep: how many lanes are online now (None: unknown, all count).
+        self.online_lanes: Callable[[], int | None] = lambda: None
         self.pause_until = 0.0
         self.library_fresh_since = 0.0  # start of the newest complete library pass
         self.pressure_until = 0.0
         self.pin_error: str | None = None
         self.pin_failures = 0
         self.pin_retry_at = 0.0
+        # Free assignments in the pin profile at its last read (None: not read yet).
+        self.pin_room: int | None = None
+        # (sets to protect, free pins) while new model downloads wait for pin capacity.
+        self.pin_hold: tuple[int, int] | None = None
         self.last_plans: list[GroupPlan] = []
 
     # -- operations ---------------------------------------------------------
@@ -243,8 +256,10 @@ class Prefetcher:
             record["bytes_total"] = progress.get("total_bytes")
             if record["bytes_done"] != old_bytes:
                 record["progress_at"] = now
+            signal = download_signal(document)
+            window = dict(watch)  # the wait window before this observation
             moving = progress_verdict(
-                download_signal(document),
+                signal,
                 watch,
                 window=DOWNLOAD_STALL_SECONDS,
                 now=now,
@@ -255,7 +270,19 @@ class Prefetcher:
                 or 0
             )
             record["bps"] = speed
-            if moving is Progress.WAIT_EXPIRED:
+            if (
+                signal.wait is not None
+                and signal.wait.reason is SweepWaitReason.NAS_SPACE
+                and now > float(window.get("wait_deadline", now))
+            ):
+                # The Controller owns a NAS-space wait (its own window; eviction frees
+                # the space): progress_verdict renewed ours. Keep the expired window as
+                # evidence; it is no infrastructure problem and pauses no other work.
+                record["wait_deferral"] = wait_expiry(window, now).model_dump(
+                    mode="json"
+                )
+                self.state.event(f"download still waits for NAS space: {key}")
+            elif moving is Progress.WAIT_EXPIRED:
                 record["wait_deferral"] = wait_expiry(watch, now).model_dump(
                     mode="json"
                 )
@@ -626,17 +653,35 @@ class Prefetcher:
         now = self.clock()
         live_rate = self._poll()
         self._track_external(recipes, now)
+        # Sets that landed in this poll are on the NAS before the library says so: they
+        # are pinned (and count against the pin room) from this tick on.
+        present = present | {
+            digest
+            for record in self.state.downloads.values()
+            if record.get("state") == LifecycleState.SUCCEEDED
+            and float(record.get("done_at", now - 1)) >= now
+            and (accepted := AcceptedRequest.read(record)) is not None
+            for digest in accepted.recipe.model_digests
+        }
         plans = self.plan_queue(pending, sizes, present, boost)
         model_ops, image_ops = self._in_flight(recipes, models)
         by_key = {r.key: r for r in pending}
+        lanes = self.online_lanes()
 
-        tracked = {
-            digest
-            for plan in plans
-            for digest in plan.digests
-            if digest in present or any(self._active(k) for k in plan.recipes)
-        }
-        pinned_bytes = sum(sizes.get(d, 0) for d in tracked)
+        def placeable(key: str) -> bool:
+            """Testable on the lanes online now (a recipe under test already is)."""
+            recipe = by_key.get(key)
+            return recipe is None or lanes is None or recipe.node_count <= lanes
+
+        # A new model set needs a pin of its own: when the profile has no room left,
+        # starting one would leave a downloaded, untested set unprotected from eviction.
+        # Only sets the online lanes can test drain the profile, so only they hold.
+        pinning = self.config.pin_profile is not None and bool(self.config.pin_spark)
+        room = PIN_PROFILE_MAX_ASSIGNMENTS if self.pin_room is None else self.pin_room
+        wanted = sum(
+            placeable(k) for k in self.desired_pins(plans, by_key, models, present)
+        )
+        held = None
 
         if cached is None:
             cached = {d for d, model in models.items() if model.local == "cached"}
@@ -657,19 +702,27 @@ class Prefetcher:
                     for r in leads
                 ):
                     continue
-                lead = next((r for r in leads if self._can_request(r, now)), None)
+                # A set only recipes needing more lanes than are online can use waits
+                # for those lanes: it is downloaded when they return.
+                lead = next(
+                    (
+                        r
+                        for r in leads
+                        if placeable(r.key) and self._can_request(r, now)
+                    ),
+                    None,
+                )
                 if (
                     lead is not None
                     and model_ops < self.config.max_model_downloads
                     and now >= self.pressure_until
-                    and (
-                        pinned_bytes == 0
-                        or pinned_bytes + plan.new_bytes <= self.config.nas_budget_bytes
-                    )
                 ):
+                    if pinning and wanted >= room > 0:  # with no room, no pin protects
+                        held = (wanted, room)  # tests drain pins; then downloads go on
+                        continue
                     self._request(lead, "model")
                     model_ops += 1
-                    pinned_bytes += plan.new_bytes
+                    wanted += 1
                 continue
             for recipe in leads:  # model cached: only the runtime image is missing
                 if (
@@ -684,13 +737,17 @@ class Prefetcher:
                 ):
                     self._request(recipe, "image")
                     image_ops += 1
-        self._reconcile_pins(plans, by_key, models, sizes, present)
+        if held is not None and self.pin_hold is None:
+            self.state.event(
+                f"new model downloads wait for pin capacity: {held[0]} sets to protect, {held[1]} pins"
+            )
+        self.pin_hold = held
+        self._reconcile_pins(plans, by_key, models, present)
         return {
             "model_ops": model_ops,
             "image_ops": image_ops,
             "rate": self.rate.rate,
             "live_rate": live_rate,
-            "pinned_bytes": pinned_bytes,
             "pressure": now < self.pressure_until,
         }
 
@@ -932,26 +989,20 @@ class Prefetcher:
         plans: Sequence[Any],
         by_key: Mapping[str, Recipe],
         models: Mapping[str, Model],
-        sizes: Mapping[str, int],
         present: set[str],
     ) -> list[str]:
-        """One pin per model set that is on (or heading to) the NAS and not yet tested, within the byte budget."""
+        """One pin per model set that is on (or heading to) the NAS and not yet tested."""
         wanted = list(
             self.state.slots
         )  # a recipe under test already protects its models
         covered = {
             frozenset(slot.get("digests", ())) for slot in self.state.slots.values()
         }
-        spent = 0
         for plan in plans:
             if plan.digests - present and not any(
                 self._active(k) for k in plan.recipes
             ):
                 continue  # not downloaded, not requested: nothing to protect
-            cost = sum(sizes.get(d, 0) for d in plan.digests)
-            if spent + cost > self.config.nas_budget_bytes and spent:
-                continue
-            spent += cost
             # The model is what needs protecting: one recipe per model set, plus any recipe
             # that needs a different combination of models.
             members = [k for k in plan.recipes if k in by_key]
@@ -961,14 +1012,13 @@ class Prefetcher:
                 if (i == 0 and plan.digests not in covered)
                 or by_key[k].model_set != plan.digests
             ]
-        return wanted[:PIN_PROFILE_MAX_ASSIGNMENTS]  # nearest in the queue first
+        return wanted  # nearest in the queue first; the reconcile caps it to the room
 
     def _reconcile_pins(
         self,
         plans: Sequence[Any],
         by_key: Mapping[str, Recipe],
         models: Mapping[str, Model],
-        sizes: Mapping[str, int],
         present: set[str],
     ) -> None:
         number = self.config.pin_profile
@@ -985,7 +1035,8 @@ class Prefetcher:
         # Everything that is not one of our pins counts against the limit and is never removed.
         foreign = [n for n in live if not n.startswith(PIN_ALIAS_PREFIX)]
         cap = max(PIN_PROFILE_MAX_ASSIGNMENTS - len(foreign), 0)
-        wanted = self.desired_pins(plans, by_key, models, sizes, present)[:cap]
+        self.pin_room = cap
+        wanted = self.desired_pins(plans, by_key, models, present)[:cap]
         wanted_aliases = {pin_alias(k): k for k in wanted}
         held = [n for n in live if n.startswith(PIN_ALIAS_PREFIX)]
         budget = self.config.pins_per_tick

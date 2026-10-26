@@ -63,6 +63,9 @@ PHASE_RETRY = "run-switch.phase-retry"
 #: ProgressAlarmCode.STALLED: the Controller saw the same wait repeat with nothing moving.
 #: A platform problem, never the recipe's: only its lane waits on the original receipt.
 STALLED_CODE = "progress.stalled"
+#: ModelCacheCode.DOWNLOAD_BLOCKED: the Controller holds a model download for NAS space
+#: while retention evicts. The Controller owns that wait; it is no infrastructure problem.
+NAS_SPACE_CODE = "model_cache.download_blocked"
 #: Blockers that name a preparation (build, image, download, install) the Controller runs.
 PREPARATION_CODES = frozenset(
     {
@@ -272,8 +275,24 @@ def download_signal(document: Mapping[str, Any]) -> Signal:
         state,
         children,
     )
+    space = next(
+        (
+            child["failure"]
+            for child in document.get("children") or []
+            if isinstance(child, Mapping)
+            and child.get("kind") == "model-cache"
+            and child.get("state") in (LifecycleState.QUEUED, LifecycleState.BACKOFF)
+            and isinstance(child.get("failure"), Mapping)
+            and child["failure"].get("code") == NAS_SPACE_CODE
+        ),
+        None,
+    )
     wait = None
-    if state == LifecycleState.QUEUED:
+    if space is not None:
+        wait = SweepWait(
+            reason=SweepWaitReason.NAS_SPACE, detail=str(space.get("detail") or "")
+        )
+    elif state == LifecycleState.QUEUED:
         wait = SweepWait(reason=SweepWaitReason.OPERATION_QUEUED)
     elif state == LifecycleState.BACKOFF:
         wait = SweepWait(reason=SweepWaitReason.OPERATION_BACKOFF)
@@ -360,6 +379,16 @@ def progress_verdict(
             watch.pop("wait_deadline", None)
     if signal is None or signal.wait is not None:
         wait = signal.wait if signal is not None else None
+        if (
+            wait is not None
+            and wait.reason is SweepWaitReason.NAS_SPACE
+            and now > float(watch.get("wait_deadline", now))
+        ):
+            # The Controller holds a NAS-space wait under its own bounded window while
+            # retention evicts: each expiry of ours renews it (the caller records the
+            # expired window), so it is looked at once per window and pauses no work.
+            watch["wait_started_at"] = now
+            watch.pop("wait_deadline", None)
         return bounded_wait(
             wait or SweepWait(reason=SweepWaitReason.OBSERVATION),
             watch,

@@ -3,7 +3,7 @@
 from pathlib import Path
 
 import pytest
-from sweep_fakes import GB, FakeModel, FakeRecipe, make_sweep
+from sweep_fakes import FakeModel, FakeRecipe, make_sweep
 
 from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.prefetch import PrefetchConfig
@@ -22,7 +22,7 @@ def test_evicted_download_history_cannot_starve_new_models(
         tmp_path,
         [old, new],
         [FakeModel("old"), FakeModel("new")],
-        prefetch=PrefetchConfig(nas_budget_bytes=30 * GB),
+        prefetch=PrefetchConfig(),
     )
     sweep.refresh_catalog()
     old_recipe = sweep.recipes[old.key]
@@ -31,8 +31,8 @@ def test_evicted_download_history_cannot_starve_new_models(
         "done_at": clock.now(),
         "next_check": clock.now() + 1000,
     }
-    # History stays durable, but a model no longer present or arriving consumes
-    # neither the byte budget nor an eviction pin.
+    # History stays durable, but a model no longer present or arriving holds
+    # no eviction pin.
     sweep.prefetcher.tick(
         sweep.recipes,
         sweep.models,
@@ -45,34 +45,9 @@ def test_evicted_download_history_cannot_starve_new_models(
     assert any(c[2] == new.key for c in calls)
     assert sweep.state.downloads[old.key]["state"] == state
     plans = sweep.prefetcher.last_plans
-    pins = sweep.prefetcher.desired_pins(
-        plans, sweep.recipes, sweep.models, sweep.sizes, set()
-    )
+    pins = sweep.prefetcher.desired_pins(plans, sweep.recipes, sweep.models, set())
     assert old.key not in pins
     assert new.key in pins
-
-
-def test_inflight_models_still_consume_the_budget(tmp_path: Path) -> None:
-    old = FakeRecipe("arriving", ("old",))
-    new = FakeRecipe("new", ("new",))
-    sweep, fleet, _clock = make_sweep(
-        tmp_path,
-        [old, new],
-        [FakeModel("old"), FakeModel("new")],
-        prefetch=PrefetchConfig(nas_budget_bytes=30 * GB),
-    )
-    sweep.refresh_catalog()
-    sweep.prefetcher._request(sweep.recipes[old.key], "model")
-    count = len([c for _, c in fleet.calls if c[:2] == ("recipe", "download")])
-    sweep.prefetcher.tick(
-        sweep.recipes,
-        sweep.models,
-        list(sweep.recipes.values()),
-        sweep.sizes,
-        set(),
-        sweep.boost,
-    )
-    assert len([c for _, c in fleet.calls if c[:2] == ("recipe", "download")]) == count
 
 
 @pytest.mark.parametrize("restart", [False, True])
@@ -85,7 +60,7 @@ def test_new_cache_observation_overrides_completed_download_hint(
         tmp_path,
         [old, new],
         [FakeModel("old"), FakeModel("new")],
-        prefetch=PrefetchConfig(nas_budget_bytes=30 * GB),
+        prefetch=PrefetchConfig(),
     )
     sweep.refresh_catalog()
     sweep.prefetcher._request(sweep.recipes[old.key], "model")

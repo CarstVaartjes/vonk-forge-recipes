@@ -346,6 +346,9 @@ class Sweep:
         )
         self.prefetcher.on_infra = self.note_infra
         self.prefetcher.on_ok = self.clear_infra
+        self.prefetcher.online_lanes = lambda: (
+            len(self.sparks()) if self.fleet.sparks else None  # None: not read yet
+        )
         self.boost = self._build_boost()
         self.queue: list[str] = []
         self.sizes: dict[str, int] = {}

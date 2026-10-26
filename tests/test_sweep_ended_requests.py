@@ -141,9 +141,7 @@ def test_pin_observation_recovers_current_assignments_without_gating_downloads(
     def reconcile():
         present = set(recipe.model_digests)
         plans = prefetch.plan_queue([recipe], sweep.sizes, present, sweep.boost)
-        prefetch._reconcile_pins(
-            plans, {recipe.key: recipe}, sweep.models, sweep.sizes, present
-        )
+        prefetch._reconcile_pins(plans, {recipe.key: recipe}, sweep.models, present)
 
     reconcile()
     if not missing:
