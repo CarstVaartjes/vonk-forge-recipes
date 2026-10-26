@@ -122,30 +122,57 @@ def test_github_lfs_source_example_binds_oid_size_path_and_commit() -> None:
 
 def test_github_lfs_source_refuses_what_it_cannot_download() -> None:
     document = load("model-definition-github-lfs.json")
-    for mutation in (
-        lambda doc: doc.update(requires_token=True),
-        lambda doc: doc["files"][0].update(
-            parts=[{"path": "a.part", "sha256": "a" * 64, "size_bytes": 7761041}]
+    repository = "source.repository must be a canonical GitHub repository URL"
+    empty_sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    cases = (
+        (lambda doc: doc.update(requires_token=True), "public, anonymous"),
+        (
+            lambda doc: doc["files"][0].update(
+                parts=[
+                    {"path": "a.part", "sha256": "a" * 64, "size_bytes": 7000000},
+                    {"path": "b.part", "sha256": "b" * 64, "size_bytes": 761041},
+                ]
+            ),
+            "file parts are not allowed",
         ),
-        lambda doc: doc["files"][0].update(size_bytes=0),
-        lambda doc: doc["source"].update(
-            repository="https://github.com/NVlabs/GR00T-WholeBodyControl.git"
+        (
+            lambda doc: doc["files"][0].update(size_bytes=0, sha256=empty_sha256),
+            "Git LFS objects are never empty",
         ),
-        lambda doc: doc["source"].update(
-            repository="https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main"
+        (
+            lambda doc: doc["source"].update(
+                repository="https://github.com/NVlabs/GR00T-WholeBodyControl.git"
+            ),
+            repository,
         ),
-        lambda doc: doc["source"].update(
-            repository="http://github.com/NVlabs/GR00T-WholeBodyControl"
+        (
+            lambda doc: doc["source"].update(
+                repository="https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main"
+            ),
+            repository,
         ),
-        lambda doc: doc["source"].update(revision="45c03fac"),
-        lambda doc: doc["source"].update(
-            revision="45C03FACBF848E0C743091B7D9C17952096FF908"
+        (
+            lambda doc: doc["source"].update(
+                repository="http://github.com/NVlabs/GR00T-WholeBodyControl"
+            ),
+            repository,
         ),
-        lambda doc: doc["source"].update(release_id=1),
-    ):
+        (
+            lambda doc: doc["source"].update(revision="45c03fac"),
+            "should match pattern",
+        ),
+        (
+            lambda doc: doc["source"].update(
+                revision="45C03FACBF848E0C743091B7D9C17952096FF908"
+            ),
+            "should match pattern",
+        ),
+        (lambda doc: doc["source"].update(release_id=1), "Extra inputs"),
+    )
+    for mutation, message in cases:
         invalid = copy.deepcopy(document)
         mutation(invalid)
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError, match=message):
             ModelDefinition.model_validate(invalid)
 
 
