@@ -9,7 +9,7 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Bounded long-context and concurrency canaries at the 1M default context (6 slots, memory utilization 0.78)"
+        "Bounded long-context canaries at the 565,504-token context (max-num-seqs 3 bounds the scheduler; vLLM's own accounting fits about 1 full request in the 16 GB KV pool)"
       ],
       "recovery": [
         "Controller-only rank-loss and warm-cache recovery; the first start compiles kernels"
