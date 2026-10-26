@@ -130,7 +130,8 @@ jobs:
           set -euo pipefail
           select_args=()
           if [ "$EVENT_NAME" = pull_request ]; then
-            select_args+=(--base-plan "$RUNNER_TEMP/base-plan.json")
+            select_args+=(--base-plan "$RUNNER_TEMP/base-plan.json"
+              --base-exclusions "$RUNNER_TEMP/image-base/prebuilt-image-exclusions.json")
           fi
           python3 tools/prebuilt-images select "${select_args[@]}" --plan "$RUNNER_TEMP/plan.json" \
             --owner "${{ github.repository_owner }}" \
@@ -241,11 +242,31 @@ jobs:
         run: |
           set -euo pipefail
           cd "$RUNNER_TEMP/plan/$KEY"
-          # BuildKit's check parses every stage, resolves each FROM for the
-          # target platform and runs no instruction.
-          docker buildx build --check --platform linux/arm64 \
+          image=$(jq -c --arg key "$KEY" '.images[] | select(.build_key == $key)' "$RUNNER_TEMP/plan/plan.json")
+          # The build job's own Dockerfile and extra contexts, from the plan.
+          mapfile -t recipe_args < <(jq -r '.recipe_build_arguments[]' <<<"$image")
+          check_args=()
+          for index in "${!recipe_args[@]}"; do
+            case "${recipe_args[$index]}" in
+              --file|--build-context) check_args+=("${recipe_args[$index]}" "${recipe_args[$((index + 1))]}") ;;
+              --file=*|--build-context=*) check_args+=("${recipe_args[$index]}") ;;
+            esac
+          done
+          check_with_retry() {
+            for attempt in 1 2 3; do
+              if "$@"; then return 0; fi
+              echo "Check attempt $attempt failed" >&2
+              if [ "$attempt" -lt 3 ]; then sleep "$((attempt * 15))"; fi
+            done
+            return 1
+          }
+          # BuildKit's check parses every stage and resolves each FROM for the
+          # target platform without running anything. Style rules are skipped:
+          # the Spark builder applies none, so only parse and resolution errors fail.
+          check_with_retry docker buildx build --check --platform linux/arm64 \
             --build-arg BUILDKIT_SYNTAX=docker/dockerfile:1.12@sha256:93bfd3b68c109427185cd78b4779fc82b484b0b7618e36d0f104d4d801e66d25 \
-            --file context/Dockerfile context
+            --build-arg BUILDKIT_DOCKERFILE_CHECK=skip=all \
+            "${check_args[@]}" context
           echo "- \`${KEY:0:12}\`: bounded proof (Dockerfile check); full proof is the Spark build" >> "$GITHUB_STEP_SUMMARY"
 
   build:

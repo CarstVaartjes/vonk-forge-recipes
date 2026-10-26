@@ -343,6 +343,94 @@ def test_pr_bounds_only_keys_that_excluded_recipes_alone_use() -> None:
     assert len(everything["bounded"]) == 2
 
 
+@pytest.mark.parametrize(
+    ("base", "head", "bounded"),
+    [
+        ({"other": "hours"}, {"other": "hours"}, True),
+        # A PR cannot lower its own gate by adding the exclusion...
+        ({}, {"other": "hours"}, False),
+        # ...and a PR that removes one (as #1774 did) proves the full build.
+        ({"other": "hours"}, {}, False),
+    ],
+)
+def test_pr_selection_bounds_only_exclusions_base_and_head_both_declare(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    base: dict[str, str],
+    head: dict[str, str],
+    bounded: bool,
+) -> None:
+    plan, previous = _plan(), _plan()
+    plan["images"][1]["build_key"] = "e" * 64
+    (tmp_path / "plan.json").write_text(json.dumps(plan))
+    (tmp_path / "base-plan.json").write_text(json.dumps(previous))
+    (tmp_path / "image-base").mkdir()
+    (tmp_path / "image-base" / tool.EXCLUSIONS).write_text(json.dumps(base))
+    (tmp_path / tool.EXCLUSIONS).write_text(json.dumps(head))
+    monkeypatch.chdir(tmp_path)
+    select = tool.select
+    monkeypatch.setattr(
+        tool, "select", lambda plan, **kw: select(plan, **kw, lookup=_registry({}))
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "prebuilt-images",
+            "select",
+            "--base-plan",
+            "base-plan.json",
+            "--base-exclusions",
+            f"image-base/{tool.EXCLUSIONS}",
+            "--plan",
+            "plan.json",
+            "--owner",
+            OWNER,
+            "--output",
+            "selection.json",
+        ],
+    )
+    assert tool.main() == 0
+    selection = json.loads((tmp_path / "selection.json").read_text())
+    keys = [
+        [item["build_key"] for item in selection[kind]]
+        for kind in ("builds", "bounded")
+    ]
+    assert keys == ([[], ["e" * 64]] if bounded else [["e" * 64], []])
+
+
+def test_non_pr_selection_never_bounds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "plan.json").write_text(json.dumps(_plan()))
+    (tmp_path / tool.EXCLUSIONS).write_text(json.dumps({"other": "hours"}))
+    monkeypatch.chdir(tmp_path)
+    select = tool.select
+    monkeypatch.setattr(
+        tool, "select", lambda plan, **kw: select(plan, **kw, lookup=_registry({}))
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "prebuilt-images",
+            "select",
+            "--plan",
+            "plan.json",
+            "--owner",
+            OWNER,
+            "--slugs",
+            "other",
+            "--output",
+            "selection.json",
+        ],
+    )
+    assert tool.main() == 0
+    selection = json.loads((tmp_path / "selection.json").read_text())
+    assert selection["bounded"] == []
+    assert [item["build_key"] for item in selection["builds"]] == [OWN]
+
+
 def test_bounded_proof_checks_without_building_and_gates_the_image_result() -> None:
     workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
     bounded = workflow.split("\n  bounded:\n", 1)[1].split("\n  build:\n", 1)[0]
