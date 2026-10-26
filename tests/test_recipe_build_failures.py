@@ -241,3 +241,34 @@ def test_minimax_dual_verifier_requires_gb10_only_flashinfer_aot(
     else:
         with pytest.raises(SystemExit, match="must target sm_12x"):
             verifier.verify_flashinfer_aot()
+
+
+# Measured peak RSS of one compiler (2026-10-26, pinned stage-1 environment):
+# FlashInfer AOT gemm_sm120 7.2 GiB; vLLM CUTLASS scaled_mm_sm120_fp8 8.2 GiB.
+MINIMAX_DUAL_COMPILER_PEAK_BYTES = {
+    "flashinfer-jit-cache": 7326 * 1024**2,
+    "wheels-vllm": 8434 * 1024**2,
+}
+
+
+@pytest.mark.parametrize("output", sorted(MINIMAX_DUAL_COMPILER_PEAK_BYTES))
+def test_minimax_dual_compile_jobs_fit_the_spark_build_memory(output: str) -> None:
+    # A Spark build runs under memory_bytes = min(64 GiB, max(2 GiB,
+    # image_bytes)) (vonk-forge catalog_entities.py). The step's parallel
+    # compilers at their measured peak, plus 4 GiB for the build tool, must fit.
+    recipe = json.loads(
+        (
+            ROOT / "recipes/minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual.json"
+        ).read_text()
+    )
+    image_bytes = min(
+        role["resources"]["disk"]["image_bytes"] for role in recipe["topology"]["roles"]
+    )
+    limit = min(64 * 1024**3, max(2 * 1024**3, image_bytes))
+    step = next(
+        step for step in run_steps(MINIMAX_DUAL / "Dockerfile") if output in step
+    )
+    jobs = re.search(r"\bMAX_JOBS=(\d+) ", step)
+    assert jobs is not None, f"{output} step must set its own MAX_JOBS"
+    peak = MINIMAX_DUAL_COMPILER_PEAK_BYTES[output]
+    assert int(jobs.group(1)) * peak + 4 * 1024**3 <= limit

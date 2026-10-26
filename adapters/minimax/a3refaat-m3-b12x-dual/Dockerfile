@@ -124,7 +124,9 @@ RUN set -eux; \
     rustc --version; cargo --version; \
     python3 /workspace/local-patches/strip-vllm-rs-binary.py .
 
-RUN VLLM_REQUIRE_RUST_FRONTEND=1 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-vllm -v && \
+# Three compile jobs: CUTLASS sm120 scaled-mm and qutlass GEMMs peak at 8.2 GiB per compiler, and a Spark build is
+# limited to the recipe's image_bytes of memory (29.8 GiB).
+RUN MAX_JOBS=3 VLLM_REQUIRE_RUST_FRONTEND=1 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-vllm -v && \
     git rev-parse HEAD > /workspace/wheels-vllm/.vllm-commit
 
 # =========================================================
