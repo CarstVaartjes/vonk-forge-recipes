@@ -12,8 +12,9 @@ revision and prefers the pinned digest over a Spark build.
             tag is missing, one build per distinct key. A key
             another recipe already has is copied instead of rebuilt. Successful
             PR builds write ``candidate-<key>``; these are promoted by digest.
-            ``--base-plan`` limits PRs to changed executable keys (including
-            excluded recipes). Publication builds keys without a candidate.
+            ``--base-plan`` limits PRs to changed executable keys. A changed
+            key that only excluded recipes use gets a bounded proof (Dockerfile
+            check, no build); publication builds keys without a candidate.
 ``resolve`` looks up every recipe's ``build-<key>`` digest for the signed index.
 
 ``platform-ref`` prints the Vonk Forge commit the library is validated with
@@ -291,6 +292,40 @@ def changed_candidates(
     }
 
 
+def bound_excluded(
+    plan: Mapping[str, Any], selection: dict[str, Any], excluded: Mapping[str, str]
+) -> dict[str, Any]:
+    """Give PR keys that only declared-unbuildable recipes use a bounded proof.
+
+    A recipe in ``prebuilt-image-exclusions.json`` cannot finish on a hosted
+    runner; its full proof is the Spark build plus the hardware sweep. Its PR
+    therefore checks the Dockerfile and base images without building, so the
+    gate never waits on a build that cannot finish. A key any other recipe
+    uses still requires the full build. ``excluded`` must already be the
+    exclusions both the base and the head declare, so a PR cannot lower its
+    own gate by adding an exclusion. Cost is linear in the plan's recipes.
+    """
+
+    declared = set(excluded)
+    bounded_keys = {
+        str(image["build_key"])
+        for image in plan.get("images", [])
+        if image.get("recipes")
+        and all(str(recipe["slug"]) in declared for recipe in image["recipes"])
+    }
+    return {
+        **selection,
+        "builds": [
+            item
+            for item in selection["builds"]
+            if item["build_key"] not in bounded_keys
+        ],
+        "bounded": [
+            item for item in selection["builds"] if item["build_key"] in bounded_keys
+        ],
+    }
+
+
 def missing_reasons(
     plan: Mapping[str, Any], missing: list[str], excluded: Mapping[str, str]
 ) -> dict[str, str]:
@@ -323,6 +358,12 @@ def main() -> int:
     )
     choose.add_argument("--output", type=Path, required=True)
     choose.add_argument("--base-plan", type=Path)
+    choose.add_argument(
+        "--base-exclusions",
+        type=Path,
+        help="the PR base's prebuilt-image-exclusions.json; only exclusions "
+        "both base and head declare bound a key",
+    )
     pin = commands.add_parser("platform-ref")
     pin.add_argument("--workflow", type=Path, default=PLATFORM_WORKFLOW)
     look = commands.add_parser("resolve")
@@ -355,9 +396,22 @@ def main() -> int:
         selection = select(plan, owner=arguments.owner, candidates=candidates)
         if arguments.base_plan is not None and selection["deferred"]:
             raise SystemExit("PR image matrix exceeds 256 keys; split the change")
+        if arguments.base_plan is not None:
+            if arguments.base_exclusions is None:
+                raise SystemExit("PR selection needs --base-exclusions")
+            base = read_exclusions(arguments.base_exclusions)
+            both = {
+                slug: reason
+                for slug, reason in read_exclusions().items()
+                if slug in base
+            }
+            selection = bound_excluded(plan, selection, both)
+        else:
+            selection = {**selection, "bounded": []}
         arguments.output.write_text(json.dumps(selection, indent=2), encoding="utf-8")
         print(
             f"{len(selection['builds'])} image build(s), "
+            f"{len(selection['bounded'])} bounded proof(s), "
             f"{len(selection['copies'])} copy(ies), "
             f"{len(selection['deferred'])} deferred"
         )

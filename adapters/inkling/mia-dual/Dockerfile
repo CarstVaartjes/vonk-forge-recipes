@@ -9,8 +9,10 @@ LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Inkling-Smal
 
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py
+COPY inkling-forced-tool-grammar.py /opt/vonk/build/inkling-forced-tool-grammar.py
 
-RUN python3 /opt/vonk/build/verify-runtime.py \
+RUN python3 /opt/vonk/build/inkling-forced-tool-grammar.py \
+    && python3 /opt/vonk/build/verify-runtime.py \
     && rm -rf /opt/vonk/build \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
