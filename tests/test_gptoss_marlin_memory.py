@@ -23,6 +23,7 @@ from qualification.memory_need import (
     calculate_need,
     load_inputs,
     require_memory_need,
+    vllm_utilization_envelope,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -207,8 +208,16 @@ def test_full_context_need_and_absolute_pool_replace_the_failed_fraction():
         for item in recipe.runtime.arguments
         if item.name != "kv-cache-memory-bytes"
     ] + [RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.85")]
+    # Content 4036b68d's launch exhausted host memory on 2026-10-21: its peak
+    # covered 0.85 plus overhead, not also the 10 GB Marlin repack expansion.
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    recipe.topology.roles[0].resources.memory.peak_bytes = envelope
+    require_memory_need(recipe, catalog_models(), inputs, document_digest="")
     with pytest.raises(ValueError, match="absolute kv-cache-memory-bytes"):
-        require_memory_need(recipe, catalog_models(), inputs, document_digest="")
+        require_memory_need(
+            recipe, catalog_models(), inputs, document_digest="", touched=True
+        )
 
 
 def test_resident_expansion_rejects_graph_and_image_drift():

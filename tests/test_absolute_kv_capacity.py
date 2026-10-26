@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
-from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
@@ -187,11 +187,12 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 
+@pytest.mark.parametrize("single", [True, False], ids=["single", "multi"])
 @pytest.mark.parametrize("engine", ["vllm", "sglang"])
-def test_touching_any_proven_multi_spark_document_keeps_it_valid(engine: str) -> None:
+def test_touching_any_proven_document_keeps_it_valid(engine: str, single: bool) -> None:
     # Calibration: every hardware-proven document passes the touched rules.
     models, inputs = catalog_models(), load_inputs()
-    checked = 0
+    checked, rejected = 0, []
     for path in sorted((ROOT / "qualification/evidence").rglob("*.json")):
         key = json.loads(path.read_text())["recipe_key"]
         document = json.loads(
@@ -200,13 +201,76 @@ def test_touching_any_proven_multi_spark_document_keeps_it_valid(engine: str) ->
         recipe = RecipeDefinition.model_validate(document)
         if (
             recipe.runtime.engine != engine
-            or recipe.topology.node_count == 1
+            or (recipe.topology.node_count == 1) != single
             or not hardware_proven(recipe, document_sha256(document))
         ):
             continue
-        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
         checked += 1
+        try:
+            require_memory_need(
+                recipe, models, inputs, document_digest="", touched=True
+            )
+        except (TypeError, ValueError) as error:
+            rejected.append(str(error))
     assert checked > 0
+    assert not rejected, f"{len(rejected)} of {checked} rejected:\n" + "\n".join(
+        rejected
+    )
+
+
+FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
+
+
+@pytest.mark.parametrize(
+    "name,match",
+    [
+        # Exhausted host memory 2026-10-21: 0.85 beside a 10 GB Marlin repack.
+        ("gpt-oss-120b-nvidia-vllm-single-4036b68d", "admissible on an idle Spark"),
+        # OOM-killed (exit 137) 2026-10-21: 0.75 below weights + expansion.
+        (
+            "glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single-fa86311a",
+            "cannot hold the selected weights",
+        ),
+        # 2026-10-21: 0.95, not admissible on an idle Spark.
+        (
+            "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single-6e5f713f",
+            "admissible on an idle Spark",
+        ),
+        # Froze a GB10 2026-10-13: 0.7 with a dflash draft, 99.46 GB peak.
+        (
+            "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single-a5c5b82f",
+            "peak understates vLLM budget",
+        ),
+    ],
+)
+def test_recorded_single_spark_memory_failures_are_rejected_when_touched(
+    name: str, match: str
+) -> None:
+    # With the proven-set calibration above, this proves both directions.
+    models = dict(catalog_models())
+    for path in sorted((FAILURES / "models").glob("*.json")):
+        document = json.loads(path.read_text())
+        models[document_sha256(document)] = ModelDefinition.model_validate(document)
+    document = json.loads((FAILURES / f"{name}.json").read_text())
+    assert document_sha256(document).startswith(name.rsplit("-", 1)[1])
+    recipe = RecipeDefinition.model_validate(document)
+    with pytest.raises(ValueError, match=match):
+        require_memory_need(
+            recipe, models, load_inputs(), document_digest="", touched=True
+        )
+
+
+def test_recorded_fraction_is_rejected_on_the_current_capped_glm_a0() -> None:
+    # fa86311a's 0.75 cannot hold the weights and 14 GB expansion even with
+    # today's 8,192-token and 2-slot caps; the document's 0.85 can.
+    recipe = recipe_for("glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single")
+    models, inputs = catalog_models(), load_inputs()
+    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    next(
+        arg for arg in recipe.runtime.arguments if arg.name == "mem-fraction-static"
+    ).value = "0.75"
+    with pytest.raises(ValueError, match="cannot hold the selected weights"):
+        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 
 def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> None:
