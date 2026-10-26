@@ -607,6 +607,79 @@ class WanDancerLoaderTests(unittest.TestCase):
         for call in calls:
             self.assertNotIn("device", {keyword.arg for keyword in call.keywords})
 
+    def test_sequence_parallel_names_are_read_only_where_they_are_bound(
+        self,
+    ) -> None:
+        # A name imported inside `if use_unified_sequence_parallel:` is local to
+        # its function, so a read outside such a guard raises UnboundLocalError
+        # on the single-Spark (non-parallel) path.
+        path = self.source / "diffsynth/pipelines/wan_video_new.py"
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        functions = {
+            node.name: node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.FunctionDef)
+        }
+        bound, _ = _sequence_parallel_reads(functions["model_fn_wan_video"])
+        self.assertIn("get_sequence_parallel_world_size", bound)
+        for function in functions.values():
+            self.assertEqual(_sequence_parallel_reads(function)[1], [], function.name)
+
+
+def _sequence_parallel_reads(function: ast.FunctionDef) -> tuple[set[str], list[str]]:
+    """Names imported under the sequence-parallel guard, and unguarded reads."""
+
+    def is_guard(node: ast.expr) -> bool:
+        return any(
+            isinstance(item, ast.Name) and item.id == "use_unified_sequence_parallel"
+            for item in ast.walk(node)
+        )
+
+    def walk(
+        node: ast.AST, guarded: bool, visit: Callable[[ast.AST, bool], None]
+    ) -> None:
+        visit(node, guarded)
+        if isinstance(node, (ast.If, ast.IfExp)):
+            walk(node.test, guarded, visit)
+            body = node.body if isinstance(node.body, list) else [node.body]
+            orelse = node.orelse if isinstance(node.orelse, list) else [node.orelse]
+            for child in body:
+                walk(child, guarded or is_guard(node.test), visit)
+            for child in orelse:
+                walk(child, guarded, visit)
+        elif isinstance(node, ast.BoolOp) and isinstance(node.op, ast.And):
+            inner = guarded
+            for value in node.values:
+                walk(value, inner, visit)
+                inner = inner or is_guard(value)
+        else:
+            for child in ast.iter_child_nodes(node):
+                walk(child, guarded, visit)
+
+    bound: set[str] = set()
+    unguarded: list[str] = []
+
+    def collect(node: ast.AST, guarded: bool) -> None:
+        if guarded and isinstance(node, (ast.Import, ast.ImportFrom)):
+            bound.update(
+                (alias.asname or alias.name).split(".")[0] for alias in node.names
+            )
+
+    def check(node: ast.AST, guarded: bool) -> None:
+        if (
+            not guarded
+            and isinstance(node, ast.Name)
+            and isinstance(node.ctx, ast.Load)
+            and node.id in bound
+        ):
+            unguarded.append(f"{node.id} at line {node.lineno}")
+
+    for statement in function.body:
+        walk(statement, False, collect)
+    for statement in function.body:
+        walk(statement, False, check)
+    return bound, unguarded
+
 
 class WanDancerSmokeMusicTests(unittest.TestCase):
     """The smoke music must satisfy upstream's frame math, not only the adapter.
