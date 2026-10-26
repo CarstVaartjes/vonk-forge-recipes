@@ -233,9 +233,9 @@ def test_new_model_downloads_wait_for_pin_capacity_and_resume_as_pins_drain(
 def test_sets_no_online_lane_can_test_hold_no_download_during_an_outage(
     tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Dual-Spark sets cannot drain while a Spark is offline, so they hold no pin room:
-    single-Spark downloads go on, a dual-only set waits for its lanes, and everything is
-    tested once the Spark is back."""
+    """Dual-Spark sets cannot drain while a Spark is offline: when only they fill the pin
+    profile, nothing holds (no forever-hold), single-Spark downloads go on, a dual-only
+    set waits for its lanes, and everything is tested once the Spark is back."""
     limit = 3
     monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
     duals = [
@@ -273,6 +273,70 @@ def test_sets_no_online_lane_can_test_hold_no_download_during_an_outage(
     requested = during[-1]
     assert {r.key for r in singles} <= requested  # not held behind undrainable pins
     assert cold_dual.key not in requested  # waits for its lanes, then downloads
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+
+
+def test_untested_sets_stay_pinned_through_a_partial_outage(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Cached dual-Spark sets cannot be tested while a Spark is offline, but they still
+    need their pins: single-Spark downloads wait for the profile room the single-Spark
+    tests drain, so no untested set is ever unpinned (and evicted, then fetched again)."""
+    limit = 3
+    monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
+    duals = [
+        FakeRecipe(f"d{i}", (f"dm{i}",), node_count=2, local="cached") for i in range(2)
+    ]
+    singles = [FakeRecipe(f"s{i}", (f"sm{i}",)) for i in range(3)]
+    recipes = [*duals, *singles]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        [
+            *(FakeModel(f"dm{i}", local="cached") for i in range(2)),
+            *(FakeModel(f"sm{i}") for i in range(3)),
+        ],
+        gateway=gateway,
+        prefetch=PrefetchConfig(max_model_downloads=6, pin_profile=13),
+    )
+    fleet.max_assignments = limit
+    fleet.offline_nodes = {"spk_b"}
+    start = clock.now()
+    unprotected: list[set[str]] = []
+    recovered: list[str] = []
+
+    def status(key: str) -> str:
+        return sweep.state.recipes.get(key, {}).get("status", "pending")
+
+    def observe(now: float) -> None:
+        pinned = {
+            a["recipe_selector"]
+            for a in fleet.profiles.get(13, {}).get("assignments", [])
+        }
+        untested = {
+            r.key
+            for r in recipes
+            if status(r.key) == "pending"
+            and (
+                all(fleet.models[d].local == "cached" for d in r.digests)
+                or any(
+                    o["recipe"] == r.key and o["state"] == "running"
+                    for o in fleet.ops.values()
+                )
+            )
+        }
+        unprotected.append(untested - pinned)
+        if fleet.offline_nodes and (
+            all(status(r.key) == "passed" for r in singles) or now - start > 20000
+        ):
+            recovered.append("progress" if now - start <= 20000 else "timeout")
+            fleet.offline_nodes.clear()  # the Spark answers again
+
+    clock.hooks.append(observe)
+    sweep.run()
+
+    assert not any(unprotected), [u for u in unprotected if u][:3]
+    assert recovered == ["progress"]  # single-Spark work finished during the outage
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
 
 

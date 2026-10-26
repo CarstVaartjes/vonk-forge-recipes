@@ -675,12 +675,13 @@ class Prefetcher:
 
         # A new model set needs a pin of its own: when the profile has no room left,
         # starting one would leave a downloaded, untested set unprotected from eviction.
-        # Only sets the online lanes can test drain the profile, so only they hold.
+        # Every untested set wants its pin, also one waiting for offline lanes; the hold
+        # lasts while a set the online lanes can test will drain the profile.
         pinning = self.config.pin_profile is not None and bool(self.config.pin_spark)
         room = PIN_PROFILE_MAX_ASSIGNMENTS if self.pin_room is None else self.pin_room
-        wanted = sum(
-            placeable(k) for k in self.desired_pins(plans, by_key, models, present)
-        )
+        desired = self.desired_pins(plans, by_key, models, present)
+        wanted = len(desired)
+        drainable = sum(placeable(k) for k in desired)
         held = None
 
         if cached is None:
@@ -717,12 +718,13 @@ class Prefetcher:
                     and model_ops < self.config.max_model_downloads
                     and now >= self.pressure_until
                 ):
-                    if pinning and wanted >= room > 0:  # with no room, no pin protects
+                    if pinning and drainable and wanted >= room > 0:
                         held = (wanted, room)  # tests drain pins; then downloads go on
                         continue
                     self._request(lead, "model")
                     model_ops += 1
                     wanted += 1
+                    drainable += 1  # the lead is placeable
                 continue
             for recipe in leads:  # model cached: only the runtime image is missing
                 if (
