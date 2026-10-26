@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-mtp-tonyd2wild-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "107ae8b900845e9b624cfd6d4760f522d70a69090d6e17f845cc9cf0d492f6bb",
+        "source_bundle_sha256": "8c4526d4f71045e5769227e131126729ec4a6a5c19f70f7b4d0621790b7c98bc",
+        "runtime_image": {
+          "build_key": "9f2bbc9bc89b10500f4e2e9282895b9750cd225cf5988d04b60862ec6524b46a",
+          "image_digest": "sha256:c84a9fb4e8b9c0fef46e27bae2b72741ac2b02a53111893d63c709e65e588335"
+        },
+        "model_digests": [
+          "4d545ba0fbacb2101d3189c282ac4e4a4f1dc135a32b42362141e2d9466640f1"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "47b2dce5ba786bd2f023f7f70da0a848b81b605a78795964469138413dcc53c6"
+      ],
+      "tested_at": "2026-10-26T19:12:05.899000Z",
+      "platform": {
+        "controller_source_sha": "7fc22e5ff80e38e835c65cd68eefb4bf389f9d75",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
