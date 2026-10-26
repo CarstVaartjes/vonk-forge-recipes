@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's DeepSeek V4 Flash DSpark profile on two Sparks: vLLM tensor parallel 2 with the bundled DSpark drafter (k=5), a 4-bit nvfp4_ds_mla KV cache, B12X MoE and a 1,048,576-token context, on bjk110's DSpark vLLM runtime image (digest-pinned) with upstream's overlay (scheduler cold-prefill garble fix, draft shared-expert loader fix) and NVFP4 stage patches applied at build, plus upstream's native-vision port (ViT and aligner, image input). Model: Vision-Exp checkpoint at 6821d6ad (upstream pins 86f746b3, which differs only by two documentation files). Same-creator alternatives for this model and Spark count are older tonyd2wild repositories (preview-checkpoint DSpark, Ray-free MTP recipes); other creators' choices are separate recipes. Licences (information only): recipe MIT, model MIT, overlay files derived from vLLM (Apache-2.0). Upstream figures (about 55 tok/s mean, 78 peak on text 0731; about 53 tok/s real-prompt decode on Vision-Exp) are claims until measured here; Vonk physical two-Spark acceptance is pending. Upstream warns that speculative buffers allocate on the first real request, so a memory utilization above 0.78 can boot and then fail under traffic. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default). GB10 fit: GPU utilization 0.85 → 0.82 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Absolute KV correction: 27,732,738,048 bytes per rank covers 12 simultaneous full-context requests at 273,920 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 1,048,576 tokens to 273,920 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
+    "description": "tonyd2wild's DeepSeek V4 Flash DSpark profile on two Sparks: vLLM tensor parallel 2 with the bundled DSpark drafter (k=5), a 4-bit nvfp4_ds_mla KV cache, B12X MoE and a 273,920-token context (creator profile 1,048,576), on bjk110's DSpark vLLM runtime image (digest-pinned) with upstream's overlay (scheduler cold-prefill garble fix, draft shared-expert loader fix) and NVFP4 stage patches applied at build, plus upstream's native-vision port (ViT and aligner, image input). Model: Vision-Exp checkpoint at 6821d6ad (upstream pins 86f746b3, which differs only by two documentation files). Same-creator alternatives for this model and Spark count are older tonyd2wild repositories (preview-checkpoint DSpark, Ray-free MTP recipes); other creators' choices are separate recipes. Licences (information only): recipe MIT, model MIT, overlay files derived from vLLM (Apache-2.0). Upstream figures (about 55 tok/s mean, 78 peak on text 0731; about 53 tok/s real-prompt decode on Vision-Exp) are claims until measured here; Vonk physical two-Spark acceptance is pending. Upstream warns that speculative buffers allocate on the first real request, so a memory utilization above 0.78 can boot and then fail under traffic. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Thinking off unless a request enables it (upstream default). GB10 fit: the 0.761055 GPU utilization is vLLM's startup budget beside the absolute KV pool, and the declared peak (sharded weights, that pool and 8 GB overhead) plus the 6 GB OS floor fits a Spark's idle available memory. Absolute KV correction: 15,998,753,178 bytes per rank and a 0.761055 startup budget, the pair of the hardware-passed deepseek-v4-flash-dspark-r0b0tlab-vllm-025-dual sibling (DSpark vLLM, NVFP4 DS-MLA KV, default compilation). Concurrency 6 is the most 273,920-token requests that pool holds under the pinned cache-geometry allocation bound; it bounds the scheduler, while vLLM's own accounting fits about 1,000,000 tokens (three full requests) in this pool. Context is capped from the creator profile's 1,048,576 tokens to 273,920. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "deepseek",
       "distributed",
@@ -1146,12 +1146,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 27732738048
+        "value": 15998753178
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.854428"
+        "value": "0.761055"
       }
     ],
     "engine": "vllm",
@@ -1345,7 +1345,7 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 12
+      "value": 6
     },
     "context_tokens": {
       "change_effect": "restart",
@@ -1377,7 +1377,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 119642440232,
+            "peak_bytes": 107908455362,
             "reserve_bytes": 6000000000
           }
         }
@@ -1394,7 +1394,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 119642440232,
+            "peak_bytes": 107908455362,
             "reserve_bytes": 6000000000
           }
         }

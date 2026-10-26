@@ -10,7 +10,7 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Bounded long-context, concurrency and image-input canaries at the 1M default context (12 slots, memory utilization 0.85; 0.78 is the conservative option)"
+        "Bounded long-context, concurrency and image-input canaries at the 273,920-token context (max-num-seqs 6 bounds the scheduler; vLLM's own accounting fits about 3 full requests in the 16 GB KV pool)"
       ],
       "recovery": [
         "Controller-only rank-loss, warm-cache recovery and image-input revalidation"
