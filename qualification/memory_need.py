@@ -31,6 +31,11 @@ OS_FLOOR_BYTES = PLATFORM_MEMORY_FLOOR_BYTES
 SPARK_MEMORY_BYTES = 130_663_231_488
 SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
 SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
+# Idle host use for offline declaration admission, calibrated on the proven
+# set: the live Controller admitted and the sweep passed 120,370,379,081-byte
+# peaks (DeepSeek V4.1 Flash EXL3 Mia dual, Gemma 4 31B Mia single, Qwen3.6
+# 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
+ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
 # sglang 94602c9c kv_cache_configurator._calculate_mamba_ratio: at most 3 base
 # plus 2 extra_buffer overlap state slots per running request.
@@ -859,20 +864,20 @@ def require_admissible_declaration(
 ) -> None:
     """Every launch variant must fit an idle Spark by the Controller's rule.
 
-    An idle Spark's host already uses IDLE_USE_BYTES; a declaration that only
-    fits with no host use can never be admitted (2026-10-21 deferral).
+    An idle Spark's host already uses ADMISSION_IDLE_USE_BYTES; a declaration
+    that only fits with no host use can never be admitted (2026-10-21 deferral).
     """
     for variant in memory_variants(recipe):
         for role in variant.topology.roles:
             if not evaluate_memory_admission(
                 role.resources.memory.peak_bytes,
                 pool_bytes,
-                occupied_bytes=IDLE_USE_BYTES,
+                occupied_bytes=ADMISSION_IDLE_USE_BYTES,
             ).admissible:
                 raise ValueError(
                     f"{recipe.identity.slug}/{role.name}: declared peak "
                     f"{role.resources.memory.peak_bytes} bytes is not admissible "
                     f"on an idle Spark (pool {pool_bytes} bytes, host "
-                    f"{IDLE_USE_BYTES} bytes, floor "
+                    f"{ADMISSION_IDLE_USE_BYTES} bytes, floor "
                     f"{PLATFORM_MEMORY_FLOOR_BYTES} bytes); reserve by need"
                 )
