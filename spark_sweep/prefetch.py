@@ -111,6 +111,8 @@ class Prefetcher:
         # Set by the sweep: a client, protocol or transport problem is reported, never a recipe's failure.
         self.on_infra: Callable[[str, str], None] = lambda _source, _message: None
         self.on_ok: Callable[[str], None] = lambda _source: None
+        # Set by the sweep: how many lanes are online now (None: unknown, all count).
+        self.online_lanes: Callable[[], int | None] = lambda: None
         self.pause_until = 0.0
         self.library_fresh_since = 0.0  # start of the newest complete library pass
         self.pressure_until = 0.0
@@ -663,11 +665,21 @@ class Prefetcher:
         plans = self.plan_queue(pending, sizes, present, boost)
         model_ops, image_ops = self._in_flight(recipes, models)
         by_key = {r.key: r for r in pending}
+        lanes = self.online_lanes()
+
+        def placeable(key: str) -> bool:
+            """Testable on the lanes online now (a recipe under test already is)."""
+            recipe = by_key.get(key)
+            return recipe is None or lanes is None or recipe.node_count <= lanes
+
         # A new model set needs a pin of its own: when the profile has no room left,
         # starting one would leave a downloaded, untested set unprotected from eviction.
+        # Only sets the online lanes can test drain the profile, so only they hold.
         pinning = self.config.pin_profile is not None and bool(self.config.pin_spark)
         room = PIN_PROFILE_MAX_ASSIGNMENTS if self.pin_room is None else self.pin_room
-        wanted = len(self.desired_pins(plans, by_key, models, present))
+        wanted = sum(
+            placeable(k) for k in self.desired_pins(plans, by_key, models, present)
+        )
         held = None
 
         if cached is None:
@@ -689,13 +701,22 @@ class Prefetcher:
                     for r in leads
                 ):
                     continue
-                lead = next((r for r in leads if self._can_request(r, now)), None)
+                # A set only recipes needing more lanes than are online can use waits
+                # for those lanes: it is downloaded when they return.
+                lead = next(
+                    (
+                        r
+                        for r in leads
+                        if placeable(r.key) and self._can_request(r, now)
+                    ),
+                    None,
+                )
                 if (
                     lead is not None
                     and model_ops < self.config.max_model_downloads
                     and now >= self.pressure_until
                 ):
-                    if pinning and wanted >= room:
+                    if pinning and wanted >= room > 0:  # with no room, no pin protects
                         held = (wanted, room)  # tests drain pins; then downloads go on
                         continue
                     self._request(lead, "model")

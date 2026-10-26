@@ -230,6 +230,99 @@ def test_new_model_downloads_wait_for_pin_capacity_and_resume_as_pins_drain(
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
 
 
+def test_sets_no_online_lane_can_test_hold_no_download_during_an_outage(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dual-Spark sets cannot drain while a Spark is offline, so they hold no pin room:
+    single-Spark downloads go on, a dual-only set waits for its lanes, and everything is
+    tested once the Spark is back."""
+    limit = 3
+    monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
+    duals = [
+        FakeRecipe(f"d{i}", (f"dm{i}",), node_count=2, local="cached") for i in range(3)
+    ]
+    cold_dual = FakeRecipe("d3", ("dm3",), node_count=2)
+    singles = [FakeRecipe(f"s{i}", (f"sm{i}",)) for i in range(2)]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [*duals, cold_dual, *singles],
+        [
+            *(FakeModel(f"dm{i}", local="cached") for i in range(3)),
+            FakeModel("dm3"),
+            *(FakeModel(f"sm{i}") for i in range(2)),
+        ],
+        gateway=gateway,
+        prefetch=PrefetchConfig(pin_profile=13),
+    )
+    fleet.max_assignments = limit
+    fleet.offline_nodes = {"spk_b"}
+    start = clock.now()
+    during: list[set[str]] = []
+
+    def outage(now: float) -> None:
+        if not fleet.offline_nodes:
+            return
+        if now - start > 3000:
+            fleet.offline_nodes.clear()  # the Spark answers again
+            return
+        during.append({o["recipe"] for o in fleet.ops.values()})
+
+    clock.hooks.append(outage)
+    sweep.run()
+
+    requested = during[-1]
+    assert {r.key for r in singles} <= requested  # not held behind undrainable pins
+    assert cold_dual.key not in requested  # waits for its lanes, then downloads
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+
+
+def test_a_pin_profile_with_no_room_holds_no_download(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Foreign assignments fill the pin profile: no pin can protect anything, so a
+    pin-capacity hold would prevent nothing and only stop the sweep."""
+    from spark_sweep.run import SWEEP_LABEL
+
+    limit = 2
+    monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
+    recipes, models = _many(4)
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        models,
+        gateway=gateway,
+        prefetch=PrefetchConfig(max_model_downloads=1, pin_profile=13),
+    )
+    fleet.max_assignments = limit
+    fleet.profiles[13] = {
+        "revision": 1,
+        "latest": None,
+        "labels": {SWEEP_LABEL[0]: SWEEP_LABEL[1]},
+        "assignments": [
+            {
+                "recipe_selector": "vonk-forge/r0",
+                "spark_ids": ["spark-a"],
+                "assignment_name": f"keep-{i}",
+                "desired_state": "installed",
+            }
+            for i in range(limit)
+        ],
+    }
+    start = clock.now()
+    runaway: list[float] = []
+
+    def guard(now: float) -> None:
+        if now - start > 20000 and not runaway:
+            runaway.append(now)
+            fleet.profiles[13]["assignments"] = []  # let a held sweep finish
+
+    clock.hooks.append(guard)
+    sweep.run()
+
+    assert not runaway, "downloads were held with no pin room"
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+
+
 def test_a_download_someone_else_started_is_not_requested_again(
     tmp_path: Path, gateway: Gateway
 ) -> None:
