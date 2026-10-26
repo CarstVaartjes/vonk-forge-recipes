@@ -13,7 +13,10 @@ import pytest
 from vonk_forge_contracts import RecipeDefinition
 
 ROOT = Path(__file__).resolve().parents[1]
-_WRITABLE = (PurePosixPath("/tmp"), PurePosixPath("/state"), PurePosixPath("/outputs"))
+# The only paths a job may write: every job runs with a read-only root, a tmpfs
+# /tmp and the /outputs mount (its cache/ included). The rest of the image is
+# read-only and root-owned, while the job runs as an unprivileged user.
+_WRITABLE = (PurePosixPath("/tmp"), PurePosixPath("/outputs"))
 _MUTABLE = re.compile(r"cache|lock|temp|tmp", re.IGNORECASE)
 
 
@@ -86,7 +89,7 @@ def test_job_adapters_use_only_writable_cache_lock_and_temp_paths() -> None:
 
 
 @pytest.mark.parametrize(
-    "root", ["/opt/vonk", "/usr/local", "/app", "/root", "/inputs"]
+    "root", ["/opt/vonk", "/usr/local", "/app", "/root", "/inputs", "/state"]
 )
 @pytest.mark.parametrize("kind", ["docker", "env", "assignment", "path"])
 def test_guard_rejects_image_paths(tmp_path: Path, root: str, kind: str) -> None:
@@ -102,7 +105,7 @@ def test_guard_rejects_image_paths(tmp_path: Path, root: str, kind: str) -> None
     assert _violations(path)
 
 
-@pytest.mark.parametrize("root", ["/tmp", "/state", "/outputs"])
+@pytest.mark.parametrize("root", ["/tmp", "/outputs"])
 def test_guard_accepts_job_writable_paths(tmp_path: Path, root: str) -> None:
     path = tmp_path / "Dockerfile"
     path.write_text(f'ENV CACHE_PATH="{root}/autotune_cache.json"\n')
