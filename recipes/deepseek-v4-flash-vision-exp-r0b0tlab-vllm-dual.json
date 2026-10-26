@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's dual-GB10 vLLM serve of the official DeepSeek V4 Flash Vision Experimental checkpoint (image and text input): the official per-model vision image with PR 54631 (streaming weight loader, DSpark n_predict), a TOPK=512 FlashInfer sparse-MLA prefill kernel and SM121 adaptive verification baked in; DSpark k=5 with adaptive verification, fp8 KV, decode-only CUDA graphs, thinking off by default (clients can request thinking per call), 524,288 token context (upstream also qualified 1,048,576 by raising the context setting). No licence file is declared in the upstream repository; the model is MIT and vLLM Apache-2.0 (information only). Upstream claims about 43 tok/s single-stream short decode; not measured here. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: thinking=false by default (upstream default, used for the throughput numbers). GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.875 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Absolute KV correction: 27,732,738,048 bytes per rank covers 8 simultaneous full-context requests at 414,976 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 524,288 tokens to 414,976 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
+    "description": "r0b0tlab's dual-GB10 vLLM serve of the official DeepSeek V4 Flash Vision Experimental checkpoint (image and text input): the official per-model vision image with PR 54631 (streaming weight loader, DSpark n_predict), a TOPK=512 FlashInfer sparse-MLA prefill kernel and SM121 adaptive verification baked in; DSpark k=5 with adaptive verification, fp8 KV, decode-only CUDA graphs, thinking off by default (clients can request thinking per call), 524,288 token context (upstream also qualified 1,048,576 by raising the context setting). No licence file is declared in the upstream repository; the model is MIT and vLLM Apache-2.0 (information only). Upstream claims about 43 tok/s single-stream short decode; not measured here. Default thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: thinking=false by default (upstream default, used for the throughput numbers). GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.875 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Absolute KV correction: 15,998,753,178 bytes per rank and a 0.761055 startup budget, the pair of the hardware-passed deepseek-v4-flash-0731-r0b0tlab-vllm-dual sibling (same creator, decode-only CUDA graphs without torch.compile, near-identical weights per rank). Concurrency 4 is the most 414,976-token requests that pool holds under the pinned cache-geometry allocation bound; it bounds the scheduler, while vLLM's own accounting fits about 800,000 tokens (one full request) in this pool. Context is capped from the creator profile's 524,288 tokens to 414,976. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "candidate",
       "deepseek",
@@ -1177,12 +1177,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 27732738048
+        "value": 15998753178
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.854428"
+        "value": "0.761055"
       }
     ],
     "engine": "vllm",
@@ -1268,7 +1268,7 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 8
+      "value": 4
     },
     "context_tokens": {
       "change_effect": "restart",
@@ -1300,7 +1300,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 119642440232,
+            "peak_bytes": 107908455362,
             "reserve_bytes": 8000000000
           }
         }
@@ -1317,7 +1317,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 119642440232,
+            "peak_bytes": 107908455362,
             "reserve_bytes": 8000000000
           }
         }

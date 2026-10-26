@@ -38,7 +38,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab a8b46367 on the immutable Anemll ARM64 runtime, including the per-forward routing-kind and limit-mm-per-prompt image-cap vision fixes, the single-lane partial-prefill default, and low default reasoning effort, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, and 1M context; Vonk physical image and dual-Spark acceptance remain pending. Absolute KV correction: 27,732,738,048 bytes per rank covers 6 simultaneous full-context requests at 556,032 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 1,048,576 tokens to 556,032 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
+    "description": "Installable Candidate two-Spark native-vision profile for the official DeepSeek V4 Flash Vision Experimental checkpoint. It reproduces MiaAI-Lab a8b46367 on the immutable Anemll ARM64 runtime, including the per-forward routing-kind and limit-mm-per-prompt image-cap vision fixes, the single-lane partial-prefill default, and low default reasoning effort, with OpenAI image_url input, the 32-layer ViT and aligner, FP4/FP8 weights, NVFP4 DS-MLA KV, DSpark K6, and 1M context; Vonk physical image and dual-Spark acceptance remain pending. Absolute KV correction: 15,998,753,178 bytes per rank and a 0.761055 startup budget, the pair of the hardware-passed deepseek-v4-flash-dspark-r0b0tlab-vllm-025-dual sibling on the same Anemll image digest. Concurrency 3 is the most 556,032-token requests that pool holds under the pinned cache-geometry allocation bound; it bounds the scheduler, while vLLM's own accounting fits about 1,600,000 tokens (two full requests) in this pool. Context is capped from the creator profile's 1,048,576 tokens to 556,032. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "candidate",
       "deepseek",
@@ -1253,12 +1253,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 27732738048
+        "value": 15998753178
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.854428"
+        "value": "0.761055"
       }
     ],
     "engine": "vllm",
@@ -1412,7 +1412,7 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 6
+      "value": 3
     },
     "context_tokens": {
       "change_effect": "restart",
@@ -1444,7 +1444,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 119642440232,
+            "peak_bytes": 107908455362,
             "reserve_bytes": 8000000000
           }
         }
@@ -1461,7 +1461,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 119642440232,
+            "peak_bytes": 107908455362,
             "reserve_bytes": 8000000000
           }
         }
