@@ -19,6 +19,7 @@ from qualification.memory_need import (
     memory_variants,
     require_absolute_kv_capacity,
     require_memory_need,
+    require_sglang_rank_budget,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -118,7 +119,7 @@ def test_geometry_must_match_selected_configuration() -> None:
     inputs = load_inputs()
     recipe = recipe_for()
     inputs.geometries[recipe.models[0].model.slug].configuration_sha256 = "0" * 64
-    with pytest.raises(ValueError, match="configuration drift"):
+    with pytest.raises(ValueError, match="pinned model configuration"):
         absolute_kv_need(recipe, catalog_models(), inputs)
 
 
@@ -237,17 +238,47 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
     slots.value = 4
     with pytest.raises(ValueError, match="state slots of one request"):
         require_memory_need(recipe, models, inputs, document_digest="")
-    # Fault injection: 0.57 holds the sharded weights and the capped token pool
-    # but not also the source-backed state slots; 0.572 holds all three.
+
+    # Fault injection at the budget edge: without speculation 0.571 holds the
+    # sharded weights, the capped token pool and the 21 state slots; the
+    # default NEXTN option adds (min(4, 20 // 5) + 1) x 4 intermediate slot
+    # states, which need 0.572.
+    def rank_budget(fraction: str, draft_tokens: int | None = None) -> None:
+        for variant in memory_variants(recipe_for(QWEN_NEXT)):
+            for arg in variant.runtime.arguments:
+                if arg.name == "mem-fraction-static":
+                    arg.value = fraction
+                elif arg.name == "speculative-num-draft-tokens" and draft_tokens:
+                    arg.value = draft_tokens
+            if argument_value(variant, "speculative-algorithm") is None:
+                require_sglang_rank_budget(variant, models, inputs.geometries, "k")
+            else:
+                speculative.append(variant)
+
+    speculative: list[RecipeDefinition] = []
+    rank_budget("0.571")
+    assert speculative
+    for variant in speculative:
+        with pytest.raises(ValueError, match="static budget"):
+            require_sglang_rank_budget(variant, models, inputs.geometries, "k")
+    speculative.clear()
+    rank_budget("0.572")
+    for variant in speculative:
+        require_sglang_rank_budget(variant, models, inputs.geometries, "k")
+    # Eight draft tokens double the intermediate state past that edge.
+    speculative.clear()
+    rank_budget("0.572", draft_tokens=8)
+    for variant in speculative:
+        with pytest.raises(ValueError, match="static budget"):
+            require_sglang_rank_budget(variant, models, inputs.geometries, "k")
+
+
+def test_geometry_bound_to_an_image_rejects_another_image() -> None:
     recipe = recipe_for(QWEN_NEXT)
-    fraction = next(
-        arg for arg in recipe.runtime.arguments if arg.name == "mem-fraction-static"
-    )
-    fraction.value = "0.57"
-    with pytest.raises(ValueError, match="static budget"):
+    models, inputs = catalog_models(), load_inputs()
+    recipe.execution.build.base_image.digest = "0" * 64
+    with pytest.raises(ValueError, match="does not match the pinned image"):
         require_memory_need(recipe, models, inputs, document_digest="")
-    fraction.value = "0.572"
-    require_memory_need(recipe, models, inputs, document_digest="")
 
 
 def test_only_recipe_files_changed_since_the_merge_base_are_touched(
