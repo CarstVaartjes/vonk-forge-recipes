@@ -191,7 +191,7 @@ def test_touching_a_proven_multi_spark_vllm_document_keeps_it_valid(
 ) -> None:
     recipe = recipe_for(slug)
     models, inputs = catalog_models(), load_inputs()
-    assert per_rank_need(recipe, models).peak_bytes > LIMIT_BYTES
+    assert per_rank_need(recipe, models, inputs).peak_bytes > LIMIT_BYTES
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 

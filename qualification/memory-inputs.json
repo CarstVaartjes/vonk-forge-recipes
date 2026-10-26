@@ -533,12 +533,79 @@
       "value_dim": 192
     }
   },
-  "file_backed_weights": {
-    "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771": {
+  "file_backed_weights": [
+    {
+      "file_sha256": [
+        "824db4881320407ac340736d14dcee5ecd748c27d0f5836b8127ecc2e3781b0f",
+        "976330f4954338e1ad8b508c32aa912032c7ad908959fd53c8307650fe4520ed"
+      ],
       "runtime_image_digest": "2f0cf3adc0f989c1d446be274df864eb799630175f604c3b22b71b7205971dce",
-      "source": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks/blob/6f7d1590ad49a2b8995188e45d7b9db31e677452/overlay/engram_file_backend.py (in the pinned image): the Engram tables in shards 47 and 48 keep 0-size parameters with a skip loader and are read row by row through row_store from the mounted files; only a DSV41_CACHE_GIB row cache (0 in the recipe) and per-batch staging buffers are resident. Upstream README Memory: Engram tables are never pinned. Mounted data, not loaded weights."
+      "environment": {
+        "DSV41_SOURCE": "/models/engram",
+        "DSV41_RESIDENT_SCALES": "0"
+      },
+      "row_cache_gib_environment": "DSV41_CACHE_GIB",
+      "source": "deepseek-v4-1-flash-exl3-mia-dual. https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks/blob/6f7d1590ad49a2b8995188e45d7b9db31e677452/overlay/engram_file_backend.py (in the pinned image): Engram tables in shards 47/48 keep 0-size parameters with a skip loader and are read row by row through row_store from DSV41_SOURCE; resident only the DSV41_CACHE_GIB per-host row cache (default 8) and, unless DSV41_RESIDENT_SCALES=0, the scales. README Memory: Engram tables are never pinned."
+    },
+    {
+      "file_sha256": [
+        "824db4881320407ac340736d14dcee5ecd748c27d0f5836b8127ecc2e3781b0f",
+        "976330f4954338e1ad8b508c32aa912032c7ad908959fd53c8307650fe4520ed"
+      ],
+      "runtime_image_digest": "d84a123255b822fc22508635218000187221794f59c0694c33b0650d1e377d58",
+      "environment": {
+        "DSV41_ENGRAM_DISK": "1",
+        "DSV41_ENGRAM_CACHE": "0"
+      },
+      "source": "deepseek-v4-1-flash-exl3-sfxnz-vllm-dual. adapters/deepseek/sfxnz-exl3-v41-vllm-dual/docker/patch (sfxnz 3de91468, applied by the adapter build): DSV41_ENGRAM_DISK=1 skips .engram.embed.weight/scale in the weight iterator (apply_engram_disk.py) and DiskEngramTable preads only hashed rows from the shards (engram_disk.py); the host row LRU exists only with DSV41_ENGRAM_CACHE=1 (sitecustomize.py)."
+    },
+    {
+      "file_sha256": [
+        "824db4881320407ac340736d14dcee5ecd748c27d0f5836b8127ecc2e3781b0f",
+        "976330f4954338e1ad8b508c32aa912032c7ad908959fd53c8307650fe4520ed"
+      ],
+      "runtime_image_digest": "ad5cc20ca16f30ac6d4364cbc2ab00785b1575d31b90488d026d4245eead19a3",
+      "environment": {
+        "DSV41_ENGRAM_DISK": "1"
+      },
+      "source": "deepseek-v4-1-flash-tr3-hybrid-drowzeys-vllm-four. adapters/deepseek/drowzeys-tr3-hybrid-four/serve/patch-upstream-boot10 (drowzeys 4b69803b, copied over the image's vLLM by the adapter build): DSV41_ENGRAM_DISK=1 skips the Engram tensors in weight_utils.py and DiskEngramTable (engram.py) preads rows on a thread pool so the per-rank shard never occupies memory; no row cache."
+    },
+    {
+      "file_sha256": [
+        "824db4881320407ac340736d14dcee5ecd748c27d0f5836b8127ecc2e3781b0f",
+        "976330f4954338e1ad8b508c32aa912032c7ad908959fd53c8307650fe4520ed"
+      ],
+      "runtime_image_digest": "5668e35e5ee021da4b9ce88a1964caf0e082e8ca01d81d1d64b6213a55c6add5",
+      "arguments": {
+        "engram-config": "{\"cpu_offload\":false,\"table_memory\":\"disk\",\"disk_resident_scales\":false,\"disk_prefetch_max_tokens\":0,\"projection_tp\":false}"
+      },
+      "source": "deepseek-v4-1-flash-exl3-0xsero-vllm-dual. https://github.com/0xSero/DeepSeek-V4.1-Flash-Two-Sparks/blob/ee688184827e50f296bfdaf4215e04d3a4f942c3/scripts/launch.sh launches image 5668e35e with this engram-config, and README.md at that commit documents Engram tables on disk (table_memory: disk) for 462 GB of weights on two Sparks. The image's vLLM fork (Local Inference Lab) source is not vendored here; with resident tables the shards alone would exceed a Spark."
+    },
+    {
+      "file_sha256": [
+        "824db4881320407ac340736d14dcee5ecd748c27d0f5836b8127ecc2e3781b0f",
+        "976330f4954338e1ad8b508c32aa912032c7ad908959fd53c8307650fe4520ed"
+      ],
+      "runtime_image_digest": "537a7bc04a1de6cdaf2086556984a9ee26d15f479dbb2e7799f88bd52a321740",
+      "environment": {
+        "DSV41_ENGRAM_FILE_STORE": "1",
+        "DSV41_MODEL_PATH": "/models"
+      },
+      "source": "deepseek-v4-1-flash-r0b0tlab-sglang-four. adapters/deepseek/r0b0tlab-sglang-v41-four/adapter (r0b0tlab 430c812c, in the pinned image): sitecustomize installs sglang_patch/engram_file_store.py with DSV41_ENGRAM_FILE_STORE=1 and DSV41_MODEL_PATH; it replaces EngramEmbedding.__init__ with a read-only MAP_SHARED mmap of the shard and a no-op weight_loader (docs/ENGRAM-DESIGN.md: 0 extra memory; page cache is reclaimable)."
+    },
+    {
+      "file_sha256": [
+        "76a05106ece259be83d1bfea0dcb54f23377864ee60fd321690f35e6698a2af5",
+        "9dc51433e195bc78b5ad846b68643cc0351d3b174e5e4309222d3b7402c83afd"
+      ],
+      "runtime_image_digest": "3dbc313030a6ef2c5d7de8ecf48e9aece722694a82182cb618cc82b588816349",
+      "environment": {
+        "DSV41_RESIDENT_SCALES": "0"
+      },
+      "row_cache_gib_environment": "DSV41_CACHE_GIB",
+      "source": "deepseek-v4-1-flash-1017-mia-sglang-triple and -four. adapters/deepseek/mia-1017-sglang (MiaAI-Lab 64b02dea): the Dockerfile sets DSV41_SOURCE=/models/target, sitecustomize installs adapter/engram_backend.py, which keeps 0-size parameters and reads owned rows through row_store.cpp; resident only the DSV41_CACHE_GIB per-host row cache (default 64) and, unless DSV41_RESIDENT_SCALES=0, the scales."
     }
-  },
+  ],
   "historical_documents": {
     "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single": [
       "304512d867250e6fbea3d7d163d011bb5432361e2f4195c0df7ca2da0b4a6341"
