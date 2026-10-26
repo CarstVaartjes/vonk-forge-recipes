@@ -40,6 +40,8 @@ OVERHEAD_BYTES = 8_000_000_000
 # sglang 94602c9c kv_cache_configurator._calculate_mamba_ratio: at most 3 base
 # plus 2 extra_buffer overlap state slots per running request.
 SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
+# The DeepSeek V4.1 Engram row store's resident cache size (GiB per Spark).
+ENGRAM_ROW_CACHE_ENVIRONMENT = "DSV41_CACHE_GIB"
 # Separate speculative-model calibration; see vllm_memory_fit.py for the incident.
 DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 
@@ -88,30 +90,12 @@ class CacheGeometry(BaseModel):
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
 
-class FileBackedWeights(BaseModel):
-    """Weight files a pinned runtime reads from disk on demand, never loads.
-
-    Bound to exact file digests and the recipe's base image digest. The recipe
-    must pin every launch setting that selects the file-backed reader; the
-    reader's resident row cache is read from `row_cache_gib_environment` (GiB
-    per Spark) and charged to each rank on that Spark.
-    """
-
-    model_config = ConfigDict(extra="forbid")
-    file_sha256: list[Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]] = Field(
-        min_length=1
-    )
-    runtime_image_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
-    environment: dict[str, str] = Field(default_factory=dict)
-    arguments: dict[str, str] = Field(default_factory=dict)
-    row_cache_gib_environment: str | None = None
-    source: str
-
-
 class MemoryInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
     geometries: dict[str, CacheGeometry]
-    file_backed_weights: list[FileBackedWeights]
+    # Engram n-gram table files, by content digest, with their source. Owner
+    # rule (2026-10-26): Engram tables are never memory usage.
+    engram_files: dict[str, str]
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
 
@@ -794,56 +778,31 @@ def rank_weight_bytes(
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
 ) -> int:
-    """Selected weights loaded per rank, plus any file-backed reader's row cache.
+    """Selected weights per rank, Engram tables excluded, plus an explicit row cache.
 
-    A selected file registered as file-backed counts only under its pinned
-    image and launch settings; a registration for another image is stale and
-    fails, like a cache geometry bound to another image.
+    Engram files are identified by content digest, for every recipe and engine.
+    A row cache counts only when the recipe sets a positive DSV41_CACHE_GIB
+    (GiB per Spark, shared by the ranks on that Spark).
     """
-    label = recipe.identity.slug
     weights: dict[str, int] = {}
     for selection in recipe.models:
         selected = {item.file_id for item in selection.files}
         for item in models[selection.model.content_sha256].files:
-            if item.id in selected and "weights" in item.roles:
+            if (
+                item.id in selected
+                and "weights" in item.roles
+                and item.sha256 not in inputs.engram_files
+            ):
                 weights[item.sha256] = item.size_bytes
-    registered = [
-        fact
-        for fact in inputs.file_backed_weights
-        if weights.keys() & set(fact.file_sha256)
-    ]
-    image = recipe.execution.build.base_image.digest
-    facts = [fact for fact in registered if fact.runtime_image_digest == image]
-    if registered and not facts:
-        raise ValueError(
-            f"{label}: file-backed weights are registered for image "
-            f"{registered[0].runtime_image_digest}, not {image}; verify the "
-            "reader for this image in qualification/memory-inputs.json"
-        )
-    environment = {item.name: str(item.value) for item in recipe.runtime.environment}
     parallel = recipe.topology.parallelism
     shards = parallel.tensor * parallel.pipeline
     cache = 0
-    for fact in facts:
-        for name, value in fact.environment.items():
-            if environment.get(name) != value:
-                raise ValueError(f"{label}: file-backed weights require {name}={value}")
-        for name, value in fact.arguments.items():
-            if str(argument_value(recipe, name)) != value:
-                raise ValueError(
-                    f"{label}: file-backed weights require --{name} {value}"
-                )
-        if fact.row_cache_gib_environment is not None:
-            gib = environment.get(fact.row_cache_gib_environment)
-            if gib is None:
-                raise ValueError(
-                    f"{label}: pin {fact.row_cache_gib_environment}, the resident "
-                    "file-backed row cache"
-                )
-            per_spark = int((Decimal(gib) * 2**30).to_integral_value(ROUND_CEILING))
-            cache += -(-per_spark * recipe.topology.node_count // shards)
-        for digest in fact.file_sha256:
-            weights.pop(digest, None)
+    for item in recipe.runtime.environment:
+        if item.name == ENGRAM_ROW_CACHE_ENVIRONMENT and Decimal(str(item.value)) > 0:
+            per_spark = int(
+                (Decimal(str(item.value)) * 2**30).to_integral_value(ROUND_CEILING)
+            )
+            cache = -(-per_spark * recipe.topology.node_count // shards)
     return (sum(weights.values()) + shards - 1) // shards + cache
 
 
