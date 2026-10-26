@@ -5,9 +5,10 @@ Each one has the meaning the platform's qualification gives it (vonk-forge
 ``video-metadata`` reads the MP4 with ``ffprobe``; a sweep host without it, or an
 ffprobe that cannot be run, cannot observe the video at all, which is
 :class:`NotObserved` with its reason: never a pass and never the recipe's failure.
-``glb-structure`` checks the container and the triangle meshes it declares, a
-lighter walk than the platform's full mesh validator, as the sweep's PNG and WAV
-checks are lighter than the platform's decoders.
+``glb-structure`` checks the container and the triangle meshes it declares, then
+what its contract profile (``QualificationGlbProfile``) adds: textures or a bound
+skin. It is a lighter walk than the platform's full mesh validator, as the sweep's
+PNG and WAV checks are lighter than the platform's decoders.
 """
 
 from __future__ import annotations
@@ -18,9 +19,12 @@ import shutil
 import struct
 import subprocess
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
+from functools import partial
 from pathlib import Path
 from typing import Any, NoReturn, TypeIs
+
+from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
 from .smoke import AssertionFailed
 
@@ -409,13 +413,23 @@ def _texture_image(document: Mapping[str, Any], texture: Mapping[str, Any]) -> i
     return source
 
 
+def _textured(
+    document: Mapping[str, Any],
+    accessors: list[tuple[int, str, int]],
+    primitives: list[tuple[Mapping[str, Any], int]],
+    *,
+    pbr_required: bool = False,
+) -> None:
+    for primitive, vertex_count in primitives:
+        _textured_primitive(document, primitive, accessors, vertex_count, pbr_required)
+
+
 def _textured_primitive(
     document: Mapping[str, Any],
     primitive: Mapping[str, Any],
     accessors: list[tuple[int, str, int]],
     vertex_count: int,
-    *,
-    pbr_required: bool = False,
+    pbr_required: bool,
 ) -> None:
     attributes = primitive["attributes"]
     uv = _accessor(accessors, attributes.get("TEXCOORD_0"), "TEXCOORD_0")
@@ -444,17 +458,79 @@ def _textured_primitive(
         _glb_fail("PBR textures must use distinct embedded images", sources)
 
 
+def _skinned(
+    document: Mapping[str, Any],
+    accessors: list[tuple[int, str, int]],
+    primitives: list[tuple[Mapping[str, Any], int]],
+) -> None:
+    """Every mesh node binds a skin with joints; every primitive carries its weights."""
+    nodes = _list(document, "nodes")
+    skins = _list(document, "skins")
+    for skin in skins:
+        joints = skin.get("joints") if isinstance(skin, dict) else None
+        if (
+            not isinstance(joints, list)
+            or not joints
+            or not all(_int(joint) and 0 <= joint < len(nodes) for joint in joints)
+            or len(set(joints)) != len(joints)
+        ):
+            _glb_fail("skin joints must be distinct node indices", skin)
+    mesh_nodes = [node for node in nodes if isinstance(node, dict) and "mesh" in node]
+    if not mesh_nodes:
+        _glb_fail("has no mesh node to bind a skin", len(nodes))
+    for node in mesh_nodes:
+        skin = node.get("skin")
+        if not _int(skin) or not 0 <= skin < len(skins):
+            _glb_fail("mesh node must bind a skin", node)
+    for primitive, vertex_count in primitives:
+        attributes = primitive["attributes"]
+        joints = _accessor(accessors, attributes.get("JOINTS_0"), "JOINTS_0")
+        if joints[0] not in (5121, 5123) or joints[1:] != ("VEC4", vertex_count):
+            _glb_fail("JOINTS_0 must be unsigned VEC4 matching POSITION count", joints)
+        weights = _accessor(accessors, attributes.get("WEIGHTS_0"), "WEIGHTS_0")
+        if weights != (5126, "VEC4", vertex_count):
+            _glb_fail("WEIGHTS_0 must be FLOAT VEC4 matching POSITION count", weights)
+
+
+def _triangle_mesh(
+    _document: Mapping[str, Any],
+    _accessors: list[tuple[int, str, int]],
+    _primitives: list[tuple[Mapping[str, Any], int]],
+) -> None:
+    """The triangle meshes every GLB declares are the whole profile."""
+
+
+#: What each contract profile checks beyond the triangle meshes every GLB declares.
+GLB_PROFILE_CHECKS: dict[
+    QualificationGlbProfile,
+    Callable[
+        [
+            Mapping[str, Any],
+            list[tuple[int, str, int]],
+            list[tuple[Mapping[str, Any], int]],
+        ],
+        None,
+    ],
+] = {
+    QualificationGlbProfile.TRIANGLE_MESH: _triangle_mesh,
+    QualificationGlbProfile.TEXTURED: _textured,
+    QualificationGlbProfile.TEXTURED_PBR: partial(_textured, pbr_required=True),
+    QualificationGlbProfile.SKINNED: _skinned,
+}
+
+
 def glb_structure(content: bytes, assertion: Mapping[str, Any]) -> None:
-    profile = assertion.get("profile", "triangle-mesh")
-    if profile not in {"triangle-mesh", "textured", "textured-pbr"}:
-        _glb_fail(f"profile {profile!r} is not checked by the sweep", profile)
+    value = assertion.get("profile", QualificationGlbProfile.TRIANGLE_MESH)
+    try:
+        check = GLB_PROFILE_CHECKS[QualificationGlbProfile(value)]
+    except (KeyError, ValueError):
+        _glb_fail(f"profile {value!r} is not checked by the sweep", value)
     document, blob = _glb_chunks(content)
     accessors = _glb_accessors(document, blob)
     meshes = _list(document, "meshes")
-    primitives = 0
+    primitives: list[tuple[Mapping[str, Any], int]] = []
     for mesh in meshes:
         for primitive in _list(mesh if isinstance(mesh, dict) else {}, "primitives"):
-            primitives += 1
             if not isinstance(primitive, dict) or primitive.get("mode", 4) != 4:
                 _glb_fail("primitive is not TRIANGLES", primitive)
             attributes = primitive.get("attributes")
@@ -473,18 +549,12 @@ def glb_structure(content: bytes, assertion: Mapping[str, Any]) -> None:
                 or indices[2] % 3
             ):
                 _glb_fail("indices must be unsigned SCALAR triangle indices", indices)
-            if profile in {"textured", "textured-pbr"}:
-                _textured_primitive(
-                    document,
-                    primitive,
-                    accessors,
-                    position[2],
-                    pbr_required=profile == "textured-pbr",
-                )
+            primitives.append((primitive, position[2]))
+    check(document, accessors, primitives)
     if len(meshes) < assertion.get("minimum_meshes", 1):
         _glb_fail("has too few meshes", len(meshes))
-    if primitives < assertion.get("minimum_primitives", 1):
-        _glb_fail("has too few primitives", primitives)
+    if len(primitives) < assertion.get("minimum_primitives", 1):
+        _glb_fail("has too few primitives", len(primitives))
 
 
 # -- realtime-transcript -----------------------------------------------------------------
