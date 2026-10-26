@@ -320,10 +320,13 @@ plus the 8 GB overhead (plus the 17 GB floor of a separately loaded vLLM draft
 and the resident expansion of geometry pinned to the launch) is admissible on
 an idle Spark. Proven singles run up to 0.86, exactly the largest admitted peak;
 vLLM's implicit 0.90 is not admissible. gpt-oss-120b at 0.85 beside its 10 GB
-Marlin repack exhausted host memory. An SGLang fraction × the idle available
-bytes must also hold the selected weights and their resident expansion (GLM a0
-at 0.75 was OOM-killed); SGLang derives an omitted fraction at launch, so none
-is required. A pool-less single-Spark vLLM declaration's peak must cover its
+Marlin repack exhausted host memory. On one Spark a declared SGLang fraction is
+bounded whether or not `max-total-tokens` caps the pools: its share must be
+admissible, and the fraction × the idle available bytes must hold the selected
+weights, their resident expansion and any capped token/state pools (GLM a0 at
+0.75 was OOM-killed; restoring its 262,144-token cap needs 116.8 GB against
+0.85's 106.8 GB). The declared peak covers the same static need plus the 8 GB
+overhead. SGLang derives an omitted fraction at launch, so none is required. A pool-less single-Spark vLLM declaration's peak must cover its
 utilization budget plus the overhead and draft floor, since the Controller
 reserves the declared peak (the 2026-10-13 freeze declared 99.46 GB for a
 116.46 GB envelope). `tests/test_absolute_kv_capacity.py` replays those recorded

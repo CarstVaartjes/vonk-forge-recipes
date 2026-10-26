@@ -229,7 +229,7 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
         # OOM-killed (exit 137) 2026-10-21: 0.75 below weights + expansion.
         (
             "glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single-fa86311a",
-            "cannot hold the selected weights and resident expansion",
+            "cannot hold the selected weights",
         ),
         # 2026-10-21: 0.95, not admissible on an idle Spark.
         (
@@ -258,6 +258,19 @@ def test_recorded_single_spark_memory_failures_are_rejected_when_touched(
         require_memory_need(
             recipe, models, load_inputs(), document_digest="", touched=True
         )
+
+
+def test_recorded_fraction_is_rejected_on_the_current_capped_glm_a0() -> None:
+    # fa86311a's 0.75 cannot hold the weights and 14 GB expansion even with
+    # today's 8,192-token and 2-slot caps; the document's 0.85 can.
+    recipe = recipe_for("glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single")
+    models, inputs = catalog_models(), load_inputs()
+    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    next(
+        arg for arg in recipe.runtime.arguments if arg.name == "mem-fraction-static"
+    ).value = "0.75"
+    with pytest.raises(ValueError, match="cannot hold the selected weights"):
+        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 
 def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> None:

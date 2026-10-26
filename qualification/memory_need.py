@@ -375,44 +375,37 @@ def pinned_geometry(
     return geometry
 
 
-def require_sglang_rank_budget(
+def sglang_static_need(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
     key: str,
-) -> None:
-    """Multi-Spark SGLang profiles its pools after the weights are resident.
+    *,
+    pinned: bool,
+) -> int:
+    """Per-rank bytes SGLang holds inside mem-fraction-static once profiled.
 
-    sglang 94602c9c kv_cache_configurator._profile_available_bytes charges
-    everything resident against mem-fraction-static times pre-load free memory,
-    so that budget on the lowest idle Spark must hold the sharded weights, their
-    resident expansion and the capped token and state pools.
-
-    The token cap must hold one full-context request
-    (require_absolute_kv_capacity), not context x max-running-requests: SGLang
-    schedules requests within it. The proven Qwen3.8 Flash Next W4A16 r0b0tlab
-    dual caps one 262,144-token context at concurrency 4. The state cap must
-    hold one request's slots: at startup kv_cache_configurator
-    .resolve_max_num_reqs lowers max-running-requests to max-mamba-cache-size
-    // 5 and fails only below one, so 5 slots serve concurrency 1. With
-    speculation, _handle_max_mamba_cache adds intermediate state for those
-    running requests plus the padding slot, per draft token.
+    Weights, the resident expansion of the selected geometry and, when
+    max-total-tokens caps the pools, the capped token and state pools.
+    ``pinned`` requires geometry for every Model (multi-Spark); otherwise only
+    geometry pinned to this launch is charged and an uncapped pool, sized
+    from what remains, adds nothing.
     """
-    if argument_value(recipe, "max-total-tokens") is None:
-        raise ValueError(
-            f"{key}: set absolute max-total-tokens; a static fraction does not bound KV by need"
-        )
-    tokens = positive_argument(recipe, "max-total-tokens")
-    fraction = argument_value(recipe, "mem-fraction-static")
-    if fraction is None:
-        raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
+    capped = argument_value(recipe, "max-total-tokens") is not None
+    tokens = positive_argument(recipe, "max-total-tokens") if capped else 0
     need = rank_weight_bytes(recipe, models, inputs)
     for selection in recipe.models:
         model = models[selection.model.content_sha256]
-        geometry = pinned_geometry(
-            recipe, selection.model.slug, model, inputs.geometries
+        geometry = (
+            pinned_geometry(recipe, selection.model.slug, model, inputs.geometries)
+            if pinned
+            else applicable_geometry(recipe, selection.model.slug, model, inputs)
         )
+        if geometry is None:
+            continue
         need += geometry.resident_expansion_bytes
+        if not capped:
+            continue
         need += cache_need_for_context(recipe, geometry, tokens)
         if geometry.sglang_swa_layers:
             ratio = argument_value(recipe, "swa-full-tokens-ratio")
@@ -453,6 +446,49 @@ def require_sglang_rank_budget(
                     * (running + 1)
                     * positive_argument(recipe, "speculative-num-draft-tokens")
                 )
+        if geometry.state_padding:
+            # The pinned image's allocator charges max-mamba-cache-size plus
+            # its padding slots (glm-a0-cache-sizing.py.txt).
+            if argument_value(recipe, "max-mamba-cache-size") is None:
+                raise ValueError(f"{key}: set absolute max-mamba-cache-size")
+            need += geometry.state_bytes_per_request * (
+                positive_argument(recipe, "max-mamba-cache-size")
+                + geometry.state_padding
+            )
+    return need
+
+
+def require_sglang_rank_budget(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    key: str,
+) -> None:
+    """Multi-Spark SGLang profiles its pools after the weights are resident.
+
+    sglang 94602c9c kv_cache_configurator._profile_available_bytes charges
+    everything resident against mem-fraction-static times pre-load free memory,
+    so that budget on the lowest idle Spark must hold the sharded weights, their
+    resident expansion and the capped token and state pools.
+
+    The token cap must hold one full-context request
+    (require_absolute_kv_capacity), not context x max-running-requests: SGLang
+    schedules requests within it. The proven Qwen3.8 Flash Next W4A16 r0b0tlab
+    dual caps one 262,144-token context at concurrency 4. The state cap must
+    hold one request's slots: at startup kv_cache_configurator
+    .resolve_max_num_reqs lowers max-running-requests to max-mamba-cache-size
+    // 5 and fails only below one, so 5 slots serve concurrency 1. With
+    speculation, _handle_max_mamba_cache adds intermediate state for those
+    running requests plus the padding slot, per draft token.
+    """
+    if argument_value(recipe, "max-total-tokens") is None:
+        raise ValueError(
+            f"{key}: set absolute max-total-tokens; a static fraction does not bound KV by need"
+        )
+    fraction = argument_value(recipe, "mem-fraction-static")
+    if fraction is None:
+        raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
+    need = sglang_static_need(recipe, models, inputs, key, pinned=True)
     static_bytes = Decimal(str(fraction)) * IDLE_AVAILABLE_BYTES
     if not static_bytes.is_finite() or static_bytes < need:
         raise ValueError(
@@ -645,9 +681,19 @@ def require_memory_need(
     for variant in memory_variants(recipe):
         need = per_rank_need(variant, models, inputs)
         # Proven single-Spark documents run below the multi-Spark reserve and
-        # SGLang static-peak declarations; the loading floor and vLLM's budget
-        # hold there, because the Controller reserves the declared peak.
-        envelope = vllm_utilization_envelope(variant) if single else None
+        # SGLang static-peak declarations; the loading floor, vLLM's budget and
+        # SGLang's weights, expansion and capped pools hold there, because the
+        # Controller reserves the declared peak.
+        vllm = variant.runtime.engine == "vllm"
+        envelope = (
+            None
+            if not single
+            else vllm_utilization_envelope(variant)
+            if vllm
+            else sglang_static_need(variant, models, inputs, key, pinned=False)
+            + OVERHEAD_BYTES
+        )
+        engine = "vLLM budget" if vllm else "SGLang static need"
         problems = (
             [
                 f"{role.name}: peak understates need {need.peak_bytes}"
@@ -655,7 +701,7 @@ def require_memory_need(
                 if role.resources.memory.peak_bytes < need.peak_bytes
             ]
             + [
-                f"{role.name}: peak understates vLLM budget plus overhead {envelope}"
+                f"{role.name}: peak understates {engine} plus overhead {envelope}"
                 for role in variant.topology.roles
                 if envelope is not None and role.resources.memory.peak_bytes < envelope
             ]
@@ -691,27 +737,19 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
     return int(envelope.to_integral_value(ROUND_CEILING))
 
 
-def applicable_expansion(
+def applicable_geometry(
     recipe: RecipeDefinition,
-    models: Mapping[str, ModelDefinition],
-    geometries: Mapping[str, CacheGeometry],
-) -> int:
-    """Source-backed resident expansion of geometry pinned to this launch."""
-    total = 0
-    for selection in recipe.models:
-        if selection.model.slug not in geometries:
-            continue
-        try:
-            geometry = pinned_geometry(
-                recipe,
-                selection.model.slug,
-                models[selection.model.content_sha256],
-                geometries,
-            )
-        except ValueError:
-            continue  # Bound to another configuration or image.
-        total += geometry.resident_expansion_bytes
-    return total
+    slug: str,
+    model: ModelDefinition,
+    inputs: MemoryInputs,
+) -> CacheGeometry | None:
+    """Source-backed geometry pinned to this launch, if any."""
+    if slug not in inputs.geometries:
+        return None
+    try:
+        return pinned_geometry(recipe, slug, model, inputs.geometries)
+    except ValueError:
+        return None  # Bound to another configuration or image.
 
 
 def require_bounded_kv_pool(
@@ -733,8 +771,9 @@ def require_bounded_kv_pool(
     beside it and the source-backed resident expansion of geometry pinned to
     the launch, must be admissible on an idle Spark: gpt-oss-120b 4036b68d at
     0.85 beside its 10 GB Marlin repack exhausted host memory on 2026-10-21.
-    An SGLang single's static budget must hold its weights and expansion:
-    GLM a0 fa86311a at 0.75 was OOM-killed on 2026-10-21.
+    A declared SGLang single fraction, capped or not, must be admissible and
+    hold its weights, expansion and capped pools: GLM a0 fa86311a at 0.75 was
+    OOM-killed on 2026-10-21.
 
     An absolute pool must hold one full-context request
     (require_absolute_kv_capacity), not context x max-num-seqs: vLLM schedules
@@ -747,34 +786,58 @@ def require_bounded_kv_pool(
     Nemotron 3 Nano NVFP4 NVIDIA SGLang single runs on it, so none is required.
     """
     vllm = recipe.runtime.engine == "vllm"
+    name = "gpu-memory-utilization" if vllm else "mem-fraction-static"
+    fraction = argument_value(recipe, name)
+    if not vllm and recipe.topology.node_count == 1:
+        if fraction is None:
+            return
+        # SGLang profiles after loading: the static budget must hold the
+        # weights, their expansion and any capped pools (GLM a0 fa86311a at
+        # 0.75 was OOM-killed), and a cap bounds the pools, not the budget the
+        # fraction reserves.
+        share = Decimal(str(fraction))
+        resident = sglang_static_need(recipe, models, inputs, key, pinned=False)
+        if share * IDLE_AVAILABLE_BYTES < resident:
+            raise ValueError(
+                f"{key}: mem-fraction-static {fraction} x idle available "
+                f"{IDLE_AVAILABLE_BYTES} cannot hold the selected weights, resident "
+                f"expansion and capped pools ({resident} bytes)"
+            )
+        if not evaluate_memory_admission(
+            int(share * TOTAL_BYTES) + OVERHEAD_BYTES,
+            SPARK_MEMORY_BYTES,
+            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
+        ).admissible:
+            raise ValueError(
+                f"{key}: mem-fraction-static {fraction} share of {TOTAL_BYTES} bytes "
+                f"plus {OVERHEAD_BYTES} overhead is not admissible on an idle Spark"
+            )
+        return
     pools = (
         ("kv-cache-memory-bytes", "kv-cache-memory") if vllm else ("max-total-tokens",)
     )
     if any(argument_value(recipe, name) is not None for name in pools):
         return
-    name = "gpu-memory-utilization" if vllm else "mem-fraction-static"
-    fraction = argument_value(recipe, name)
     if fraction is None and not vllm:
-        return
+        return  # Multi-Spark SGLang uses require_sglang_rank_budget.
     share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
     if recipe.topology.node_count != 1:
         ceiling = f"leaves the {GUARD_BYTES}-byte host memory guard"
         bounded = share * TOTAL_BYTES + OVERHEAD_BYTES <= TOTAL_BYTES - GUARD_BYTES
     else:
-        expansion = applicable_expansion(recipe, models, inputs.geometries)
-        if vllm:
-            budget = (vllm_utilization_envelope(recipe) or 0) + expansion
-        else:
-            # SGLang profiles after loading: the static budget must hold the
-            # weights and their expansion (GLM a0 at 0.75 was OOM-killed).
-            budget = int(share * TOTAL_BYTES) + OVERHEAD_BYTES
-            resident = rank_weight_bytes(recipe, models, inputs) + expansion
-            if share * IDLE_AVAILABLE_BYTES < resident:
-                raise ValueError(
-                    f"{key}: mem-fraction-static {fraction} x idle available "
-                    f"{IDLE_AVAILABLE_BYTES} cannot hold the selected weights and "
-                    f"resident expansion ({resident} bytes)"
+        budget = (vllm_utilization_envelope(recipe) or 0) + sum(
+            geometry.resident_expansion_bytes
+            for selection in recipe.models
+            if (
+                geometry := applicable_geometry(
+                    recipe,
+                    selection.model.slug,
+                    models[selection.model.content_sha256],
+                    inputs,
                 )
+            )
+            is not None
+        )
         ceiling = "is admissible on an idle Spark"
         bounded = evaluate_memory_admission(
             budget, SPARK_MEMORY_BYTES, occupied_bytes=ADMISSION_IDLE_USE_BYTES

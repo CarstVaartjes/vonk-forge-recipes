@@ -252,7 +252,9 @@ def test_single_spark_sglang_token_cap_holds_one_request() -> None:
     recipe.runtime.arguments.append(
         RecipeRuntimeArgument(name="mem-fraction-static", value="0.90")
     )
-    with pytest.raises(ValueError, match="absolute max-total-tokens, or a mem"):
+    with pytest.raises(
+        ValueError, match="mem-fraction-static 0.90 share.*not admissible"
+    ):
         require_memory_need(
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
         )
@@ -489,6 +491,40 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
     schedule.max_mamba_cache_size = None
     with pytest.raises(RuntimeError, match="Not enough GPU memory for hybrid"):
         sizer._profile_available_bytes(120)
+
+
+def glm_a0() -> RecipeDefinition:
+    return RecipeDefinition.model_validate_json(
+        (
+            ROOT / "recipes/glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single.json"
+        ).read_text()
+    )
+
+
+@pytest.mark.parametrize(
+    "name,value,match",
+    [
+        # 116.8 GB of weights, expansion and capped pools: beyond the declared
+        # peak and the 106.8 GB static budget of 0.85 x 125.65 GB.
+        ("max-total-tokens", 262144, "peak understates SGLang static need"),
+        ("max-mamba-cache-size", 16, "peak understates SGLang static need"),
+        # The OOM-killed fa86311a fraction, and a capped launch's 0.95.
+        ("mem-fraction-static", "0.75", "cannot hold the selected weights"),
+        ("mem-fraction-static", "0.95", "not admissible on an idle Spark"),
+    ],
+)
+def test_capped_sglang_guard_rejects_restored_large_pools(
+    name: str, value: int | str, match: str
+) -> None:
+    recipe = glm_a0()
+    require_memory_need(
+        recipe, catalog_models(), INPUTS, document_digest="", touched=True
+    )
+    next(item for item in recipe.runtime.arguments if item.name == name).value = value
+    with pytest.raises(ValueError, match=match):
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
 
 
 @pytest.mark.parametrize("defect", ["graphs", "image", "state-cap"])
