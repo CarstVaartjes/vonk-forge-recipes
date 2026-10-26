@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/minimax-m2-7-awq-4bit-eugr-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "6e2b5518389b62454d41bfaac97c36275ab9153e261fa80d789aac9aec75b568",
+        "source_bundle_sha256": "59b44ab7abf63cb2c521f7e50193fcb5ce9929b1a33d3f5b21ddc60c5417ec2a",
+        "runtime_image": {
+          "build_key": "933a0bc33e51e17791fc371e0418a6d3ea58a28f8dd974e0929096cbdda2f71d",
+          "image_digest": "sha256:4e03d3c27be7f5b988d090e19fcabc42969aff65b626da99095d156f61c348b6"
+        },
+        "model_digests": [
+          "7634b3d41a82560cd1fef16563e2a7df7472ecc9a67b62986c477af652b27c36"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "cc6f6ef1191c29c79eebeeb64033c164269640f51361bbe74c6f3d8981235359"
+      ],
+      "tested_at": "2026-10-25T05:45:10.700295Z",
+      "platform": {
+        "controller_source_sha": "6f08085d7791e59ee7eef409c0f7b71432beb8e0",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/inkling-small-nvfp4-sglang-mia-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "c36e6cab36b17c3a1dce6a2e058ec734b5d146177597fa4b3a023f5c1fa69b58",
+        "source_bundle_sha256": "114f8565a43fa341e2b6145cbd4e1e0da75677b0681c24a29267a24d2e74ca04",
+        "runtime_image": {
+          "build_key": "d4f17a0d1da5389a5858ddb416850bfa11db89d8a091466725103f387ee956a7",
+          "image_digest": "sha256:76f3ec752ed5ef4d8b7d35aa8ea0092a6b3fdd286d64a2b2db2bd1892c04a286"
+        },
+        "model_digests": [
+          "a3026d05251c1fbabb33540cd6decf870b03db69cfa996100f20f3990a37d378",
+          "d181d851f59f52d91a0f393c52092a591048cbfb6e9b2e48df39c374f9c14b55"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "694e7f6e24bec8312cbed9c947d1c0f6e6b8e95678b688304ffbf01389e47b1a"
+      ],
+      "tested_at": "2026-10-25T15:36:55.008666Z",
+      "platform": {
+        "controller_source_sha": "d399fa36bc62fdc3839943fc2651289e89a65f1f",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}

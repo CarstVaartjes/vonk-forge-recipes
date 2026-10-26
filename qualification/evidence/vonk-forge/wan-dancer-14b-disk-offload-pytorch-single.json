@@ -21,6 +21,95 @@
         "hardware_class": "GB10"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "32a0be1774617ae5fb824d762e97ebd3207547518e6d69065d908fd1bccc28fe",
+        "source_bundle_sha256": "0dd47b3df96389eec3081f2e7a2b6bf71769789704682c44b29cf43a6d37a758",
+        "runtime_image": {
+          "build_key": "fc81c2cd17b8f78af11e84786cc568a91d777261858d70221745a0a7b85d66b9",
+          "image_digest": "sha256:785125da9f8d0859c4f45f4d63964add4370cf3a6e1599d12686d262d3f8e153"
+        },
+        "model_digests": [
+          "a3db4842689df3cdea59a14fea3bf6f601e3bb0b00baad5fe1ebada0b2e1f60a"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "fadd46b93dded9808dfc8c81e1dbf749d2b85125e7c0161b0ef728725796073b"
+      ],
+      "tested_at": "2026-10-24T18:23:40.335822Z",
+      "platform": {
+        "controller_source_sha": "2126ee30c6aedc2e8bd52073693ddc2e110c7202",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "650a3eee950d9d7b87f6d76b4e42f6774ab2160d0cabc2d7026836c0fb637d1d",
+        "source_bundle_sha256": "e57e6c187e889bcec26c1b8f0b7cf1726f72cf70396a60415dcfd6a6cec32ac6",
+        "runtime_image": {
+          "build_key": "21ae77e9e4755d3b0f6bdb9e8478be10ebf0c73c73de24bfbdd54d3f5215d9c7",
+          "image_digest": "sha256:10f962082835a0f3b51029a28e585d3e1dbf69ddd81ab1fec03a457f6d4cbed0"
+        },
+        "model_digests": [
+          "a3db4842689df3cdea59a14fea3bf6f601e3bb0b00baad5fe1ebada0b2e1f60a"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "5df43d6b22e2715bac0aa2078f687bb10d26106ce51eee53020e7e98161c7c4e"
+      ],
+      "tested_at": "2026-10-24T23:35:22.188760Z",
+      "platform": {
+        "controller_source_sha": "6f08085d7791e59ee7eef409c0f7b71432beb8e0",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5269cc40552263e0148ebe92ff950dc0366e98e6d38cde81adb854339a169043",
+        "source_bundle_sha256": "3cc9354585ef14f3497b33a7d8fac9af3e9f0a7cc633f07e4fc3df41b8018408",
+        "runtime_image": {
+          "build_key": "1475aead67c258008b41db7d9496b809061cab948fdb3abcd458facc91334dbc",
+          "image_digest": "sha256:4f7fcbc546931ce8c2f04f10e3dd6636b893c963af63d6f0a40d6a84e77cdff0"
+        },
+        "model_digests": [
+          "a3db4842689df3cdea59a14fea3bf6f601e3bb0b00baad5fe1ebada0b2e1f60a"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "501554ab7daa5b22aaca22bf74e9001144580c458c59f51cf8a8cc8a71e437c6"
+      ],
+      "tested_at": "2026-10-25T17:28:02.705555Z",
+      "platform": {
+        "controller_source_sha": "d399fa36bc62fdc3839943fc2651289e89a65f1f",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
     }
   ]
 }
