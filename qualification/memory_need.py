@@ -669,14 +669,16 @@ def require_need_sized_kv_pool(
     inputs: MemoryInputs,
     key: str,
 ) -> None:
-    """A multi-Spark vLLM pool holds declared context x max-num-seqs per rank
-    and still fits beside the sharded weights under the planning limit.
+    """A multi-Spark vLLM pool holds declared context x max-num-seqs per rank.
 
     A utilization fraction sizes KV to whatever memory remains: on 2026-10-26
     Laguna M.1 at TP=2 took 475,392 tokens for a 4 x 8,192-token workload and
-    left its entrypoint Spark at the 16 GiB host memory guard floor. The same
-    day a need-sized 27,313,307,648-byte DeepSeek V4 Flash DSpark pool beside
-    83,443,267,668 bytes of weights per rank tripped that guard on both Sparks.
+    left its entrypoint Spark at the 16 GiB host memory guard floor.
+
+    No ceiling below idle admission applies to weights + pool: proven documents
+    reach that admission bound (require_admissible_declaration), and the
+    proven DeepSeek V4 Flash vision eugr dual exceeds, on weights and on pool,
+    the DSpark vLLM 0.25 document that tripped the guard. Hardware judges that.
     """
     need = absolute_kv_need(
         recipe,
@@ -692,14 +694,6 @@ def require_need_sized_kv_pool(
             f"{key}: set absolute kv-cache-memory-bytes of at least {need} "
             "(declared context x max-num-seqs per rank); a utilization fraction "
             "does not bound KV by need"
-        )
-    floor = per_rank_need(recipe, models).peak_bytes
-    if floor > LIMIT_BYTES:
-        raise ValueError(
-            f"{key}: sharded weights, absolute KV pool and overhead ({floor} "
-            f"bytes/rank) exceed the planning limit {LIMIT_BYTES} (Spark total "
-            "minus idle host use and the 16 GiB host memory guard); lower "
-            "declared context or concurrency and the pool with it"
         )
 
 
@@ -823,8 +817,10 @@ def per_rank_need(
     # The measured 17 GB term is relative to that utilization budget, not another
     # allocation beside explicitly counted draft weights. Keep it in the strict
     # workload/legacy envelope guards, not this optimistic loading floor.
-    # Physical fit uses observed idle availability. The 16 GiB planning guard
-    # remains LIMIT_BYTES and is reported as a warning, not a hardware verdict.
+    # Physical fit uses observed idle availability; a changed document's peak
+    # must cover this floor and be admissible on an idle Spark. For multi-Spark
+    # recipes the 16 GiB planning guard (LIMIT_BYTES) is only a warning: the
+    # hardware-proven set runs above it.
     return PerRankMemoryNeed(
         loading_floor, IDLE_AVAILABLE_BYTES, recipe.topology.node_count
     )
