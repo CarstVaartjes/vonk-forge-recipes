@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
+from vonk_forge_contracts.recipe import RecipeRuntimeEnvironment
 
 from qualification.memory_need import (
     LIMIT_BYTES,
@@ -12,6 +13,7 @@ from qualification.memory_need import (
     OVERHEAD_BYTES,
     declaration_problems,
     load_inputs,
+    memory_variants,
     per_rank_need,
     require_memory_need,
 )
@@ -109,58 +111,42 @@ def test_four_rank_memory_projection_with_retuned_budget(slug: str) -> None:
 
 
 ENGRAM = "deepseek-v4-1-flash-exl3-mia-dual"
-# Every vLLM/SGLang recipe that selects Engram shards a pinned reader keeps on disk.
-FILE_BACKED = (
-    ENGRAM,
-    "deepseek-v4-1-flash-exl3-sfxnz-vllm-dual",
-    "deepseek-v4-1-flash-tr3-hybrid-drowzeys-vllm-four",
-    "deepseek-v4-1-flash-exl3-0xsero-vllm-dual",
-    "deepseek-v4-1-flash-r0b0tlab-sglang-four",
-    "deepseek-v4-1-flash-1017-mia-sglang-triple",
-    "deepseek-v4-1-flash-1017-mia-sglang-four",
-)
 
 
-def selected_weights(recipe: RecipeDefinition) -> dict[str, int]:
-    models = catalog_models()
-    weights = {}
-    for selection in recipe.models:
-        ids = {f.file_id for f in selection.files}
-        for item in models[selection.model.content_sha256].files:
-            if item.id in ids and "weights" in item.roles:
-                weights[item.sha256] = item.size_bytes
-    return weights
-
-
-def with_facts(inputs, **update):
-    return inputs.model_copy(
-        update={
-            "file_backed_weights": [
-                fact.model_copy(update=update) for fact in inputs.file_backed_weights
-            ]
-        }
-    )
-
-
-@pytest.mark.parametrize("slug", FILE_BACKED)
-def test_file_backed_engram_files_are_not_resident_weights(slug: str) -> None:
-    recipe = recipe_for(slug)
+def test_every_selected_engram_file_is_excluded_from_per_rank_need() -> None:
+    # Owner rule (2026-10-26): Engram tables are never memory usage. Any recipe
+    # selecting a known Engram file is covered without registration.
     models, inputs = catalog_models(), load_inputs()
-    weights = selected_weights(recipe)
-    engram = {
-        digest
-        for fact in inputs.file_backed_weights
-        if fact.runtime_image_digest == recipe.execution.build.base_image.digest
-        for digest in fact.file_sha256
+    inflated = {
+        digest: model.model_copy(
+            update={
+                "files": [
+                    item.model_copy(update={"size_bytes": item.size_bytes * 10})
+                    if item.sha256 in inputs.engram_files
+                    else item
+                    for item in model.files
+                ]
+            }
+        )
+        for digest, model in models.items()
     }
-    assert engram <= weights.keys()
-    shards = recipe.topology.parallelism.tensor * recipe.topology.parallelism.pipeline
-    loaded = sum(size for digest, size in weights.items() if digest not in engram)
-    floor = per_rank_need(recipe, models, inputs).peak_bytes
-    assert floor >= (loaded + shards - 1) // shards + OVERHEAD_BYTES
-    # Fault injection: without the facts the shards count as loaded again.
-    bare = inputs.model_copy(update={"file_backed_weights": []})
-    assert per_rank_need(recipe, models, bare).peak_bytes > floor
+    checked = 0
+    for path in sorted((ROOT / "recipes").glob("*.json")):
+        recipe = RecipeDefinition.model_validate_json(path.read_text())
+        if recipe.runtime.engine not in {"vllm", "sglang"} or not any(
+            item.sha256 in inputs.engram_files
+            for selection in recipe.models
+            for item in models[selection.model.content_sha256].files
+            if item.id in {f.file_id for f in selection.files}
+        ):
+            continue
+        for variant in memory_variants(recipe):
+            assert (
+                per_rank_need(variant, models, inputs).peak_bytes
+                == per_rank_need(variant, inflated, inputs).peak_bytes
+            ), path.stem
+        checked += 1
+    assert checked > 0
 
 
 def test_proven_mia_engram_dual_fits_without_its_engram_shards() -> None:
@@ -168,38 +154,21 @@ def test_proven_mia_engram_dual_fits_without_its_engram_shards() -> None:
     recipe = recipe_for(ENGRAM)
     models, inputs = catalog_models(), load_inputs()
     need = per_rank_need(recipe, models, inputs)
-    target = selected_weights(recipe.model_copy(update={"models": recipe.models[:1]}))
-    assert need.fits
-    assert (
-        need.peak_bytes
-        == (sum(target.values()) + 1) // 2 + 2_684_354_560 + OVERHEAD_BYTES
+    target = models[recipe.models[0].model.content_sha256]
+    ids = {f.file_id for f in recipe.models[0].files}
+    loaded = sum(
+        f.size_bytes for f in target.files if f.id in ids and "weights" in f.roles
     )
+    assert need.fits
+    assert need.peak_bytes == (loaded + 1) // 2 + 2_684_354_560 + OVERHEAD_BYTES
     assert not declaration_problems(recipe, need)
+    # Fault injection: counted as weights, the Engram shards cannot fit.
     assert not per_rank_need(
-        recipe, models, inputs.model_copy(update={"file_backed_weights": []})
+        recipe, models, inputs.model_copy(update={"engram_files": {}})
     ).fits
 
 
-def test_stale_or_unpinned_file_backed_fact_fails_fast() -> None:
-    recipe = recipe_for(ENGRAM)
-    models, inputs = catalog_models(), load_inputs()
-    with pytest.raises(ValueError, match="registered for image"):
-        per_rank_need(recipe, models, with_facts(inputs, runtime_image_digest="0" * 64))
-    environment = next(
-        e for e in recipe.runtime.environment if e.name == "DSV41_RESIDENT_SCALES"
-    )
-    environment.value = "1"
-    with pytest.raises(ValueError, match="require DSV41_RESIDENT_SCALES=0"):
-        per_rank_need(recipe, models, inputs)
-    environment.value = "0"
-    cache = next(e for e in recipe.runtime.environment if e.name == "DSV41_CACHE_GIB")
-    recipe.runtime.environment.remove(cache)
-    # Unset, the overlay keeps an 8 GiB row cache: the recipe must pin it.
-    with pytest.raises(ValueError, match="pin DSV41_CACHE_GIB"):
-        per_rank_need(recipe, models, inputs)
-
-
-def test_resident_row_cache_is_charged_per_rank() -> None:
+def test_explicit_row_cache_is_charged_per_rank() -> None:
     models, inputs = catalog_models(), load_inputs()
     four = recipe_for("deepseek-v4-1-flash-1017-mia-sglang-four")
     floor = per_rank_need(four, models, inputs).peak_bytes
@@ -208,9 +177,14 @@ def test_resident_row_cache_is_charged_per_rank() -> None:
     cache.value = "0"
     # Four Sparks, one rank each: 4 GiB of row cache per rank.
     assert floor - per_rank_need(four, models, inputs).peak_bytes == 4 * 2**30
+    # Unset or zero counts nothing; an explicit size is a memory setting.
     recipe = recipe_for(ENGRAM)
     floor = per_rank_need(recipe, models, inputs).peak_bytes
-    next(
-        e for e in recipe.runtime.environment if e.name == "DSV41_CACHE_GIB"
-    ).value = "8"
+    recipe.runtime.environment = [
+        e for e in recipe.runtime.environment if e.name != "DSV41_CACHE_GIB"
+    ]
+    assert per_rank_need(recipe, models, inputs).peak_bytes == floor
+    recipe.runtime.environment.append(
+        RecipeRuntimeEnvironment(name="DSV41_CACHE_GIB", value="8")
+    )
     assert per_rank_need(recipe, models, inputs).peak_bytes - floor == 8 * 2**30
