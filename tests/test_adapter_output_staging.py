@@ -15,6 +15,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
+from test_job_writable_paths import _WRITABLE
 
 ROOT = Path(__file__).resolve().parents[1]
 REPAIRED_ADAPTERS = ("video/mova-pytorch/run.py",)
@@ -309,46 +310,44 @@ def test_scratch_guard_flags_only_new_output_root_scratch(
     ]
 
 
-# A job may write only under these roots; the rest of the image is read-only
-# and owned by root, while the job runs as an unprivileged user.
-JOB_WRITABLE_ROOTS = ("/tmp", "/outputs", "/state")
-
-
-def _names_image_path(node: ast.expr) -> bool:
+def _names_image_path(node: ast.expr, image_names: set[str]) -> bool:
+    """An absolute path outside the job's writable roots, the adapter's own
+    location (``__file__``), or a module name already bound to either."""
     return any(
-        isinstance(item, ast.Constant)
-        and isinstance(item.value, str)
-        and item.value.startswith("/")
-        and not any(
-            PurePosixPath(item.value).is_relative_to(root)
-            for root in JOB_WRITABLE_ROOTS
+        (
+            isinstance(item, ast.Constant)
+            and isinstance(item.value, str)
+            and item.value.startswith("/")
+            and not any(
+                PurePosixPath(item.value).is_relative_to(root) for root in _WRITABLE
+            )
         )
+        or (isinstance(item, ast.Name) and item.id in image_names | {"__file__"})
         for item in ast.walk(node)
     )
 
 
 def _image_cwd_sites(tree: ast.Module) -> list[tuple[int, set[int]]]:
-    """``cwd=`` an image path, directly or through a module-level constant."""
-    image_names = {
-        target.id
-        for node in tree.body
-        if isinstance(node, ast.Assign) and _names_image_path(node.value)
-        for target in node.targets
-        if isinstance(target, ast.Name)
-    }
+    """``cwd=`` an image path, directly or through module-level names."""
+    image_names: set[str] = set()
+    for node in tree.body:
+        targets = (
+            node.targets
+            if isinstance(node, ast.Assign)
+            else [node.target]
+            if isinstance(node, ast.AnnAssign) and node.value is not None
+            else []
+        )
+        value = getattr(node, "value", None)
+        if isinstance(value, ast.expr) and _names_image_path(value, image_names):
+            image_names.update(t.id for t in targets if isinstance(t, ast.Name))
     sites: list[tuple[int, set[int]]] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
         for keyword in node.keywords:
             value = keyword.value
-            if keyword.arg == "cwd" and (
-                _names_image_path(value)
-                or any(
-                    isinstance(item, ast.Name) and item.id in image_names
-                    for item in ast.walk(value)
-                )
-            ):
+            if keyword.arg == "cwd" and _names_image_path(value, image_names):
                 lines = set(range(value.lineno, (value.end_lineno or value.lineno) + 1))
                 sites.append((value.lineno, lines))
     return sites
@@ -395,6 +394,11 @@ EXISTING_IMAGE_CWD = (
         ("subprocess.run(\n    c,\n    cwd=SOURCE.parent,\n)\n", [6]),
         ('subprocess.run(c, cwd="/opt/demo")\n', [4]),
         ('subprocess.Popen(c, cwd=Path("/app"))\n', [4]),
+        ('subprocess.run(c, cwd="/state/w")\n', [4]),
+        ("subprocess.run(c, cwd=Path(__file__).parent)\n", [4]),
+        ("subprocess.run(c, cwd=os.path.dirname(__file__))\n", [4]),
+        ("HERE = Path(__file__).parent\nsubprocess.run(c, cwd=HERE)\n", [5]),
+        ('HERE = Path(__file__).parent\nSRC = HERE / "src"\nrun(c, cwd=SRC)\n', [6]),
     ],
 )
 def test_image_cwd_guard_flags_only_new_image_working_directories(
