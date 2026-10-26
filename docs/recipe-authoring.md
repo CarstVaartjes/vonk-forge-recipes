@@ -478,11 +478,14 @@ same bounded job budget.
 `qualification.memory_need.per_rank_need` reports an optimistic loading floor:
 selected weights divided over tensor/pipeline shards, explicit KV bytes, and
 8 GB estimated runtime overhead. The complete selected auxiliary weights are
-counted once. A Model whose files the pinned runtime reads from disk on demand
-instead of loading (`file_backed_weights` in `qualification/memory-inputs.json`,
-keyed by Model digest and bound to the runtime image digest, with its source)
-is mounted data, not weights; the DeepSeek V4.1 Flash EXL3 Mia dual's Engram
-tables are the case. Replicated tensors, graph buffers, recurrent state and loading
+counted once. Weight files a pinned reader keeps on disk and reads on demand
+(DeepSeek V4.1 Flash Engram shards) are mounted data, not weights:
+`file_backed_weights` in `qualification/memory-inputs.json` lists them by file
+digest, bound to the recipe's base image digest, with the launch settings that
+select the reader and its source. The recipe must pin those settings and the
+reader's row-cache size (`row_cache_gib_environment`, GiB per Spark, charged to
+each rank on it); a registration for another image fails until it is
+re-verified. Replicated tensors, graph buffers, recurrent state and loading
 expansion may require more. Use source-backed `calculate_need` where its
 geometry is available; keep unknown full-workload terms visible.
 

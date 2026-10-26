@@ -171,7 +171,9 @@ def test_calibration_runs_every_hardware_pass_without_exemptions() -> None:
         if recipe.runtime.engine not in {"vllm", "sglang"}:
             continue
         for variant in memory_variants(recipe):
-            assert per_rank_need(variant, catalog_models()).fits, evidence.recipe_key
+            assert per_rank_need(variant, catalog_models(), load_inputs()).fits, (
+                evidence.recipe_key
+            )
         checked += 1
         # Proven bytes also calibrate the declaration rules a change must meet.
         if hardware_proven(recipe, document_sha256(document)):

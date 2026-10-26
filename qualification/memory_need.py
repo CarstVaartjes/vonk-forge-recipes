@@ -89,19 +89,29 @@ class CacheGeometry(BaseModel):
 
 
 class FileBackedWeights(BaseModel):
-    """A pinned runtime reads this Model's selected weight files from disk on
-    demand; they are never loaded as resident weights on any rank."""
+    """Weight files a pinned runtime reads from disk on demand, never loads.
+
+    Bound to exact file digests and the recipe's base image digest. The recipe
+    must pin every launch setting that selects the file-backed reader; the
+    reader's resident row cache is read from `row_cache_gib_environment` (GiB
+    per Spark) and charged to each rank on that Spark.
+    """
 
     model_config = ConfigDict(extra="forbid")
+    file_sha256: list[Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]] = Field(
+        min_length=1
+    )
     runtime_image_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    environment: dict[str, str] = Field(default_factory=dict)
+    arguments: dict[str, str] = Field(default_factory=dict)
+    row_cache_gib_environment: str | None = None
     source: str
 
 
 class MemoryInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
     geometries: dict[str, CacheGeometry]
-    # Keyed by Model content_sha256.
-    file_backed_weights: dict[str, FileBackedWeights]
+    file_backed_weights: list[FileBackedWeights]
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
 
@@ -295,8 +305,6 @@ def calculate_need(
                 for item in model.files
                 if item.id in selected and "weights" in item.roles
             )
-            if loads_weights(recipe, selection.model.content_sha256)
-            else 0
         )
         geometry = pinned_geometry(label, selection.model.slug, model, geometries)
         if geometry.sliding_layers > geometry.layers or (
@@ -383,7 +391,7 @@ def sglang_token_cap(recipe: RecipeDefinition, key: str) -> int:
 def require_sglang_rank_budget(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
-    geometries: Mapping[str, CacheGeometry],
+    inputs: MemoryInputs,
     key: str,
 ) -> None:
     """Multi-Spark SGLang profiles its pools after the weights are resident.
@@ -399,12 +407,12 @@ def require_sglang_rank_budget(
     fraction = argument_value(recipe, "mem-fraction-static")
     if fraction is None:
         raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
-    parallel = recipe.topology.parallelism
-    shards = parallel.tensor * parallel.pipeline
-    need = (selected_weight_bytes(recipe, models) + shards - 1) // shards
+    need = rank_weight_bytes(recipe, models, inputs)
     for selection in recipe.models:
         model = models[selection.model.content_sha256]
-        geometry = pinned_geometry(label, selection.model.slug, model, geometries)
+        geometry = pinned_geometry(
+            label, selection.model.slug, model, inputs.geometries
+        )
         need += geometry.resident_expansion_bytes
         need += cache_need_for_context(recipe, geometry, tokens)
         if geometry.sglang_swa_layers:
@@ -628,12 +636,12 @@ def require_memory_need(
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     if recipe.topology.node_count != 1:
         for variant in memory_variants(recipe):
-            need = per_rank_need(variant, models)
+            need = per_rank_need(variant, models, inputs)
             problems = declaration_problems(variant, need)
             if problems:
                 raise ValueError(f"{key}: " + "; ".join(problems))
             if variant.runtime.engine == "sglang":
-                require_sglang_rank_budget(variant, models, inputs.geometries, key)
+                require_sglang_rank_budget(variant, models, inputs, key)
             elif touched:
                 require_bounded_kv_pool(variant, key)
             require_vllm_startup_budget(variant)
@@ -773,7 +781,7 @@ def memory_warnings(
                 f"{prefix}: estimated workload {need.total_bytes} bytes/rank; "
                 f"planning limit {LIMIT_BYTES}; hardware test required"
             )
-        rank = per_rank_need(variant, models)
+        rank = per_rank_need(variant, models, inputs)
         warnings.append(
             f"{prefix}: loading floor {rank.peak_bytes} bytes/rank; "
             f"observed idle capacity {rank.safe_limit_bytes}; no hardware verdict"
@@ -781,27 +789,62 @@ def memory_warnings(
     return warnings
 
 
-def loads_weights(recipe: RecipeDefinition, model_sha256: str) -> bool:
-    """False only for a Model the recipe's pinned runtime reads file-backed."""
-    entry = load_inputs(ROOT).file_backed_weights.get(model_sha256)
-    return (
-        entry is None
-        or entry.runtime_image_digest != recipe.execution.build.base_image.digest
-    )
-
-
-def selected_weight_bytes(
-    recipe: RecipeDefinition, models: Mapping[str, ModelDefinition]
+def rank_weight_bytes(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
 ) -> int:
+    """Selected weights loaded per rank, plus any file-backed reader's row cache.
+
+    A selected file registered as file-backed counts only under its pinned
+    image and launch settings; a registration for another image is stale and
+    fails, like a cache geometry bound to another image.
+    """
+    label = recipe.identity.slug
     weights: dict[str, int] = {}
     for selection in recipe.models:
-        if not loads_weights(recipe, selection.model.content_sha256):
-            continue
         selected = {item.file_id for item in selection.files}
         for item in models[selection.model.content_sha256].files:
             if item.id in selected and "weights" in item.roles:
                 weights[item.sha256] = item.size_bytes
-    return sum(weights.values())
+    registered = [
+        fact
+        for fact in inputs.file_backed_weights
+        if weights.keys() & set(fact.file_sha256)
+    ]
+    image = recipe.execution.build.base_image.digest
+    facts = [fact for fact in registered if fact.runtime_image_digest == image]
+    if registered and not facts:
+        raise ValueError(
+            f"{label}: file-backed weights are registered for image "
+            f"{registered[0].runtime_image_digest}, not {image}; verify the "
+            "reader for this image in qualification/memory-inputs.json"
+        )
+    environment = {item.name: str(item.value) for item in recipe.runtime.environment}
+    parallel = recipe.topology.parallelism
+    shards = parallel.tensor * parallel.pipeline
+    cache = 0
+    for fact in facts:
+        for name, value in fact.environment.items():
+            if environment.get(name) != value:
+                raise ValueError(f"{label}: file-backed weights require {name}={value}")
+        for name, value in fact.arguments.items():
+            if str(argument_value(recipe, name)) != value:
+                raise ValueError(
+                    f"{label}: file-backed weights require --{name} {value}"
+                )
+        if fact.row_cache_gib_environment is not None:
+            gib = environment.get(fact.row_cache_gib_environment)
+            if gib is None:
+                raise ValueError(
+                    f"{label}: pin {fact.row_cache_gib_environment}, the resident "
+                    "file-backed row cache"
+                )
+            per_spark = int((Decimal(gib) * 2**30).to_integral_value(ROUND_CEILING))
+            cache += -(-per_spark * recipe.topology.node_count // shards)
+        for digest in fact.file_sha256:
+            weights.pop(digest, None)
+    return (sum(weights.values()) + shards - 1) // shards + cache
 
 
 @dataclass(frozen=True)
@@ -820,7 +863,9 @@ class PerRankMemoryNeed:
 
 
 def per_rank_need(
-    recipe: RecipeDefinition, models: Mapping[str, ModelDefinition]
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
 ) -> PerRankMemoryNeed:
     """Optimistic loading floor, never a proof of full-context or runtime fit.
 
@@ -836,12 +881,8 @@ def per_rank_need(
         pool = argument_value(recipe, "kv-cache-memory")
     if pool is not None:
         kv_bytes = cache_bytes(pool)
-    parallel = recipe.topology.parallelism
-    shards = parallel.tensor * parallel.pipeline
     loading_floor = (
-        (selected_weight_bytes(recipe, models) + shards - 1) // shards
-        + kv_bytes
-        + OVERHEAD_BYTES
+        rank_weight_bytes(recipe, models, inputs) + kv_bytes + OVERHEAD_BYTES
     )
     # Utilization sizes an adaptive pool; it is not irreducible workload demand.
     # The measured 17 GB term is relative to that utilization budget, not another

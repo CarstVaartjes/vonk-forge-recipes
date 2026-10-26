@@ -94,7 +94,7 @@ def main() -> int:
                 continue
             applicable += 1
             # No evidence-based exemption here: run every applicable variant.
-            needs = [per_rank_need(v, models) for v in memory_variants(recipe)]
+            needs = [per_rank_need(v, models, inputs) for v in memory_variants(recipe)]
             if any(not n.fits for n in needs):
                 flagged += 1
             print(
