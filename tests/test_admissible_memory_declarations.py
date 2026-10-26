@@ -76,7 +76,6 @@ RANK_BUDGET_FOLLOW_UPS = {
     "inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual",
     "inkling-small-nvfp4-sglang-mia-dual",
     "mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual",
-    "qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual",
 }
 
 

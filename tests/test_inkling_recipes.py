@@ -302,7 +302,7 @@ def test_rank_budget_guard_rejects_the_failed_settings() -> None:
             "peak_bytes": 99_003_761_392,
         }
     )
-    assert failed is not None and "max-running-requests" in failed
+    assert failed is not None and "max-total-tokens" in failed
     cases = {
         "static budget": {"mem-fraction-static": FAILED_FRACTION},
         "max-total-tokens": {"max-total-tokens": None},

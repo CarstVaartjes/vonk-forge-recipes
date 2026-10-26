@@ -512,6 +512,18 @@
       "state_bytes_per_request": 167772160,
       "value_dim": 256
     },
+    "qwen3-8-flash-next-nvfp4-w4a16-sm121-8b73dc60": {
+      "configuration_sha256": "f4d6ee20273ad4358652b53cafefe4466bb9bb6b0777f78c7058e2d142f35266",
+      "key_dim": 256,
+      "kv_heads": 2,
+      "layers": 12,
+      "max_context_tokens": 262144,
+      "replicated_token_bytes": 768,
+      "runtime_image_digest": "9d7406a4f2b5d829c2646e8408ce0d02ccd20d7b98f5d7a3198af3c6a81854e0",
+      "sglang_state_bytes_per_slot": 115826720,
+      "source": "https://huggingface.co/r0b0tlab/Qwen3.8-Flash-Next-NVFP4-W4A16-sm121/resolve/8b73dc60cfa9b224100daaf3f44e9fe7825781dc/config.json text_config: layer_types 12 full_attention + 36 linear_attention, 2 KV heads, head_dim 256; linear 16 key heads x 128, 48 value heads x 128, conv kernel 4, mamba_ssm_dtype float32; indexer_kv_heads 1, indexer_head_dim 128, indexer_compress_ratio 4; ple_layer_ids [2], hidden_size 2560, hc_count 4, ple_conv_kernel_size 4, ngram_size 3. Sizing from the pinned image ghcr.io/r0b0tlab/qwen38-flash-next-w4a16-sm121-sglang@sha256:9d7406a4 (sglang qwen4_exp 73a25520): configs/qwen3_next.py mamba2_cache_params and configs/mamba_utils.py Mamba2StateShape.create give per TP=2 rank and linear layer a BF16 conv state (10240 / 2) x 3 and an FP32 temporal state (48 / 2) x 128 x 128: 57,729,024 bytes/slot over 36 layers; mem_cache/ple_state_pool.py adds a BF16 short-conv state 10240 x 9 (184,320 bytes) and a 2-token int64 n-gram window per slot: 57,913,360 bytes/slot. Doubled to bound the default NEXTN option's speculative intermediate state, which mem_cache/kv_cache_configurator.py _handle_max_mamba_cache charges as (min(max-running-requests, max-mamba-cache-size // 5) + 1) x 4 draft tokens slot states (at most one per allocated slot at 20 slots and concurrency 4); _calculate_mamba_ratio there is 3 + 2 (extra_buffer, overlap schedule). mem_cache/qsa_kv_pool.py QSATokenToKVPool keeps compressed BF16 index keys: 12 layers x 1 head x 128 x 2 bytes / 4 = 768 replicated bytes/token. FP8 K/V uses the default per-rank formula. Allocation bound, not hardware proof.",
+      "value_dim": 256
+    },
     "step-3-7-flash-nvfp4-42755324": {
       "configuration_sha256": "e09a8654f5c894c50378db85fc950fa127cff800fe75e81caa4692cdd41beab8",
       "key_dim": 128,

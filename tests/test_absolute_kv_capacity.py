@@ -24,6 +24,7 @@ from qualification.memory_need import (
 ROOT = Path(__file__).resolve().parents[1]
 VISION = "deepseek-v4-flash-vision-exp-mia-dual"
 LAGUNA = "laguna-m-1-nvfp4-r0b0tlab-vllm-dual"
+QWEN_NEXT = "qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual"
 
 
 def recipe_for(slug: str = VISION) -> RecipeDefinition:
@@ -185,7 +186,8 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 
-def test_touching_any_proven_multi_spark_vllm_document_keeps_it_valid() -> None:
+@pytest.mark.parametrize("engine", ["vllm", "sglang"])
+def test_touching_any_proven_multi_spark_document_keeps_it_valid(engine: str) -> None:
     # Calibration: every hardware-proven document passes the touched rules.
     models, inputs = catalog_models(), load_inputs()
     checked = 0
@@ -196,7 +198,7 @@ def test_touching_any_proven_multi_spark_vllm_document_keeps_it_valid() -> None:
         )
         recipe = RecipeDefinition.model_validate(document)
         if (
-            recipe.runtime.engine != "vllm"
+            recipe.runtime.engine != engine
             or recipe.topology.node_count == 1
             or not hardware_proven(recipe, document_sha256(document))
         ):
@@ -204,6 +206,38 @@ def test_touching_any_proven_multi_spark_vllm_document_keeps_it_valid() -> None:
         require_memory_need(recipe, models, inputs, document_digest="", touched=True)
         checked += 1
     assert checked > 0
+
+
+def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> None:
+    # Proven (9b60b9a7): one 262,144-token context capped at concurrency 4.
+    recipe = recipe_for(QWEN_NEXT)
+    models, inputs = catalog_models(), load_inputs()
+    assert recipe.settings.kind == "generation"
+    assert recipe.settings.concurrency is not None
+    assert recipe.settings.concurrency.value == 4
+    context = recipe.settings.context_tokens.value
+    assert argument_value(recipe, "max-total-tokens") == context
+    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    cap = next(
+        arg for arg in recipe.runtime.arguments if arg.name == "max-total-tokens"
+    )
+    cap.value = context - 1
+    with pytest.raises(ValueError, match="one full-context request"):
+        require_memory_need(recipe, models, inputs, document_digest="")
+    recipe.runtime.arguments.remove(cap)
+    with pytest.raises(ValueError, match="set absolute max-total-tokens"):
+        require_memory_need(recipe, models, inputs, document_digest="")
+    # Fault injection: 0.57 holds the sharded weights and the capped token pool
+    # but not also the source-backed state slots; 0.572 holds all three.
+    recipe = recipe_for(QWEN_NEXT)
+    fraction = next(
+        arg for arg in recipe.runtime.arguments if arg.name == "mem-fraction-static"
+    )
+    fraction.value = "0.57"
+    with pytest.raises(ValueError, match="static budget"):
+        require_memory_need(recipe, models, inputs, document_digest="")
+    fraction.value = "0.572"
+    require_memory_need(recipe, models, inputs, document_digest="")
 
 
 def test_only_recipe_files_changed_since_the_merge_base_are_touched(

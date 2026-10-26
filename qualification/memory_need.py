@@ -392,9 +392,18 @@ def require_sglang_rank_budget(
     everything resident against mem-fraction-static times pre-load free memory,
     so that budget on the lowest idle Spark must hold the sharded weights, their
     resident expansion and the capped token and state pools.
+
+    The token cap must hold one full-context request
+    (require_absolute_kv_capacity), not context x max-running-requests:
+    SGLang schedules requests within it. The proven Qwen3.8 Flash Next W4A16
+    r0b0tlab dual caps one 262,144-token context at concurrency 4.
     """
     label = recipe.identity.slug
-    tokens = sglang_token_cap(recipe, key)
+    if argument_value(recipe, "max-total-tokens") is None:
+        raise ValueError(
+            f"{key}: set absolute max-total-tokens; a static fraction does not bound KV by need"
+        )
+    tokens = positive_argument(recipe, "max-total-tokens")
     concurrency = positive_argument(recipe, "max-running-requests")
     fraction = argument_value(recipe, "mem-fraction-static")
     if fraction is None:
