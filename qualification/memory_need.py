@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import ROUND_CEILING, Decimal
 from itertools import product
 from pathlib import Path
 from typing import Annotated
@@ -31,7 +31,17 @@ OS_FLOOR_BYTES = PLATFORM_MEMORY_FLOOR_BYTES
 SPARK_MEMORY_BYTES = 130_663_231_488
 SPARK_IDLE_AVAILABLE_BYTES = 126_600_000_000
 SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
+# Idle host use for offline declaration admission, calibrated on the proven
+# set: the live Controller admitted and the sweep passed 120,370,379,081-byte
+# peaks (DeepSeek V4.1 Flash EXL3 Mia dual, Gemma 4 31B Mia single, Qwen3.6
+# 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
+ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
+# sglang 94602c9c kv_cache_configurator._calculate_mamba_ratio: at most 3 base
+# plus 2 extra_buffer overlap state slots per running request.
+SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
+# The DeepSeek V4.1 Engram row store's resident cache size (GiB per Spark).
+ENGRAM_ROW_CACHE_ENVIRONMENT = "DSV41_CACHE_GIB"
 # Separate speculative-model calibration; see vllm_memory_fit.py for the incident.
 DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 
@@ -72,12 +82,20 @@ class CacheGeometry(BaseModel):
     token_bytes: int | None = Field(default=None, gt=0)
     state_padding: int = Field(default=0, ge=0)
     resident_expansion_bytes: int = Field(default=0, ge=0)
+    # SGLang HybridSWAPoolConfigurator pools these sliding layers, outside
+    # `layers`, at swa-full-tokens-ratio of max-total-tokens.
+    sglang_swa_layers: int = Field(default=0, ge=0)
+    # SGLang per-rank hybrid state per max-mamba-cache-size slot (+1 padding).
+    sglang_state_bytes_per_slot: int = Field(default=0, ge=0)
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
 
 class MemoryInputs(BaseModel):
     model_config = ConfigDict(extra="forbid")
     geometries: dict[str, CacheGeometry]
+    # Engram n-gram table files, by content digest, with their source. Owner
+    # rule (2026-10-26): Engram tables are never memory usage.
+    engram_files: dict[str, str]
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
 
@@ -222,7 +240,7 @@ def loads_draft_model(recipe: RecipeDefinition) -> bool:
 def calculate_need(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
-    geometries: Mapping[str, CacheGeometry],
+    inputs: MemoryInputs,
 ) -> MemoryNeed:
     """Full declared context times engine concurrency, including selected drafts.
 
@@ -269,22 +287,14 @@ def calculate_need(
             sum(
                 item.size_bytes
                 for item in model.files
-                if item.id in selected and "weights" in item.roles
+                if item.id in selected
+                and "weights" in item.roles
+                and item.sha256 not in inputs.engram_files
             )
         )
-        geometry = geometries.get(selection.model.slug)
-        if geometry is None:
-            raise ValueError(
-                f"{label}: add source-backed cache geometry for {selection.model.slug} to qualification/memory-inputs.json"
-            )
-        if not any(
-            item.sha256 == geometry.configuration_sha256
-            and "configuration" in item.roles
-            for item in model.files
-        ):
-            raise ValueError(
-                f"{label}: cache geometry does not match the pinned model configuration"
-            )
+        geometry = pinned_geometry(
+            label, selection.model.slug, model, inputs.geometries
+        )
         if geometry.sliding_layers > geometry.layers or (
             geometry.sliding_layers and not geometry.sliding_window
         ):
@@ -328,6 +338,106 @@ def calculate_need(
         resident_expansion_bytes=expansion,
         overhead_bytes=overhead,
     )
+
+
+def pinned_geometry(
+    label: str,
+    slug: str,
+    model: ModelDefinition,
+    geometries: Mapping[str, CacheGeometry],
+) -> CacheGeometry:
+    geometry = geometries.get(slug)
+    if geometry is None:
+        raise ValueError(
+            f"{label}: add source-backed cache geometry for {slug} to qualification/memory-inputs.json"
+        )
+    if not any(
+        item.sha256 == geometry.configuration_sha256 and "configuration" in item.roles
+        for item in model.files
+    ):
+        raise ValueError(
+            f"{label}: cache geometry does not match the pinned model configuration"
+        )
+    return geometry
+
+
+def sglang_token_cap(recipe: RecipeDefinition, key: str) -> int:
+    """The absolute token pool must equal full context times concurrency."""
+    tokens = positive_argument(recipe, "context-length") * positive_argument(
+        recipe, "max-running-requests"
+    )
+    if (
+        argument_value(recipe, "max-total-tokens") is None
+        or positive_argument(recipe, "max-total-tokens") != tokens
+    ):
+        raise ValueError(
+            f"{key}: set absolute max-total-tokens={tokens}; a static fraction does not bound KV by need"
+        )
+    return tokens
+
+
+def require_sglang_rank_budget(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    key: str,
+) -> None:
+    """Multi-Spark SGLang profiles its pools after the weights are resident.
+
+    sglang 94602c9c kv_cache_configurator._profile_available_bytes charges
+    everything resident against mem-fraction-static times pre-load free memory,
+    so that budget on the lowest idle Spark must hold the sharded weights, their
+    resident expansion and the capped token and state pools.
+    """
+    label = recipe.identity.slug
+    tokens = sglang_token_cap(recipe, key)
+    concurrency = positive_argument(recipe, "max-running-requests")
+    fraction = argument_value(recipe, "mem-fraction-static")
+    if fraction is None:
+        raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
+    need = rank_weight_bytes(recipe, models, inputs)
+    for selection in recipe.models:
+        model = models[selection.model.content_sha256]
+        geometry = pinned_geometry(
+            label, selection.model.slug, model, inputs.geometries
+        )
+        need += geometry.resident_expansion_bytes
+        need += cache_need_for_context(recipe, geometry, tokens)
+        if geometry.sglang_swa_layers:
+            ratio = argument_value(recipe, "swa-full-tokens-ratio")
+            if ratio is None:
+                raise ValueError(f"{key}: declare swa-full-tokens-ratio")
+            swa = geometry.model_copy(
+                update={
+                    "layers": geometry.sglang_swa_layers,
+                    "sliding_layers": 0,
+                    "token_bytes": None,
+                    "token_bytes_by_dtype": {},
+                    "replicated_token_bytes": 0,
+                }
+            )
+            swa_tokens = int(
+                (Decimal(str(ratio)) * tokens).to_integral_value(ROUND_CEILING)
+            )
+            need += cache_need_for_context(recipe, swa, swa_tokens)
+        if geometry.sglang_state_bytes_per_slot:
+            if argument_value(recipe, "max-mamba-cache-size") is None:
+                raise ValueError(f"{key}: set absolute max-mamba-cache-size")
+            slots = positive_argument(recipe, "max-mamba-cache-size")
+            if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST * concurrency:
+                raise ValueError(
+                    f"{key}: max-mamba-cache-size {slots} cannot hold "
+                    f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots per request at concurrency {concurrency}"
+                )
+            need += geometry.sglang_state_bytes_per_slot * (slots + 1)
+    static_bytes = Decimal(str(fraction)) * IDLE_AVAILABLE_BYTES
+    if not static_bytes.is_finite() or static_bytes < need:
+        raise ValueError(
+            f"{key}: static budget {static_bytes:.0f} bytes (mem-fraction-static x "
+            f"idle available {IDLE_AVAILABLE_BYTES}) cannot hold sharded weights, "
+            f"resident expansion and capped pools ({need} bytes/rank); increase "
+            "mem-fraction-static while retaining the absolute caps"
+        )
 
 
 def memory_variants(recipe: RecipeDefinition) -> list[RecipeDefinition]:
@@ -496,8 +606,13 @@ def require_memory_need(
     inputs: MemoryInputs,
     *,
     document_digest: str,
+    touched: bool = False,
 ) -> MemoryNeed | None:
-    """Check new/changed documents without retuning historical ones."""
+    """Check new/changed documents without retuning historical ones.
+
+    ``touched`` marks a recipe file the change under review edits; only those
+    must replace a utilization-sized multi-Spark KV pool.
+    """
     if recipe.topology.node_count != 1:
         require_absolute_kv_capacity(recipe, models, inputs)
     # Recorded content is judged by hardware, not by this offline check.
@@ -509,15 +624,19 @@ def require_memory_need(
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     if recipe.topology.node_count != 1:
         for variant in memory_variants(recipe):
-            need = per_rank_need(variant, models)
+            need = per_rank_need(variant, models, inputs)
             problems = declaration_problems(variant, need)
             if problems:
                 raise ValueError(f"{key}: " + "; ".join(problems))
+            if variant.runtime.engine == "sglang":
+                require_sglang_rank_budget(variant, models, inputs, key)
+            elif touched:
+                require_bounded_kv_pool(variant, key)
             require_vllm_startup_budget(variant)
         return None
     result = None
     for variant in memory_variants(recipe):
-        need = calculate_need(variant, models, inputs.geometries)
+        need = calculate_need(variant, models, inputs)
         if (
             need.total_bytes > need.limit_bytes
             and "does-not-fit" not in recipe.metadata.tags
@@ -547,16 +666,7 @@ def require_memory_need(
                     raise ValueError(
                         f"{key}: static memory budget cannot hold weights and absolute cache ({pool_need} bytes); increase mem-fraction-static while retaining the absolute token cap"
                     )
-            tokens = positive_argument(variant, "context-length") * positive_argument(
-                variant, "max-running-requests"
-            )
-            if (
-                argument_value(variant, "max-total-tokens") is None
-                or positive_argument(variant, "max-total-tokens") != tokens
-            ):
-                raise ValueError(
-                    f"{key}: set absolute max-total-tokens={tokens}; a static fraction does not bound KV by need"
-                )
+            sglang_token_cap(variant, key)
         for role in variant.topology.roles:
             if role.resources.memory.peak_bytes < need.total_bytes:
                 raise ValueError(
@@ -565,6 +675,41 @@ def require_memory_need(
         require_vllm_startup_budget(variant)
         result = need
     return result
+
+
+def require_bounded_kv_pool(recipe: RecipeDefinition, key: str) -> None:
+    """A touched multi-Spark vLLM recipe bounds KV, calibrated on the proven set.
+
+    A utilization-sized pool grows into what remains: on 2026-10-26 Laguna M.1
+    at TP=2 and 0.82 took 475,392 tokens for a 4 x 8,192-token workload and
+    left its entrypoint Spark at the 16 GiB host memory guard floor. Its
+    budget plus overhead exceeded the Spark total minus that guard; every
+    hardware-proven utilization-sized dual runs at 0.80 or below, inside it.
+
+    An absolute pool must hold one full-context request
+    (require_absolute_kv_capacity), not context x max-num-seqs: vLLM schedules
+    sequences within the pool. Proven duals hold fewer: DeepSeek V4 Flash 0731
+    r0b0tlab (16.0 GB for 16 x 327,680 tokens), GLM 5.3 Flash NVFP4 Spark eugr
+    (14.69 GB for 4 x 500,000) and the EXL3 Mia dual (2.5 GiB, 774,400 tokens
+    measured upstream, for 2 x 600,000). Sizing the DSpark vLLM 0.25 dual pool
+    for 16 x 200,000 tokens (27.31 GB) exhausted host memory on both Sparks.
+    """
+    if (
+        argument_value(recipe, "kv-cache-memory-bytes") is not None
+        or argument_value(recipe, "kv-cache-memory") is not None
+    ):
+        return
+    fraction = argument_value(recipe, "gpu-memory-utilization")
+    if (
+        fraction is None
+        or Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        > TOTAL_BYTES - GUARD_BYTES
+    ):
+        raise ValueError(
+            f"{key}: set absolute kv-cache-memory-bytes, or a gpu-memory-utilization "
+            f"whose share of {TOTAL_BYTES} bytes plus {OVERHEAD_BYTES} overhead "
+            f"leaves the {GUARD_BYTES}-byte host memory guard"
+        )
 
 
 def require_vllm_startup_budget(recipe: RecipeDefinition) -> None:
@@ -616,7 +761,7 @@ def memory_warnings(
     for index, variant in enumerate(memory_variants(recipe)):
         prefix = f"WARNING {recipe.identity.slug} [{index}]"
         try:
-            need = calculate_need(variant, models, inputs.geometries)
+            need = calculate_need(variant, models, inputs)
         except (ValueError, TypeError) as error:
             warnings.append(f"{prefix}: full-workload estimate unavailable: {error}")
         else:
@@ -624,7 +769,7 @@ def memory_warnings(
                 f"{prefix}: estimated workload {need.total_bytes} bytes/rank; "
                 f"planning limit {LIMIT_BYTES}; hardware test required"
             )
-        rank = per_rank_need(variant, models)
+        rank = per_rank_need(variant, models, inputs)
         warnings.append(
             f"{prefix}: loading floor {rank.peak_bytes} bytes/rank; "
             f"observed idle capacity {rank.safe_limit_bytes}; no hardware verdict"
@@ -632,16 +777,37 @@ def memory_warnings(
     return warnings
 
 
-def selected_weight_bytes(
-    recipe: RecipeDefinition, models: Mapping[str, ModelDefinition]
+def rank_weight_bytes(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
 ) -> int:
+    """Selected weights per rank, Engram tables excluded, plus an explicit row cache.
+
+    Engram files are identified by content digest, for every recipe and engine.
+    A row cache counts only when the recipe sets a positive DSV41_CACHE_GIB
+    (GiB per Spark, shared by the ranks on that Spark).
+    """
     weights: dict[str, int] = {}
     for selection in recipe.models:
         selected = {item.file_id for item in selection.files}
         for item in models[selection.model.content_sha256].files:
-            if item.id in selected and "weights" in item.roles:
+            if (
+                item.id in selected
+                and "weights" in item.roles
+                and item.sha256 not in inputs.engram_files
+            ):
                 weights[item.sha256] = item.size_bytes
-    return sum(weights.values())
+    parallel = recipe.topology.parallelism
+    shards = parallel.tensor * parallel.pipeline
+    cache = 0
+    for item in recipe.runtime.environment:
+        if item.name == ENGRAM_ROW_CACHE_ENVIRONMENT and Decimal(str(item.value)) > 0:
+            per_spark = int(
+                (Decimal(str(item.value)) * 2**30).to_integral_value(ROUND_CEILING)
+            )
+            cache = -(-per_spark * recipe.topology.node_count // shards)
+    return (sum(weights.values()) + shards - 1) // shards + cache
 
 
 @dataclass(frozen=True)
@@ -660,7 +826,9 @@ class PerRankMemoryNeed:
 
 
 def per_rank_need(
-    recipe: RecipeDefinition, models: Mapping[str, ModelDefinition]
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
 ) -> PerRankMemoryNeed:
     """Optimistic loading floor, never a proof of full-context or runtime fit.
 
@@ -676,19 +844,17 @@ def per_rank_need(
         pool = argument_value(recipe, "kv-cache-memory")
     if pool is not None:
         kv_bytes = cache_bytes(pool)
-    parallel = recipe.topology.parallelism
-    shards = parallel.tensor * parallel.pipeline
     loading_floor = (
-        (selected_weight_bytes(recipe, models) + shards - 1) // shards
-        + kv_bytes
-        + OVERHEAD_BYTES
+        rank_weight_bytes(recipe, models, inputs) + kv_bytes + OVERHEAD_BYTES
     )
     # Utilization sizes an adaptive pool; it is not irreducible workload demand.
     # The measured 17 GB term is relative to that utilization budget, not another
     # allocation beside explicitly counted draft weights. Keep it in the strict
     # workload/legacy envelope guards, not this optimistic loading floor.
-    # Physical fit uses observed idle availability. The 16 GiB planning guard
-    # remains LIMIT_BYTES and is reported as a warning, not a hardware verdict.
+    # Physical fit uses observed idle availability; a changed document's peak
+    # must cover this floor and be admissible on an idle Spark. For multi-Spark
+    # recipes the 16 GiB planning guard (LIMIT_BYTES) is only a warning: the
+    # hardware-proven set runs above it.
     return PerRankMemoryNeed(
         loading_floor, IDLE_AVAILABLE_BYTES, recipe.topology.node_count
     )
@@ -727,20 +893,20 @@ def require_admissible_declaration(
 ) -> None:
     """Every launch variant must fit an idle Spark by the Controller's rule.
 
-    An idle Spark's host already uses IDLE_USE_BYTES; a declaration that only
-    fits with no host use can never be admitted (2026-10-21 deferral).
+    An idle Spark's host already uses ADMISSION_IDLE_USE_BYTES; a declaration
+    that only fits with no host use can never be admitted (2026-10-21 deferral).
     """
     for variant in memory_variants(recipe):
         for role in variant.topology.roles:
             if not evaluate_memory_admission(
                 role.resources.memory.peak_bytes,
                 pool_bytes,
-                occupied_bytes=IDLE_USE_BYTES,
+                occupied_bytes=ADMISSION_IDLE_USE_BYTES,
             ).admissible:
                 raise ValueError(
                     f"{recipe.identity.slug}/{role.name}: declared peak "
                     f"{role.resources.memory.peak_bytes} bytes is not admissible "
                     f"on an idle Spark (pool {pool_bytes} bytes, host "
-                    f"{IDLE_USE_BYTES} bytes, floor "
+                    f"{ADMISSION_IDLE_USE_BYTES} bytes, floor "
                     f"{PLATFORM_MEMORY_FLOOR_BYTES} bytes); reserve by need"
                 )

@@ -31,7 +31,7 @@ from vonk_forge_contracts.sweep import (
 from vonk_forge_contracts.sweep import SweepProgress as Progress
 
 from .auth_contract import SmokeAuthClass
-from .lifecycle import LifecycleState
+from .lifecycle import ACTIVE, LifecycleState
 from .policy import (
     CLIENT_CREDENTIAL,
     RECIPE_FAILURE_CODES,
@@ -63,6 +63,9 @@ PHASE_RETRY = "run-switch.phase-retry"
 #: ProgressAlarmCode.STALLED: the Controller saw the same wait repeat with nothing moving.
 #: A platform problem, never the recipe's: only its lane waits on the original receipt.
 STALLED_CODE = "progress.stalled"
+#: ModelCacheCode.DOWNLOAD_BLOCKED: the Controller holds a model download for NAS space
+#: while retention evicts. The Controller owns that wait; it is no infrastructure problem.
+NAS_SPACE_CODE = "model_cache.download_blocked"
 #: Blockers that name a preparation (build, image, download, install) the Controller runs.
 PREPARATION_CODES = frozenset(
     {
@@ -210,6 +213,38 @@ def application_signal(document: Mapping[str, Any]) -> Signal:
     return Signal(tuple(activity(document)), wait, forward_marks(document))
 
 
+def admission_unbound(document: Mapping[str, Any]) -> bool:
+    """Whether a newer saved profile would supersede this application.
+
+    The Controller's pending-admission observer supersedes only an application
+    still pending admission once the profile was saved again. A bound application
+    continues: a newer decision adopts its unchanged assignments.
+    """
+    progress = document.get("progress")
+    return isinstance(progress, Mapping) and progress.get("admission_pending") is True
+
+
+def held_receipt(load: Mapping[str, Any] | None) -> bool:
+    """Whether the Controller works this load's bound, live receipt behind a wait it reports.
+
+    Only the Controller ends such a wait: the receipt's end, its stall alarm
+    (``stalled_detail``) or a newer request. Releasing the lane on a local window
+    would drop its assignment from the sweep profile, and the next whole-profile
+    load would supersede the very receipt the Controller is still working on
+    (2026-10-24). An unbound admission is not held: any saved profile supersedes
+    it anyway, so its bounded profile-edit wait stays.
+    """
+    if (
+        load is None
+        or load.get("state") not in ACTIVE
+        or load.get("admission_unbound", True) is not False
+        or load.get("stalled")
+    ):
+        return False
+    signal = load.get("signal")
+    return isinstance(signal, Mapping) and signal.get("wait") is not None
+
+
 def stalled_detail(document: Mapping[str, Any]) -> str | None:
     """The Controller's stalled-work alarm on an application, or ``None`` (absent: no stall)."""
     progress = document.get("progress")
@@ -240,8 +275,24 @@ def download_signal(document: Mapping[str, Any]) -> Signal:
         state,
         children,
     )
+    space = next(
+        (
+            child["failure"]
+            for child in document.get("children") or []
+            if isinstance(child, Mapping)
+            and child.get("kind") == "model-cache"
+            and child.get("state") in (LifecycleState.QUEUED, LifecycleState.BACKOFF)
+            and isinstance(child.get("failure"), Mapping)
+            and child["failure"].get("code") == NAS_SPACE_CODE
+        ),
+        None,
+    )
     wait = None
-    if state == LifecycleState.QUEUED:
+    if space is not None:
+        wait = SweepWait(
+            reason=SweepWaitReason.NAS_SPACE, detail=str(space.get("detail") or "")
+        )
+    elif state == LifecycleState.QUEUED:
         wait = SweepWait(reason=SweepWaitReason.OPERATION_QUEUED)
     elif state == LifecycleState.BACKOFF:
         wait = SweepWait(reason=SweepWaitReason.OPERATION_BACKOFF)
@@ -328,6 +379,16 @@ def progress_verdict(
             watch.pop("wait_deadline", None)
     if signal is None or signal.wait is not None:
         wait = signal.wait if signal is not None else None
+        if (
+            wait is not None
+            and wait.reason is SweepWaitReason.NAS_SPACE
+            and now > float(watch.get("wait_deadline", now))
+        ):
+            # The Controller holds a NAS-space wait under its own bounded window while
+            # retention evicts: each expiry of ours renews it (the caller records the
+            # expired window), so it is looked at once per window and pauses no work.
+            watch["wait_started_at"] = now
+            watch.pop("wait_deadline", None)
         return bounded_wait(
             wait or SweepWait(reason=SweepWaitReason.OBSERVATION),
             watch,

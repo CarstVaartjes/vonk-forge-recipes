@@ -1,16 +1,24 @@
 from __future__ import annotations
 
+import ast
+import base64
+import contextlib
 import hashlib
 import io
 import json
+import math
+import re
 import subprocess
 import sys
 import tarfile
 import tempfile
 import types
 import unittest
+import wave
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any, ClassVar
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -198,6 +206,8 @@ class WanDancerAuthorityTests(unittest.TestCase):
             self.assertNotIn("use_usp=True", global_stage + local_stage)
             self.assertNotIn("dist.get_rank()", global_stage + local_stage)
             self.assertIn("cfg_scale=args.cfg_scale", local_stage)
+            for stage in (global_stage, local_stage):
+                self.assertIn('"--cfg_scale",\n        type=float,', stage)
 
     def test_runtime_has_no_model_download_path(self) -> None:
         runner = (ADAPTER / "run.py").read_text(encoding="utf-8")
@@ -454,6 +464,302 @@ class WanDancerInputTests(unittest.TestCase):
             write_manifest("prompt", "application/json")
             with self.assertRaisesRegex(ValueError, "prompt slot contract"):
                 runner._manifest()
+
+
+class _Device:
+    def __init__(self, kind: str) -> None:
+        self.type = kind
+
+
+class _Parameter:
+    def __init__(self, *, is_meta: bool) -> None:
+        self.is_meta = is_meta
+
+
+class _Construction:
+    """Records the device the pinned init_weights_on_device builds under."""
+
+    devices: ClassVar[list[str]] = []
+
+    @classmethod
+    @contextlib.contextmanager
+    def init_weights_on_device(cls, device: _Device) -> Iterator[None]:
+        cls.devices.append(device.type)
+        yield
+
+
+class _Model:
+    """The torch.nn.Module surface load_model_from_single_file uses (no torch in CI).
+
+    Parameters are real tensors unless the constructor runs under meta, and
+    load_state_dict(assign=True) replaces the ones the checkpoint names.
+    """
+
+    PARAMETERS = ("blocks.0.ffn.weight", "music_encoder.0.self_attn.in_proj_weight")
+
+    def __init__(self, **_config: object) -> None:
+        on_meta = _Construction.devices[-1] == "meta"
+        self.parameters = {
+            name: _Parameter(is_meta=on_meta) for name in self.PARAMETERS
+        }
+        self.moved = False
+
+    @staticmethod
+    def state_dict_converter() -> SimpleNamespace:
+        return SimpleNamespace(from_civitai=lambda state_dict, **_: (state_dict, {}))
+
+    def eval(self) -> _Model:
+        return self
+
+    def load_state_dict(
+        self, state_dict: dict[str, object], *, assign: bool, strict: bool
+    ) -> None:
+        assert assign and not strict  # the pinned call
+        for name in state_dict:
+            if name in self.parameters:
+                self.parameters[name] = _Parameter(is_meta=False)
+
+    def named_parameters(self) -> Iterator[tuple[str, _Parameter]]:
+        return iter(self.parameters.items())
+
+    def to(self, *, dtype: object, device: object) -> _Model:
+        if any(parameter.is_meta for parameter in self.parameters.values()):
+            raise NotImplementedError("Cannot copy out of meta tensor; no data!")
+        self.moved = True
+        return self
+
+
+class WanDancerLoaderTests(unittest.TestCase):
+    """The patched pinned loader, executed from the patched source itself."""
+
+    source: Path
+    _directory: tempfile.TemporaryDirectory[str]
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls._directory = tempfile.TemporaryDirectory()
+        root = Path(cls._directory.name)
+        archive = b"".join(
+            part.read_bytes() for part in sorted((ADAPTER / "vendor").glob("*.part-*"))
+        )
+        with tarfile.open(fileobj=io.BytesIO(archive), mode="r:gz") as source:
+            source.extractall(root, filter="data")
+        cls.source = next(root.iterdir())
+        subprocess.run(
+            [sys.executable, str(ADAPTER / "patch-upstream.py"), str(cls.source)],
+            check=True,
+        )
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls._directory.cleanup()
+
+    def _loader(self) -> Callable[..., tuple[list[str], list[_Model]]]:
+        path = self.source / "diffsynth/models/model_manager.py"
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        function = next(
+            node
+            for node in tree.body
+            if isinstance(node, ast.FunctionDef)
+            and node.name == "load_model_from_single_file"
+        )
+        namespace: dict[str, Any] = {
+            "torch": SimpleNamespace(device=_Device, float32="float32"),
+            "init_weights_on_device": _Construction.init_weights_on_device,
+            "logger": SimpleNamespace(info=lambda *_: None),
+        }
+        module = ast.Module(body=[function], type_ignores=[])
+        exec(compile(module, str(path), "exec"), namespace)  # noqa: S102
+        return namespace["load_model_from_single_file"]
+
+    def _load(self, state_dict: dict[str, object]) -> _Model:
+        _Construction.devices.clear()
+        _, models = self._loader()(
+            state_dict, ["wan_video_dit"], [_Model], "civitai", "bf16", "cuda"
+        )
+        return models[0]
+
+    def test_models_are_built_on_meta_and_moved_once_loaded(self) -> None:
+        model = self._load({name: object() for name in _Model.PARAMETERS})
+        self.assertEqual(_Construction.devices, ["meta"])
+        self.assertTrue(model.moved)
+
+    def test_parameter_missing_from_the_checkpoint_fails_with_its_name(self) -> None:
+        missing = "music_encoder.0.self_attn.in_proj_weight"
+        complete = {name: object() for name in _Model.PARAMETERS}
+        with self.assertRaisesRegex(RuntimeError, re.escape(missing)):
+            self._load({k: v for k, v in complete.items() if k != missing})
+
+    def test_dit_constructor_leaves_device_placement_to_the_loader(self) -> None:
+        tree = ast.parse(
+            (self.source / "diffsynth/models/wan_video_dit.py").read_text(
+                encoding="utf-8"
+            )
+        )
+        calls = [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "MusicEncoderLayer"
+        ]
+        self.assertTrue(calls)
+        for call in calls:
+            self.assertNotIn("device", {keyword.arg for keyword in call.keywords})
+
+    def test_sequence_parallel_names_are_read_only_where_they_are_bound(
+        self,
+    ) -> None:
+        # A name imported inside `if use_unified_sequence_parallel:` is local to
+        # its function, so a read outside such a guard raises UnboundLocalError
+        # on the single-Spark (non-parallel) path.
+        path = self.source / "diffsynth/pipelines/wan_video_new.py"
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        # A list, not a name-keyed dict: the file has many same-named methods
+        # (__init__, process) and every one of them must be checked.
+        functions = [
+            node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+        ]
+        model_fn = next(f for f in functions if f.name == "model_fn_wan_video")
+        bound, _ = _sequence_parallel_reads(model_fn)
+        self.assertIn("get_sequence_parallel_world_size", bound)
+        for function in functions:
+            self.assertEqual(
+                _sequence_parallel_reads(function)[1],
+                [],
+                f"{function.name}:{function.lineno}",
+            )
+
+
+def _sequence_parallel_reads(function: ast.FunctionDef) -> tuple[set[str], list[str]]:
+    """Names imported under the sequence-parallel guard, and unguarded reads."""
+
+    def is_guard(node: ast.expr) -> bool:
+        return any(
+            isinstance(item, ast.Name) and item.id == "use_unified_sequence_parallel"
+            for item in ast.walk(node)
+        )
+
+    def walk(
+        node: ast.AST, guarded: bool, visit: Callable[[ast.AST, bool], None]
+    ) -> None:
+        visit(node, guarded)
+        if isinstance(node, (ast.If, ast.IfExp)):
+            walk(node.test, guarded, visit)
+            body = node.body if isinstance(node.body, list) else [node.body]
+            orelse = node.orelse if isinstance(node.orelse, list) else [node.orelse]
+            for child in body:
+                walk(child, guarded or is_guard(node.test), visit)
+            for child in orelse:
+                walk(child, guarded, visit)
+        elif isinstance(node, ast.BoolOp) and isinstance(node.op, ast.And):
+            inner = guarded
+            for value in node.values:
+                walk(value, inner, visit)
+                inner = inner or is_guard(value)
+        else:
+            for child in ast.iter_child_nodes(node):
+                walk(child, guarded, visit)
+
+    bound: set[str] = set()
+    unguarded: list[str] = []
+
+    def collect(node: ast.AST, guarded: bool) -> None:
+        if guarded and isinstance(node, (ast.Import, ast.ImportFrom)):
+            bound.update(
+                (alias.asname or alias.name).split(".")[0] for alias in node.names
+            )
+
+    def check(node: ast.AST, guarded: bool) -> None:
+        if (
+            not guarded
+            and isinstance(node, ast.Name)
+            and isinstance(node.ctx, ast.Load)
+            and node.id in bound
+        ):
+            unguarded.append(f"{node.id} at line {node.lineno}")
+
+    for statement in function.body:
+        walk(statement, False, collect)
+    for statement in function.body:
+        walk(statement, False, check)
+    return bound, unguarded
+
+
+class WanDancerSmokeMusicTests(unittest.TestCase):
+    """The smoke music must satisfy upstream's frame math, not only the adapter.
+
+    gen_video_global.py:353 computes ``30 / int(rows / 149 + 0.5)``, where rows
+    is the 30 fps onset-envelope length (``1 + samples // 512`` at 15,360 Hz), so
+    music shorter than about 2.47 s divides by zero after the models load.
+    gen_video_local.py keeps one 149-frame segment only up to 149 / 30 seconds.
+    """
+
+    def test_smoke_music_fits_upstream_frame_math_and_the_output_assertion(
+        self,
+    ) -> None:
+        runner = load_runner()
+        definition = json.loads(
+            (
+                ROOT / "qualification/recipes/wan-dancer-14b-pytorch-single.json"
+            ).read_text(encoding="utf-8")
+        )["recipes"]
+        fixtures = json.loads(
+            (ROOT / "qualification/shared.json").read_text(encoding="utf-8")
+        )["fixtures"]
+        recipe = json.loads(RECIPE.read_text(encoding="utf-8"))
+        validation = recipe["validation"]["serving"]["checks"][0]["request"]
+        sources = [
+            base64.b64decode(
+                (ROOT / "qualification" / fixtures[item["fixture"]]["path"]).read_text()
+            )
+            for inputs in [definition["inputs"]]
+            + [case["inputs"] for case in definition["cases"]]
+            for item in inputs
+            if item["slot"] == "music"
+        ]
+        sources.append((ROOT / validation["input_slots"]["music"]).read_bytes())
+        (metadata,) = [
+            item
+            for item in definition["assertions"]
+            if item["kind"] == "video-metadata"
+        ]
+        for content in sources:
+            with wave.open(io.BytesIO(content), "rb") as source:
+                frames, rate = source.getnframes(), source.getframerate()
+            duration = frames / rate
+            rows = 1 + math.ceil(frames * 30 * 512 / rate) // 512
+            self.assertGreaterEqual(int(rows / 149.0 + 0.5), 1, (duration, rows))
+            self.assertLess(duration, 149 / 30)
+            self.assertLessEqual(1.0, duration)
+            output_frames = int(
+                (duration - runner.OUTPUT_TRIM_SECONDS) * runner.OUTPUT_FPS
+            )
+            self.assertEqual(metadata["frame_count"], output_frames)
+
+
+class WanDancerStageWorkingDirectoryTests(unittest.TestCase):
+    """moviepy's write_videofile puts its mux audio temp file in the cwd.
+
+    The image's source tree is root-owned while the job runs as uid 10001, so a
+    stage started there writes no audio file and the mux fails on hardware.
+    """
+
+    def test_stages_write_cwd_relative_files_into_job_scratch(self) -> None:
+        runner = load_runner()
+        with tempfile.TemporaryDirectory() as value:
+            source = Path(value) / "source"
+            work = Path(value) / "work"
+            source.mkdir()
+            work.mkdir()
+            with mock.patch.object(runner, "SOURCE_ROOT", source):
+                runner._run(
+                    [sys.executable, "-c", "open('probe_snd.mp4', 'wb').close()"],
+                    work,
+                    30,
+                )
+            self.assertTrue((work / "probe_snd.mp4").is_file())
+            self.assertFalse((source / "probe_snd.mp4").exists())
 
 
 if __name__ == "__main__":

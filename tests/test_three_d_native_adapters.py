@@ -5,6 +5,7 @@ import hashlib
 import importlib.machinery
 import importlib.util
 import json
+import re
 import sys
 import tarfile
 import tempfile
@@ -32,6 +33,9 @@ CASES = {
         "source_archive_url": "https://codeload.github.com/VAST-AI-Research/SkinTokens/tar.gz/273b691d35989d71cd17ff2895fdc735097b92d1",
         "source_archive": "skintokens.tar.gz",
         "source_archive_sha256": "f886ce830f8f6ed5a3eabebb9399244812ac17a44d5b51fe8853c381a214e334",
+        # Upstream reads models/ and experiments/ relative to the working
+        # directory, which the platform's image stage sets to /tmp.
+        "upstream_cwd": True,
         "base_image": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
     },
     "triposg-pytorch-single": {
@@ -292,6 +296,63 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                     self.assertNotIn(marker, source)
                 self.assertIn("output.glb", source)
                 self.assertIn("validate_mesh_glb(", source)
+
+    def test_entrypoints_put_the_extracted_upstream_tree_on_sys_path_first(
+        self,
+    ) -> None:
+        # The image runs run.py as a script, so only /opt/vonk/source is on
+        # sys.path; every deferred upstream import needs the tree the
+        # Dockerfile extracted inserted before it (SkinTokens lacked this).
+        # The platform's image stage ends with WORKDIR /tmp, so an adapter
+        # whose upstream reads cwd-relative files also changes into SOURCE.
+        for case in CASES.values():
+            context = ROOT / case["context"]
+            with self.subTest(context=case["context"]):
+                dockerfile = (context / "Dockerfile").read_text()
+                extracted = re.search(
+                    rf"--file /tmp/{re.escape(case['source_archive'])}\b.*?"
+                    r"--directory (\S+)",
+                    dockerfile,
+                )
+                assert extracted is not None
+                tree = ast.parse((context / "run.py").read_text())
+                roots = [
+                    node.value
+                    for node in tree.body
+                    if isinstance(node, ast.Assign)
+                    and [ast.unparse(target) for target in node.targets] == ["SOURCE"]
+                ]
+                self.assertEqual(
+                    [ast.unparse(value) for value in roots],
+                    [f"Path({extracted.group(1)!r})"],
+                )
+                deferred = 0
+                for function in ast.walk(tree):
+                    if not isinstance(function, ast.FunctionDef):
+                        continue
+                    required = ["sys.path.insert(0, str(SOURCE))"]
+                    if case.get("upstream_cwd"):
+                        required.append("os.chdir(SOURCE)")
+                    calls = [
+                        (ast.unparse(node), node.lineno)
+                        for node in ast.walk(function)
+                        if isinstance(node, ast.Call)
+                    ]
+                    firsts = [
+                        min(
+                            (line for text, line in calls if text == call), default=None
+                        )
+                        for call in required
+                    ]
+                    for node in ast.walk(function):
+                        if isinstance(node, (ast.Import, ast.ImportFrom)):
+                            deferred += 1
+                            for call, first in zip(required, firsts, strict=True):
+                                self.assertTrue(
+                                    first is not None and first < node.lineno,
+                                    f"{ast.unparse(node)} precedes {call}",
+                                )
+                self.assertGreater(deferred, 0)
 
     def test_hunyuan_declares_and_forces_exact_local_dinov2(self) -> None:
         recipe = json.loads(

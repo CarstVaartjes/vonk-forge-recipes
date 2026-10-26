@@ -28,6 +28,7 @@ from uuid import NAMESPACE_URL, uuid5
 from vonk_forge_contracts import ENDPOINT_ALIAS_PATTERN
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
+from spark_sweep.lifecycle import LifecycleState
 from spark_sweep.run import DaemonExecutor
 
 _ALIAS = re.compile(ENDPOINT_ALIAS_PATTERN)
@@ -82,13 +83,19 @@ class FakeRecipe:
     # Each copy attempt fails at 20 % and its retry restarts from 0: the per-attempt
     # operation snapshot resets while the max-merged child bytes stay at 20 %.
     copy_retries: bool = False
+    # Half-way the agent re-executes the copy (an agent restart): a new checkpoint
+    # key under the same child attempt, its operation counters from 0 again.
+    copy_reexecutes: bool = False
     # The child flaps between two phases without moving a byte (recorded 2026-10-23).
     phase_flap: bool = False
     start_progress: bool = False  # the start keeps reporting progress (it is just slow)
     orphan_seconds: float = (
         0.0  # after a cancel its run keeps showing on the Spark this long
     )
-    blocked: bool = False  # the Controller holds the application back (admission)
+    # The Controller holds the application back before admission: it stays queued with
+    # ``admission_pending`` and owns no run or effect. A newer admission on its Sparks
+    # supersedes it naming itself; a newer save, at its next re-plan, with no successor.
+    blocked: bool = False
     # How long the Controller keeps preparing/holding it, from the first load that asks
     # (None: for ever). It keeps going across later loads, as a real preparation does.
     blocked_for: float | None = None
@@ -103,6 +110,10 @@ class FakeRecipe:
     fail_code: str = "application.failed"
     fail_download: str | None = None
     fail_download_code: str = "model.download_failed"
+    # The Controller holds the model download back for NAS space (a ``download_blocked``
+    # backoff) until eviction can free this model digest's files: once its pin, seen in
+    # the pin profile, is gone (its recipes tested), the download runs.
+    download_blocked_behind: str = ""
     alias: str | None = None
     # What its run really holds on a Spark once serving (the node telemetry shows it).
     observed_memory: int = 0
@@ -112,6 +123,179 @@ class FakeRecipe:
     @property
     def key(self) -> str:
         return f"vonk-forge/{self.slug}"
+
+
+#: progress_stall.PROGRESS_STALL_WINDOW (settings.PROFILE_STALL_WINDOW_SECONDS).
+PROGRESS_STALL_WINDOW = 1800.0
+#: ProgressAlarmCode.STALLED.
+STALLED = "progress.stalled"
+#: progress_stall.WAITING_STATES.
+_STALL_STATES = ("queued", "running", "backoff")
+
+
+class StallAlarm:
+    """The Controller's stall alarm on a waiting application (vonk-forge #1899, 8ea8073a).
+
+    Only the stall is stored (``progress_stall.next_stall``). Its signature is where
+    the load waits: state, step, child operation, completed steps, admission; a new
+    place starts a new stall. At one place only forward movement restarts the window:
+    a wait (code and Sparks) not seen before at this place, a counter past its
+    per-child-phase mark (child bytes; operation bytes, items, activity), an
+    operation phase not seen before, or later preparation progress. The operation's
+    counters count within one checkpoint key: a new key under the child retry attempt
+    that first showed the old key is a re-execution and starts them over; a new key
+    under a later attempt is a retry and must pass the old marks; an unkeyed sample
+    merges by max. A first observation of an old row begins at the later of its
+    ``updated_at`` and its wait's ``first_blocked_at``.
+
+    At read time (application_projection.py) a stall older than
+    ``PROGRESS_STALL_WINDOW`` appends one ``progress.stalled`` blocker last, after the
+    waits the load shows now, to the view's ``blockers``, ``progress.blockers`` and
+    ``wait.blockers`` alike; the application keeps its state. Install it after any
+    wait overlay: it observes what the Controller would show.
+    """
+
+    def __init__(self, fleet: Any) -> None:
+        self.fleet = fleet
+        self.stalls: dict[str, dict[str, Any]] = {}
+        self.alarmed: list[tuple[float, str]] = []
+
+    def install(self, monkeypatch: Any) -> StallAlarm:
+        shown = self.fleet._app_doc
+        monkeypatch.setattr(
+            self.fleet, "_app_doc", lambda app: self.view(shown(app), app)
+        )
+        return self
+
+    @staticmethod
+    def _advance(
+        previous: dict[Any, dict[str, Any]], child: dict[str, Any]
+    ) -> tuple[dict[Any, dict[str, Any]], bool]:
+        """progress_stall._advance: the marks the child raised, and whether it moved."""
+        if not child:
+            return dict(previous), False
+        operation = child.get("operation")
+        old = previous.get(child.get("phase"))
+        base: dict[str, Any] = dict(
+            old
+            or {
+                "child_bytes": 0,
+                "checkpoint_key": None,
+                "key_attempt": None,
+                "operation_bytes": 0,
+                "operation_items": 0,
+                "activity": 0,
+                "operation_phases": [],
+            }
+        )
+        key = ((operation or {}).get("checkpoint") or {}).get("key")
+        if key is not None and key != base["checkpoint_key"]:
+            if base["checkpoint_key"] is not None and base["key_attempt"] == child.get(
+                "retry_attempt"
+            ):
+                base.update(operation_bytes=0, operation_items=0, activity=0)
+            base.update(checkpoint_key=key, key_attempt=child.get("retry_attempt"))
+        operation = operation or {}
+        reached = {
+            "child_bytes": child.get("bytes") or 0,
+            "operation_bytes": operation.get("completed_bytes") or 0,
+            "operation_items": operation.get("completed_items") or 0,
+            "activity": operation.get("activity_sequence") or 0,
+        }
+        raised = {name: value for name, value in reached.items() if value > base[name]}
+        phases = list(base["operation_phases"])
+        if child.get("operation") is not None and operation.get("phase") not in phases:
+            phases.append(operation.get("phase"))
+        moved = (
+            old is None or bool(raised) or len(phases) > len(base["operation_phases"])
+        )
+        marks = {
+            **previous,
+            child.get("phase"): {**base, **raised, "operation_phases": phases},
+        }
+        return marks, moved
+
+    def view(self, document: dict[str, Any], app: dict[str, Any]) -> dict[str, Any]:
+        now = self.fleet.clock.now()
+        progress = document.setdefault("progress", {})
+        wait = document.get("wait")
+        causes = [b for b in progress.get("blockers") or [] if b.get("code") != STALLED]
+        keys = {(b.get("code"), tuple(sorted(b.get("node_ids") or []))) for b in causes}
+        waits = [
+            *causes,
+            *(
+                b
+                for b in (wait or {}).get("blockers") or []
+                if b.get("code") != STALLED
+                and (b.get("code"), tuple(sorted(b.get("node_ids") or []))) not in keys
+            ),
+        ]
+        if document.get("state") not in _STALL_STATES or not waits:
+            self.stalls.pop(document["id"], None)
+            return document
+        signature = [
+            document.get("state"),
+            document.get("current_step"),
+            document.get("current_operation_id"),
+            progress.get("completed_steps"),
+            progress.get("admission_pending"),
+        ]
+        seen_now = {
+            (b.get("code"), tuple(sorted(b.get("node_ids") or []))) for b in waits
+        }
+        detail = f"{waits[0].get('code')}: {waits[0].get('detail')}"[:512]
+        prepared = progress.get("preparation_progressed_at")
+        child = progress.get("child_progress") or {}
+        previous = self.stalls.get(document["id"])
+        if previous is None or previous["signature"] != signature:
+            observed = now
+            blocked = (wait or {}).get("first_blocked_at")
+            if previous is None and app.get("updated_at") is not None:
+                # An old row first seen: its last write, or its wait's start if later.
+                observed = max(
+                    float(app["updated_at"]),
+                    datetime.fromisoformat(blocked).timestamp() if blocked else 0.0,
+                )
+            stall = {
+                "signature": signature,
+                "first_seen_at": observed,
+                "detail": detail,
+                "marks": self._advance({}, child)[0],
+                "waits": seen_now,
+                "prepared": prepared,
+            }
+        else:
+            stall = previous
+            marks, advanced = self._advance(previous["marks"], child)
+            new_wait = not seen_now <= previous["waits"]
+            later = prepared is not None and (
+                previous["prepared"] is None or prepared > previous["prepared"]
+            )
+            stall.update(marks=marks, waits=previous["waits"] | seen_now)
+            if later:
+                stall["prepared"] = prepared
+            if advanced or new_wait or later:
+                stall.update(first_seen_at=now, detail=detail)
+        self.stalls[document["id"]] = stall
+        if now - stall["first_seen_at"] <= PROGRESS_STALL_WINDOW:
+            return document
+        first = datetime.fromtimestamp(stall["first_seen_at"], UTC).isoformat()
+        alarm = {
+            "code": STALLED,
+            "severity": "error",
+            "detail": f"No progress since {first}: {stall['detail']}",
+        }
+        self.alarmed.append((now, document["id"]))
+        shown = (
+            [b for b in wait.get("blockers") or [] if b.get("code") != STALLED]
+            if wait is not None
+            else causes
+        )
+        progress["blockers"] = [*shown, alarm]
+        document["blockers"] = [*shown, alarm]
+        if wait is not None:
+            wait["blockers"] = [*shown, alarm]
+        return document
 
 
 @dataclass
@@ -290,6 +474,12 @@ class FakeFleet:
         self.assessments = False
         # recipe key -> when the Controller stops holding it (see FakeRecipe.blocked_for)
         self.held_until: dict[str, float] = {}
+        # (when, application id) of each pending admission a newer request retired.
+        self.superseded_pending: list[tuple[float, str]] = []
+        # The admission observer re-plans a waiting row at its next_action_at: the
+        # Controller's admission backoff (RECOVERY, fleet_profile.py next_retry) caps
+        # at 60 s.
+        self.admission_retry_seconds = 60.0
         # Artifact jobs by create request key, and every ``recipe job`` step seen.
         self.jobs: dict[str, dict[str, Any]] = {}
         self.job_calls: list[tuple[str, str]] = []
@@ -340,6 +530,16 @@ class FakeFleet:
                 del self.orphans[alias]
                 self.runs = [r for r in self.runs if r["alias"] != alias]
         for op in self.ops.values():
+            if op["state"] == "backoff":
+                behind = self.recipes[op["recipe"]].download_blocked_behind
+                if any(
+                    behind in self.recipes[a["recipe_selector"]].digests
+                    for a in self.profiles.get(13, {}).get("assignments", [])
+                    if a.get("recipe_selector") in self.recipes
+                ):
+                    op["behind_pinned"] = True
+                elif op.get("behind_pinned"):
+                    op.update(state="running", started=now)  # eviction freed the space
             if (
                 op["state"] in ("queued", "running")
                 and now >= op["started"] + op["duration"]
@@ -355,6 +555,25 @@ class FakeFleet:
         for app in list(self.apps.values()):
             if app["state"] not in ("queued", "running"):
                 continue
+            if app.get("admission_pending"):
+                if now >= app.get("held_until", float("inf")):
+                    app["blocked"] = False
+                released = not app.get("blocked")
+                if not released and now < app["replan_at"]:
+                    continue  # no effect or child exists before admission
+                # pending_admission.py: every admission attempt or re-plan first
+                # ends a row whose profile was saved since it was accepted, with
+                # no successor (_superseded_by_saved_profile).
+                if (
+                    self.profiles[app["profile"]].get("revision")
+                    != app["accepted_revision"]
+                ):
+                    self._end_pending(app, None)
+                    continue
+                if not released:
+                    app["replan_at"] = now + self.admission_retry_seconds
+                    continue
+                self._admit(app)
             if app.get("owner"):
                 if now >= app["created"] + app["duration"]:
                     app["state"] = "succeeded"
@@ -379,10 +598,8 @@ class FakeFleet:
                     run for run in self.runs if run["run_id"] != effect["target_id"]
                 ]
             pending = [a for a in app["assign"] if not a["resolved"]]
-            if app.get("blocked") and now >= app.get("held_until", float("inf")):
-                app["blocked"] = False  # admitted: the Controller stops holding it
             if app.get("blocked"):
-                continue  # the Controller holds the whole application back
+                continue  # the Controller holds the bound application's child
             if pending and self.supersede and not app.get("successor_of"):
                 self._supersede(app, self.supersede.pop(0))
                 continue
@@ -411,6 +628,42 @@ class FakeFleet:
             ):
                 failed = any(a["fail"] for a in app["assign"])
                 app["state"] = "failed" if failed else "succeeded"
+
+    def _admit(self, app: dict[str, Any]) -> None:
+        """Admission binds the queued application: its runs and effects start now.
+
+        It retires every older unbound admission of the profile, naming this
+        application the successor (queue_application.py and apply.py
+        ``supersede(prior, ..., by=application_id)``): an older pending row's intent
+        scope is the whole accepted profile (persistence.py ``_intent_scope``), so any
+        load that fences a Spark overlaps it. A newer one still waiting stays parked.
+        """
+        for other in list(self.apps.values()):
+            if other is app:
+                break
+            if (
+                other.get("admission_pending")
+                and other["state"] == LifecycleState.QUEUED
+                and other["profile"] == app["profile"]
+                and app["nodes"]
+            ):
+                self._end_pending(other, app["id"])
+        replaced = {run["alias"] for run in app.pop("parked_runs")}
+        self.runs = [run for run in self.runs if run["alias"] not in replaced]
+        self.runs.extend(app["parked_runs_new"])
+        del app["parked_runs_new"]
+        app["effects"] = app.pop("parked_effects")
+        app.update(state=LifecycleState.RUNNING, admission_pending=False)
+
+    def _end_pending(self, app: dict[str, Any], successor: str | None) -> None:
+        """A newer request retired an unbound admission (superseded_by: the newer load)."""
+        self.superseded_pending.append((self.clock.now(), app["id"]))
+        app.update(
+            state=LifecycleState.SUPERSEDED,
+            superseded_by=successor,
+            reason_code="superseded-by-intent",
+            reason="Profile order was replaced before admission",
+        )
 
     def _supersede(self, app: dict[str, Any], mode: str) -> None:
         """The Controller replaces a running application, as an automatic retry or a later intent."""
@@ -616,11 +869,13 @@ class FakeFleet:
         items: list[Any],
     ) -> dict[str, Any]:
         start = int(a[a.index("--cursor") + 1][1:]) if "--cursor" in a else 0
-        page = items[start : start + self.page_size]
-        more = start + self.page_size < len(items)
+        # The Controller honours --limit and may trim a page further (its byte cap).
+        size = min(int(a[a.index("--limit") + 1]), self.page_size)
+        page = items[start : start + size]
+        more = start + size < len(items)
         return {
             name: [row(i) for i in page],
-            "next_cursor": f"c{start + self.page_size}" if more else None,
+            "next_cursor": f"c{start + size}" if more else None,
             "library": {"commit": "lib-commit-1", "version": "2.1.0"},
         }
 
@@ -729,11 +984,12 @@ class FakeFleet:
             return 0, self._op_doc(self.ops[self.by_request[request]])
         recipe = self.recipes[key]
         model_missing = any(self.models[d].local != "cached" for d in recipe.digests)
+        blocked = model_missing and bool(recipe.download_blocked_behind)
         op_id = self._id("op")
         self.ops[op_id] = {
             "id": op_id,
             "recipe": key,
-            "state": "running",
+            "state": "backoff" if blocked else "running",
             "started": self.clock.now(),
             "duration": self.download_seconds if model_missing else 5.0,
             "request": request,
@@ -778,6 +1034,8 @@ class FakeFleet:
         done = (
             op["bytes"]
             if op["state"] == "succeeded"
+            else 0
+            if op["state"] == "backoff"
             else int(op["bytes"] * min(elapsed / op["duration"], 0.99))
         )
         doc: dict[str, Any] = {
@@ -796,6 +1054,20 @@ class FakeFleet:
             },
             "children": [],
         }
+        if op["state"] == "backoff":
+            # vonk-forge model_cache/repair.py ``_capacity_holds``: a retryable wait.
+            doc["children"] = [
+                {
+                    "kind": "model-cache",
+                    "state": "backoff",
+                    "failure": {
+                        "code": "model_cache.download_blocked",
+                        "detail": "insufficient-reserved-storage",
+                        "retryable": True,
+                        "recovery_actions": ["free_space", "resume"],
+                    },
+                }
+            ]
         if op["state"] == "failed":
             doc["failure"] = {
                 "code": (
@@ -1064,6 +1336,11 @@ class FakeFleet:
         }
         if "--review" in a:
             adopted = []
+            # An identical repeat of an application's whole profile is a new request:
+            # the Controller adopts nothing from it (continuing_effects.py).
+            repeat = hashlib.sha256(
+                json.dumps(data["assignments"], sort_keys=True).encode()
+            ).hexdigest()
             for x in data["assignments"]:
                 existing = running.get(x["assignment_name"])
                 if (
@@ -1074,8 +1351,12 @@ class FakeFleet:
                 ):
                     continue
                 for app in self.apps.values():
-                    if app["state"] not in ("queued", "running"):
-                        continue
+                    if (
+                        app["state"] not in ("queued", "running")
+                        or app.get("admission_pending")
+                        or app.get("plan_digest") == repeat
+                    ):
+                        continue  # continuing_effects.py: pending and repeats adopt nothing
                     child = next(
                         (
                             item
@@ -1227,6 +1508,8 @@ class FakeFleet:
             pass
         assign = []
         held_by: list[dict[str, str]] = []
+        replaced: list[dict[str, Any]] = []
+        started: list[dict[str, Any]] = []
         for x in data["assignments"]:
             alias = x["assignment_name"]
             if x["desired_state"] != "running":
@@ -1256,9 +1539,9 @@ class FakeFleet:
                         assign.append(child)
                 continue
             if existing is not None:
-                self.runs = [run for run in self.runs if run["alias"] != alias]
+                replaced.append(existing)
             recipe = self.recipes[x["recipe_selector"]]
-            self.runs.append(
+            started.append(
                 {
                     "alias": alias,
                     "recipe": recipe.key,
@@ -1299,14 +1582,47 @@ class FakeFleet:
                     "resolved": False,
                 }
             )
+        # The load fences the Sparks it changes: new runs and stopped ones.
+        nodes = {
+            node
+            for item in [*started, *effects, *borrowed_effects]
+            for node in item["node_ids"]
+        }
+        # queue_application.py:622-677: an older bound load whose intent scope meets
+        # this load's fence, and that keeps no adopted (unchanged) child, is
+        # superseded by this one, naming it; a removed assignment's child is
+        # cancelled (run_switch_operations/advance.py) and its run stopped above.
+        adopted_children = {id(item) for item in assign}
+        for older in self.apps.values():
+            if (
+                older["profile"] == n
+                and older["state"] in ("queued", "running")
+                and not older.get("admission_pending")
+                and not older.get("owner")
+                and older.get("nodes", set()) & nodes
+                and any(not item["resolved"] for item in older["assign"])
+                and not any(id(item) in adopted_children for item in older["assign"])
+            ):
+                older.update(
+                    state=LifecycleState.SUPERSEDED,
+                    superseded_by=app_id,
+                    reason_code="superseded-by-intent",
+                    reason="Profile order was replaced by a later scoped intent",
+                )
         self.apps[app_id] = {
             "id": app_id,
             "profile": n,
             "plan_digest": plan_digest,
-            "effects": effects + borrowed_effects,
+            "nodes": nodes,
+            "parked_effects": effects + borrowed_effects,
+            "parked_runs": replaced,
+            "parked_runs_new": started,
             "created": self.clock.now(),
             "assign": assign,
-            "state": "running",
+            "state": LifecycleState.QUEUED if held_by else LifecycleState.RUNNING,
+            "admission_pending": bool(held_by),
+            "accepted_revision": data.get("revision"),
+            "replan_at": self.clock.now() + self.admission_retry_seconds,
             "request_key": request,
             "copy": max(
                 (
@@ -1338,6 +1654,11 @@ class FakeFleet:
                 for x in data["assignments"]
                 if x["assignment_name"] not in running
             ),
+            "copy_reexecutes": any(
+                self.recipes[x["recipe_selector"]].copy_reexecutes
+                for x in data["assignments"]
+                if x["assignment_name"] not in running
+            ),
             "copy_retries": any(
                 self.recipes[x["recipe_selector"]].copy_retries
                 for x in data["assignments"]
@@ -1349,6 +1670,8 @@ class FakeFleet:
                 if x["assignment_name"] not in running
             ),
         }
+        if not held_by:
+            self._admit(self.apps[app_id])
         data["latest"] = app_id
         self.by_request[request] = app_id
         self._tick()
@@ -1374,8 +1697,14 @@ class FakeFleet:
         if app["state"] in ("queued", "running") and 0 < copy and elapsed < copy:
             moved_at = now
             done = int(total * elapsed / copy)
-            attempt_bytes, retry = done, None
-            if app.get("copy_stalls") and done > total * 0.2:
+            attempt_bytes, retry, key = done, None, None
+            if app.get("copy_reexecutes"):
+                key = "copy-1"
+                if elapsed > copy * 0.5:  # re-executed from zero under attempt 1
+                    key = "copy-2"
+                    attempt_bytes = int(total * (elapsed - copy * 0.5) / copy)
+                    done = max(attempt_bytes, int(total * 0.5))
+            elif app.get("copy_stalls") and done > total * 0.2:
                 done = attempt_bytes = int(total * 0.2)  # frozen at 20 %
                 moved_at = app["created"] + copy * 0.2
             elif app.get("copy_retries"):
@@ -1392,6 +1721,7 @@ class FakeFleet:
                     "phase": "copying",
                     "completed_bytes": attempt_bytes,
                     "last_progress_at": stamp(moved_at),
+                    **({"checkpoint": {"key": key}} if key else {}),
                 },
             }
         if app.get("phase_flap") and app["state"] in ("queued", "running"):
@@ -1419,6 +1749,8 @@ class FakeFleet:
         return {"phase": app.get("phase")}
 
     def _app_doc(self, app: dict[str, Any]) -> dict[str, Any]:
+        # pending_application.py: queued, no operation or child, step 0, with a wait.
+        pending = app.get("admission_pending") and app["state"] == LifecycleState.QUEUED
         return {
             "id": app["id"],
             "request_key": app.get("request_key", ""),
@@ -1428,8 +1760,14 @@ class FakeFleet:
             "reason_code": app.get("reason_code"),
             "retry_of_application_id": app.get("successor_of"),
             "blockers": app.get("blockers", []),
-            "current_operation_id": app["id"],
+            "current_operation_id": None if pending else app["id"],
+            **(
+                {"current_step": 0, "wait": self._admission_wait(app)}
+                if pending
+                else {}
+            ),
             "progress": {
+                "admission_pending": bool(pending),
                 **(
                     {
                         "effects": [
@@ -1444,7 +1782,7 @@ class FakeFleet:
                     if self.cleanup_projection
                     else {}
                 ),
-                "child_progress": self._child_progress(app),
+                "child_progress": {} if pending else self._child_progress(app),
                 "switch_adapter": {"assignment_failures": app.get("failures", [])},
                 "blockers": (
                     app.get("held_by", [])
@@ -1457,6 +1795,22 @@ class FakeFleet:
                 if app.get("cancel")
                 else {}
             ),
+        }
+
+    @staticmethod
+    def _admission_wait(app: dict[str, Any]) -> dict[str, Any]:
+        """The deferred admission's wait (persisted_waits.schedule_wait on the application)."""
+        reason = "observation-unavailable"
+        return {
+            "reason": reason,
+            "blockers": [
+                {
+                    "code": reason,
+                    "detail": reason,
+                    "operation": {"id": app["id"], "kind": "fleet-profile"},
+                    "severity": "warning",
+                }
+            ],
         }
 
     def _app_progress(self, data: dict[str, Any], a: list[str]) -> tuple[int, Any]:

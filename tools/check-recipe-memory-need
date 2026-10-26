@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -31,9 +32,29 @@ from qualification.memory_need import (
 from spark_sweep.qualification import read_evidence
 
 
+def touched_recipes(root: Path, base: str) -> list[Path]:
+    """Recipe files added or modified since the merge base, including untracked."""
+
+    def git(*args: str) -> list[str]:
+        return subprocess.run(
+            ["git", "-C", str(root), *args, "--", "recipes/*.json"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.splitlines()
+
+    names = git("diff", "--name-only", "--diff-filter=AMR", "--merge-base", base)
+    names += git("ls-files", "--others", "--exclude-standard")
+    return sorted({root / name for name in names})
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("recipes", nargs="*", help="recipe slugs; default: catalog")
+    parser.add_argument(
+        "--base",
+        help="check only recipes touched since the merge base with this revision",
+    )
     parser.add_argument(
         "--calibrate", action="store_true", help="audit hardware passes"
     )
@@ -45,7 +66,9 @@ def main() -> int:
     inputs = load_inputs()
     failed = flagged = proven_count = applicable = 0
     paths = (
-        [ROOT / "recipes" / f"{slug}.json" for slug in args.recipes]
+        touched_recipes(ROOT, args.base)
+        if args.base
+        else [ROOT / "recipes" / f"{slug}.json" for slug in args.recipes]
         if args.recipes
         else sorted((ROOT / "recipes").glob("*.json"))
     )
@@ -71,7 +94,7 @@ def main() -> int:
                 continue
             applicable += 1
             # No evidence-based exemption here: run every applicable variant.
-            needs = [per_rank_need(v, models) for v in memory_variants(recipe)]
+            needs = [per_rank_need(v, models, inputs) for v in memory_variants(recipe)]
             if any(not n.fits for n in needs):
                 flagged += 1
             print(
@@ -82,7 +105,13 @@ def main() -> int:
             continue
         unchanged = unchanged_recipe(recipe, digest, inputs)
         try:
-            require_memory_need(recipe, models, inputs, document_digest=digest)
+            require_memory_need(
+                recipe,
+                models,
+                inputs,
+                document_digest=digest,
+                touched=bool(args.base),
+            )
             proof = hardware_proven(recipe, digest)
             print(f"{key}: hardware-proven={proof}; unchanged={unchanged}")
             for warning in memory_warnings(recipe, models, inputs):

@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import ctypes
+import importlib.util
 import os
+import re
+import subprocess
 from pathlib import Path
 
 SITE = Path("/usr/local/lib/python3.12/dist-packages/vllm")
@@ -10,9 +14,40 @@ MARKERS = {
     SITE / "models/minimax_m3/common/b12x_backend.py": "b12x.vllm.minimax_m3.backend",
 }
 WRAPPER = Path("/opt/vonk/bin/vllm")
+NCCL = Path("/opt/nccl/lib/libnccl.so.2")
+PIP_NCCL = Path("/usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2")
+
+
+def verify_nccl() -> None:
+    # torch loads NCCL through the pip package's path: it must resolve to the mesh build, which must load without a GPU.
+    if PIP_NCCL.resolve() != NCCL.resolve():
+        raise SystemExit(f"torch's NCCL {PIP_NCCL} is not the mesh build {NCCL}")
+    version = ctypes.c_int()
+    if ctypes.CDLL(str(PIP_NCCL)).ncclGetVersion(ctypes.byref(version)) != 0:
+        raise SystemExit(f"ncclGetVersion failed for {PIP_NCCL}")
+    print("NCCL mesh build OK:", version.value)
+
+
+def verify_flashinfer_aot() -> None:
+    # The AOT kernel cache must hold GB10 (sm_12x) cubins; one cuobjdump per AOT .so, once per image build.
+    spec = importlib.util.find_spec("flashinfer_jit_cache")
+    if spec is None or not spec.submodule_search_locations:
+        raise SystemExit("flashinfer_jit_cache is not installed")
+    root = Path(next(iter(spec.submodule_search_locations))) / "jit_cache"
+    archs: set[str] = set()
+    for library in sorted(root.rglob("*.so")):
+        result = subprocess.run(["cuobjdump", "--list-elf", str(library)], capture_output=True, text=True, check=False)
+        if result.returncode != 0 and "does not contain device code" not in result.stdout + result.stderr:
+            raise SystemExit(f"cuobjdump failed for {library}: {result.stderr.strip()}")
+        archs.update(re.findall(r"\.(sm_\d+[a-z]?)\.cubin", result.stdout))
+    if not any(arch.startswith("sm_12") for arch in archs):
+        raise SystemExit(f"FlashInfer AOT kernels hold no sm_12x (GB10) cubins; found {sorted(archs)} in {root}")
+    print("FlashInfer AOT kernels:", sorted(archs))
 
 
 def main() -> None:
+    verify_nccl()
+    verify_flashinfer_aot()
     # Upstream Dockerfile.deploy smoke imports, run after the mods so a broken layer fails the build, not the launch.
     import importlib.util
 

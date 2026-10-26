@@ -337,9 +337,11 @@ def _run(command: list[str], work: Path, timeout: int) -> None:
         "HF_DATASETS_OFFLINE": "1",
         "PYTHONPATH": str(SOURCE_ROOT),
     }
+    # Upstream writes cwd-relative scratch (moviepy's mux audio temp file), so
+    # it runs in the job's writable scratch, never the root-owned source tree.
     subprocess.run(
         command,
-        cwd=SOURCE_ROOT,
+        cwd=work,
         env=environment,
         check=True,
         timeout=timeout,
@@ -509,9 +511,9 @@ def main() -> None:
     )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(
-        prefix="wan-dancer-", dir=args.output_dir
-    ) as value:
+    # Scratch lives in the platform's TMPDIR, never the output root: a killed
+    # job skips cleanup, and only plain output files may remain there.
+    with tempfile.TemporaryDirectory(prefix="wan-dancer-") as value:
         work = Path(value)
         prompt_root = SOURCE_ROOT / "gen_video/prompt"
         global_style, local_style = STYLE_PROMPTS[style]

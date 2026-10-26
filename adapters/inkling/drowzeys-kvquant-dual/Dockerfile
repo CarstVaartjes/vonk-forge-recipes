@@ -9,12 +9,15 @@ LABEL org.opencontainers.image.source="https://github.com/drowzeys/keys-1M-CTX-I
 # b7252cc6 + NCCL 2.30 + the NVFP4 KV-cache patches; arm64, CUDA 13). scripts/ and
 # patches/ are upstream's launchers and patch diff, carried byte-identically for
 # provenance; the recipe reproduces scripts/nvfp4-kv-boot.sh. This layer adds the
-# placement wrapper and the non-root user.
+# placement wrapper, the forced Inkling tool-call patch and the non-root user.
 COPY scripts /opt/vonk/upstream-scripts
 COPY patches /opt/vonk/upstream-patches
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
+COPY inkling-forced-tool-grammar.py /opt/vonk/build/inkling-forced-tool-grammar.py
 
-RUN test -x /opt/vonk/bin/sglang-serve \
+RUN python3 /opt/vonk/build/inkling-forced-tool-grammar.py \
+    && rm -rf /opt/vonk/build \
+    && test -x /opt/vonk/bin/sglang-serve \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache

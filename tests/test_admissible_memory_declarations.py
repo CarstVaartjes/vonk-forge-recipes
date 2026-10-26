@@ -12,8 +12,8 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
+    ADMISSION_IDLE_USE_BYTES,
     IDLE_AVAILABLE_BYTES,
-    IDLE_USE_BYTES,
     OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
     TOTAL_BYTES,
@@ -68,6 +68,17 @@ REPAIRED = (
     "step-5-preview-exl3-vllm-four",
 )
 
+# The multi-Spark SGLang rank budget rejects these repairs as new content; their
+# unchanged bytes stay baselined and each is a hardware-led follow-up (#1761).
+RANK_BUDGET_FOLLOW_UPS = {
+    "deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual",
+    "inkling-975b-a41b-nvfp4-sglang-eight",
+    "inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual",
+    "inkling-small-nvfp4-sglang-mia-dual",
+    "mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual",
+    "qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual",
+}
+
 
 def recipe_for(slug: str) -> RecipeDefinition:
     return RecipeDefinition.model_validate_json(
@@ -89,7 +100,7 @@ def test_proven_set_calibrates_need_without_false_rejections() -> None:
         if recipe.runtime.engine not in {"vllm", "sglang"}:
             continue
         for variant in memory_variants(recipe):
-            need = per_rank_need(variant, catalog_models())
+            need = per_rank_need(variant, catalog_models(), load_inputs())
             assert all(
                 need.peak_bytes + role.resources.memory.reserve_bytes
                 <= IDLE_AVAILABLE_BYTES
@@ -107,7 +118,7 @@ def test_repaired_declarations_and_engine_allocations_fit_every_variant(
     assert f"{recipe.identity.publisher}/{slug}" not in PROVEN
     for variant in memory_variants(recipe):
         require_admissible_declaration(variant)
-        need = per_rank_need(variant, catalog_models())
+        need = per_rank_need(variant, catalog_models(), load_inputs())
         assert not declaration_problems(variant, need)
         if variant.runtime.engine == "vllm":
             fraction = argument_value(variant, "gpu-memory-utilization")
@@ -127,9 +138,15 @@ def test_repaired_declarations_and_engine_allocations_fit_every_variant(
                 allocated <= role.resources.memory.peak_bytes
                 for role in variant.topology.roles
             )
-        require_memory_need(
-            variant, catalog_models(), load_inputs(), document_digest=""
-        )
+        if slug in RANK_BUDGET_FOLLOW_UPS:
+            with pytest.raises((TypeError, ValueError)):
+                require_memory_need(
+                    variant, catalog_models(), load_inputs(), document_digest=""
+                )
+        else:
+            require_memory_need(
+                variant, catalog_models(), load_inputs(), document_digest=""
+            )
 
 
 def test_catalog_checks_each_supported_document() -> None:
@@ -163,18 +180,21 @@ def test_static_budget_drift_cannot_hide_behind_a_smaller_declaration() -> None:
 
 def test_repaired_deferral_uses_shared_admission_with_owned_idle_host() -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
-    assert 4_515_061_760 < IDLE_USE_BYTES
-    assert IDLE_AVAILABLE_BYTES == TOTAL_BYTES - IDLE_USE_BYTES
+    # Proven 120,370,379,081-byte peaks were admitted live; the offline host
+    # baseline must admit them too (it is not the estimator's 3542 incident).
+    assert ADMISSION_IDLE_USE_BYTES <= TOTAL_BYTES - OS_FLOOR_BYTES - 120_370_379_081
     for role in recipe.topology.roles:
         assert role.resources.memory.peak_bytes == 92_405_678_632
         assert evaluate_memory_admission(
-            role.resources.memory.peak_bytes, TOTAL_BYTES, occupied_bytes=IDLE_USE_BYTES
+            role.resources.memory.peak_bytes,
+            TOTAL_BYTES,
+            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
         ).admissible
         # Informational reserve is not another claim in the shared predicate.
         role.resources.memory.reserve_bytes = TOTAL_BYTES
     require_admissible_declaration(recipe)
     recipe.topology.roles[1].resources.memory.peak_bytes = (
-        IDLE_AVAILABLE_BYTES - OS_FLOOR_BYTES + 1
+        TOTAL_BYTES - ADMISSION_IDLE_USE_BYTES - OS_FLOOR_BYTES + 1
     )
     with pytest.raises(ValueError, match="worker.*not admissible"):
         require_admissible_declaration(recipe)
@@ -207,13 +227,17 @@ def test_recorded_content_precedes_admission(monkeypatch) -> None:
 
 def test_wrapper_cache_alias_counts_toward_actual_rank_demand() -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sfxnz-vllm-dual")
-    initial = per_rank_need(recipe, catalog_models()).peak_bytes
+    initial = per_rank_need(recipe, catalog_models(), load_inputs()).peak_bytes
     pin = next(a for a in recipe.runtime.arguments if a.name == "kv-cache-memory")
     assert isinstance(pin.value, int)
     assert pin.value == 12 * 1024**3
     pin.value += 1
-    assert per_rank_need(recipe, catalog_models()).peak_bytes == initial + 1
-    assert declaration_problems(recipe, per_rank_need(recipe, catalog_models()))
+    assert (
+        per_rank_need(recipe, catalog_models(), load_inputs()).peak_bytes == initial + 1
+    )
+    assert declaration_problems(
+        recipe, per_rank_need(recipe, catalog_models(), load_inputs())
+    )
 
 
 @pytest.mark.parametrize("rank", [0, 1])

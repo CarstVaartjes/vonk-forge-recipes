@@ -1,0 +1,10 @@
+{
+  "command": [
+    "cuobjdump",
+    "--list-elf",
+    "/workspace/flashinfer/build/aot/cached_ops/spdlog/spdlog.so"
+  ],
+  "returncode": 255,
+  "stdout": "",
+  "stderr": "cuobjdump info    : File '/workspace/flashinfer/build/aot/cached_ops/spdlog/spdlog.so' does not contain device code\n"
+}

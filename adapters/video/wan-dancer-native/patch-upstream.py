@@ -106,12 +106,55 @@ def main() -> None:
         "import xfuser\nfrom xfuser.core.distributed import get_sp_group",
         "xfuser = None\n\ndef get_sp_group():\n    raise RuntimeError('sequence parallelism is disabled for the single-Spark runtime')",
     )
+    # model_fn_wan_video imports get_sequence_parallel_world_size only when
+    # use_unified_sequence_parallel is set, so the name is local to the function
+    # and its one unguarded read (the music-injection length) raises
+    # UnboundLocalError on every run without sequence parallelism. Without it
+    # the world size is 1.
+    replace_once(
+        pipeline,
+        "            N = int(float(frame_num * 8) / get_sequence_parallel_world_size()) * get_sequence_parallel_world_size()\n",
+        "            N = frame_num * 8\n"
+        "            if use_unified_sequence_parallel:\n"
+        "                N = int(float(N) / get_sequence_parallel_world_size()) * get_sequence_parallel_world_size()\n",
+    )
 
     dit = root / "diffsynth/models/wan_video_dit.py"
     replace_once(
         dit,
         "from xfuser.core.distributed import (get_sequence_parallel_rank,\n                                     get_sequence_parallel_world_size,\n                                     get_sp_group)\nfrom yunchang import LongContextAttention",
         "def _single_spark_only(*args, **kwargs):\n    raise RuntimeError('sequence parallelism is disabled for the single-Spark runtime')\n\nget_sequence_parallel_rank = _single_spark_only\nget_sequence_parallel_world_size = _single_spark_only\nget_sp_group = _single_spark_only\nLongContextAttention = _single_spark_only",
+    )
+
+    # The music encoder's attention is the only DiT layer pinned to CUDA at
+    # construction. That made the WanModel constructor the process's first
+    # CUDA use; the model is moved to its device after its weights load.
+    replace_once(
+        dit,
+        "                        rotary=rotary,\n                        device='cuda',\n",
+        "                        rotary=rotary,\n",
+    )
+
+    # Upstream builds every model as real FP32 tensors on CPU (about 69 GB for
+    # the 17.2 B-parameter DiT) while its BF16 state dict is also resident, all
+    # in GB10 unified memory. Build on meta and take every parameter from the
+    # checkpoint; a parameter the checkpoint lacks fails with its name instead
+    # of loading with random initialization (the loader is strict=False).
+    manager = root / "diffsynth/models/model_manager.py"
+    replace_once(
+        manager,
+        '        with init_weights_on_device(device = torch.device("cpu")):',
+        '        with init_weights_on_device(device=torch.device("meta")):',
+    )
+    replace_once(
+        manager,
+        "        model.load_state_dict(model_state_dict, assign=True, strict=False)\n"
+        "        model = model.to(dtype=torch_dtype, device=device)\n",
+        "        model.load_state_dict(model_state_dict, assign=True, strict=False)\n"
+        "        unloaded = [name for name, parameter in model.named_parameters() if parameter.is_meta]\n"
+        "        if unloaded:\n"
+        "            raise RuntimeError(f'{model_name}: checkpoint has no tensor for parameters {unloaded}')\n"
+        "        model = model.to(dtype=torch_dtype, device=device)\n",
     )
 
     downloader = root / "diffsynth/models/downloader.py"
@@ -123,6 +166,16 @@ def main() -> None:
 
     patch_stage(root / "gen_video/gen_video_global.py", "global_model.safetensors")
     patch_stage(root / "gen_video/gen_video_local.py", "local_model.safetensors")
+
+    # Upstream parses --cfg_scale as int, so any fractional guidance scale
+    # (including the adapter's 5.0 default) exits before loading a model. The
+    # pipelines take a float guidance scale.
+    for stage in ("gen_video_global.py", "gen_video_local.py"):
+        replace_once(
+            root / "gen_video" / stage,
+            '        "--cfg_scale",\n        type=int,',
+            '        "--cfg_scale",\n        type=float,',
+        )
 
     # Preserve the signed local-stage CFG argument instead of silently dropping it.
     local = root / "gen_video/gen_video_local.py"

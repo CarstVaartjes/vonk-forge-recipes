@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import shlex
 import unittest
 from pathlib import Path
 
@@ -38,6 +40,46 @@ def context_files(recipe: dict) -> list[Path]:
     return [path for path in context.rglob("*") if path.is_file()]
 
 
+# A build step that proves the Ray CLI or package is in the image: a shell or
+# Python executable check, a Ray launcher path, or an import of the package.
+RAY_BUILD_CHECK = re.compile(
+    r"command -v ray\b|/bin/ray\b|which\(\"ray\"\)|\bimport ray\b"
+    r"|import_module\(\"ray\"\)|find_spec\(\"ray\"\)"
+)
+
+
+def build_time_text(recipe: dict) -> str:
+    """The Dockerfile's RUN steps plus the copied files those steps name.
+
+    The launcher mentions Ray too (it starts the cluster), but it runs only
+    when the workload starts, so the runtime entrypoint never counts.
+    """
+    build = recipe["execution"]["build"]
+    context = ROOT / build["context"]["path"]
+    dockerfile = (ROOT / build["dockerfile"]).read_text().replace("\\\n", " ")
+    steps: list[str] = []
+    copied: dict[str, Path] = {}
+    for instruction in dockerfile.splitlines():
+        keyword, _, rest = instruction.strip().partition(" ")
+        if keyword == "RUN":
+            steps.append(rest)
+        elif keyword == "COPY" and "--from" not in rest:
+            *sources, target = [p for p in shlex.split(rest) if not p.startswith("--")]
+            for source in map(context.joinpath, sources):
+                if source.is_dir():
+                    root = target.rstrip("/")
+                    for path in (p for p in source.rglob("*") if p.is_file()):
+                        copied[f"{root}/{path.relative_to(source)}"] = path
+                elif len(sources) > 1 or target.endswith("/"):
+                    copied[f"{target.rstrip('/')}/{source.name}"] = source
+                else:
+                    copied[target] = source
+    copied.pop(recipe["runtime"]["entrypoint"][0], None)
+    run = "\n".join(steps)
+    named = [path.read_text() for target, path in copied.items() if target in run]
+    return "\n".join([run, *named])
+
+
 class RayVllmLauncherTest(unittest.TestCase):
     def test_the_class_is_not_empty(self) -> None:
         self.assertTrue(ray_vllm_recipes())
@@ -61,6 +103,19 @@ class RayVllmLauncherTest(unittest.TestCase):
                     f"{slug} declares the Ray backend but ships no launcher that "
                     "consumes --nnodes and starts the Ray cluster; vLLM exits at "
                     "configuration time with --nnodes and the Ray executor",
+                )
+
+    def test_every_ray_recipe_checks_for_ray_when_its_image_is_built(self) -> None:
+        # The launcher execs `ray start`; an image without Ray otherwise builds,
+        # publishes and only dies on both Sparks with "runtime executable is
+        # missing: ray" (MiniMax M2.7 r0b0tlab dual, 2026-10-25).
+        for slug, recipe in ray_vllm_recipes():
+            with self.subTest(recipe=slug):
+                self.assertRegex(
+                    build_time_text(recipe),
+                    RAY_BUILD_CHECK,
+                    f"{slug} declares the Ray backend but no build step checks "
+                    "that the image has Ray; install it or check the image's own",
                 )
 
     def test_the_405b_context_fits_the_bounded_chat_check(self) -> None:

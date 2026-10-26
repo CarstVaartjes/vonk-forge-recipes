@@ -6,3 +6,6 @@ not executed: Vonk launches SGLang itself through sglang-serve.
 
 The image base is ghcr.io/drowzeys/inkling-sglang-gb10 (the README's
 UPSTREAM_IMAGE), pinned by digest; see the Dockerfile.
+
+inkling-forced-tool-grammar.py is ours (shared by every SGLang Inkling adapter):
+it makes a required or named tool choice one native call at build time.

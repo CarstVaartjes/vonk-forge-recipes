@@ -24,9 +24,9 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
     derive_status,
 )
-from vonk_forge_contracts.sweep import SweepSlotPhase
+from vonk_forge_contracts.sweep import SweepSlotPhase, SweepWaitReason
 
-from . import policy
+from . import policy, verdict
 from .evidence_contract import read_result
 from .identity import recorded_identity
 from .lifecycle import ACTIVE
@@ -170,6 +170,13 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             # Copying has an inactivity window, not the engine startup budget.
             since = watch.get("progressed_at", slot["started_at"])
             limit = sweep.cfg.copy_stall_seconds
+        load = data["loads"].get(slot.get("request_key"))
+        # A held receipt ends with the Controller, not at the local window.
+        held = (
+            load.get("app_id")
+            if slot["phase"] == SweepSlotPhase.LOADING and verdict.held_receipt(load)
+            else None
+        )
         for name in slot.get("spark_names", []):
             lanes.setdefault(name, []).append(
                 {
@@ -183,10 +190,13 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     if watch
                     else slot.get("waiting_on"),
                     "wait": watch.get("wait"),
+                    "held_receipt": held,
                     "silent_s": round(
                         max(0.0, now - float(watch.get("progressed_at", now)))
                     ),
-                    "over_budget_s": max(
+                    "over_budget_s": 0
+                    if held
+                    else max(
                         0,
                         round(
                             now
@@ -231,6 +241,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         },
         "lanes": lanes,
         "profile_edit_wait": data.get("profile_edit_wait"),
+        "dual_reservation": data.get("dual_reservation"),
         "offline_lanes": offline,
         "waiting_for_lanes": sum(
             1
@@ -273,6 +284,8 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     "done": r.get("bytes_done"),
                     "total": r.get("bytes_total"),
                     "bps": r.get("bps"),
+                    # A Controller wait (e.g. NAS space): bounded by its wait_deadline.
+                    "waiting_on": (r.get("watch") or {}).get("waiting_on"),
                 }
                 for k, r in data["downloads"].items()
                 if r.get("state") in ACTIVE
@@ -282,6 +295,13 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
             "pinned": len(data["pins"]),
             "pin_error": sweep.prefetcher.pin_error,
             "nas_pressure": bool(sweep.last_prefetch.get("pressure")),
+            "pin_capacity": None
+            if (hold := sweep.prefetcher.pin_hold) is None
+            else {
+                "reason": SweepWaitReason.PIN_CAPACITY,
+                "sets": hold[0],
+                "pins": hold[1],
+            },
         },
         "eta": {
             "downloads_s": eta_download,
@@ -377,6 +397,11 @@ def render_status(status: Mapping[str, Any]) -> str:
                 if i.get("over_budget_s")
                 else ""
             )
+            + (
+                f" held on Controller receipt {i['held_receipt']}"
+                if i.get("held_receipt")
+                else ""
+            )
             + (f" waiting on {i['waiting_on']}" if i.get("waiting_on") else "")
             for i in items
         )
@@ -392,6 +417,8 @@ def render_status(status: Mapping[str, Any]) -> str:
             f"- Placement waiting on {wait['waiting_on']}; "
             f"pending lane deadline {datetime.fromtimestamp(wait['wait_deadline'], UTC).isoformat()}"
         )
+    if status.get("dual_reservation"):
+        lines.append(f"- Free lane {status['dual_reservation']}")
     if status.get("waiting_for_lanes"):
         lines.append(
             f"- {status['waiting_for_lanes']} queued recipe(s) waiting for more lanes online"
@@ -402,7 +429,12 @@ def render_status(status: Mapping[str, Any]) -> str:
             lines.append(str(status["controller_wait_issue"]))
         lines += [
             f"- {key}: {hold['wait']['controller']['reason']}; "
-            f"next observation in {_duration(max(0, hold['next_check'] - status['updated_at']))}"
+            + (
+                f"next observation in {_duration(max(0, hold['next_check'] - status['updated_at']))}"
+                if hold.get("not_before") is None
+                else "receipt ended; planned again at "
+                f"{datetime.fromtimestamp(hold['not_before'], UTC).isoformat()}"
+            )
             for key, hold in status["controller_waits"].items()
         ]
     if status.get("infrastructure"):
@@ -422,6 +454,11 @@ def render_status(status: Mapping[str, Any]) -> str:
         "## Downloads",
         f"- rate {d['rate_bps'] / 1e6:,.0f} MB/s - {len(d['in_flight'])} in flight - {d['pinned']} recipes pinned"
         + (" - NAS pressure, new model downloads paused" if d["nas_pressure"] else "")
+        + (
+            f" - new model downloads wait for pin capacity ({hold['sets']} sets to protect, {hold['pins']} pins)"
+            if (hold := d.get("pin_capacity"))
+            else ""
+        )
         + (f" - pin profile problem: {d['pin_error']}" if d["pin_error"] else ""),
         f"- remaining unique model bytes {_gib(d['remaining_unique_bytes'])}",
         "",

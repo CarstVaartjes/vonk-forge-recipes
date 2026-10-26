@@ -138,8 +138,8 @@
     "source_reference": "https://huggingface.co/VAST-AI/SkinTokens/tree/79736cad0fd84de384d5eede659b4ebd24effe33"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "2.0.14"
+    "released_at": "2026-10-26",
+    "version": "2.0.16"
   },
   "runtime": {
     "arguments": [

@@ -139,7 +139,10 @@ The final publish job unconditionally repeats lint, format and types, even when
 the reusable producer job chose its light scope.
 PR validation calls the same image workflow at the PR head, compares base/head
 build keys and builds only changed, unpublished keys (including native checks
-and the remote-code smoke). Successful builds write `candidate-<key>` tags;
+and the remote-code smoke). A changed key used only by recipes in
+`prebuilt-image-exclusions.json` gets a bounded proof instead (BuildKit
+Dockerfile check, no build); its full proof is the Spark build and the hardware
+sweep. Successful builds write `candidate-<key>` tags;
 publication promotes their digests without rebuilding. Keys without a candidate
 use the same build and smoke path at publication; scheduled/manual runs also
 recover historical missing keys.
@@ -242,11 +245,17 @@ scope until reconsideration, without spending recipe attempts
 `tests/test_sweep_big_alone.py`, `tests/test_sweep_no_idle.py`).
 
 Prefetch groups exact Model digests and ranks cached sets, then recipes unlocked
-per new byte; shared bytes count once. Defaults allow three model downloads,
-two image pulls and a 2 TiB downloaded/untested budget. Follow existing downloads;
-never cancel/recreate one because observations stall. A never-loaded pin profile
-(default 13) protects those sets; a pin failure is visible but cannot stop cached
-work. NAS free space is not exposed; its byte budget is operator supplied.
+per new byte; shared bytes count once. Defaults allow three model downloads and
+two image pulls. Follow existing downloads; never cancel/recreate one because
+observations stall. A never-loaded pin profile (default 13) protects
+downloaded/untested sets; a pin failure is visible but cannot stop cached work.
+The Controller alone owns NAS space: a download it blocks for space is a queued
+`download_blocked` wait while LRU eviction frees unpinned model files; the sweep
+shows a typed NAS-space wait that pauses no other work. While untested sets fill
+the pin profile, new model downloads wait (typed pin-capacity hold) so no
+untested set is evicted and downloaded again; sets waiting for offline lanes
+count too, but hold nothing unless a set the online lanes can test will drain
+the profile, and a set needing offline lanes downloads when they return.
 Model-removal intents need complete catalog/owner observations, protect every
 saved owner profile and nonterminal consumer, and persist keys before submission.
 Uncertain receipts reconnect to the same request; terminal failures re-review.

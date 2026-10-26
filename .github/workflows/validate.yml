@@ -176,6 +176,12 @@ jobs:
           git fetch --no-tags origin main:refs/remotes/origin/main
           python3 tools/check-recipe-topology --base origin/main
 
+      - name: Require touched multi-Spark vLLM recipes to bound KV by need
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$RECIPE_TEST_PYTHON" tools/check-recipe-memory-need --base origin/main
+
       - name: Require every recipe to reference Models this library holds
         shell: bash
         run: |
@@ -233,6 +239,15 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/check-image-provenance --base origin/main
+
+      # GB10 shares one memory pool between CPU and CUDA: new adapter code may
+      # not build a full model as real CPU tensors or pin a model constructor
+      # to CUDA. Checks only lines added against main.
+      - name: Reject new eager or CUDA-pinned model construction in adapters
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-model-construction-device --base origin/main
 
       # Every test runs on recipe changes too: the suite takes about as long
       # as any subset, and a subset silently misses recipe-data checks.

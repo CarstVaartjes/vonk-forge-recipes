@@ -1,0 +1,5 @@
+# Ray for the placement wrapper's `ray start` and vLLM's Ray executor. The parent
+# image already ships every dependency of plain ray (click, filelock, jsonschema,
+# msgpack, packaging, protobuf, pyyaml, requests), so only ray itself is locked
+# and installed with --no-deps; the parent's packages stay exactly as shipped.
+ray==2.58.0

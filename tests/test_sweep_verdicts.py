@@ -185,11 +185,14 @@ def test_outcomes_spend_attempts_only_when_uncertain(
 def test_a_controller_hold_releases_and_replans_without_an_attempt(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    held = FakeRecipe("big", blocked=True, blocked_for=30 * HOUR)
+    # A held admission's wait is the Controller's: its expiry records the content identity.
+    held = FakeRecipe(
+        "big", ("1" * 64,), content="b" * 64, blocked=True, blocked_for=30 * HOUR
+    )
     sweep, fleet, clock = make_sweep(
         tmp_path,
         [held],
-        [FakeModel("m1")],
+        [FakeModel("1" * 64)],
         gateway=gateway,
         timeouts=_timeouts(600),
         poll_seconds=300.0,

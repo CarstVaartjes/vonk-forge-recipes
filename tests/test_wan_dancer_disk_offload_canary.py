@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 import io
 import json
@@ -9,8 +10,10 @@ import tarfile
 import tempfile
 import types
 import unittest
+from collections.abc import Callable
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -205,6 +208,96 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
             self.assertIn("network model loading is disabled", config)
             self.assertNotIn("UnifiedDataset", data_init)
 
+            # Disk offload materializes only wrapped modules; the music encoder's
+            # attention must be wrapped or its in_proj params stay on meta.
+            music_encoder = (unpacked / "diffsynth/models/wantodance.py").read_text()
+            self.assertIn("self.self_attn = nn.MultiheadAttention(", music_encoder)
+            maps_path = unpacked / "diffsynth/configs/vram_management_module_maps.py"
+            maps: dict[str, dict[str, dict[str, str]]] = {}
+            exec(compile(maps_path.read_bytes(), str(maps_path), "exec"), maps)  # noqa: S102
+            wan_model_map = maps["VRAM_MANAGEMENT_MODULE_MAPS"][
+                "diffsynth.models.wan_video_dit.WanModel"
+            ]
+            self.assertEqual(
+                wan_model_map["torch.nn.MultiheadAttention"],
+                "diffsynth.core.vram.layers.AutoWrappedModule",
+            )
+
+    def test_pinned_global_stage_emits_one_keyframe_per_latent(self) -> None:
+        generator = load_module("generate.py", "wan_dancer_disk_generator")
+        with tarfile.open(ARCHIVE, "r:gz") as source:
+            members = {
+                Path(member.name).relative_to(Path(member.name).parts[0]).as_posix(): (
+                    member
+                )
+                for member in source.getmembers()
+                if member.isfile()
+            }
+
+            def pinned_method(
+                path: str, class_name: str, method: str, namespace: dict[str, Any]
+            ) -> Callable[..., Any]:
+                payload = source.extractfile(members[path])
+                assert payload is not None
+                tree = ast.parse(payload.read())
+                owner = next(
+                    node
+                    for node in tree.body
+                    if isinstance(node, ast.ClassDef) and node.name == class_name
+                )
+                function = next(
+                    node
+                    for node in owner.body
+                    if isinstance(node, ast.FunctionDef) and node.name == method
+                )
+                module = ast.Module(body=[function], type_ignores=[])
+                exec(compile(module, path, "exec"), namespace)  # noqa: S102
+                return namespace[method]
+
+            initialize_noise = pinned_method(
+                "diffsynth/pipelines/wan_video.py",
+                "WanVideoUnit_NoiseInitializer",
+                "process",
+                {"WanVideoPipeline": object},
+            )
+            decode_framewise = pinned_method(
+                "diffsynth/models/wan_video_vae.py",
+                "WanVideoVAE",
+                "decode_framewise",
+                {
+                    "torch": SimpleNamespace(
+                        concat=lambda parts, dim: [
+                            frame for part in parts for frame in part
+                        ]
+                    )
+                },
+            )
+
+        pipe = SimpleNamespace(
+            vae=SimpleNamespace(model=SimpleNamespace(z_dim=16), upsampling_factor=8),
+            generate_noise=lambda shape, seed, rand_device: shape,
+        )
+        noise = initialize_noise(
+            None, pipe, 1280, 720, generator.FRAME_COUNT, 0, "cpu", None, None
+        )["noise"]
+        self.assertEqual(noise[2], generator.GLOBAL_KEYFRAMES)
+
+        class Latents:
+            shape = noise
+
+            def __getitem__(self, key):
+                return key
+
+        decoded = []
+        vae = SimpleNamespace(
+            single_decode=lambda latent, _device: decoded.append(latent[2]) or [latent]
+        )
+        frames = decode_framewise(vae, Latents(), "cuda")
+        self.assertEqual(len(frames), generator.GLOBAL_KEYFRAMES)
+        self.assertEqual(
+            decoded, [slice(k, k + 1) for k in range(generator.GLOBAL_KEYFRAMES)]
+        )
+
     def test_runtime_uses_disk_mapping_process_isolation_and_no_downloads(self) -> None:
         generator = (ADAPTER / "generate.py").read_text(encoding="utf-8")
         runner = (ADAPTER / "run.py").read_text(encoding="utf-8")
@@ -234,7 +327,7 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "at most 921600 pixels"):
             runner._generation_dimensions({"height": 1280, "width": 1280})
 
-    def test_local_keyframes_preserve_native_leading_frame_mapping(self) -> None:
+    def _local_keyframes(self, source_frames: int, output_frames: int):
         generator = load_module("generate.py", "wan_dancer_disk_generator")
 
         class Image:
@@ -244,7 +337,7 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
 
         class VideoData:
             def __init__(self, **_kwargs):
-                self.frames = list(range(149))
+                self.frames = [f"keyframe-{index}" for index in range(source_frames)]
 
             def __len__(self):
                 return len(self.frames)
@@ -259,10 +352,181 @@ class WanDancerDiskOffloadInputTests(unittest.TestCase):
             "diffsynth.utils.data": SimpleNamespace(VideoData=VideoData),
         }
         with mock.patch.dict(sys.modules, modules):
-            frames, mask = generator._local_keyframes(Path("global.mp4"), 24, 1280, 720)
-        self.assertEqual(frames[:24], list(range(24)))
-        self.assertEqual(frames[24:], ["black"] * 125)
-        self.assertEqual(mask, [1] * 24 + [0] * 125)
+            return generator._local_keyframes(
+                Path("global.mp4"), output_frames, 1280, 720
+            )
+
+    def test_local_keyframes_place_every_global_keyframe_on_its_latent_frame(
+        self,
+    ) -> None:
+        generator = load_module("generate.py", "wan_dancer_disk_generator")
+        runner = load_module("run.py", "wan_dancer_disk_runner")
+        from PIL import Image
+
+        with tempfile.TemporaryDirectory() as value:
+            image = Path(value) / "reference.png"
+            Image.new("RGB", (720, 1280)).save(image)
+            # The longest music run.py accepts gives the most output frames.
+            *_, output_frames, _ = runner._expected_output(
+                image, target_height=1280, target_width=720, music_duration=5.0
+            )
+        self.assertEqual(output_frames, 144)
+
+        frames, mask = self._local_keyframes(generator.GLOBAL_KEYFRAMES, output_frames)
+        positions = [index for index, flag in enumerate(mask) if flag]
+        self.assertEqual(len(mask), generator.FRAME_COUNT)
+        self.assertEqual(positions, [4 * k for k in range(38)])
+        self.assertEqual(positions[-1], generator.FRAME_COUNT - 1)
+        self.assertEqual(
+            [frames[index] for index in positions],
+            [f"keyframe-{k}" for k in range(38)],
+        )
+        self.assertEqual(
+            {frames[index] for index in range(len(frames)) if not mask[index]},
+            {"black"},
+        )
+
+    def test_local_stage_rejects_a_global_video_with_one_frame_per_local_frame(
+        self,
+    ) -> None:
+        generator = load_module("generate.py", "wan_dancer_disk_generator")
+        with self.assertRaisesRegex(SystemExit, "expected 38"):
+            self._local_keyframes(generator.FRAME_COUNT, 24)
+
+
+class _FakeParameter:
+    def __init__(self, *, is_meta: bool) -> None:
+        self.is_meta = is_meta
+
+
+class _FakeModule:
+    """The torch.nn.Module traversal surface the disk net uses (no torch in CI)."""
+
+    def __init__(self, **members: object) -> None:
+        self._parameters: dict[str, _FakeParameter] = {}
+        self._modules: dict[str, _FakeModule] = {}
+        for name, value in members.items():
+            setattr(self, name, value)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        if isinstance(value, _FakeParameter):
+            self._parameters[name] = value
+        elif isinstance(value, _FakeModule):
+            self._modules[name] = value
+        else:
+            object.__setattr__(self, name, value)
+
+    def __getattr__(self, name: str):
+        for members in ("_modules", "_parameters"):
+            if name in self.__dict__.get(members, {}):
+                return self.__dict__[members][name]
+        raise AttributeError(name)
+
+    def named_children(self):
+        return iter(self._modules.items())
+
+    def named_modules(self, prefix: str = ""):
+        yield prefix, self
+        for name, child in self._modules.items():
+            yield from child.named_modules(f"{prefix}.{name}" if prefix else name)
+
+    def named_parameters(self, prefix: str = "", recurse: bool = True):
+        modules = self.named_modules(prefix) if recurse else [(prefix, self)]
+        for path, module in modules:
+            for name, parameter in module._parameters.items():
+                yield (f"{path}.{name}" if path else name), parameter
+
+
+class _AutoTorchModule(_FakeModule):
+    """diffsynth.core.vram.layers.AutoTorchModule (layers.py:8): sets ``name``."""
+
+
+class _AutoWrappedModule(_AutoTorchModule):
+    """layers.py:93-129: wraps ``module``; with offload_dtype "disk" it sets
+    ``name``, ``disk_map``, ``disk_offload = True`` and ``required_params`` from
+    ``module.named_parameters()``; otherwise only ``disk_offload = False``."""
+
+    def __init__(self, module: _FakeModule, *, disk: bool = True) -> None:
+        super().__init__(module=module, disk_offload=disk)
+        if disk:
+            self.required_params = [name for name, _ in module.named_parameters()]
+
+
+class _AutoWrappedLinear(_AutoTorchModule):
+    """layers.py:295-341: owns ``weight``/``bias`` itself, sets ``disk_offload``
+    and has no ``required_params``; load_from_disk reads ``name.weight/bias``."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            weight=_FakeParameter(is_meta=True),
+            bias=_FakeParameter(is_meta=True),
+            disk_offload=True,
+        )
+
+
+class WanDancerDiskLoadableNetTests(unittest.TestCase):
+    def _require(self, pipe: _FakeModule) -> None:
+        generator = load_module("generate.py", "wan_dancer_disk_net")
+        layers = types.ModuleType("diffsynth.core.vram.layers")
+        layers.AutoTorchModule = _AutoTorchModule  # type: ignore[attr-defined]
+        modules = {
+            "diffsynth": types.ModuleType("diffsynth"),
+            "diffsynth.core": types.ModuleType("diffsynth.core"),
+            "diffsynth.core.vram": types.ModuleType("diffsynth.core.vram"),
+            "diffsynth.core.vram.layers": layers,
+        }
+        with mock.patch.dict(sys.modules, modules):
+            generator._require_disk_loadable(pipe)
+
+    @staticmethod
+    def _pipe(self_attn: _FakeModule) -> _FakeModule:
+        layer = _FakeModule(self_attn=self_attn, linear1=_AutoWrappedLinear())
+        dit = _FakeModule(
+            # Root parameter materialized from the disk map (layers.py:563).
+            music_bias=_FakeParameter(is_meta=False),
+            music_encoder=_FakeModule(**{"0": layer}),
+        )
+        visual = _FakeModule(proj=_FakeParameter(is_meta=True))
+        image_encoder = _FakeModule(
+            model=_FakeModule(
+                visual=_AutoWrappedModule(visual),
+                log_scale=_FakeParameter(is_meta=True),
+            )
+        )
+        return _FakeModule(dit=dit, image_encoder=image_encoder)
+
+    @staticmethod
+    def _attention() -> _FakeModule:
+        return _FakeModule(
+            in_proj_weight=_FakeParameter(is_meta=True),
+            in_proj_bias=_FakeParameter(is_meta=True),
+            out_proj=_AutoWrappedLinear(),
+        )
+
+    def test_unwrapped_nested_parameter_fails_with_its_names(self) -> None:
+        with self.assertRaises(SystemExit) as raised:
+            self._require(self._pipe(self._attention()))
+        message = str(raised.exception)
+        self.assertIn("dit.music_encoder.0.self_attn.in_proj_weight", message)
+        self.assertIn("dit.music_encoder.0.self_attn.in_proj_bias", message)
+        self.assertNotIn("out_proj", message)
+        self.assertNotIn("log_scale", message)
+
+    def test_wrapped_parameters_pass(self) -> None:
+        self._require(self._pipe(_AutoWrappedModule(self._attention())))
+
+    def test_wrapper_without_disk_offload_does_not_cover(self) -> None:
+        with self.assertRaises(SystemExit) as raised:
+            self._require(self._pipe(_AutoWrappedModule(self._attention(), disk=False)))
+        self.assertIn("self_attn.module.in_proj_weight", str(raised.exception))
+
+    def test_only_reviewed_unread_parameters_may_stay_meta(self) -> None:
+        pipe = self._pipe(_AutoWrappedModule(self._attention()))
+        pipe.image_encoder.model.logit_bias = _FakeParameter(is_meta=True)
+        with self.assertRaises(SystemExit) as raised:
+            self._require(pipe)
+        self.assertIn("image_encoder.model.logit_bias", str(raised.exception))
+        self.assertNotIn("log_scale", str(raised.exception))
 
 
 if __name__ == "__main__":

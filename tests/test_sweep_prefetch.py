@@ -6,8 +6,13 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
+from vonk_forge_contracts.sweep import SweepWaitReason
 
-from spark_sweep.prefetch import PrefetchConfig
+from spark_sweep import prefetch
+from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS, PrefetchConfig
+from spark_sweep.report import build_status
+
+TIB = 1024**4
 
 
 @pytest.fixture
@@ -76,23 +81,309 @@ def test_preparing_siblings_share_one_model_download_slot(tmp_path: Path) -> Non
     assert sum(args[:2] == ("recipe", "download") for _, args in fleet.calls) == 3
 
 
-def test_the_byte_budget_bounds_what_is_downloaded_but_not_yet_tested(
+def test_a_controller_space_hold_longer_than_the_window_pauses_no_other_work(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    recipes, models = _many(4)  # 20 GB each
+    """The Controller alone owns NAS space: a download it cannot fit yet is a queued
+    ``download_blocked`` wait until eviction can free a set, here once the sweep has
+    tested and unpinned it. Past the sweep's own observation window it stays a typed
+    NAS-space wait, not an infrastructure problem: other downloads and image pulls go on
+    (the hold is released only by them)."""
+    # The hold lifts once m3's recipes are tested; m3 is the last set to download
+    # and two recipes share it, so once it lands its second recipe pulls only an image.
+    blocked = FakeRecipe("blocked", ("big",), download_blocked_behind="m3")
+    others = [FakeRecipe(f"o{i}", (f"m{i}",)) for i in (1, 2, 4)]
+    o3, o3img = FakeRecipe("o3", ("m3",)), FakeRecipe("o3img", ("m3",), engine="sglang")
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [blocked, *others, o3, o3img],
+        [
+            FakeModel("big", bytes=TIB),
+            *(FakeModel(f"m{i}", bytes=TIB) for i in (1, 2, 4)),
+            FakeModel("m3", bytes=3 * TIB),
+        ],
+        gateway=gateway,
+        prefetch=PrefetchConfig(max_model_downloads=2, pin_profile=13),
+    )
+    fleet.download_seconds = 1500.0
+    fleet.page_size = 100  # the first catalog view is complete: plan order is fixed
+    start = clock.now()
+    during: list[tuple[float, dict, set[str], set[str], list[dict]]] = []
+    runaway: list[float] = []
+
+    def observe(now: float) -> None:
+        op = next((o for o in fleet.ops.values() if o["recipe"] == blocked.key), None)
+        record = sweep.state.downloads.get(blocked.key)
+        if op is None or op["state"] != "backoff" or record is None:
+            return
+        if now - start > 40000:  # the hold is released only by the work behind it
+            runaway.append(now)
+            op.update(state="running", started=now)
+            return
+        during.append(
+            (
+                now,
+                dict(record.get("watch") or {}),
+                {o["recipe"] for o in fleet.ops.values()},
+                set(sweep.state.data["infra"]),
+                build_status(sweep)["downloads"]["in_flight"],
+            )
+        )
+
+    clock.hooks.append(observe)
+    sweep.run()
+
+    assert not runaway, "other work stopped behind the Controller's space hold"
+    assert during[-1][0] - during[0][0] > DOWNLOAD_STALL_SECONDS
+    # Past its window the wait is no infrastructure problem and pauses nothing.
+    assert all("download" not in infra for _, _, _, infra, _ in during)
+    _, _, requested, _, _ = during[-1]
+    assert {o3.key, o3img.key} <= requested
+    kinds = {sweep.state.downloads[k]["kind"] for k in (o3.key, o3img.key)}
+    assert kinds == {"model", "image"}
+    # A typed, visible NAS-space wait on the original request, never a failure.
+    watches = [watch for _, watch, _, _, _ in during if watch]  # once observed
+    assert len(watches) > 1
+    assert all(w["wait"]["reason"] == SweepWaitReason.NAS_SPACE for w in watches)
+    assert all(
+        w["wait_deadline"] <= w["wait_started_at"] + DOWNLOAD_STALL_SECONDS
+        for w in watches
+        if "wait_deadline" in w
+    )
+    # Its window restarts: it is looked at again once per window, not once per poll.
+    assert any(
+        w.get("wait_started_at", start) > start + DOWNLOAD_STALL_SECONDS
+        for w in watches
+    )
+    renewals = [
+        e for e in sweep.state.data["events"] if "waits for NAS space" in e["message"]
+    ]
+    assert 1 <= len(renewals) <= (during[-1][0] - start) // DOWNLOAD_STALL_SECONDS
+    shown = [
+        item["waiting_on"]
+        for *_, in_flight in during
+        for item in in_flight
+        if item["recipe"] == blocked.key
+    ]
+    while shown and shown[0] is None:
+        shown.pop(0)  # requested, not yet observed
+    assert shown and all(
+        w is not None and w.startswith(SweepWaitReason.NAS_SPACE) for w in shown
+    )
+    downloads = [c for _, c in fleet.calls if c[:2] == ("recipe", "download")]
+    assert [c[2] for c in downloads].count(blocked.key) == 1
+    # Eviction freed the space: the download ran and the recipe was tested.
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+    assert not sweep.state.recipes[blocked.key].get("failure_class")
+    assert not [c for p, c in fleet.calls if p == 13 and c[:2] == ("profile", "load")]
+
+
+def test_new_model_downloads_wait_for_pin_capacity_and_resume_as_pins_drain(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A downloaded, untested set left out of the full pin profile would be evicted and
+    downloaded again. While the sets to protect fill the profile, no new model download
+    starts; the hold is visible and lifts as tested sets leave the profile."""
+    limit = 3  # the contract's 64, scaled down
+    monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
+    recipes, models = _many(6)
     sweep, fleet, clock = make_sweep(
         tmp_path,
         recipes,
         models,
         gateway=gateway,
-        prefetch=PrefetchConfig(
-            max_model_downloads=4, nas_budget_bytes=30 * GB, pin_profile=13
-        ),
+        prefetch=PrefetchConfig(max_model_downloads=6, pin_profile=13),
     )
-    peak = []
-    clock.hooks.append(lambda _t: peak.append(_active_ops(fleet)))
+    fleet.max_assignments = limit
+    unprotected: list[set[str]] = []
+    holds: list[dict] = []
+
+    def observe(_now: float) -> None:
+        pinned = {
+            a["recipe_selector"]
+            for a in fleet.profiles.get(13, {}).get("assignments", [])
+        }
+        untested = {
+            r.key
+            for r in recipes
+            if sweep.state.recipes.get(r.key, {}).get("status") == "pending"
+            and (
+                all(fleet.models[d].local == "cached" for d in r.digests)
+                or any(
+                    o["recipe"] == r.key and o["state"] == "running"
+                    for o in fleet.ops.values()
+                )
+            )
+        }
+        unprotected.append(untested - pinned)
+        if (hold := build_status(sweep)["downloads"].get("pin_capacity")) is not None:
+            holds.append(hold)
+
+    clock.hooks.append(observe)
     sweep.run()
-    assert max(peak) == 1
+
+    assert not any(unprotected), [u for u in unprotected if u][:3]
+    assert holds and {h["reason"] for h in holds} == {SweepWaitReason.PIN_CAPACITY}
+    assert sweep.prefetcher.pin_hold is None  # released as the pins drained
+    downloads = [c[2] for _, c in fleet.calls if c[:2] == ("recipe", "download")]
+    assert sorted(downloads) == sorted(r.key for r in recipes)  # each fetched once
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+
+
+def test_sets_no_online_lane_can_test_hold_no_download_during_an_outage(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dual-Spark sets cannot drain while a Spark is offline: when only they fill the pin
+    profile, nothing holds (no forever-hold), single-Spark downloads go on, a dual-only
+    set waits for its lanes, and everything is tested once the Spark is back."""
+    limit = 3
+    monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
+    duals = [
+        FakeRecipe(f"d{i}", (f"dm{i}",), node_count=2, local="cached") for i in range(3)
+    ]
+    cold_dual = FakeRecipe("d3", ("dm3",), node_count=2)
+    singles = [FakeRecipe(f"s{i}", (f"sm{i}",)) for i in range(2)]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [*duals, cold_dual, *singles],
+        [
+            *(FakeModel(f"dm{i}", local="cached") for i in range(3)),
+            FakeModel("dm3"),
+            *(FakeModel(f"sm{i}") for i in range(2)),
+        ],
+        gateway=gateway,
+        prefetch=PrefetchConfig(pin_profile=13),
+    )
+    fleet.max_assignments = limit
+    fleet.offline_nodes = {"spk_b"}
+    start = clock.now()
+    during: list[set[str]] = []
+
+    def outage(now: float) -> None:
+        if not fleet.offline_nodes:
+            return
+        if now - start > 3000:
+            fleet.offline_nodes.clear()  # the Spark answers again
+            return
+        during.append({o["recipe"] for o in fleet.ops.values()})
+
+    clock.hooks.append(outage)
+    sweep.run()
+
+    requested = during[-1]
+    assert {r.key for r in singles} <= requested  # not held behind undrainable pins
+    assert cold_dual.key not in requested  # waits for its lanes, then downloads
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+
+
+def test_untested_sets_stay_pinned_through_a_partial_outage(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Cached dual-Spark sets cannot be tested while a Spark is offline, but they still
+    need their pins: single-Spark downloads wait for the profile room the single-Spark
+    tests drain, so no untested set is ever unpinned (and evicted, then fetched again)."""
+    limit = 3
+    monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
+    duals = [
+        FakeRecipe(f"d{i}", (f"dm{i}",), node_count=2, local="cached") for i in range(2)
+    ]
+    singles = [FakeRecipe(f"s{i}", (f"sm{i}",)) for i in range(3)]
+    recipes = [*duals, *singles]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        [
+            *(FakeModel(f"dm{i}", local="cached") for i in range(2)),
+            *(FakeModel(f"sm{i}") for i in range(3)),
+        ],
+        gateway=gateway,
+        prefetch=PrefetchConfig(max_model_downloads=6, pin_profile=13),
+    )
+    fleet.max_assignments = limit
+    fleet.offline_nodes = {"spk_b"}
+    start = clock.now()
+    unprotected: list[set[str]] = []
+    recovered: list[str] = []
+
+    def status(key: str) -> str:
+        return sweep.state.recipes.get(key, {}).get("status", "pending")
+
+    def observe(now: float) -> None:
+        pinned = {
+            a["recipe_selector"]
+            for a in fleet.profiles.get(13, {}).get("assignments", [])
+        }
+        untested = {
+            r.key
+            for r in recipes
+            if status(r.key) == "pending"
+            and (
+                all(fleet.models[d].local == "cached" for d in r.digests)
+                or any(
+                    o["recipe"] == r.key and o["state"] == "running"
+                    for o in fleet.ops.values()
+                )
+            )
+        }
+        unprotected.append(untested - pinned)
+        if fleet.offline_nodes and (
+            all(status(r.key) == "passed" for r in singles) or now - start > 20000
+        ):
+            recovered.append("progress" if now - start <= 20000 else "timeout")
+            fleet.offline_nodes.clear()  # the Spark answers again
+
+    clock.hooks.append(observe)
+    sweep.run()
+
+    assert not any(unprotected), [u for u in unprotected if u][:3]
+    assert recovered == ["progress"]  # single-Spark work finished during the outage
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+
+
+def test_a_pin_profile_with_no_room_holds_no_download(
+    tmp_path: Path, gateway: Gateway, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Foreign assignments fill the pin profile: no pin can protect anything, so a
+    pin-capacity hold would prevent nothing and only stop the sweep."""
+    from spark_sweep.run import SWEEP_LABEL
+
+    limit = 2
+    monkeypatch.setattr(prefetch, "PIN_PROFILE_MAX_ASSIGNMENTS", limit)
+    recipes, models = _many(4)
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        models,
+        gateway=gateway,
+        prefetch=PrefetchConfig(max_model_downloads=1, pin_profile=13),
+    )
+    fleet.max_assignments = limit
+    fleet.profiles[13] = {
+        "revision": 1,
+        "latest": None,
+        "labels": {SWEEP_LABEL[0]: SWEEP_LABEL[1]},
+        "assignments": [
+            {
+                "recipe_selector": "vonk-forge/r0",
+                "spark_ids": ["spark-a"],
+                "assignment_name": f"keep-{i}",
+                "desired_state": "installed",
+            }
+            for i in range(limit)
+        ],
+    }
+    start = clock.now()
+    runaway: list[float] = []
+
+    def guard(now: float) -> None:
+        if now - start > 20000 and not runaway:
+            runaway.append(now)
+            fleet.profiles[13]["assignments"] = []  # let a held sweep finish
+
+    clock.hooks.append(guard)
+    sweep.run()
+
+    assert not runaway, "downloads were held with no pin room"
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
 
 

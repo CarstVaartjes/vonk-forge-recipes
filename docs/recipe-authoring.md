@@ -231,7 +231,11 @@ settings; put multi-line scripts in vendored files and `COPY` them). For the
 launcher rule, the platform's runtime adapter verifies the engine's canonical
 launcher in the built image (`/opt/vonk/bin/vllm`, `sglang-serve`,
 `exllamav3-serve`, and so on), so the Dockerfile installs your wrapper at that
-exact path and `runtime.entrypoint` names it. The image workflow lists, in each
+exact path and `runtime.entrypoint` names it. A launcher for the `ray`
+parallelism backend starts Ray, so a build step must check the Ray CLI or
+package it uses (`tests/test_ray_vllm_launchers.py`). When the parent image
+has no Ray, install it from a hash lock as described in
+[Dependency locks and build-time smokes](#dependency-locks-and-build-time-smokes). The image workflow lists, in each
 run summary, why a recipe has no prebuilt image; recipes that genuinely cannot
 build on a hosted runner are declared with the reason in
 `prebuilt-image-exclusions.json`.
@@ -290,7 +294,11 @@ The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` own
 admission, explanatory headroom and the 6 GB platform floor. Every recipe and
 option variant, on every role, must pass its empty-target-pool check: peak plus platform floor fits the
 pool. `reserve_bytes` is informational and is never charged. Offline validation
-assumes no host occupancy; it proves declaration admissibility, not live fit.
+(`require_admissible_declaration`, `qualification/vllm_memory_fit.py`) charges
+one idle host baseline, `ADMISSION_IDLE_USE_BYTES` (130,663,231,488 −
+126,600,000,000 idle-available bytes), calibrated on the proven set: the live
+Controller admitted proven 120,370,379,081-byte peaks on both Sparks of a dual.
+It proves declaration admissibility, not live fit.
 The Controller supplies observed host use, exact commitments, unmaterialized
 claims and unknown resident upper bounds to this same function. It does not
 assume the historical idle baseline below. Proven recipes are calibration inputs,
@@ -392,14 +400,28 @@ floor, and tests reject stale exceptions once they fit with the draft counted.
 `tests/test_single_spark_memory_headroom.py`, shares those constants and checks
 absolute single-node need with the measured draft floor. An absolute vLLM KV
 pool overrides cache sizing by utilization; the explicit startup budget is checked
-separately. Changed multi-Spark documents use the per-rank demand declaration below.
+separately. Changed multi-Spark documents use the per-rank demand declaration below;
+a changed multi-Spark SGLang document must also fit its sharded weights, resident
+expansion and capped token/state pools in `mem-fraction-static` × the lowest idle
+available bytes. A multi-Spark vLLM recipe file a change touches must bound KV
+(`tools/check-recipe-memory-need --base origin/main`): an absolute
+`kv-cache-memory-bytes` pool that holds one full-context request per rank, or a
+`gpu-memory-utilization` whose share of physical memory plus the 8 GB overhead
+leaves the 16 GiB host guard. Laguna M.1 at 0.82 with no pool reached that guard
+floor on 2026-10-26; proven utilization-sized duals run at 0.80 or below. The
+pool need not hold context × `max-num-seqs`: vLLM schedules sequences within it,
+proven duals hold fewer, and the DSpark vLLM 0.25 dual pool sized for
+16 × 200,000 tokens exhausted host memory on both Sparks.
+Sharded weights, that pool and the 8 GB overhead are bounded by idle admission,
+not by the 16 GiB planning limit: hardware-proven dual documents run above it.
 Existing documents remain unchanged and receive informative warnings.
 
 SGLang profiles loaded weights before applying `max-total-tokens`. A fraction
 below the resident model size can therefore produce a negative hybrid-cache
 budget even with a short context. For a large hybrid model, cap both the token
-pool and `max-mamba-cache-size`, bound concurrency and disable graphs, then use
-a fraction that permits profiling. Budget the actual capped allocations,
+pool and `max-mamba-cache-size`, bound concurrency and disable graphs (or state
+in the description why capture stays in the non-static slack), then use a
+fraction that permits profiling. Budget the actual capped allocations,
 including state padding, index storage, resident weight expansion and runtime
 overhead; the fraction alone no longer describes that peak. Tie any geometry
 bound to the exact Model identity and test the pinned engine's sizing path with
@@ -456,7 +478,12 @@ same bounded job budget.
 `qualification.memory_need.per_rank_need` reports an optimistic loading floor:
 selected weights divided over tensor/pipeline shards, explicit KV bytes, and
 8 GB estimated runtime overhead. The complete selected auxiliary weights are
-counted once. Replicated tensors, graph buffers, recurrent state and loading
+counted once. Engram tables are never memory usage (owner, 2026-10-26): their
+files, listed by content digest in `engram_files` of
+`qualification/memory-inputs.json`, are excluded for every recipe, from the
+per-rank floor and from the single-Spark `calculate_need`. A recipe that
+sets a positive `DSV41_CACHE_GIB` row cache is charged that size per Spark,
+shared by its ranks. Replicated tensors, graph buffers, recurrent state and loading
 expansion may require more. Use source-backed `calculate_need` where its
 geometry is available; keep unknown full-workload terms visible.
 
@@ -530,12 +557,18 @@ manifest-producer-to-adapter tests before rebuilding the catalog.
 `/outputs` is a writable artifact root with platform-owned `tmp/` and persistent
 `cache/` entries, not an empty working directory. Keep incomplete artifacts in a
 unique directory under `/outputs/tmp`; generate and validate there, then
-`os.replace` each final file into `/outputs` on the same filesystem. Export only
+`os.replace` each final file into `/outputs` on the same filesystem. Create it
+with `tempfile` defaults (the platform sets `TMPDIR=/outputs/tmp`); never pass
+the output root as `dir=` or make directories in it. Start upstream processes
+with `cwd` in that scratch, never an image path: the image is read-only, and
+libraries write cwd-relative temp files (moviepy's mux audio). A killed job runs no
+cleanup, and any non-file entry left there fails output collection. Export only
 plain files matching signed output slots. Clean up only the scratch directory
 you created; preserve caches, other scratch and existing final output on failed
 generation, validation or rename. Retries may retain all those entries.
 `tests/test_adapter_output_staging.py` rejects output-root emptiness checks and
-exercises atomic publication, failures and retries with retained entries.
+newly added output-root scratch or image working directories, and exercises
+atomic publication, killed jobs, failures and retries with retained entries.
 `tests/test_job_writable_paths.py` catches cache/lock/temp writes into image paths.
 
 A delivery-only retry observes a durable exit receipt and retained outputs; it
@@ -562,7 +595,11 @@ multimodal recipe. When a kit's entrypoint injects the flags from inside its
 image, record them with their source in `qualification/kit-engine-flags.json`.
 `qualification/capabilities.py` derives all of this and
 `tests/test_recipe_capabilities.py` fails CI when a recipe's tags or smoke cases
-disagree with its launch.
+disagree with its launch. An SGLang recipe with `--reasoning-parser inkling`
+copies and runs the shared `inkling-forced-tool-grammar.py` build patch, so a
+required or named tool choice is one call; without it the reasoning wrapper
+defers the grammar past Inkling's first call and forces a second
+(`tests/test_inkling_sglang_forced_tool.py`).
 
 ### Options: user-selectable runtime variants
 
@@ -916,10 +953,12 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent upstream lineage. Reuse its family identity instead of republisher/format families. |
 | `tools/check-recipe-topology --base origin/main`, `tests/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
 | `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. Repair the launcher or metadata; do not publish placeholder tags. |
+| `tests/test_ray_poll_interpreter.py` | A launcher that starts a Ray head polls the cluster with `sys.executable`: the image's `python3`, the interpreter a build-time `import ray` check runs under. Never name an interpreter path the image may lack. |
 | `tests/test_recipe_model_mounts.py`, `tests/test_adapter_model_mounts.py` | Model mounts and adapter paths agree and all ranks receive files. Repair targets/roles and local loader paths. |
 | `tools/check-build-context-sources`, `tests/test_check_build_context_sources.py` | Every COPY source is shipped. Add the actual local file or fix the context-relative reference. |
 | `tests/test_recipe_build_inputs.py`, `tests/test_build_network_hosts.py` | All external build stages are immutable and declared once; URL hosts are allowed. Pin every external base and declare real egress. |
 | `tools/check-vendored-upstream`, `tests/test_check_vendored_upstream.py` | Declared vendored files match immutable upstream bytes. Re-vendor them; carry intentional changes as explicit patches/overlays. |
+| `tools/check-model-construction-device --base origin/main`, `tests/test_check_model_construction_device.py` | New adapter runtime code (added lines, code only; vendored archives and `vendored-upstream.json` verbatim creator copies excluded) builds no full model as real CPU tensors (`init_weights_on_device(cpu)`, `low_cpu_mem_usage=False`) and puts no CUDA device in a model constructor. Build on meta, assign the checkpoint, fail on any parameter left on meta, then let the loader place the model. Upstream source a patch script rewrites is text to this guard: prove it with the adapter's patched-source behaviour test. |
 | `tools/kit-pins check`, `tests/test_kit_pins.py`, `tests/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
 | `tools/check-image-provenance`, `tests/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
 | `tools/check-base-image-holds`, `tests/test_base_image_holds.py` | A held digest stays consistent. Change/remove the hold only with replacement evidence. |
@@ -929,7 +968,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tests/test_recipe_releases.py`, `tests/test_recipe_refresh_repairs.py` | Current release metadata, valid dates/version shape and bounded source closure. Correct release data or repair the specific refresh regression. |
 | `tests/test_job_writable_paths.py`, `tests/test_adapter_output_staging.py`, `tests/test_local_media_path_exists.py` | Managed writable paths, atomic outputs, existing local media inputs. Fix path handling; do not add root/broad-write workarounds. |
 | `tests/test_job_runtime_toolchain.py`, `tests/test_cuda_extension_builds.py`, `tests/test_torchaudio_torchcodec.py` | Required compilers, ABI-compatible media/native dependencies and build flags exist. Fix the locked image environment and import/build smoke. |
-| `tools/prepare-remote-code-smoke`, `tests/test_remote_code_build_smoke.py` | Pinned selected remote Python modules pass check_imports in the installed image. Add hash-locked dependencies and build-time native import checks, not runtime installation. |
+| `tools/prepare-remote-code-smoke`, `tests/test_remote_code_build_smoke.py` | Pinned selected remote Python modules that the recipe's engine imports pass check_imports in the installed image. Add hash-locked dependencies and build-time native import checks, not runtime installation. |
 | `tests/test_recipe_packages.py`, `tests/test_recipe_package_closure.py`, `tests/test_exact_model_file_closure.py`, `tests/test_explicit_hf_file_manifest_closure.py` | Self-contained source/fixture/Model closure, deterministic bytes, no weights/OCI payloads. Include required local inputs and recalculate generated manifests through the builder. |
 | `tests/test_qualification_definitions_loader.py`, `tests/test_qualification_index.py`, `tests/test_qualification_case_assertions.py`, `tests/test_qualification_service_aliases.py` | Every recipe is defined/scheduled; ids, aliases, fixtures and assertions resolve. Repair the per-recipe source definition, not generated outputs. |
 | `tests/test_family_aware_coverage.py`, `tests/test_qualification_coverage_identity.py` | Coverage equivalence binds actual runtime/topology/content identities. Rebuild coverage and fix false equivalence. |
@@ -1000,10 +1039,16 @@ installed environment on modules named by `auto_map` in the selected `config.jso
 `tokenizer_config.json`, `processor_config.json`, `preprocessor_config.json` and
 `video_preprocessor_config.json`,
 plus their relative imports (including processor dependencies), before adding
-the platform layer or pushing. Engine plugins outside that graph belong to the
-engine's build/import checks. The check fetches only pinned configs and source
-code and verifies the Model's hash and size; it loads no weights and requires no
-GPU. Keep remote-code dependencies hash-locked
+the platform layer or pushing. vLLM and SGLang build registered architectures
+natively, so their `AutoModel*` entries are checked only when a base or option
+argument selects `model-impl` `transformers` or SGLang's ModelOpt quantization
+load (`modelopt-*`, or `quantization` `modelopt`, `modelopt_fp8` or
+`modelopt_mixed`); other engines check every entry. An unregistered
+architecture's Transformers fallback is not checked and fails at load.
+Engine plugins outside that graph belong to the engine's build/import checks.
+The check fetches only pinned configs and source code and verifies the Model's
+hash and size; it loads no weights and requires no GPU. Keep remote-code
+dependencies hash-locked
 and import native decoders during the Dockerfile build so missing wheels or
 shared libraries fail before qualification.
 

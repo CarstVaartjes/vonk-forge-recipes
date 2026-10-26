@@ -8,6 +8,12 @@ from pathlib import Path
 
 MODEL_ROOT = Path("/models")
 FRAME_COUNT = 149
+# The Wan VAE packs 4 frames per latent after the first, so a FRAME_COUNT
+# window has (FRAME_COUNT - 1) // 4 + 1 latents (DiffSynth NoiseInitializer).
+# The global stage decodes framewise, one keyframe per latent, and latent k sits
+# at window frame 4k.
+VAE_TEMPORAL_STRIDE = 4
+GLOBAL_KEYFRAMES = (FRAME_COUNT - 1) // VAE_TEMPORAL_STRIDE + 1
 VRAM_LIMIT_GIB = 64.0
 NEGATIVE_PROMPT = (
     "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，"
@@ -62,6 +68,17 @@ REQUIRED_MODEL_FILES = (
     "google/umt5-xxl/tokenizer_config.json",
     "google/umt5-xxl/spiece.model",
 )
+# Disk offload builds every parameter on meta and loads back only what a
+# DiffSynth wrapper (or root materialization) covers. A meta parameter outside
+# that set is one this pipeline must never read; each one is listed here with
+# the reviewed reason, and any other one fails the job before inference.
+UNREAD_META_PARAMETERS = {
+    "image_encoder.model.log_scale": (
+        "CLIP contrastive logit scale: WanImageEncoder.encode_image reads only "
+        "model.image_size, transforms and model.visual, and the pipeline only "
+        "onloads image_encoder, never moves it with .to()"
+    ),
+}
 
 
 def _arguments() -> argparse.Namespace:
@@ -133,7 +150,7 @@ def _pipeline(stage: str):
             **disk,
         ),
     ]
-    return WanVideoPipeline.from_pretrained(
+    pipe = WanVideoPipeline.from_pretrained(
         torch_dtype=torch.bfloat16,
         device="cuda",
         model_configs=model_configs,
@@ -142,6 +159,51 @@ def _pipeline(stage: str):
         use_usp=False,
         vram_limit=VRAM_LIMIT_GIB,
     )
+    _require_disk_loadable(pipe)
+    return pipe
+
+
+def _disk_loaded_parameters(model) -> set[str]:
+    """Parameter names a DiffSynth 2.1.5 disk wrapper inside ``model`` loads back."""
+    from diffsynth.core.vram.layers import AutoTorchModule
+
+    covered = set()
+    for path, module in model.named_modules():
+        if not isinstance(module, AutoTorchModule):
+            continue
+        state = vars(module)
+        if not state.get("disk_offload"):
+            continue
+        prefix = f"{path}." if path else ""
+        required = state.get("required_params")
+        if required is None:
+            # AutoWrappedLinear loads its own weight/bias and
+            # AutoWrappedQuantizedModule every disk key under its name.
+            covered.update(prefix + name for name, _ in module.named_parameters())
+        else:
+            # AutoWrappedModule / AutoWrappedNonRecurseModule load
+            # required_params into the wrapped ``module``.
+            covered.update(f"{prefix}module.{name}" for name in required)
+    return covered
+
+
+def _require_disk_loadable(pipe) -> None:
+    uncovered = []
+    for model_name, model in pipe.named_children():
+        covered = _disk_loaded_parameters(model)
+        for name, parameter in model.named_parameters():
+            qualified = f"{model_name}.{name}"
+            if (
+                parameter.is_meta
+                and name not in covered
+                and qualified not in UNREAD_META_PARAMETERS
+            ):
+                uncovered.append(qualified)
+    if uncovered:
+        raise SystemExit(
+            "disk offload leaves parameters on meta that no wrapper loads back: "
+            f"{sorted(uncovered)}"
+        )
 
 
 def _global_keyframes(reference, height: int, width: int):
@@ -158,19 +220,20 @@ def _local_keyframes(path: Path, output_frames: int, height: int, width: int):
     if not 1 <= output_frames <= FRAME_COUNT:
         raise SystemExit("output frame count is outside the one-segment canary bound")
     source = VideoData(video_file=str(path), height=height, width=width)
-    if len(source) != FRAME_COUNT:
+    if len(source) != GLOBAL_KEYFRAMES:
         raise SystemExit(
-            f"global stage emitted {len(source)} frames, expected {FRAME_COUNT}"
+            f"global stage emitted {len(source)} frames, expected {GLOBAL_KEYFRAMES}"
         )
 
     black = Image.new("RGB", (width, height), (0, 0, 0))
     keyframes = [black] * FRAME_COUNT
     mask = [0] * FRAME_COUNT
-    # Preserve the official native adapter's one-segment mapping: for a music
-    # clip shorter than 149/30 seconds, consume the leading global keyframes at
-    # the corresponding local-frame positions and leave the tail unconditioned.
-    for destination in range(output_frames):
-        keyframes[destination] = source[destination]
+    # Both stages get the same music and FRAME_COUNT window, and DiffSynth
+    # interpolates the music features over the whole window whatever
+    # wantodance_fps is, so global keyframe k belongs at local frame 4k, the
+    # first frame of latent k.
+    for index, destination in enumerate(range(0, FRAME_COUNT, VAE_TEMPORAL_STRIDE)):
+        keyframes[destination] = source[index]
         mask[destination] = 1
     return keyframes, mask
 

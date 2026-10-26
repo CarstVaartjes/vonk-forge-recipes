@@ -5,13 +5,35 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/minimax-m27-n
       org.opencontainers.image.licenses="MIT AND Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
-# Parent: upstream's published runtime image (arm64, NGC PyTorch 26.02 base, vLLM 0.21.1 source
-# build with SM120/SM121 FP4 kernels; docker/Dockerfile in this directory is upstream's recipe for
-# it). This layer only adds the placement wrapper (Ray head/worker) and the non-root user.
+# Parent: upstream's published runtime image (arm64, NGC PyTorch 26.02 base, vLLM v0.21.0 source
+# build whose version string reads 0.21.1, with SM120/SM121 FP4 kernels; docker/Dockerfile in
+# this directory is upstream's recipe for
+# it). The image ships no Ray, which the placement wrapper (Ray head/worker) starts; this layer
+# adds the hash-locked Ray (requirements.lock, no dependency changes), the wrapper and the
+# non-root user.
+COPY requirements.lock /tmp/ray-requirements.lock
+RUN python3 -m pip install --no-cache-dir --no-deps --require-hashes --only-binary :all: \
+        --requirement /tmp/ray-requirements.lock \
+    && rm /tmp/ray-requirements.lock
+
 COPY LICENSE /opt/vonk/licenses/r0b0tlab-LICENSE
 COPY --chmod=0755 vllm-wrapper.py /opt/vonk/bin/vllm
+# The parent drops vLLM's _vllm_fa2_C/_vllm_fa3_C extensions, and vLLM v0.21.0
+# then refuses to import vllm.vllm_flash_attn, which every model import reaches
+# on CUDA. Make the missing extensions a warning (FlashInfer serves attention)
+# and prove at build that the MiniMax M2 model module imports as on a GB10.
+COPY patch-vllm-flash-attn-optional.py check-model-import.py /opt/vonk/build/
 
-RUN test -x /usr/local/bin/vllm \
+RUN python3 /opt/vonk/build/patch-vllm-flash-attn-optional.py \
+    && python3 -c "import vllm.vllm_flash_attn" \
+    && mkdir /opt/vonk/build/cuda-stub \
+    && ln -s /usr/local/cuda/lib64/stubs/libcuda.so /opt/vonk/build/cuda-stub/libcuda.so.1 \
+    && test -e /opt/vonk/build/cuda-stub/libcuda.so.1 \
+    && LD_LIBRARY_PATH="/opt/vonk/build/cuda-stub:$LD_LIBRARY_PATH" python3 /opt/vonk/build/check-model-import.py \
+    && rm -rf /opt/vonk/build \
+    && test -x /usr/local/bin/vllm \
+    && test -x "$(command -v ray)" \
+    && python3 -c "from vllm.v1.executor.ray_utils import assert_ray_available; assert_ray_available()" \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
     && install --directory --owner 10001 --group 10001 /state /outputs

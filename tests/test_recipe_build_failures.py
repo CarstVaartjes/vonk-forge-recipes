@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import re
 import subprocess
 from pathlib import Path
+from types import ModuleType
+from typing import Any
 from urllib.parse import urlsplit
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-NCCL_DOCKERFILES = tuple(
-    path
-    for path in (ROOT / "adapters").rglob("Dockerfile")
-    if "make pkg.debian.build" in path.read_text()
-)
+MINIMAX_DUAL = ROOT / "adapters/minimax/a3refaat-m3-b12x-dual"
 SKIN_CONTEXT = ROOT / "adapters/three-d/skintokens"
 
 
@@ -27,47 +26,38 @@ def run_steps(dockerfile: Path) -> list[str]:
     ]
 
 
-@pytest.mark.parametrize("dockerfile", NCCL_DOCKERFILES)
-def test_nccl_packaging_normalizes_generated_install_lists(dockerfile: Path) -> None:
-    step = next(step for step in run_steps(dockerfile) if "pkg.debian.build" in step)
-    assert (
-        step.index("make -C pkg/debian prep")
-        < step.index("chmod 0644 build/debian/*.install")
-        < step.index("make pkg.debian.build")
-    )
-    assert 'NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121"' in step
+def test_no_adapter_builds_nccl_debian_packages() -> None:
+    # dpkg-buildpackage failed every MiniMax M3 dual build (exit 2) although
+    # src.build had succeeded; images use the built library directly.
+    packaging = re.compile(r"pkg\.debian|debuild|dpkg-buildpackage")
+    assert [
+        path.relative_to(ROOT)
+        for path in (ROOT / "adapters").rglob("Dockerfile")
+        if packaging.search(path.read_text())
+    ] == []
 
 
-@pytest.mark.parametrize("dockerfile", NCCL_DOCKERFILES)
-def test_nccl_build_handles_executable_packaging_data(
-    dockerfile: Path, tmp_path: Path
-) -> None:
-    # Exercise the real RUN command with compiler/network/package managers
-    # replaced. Inject the observed executable metadata at src.build; the
-    # packaging double rejects it just as dh_install did on the Sparks.
+def test_minimax_dual_runtime_uses_the_nccl_it_builds(tmp_path: Path) -> None:
+    # Run the real NCCL RUN command with network/compiler doubles. Any make
+    # target besides the sm_121 src.build fails as Debian packaging did.
     commands = tmp_path / "commands"
     commands.mkdir()
     scripts = {
         "git": 'if [ "$1" = clone ]; then mkdir nccl; fi',
         "make": """case " $* " in
-  *" src.build "*)
-    mkdir -p build/debian
-    for name in libnccl2 libnccl-dev; do
-      printf 'lib/libnccl.so.2 /usr/lib/aarch64-linux-gnu\n' > "build/debian/$name.install"
-      chmod 0755 "build/debian/$name.install"
-    done ;;
-  *" pkg.debian.build "*)
-    for file in build/debian/*.install; do
-      if [ -x "$file" ]; then echo 'executable config: exit 132' >&2; exit 132; fi
-    done ;;
+  *" src.build NVCC_GENCODE=-gencode=arch=compute_121,code=sm_121 "*)
+    mkdir -p build/lib
+    : > build/lib/libnccl.so.2.29.7
+    ln -s libnccl.so.2.29.7 build/lib/libnccl.so.2 ;;
+  *) echo "debuild: fatal error: dpkg-buildpackage failed" >&2; exit 2 ;;
 esac""",
-        "apt": ":",
     }
     for name, source in scripts.items():
         executable = commands / name
         executable.write_text(f"#!/bin/sh\nset -eu\n{source}\n")
         executable.chmod(0o755)
-    step = next(step for step in run_steps(dockerfile) if "pkg.debian.build" in step)
+    dockerfile = MINIMAX_DUAL / "Dockerfile"
+    step = next(step for step in run_steps(dockerfile) if "src.build" in step)
     result = subprocess.run(
         ["sh", "-ec", step],
         cwd=tmp_path,
@@ -82,9 +72,65 @@ esac""",
         check=False,
     )
     assert result.returncode == 0, result.stderr
-    for manifest in (tmp_path / "nccl/build/debian").glob("*.install"):
-        assert manifest.read_text() == "lib/libnccl.so.2 /usr/lib/aarch64-linux-gnu\n"
-        assert manifest.stat().st_mode & 0o111 == 0
+    # The step runs in WORKDIR /workspace/vllm; the runner copies that output
+    # and torch's pip NCCL path is re-pointed into the copy.
+    copy = re.search(
+        r"^COPY --from=base /workspace/vllm/(\S+) (\S+)$",
+        dockerfile.read_text(),
+        re.MULTILINE,
+    )
+    assert copy is not None
+    assert (tmp_path / copy.group(1) / "libnccl.so.2").resolve().is_file()
+    verifier = load_minimax_dual_verifier()
+    assert verifier.NCCL.parent == Path(copy.group(2))
+    assert f"ln -s {verifier.NCCL} {verifier.PIP_NCCL}" in dockerfile.read_text()
+
+
+def load_minimax_dual_verifier() -> ModuleType:
+    spec = importlib.util.spec_from_file_location(
+        "minimax_dual_verify_runtime", MINIMAX_DUAL / "verify-runtime.py"
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.mark.parametrize("mesh", [True, False])
+def test_minimax_dual_verifier_requires_the_mesh_nccl(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mesh: bool
+) -> None:
+    verifier = load_minimax_dual_verifier()
+    built = tmp_path / "opt/nccl/lib"
+    built.mkdir(parents=True)
+    (built / "libnccl.so.2.29.7").touch()
+    (built / "libnccl.so.2").symlink_to("libnccl.so.2.29.7")
+    (tmp_path / "libnccl.so.2.29.7").touch()
+    pip = tmp_path / "pip/nvidia/nccl/lib"
+    pip.mkdir(parents=True)
+    (pip / "libnccl.so.2").symlink_to(
+        built / "libnccl.so.2" if mesh else tmp_path / "libnccl.so.2.29.7"
+    )
+    monkeypatch.setattr(verifier, "NCCL", built / "libnccl.so.2")
+    monkeypatch.setattr(verifier, "PIP_NCCL", pip / "libnccl.so.2")
+    loaded: list[str] = []
+
+    class Library:
+        def __init__(self, path: str) -> None:
+            loaded.append(path)
+
+        def ncclGetVersion(self, version: Any) -> int:
+            version._obj.value = 22907
+            return 0
+
+    monkeypatch.setattr(verifier.ctypes, "CDLL", Library)
+    if mesh:
+        verifier.verify_nccl()
+        assert loaded == [str(pip / "libnccl.so.2")]
+    else:
+        with pytest.raises(SystemExit, match="is not the mesh build"):
+            verifier.verify_nccl()
+        assert loaded == []
 
 
 def test_skintokens_archive_host_and_digest_are_closed() -> None:
@@ -149,3 +195,157 @@ def test_skintokens_verifies_download_before_use(tmp_path: Path, corrupt: bool) 
     )
     assert (result.returncode == 0) is not corrupt, result.stderr
     assert (tmp_path / "consumed").exists() is not corrupt
+
+
+FIXTURES = ROOT / "tests/fixtures"
+
+
+@pytest.mark.parametrize(
+    ("listings", "accepted"),
+    [
+        (
+            [
+                "flashinfer-aot-sm121a-list-elf.json",
+                "flashinfer-aot-host-only-list-elf.json",
+            ],
+            True,
+        ),
+        (["flashinfer-aot-host-only-list-elf.json"], False),
+    ],
+)
+def test_minimax_dual_verifier_requires_gb10_flashinfer_aot_kernels(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    listings: list[str],
+    accepted: bool,
+) -> None:
+    # Fixtures are real `cuobjdump --list-elf` runs captured from this image's
+    # AOT build (d768c14e, FLASHINFER_CUDA_ARCH_LIST=12.1a), with stdout, stderr
+    # and exit code exactly as observed: the norm module (2 sm_121a cubins,
+    # exit 0) and the host-only spdlog module (exit 255, "does not contain
+    # device code" on stderr). The fake replays all three.
+    verifier = load_minimax_dual_verifier()
+    package = tmp_path / "flashinfer_jit_cache"
+    for listing in listings:
+        module = package / "jit_cache" / listing
+        module.mkdir(parents=True)
+        (module / "module.so").touch()
+    spec = importlib.util.spec_from_loader("flashinfer_jit_cache", loader=None)
+    assert spec is not None
+    spec.submodule_search_locations = [str(package)]
+    monkeypatch.setattr(verifier.importlib.util, "find_spec", lambda name: spec)
+
+    def cuobjdump(
+        command: list[str], **_kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        run = json.loads((FIXTURES / Path(command[-1]).parent.name).read_text())
+        return subprocess.CompletedProcess(
+            command, run["returncode"], stdout=run["stdout"], stderr=run["stderr"]
+        )
+
+    monkeypatch.setattr(verifier.subprocess, "run", cuobjdump)
+    if accepted:
+        verifier.verify_flashinfer_aot()
+    else:
+        with pytest.raises(SystemExit, match="no sm_12x"):
+            verifier.verify_flashinfer_aot()
+
+
+# Spark build memory: vonk-forge control/src/vonk_control/catalog_entities.py
+# @922747e8 lines 859 and 868: image_bytes = max over the recipe's role disks;
+# memory_bytes = min(64 GiB, max(2 GiB, image_bytes)).
+#
+# Measured 2026-10-26 in the pinned stage-1 environment (OrbStack arm64, GNU
+# time on every sampled compile, one at a time; tooling sampled every 2 s
+# during the real `uv build` at MAX_JOBS=1). Keyed to the pinned source: a pin
+# bump fails this test until the step is re-measured.
+#   FlashInfer jit-cache: peak compiler gemm_sm120 (7,326 MiB); 1-6 commands
+#     from each of the 44 module families of the 2,657 nvcc commands.
+#   vLLM wheel: peak compiler w8a8/cutlass/c3x/scaled_mm_sm120_fp8.cu
+#     (8,434 MiB); 1-8 commands per source family of the 350 nvcc commands,
+#     every CUTLASS sm120, qutlass and fp4 file.
+MINIMAX_DUAL_STEP_MEMORY = {
+    "flashinfer-jit-cache": {
+        "source": "https://github.com/flashinfer-ai/flashinfer.git",
+        "commit": "d768c14e7cf5dd5df45a8a1de78ae815879f108a",
+        "compiler_peak": 7326 * 1024**2,
+        "tooling_peak": 595960 * 1024,
+    },
+    "wheels-vllm": {
+        "source": "https://github.com/vllm-project/vllm.git",
+        "commit": "979b56a66c969ab67655d2155ab4c6c5bed15f65",
+        "compiler_peak": 8434 * 1024**2,
+        "tooling_peak": 1037388 * 1024,
+    },
+}
+
+
+@pytest.mark.parametrize("output", sorted(MINIMAX_DUAL_STEP_MEMORY))
+def test_minimax_dual_compile_jobs_fit_the_spark_build_memory(output: str) -> None:
+    measured = MINIMAX_DUAL_STEP_MEMORY[output]
+    dockerfile = MINIMAX_DUAL / "Dockerfile"
+    steps = run_steps(dockerfile)
+    source = next(step for step in steps if str(measured["source"]) in step)
+    assert str(measured["commit"]) in source, f"{output}: re-measure for the new pin"
+    recipe = json.loads(
+        (
+            ROOT / "recipes/minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual.json"
+        ).read_text()
+    )
+    image_bytes = max(
+        role["resources"]["disk"]["image_bytes"] for role in recipe["topology"]["roles"]
+    )
+    limit = min(64 * 1024**3, max(2 * 1024**3, image_bytes))
+    step = next(step for step in steps if output in step)
+    jobs = re.search(r"\bMAX_JOBS=(\d+) ", step)
+    assert jobs is not None, f"{output} step must set its own MAX_JOBS"
+    need = int(jobs.group(1)) * int(measured["compiler_peak"]) + int(
+        measured["tooling_peak"]
+    )
+    assert need <= limit
+
+
+def test_skintokens_flash_attn_builds_one_architecture_offline(tmp_path: Path) -> None:
+    # Run the authored pip commands with a recording python3. flash-attn's
+    # defaults (four architectures, psutil-sized job count) ran nvcc out of
+    # memory; its setup_requires would otherwise be fetched unpinned.
+    step = next(
+        step for step in run_steps(SKIN_CONTEXT / "Dockerfile") if "flash-attn" in step
+    )
+    pip = step[step.index("python3 -m pip install") : step.index("&& cuobjdump")]
+    python = tmp_path / "python3"
+    python.write_text(
+        "#!/bin/sh\n"
+        'printf \'%s|%s|%s|%s\\n\' "${MAX_JOBS-}" "${FLASH_ATTN_CUDA_ARCHS-}" '
+        '"${FLASH_ATTENTION_FORCE_BUILD-}" "$*" >> "$CALLS"\n'
+    )
+    python.chmod(0o755)
+    calls = tmp_path / "calls"
+    environment = {
+        name: value
+        for name, value in os.environ.items()
+        if name not in {"MAX_JOBS", "FLASH_ATTN_CUDA_ARCHS"}
+    }
+    result = subprocess.run(
+        ["sh", "-ec", pip],
+        env={
+            **environment,
+            "PATH": f"{tmp_path}:{os.environ['PATH']}",
+            "CALLS": str(calls),
+        },
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    invocations = [line.split("|", 3) for line in calls.read_text().splitlines()]
+    build = next(i for i, call in enumerate(invocations) if "flash-attn==" in call[3])
+    jobs, archs, force, arguments = invocations[build]
+    assert int(jobs) > 0
+    assert archs == "120"
+    assert force == "TRUE"
+    assert "--no-build-isolation" in arguments
+    installed = " ".join(call[3] for call in invocations[:build]).split()
+    for requirement in ("packaging", "psutil", "ninja"):
+        assert any(word.startswith(f"{requirement}==") for word in installed)

@@ -11,6 +11,10 @@
     "whole": false
   },
   "ours": [
+    "check-model-import.py",
+    "patch-vllm-flash-attn-optional.py",
+    "requirements.in",
+    "requirements.lock",
     "vllm-wrapper.py"
   ],
   "source": {

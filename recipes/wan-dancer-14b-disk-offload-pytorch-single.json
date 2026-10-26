@@ -424,8 +424,8 @@
     "source_reference": "https://github.com/modelscope/DiffSynth-Studio/tree/84f93fc4907b6c193be5501bab0b5c37f383033c"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.0.7"
+    "released_at": "2026-10-25",
+    "version": "1.0.9"
   },
   "runtime": {
     "arguments": [

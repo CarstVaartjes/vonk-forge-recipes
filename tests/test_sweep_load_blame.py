@@ -33,11 +33,15 @@ def _timeouts(seconds: float = 600.0) -> TimeoutPolicy:
     )
 
 
+# A held admission's wait is the Controller's: its expiry records the content identity.
+DIGEST = "1" * 64
+
+
 def _trio(**held):
     recipes = [
-        FakeRecipe("bad", ("m1",), local="cached", **held),
-        FakeRecipe("good1", ("m1",), local="cached"),
-        FakeRecipe("good2", ("m1",), local="cached"),
+        FakeRecipe("bad", (DIGEST,), content="b" * 64, local="cached", **held),
+        FakeRecipe("good1", (DIGEST,), content="c" * 64, local="cached"),
+        FakeRecipe("good2", (DIGEST,), content="d" * 64, local="cached"),
     ]
     return recipes
 
@@ -104,10 +108,12 @@ def test_blamed_prefers_the_recipe_over_its_spark() -> None:
 
 
 def _make_held(tmp_path, gateway, release, **held):
-    return _make(
+    return make_sweep(
         tmp_path,
-        gateway,
         _trio(blocked=True, blocker_code=PREP, **held),
+        [FakeModel(DIGEST, local="cached")],
+        gateway=gateway,
+        timeouts=_timeouts(),
         blocked_release_seconds=release,
     )
 
