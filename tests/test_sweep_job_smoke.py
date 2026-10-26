@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
 from spark_sweep import verdict
 from spark_sweep.catalog import Fleet, Presence, parse_recipe, serving_run
@@ -481,6 +482,19 @@ def test_every_assertion_kind_the_definitions_use_is_decided_or_named_not_evalua
         + [a for case in spec.get("cases", []) for a in case.get("assertions", [])]
     }
     assert used <= EVALUATED | NOT_EVALUATED, used - EVALUATED - NOT_EVALUATED
+
+
+def test_every_glb_profile_the_definitions_use_is_a_contract_profile() -> None:
+    """A misspelt profile fails here, not on hardware after the job ran."""
+    used = {
+        assertion.get("profile", QualificationGlbProfile.TRIANGLE_MESH)
+        for spec in DEFINITIONS.document["recipes"].values()
+        for assertion in [*spec.get("assertions", [])]
+        + [a for case in spec.get("cases", []) for a in case.get("assertions", [])]
+        if assertion["kind"] == "glb-structure"
+    }
+    assert used, "no definition declares a glb-structure assertion"
+    assert used <= set(QualificationGlbProfile), used - set(QualificationGlbProfile)
 
 
 # -- readiness -------------------------------------------------------------------------

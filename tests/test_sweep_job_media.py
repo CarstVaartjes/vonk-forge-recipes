@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from test_three_d_glb_validation import CONTEXTS, Glb, load_validator
+from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
 from spark_sweep import job_media
 from spark_sweep.job_assertions import Output, evaluate
@@ -21,15 +23,21 @@ from spark_sweep.smoke import AssertionFailed
 TRIANGLE_MESH = {"kind": "glb-structure", "profile": "triangle-mesh"}
 
 
-def _glb(*, textured: bool = False, **overrides: Any) -> bytes:
-    """One indexed triangle: a FLOAT VEC3 POSITION and three UNSIGNED_SHORT indices."""
+def _glb(*, textured: bool = False, skinned: bool = False, **overrides: Any) -> bytes:
+    """One indexed triangle: a FLOAT VEC3 POSITION and three UNSIGNED_SHORT indices.
+
+    ``skinned`` binds it to a one-joint skin with JOINTS_0 and WEIGHTS_0.
+    """
     positions = struct.pack("<9f", 0, 0, 0, 1, 0, 0, 0, 1, 0)
     indices = struct.pack("<3H", 0, 1, 2) + b"\0\0"
     uv = struct.pack("<6f", 0, 0, 1, 0, 0, 1)
     png = base64.b64decode(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
     )
+    joints = struct.pack("<12B", *[0] * 12)
+    weights = struct.pack("<12f", *[1, 0, 0, 0] * 3)
     blob = positions + indices + (uv + png if textured else b"")
+    blob += joints + weights if skinned else b""
     document: dict[str, Any] = {
         "asset": {"version": "2.0"},
         "buffers": [{"byteLength": len(blob)}],
@@ -69,6 +77,21 @@ def _glb(*, textured: bool = False, **overrides: Any) -> bytes:
         ]
         document["textures"] = [{"source": 0}]
         document["images"] = [{"bufferView": 3, "mimeType": "image/png"}]
+    if skinned:
+        document["bufferViews"] += [
+            {"buffer": 0, "byteOffset": 44, "byteLength": 12, "target": 34962},
+            {"buffer": 0, "byteOffset": 56, "byteLength": 48, "target": 34962},
+        ]
+        document["accessors"] += [
+            {"bufferView": 2, "componentType": 5121, "count": 3, "type": "VEC4"},
+            {"bufferView": 3, "componentType": 5126, "count": 3, "type": "VEC4"},
+        ]
+        document["meshes"][0]["primitives"][0]["attributes"].update(
+            JOINTS_0=2, WEIGHTS_0=3
+        )
+        document["nodes"] = [{"mesh": 0, "skin": 0}, {"name": "root"}]
+        document["scenes"] = [{"nodes": [0, 1]}]
+        document["skins"] = [{"joints": [1]}]
     document.update(overrides)
     text = json.dumps(document).encode()
     text += b" " * (-len(text) % 4)
@@ -105,7 +128,7 @@ def _vec2_position() -> dict[str, Any]:
     [
         pytest.param(_glb(), {**TRIANGLE_MESH, "minimum_primitives": 2}, id="few"),
         pytest.param(_glb(), {**TRIANGLE_MESH, "minimum_meshes": 2}, id="few-meshes"),
-        pytest.param(_glb(), {**TRIANGLE_MESH, "profile": "skinned"}, id="profile"),
+        pytest.param(_glb(), {**TRIANGLE_MESH, "profile": "voxel"}, id="profile"),
         pytest.param(_glb(meshes=[]), TRIANGLE_MESH, id="no-meshes"),
         pytest.param(_glb(**_lines_mesh()), TRIANGLE_MESH, id="lines"),
         pytest.param(_glb(**_vec2_position()), TRIANGLE_MESH, id="vec2-position"),
@@ -225,6 +248,103 @@ def test_textured_pbr_rejects_invalid_or_shared_metallic_roughness(
     )
     with pytest.raises(AssertionFailed):
         evaluate([TEXTURED_PBR], _glb_output(content))
+
+
+SKINNED = {"kind": "glb-structure", "profile": "skinned"}
+
+
+def test_a_skinned_glb_with_a_bound_skin_and_vertex_weights_holds() -> None:
+    """Catches the sweep failing SkinTokens' rigged output as an unchecked profile."""
+    assert evaluate([SKINNED], _glb_output(_glb(skinned=True))) == {}
+
+
+def _skinned_attributes(**attributes: int) -> dict[str, Any]:
+    primitive = {"attributes": {"POSITION": 0, **attributes}, "indices": 1}
+    return {"meshes": [{"primitives": [primitive]}]}
+
+
+def _skinned_accessors(joint_count: int) -> dict[str, Any]:
+    position = {"bufferView": 0, "componentType": 5126, "count": 3, "type": "VEC3"}
+    index = {"bufferView": 1, "componentType": 5123, "count": 3, "type": "SCALAR"}
+    joints = {"bufferView": 2, "componentType": 5121, "type": "VEC4"}
+    weights = {"bufferView": 3, "componentType": 5126, "count": 3, "type": "VEC4"}
+    return {"accessors": [position, index, joints | {"count": joint_count}, weights]}
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        pytest.param({"skins": []}, id="no-skin"),
+        pytest.param({"skins": [{"joints": []}]}, id="no-joints"),
+        pytest.param({"skins": [{"joints": [9]}]}, id="unknown-joint"),
+        pytest.param({"skins": [{"joints": [1, 1]}]}, id="duplicate-joints"),
+        pytest.param({"nodes": [{"mesh": 0}, {}]}, id="unbound-mesh"),
+        pytest.param({"nodes": [{}, {}]}, id="no-mesh-node"),
+        pytest.param(_skinned_attributes(WEIGHTS_0=3), id="no-joints-attribute"),
+        pytest.param(_skinned_attributes(JOINTS_0=2), id="no-weights-attribute"),
+        pytest.param(
+            _skinned_attributes(JOINTS_0=3, WEIGHTS_0=3), id="float-joints-attribute"
+        ),
+        pytest.param(
+            _skinned_attributes(JOINTS_0=2, WEIGHTS_0=2), id="byte-weights-attribute"
+        ),
+        pytest.param(_skinned_accessors(2), id="joints-count"),
+    ],
+)
+def test_a_skinned_glb_requires_a_bound_skin_with_joints_and_vertex_weights(
+    overrides: dict[str, Any],
+) -> None:
+    with pytest.raises(AssertionFailed) as missed:
+        evaluate([SKINNED], _glb_output(_glb(skinned=True, **overrides)))
+    assert missed.value.kind == "glb-structure"
+
+
+def test_skintokens_mesh_only_input_is_a_mesh_but_not_skinned() -> None:
+    """The job's input fixture has no rig: only the job's output can pass ``skinned``."""
+    fixtures = Path(__file__).resolve().parents[1] / "qualification/fixtures"
+    content = (fixtures / "skintokens-rigged-figure.glb").read_bytes()
+    assert evaluate([TRIANGLE_MESH], _glb_output(content)) == {}
+    with pytest.raises(AssertionFailed, match="skins"):
+        evaluate([SKINNED], _glb_output(content))
+
+
+#: A GLB that holds for each contract profile; a new profile needs one, and a checker.
+PROFILE_EXAMPLES = {
+    QualificationGlbProfile.TRIANGLE_MESH: _glb(),
+    QualificationGlbProfile.TEXTURED: _glb(textured=True),
+    QualificationGlbProfile.TEXTURED_PBR: _pbr_glb(),
+    QualificationGlbProfile.SKINNED: _glb(skinned=True),
+}
+
+
+@pytest.mark.parametrize("profile", list(QualificationGlbProfile))
+def test_the_sweep_checks_every_glb_profile_the_contract_allows(
+    profile: QualificationGlbProfile,
+) -> None:
+    """Catches a contract profile the sweep fails as unchecked (SkinTokens' ``skinned``)."""
+    assert profile in job_media.GLB_PROFILE_CHECKS
+    assertion = {"kind": "glb-structure", "profile": profile.value}
+    assert evaluate([assertion], _glb_output(PROFILE_EXAMPLES[profile])) == {}
+
+
+#: The adapters' (and platform's) validator calls the triangle-mesh profile geometry.
+VALIDATOR_PROFILES = {QualificationGlbProfile.TRIANGLE_MESH: "geometry"}
+
+
+@pytest.mark.parametrize("profile", list(QualificationGlbProfile))
+def test_the_sweep_accepts_what_the_adapter_validator_publishes(
+    profile: QualificationGlbProfile, tmp_path: Path
+) -> None:
+    """Catches the sweep failing a GLB the job's own validator let it publish."""
+    validator_profile = VALIDATOR_PROFILES.get(profile, profile.value)
+    builder = Glb()
+    content = builder.bytes(builder.document(validator_profile))
+    output = tmp_path / "output.glb"
+    output.write_bytes(content)
+    validator = load_validator(CONTEXTS[0])
+    validator.validate_mesh_glb(output, profile=validator_profile)  # pyright: ignore[reportAttributeAccessIssue]
+    assertion = {"kind": "glb-structure", "profile": profile.value}
+    assert evaluate([assertion], _glb_output(content)) == {}
 
 
 @pytest.mark.parametrize("fallback", [False, True])
