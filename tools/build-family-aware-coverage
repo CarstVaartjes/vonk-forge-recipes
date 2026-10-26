@@ -32,17 +32,19 @@ import importlib.util
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, assert_never
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
+    GitHubLfsSource,
     GitHubReleaseSource,
     ModelDefinition,
     RecipeDefinition,
     document_sha256,
 )
+from vonk_forge_contracts.model import ModelSource
 from vonk_forge_contracts.qualification_authority import QualificationAuthority
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
 
@@ -116,7 +118,9 @@ def _model_source_projection(model: ModelDefinition) -> tuple[str, str]:
     source = model.source
     if isinstance(source, GitHubReleaseSource):
         return source.repository, f"github-release:{source.release_id}"
-    return source.repository, source.revision
+    if isinstance(source, GitHubLfsSource | ModelSource):
+        return source.repository, source.revision
+    assert_never(source)
 
 
 def _require_object(value: Any, description: str) -> dict[str, Any]:

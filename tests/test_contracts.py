@@ -16,6 +16,7 @@ import sys
 
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
+    GitHubLfsSource,
     GitHubReleaseSource,
     ModelDefinition,
     RecipeDefinition,
@@ -101,6 +102,56 @@ def test_github_release_source_binds_all_model_files_and_unique_assets() -> None
     restricted["requires_token"] = True
     with pytest.raises(ValidationError, match="public, anonymous"):
         ModelDefinition.model_validate(restricted)
+
+
+def test_github_lfs_source_example_binds_oid_size_path_and_commit() -> None:
+    document = load("model-definition-github-lfs.json")
+    model = ModelDefinition.model_validate(document)
+    assert isinstance(model.source, GitHubLfsSource)
+    assert model.source.provider == "github-lfs"
+    assert model.source.revision == "45c03facbf848e0c743091b7d9c17952096ff908"
+    assert model.files[0].path == "motionbricks/out/G1-clip.ckpt"
+    assert model.files[0].size_bytes == 7761041
+    Draft202012Validator(model_json_schema()).validate(document)
+    round_tripped = ModelDefinition.model_validate_json(model.model_dump_json())
+    assert isinstance(round_tripped.source, GitHubLfsSource)
+    changed = copy.deepcopy(document)
+    changed["source"]["revision"] = "0" * 40
+    assert document_sha256(changed) != document_sha256(document)
+
+
+def test_github_lfs_source_refuses_what_it_cannot_download() -> None:
+    document = load("model-definition-github-lfs.json")
+    for mutation in (
+        lambda doc: doc.update(requires_token=True),
+        lambda doc: doc["files"][0].update(
+            parts=[{"path": "a.part", "sha256": "a" * 64, "size_bytes": 7761041}]
+        ),
+        lambda doc: doc["files"][0].update(size_bytes=0),
+        lambda doc: doc["source"].update(
+            repository="https://github.com/NVlabs/GR00T-WholeBodyControl.git"
+        ),
+        lambda doc: doc["source"].update(
+            repository="https://github.com/NVlabs/GR00T-WholeBodyControl/tree/main"
+        ),
+        lambda doc: doc["source"].update(
+            repository="http://github.com/NVlabs/GR00T-WholeBodyControl"
+        ),
+        lambda doc: doc["source"].update(revision="45c03fac"),
+        lambda doc: doc["source"].update(
+            revision="45C03FACBF848E0C743091B7D9C17952096FF908"
+        ),
+        lambda doc: doc["source"].update(release_id=1),
+    ):
+        invalid = copy.deepcopy(document)
+        mutation(invalid)
+        with pytest.raises(ValidationError):
+            ModelDefinition.model_validate(invalid)
+
+
+def test_huggingface_source_still_parses_as_the_plain_model_source() -> None:
+    model = ModelDefinition.model_validate(load("model-definition.json"))
+    assert not isinstance(model.source, GitHubLfsSource | GitHubReleaseSource)
 
 
 def test_examples_validate_against_the_two_roots_and_generated_schemas() -> None:
