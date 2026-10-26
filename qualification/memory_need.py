@@ -635,7 +635,7 @@ def require_memory_need(
             if variant.runtime.engine == "sglang":
                 require_sglang_rank_budget(variant, models, inputs.geometries, key)
             elif touched:
-                require_need_sized_kv_pool(variant, models, inputs, key)
+                require_bounded_kv_pool(variant, key)
             require_vllm_startup_budget(variant)
         return None
     result = None
@@ -681,37 +681,38 @@ def require_memory_need(
     return result
 
 
-def require_need_sized_kv_pool(
-    recipe: RecipeDefinition,
-    models: Mapping[str, ModelDefinition],
-    inputs: MemoryInputs,
-    key: str,
-) -> None:
-    """A multi-Spark vLLM pool holds declared context x max-num-seqs per rank.
+def require_bounded_kv_pool(recipe: RecipeDefinition, key: str) -> None:
+    """A touched multi-Spark vLLM recipe bounds KV, calibrated on the proven set.
 
-    A utilization fraction sizes KV to whatever memory remains: on 2026-10-26
-    Laguna M.1 at TP=2 took 475,392 tokens for a 4 x 8,192-token workload and
-    left its entrypoint Spark at the 16 GiB host memory guard floor.
+    A utilization-sized pool grows into what remains: on 2026-10-26 Laguna M.1
+    at TP=2 and 0.82 took 475,392 tokens for a 4 x 8,192-token workload and
+    left its entrypoint Spark at the 16 GiB host memory guard floor. Its
+    budget plus overhead exceeded the Spark total minus that guard; every
+    hardware-proven utilization-sized dual runs at 0.80 or below, inside it.
 
-    No ceiling below idle admission applies to weights + pool: proven documents
-    reach that admission bound (require_admissible_declaration), and the
-    proven DeepSeek V4 Flash vision eugr dual exceeds, on weights and on pool,
-    the DSpark vLLM 0.25 document that tripped the guard. Hardware judges that.
+    An absolute pool must hold one full-context request
+    (require_absolute_kv_capacity), not context x max-num-seqs: vLLM schedules
+    sequences within the pool. Proven duals hold fewer: DeepSeek V4 Flash 0731
+    r0b0tlab (16.0 GB for 16 x 327,680 tokens), GLM 5.3 Flash NVFP4 Spark eugr
+    (14.69 GB for 4 x 500,000) and the EXL3 Mia dual (2.5 GiB, 774,400 tokens
+    measured upstream, for 2 x 600,000). Sizing the DSpark vLLM 0.25 dual pool
+    for 16 x 200,000 tokens (27.31 GB) exhausted host memory on both Sparks.
     """
-    need = absolute_kv_need(
-        recipe,
-        models,
-        inputs,
-        concurrency=positive_argument(recipe, "max-num-seqs"),
-    )
-    pool = argument_value(recipe, "kv-cache-memory-bytes")
-    if pool is None:
-        pool = argument_value(recipe, "kv-cache-memory")
-    if pool is None or cache_bytes(pool) < need:
+    if (
+        argument_value(recipe, "kv-cache-memory-bytes") is not None
+        or argument_value(recipe, "kv-cache-memory") is not None
+    ):
+        return
+    fraction = argument_value(recipe, "gpu-memory-utilization")
+    if (
+        fraction is None
+        or Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        > TOTAL_BYTES - GUARD_BYTES
+    ):
         raise ValueError(
-            f"{key}: set absolute kv-cache-memory-bytes of at least {need} "
-            "(declared context x max-num-seqs per rank); a utilization fraction "
-            "does not bound KV by need"
+            f"{key}: set absolute kv-cache-memory-bytes, or a gpu-memory-utilization "
+            f"whose share of {TOTAL_BYTES} bytes plus {OVERHEAD_BYTES} overhead "
+            f"leaves the {GUARD_BYTES}-byte host memory guard"
         )
 
 
