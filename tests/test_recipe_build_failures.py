@@ -244,8 +244,10 @@ def test_minimax_dual_verifier_requires_gb10_only_flashinfer_aot(
 
 
 # Measured peak RSS of one compiler (2026-10-26, pinned stage-1 environment):
-# FlashInfer AOT gemm_sm120 7.2 GiB; vLLM CUTLASS scaled_mm_sm120_fp8 8.2 GiB.
+# NCCL all_reduce_minmax/device_glue 0.6 GiB (host g++ 0.4 GiB); FlashInfer AOT
+# gemm_sm120 7.2 GiB; vLLM CUTLASS scaled_mm_sm120_fp8 8.2 GiB.
 MINIMAX_DUAL_COMPILER_PEAK_BYTES = {
+    "src.build": 615 * 1024**2,
     "flashinfer-jit-cache": 7326 * 1024**2,
     "wheels-vllm": 8434 * 1024**2,
 }
@@ -268,10 +270,10 @@ def test_minimax_dual_compile_jobs_fit_the_spark_build_memory(output: str) -> No
     step = next(
         step for step in run_steps(MINIMAX_DUAL / "Dockerfile") if output in step
     )
-    jobs = re.search(r"\bMAX_JOBS=(\d+) ", step)
-    assert jobs is not None, f"{output} step must set its own MAX_JOBS"
+    jobs = re.search(r"\bMAX_JOBS=(\d+) |\bmake -j (\d+) ", step)
+    assert jobs is not None, f"{output} step must set its own job count"
     peak = MINIMAX_DUAL_COMPILER_PEAK_BYTES[output]
-    assert int(jobs.group(1)) * peak + 4 * 1024**3 <= limit
+    assert int(jobs.group(1) or jobs.group(2)) * peak + 4 * 1024**3 <= limit
 
 
 def test_skintokens_flash_attn_builds_one_architecture_offline(tmp_path: Path) -> None:

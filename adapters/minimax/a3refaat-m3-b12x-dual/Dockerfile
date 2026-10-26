@@ -58,9 +58,10 @@ WORKDIR $VLLM_BASE_DIR
 
 # NCCL with mesh support (shared library in /workspace/vllm/nccl/build/lib). Upstream wraps it in Debian
 # packages only to apt-install them; the runner uses the built library directly, as the tonyd2wild M3 triple does.
+# Sixteen jobs: its compiles peak at 0.6 GiB each, well inside the Spark build's image_bytes memory limit.
 RUN git clone -b dgxspark-3node-ring https://github.com/zyang-dev/nccl.git && \
     cd nccl && git checkout --detach fab1850acd902672d79ca81c2e7fb8e1848c208c && \
-    make -j ${BUILD_JOBS} src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121"
+    make -j 16 src.build NVCC_GENCODE="-gencode=arch=compute_121,code=sm_121"
 
 # =========================================================
 # (still stage 1) FlashInfer wheels from source
