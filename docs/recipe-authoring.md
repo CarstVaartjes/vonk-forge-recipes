@@ -399,10 +399,15 @@ pool overrides cache sizing by utilization; the explicit startup budget is check
 separately. Changed multi-Spark documents use the per-rank demand declaration below;
 a changed multi-Spark SGLang document must also fit its sharded weights, resident
 expansion and capped token/state pools in `mem-fraction-static` × the lowest idle
-available bytes. A multi-Spark vLLM recipe file a change touches must set
-`kv-cache-memory-bytes` to at least declared context × `max-num-seqs` per rank
-(`tools/check-recipe-memory-need --base origin/main`); a utilization-sized pool
-left Laguna M.1's entrypoint at the 16 GiB host guard floor on 2026-10-26.
+available bytes. A multi-Spark vLLM recipe file a change touches must bound KV
+(`tools/check-recipe-memory-need --base origin/main`): an absolute
+`kv-cache-memory-bytes` pool that holds one full-context request per rank, or a
+`gpu-memory-utilization` whose share of physical memory plus the 8 GB overhead
+leaves the 16 GiB host guard. Laguna M.1 at 0.82 with no pool reached that guard
+floor on 2026-10-26; proven utilization-sized duals run at 0.80 or below. The
+pool need not hold context × `max-num-seqs`: vLLM schedules sequences within it,
+proven duals hold fewer, and the DSpark vLLM 0.25 dual pool sized for
+16 × 200,000 tokens exhausted host memory on both Sparks.
 Sharded weights, that pool and the 8 GB overhead are bounded by idle admission,
 not by the 16 GiB planning limit: hardware-proven dual documents run above it.
 Existing documents remain unchanged and receive informative warnings.
