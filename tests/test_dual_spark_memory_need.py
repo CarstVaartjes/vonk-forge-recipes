@@ -11,6 +11,7 @@ from qualification.memory_need import (
     LIMIT_BYTES,
     OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
+    calculate_need,
     declaration_problems,
     load_inputs,
     memory_variants,
@@ -141,12 +142,41 @@ def test_every_selected_engram_file_is_excluded_from_per_rank_need() -> None:
         ):
             continue
         for variant in memory_variants(recipe):
-            assert (
-                per_rank_need(variant, models, inputs).peak_bytes
-                == per_rank_need(variant, inflated, inputs).peak_bytes
-            ), path.stem
+            if variant.topology.node_count == 1:
+                assert calculate_need(variant, models, inputs) == calculate_need(
+                    variant, inflated, inputs
+                ), path.stem
+            else:
+                assert (
+                    per_rank_need(variant, models, inputs).peak_bytes
+                    == per_rank_need(variant, inflated, inputs).peak_bytes
+                ), path.stem
         checked += 1
     assert checked > 0
+
+
+def test_single_spark_calculator_excludes_engram_files() -> None:
+    # No single-Spark vLLM/SGLang recipe selects an Engram file today; mark
+    # the Mosaic recipe's largest weight file as one to exercise the path.
+    models, inputs = catalog_models(), load_inputs()
+    recipe = recipe_for("glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single")
+    need = calculate_need(recipe, models, inputs)
+    ids = {f.file_id for f in recipe.models[0].files}
+    largest = max(
+        (
+            f
+            for f in models[recipe.models[0].model.content_sha256].files
+            if f.id in ids and "weights" in f.roles
+        ),
+        key=lambda f: f.size_bytes,
+    )
+    marked = inputs.model_copy(
+        update={"engram_files": {**inputs.engram_files, largest.sha256: "test"}}
+    )
+    assert (
+        need.weights_bytes - calculate_need(recipe, models, marked).weights_bytes
+        == largest.size_bytes
+    )
 
 
 def test_proven_mia_engram_dual_fits_without_its_engram_shards() -> None:

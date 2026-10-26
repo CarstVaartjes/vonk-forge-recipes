@@ -182,7 +182,7 @@ def test_full_context_need_and_absolute_pool_replace_the_failed_fraction():
         (ROOT / "recipes/gpt-oss-120b-nvidia-vllm-single.json").read_text()
     )
     inputs = load_inputs()
-    need = calculate_need(recipe, catalog_models(), inputs.geometries)
+    need = calculate_need(recipe, catalog_models(), inputs)
     assert need.weights_bytes == 65_248_893_184
     assert need.kv_bytes == 9_663_676_416
     assert need.resident_expansion_bytes == 10_000_000_000
@@ -221,8 +221,8 @@ def test_resident_expansion_rejects_graph_and_image_drift():
     )
     eager.value = False
     with pytest.raises(ValueError, match="requires disabled graphs"):
-        calculate_need(recipe, catalog_models(), inputs.geometries)
+        calculate_need(recipe, catalog_models(), inputs)
     eager.value = True
     recipe.execution.build.base_image.digest = "0" * 64
     with pytest.raises(ValueError, match="does not match the pinned image"):
-        calculate_need(recipe, catalog_models(), inputs.geometries)
+        calculate_need(recipe, catalog_models(), inputs)

@@ -52,7 +52,7 @@ def checked(recipe: RecipeDefinition) -> None:
 
 def test_llama_need_is_small_and_the_pool_matches_the_declared_workload() -> None:
     recipe = llama()
-    need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+    need = calculate_need(recipe, catalog_models(), INPUTS)
     assert need.kv_bytes == 32 * 8 * (128 + 128) * 131_072 == 8 * 1024**3
     assert need.total_bytes == 22_617_795_968
     assert need.total_bytes < need.limit_bytes == 108_470_788_096
@@ -137,7 +137,7 @@ def test_auxiliary_weights_and_cache_are_counted_without_speculation() -> None:
     draft = recipe.models[0].model_copy(deep=True)
     draft.id = "draft"
     recipe.models.append(draft)
-    need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+    need = calculate_need(recipe, catalog_models(), INPUTS)
     assert need.auxiliary_weights_bytes == need.weights_bytes
     assert need.kv_bytes == 16 * 1024**3
     assert need.overhead_bytes == OVERHEAD_BYTES
@@ -147,25 +147,27 @@ def test_need_scales_with_context_and_concurrency_and_kv_dtype() -> None:
     recipe = llama()
     assert recipe.settings.kind == "generation"
     assert recipe.settings.concurrency is not None
-    initial = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+    initial = calculate_need(recipe, catalog_models(), INPUTS)
     recipe.settings.context_tokens.value //= 2
     recipe.settings.concurrency.value *= 4
     assert (
-        calculate_need(recipe, catalog_models(), INPUTS.geometries).kv_bytes
+        calculate_need(recipe, catalog_models(), INPUTS).kv_bytes
         == initial.kv_bytes * 2
     )
     next(
         item for item in recipe.runtime.arguments if item.name == "kv-cache-dtype"
     ).value = "float16"
     assert (
-        calculate_need(recipe, catalog_models(), INPUTS.geometries).kv_bytes
+        calculate_need(recipe, catalog_models(), INPUTS).kv_bytes
         == initial.kv_bytes * 4
     )
 
 
 def test_unknown_new_model_requires_source_backed_geometry() -> None:
     with pytest.raises(ValueError, match="source-backed cache geometry"):
-        calculate_need(llama(), catalog_models(), {})
+        calculate_need(
+            llama(), catalog_models(), INPUTS.model_copy(update={"geometries": {}})
+        )
 
 
 def test_sglang_requires_an_absolute_token_pool() -> None:
@@ -208,7 +210,11 @@ def test_sliding_layers_use_their_window_and_recurrent_state_uses_concurrency() 
         }
     )
     assert isinstance(geometry, CacheGeometry)
-    need = calculate_need(recipe, catalog_models(), {slug: geometry})
+    need = calculate_need(
+        recipe,
+        catalog_models(),
+        INPUTS.model_copy(update={"geometries": {slug: geometry}}),
+    )
     assert need.kv_bytes == (131072 * 16 + 1024 * 16) * 8 * 256
     assert need.state_bytes == 100
 
@@ -274,7 +280,7 @@ def test_need_keeps_measured_overhead_only_for_a_separate_draft(
     recipe.runtime.arguments.append(
         RecipeRuntimeArgument(name="speculative-config", value=json.dumps(config))
     )
-    need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+    need = calculate_need(recipe, catalog_models(), INPUTS)
     assert need.auxiliary_weights_bytes == need.weights_bytes
     assert need.overhead_bytes == OVERHEAD_BYTES + (
         DRAFT_MODEL_OVERHEAD_BYTES if separate else 0
@@ -295,7 +301,7 @@ def test_need_rejects_a_pool_that_only_fits_without_measured_draft_overhead() ->
             value='{"method":"dflash","model":"/models/draft"}',
         )
     )
-    need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+    need = calculate_need(recipe, catalog_models(), INPUTS)
     assert need.total_bytes - DRAFT_MODEL_OVERHEAD_BYTES <= need.limit_bytes
     assert need.total_bytes > need.limit_bytes
     next(
@@ -392,7 +398,7 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
     assert schedule.max_mamba_cache_size == 2
     assert sizer._apply_token_constraints(1_000_000) == 8192
     checked(recipe)
-    need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+    need = calculate_need(recipe, catalog_models(), INPUTS)
     assert need.kv_bytes == 8192 * 65536
     assert need.state_bytes == 3 * 150 * 1024**2
     assert need.overhead_bytes == 8_000_000_000
@@ -445,7 +451,7 @@ def test_hybrid_need_rejects_uncalibrated_runtime_or_hidden_demand(defect: str) 
             a for a in recipe.runtime.arguments if a.name != "max-mamba-cache-size"
         ]
     else:
-        need = calculate_need(recipe, catalog_models(), INPUTS.geometries)
+        need = calculate_need(recipe, catalog_models(), INPUTS)
         recipe.topology.roles[0].resources.memory.peak_bytes = need.total_bytes - 1
     with pytest.raises((ValueError, TypeError)):
         checked(recipe)

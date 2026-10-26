@@ -144,7 +144,7 @@ def test_mosaic_failure_has_honest_demand_without_retuning_siblings() -> None:
     recipe = RecipeDefinition.model_validate_json(
         (ROOT / "recipes" / f"{MOSAIC}.json").read_text()
     )
-    need = calculate_need(recipe, catalog_models(), load_inputs().geometries)
+    need = calculate_need(recipe, catalog_models(), load_inputs())
     assert need.total_bytes == 119_029_287_744 > need.limit_bytes == 108_470_788_096
     assert "does-not-fit" in recipe.metadata.tags
     assert all(
