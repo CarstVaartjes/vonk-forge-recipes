@@ -10,7 +10,7 @@ import sys
 import tempfile
 import types
 from collections.abc import Iterator
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from types import SimpleNamespace
 from unittest import mock
 
@@ -306,6 +306,111 @@ def test_scratch_guard_flags_only_new_output_root_scratch(
     run.write_text(EXISTING_STAGING + added)
     assert _new_scratch_sites(tmp_path, "HEAD") == [
         f"adapters/audio/demo/run.py:{line}" for line in flagged
+    ]
+
+
+# A job may write only under these roots; the rest of the image is read-only
+# and owned by root, while the job runs as an unprivileged user.
+JOB_WRITABLE_ROOTS = ("/tmp", "/outputs", "/state")
+
+
+def _names_image_path(node: ast.expr) -> bool:
+    return any(
+        isinstance(item, ast.Constant)
+        and isinstance(item.value, str)
+        and item.value.startswith("/")
+        and not any(
+            PurePosixPath(item.value).is_relative_to(root)
+            for root in JOB_WRITABLE_ROOTS
+        )
+        for item in ast.walk(node)
+    )
+
+
+def _image_cwd_sites(tree: ast.Module) -> list[tuple[int, set[int]]]:
+    """``cwd=`` an image path, directly or through a module-level constant."""
+    image_names = {
+        target.id
+        for node in tree.body
+        if isinstance(node, ast.Assign) and _names_image_path(node.value)
+        for target in node.targets
+        if isinstance(target, ast.Name)
+    }
+    sites: list[tuple[int, set[int]]] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        for keyword in node.keywords:
+            value = keyword.value
+            if keyword.arg == "cwd" and (
+                _names_image_path(value)
+                or any(
+                    isinstance(item, ast.Name) and item.id in image_names
+                    for item in ast.walk(value)
+                )
+            ):
+                lines = set(range(value.lineno, (value.end_lineno or value.lineno) + 1))
+                sites.append((value.lineno, lines))
+    return sites
+
+
+def _new_image_cwd_sites(root: Path, base: str) -> list[str]:
+    violations: list[str] = []
+    for name, added in sorted(_construction_guard.added_lines(root, base).items()):
+        if "/tests/" in name:
+            continue
+        source = (root / name).read_text(encoding="utf-8")
+        if "--output-dir" not in source:
+            continue
+        for line, lines in _image_cwd_sites(ast.parse(source)):
+            if lines & added:
+                violations.append(f"{name}:{line}")
+    return violations
+
+
+def test_job_adapters_run_upstream_in_writable_scratch() -> None:
+    """Upstream code writes cwd-relative scratch (moviepy's write_videofile
+    puts its mux audio temp file in the cwd), so a stage started in the
+    read-only image fails on hardware. Run it in the job's tempfile scratch.
+    Lines added since the merge base with main are checked."""
+    violations = _new_image_cwd_sites(ROOT, "origin/main")
+    assert not violations, "job adapters run a process in an image path: " + (
+        ", ".join(violations)
+    )
+
+
+EXISTING_IMAGE_CWD = (
+    '# --output-dir\nSOURCE = Path("/opt/demo")\nsubprocess.run(c, cwd=SOURCE)\n'
+)
+
+
+@pytest.mark.parametrize(
+    ("added", "flagged"),
+    [
+        ("", []),
+        ("subprocess.run(c, cwd=work)\n", []),
+        ('subprocess.run(c, cwd="/outputs/tmp/w")\n', []),
+        ('subprocess.run(c, cwd=Path("/tmp") / "w")\n', []),
+        ("subprocess.run(c, cwd=SOURCE)\n", [4]),
+        ("subprocess.run(\n    c,\n    cwd=SOURCE.parent,\n)\n", [6]),
+        ('subprocess.run(c, cwd="/opt/demo")\n', [4]),
+        ('subprocess.Popen(c, cwd=Path("/app"))\n', [4]),
+    ],
+)
+def test_image_cwd_guard_flags_only_new_image_working_directories(
+    tmp_path: Path, added: str, flagged: list[int]
+) -> None:
+    run = tmp_path / "adapters/video/demo/run.py"
+    run.parent.mkdir(parents=True)
+    run.write_text(EXISTING_IMAGE_CWD)
+    _git(tmp_path, "init", "-q", "-b", "main")
+    _git(tmp_path, "add", "-A")
+    _git(tmp_path, "commit", "-q", "-m", "base")
+    # The pre-existing (proven) site is never flagged; only what a change adds.
+    assert _new_image_cwd_sites(tmp_path, "HEAD") == []
+    run.write_text(EXISTING_IMAGE_CWD + added)
+    assert _new_image_cwd_sites(tmp_path, "HEAD") == [
+        f"adapters/video/demo/run.py:{line}" for line in flagged
     ]
 
 
