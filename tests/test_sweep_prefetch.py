@@ -6,8 +6,12 @@ from pathlib import Path
 
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
+from vonk_forge_contracts.sweep import SweepWaitReason
 
-from spark_sweep.prefetch import PrefetchConfig
+from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS, PrefetchConfig
+from spark_sweep.report import build_status
+
+TIB = 1024**4
 
 
 @pytest.fixture
@@ -76,24 +80,60 @@ def test_preparing_siblings_share_one_model_download_slot(tmp_path: Path) -> Non
     assert sum(args[:2] == ("recipe", "download") for _, args in fleet.calls) == 3
 
 
-def test_the_byte_budget_bounds_what_is_downloaded_but_not_yet_tested(
+def test_a_download_the_controller_blocks_for_space_is_a_visible_wait_and_work_goes_on(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    recipes, models = _many(4)  # 20 GB each
+    """The Controller alone owns NAS space: a download it cannot fit yet is a queued
+    ``download_blocked`` wait while eviction frees space. Untested cached bytes far
+    beyond any fixed budget neither hold back other downloads nor cached tests."""
+    blocked = FakeRecipe("blocked", ("big",), download_blocked_for=1800.0)
+    other = FakeRecipe("other", ("next",))
+    cached = FakeRecipe("cached", ("warm",), local="cached")
     sweep, fleet, clock = make_sweep(
         tmp_path,
-        recipes,
-        models,
+        [blocked, other, cached],
+        [
+            FakeModel("big", bytes=3 * TIB),
+            FakeModel("next", bytes=3 * TIB),
+            FakeModel("warm", bytes=3 * TIB, local="cached"),
+        ],
         gateway=gateway,
-        prefetch=PrefetchConfig(
-            max_model_downloads=4, nas_budget_bytes=30 * GB, pin_profile=13
-        ),
     )
-    peak = []
-    clock.hooks.append(lambda _t: peak.append(_active_ops(fleet)))
+    during: list[tuple[dict, set[str], set[str], list[dict]]] = []
+
+    def observe(_t: float) -> None:
+        op = next((o for o in fleet.ops.values() if o["recipe"] == blocked.key), None)
+        record = sweep.state.downloads.get(blocked.key)
+        if op is None or op["state"] != "backoff" or record is None:
+            return
+        during.append(
+            (
+                dict(record.get("watch") or {}),
+                {o["recipe"] for o in fleet.ops.values()},
+                {k for k, e in sweep.state.recipes.items() if e["status"] == "passed"},
+                build_status(sweep)["downloads"]["in_flight"],
+            )
+        )
+
+    clock.hooks.append(observe)
     sweep.run()
-    assert max(peak) == 1
+
+    assert during, "the Controller never held the download for space"
+    watch, requested, passed, in_flight = during[-1]
+    # Other work goes on behind the wait: the next download and the cached test.
+    assert other.key in requested
+    assert cached.key in passed
+    # A visible, bounded wait on the original request: never a failure or a re-request.
+    assert watch["wait"]["reason"] == SweepWaitReason.OPERATION_BACKOFF
+    assert watch["wait_deadline"] <= watch["wait_started_at"] + DOWNLOAD_STALL_SECONDS
+    shown = next(item for item in in_flight if item["recipe"] == blocked.key)
+    assert shown["waiting_on"] == SweepWaitReason.OPERATION_BACKOFF
+    downloads = [c for _, c in fleet.calls if c[:2] == ("recipe", "download")]
+    assert [c[2] for c in downloads].count(blocked.key) == 1
+    # Eviction freed the space: the download ran and the recipe was tested.
     assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
+    assert not sweep.state.recipes[blocked.key].get("failure_class")
+    assert not [c for p, c in fleet.calls if p == 13 and c[:2] == ("profile", "load")]
 
 
 def test_a_download_someone_else_started_is_not_requested_again(

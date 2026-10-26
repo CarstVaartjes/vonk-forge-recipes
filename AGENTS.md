@@ -245,11 +245,12 @@ scope until reconsideration, without spending recipe attempts
 `tests/test_sweep_big_alone.py`, `tests/test_sweep_no_idle.py`).
 
 Prefetch groups exact Model digests and ranks cached sets, then recipes unlocked
-per new byte; shared bytes count once. Defaults allow three model downloads,
-two image pulls and a 2 TiB downloaded/untested budget. Follow existing downloads;
-never cancel/recreate one because observations stall. A never-loaded pin profile
-(default 13) protects those sets; a pin failure is visible but cannot stop cached
-work. NAS free space is not exposed; its byte budget is operator supplied.
+per new byte; shared bytes count once. Defaults allow three model downloads and
+two image pulls. Follow existing downloads; never cancel/recreate one because
+observations stall. A never-loaded pin profile (default 13) protects
+downloaded/untested sets; a pin failure is visible but cannot stop cached work.
+The Controller alone owns NAS space: a download it blocks for space is a queued
+`download_blocked` wait while LRU eviction frees unpinned model files.
 Model-removal intents need complete catalog/owner observations, protect every
 saved owner profile and nonterminal consumer, and persist keys before submission.
 Uncertain receipts reconnect to the same request; terminal failures re-review.

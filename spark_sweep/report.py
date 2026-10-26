@@ -284,6 +284,8 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                     "done": r.get("bytes_done"),
                     "total": r.get("bytes_total"),
                     "bps": r.get("bps"),
+                    # A Controller wait (e.g. NAS space): bounded by its wait_deadline.
+                    "waiting_on": (r.get("watch") or {}).get("waiting_on"),
                 }
                 for k, r in data["downloads"].items()
                 if r.get("state") in ACTIVE

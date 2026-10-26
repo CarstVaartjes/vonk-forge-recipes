@@ -3,12 +3,15 @@
 ``recipe download`` fetches a recipe's model (Hugging Face) and its runtime
 image (GHCR) as children of one operation, so the two sources already run
 concurrently inside an operation; the prefetcher adds concurrency across
-operations. Two budgets bound it (model downloads in flight, image-only pulls
-in flight) plus a byte budget for everything downloaded but not yet tested.
+operations. Two budgets bound it: model downloads in flight and image-only
+pulls in flight.
 
-Nothing in vonkctl or the Controller reports the NAS's free space, so the byte
-budget is the operator's (``--nas-budget``); a ``free_space`` failure also
-pauses new model downloads for a while.
+The Controller owns NAS space: it admits a download only into the free space
+the running transfers leave, and a shortfall is a queued ``download_blocked``
+wait while retention evicts unused model files, least recently used first.
+The sweep observes that wait like any other (bounded, visible, no attempt
+spent); a terminal ``free_space`` failure is a wait too and pauses new model
+downloads for a while.
 
 The Controller never evicts what a saved profile names, loaded or not. The
 prefetcher therefore keeps one never-loaded *pin profile* that names every
@@ -50,7 +53,6 @@ from .verdict import (
 )
 from .vonkctl import Reply, Vonkctl, VonkctlError, request_key
 
-TIB = 1024**4
 # The stall window of a download: no bytes, items, phase or last-progress change for this long.
 DOWNLOAD_STALL_SECONDS = 3600.0
 FailureHandler = Callable[[str, Failure, str | None, bool], None]
@@ -61,7 +63,6 @@ DoneHandler = Callable[[str], None]
 class PrefetchConfig:
     max_model_downloads: int = 3
     max_image_pulls: int = 2
-    nas_budget_bytes: int = 2 * TIB
     pin_profile: int | None = None
     pins_per_tick: int = 8
     retry_cooldown: float = 120.0
@@ -630,14 +631,6 @@ class Prefetcher:
         model_ops, image_ops = self._in_flight(recipes, models)
         by_key = {r.key: r for r in pending}
 
-        tracked = {
-            digest
-            for plan in plans
-            for digest in plan.digests
-            if digest in present or any(self._active(k) for k in plan.recipes)
-        }
-        pinned_bytes = sum(sizes.get(d, 0) for d in tracked)
-
         if cached is None:
             cached = {d for d, model in models.items() if model.local == "cached"}
         needs_model = [plan for plan in plans if plan.digests - cached]
@@ -662,14 +655,9 @@ class Prefetcher:
                     lead is not None
                     and model_ops < self.config.max_model_downloads
                     and now >= self.pressure_until
-                    and (
-                        pinned_bytes == 0
-                        or pinned_bytes + plan.new_bytes <= self.config.nas_budget_bytes
-                    )
                 ):
                     self._request(lead, "model")
                     model_ops += 1
-                    pinned_bytes += plan.new_bytes
                 continue
             for recipe in leads:  # model cached: only the runtime image is missing
                 if (
@@ -684,13 +672,12 @@ class Prefetcher:
                 ):
                     self._request(recipe, "image")
                     image_ops += 1
-        self._reconcile_pins(plans, by_key, models, sizes, present)
+        self._reconcile_pins(plans, by_key, models, present)
         return {
             "model_ops": model_ops,
             "image_ops": image_ops,
             "rate": self.rate.rate,
             "live_rate": live_rate,
-            "pinned_bytes": pinned_bytes,
             "pressure": now < self.pressure_until,
         }
 
@@ -932,26 +919,20 @@ class Prefetcher:
         plans: Sequence[Any],
         by_key: Mapping[str, Recipe],
         models: Mapping[str, Model],
-        sizes: Mapping[str, int],
         present: set[str],
     ) -> list[str]:
-        """One pin per model set that is on (or heading to) the NAS and not yet tested, within the byte budget."""
+        """One pin per model set that is on (or heading to) the NAS and not yet tested."""
         wanted = list(
             self.state.slots
         )  # a recipe under test already protects its models
         covered = {
             frozenset(slot.get("digests", ())) for slot in self.state.slots.values()
         }
-        spent = 0
         for plan in plans:
             if plan.digests - present and not any(
                 self._active(k) for k in plan.recipes
             ):
                 continue  # not downloaded, not requested: nothing to protect
-            cost = sum(sizes.get(d, 0) for d in plan.digests)
-            if spent + cost > self.config.nas_budget_bytes and spent:
-                continue
-            spent += cost
             # The model is what needs protecting: one recipe per model set, plus any recipe
             # that needs a different combination of models.
             members = [k for k in plan.recipes if k in by_key]
@@ -968,7 +949,6 @@ class Prefetcher:
         plans: Sequence[Any],
         by_key: Mapping[str, Recipe],
         models: Mapping[str, Model],
-        sizes: Mapping[str, int],
         present: set[str],
     ) -> None:
         number = self.config.pin_profile
@@ -985,7 +965,7 @@ class Prefetcher:
         # Everything that is not one of our pins counts against the limit and is never removed.
         foreign = [n for n in live if not n.startswith(PIN_ALIAS_PREFIX)]
         cap = max(PIN_PROFILE_MAX_ASSIGNMENTS - len(foreign), 0)
-        wanted = self.desired_pins(plans, by_key, models, sizes, present)[:cap]
+        wanted = self.desired_pins(plans, by_key, models, present)[:cap]
         wanted_aliases = {pin_alias(k): k for k in wanted}
         held = [n for n in live if n.startswith(PIN_ALIAS_PREFIX)]
         budget = self.config.pins_per_tick
