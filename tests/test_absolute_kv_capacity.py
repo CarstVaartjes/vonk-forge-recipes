@@ -23,6 +23,7 @@ from qualification.memory_need import (
 ROOT = Path(__file__).resolve().parents[1]
 VISION = "deepseek-v4-flash-vision-exp-mia-dual"
 LAGUNA = "laguna-m-1-nvfp4-r0b0tlab-vllm-dual"
+DSPARK_025 = "deepseek-v4-flash-dspark-r0b0tlab-vllm-025-dual"
 
 
 def recipe_for(slug: str = VISION) -> RecipeDefinition:
@@ -171,6 +172,27 @@ def test_touched_multi_spark_vllm_pool_holds_the_declared_workload() -> None:
     with pytest.raises(ValueError, match="set absolute kv-cache-memory-bytes"):
         require_memory_need(recipe, models, inputs, document_digest="", touched=True)
     # Files the change does not touch keep their utilization-sized pools.
+    require_memory_need(recipe, models, inputs, document_digest="")
+
+
+def test_touched_multi_spark_vllm_pool_fits_beside_the_weights() -> None:
+    recipe = recipe_for(DSPARK_025)
+    models, inputs = catalog_models(), load_inputs()
+    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    # main's need-sized pool for 16 x 200,000 tokens, whose start tripped the
+    # host memory guard on both Sparks on 2026-10-26.
+    assert recipe.settings.concurrency is not None
+    recipe.settings.concurrency.value = 16
+    for argument in recipe.runtime.arguments:
+        if argument.name == "kv-cache-memory-bytes":
+            argument.value = 27_313_307_648
+        elif argument.name == "gpu-memory-utilization":
+            argument.value = "0.847649"
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = 118_756_575_316
+    with pytest.raises(ValueError, match="exceed the planning limit"):
+        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    # Files the change does not touch are judged by hardware, not this bound.
     require_memory_need(recipe, models, inputs, document_digest="")
 
 

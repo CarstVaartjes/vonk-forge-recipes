@@ -9,7 +9,7 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Bounded long-context and 16-sequence concurrency canaries at the 200K profile"
+        "Bounded long-context canaries at the 200K profile; max-num-seqs 9 is a scheduler bound, and vLLM's own accounting fits about 2 full 200K requests in this KV pool"
       ],
       "recovery": [
         "Controller-only rank-loss and warm-cache recovery"

@@ -669,11 +669,14 @@ def require_need_sized_kv_pool(
     inputs: MemoryInputs,
     key: str,
 ) -> None:
-    """A multi-Spark vLLM pool holds declared context x max-num-seqs per rank.
+    """A multi-Spark vLLM pool holds declared context x max-num-seqs per rank
+    and still fits beside the sharded weights under the planning limit.
 
     A utilization fraction sizes KV to whatever memory remains: on 2026-10-26
     Laguna M.1 at TP=2 took 475,392 tokens for a 4 x 8,192-token workload and
-    left its entrypoint Spark at the 16 GiB host memory guard floor.
+    left its entrypoint Spark at the 16 GiB host memory guard floor. The same
+    day a need-sized 27,313,307,648-byte DeepSeek V4 Flash DSpark pool beside
+    83,443,267,668 bytes of weights per rank tripped that guard on both Sparks.
     """
     need = absolute_kv_need(
         recipe,
@@ -689,6 +692,14 @@ def require_need_sized_kv_pool(
             f"{key}: set absolute kv-cache-memory-bytes of at least {need} "
             "(declared context x max-num-seqs per rank); a utilization fraction "
             "does not bound KV by need"
+        )
+    floor = per_rank_need(recipe, models).peak_bytes
+    if floor > LIMIT_BYTES:
+        raise ValueError(
+            f"{key}: sharded weights, absolute KV pool and overhead ({floor} "
+            f"bytes/rank) exceed the planning limit {LIMIT_BYTES} (Spark total "
+            "minus idle host use and the 16 GiB host memory guard); lower "
+            "declared context or concurrency and the pool with it"
         )
 
 
