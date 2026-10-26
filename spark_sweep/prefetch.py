@@ -17,9 +17,10 @@ pauses new model downloads for a while.
 The Controller never evicts what a saved profile names, loaded or not. The
 prefetcher therefore keeps one never-loaded *pin profile* that names every
 recipe that has been downloaded (or is downloading) and not yet tested, and
-removes each recipe from it once tested. While those sets fill the profile, a
-new model download waits for pin capacity: an unpinned untested set would be
-evicted and downloaded again.
+removes each recipe from it once tested. While sets the online lanes can test
+fill the profile, a new model download waits for pin capacity: an unpinned
+untested set would be evicted and downloaded again. Sets no online topology can
+test hold nothing, and are downloaded when their lanes return.
 """
 
 from __future__ import annotations
