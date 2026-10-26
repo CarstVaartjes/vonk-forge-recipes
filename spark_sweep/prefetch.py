@@ -124,6 +124,8 @@ class Prefetcher:
         self.pin_room: int | None = None
         # (sets to protect, free pins) while new model downloads wait for pin capacity.
         self.pin_hold: tuple[int, int] | None = None
+        # Set while the fleet lists Sparks but none is online: new model downloads wait.
+        self.lanes_wait: SweepWaitReason | None = None
         self.last_plans: list[GroupPlan] = []
 
     # -- operations ---------------------------------------------------------
@@ -742,6 +744,13 @@ class Prefetcher:
                 f"new model downloads wait for pin capacity: {held[0]} sets to protect, {held[1]} pins"
             )
         self.pin_hold = held
+        # No lane can test a set now: no model download starts, visibly, until one returns.
+        lanes_wait = (
+            SweepWaitReason.NO_ONLINE_LANES if lanes == 0 and needs_model else None
+        )
+        if lanes_wait is not None and self.lanes_wait is None:
+            self.state.event(f"new model downloads wait: {lanes_wait.value}")
+        self.lanes_wait = lanes_wait
         self._reconcile_pins(plans, by_key, models, present)
         return {
             "model_ops": model_ops,

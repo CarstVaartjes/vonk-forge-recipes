@@ -302,6 +302,9 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
                 "sets": hold[0],
                 "pins": hold[1],
             },
+            "lanes_wait": None
+            if (lanes_wait := sweep.prefetcher.lanes_wait) is None
+            else {"reason": lanes_wait},
         },
         "eta": {
             "downloads_s": eta_download,
@@ -457,6 +460,11 @@ def render_status(status: Mapping[str, Any]) -> str:
         + (
             f" - new model downloads wait for pin capacity ({hold['sets']} sets to protect, {hold['pins']} pins)"
             if (hold := d.get("pin_capacity"))
+            else ""
+        )
+        + (
+            f" - new model downloads wait: {lanes_wait['reason']}"
+            if (lanes_wait := d.get("lanes_wait"))
             else ""
         )
         + (f" - pin profile problem: {d['pin_error']}" if d["pin_error"] else ""),

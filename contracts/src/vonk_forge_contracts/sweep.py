@@ -193,6 +193,7 @@ class SweepWaitReason(StrEnum):
     OPERATION_BACKOFF = "operation backoff"
     NAS_SPACE = "nas space"
     PIN_CAPACITY = "pin capacity"
+    NO_ONLINE_LANES = "no online lanes"
     OBSERVATION = "observation unavailable"
     ROUTE_PUBLICATION = "route publication"
     CONTROLLER_STALLED = "controller stalled"

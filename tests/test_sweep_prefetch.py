@@ -10,7 +10,7 @@ from vonk_forge_contracts.sweep import SweepWaitReason
 
 from spark_sweep import prefetch
 from spark_sweep.prefetch import DOWNLOAD_STALL_SECONDS, PrefetchConfig
-from spark_sweep.report import build_status
+from spark_sweep.report import build_status, write_status
 
 TIB = 1024**4
 
@@ -477,3 +477,56 @@ def test_one_pin_protects_a_model_shared_by_several_recipes(
     )
     sweep.run()
     assert max(peak) == 2  # one per model set, not one per recipe
+
+
+def test_a_total_outage_is_a_visible_download_wait(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    """The fleet lists Sparks but none is online: no set can be tested, so no new model
+    download starts. That is a typed wait on the status page, written once as an
+    event, and downloads resume when a Spark returns."""
+    recipes, models = _many(3)
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        models,
+        gateway=gateway,
+        prefetch=PrefetchConfig(max_model_downloads=1, pin_profile=13),
+    )
+    outage: list[float] = []
+    requested: list[int] = []
+    waits: list[object] = []
+
+    def downloads() -> int:
+        return sum(c[:2] == ("recipe", "download") for _, c in fleet.calls)
+
+    def observe(now: float) -> None:
+        if not outage:
+            if downloads():  # the sweep runs: every Spark goes offline
+                outage.append(now)
+                fleet.offline_nodes = {"spk_a", "spk_b"}
+            return
+        if not fleet.offline_nodes:
+            return
+        if now - outage[0] > 3000:
+            write_status(sweep)
+            waits.append((tmp_path / "status.md").read_text())
+            fleet.offline_nodes.clear()  # a Spark answers again
+            return
+        requested.append(downloads())
+        waits.append(build_status(sweep)["downloads"]["lanes_wait"])
+
+    clock.hooks.append(observe)
+    sweep.run()
+
+    assert set(requested) == {1}  # the one in flight; no new download without a lane
+    assert {"reason": SweepWaitReason.NO_ONLINE_LANES} in waits
+    assert SweepWaitReason.NO_ONLINE_LANES.value in str(waits[-1])  # status.md
+    started = [
+        e
+        for e in sweep.state.data["events"]
+        if SweepWaitReason.NO_ONLINE_LANES.value in e["message"]
+    ]
+    assert len(started) == 1
+    assert sweep.prefetcher.lanes_wait is None
+    assert {e["status"] for e in sweep.state.recipes.values()} == {"passed"}
