@@ -738,5 +738,29 @@ class WanDancerSmokeMusicTests(unittest.TestCase):
             self.assertEqual(metadata["frame_count"], output_frames)
 
 
+class WanDancerStageWorkingDirectoryTests(unittest.TestCase):
+    """moviepy's write_videofile puts its mux audio temp file in the cwd.
+
+    The image's source tree is root-owned while the job runs as uid 10001, so a
+    stage started there writes no audio file and the mux fails on hardware.
+    """
+
+    def test_stages_write_cwd_relative_files_into_job_scratch(self) -> None:
+        runner = load_runner()
+        with tempfile.TemporaryDirectory() as value:
+            source = Path(value) / "source"
+            work = Path(value) / "work"
+            source.mkdir()
+            work.mkdir()
+            with mock.patch.object(runner, "SOURCE_ROOT", source):
+                runner._run(
+                    [sys.executable, "-c", "open('probe_snd.mp4', 'wb').close()"],
+                    work,
+                    30,
+                )
+            self.assertTrue((work / "probe_snd.mp4").is_file())
+            self.assertFalse((source / "probe_snd.mp4").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

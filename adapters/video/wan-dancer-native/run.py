@@ -337,9 +337,11 @@ def _run(command: list[str], work: Path, timeout: int) -> None:
         "HF_DATASETS_OFFLINE": "1",
         "PYTHONPATH": str(SOURCE_ROOT),
     }
+    # Upstream writes cwd-relative scratch (moviepy's mux audio temp file), so
+    # it runs in the job's writable scratch, never the root-owned source tree.
     subprocess.run(
         command,
-        cwd=SOURCE_ROOT,
+        cwd=work,
         env=environment,
         check=True,
         timeout=timeout,
