@@ -106,6 +106,18 @@ def main() -> None:
         "import xfuser\nfrom xfuser.core.distributed import get_sp_group",
         "xfuser = None\n\ndef get_sp_group():\n    raise RuntimeError('sequence parallelism is disabled for the single-Spark runtime')",
     )
+    # model_fn_wan_video imports get_sequence_parallel_world_size only when
+    # use_unified_sequence_parallel is set, so the name is local to the function
+    # and its one unguarded read (the music-injection length) raises
+    # UnboundLocalError on every run without sequence parallelism. Without it
+    # the world size is 1.
+    replace_once(
+        pipeline,
+        "            N = int(float(frame_num * 8) / get_sequence_parallel_world_size()) * get_sequence_parallel_world_size()\n",
+        "            N = frame_num * 8\n"
+        "            if use_unified_sequence_parallel:\n"
+        "                N = int(float(N) / get_sequence_parallel_world_size()) * get_sequence_parallel_world_size()\n",
+    )
 
     dit = root / "diffsynth/models/wan_video_dit.py"
     replace_once(
