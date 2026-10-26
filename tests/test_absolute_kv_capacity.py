@@ -227,6 +227,16 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
     recipe.runtime.arguments.remove(cap)
     with pytest.raises(ValueError, match="set absolute max-total-tokens"):
         require_memory_need(recipe, models, inputs, document_digest="")
+    # The state cap holds one request's five slots, not five per running request.
+    recipe = recipe_for(QWEN_NEXT)
+    slots = next(
+        arg for arg in recipe.runtime.arguments if arg.name == "max-mamba-cache-size"
+    )
+    slots.value = 5
+    require_memory_need(recipe, models, inputs, document_digest="")
+    slots.value = 4
+    with pytest.raises(ValueError, match="state slots of one request"):
+        require_memory_need(recipe, models, inputs, document_digest="")
     # Fault injection: 0.57 holds the sharded weights and the capped token pool
     # but not also the source-backed state slots; 0.572 holds all three.
     recipe = recipe_for(QWEN_NEXT)

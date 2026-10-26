@@ -37,8 +37,9 @@ SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 # 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
 ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
-# sglang 94602c9c kv_cache_configurator._calculate_mamba_ratio: at most 3 base
-# plus 2 extra_buffer overlap state slots per running request.
+# sglang 94602c9c (and the Qwen3.8 Flash Next r0b0tlab image's qwen4_exp copy)
+# kv_cache_configurator._calculate_mamba_ratio: at most 3 base plus 2
+# extra_buffer overlap state slots per running request.
 SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
 # Separate speculative-model calibration; see vllm_memory_fit.py for the incident.
 DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
@@ -394,9 +395,11 @@ def require_sglang_rank_budget(
     resident expansion and the capped token and state pools.
 
     The token cap must hold one full-context request
-    (require_absolute_kv_capacity), not context x max-running-requests:
-    SGLang schedules requests within it. The proven Qwen3.8 Flash Next W4A16
-    r0b0tlab dual caps one 262,144-token context at concurrency 4.
+    (require_absolute_kv_capacity) and the state cap one request's slots, not
+    context or slots x max-running-requests: SGLang schedules requests within
+    them (kv_cache_configurator.resolve_max_num_reqs caps running requests by
+    the state slots and fails only below one). The proven Qwen3.8 Flash Next
+    W4A16 r0b0tlab dual caps one 262,144-token context at concurrency 4.
     """
     label = recipe.identity.slug
     if argument_value(recipe, "max-total-tokens") is None:
@@ -404,7 +407,6 @@ def require_sglang_rank_budget(
             f"{key}: set absolute max-total-tokens; a static fraction does not bound KV by need"
         )
     tokens = positive_argument(recipe, "max-total-tokens")
-    concurrency = positive_argument(recipe, "max-running-requests")
     fraction = argument_value(recipe, "mem-fraction-static")
     if fraction is None:
         raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
@@ -437,10 +439,10 @@ def require_sglang_rank_budget(
             if argument_value(recipe, "max-mamba-cache-size") is None:
                 raise ValueError(f"{key}: set absolute max-mamba-cache-size")
             slots = positive_argument(recipe, "max-mamba-cache-size")
-            if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST * concurrency:
+            if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST:
                 raise ValueError(
-                    f"{key}: max-mamba-cache-size {slots} cannot hold "
-                    f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots per request at concurrency {concurrency}"
+                    f"{key}: max-mamba-cache-size {slots} cannot hold the "
+                    f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots of one request"
                 )
             need += geometry.sglang_state_bytes_per_slot * (slots + 1)
     static_bytes = Decimal(str(fraction)) * IDLE_AVAILABLE_BYTES

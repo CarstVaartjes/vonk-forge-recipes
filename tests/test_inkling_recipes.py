@@ -306,7 +306,7 @@ def test_rank_budget_guard_rejects_the_failed_settings() -> None:
     cases = {
         "static budget": {"mem-fraction-static": FAILED_FRACTION},
         "max-total-tokens": {"max-total-tokens": None},
-        "max-mamba-cache-size": {"max-mamba-cache-size": 19},
+        "max-mamba-cache-size": {"max-mamba-cache-size": 4},
     }
     for message, changes in cases.items():
         error = _rank_budget_error(**changes)
