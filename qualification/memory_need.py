@@ -1,7 +1,8 @@
 """Offline memory demand, separate from historical engine reservation fractions.
 
-Unchanged catalog documents retain their behavior. A new document must supply
-source-backed cache geometry and an absolute pool sized to its declared workload.
+Unchanged catalog documents retain their behavior. A new document's fixed pool
+must hold one full-context request by source-backed cache geometry, and its
+declaration must cover the loading floor and be admissible.
 The committed content snapshot is not a qualification status list.
 """
 
@@ -43,6 +44,8 @@ OVERHEAD_BYTES = 8_000_000_000
 SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
 # Separate speculative-model calibration; see vllm_memory_fit.py for the incident.
 DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
+# vLLM's gpu-memory-utilization when a launch omits it.
+VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
 
 ROOT = Path(__file__).resolve().parents[1]
 # GB10 total and lower idle MemAvailable from spark-3542, 2026-10-15/16;
@@ -249,7 +252,8 @@ def calculate_need(
     models: Mapping[str, ModelDefinition],
     geometries: Mapping[str, CacheGeometry],
 ) -> MemoryNeed:
-    """Full declared context times engine concurrency, including selected drafts.
+    """Informative full workload: declared context times engine concurrency,
+    including selected drafts. Warnings only; require_memory_need gates.
 
     Currently supports single-node ordinary attention and supplied compressed
     geometry. A new topology/automatic scheduler needs explicit inputs rather
@@ -364,21 +368,6 @@ def pinned_geometry(
             f"{label}: cache geometry does not match the pinned model configuration"
         )
     return geometry
-
-
-def sglang_token_cap(recipe: RecipeDefinition, key: str) -> int:
-    """The absolute token pool must equal full context times concurrency."""
-    tokens = positive_argument(recipe, "context-length") * positive_argument(
-        recipe, "max-running-requests"
-    )
-    if (
-        argument_value(recipe, "max-total-tokens") is None
-        or positive_argument(recipe, "max-total-tokens") != tokens
-    ):
-        raise ValueError(
-            f"{key}: set absolute max-total-tokens={tokens}; a static fraction does not bound KV by need"
-        )
-    return tokens
 
 
 def require_sglang_rank_budget(
@@ -622,84 +611,60 @@ def require_memory_need(
     *,
     document_digest: str,
     touched: bool = False,
-) -> MemoryNeed | None:
+) -> None:
     """Check new/changed documents without retuning historical ones.
 
-    ``touched`` marks a recipe file the change under review edits; only those
-    must replace a utilization-sized multi-Spark KV pool.
+    Calibrated on the proven set: a fixed pool holds one full-context request,
+    not context x concurrency, and the declared peak covers the loading floor
+    and is admissible. ``touched`` marks a recipe file the change under review
+    edits; only those must bound a utilization-sized KV pool.
     """
-    if recipe.topology.node_count != 1:
-        require_absolute_kv_capacity(recipe, models, inputs)
+    require_absolute_kv_capacity(recipe, models, inputs)
     # Recorded content is judged by hardware, not by this offline check.
     if unchanged_recipe(recipe, document_digest, inputs):
-        return None
+        return
     require_admissible_declaration(recipe)
     if recipe.runtime.engine not in {"vllm", "sglang"}:
-        return None
+        return
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    if recipe.topology.node_count != 1:
-        for variant in memory_variants(recipe):
-            need = per_rank_need(variant, models)
-            problems = declaration_problems(variant, need)
-            if problems:
-                raise ValueError(f"{key}: " + "; ".join(problems))
-            if variant.runtime.engine == "sglang":
-                require_sglang_rank_budget(variant, models, inputs.geometries, key)
-            elif touched:
-                require_bounded_kv_pool(variant, key)
-            require_vllm_startup_budget(variant)
-        return None
-    result = None
+    single = recipe.topology.node_count == 1
     for variant in memory_variants(recipe):
-        need = calculate_need(variant, models, inputs.geometries)
-        if (
-            need.total_bytes > need.limit_bytes
-            and "does-not-fit" not in recipe.metadata.tags
-        ):
-            raise ValueError(
-                f"{key}: memory need {need.total_bytes} bytes > limit {need.limit_bytes} bytes "
-                f"(weights={need.weights_bytes}, draft/auxiliary={need.auxiliary_weights_bytes}, "
-                f"KV={need.kv_bytes}, state={need.state_bytes}, "
-                f"resident={need.resident_expansion_bytes}, overhead={need.overhead_bytes}); "
-                "reduce declared context/concurrency, select a smaller quantization, "
-                "or author a multi-Spark recipe id"
-            )
-        if variant.runtime.engine == "vllm":
-            pool = argument_value(variant, "kv-cache-memory-bytes")
-            if pool is None or cache_bytes(pool) != need.kv_bytes + need.state_bytes:
-                raise ValueError(
-                    f"{key}: set absolute kv-cache-memory-bytes={need.kv_bytes + need.state_bytes}; a utilization fraction does not bound KV by need"
-                )
-        else:
-            fraction = argument_value(variant, "mem-fraction-static")
-            if fraction is not None:
-                static_bytes = Decimal(str(fraction)) * TOTAL_BYTES
-                pool_need = need.total_bytes - need.overhead_bytes
-                if not static_bytes.is_finite() or (
-                    static_bytes < pool_need and need.total_bytes <= need.limit_bytes
-                ):
-                    raise ValueError(
-                        f"{key}: static memory budget cannot hold weights and absolute cache ({pool_need} bytes); increase mem-fraction-static while retaining the absolute token cap"
-                    )
-            sglang_token_cap(variant, key)
-        for role in variant.topology.roles:
-            if role.resources.memory.peak_bytes < need.total_bytes:
-                raise ValueError(
-                    f"{key}/{role.name}: peak_bytes must cover need {need.total_bytes}"
-                )
-        require_vllm_startup_budget(variant)
-        result = need
-    return result
+        need = per_rank_need(variant, models)
+        # Proven single-Spark documents run below the multi-Spark reserve and
+        # SGLang static-peak declarations; only the loading floor holds there.
+        problems = (
+            [
+                f"{role.name}: peak understates need {need.peak_bytes}"
+                for role in variant.topology.roles
+                if role.resources.memory.peak_bytes < need.peak_bytes
+            ]
+            if single
+            else declaration_problems(variant, need)
+        )
+        if problems:
+            raise ValueError(f"{key}: " + "; ".join(problems))
+        if not single and variant.runtime.engine == "sglang":
+            require_sglang_rank_budget(variant, models, inputs.geometries, key)
+        elif touched:
+            require_bounded_kv_pool(variant, key)
+        if not single:
+            require_vllm_startup_budget(variant)
 
 
 def require_bounded_kv_pool(recipe: RecipeDefinition, key: str) -> None:
-    """A touched multi-Spark vLLM recipe bounds KV, calibrated on the proven set.
+    """A touched recipe bounds KV, calibrated on the proven set.
 
     A utilization-sized pool grows into what remains: on 2026-10-26 Laguna M.1
     at TP=2 and 0.82 took 475,392 tokens for a 4 x 8,192-token workload and
     left its entrypoint Spark at the 16 GiB host memory guard floor. Its
     budget plus overhead exceeded the Spark total minus that guard; every
     hardware-proven utilization-sized dual runs at 0.80 or below, inside it.
+    Proven single-Spark documents run up to 0.86 (SGLang 0.85), whose share
+    plus overhead is the largest admitted peak, 120,370,379,081 bytes: on one
+    Spark the budget, plus the measured 17 GB floor of a draft vLLM loads
+    beside it, must be admissible on an idle Spark. Proven 0.7 singles with
+    such a draft (Gemma 4 31B NVFP4 Mia, Nemotron 3.5 Bolt NVIDIA) run above
+    the 16 GiB guard there.
 
     An absolute pool must hold one full-context request
     (require_absolute_kv_capacity), not context x max-num-seqs: vLLM schedules
@@ -708,22 +673,40 @@ def require_bounded_kv_pool(recipe: RecipeDefinition, key: str) -> None:
     (14.69 GB for 4 x 500,000) and the EXL3 Mia dual (2.5 GiB, 774,400 tokens
     measured upstream, for 2 x 600,000). Sizing the DSpark vLLM 0.25 dual pool
     for 16 x 200,000 tokens (27.31 GB) exhausted host memory on both Sparks.
+    SGLang derives an omitted mem-fraction-static at launch; the proven
+    Nemotron 3 Nano NVFP4 NVIDIA SGLang single runs on it, so none is required.
     """
-    if (
-        argument_value(recipe, "kv-cache-memory-bytes") is not None
-        or argument_value(recipe, "kv-cache-memory") is not None
-    ):
+    vllm = recipe.runtime.engine == "vllm"
+    pools = (
+        ("kv-cache-memory-bytes", "kv-cache-memory") if vllm else ("max-total-tokens",)
+    )
+    if any(argument_value(recipe, name) is not None for name in pools):
         return
-    fraction = argument_value(recipe, "gpu-memory-utilization")
-    if (
-        fraction is None
-        or Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
-        > TOTAL_BYTES - GUARD_BYTES
-    ):
+    name = "gpu-memory-utilization" if vllm else "mem-fraction-static"
+    fraction = argument_value(recipe, name)
+    if fraction is None and not vllm:
+        return
+    budget = (
+        Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
+    ) * TOTAL_BYTES + OVERHEAD_BYTES
+    if recipe.topology.node_count == 1:
+        # vLLM holds a separately loaded draft beside its budget; SGLang
+        # charges draft weights inside its fraction.
+        if vllm and loads_draft_model(recipe):
+            budget += DRAFT_MODEL_OVERHEAD_BYTES
+        ceiling = "is admissible on an idle Spark"
+        bounded = evaluate_memory_admission(
+            int(budget.to_integral_value(ROUND_CEILING)),
+            SPARK_MEMORY_BYTES,
+            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
+        ).admissible
+    else:
+        ceiling = f"leaves the {GUARD_BYTES}-byte host memory guard"
+        bounded = budget <= TOTAL_BYTES - GUARD_BYTES
+    if not bounded:
         raise ValueError(
-            f"{key}: set absolute kv-cache-memory-bytes, or a gpu-memory-utilization "
-            f"whose share of {TOTAL_BYTES} bytes plus {OVERHEAD_BYTES} overhead "
-            f"leaves the {GUARD_BYTES}-byte host memory guard"
+            f"{key}: set absolute {pools[0]}, or a {name} whose share of "
+            f"{TOTAL_BYTES} bytes plus {OVERHEAD_BYTES} overhead {ceiling}"
         )
 
 

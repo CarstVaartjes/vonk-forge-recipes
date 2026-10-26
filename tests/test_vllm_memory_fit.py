@@ -12,6 +12,7 @@ from qualification.memory_need import (
     OVERHEAD_BYTES,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
+    calculate_need,
     load_inputs,
     require_memory_need,
 )
@@ -49,10 +50,8 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     )
     assert recipe.settings.kind == "generation"
     assert recipe.settings.context_tokens.value == 1_048_576
-    need = require_memory_need(
-        recipe, catalog_models(), load_inputs(), document_digest=""
-    )
-    assert need is not None
+    require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+    need = calculate_need(recipe, catalog_models(), load_inputs().geometries)
     assert need.kv_bytes == 16 * 4 * (256 + 256) * 1_048_576
     assert need.state_bytes == 160 * 1024**2
     memory = recipe.topology.roles[0].resources.memory

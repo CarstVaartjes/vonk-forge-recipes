@@ -186,11 +186,12 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 
+@pytest.mark.parametrize("single", [True, False], ids=["single", "multi"])
 @pytest.mark.parametrize("engine", ["vllm", "sglang"])
-def test_touching_any_proven_multi_spark_document_keeps_it_valid(engine: str) -> None:
+def test_touching_any_proven_document_keeps_it_valid(engine: str, single: bool) -> None:
     # Calibration: every hardware-proven document passes the touched rules.
     models, inputs = catalog_models(), load_inputs()
-    checked = 0
+    checked, rejected = 0, []
     for path in sorted((ROOT / "qualification/evidence").rglob("*.json")):
         key = json.loads(path.read_text())["recipe_key"]
         document = json.loads(
@@ -199,13 +200,21 @@ def test_touching_any_proven_multi_spark_document_keeps_it_valid(engine: str) ->
         recipe = RecipeDefinition.model_validate(document)
         if (
             recipe.runtime.engine != engine
-            or recipe.topology.node_count == 1
+            or (recipe.topology.node_count == 1) != single
             or not hardware_proven(recipe, document_sha256(document))
         ):
             continue
-        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
         checked += 1
+        try:
+            require_memory_need(
+                recipe, models, inputs, document_digest="", touched=True
+            )
+        except (TypeError, ValueError) as error:
+            rejected.append(str(error))
     assert checked > 0
+    assert not rejected, f"{len(rejected)} of {checked} rejected:\n" + "\n".join(
+        rejected
+    )
 
 
 def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> None:

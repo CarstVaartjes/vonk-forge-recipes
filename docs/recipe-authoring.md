@@ -307,16 +307,23 @@ never exemptions or candidates for automatic retuning.
 **A.** Preserve the runtime settings of every recipe that passed on real hardware.
 Change them only after a hardware failure, or deliberately with hardware retesting.
 
-**B.** New/failing recipes reserve selected weights (including drafts), KV for
-declared context × declared engine concurrency, and runtime overhead. Use absolute
-pools: vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens` with source-backed
-per-token sizing. Never substitute a fraction of RAM or benchmark concurrency.
-`qualification/memory_need.py` supplies the shared calculator and catalog guard.
-For vLLM, also set an explicit `gpu-memory-utilization` startup budget whose
-fraction of physical memory plus runtime overhead fits the smallest role peak.
-Absolute KV bytes override cache sizing, but vLLM still checks the utilization
-budget against free memory before loading weights. Omitting it can restore an
-implicit 0.92 startup reservation even for a much smaller absolute pool.
+**B.** New/failing recipes declare a peak that covers selected weights
+(including drafts), any absolute KV pool and runtime overhead, and that is
+admissible on an idle Spark. The guard is calibrated on the proven set, which
+`tests/test_absolute_kv_capacity.py` replays through the touched path for every
+proven vLLM/SGLang document. A KV pool holds at least one full-context request,
+not declared context × engine concurrency: engines schedule requests within it.
+A single-Spark recipe file a change touches must bound KV: an absolute pool
+(vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens`), or a declared
+`gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
+plus the 8 GB overhead (plus the 17 GB floor of a separately loaded vLLM draft)
+is admissible on an idle Spark. Proven singles run up to 0.86, exactly the
+largest admitted peak; vLLM's implicit 0.90 is not admissible. SGLang derives an
+omitted fraction at launch, so none is required. `qualification/memory_need.py`
+supplies the guard and an informative full-workload calculator. For a
+multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
+startup budget whose fraction of physical memory plus runtime overhead fits the
+smallest role peak: vLLM checks it against free memory before loading weights.
 
 An absolute pool must also hold one request at the declared context (or the
 pinned model default when the engine context is omitted/automatic), including block rounding, packed scales
@@ -326,13 +333,13 @@ combination; the multi-Spark startup invariant precedes the historical-content
 waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractional
 pools are outside this absolute-pool check. Cache geometry binds configuration
 hashes and records padded/hybrid allocation bounds with their sources.
-For an unproven failing pool, prefer the creator context and reserve enough KV
-for that context times declared concurrency, checking the worst option. If that
-cannot be admitted with selected weights and runtime overhead, cap the explicit
-engine context at what fits and disclose the cap in the recipe description.
+For an unproven failing pool, prefer the creator context and reserve at least
+one request at that context, checking the worst option. If that cannot be
+admitted with selected weights and runtime overhead, cap the explicit engine
+context at what fits and disclose the cap in the recipe description.
 Preserve proven recipe bytes; an estimate is never physical acceptance.
 
-The workload estimator (not declaration admission) uses
+The informative workload estimator (not declaration admission) uses
 **130,663,231,488 total bytes − 17,179,869,184 bytes
 (16 GiB host guard floor) − 5,012,574,208 measured idle bytes = 108,470,788,096
 bytes**. Sources: vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
@@ -348,10 +355,9 @@ utilization 0.7, with about 116.4 GB attributable to the run and still climbing,
 17 GB above utilization × physical memory + 8 GB. Keep this floor alongside
 selected weights/cache until hardware evidence supplies a replacement; weight
 arithmetic alone cannot remove it. Target-only speculation and a draft pointing
-to the served target do not load a second model. A new/changed single-Spark recipe
-whose need exceeds the limit fails the catalog build: reduce context/concurrency,
-choose a smaller quantization, or author a multi-Spark recipe id. Never omit a
-failing recipe to pass the check.
+to the served target do not load a second model. The estimate over this limit
+is a **WARNING**, not a rejection: proven singles run utilization-sized pools
+above it. Never omit a failing recipe to pass the check.
 
 **C.** Assume an existing recipe works until hardware evidence says otherwise.
 Only new or changed recipe documents are subject to the need guard. An exact
@@ -371,8 +377,8 @@ geometry, source references and the immutable content baseline only. Preserve al
 unrelated recipe bytes.
 
 Repair unproven, unadmittable declarations by calculated need, preserving absolute
-cache requirements and bounding engine allocation (vLLM absolute KV bytes;
-SGLang a static budget derived from need). Peak plus reserve must fit the owner's
+cache requirements and bounding engine allocation (an absolute pool or an
+admissible engine fraction). Peak plus reserve must fit the owner's
 idle capacity, which already subtracts host use. The catalog guard rejects changed
 declarations that exceed capacity despite a fitting need. Preserve proven bytes,
 calibrate against hardware passes, and leave unknown or oversized needs unresolved.
@@ -397,10 +403,10 @@ only their draft term is waived, never utilization, runtime overhead or the OS
 floor, and tests reject stale exceptions once they fit with the draft counted.
 
 [qualification/memory_need.py](../qualification/memory_need.py), exercised by
-`tests/test_single_spark_memory_headroom.py`, shares those constants and checks
-absolute single-node need with the measured draft floor. An absolute vLLM KV
-pool overrides cache sizing by utilization; the explicit startup budget is checked
-separately. Changed multi-Spark documents use the per-rank demand declaration below;
+`tests/test_single_spark_memory_headroom.py`, shares those constants; its
+single-node full-workload estimate, with the measured draft floor, is
+informative. An absolute vLLM KV pool overrides cache sizing by utilization.
+Changed multi-Spark documents use the per-rank demand declaration below;
 a changed multi-Spark SGLang document must also fit its sharded weights, resident
 expansion and capped token/state pools in `mem-fraction-static` × the lowest idle
 available bytes. Its absolute `max-total-tokens` cap must hold one full-context

@@ -206,9 +206,11 @@ def test_full_context_need_and_absolute_pool_replace_the_failed_fraction():
         item
         for item in recipe.runtime.arguments
         if item.name != "kv-cache-memory-bytes"
-    ] + [RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.85")]
+    ] + [RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.90")]
     with pytest.raises(ValueError, match="absolute kv-cache-memory-bytes"):
-        require_memory_need(recipe, catalog_models(), inputs, document_digest="")
+        require_memory_need(
+            recipe, catalog_models(), inputs, document_digest="", touched=True
+        )
 
 
 def test_resident_expansion_rejects_graph_and_image_drift():

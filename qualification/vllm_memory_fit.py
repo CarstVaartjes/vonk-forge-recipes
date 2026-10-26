@@ -13,9 +13,9 @@ from qualification.memory_need import (
     OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
     SPARK_MEMORY_BYTES,
+    VLLM_DEFAULT_UTILIZATION,
 )
 
-VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
 # A separately loaded speculative draft model (DFlash, DSpark, EAGLE, an external
 # MTP checkpoint) holds memory outside `gpu-memory-utilization`. Calibrated from
 # qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single on a GB10 (2026-10-13): at 0.7 it
@@ -85,7 +85,7 @@ def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) 
     ):
         # Need-based documents omit utilization: do not invent an implicit 0.9
         # reservation. Keep explicitly authored historical budgets calibrated.
-        from qualification.memory_need import load_inputs, require_memory_need
+        from qualification.memory_need import calculate_need, load_inputs
 
         assert recipe.topology.node_count == 1, (
             "Absolute multi-Spark pools need a per-rank need model"
@@ -97,8 +97,7 @@ def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) 
                 (root / "models" / f"{selection.model.slug}.json").read_text()
             )
             models[document_sha256(document)] = ModelDefinition.model_validate(document)
-        need = require_memory_need(recipe, models, load_inputs(), document_digest="")
-        assert need is not None
+        need = calculate_need(recipe, models, load_inputs().geometries)
         required_peak = Decimal(need.total_bytes)
     else:
         required_peak = utilization * SPARK_MEMORY_BYTES + non_utilization_bytes(
