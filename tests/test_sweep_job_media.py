@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from test_three_d_glb_validation import CONTEXTS, Glb, load_validator
 from vonk_forge_contracts.qualification_status import QualificationGlbProfile
 
 from spark_sweep import job_media
@@ -324,6 +325,26 @@ def test_the_sweep_checks_every_glb_profile_the_contract_allows(
     assert profile in job_media.GLB_PROFILE_CHECKS
     assertion = {"kind": "glb-structure", "profile": profile.value}
     assert evaluate([assertion], _glb_output(PROFILE_EXAMPLES[profile])) == {}
+
+
+#: The adapters' (and platform's) validator calls the triangle-mesh profile geometry.
+VALIDATOR_PROFILES = {QualificationGlbProfile.TRIANGLE_MESH: "geometry"}
+
+
+@pytest.mark.parametrize("profile", list(QualificationGlbProfile))
+def test_the_sweep_accepts_what_the_adapter_validator_publishes(
+    profile: QualificationGlbProfile, tmp_path: Path
+) -> None:
+    """Catches the sweep failing a GLB the job's own validator let it publish."""
+    validator_profile = VALIDATOR_PROFILES.get(profile, profile.value)
+    builder = Glb()
+    content = builder.bytes(builder.document(validator_profile))
+    output = tmp_path / "output.glb"
+    output.write_bytes(content)
+    validator = load_validator(CONTEXTS[0])
+    validator.validate_mesh_glb(output, profile=validator_profile)  # pyright: ignore[reportAttributeAccessIssue]
+    assertion = {"kind": "glb-structure", "profile": profile.value}
+    assert evaluate([assertion], _glb_output(content)) == {}
 
 
 @pytest.mark.parametrize("fallback", [False, True])
