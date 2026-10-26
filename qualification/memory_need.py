@@ -592,8 +592,13 @@ def require_memory_need(
     inputs: MemoryInputs,
     *,
     document_digest: str,
+    touched: bool = False,
 ) -> MemoryNeed | None:
-    """Check new/changed documents without retuning historical ones."""
+    """Check new/changed documents without retuning historical ones.
+
+    ``touched`` marks a recipe file the change under review edits; only those
+    must replace a utilization-sized multi-Spark KV pool.
+    """
     if recipe.topology.node_count != 1:
         require_absolute_kv_capacity(recipe, models, inputs)
     # Recorded content is judged by hardware, not by this offline check.
@@ -611,6 +616,8 @@ def require_memory_need(
                 raise ValueError(f"{key}: " + "; ".join(problems))
             if variant.runtime.engine == "sglang":
                 require_sglang_rank_budget(variant, models, inputs.geometries, key)
+            elif touched:
+                require_need_sized_kv_pool(variant, models, inputs, key)
             require_vllm_startup_budget(variant)
         return None
     result = None
@@ -654,6 +661,35 @@ def require_memory_need(
         require_vllm_startup_budget(variant)
         result = need
     return result
+
+
+def require_need_sized_kv_pool(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    key: str,
+) -> None:
+    """A multi-Spark vLLM pool holds declared context x max-num-seqs per rank.
+
+    A utilization fraction sizes KV to whatever memory remains: on 2026-10-26
+    Laguna M.1 at TP=2 took 475,392 tokens for a 4 x 8,192-token workload and
+    left its entrypoint Spark at the 16 GiB host memory guard floor.
+    """
+    need = absolute_kv_need(
+        recipe,
+        models,
+        inputs,
+        concurrency=positive_argument(recipe, "max-num-seqs"),
+    )
+    pool = argument_value(recipe, "kv-cache-memory-bytes")
+    if pool is None:
+        pool = argument_value(recipe, "kv-cache-memory")
+    if pool is None or cache_bytes(pool) < need:
+        raise ValueError(
+            f"{key}: set absolute kv-cache-memory-bytes of at least {need} "
+            "(declared context x max-num-seqs per rank); a utilization fraction "
+            "does not bound KV by need"
+        )
 
 
 def require_vllm_startup_budget(recipe: RecipeDefinition) -> None:

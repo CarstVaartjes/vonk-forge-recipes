@@ -1,6 +1,8 @@
 """Reject fixed cache pools that cannot admit the advertised context."""
 
 import json
+import runpy
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -20,6 +22,7 @@ from qualification.memory_need import (
 
 ROOT = Path(__file__).resolve().parents[1]
 VISION = "deepseek-v4-flash-vision-exp-mia-dual"
+LAGUNA = "laguna-m-1-nvfp4-r0b0tlab-vllm-dual"
 
 
 def recipe_for(slug: str = VISION) -> RecipeDefinition:
@@ -152,3 +155,48 @@ def test_corrected_pools_cover_all_declared_concurrency() -> None:
             assert cache_bytes(pool) >= absolute_kv_need(
                 variant, catalog_models(), load_inputs(), concurrency=concurrency
             )
+
+
+def test_touched_multi_spark_vllm_pool_holds_the_declared_workload() -> None:
+    recipe = recipe_for(LAGUNA)
+    models, inputs = catalog_models(), load_inputs()
+    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    pool = next(
+        arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
+    )
+    pool.value = cache_bytes(pool.value) - 1
+    with pytest.raises(ValueError, match="set absolute kv-cache-memory-bytes"):
+        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    recipe.runtime.arguments.remove(pool)
+    with pytest.raises(ValueError, match="set absolute kv-cache-memory-bytes"):
+        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    # Files the change does not touch keep their utilization-sized pools.
+    require_memory_need(recipe, models, inputs, document_digest="")
+
+
+def test_only_recipe_files_changed_since_the_merge_base_are_touched(
+    tmp_path: Path,
+) -> None:
+    def git(*args: str) -> None:
+        subprocess.run(
+            ["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t"]
+            + list(args),
+            check=True,
+            capture_output=True,
+        )
+
+    (tmp_path / "recipes").mkdir()
+    for name in ("kept", "edited"):
+        (tmp_path / f"recipes/{name}.json").write_text("{}")
+    git("init", "-q", "-b", "main")
+    git("add", "-A")
+    git("commit", "-q", "-m", "base")
+    (tmp_path / "recipes/edited.json").write_text('{"x": 1}')
+    (tmp_path / "recipes/new.json").write_text("{}")
+    touched = runpy.run_path(str(ROOT / "tools/check-recipe-memory-need"))[
+        "touched_recipes"
+    ]
+    assert touched(tmp_path, "HEAD") == [
+        tmp_path / "recipes/edited.json",
+        tmp_path / "recipes/new.json",
+    ]
