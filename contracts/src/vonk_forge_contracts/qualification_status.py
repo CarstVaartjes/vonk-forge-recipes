@@ -134,6 +134,15 @@ class QualificationTopology(StrEnum):
     MULTI = "multi"
 
 
+class QualificationGlbProfile(StrEnum):
+    """What a job recipe's ``glb-structure`` assertion requires of its GLB."""
+
+    TRIANGLE_MESH = "triangle-mesh"
+    TEXTURED = "textured"
+    TEXTURED_PBR = "textured-pbr"
+    SKINNED = "skinned"
+
+
 class QualificationRuntimeImage(PublicQualificationModel):
     build_key: Digest
     image_digest: Annotated[str, Field(pattern=r"^sha256:[0-9a-f]{64}$")]
