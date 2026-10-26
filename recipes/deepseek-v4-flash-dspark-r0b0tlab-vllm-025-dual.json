@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's audited production lane for the official DeepSeek V4 Flash DSpark checkpoint (913f0657) on two GB10 Sparks: Anemll's digest-pinned dspark-vllm-gx10 image (vLLM 0.25.2.dev0, FlashInfer 0.6.15), FlashInfer B12X MoE, native DSpark speculative decoding at k=5, NVFP4 MLA KV cache and RoCE tensor parallel 2. Upstream production profile: 200,000 token context, 16 sequences, 16K batched tokens, 0.84 memory utilization. Upstream's 384K and 1M profiles run a different legacy Stage-C image and are not included. Licences: r0b0tlab package MIT AND Apache-2.0, model MIT (information only). Performance figures are upstream claims, not measured here. Absolute KV correction: 27,313,307,648 bytes per rank covers 16 simultaneous full-context requests at 200,000 tokens using the pinned cache-geometry allocation bound. The creator context is retained. This is an offline estimate; physical acceptance remains pending.",
+    "description": "r0b0tlab's audited production lane for the official DeepSeek V4 Flash DSpark checkpoint (913f0657) on two GB10 Sparks: Anemll's digest-pinned dspark-vllm-gx10 image (vLLM 0.25.2.dev0, FlashInfer 0.6.15), FlashInfer B12X MoE, native DSpark speculative decoding at k=5, NVFP4 MLA KV cache and RoCE tensor parallel 2. Upstream production profile: 200,000 token context, 16 sequences, 16K batched tokens, 0.84 memory utilization. Upstream's 384K and 1M profiles run a different legacy Stage-C image and are not included. Licences: r0b0tlab package MIT AND Apache-2.0, model MIT (information only). Performance figures are upstream claims, not measured here. Absolute KV correction: 15,998,753,178 bytes per rank, the pool of the hardware-passed deepseek-v4-flash-0731-r0b0tlab-vllm-dual sibling (same weights per rank), with concurrency lowered from 16 to 9, the most 200,000-token requests that pool holds under the pinned cache-geometry allocation bound. The creator context is retained. The earlier 27,313,307,648-byte pool for 16 requests left 11,294,040,064 bytes MemAvailable and was stopped by the host memory guard on both Sparks during start on 2026-10-26; vLLM reported 754,623 tokens (3.77 full 200,000-token requests) for it, so the geometry bound is an allocation estimate, not the engine's scheduling capacity. Physical acceptance remains pending.",
     "tags": [
       "candidate",
       "deepseek",
@@ -1021,12 +1021,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 27313307648
+        "value": 15998753178
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.847649"
+        "value": "0.761055"
       }
     ],
     "engine": "vllm",
@@ -1144,7 +1144,7 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 16
+      "value": 9
     },
     "context_tokens": {
       "change_effect": "restart",
@@ -1176,7 +1176,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118756575316,
+            "peak_bytes": 107442020846,
             "reserve_bytes": 8000000000
           }
         }
@@ -1193,7 +1193,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 118756575316,
+            "peak_bytes": 107442020846,
             "reserve_bytes": 8000000000
           }
         }

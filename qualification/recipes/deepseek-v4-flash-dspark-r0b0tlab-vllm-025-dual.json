@@ -9,7 +9,7 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Bounded long-context and 16-sequence concurrency canaries at the 200K profile"
+        "Bounded long-context and 9-sequence concurrency canaries at the 200K profile"
       ],
       "recovery": [
         "Controller-only rank-loss and warm-cache recovery"
