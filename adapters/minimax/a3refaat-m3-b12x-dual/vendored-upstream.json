@@ -1,6 +1,7 @@
 {
   "ours": [
     "NOTICE.upstream",
+    "flashinfer-aot-sink-sm90.patch",
     "td-patches/",
     "verify-runtime.py",
     "vllm-wrapper.py"
