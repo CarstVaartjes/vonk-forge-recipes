@@ -615,15 +615,20 @@ class WanDancerLoaderTests(unittest.TestCase):
         # on the single-Spark (non-parallel) path.
         path = self.source / "diffsynth/pipelines/wan_video_new.py"
         tree = ast.parse(path.read_text(encoding="utf-8"))
-        functions = {
-            node.name: node
-            for node in ast.walk(tree)
-            if isinstance(node, ast.FunctionDef)
-        }
-        bound, _ = _sequence_parallel_reads(functions["model_fn_wan_video"])
+        # A list, not a name-keyed dict: the file has many same-named methods
+        # (__init__, process) and every one of them must be checked.
+        functions = [
+            node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+        ]
+        model_fn = next(f for f in functions if f.name == "model_fn_wan_video")
+        bound, _ = _sequence_parallel_reads(model_fn)
         self.assertIn("get_sequence_parallel_world_size", bound)
-        for function in functions.values():
-            self.assertEqual(_sequence_parallel_reads(function)[1], [], function.name)
+        for function in functions:
+            self.assertEqual(
+                _sequence_parallel_reads(function)[1],
+                [],
+                f"{function.name}:{function.lineno}",
+            )
 
 
 def _sequence_parallel_reads(function: ast.FunctionDef) -> tuple[set[str], list[str]]:
