@@ -118,10 +118,15 @@ def test_a_reasoning_model_without_a_parser_uses_the_unparsed_arithmetic_case() 
     assert generic_case_problems("x", parsed, ["M0", "A323_UNPARSED"], parsed_caps)
 
 
-def test_a_parser_that_keeps_thinking_in_content_does_not_parse_reasoning() -> None:
-    appended = _vllm(
-        ("reasoning-parser", "minimax_m2_append_think"), tags=("reasoning",)
-    )
+@pytest.mark.parametrize(
+    ("engine", "parser"),
+    [("vllm", "minimax_m2_append_think"), ("sglang", "minimax-append-think")],
+)
+def test_a_parser_that_keeps_thinking_in_content_does_not_parse_reasoning(
+    engine: str, parser: str
+) -> None:
+    appended = _vllm(("reasoning-parser", parser), tags=("reasoning",))
+    appended["runtime"]["engine"] = engine
     caps = serving_capabilities(appended, "x", {})
     assert not caps.reasoning_parser
     assert generic_case_problems("x", appended, ["M0", "A391"], caps)
@@ -130,6 +135,12 @@ def test_a_parser_that_keeps_thinking_in_content_does_not_parse_reasoning() -> N
     split_caps = serving_capabilities(split, "x", {})
     assert split_caps.reasoning_parser
     assert not generic_case_problems("x", split, ["M0", "A391"], split_caps)
+
+
+def test_tensorrt_llm_append_think_still_splits_reasoning() -> None:
+    recipe = _vllm(("reasoning_parser", "minimax_m2_append_think"), tags=("reasoning",))
+    recipe["runtime"]["engine"] = "tensorrt-llm"
+    assert serving_capabilities(recipe, "x", {}).reasoning_parser
 
 
 def test_an_image_case_needs_a_multimodal_recipe() -> None:

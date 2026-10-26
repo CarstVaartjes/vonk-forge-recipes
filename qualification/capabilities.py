@@ -43,10 +43,20 @@ _AUTO_TOOL = re.compile(r"(?<![\w-])--enable-auto-tool-choice\b")
 _REASONING_PARSER = re.compile(
     r"(?<![\w-])--?reasoning[-_]parser\b(?:[=\s]+[\"']?([^\s\"']+))?"
 )
-# vLLM parsers that keep the thinking in ``content`` instead of splitting it
-# out: MiniMaxM2AppendThinkReasoningParser returns (None, "<think>" + output)
-# (vllm/reasoning/minimax_m2_reasoning_parser.py, vLLM ad7125a4).
-CONTENT_REASONING_PARSERS = frozenset({"minimax_m2_append_think"})
+# Engine parsers that keep the thinking in ``content`` instead of splitting it
+# out, per engine because the same name can mean different things:
+# - vLLM ad7125a4 vllm/reasoning/minimax_m2_reasoning_parser.py:
+#   MiniMaxM2AppendThinkReasoningParser returns (None, "<think>" + output).
+# - SGLang 6a4216ed python/sglang/srt/parser/reasoning_parser.py
+#   (tests/fixtures/sglang-nemotron-reasoning-parser.txt): "minimax-append-think"
+#   is MiniMaxAppendThinkDetector, which prepends <think> to normal_text.
+# - TensorRT-LLM 14765c7d tensorrt_llm/llmapi/reasoning_parser.py registers
+#   "minimax_m2_append_think" as DeepSeekR1Parser, which splits; none listed.
+CONTENT_REASONING_PARSERS: Mapping[str, frozenset[str]] = {
+    "vllm": frozenset({"minimax_m2_append_think"}),
+    "sglang": frozenset({"minimax-append-think"}),
+    "tensorrt-llm": frozenset(),
+}
 _YAML_TOOL = re.compile(r"^\s*tool_parser\s*:", re.MULTILINE)
 _YAML_REASONING = re.compile(r"^\s*reasoning_parser\s*:", re.MULTILINE)
 _SKIPPED_DIRS = frozenset({"vendor", "patches", "tests", "licenses", "model-cards"})
@@ -167,8 +177,9 @@ def serving_capabilities(
         tools = bool(_TOOL_PARSER.search(both) and _AUTO_TOOL.search(both))
     else:
         tools = bool(_TOOL_PARSER.search(both) or _YAML_TOOL.search(both))
+    content_parsers = CONTENT_REASONING_PARSERS[engine]
     reasoning = any(
-        match.group(1) not in CONTENT_REASONING_PARSERS
+        match.group(1) not in content_parsers
         for match in _REASONING_PARSER.finditer(both)
     ) or bool(_YAML_REASONING.search(both))
     kit = _kit_flags().get(slug)
