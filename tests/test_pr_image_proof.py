@@ -265,3 +265,67 @@ if 'inspect' in args:
         assert f"docker://ghcr.io/o/recipe:{prefix}-{KEY}" in commands
         summary = (tmp_path / "summary").read_text()
         assert ("built at publish: no PR candidate" in summary) == (event == "push")
+
+
+def test_bounded_proof_checks_the_planned_dockerfile_and_retries(tmp_path: Path):
+    # Run the real step with a docker double: the first check fails as a
+    # transient manifest lookup would; the Dockerfile comes from the plan.
+    plan = tmp_path / "plan"
+    (plan / KEY / "context").mkdir(parents=True)
+    (plan / "plan.json").write_text(
+        json.dumps(
+            {
+                "images": [
+                    {
+                        "build_key": KEY,
+                        "recipe_build_arguments": [
+                            "--no-cache",
+                            "--file",
+                            "context/Dockerfile.spark",
+                            "--jobs=1",
+                        ],
+                    }
+                ]
+            }
+        )
+    )
+    binary = tmp_path / "bin"
+    binary.mkdir()
+    calls = tmp_path / "calls"
+    (binary / "docker").write_text(
+        "#!/bin/sh\n"
+        f'echo "$*" >> "{calls}"\n'
+        f'[ "$(wc -l < "{calls}")" -gt 1 ] || exit 1\n'
+    )
+    (binary / "sleep").write_text("#!/bin/sh\n")
+    for tool in binary.iterdir():
+        tool.chmod(0o755)
+    result = subprocess.run(
+        [
+            "bash",
+            "-c",
+            _step("Check the Dockerfile and its base images without building"),
+        ],
+        env={
+            **os.environ,
+            "PATH": f"{binary}:{os.environ['PATH']}",
+            "RUNNER_TEMP": str(tmp_path),
+            "KEY": KEY,
+            "GITHUB_STEP_SUMMARY": str(tmp_path / "summary"),
+        },
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    attempts = calls.read_text().splitlines()
+    assert len(attempts) == 2
+    check = attempts[-1]
+    assert check.startswith("buildx build --check --platform linux/arm64 ")
+    # Lint rules podman never applies cannot fail the gate; parsing and FROM
+    # resolution still can.
+    assert "--build-arg BUILDKIT_DOCKERFILE_CHECK=skip=all" in check
+    assert "BUILDKIT_SYNTAX=docker/dockerfile:1.12@sha256:" in check
+    assert check.endswith("--file context/Dockerfile.spark context")
+    assert "--jobs" not in check and "--no-cache" not in check
