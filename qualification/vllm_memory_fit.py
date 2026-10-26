@@ -8,10 +8,10 @@ from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 
 from qualification.memory_need import (
+    ADMISSION_IDLE_USE_BYTES,
     DRAFT_MODEL_OVERHEAD_BYTES,
     OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
-    SPARK_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
 )
 
@@ -114,7 +114,7 @@ def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) 
         assert evaluate_memory_admission(
             memory.peak_bytes,
             SPARK_MEMORY_BYTES,
-            occupied_bytes=SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES,
+            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
             memory_floor_bytes=OS_FLOOR_BYTES,
         ).admissible, (
             f"{label}: peak plus OS floor exceeds an idle Spark's available memory"

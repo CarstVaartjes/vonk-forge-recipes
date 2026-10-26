@@ -17,7 +17,7 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
-    IDLE_USE_BYTES,
+    ADMISSION_IDLE_USE_BYTES,
     TOTAL_BYTES,
     argument_value,
     calculate_need,
@@ -198,7 +198,7 @@ def test_full_context_need_and_absolute_pool_replace_the_failed_fraction():
     # The actual shared admission contract charges host occupancy exactly once.
     admission = evaluate_memory_admission(
         pool_bytes=TOTAL_BYTES,
-        occupied_bytes=IDLE_USE_BYTES,
+        occupied_bytes=ADMISSION_IDLE_USE_BYTES,
         demand_bytes=need.total_bytes,
     )
     assert admission.admissible
