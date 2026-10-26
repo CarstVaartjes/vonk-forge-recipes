@@ -176,6 +176,95 @@
         "topology": "multi"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "6010d4a3bbdb28c2abfa839c4711e258240af2df4dbfb4e74052255b666deea5",
+        "source_bundle_sha256": "c82ae7f91350e3a973ea79cb6a2ec94406e581f19e77cc692eb183f26b44d937",
+        "runtime_image": {
+          "build_key": "8cf6b8eb3b0fb71544c41eb1834b9e95c4595496f024eb19afeb04da32a981f5",
+          "image_digest": "sha256:169f5830c48d6c52e2fb2a6195a56196e940f09de0810f68d692bc7c8cc8e84b"
+        },
+        "model_digests": [
+          "a3026d05251c1fbabb33540cd6decf870b03db69cfa996100f20f3990a37d378"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "7dab9baad447d0cde4ab79606389c977ec3b5c989feea3c7e26cbc4cf5f0ee71"
+      ],
+      "tested_at": "2026-10-24T15:49:47.542591Z",
+      "platform": {
+        "controller_source_sha": "5f5bd649c409c7673d1c53e8e48479117d49ccc2",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "6ff29d282ae9a44fd94fbf25bdcf0d95130011b1350652bea064197aa7f0b554",
+        "source_bundle_sha256": "c82ae7f91350e3a973ea79cb6a2ec94406e581f19e77cc692eb183f26b44d937",
+        "runtime_image": {
+          "build_key": "8cf6b8eb3b0fb71544c41eb1834b9e95c4595496f024eb19afeb04da32a981f5",
+          "image_digest": "sha256:169f5830c48d6c52e2fb2a6195a56196e940f09de0810f68d692bc7c8cc8e84b"
+        },
+        "model_digests": [
+          "a3026d05251c1fbabb33540cd6decf870b03db69cfa996100f20f3990a37d378"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "7024041d5569394766a494987cc9e113cace09bd82833c976275690dc7fa1ec4"
+      ],
+      "tested_at": "2026-10-25T18:04:47.608170Z",
+      "platform": {
+        "controller_source_sha": "d399fa36bc62fdc3839943fc2651289e89a65f1f",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "6ff29d282ae9a44fd94fbf25bdcf0d95130011b1350652bea064197aa7f0b554",
+        "source_bundle_sha256": "9d9992c9c806605dda7ee850e4fcbf62d97d9805bb3bae48435c82d7a494c686",
+        "runtime_image": {
+          "build_key": "819626dad27ba94ccb04643f9a63e5b3e240105ca6737da5c1ee2018a093b2e7",
+          "image_digest": "sha256:ca841660e91faedf595415bcf81be4b5a52c1f810064cc9d073b97569cf5e1e7"
+        },
+        "model_digests": [
+          "a3026d05251c1fbabb33540cd6decf870b03db69cfa996100f20f3990a37d378"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "3a1d9a3794b66e1a5d64b3d61012f1641bed31a41eaab652c43386c4d3d26a07"
+      ],
+      "tested_at": "2026-10-25T20:32:51.342123Z",
+      "platform": {
+        "controller_source_sha": "d399fa36bc62fdc3839943fc2651289e89a65f1f",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
     }
   ]
 }

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9b60b9a7b0ab85267296f0c60d5573c876d780f0d85434514973185d3e441c73",
+        "source_bundle_sha256": "0f2dd44088563e60032a6e895e29bcff3a7bd148c496cedca8143417c4b47db3",
+        "runtime_image": {
+          "build_key": "65ea5fe72745de9b39b7c74bd44458285b961a86953aadf8b839f9f4114247a1",
+          "image_digest": "sha256:e25d08dc1184b3f2847a15443a28ed5ab8bdae6c7c38c412f1e583b93b90d558"
+        },
+        "model_digests": [
+          "86726829a9fdf0d3623f7c8da1867da30a0a1b47bc86ad846499c90922e407da"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "ec4f772907fd1857f9c1ca72a434d62e00c38615222a83e0eeb497602b78c120"
+      ],
+      "tested_at": "2026-10-25T19:48:19.024534Z",
+      "platform": {
+        "controller_source_sha": "d399fa36bc62fdc3839943fc2651289e89a65f1f",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}

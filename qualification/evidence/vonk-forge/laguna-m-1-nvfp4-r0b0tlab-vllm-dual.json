@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/laguna-m-1-nvfp4-r0b0tlab-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "630397ec0aecb2be0d6a261b9259e0927345ef63c8711135b79bda2de2eecfca",
+        "source_bundle_sha256": "41a4f7cf7b820644e741e464bc7cc02c7efed1681788b8aff7c68345fa8720f1",
+        "runtime_image": {
+          "build_key": "7b2d3b292fc52efcd727c044fc780b071c90a53e624d459886a674651f5310f1",
+          "image_digest": "sha256:b43635e01cabcfb84087d4a19f3693545d95d960a2b0343f43b6a78dd9f1331b"
+        },
+        "model_digests": [
+          "94d1a5b068ce0f25b265b20c5dcee7e827936caa8d1efe2230aa458d559acc08"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "3de8b564e052b36ccce6d650db5679156df4df3f369d772fc6ee391ec04c56fc"
+      ],
+      "tested_at": "2026-10-26T08:13:13.578761Z",
+      "platform": {
+        "controller_source_sha": "7fc22e5ff80e38e835c65cd68eefb4bf389f9d75",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "ff6f310a65154a8494c00f2755fc2e0be41429740c8cb50b1c947ebe4aaa38ed",
+        "source_bundle_sha256": "41a4f7cf7b820644e741e464bc7cc02c7efed1681788b8aff7c68345fa8720f1",
+        "runtime_image": {
+          "build_key": "7b2d3b292fc52efcd727c044fc780b071c90a53e624d459886a674651f5310f1",
+          "image_digest": "sha256:b43635e01cabcfb84087d4a19f3693545d95d960a2b0343f43b6a78dd9f1331b"
+        },
+        "model_digests": [
+          "94d1a5b068ce0f25b265b20c5dcee7e827936caa8d1efe2230aa458d559acc08"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "66776adede3b1383998fa6937e22415ed1581cd42c97b333c08fa48fc4422252"
+      ],
+      "tested_at": "2026-10-26T11:47:56.910677Z",
+      "platform": {
+        "controller_source_sha": "7fc22e5ff80e38e835c65cd68eefb4bf389f9d75",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}

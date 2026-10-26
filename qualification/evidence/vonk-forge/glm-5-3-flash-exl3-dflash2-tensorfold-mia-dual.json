@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/glm-5-3-flash-exl3-dflash2-tensorfold-mia-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "2d7498ecbbcdf164d4bcef581390142e986462815f65ed582f20c69d4f66c53f",
+        "source_bundle_sha256": "934f5d49263d8883567c54976e8ed125e049b6acf1c053f7e2ed3bff0f06a775",
+        "runtime_image": {
+          "build_key": "b3bcd090d3a412f332227759328ca33afcf9c07d35b1e4bc7548f165b9f8ba48",
+          "image_digest": "sha256:d5868433eb72d853df35e93116d08de102cc9a39498840d42b60965e036bffc2"
+        },
+        "model_digests": [
+          "43c57f0707622cfa27e81749a79267a89050dd86b9dc148d479b36ab66a9a71b",
+          "6b7948238164c6a564e2e3a81d6421fcb4b31627c9e09fe46b2db74db58e6124"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "f2c3f8bca61bf7f793c8e5caa82b2f72d721c758434449d807cababdbe150cc8"
+      ],
+      "tested_at": "2026-10-26T06:28:24.857426Z",
+      "platform": {
+        "controller_source_sha": "7fc22e5ff80e38e835c65cd68eefb4bf389f9d75",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
