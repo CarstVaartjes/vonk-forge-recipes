@@ -402,10 +402,9 @@ expansion and capped token/state pools in `mem-fraction-static` × the lowest id
 available bytes. A multi-Spark vLLM recipe file a change touches must set
 `kv-cache-memory-bytes` to at least declared context × `max-num-seqs` per rank
 (`tools/check-recipe-memory-need --base origin/main`); a utilization-sized pool
-left Laguna M.1's entrypoint at the 16 GiB host guard floor on 2026-10-26. The
-sharded weights, that pool and the 8 GB overhead must also stay within the
-planning limit (Spark total minus idle host use and the 16 GiB guard): lower
-declared context or concurrency rather than oversize the pool.
+left Laguna M.1's entrypoint at the 16 GiB host guard floor on 2026-10-26.
+Sharded weights, that pool and the 8 GB overhead are bounded by idle admission,
+not by the 16 GiB planning limit: hardware-proven dual documents run above it.
 Existing documents remain unchanged and receive informative warnings.
 
 SGLang profiles loaded weights before applying `max-total-tokens`. A fraction
