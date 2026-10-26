@@ -625,8 +625,9 @@ def require_memory_need(
 
     Calibrated on the proven set: a fixed pool holds one full-context request,
     not context x concurrency, and the declared peak covers the loading floor
-    and is admissible. ``touched`` marks a recipe file the change under review
-    edits; only those must bound a utilization-sized KV pool.
+    (and on one Spark a vLLM utilization budget with what vLLM holds beside
+    it) and is admissible. ``touched`` marks a recipe file the change under
+    review edits; only those must bound a utilization-sized KV pool.
     """
     require_absolute_kv_capacity(recipe, models, inputs)
     # Recorded content is judged by hardware, not by this offline check.
@@ -640,12 +641,19 @@ def require_memory_need(
     for variant in memory_variants(recipe):
         need = per_rank_need(variant, models)
         # Proven single-Spark documents run below the multi-Spark reserve and
-        # SGLang static-peak declarations; only the loading floor holds there.
+        # SGLang static-peak declarations; the loading floor and vLLM's budget
+        # hold there, because the Controller reserves the declared peak.
+        envelope = vllm_utilization_envelope(variant) if single else None
         problems = (
             [
                 f"{role.name}: peak understates need {need.peak_bytes}"
                 for role in variant.topology.roles
                 if role.resources.memory.peak_bytes < need.peak_bytes
+            ]
+            + [
+                f"{role.name}: peak understates vLLM budget plus overhead {envelope}"
+                for role in variant.topology.roles
+                if envelope is not None and role.resources.memory.peak_bytes < envelope
             ]
             if single
             else declaration_problems(variant, need)
@@ -655,12 +663,59 @@ def require_memory_need(
         if not single and variant.runtime.engine == "sglang":
             require_sglang_rank_budget(variant, models, inputs.geometries, key)
         elif touched:
-            require_bounded_kv_pool(variant, key)
+            require_bounded_kv_pool(variant, models, inputs.geometries, key)
         if not single:
             require_vllm_startup_budget(variant)
 
 
-def require_bounded_kv_pool(recipe: RecipeDefinition, key: str) -> None:
+def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
+    """vLLM's utilization budget plus what it holds beside it, if pool-less.
+
+    The 8 GB overhead and the measured 17 GB floor of a separately loaded
+    draft (qualification/vllm_memory_fit.py, the 2026-10-13 freeze).
+    """
+    if recipe.runtime.engine != "vllm" or any(
+        argument_value(recipe, name) is not None
+        for name in ("kv-cache-memory-bytes", "kv-cache-memory")
+    ):
+        return None
+    fraction = argument_value(recipe, "gpu-memory-utilization")
+    share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
+    envelope = share * TOTAL_BYTES + OVERHEAD_BYTES
+    if loads_draft_model(recipe):
+        envelope += DRAFT_MODEL_OVERHEAD_BYTES
+    return int(envelope.to_integral_value(ROUND_CEILING))
+
+
+def applicable_expansion(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    geometries: Mapping[str, CacheGeometry],
+) -> int:
+    """Source-backed resident expansion of geometry pinned to this launch."""
+    total = 0
+    for selection in recipe.models:
+        if selection.model.slug not in geometries:
+            continue
+        try:
+            geometry = pinned_geometry(
+                recipe,
+                selection.model.slug,
+                models[selection.model.content_sha256],
+                geometries,
+            )
+        except ValueError:
+            continue  # Bound to another configuration or image.
+        total += geometry.resident_expansion_bytes
+    return total
+
+
+def require_bounded_kv_pool(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    geometries: Mapping[str, CacheGeometry],
+    key: str,
+) -> None:
     """A touched recipe bounds KV, calibrated on the proven set.
 
     A utilization-sized pool grows into what remains: on 2026-10-26 Laguna M.1
@@ -671,9 +726,11 @@ def require_bounded_kv_pool(recipe: RecipeDefinition, key: str) -> None:
     Proven single-Spark documents run up to 0.86 (SGLang 0.85), whose share
     plus overhead is the largest admitted peak, 120,370,379,081 bytes: on one
     Spark the budget, plus the measured 17 GB floor of a draft vLLM loads
-    beside it, must be admissible on an idle Spark. Proven 0.7 singles with
-    such a draft (Gemma 4 31B NVFP4 Mia, Nemotron 3.5 Bolt NVIDIA) run above
-    the 16 GiB guard there.
+    beside it and the source-backed resident expansion of geometry pinned to
+    the launch, must be admissible on an idle Spark: gpt-oss-120b 4036b68d at
+    0.85 beside its 10 GB Marlin repack exhausted host memory on 2026-10-21.
+    An SGLang single's static budget must hold its weights and expansion:
+    GLM a0 fa86311a at 0.75 was OOM-killed on 2026-10-21.
 
     An absolute pool must hold one full-context request
     (require_absolute_kv_capacity), not context x max-num-seqs: vLLM schedules
@@ -695,23 +752,29 @@ def require_bounded_kv_pool(recipe: RecipeDefinition, key: str) -> None:
     fraction = argument_value(recipe, name)
     if fraction is None and not vllm:
         return
-    budget = (
-        Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
-    ) * TOTAL_BYTES + OVERHEAD_BYTES
-    if recipe.topology.node_count == 1:
-        # vLLM holds a separately loaded draft beside its budget; SGLang
-        # charges draft weights inside its fraction.
-        if vllm and loads_draft_model(recipe):
-            budget += DRAFT_MODEL_OVERHEAD_BYTES
+    share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
+    if recipe.topology.node_count != 1:
+        ceiling = f"leaves the {GUARD_BYTES}-byte host memory guard"
+        bounded = share * TOTAL_BYTES + OVERHEAD_BYTES <= TOTAL_BYTES - GUARD_BYTES
+    else:
+        expansion = applicable_expansion(recipe, models, geometries)
+        if vllm:
+            budget = (vllm_utilization_envelope(recipe) or 0) + expansion
+        else:
+            # SGLang profiles after loading: the static budget must hold the
+            # weights and their expansion (GLM a0 at 0.75 was OOM-killed).
+            budget = int(share * TOTAL_BYTES) + OVERHEAD_BYTES
+            resident = selected_weight_bytes(recipe, models) + expansion
+            if share * IDLE_AVAILABLE_BYTES < resident:
+                raise ValueError(
+                    f"{key}: mem-fraction-static {fraction} x idle available "
+                    f"{IDLE_AVAILABLE_BYTES} cannot hold the selected weights and "
+                    f"resident expansion ({resident} bytes)"
+                )
         ceiling = "is admissible on an idle Spark"
         bounded = evaluate_memory_admission(
-            int(budget.to_integral_value(ROUND_CEILING)),
-            SPARK_MEMORY_BYTES,
-            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
+            budget, SPARK_MEMORY_BYTES, occupied_bytes=ADMISSION_IDLE_USE_BYTES
         ).admissible
-    else:
-        ceiling = f"leaves the {GUARD_BYTES}-byte host memory guard"
-        bounded = budget <= TOTAL_BYTES - GUARD_BYTES
     if not bounded:
         raise ValueError(
             f"{key}: set absolute {pools[0]}, or a {name} whose share of "

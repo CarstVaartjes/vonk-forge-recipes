@@ -316,10 +316,18 @@ not declared context × engine concurrency: engines schedule requests within it.
 A single-Spark recipe file a change touches must bound KV: an absolute pool
 (vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens`), or a declared
 `gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
-plus the 8 GB overhead (plus the 17 GB floor of a separately loaded vLLM draft)
-is admissible on an idle Spark. Proven singles run up to 0.86, exactly the
-largest admitted peak; vLLM's implicit 0.90 is not admissible. SGLang derives an
-omitted fraction at launch, so none is required. `qualification/memory_need.py`
+plus the 8 GB overhead (plus the 17 GB floor of a separately loaded vLLM draft
+and the resident expansion of geometry pinned to the launch) is admissible on
+an idle Spark. Proven singles run up to 0.86, exactly the largest admitted peak;
+vLLM's implicit 0.90 is not admissible. gpt-oss-120b at 0.85 beside its 10 GB
+Marlin repack exhausted host memory. An SGLang fraction × the idle available
+bytes must also hold the selected weights and their resident expansion (GLM a0
+at 0.75 was OOM-killed); SGLang derives an omitted fraction at launch, so none
+is required. A pool-less single-Spark vLLM declaration's peak must cover its
+utilization budget plus the overhead and draft floor, since the Controller
+reserves the declared peak (the 2026-10-13 freeze declared 99.46 GB for a
+116.46 GB envelope). `tests/test_absolute_kv_capacity.py` replays those recorded
+failures and must reject each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
 multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
 startup budget whose fraction of physical memory plus runtime overhead fits the

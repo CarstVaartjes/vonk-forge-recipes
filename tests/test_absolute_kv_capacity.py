@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
-from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
@@ -216,6 +216,48 @@ def test_touching_any_proven_document_keeps_it_valid(engine: str, single: bool) 
     assert not rejected, f"{len(rejected)} of {checked} rejected:\n" + "\n".join(
         rejected
     )
+
+
+FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
+
+
+@pytest.mark.parametrize(
+    "name,match",
+    [
+        # Exhausted host memory 2026-10-21: 0.85 beside a 10 GB Marlin repack.
+        ("gpt-oss-120b-nvidia-vllm-single-4036b68d", "admissible on an idle Spark"),
+        # OOM-killed (exit 137) 2026-10-21: 0.75 below weights + expansion.
+        (
+            "glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single-fa86311a",
+            "cannot hold the selected weights and resident expansion",
+        ),
+        # 2026-10-21: 0.95, not admissible on an idle Spark.
+        (
+            "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single-6e5f713f",
+            "admissible on an idle Spark",
+        ),
+        # Froze a GB10 2026-10-13: 0.7 with a dflash draft, 99.46 GB peak.
+        (
+            "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single-a5c5b82f",
+            "peak understates vLLM budget",
+        ),
+    ],
+)
+def test_recorded_single_spark_memory_failures_are_rejected_when_touched(
+    name: str, match: str
+) -> None:
+    # With the proven-set calibration above, this proves both directions.
+    models = dict(catalog_models())
+    for path in sorted((FAILURES / "models").glob("*.json")):
+        document = json.loads(path.read_text())
+        models[document_sha256(document)] = ModelDefinition.model_validate(document)
+    document = json.loads((FAILURES / f"{name}.json").read_text())
+    assert document_sha256(document).startswith(name.rsplit("-", 1)[1])
+    recipe = RecipeDefinition.model_validate(document)
+    with pytest.raises(ValueError, match=match):
+        require_memory_need(
+            recipe, models, load_inputs(), document_digest="", touched=True
+        )
 
 
 def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> None:

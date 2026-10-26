@@ -23,6 +23,7 @@ from qualification.memory_need import (
     hardware_proven,
     load_inputs,
     require_memory_need,
+    vllm_utilization_envelope,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -115,6 +116,27 @@ def test_pool_holds_one_request_at_any_engine_concurrency() -> None:
     )
 
 
+def declare_envelope(recipe: RecipeDefinition) -> None:
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = envelope
+
+
+def test_utilization_sized_peak_covers_the_vllm_budget_on_one_spark() -> None:
+    # The Controller reserves the declared peak: it must cover the budget.
+    recipe = llama()
+    recipe.runtime.arguments = [
+        item
+        for item in recipe.runtime.arguments
+        if item.name != "kv-cache-memory-bytes"
+    ] + [RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.70")]
+    with pytest.raises(ValueError, match="peak understates vLLM budget"):
+        checked(recipe)
+    declare_envelope(recipe)
+    checked(recipe)
+
+
 def test_touched_utilization_budget_must_be_admissible_on_one_spark() -> None:
     # The proven set runs single-Spark utilization pools up to 0.86, whose
     # share plus overhead is the largest admitted peak; vLLM's 0.90 default and
@@ -127,18 +149,17 @@ def test_touched_utilization_budget_must_be_admissible_on_one_spark() -> None:
     ]
 
     def touched() -> None:
+        declare_envelope(recipe)
         require_memory_need(
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
         )
 
-    with pytest.raises(ValueError, match="absolute kv-cache-memory-bytes"):
+    with pytest.raises(ValueError, match="not admissible"):
         touched()
-    # Files the change does not touch keep their utilization-sized pools.
-    checked(recipe)
     recipe.runtime.arguments.append(
         RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.87")
     )
-    with pytest.raises(ValueError, match="admissible on an idle Spark"):
+    with pytest.raises(ValueError, match="not admissible"):
         touched()
     recipe.runtime.arguments[-1].value = "0.86"
     touched()
@@ -151,7 +172,7 @@ def test_failed_recipe_cannot_reuse_its_historical_pass_to_bypass_need() -> None
         for item in recipe.runtime.arguments
         if item.name != "kv-cache-memory-bytes"
     ]
-    with pytest.raises(ValueError, match="absolute kv-cache-memory-bytes"):
+    with pytest.raises(ValueError, match="peak understates vLLM budget"):
         require_memory_need(
             recipe,
             catalog_models(),
@@ -323,10 +344,10 @@ def test_need_keeps_measured_overhead_only_for_a_separate_draft(
     )
 
 
-def test_touched_budget_counts_the_measured_draft_floor() -> None:
+def test_peak_and_budget_count_the_measured_draft_floor() -> None:
     # A separately loaded draft holds its measured 17 GB floor beside vLLM's
-    # budget: 0.75 fits an idle Spark alone, not with the draft. The proven
-    # 0.7 singles with such a draft remain admissible.
+    # budget: at 0.75 a declared peak without it understates, and with it the
+    # peak is not admissible. The proven 0.7 singles with a draft fit.
     recipe = llama()
     draft = recipe.models[0].model_copy(deep=True)
     draft.id = "draft"
@@ -342,6 +363,7 @@ def test_touched_budget_counts_the_measured_draft_floor() -> None:
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
         )
 
+    declare_envelope(recipe)
     touched()
     recipe.runtime.arguments.append(
         RecipeRuntimeArgument(
@@ -349,13 +371,17 @@ def test_touched_budget_counts_the_measured_draft_floor() -> None:
             value='{"method":"dflash","model":"/models/draft"}',
         )
     )
-    with pytest.raises(ValueError, match="admissible on an idle Spark"):
+    with pytest.raises(ValueError, match="peak understates vLLM budget"):
+        touched()
+    declare_envelope(recipe)
+    with pytest.raises(ValueError, match="not admissible"):
         touched()
     next(
         item
         for item in recipe.runtime.arguments
         if item.name == "gpu-memory-utilization"
     ).value = "0.70"
+    declare_envelope(recipe)
     touched()
 
 
