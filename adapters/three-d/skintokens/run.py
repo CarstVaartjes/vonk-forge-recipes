@@ -194,8 +194,11 @@ def main() -> None:
         raise SystemExit("input GLB does not contain a mesh")
 
     # The image runs this file as a script, so only /opt/vonk/source is on
-    # sys.path; the upstream `src` package lives in the SkinTokens tree.
+    # sys.path; the upstream `src` package lives in the SkinTokens tree. The
+    # platform's image stage ends with WORKDIR /tmp, and upstream reads
+    # models/ and experiments/ relative to the working directory.
     sys.path.insert(0, str(SOURCE))
+    os.chdir(SOURCE)
     from src.data.dataset import DatasetConfig, RigDatasetModule
     from src.data.transform import Transform
     from src.model.tokenrig import TokenRigResult

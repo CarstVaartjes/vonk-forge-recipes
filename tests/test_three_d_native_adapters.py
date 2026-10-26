@@ -33,6 +33,9 @@ CASES = {
         "source_archive_url": "https://codeload.github.com/VAST-AI-Research/SkinTokens/tar.gz/273b691d35989d71cd17ff2895fdc735097b92d1",
         "source_archive": "skintokens.tar.gz",
         "source_archive_sha256": "f886ce830f8f6ed5a3eabebb9399244812ac17a44d5b51fe8853c381a214e334",
+        # Upstream reads models/ and experiments/ relative to the working
+        # directory, which the platform's image stage sets to /tmp.
+        "upstream_cwd": True,
         "base_image": "nvcr.io/nvidia/cuda:13.4.1-devel-ubuntu24.04@sha256:d44d6dc249c2c8330d0b380c595a514f0e86137fcc717fe7a4389a25720ade37",
     },
     "triposg-pytorch-single": {
@@ -300,6 +303,8 @@ class NativeThreeDAdapterTests(unittest.TestCase):
         # The image runs run.py as a script, so only /opt/vonk/source is on
         # sys.path; every deferred upstream import needs the tree the
         # Dockerfile extracted inserted before it (SkinTokens lacked this).
+        # The platform's image stage ends with WORKDIR /tmp, so an adapter
+        # whose upstream reads cwd-relative files also changes into SOURCE.
         for case in CASES.values():
             context = ROOT / case["context"]
             with self.subTest(context=case["context"]):
@@ -325,19 +330,28 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                 for function in ast.walk(tree):
                     if not isinstance(function, ast.FunctionDef):
                         continue
-                    inserts = [
-                        node.lineno
+                    required = ["sys.path.insert(0, str(SOURCE))"]
+                    if case.get("upstream_cwd"):
+                        required.append("os.chdir(SOURCE)")
+                    calls = [
+                        (ast.unparse(node), node.lineno)
                         for node in ast.walk(function)
                         if isinstance(node, ast.Call)
-                        and ast.unparse(node) == "sys.path.insert(0, str(SOURCE))"
+                    ]
+                    firsts = [
+                        min(
+                            (line for text, line in calls if text == call), default=None
+                        )
+                        for call in required
                     ]
                     for node in ast.walk(function):
                         if isinstance(node, (ast.Import, ast.ImportFrom)):
                             deferred += 1
-                            self.assertTrue(
-                                inserts and min(inserts) < node.lineno,
-                                f"{ast.unparse(node)} precedes the SOURCE path entry",
-                            )
+                            for call, first in zip(required, firsts, strict=True):
+                                self.assertTrue(
+                                    first is not None and first < node.lineno,
+                                    f"{ast.unparse(node)} precedes {call}",
+                                )
                 self.assertGreater(deferred, 0)
 
     def test_hunyuan_declares_and_forces_exact_local_dinov2(self) -> None:
