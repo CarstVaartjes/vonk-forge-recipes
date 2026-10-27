@@ -132,9 +132,9 @@ def main() -> int:
     if not re.fullmatch(r"[0-9a-f]{40}", args.revision):
         raise SystemExit("--revision must be a full 40-hex commit")
     try:
-        repository = GitHubLfsSource(
+        source = GitHubLfsSource(
             provider="github-lfs", repository=args.repository, revision=args.revision
-        ).repository
+        )
     except ValueError as error:
         raise SystemExit(f"--repository: {error}") from error
     if len(args.path) != len(args.role):
@@ -143,9 +143,9 @@ def main() -> int:
         raise SystemExit("--path is repeated")
     files = []
     for path, role in sorted(zip(args.path, args.role, strict=True)):
-        oid, size = read_pointer(repository, args.revision, path)
+        oid, size = read_pointer(source.repository, source.revision, path)
         if args.probe_batch:
-            probe_batch(repository, oid, size, path)
+            probe_batch(source.repository, oid, size, path)
         files.append(
             {
                 "id": file_id(path, oid),
@@ -157,11 +157,7 @@ def main() -> int:
         )
     model_hash = write_model(
         args,
-        source={
-            "provider": "github-lfs",
-            "repository": repository,
-            "revision": args.revision,
-        },
+        source=source.model_dump(),
         files=files,
         requires_token=False,
     )

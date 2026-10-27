@@ -128,7 +128,12 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
             pointer() + b"extra 1\n",
             pointer().rstrip(b"\n"),
         ):
-            with self.subTest(body=body), self.assertRaises(SystemExit):
+            with (
+                self.subTest(body=body),
+                self.assertRaisesRegex(
+                    SystemExit, "not a valid LFS pointer|never empty"
+                ),
+            ):
                 self._run(FakeGitHub({PATH: body}))
 
     def test_a_missing_path_is_refused_with_the_status(self) -> None:
