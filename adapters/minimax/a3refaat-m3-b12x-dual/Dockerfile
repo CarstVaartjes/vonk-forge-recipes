@@ -33,6 +33,7 @@ ENV MAX_JOBS=${BUILD_JOBS} \
     UV_SYSTEM_PYTHON=1 \
     UV_BREAK_SYSTEM_PACKAGES=1 \
     UV_LINK_MODE=copy \
+    UV_NO_CACHE=1 \
     UV_HTTP_TIMEOUT=600 \
     UV_HTTP_RETRIES=10 \
     UV_EXCLUDE_NEWER=2026-07-05T00:00:00Z \
@@ -83,6 +84,8 @@ WORKDIR /workspace/flashinfer
 # The cubin wheel is not built here: its build fetches ~15,600 files from NVIDIA's artifact edge, which throttles a
 # builder with HTTP 403 mid-burst. Its kernels are sm_100a/sm_100f/sm_103a only (none run on GB10), but the creator's
 # runtime ships the package, so the release wheel of the same commit is installed by hash.
+# Only the wheels leave this stage. The source and build trees are deleted in the step that made them, and uv keeps no
+# cache (UV_NO_CACHE), because the plan's --layers=false build keeps stage 1 on disk until the final squashed commit.
 COPY flashinfer_cache.patch flashinfer-aot-sink-sm90.patch ./
 RUN patch -p1 < flashinfer_cache.patch && patch -p1 < flashinfer-aot-sink-sm90.patch && \
     sed -i -e 's/license = "Apache-2.0"/license = { text = "Apache-2.0" }/' -e '/license-files/d' pyproject.toml && \
@@ -92,7 +95,8 @@ RUN patch -p1 < flashinfer_cache.patch && patch -p1 < flashinfer-aot-sink-sm90.p
     echo "01de132c493bb21d5df42ebe6890966cf83b40aa970dae06b2a3c0bed85f13ec  /workspace/wheels-flashinfer/flashinfer_cubin-0.6.12-py3-none-any.whl" | sha256sum -c - && \
     cd flashinfer-jit-cache && \
     MAX_JOBS=3 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
-    cd .. && git rev-parse HEAD > /workspace/wheels-flashinfer/.flashinfer-commit
+    cd .. && git rev-parse HEAD > /workspace/wheels-flashinfer/.flashinfer-commit && \
+    cd / && rm -rf /workspace/flashinfer
 
 # =========================================================
 # (still stage 1) vLLM wheel (MiniMax-M3 release merge + fused fp8-KV patch + Rust tool parser)
@@ -135,7 +139,8 @@ RUN set -eux; \
 # limited to memory derived from the recipe's image_bytes (vonk-forge catalog_entities.py; checked by
 # tests/test_recipe_build_failures.py).
 RUN MAX_JOBS=3 VLLM_REQUIRE_RUST_FRONTEND=1 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-vllm -v && \
-    git rev-parse HEAD > /workspace/wheels-vllm/.vllm-commit
+    git rev-parse HEAD > /workspace/wheels-vllm/.vllm-commit && \
+    cd / && rm -rf /workspace/vllm/vllm
 
 # =========================================================
 # Stage 2: runtime image (upstream Dockerfile runner + Dockerfile.deploy b12x layer + the lane's launch-time mods)
@@ -154,6 +159,7 @@ ENV MAX_JOBS=${BUILD_JOBS} \
     UV_SYSTEM_PYTHON=1 \
     UV_BREAK_SYSTEM_PACKAGES=1 \
     UV_LINK_MODE=copy \
+    UV_NO_CACHE=1 \
     UV_EXCLUDE_NEWER=2026-07-05T00:00:00Z \
     VLLM_BASE_DIR=/workspace/vllm
 
