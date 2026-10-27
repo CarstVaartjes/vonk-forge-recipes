@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 from test_kit_pins import KIT, kit_pins
 
@@ -101,6 +102,29 @@ def recipe(root: Path, dockerfile: str, base: str | None = None) -> dict[str, An
         "provenance": {"source_reference": f"https://github.com/{KIT}/tree/{COMMIT}"},
         "execution": {"build": build},
     }
+
+
+class DownloadScanTests(unittest.TestCase):
+    def _download(self, body: bytes) -> list[str]:
+        response = io.BytesIO(body)
+        with (
+            mock.patch.object(
+                kit_pins.urllib.request, "urlopen", return_value=response
+            ),
+            mock.patch.object(kit_pins, "MAX_ARCHIVE_BYTES", 1),
+        ):
+            return [f["reference"] for f in kit_pins.scan_download("o/r", COMMIT)]
+
+    def test_an_archive_larger_than_the_vendoring_cap_is_scanned_as_it_streams(
+        self,
+    ) -> None:
+        body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
+        self.assertEqual(self._download(body), [f"{IMAGE}@{DIGEST}"])
+
+    def test_a_truncated_download_fails_with_the_url(self) -> None:
+        body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
+        with self.assertRaisesRegex(kit_pins.KitError, "cannot scan .*tar.gz"):
+            self._download(body[: len(body) // 2])
 
 
 class RuleTests(unittest.TestCase):
