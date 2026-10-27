@@ -1,0 +1,22 @@
+MotionBricks G1 adapter notices
+
+The code under motionbricks/ is vendored unmodified from NVlabs/GR00T-WholeBodyControl
+(subproject motionbricks/) at commit 45c03facbf848e0c743091b7d9c17952096ff908 and is
+licensed under Apache-2.0 (Part 1 of the LICENSE file in this directory, the
+repository's dual-licence notice). The configuration, skeleton and statistics files
+under motionbricks/out/ are NVIDIA's plain git files at the same commit.
+
+The checkpoints (G1-clip.ckpt and the pose, root and VQ-VAE models) are NVIDIA's
+Git LFS objects at the same commit and are licensed under the NVIDIA Open Model
+License (Part 2 of the LICENSE file). The recipe's Model document addresses them by
+their LFS oid and size; the platform verifies the bytes when it ingests them.
+
+run.py is a Vonk Forge adapter. It replays the headless navigation loop of upstream
+motionbricks/scripts/interactive_demo_g1.py without a viewer or keyboard and writes
+the generated G1 qpos trajectory as JSON. MotionBricks has no text encoder; the
+command controls style, duration, heading and speed only.
+
+Primary sources:
+- https://github.com/NVlabs/GR00T-WholeBodyControl/tree/45c03facbf848e0c743091b7d9c17952096ff908/motionbricks
+- https://arxiv.org/abs/2604.24833
+- https://nvlabs.github.io/motionbricks

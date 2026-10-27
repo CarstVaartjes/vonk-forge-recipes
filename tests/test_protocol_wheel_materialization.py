@@ -36,7 +36,7 @@ def files(root: Path) -> list[str]:
 def test_every_protocol_consumer_is_reproduced_byte_for_byte() -> None:
     materialize(check=True)
     selected = selection()
-    assert len(selected.consumers) == 7
+    assert len(selected.consumers) == 8
     wheels = [
         payload for path, payload in projections().items() if path.endswith(".whl")
     ]
