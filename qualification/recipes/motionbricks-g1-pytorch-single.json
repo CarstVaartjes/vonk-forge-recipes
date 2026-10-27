@@ -1,0 +1,69 @@
+{
+  "id": "vonk-forge/motionbricks-g1-pytorch-single",
+  "recipes": {
+    "interface": "artifact-job",
+    "parameters": {},
+    "inputs": [
+      {
+        "slot": "command",
+        "fixture": "motionbricks-command-v1"
+      }
+    ],
+    "output_limits": {
+      "max_files": 1,
+      "max_file_bytes": 16777216,
+      "max_total_bytes": 16777216,
+      "allowed_media_types": [
+        "application/json"
+      ]
+    },
+    "timeout_seconds": 900,
+    "assertions": [
+      {
+        "kind": "file-count",
+        "exact": 1
+      },
+      {
+        "kind": "file-names",
+        "exact": [
+          "motion.json"
+        ]
+      },
+      {
+        "kind": "media-type",
+        "allowed": [
+          "application/json"
+        ]
+      },
+      {
+        "kind": "minimum-bytes",
+        "value": 1024
+      },
+      {
+        "kind": "format",
+        "format": "json"
+      },
+      {
+        "kind": "json-document",
+        "media_type": "application/json",
+        "required_keys": [
+          "format",
+          "format_version",
+          "fps",
+          "frame_count",
+          "qpos_dim",
+          "qpos_layout",
+          "qpos",
+          "segments"
+        ],
+        "equals": {
+          "format": "motionbricks-g1-qpos",
+          "format_version": 1,
+          "fps": 30,
+          "frame_count": 90,
+          "qpos_dim": 36
+        }
+      }
+    ]
+  }
+}

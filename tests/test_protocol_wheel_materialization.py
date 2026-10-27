@@ -36,7 +36,13 @@ def files(root: Path) -> list[str]:
 def test_every_protocol_consumer_is_reproduced_byte_for_byte() -> None:
     materialize(check=True)
     selected = selection()
-    assert len(selected.consumers) == 7
+    holders = {
+        path.parent.as_posix().removesuffix("/wheels")
+        for path in ROOT.glob("adapters/**/vonk_agent_protocol-*.whl")
+    }
+    assert {item.context for item in selected.consumers} == {
+        str(Path(holder).relative_to(ROOT)) for holder in holders
+    }
     wheels = [
         payload for path, payload in projections().items() if path.endswith(".whl")
     ]
