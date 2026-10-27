@@ -470,6 +470,31 @@ def test_structural_and_image_assertions() -> None:
         evaluate([{"kind": "format", "format": "mp4"}], outputs)
 
 
+def test_json_document_checks_required_keys_and_top_level_equals() -> None:
+    assertion = {
+        "kind": "json-document",
+        "media_type": "application/json",
+        "required_keys": ["style", "frames"],
+        "equals": {"style": "walk"},
+    }
+
+    def output(content: bytes) -> list[Output]:
+        return [Output("m.json", "application/json", content)]
+
+    assert evaluate([assertion], output(b'{"style": "walk", "frames": 3}')) == {}
+    for content in (
+        b'{"style": "walk"}',
+        b'{"style": "run", "frames": 3}',
+        b'["style", "frames"]',
+        b"not json",
+    ):
+        with pytest.raises(AssertionFailed) as missed:
+            evaluate([assertion], output(content))
+        assert missed.value.kind == "json-document"
+    with pytest.raises(AssertionFailed):
+        evaluate([assertion], [Output("m.png", "image/png", b"{}")])
+
+
 def test_every_assertion_kind_the_definitions_use_is_decided_or_named_not_evaluated() -> (
     None
 ):

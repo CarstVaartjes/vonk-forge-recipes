@@ -44,6 +44,7 @@ EVALUATED = frozenset(
         "image-metadata",
         "audio-metadata",
         "document-archive",
+        "json-document",
         "video-metadata",
         "glb-structure",
         "realtime-transcript",
@@ -197,6 +198,21 @@ def _document_archive(content: bytes, assertion: Mapping[str, Any]) -> None:
         _fail(assertion, "document-archive text", text[:200])
 
 
+def _json_document(content: bytes, assertion: Mapping[str, Any]) -> None:
+    try:
+        document = json.loads(content)
+    except ValueError as error:
+        raise AssertionFailed(f"not JSON: {error}", None, "json-document") from error
+    if not isinstance(document, dict):
+        _fail(assertion, "json-document is not an object", document)
+    for name in assertion.get("required_keys") or []:
+        if name not in document:
+            _fail(assertion, f"json-document required key {name}")
+    for name, value in dict(assertion.get("equals") or {}).items():
+        if document.get(name) != value:
+            _fail(assertion, f"json-document {name}", document.get(name))
+
+
 def evaluate(
     assertions: Sequence[Mapping[str, Any]], outputs: Sequence[Output]
 ) -> dict[str, str]:
@@ -258,6 +274,9 @@ def evaluate(
         elif kind == "document-archive":
             for output in selected:
                 _document_archive(output.content, assertion)
+        elif kind == "json-document":
+            for output in selected:
+                _json_document(output.content, assertion)
         elif kind in MEDIA:
             try:
                 for output in selected:
