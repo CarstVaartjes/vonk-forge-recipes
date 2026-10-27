@@ -334,7 +334,10 @@ A single-Spark recipe file a change touches must bound KV: an absolute pool
 plus the 8 GB overhead (plus the 17 GB floor of a separately loaded vLLM draft
 and the resident expansion of geometry pinned to the launch) is admissible on
 an idle Spark. Proven singles run up to 0.86, exactly the largest admitted peak;
-vLLM's implicit 0.90 is not admissible. gpt-oss-120b at 0.85 beside its 10 GB
+vLLM's implicit 0.90 is not admissible. A touched pool-less vLLM budget (any
+Spark count) must also hold the selected weights per rank plus the 8 GB
+overhead: Laguna S 2.1 r0b0tlab at 0.6 left 4.25 GB beside 74.15 GB of target
+and draft weights, and vLLM found no memory for KV cache blocks. gpt-oss-120b at 0.85 beside its 10 GB
 Marlin repack exhausted host memory. On one Spark a declared SGLang fraction is
 bounded whether or not `max-total-tokens` caps the pools: its share must be
 admissible, and the fraction × the idle available bytes must hold the selected

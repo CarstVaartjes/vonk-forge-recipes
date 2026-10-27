@@ -249,6 +249,13 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
             "peak understates vLLM budget",
             None,
         ),
+        # 2026-10-19 and 2026-10-27: 0.6 left 4.25 GB beside 74.15 GB of
+        # target and draft weights; vLLM found no memory for KV cache blocks.
+        (
+            "laguna-s-2-1-nvfp4-r0b0tlab-vllm-single-7b2c74ef",
+            "cannot hold the selected weights",
+            None,
+        ),
     ],
 )
 def test_recorded_single_spark_memory_failures_are_rejected_when_touched(

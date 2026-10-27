@@ -775,6 +775,12 @@ def require_bounded_kv_pool(
     hold its weights, expansion and capped pools: GLM a0 fa86311a at 0.75 was
     OOM-killed on 2026-10-21.
 
+    A pool-less vLLM budget must also hold the selected weights per rank plus
+    the runtime overhead, or vLLM finds no memory for KV cache blocks: Laguna
+    S 2.1 r0b0tlab 7b2c74ef at 0.6 left 4.25 GB beside 74.15 GB of target and
+    draft weights (2026-10-19, 2026-10-27). The proven set leaves at least
+    17.89 GB (d3-lite at 0.15).
+
     An absolute pool must hold one full-context request
     (require_absolute_kv_capacity), not context x max-num-seqs: vLLM schedules
     sequences within the pool. Proven duals hold fewer: DeepSeek V4 Flash 0731
@@ -821,6 +827,14 @@ def require_bounded_kv_pool(
     if fraction is None and not vllm:
         return  # Multi-Spark SGLang uses require_sglang_rank_budget.
     share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
+    weights = rank_weight_bytes(recipe, models, inputs) if vllm else 0
+    if vllm and share * TOTAL_BYTES < weights + OVERHEAD_BYTES:
+        raise ValueError(
+            f"{key}: {name} {share} share of {TOTAL_BYTES} bytes cannot hold the "
+            f"selected weights ({weights} bytes/rank) plus {OVERHEAD_BYTES} "
+            f"overhead, leaving vLLM no memory for KV cache blocks; raise it "
+            f"within admission or set absolute {pools[0]}"
+        )
     if recipe.topology.node_count != 1:
         ceiling = f"leaves the {GUARD_BYTES}-byte host memory guard"
         bounded = share * TOTAL_BYTES + OVERHEAD_BYTES <= TOTAL_BYTES - GUARD_BYTES
