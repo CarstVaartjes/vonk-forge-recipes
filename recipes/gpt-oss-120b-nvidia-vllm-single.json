@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "9204569b17ee4c0eff75194b8e6e458479c8aee18953b5ab9cf359fcdac659e2",
+        "digest": "d049bead397430803ac5b705d50094492f23782716677d746ab721e43f054cf6",
         "repository": "nvcr.io/nvidia/vllm"
       },
       "context": {
@@ -12,11 +12,7 @@
       "network": {
         "hosts": []
       },
-      "patches": [
-        {
-          "path": "adapters/nvidia/gpt-oss-120b-nvidia-vllm-single/patch-marlin.py"
-        }
-      ]
+      "patches": []
     }
   },
   "identity": {
@@ -36,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "NVIDIA DGX Spark vLLM 26.05.post1 MXFP4 recipe for the exact OpenAI GPT-OSS 120B revision, with offline Harmony encodings. Backports the MXFP4 Marlin expert repack from vLLM PR #47851 to bound duplicate weight allocations during startup; the 2026-10-21 failure occurred after loading weights on an otherwise idle Spark, before KV profiling. Keeps 131072-token context with one engine sequence, a conservative 9663676416-byte BF16 KV pool charging all 36 layers at full context, 2048-token prefill batches and eager execution. Declared peak is selected weight bytes + absolute KV + 10 GB Marlin padding/scale expansion + 8 GB estimated runtime/loading overhead, not a fraction of host RAM. Physical startup and full-context acceptance remain pending.",
+    "description": "NVIDIA DGX Spark vLLM 26.08 (vLLM 0.27.1) MXFP4 recipe for the exact OpenAI GPT-OSS 120B revision, with offline Harmony encodings. NVIDIA's playbook runs the latest NGC vLLM container; 26.08 is the first on vLLM 0.26.0 or later, the line upstream validated for this model on DGX Spark (checked at image build). On 26.05.post1 (vLLM 0.21.0) the load exhausted an otherwise idle Spark's unified memory right after the weights loaded, before KV allocation, on 2026-10-21 and again with the #47851 backport on 2026-10-27. Keeps 131072-token context with one engine sequence, a conservative 9663676416-byte BF16 KV pool charging all 36 layers at full context, 2048-token prefill batches and eager execution. Declared peak is selected weight bytes + absolute KV + 10 GB Marlin padding/scale expansion + 8 GB estimated runtime/loading overhead, not a fraction of host RAM. Physical startup and full-context acceptance remain pending.",
     "tags": [
       "executable",
       "candidate",
@@ -333,8 +329,8 @@
     "source_reference": "https://github.com/NVIDIA/dgx-spark-playbooks/blob/98b3a473f30916ec05eef3e7a01b781aaf4daa8a/nvidia/vllm/README.md"
   },
   "release": {
-    "released_at": "2026-10-12",
-    "version": "26.05.post1"
+    "released_at": "2026-08-24",
+    "version": "26.08"
   },
   "runtime": {
     "arguments": [
@@ -424,7 +420,7 @@
         "resources": {
           "disk": {
             "artifact_bytes": 65276859410,
-            "image_bytes": 25000000000,
+            "image_bytes": 30000000000,
             "safety_margin_bytes": 12000000000,
             "working_bytes": 32638429705
           },
