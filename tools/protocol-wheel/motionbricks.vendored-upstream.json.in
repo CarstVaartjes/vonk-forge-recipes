@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "NOTICE",
+    "requirements.in",
+    "requirements.lock",
+    "run.py",
+    "@protocol.wheel@"
+  ],
+  "source": {
+    "commit": "45c03facbf848e0c743091b7d9c17952096ff908",
+    "repo": "NVlabs/GR00T-WholeBodyControl"
+  }
+}

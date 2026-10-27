@@ -1,0 +1,13 @@
+{
+  "ours": [
+    "NOTICE",
+    "requirements.in",
+    "requirements.lock",
+    "run.py",
+    "vonk_agent_protocol-4.1.0-py3-none-any.whl"
+  ],
+  "source": {
+    "commit": "45c03facbf848e0c743091b7d9c17952096ff908",
+    "repo": "NVlabs/GR00T-WholeBodyControl"
+  }
+}
