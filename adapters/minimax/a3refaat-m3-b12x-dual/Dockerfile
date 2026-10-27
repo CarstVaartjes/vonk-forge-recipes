@@ -48,9 +48,15 @@ RUN apt update && \
     && rm -rf /var/lib/apt/lists/* \
     && pip install uv
 
-# The PyTorch index carries no upload dates, so torch is pinned exactly instead.
+# The PyTorch index carries no upload dates, so torch is pinned exactly instead. Every later uv resolution, here and
+# in the runner, is constrained to this torch (UV_CONSTRAINT): the vLLM and FlashInfer wheels compile against it, and
+# nothing else pins it (use_existing_torch.py strips vLLM's pins). Unconstrained, the runner's wheel install swapped
+# torch 2.11.0+cu130 for PyPI torch 2.10.0 (cuda-tile 1.4.0 wants CUDA 13.3 libraries, the cu130 torch pins 13.0),
+# and torchvision 0.26.0+cu130 then failed with "operator torchvision::nms does not exist".
 RUN env -u UV_EXCLUDE_NEWER uv pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 triton --index-url https://download.pytorch.org/whl/cu130 && \
-    uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2" filelock pynvml requests tqdm
+    uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2" filelock pynvml requests tqdm && \
+    mkdir -p /opt/vonk && uv pip freeze | grep -E '^(torch|torchvision|torchaudio|triton)==' > /opt/vonk/torch-constraints.txt
+ENV UV_CONSTRAINT=/opt/vonk/torch-constraints.txt
 
 ARG TORCH_CUDA_ARCH_LIST="12.1a"
 ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
@@ -117,10 +123,15 @@ WORKDIR $VLLM_BASE_DIR/vllm
 COPY patches/ /workspace/local-patches/
 RUN git apply -v --whitespace=nowarn /workspace/local-patches/vllm/minimax-m3-fused-fp8-kv.patch
 
+# FlashAttention 3 (vllm-flash-attn hopper/, 194 compiles, about an hour of this build) is not built: it targets
+# sm_90a only (its FA3_ARCHS is empty for 12.1a) and vLLM never selects it on GB10 (fa_utils.get_flash_attn_version
+# uses FA3 on compute capability 9.x only and falls back from it on 10+). FA2, which GB10 runs, is unchanged.
 RUN python3 use_existing_torch.py && \
     sed -i "/flashinfer/d" requirements/cuda.txt && \
     sed -i '/^triton\b/d' requirements/test/cuda.txt && \
     sed -i '/^fastsafetensors\b/d' requirements/test/cuda.txt && \
+    grep -qF 'ext_modules.append(CMakeExtension(name="vllm.vllm_flash_attn._vllm_fa3_C"))' setup.py && \
+    sed -i 's/ext_modules.append(CMakeExtension(name="vllm.vllm_flash_attn._vllm_fa3_C"))/pass/' setup.py && \
     uv pip install -r requirements/build/cuda.txt
 
 # Rust PyO3 tool parser for --tool-call-parser minimax_m3 (upstream --build-rust), toolchain fixed at 1.96.0.
@@ -181,6 +192,9 @@ RUN mkdir -p tiktoken_encodings && \
     echo "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d  tiktoken_encodings/o200k_base.tiktoken" | sha256sum -c - && \
     echo "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7  tiktoken_encodings/cl100k_base.tiktoken" | sha256sum -c -
 
+# The torch the wheels were compiled against (stage 1's freeze); every later uv install here is constrained to it.
+COPY --from=base /opt/vonk/torch-constraints.txt /opt/vonk/torch-constraints.txt
+ENV UV_CONSTRAINT=/opt/vonk/torch-constraints.txt
 RUN env -u UV_EXCLUDE_NEWER uv pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 triton --index-url https://download.pytorch.org/whl/cu130 && \
     uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2"
 

@@ -17,6 +17,20 @@ MARKERS = {
 WRAPPER = Path("/opt/vonk/bin/vllm")
 NCCL = Path("/opt/nccl/lib/libnccl.so.2")
 PIP_NCCL = Path("/usr/local/lib/python3.12/dist-packages/nvidia/nccl/lib/libnccl.so.2")
+TORCH_CONSTRAINTS = Path("/opt/vonk/torch-constraints.txt")
+TORCH_DISTRIBUTIONS = ("torch", "torchvision", "torchaudio", "triton")
+
+
+def verify_torch() -> None:
+    # vLLM and FlashInfer were compiled against stage 1's torch (its freeze is the constraints file); a resolution that
+    # replaces it leaves torchvision's ops and the compiled extensions unloadable.
+    pinned = dict(line.split("==", 1) for line in TORCH_CONSTRAINTS.read_text(encoding="utf-8").split())
+    installed = {name: importlib.metadata.version(name) for name in TORCH_DISTRIBUTIONS}
+    if pinned != installed:
+        raise SystemExit(f"torch stack differs from the one the wheels were built against: {installed} != {pinned}")
+    import torchvision  # noqa: F401  registers torchvision::nms against the installed torch
+
+    print("torch stack:", installed)
 
 
 def verify_nccl() -> None:
@@ -56,6 +70,7 @@ def verify_flashinfer_aot() -> None:
 
 
 def main() -> None:
+    verify_torch()
     verify_nccl()
     verify_flashinfer_cubin_version()
     verify_flashinfer_aot()
