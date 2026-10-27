@@ -46,7 +46,9 @@ class TonyDSparkVisionPortTests(unittest.TestCase):
                 encoding="utf-8"
             )
             run = "\n".join(
-                line for line in dockerfile.splitlines() if not line.lstrip().startswith("#")
+                line
+                for line in dockerfile.splitlines()
+                if not line.lstrip().startswith("#")
             )
             with self.subTest(slug=slug):
                 for step in PORT_STEPS:
