@@ -137,6 +137,33 @@ def test_sglang_token_pool_must_hold_one_context() -> None:
         require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
 
 
+def test_recurrent_state_counted_once_is_rejected() -> None:
+    # Operation c2940bb5 (2026-10-27): vLLM refused this 1M-context pool, sized
+    # for 48 GDN layers' raw state counted once; its startup check alone needed
+    # 34,681,651,200 bytes (padded pages, two per layer with prefix caching).
+    recipe = recipe_for("qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single")
+    pool = next(
+        arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
+    )
+    pool.value = 34_527_510_528
+    with pytest.raises(ValueError, match="cannot hold one full-context request"):
+        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert absolute_kv_need(recipe, catalog_models(), load_inputs()) > 34_681_651_200
+
+
+def test_recurrent_pages_beyond_a_hand_bound_are_rejected() -> None:
+    # vLLM pads Super VL's 40 Mamba layers to the attention page and holds
+    # two plus seven speculative pages per recurrent group with prefix
+    # caching: 3,019,898,880 bytes per request, above the 256 MiB hand bound.
+    recipe = recipe_for("nemotron-3-5-super-vl-lilicorr-sfxnz-vllm-single")
+    pool = next(
+        arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
+    )
+    pool.value = 2_800_000_000
+    with pytest.raises(ValueError, match="cannot hold one full-context request"):
+        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+
+
 def test_catalog_absolute_pools_hold_one_full_context_for_every_option() -> None:
     for path in sorted((ROOT / "recipes").glob("*.json")):
         recipe = RecipeDefinition.model_validate_json(path.read_text())

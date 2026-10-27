@@ -362,13 +362,20 @@ combination; the multi-Spark startup invariant precedes the historical-content
 waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractional
 pools are outside this absolute-pool check. Cache geometry binds configuration
 hashes and records padded/hybrid allocation bounds with their sources.
-A vLLM recurrent (Mamba/GDN) state bound follows vLLM's hybrid allocator: each
-recurrent layer's page pads to the attention page (block = state bytes /
-attention bytes per token, rounded up to the attention backend's kernel block
-size, larger for MLA hybrids and prefill-checkpoint alignment); prefix caching
-holds two pages per layer plus any speculative and prefill-checkpoint blocks;
-full-attention layers round to that block; and the null block takes one whole
-group block (one page per layer in a group) from the pool.
+Every geometry names its pinned config's `architecture`, classified as hybrid
+or attention in `qualification/memory_need.py`. A vLLM-pinned hybrid geometry
+records its Mamba/GDN layers as typed `recurrent` dimensions from that config
+(recurrent and attention layer counts, conv channels and kernel, temporal state
+elements and dtype, kernel block, and whether the loaded vLLM class supports
+prefix-caching mode "all", with its Mamba chunk). vLLM pads each recurrent page
+to the attention page, groups layers by the smallest bucket, holds 1, 2 or a
+context's worth of pages per recurrent group (prefix caching off, "align",
+"all") plus one per speculative token, and takes a whole group block as the
+null block; `vllm_hybrid_need` computes that bound from the recipe's prefix
+caching, cache dtypes, speculation, block size and TP and ignores any hand
+`state_bytes_per_request`, which other engines keep. A hybrid whose vLLM layout
+the formula cannot express is named, with its reason, in
+`VLLM_UNMODELED_HYBRID`.
 For an unproven failing pool, prefer the creator context and reserve at least
 one request at that context, checking the worst option. If that cannot be
 admitted with selected weights and runtime overhead, cap the explicit engine

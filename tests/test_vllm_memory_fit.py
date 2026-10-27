@@ -56,7 +56,7 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     assert recipe.settings.context_tokens.value == 1_048_576
     require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
     need = calculate_need(recipe, catalog_models(), load_inputs())
-    assert need.kv_bytes == 16 * 4 * (256 + 256) * 1_048_576
+    assert need.kv_bytes > 16 * 4 * (256 + 256) * 1_048_576
     # vLLM's one-request check (_check_enough_kv_cache_memory): each of the 48
     # recurrent layers' FP32 SSM + BF16 conv page pads to the attention page,
     # prefix caching (mamba_cache_mode align) holds two pages per layer, and
@@ -78,6 +78,10 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     # every attention block plus two blocks per recurrent group.
     usable_blocks = pool // page // 16 - 1
     assert usable_blocks >= math.ceil(1_048_576 / block) + 3 * 2
+    # One sequence: the workload is vLLM's hybrid allocation for one request.
+    assert need.kv_bytes + need.state_bytes == absolute_kv_need(
+        recipe, catalog_models(), load_inputs()
+    )
     memory = recipe.topology.roles[0].resources.memory
     assert memory.reserve_bytes == GUARD_BYTES
     assert memory.peak_bytes >= need.total_bytes + 3_000_000_000
