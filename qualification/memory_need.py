@@ -78,6 +78,64 @@ class MambaCacheMode(StrEnum):
 MAMBA_DTYPE_BYTES = {"float32": 4, "float16": 2, "bfloat16": 2}
 
 
+# Pinned-config architectures (config.json "architectures"[0]; "params.json"
+# for Mistral-native checkpoints), classified from the vLLM model class they
+# load. Hybrid classes hold Mamba/GDN/KDA/short-conv state that vLLM pads and
+# groups with the attention pages; a geometry with an unclassified
+# architecture is rejected.
+HYBRID_ARCHITECTURES = frozenset(
+    {
+        "Glm5NextForConditionalGeneration",  # KDA linear + DSA layers
+        "InklingForConditionalGeneration",  # use_sconv short convolution
+        "NemotronHForCausalLM",
+        "NemotronH_Nano_Omni_Reasoning_V3",
+        "NemotronH_Omni_Reasoning_V3",
+        "Qwen3_5ForConditionalGeneration",  # GDN linear attention
+        "Qwen4ExpForConditionalGeneration",  # GDN linear attention
+    }
+)
+ATTENTION_ARCHITECTURES = frozenset(
+    {
+        "DeepseekV41ForCausalLM",
+        "DeepseekV4ForCausalLM",
+        "Glm5vForConditionalGeneration",
+        "GlmMoeDsaForCausalLM",
+        "GptOssForCausalLM",
+        "HYV3ForCausalLM",
+        "LagunaForCausalLM",
+        "LlamaForCausalLM",
+        "MiMoV2ForCausalLM",
+        "MiniMaxM2ForCausalLM",
+        "Step3p7ForConditionalGeneration",
+        "Step5ForConditionalGeneration",
+        "params.json",
+    }
+)
+# Classes vLLM loads that implement SupportsMambaPrefixCaching, so prefix
+# caching defaults to mode "all": NemotronHForCausalLM in vLLM v0.20.0
+# (nemotron_h.py:765-773), v0.27.0 and v0.30.0 (nemotron_h.py:711-721). The
+# Omni/VL architectures load NemotronH_Nano_VL_V2 (registry.py, v0.20.0 to
+# nightly 3f1bcfd8), which does not, so they run "align"; nightly 3f1bcfd8
+# defaults every hybrid to "align" (models/config.py:711-713).
+MAMBA_PREFIX_CACHING_ARCHITECTURES = frozenset({"NemotronHForCausalLM"})
+# vLLM-pinned hybrid geometries whose layout vllm_hybrid_need cannot express,
+# judged by their existing attention and hand bounds instead.
+VLLM_UNMODELED_HYBRID = {
+    # vLLM v0.30.0 Qwen4Exp adds a second tp_replicated PLE MambaSpec, a QSA
+    # CircularBufferSpec ring, an MLA compressed-key cache and an MTP QSA
+    # layer; its sfxnz dual is proven (9f77f966) on this hand bound.
+    "qwen3-8-flash-next-nvfp4-fab0aecb": "Qwen4Exp on vLLM v0.30.0",
+    # Sliding-window plus short-convolution layers on creator images whose
+    # vLLM Inkling layout is not pinned; SGLang-measured state.
+    "inkling-small-nvfp4": "Inkling short convolution on creator images",
+    # KDA + DSA on creator vLLM forks; the attention bound already counts all
+    # 45 layers (34 of them KDA) at 12,288 FP8 bytes per token.
+    "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": "Glm5Next KDA + DSA",
+    "glm-5-3-flash-nvfp4-caca4e6a": "Glm5Next KDA + DSA",
+    "glm-5-3-flash-nvfp4-spark-a6082410": "Glm5Next KDA + DSA",
+}
+
+
 class RecurrentCache(BaseModel):
     """Mamba/GDN layer state from the pinned configuration, before TP sharding.
 
@@ -89,15 +147,25 @@ class RecurrentCache(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
     layers: int = Field(gt=0)
+    # Full-attention layers vLLM groups with them (the geometry's `layers`
+    # may over-bound attention for other engines).
+    attention_layers: int = Field(gt=0)
     conv_channels: int = Field(gt=0)
     conv_kernel: int = Field(gt=1)
     state_elements: int = Field(gt=0)
     state_dtype_bytes: int = Field(gt=0)
     # Smallest attention kernel block of the pinned image's backend.
     kernel_block_tokens: int = Field(default=16, gt=0)
-    # Mamba chunk size when the architecture supports prefix-caching mode
-    # "all" (SupportsMambaPrefixCaching, e.g. NemotronH); otherwise "align".
-    all_mode_chunk_tokens: int | None = Field(default=None, gt=0)
+    # Whether the loaded vLLM class supports prefix-caching mode "all"
+    # (MAMBA_PREFIX_CACHING_ARCHITECTURES), and its Mamba chunk size.
+    mamba_prefix_caching: bool
+    chunk_tokens: int | None = Field(default=None, gt=0)
+
+    @model_validator(mode="after")
+    def chunk_for_all_mode(self) -> Self:
+        if self.mamba_prefix_caching != (self.chunk_tokens is not None):
+            raise ValueError('mode "all" needs the Mamba chunk size, and only it')
+        return self
 
 
 class CacheGeometry(BaseModel):
@@ -118,12 +186,14 @@ class CacheGeometry(BaseModel):
     value_dim: int = Field(ge=0)
     sliding_layers: int = Field(default=0, ge=0)
     sliding_window: int = Field(default=0, ge=0)
-    # Mamba/GDN layers: vLLM pads, groups and null-blocks them (vllm_hybrid_need).
+    architecture: str
+    # Mamba/GDN layers on vLLM: padded, grouped and null-blocked
+    # (vllm_hybrid_need). Required for a vLLM-pinned hybrid architecture
+    # outside VLLM_UNMODELED_HYBRID.
     recurrent: RecurrentCache | None = None
     # Hand-entered extra state counted once per request (sliding windows,
-    # compressed or replay caches, SGLang slots). Never Mamba/GDN state on
-    # vLLM (vLLM pads and groups it: use `recurrent`) unless named in
-    # tests/test_vllm_hybrid_kv.py EXPLICIT_HAND_BOUNDS.
+    # compressed or replay caches, SGLang slots, other engines' recurrent
+    # state). vLLM ignores it where `recurrent` is set.
     state_bytes_per_request: int = Field(default=0, ge=0)
     # Compressed/hybrid layouts may use a conservative packed-token bound.
     token_bytes: int | None = Field(default=None, gt=0)
@@ -137,10 +207,21 @@ class CacheGeometry(BaseModel):
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
     @model_validator(mode="after")
-    def one_recurrent_bound(self) -> Self:
-        """Typed recurrent state uses plain attention layers and no hand bound."""
-        if self.recurrent is not None and (
-            self.state_bytes_per_request
+    def classified_recurrent_bound(self) -> Self:
+        """A classified architecture; typed recurrent state only on a hybrid
+        one, with plain attention and the loaded class's prefix caching."""
+        if self.architecture not in HYBRID_ARCHITECTURES | ATTENTION_ARCHITECTURES:
+            raise ValueError(
+                f"classify architecture {self.architecture} as hybrid or attention"
+            )
+        recurrent = self.recurrent
+        if recurrent is None:
+            return self
+        if (
+            self.architecture not in HYBRID_ARCHITECTURES
+            or recurrent.mamba_prefix_caching
+            != (self.architecture in MAMBA_PREFIX_CACHING_ARCHITECTURES)
+            or recurrent.attention_layers > self.layers
             or self.state_padding
             or self.sglang_state_bytes_per_slot
             or self.sliding_layers
@@ -149,7 +230,8 @@ class CacheGeometry(BaseModel):
             or self.replicated_token_bytes
         ):
             raise ValueError(
-                "recurrent geometry takes plain attention layers and no hand state bound"
+                "recurrent geometry needs a hybrid architecture, its prefix-caching "
+                "support and plain attention layers"
             )
         return self
 
@@ -382,6 +464,10 @@ def calculate_need(
                 f"{label}: calibrated resident bound requires disabled graphs"
             )
         expansion += geometry.resident_expansion_bytes
+        recurrent = vllm_recurrent(recipe, selection.model.slug, geometry)
+        if recurrent is not None:
+            kv += vllm_hybrid_need(recipe, geometry, recurrent, context, concurrency)
+            continue
         kv += cache_need_for_context(recipe, geometry, context) * concurrency
         slots = concurrency
         if geometry.state_padding:
@@ -390,9 +476,7 @@ def calculate_need(
                 raise ValueError(
                     f"{label}: absolute state pool cannot hold concurrency"
                 )
-        state += geometry.state_bytes_per_request * (
-            slots + geometry.state_padding
-        ) + recurrent_need(recipe, geometry, context, concurrency)
+        state += geometry.state_bytes_per_request * (slots + geometry.state_padding)
     # Selected draft weights/cache do not replace the measured outside-budget
     # floor: no replacement calibration exists for the 2026-10-13 Spark freeze.
     overhead = OVERHEAD_BYTES
@@ -694,15 +778,34 @@ def mamba_cache_mode(
     recipe: RecipeDefinition, recurrent: RecurrentCache
 ) -> MambaCacheMode:
     """vLLM MambaModelConfig: hybrid prefix caching is opt-in; it selects
-    "all" where the architecture supports it, else "align"."""
+    "all" where the loaded class supports it, else "align"."""
     if argument_value(recipe, "enable-prefix-caching") is not True:
         return MambaCacheMode.NONE
     mode = MambaCacheMode(
         str(argument_value(recipe, "mamba-cache-mode") or MambaCacheMode.NONE)
     )
-    if mode is MambaCacheMode.ALIGN or recurrent.all_mode_chunk_tokens is None:
+    if mode is MambaCacheMode.ALIGN or not recurrent.mamba_prefix_caching:
         return MambaCacheMode.ALIGN
     return MambaCacheMode.ALL
+
+
+def vllm_recurrent(
+    recipe: RecipeDefinition, slug: str, geometry: CacheGeometry
+) -> RecurrentCache | None:
+    """Typed recurrent state a vLLM launch is sized by; a hybrid architecture
+    without it is rejected unless VLLM_UNMODELED_HYBRID names the geometry."""
+    if recipe.runtime.engine != "vllm":
+        return None
+    if (
+        geometry.recurrent is None
+        and geometry.architecture in HYBRID_ARCHITECTURES
+        and slug not in VLLM_UNMODELED_HYBRID
+    ):
+        raise ValueError(
+            f"{recipe.identity.slug}: {slug} is a hybrid {geometry.architecture}; "
+            "add its typed recurrent geometry"
+        )
+    return geometry.recurrent
 
 
 def vllm_hybrid_need(
@@ -723,24 +826,25 @@ def vllm_hybrid_need(
     as the null block. Per request an attention group holds cdiv(context,
     block) blocks and a recurrent group (MambaSpec.max_memory_usage_bytes)
     1 (mode none), 2 (align) or cdiv(context, block) (all), plus one per
-    speculative token. This covers the startup check, which sums the layers
-    without group padding or the null block.
+    speculative token. The startup check (_max_memory_usage_bytes_from_groups)
+    counts the same padded groups without the null block, so this covers it.
     """
-    attention_layers, token_bytes = attention_token_bytes(recipe, geometry)
-    per_token = token_bytes // attention_layers
+    stage_layers, token_bytes = attention_token_bytes(recipe, geometry)
+    per_token = token_bytes // stage_layers
     state = recurrent_layer_bytes(recipe, recurrent)
     align = recurrent.kernel_block_tokens
     if argument_value(recipe, "block-size") is not None:
         align = max(align, positive_argument(recipe, "block-size"))
     mode = mamba_cache_mode(recipe, recurrent)
     if mode is MambaCacheMode.ALL:
-        assert recurrent.all_mode_chunk_tokens is not None
-        chunk = lcm(recurrent.all_mode_chunk_tokens, align)
+        assert recurrent.chunk_tokens is not None
+        chunk = lcm(recurrent.chunk_tokens, align)
         tokens = -(-state // per_token)
         block = chunk * -(-tokens // chunk)
     else:
         block = align * -(-state // (align * per_token))
     stages = recipe.topology.parallelism.pipeline
+    attention_layers = -(-recurrent.attention_layers // stages)
     recurrent_layers = -(-recurrent.layers // stages)
     smallest, largest = sorted((attention_layers, recurrent_layers))
     group = largest if 2 * largest < 3 * smallest else smallest
@@ -762,29 +866,6 @@ def vllm_hybrid_need(
         + 1
     )
     return blocks * group * block * per_token
-
-
-def recurrent_need(
-    recipe: RecipeDefinition, geometry: CacheGeometry, context: int, concurrency: int
-) -> int:
-    """What typed recurrent layers add to the attention cache of the requests.
-
-    vLLM pads, groups and null-blocks them (vllm_hybrid_need); other engines
-    hold the unpadded state per request.
-    """
-    recurrent = geometry.recurrent
-    if recurrent is None:
-        return 0
-    if recipe.runtime.engine != "vllm":
-        stages = recipe.topology.parallelism.pipeline
-        return (
-            concurrency
-            * -(-recurrent.layers // stages)
-            * recurrent_layer_bytes(recipe, recurrent)
-        )
-    return vllm_hybrid_need(
-        recipe, geometry, recurrent, context, concurrency
-    ) - concurrency * cache_need_for_context(recipe, geometry, context)
 
 
 def absolute_kv_need(
@@ -822,10 +903,13 @@ def absolute_kv_need(
         else 16
     )
     context = ((context + block - 1) // block) * block
+    recurrent = vllm_recurrent(recipe, selection.model.slug, geometry)
+    if recurrent is not None:
+        return vllm_hybrid_need(recipe, geometry, recurrent, context, concurrency)
     return (
         cache_need_for_context(recipe, geometry, context)
         + geometry.state_bytes_per_request
-    ) * concurrency + recurrent_need(recipe, geometry, context, concurrency)
+    ) * concurrency
 
 
 def require_absolute_kv_capacity(

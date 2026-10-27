@@ -1,48 +1,32 @@
 """vLLM's hybrid allocator sizes Mamba/GDN state; a hand state bound does not."""
 
 import json
-import re
 from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from pydantic import ValidationError
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
+    HYBRID_ARCHITECTURES,
+    VLLM_UNMODELED_HYBRID,
     CacheGeometry,
-    MambaCacheMode,
     absolute_kv_need,
     argument_value,
     cache_bytes,
     cache_need_for_context,
     hardware_proven,
     load_inputs,
-    mamba_cache_mode,
     memory_variants,
     positive_argument,
-    recurrent_layer_bytes,
     require_memory_need,
-    speculative_tokens,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 INPUTS = load_inputs()
-# Hand state bounds pinned by vLLM recipes although the model has recurrent
-# layers, each because its vLLM layout holds cache types vllm_hybrid_need
-# cannot express. A new entry needs the same evidence.
-EXPLICIT_HAND_BOUNDS = {
-    # Its only vLLM recipe (sfxnz dual, proven on 9f77f966) runs vLLM v0.30.0:
-    # Qwen4Exp adds a second tp_replicated PLE MambaSpec, a QSA
-    # CircularBufferSpec ring, an MLA compressed-key cache and an MTP QSA layer.
-    "qwen3-8-flash-next-nvfp4-fab0aecb",
-    # Sliding-window plus short-convolution layers on creator images whose
-    # vLLM Inkling layout is not pinned; the state term is SGLang-measured.
-    "inkling-small-nvfp4",
-}
-RECURRENT_WORDS = re.compile(
-    r"recurrent|mamba|linear.attention|gated.delta|\bGDN\b|\bSSM\b|sconv", re.IGNORECASE
-)
+DTYPE_BYTES = {"float32": 4, "float16": 2, "bfloat16": 2}
 
 
 def recipes() -> list[tuple[RecipeDefinition, str]]:
@@ -73,28 +57,51 @@ def allocator_walk(
 ) -> bool:
     """Whether vLLM v0.27 serves one max_model_len request from ``pool`` bytes.
 
-    Walks the source step by step: Platform._align_hybrid_block_size,
-    _get_kv_cache_groups_uniform_page_size, get_num_blocks, BlockPool's null
-    block and MambaSpec/FullAttentionSpec block demand.
+    Walks the source step by step from the config dimensions and launch
+    arguments: MambaStateShapeCalculator and MambaStateDtypeCalculator,
+    MambaModelConfig's cache mode, Platform._align_hybrid_block_size,
+    _get_kv_cache_groups_uniform_page_size, the startup check
+    _max_memory_usage_bytes_from_groups, get_num_blocks and BlockPool's null
+    block. Only the attention bytes per token come from the shared helper.
     """
-    recurrent = geometry.recurrent
-    assert recurrent is not None
+    state = geometry.recurrent
+    assert state is not None
+    tp = recipe.topology.parallelism.tensor
+    speculative = argument_value(recipe, "speculative-config")
+    if isinstance(speculative, str):
+        speculative = json.loads(speculative)
+    spec = (
+        int(speculative.get("num_speculative_tokens", 0))
+        if isinstance(speculative, dict)
+        else 0
+    )
+    conv_dtype = DTYPE_BYTES.get(str(argument_value(recipe, "mamba-cache-dtype")), 2)
+    ssm_dtype = DTYPE_BYTES.get(
+        str(argument_value(recipe, "mamba-ssm-cache-dtype")), state.state_dtype_bytes
+    )
+    mamba_page = (state.conv_channels // tp) * (
+        state.conv_kernel - 1 + spec
+    ) * conv_dtype + (state.state_elements // tp) * ssm_dtype
+    if argument_value(recipe, "enable-prefix-caching") is not True:
+        mode = "none"
+    elif argument_value(recipe, "mamba-cache-mode") == "align":
+        mode = "align"
+    else:
+        mode = "all" if state.mamba_prefix_caching else "align"
     layers = {
-        "attention": [f"attention.{i}" for i in range(geometry.layers)],
-        "mamba": [f"mamba.{i}" for i in range(recurrent.layers)],
+        "attention": [f"attention.{i}" for i in range(state.attention_layers)],
+        "mamba": [f"mamba.{i}" for i in range(state.layers)],
     }
     attention_1_token = cache_need_for_context(recipe, geometry, 1) // geometry.layers
-    mamba_page = recurrent_layer_bytes(recipe, recurrent)
-    kernel_alignment = recurrent.kernel_block_tokens
+    kernel_alignment = state.kernel_block_tokens
     if argument_value(recipe, "block-size") is not None:
         kernel_alignment = max(
             kernel_alignment, positive_argument(recipe, "block-size")
         )
-    mode = mamba_cache_mode(recipe, recurrent)
-    if mode is MambaCacheMode.ALL:
-        assert recurrent.all_mode_chunk_tokens is not None
+    if mode == "all":
+        assert state.chunk_tokens is not None
         chunk = kernel_alignment
-        while chunk % recurrent.all_mode_chunk_tokens:
+        while chunk % state.chunk_tokens:
             chunk += kernel_alignment
         tokens_per_state = -(-mamba_page // attention_1_token)
         block = chunk * -(-tokens_per_state // chunk)
@@ -111,24 +118,20 @@ def allocator_walk(
     for kind, names in layers.items():
         count = -(-len(names) // group_size)
         groups += [(kind, names[i::count]) for i in range(count)]
-    usable = pool // page // group_size - 1  # one block is the null block
     context = int(
         str(argument_value(recipe, "max-model-len") or geometry.max_context_tokens)
     )
-    spec = speculative_tokens(recipe)
     per_mamba_group = {
-        MambaCacheMode.NONE: 1 + spec,
-        MambaCacheMode.ALIGN: 2 + spec,
-        MambaCacheMode.ALL: -(-context // block) + spec,
+        "none": 1 + spec,
+        "align": 2 + spec,
+        "all": -(-context // block) + spec,
     }[mode]
     needed = sum(
         -(-context // block) if kind == "attention" else per_mamba_group
         for kind, _ in groups
     )
-    # _check_enough_kv_cache_memory sums layers without padding or null block.
-    startup = (
-        geometry.layers * -(-context // block) + recurrent.layers * per_mamba_group
-    ) * page
+    startup = group_size * page * needed
+    usable = pool // page // group_size - 1  # one block is the null block
     return usable >= needed and startup <= pool
 
 
@@ -172,12 +175,6 @@ def test_hybrid_bound_is_the_smallest_pool_vllm_serves(
             assert allocator_walk(variant, geometry, cache_bytes(pool))
 
 
-def test_every_recurrent_geometry_is_exercised_by_a_vllm_recipe() -> None:
-    covered = {recipe.models[0].model.slug for recipe in hybrid_vllm_recipes()}
-    typed = {key for key, item in INPUTS.geometries.items() if item.recurrent}
-    assert typed and typed <= covered
-
-
 def test_proven_hybrid_documents_pass_unchanged() -> None:
     # Calibration: hardware-proven hybrid pools hold vLLM's allocation as authored.
     models, proven = catalog_models(), []
@@ -193,18 +190,67 @@ def test_proven_hybrid_documents_pass_unchanged() -> None:
     assert "nemotron-3-nano-omni-30b-a3b-bf16-nvidia-vllm-single" in proven
 
 
-def test_vllm_recurrent_state_is_never_a_hand_bound() -> None:
+def test_vllm_hybrids_are_typed_or_named_unmodeled() -> None:
     pinned = {
         item.model.slug
         for recipe, _ in recipes()
         if recipe.runtime.engine == "vllm"
         for item in recipe.models
     }
-    hand = {
+    untyped = {
         key
         for key, geometry in INPUTS.geometries.items()
         if key in pinned
-        and geometry.state_bytes_per_request
-        and RECURRENT_WORDS.search(geometry.source)
+        and geometry.architecture in HYBRID_ARCHITECTURES
+        and geometry.recurrent is None
     }
-    assert hand == EXPLICIT_HAND_BOUNDS
+    assert untyped == set(VLLM_UNMODELED_HYBRID)
+    # Fault injection: an untyped hybrid geometry is rejected on vLLM.
+    recipe = next(iter(hybrid_vllm_recipes()))
+    slug = recipe.models[0].model.slug
+    inputs = INPUTS.model_copy(deep=True)
+    inputs.geometries[slug].recurrent = None
+    with pytest.raises(ValueError, match="add its typed recurrent geometry"):
+        absolute_kv_need(recipe, catalog_models(), inputs)
+
+
+def test_other_engines_keep_the_hand_state_bound() -> None:
+    recipe = next(
+        recipe
+        for recipe, _ in recipes()
+        if recipe.runtime.engine == "sglang" and recurrent(recipe.models[0].model.slug)
+    )
+    geometry = INPUTS.geometries[recipe.models[0].model.slug]
+    context = positive_argument(recipe, "context-length")
+    assert absolute_kv_need(recipe, catalog_models(), INPUTS) == (
+        cache_need_for_context(recipe, geometry, -(-context // 16) * 16)
+        + geometry.state_bytes_per_request
+    )
+
+
+ADAY777 = "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"
+
+
+@pytest.mark.parametrize(
+    "update",
+    [
+        {"architecture": "UnclassifiedForCausalLM"},
+        {"architecture": "LlamaForCausalLM"},
+        {"token_bytes": 4096},
+        {"sliding_layers": 4, "sliding_window": 128},
+        {"replicated_token_bytes": 768},
+        {"state_padding": 1},
+        {"recurrent": {"mamba_prefix_caching": True, "chunk_tokens": 128}},
+        {"recurrent": {"chunk_tokens": 128}},
+        {"recurrent": {"attention_layers": 17}},
+    ],
+)
+def test_recurrent_geometry_fields_are_exclusive(update: dict[str, object]) -> None:
+    document = INPUTS.geometries[ADAY777].model_dump()
+    for key, value in update.items():
+        if isinstance(value, dict):
+            document[key] |= value
+        else:
+            document[key] = value
+    with pytest.raises(ValidationError):
+        CacheGeometry.model_validate(document)
