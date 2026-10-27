@@ -212,8 +212,10 @@ def _evaluate(response: Any, raw: str, assertion: dict[str, Any]) -> tuple[bool,
             or value > expected
         )
     elif kind == "path.json-equals":
+        from .job_media import strict_json  # job_media imports this module
+
         try:
-            bad = (json.loads(value) if isinstance(value, str) else None) != expected
+            bad = (strict_json(value) if isinstance(value, str) else None) != expected
         except ValueError:
             bad = True
     elif kind == "array.path-count-equals":
@@ -564,8 +566,10 @@ def run_case(base: str, case: dict[str, Any], config: HttpConfig) -> dict[str, A
     if len(raw) > limit:
         raise AssertionFailed("response exceeds its bound")
     text = raw.decode("utf-8", "replace")
+    from .job_media import strict_json  # job_media imports this module
+
     try:
-        document = json.loads(text)
+        document = strict_json(text)
         check_assertions(document, text, list(case.get("assertions", [])))
     except (AssertionFailed, ValueError) as error:
         error.body = text  # type: ignore[attr-defined]  # evidence for the result row
