@@ -34,7 +34,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on two Sparks with vLLM tensor parallel 2 over Ray, a 1,000,000-token context on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode), MTP1 speculative decoding and safetensors loading. Basis: tonyd2wild's recipe (MIT; the vendored mods are derived from vLLM, Apache-2.0) on tonyd2wild's published patched vLLM 0.21.1rc1.dev85 dev-build image, with upstream's four image mods applied at build time. Alternatives by the same creator for this model and Spark count are the DFlash speculative-decoding variants with FP8 or NVFP4 KV (separate repositories, not packaged here). Upstream figures (about 32 tok/s single stream, 184 tok/s at eight streams, 2.17M-token KV pool at 1M context) are claims until measured here; the upstream deployment is Ray-based and Vonk physical two-Spark acceptance is pending. Sampling defaults is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: temperature 0, top_p 0.95, repetition_penalty 1.08 (upstream default). GB10 fit: GPU utilization 0.82, 0.84 → 0.81 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory. Absolute KV correction: 19,902,873,600 bytes per rank covers 8 simultaneous full-context requests at 744,192 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 1,000,000 tokens to 744,192 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
+    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on two Sparks with vLLM tensor parallel 2 over Ray, a 744,192-token context (creator profile 1M) on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode), MTP1 speculative decoding and safetensors loading. Basis: tonyd2wild's recipe (MIT; the vendored mods are derived from vLLM, Apache-2.0) on tonyd2wild's published patched vLLM 0.21.1rc1.dev85 dev-build image, with upstream's four image mods applied at build time. Alternatives by the same creator for this model and Spark count are the DFlash speculative-decoding variants with FP8 or NVFP4 KV (separate repositories, not packaged here). Upstream figures (about 32 tok/s single stream, 184 tok/s at eight streams, 2.17M-token KV pool at 1M context) are claims until measured here; the upstream deployment is Ray-based and Vonk physical two-Spark acceptance is pending. Sampling defaults is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: temperature 0, top_p 0.95, repetition_penalty 1.08 (upstream default). GB10 fit: the declared peak is the loading floor (selected weights, this KV pool and 8 GB runtime overhead) and the 0.759290 startup budget stays inside it. Absolute KV correction: 7,463,577,600 bytes per rank covers 3 simultaneous full-context requests at 744,192 tokens using the pinned cache-geometry allocation bound; this build used at least 15 GB per rank beside its weights and KV on hardware, so the pool leaves room for that and the 6 GB platform floor. Context stays capped at 744,192 tokens (creator profile 1,000,000). This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "audio",
       "diffkv",
@@ -871,12 +871,12 @@
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 19902873600
+        "value": 7463577600
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.854491"
+        "value": "0.759290"
       }
     ],
     "engine": "vllm",
@@ -1002,7 +1002,7 @@
   "settings": {
     "concurrency": {
       "change_effect": "restart",
-      "value": 8
+      "value": 3
     },
     "context_tokens": {
       "change_effect": "restart",
@@ -1034,7 +1034,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119650584124,
+            "peak_bytes": 107211288124,
             "reserve_bytes": 6000000000
           }
         }
@@ -1051,7 +1051,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 119650584124,
+            "peak_bytes": 107211288124,
             "reserve_bytes": 6000000000
           }
         }
