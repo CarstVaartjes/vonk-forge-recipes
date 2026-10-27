@@ -1080,7 +1080,11 @@ def require_bounded_kv_pool(
     the runtime overhead, or vLLM finds no memory for KV cache blocks: Laguna
     S 2.1 r0b0tlab 7b2c74ef at 0.6 left 4.25 GB beside 74.15 GB of target and
     draft weights (2026-10-19, 2026-10-27). The proven set leaves at least
-    17.89 GB (d3-lite at 0.15).
+    17.89 GB (d3-lite at 0.15). Where the launch pins cache geometry, the
+    budget also holds one full-context request, which vLLM requires before it
+    starts: Laguna S 2.1 Mia b72a8ee1 at 0.85 had 1.12 GB beside 101.94 GB of
+    weights for a 13.0 GB BF16 262,144-token request (vLLM reported -23.95 GiB
+    of KV cache memory on 2026-10-27).
 
     An absolute pool must hold one full-context request
     (require_absolute_kv_capacity), not context x max-num-seqs: vLLM schedules
@@ -1129,12 +1133,23 @@ def require_bounded_kv_pool(
         return  # Multi-Spark SGLang uses require_sglang_rank_budget.
     share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
     weights = rank_weight_bytes(recipe, models, inputs) if vllm else 0
-    if vllm and share * TOTAL_BYTES < weights + OVERHEAD_BYTES:
+    primary = recipe.models[0]
+    pinned = applicable_geometry(
+        recipe,
+        primary.model.slug,
+        models[primary.model.content_sha256],
+        inputs,
+    )
+    context = absolute_kv_need(recipe, models, inputs) if vllm and pinned else 0
+    if vllm and share * TOTAL_BYTES < weights + OVERHEAD_BYTES + context:
+        request = (
+            f" and one full-context request ({context} bytes/rank)" if context else ""
+        )
         raise ValueError(
             f"{key}: {name} {share} share of {TOTAL_BYTES} bytes cannot hold the "
             f"selected weights ({weights} bytes/rank) plus {OVERHEAD_BYTES} "
-            f"overhead, leaving vLLM no memory for KV cache blocks; raise it "
-            f"within admission or set absolute {pools[0]}"
+            f"overhead{request}, leaving vLLM no memory for KV cache blocks; raise "
+            f"it within admission, shorten the context or set absolute {pools[0]}"
         )
     if recipe.topology.node_count != 1:
         ceiling = f"leaves the {GUARD_BYTES}-byte host memory guard"

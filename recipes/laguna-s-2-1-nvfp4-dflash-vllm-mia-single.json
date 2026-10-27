@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM profile from MiaAI-Lab's Laguna-S-2.1-DGX-Spark-RTX-6000-PRO at 750a52ea: the exact 826aacdf Laguna S 2.1 NVFP4 checkpoint with the exact b3b5921a Laguna S 2.1 DFlash NVFP4 speculative draft (7 tokens), vLLM 0.25.1 with FlashInfer attention, 256K context, 4 sequences, reasoning and tool parsing. Upstream ships no container: the image is the digest-pinned official vLLM v0.25.1 image with upstream's FlashInfer 0.6.15.dev20260712 nightly wheels baked in at build time instead of installed at every start. Upstream code has no licence file; the target model is OpenMDW-1.1 and the draft repository declares no licence. Upstream claims (not measured here) a ~15 minute first start and its own decode-throughput chart. Physical Spark acceptance is pending. Upstream's RTX 6000 PRO variant is not covered. Reasoning by default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking true. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "Candidate single-Spark vLLM profile from MiaAI-Lab's Laguna-S-2.1-DGX-Spark-RTX-6000-PRO at 750a52ea: the exact 07614121 Laguna S 2.1 NVFP4 checkpoint with the exact b3b5921a Laguna S 2.1 DFlash NVFP4 speculative draft (7 tokens), vLLM 0.25.1 with FlashInfer attention, 256K context, 4 sequences, reasoning and tool parsing. Upstream ships no container: the image is the digest-pinned official vLLM v0.25.1 image with upstream's FlashInfer 0.6.15.dev20260712 nightly wheels baked in at build time instead of installed at every start. Upstream code has no licence file; the target model is OpenMDW-1.1 and the draft repository declares no licence. Upstream claims (not measured here) a ~15 minute first start and its own decode-throughput chart. Physical Spark acceptance is pending. Upstream's RTX 6000 PRO variant is not covered. Reasoning by default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking true. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Checkpoint correction (2026-10-27): upstream measured 32.44 GiB of KV cache at 0.85 on the July checkpoint its script downloaded (about 71 GB, FP8 KV scheme). The later 826aacdf export keeps the experts of layers 40-47 in BF16 (99.7 GB) and drops the FP8 KV scheme; at 0.85 vLLM reported -23.95 GiB of KV cache memory and refused to start on hardware, and no admissible utilization holds it with one 262,144-token request. This recipe therefore pins 07614121, the newest revision with upstream's weight footprint. The b3b5921a draft has the same weights as 4cdcc6e9, the draft adapted to 07614121's rotation-free weights, and differs from it only in its 1,048,576-token position limit.",
     "tags": [
       "executable",
       "candidate",
@@ -61,8 +61,8 @@
     {
       "files": [
         {
-          "file_id": "metadata-c96667522371",
-          "id": "primary-metadata-c96667522371",
+          "file_id": "metadata-c96667522371-618cd5b83d",
+          "id": "primary-metadata-c96667522371-618cd5b83d",
           "mount": {
             "target": "/models/target"
           },
@@ -71,8 +71,8 @@
           ]
         },
         {
-          "file_id": "license-8a0c5e232551",
-          "id": "primary-license-8a0c5e232551",
+          "file_id": "license-8a0c5e232551-4673a3aba0",
+          "id": "primary-license-8a0c5e232551-4673a3aba0",
           "mount": {
             "target": "/models/target"
           },
@@ -81,8 +81,8 @@
           ]
         },
         {
-          "file_id": "readme-6fc047880130",
-          "id": "primary-readme-6fc047880130",
+          "file_id": "readme-81e3e866eff6-b335630551",
+          "id": "primary-readme-81e3e866eff6-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -91,8 +91,8 @@
           ]
         },
         {
-          "file_id": "chat-template-444819b8ad46",
-          "id": "primary-chat-template-444819b8ad46",
+          "file_id": "chat-template-444819b8ad46-00824420d1",
+          "id": "primary-chat-template-444819b8ad46-00824420d1",
           "mount": {
             "target": "/models/target"
           },
@@ -101,8 +101,8 @@
           ]
         },
         {
-          "file_id": "config-3b3a6e369129",
-          "id": "primary-config-3b3a6e369129",
+          "file_id": "config-9aaacf4716d0-587cb980af",
+          "id": "primary-config-9aaacf4716d0-587cb980af",
           "mount": {
             "target": "/models/target"
           },
@@ -111,8 +111,8 @@
           ]
         },
         {
-          "file_id": "configuration-laguna-9446b4fca6f8",
-          "id": "primary-configuration-laguna-9446b4fca6f8",
+          "file_id": "configuration-laguna-27ac8ef7f080-5e71f51702",
+          "id": "primary-configuration-laguna-27ac8ef7f080-5e71f51702",
           "mount": {
             "target": "/models/target"
           },
@@ -121,8 +121,8 @@
           ]
         },
         {
-          "file_id": "generation-config-81ff120c8c67",
-          "id": "primary-generation-config-81ff120c8c67",
+          "file_id": "generation-config-74ad707ac501-97dd3d578b",
+          "id": "primary-generation-config-74ad707ac501-97dd3d578b",
           "mount": {
             "target": "/models/target"
           },
@@ -131,8 +131,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-00049-bafa5ef7ccfd",
-          "id": "primary-model-00001-of-00049-bafa5ef7ccfd",
+          "file_id": "model-00001-of-00015-c8591d5d36f8-44561eb6b2",
+          "id": "primary-model-00001-of-00015-c8591d5d36f8-44561eb6b2",
           "mount": {
             "target": "/models/target"
           },
@@ -141,8 +141,8 @@
           ]
         },
         {
-          "file_id": "model-00002-of-00049-d91f55c3c81b",
-          "id": "primary-model-00002-of-00049-d91f55c3c81b",
+          "file_id": "model-00002-of-00015-29769ce86e02-07a29c15a6",
+          "id": "primary-model-00002-of-00015-29769ce86e02-07a29c15a6",
           "mount": {
             "target": "/models/target"
           },
@@ -151,8 +151,8 @@
           ]
         },
         {
-          "file_id": "model-00003-of-00049-80e0783d4e23",
-          "id": "primary-model-00003-of-00049-80e0783d4e23",
+          "file_id": "model-00003-of-00015-4c4143771eec-f78009be1c",
+          "id": "primary-model-00003-of-00015-4c4143771eec-f78009be1c",
           "mount": {
             "target": "/models/target"
           },
@@ -161,8 +161,8 @@
           ]
         },
         {
-          "file_id": "model-00004-of-00049-e3ee5dbe50a7",
-          "id": "primary-model-00004-of-00049-e3ee5dbe50a7",
+          "file_id": "model-00004-of-00015-a4460d1b13f2-537155251a",
+          "id": "primary-model-00004-of-00015-a4460d1b13f2-537155251a",
           "mount": {
             "target": "/models/target"
           },
@@ -171,8 +171,8 @@
           ]
         },
         {
-          "file_id": "model-00005-of-00049-88bb23dc4e9a",
-          "id": "primary-model-00005-of-00049-88bb23dc4e9a",
+          "file_id": "model-00005-of-00015-5a6c393d8ab1-a66a0e8406",
+          "id": "primary-model-00005-of-00015-5a6c393d8ab1-a66a0e8406",
           "mount": {
             "target": "/models/target"
           },
@@ -181,8 +181,8 @@
           ]
         },
         {
-          "file_id": "model-00006-of-00049-44d5cc53e65d",
-          "id": "primary-model-00006-of-00049-44d5cc53e65d",
+          "file_id": "model-00006-of-00015-209cbcb8960e-c6f64b47d4",
+          "id": "primary-model-00006-of-00015-209cbcb8960e-c6f64b47d4",
           "mount": {
             "target": "/models/target"
           },
@@ -191,8 +191,8 @@
           ]
         },
         {
-          "file_id": "model-00007-of-00049-d1a371ec20ca",
-          "id": "primary-model-00007-of-00049-d1a371ec20ca",
+          "file_id": "model-00007-of-00015-c0597b0d9ce1-77f2bf80e6",
+          "id": "primary-model-00007-of-00015-c0597b0d9ce1-77f2bf80e6",
           "mount": {
             "target": "/models/target"
           },
@@ -201,8 +201,8 @@
           ]
         },
         {
-          "file_id": "model-00008-of-00049-df485c3c09d7",
-          "id": "primary-model-00008-of-00049-df485c3c09d7",
+          "file_id": "model-00008-of-00015-f2b57043b744-b15e39c23e",
+          "id": "primary-model-00008-of-00015-f2b57043b744-b15e39c23e",
           "mount": {
             "target": "/models/target"
           },
@@ -211,8 +211,8 @@
           ]
         },
         {
-          "file_id": "model-00009-of-00049-3460f9cd677c",
-          "id": "primary-model-00009-of-00049-3460f9cd677c",
+          "file_id": "model-00009-of-00015-b10777318e89-114707df82",
+          "id": "primary-model-00009-of-00015-b10777318e89-114707df82",
           "mount": {
             "target": "/models/target"
           },
@@ -221,8 +221,8 @@
           ]
         },
         {
-          "file_id": "model-00010-of-00049-5143801097f2",
-          "id": "primary-model-00010-of-00049-5143801097f2",
+          "file_id": "model-00010-of-00015-c609513bc62f-beabd0fa3e",
+          "id": "primary-model-00010-of-00015-c609513bc62f-beabd0fa3e",
           "mount": {
             "target": "/models/target"
           },
@@ -231,8 +231,8 @@
           ]
         },
         {
-          "file_id": "model-00011-of-00049-50ed03d6c8ea",
-          "id": "primary-model-00011-of-00049-50ed03d6c8ea",
+          "file_id": "model-00011-of-00015-bde2636d5f14-d3dd1f014d",
+          "id": "primary-model-00011-of-00015-bde2636d5f14-d3dd1f014d",
           "mount": {
             "target": "/models/target"
           },
@@ -241,8 +241,8 @@
           ]
         },
         {
-          "file_id": "model-00012-of-00049-e3b0c9afde98",
-          "id": "primary-model-00012-of-00049-e3b0c9afde98",
+          "file_id": "model-00012-of-00015-c4ddbd51880d-188b7f7b7b",
+          "id": "primary-model-00012-of-00015-c4ddbd51880d-188b7f7b7b",
           "mount": {
             "target": "/models/target"
           },
@@ -251,8 +251,8 @@
           ]
         },
         {
-          "file_id": "model-00013-of-00049-83f91b41d1bc",
-          "id": "primary-model-00013-of-00049-83f91b41d1bc",
+          "file_id": "model-00013-of-00015-6a5d7c9e0023-75674c2d2e",
+          "id": "primary-model-00013-of-00015-6a5d7c9e0023-75674c2d2e",
           "mount": {
             "target": "/models/target"
           },
@@ -261,8 +261,8 @@
           ]
         },
         {
-          "file_id": "model-00014-of-00049-7335bd2c696e",
-          "id": "primary-model-00014-of-00049-7335bd2c696e",
+          "file_id": "model-00014-of-00015-7e1fb566bfb4-50b8711ff6",
+          "id": "primary-model-00014-of-00015-7e1fb566bfb4-50b8711ff6",
           "mount": {
             "target": "/models/target"
           },
@@ -271,8 +271,8 @@
           ]
         },
         {
-          "file_id": "model-00015-of-00049-419dbbcd9aba",
-          "id": "primary-model-00015-of-00049-419dbbcd9aba",
+          "file_id": "model-00015-of-00015-bd81d64092e4-91ba459589",
+          "id": "primary-model-00015-of-00015-bd81d64092e4-91ba459589",
           "mount": {
             "target": "/models/target"
           },
@@ -281,8 +281,8 @@
           ]
         },
         {
-          "file_id": "model-00016-of-00049-2bc0b91dd994",
-          "id": "primary-model-00016-of-00049-2bc0b91dd994",
+          "file_id": "model-safetensors-index-f0b03855fecd-0a05be8238",
+          "id": "primary-model-safetensors-index-f0b03855fecd-0a05be8238",
           "mount": {
             "target": "/models/target"
           },
@@ -291,8 +291,8 @@
           ]
         },
         {
-          "file_id": "model-00017-of-00049-33295ddcae43",
-          "id": "primary-model-00017-of-00049-33295ddcae43",
+          "file_id": "modeling-laguna-765fd328542d-4becc4c665",
+          "id": "primary-modeling-laguna-765fd328542d-4becc4c665",
           "mount": {
             "target": "/models/target"
           },
@@ -301,8 +301,8 @@
           ]
         },
         {
-          "file_id": "model-00018-of-00049-86262f28e4be",
-          "id": "primary-model-00018-of-00049-86262f28e4be",
+          "file_id": "special-tokens-map-70cd3459fde6-c07a9be597",
+          "id": "primary-special-tokens-map-70cd3459fde6-c07a9be597",
           "mount": {
             "target": "/models/target"
           },
@@ -311,8 +311,8 @@
           ]
         },
         {
-          "file_id": "model-00019-of-00049-12d70338ab96",
-          "id": "primary-model-00019-of-00049-12d70338ab96",
+          "file_id": "tokenizer-809240f7a182-224931eb13",
+          "id": "primary-tokenizer-809240f7a182-224931eb13",
           "mount": {
             "target": "/models/target"
           },
@@ -321,348 +321,8 @@
           ]
         },
         {
-          "file_id": "model-00020-of-00049-d6f56b567023",
-          "id": "primary-model-00020-of-00049-d6f56b567023",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00021-of-00049-ec304cbc979e",
-          "id": "primary-model-00021-of-00049-ec304cbc979e",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00022-of-00049-2dc96ac8104c",
-          "id": "primary-model-00022-of-00049-2dc96ac8104c",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00023-of-00049-039a3eeedd0a",
-          "id": "primary-model-00023-of-00049-039a3eeedd0a",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00024-of-00049-caf75a44fa15",
-          "id": "primary-model-00024-of-00049-caf75a44fa15",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00025-of-00049-8c4e33932c11",
-          "id": "primary-model-00025-of-00049-8c4e33932c11",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00026-of-00049-1399e19f57ce",
-          "id": "primary-model-00026-of-00049-1399e19f57ce",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00027-of-00049-b4e9fdc20059",
-          "id": "primary-model-00027-of-00049-b4e9fdc20059",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00028-of-00049-ce15771b0aeb",
-          "id": "primary-model-00028-of-00049-ce15771b0aeb",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00029-of-00049-16a2c6315931",
-          "id": "primary-model-00029-of-00049-16a2c6315931",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00030-of-00049-b580ce6dd534",
-          "id": "primary-model-00030-of-00049-b580ce6dd534",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00031-of-00049-38f197c2cdb3",
-          "id": "primary-model-00031-of-00049-38f197c2cdb3",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00032-of-00049-e2e6dbb74fb8",
-          "id": "primary-model-00032-of-00049-e2e6dbb74fb8",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00033-of-00049-05b86a9e41d4",
-          "id": "primary-model-00033-of-00049-05b86a9e41d4",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00034-of-00049-c4b176183375",
-          "id": "primary-model-00034-of-00049-c4b176183375",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00035-of-00049-355e7e0a2649",
-          "id": "primary-model-00035-of-00049-355e7e0a2649",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00036-of-00049-634998dddce9",
-          "id": "primary-model-00036-of-00049-634998dddce9",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00037-of-00049-199d031732ac",
-          "id": "primary-model-00037-of-00049-199d031732ac",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00038-of-00049-0867a16eba3e",
-          "id": "primary-model-00038-of-00049-0867a16eba3e",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00039-of-00049-c4c14bf0eb9f",
-          "id": "primary-model-00039-of-00049-c4c14bf0eb9f",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00040-of-00049-dd4402d17daa",
-          "id": "primary-model-00040-of-00049-dd4402d17daa",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00041-of-00049-36f9ae8d4e3e",
-          "id": "primary-model-00041-of-00049-36f9ae8d4e3e",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00042-of-00049-157eb6284b32",
-          "id": "primary-model-00042-of-00049-157eb6284b32",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00043-of-00049-5745559727a0",
-          "id": "primary-model-00043-of-00049-5745559727a0",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00044-of-00049-55122368f6e8",
-          "id": "primary-model-00044-of-00049-55122368f6e8",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00045-of-00049-e0b857108b6d",
-          "id": "primary-model-00045-of-00049-e0b857108b6d",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00046-of-00049-a6d1ea38de93",
-          "id": "primary-model-00046-of-00049-a6d1ea38de93",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00047-of-00049-795619eb5f02",
-          "id": "primary-model-00047-of-00049-795619eb5f02",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00048-of-00049-05a20b093032",
-          "id": "primary-model-00048-of-00049-05a20b093032",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00049-of-00049-be9beed132e2",
-          "id": "primary-model-00049-of-00049-be9beed132e2",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-index-d21d362ea5b8",
-          "id": "primary-model-index-d21d362ea5b8",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "modeling-laguna-765fd328542d",
-          "id": "primary-modeling-laguna-765fd328542d",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "special-tokens-map-70cd3459fde6",
-          "id": "primary-special-tokens-map-70cd3459fde6",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "tokenizer-809240f7a182",
-          "id": "primary-tokenizer-809240f7a182",
-          "mount": {
-            "target": "/models/target"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "tokenizer-config-8103b5dd4baf",
-          "id": "primary-tokenizer-config-8103b5dd4baf",
+          "file_id": "tokenizer-config-8103b5dd4baf-94d5c6ba8f",
+          "id": "primary-tokenizer-config-8103b5dd4baf-94d5c6ba8f",
           "mount": {
             "target": "/models/target"
           },
@@ -673,10 +333,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "154a33a80b42977ad6d262842484bc94c26b9b16d0f821faabe6558776ce8049",
+        "content_sha256": "aa43743d4fbc01f3e26976f9abb4ec19ca1a977116c1b4e1cd2d2561c6ef4043",
         "kind": "model",
         "publisher": "poolside",
-        "slug": "laguna-s-2-1-nvfp4-826aacdf"
+        "slug": "laguna-s-2-1-nvfp4-07614121"
       }
     },
     {
@@ -776,7 +436,7 @@
   },
   "release": {
     "released_at": "2026-07-22",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -921,7 +581,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 101947253325,
+            "artifact_bytes": 74168605864,
             "image_bytes": 30000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 60000000000

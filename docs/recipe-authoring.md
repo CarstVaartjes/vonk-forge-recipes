@@ -336,7 +336,10 @@ launch) is admissible on an idle Spark. Proven singles run up to 0.86, exactly t
 vLLM's implicit 0.90 is not admissible. A touched pool-less vLLM budget (any
 Spark count) must also hold the selected weights per rank plus the 8 GB
 overhead: Laguna S 2.1 r0b0tlab at 0.6 left 4.25 GB beside 74.15 GB of target
-and draft weights, and vLLM found no memory for KV cache blocks. gpt-oss-120b at 0.85 beside its 10 GB
+and draft weights, and vLLM found no memory for KV cache blocks. Where the launch
+pins cache geometry, the budget also holds one full-context request, which vLLM
+requires before it starts: Laguna S 2.1 Mia on the 826aacdf checkpoint at 0.85
+left 1.12 GB beside 101.94 GB of weights for a 13.0 GB request. gpt-oss-120b at 0.85 beside its 10 GB
 Marlin repack exhausted host memory. On one Spark a declared SGLang fraction is
 bounded whether or not `max-total-tokens` caps the pools: its share must be
 admissible, and the fraction × the idle available bytes must hold the selected

@@ -277,6 +277,14 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
             "cannot hold the selected weights",
             None,
         ),
+        # 2026-10-27: 0.85 left 1.12 GB beside 101.94 GB of 826aacdf target and
+        # draft weights, below one 262,144-token BF16 request (13.0 GB); vLLM
+        # reported -23.95 GiB of KV cache memory and found no cache blocks.
+        (
+            "laguna-s-2-1-nvfp4-dflash-vllm-mia-single-b72a8ee1",
+            "one full-context request",
+            None,
+        ),
         # 2026-10-21: 0.60 (78.40 GB) was below even the 80.32 GB of weights
         # vLLM loads; vLLM found no memory for KV cache blocks.
         (
