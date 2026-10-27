@@ -184,6 +184,15 @@ still supply identity, license, `--requires-token` for a gated repository and
 files the model does not need, and list only capabilities the model supports
 before you use the Model in a recipe.
 
+For a `github-lfs` Model, `tools/catalog-github-lfs-model` takes the same
+identity, licence and format flags plus `--repository`, a full 40-hex
+`--revision`, and one `--role` for each `--path`. It reads each path
+anonymously at that commit as a Git LFS pointer, and the pointer's oid and size
+become `sha256` and `size_bytes`. A path that is not a pointer (a plain git
+file) is refused: vendor it in the recipe package. It never downloads LFS
+content, because the Controller verifies the bytes at ingress. `--probe-batch`
+adds one batch request per object to confirm it exists; it transfers no bytes.
+
 An upstream shard may be published only as `<name>.part00`, `<name>.part01`,
 ... (joined by `cat`). The tool recognizes
 such a set and writes one file entry for `<name>` with `parts` (contract

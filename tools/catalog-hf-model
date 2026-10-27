@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import sys
@@ -15,13 +14,16 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
-from vonk_forge_contracts import ModelDefinition, document_sha256
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from tools._catalog_model import (
+    add_model_arguments,
+    file_id,
+    roles_for,
+    sha256_hex,
+    write_model,
+)
 
 MAX_INLINE_ARTIFACT_BYTES = 16 * 1024 * 1024
-
-
-def _sha256(payload: bytes) -> str:
-    return hashlib.sha256(payload).hexdigest()
 
 
 def _get_json(url: str) -> object:
@@ -58,38 +60,15 @@ def _get_bytes(url: str) -> bytes:
 
 def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--root", type=Path, default=Path(__file__).resolve().parents[1]
-    )
+    add_model_arguments(parser)
     parser.add_argument("--repository", required=True)
     parser.add_argument(
         "--revision", help="40-character commit; defaults to the repository head"
     )
-    parser.add_argument("--publisher", required=True)
-    parser.add_argument("--model-group-slug", required=True)
-    parser.add_argument("--model-group-title", required=True)
-    parser.add_argument("--model-group-description", required=True)
-    parser.add_argument("--model-slug", required=True)
-    parser.add_argument("--model-title", required=True)
-    parser.add_argument("--model-description", required=True)
-    parser.add_argument("--modality", default="language")
-    parser.add_argument("--version-slug", required=True)
-    parser.add_argument("--version", required=True)
-    parser.add_argument("--precision", required=True)
-    parser.add_argument("--quantization", required=True)
-    parser.add_argument("--license-spdx", required=True)
-    parser.add_argument("--license-url", required=True)
-    parser.add_argument("--attribution", action="append", required=True)
     parser.add_argument(
         "--requires-token",
         action="store_true",
         help="the repository is gated: downloading needs a provider token",
-    )
-    parser.add_argument(
-        "--capability",
-        action="append",
-        default=[],
-        help="a capability name the model supports (repeatable)",
     )
     parser.add_argument(
         "--assembled-sha256",
@@ -117,26 +96,6 @@ def _assembled_digests(values: list[str]) -> dict[str, str]:
         if digests.setdefault(path, digest) != digest:
             raise SystemExit(f"conflicting --assembled-sha256 for {path}")
     return digests
-
-
-def _slug(value: str) -> str:
-    if not value:
-        return "metadata"
-    slug = value.lower().replace("_", "-").replace(".", "-").replace("/", "-")
-    return slug if slug[:1].isalpha() else f"file-{slug}"
-
-
-def _roles(path: str) -> list[str]:
-    lowered = path.lower()
-    if lowered.endswith(".safetensors") or "model-" in lowered:
-        return ["weights"]
-    if "token" in lowered or "vocab" in lowered or lowered.endswith(".jinja"):
-        return ["tokenizer"]
-    if "config" in lowered or "generation" in lowered or lowered.endswith(".json"):
-        return ["configuration"]
-    if lowered.endswith(".py"):
-        return ["runtime"]
-    return ["metadata"]
 
 
 _PART_PATH = re.compile(r"^(?P<base>.+)\.part(?P<index>[0-9]{2,})$")
@@ -244,7 +203,7 @@ def inventory(
             ) from error
         if len(payload) != size:
             raise SystemExit(f"download size changed for {path}")
-        return {"path": path, "size": size, "sha256": _sha256(payload)}
+        return {"path": path, "size": size, "sha256": sha256_hex(payload)}
 
     resolved = [item for item in map(resolve, file_entries) if item is not None]
     split_sets, whole = _split_sets(resolved)
@@ -330,14 +289,8 @@ def _artifact(
 ) -> dict[str, Any]:
     path = item["path"]
     size = item["size"]
-    artifact_stem = _slug(path.rsplit("/", 1)[-1].rsplit(".", 1)[0])
-    path_sha256 = _sha256(path.encode())
     artifact: dict[str, Any] = {
-        # Basenames and even basename/content pairs are not globally
-        # unique in a Hugging Face tree. Trace repositories commonly
-        # repeat byte-identical result files in different directories,
-        # so bind the readable id to both content and full-path digests.
-        "id": f"{artifact_stem[:39]}-{sha256[:12]}-{path_sha256[:10]}",
+        "id": file_id(path, sha256),
         "path": path,
         "kind": "huggingface.file",
         "repository": f"https://huggingface.co/{repository}",
@@ -345,7 +298,7 @@ def _artifact(
         "sha256": sha256,
         "download_bytes": size,
         "installed_bytes": size,
-        "roles": _roles(path),
+        "roles": roles_for(path),
     }
     if parts is not None:
         artifact["parts"] = parts
@@ -354,7 +307,6 @@ def _artifact(
 
 def main() -> int:
     args = _arguments()
-    root = args.root.resolve()
     api_base = f"https://huggingface.co/api/models/{quote(args.repository, safe='/')}"
     model_api = _get_json(api_base)
     if not isinstance(model_api, dict):
@@ -374,54 +326,13 @@ def main() -> int:
     )
     total_bytes = sum(int(item["download_bytes"]) for item in artifacts)
 
-    modality = {"language": "text", "multimodal": "text"}.get(
-        args.modality, args.modality
-    )
-    if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
-        raise SystemExit(f"unsupported model modality: {args.modality}")
-    document = {
-        "kind": "model",
-        "identity": {
-            "publisher": args.publisher,
-            "slug": args.version_slug,
-            "family": {
-                "publisher": args.publisher,
-                "slug": args.model_group_slug,
-                "title": args.model_group_title,
-            },
-            "model": {
-                "publisher": args.publisher,
-                "slug": args.model_slug,
-                "title": args.model_title,
-            },
-            "version": args.version,
-            "variant": args.version,
-        },
-        "metadata": {
-            "description": args.model_description,
-            "tags": list(
-                dict.fromkeys(
-                    [args.publisher, args.model_group_slug, args.modality, "candidate"]
-                )
-            ),
-        },
-        "requires_token": args.requires_token,
-        "dependencies": [],
-        "modalities": [modality],
-        "source": {
+    model_hash = write_model(
+        args,
+        source={
             "repository": f"https://huggingface.co/{args.repository}",
             "revision": revision,
         },
-        "format": {
-            "precision": args.precision,
-            "quantization": args.quantization,
-        },
-        "license": {
-            "spdx": args.license_spdx,
-            "url": args.license_url,
-            "attribution": args.attribution,
-        },
-        "files": [
+        files=[
             {
                 "id": item["id"],
                 "path": item["path"],
@@ -432,16 +343,8 @@ def main() -> int:
             }
             for item in artifacts
         ],
-        "capabilities": sorted(set(args.capability)),
-    }
-    ModelDefinition.model_validate(document)
-    model_path = root / "models" / f"{args.version_slug}.json"
-    model_path.parent.mkdir(parents=True, exist_ok=True)
-    model_path.write_text(
-        json.dumps(document, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        requires_token=args.requires_token,
     )
-    # Recipes reference this Model by the digest of the document as written.
-    model_hash = document_sha256(document)
     print(
         json.dumps(
             {"revision": revision, "model_sha256": model_hash, "bytes": total_bytes},

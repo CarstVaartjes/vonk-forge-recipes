@@ -125,6 +125,9 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools._catalog_model import file_id
+
 MANIFEST = "vendored-upstream.json"
 LOCK = "kit-lock.json"
 PUBLISHED_IMAGES = "published-images.json"
@@ -1615,15 +1618,6 @@ def _move_consumers(
             "Dockerfile (pins; review its header comment and licence labels)"
         )
     return changed
-
-
-def file_id(path: str, sha256: str) -> str:
-    """The id ``tools/catalog-hf-model`` gives a file: readable stem, content and path digests."""
-    value = path.rsplit("/", 1)[-1].rsplit(".", 1)[0]
-    stem = value.lower().replace("_", "-").replace(".", "-") if value else "metadata"
-    if not stem[:1].isalpha():
-        stem = f"file-{stem}"
-    return f"{stem[:39]}-{sha256[:12]}-{hashlib.sha256(path.encode()).hexdigest()[:10]}"
 
 
 def moved_model(

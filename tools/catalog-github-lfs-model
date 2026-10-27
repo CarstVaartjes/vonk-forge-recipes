@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+"""Materialize an immutable GitHub Git LFS ModelDefinition.
+
+Each --path is read at the pinned commit as a Git LFS pointer; the pointer's
+oid and size become the file's sha256 and size_bytes. No LFS content is ever
+downloaded: the Controller verifies the bytes at ingress.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+from urllib.error import HTTPError
+from urllib.parse import quote
+from urllib.request import Request, urlopen
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "contracts" / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from vonk_forge_contracts import GitHubLfsSource
+
+from tools._catalog_model import add_model_arguments, file_id, write_model
+
+MAX_POINTER_BYTES = 1024
+_LFS_MEDIA_TYPE = "application/vnd.git-lfs+json"
+_POINTER = re.compile(
+    r"\Aversion https://git-lfs\.github\.com/spec/v1\n"
+    r"oid sha256:(?P<oid>[0-9a-f]{64})\n"
+    r"size (?P<size>[0-9]+)\n\Z"
+)
+_PLAIN_FILE = (
+    "a plain git file; vendor it in the recipe package (check-vendored-upstream)"
+)
+
+
+def _request(
+    url: str, *, data: bytes | None = None, headers: dict[str, str] | None = None
+):
+    # Anonymous: no token, cookie or Authorization header is ever sent.
+    return Request(
+        url,
+        data=data,
+        headers={"User-Agent": "vonk-forge-recipe-library/1", **(headers or {})},
+    )
+
+
+def read_pointer(repository: str, revision: str, path: str) -> tuple[str, int]:
+    """The (oid, size) of the LFS pointer stored at ``path`` in the commit."""
+
+    owner_repo = repository.removeprefix("https://github.com/")
+    url = (
+        f"https://raw.githubusercontent.com/{owner_repo}/{revision}/"
+        f"{quote(path, safe='/')}"
+    )
+    try:
+        with urlopen(_request(url), timeout=60) as response:
+            body = response.read(MAX_POINTER_BYTES + 1)
+    except HTTPError as error:
+        raise SystemExit(
+            f"cannot read {path} at {revision} (HTTP {error.code})"
+        ) from error
+    if len(body) > MAX_POINTER_BYTES:
+        raise SystemExit(f"{path} is not an LFS pointer: {_PLAIN_FILE}")
+    match = _POINTER.match(body.decode("utf-8", errors="replace"))
+    if match is None:
+        raise SystemExit(f"{path} is not a valid LFS pointer v1: {_PLAIN_FILE}")
+    size = int(match["size"])
+    if size < 1:
+        raise SystemExit(f"{path}: Git LFS objects are never empty")
+    return match["oid"], size
+
+
+def probe_batch(repository: str, oid: str, size: int, path: str) -> None:
+    """One batch POST that confirms the object exists; it transfers no bytes."""
+
+    body = json.dumps(
+        {
+            "operation": "download",
+            "transfers": ["basic"],
+            "objects": [{"oid": oid, "size": size}],
+        }
+    ).encode()
+    request = _request(
+        f"{repository}.git/info/lfs/objects/batch",
+        data=body,
+        headers={"Accept": _LFS_MEDIA_TYPE, "Content-Type": _LFS_MEDIA_TYPE},
+    )
+    try:
+        with urlopen(request, timeout=60) as response:
+            answer = json.load(response)
+    except HTTPError as error:
+        raise SystemExit(
+            f"LFS batch probe for {path} failed (HTTP {error.code})"
+        ) from error
+    objects = answer.get("objects") if isinstance(answer, dict) else None
+    entry = objects[0] if isinstance(objects, list) and len(objects) == 1 else None
+    if not isinstance(entry, dict) or entry.get("oid") != oid:
+        raise SystemExit(f"LFS batch probe for {path} answered no matching object")
+    if "error" in entry:
+        raise SystemExit(f"LFS object for {path} is not available: {entry['error']}")
+
+
+def _arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_model_arguments(parser)
+    parser.add_argument(
+        "--repository", required=True, help="https://github.com/<owner>/<repo>"
+    )
+    parser.add_argument("--revision", required=True, help="40-hex commit")
+    parser.add_argument(
+        "--path", action="append", default=[], required=True, help="repository path"
+    )
+    parser.add_argument(
+        "--role",
+        action="append",
+        default=[],
+        required=True,
+        help="role of the --path at the same position",
+    )
+    parser.add_argument(
+        "--probe-batch",
+        action="store_true",
+        help="confirm each object with one LFS batch POST (no bytes transferred)",
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = _arguments()
+    if not re.fullmatch(r"[0-9a-f]{40}", args.revision):
+        raise SystemExit("--revision must be a full 40-hex commit")
+    try:
+        source = GitHubLfsSource(
+            provider="github-lfs", repository=args.repository, revision=args.revision
+        )
+    except ValueError as error:
+        raise SystemExit(f"--repository: {error}") from error
+    if len(args.path) != len(args.role):
+        raise SystemExit("give one --role for every --path")
+    if len(set(args.path)) != len(args.path):
+        raise SystemExit("--path is repeated")
+    files = []
+    for path, role in sorted(zip(args.path, args.role, strict=True)):
+        oid, size = read_pointer(source.repository, source.revision, path)
+        if args.probe_batch:
+            probe_batch(source.repository, oid, size, path)
+        files.append(
+            {
+                "id": file_id(path, oid),
+                "path": path,
+                "sha256": oid,
+                "size_bytes": size,
+                "roles": [role],
+            }
+        )
+    model_hash = write_model(
+        args,
+        source=source.model_dump(),
+        files=files,
+        requires_token=False,
+    )
+    print(
+        json.dumps(
+            {
+                "revision": args.revision,
+                "model_sha256": model_hash,
+                "bytes": sum(item["size_bytes"] for item in files),
+            },
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
