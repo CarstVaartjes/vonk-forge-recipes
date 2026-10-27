@@ -38,7 +38,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "abliterated",
-    "description": "aday777's abliterated (ARA) Qwen3.8 27B NVFP4 weights on the pinned drowzeys/eugr vLLM 0.27 image. Recovery baseline after run 452a0f71-d875-4f3b-8ca5-d6da59a898ae died during the 2026-10-21 streaming smoke: the retained EngineCore traceback reports torch.AcceleratorError, CUDA illegal memory access at torch/accelerator/__init__.py:270, with oom_killed=false. The original kernel frames were not retained; the NVFP4-KV/A4Q, MTP and graph combination is suspected, not proven. Use ordinary FP8 KV, eager execution, no speculative decoding or FlashInfer autotune, and one concurrent sequence to avoid those paths. Retains the 1,048,576-token YaRN x4 context, prefix caching, 4096 batched tokens and qwen3_xml tools. The absolute cache pool budgets 16 full-attention layers x 4 KV heads x 256 dimensions x K/V x one byte x context, plus a conservative 160 MiB for 48 linear-attention layers' recurrent state. Selected weights (including the unused MTP file) and an 11 GB runtime allowance are covered by the 67 GB peak; 16 GiB host reserve. These are planning bounds, not a measured peak or hardware pass. Long-context cold prefill is slow; clients should allow adequate output tokens for this verbose checkpoint. Checkpoint Apache-2.0; upstream recipe repository declares no licence file. Not gated.",
+    "description": "aday777's abliterated (ARA) Qwen3.8 27B NVFP4 weights on the pinned drowzeys/eugr vLLM 0.27 image. Recovery baseline after run 452a0f71-d875-4f3b-8ca5-d6da59a898ae died during the 2026-10-21 streaming smoke: the retained EngineCore traceback reports torch.AcceleratorError, CUDA illegal memory access at torch/accelerator/__init__.py:270, with oom_killed=false. The original kernel frames were not retained; the NVFP4-KV/A4Q, MTP and graph combination is suspected, not proven. Use ordinary FP8 KV, eager execution, no speculative decoding or FlashInfer autotune, and one concurrent sequence to avoid those paths. Retains the 1,048,576-token YaRN x4 context, prefix caching, 4096 batched tokens and qwen3_xml tools. The absolute cache pool budgets 16 full-attention layers x 4 KV heads x 256 dimensions x K/V x one byte x context, plus vLLM's hybrid allocation for the 48 linear-attention layers: two 3,211,264-byte padded recurrent pages per layer with prefix caching, and at most one 1568-token block of rounding per full-attention layer (359,661,568 bytes). The earlier 160 MiB state term left the pool 154,140,672 bytes below vLLM's 34,681,651,200-byte one-request check at 1,048,576 tokens. Selected weights (including the unused MTP file) and an 11 GB runtime allowance are covered by the 67 GB peak; 16 GiB host reserve. These are planning bounds, not a measured peak or hardware pass. Long-context cold prefill is slow; clients should allow adequate output tokens for this verbose checkpoint. Checkpoint Apache-2.0; upstream recipe repository declares no licence file. Not gated.",
     "tags": [
       "abliterated",
       "candidate",
@@ -302,7 +302,7 @@
   },
   "release": {
     "released_at": "2026-08-16",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -357,7 +357,7 @@
       },
       {
         "name": "kv-cache-memory-bytes",
-        "value": 34527510528
+        "value": 34719399936
       },
       {
         "name": "gpu-memory-utilization",

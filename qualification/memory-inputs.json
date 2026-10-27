@@ -497,8 +497,8 @@
       "key_dim": 256,
       "kv_heads": 4,
       "layers": 16,
-      "source": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/config.json text_config: 64 layers, full_attention_interval=4, 4 KV heads, head_dim=256. The other 48 layers have FP32 recurrent state (48 value heads x 128 x 128) and BF16 convolution state (4 x (2 x 16 x 128 + 48 x 128)); 154927104 bytes rounded up to 160 MiB per sequence. No MTP speculation.",
-      "state_bytes_per_request": 167772160,
+      "source": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/config.json text_config: 64 layers, full_attention_interval=4, 4 KV heads, head_dim=256. The other 48 layers have FP32 recurrent state (48 value heads x 128 x 128) and BF16 convolution state (3 x (2 x 16 x 128 + 48 x 128)): 3207168 bytes per layer. vLLM's hybrid allocator pads each recurrent page to the attention page (1568-token blocks x 2048 FP8 bytes, or 784 x 4096 BF16 bytes: 3211264 bytes) and, with prefix caching (mamba_cache_mode align), holds two pages per recurrent layer for one request (vllm/v1/kv_cache_interface.py MambaSpec.max_memory_usage_bytes); rounding the full-attention layers to 1568-token blocks adds at most one page each. Bound: (2 x 48 + 16) x 3211264 = 359661568 bytes per sequence. Hardware: operation c2940bb5 (2026-10-27) needed 34681651200 bytes at 1048576 tokens. No MTP speculation.",
+      "state_bytes_per_request": 359661568,
       "value_dim": 256
     },
     "qwen3-8-flash-next-nvfp4-fab0aecb": {

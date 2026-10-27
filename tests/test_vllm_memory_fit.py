@@ -1,6 +1,7 @@
 """vLLM's GPU budget excludes unified-memory overhead on each GB10 node."""
 
 import json
+import math
 from pathlib import Path
 
 import pytest
@@ -12,6 +13,9 @@ from qualification.memory_need import (
     OVERHEAD_BYTES,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
+    absolute_kv_need,
+    argument_value,
+    cache_bytes,
     calculate_need,
     load_inputs,
     require_memory_need,
@@ -53,7 +57,19 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
     need = calculate_need(recipe, catalog_models(), load_inputs())
     assert need.kv_bytes == 16 * 4 * (256 + 256) * 1_048_576
-    assert need.state_bytes == 160 * 1024**2
+    # vLLM's one-request check (_check_enough_kv_cache_memory): each of the 48
+    # recurrent layers' FP32 SSM + BF16 conv page pads to the attention page,
+    # prefix caching (mamba_cache_mode align) holds two pages per layer, and
+    # full-attention layers round to that block. Operation c2940bb5 refused
+    # the old 34,527,510,528-byte pool with this exact need on 2026-10-27.
+    token_bytes = 4 * (256 + 256)
+    recurrent_page = 48 * 128 * 128 * 4 + 3 * (2 * 16 * 128 + 48 * 128) * 2
+    block = 16 * math.ceil(math.ceil(recurrent_page / token_bytes) / 16)
+    page = block * token_bytes
+    vllm_need = 16 * math.ceil(1_048_576 / block) * page + 48 * 2 * page
+    assert vllm_need == 34_681_651_200
+    assert absolute_kv_need(recipe, catalog_models(), load_inputs()) >= vllm_need
+    assert cache_bytes(argument_value(recipe, "kv-cache-memory-bytes")) >= vllm_need
     memory = recipe.topology.roles[0].resources.memory
     assert memory.reserve_bytes == GUARD_BYTES
     assert memory.peak_bytes >= need.total_bytes + 3_000_000_000
