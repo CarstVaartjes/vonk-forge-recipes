@@ -151,6 +151,19 @@ def test_recurrent_state_counted_once_is_rejected() -> None:
     assert absolute_kv_need(recipe, catalog_models(), load_inputs()) > 34_681_651_200
 
 
+def test_recurrent_pages_beyond_a_hand_bound_are_rejected() -> None:
+    # vLLM pads Super VL's 40 Mamba layers to the attention page and holds
+    # two plus seven speculative pages per recurrent group with prefix
+    # caching: 3,019,898,880 bytes per request, above the 256 MiB hand bound.
+    recipe = recipe_for("nemotron-3-5-super-vl-lilicorr-sfxnz-vllm-single")
+    pool = next(
+        arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
+    )
+    pool.value = 2_800_000_000
+    with pytest.raises(ValueError, match="cannot hold one full-context request"):
+        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+
+
 def test_catalog_absolute_pools_hold_one_full_context_for_every_option() -> None:
     for path in sorted((ROOT / "recipes").glob("*.json")):
         recipe = RecipeDefinition.model_validate_json(path.read_text())

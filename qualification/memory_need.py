@@ -128,11 +128,10 @@ VLLM_UNMODELED_HYBRID = {
     # Sliding-window plus short-convolution layers on creator images whose
     # vLLM Inkling layout is not pinned; SGLang-measured state.
     "inkling-small-nvfp4": "Inkling short convolution on creator images",
-    # KDA + DSA on creator vLLM forks; the attention bound already counts all
-    # 45 layers (34 of them KDA) at 12,288 FP8 bytes per token.
-    "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": "Glm5Next KDA + DSA",
-    "glm-5-3-flash-nvfp4-caca4e6a": "Glm5Next KDA + DSA",
-    "glm-5-3-flash-nvfp4-spark-a6082410": "Glm5Next KDA + DSA",
+    # KDA linear + DSA layers on creator vLLM forks: not modeled (follow-up).
+    "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": "Glm5Next KDA + DSA not modeled (follow-up)",
+    "glm-5-3-flash-nvfp4-caca4e6a": "Glm5Next KDA + DSA not modeled (follow-up)",
+    "glm-5-3-flash-nvfp4-spark-a6082410": "Glm5Next KDA + DSA not modeled (follow-up)",
 }
 
 
@@ -738,18 +737,40 @@ def attention_token_bytes(
     return layers, token_bytes
 
 
-def speculative_tokens(recipe: RecipeDefinition) -> int:
-    """vLLM speculative-config num_speculative_tokens; 0 without speculation."""
+def speculative_config(recipe: RecipeDefinition) -> dict[str, object] | None:
+    """vLLM's --speculative-config object (vLLM's structure, not ours).
+
+    None when absent or "None" (speculation off); anything else that is not a
+    JSON object is a deterministic recipe error.
+    """
     config = argument_value(recipe, "speculative-config")
+    if config is None or config == "None":
+        return None
     if isinstance(config, str):
         try:
             config = json.loads(config)
-        except json.JSONDecodeError:
-            return 0  # "None" switches speculation off
+        except json.JSONDecodeError as error:
+            raise ValueError(
+                f"{recipe.identity.slug}: speculative-config is not JSON: {error}"
+            ) from error
     if not isinstance(config, dict):
+        raise TypeError(
+            f"{recipe.identity.slug}: speculative-config must be a JSON object"
+        )
+    return config
+
+
+def speculative_tokens(recipe: RecipeDefinition) -> int:
+    """vLLM num_speculative_tokens; 0 only without speculation."""
+    config = speculative_config(recipe)
+    if config is None:
         return 0
     tokens = config.get("num_speculative_tokens")
-    return int(tokens) if isinstance(tokens, int | str) else 0
+    if isinstance(tokens, bool) or not isinstance(tokens, int | str):
+        raise TypeError(
+            f"{recipe.identity.slug}: speculative-config needs num_speculative_tokens"
+        )
+    return int(tokens)
 
 
 def mamba_dtype_bytes(recipe: RecipeDefinition, flag: str, default: int) -> int:
@@ -777,9 +798,14 @@ def recurrent_layer_bytes(recipe: RecipeDefinition, recurrent: RecurrentCache) -
 def mamba_cache_mode(
     recipe: RecipeDefinition, recurrent: RecurrentCache
 ) -> MambaCacheMode:
-    """vLLM MambaModelConfig: hybrid prefix caching is opt-in; it selects
-    "all" where the loaded class supports it, else "align"."""
-    if argument_value(recipe, "enable-prefix-caching") is not True:
+    """vLLM MambaModelConfig: prefix caching selects "all" where the loaded
+    class supports it, else "align"; off holds one page per recurrent group.
+
+    An omitted flag counts as on: v0.27 keeps hybrid prefix caching opt-in
+    (arg_utils.py default_prefix_caching), but nightly 3f1bcfd8 defaults it
+    to is_prefix_caching_supported, and "align" never needs fewer blocks.
+    """
+    if argument_value(recipe, "enable-prefix-caching") is False:
         return MambaCacheMode.NONE
     mode = MambaCacheMode(
         str(argument_value(recipe, "mamba-cache-mode") or MambaCacheMode.NONE)

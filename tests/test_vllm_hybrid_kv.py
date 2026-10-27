@@ -7,7 +7,7 @@ import pytest
 from catalog_documents import catalog_models
 from pydantic import ValidationError
 from vonk_forge_contracts import RecipeDefinition, document_sha256
-from vonk_forge_contracts.recipe import RecipeRuntimeArgument
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument, RuntimeArgumentValue
 
 from qualification.memory_need import (
     HYBRID_ARCHITECTURES,
@@ -22,7 +22,9 @@ from qualification.memory_need import (
     memory_variants,
     positive_argument,
     require_memory_need,
+    speculative_tokens,
 )
+from qualification.vllm_memory_fit import loads_draft_model
 
 ROOT = Path(__file__).resolve().parents[1]
 INPUTS = load_inputs()
@@ -82,7 +84,8 @@ def allocator_walk(
     mamba_page = (state.conv_channels // tp) * (
         state.conv_kernel - 1 + spec
     ) * conv_dtype + (state.state_elements // tp) * ssm_dtype
-    if argument_value(recipe, "enable-prefix-caching") is not True:
+    # An omitted flag may enable caching (nightly 3f1bcfd8 default): count it.
+    if argument_value(recipe, "enable-prefix-caching") is False:
         mode = "none"
     elif argument_value(recipe, "mamba-cache-mode") == "align":
         mode = "align"
@@ -138,16 +141,17 @@ def allocator_walk(
 def other_modes(recipe: RecipeDefinition) -> list[RecipeDefinition]:
     """The launch under each prefix-caching mode."""
     found = []
-    for caching, mode in ((False, None), (True, "align"), (True, "all")):
+    for caching, mode in ((None, None), (False, None), (True, "align"), (True, "all")):
         copy = recipe.model_copy(deep=True)
         copy.runtime.arguments = [
             item
             for item in copy.runtime.arguments
             if item.name not in {"enable-prefix-caching", "mamba-cache-mode"}
         ]
-        copy.runtime.arguments.append(
-            RecipeRuntimeArgument(name="enable-prefix-caching", value=caching)
-        )
+        if caching is not None:
+            copy.runtime.arguments.append(
+                RecipeRuntimeArgument(name="enable-prefix-caching", value=caching)
+            )
         if mode is not None:
             copy.runtime.arguments.append(
                 RecipeRuntimeArgument(name="mamba-cache-mode", value=mode)
@@ -254,3 +258,56 @@ def test_recurrent_geometry_fields_are_exclusive(update: dict[str, object]) -> N
             document[key] = value
     with pytest.raises(ValidationError):
         CacheGeometry.model_validate(document)
+
+
+def test_omitted_prefix_caching_flag_is_sized_as_enabled() -> None:
+    # Nightly 3f1bcfd8 enables prefix caching by default; "align" never needs
+    # fewer blocks than off, so an omitted flag cannot shrink the bound.
+    recipe = next(
+        recipe
+        for recipe in hybrid_vllm_recipes()
+        if argument_value(recipe, "enable-prefix-caching") is True
+        and argument_value(recipe, "mamba-cache-mode") is None
+    )
+    omitted, off = other_modes(recipe)[:2]
+    models = catalog_models()
+    assert absolute_kv_need(omitted, models, INPUTS) == absolute_kv_need(
+        recipe, models, INPUTS
+    )
+    assert absolute_kv_need(omitted, models, INPUTS) > absolute_kv_need(
+        off, models, INPUTS
+    )
+
+
+@pytest.mark.parametrize(
+    "value,expected",
+    [
+        (None, 0),
+        ("None", 0),
+        ('{"method":"mtp","num_speculative_tokens":3}', 3),
+        ({"model": "/models/drafter", "num_speculative_tokens": 7}, 7),
+        ("{not json", ValueError),
+        ('["mtp"]', TypeError),
+        ('{"method":"mtp"}', TypeError),
+    ],
+)
+def test_speculative_config_parses_or_fails_fast(
+    value: RuntimeArgumentValue | None, expected: int | type[Exception]
+) -> None:
+    recipe = hybrid_vllm_recipes()[0].model_copy(deep=True)
+    recipe.runtime.arguments = [
+        item for item in recipe.runtime.arguments if item.name != "speculative-config"
+    ]
+    if value is not None:
+        recipe.runtime.arguments.append(
+            RecipeRuntimeArgument(name="speculative-config", value=value)
+        )
+    if isinstance(expected, int):
+        assert speculative_tokens(recipe) == expected
+        assert loads_draft_model(recipe) == isinstance(value, dict)
+        return
+    with pytest.raises(expected, match="speculative-config"):
+        speculative_tokens(recipe)
+    if value != '{"method":"mtp"}':
+        with pytest.raises(expected, match="speculative-config"):
+            loads_draft_model(recipe)
