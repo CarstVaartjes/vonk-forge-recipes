@@ -12,6 +12,10 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+from vonk_forge_contracts import RecipeDefinition
+
+from qualification.memory_need import require_admissible_declaration
+
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = (
     "hunyuan-video-15-distilled-diffusers-single",
@@ -106,11 +110,8 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
 
     def test_offloaded_hunyuan_video_envelope_fits_healthy_spark(self) -> None:
         for slug in RECIPE_SLUGS[:3]:
-            memory = load(ROOT / "recipes" / f"{slug}.json")["topology"]["roles"][0][
-                "resources"
-            ]["memory"]
-            self.assertLessEqual(
-                memory["peak_bytes"] + memory["reserve_bytes"], 128_000_000_000
+            require_admissible_declaration(
+                RecipeDefinition.model_validate(load(ROOT / "recipes" / f"{slug}.json"))
             )
 
 

@@ -9,7 +9,6 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
-    DRAFT_MODEL_OVERHEAD_BYTES,
     OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
     SPARK_MEMORY_BYTES,
@@ -17,26 +16,24 @@ from qualification.memory_need import (
     speculative_config,
 )
 
-# A separately loaded speculative draft model (DFlash, DSpark, EAGLE, an external
-# MTP checkpoint) holds memory outside `gpu-memory-utilization`. Calibrated from
-# qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single on a GB10 (2026-10-13): at 0.7 it
-# drove ~116.4e9 bytes attributable to the run (121e9 used less 4.6e9 idle) within
-# twelve minutes and froze the Spark, 17e9 above 0.7 x memory + 8e9. That sample
-# was still climbing, so this is a floor; the sweep's memory-envelope note refines it.
-# Draft-model recipes whose weights leave no KV room once the draft overhead is
-# counted on a fitting envelope: each needs its creator (more Sparks, a smaller
-# context or drafter). Until then only the draft term is waived for them: the
-# plain GPU budget and the OS floor still apply, and the entry goes stale, and
-# fails, as soon as the recipe fits with the term counted.
-PENDING_CREATOR = frozenset(
-    {
-        "glm-5-3-flash-exl3-dflash2-vllm-dual",
-        "glm-5-3-flash-exl3-k2-0xsero-vllm-single",
-        "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual",
-        "laguna-s-2-1-nvfp4-dflash-vllm-mia-single",
-        "minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual",
-    }
-)
+# A speculative drafter holds nothing beside `gpu-memory-utilization`, whatever
+# mechanism loads it (vLLM v0.30.0 lines; the same accounting at af5b4857e,
+# the DFlash2 image's vLLM): the worker snapshots free memory (gpu_worker.py:451, psutil
+# available on unified memory, mem_utils.py:143-150) before load_model loads the
+# target and then the drafter (gpu_model_runner.py:5347-5350, every
+# speculative-config method incl. custom proposers, :629-682); profile_run runs
+# drafter.dummy_run (:6225) and the CUDA graph estimate captures it (default
+# on, envs.py:2109); the KV budget is the requested share less everything
+# consumed since the snapshot (mem_utils.py:312-321, gpu_worker.py:621-625), and
+# the drafter's attention layers draw on that pool. Its weights therefore count
+# inside the budget (memory_need.require_bounded_kv_pool). On hardware the
+# pool-less single-Spark runs with a separate drafter held at most 9.9 GB beside
+# utilization x memory with the OS included, inside the 8 GB overhead plus the
+# 6 GB OS floor (the proven DFlash single Nemotron 3.5 Bolt at 0.7 held 1.4 and
+# 3.0 GB). The 2026-10-13 DFlash2 freeze at 0.7 (image 155ce16b, the one run of
+# that document that reached serving) is unexplained and 0.7 has not run since;
+# the 0.6 document passed on 431593a0 with 3.7 GB beside its budget. A term
+# beside the budget raised only the declared reservation, not what vLLM holds.
 
 
 def loads_draft_model(recipe: RecipeDefinition) -> bool:
@@ -49,16 +46,7 @@ def loads_draft_model(recipe: RecipeDefinition) -> bool:
     return draft is not None and str(draft) not in served
 
 
-def non_utilization_bytes(
-    recipe: RecipeDefinition, count_draft_model: bool = True
-) -> int:
-    """Memory a vLLM node holds beside its `gpu-memory-utilization` budget."""
-    if count_draft_model and loads_draft_model(recipe):
-        return OVERHEAD_BYTES + DRAFT_MODEL_OVERHEAD_BYTES
-    return OVERHEAD_BYTES
-
-
-def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) -> None:
+def assert_memory_fit(recipe: RecipeDefinition) -> None:
     arguments = [
         argument
         for argument in recipe.runtime.arguments
@@ -90,9 +78,7 @@ def assert_memory_fit(recipe: RecipeDefinition, count_draft_model: bool = True) 
         need = calculate_need(recipe, models, load_inputs())
         required_peak = Decimal(need.total_bytes)
     else:
-        required_peak = utilization * SPARK_MEMORY_BYTES + non_utilization_bytes(
-            recipe, count_draft_model
-        )
+        required_peak = utilization * SPARK_MEMORY_BYTES + OVERHEAD_BYTES
     for role in recipe.topology.roles:
         memory = role.resources.memory
         label = f"{recipe.identity.slug}/{role.name} at utilization {utilization}"
