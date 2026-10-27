@@ -12,8 +12,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts import ModelDefinition, document_sha256
-
 _MODALITIES = {"language": "text", "multimodal": "text"}
 
 
@@ -87,6 +85,10 @@ def write_model(
     requires_token: bool,
 ) -> str:
     """Validate and write the Model; return its ``document_sha256``."""
+
+    # Imported here so file_id stays usable without the contracts dependencies
+    # (tools/kit-pins runs on a bare interpreter).
+    from vonk_forge_contracts import ModelDefinition, document_sha256
 
     modality = _MODALITIES.get(args.modality, args.modality)
     if modality not in {"text", "image", "audio", "video", "3d", "embeddings"}:
