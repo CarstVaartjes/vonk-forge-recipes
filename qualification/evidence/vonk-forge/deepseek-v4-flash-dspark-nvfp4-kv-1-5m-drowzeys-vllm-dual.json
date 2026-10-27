@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-dspark-nvfp4-kv-1-5m-drowzeys-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "71a6fbddfcfad2f8f393b468df06f8c6e4be5640593740377f38de6c063cd6b1",
+        "source_bundle_sha256": "706d5fd57aa3c1614633c9b9819179a2d659a7266935df01607372f1b832a8e7",
+        "runtime_image": {
+          "build_key": "e2dd785c96b0d6b47211d135dbb922b85a7a979f6a7e056152fa4137e8a0477f",
+          "image_digest": "sha256:3ac0d529070165cac8ff5473203994704dfe6b8c9a6a60b41debca3223d7983e"
+        },
+        "model_digests": [
+          "0d116e48651320249e620e159e0da012edcfbeb0c2d33ba77712676662704dce"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "938a42583670b4f75c21bbbbbe3c718f28a50af0bcf535e4b279a1307a0029c1"
+      ],
+      "tested_at": "2026-10-27T18:47:50.440934Z",
+      "platform": {
+        "controller_source_sha": "1145d714a8f840eae747745a06b9f6906f4852c6",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
