@@ -209,11 +209,17 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
         role.resources.memory.peak_bytes = 120_370_379_081
         role.resources.memory.reserve_bytes = 8_000_000_000
     require_admissible_declaration(recipe)
+    # The 128-GB literal, and a peak + reserve sum bounded by hand.
+    restated = re.compile(
+        r"\b128(?:_000_000_000|000000000|e9)\b"
+        r"|assertLess(?:Equal)?\(\s*(?:envelope|admission)\b"
+        r"|reserve_bytes\W*\s*<=?\s*\d"
+    )
     copies = [
         f"{path.name}:{number}"
         for path in sorted((ROOT / "tests").glob("*.py"))
         for number, line in enumerate(path.read_text().splitlines(), 1)
-        if re.search(r"\b128(?:_000_000_000|000000000|e9)\b", line)
+        if restated.search(line)
     ]
     assert not copies, f"restated admission limit: {copies}"
 

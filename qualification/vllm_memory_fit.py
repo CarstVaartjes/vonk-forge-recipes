@@ -29,9 +29,11 @@ from qualification.memory_need import (
 # inside the budget (memory_need.require_bounded_kv_pool). On hardware the
 # pool-less single-Spark runs with a separate drafter held at most 9.9 GB beside
 # utilization x memory with the OS included, inside the 8 GB overhead plus the
-# 6 GB OS floor; the 2026-10-13 DFlash2 freeze at 0.7 (image 155ce16b, blamed
-# on the platform) did not recur: that recipe passed at 0.6 on 431593a0 with
-# 3.7 GB beside its budget.
+# 6 GB OS floor (the proven DFlash single Nemotron 3.5 Bolt at 0.7 held 1.4 and
+# 3.0 GB). The 2026-10-13 DFlash2 freeze at 0.7 (image 155ce16b, the one run of
+# that document that reached serving) is unexplained and 0.7 has not run since;
+# the 0.6 document passed on 431593a0 with 3.7 GB beside its budget. A term
+# beside the budget raised only the declared reservation, not what vLLM holds.
 
 
 def loads_draft_model(recipe: RecipeDefinition) -> bool:

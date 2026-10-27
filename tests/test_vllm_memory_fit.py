@@ -159,7 +159,16 @@ def test_a_separately_loaded_drafter_holds_nothing_beside_the_budget(
         if item.name != "speculative-config"
     ]
     assert not loads_draft_model(target_only)
-    assert vllm_utilization_envelope(recipe) == vllm_utilization_envelope(target_only)
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    assert envelope == vllm_utilization_envelope(target_only)
+    # The per-node guard holds the same envelope, with or without the drafter.
+    for launch in (recipe, target_only):
+        for role in launch.topology.roles:
+            role.resources.memory.peak_bytes = envelope
+        assert_memory_fit(launch)
+    # calculate_need: test_need_counts_a_draft_by_its_weights_however_it_is_loaded
+    # (no catalog drafter has pinned cache geometry to size it with).
 
 
 def test_target_only_speculation_is_not_a_second_model() -> None:
