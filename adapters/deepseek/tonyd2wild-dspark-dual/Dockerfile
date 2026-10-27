@@ -12,8 +12,8 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/DeepSeek-v4
 # draft shared-expert loader fix, native non-uniform-batch handling). Each NVFP4 stage
 # file keeps its anchor patch as the single quoted-PY heredoc that upstream's own sparkrun
 # recipe extracts, so do the same. The vision port (ViT, aligner, multimodal registry
-# alias) is applied unconditionally; upstream states that every port patch is guarded on
-# vision_n_layers, so the text-only 0731 checkpoint is served by the same files.
+# alias) makes DeepseekV4ForCausalLM multimodal for every checkpoint, so the text-only
+# 0731 recipe builds from Dockerfile.text, which leaves it out as upstream's 0731 does.
 COPY recipe /opt/vonk/build/recipe
 COPY vision-exp/port /opt/vonk/build/port
 COPY verify-runtime.py /opt/vonk/build/verify-runtime.py

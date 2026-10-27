@@ -11,6 +11,7 @@
     "whole": false
   },
   "ours": [
+    "Dockerfile.text",
     "NOTICE.upstream",
     "verify-runtime.py",
     "vllm-wrapper.py"
