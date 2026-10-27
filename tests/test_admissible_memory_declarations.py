@@ -122,7 +122,11 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
     if variant.runtime.engine == "vllm":
         fraction = argument_value(variant, "gpu-memory-utilization")
         assert fraction is not None
-        assert Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES <= need.peak_bytes
+        budget = Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        assert all(
+            budget <= role.resources.memory.peak_bytes
+            for role in variant.topology.roles
+        )
     else:
         fraction = argument_value(variant, "mem-fraction-static")
         assert fraction is not None
@@ -228,7 +232,8 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
     # hand-written peak + reserve bound of 128 GB was a second, stricter copy:
     # it refused the proven 120,370,379,081-byte peak beside an 8 GB reserve.
     # Pinning a declared peak to the loading floor was another: it forbade the
-    # honest measured peak (owner 2026-10-27; declaration_problems owns >=).
+    # honest measured peak (owner 2026-10-27; declaration_problems owns >= for
+    # multi-Spark roles).
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = 120_370_379_081
