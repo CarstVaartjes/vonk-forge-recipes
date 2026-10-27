@@ -470,6 +470,70 @@ def test_structural_and_image_assertions() -> None:
         evaluate([{"kind": "format", "format": "mp4"}], outputs)
 
 
+def test_json_document_checks_required_keys_and_top_level_equals() -> None:
+    assertion = {
+        "kind": "json-document",
+        "media_type": "application/json",
+        "required_keys": ["style", "frames"],
+        "equals": {"style": "walk"},
+    }
+
+    def output(content: bytes) -> list[Output]:
+        return [Output("m.json", "application/json", content)]
+
+    assert evaluate([assertion], output(b'{"style": "walk", "frames": 3}')) == {}
+    for content in (
+        b'{"style": "walk"}',
+        b'{"style": "run", "frames": 3}',
+        b'["style", "frames"]',
+        b"not json",
+    ):
+        with pytest.raises(AssertionFailed) as missed:
+            evaluate([assertion], output(content))
+        assert missed.value.kind == "json-document"
+    with pytest.raises(AssertionFailed):
+        evaluate([assertion], [Output("m.png", "image/png", b"{}")])
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        b'{"style": "walk", "frames": [NaN]}',
+        b'{"style": "walk", "frames": Infinity}',
+        b'{"style": "walk", "frames": -Infinity}',
+        b'{"style": "walk", "style": "walk", "frames": 3}',
+    ],
+)
+def test_json_is_read_as_strictly_as_the_platform_reads_it(payload: bytes) -> None:
+    """NaN, Infinity and duplicate keys fail the platform's parse, so they fail here."""
+    output = [Output("m.json", "application/json", payload)]
+    with pytest.raises(AssertionFailed) as missed:
+        evaluate([{"kind": "json-document", "required_keys": ["style"]}], output)
+    assert missed.value.kind == "json-document"
+    with pytest.raises(AssertionFailed):
+        evaluate([{"kind": "format", "format": "json"}], output)
+
+
+def test_json_document_checks_every_selected_output() -> None:
+    good = Output("a.json", "application/json", b'{"style": "walk"}')
+    bad = Output("b.json", "application/json", b'{"style": "run"}')
+    with pytest.raises(AssertionFailed):
+        evaluate([{"kind": "json-document", "equals": {"style": "walk"}}], [good, bad])
+
+
+def test_the_document_archive_manifest_is_read_strictly() -> None:
+    spec = DEFINITIONS.artifact(OCR)
+    assert spec is not None
+    (assertion,) = [a for a in spec["assertions"] if a["kind"] == "document-archive"]
+    valid = Output("d.zip", "application/zip", _archive())
+    assert evaluate([assertion], [valid]) == {}
+    with pytest.raises(AssertionFailed):
+        evaluate(
+            [assertion],
+            [Output("d.zip", "application/zip", _archive(extra=float("nan")))],
+        )
+
+
 def test_every_assertion_kind_the_definitions_use_is_decided_or_named_not_evaluated() -> (
     None
 ):

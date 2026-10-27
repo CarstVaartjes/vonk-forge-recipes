@@ -53,7 +53,7 @@ def _fail(kind: str, message: str, value: Any = None) -> NoReturn:
     raise AssertionFailed(message, value, kind)
 
 
-def _strict_json(content: bytes | str) -> Any:
+def strict_json(content: bytes | str) -> Any:
     def unique(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
         value: dict[str, Any] = {}
         for key, item in pairs:
@@ -119,7 +119,7 @@ def _probe(content: bytes) -> dict[str, Any]:
             result.stderr[-500:].decode("utf-8", "replace"),
         )
     try:
-        value = _strict_json(result.stdout)
+        value = strict_json(result.stdout)
     except ValueError as error:
         raise NotObserved("ffprobe-failed") from error
     streams = value.get("streams") if isinstance(value, dict) else None
@@ -291,7 +291,7 @@ def _glb_chunks(content: bytes) -> tuple[dict[str, Any], bytes]:
     if [chunk for chunk, _ in chunks] != [_JSON_CHUNK, _BIN_CHUNK]:
         _glb_fail("must be one JSON chunk followed by one BIN chunk", len(chunks))
     try:
-        document = _strict_json(chunks[0][1].decode("utf-8"))
+        document = strict_json(chunks[0][1].decode("utf-8"))
     except ValueError as error:  # UnicodeDecodeError and JSONDecodeError included
         _glb_fail(f"JSON chunk is invalid: {error}")
     if not isinstance(document, dict):
@@ -587,7 +587,7 @@ def realtime_transcript(content: bytes, assertion: Mapping[str, Any]) -> None:
     records: list[dict[str, Any]] = []
     for line in lines:
         try:
-            record = _strict_json(line)
+            record = strict_json(line)
         except ValueError:
             record = None
         if not isinstance(record, dict):
