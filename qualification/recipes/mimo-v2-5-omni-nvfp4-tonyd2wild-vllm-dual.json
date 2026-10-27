@@ -10,7 +10,7 @@
     ],
     "higher_tiers": {
       "stress": [
-        "8K, 32K and 128K cold-prefill ladder plus bounded concurrency canaries at the 1M default context (a 500K context with memory utilization 0.82 is the upstream fallback)"
+        "8K, 32K and 128K cold-prefill ladder plus bounded concurrency canaries with three sequences at the declared 744,192-token context"
       ],
       "recovery": [
         "Controller-only rank-loss and warm-cache restart; the first start compiles kernels"

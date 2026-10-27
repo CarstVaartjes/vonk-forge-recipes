@@ -10,7 +10,7 @@
     ],
     "higher_tiers": {
       "stress": [
-        "Long-context (up to 1M) and bounded concurrency canaries with three sequences; only about two full-1M requests fit the KV pool, and the first token after load is slow (eager mode, cold kernel compile)"
+        "Long-context (up to 1M) and bounded concurrency canaries with two sequences; the KV pool holds two full-1M requests, and the first token after load is slow (eager mode, cold kernel compile)"
       ],
       "recovery": [
         "Controller-only rank-loss and warm-cache recovery"
