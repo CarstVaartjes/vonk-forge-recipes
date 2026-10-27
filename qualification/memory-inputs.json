@@ -408,6 +408,21 @@
       },
       "value_dim": 128
     },
+    "laguna-s-2-1-nvfp4-07614121": {
+      "architecture": "LagunaForCausalLM",
+      "configuration_sha256": "9aaacf4716d09fcdef6e70a068d5af7ec58f92e765b6b5e439a13063825a259d",
+      "key_dim": 128,
+      "kv_heads": 8,
+      "layers": 12,
+      "max_context_tokens": 262144,
+      "source": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/resolve/07614121b31898586430f189d27a25a0be310843/config.json; 12 full-attention layers, 36 sliding layers; config sha256 verified against the download. Its quantization_config kv_cache_scheme is 8-bit float, so vLLM's auto cache dtype stores FP8 K/V: 12 layers x 8 heads x 256 elements = 24,576 bytes/token. Bound sliding state by FP8 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 56623104,
+      "token_bytes_by_dtype": {
+        "auto": 24576,
+        "fp8": 24576
+      },
+      "value_dim": 128
+    },
     "laguna-s-2-1-nvfp4-826aacdf": {
       "architecture": "LagunaForCausalLM",
       "configuration_sha256": "3b3a6e369129eaf628e6b96e417ce06d631d61856ba1d2e8eecdf31dfb8dfe01",
