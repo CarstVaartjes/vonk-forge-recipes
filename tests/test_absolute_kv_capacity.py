@@ -277,10 +277,10 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
             "cannot hold the selected weights",
             None,
         ),
-        # 2026-10-21: 0.72 left 7.87 GB beside 86.20 GB of target and MTPv2
-        # weights; vLLM found no memory for KV cache blocks.
+        # 2026-10-21: 0.60 (78.40 GB) was below even the 80.32 GB of weights
+        # vLLM loads; vLLM found no memory for KV cache blocks.
         (
-            "nemotron-3-super-120b-a12b-vllm-single-07799cf3",
+            "nemotron-3-super-120b-a12b-vllm-single-4c7855fb",
             "cannot hold the selected weights",
             None,
         ),
