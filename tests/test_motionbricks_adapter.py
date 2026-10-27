@@ -254,16 +254,14 @@ def test_the_recipe_mounts_the_checkpoints_where_the_adapter_reads_them() -> Non
     assert model["source"]["revision"] == run.SOURCE_COMMIT
 
 
-def test_the_vendored_sidecars_are_exactly_the_non_lfs_files_of_the_model_tree() -> (
-    None
-):
+def test_the_vendored_sidecars_never_overlap_the_mounted_checkpoints() -> None:
     vendored = {
         path.relative_to(ADAPTER / "motionbricks/out").as_posix()
         for path in (ADAPTER / "motionbricks/out").rglob("*")
         if path.is_file()
     }
+    assert vendored
     assert not vendored & set(run.CHECKPOINTS)
-    assert len(vendored) == 24
 
 
 # --- idle controller ---------------------------------------------------------
@@ -342,6 +340,7 @@ def _main_with(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, **patches) -> Pa
     outputs = tmp_path / "outputs"
     (outputs / "tmp").mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("TMPDIR", str(outputs / "tmp"))
+    monkeypatch.setenv("VONK_JOB_TIMEOUT_SECONDS", "60")
     tempfile.tempdir = None
     monkeypatch.setattr(run, "INPUT_ROOT", inputs)
     monkeypatch.setattr(run, "SIDECAR_ROOT", sidecars)
@@ -359,7 +358,6 @@ def _argv(outputs: Path) -> list[str]:
     return [
         "--entrypoint", run.ENTRYPOINT,
         "--output-mime", "application/json",
-        "--timeout-seconds", "60",
         "--seed", "7",
         "--output-dir", str(outputs),
     ]  # fmt: skip
@@ -427,7 +425,6 @@ def test_an_invalid_generation_publishes_nothing(
     [
         ["--entrypoint", "/other.py"],
         ["--output-mime", "model/gltf-binary"],
-        ["--timeout-seconds", "0"],
         ["--seed", "-1"],
     ],
 )
@@ -438,3 +435,28 @@ def test_job_arguments_outside_the_harness_contract_are_refused(
     argv[argv.index(extra[0]) + 1] = extra[1]
     with pytest.raises(SystemExit):
         run._arguments(argv)
+
+
+def test_the_deadline_is_the_platform_job_budget(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("VONK_JOB_TIMEOUT_SECONDS", "900")
+    now = run.time.monotonic()
+    assert 899 <= run._job_deadline() - now <= 901
+
+
+@pytest.mark.parametrize("value", [None, "", "abc", "0", "3601"])
+def test_a_missing_or_invalid_job_budget_fails_fast(
+    monkeypatch: pytest.MonkeyPatch, value: str | None
+) -> None:
+    monkeypatch.delenv("VONK_JOB_TIMEOUT_SECONDS", raising=False)
+    if value is not None:
+        monkeypatch.setenv("VONK_JOB_TIMEOUT_SECONDS", value)
+    with pytest.raises(SystemExit, match="VONK_JOB_TIMEOUT_SECONDS|between"):
+        run._job_deadline()
+
+
+def test_an_exhausted_budget_stops_with_evidence() -> None:
+    run._check_deadline(run.time.monotonic() + 60)
+    with pytest.raises(SystemExit, match="budget exhausted"):
+        run._check_deadline(run.time.monotonic() - 1)

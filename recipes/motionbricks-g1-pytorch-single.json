@@ -174,11 +174,6 @@
         "value": "application/json"
       },
       {
-        "name": "timeout-seconds",
-        "setting": null,
-        "value": 1800
-      },
-      {
         "name": "seed",
         "setting": null,
         "value": 0

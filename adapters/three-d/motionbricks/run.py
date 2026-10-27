@@ -171,7 +171,6 @@ def _arguments(argv: list[str] | None = None) -> Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--entrypoint", required=True)
     parser.add_argument("--output-mime", required=True)
-    parser.add_argument("--timeout-seconds", type=int, required=True)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args(argv)
@@ -179,8 +178,6 @@ def _arguments(argv: list[str] | None = None) -> Namespace:
         raise SystemExit("unexpected signed-bundle entrypoint")
     if args.output_mime != "application/json":
         raise SystemExit("MotionBricks emits application/json only")
-    if not 1 <= args.timeout_seconds <= 3600:
-        raise SystemExit("timeout is outside the harness contract")
     if not 0 <= args.seed < 2**32:
         raise SystemExit("seed is outside the numpy/torch seed range")
     return args
@@ -230,8 +227,15 @@ def _load_command(input_root: Path) -> Command:
         raise SystemExit(f"invalid motion command: {error}") from error
 
 
-def _deadline(timeout_seconds: int) -> float:
-    return time.monotonic() + timeout_seconds
+def _job_deadline() -> float:
+    """The platform's job budget as one monotonic deadline."""
+    try:
+        seconds = int(os.environ["VONK_JOB_TIMEOUT_SECONDS"])
+    except (KeyError, ValueError) as error:
+        raise SystemExit("job must declare VONK_JOB_TIMEOUT_SECONDS") from error
+    if not 1 <= seconds <= 3600:
+        raise SystemExit("job timeout must be between 1 and 3600 seconds")
+    return time.monotonic() + seconds
 
 
 def _check_deadline(deadline: float) -> None:
@@ -475,7 +479,7 @@ def seed_everything(seed: int) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     args = _arguments(argv)
-    deadline = _deadline(args.timeout_seconds)
+    deadline = _job_deadline()
     command = _load_command(INPUT_ROOT)
     frames = sum(segment.frames() for segment in command.segments)
     sys.path.insert(0, str(SOURCE_ROOT))
