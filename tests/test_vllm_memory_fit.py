@@ -12,6 +12,7 @@ from qualification.memory_need import (
     OVERHEAD_BYTES,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
+    absolute_kv_need,
     calculate_need,
     load_inputs,
     require_memory_need,
@@ -53,7 +54,10 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
     need = calculate_need(recipe, catalog_models(), load_inputs())
     assert need.kv_bytes == 16 * 4 * (256 + 256) * 1_048_576
-    assert need.state_bytes == 160 * 1024**2
+    # One sequence: the workload is vLLM's hybrid allocation for one request.
+    assert need.kv_bytes + need.state_bytes == absolute_kv_need(
+        recipe, catalog_models(), load_inputs()
+    )
     memory = recipe.topology.roles[0].resources.memory
     assert memory.reserve_bytes == GUARD_BYTES
     assert memory.peak_bytes >= need.total_bytes + 3_000_000_000

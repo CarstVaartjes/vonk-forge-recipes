@@ -350,6 +350,17 @@ combination; the multi-Spark startup invariant precedes the historical-content
 waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractional
 pools are outside this absolute-pool check. Cache geometry binds configuration
 hashes and records padded/hybrid allocation bounds with their sources.
+Record Mamba/GDN layers as typed `recurrent` dimensions from the pinned config
+(layer count, conv channels and kernel, temporal state elements and dtype,
+kernel block, and the Mamba chunk when the architecture supports prefix-caching
+mode "all"), never as a hand `state_bytes_per_request`: vLLM pads each
+recurrent page to the attention page, groups layers by the smallest bucket,
+holds 1, 2 or a context's worth of pages per recurrent group (prefix caching
+off, "align", "all") plus one per speculative token, and takes a whole group
+block as the null block. `vllm_hybrid_need` computes that bound from the
+recipe's prefix caching, cache dtypes, speculation, block size and TP. A model
+whose vLLM layout adds cache types the formula cannot express keeps an explicit,
+documented hand bound (`tests/test_vllm_hybrid_kv.py` names each one).
 For an unproven failing pool, prefer the creator context and reserve at least
 one request at that context, checking the worst option. If that cannot be
 admitted with selected weights and runtime overhead, cap the explicit engine

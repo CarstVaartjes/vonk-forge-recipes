@@ -12,12 +12,14 @@ import json
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import ROUND_CEILING, Decimal
+from enum import StrEnum
 from functools import cache
 from itertools import product
+from math import lcm
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
@@ -64,6 +66,40 @@ GUARD_BYTES = 16 * 1024**3
 LIMIT_BYTES = TOTAL_BYTES - GUARD_BYTES - IDLE_USE_BYTES
 
 
+class MambaCacheMode(StrEnum):
+    """vLLM's --mamba-cache-mode values (vllm/config/cache.py)."""
+
+    NONE = "none"
+    ALIGN = "align"
+    ALL = "all"
+
+
+# vLLM --mamba-cache-dtype / --mamba-ssm-cache-dtype element sizes.
+MAMBA_DTYPE_BYTES = {"float32": 4, "float16": 2, "bfloat16": 2}
+
+
+class RecurrentCache(BaseModel):
+    """Mamba/GDN layer state from the pinned configuration, before TP sharding.
+
+    vLLM v0.27 mamba_utils.MambaStateShapeCalculator: conv state is
+    conv_channels / tp x (conv_kernel - 1 + speculative tokens) in the model
+    dtype (BF16) unless --mamba-cache-dtype; temporal state is
+    state_elements / tp in state_dtype_bytes unless --mamba-ssm-cache-dtype.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+    layers: int = Field(gt=0)
+    conv_channels: int = Field(gt=0)
+    conv_kernel: int = Field(gt=1)
+    state_elements: int = Field(gt=0)
+    state_dtype_bytes: int = Field(gt=0)
+    # Smallest attention kernel block of the pinned image's backend.
+    kernel_block_tokens: int = Field(default=16, gt=0)
+    # Mamba chunk size when the architecture supports prefix-caching mode
+    # "all" (SupportsMambaPrefixCaching, e.g. NemotronH); otherwise "align".
+    all_mode_chunk_tokens: int | None = Field(default=None, gt=0)
+
+
 class CacheGeometry(BaseModel):
     """Pinned configuration dimensions; never guessed from the model's name."""
 
@@ -82,6 +118,11 @@ class CacheGeometry(BaseModel):
     value_dim: int = Field(ge=0)
     sliding_layers: int = Field(default=0, ge=0)
     sliding_window: int = Field(default=0, ge=0)
+    # Mamba/GDN layers: vLLM pads, groups and null-blocks them (vllm_hybrid_need).
+    recurrent: RecurrentCache | None = None
+    # Hand-entered extra state counted once per request (sliding windows,
+    # compressed or replay caches, SGLang slots). Never Mamba/GDN state on
+    # vLLM: vLLM pads and groups that, so use `recurrent`.
     state_bytes_per_request: int = Field(default=0, ge=0)
     # Compressed/hybrid layouts may use a conservative packed-token bound.
     token_bytes: int | None = Field(default=None, gt=0)
@@ -93,6 +134,23 @@ class CacheGeometry(BaseModel):
     # SGLang per-rank hybrid state per max-mamba-cache-size slot (+1 padding).
     sglang_state_bytes_per_slot: int = Field(default=0, ge=0)
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+
+    @model_validator(mode="after")
+    def one_recurrent_bound(self) -> Self:
+        """Typed recurrent state uses plain attention layers and no hand bound."""
+        if self.recurrent is not None and (
+            self.state_bytes_per_request
+            or self.state_padding
+            or self.sglang_state_bytes_per_slot
+            or self.sliding_layers
+            or self.token_bytes is not None
+            or self.token_bytes_by_dtype
+            or self.replicated_token_bytes
+        ):
+            raise ValueError(
+                "recurrent geometry takes plain attention layers and no hand state bound"
+            )
+        return self
 
 
 class MemoryInputs(BaseModel):
@@ -331,7 +389,9 @@ def calculate_need(
                 raise ValueError(
                     f"{label}: absolute state pool cannot hold concurrency"
                 )
-        state += geometry.state_bytes_per_request * (slots + geometry.state_padding)
+        state += geometry.state_bytes_per_request * (
+            slots + geometry.state_padding
+        ) + recurrent_need(recipe, geometry, context, concurrency)
     # Selected draft weights/cache do not replace the measured outside-budget
     # floor: no replacement calibration exists for the 2026-10-13 Spark freeze.
     overhead = OVERHEAD_BYTES
@@ -525,6 +585,29 @@ def cache_need_for_context(
     """One cache-layout calculation for single-node and per-rank workload sizing."""
     dtype = str(argument_value(recipe, "kv-cache-dtype") or "auto")
     parallel = recipe.topology.parallelism
+    layers, token_bytes = attention_token_bytes(recipe, geometry)
+    needed = context * token_bytes
+    if not geometry.token_bytes_by_dtype.get(dtype) and geometry.token_bytes is None:
+        sliding_layers = (
+            geometry.sliding_layers + parallel.pipeline - 1
+        ) // parallel.pipeline
+        needed -= (
+            (context - min(context, geometry.sliding_window))
+            * sliding_layers
+            * (token_bytes // layers)
+        )
+    replicated_bytes = (
+        geometry.replicated_token_bytes * layers + geometry.layers - 1
+    ) // geometry.layers
+    return needed + context * replicated_bytes
+
+
+def attention_token_bytes(
+    recipe: RecipeDefinition, geometry: CacheGeometry
+) -> tuple[int, int]:
+    """Attention layers on the largest pipeline stage and their bytes per token."""
+    dtype = str(argument_value(recipe, "kv-cache-dtype") or "auto")
+    parallel = recipe.topology.parallelism
     layers = (geometry.layers + parallel.pipeline - 1) // parallel.pipeline
     heads = (
         geometry.kv_heads
@@ -567,20 +650,140 @@ def cache_need_for_context(
         )
     else:
         raise ValueError(f"{recipe.identity.slug}: supply cache layout for {dtype}")
-    needed = context * token_bytes
-    if not geometry.token_bytes_by_dtype.get(dtype) and geometry.token_bytes is None:
-        sliding_layers = (
-            geometry.sliding_layers + parallel.pipeline - 1
-        ) // parallel.pipeline
-        needed -= (
-            (context - min(context, geometry.sliding_window))
-            * sliding_layers
-            * (token_bytes // layers)
+    return layers, token_bytes
+
+
+def speculative_tokens(recipe: RecipeDefinition) -> int:
+    """vLLM speculative-config num_speculative_tokens; 0 without speculation."""
+    config = argument_value(recipe, "speculative-config")
+    if isinstance(config, str):
+        try:
+            config = json.loads(config)
+        except json.JSONDecodeError:
+            return 0  # "None" switches speculation off
+    if not isinstance(config, dict):
+        return 0
+    tokens = config.get("num_speculative_tokens")
+    return int(tokens) if isinstance(tokens, int | str) else 0
+
+
+def mamba_dtype_bytes(recipe: RecipeDefinition, flag: str, default: int) -> int:
+    value = argument_value(recipe, flag)
+    if value is None or value == "auto":
+        return default
+    if str(value) not in MAMBA_DTYPE_BYTES:
+        raise ValueError(
+            f"{recipe.identity.slug}: supply state size for {flag} {value}"
         )
-    replicated_bytes = (
-        geometry.replicated_token_bytes * layers + geometry.layers - 1
-    ) // geometry.layers
-    return needed + context * replicated_bytes
+    return MAMBA_DTYPE_BYTES[str(value)]
+
+
+def recurrent_layer_bytes(recipe: RecipeDefinition, recurrent: RecurrentCache) -> int:
+    """One request's unpadded state in one recurrent layer on one tensor rank."""
+    tensor = recipe.topology.parallelism.tensor
+    conv = -(-recurrent.conv_channels // tensor) * (
+        recurrent.conv_kernel - 1 + speculative_tokens(recipe)
+    )
+    return conv * mamba_dtype_bytes(recipe, "mamba-cache-dtype", 2) + -(
+        -recurrent.state_elements // tensor
+    ) * mamba_dtype_bytes(recipe, "mamba-ssm-cache-dtype", recurrent.state_dtype_bytes)
+
+
+def mamba_cache_mode(
+    recipe: RecipeDefinition, recurrent: RecurrentCache
+) -> MambaCacheMode:
+    """vLLM MambaModelConfig: hybrid prefix caching is opt-in; it selects
+    "all" where the architecture supports it, else "align"."""
+    if argument_value(recipe, "enable-prefix-caching") is not True:
+        return MambaCacheMode.NONE
+    mode = MambaCacheMode(
+        str(argument_value(recipe, "mamba-cache-mode") or MambaCacheMode.NONE)
+    )
+    if mode is MambaCacheMode.ALIGN or recurrent.all_mode_chunk_tokens is None:
+        return MambaCacheMode.ALIGN
+    return MambaCacheMode.ALL
+
+
+def vllm_hybrid_need(
+    recipe: RecipeDefinition,
+    geometry: CacheGeometry,
+    recurrent: RecurrentCache,
+    context: int,
+    concurrency: int,
+) -> int:
+    """Per-rank pool vLLM v0.27's hybrid allocator needs for the requests.
+
+    Platform._align_hybrid_block_size raises the block to the smallest
+    kernel-aligned size (mode "all": aligned to the Mamba chunk) whose
+    attention page holds one recurrent state, and pads that state to the page.
+    _get_kv_cache_groups_uniform_page_size groups layers by the smallest
+    bucket (the largest when within 1.5x), padding each type's last group;
+    get_num_blocks sizes pool // page // group blocks and BlockPool takes one
+    as the null block. Per request an attention group holds cdiv(context,
+    block) blocks and a recurrent group (MambaSpec.max_memory_usage_bytes)
+    1 (mode none), 2 (align) or cdiv(context, block) (all), plus one per
+    speculative token. This covers the startup check, which sums the layers
+    without group padding or the null block.
+    """
+    attention_layers, token_bytes = attention_token_bytes(recipe, geometry)
+    per_token = token_bytes // attention_layers
+    state = recurrent_layer_bytes(recipe, recurrent)
+    align = recurrent.kernel_block_tokens
+    if argument_value(recipe, "block-size") is not None:
+        align = max(align, positive_argument(recipe, "block-size"))
+    mode = mamba_cache_mode(recipe, recurrent)
+    if mode is MambaCacheMode.ALL:
+        assert recurrent.all_mode_chunk_tokens is not None
+        chunk = lcm(recurrent.all_mode_chunk_tokens, align)
+        tokens = -(-state // per_token)
+        block = chunk * -(-tokens // chunk)
+    else:
+        block = align * -(-state // (align * per_token))
+    stages = recipe.topology.parallelism.pipeline
+    recurrent_layers = -(-recurrent.layers // stages)
+    smallest, largest = sorted((attention_layers, recurrent_layers))
+    group = largest if 2 * largest < 3 * smallest else smallest
+    attention_blocks = -(-context // block)
+    recurrent_blocks = (
+        speculative_tokens(recipe)
+        + {
+            MambaCacheMode.NONE: 1,
+            MambaCacheMode.ALIGN: 2,
+            MambaCacheMode.ALL: attention_blocks,
+        }[mode]
+    )
+    blocks = (
+        concurrency
+        * (
+            -(-attention_layers // group) * attention_blocks
+            + -(-recurrent_layers // group) * recurrent_blocks
+        )
+        + 1
+    )
+    return blocks * group * block * per_token
+
+
+def recurrent_need(
+    recipe: RecipeDefinition, geometry: CacheGeometry, context: int, concurrency: int
+) -> int:
+    """What typed recurrent layers add to the attention cache of the requests.
+
+    vLLM pads, groups and null-blocks them (vllm_hybrid_need); other engines
+    hold the unpadded state per request.
+    """
+    recurrent = geometry.recurrent
+    if recurrent is None:
+        return 0
+    if recipe.runtime.engine != "vllm":
+        stages = recipe.topology.parallelism.pipeline
+        return (
+            concurrency
+            * -(-recurrent.layers // stages)
+            * recurrent_layer_bytes(recipe, recurrent)
+        )
+    return vllm_hybrid_need(
+        recipe, geometry, recurrent, context, concurrency
+    ) - concurrency * cache_need_for_context(recipe, geometry, context)
 
 
 def absolute_kv_need(
@@ -621,7 +824,7 @@ def absolute_kv_need(
     return (
         cache_need_for_context(recipe, geometry, context)
         + geometry.state_bytes_per_request
-    ) * concurrency
+    ) * concurrency + recurrent_need(recipe, geometry, context, concurrency)
 
 
 def require_absolute_kv_capacity(

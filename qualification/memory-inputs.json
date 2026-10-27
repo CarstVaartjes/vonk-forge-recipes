@@ -456,8 +456,15 @@
       "kv_heads": 2,
       "layers": 6,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/bee7596271d1495f6992ae224aefde4410e816b8/config.json; layers_block_type attention entries; recurrent state bounded separately at 256 MiB/request.",
-      "state_bytes_per_request": 268435456,
+      "recurrent": {
+        "layers": 23,
+        "conv_channels": 6144,
+        "conv_kernel": 4,
+        "state_elements": 524288,
+        "state_dtype_bytes": 4,
+        "all_mode_chunk_tokens": 128
+      },
+      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/bee7596271d1495f6992ae224aefde4410e816b8/config.json; layers_block_type: 6 attention entries (2 KV heads, head_dim 128) and 23 mamba entries: mamba_num_heads 64 x mamba_head_dim 64, n_groups 8, ssm_state_size 128, conv_kernel 4, chunk_size 128. NemotronH caches temporal state in float32 unless --mamba-ssm-cache-dtype and supports prefix-caching mode \"all\". vLLM pads, groups and null-blocks this state (qualification/memory_need.py vllm_hybrid_need, from vLLM v0.27 mamba_utils, interface.py _align_hybrid_block_size and kv_cache_utils.py).",
       "value_dim": 128
     },
     "nemotron-3-5-super-vl-nvfp4-82d93699": {
@@ -466,30 +473,51 @@
       "kv_heads": 2,
       "layers": 8,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/resolve/82d93699acd3be9e4617c53360fe5b3f5dbeb1b3/config.json; layers_block_type attention entries; recurrent state bounded separately at 256 MiB/request.",
-      "state_bytes_per_request": 268435456,
+      "recurrent": {
+        "layers": 40,
+        "conv_channels": 10240,
+        "conv_kernel": 4,
+        "state_elements": 1048576,
+        "state_dtype_bytes": 4,
+        "all_mode_chunk_tokens": 128
+      },
+      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/resolve/82d93699acd3be9e4617c53360fe5b3f5dbeb1b3/config.json; layers_block_type: 8 attention entries (2 KV heads, head_dim 128) and 40 mamba entries: mamba_num_heads 128 x mamba_head_dim 64, n_groups 8, ssm_state_size 128, conv_kernel 4, chunk_size 128. NemotronH caches temporal state in float32 unless --mamba-ssm-cache-dtype and supports prefix-caching mode \"all\". vLLM pads, groups and null-blocks this state (qualification/memory_need.py vllm_hybrid_need, from vLLM v0.27 mamba_utils, interface.py _align_hybrid_block_size and kv_cache_utils.py).",
       "value_dim": 128
     },
     "nemotron-3-nano-omni-30b-a3b-reasoning-bf16-e5e99324": {
       "configuration_sha256": "bf8859c106ef73d65fd194cbd336584d24dceaf724a408c762db7945e3925957",
       "key_dim": 128,
       "kv_heads": 2,
-      "layers": 52,
+      "layers": 6,
+      "recurrent": {
+        "layers": 23,
+        "conv_channels": 6144,
+        "conv_kernel": 4,
+        "state_elements": 524288,
+        "state_dtype_bytes": 4,
+        "all_mode_chunk_tokens": 128
+      },
       "resident_expansion_bytes": 8000000000,
       "runtime_image_digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
-      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16/blob/e5e9932441de940c9a62185c870ea5bcd4cd24e2/config.json llm_config: bound all 52 layers as full BF16 attention (2 KV heads, 128 key/value dimensions). Bound every layer's FP32 Mamba state (64 heads x 64 head dimension x 128 state size) plus convolution storage by 128 MiB/request. Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement.",
-      "state_bytes_per_request": 134217728,
+      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16/blob/e5e9932441de940c9a62185c870ea5bcd4cd24e2/config.json llm_config: hybrid_override_pattern has 6 attention layers (2 KV heads, 128 key/value dimensions) and 23 Mamba layers: mamba_num_heads 64 x mamba_head_dim 64, n_groups 8, ssm_state_size 128, conv_kernel 4, chunk_size 128. NemotronH caches temporal state in float32 unless --mamba-ssm-cache-dtype and supports prefix-caching mode \"all\". vLLM pads, groups and null-blocks this state (qualification/memory_need.py vllm_hybrid_need, from vLLM v0.27 mamba_utils, interface.py _align_hybrid_block_size and kv_cache_utils.py). Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement.",
       "value_dim": 128
     },
     "nemotron-3-nano-omni-30b-a3b-reasoning-fp8-0acd4b1c": {
       "configuration_sha256": "ba51d79fe0db8aef1e1c6c1515b18e9e5697f99c004fbe26dc16ae8b6f2dc544",
       "key_dim": 128,
       "kv_heads": 2,
-      "layers": 52,
+      "layers": 6,
+      "recurrent": {
+        "layers": 23,
+        "conv_channels": 6144,
+        "conv_kernel": 4,
+        "state_elements": 524288,
+        "state_dtype_bytes": 4,
+        "all_mode_chunk_tokens": 128
+      },
       "resident_expansion_bytes": 8000000000,
       "runtime_image_digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
-      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8/blob/0acd4b1c237eab45d3977b1b46631919e9a75774/config.json llm_config: bound all 52 layers as full BF16 attention (2 KV heads, 128 key/value dimensions). Bound every layer's FP32 Mamba state (64 heads x 64 head dimension x 128 state size) plus convolution storage by 128 MiB/request. Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement.",
-      "state_bytes_per_request": 134217728,
+      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8/blob/0acd4b1c237eab45d3977b1b46631919e9a75774/config.json llm_config: hybrid_override_pattern has 6 attention layers (2 KV heads, 128 key/value dimensions) and 23 Mamba layers: mamba_num_heads 64 x mamba_head_dim 64, n_groups 8, ssm_state_size 128, conv_kernel 4, chunk_size 128. NemotronH caches temporal state in float32 unless --mamba-ssm-cache-dtype and supports prefix-caching mode \"all\". vLLM pads, groups and null-blocks this state (qualification/memory_need.py vllm_hybrid_need, from vLLM v0.27 mamba_utils, interface.py _align_hybrid_block_size and kv_cache_utils.py). Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement.",
       "value_dim": 128
     },
     "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976": {
@@ -497,8 +525,14 @@
       "key_dim": 256,
       "kv_heads": 4,
       "layers": 16,
-      "source": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/config.json text_config: 64 layers, full_attention_interval=4, 4 KV heads, head_dim=256. The other 48 layers have FP32 recurrent state (48 value heads x 128 x 128) and BF16 convolution state (4 x (2 x 16 x 128 + 48 x 128)); 154927104 bytes rounded up to 160 MiB per sequence. No MTP speculation.",
-      "state_bytes_per_request": 167772160,
+      "recurrent": {
+        "layers": 48,
+        "conv_channels": 10240,
+        "conv_kernel": 4,
+        "state_elements": 786432,
+        "state_dtype_bytes": 4
+      },
+      "source": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/config.json text_config: 64 layers, full_attention_interval=4, 4 KV heads, head_dim=256. The other 48 linear_attention (GDN) layers: conv_dim 2 x 16 x 128 + 48 x 128, linear_conv_kernel_dim 4, temporal state 48 value heads x 128 x 128 in mamba_ssm_dtype float32 (3,207,168 bytes per layer at TP=1). Qwen3.5 GDN has no prefix-caching mode \"all\", so prefix caching runs \"align\". vLLM pads, groups and null-blocks this state (qualification/memory_need.py vllm_hybrid_need, from vLLM v0.27 mamba_utils, interface.py _align_hybrid_block_size and kv_cache_utils.py). Hardware: operation c2940bb5 (2026-10-27) needed 34681651200 bytes at 1048576 tokens.",
       "value_dim": 256
     },
     "qwen3-8-flash-next-nvfp4-fab0aecb": {
@@ -508,7 +542,7 @@
       "layers": 12,
       "max_context_tokens": 262144,
       "replicated_token_bytes": 768,
-      "source": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4/resolve/fab0aecb760cec45227f6656abcaafa11abca87a/config.json; full-attention layers only; recurrent state rounded to 160 MiB/request (same linear dimensions as Qwen3.8-27B). Indexer bound: 12 full-attention layers x indexer_kv_heads=1 x indexer_head_dim=128 x 2 bytes / indexer_compress_ratio=4 = 768 replicated bytes/token (no FP8 storage credit).",
+      "source": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4/resolve/fab0aecb760cec45227f6656abcaafa11abca87a/config.json; full-attention layers only; explicit hand state bound, 160 MiB/request (same linear dimensions as Qwen3.8-27B): its only vLLM recipe (sfxnz dual, hardware-proven on content 9f77f966) runs vLLM v0.30.0, whose Qwen4Exp layout adds cache types the recurrent formula does not express (a second tp_replicated PLE MambaSpec, a QSA CircularBufferSpec ring, an MLA compressed-key cache and the MTP drafter's QSA layer); the proven pool stays judged by this bound. Indexer bound: 12 full-attention layers x indexer_kv_heads=1 x indexer_head_dim=128 x 2 bytes / indexer_compress_ratio=4 = 768 replicated bytes/token (no FP8 storage credit).",
       "state_bytes_per_request": 167772160,
       "value_dim": 256
     },
