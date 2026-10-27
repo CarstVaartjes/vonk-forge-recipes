@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/laguna-s-2-1-nvfp4-vllm-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "fc8f3fb2fb3b9c4f828fef42132144962722840e2ce232b703f153d9d7b51d57",
+        "source_bundle_sha256": "cc5a51f451177ea849bb1b26c0935540df9dc065023c5ca1cbb325de64e00144",
+        "runtime_image": {
+          "build_key": "5553537d5bd9a235e9698096da3295e21adebd594ff76c0fd7b9e39e581c9173",
+          "image_digest": "sha256:8b8c14076d073c6856baf34a609bd09d193be1dfec33d35572d00bb4ae4d929e"
+        },
+        "model_digests": [
+          "aa43743d4fbc01f3e26976f9abb4ec19ca1a977116c1b4e1cd2d2561c6ef4043"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "42242d02e4c1fac3b8408cfb5c2e46ef4a9eb8a1a5fc77c168eaf04555e284c9"
+      ],
+      "tested_at": "2026-10-27T23:26:08.247311Z",
+      "platform": {
+        "controller_source_sha": "266932981dd55bb5086fbfa5b9abd4c5782d62a1",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
