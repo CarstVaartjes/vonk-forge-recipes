@@ -110,6 +110,38 @@ def test_proven_set_calibrates_need_without_false_rejections() -> None:
     assert checked == 115
 
 
+def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
+    """A repaired role declares its honest startup peak: at least the loading floor.
+
+    Owner (2026-10-27): the peak may exceed the floor where hardware measured
+    more, per role; it must still be admissible, never shaved to fit.
+    """
+    require_admissible_declaration(variant)
+    need = per_rank_need(variant, catalog_models(), load_inputs())
+    assert not declaration_problems(variant, need)
+    if variant.runtime.engine == "vllm":
+        fraction = argument_value(variant, "gpu-memory-utilization")
+        assert fraction is not None
+        assert Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES <= need.peak_bytes
+    else:
+        fraction = argument_value(variant, "mem-fraction-static")
+        assert fraction is not None
+        allocated = Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        assert all(
+            allocated <= role.resources.memory.peak_bytes
+            for role in variant.topology.roles
+        )
+    if slug in RANK_BUDGET_FOLLOW_UPS:
+        with pytest.raises((TypeError, ValueError)):
+            require_memory_need(
+                variant, catalog_models(), load_inputs(), document_digest=""
+            )
+    else:
+        require_memory_need(
+            variant, catalog_models(), load_inputs(), document_digest=""
+        )
+
+
 @pytest.mark.parametrize("slug", REPAIRED)
 def test_repaired_declarations_and_engine_allocations_fit_every_variant(
     slug: str,
@@ -117,36 +149,27 @@ def test_repaired_declarations_and_engine_allocations_fit_every_variant(
     recipe = recipe_for(slug)
     assert f"{recipe.identity.publisher}/{slug}" not in PROVEN
     for variant in memory_variants(recipe):
-        require_admissible_declaration(variant)
-        need = per_rank_need(variant, catalog_models(), load_inputs())
-        assert not declaration_problems(variant, need)
-        if variant.runtime.engine == "vllm":
-            fraction = argument_value(variant, "gpu-memory-utilization")
-            assert fraction is not None
-            assert (
-                Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES <= need.peak_bytes
-            )
-            assert all(
-                role.resources.memory.peak_bytes == need.peak_bytes
-                for role in variant.topology.roles
-            )
-        else:
-            fraction = argument_value(variant, "mem-fraction-static")
-            assert fraction is not None
-            allocated = Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
-            assert all(
-                allocated <= role.resources.memory.peak_bytes
-                for role in variant.topology.roles
-            )
-        if slug in RANK_BUDGET_FOLLOW_UPS:
-            with pytest.raises((TypeError, ValueError)):
-                require_memory_need(
-                    variant, catalog_models(), load_inputs(), document_digest=""
-                )
-        else:
-            require_memory_need(
-                variant, catalog_models(), load_inputs(), document_digest=""
-            )
+        require_repaired_declaration(slug, variant)
+
+
+def test_repaired_role_declares_its_measured_peak_above_the_floor() -> None:
+    slug = "mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual"
+    recipe = recipe_for(slug)
+    floor = per_rank_need(recipe, catalog_models(), load_inputs()).peak_bytes
+    entrypoint, worker = recipe.topology.roles
+    # Hardware showed more than the floor, and the roles may differ.
+    entrypoint.resources.memory.peak_bytes = floor + 9_000_000_000
+    worker.resources.memory.peak_bytes = floor + 13_000_000_000
+    require_repaired_declaration(slug, recipe)
+    # 2026-10-27: ~120.9 GB at the end of target load, before its 7.46 GB KV
+    # pool. An honest peak that is not admissible is reported, never shaved.
+    worker.resources.memory.peak_bytes = 128_400_000_000
+    with pytest.raises(ValueError, match="worker.*not admissible"):
+        require_repaired_declaration(slug, recipe)
+    # Below the loading floor still hides demand.
+    worker.resources.memory.peak_bytes = floor - 1
+    with pytest.raises(AssertionError):
+        require_repaired_declaration(slug, recipe)
 
 
 def test_catalog_checks_each_supported_document() -> None:
@@ -204,6 +227,8 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
     # One owner: require_admissible_declaration / evaluate_memory_admission. A
     # hand-written peak + reserve bound of 128 GB was a second, stricter copy:
     # it refused the proven 120,370,379,081-byte peak beside an 8 GB reserve.
+    # Pinning a declared peak to the loading floor was another: it forbade the
+    # honest measured peak (owner 2026-10-27; declaration_problems owns >=).
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = 120_370_379_081
@@ -214,6 +239,7 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
         r"\b128(?:_000_000_000|000000000|e9)\b"
         r"|assertLess(?:Equal)?\(\s*(?:envelope|admission)\b"
         r"|reserve_bytes\W*\s*<=?\s*\d"
+        r"|peak_bytes\s*==\s*need\.peak_bytes"
     )
     copies = [
         f"{path.name}:{number}"

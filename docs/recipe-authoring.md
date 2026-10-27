@@ -322,9 +322,13 @@ never exemptions or candidates for automatic retuning.
 **A.** Preserve the runtime settings of every recipe that passed on real hardware.
 Change them only after a hardware failure, or deliberately with hardware retesting.
 
-**B.** New/failing recipes declare a peak that covers selected weights
-(including drafts), any absolute KV pool and runtime overhead, and that is
-admissible on an idle Spark. The guard is calibrated on the proven set, which
+**B.** New/failing recipes declare, per role, their honest measured startup
+peak (owner, 2026-10-27). It covers selected weights (including drafts), any
+absolute KV pool and runtime overhead; that loading floor is a lower bound, and
+where hardware evidence shows a role using more, its peak is the measured use
+plus a stated margin (entrypoint and worker may differ). It must be admissible
+on an idle Spark. An honest peak that is not admissible means the recipe can
+never fit: report it; never shave the number. The guard is calibrated on the proven set, which
 `tests/test_absolute_kv_capacity.py` replays through the touched path for every
 proven vLLM/SGLang document. A KV pool holds at least one full-context request,
 not declared context × engine concurrency: engines schedule requests within it.
