@@ -122,7 +122,8 @@ class CacheGeometry(BaseModel):
     recurrent: RecurrentCache | None = None
     # Hand-entered extra state counted once per request (sliding windows,
     # compressed or replay caches, SGLang slots). Never Mamba/GDN state on
-    # vLLM: vLLM pads and groups that, so use `recurrent`.
+    # vLLM (vLLM pads and groups it: use `recurrent`) unless named in
+    # tests/test_vllm_hybrid_kv.py EXPLICIT_HAND_BOUNDS.
     state_bytes_per_request: int = Field(default=0, ge=0)
     # Compressed/hybrid layouts may use a conservative packed-token bound.
     token_bytes: int | None = Field(default=None, gt=0)
