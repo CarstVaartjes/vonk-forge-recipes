@@ -500,11 +500,15 @@ Test the old grammar accepting duplicate calls and the replacement rejecting
 them, plus streaming and non-streaming parsing of the resulting native frame.
 Keep the serving assertion strict; response deduplication can discard real calls.
 
-The vLLM in `eugr/spark-vllm-b12x` builds its strict DeepSeek V4 tool grammar
-with a reasoning block even for `thinking: false`, so a named or required call
-cannot stop and runs to `max_tokens`. A `deepseek_v4` recipe on that base that
-smoke-tests a forced tool call sets `VLLM_ENFORCE_STRICT_TOOL_CALLING=0`
-(`tests/test_deepseek_v4_b12x_named_tool_stop.py`).
+vLLM 0.1.dev20133+gb5f995e73, in the B12X base
+`sha256:7dc02f162929943ba2e14514066ed2a04bb7e9ed3592d4eb460ebcbb1f8376bd`, builds
+its strict DeepSeek V4 tool grammar with a reasoning block even for
+`thinking: false`, so a named or required call cannot stop and runs to
+`max_tokens`. A `deepseek_v4` recipe on that base sets
+`VLLM_ENFORCE_STRICT_TOOL_CALLING=0`
+(`tests/test_deepseek_v4_b12x_named_tool_stop.py`). Newer B12X builds, such as
+vLLM 8244d1c4 in base `sha256:03a956544e9f...`, pass `reasoning=False` and need
+no setting.
 
 On GB10, CPU and CUDA allocations share physical memory. For unproven
 single-Spark jobs, keep models on CUDA when the complete resident weights,

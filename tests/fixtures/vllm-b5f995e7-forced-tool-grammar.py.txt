@@ -1,0 +1,229 @@
+# From https://github.com/local-inference-lab/vllm at b5f995e73e6b7fe27c9927477e277a151ebcc9e9, the vLLM
+# (0.1.dev20133+gb5f995e73.d20260823 per /workspace/build-metadata.yaml) of
+# docker.io/eugr/spark-vllm-b12x@sha256:7dc02f162929943ba2e14514066ed2a04bb7e9ed3592d4eb460ebcbb1f8376bd:
+# vllm/envs.py lines 2039-2041, vllm/tool_parsers/abstract_tool_parser.py lines 59, 62,
+# 65-71, 134-181 and 183-200, vllm/tool_parsers/deepseekv4_engine_tool_parser.py
+# line 9, vllm/parser/abstract_parser.py lines 515-604,
+# vllm/parser/engine/adapters.py lines 122-132, vllm/parser/deepseek_v4.py
+# lines 212-232. vLLM contributors; Apache-2.0. The code is reproduced without
+# changes in dictionary and class shells.
+environment_variables = {
+    "VLLM_ENFORCE_STRICT_TOOL_CALLING": lambda: (
+        os.getenv("VLLM_ENFORCE_STRICT_TOOL_CALLING", "True").lower() in ("true", "1")
+    ),
+}
+
+
+class ToolParser:
+    supports_required_and_named: bool = True
+    structural_tag_model: str | None = None
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if (
+            cls.structural_tag_model is not None
+            and envs.VLLM_ENFORCE_STRICT_TOOL_CALLING
+        ):
+            cls.supports_required_and_named = False
+
+    def adjust_request(
+        self,
+        request: ChatCompletionRequest | ResponsesRequest,
+    ) -> ChatCompletionRequest | ResponsesRequest:
+        # If there are no tools, return the request as is.
+        if not request.tools:
+            return request
+
+        # Set structured output params when tool constraints are derived from
+        # the tool schema. Unified parsers handle model-specific structural
+        # tags before calling into the tool parser.
+        structured_outputs = getattr(request, "structured_outputs", None)
+        if (
+            structured_outputs is not None
+            and structured_outputs.structural_tag is not None
+        ):
+            return request
+
+        json_schema_from_tool = get_json_schema_from_tools(
+            tool_choice=request.tool_choice, tools=request.tools
+        )
+        # Set structured output params for tool calling
+        if json_schema_from_tool is not None:
+            if isinstance(request, ChatCompletionRequest):
+                # tool_choice: "Forced Function" or "required" will override
+                # structured output json settings to make tool calling work correctly
+                request.structured_outputs = StructuredOutputsParams(
+                    json=json_schema_from_tool  # type: ignore[call-arg]
+                )
+                request.response_format = None
+            if isinstance(request, ResponsesRequest):
+                # Single-shot construction so Pydantic v2 tracks `format`
+                # in __fields_set__ — assigning to `.format` after the bare
+                # `ResponseTextConfig()` constructor does not, which can
+                # drop the nested config from `model_dump`. Also drop the
+                # `description` kwarg: it is not a field on
+                # ResponseFormatTextJSONSchemaConfig and was being silently
+                # passed through as extra.
+                request.text = ResponseTextConfig(
+                    format=ResponseFormatTextJSONSchemaConfig(
+                        type="json_schema",
+                        name="tool_calling_response",
+                        schema=json_schema_from_tool,
+                        strict=True,
+                    )
+                )
+
+        return request
+
+    def get_structural_tag(
+        self,
+        request: ChatCompletionRequest | ResponsesRequest,
+        *,
+        reasoning: bool = False,
+    ):
+        if self.structural_tag_model is None:
+            return None
+        if not envs.VLLM_ENFORCE_STRICT_TOOL_CALLING:
+            return None
+        from vllm.tool_parsers.structural_tag_registry import get_model_structural_tag
+
+        return get_model_structural_tag(
+            model=self.structural_tag_model,
+            tools=request.tools,
+            tool_choice=request.tool_choice,
+            reasoning=reasoning,
+        )
+
+
+class DeepSeekV4EngineToolParser(ToolParser):
+    structural_tag_model = "deepseek_v4"
+
+
+class DelegatingParser:
+    def adjust_request(
+        self, request: ChatCompletionRequest | ResponsesRequest
+    ) -> ChatCompletionRequest | ResponsesRequest:
+        if self._reasoning_parser is not None:
+            request = self._reasoning_parser.adjust_request(request)
+        if self._tool_parser is not None:
+            request = self._apply_structural_tag(request)
+        if self._tool_parser is not None:
+            request = self._tool_parser.adjust_request(request)
+        return request
+
+    def _reasoning_enabled(self) -> bool:
+        """Whether the model will emit a reasoning prefix before its answer
+        / tool call for this request.
+
+        The parser (and thus its reasoning parser) is constructed per request
+        with that request's ``chat_template_kwargs``, so the reasoning parser
+        already reflects whether thinking is enabled. Defaults to ``True`` —
+        xgrammar's own default — when the reasoning parser cannot report it,
+        so the structural-tag grammar models the reasoning phase the engine's
+        structured-output FSM expects.
+        """
+        reasoner = self._reasoning_parser
+        if reasoner is None:
+            return False
+        return bool(getattr(reasoner, "thinking_enabled", True))
+
+    def _apply_structural_tag(
+        self, request: ChatCompletionRequest | ResponsesRequest
+    ) -> ChatCompletionRequest | ResponsesRequest:
+        if (
+            self._tool_parser is None
+            or self._tool_parser.structural_tag_model is None
+            or not request.tools
+        ):
+            return request
+
+        need_tool_calling = (
+            request.tool_choice == "auto"
+            or request.tool_choice == "required"
+            or isinstance(
+                request.tool_choice,
+                (ChatCompletionNamedToolChoiceParam, ToolChoiceFunction),
+            )
+        )
+        if not need_tool_calling:
+            return request
+
+        reasoning_enabled = self._reasoning_enabled()
+
+        # When the model emits a reasoning prefix (e.g. ``...</think>``) before
+        # its tool call, the structural-tag grammar MUST include the reasoning
+        # section. Otherwise the grammar only models the tool-call format and
+        # the structured-output FSM rejects the reasoning tokens at the
+        # reasoning->tool boundary (HTTP 500 non-streaming / mid-stream error
+        # streaming). The engine's structural-tag same-step advance also assumes
+        # the tag models this phased (reasoning -> tool) output.
+        structure_tag = self._tool_parser.get_structural_tag(
+            request,
+            reasoning=reasoning_enabled,
+        )
+        if structure_tag is None:
+            return request
+
+        structural_tag = json.dumps(structure_tag.model_dump())
+        request.structured_outputs = StructuredOutputsParams(
+            structural_tag=structural_tag,
+        )
+        if isinstance(request, ResponsesRequest):
+            request.text = None
+        else:
+            request.response_format = None
+
+        # The structural tag now models the reasoning phase itself (an
+        # unconstrained prefix terminated by the reasoning-end marker), so the
+        # structured-output engine must enforce the grammar from the FIRST
+        # token rather than deferring past a reasoning section it would no
+        # longer detect separately. Without this, tokens sampled immediately
+        # after the reasoning-end marker escape the grammar bitmask, so a
+        # forced/required tool suffix can be violated (e.g. the model samples
+        # prose instead of the tool call); the FSM advance then rejects those
+        # tokens and the request fails with an internal error. This reuses the
+        # same signal the Mistral grammar path uses to mark "the grammar
+        # handles reasoning" (-> reasoning_ended=True at generation start). The
+        # reasoning prefix is unconstrained, so thinking is not restricted; only
+        # the post-reasoning tool call is enforced. PrivateAttr exists only on
+        # ChatCompletionRequest, hence the guard.
+        if reasoning_enabled and hasattr(request, "_grammar_from_tool_parser"):
+            request._grammar_from_tool_parser = True
+        return request
+
+
+class ParserEngineReasoningAdapter:
+    @property
+    def thinking_enabled(self) -> bool:
+        """Whether reasoning/thinking output is enabled for this request.
+
+        Mirrors the wrapped parser engine, which derives this from the
+        request's ``chat_template_kwargs`` (e.g. ``enable_thinking``). Used by
+        structural-tag construction to decide whether the grammar must model a
+        reasoning prefix. Defaults to ``True`` when the engine does not expose
+        it.
+        """
+        return bool(getattr(self._parser_engine, "thinking_enabled", True))
+
+
+class DeepSeekV4Parser(ParserEngine):
+    def __init__(
+        self,
+        tokenizer: TokenizerLike,
+        tools: list[Tool] | None = None,
+        **kwargs,
+    ) -> None:
+        chat_kwargs = kwargs.pop("chat_template_kwargs", None) or {}
+        thinking = bool(
+            chat_kwargs.get("thinking") or chat_kwargs.get("enable_thinking")
+        )
+        if "thinking" not in chat_kwargs and "enable_thinking" not in chat_kwargs:
+            thinking = True
+        thinking = thinking and chat_kwargs.get("reasoning_effort") != "none"
+        super().__init__(
+            tokenizer,
+            tools,
+            parser_engine_config=deepseek_v4_config(thinking=thinking),
+            **kwargs,
+        )
+        self._arg_converter = self._convert_args
