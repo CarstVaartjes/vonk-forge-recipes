@@ -6,9 +6,10 @@
 # through build-deploy.sh with mutable inputs; this file merges its stages and pins every input it can:
 #   * base image nvidia/cuda:13.2.0-devel-ubuntu24.04 by arm64 digest
 #   * vLLM 979b56a66c969ab67655d2155ab4c6c5bed15f65 (the MiniMax-M3 release merge commit; fetched by SHA)
-#   * FlashInfer d768c14e7cf5dd5df45a8a1de78ae815879f108a (v0.6.12, the version that vLLM ref requires), built from
-#     source with upstream's flashinfer_cache.patch. Upstream normally downloads eugr's mutable
-#     `prebuilt-flashinfer-current` wheels, whose July 2026 version is not recoverable.
+#   * FlashInfer d768c14e7cf5dd5df45a8a1de78ae815879f108a (v0.6.12, the version that vLLM ref requires): python and
+#     jit-cache wheels built from source with upstream's flashinfer_cache.patch; the architecture-independent cubin
+#     wheel is FlashInfer's v0.6.12 PyPI release (built from that commit), pinned by sha256. Upstream normally
+#     downloads eugr's mutable `prebuilt-flashinfer-current` wheels, whose July 2026 version is not recoverable.
 #   * zyang-dev/nccl dgxspark-3node-ring at fab1850acd902672d79ca81c2e7fb8e1848c208c (branch head, last commit 2026-03-13)
 #   * Rust 1.96.0 (the stable release on upstream's build date; upstream used `stable`)
 #   * PyPI resolution frozen at 2026-07-05 (uv --exclude-newer), the day after upstream's last commit.
@@ -79,12 +80,17 @@ WORKDIR /workspace/flashinfer
 # only for SM90 builds (at this pin they are compiled for sm_90a regardless of FLASHINFER_CUDA_ARCH_LIST, and nvcc
 # ran out of memory on them). The AOT cache compiles three kernels at a time: its CUTLASS GEMMs peak at 7.15 GiB per
 # compiler, and a Spark build is limited to memory derived from the recipe's image_bytes.
+# The cubin wheel is not built here: its build fetches ~15,600 files from NVIDIA's artifact edge, which throttles a
+# builder with HTTP 403 mid-burst. Its kernels are sm_100a/sm_100f/sm_103a only (none run on GB10), but the creator's
+# runtime ships the package, so the release wheel of the same commit is installed by hash.
 COPY flashinfer_cache.patch flashinfer-aot-sink-sm90.patch ./
 RUN patch -p1 < flashinfer_cache.patch && patch -p1 < flashinfer-aot-sink-sm90.patch && \
     sed -i -e 's/license = "Apache-2.0"/license = { text = "Apache-2.0" }/' -e '/license-files/d' pyproject.toml && \
     uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
-    cd flashinfer-cubin && uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
-    cd ../flashinfer-jit-cache && \
+    curl -fsSL --retry 5 -o /workspace/wheels-flashinfer/flashinfer_cubin-0.6.12-py3-none-any.whl \
+        https://files.pythonhosted.org/packages/7d/c6/63b1bb7b1a7ae612ecf53c0e568312c3d004f9f7558b0ab5edcf7900c360/flashinfer_cubin-0.6.12-py3-none-any.whl && \
+    echo "01de132c493bb21d5df42ebe6890966cf83b40aa970dae06b2a3c0bed85f13ec  /workspace/wheels-flashinfer/flashinfer_cubin-0.6.12-py3-none-any.whl" | sha256sum -c - && \
+    cd flashinfer-jit-cache && \
     MAX_JOBS=3 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
     cd .. && git rev-parse HEAD > /workspace/wheels-flashinfer/.flashinfer-commit
 

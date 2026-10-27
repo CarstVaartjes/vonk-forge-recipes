@@ -37,6 +37,18 @@ def test_no_adapter_builds_nccl_debian_packages() -> None:
     ] == []
 
 
+def test_no_adapter_builds_the_flashinfer_cubin_wheel() -> None:
+    # Building flashinfer-cubin downloads ~15,600 files from NVIDIA's artifact
+    # edge, which throttles a CI runner with 403s mid-burst; every MiniMax M3
+    # dual build failed there. Adapters install the release wheel by hash.
+    source_build = re.compile(r"\bcd \S*flashinfer-cubin\b")
+    assert [
+        path.relative_to(ROOT)
+        for path in (ROOT / "adapters").rglob("Dockerfile")
+        if source_build.search(path.read_text())
+    ] == []
+
+
 def test_minimax_dual_runtime_uses_the_nccl_it_builds(tmp_path: Path) -> None:
     # Run the real NCCL RUN command with network/compiler doubles. Any make
     # target besides the sm_121 src.build fails as Debian packaging did.

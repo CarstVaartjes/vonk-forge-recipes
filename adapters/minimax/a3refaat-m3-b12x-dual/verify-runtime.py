@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ctypes
+import importlib.metadata
 import importlib.util
 import os
 import re
@@ -28,6 +29,15 @@ def verify_nccl() -> None:
     print("NCCL mesh build OK:", version.value)
 
 
+def verify_flashinfer_cubin_version() -> None:
+    # flashinfer refuses to import when flashinfer-cubin's version differs from its own (flashinfer/jit/env.py);
+    # the cubin wheel is the PyPI release, the python wheel is built from the same commit.
+    versions = {name: importlib.metadata.version(name) for name in ("flashinfer-python", "flashinfer-cubin")}
+    if len(set(versions.values())) != 1:
+        raise SystemExit(f"FlashInfer wheel versions differ: {versions}")
+    print("FlashInfer wheels:", versions)
+
+
 def verify_flashinfer_aot() -> None:
     # The AOT kernel cache must hold GB10 (sm_12x) cubins; one cuobjdump per AOT .so, once per image build.
     spec = importlib.util.find_spec("flashinfer_jit_cache")
@@ -47,6 +57,7 @@ def verify_flashinfer_aot() -> None:
 
 def main() -> None:
     verify_nccl()
+    verify_flashinfer_cubin_version()
     verify_flashinfer_aot()
     # Upstream Dockerfile.deploy smoke imports, run after the mods so a broken layer fails the build, not the launch.
     import importlib.util
