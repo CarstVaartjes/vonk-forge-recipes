@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from decimal import Decimal
 from pathlib import Path
 
@@ -197,6 +198,24 @@ def test_repaired_deferral_uses_shared_admission_with_owned_idle_host() -> None:
     )
     with pytest.raises(ValueError, match="worker.*not admissible"):
         require_admissible_declaration(recipe)
+
+
+def test_tests_judge_admission_only_through_its_owner() -> None:
+    # One owner: require_admissible_declaration / evaluate_memory_admission. A
+    # hand-written peak + reserve bound of 128 GB was a second, stricter copy:
+    # it refused the proven 120,370,379,081-byte peak beside an 8 GB reserve.
+    recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = 120_370_379_081
+        role.resources.memory.reserve_bytes = 8_000_000_000
+    require_admissible_declaration(recipe)
+    copies = [
+        f"{path.name}:{number}"
+        for path in sorted((ROOT / "tests").glob("*.py"))
+        for number, line in enumerate(path.read_text().splitlines(), 1)
+        if re.search(r"\b128(?:_000_000_000|000000000|e9)\b", line)
+    ]
+    assert not copies, f"restated admission limit: {copies}"
 
 
 def test_recorded_content_precedes_admission(monkeypatch) -> None:
