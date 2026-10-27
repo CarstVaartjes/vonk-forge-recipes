@@ -127,6 +127,34 @@ class DownloadScanTests(unittest.TestCase):
             self._download(body[: len(body) // 2])
 
 
+class CliSourceTests(unittest.TestCase):
+    def test_the_cli_image_scan_streams_a_large_archive_once_per_commit_and_scope(
+        self,
+    ) -> None:
+        body = archive({"sub/Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
+        opened: list[str] = []
+
+        def urlopen(request: Any, timeout: float | None = None) -> io.BytesIO:
+            opened.append(request.full_url)
+            return io.BytesIO(body)
+
+        with (
+            tempfile.TemporaryDirectory() as cache,
+            mock.patch.dict(
+                kit_pins.os.environ,
+                {"VONK_UPSTREAM_CACHE": cache, "GITHUB_TOKEN": "unused"},
+            ),
+            mock.patch.object(kit_pins.urllib.request, "urlopen", urlopen),
+            mock.patch.object(kit_pins, "MAX_ARCHIVE_BYTES", 1),
+        ):
+            source = kit_pins.cli_source()
+            first = kit_pins.kit_images(source, "o/r", COMMIT, "sub/")
+            second = kit_pins.kit_images(source, "o/r", COMMIT, "sub/")
+        self.assertEqual([f["reference"] for f in first], [f"{IMAGE}@{DIGEST}"])
+        self.assertEqual(second, first)
+        self.assertEqual(opened, [f"https://codeload.github.com/o/r/tar.gz/{COMMIT}"])
+
+
 class RuleTests(unittest.TestCase):
     def problems(
         self,
