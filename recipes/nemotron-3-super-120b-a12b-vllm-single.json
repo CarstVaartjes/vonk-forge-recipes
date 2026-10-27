@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.30.0, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Draft-model correction (2026-10-15): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is 0.85 → 0.72 and the peak budgets 0.72 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance; 0.72 keeps the peak plus the 8 GB reserve within this single-Spark recipe's 128 GB admission bound, and the lower 0.6 used for smaller draft recipes leaves no KV room for these weights. At 0.72 the 94.1 GB budget holds the 80.3 GB target and 5.9 GB MTPv2 head and leaves about 8 GB for activations and cache; one 262,144-token sequence needs about 1.2 GB (8 attention layers of FP8 KV plus Mamba state), so the context is kept.",
+    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.30.0, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads. GB10 memory: GPU utilization 0.86, NVIDIA's DGX Spark launch (model card at ff433f5) uses 0.90, which is not admissible beside the overhead. The per-node peak budgets utilization × 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace and CPU/mmap buffers, which vLLM holds beside its budget; 8 GB reserve, with a separate 6 GB OS floor. vLLM loads the MTPv2 drafter in its worker and charges its weights, profiling and CUDA graphs inside gpu-memory-utilization. Utilization correction (2026-10-27): at 0.72 the 94.1 GB budget left 13.76 GB beside the 80.32 GB of weights vLLM loads (it skips the target's built-in mtp.* tensors in favour of the 5.88 GB MTPv2 head) and vLLM found no memory for KV cache blocks on hardware (2026-10-21). At 0.86 the 112.4 GB budget leaves 32.05 GB beside them, and the peak, 120,370,379,081 bytes, is the largest the Controller has admitted. One 262,144-token sequence needs about 1.2 GB (8 attention layers of FP8 KV plus Mamba state), so this recipe keeps that context and four sequences; NVIDIA's Spark launch runs 1,000,000 tokens. Hardware fit remains to be proven.",
     "tags": [
       "executable",
       "candidate",
@@ -530,7 +530,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.72"
+        "value": "0.86"
       },
       {
         "name": "trust-remote-code",
@@ -656,7 +656,7 @@
             "working_bytes": 176501147302
           },
           "memory": {
-            "peak_bytes": 119077526672,
+            "peak_bytes": 120370379081,
             "reserve_bytes": 8000000000
           }
         }
