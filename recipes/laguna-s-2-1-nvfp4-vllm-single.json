@@ -432,7 +432,7 @@
             "artifact_bytes": 71938632401,
             "image_bytes": 12000000000,
             "safety_margin_bytes": 12000000000,
-            "working_bytes": 203434559724
+            "working_bytes": 147877264802
           },
           "memory": {
             "peak_bytes": 119386735371,
