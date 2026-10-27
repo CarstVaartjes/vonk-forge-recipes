@@ -1,0 +1,712 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
+        "repository": "docker.io/vllm/vllm-openai"
+      },
+      "context": {
+        "path": "adapters/llm/vllm-openai"
+      },
+      "dockerfile": "adapters/llm/vllm-openai/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-super-120b-a12b-vllm-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "nemotron-3-super"
+      ],
+      "port": 8000
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.30.0, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads. GB10 memory correction: GPU utilization 0.90 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Draft-model correction (2026-10-15): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is 0.85 → 0.72 and the peak budgets 0.72 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance; 0.72 keeps the peak plus the 8 GB reserve within this single-Spark recipe's 128 GB admission bound, and the lower 0.6 used for smaller draft recipes leaves no KV room for these weights. At 0.72 the 94.1 GB budget holds the 80.3 GB target and 5.9 GB MTPv2 head and leaves about 8 GB for activations and cache; one 262,144-token sequence needs about 1.2 GB (8 attention layers of FP8 KV plus Mamba state), so the context is kept.",
+    "tags": [
+      "executable",
+      "candidate",
+      "nemotron",
+      "nvfp4",
+      "vllm",
+      "openai",
+      "single",
+      "spark",
+      "tool-use"
+    ],
+    "title": "Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-d1a8f4a1d2e3",
+          "id": "primary-metadata-d1a8f4a1d2e3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "runtime-e3b0c44298fc",
+          "id": "primary-runtime-e3b0c44298fc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-75a09249ef13",
+          "id": "primary-readme-75a09249ef13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "accuracy-chart-6fd72a7dcf86",
+          "id": "primary-accuracy-chart-6fd72a7dcf86",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "bias-6970c9d29da7",
+          "id": "primary-bias-6970c9d29da7",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-575fb74f54ed",
+          "id": "primary-chat-template-575fb74f54ed",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-14a1ad3ab6ec",
+          "id": "primary-config-14a1ad3ab6ec",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron-h-0fc818c10506",
+          "id": "primary-configuration-nemotron-h-0fc818c10506",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "explainability-0d2e55b6cb27",
+          "id": "primary-explainability-0d2e55b6cb27",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-27d520b2df55",
+          "id": "primary-generation-config-27d520b2df55",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "hf-quant-config-dbabb3970ad6",
+          "id": "primary-hf-quant-config-dbabb3970ad6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00017-3d31c241fb77",
+          "id": "primary-model-00001-of-00017-3d31c241fb77",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00017-78d4a5ad2684",
+          "id": "primary-model-00002-of-00017-78d4a5ad2684",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00017-ecb72debb5d2",
+          "id": "primary-model-00003-of-00017-ecb72debb5d2",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00017-a7d1c68e8272",
+          "id": "primary-model-00004-of-00017-a7d1c68e8272",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00017-1d432c9c7834",
+          "id": "primary-model-00005-of-00017-1d432c9c7834",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00017-037ea60b87cb",
+          "id": "primary-model-00006-of-00017-037ea60b87cb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00017-3c0527dac96f",
+          "id": "primary-model-00007-of-00017-3c0527dac96f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00017-ef6e73f64c3d",
+          "id": "primary-model-00008-of-00017-ef6e73f64c3d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00017-b4f598068350",
+          "id": "primary-model-00009-of-00017-b4f598068350",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00017-bf8bf1f4e2e0",
+          "id": "primary-model-00010-of-00017-bf8bf1f4e2e0",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00017-ac436f2e1af8",
+          "id": "primary-model-00011-of-00017-ac436f2e1af8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00017-7814c9ae0dc3",
+          "id": "primary-model-00012-of-00017-7814c9ae0dc3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00017-b13aa79c0879",
+          "id": "primary-model-00013-of-00017-b13aa79c0879",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00017-1d8781b2643c",
+          "id": "primary-model-00014-of-00017-1d8781b2643c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00017-5f6c3c0f8420",
+          "id": "primary-model-00015-of-00017-5f6c3c0f8420",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00017-a5f795056a1a",
+          "id": "primary-model-00016-of-00017-a5f795056a1a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00017-218355cf69f1",
+          "id": "primary-model-00017-of-00017-218355cf69f1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-e0ca77ceed3a",
+          "id": "primary-model-safetensors-index-e0ca77ceed3a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "modeling-nemotron-h-e1cb5fc02e88",
+          "id": "primary-modeling-nemotron-h-e1cb5fc02e88",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "privacy-aea46e6515ca",
+          "id": "primary-privacy-aea46e6515ca",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "safety-dbb015ffcafe",
+          "id": "primary-safety-dbb015ffcafe",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "special-tokens-map-e9435fefd6d8",
+          "id": "primary-special-tokens-map-e9435fefd6d8",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "super-v3-reasoning-parser-f7fc71d1697e",
+          "id": "primary-super-v3-reasoning-parser-f7fc71d1697e",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-623c34567aeb",
+          "id": "primary-tokenizer-623c34567aeb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-10f93eabcb9b",
+          "id": "primary-tokenizer-config-10f93eabcb9b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "6aa6f5e0542e5676862996deb985c8017b081fcfe98da045671439c722a5c09c",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-super-120b-a12b-nvfp4"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-gitattributes-11ad7efa2497",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-metadata-gitatt",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-505b2b8d7626",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-readme-505b2b8d",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-699f34f0fc64",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-config-699f34f0",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "configuration-nemotron-h-2b3ce37ae17d",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-configuration-n",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-dc5b4dbdff26",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-generation-conf",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "weights-f0114c95f8a8",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-weights-f0114c9",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-7f36923c963a",
+          "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2-model-safetenso",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2",
+      "model": {
+        "content_sha256": "8226a040e300fc4c423955926d2e7d7e4a273e934f16e7504dc85be0b3c1a879",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "nvidia"
+    ],
+    "source_reference": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4/tree/ff433f5493e25d631c9f12b5d55c674229923d02"
+  },
+  "release": {
+    "released_at": "2026-09-28",
+    "version": "2.2.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "served-model-name",
+        "setting": null,
+        "value": "nemotron-3-super"
+      },
+      {
+        "name": "max-model-len",
+        "setting": "context_tokens",
+        "value": null
+      },
+      {
+        "name": "max-num-seqs",
+        "setting": "concurrency",
+        "value": null
+      },
+      {
+        "name": "gpu-memory-utilization",
+        "setting": null,
+        "value": "0.72"
+      },
+      {
+        "name": "trust-remote-code",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "kv-cache-dtype",
+        "setting": null,
+        "value": "fp8"
+      },
+      {
+        "name": "mamba-ssm-cache-dtype",
+        "setting": null,
+        "value": "float16"
+      },
+      {
+        "name": "enable-chunked-prefill",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "moe-backend",
+        "setting": null,
+        "value": "marlin"
+      },
+      {
+        "name": "quantization",
+        "setting": null,
+        "value": "modelopt_fp4"
+      },
+      {
+        "name": "async-scheduling",
+        "setting": null,
+        "value": true
+      },
+      {
+        "name": "speculative-config",
+        "setting": null,
+        "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3,\"model\":\"/models/drafter\",\"moe_backend\":\"triton\"}"
+      },
+      {
+        "name": "tool-call-parser",
+        "setting": null,
+        "value": "qwen3_coder"
+      },
+      {
+        "name": "reasoning-parser-plugin",
+        "setting": null,
+        "value": "/models/target/super_v3_reasoning_parser.py"
+      },
+      {
+        "name": "reasoning-parser",
+        "setting": null,
+        "value": "super_v3"
+      },
+      {
+        "name": "enable-auto-tool-choice",
+        "setting": null,
+        "value": true
+      }
+    ],
+    "engine": "vllm",
+    "entrypoint": [
+      "/opt/vonk/bin/vllm",
+      "serve",
+      "/models/target"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "VLLM_NVFP4_GEMM_BACKEND",
+        "value": "marlin"
+      },
+      {
+        "name": "VLLM_USE_FLASHINFER_MOE_FP4",
+        "value": "0"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 120
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 86250573651,
+            "image_bytes": 12000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 176501147302
+          },
+          "memory": {
+            "peak_bytes": 119077526672,
+            "reserve_bytes": 8000000000
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 64,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "nemotron-3-super"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
