@@ -463,7 +463,9 @@ def test_long_build_slugs_get_the_hosted_maximum_and_others_keep_120() -> None:
     plan["images"][1]["recipes"][0]["slug"] = long_slug
     plan["images"][1]["build_key"] = "e" * 64
     selection = tool.select(plan, owner=OWNER, candidates=None, lookup=_registry({}))
-    minutes = {item["build_key"]: item["timeout_minutes"] for item in selection["builds"]}
+    minutes = {
+        item["build_key"]: item["timeout_minutes"] for item in selection["builds"]
+    }
     assert minutes == {SHARED: 120, "e" * 64: 360}
     workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
     build = workflow.split("\n  build:\n", 1)[1].split("\n  resolve:\n", 1)[0]
@@ -491,9 +493,18 @@ def test_lifting_an_exclusion_selects_its_unchanged_key_for_the_pr_build(
         sys,
         "argv",
         [
-            "prebuilt-images", "select", "--base-plan", "base-plan.json",
-            "--base-exclusions", f"image-base/{tool.EXCLUSIONS}",
-            "--plan", "plan.json", "--owner", OWNER, "--output", "selection.json",
+            "prebuilt-images",
+            "select",
+            "--base-plan",
+            "base-plan.json",
+            "--base-exclusions",
+            f"image-base/{tool.EXCLUSIONS}",
+            "--plan",
+            "plan.json",
+            "--owner",
+            OWNER,
+            "--output",
+            "selection.json",
         ],
     )
     assert tool.main() == 0
