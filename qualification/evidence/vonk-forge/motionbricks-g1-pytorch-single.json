@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/motionbricks-g1-pytorch-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "345c1783b689f3b8cfa0145e74e79fa89bc04793e449f3d53f0793160fc9aaf6",
+        "source_bundle_sha256": "18ad9a5f2dffec621f5f9372acb2b6f0e3060d86d267b4972bd9148c0993d713",
+        "runtime_image": {
+          "build_key": "305f97d195999ddc4aea456252c5284b3e8828db4d7602fd687ed522f914c561",
+          "image_digest": "sha256:682560d0b33658720d5cc418eca4eb1b5499ad3bac81e6d290aee3cb5768d6d1"
+        },
+        "model_digests": [
+          "791c69ab530647f86effb2045371a81de3ecd4479524a8831c4287ddfddd363c"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.invalid_definition",
+      "cause_summary": "Recipe definition or build policy check failed; needs fix",
+      "evidence_refs": [
+        "506c0f79dc4d1fae24b1d45450d44e0d87fa63635f28c7325280a5a1e5db000a"
+      ],
+      "tested_at": "2026-10-27T11:50:51.499777Z",
+      "platform": {
+        "controller_source_sha": "1145d714a8f840eae747745a06b9f6906f4852c6",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
