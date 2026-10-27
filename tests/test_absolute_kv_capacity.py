@@ -222,29 +222,37 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
 
 
 @pytest.mark.parametrize(
-    "name,match",
+    "name,match,image_of",
     [
         # Exhausted host memory 2026-10-21: 0.85 beside a 10 GB Marlin repack.
-        ("gpt-oss-120b-nvidia-vllm-single-4036b68d", "admissible on an idle Spark"),
+        # Judged on the image its geometry now pins (same Marlin expansion).
+        (
+            "gpt-oss-120b-nvidia-vllm-single-4036b68d",
+            "admissible on an idle Spark",
+            "gpt-oss-120b-nvidia-vllm-single",
+        ),
         # OOM-killed (exit 137) 2026-10-21: 0.75 below weights + expansion.
         (
             "glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single-fa86311a",
             "cannot hold the selected weights",
+            None,
         ),
         # 2026-10-21: 0.95, not admissible on an idle Spark.
         (
             "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single-6e5f713f",
             "admissible on an idle Spark",
+            None,
         ),
         # Froze a GB10 2026-10-13: 0.7 with a dflash draft, 99.46 GB peak.
         (
             "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single-a5c5b82f",
             "peak understates vLLM budget",
+            None,
         ),
     ],
 )
 def test_recorded_single_spark_memory_failures_are_rejected_when_touched(
-    name: str, match: str
+    name: str, match: str, image_of: str | None
 ) -> None:
     # With the proven-set calibration above, this proves both directions.
     models = dict(catalog_models())
@@ -254,6 +262,10 @@ def test_recorded_single_spark_memory_failures_are_rejected_when_touched(
     document = json.loads((FAILURES / f"{name}.json").read_text())
     assert document_sha256(document).startswith(name.rsplit("-", 1)[1])
     recipe = RecipeDefinition.model_validate(document)
+    if image_of is not None:
+        recipe.execution.build.base_image = recipe_for(
+            image_of
+        ).execution.build.base_image
     with pytest.raises(ValueError, match=match):
         require_memory_need(
             recipe, models, load_inputs(), document_digest="", touched=True
