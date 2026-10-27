@@ -160,6 +160,7 @@ def test_a_separately_loaded_drafter_holds_nothing_beside_the_budget(
     ]
     assert not loads_draft_model(target_only)
     envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
     assert envelope == vllm_utilization_envelope(target_only)
     # The per-node guard holds the same envelope, with or without the drafter.
     for launch in (recipe, target_only):
