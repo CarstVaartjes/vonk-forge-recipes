@@ -12,7 +12,6 @@ every kind the definitions use in exactly one of the two sets.
 from __future__ import annotations
 
 import io
-import json
 import re
 import struct
 import wave
@@ -21,7 +20,13 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, NoReturn
 
-from .job_media import NotObserved, glb_structure, realtime_transcript, video_metadata
+from .job_media import (
+    NotObserved,
+    glb_structure,
+    realtime_transcript,
+    strict_json,
+    video_metadata,
+)
 from .smoke import AssertionFailed
 
 
@@ -89,7 +94,7 @@ def _check_format(content: bytes, name: str) -> bool:
         )
     if name == "json":
         try:
-            json.loads(content)
+            strict_json(content)
         except ValueError:
             return False
         return True
@@ -166,7 +171,7 @@ def _document_archive(content: bytes, assertion: Mapping[str, Any]) -> None:
     if names != assertion.get("exact_names"):
         _fail(assertion, "document-archive entry names", names)
     try:
-        manifest = json.loads(payloads["manifest.json"])
+        manifest = strict_json(payloads["manifest.json"])
     except (KeyError, ValueError) as error:
         raise AssertionFailed(
             "document-archive manifest.json is unreadable", None, "document-archive"
@@ -200,7 +205,7 @@ def _document_archive(content: bytes, assertion: Mapping[str, Any]) -> None:
 
 def _json_document(content: bytes, assertion: Mapping[str, Any]) -> None:
     try:
-        document = json.loads(content)
+        document = strict_json(content)
     except ValueError as error:
         raise AssertionFailed(f"not JSON: {error}", None, "json-document") from error
     if not isinstance(document, dict):
