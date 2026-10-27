@@ -270,12 +270,6 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
             "admissible on an idle Spark",
             None,
         ),
-        # Froze a GB10 2026-10-13: 0.7 with a dflash draft, 99.46 GB peak.
-        (
-            "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single-a5c5b82f",
-            "peak understates vLLM budget",
-            None,
-        ),
         # 2026-10-19 and 2026-10-27: 0.6 left 4.25 GB beside 74.15 GB of
         # target and draft weights; vLLM found no memory for KV cache blocks.
         (

@@ -8,7 +8,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import document_sha256
+from vonk_forge_contracts import RecipeDefinition, document_sha256
+
+from qualification.memory_need import require_admissible_declaration
 
 
 def read(path: Path) -> dict[str, object]:
@@ -36,12 +38,7 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
         for path in sorted((ROOT / "recipes").glob("qwen-image-edit-2511-*.json")):
             recipe = read(path)
             with self.subTest(recipe=path.name):
-                topology: Any = recipe["topology"]
-                memory = topology["roles"][0]["resources"]["memory"]
-                self.assertLessEqual(
-                    memory["peak_bytes"] + memory["reserve_bytes"],
-                    128_000_000_000,
-                )
+                require_admissible_declaration(RecipeDefinition.model_validate(recipe))
                 validation: Any = recipe["validation"]
                 checks = validation["serving"]["checks"]
                 self.assertTrue(

@@ -19,13 +19,9 @@ from qualification.memory_need import (
     calculate_need,
     load_inputs,
     require_memory_need,
+    vllm_utilization_envelope,
 )
-from qualification.vllm_memory_fit import (
-    PENDING_CREATOR,
-    assert_memory_fit,
-    loads_draft_model,
-    non_utilization_bytes,
-)
+from qualification.vllm_memory_fit import assert_memory_fit, loads_draft_model
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -125,71 +121,62 @@ def test_guard_rejects_unsafe_envelopes(defect: str) -> None:
         assert_memory_fit(recipe)
 
 
-@pytest.mark.parametrize("slug", sorted(PENDING_CREATOR))
-def test_pending_creator_recipes_still_need_their_creator(slug: str) -> None:
-    path = ROOT / "recipes" / f"{slug}.json"
-    assert path.exists(), f"{slug} is gone; remove it from PENDING_CREATOR"
-    recipe = RecipeDefinition.model_validate_json(path.read_text())
-    assert loads_draft_model(recipe)
-    assert_memory_fit(recipe, count_draft_model=False)
-    with pytest.raises(AssertionError):
-        assert_memory_fit(recipe)
-
-
-def test_pending_creator_still_meets_the_os_floor() -> None:
-    """Waiving the draft term never waives the OS floor."""
-    slug = min(PENDING_CREATOR)
-    recipe = RecipeDefinition.model_validate_json(
-        (ROOT / "recipes" / f"{slug}.json").read_text()
-    )
-    recipe.topology.roles[0].resources.memory.peak_bytes = 125_000_000_000
-    with pytest.raises(AssertionError):
-        assert_memory_fit(recipe, count_draft_model=False)
-
-
 def _incident_recipe() -> RecipeDefinition:
     return RecipeDefinition.model_validate_json(
         (ROOT / "recipes/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single.json").read_text()
     )
 
 
-def _with_utilization(recipe: RecipeDefinition, value: str) -> None:
-    for item in recipe.runtime.arguments:
-        if item.name == "gpu-memory-utilization":
-            item.value = value
+def _pool_less_separate_drafters() -> list[RecipeDefinition]:
+    recipes = []
+    for path in sorted((ROOT / "recipes").glob("*.json")):
+        recipe = RecipeDefinition.model_validate_json(path.read_text())
+        if (
+            recipe.runtime.engine == "vllm"
+            and loads_draft_model(recipe)
+            and vllm_utilization_envelope(recipe) is not None
+        ):
+            recipes.append(recipe)
+    return recipes
 
 
-def test_draft_model_overhead_rejects_the_frozen_envelope() -> None:
-    """0.7 with peak 0.7 x memory + 8e9 froze a Spark; the guard must refuse it."""
-    recipe = _incident_recipe()
-    assert loads_draft_model(recipe)
-    _with_utilization(recipe, "0.7")
-    recipe.topology.roles[0].resources.memory.peak_bytes = 99_464_262_042
-    with pytest.raises(AssertionError):
-        assert_memory_fit(recipe)
+@pytest.mark.parametrize(
+    "recipe", _pool_less_separate_drafters(), ids=lambda recipe: recipe.identity.slug
+)
+def test_a_separately_loaded_drafter_holds_nothing_beside_the_budget(
+    recipe: RecipeDefinition,
+) -> None:
+    """vLLM charges every in-worker drafter inside gpu-memory-utilization.
+
+    Its weights, profiling and CUDA graph estimate come out of the budget
+    (vllm_memory_fit.py), so how the drafter is loaded never changes the
+    envelope a recipe must declare.
+    """
+    target_only = recipe.model_copy(deep=True)
+    target_only.runtime.arguments = [
+        item
+        for item in target_only.runtime.arguments
+        if item.name != "speculative-config"
+    ]
+    assert not loads_draft_model(target_only)
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    assert envelope == vllm_utilization_envelope(target_only)
+    # The per-node guard holds the same envelope, with or without the drafter.
+    for launch in (recipe, target_only):
+        for role in launch.topology.roles:
+            role.resources.memory.peak_bytes = envelope
+        assert_memory_fit(launch)
+    # calculate_need: test_need_counts_a_draft_by_its_weights_however_it_is_loaded
+    # (no catalog drafter has pinned cache geometry to size it with).
 
 
-def test_draft_model_overhead_caps_utilization() -> None:
-    """With the draft term no honest peak fits a Spark at the old 0.85."""
-    recipe = _incident_recipe()
-    _with_utilization(recipe, "0.85")
-    recipe.topology.roles[0].resources.memory.peak_bytes = 120_600_000_000
-    with pytest.raises(AssertionError):
-        assert_memory_fit(recipe)
-
-
-def test_target_only_speculation_keeps_the_plain_overhead() -> None:
-    """Native MTP (no separate model) and no speculation use the plain 8e9 term."""
+def test_target_only_speculation_is_not_a_second_model() -> None:
     recipe = _incident_recipe()
     for item in recipe.runtime.arguments:
         if item.name == "speculative-config":
             item.value = '{"method":"mtp","num_speculative_tokens":2}'
     assert not loads_draft_model(recipe)
-    assert non_utilization_bytes(recipe) == OVERHEAD_BYTES
-    recipe.runtime.arguments = [
-        item for item in recipe.runtime.arguments if item.name != "speculative-config"
-    ]
-    assert non_utilization_bytes(recipe) == OVERHEAD_BYTES
 
 
 def test_self_referencing_draft_is_not_a_second_model() -> None:

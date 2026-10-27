@@ -8,6 +8,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from vonk_forge_contracts import RecipeDefinition
+
+from qualification.memory_need import require_admissible_declaration
+
 ROOT = Path(__file__).resolve().parents[1]
 LTX23_SLUG = "ltx-2-3-22b-distilled-1-1-diffusers-single"
 FP4_SLUG = "ltx-2-19b-dev-fp4-pytorch-single"
@@ -275,9 +279,10 @@ class LtxSparkFitTests(unittest.TestCase):
         self.assertNotIn("hardware-blocked", tags)
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        admission = memory["peak_bytes"] + memory["reserve_bytes"]
-        self.assertEqual(admission, 101_000_000_000)
-        self.assertLessEqual(admission, 128_000_000_000)
+        self.assertEqual(
+            memory["peak_bytes"] + memory["reserve_bytes"], 101_000_000_000
+        )
+        require_admissible_declaration(RecipeDefinition.model_validate(recipe))
         for fact in ("93 GB", "77 GB", "31 GB", "8 GB"):
             self.assertIn(fact, recipe["metadata"]["description"])
         self.assertIn(

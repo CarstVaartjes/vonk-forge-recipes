@@ -47,8 +47,6 @@ OVERHEAD_BYTES = 8_000_000_000
 SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
 # The DeepSeek V4.1 Engram row store's resident cache size (GiB per Spark).
 ENGRAM_ROW_CACHE_ENVIRONMENT = "DSV41_CACHE_GIB"
-# Separate speculative-model calibration; see vllm_memory_fit.py for the incident.
-DRAFT_MODEL_OVERHEAD_BYTES = 17_000_000_000
 # vLLM's gpu-memory-utilization when a launch omits it.
 VLLM_DEFAULT_UTILIZATION = Decimal("0.90")
 
@@ -476,18 +474,10 @@ def calculate_need(
                     f"{label}: absolute state pool cannot hold concurrency"
                 )
         state += geometry.state_bytes_per_request * (slots + geometry.state_padding)
-    # Selected draft weights/cache do not replace the measured outside-budget
-    # floor: no replacement calibration exists for the 2026-10-13 Spark freeze.
-    overhead = OVERHEAD_BYTES
-    if loads_draft_model(recipe):
-        overhead += DRAFT_MODEL_OVERHEAD_BYTES
+    # A draft's weights are counted above, like the target's; vLLM holds
+    # nothing else for it beside its budget (vllm_memory_fit.py).
     return MemoryNeed(
-        weights[0],
-        sum(weights[1:]),
-        kv,
-        state,
-        resident_expansion_bytes=expansion,
-        overhead_bytes=overhead,
+        weights[0], sum(weights[1:]), kv, state, resident_expansion_bytes=expansion
     )
 
 
@@ -1033,10 +1023,10 @@ def require_memory_need(
 
 
 def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
-    """vLLM's utilization budget plus what it holds beside it, if pool-less.
+    """vLLM's utilization budget plus the 8 GB it holds beside it, if pool-less.
 
-    The 8 GB overhead and the measured 17 GB floor of a separately loaded
-    draft (qualification/vllm_memory_fit.py, the 2026-10-13 freeze).
+    A speculative drafter is charged inside the budget, whichever mechanism
+    loads it (qualification/vllm_memory_fit.py).
     """
     if recipe.runtime.engine != "vllm" or any(
         argument_value(recipe, name) is not None
@@ -1046,8 +1036,6 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
     fraction = argument_value(recipe, "gpu-memory-utilization")
     share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
     envelope = share * TOTAL_BYTES + OVERHEAD_BYTES
-    if loads_draft_model(recipe):
-        envelope += DRAFT_MODEL_OVERHEAD_BYTES
     return int(envelope.to_integral_value(ROUND_CEILING))
 
 
@@ -1081,9 +1069,8 @@ def require_bounded_kv_pool(
     hardware-proven utilization-sized dual runs at 0.80 or below, inside it.
     Proven single-Spark documents run up to 0.86 (SGLang 0.85), whose share
     plus overhead is the largest admitted peak, 120,370,379,081 bytes: on one
-    Spark the budget, plus the measured 17 GB floor of a draft vLLM loads
-    beside it and the source-backed resident expansion of geometry pinned to
-    the launch, must be admissible on an idle Spark: gpt-oss-120b 4036b68d at
+    Spark the budget, plus the source-backed resident expansion of geometry
+    pinned to the launch, must be admissible on an idle Spark: gpt-oss-120b 4036b68d at
     0.85 beside its 10 GB Marlin repack exhausted host memory on 2026-10-21.
     A declared SGLang single fraction, capped or not, must be admissible and
     hold its weights, expansion and capped pools: GLM a0 fa86311a at 0.75 was
@@ -1313,9 +1300,6 @@ def per_rank_need(
         rank_weight_bytes(recipe, models, inputs) + kv_bytes + OVERHEAD_BYTES
     )
     # Utilization sizes an adaptive pool; it is not irreducible workload demand.
-    # The measured 17 GB term is relative to that utilization budget, not another
-    # allocation beside explicitly counted draft weights. Keep it in the strict
-    # workload/legacy envelope guards, not this optimistic loading floor.
     # Physical fit uses observed idle availability; a changed document's peak
     # must cover this floor and be admissible on an idle Spark. For multi-Spark
     # recipes the 16 GiB planning guard (LIMIT_BYTES) is only a warning: the

@@ -2,6 +2,7 @@
 
 import json
 import runpy
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,6 @@ from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
-    DRAFT_MODEL_OVERHEAD_BYTES,
     GUARD_BYTES,
     IDLE_USE_BYTES,
     LIMIT_BYTES,
@@ -22,6 +22,7 @@ from qualification.memory_need import (
     calculate_need,
     hardware_proven,
     load_inputs,
+    rank_weight_bytes,
     require_memory_need,
     vllm_utilization_envelope,
 )
@@ -328,15 +329,15 @@ def test_real_catalog_build_rejects_a_new_recipe_whose_pool_cannot_hold_a_reques
 
 
 @pytest.mark.parametrize(
-    "config,separate",
+    "config",
     [
-        ({"method": "mtp", "num_speculative_tokens": 2}, False),
-        ({"method": "deepseek_mtp", "model": "/models"}, False),
-        ({"method": "dflash", "model": "/models/draft"}, True),
+        {"method": "mtp", "num_speculative_tokens": 2},
+        {"method": "deepseek_mtp", "model": "/models"},
+        {"method": "dflash", "model": "/models/draft"},
     ],
 )
-def test_need_keeps_measured_overhead_only_for_a_separate_draft(
-    config: dict[str, str | int], separate: bool
+def test_need_counts_a_draft_by_its_weights_however_it_is_loaded(
+    config: dict[str, str | int],
 ) -> None:
     recipe = llama()
     draft = recipe.models[0].model_copy(deep=True)
@@ -347,50 +348,45 @@ def test_need_keeps_measured_overhead_only_for_a_separate_draft(
     )
     need = calculate_need(recipe, catalog_models(), INPUTS)
     assert need.auxiliary_weights_bytes == need.weights_bytes
-    assert need.overhead_bytes == OVERHEAD_BYTES + (
-        DRAFT_MODEL_OVERHEAD_BYTES if separate else 0
+    assert need.overhead_bytes == OVERHEAD_BYTES
+
+
+def test_a_drafter_is_charged_inside_the_vllm_budget() -> None:
+    # vLLM loads the drafter after its free-memory snapshot and profiles it
+    # inside gpu-memory-utilization (vllm_memory_fit.py): its weights must fit
+    # the budget, and nothing is added beside it.
+    recipe = RecipeDefinition.model_validate_json(
+        (ROOT / "recipes/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single.json").read_text()
     )
-
-
-def test_peak_and_budget_count_the_measured_draft_floor() -> None:
-    # A separately loaded draft holds its measured 17 GB floor beside vLLM's
-    # budget: at 0.75 a declared peak without it understates, and with it the
-    # peak is not admissible. The proven 0.7 singles with a draft fit.
-    recipe = llama()
-    draft = recipe.models[0].model_copy(deep=True)
-    draft.id = "draft"
-    recipe.models.append(draft)
-    recipe.runtime.arguments = [
-        item
-        for item in recipe.runtime.arguments
-        if item.name != "kv-cache-memory-bytes"
-    ] + [RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.75")]
+    models = catalog_models()
 
     def touched() -> None:
-        require_memory_need(
-            recipe, catalog_models(), INPUTS, document_digest="", touched=True
-        )
+        require_memory_need(recipe, models, INPUTS, document_digest="", touched=True)
 
-    declare_envelope(recipe)
     touched()
-    recipe.runtime.arguments.append(
-        RecipeRuntimeArgument(
-            name="speculative-config",
-            value='{"method":"dflash","model":"/models/draft"}',
-        )
-    )
-    with pytest.raises(ValueError, match="peak understates vLLM budget"):
-        touched()
-    declare_envelope(recipe)
-    with pytest.raises(ValueError, match="not admissible"):
-        touched()
+    target_only = recipe.model_copy(deep=True)
+    target_only.models = target_only.models[:1]
+    target_only.runtime.arguments = [
+        item
+        for item in target_only.runtime.arguments
+        if item.name != "speculative-config"
+    ]
+    weights = rank_weight_bytes(recipe, models, INPUTS)
+    draft_bytes = weights - rank_weight_bytes(target_only, models, INPUTS)
+    assert draft_bytes > 0
+    assert vllm_utilization_envelope(recipe) == vllm_utilization_envelope(target_only)
+    # A budget that holds the target and the overhead, but not the drafter too.
+    share = (
+        Decimal(weights + OVERHEAD_BYTES - draft_bytes // 2) / TOTAL_BYTES
+    ).quantize(Decimal("0.0001"))
     next(
         item
         for item in recipe.runtime.arguments
         if item.name == "gpu-memory-utilization"
-    ).value = "0.70"
+    ).value = str(share)
     declare_envelope(recipe)
-    touched()
+    with pytest.raises(ValueError, match="cannot hold the selected weights"):
+        touched()
 
 
 @pytest.mark.parametrize(

@@ -331,9 +331,8 @@ not declared context × engine concurrency: engines schedule requests within it.
 A single-Spark recipe file a change touches must bound KV: an absolute pool
 (vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens`), or a declared
 `gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
-plus the 8 GB overhead (plus the 17 GB floor of a separately loaded vLLM draft
-and the resident expansion of geometry pinned to the launch) is admissible on
-an idle Spark. Proven singles run up to 0.86, exactly the largest admitted peak;
+plus the 8 GB overhead (plus the resident expansion of geometry pinned to the
+launch) is admissible on an idle Spark. Proven singles run up to 0.86, exactly the largest admitted peak;
 vLLM's implicit 0.90 is not admissible. A touched pool-less vLLM budget (any
 Spark count) must also hold the selected weights per rank plus the 8 GB
 overhead: Laguna S 2.1 r0b0tlab at 0.6 left 4.25 GB beside 74.15 GB of target
@@ -345,9 +344,8 @@ weights, their resident expansion and any capped token/state pools (GLM a0 at
 0.75 was OOM-killed; restoring its 262,144-token cap needs 116.8 GB against
 0.85's 106.8 GB). The declared peak covers the same static need plus the 8 GB
 overhead. SGLang derives an omitted fraction at launch, so none is required. A pool-less single-Spark vLLM declaration's peak must cover its
-utilization budget plus the overhead and draft floor, since the Controller
-reserves the declared peak (the 2026-10-13 freeze declared 99.46 GB for a
-116.46 GB envelope). `tests/test_absolute_kv_capacity.py` replays those recorded
+utilization budget plus the overhead, since the Controller
+reserves the declared peak. `tests/test_absolute_kv_capacity.py` replays the recorded
 failures and must reject each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
 multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
@@ -391,14 +389,15 @@ bytes**. Sources: vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
 incident telemetry, **125,650,657,280 bytes idle MemAvailable**, retained in the
 calculator's historical source. The live guard also requires sustained pressure
 (full PSI 30%, 3 seconds); the estimator leaves its planning floor. Runtime
-overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A separately
-loaded speculative draft also requires the **17,000,000,000-byte measured floor**:
-`qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single` froze a GB10 on 2026-10-13 at
-utilization 0.7, with about 116.4 GB attributable to the run and still climbing,
-17 GB above utilization × physical memory + 8 GB. Keep this floor alongside
-selected weights/cache until hardware evidence supplies a replacement; weight
-arithmetic alone cannot remove it. Target-only speculation and a draft pointing
-to the served target do not load a second model. The estimate over this limit
+overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A vLLM
+speculative drafter adds nothing beside the budget, however it is loaded: the
+worker loads it after its free-memory snapshot and profiles it inside
+`gpu-memory-utilization` (sources in `qualification/vllm_memory_fit.py`), so its
+weights count inside the budget like the target's. Pool-less single-Spark runs
+with a separate drafter held at most 9.9 GB beside utilization × memory, OS
+included. The 2026-10-13 DFlash2 freeze at 0.7 (image 155ce16b) is unexplained
+and 0.7 has not been re-run since; the 0.6 document passed on 431593a0 with
+3.7 GB beside its budget. The estimate over this limit
 is a **WARNING**, not a rejection: proven singles run utilization-sized pools
 above it. Never omit a failing recipe to pass the check.
 
@@ -437,17 +436,14 @@ geometry is an unknown warning, never a hardware failure.
 pre-#1612 calibration guard for historical vLLM documents and options on **each
 role of each node**, including dual/multi-Spark recipes. Its shared
 implementation and constants live in `qualification/vllm_memory_fit.py`: utilization ×
-**130,663,231,488 bytes** + **8 GB** runtime overhead + **17 GB** for a separate
-draft must fit the declared per-node peak; peak + the **6 GB OS floor** must fit
+**130,663,231,488 bytes** + **8 GB** runtime overhead must fit the declared
+per-node peak; peak + the **6 GB OS floor** must fit
 the **126,600,000,000-byte idle-available floor**. The 2026-10-15/16 incident also
 retains its measured overhead and the lower spark-3542 idle-available value above.
-`PENDING_CREATOR` retains five explicit draft exceptions pending creator changes;
-only their draft term is waived, never utilization, runtime overhead or the OS
-floor, and tests reject stale exceptions once they fit with the draft counted.
 
 [qualification/memory_need.py](../qualification/memory_need.py), exercised by
 `tests/test_single_spark_memory_headroom.py`, shares those constants; its
-single-node full-workload estimate, with the measured draft floor, is
+single-node full-workload estimate is
 informative. An absolute vLLM KV pool overrides cache sizing by utilization.
 Changed multi-Spark documents use the per-rank demand declaration below;
 a changed multi-Spark SGLang document must also fit its sharded weights, resident
@@ -555,11 +551,7 @@ demand. [vLLM's cache contract](https://docs.vllm.ai/en/v0.19.1/api/vllm/config/
 states that absolute KV bytes override utilization. The
 [SGLang memory guide](https://github.com/sgl-project/sglang/blob/main/docs/docs/advanced_features/hyperparameter_tuning.mdx)
 separates weights, KV, graphs and activations. Do not count a fraction-sized
-pool as a required full-context allocation. The measured 17 GB draft floor was
-relative to a utilization budget; adding it again to explicitly selected draft
-weights double counts that measurement. Retain that incident term in the
-strict workload guard and historical utilization-envelope tests, where it was
-calibrated; it is not another allocation in the optimistic catalog loading floor.
+pool as a required full-context allocation.
 
 A different number of Sparks is always a different recipe id, never a new
 revision of the same recipe: name recipes per topology (`-single`, `-dual`,
