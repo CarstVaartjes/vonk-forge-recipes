@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import http.client
 import io
 import json
 import tarfile
@@ -125,6 +126,69 @@ class DownloadScanTests(unittest.TestCase):
         body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
         with self.assertRaisesRegex(kit_pins.KitError, "cannot scan .*tar.gz"):
             self._download(body[: len(body) // 2])
+
+
+class _Dropping(io.BytesIO):
+    """A response that returns some bytes, then fails like a broken connection."""
+
+    def __init__(self, body: bytes, error: BaseException) -> None:
+        super().__init__(body)
+        self._error = error
+
+    def read(self, size: int | None = -1) -> bytes:
+        data = super().read(size)
+        if not data or (size is not None and 0 < size and len(data) < size):
+            raise self._error
+        return data
+
+
+MID_STREAM_ERRORS = [
+    TimeoutError("timed out"),
+    ConnectionResetError("reset by peer"),
+    http.client.IncompleteRead(b"x", 10),
+]
+
+
+class MidStreamFailureTests(unittest.TestCase):
+    def test_a_download_that_breaks_mid_stream_is_a_kit_error_with_the_url(
+        self,
+    ) -> None:
+        body = archive({"Dockerfile": f"FROM {IMAGE}@{DIGEST}\n"})
+        for error in MID_STREAM_ERRORS:
+            with self.subTest(error=type(error).__name__):
+                scan = _Dropping(body[: len(body) // 2], error)
+                fetch = _Dropping(body[: len(body) // 2], error)
+                with (
+                    mock.patch.object(
+                        kit_pins.urllib.request, "urlopen", return_value=scan
+                    ),
+                    self.assertRaisesRegex(kit_pins.KitError, "cannot scan .*tar.gz"),
+                ):
+                    kit_pins.scan_download("o/r", COMMIT)
+                with (
+                    mock.patch.object(
+                        kit_pins.urllib.request, "urlopen", return_value=fetch
+                    ),
+                    self.assertRaisesRegex(kit_pins.KitError, "cannot fetch .*tar.gz"),
+                ):
+                    kit_pins.download_archive("o/r", COMMIT)
+
+    def test_scanning_does_not_retain_the_members_it_has_passed(self) -> None:
+        files = {f"d/{n}.txt": "x" for n in range(200)}
+        files["Dockerfile"] = f"FROM {IMAGE}@{DIGEST}\n"
+        body = archive(files)
+        retained = []
+        real = kit_pins.tarfile.open
+
+        def spy(*args: Any, **kwargs: Any) -> Any:
+            handle = real(*args, **kwargs)
+            retained.append(handle)
+            return handle
+
+        with mock.patch.object(kit_pins.tarfile, "open", spy):
+            found = kit_pins.scan_stream(io.BytesIO(body))
+        self.assertEqual([f["reference"] for f in found], [f"{IMAGE}@{DIGEST}"])
+        self.assertLess(len(retained[0].members), 3)
 
 
 class CliSourceTests(unittest.TestCase):
