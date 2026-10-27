@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/qwen-image-2512-fp8-lightning-comfyui-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "1b58c802ef7f94b494589ea3dc22b311d73133e79dfb8ca727ac905497b522c3",
+        "source_bundle_sha256": "70c9510c430a3f5b0abecd6351bff42d02ada616f7c918060c0cb5acbe74d832",
+        "runtime_image": {
+          "build_key": "e4e8ee337c187b3a681dcae22a6b3705859e379ca596b606cb83ee40b1b12261",
+          "image_digest": "sha256:d04f68ef52f5ddcbb77508b4c5e9becd1d9ae865751572b6942a006cde066946"
+        },
+        "model_digests": [
+          "1fd04ef168ffe5a63d1024a6856ca57436f4452188827c84e118ea3e92b94990",
+          "d32f8c42f1d8bd04f044caafd4bee87b38f430aa71dedd3c1336290c26d98129",
+          "efb222d33973f73f1b1c1da7dc30b5260bf9e2b5d333459e3e25501aeff8dcd0"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a0b323695f266af2d38e095c9265b461afd8cb291667cbfdc89e4da2b37d6046"
+      ],
+      "tested_at": "2026-10-27T22:37:15.006731Z",
+      "platform": {
+        "controller_source_sha": "266932981dd55bb5086fbfa5b9abd4c5782d62a1",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
