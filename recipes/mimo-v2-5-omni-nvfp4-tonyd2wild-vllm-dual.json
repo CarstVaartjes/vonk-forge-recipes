@@ -34,7 +34,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on two Sparks with vLLM tensor parallel 2 over Ray, a 744,192-token context (creator profile 1M) on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode) and safetensors loading; MTP1 speculative decoding (the upstream default) is an option and is off by default here. Basis: tonyd2wild's recipe (MIT; the vendored mods are derived from vLLM, Apache-2.0) on tonyd2wild's published patched vLLM 0.21.1rc1.dev85 dev-build image, with upstream's four image mods applied at build time. Alternatives by the same creator for this model and Spark count are the DFlash speculative-decoding variants with FP8 or NVFP4 KV (separate repositories, not packaged here). Upstream figures (about 32 tok/s single stream, 184 tok/s at eight streams, 2.17M-token KV pool at 1M context) are claims until measured here; the upstream deployment is Ray-based and Vonk physical two-Spark acceptance is pending. Sampling defaults is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: temperature 0, top_p 0.95, repetition_penalty 1.08 (upstream default). GB10 fit: the declared peak is the loading floor (selected weights, this KV pool and 8 GB runtime overhead) and the 0.759290 startup budget stays inside it. Absolute KV correction: 7,463,577,600 bytes per rank covers 3 simultaneous full-context requests at 744,192 tokens using the pinned cache-geometry allocation bound. Context stays capped at 744,192 tokens (creator profile 1,000,000). Speculative decoding is off by default: the MTP drafter loads by reading the whole checkpoint a second time, after the target weights and before any KV cache exists, and both hardware starts with it were stopped by the host memory guard on the entrypoint at the start of or during that pass (6.6 and 2.3 GB available); upstream runs a root page-cache drop loop during bring-up that Vonk does not run. This is an offline estimate; physical acceptance remains pending.",
+    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on two Sparks with vLLM tensor parallel 2 over Ray, a 744,192-token context (creator profile 1M) on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode) and safetensors loading; MTP1 speculative decoding (the upstream default) is an option and is off by default here. Basis: tonyd2wild's recipe (MIT; the vendored mods are derived from vLLM, Apache-2.0) on tonyd2wild's published patched vLLM 0.21.1rc1.dev85 dev-build image, with upstream's four image mods applied at build time. Alternatives by the same creator for this model and Spark count are the DFlash speculative-decoding variants with FP8 or NVFP4 KV (separate repositories, not packaged here). Upstream figures (about 32 tok/s single stream, 184 tok/s at eight streams, 2.17M-token KV pool at 1M context) are claims until measured here; the upstream deployment is Ray-based and Vonk physical two-Spark acceptance is pending. Sampling defaults is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: temperature 0, top_p 0.95, repetition_penalty 1.08 (upstream default). GB10 fit: the declared peak is the loading floor (selected weights, this KV pool and 8 GB runtime overhead) and the 0.759290 startup budget stays inside it. Absolute KV correction: 7,463,577,600 bytes per rank covers 3 simultaneous full-context requests at 744,192 tokens using the pinned cache-geometry allocation bound. Context stays capped at 744,192 tokens (creator profile 1,000,000). Speculative decoding is off by default so a start needs neither the MTP drafter's weights nor its second pass over the whole checkpoint: both hardware starts were stopped by the host memory guard on the entrypoint before any KV cache existed, on 2026-10-27 at the end of the target weight load (6.6 GB available, before the drafter) and on 2026-10-25 about three minutes after the target's post-load processing (2.3 GB available). Off does not change the target load, so a start can still be stopped in that first window; upstream runs a root page-cache drop loop during bring-up that Vonk does not run. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "audio",
       "diffkv",
@@ -689,10 +689,7 @@
       "choices": [
         {
           "default": true,
-          "env": {
-            "VLLM_MIMO_MTP1_GREEDY_FAST": "0"
-          },
-          "help": "No speculative decoding: no drafter and no second checkpoint pass at startup.",
+          "help": "No speculative decoding: no MTP drafter weights and no second checkpoint pass at startup.",
           "label": "Off (default)",
           "value": "off"
         },
@@ -704,6 +701,9 @@
               "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":1}"
             }
           ],
+          "env": {
+            "VLLM_MIMO_MTP1_GREEDY_FAST": "1"
+          },
           "help": "One drafted token per step (upstream default). The drafter loads by reading the whole checkpoint a second time at startup.",
           "label": "MTP 1",
           "value": "mtp1"
@@ -716,15 +716,12 @@
               "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":2}"
             }
           ],
-          "env": {
-            "VLLM_MIMO_MTP1_GREEDY_FAST": "0"
-          },
           "help": "Two drafted tokens per step; upstream measured no speed gain and about half the KV pool.",
           "label": "MTP 2",
           "value": "mtp2"
         }
       ],
-      "help": "MTP drafting with the checkpoint's bundled MTP head. Off by default here: both two-Spark starts with the drafter ran out of host memory on the entrypoint while the drafter re-read the checkpoint, after the target weights and before any KV cache existed; upstream runs a root page-cache drop loop during bring-up that Vonk does not run. Upstream found MTP1 better than MTP2: MTP2 halves the KV pool without a speed gain.",
+      "help": "MTP drafting with the checkpoint's bundled MTP head. Off by default so a start needs neither the drafter's weights nor its second pass over the whole checkpoint; both two-Spark starts ran out of host memory on the entrypoint before any KV cache existed (2026-10-27 at the end of the target load, 2026-10-25 about three minutes after it). Upstream found MTP1 better than MTP2: MTP2 halves the KV pool without a speed gain.",
       "label": "Speculative decoding",
       "name": "speculative"
     }
@@ -945,7 +942,7 @@
       },
       {
         "name": "VLLM_MIMO_MTP1_GREEDY_FAST",
-        "value": "1"
+        "value": "0"
       },
       {
         "name": "VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS",
