@@ -1,6 +1,7 @@
 {
   "geometries": {
     "deepseek-v4-1-flash-exl3-2-77bpw-9e3bbeab": {
+      "architecture": "DeepseekV41ForCausalLM",
       "configuration_sha256": "8be45ce0476004a3f529fd896115a4a2e800a129ad2d3ec05b16050f52e21879",
       "key_dim": 512,
       "kv_heads": 1,
@@ -19,6 +20,7 @@
       "value_dim": 0
     },
     "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6": {
+      "architecture": "DeepseekV41ForCausalLM",
       "configuration_sha256": "8b2cb821118c407a148bc86a5a280f4cf4c633c82b5273c529e60afc2c702eca",
       "key_dim": 512,
       "kv_heads": 1,
@@ -37,6 +39,7 @@
       "value_dim": 0
     },
     "deepseek-v4-1-flash-exl3-2bpw-mcg-viterbi-982b7045": {
+      "architecture": "DeepseekV41ForCausalLM",
       "configuration_sha256": "6469adab394edead3eec148323e7471582d08acdf60a438bf0c9e815b69f36c5",
       "key_dim": 512,
       "kv_heads": 1,
@@ -55,6 +58,7 @@
       "value_dim": 0
     },
     "deepseek-v4-flash-0731-7872f01b": {
+      "architecture": "DeepseekV4ForCausalLM",
       "configuration_sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
       "key_dim": 512,
       "kv_heads": 1,
@@ -73,6 +77,7 @@
       "value_dim": 0
     },
     "deepseek-v4-flash-0731-9e165c30": {
+      "architecture": "DeepseekV4ForCausalLM",
       "configuration_sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
       "key_dim": 512,
       "kv_heads": 1,
@@ -91,6 +96,7 @@
       "value_dim": 0
     },
     "deepseek-v4-flash-60d8d707": {
+      "architecture": "DeepseekV4ForCausalLM",
       "configuration_sha256": "b628e63398a645abc711d92207f8737dd8140f7a4ef1e0a5b3616019e0ddd818",
       "key_dim": 512,
       "kv_heads": 1,
@@ -109,6 +115,7 @@
       "value_dim": 0
     },
     "deepseek-v4-flash-dspark-62af8fff": {
+      "architecture": "DeepseekV4ForCausalLM",
       "configuration_sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
       "key_dim": 512,
       "kv_heads": 1,
@@ -127,6 +134,7 @@
       "value_dim": 0
     },
     "deepseek-v4-flash-dspark-913f0657": {
+      "architecture": "DeepseekV4ForCausalLM",
       "configuration_sha256": "6c8f3d2d3b48707541b88f32f22ef3f0f8a6b57d8523281e2b8d3cdb0ae9a023",
       "key_dim": 512,
       "kv_heads": 1,
@@ -145,6 +153,7 @@
       "value_dim": 0
     },
     "deepseek-v4-flash-reap-162b-k144-2b29d032": {
+      "architecture": "DeepseekV4ForCausalLM",
       "configuration_sha256": "d8c3cb69b55a1e0eb107bdd553e28fa18a3f2261d4d7b7fa4ff20bb42c4fd072",
       "key_dim": 512,
       "kv_heads": 1,
@@ -163,6 +172,7 @@
       "value_dim": 0
     },
     "deepseek-v4-flash-reap-180b-k160-d3c704b7": {
+      "architecture": "DeepseekV4ForCausalLM",
       "configuration_sha256": "83792681fee1335892df67649aabcd358ed5c202d27aed42d8c9001600c07cda",
       "key_dim": 512,
       "kv_heads": 1,
@@ -181,6 +191,7 @@
       "value_dim": 0
     },
     "deepseek-v4-flash-vision-exp-6821d6ad": {
+      "architecture": "DeepseekV4ForCausalLM",
       "configuration_sha256": "6cd841bdd6702f5e2ac34671bc78047ed80817102465525ae2a41c502abbcd75",
       "key_dim": 512,
       "kv_heads": 1,
@@ -199,6 +210,7 @@
       "value_dim": 0
     },
     "deepseek-v4-flash-vision-exp-86f746b3": {
+      "architecture": "DeepseekV4ForCausalLM",
       "configuration_sha256": "6cd841bdd6702f5e2ac34671bc78047ed80817102465525ae2a41c502abbcd75",
       "key_dim": 512,
       "kv_heads": 1,
@@ -217,6 +229,7 @@
       "value_dim": 0
     },
     "glm-5-2-int4-int8mix": {
+      "architecture": "GlmMoeDsaForCausalLM",
       "configuration_sha256": "c9ebe6b941f9ef85c8d2597ec466b7cbeca0d258d264d0fd8cd33d1ccf0592f4",
       "key_dim": 512,
       "kv_heads": 1,
@@ -231,6 +244,7 @@
       "value_dim": 64
     },
     "glm-5-2-nvfp4-aqlm-hybrid-53e0082e": {
+      "architecture": "Glm5vForConditionalGeneration",
       "configuration_sha256": "2acea9859afcddc80e997b28eb5ec58d726f611516add37db8f81802f5c3f2ae",
       "key_dim": 512,
       "kv_heads": 1,
@@ -245,6 +259,7 @@
       "value_dim": 64
     },
     "glm-5-3-flash-exl3-2-05bpw-51058cd5": {
+      "architecture": "Glm5NextForConditionalGeneration",
       "configuration_sha256": "43921c0b6dd51805a243649a647417230ef9cb9ba8e26ae06a461c3f7e08d037",
       "key_dim": 512,
       "kv_heads": 1,
@@ -258,6 +273,7 @@
       "value_dim": 128
     },
     "glm-5-3-flash-exl3-mosaic-12l-2726c32b": {
+      "architecture": "Glm5NextForConditionalGeneration",
       "configuration_sha256": "43921c0b6dd51805a243649a647417230ef9cb9ba8e26ae06a461c3f7e08d037",
       "key_dim": 512,
       "kv_heads": 1,
@@ -271,6 +287,7 @@
       "value_dim": 128
     },
     "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": {
+      "architecture": "Glm5NextForConditionalGeneration",
       "configuration_sha256": "4f5341e048984459471bfb9c894e6bf87e69b9c67402672af901631d1349f265",
       "key_dim": 512,
       "kv_heads": 1,
@@ -286,6 +303,7 @@
       "value_dim": 0
     },
     "glm-5-3-flash-nvfp4-caca4e6a": {
+      "architecture": "Glm5NextForConditionalGeneration",
       "configuration_sha256": "5db46f44956e4a8a0cc8ed54b6d77bf99dd7c1ec90c58975d1952560768513d5",
       "key_dim": 512,
       "kv_heads": 1,
@@ -301,6 +319,7 @@
       "value_dim": 0
     },
     "glm-5-3-flash-nvfp4-spark-a6082410": {
+      "architecture": "Glm5NextForConditionalGeneration",
       "configuration_sha256": "e1c0246a44ebefb5fd6383fb57aebbf7ac69ff6e7b23e989c0571b279a0eca23",
       "key_dim": 512,
       "kv_heads": 1,
@@ -316,6 +335,7 @@
       "value_dim": 0
     },
     "glm-5-3-int4-int8mix-206507bb": {
+      "architecture": "GlmMoeDsaForCausalLM",
       "configuration_sha256": "238781b1049848b65be244adda218845c1a63a4aa49c4941eb59a05dec681f3b",
       "key_dim": 512,
       "kv_heads": 1,
@@ -330,6 +350,7 @@
       "value_dim": 64
     },
     "gpt-oss-120b-mxfp4-b5c939de": {
+      "architecture": "GptOssForCausalLM",
       "configuration_sha256": "933aeb666a3fd851133ddd7686414f369bc564c4185fb5704416550879f10566",
       "key_dim": 64,
       "kv_heads": 8,
@@ -340,6 +361,7 @@
       "value_dim": 64
     },
     "hy3-295b-nvfp4-w4a16-4f7e1f02": {
+      "architecture": "HYV3ForCausalLM",
       "configuration_sha256": "7637967434d686c97f9b325d72485c2f5f7637ff10cbd7dc3c542c0e0842509f",
       "key_dim": 128,
       "kv_heads": 8,
@@ -349,6 +371,7 @@
       "value_dim": 128
     },
     "hy3-nvfp4-libertai-8a805d68": {
+      "architecture": "HYV3ForCausalLM",
       "configuration_sha256": "5f85d4c99708a6f2435cec747721c8c3fe3c3bae346b649dc2dbea9300926cf1",
       "key_dim": 128,
       "kv_heads": 8,
@@ -358,6 +381,7 @@
       "value_dim": 128
     },
     "inkling-small-nvfp4": {
+      "architecture": "InklingForConditionalGeneration",
       "configuration_sha256": "dcb5b1d587bce2f1e6b29833d739a724d05b4bfaa2dc1164fbe679330478ba53",
       "key_dim": 128,
       "kv_heads": 8,
@@ -371,6 +395,7 @@
       "value_dim": 128
     },
     "laguna-m-1-nvfp4-e4f3ba80": {
+      "architecture": "LagunaForCausalLM",
       "configuration_sha256": "94708101d70c353bb07c3204be9b7e630bb357d389bed3442cc7aabe8f1d8fa6",
       "key_dim": 128,
       "kv_heads": 8,
@@ -384,6 +409,7 @@
       "value_dim": 128
     },
     "laguna-s-2-1-nvfp4-826aacdf": {
+      "architecture": "LagunaForCausalLM",
       "configuration_sha256": "3b3a6e369129eaf628e6b96e417ce06d631d61856ba1d2e8eecdf31dfb8dfe01",
       "key_dim": 128,
       "kv_heads": 8,
@@ -394,6 +420,7 @@
       "value_dim": 128
     },
     "leanstral-1-5-119b-a6b-81592da9": {
+      "architecture": "params.json",
       "configuration_sha256": "93f5e26c0d88ccf6f46f3a6e7794f1c9e082f66e43980688dcde1a6ca973d0c9",
       "key_dim": 256,
       "kv_heads": 1,
@@ -404,6 +431,7 @@
       "value_dim": 64
     },
     "llama-3-1-8b-instruct-nvfp4-bdb54e24": {
+      "architecture": "LlamaForCausalLM",
       "configuration_sha256": "017c7a2d285256747f75b01c5fbc7a78fa351ea49958cdf6e16f45b0a8d31afe",
       "key_dim": 128,
       "kv_heads": 8,
@@ -412,6 +440,7 @@
       "value_dim": 128
     },
     "mimo-v2-5-nvfp4-a147dd04": {
+      "architecture": "MiMoV2ForCausalLM",
       "configuration_sha256": "8b414f453bee840c5f5682b2e2fd92f1f33e116df439c1e4eb385258e88b9dd3",
       "key_dim": 192,
       "kv_heads": 4,
@@ -422,6 +451,7 @@
       "value_dim": 128
     },
     "mimo-v2-6-flash-rl-dcd3fd83": {
+      "architecture": "MiMoV2ForCausalLM",
       "configuration_sha256": "61bea4a0f7a0dd8969f8cae528761e26b697dd12ff63e98804c3f0945492e621",
       "key_dim": 192,
       "kv_heads": 4,
@@ -432,6 +462,7 @@
       "value_dim": 128
     },
     "mimo-v2-6-pro-mopd-arvq-hybrid21-bb83094e": {
+      "architecture": "MiMoV2ForCausalLM",
       "configuration_sha256": "86b2b225ed44dc3af7d3c225c87df98f68c9e40709127e355f752734dd792f5b",
       "key_dim": 192,
       "kv_heads": 8,
@@ -442,6 +473,7 @@
       "value_dim": 128
     },
     "minimax-m2-7-nvfp4-e79701cb": {
+      "architecture": "MiniMaxM2ForCausalLM",
       "configuration_sha256": "24abe73e3a7d4d2e8e0d20ea13f322b8823a804e6598a4d0f7bfc0d0d367ea9d",
       "key_dim": 128,
       "kv_heads": 8,
@@ -451,68 +483,121 @@
       "value_dim": 128
     },
     "nemotron-3-5-lightning-30b-a3b-nvfp4": {
+      "architecture": "NemotronHForCausalLM",
       "configuration_sha256": "f1d98b530846087dc08b574a219713a94f945bf6583dc7230a19ebf1e8c50933",
       "key_dim": 128,
       "kv_heads": 2,
       "layers": 6,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/bee7596271d1495f6992ae224aefde4410e816b8/config.json; layers_block_type attention entries; recurrent state bounded separately at 256 MiB/request.",
+      "recurrent": {
+        "layers": 23,
+        "attention_layers": 6,
+        "conv_channels": 6144,
+        "conv_kernel": 4,
+        "state_elements": 524288,
+        "state_dtype_bytes": 4,
+        "mamba_prefix_caching": true,
+        "chunk_tokens": 128
+      },
+      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/resolve/bee7596271d1495f6992ae224aefde4410e816b8/config.json; layers_block_type attention entries; recurrent state bounded separately at 256 MiB/request. Typed for vLLM: 6 attention and 23 mamba layers_block_type entries, mamba_num_heads 64 x mamba_head_dim 64, n_groups 8, ssm_state_size 128, conv_kernel 4, mamba_ssm_cache_dtype float32, chunk_size 128; NemotronHForCausalLM supports prefix-caching mode \"all\". vLLM sizes this model by the typed recurrent fields instead of the hand state bound, which other engines keep (qualification/memory_need.py vllm_hybrid_need).",
       "state_bytes_per_request": 268435456,
       "value_dim": 128
     },
     "nemotron-3-5-super-vl-nvfp4-82d93699": {
+      "architecture": "NemotronH_Omni_Reasoning_V3",
       "configuration_sha256": "35189a8038d1b1f934e58cba50eb7e97b42a4da569424e35b9fd1048058bc7ea",
       "key_dim": 128,
       "kv_heads": 2,
       "layers": 8,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/resolve/82d93699acd3be9e4617c53360fe5b3f5dbeb1b3/config.json; layers_block_type attention entries; recurrent state bounded separately at 256 MiB/request.",
+      "recurrent": {
+        "layers": 40,
+        "attention_layers": 8,
+        "conv_channels": 10240,
+        "conv_kernel": 4,
+        "state_elements": 1048576,
+        "state_dtype_bytes": 4,
+        "mamba_prefix_caching": false
+      },
+      "source": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/resolve/82d93699acd3be9e4617c53360fe5b3f5dbeb1b3/config.json; layers_block_type attention entries; recurrent state bounded separately at 256 MiB/request. Typed for vLLM: 8 attention and 40 mamba layers_block_type entries, mamba_num_heads 128 x mamba_head_dim 64, n_groups 8, ssm_state_size 128, conv_kernel 4, mamba_ssm_cache_dtype float32; NemotronH_Omni_Reasoning_V3 loads NemotronH_Nano_VL_V2, which does not support prefix-caching mode \"all\", so prefix caching runs \"align\". vLLM sizes this model by the typed recurrent fields instead of the hand state bound, which other engines keep (qualification/memory_need.py vllm_hybrid_need).",
       "state_bytes_per_request": 268435456,
       "value_dim": 128
     },
     "nemotron-3-nano-omni-30b-a3b-reasoning-bf16-e5e99324": {
+      "architecture": "NemotronH_Nano_Omni_Reasoning_V3",
       "configuration_sha256": "bf8859c106ef73d65fd194cbd336584d24dceaf724a408c762db7945e3925957",
       "key_dim": 128,
       "kv_heads": 2,
       "layers": 52,
+      "recurrent": {
+        "layers": 23,
+        "attention_layers": 6,
+        "conv_channels": 6144,
+        "conv_kernel": 4,
+        "state_elements": 524288,
+        "state_dtype_bytes": 4,
+        "mamba_prefix_caching": false
+      },
       "resident_expansion_bytes": 8000000000,
       "runtime_image_digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
-      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16/blob/e5e9932441de940c9a62185c870ea5bcd4cd24e2/config.json llm_config: bound all 52 layers as full BF16 attention (2 KV heads, 128 key/value dimensions). Bound every layer's FP32 Mamba state (64 heads x 64 head dimension x 128 state size) plus convolution storage by 128 MiB/request. Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement.",
+      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-BF16/blob/e5e9932441de940c9a62185c870ea5bcd4cd24e2/config.json llm_config: bound all 52 layers as full BF16 attention (2 KV heads, 128 key/value dimensions). Bound every layer's FP32 Mamba state (64 heads x 64 head dimension x 128 state size) plus convolution storage by 128 MiB/request. Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement. Typed for vLLM: hybrid_override_pattern has 6 attention and 23 Mamba layers, mamba_num_heads 64 x mamba_head_dim 64, n_groups 8, ssm_state_size 128, conv_kernel 4, float32 temporal state (NemotronH default); NemotronH_Nano_Omni_Reasoning_V3 loads NemotronH_Nano_VL_V2, which does not support prefix-caching mode \"all\", so prefix caching runs \"align\". vLLM sizes this model by the typed recurrent fields instead of the hand state bound, which other engines keep (qualification/memory_need.py vllm_hybrid_need).",
       "state_bytes_per_request": 134217728,
       "value_dim": 128
     },
     "nemotron-3-nano-omni-30b-a3b-reasoning-fp8-0acd4b1c": {
+      "architecture": "NemotronH_Nano_Omni_Reasoning_V3",
       "configuration_sha256": "ba51d79fe0db8aef1e1c6c1515b18e9e5697f99c004fbe26dc16ae8b6f2dc544",
       "key_dim": 128,
       "kv_heads": 2,
       "layers": 52,
+      "recurrent": {
+        "layers": 23,
+        "attention_layers": 6,
+        "conv_channels": 6144,
+        "conv_kernel": 4,
+        "state_elements": 524288,
+        "state_dtype_bytes": 4,
+        "mamba_prefix_caching": false
+      },
       "resident_expansion_bytes": 8000000000,
       "runtime_image_digest": "871fc9b75a97dc6f58449bfb2aa30cab685c87a8bf6b4519a75c4760c1f8bcd8",
-      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8/blob/0acd4b1c237eab45d3977b1b46631919e9a75774/config.json llm_config: bound all 52 layers as full BF16 attention (2 KV heads, 128 key/value dimensions). Bound every layer's FP32 Mamba state (64 heads x 64 head dimension x 128 state size) plus convolution storage by 128 MiB/request. Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement.",
+      "source": "https://huggingface.co/nvidia/Nemotron-3-Nano-Omni-30B-A3B-Reasoning-FP8/blob/0acd4b1c237eab45d3977b1b46631919e9a75774/config.json llm_config: bound all 52 layers as full BF16 attention (2 KV heads, 128 key/value dimensions). Bound every layer's FP32 Mamba state (64 heads x 64 head dimension x 128 state size) plus convolution storage by 128 MiB/request. Reserve an additional estimated 8 GB for multimodal activations and loading transients; eager execution. The base runtime overhead remains the shared estimated 8 GB. This is a conservative declaration, not hardware measurement. Typed for vLLM: hybrid_override_pattern has 6 attention and 23 Mamba layers, mamba_num_heads 64 x mamba_head_dim 64, n_groups 8, ssm_state_size 128, conv_kernel 4, float32 temporal state (NemotronH default); NemotronH_Nano_Omni_Reasoning_V3 loads NemotronH_Nano_VL_V2, which does not support prefix-caching mode \"all\", so prefix caching runs \"align\". vLLM sizes this model by the typed recurrent fields instead of the hand state bound, which other engines keep (qualification/memory_need.py vllm_hybrid_need).",
       "state_bytes_per_request": 134217728,
       "value_dim": 128
     },
     "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976": {
+      "architecture": "Qwen3_5ForConditionalGeneration",
       "configuration_sha256": "0b2c05e53e721307ebcb1696881cead10e01a3ca7f09db28eb0477b55cc5692c",
       "key_dim": 256,
       "kv_heads": 4,
       "layers": 16,
-      "source": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/config.json text_config: 64 layers, full_attention_interval=4, 4 KV heads, head_dim=256. The other 48 layers have FP32 recurrent state (48 value heads x 128 x 128) and BF16 convolution state (3 x (2 x 16 x 128 + 48 x 128)): 3207168 bytes per layer. vLLM's hybrid allocator pads each recurrent page to the attention page (1568-token blocks x 2048 FP8 bytes, or 784 x 4096 BF16 bytes: 3211264 bytes) and, with prefix caching (mamba_cache_mode align), holds two pages per recurrent layer for one request (vllm/v1/kv_cache_interface.py MambaSpec.max_memory_usage_bytes); rounding the full-attention layers to 1568-token blocks adds at most one page each. vLLM shares each tensor across one layer per group (group size 16: one attention and three recurrent groups), sizes blocks as pool // page // 16 and takes one whole block as the null block (vllm/v1/core/kv_cache_utils.py, block_pool.py), another 16 pages. Bound: (2 x 48 + 16 + 16) x 3211264 = 411041792 bytes per sequence. Hardware: operation c2940bb5 (2026-10-27) needed 34681651200 bytes at 1048576 tokens. No MTP speculation.",
+      "recurrent": {
+        "layers": 48,
+        "attention_layers": 16,
+        "conv_channels": 10240,
+        "conv_kernel": 4,
+        "state_elements": 786432,
+        "state_dtype_bytes": 4,
+        "mamba_prefix_caching": false
+      },
+      "source": "https://huggingface.co/aday777/Qwen3.8-27B-ARA-abliterated-NVFP4-MTP/blob/df03f976e0f0c06f952dba7034220087f8582f51/config.json text_config: 64 layers, full_attention_interval=4, 4 KV heads, head_dim=256. The other 48 layers have FP32 recurrent state (48 value heads x 128 x 128) and BF16 convolution state (3 x (2 x 16 x 128 + 48 x 128)): 3207168 bytes per layer. vLLM's hybrid allocator pads each recurrent page to the attention page (1568-token blocks x 2048 FP8 bytes, or 784 x 4096 BF16 bytes: 3211264 bytes) and, with prefix caching (mamba_cache_mode align), holds two pages per recurrent layer for one request (vllm/v1/kv_cache_interface.py MambaSpec.max_memory_usage_bytes); rounding the full-attention layers to 1568-token blocks adds at most one page each. vLLM shares each tensor across one layer per group (group size 16: one attention and three recurrent groups), sizes blocks as pool // page // 16 and takes one whole block as the null block (vllm/v1/core/kv_cache_utils.py, block_pool.py), another 16 pages. Bound: (2 x 48 + 16 + 16) x 3211264 = 411041792 bytes per sequence. Hardware: operation c2940bb5 (2026-10-27) needed 34681651200 bytes at 1048576 tokens. No MTP speculation. Typed for vLLM: 48 linear_attention (GDN) layers, conv_dim 2 x 16 x 128 + 48 x 128, linear_conv_kernel_dim 4, temporal state 48 x 128 x 128 in mamba_ssm_dtype float32; Qwen3_5ForConditionalGeneration does not support prefix-caching mode \"all\". vLLM sizes this model by the typed recurrent fields instead of the hand state bound, which other engines keep (qualification/memory_need.py vllm_hybrid_need).",
       "state_bytes_per_request": 411041792,
       "value_dim": 256
     },
     "qwen3-8-flash-next-nvfp4-fab0aecb": {
+      "architecture": "Qwen4ExpForConditionalGeneration",
       "configuration_sha256": "4156f806efe3b33a892f13634002b2fb2371eb520908a5a110e63eab1822dd49",
       "key_dim": 256,
       "kv_heads": 2,
       "layers": 12,
       "max_context_tokens": 262144,
       "replicated_token_bytes": 768,
-      "source": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4/resolve/fab0aecb760cec45227f6656abcaafa11abca87a/config.json; full-attention layers only; recurrent state rounded to 160 MiB/request (same linear dimensions as Qwen3.8-27B). Indexer bound: 12 full-attention layers x indexer_kv_heads=1 x indexer_head_dim=128 x 2 bytes / indexer_compress_ratio=4 = 768 replicated bytes/token (no FP8 storage credit).",
+      "source": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4/resolve/fab0aecb760cec45227f6656abcaafa11abca87a/config.json; full-attention layers only; explicit hand state bound, 160 MiB/request (same linear dimensions as Qwen3.8-27B): its only vLLM recipe (sfxnz dual, hardware-proven on content 9f77f966) runs vLLM v0.30.0, whose Qwen4Exp layout adds cache types the recurrent formula does not express (a second tp_replicated PLE MambaSpec, a QSA CircularBufferSpec ring, an MLA compressed-key cache and the MTP drafter's QSA layer); the proven pool stays judged by this bound. Indexer bound: 12 full-attention layers x indexer_kv_heads=1 x indexer_head_dim=128 x 2 bytes / indexer_compress_ratio=4 = 768 replicated bytes/token (no FP8 storage credit).",
       "state_bytes_per_request": 167772160,
       "value_dim": 256
     },
     "qwen3-8-flash-next-nvfp4-w4a16-sm121-8b73dc60": {
+      "architecture": "Qwen4ExpForConditionalGeneration",
       "configuration_sha256": "f4d6ee20273ad4358652b53cafefe4466bb9bb6b0777f78c7058e2d142f35266",
       "key_dim": 256,
       "kv_heads": 2,
@@ -525,6 +610,7 @@
       "value_dim": 256
     },
     "step-3-7-flash-nvfp4-42755324": {
+      "architecture": "Step3p7ForConditionalGeneration",
       "configuration_sha256": "e09a8654f5c894c50378db85fc950fa127cff800fe75e81caa4692cdd41beab8",
       "key_dim": 128,
       "kv_heads": 8,
@@ -535,6 +621,7 @@
       "value_dim": 128
     },
     "step-5-preview-spark-exl3-51a46a7f": {
+      "architecture": "Step5ForConditionalGeneration",
       "configuration_sha256": "2f0a5ae74ad42af3e94203f52f8b320fa6a5f2e691fe3eb789f76e2903bf4f0d",
       "key_dim": 192,
       "kv_heads": 4,

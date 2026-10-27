@@ -14,6 +14,7 @@ from qualification.memory_need import (
     OVERHEAD_BYTES,
     SPARK_MEMORY_BYTES,
     VLLM_DEFAULT_UTILIZATION,
+    speculative_config,
 )
 
 # A separately loaded speculative draft model (DFlash, DSpark, EAGLE, an external
@@ -40,23 +41,12 @@ PENDING_CREATOR = frozenset(
 
 def loads_draft_model(recipe: RecipeDefinition) -> bool:
     """Whether the speculative config names a model other than the served target."""
-    arguments = recipe.runtime.arguments
     served = set(recipe.runtime.entrypoint) | {
-        str(item.value) for item in arguments if item.name == "model"
+        str(item.value) for item in recipe.runtime.arguments if item.name == "model"
     }
-    for argument in arguments:
-        if argument.name != "speculative-config":
-            continue
-        config = argument.value
-        if isinstance(config, str):
-            try:
-                config = json.loads(config)
-            except json.JSONDecodeError:
-                continue  # "None" switches speculation off
-        draft = config.get("model") if isinstance(config, dict) else None
-        if draft is not None and str(draft) not in served:
-            return True
-    return False
+    config = speculative_config(recipe)
+    draft = config.get("model") if config is not None else None
+    return draft is not None and str(draft) not in served
 
 
 def non_utilization_bytes(
