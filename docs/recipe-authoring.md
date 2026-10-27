@@ -395,8 +395,9 @@ worker loads it after its free-memory snapshot and profiles it inside
 `gpu-memory-utilization` (sources in `qualification/vllm_memory_fit.py`), so its
 weights count inside the budget like the target's. Pool-less single-Spark runs
 with a separate drafter held at most 9.9 GB beside utilization × memory, OS
-included; the 2026-10-13 DFlash2 freeze at 0.7 was not reproduced (0.6 passed
-with 3.7 GB beside it). The estimate over this limit
+included. The 2026-10-13 DFlash2 freeze at 0.7 (image 155ce16b) is unexplained
+and 0.7 has not been re-run since; the 0.6 document passed on 431593a0 with
+3.7 GB beside its budget. The estimate over this limit
 is a **WARNING**, not a rejection: proven singles run utilization-sized pools
 above it. Never omit a failing recipe to pass the check.
 
