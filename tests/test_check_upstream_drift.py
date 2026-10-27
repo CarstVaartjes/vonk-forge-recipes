@@ -163,6 +163,28 @@ class DiscoveryTests(unittest.TestCase):
             self.assertIsNone(watches[0].pinned_version)
             self.assertEqual(watches[1].ref, "stable")
 
+    def test_github_lfs_model_is_a_git_commit_watch_on_its_repository(self) -> None:
+        example = (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/examples/model-definition-github-lfs.json"
+        )
+        source = json.loads(example.read_text())["source"]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "models").mkdir()
+            (root / "recipes").mkdir()
+            (root / "models/lfs.json").write_text(example.read_text())
+            defaults = {"github": "default-branch", "huggingface": "default-branch"}
+
+            (watch,) = drift.discover_watches(root, defaults, {})
+
+        self.assertEqual(watch.provider, "github")
+        self.assertEqual(
+            watch.repository, source["repository"].removeprefix("https://github.com/")
+        )
+        self.assertEqual(watch.pinned_revision, source["revision"])
+        self.assertIsNone(watch.release_source)
+
     def test_rejects_mismatched_embedded_revision(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
