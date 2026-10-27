@@ -277,6 +277,13 @@ FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
             "cannot hold the selected weights",
             None,
         ),
+        # 2026-10-21: 0.60 (78.40 GB) was below even the 80.32 GB of weights
+        # vLLM loads; vLLM found no memory for KV cache blocks.
+        (
+            "nemotron-3-super-120b-a12b-vllm-single-4c7855fb",
+            "cannot hold the selected weights",
+            None,
+        ),
     ],
 )
 def test_recorded_single_spark_memory_failures_are_rejected_when_touched(
