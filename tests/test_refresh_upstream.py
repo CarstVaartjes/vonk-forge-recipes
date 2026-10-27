@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import ClassVar
 from unittest.mock import patch
 
+from tools._catalog_model import roles_for
+
 ROOT = Path(__file__).resolve().parents[1]
 LOADER = importlib.machinery.SourceFileLoader(
     "refresh_upstream", str(ROOT / "tools/refresh-upstream")
@@ -131,7 +133,7 @@ def files(*paths: str, sha: str = "a" * 64):
             "path": p,
             "sha256": sha,
             "installed_bytes": 10,
-            "roles": refresh.catalog._roles(p),
+            "roles": roles_for(p),
         }
         for p in paths
     ]
@@ -145,7 +147,7 @@ def model_with(paths: tuple[str, ...]):
         {
             "id": refresh.file_id(p, "c" * 64),
             "path": p,
-            "roles": refresh.catalog._roles(p),
+            "roles": roles_for(p),
             "sha256": "c" * 64,
             "size_bytes": 10,
         }
