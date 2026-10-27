@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
+from urllib.parse import quote
 
 from vonk_forge_contracts import ModelDefinition, document_sha256
 
@@ -112,6 +113,16 @@ class CatalogGithubLfsModelTests(unittest.TestCase):
             names = {name.lower() for name in request.headers}
             self.assertFalse(names & {"authorization", "cookie"})
         self.assertEqual(len(document_sha256(document)), 64)
+
+    def test_a_path_with_an_equals_sign_gets_a_valid_file_id(self) -> None:
+        path = "motionbricks/out/pose/checkpoints/model-step=2000000.ckpt"
+        document = self._run(
+            FakeGitHub({quote(path, safe="/"): pointer()}), paths=(path,)
+        )
+        assert document is not None
+        (item,) = document["files"]
+        self.assertTrue(item["id"].startswith("model-step-2000000-"))
+        ModelDefinition.model_validate(document)
 
     def test_a_plain_git_file_is_refused(self) -> None:
         with self.assertRaisesRegex(SystemExit, "vendor it in the recipe package"):

@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -49,7 +50,8 @@ def add_model_arguments(parser: argparse.ArgumentParser) -> None:
 def slug(value: str) -> str:
     if not value:
         return "metadata"
-    text = value.lower().replace("_", "-").replace(".", "-").replace("/", "-")
+    # Every character a file id cannot hold becomes "-" (e.g. "model-step=2000000").
+    text = re.sub(r"[^a-z0-9-]", "-", value.lower())
     return text if text[:1].isalpha() else f"file-{text}"
 
 
