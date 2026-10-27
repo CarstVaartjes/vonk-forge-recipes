@@ -457,6 +457,56 @@ def test_every_recipe_without_an_image_says_why() -> None:
     assert "build failed" in reasons["single"]
 
 
+def test_long_build_slugs_get_the_hosted_maximum_and_others_keep_120() -> None:
+    plan = _plan()
+    long_slug = next(iter(tool.LONG_BUILD_SLUGS))
+    plan["images"][1]["recipes"][0]["slug"] = long_slug
+    plan["images"][1]["build_key"] = "e" * 64
+    selection = tool.select(plan, owner=OWNER, candidates=None, lookup=_registry({}))
+    minutes = {item["build_key"]: item["timeout_minutes"] for item in selection["builds"]}
+    assert minutes == {SHARED: 120, "e" * 64: 360}
+    workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
+    build = workflow.split("\n  build:\n", 1)[1].split("\n  resolve:\n", 1)[0]
+    assert "timeout-minutes: ${{ matrix.timeout_minutes }}" in build
+    assert "{build_key, timeout_minutes}" in workflow
+
+
+def test_lifting_an_exclusion_selects_its_unchanged_key_for_the_pr_build(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # On main only keys that changed against the base were built, so removing an
+    # exclusion (no key change) proved nothing.
+    plan = _plan()
+    (tmp_path / "plan.json").write_text(json.dumps(plan))
+    (tmp_path / "base-plan.json").write_text(json.dumps(plan))
+    (tmp_path / "image-base").mkdir()
+    (tmp_path / "image-base" / tool.EXCLUSIONS).write_text(json.dumps({"other": "x"}))
+    (tmp_path / tool.EXCLUSIONS).write_text("{}")
+    monkeypatch.chdir(tmp_path)
+    select = tool.select
+    monkeypatch.setattr(
+        tool, "select", lambda plan, **kw: select(plan, **kw, lookup=_registry({}))
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "prebuilt-images", "select", "--base-plan", "base-plan.json",
+            "--base-exclusions", f"image-base/{tool.EXCLUSIONS}",
+            "--plan", "plan.json", "--owner", OWNER, "--output", "selection.json",
+        ],
+    )
+    assert tool.main() == 0
+    selection = json.loads((tmp_path / "selection.json").read_text())
+    assert [r["slug"] for item in selection["builds"] for r in item["recipes"]] == [
+        "other"
+    ]
+
+
+def test_no_recipe_is_excluded_from_hosted_builds() -> None:
+    assert tool.read_exclusions(ROOT / tool.EXCLUSIONS) == {}
+
+
 def test_declared_exclusions_name_existing_recipes_and_give_a_reason() -> None:
     for slug, reason in tool.read_exclusions(ROOT / tool.EXCLUSIONS).items():
         assert (ROOT / "recipes" / f"{slug}.json").is_file(), slug

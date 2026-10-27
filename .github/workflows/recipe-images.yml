@@ -149,7 +149,7 @@ jobs:
             cp -r "$RUNNER_TEMP/images/$key" "$RUNNER_TEMP/upload/$key"
           done
           {
-            echo "builds=$(jq -c '[.builds[] | {build_key}]' "$RUNNER_TEMP/selection.json")"
+            echo "builds=$(jq -c '[.builds[] | {build_key, timeout_minutes}]' "$RUNNER_TEMP/selection.json")"
             echo "build_count=$(jq '.builds | length' "$RUNNER_TEMP/selection.json")"
             echo "bounded=$(jq -c '[.bounded[] | {build_key}]' "$RUNNER_TEMP/selection.json")"
             echo "bounded_count=$(jq '.bounded | length' "$RUNNER_TEMP/selection.json")"
@@ -274,9 +274,10 @@ jobs:
     needs: plan
     if: needs.plan.outputs.build_count != '0'
     runs-on: ubuntu-24.04-arm
-    # The heaviest measured recipe (GLM 5.3 Flash EXL3, CUDA compile) takes 16
-    # minutes end to end; a runaway build must not hold publication for hours.
-    timeout-minutes: 120
+    # Ordinary keys keep 120 minutes (GLM 5.3 Flash EXL3, the heaviest ordinary
+    # CUDA compile, takes 16); keys in LONG_BUILD_SLUGS (tools/prebuilt-images)
+    # get the hosted maximum of 360 so no recipe falls back to a Spark build.
+    timeout-minutes: ${{ matrix.timeout_minutes }}
     permissions:
       contents: read
       packages: write

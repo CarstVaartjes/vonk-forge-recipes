@@ -1,4 +1,4 @@
-"""Fault injection at publication: missing builds remain pending; stale pins must fail."""
+"""Fault injection at publication: unpinned images, exclusions and stale pins must fail."""
 
 from __future__ import annotations
 
@@ -56,6 +56,7 @@ def test_publication_cannot_succeed_without_its_image_artifact(tmp_path: Path) -
         "unresolved",
         "pending",
         "excluded",
+        "excluded-pinned",
         "resolved-wrong-key",
         "invalid-digest",
         "refused",
@@ -86,7 +87,7 @@ def test_release_must_pin_current_build_and_resolved_digest(
     if fault in {"pending", "excluded"}:
         row.pop("prebuilt_image", None)
         images = {}
-    if fault == "excluded":
+    if fault in {"excluded", "excluded-pinned"}:
         exclusions = {"test": "CI cannot build this image"}
     if fault == "resolved-wrong-key":
         images = {CONTENT: {**IMAGE, "build_key": "9" * 64}}
@@ -129,11 +130,9 @@ def test_release_must_pin_current_build_and_resolved_digest(
         capture_output=True,
         text=True,
     )
-    assert (result.returncode == 0) == (fault in {None, "pending", "excluded"}), (
-        result.stderr
-    )
-    if fault in {"pending", "excluded"}:
-        assert f"Image pending: test: {KEY}" in result.stdout
+    # A recipe without a pinned image or any declared exclusion fails publication:
+    # on main both "pending" and "excluded" printed a note and exited zero.
+    assert (result.returncode == 0) == (fault is None), result.stderr
 
 
 def test_publication_requires_image_proof_and_verified_artifacts() -> None:

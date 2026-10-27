@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify resolved image pins and report pending builds before signing."""
+"""Verify every catalog recipe pins its prebuilt image before signing."""
 
 from __future__ import annotations
 
@@ -56,9 +56,14 @@ def verify(
 ) -> None:
     if plan.source_commit != source_commit or index.source_commit != source_commit:
         raise ValueError("image plan and release must belong to the publication commit")
+    # Every build fits a hosted runner (long keys get the 360-minute lane), so
+    # no recipe may fall back to a Spark build: an exclusion cannot be declared.
+    if exclusions:
+        raise ValueError(
+            f"prebuilt-image-exclusions.json must stay empty: {sorted(exclusions)}"
+        )
     for skipped in plan.skipped:
-        if skipped.slug not in exclusions:
-            raise ValueError(f"{skipped.slug}: image not planned: {skipped.reason}")
+        raise ValueError(f"{skipped.slug}: image not planned: {skipped.reason}")
     published = {row.source_path: row for row in index.recipes}
     for image in plan.images:
         for recipe in image.recipes:
@@ -67,9 +72,9 @@ def verify(
                 raise ValueError(f"{recipe.slug}: planned recipe missing from release")
             expected = images.get(recipe.content_sha256)
             if expected is None and row.prebuilt_image is None:
-                reason = exclusions.get(recipe.slug, "deferred/scheduled build pending")
-                print(f"Image pending: {recipe.slug}: {image.build_key}: {reason}")
-                continue
+                raise ValueError(
+                    f"{recipe.slug}: no pinned prebuilt image for {image.build_key}"
+                )
             if expected is None or expected.build_key != image.build_key:
                 raise ValueError(
                     f"{recipe.slug}: unresolved current build {image.build_key}"
@@ -96,7 +101,7 @@ def main() -> None:
         ),
         args.source_commit,
     )
-    print("Release image pins verified; unresolved images remain pending")
+    print("Release image pins verified")
 
 
 if __name__ == "__main__":

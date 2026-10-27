@@ -46,6 +46,11 @@ from typing import Any
 
 REGISTRY = "ghcr.io"
 PACKAGE_PREFIX = "vonk-forge-recipe-"
+# Hosted jobs may run 360 minutes. Ordinary keys keep 120; recipes that compile
+# FlashInfer/vLLM from source on the 4-vCPU runner get the full budget.
+JOB_MINUTES = 120
+LONG_JOB_MINUTES = 360
+LONG_BUILD_SLUGS = frozenset({"minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual"})
 # A matrix may hold at most 256 jobs; the rest wait for the next run.
 MAX_BUILDS = 256
 _MANIFEST_TYPES = (
@@ -163,6 +168,9 @@ def select(
             continue
         builds[key] = {
             "build_key": key,
+            "timeout_minutes": LONG_JOB_MINUTES
+            if any(str(recipe["slug"]) in LONG_BUILD_SLUGS for recipe in recipes)
+            else JOB_MINUTES,
             "recipes": [
                 {
                     "slug": str(recipe["slug"]),
@@ -383,9 +391,13 @@ def main() -> int:
         if arguments.base_plan is not None:
             if plan.get("skipped"):
                 raise SystemExit(f"PR image planner refused recipes: {plan['skipped']}")
+            if arguments.base_exclusions is None:
+                raise SystemExit("PR selection needs --base-exclusions")
+            base = read_exclusions(arguments.base_exclusions)
+            # Lifting an exclusion changes no key; its PR must still prove the build.
             candidates = changed_candidates(
                 plan, json.loads(arguments.base_plan.read_text(encoding="utf-8"))
-            )
+            ) | (set(base) - set(read_exclusions()))
         else:
             candidates = without_excluded(
                 plan,
@@ -397,9 +409,6 @@ def main() -> int:
         if arguments.base_plan is not None and selection["deferred"]:
             raise SystemExit("PR image matrix exceeds 256 keys; split the change")
         if arguments.base_plan is not None:
-            if arguments.base_exclusions is None:
-                raise SystemExit("PR selection needs --base-exclusions")
-            base = read_exclusions(arguments.base_exclusions)
             both = {
                 slug: reason
                 for slug, reason in read_exclusions().items()
