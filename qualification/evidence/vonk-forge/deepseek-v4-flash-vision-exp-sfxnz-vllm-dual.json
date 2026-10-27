@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/deepseek-v4-flash-vision-exp-sfxnz-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "deac1fa1a6cdfa9d4263325719664d1fadec17b26f211568abcc772f388ce63b",
+        "source_bundle_sha256": "56bfeeefc5f1b5960cfa45bf38b8fb1b128ce7190304df70ba7aba05db9841aa",
+        "runtime_image": {
+          "build_key": "10c678576919ee226e9689c019b7fc996683ea611fda3c66cee606e319d85206",
+          "image_digest": "sha256:5aa4ea17087b529576dcb0e7c288bd0c8ebb34e4fa4f8f130ef7ccd121d86d88"
+        },
+        "model_digests": [
+          "638d1db06a623231cef6af65620cfbeba3193a218bfdece6133d09a188e5923a"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "c19307978f9d75e25aac2d5c627e33cc80798d719d9adc89fd2b76f670e45b43"
+      ],
+      "tested_at": "2026-10-27T17:56:24.111674Z",
+      "platform": {
+        "controller_source_sha": "1145d714a8f840eae747745a06b9f6906f4852c6",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
