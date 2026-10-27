@@ -350,11 +350,13 @@ combination; the multi-Spark startup invariant precedes the historical-content
 waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractional
 pools are outside this absolute-pool check. Cache geometry binds configuration
 hashes and records padded/hybrid allocation bounds with their sources.
-A vLLM recurrent (Mamba/GDN) state bound follows vLLM's one-request check:
-each recurrent layer's page pads to the attention page (block = state bytes /
-attention bytes per token, rounded up to 16 tokens), prefix caching holds two
-pages per layer plus one per speculative block, and full-attention layers round
-to that block. Counting the raw state once left a 1M Qwen3.8 pool 154 MB short.
+A vLLM recurrent (Mamba/GDN) state bound follows vLLM's hybrid allocator: each
+recurrent layer's page pads to the attention page (block = state bytes /
+attention bytes per token, rounded up to the attention backend's kernel block
+size, larger for MLA hybrids and prefill-checkpoint alignment); prefix caching
+holds two pages per layer plus any speculative and prefill-checkpoint blocks;
+full-attention layers round to that block; and the null block takes one whole
+group block (one page per layer in a group) from the pool.
 For an unproven failing pool, prefer the creator context and reserve at least
 one request at that context, checking the worst option. If that cannot be
 admitted with selected weights and runtime overhead, cap the explicit engine

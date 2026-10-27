@@ -68,8 +68,16 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     page = block * token_bytes
     vllm_need = 16 * math.ceil(1_048_576 / block) * page + 48 * 2 * page
     assert vllm_need == 34_681_651_200
+    pool = cache_bytes(argument_value(recipe, "kv-cache-memory-bytes"))
     assert absolute_kv_need(recipe, catalog_models(), load_inputs()) >= vllm_need
-    assert cache_bytes(argument_value(recipe, "kv-cache-memory-bytes")) >= vllm_need
+    # Passing that check is not enough to serve the request: the image's vLLM
+    # shares each tensor across one layer per group (16 attention + 48 GDN ->
+    # group size 16, one attention and three recurrent groups), sizes blocks as
+    # pool // page // 16 (kv_cache_utils.py:1062) and takes one block as the
+    # null block (block_pool.py:190). A max_model_len request must still get
+    # every attention block plus two blocks per recurrent group.
+    usable_blocks = pool // page // 16 - 1
+    assert usable_blocks >= math.ceil(1_048_576 / block) + 3 * 2
     memory = recipe.topology.roles[0].resources.memory
     assert memory.reserve_bytes == GUARD_BYTES
     assert memory.peak_bytes >= need.total_bytes + 3_000_000_000
