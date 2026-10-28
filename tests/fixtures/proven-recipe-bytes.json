@@ -5,7 +5,7 @@
   "vonk-forge/d3-mini-vllm-single": "8b9b7699e574e40e7395ec9a27aefe245ee892bbd9986b686ea9a92b12e301f3",
   "vonk-forge/d3-nano-vllm-single": "49be62a8ac5a0e295b76eb59dc250159382e2a497311de3e3f714c335883cca7",
   "vonk-forge/d3-vllm-single": "12ab3c1226c05d1fa55067d73f8ca367c34671bfe52c432617f4f554e2889cf1",
-  "vonk-forge/deepseek-v2-lite-nvidia-sglang-single": "bc5b1b3655ec567ca6d4e7c4d8b00cddcba282a39a6093b80a3eaa47797313b2",
+  "vonk-forge/deepseek-v2-lite-nvidia-sglang-single": "7fe3959bff38026f5054be8092e64978876c341a860374e8717761b8622afe11",
   "vonk-forge/diffusiongemma-26b-a4b-it-nvfp4-eugr-vllm-single": "54f2045ecbbc37c1c3da2fca44df3ce10fbe6ba65ecbc89618e304ade1048a4b",
   "vonk-forge/diffusiongemma-26b-a4b-it-nvfp4-nvidia-vllm-single": "55e360506d3de2af5ed1f3c1756dc98eb04cea2779f76a3c777f3aa12eed3712",
   "vonk-forge/diffusiongemma-26b-a4b-it-nvidia-vllm-single": "30a5cb9b7a9163a5dca64bcac5b8f70da4afb6b19adf7fe538b5fbd6970343d4",

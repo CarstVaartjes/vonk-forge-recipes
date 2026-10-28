@@ -778,6 +778,7 @@ def build(
             required_sparks=document["topology"]["node_count"],
         )
         key = f"{document['identity']['publisher']}/{document['identity']['slug']}"
+        entry["execution_sha256"] = identity.execution_sha256
         entry["qualification"] = published_status(
             read_evidence(ROOT, key), identity
         ).model_dump(mode="json", exclude_none=True)

@@ -274,6 +274,7 @@ def unchanged_execution(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
+    document_digest: str,
 ) -> bool:
     """Recognize accepted executable content independently of display labels."""
     from vonk_forge_contracts import execution_sha256
@@ -281,7 +282,11 @@ def unchanged_execution(
     document = json.loads(
         (ROOT / "recipes" / f"{recipe.identity.slug}.json").read_text()
     )
-    if RecipeDefinition.model_validate(document) != recipe:
+    if (
+        not document_digest
+        or document_sha256(document) != document_digest
+        or RecipeDefinition.model_validate(document) != recipe
+    ):
         return False
     documents = {
         document_sha256(value): value
@@ -1012,7 +1017,7 @@ def require_memory_need(
     require_absolute_kv_capacity(recipe, models, inputs)
     # Recorded content is judged by hardware, not by this offline check.
     if unchanged_recipe(recipe, document_digest, inputs) or unchanged_execution(
-        recipe, models, inputs
+        recipe, models, inputs, document_digest
     ):
         return
     require_admissible_declaration(recipe)

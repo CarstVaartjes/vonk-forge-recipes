@@ -66,7 +66,9 @@ def _execution_identity(recipe: Recipe) -> str | None:
     if not path.exists():
         return None
     document = json.loads(path.read_text())
-    if document_sha256(document) != recipe.content_sha256:
+    if document_sha256(document) != recipe.content_sha256 or tuple(
+        sorted({b["model"]["content_sha256"] for b in document["models"]})
+    ) != tuple(sorted(set(recipe.model_digests))):
         return None
     models = {
         document_sha256(d): d
@@ -114,7 +116,9 @@ def verdict_matches(entry: Mapping[str, Any], recipe: Recipe) -> bool:
     identity = content_identity(recipe)
     recorded = recorded_identity(entry)
     return (
-        recorded == identity
+        recorded is not None
+        and recorded
+        == identity.model_copy(update={"execution_sha256": recorded.execution_sha256})
         and entry.get("content_sha256", identity.content_sha256)
         == identity.content_sha256
     )
