@@ -236,8 +236,10 @@ class MiniMaxH3InputContractTests(unittest.TestCase):
         self.assertEqual(
             self.module._positive_multiple(value["height"], "height", 768), 544
         )
-        with self.assertRaisesRegex(ValueError, "120..345"):
-            self.module._num_frames(346)
+        self.assertEqual(self.module._num_frames(345), 345)
+        for frames in (120, 123, 125, 346, 362, True):
+            with self.assertRaisesRegex(ValueError, "17k\\+5 grid"):
+                self.module._num_frames(frames)
 
     def test_profiles_map_named_intent_to_exact_model_evaluations(self) -> None:
         self.assertEqual(
