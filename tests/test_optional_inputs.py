@@ -174,7 +174,6 @@ def test_invalid_image_map_keeps_source_build_publication_path(
         "save",
         "issues",
         "stale",
-        "update",
         "publication",
     ],
 )
@@ -192,7 +191,6 @@ def test_publication_repair_is_independent_of_assessment_and_housekeeping(
         "save": (refresh.Http, "save"),
         "issues": (refresh, "close_current_issues"),
         "stale": (refresh, "close_stale_refresh_prs"),
-        "update": (refresh, "update_stale_prs"),
         "publication": (refresh, "publish_if_stale"),
     }
     from contextlib import ExitStack
@@ -235,7 +233,6 @@ def test_publication_repair_is_independent_of_assessment_and_housekeeping(
             for name in (
                 "close_current_issues",
                 "close_stale_refresh_prs",
-                "update_stale_prs",
                 "publish_if_stale",
                 "write_summary",
             )
@@ -252,11 +249,10 @@ def test_publication_repair_is_independent_of_assessment_and_housekeeping(
         )
         publication.assert_called_once_with()
         steps["write_summary"].assert_called_once()
-        if fault in {"publication", "save", "issues", "stale", "update", "arm"}:
+        if fault in {"publication", "save", "issues", "stale", "arm"}:
             assert steps["write_summary"].call_args.args[0].current == 1
         if fault == "issues":
             steps["close_stale_refresh_prs"].assert_called_once()
-            steps["update_stale_prs"].assert_called_once()
 
 
 def test_optional_boundary_never_swallows_interrupts() -> None:

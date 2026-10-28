@@ -32,7 +32,20 @@ ROOT = Path(__file__).resolve().parents[1]
 MOSAIC = "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single"
 
 
-def test_unchanged_untested_document_is_informational() -> None:
+def untested_root(tmp_path: Path, monkeypatch, slug: str) -> Path:
+    """Authored recipe bytes with an empty evidence corpus, whatever the live one holds."""
+    import qualification.memory_need as memory
+
+    (tmp_path / "recipes").mkdir()
+    (tmp_path / "recipes" / f"{slug}.json").write_text(
+        (ROOT / "recipes" / f"{slug}.json").read_text()
+    )
+    monkeypatch.setattr(memory, "ROOT", tmp_path)
+    return tmp_path
+
+
+def test_unchanged_untested_document_is_informational(tmp_path, monkeypatch) -> None:
+    untested_root(tmp_path, monkeypatch, "d3-edge-vllm-single")
     document = json.loads((ROOT / "recipes/d3-edge-vllm-single.json").read_text())
     recipe = RecipeDefinition.model_validate(document)
     assert not hardware_proven(recipe, document_sha256(document))
@@ -74,11 +87,26 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
         update={"historical_documents": {key: [digest]} if use_snapshot else {}}
     )
     if not use_snapshot:
-        evidence = RecipeQualificationEvidence.model_validate_json(
-            (ROOT / "qualification/evidence" / f"{key}.json").read_text()
+        # Synthetic platform failure for exactly these bytes, never the live corpus.
+        template = RecipeQualificationEvidence.model_validate_json(
+            (
+                ROOT
+                / "qualification/evidence/vonk-forge"
+                / "gpt-oss-20b-nvidia-vllm-single.json"
+            ).read_text()
         )
-        assert evidence.records[0].outcome == QualificationOutcome.FAILED
-        assert evidence.records[0].blame == QualificationBlame.PLATFORM
+        failed = template.records[-1].model_copy(
+            update={
+                "outcome": QualificationOutcome.FAILED,
+                "blame": QualificationBlame.PLATFORM,
+                "cause_code": QualificationCauseCode.PLATFORM_FAILURE,
+                "cause_summary": QualificationSummary.PLATFORM_FAILED,
+                "identity": template.records[-1].identity.model_copy(
+                    update={"content_sha256": digest}
+                ),
+            }
+        )
+        evidence = template.model_copy(update={"recipe_key": key, "records": (failed,)})
         target = tmp_path / "qualification/evidence" / f"{key}.json"
         target.parent.mkdir(parents=True)
         target.write_text(evidence.model_dump_json())

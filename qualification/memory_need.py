@@ -600,6 +600,57 @@ def sglang_static_need(
     return need
 
 
+def sglang_capped_static_need(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    key: str,
+) -> int | None:
+    """Per-rank static need when the recipe caps every SGLang pool, else None.
+
+    Capped means max-total-tokens is set, the geometry of every Model is known
+    (an unknown one could hide an uncapped pool) and a hybrid Model's
+    max-mamba-cache-size is set: without it SGLang sizes the Mamba pool by
+    mamba_full_memory_ratio from the fraction, whichever engine the geometry
+    was pinned for (sglang_static_need only knows SGLang state fields).
+    """
+    if argument_value(recipe, "max-total-tokens") is None:
+        return None
+    mamba_capped = argument_value(recipe, "max-mamba-cache-size") is not None
+    for selection in recipe.models:
+        model = models[selection.model.content_sha256]
+        geometry = applicable_geometry(recipe, selection.model.slug, model, inputs)
+        if geometry is None or (
+            geometry.architecture in HYBRID_ARCHITECTURES and not mamba_capped
+        ):
+            return None
+    return sglang_static_need(recipe, models, inputs, key, pinned=False)
+
+
+def sglang_demand(recipe: RecipeDefinition, capped_need: int | None) -> Decimal | None:
+    """Per-rank bytes an SGLang launch takes from a Spark, None without a fraction.
+
+    The base on GB10 is host MemAvailable after CUDA init (sglang
+    utils/common.py is_integrated path), so the admission model charges the
+    Spark's total memory. With every pool capped (``capped_need`` from
+    sglang_capped_static_need; kv_cache_configurator._apply_token_constraints
+    takes min(capacity, max-total-tokens), _handle_max_mamba_cache the
+    max-mamba-cache-size slots) SGLang allocates only that need and the
+    fraction merely gates the remainder > 0: demand is the need plus the
+    runtime overhead. This rule is derived from the SGLang source and is not
+    calibrated on a fully capped proven run; capped recipes with CUDA graphs or
+    speculation rest on OVERHEAD_BYTES. An uncapped pool grows into what the fraction
+    leaves: mem-fraction-static x total plus overhead, calibrated on the proven
+    0.75 recipes (105.6e9 to 109.4e9 measured against 106.0e9).
+    """
+    fraction = argument_value(recipe, "mem-fraction-static")
+    if fraction is None:
+        return None
+    if capped_need is not None:
+        return Decimal(capped_need + OVERHEAD_BYTES)
+    return Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+
+
 def require_sglang_rank_budget(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
@@ -1122,11 +1173,18 @@ def require_bounded_kv_pool(
                 f"{IDLE_AVAILABLE_BYTES} cannot hold the selected weights, resident "
                 f"expansion and capped pools ({resident} bytes)"
             )
-        if not evaluate_memory_admission(
-            int(share * TOTAL_BYTES) + OVERHEAD_BYTES,
-            SPARK_MEMORY_BYTES,
-            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
-        ).admissible:
+        demand = sglang_demand(
+            recipe,
+            sglang_capped_static_need(recipe, models, inputs, key),
+        )
+        if (
+            demand is None
+            or not evaluate_memory_admission(
+                int(demand),
+                SPARK_MEMORY_BYTES,
+                occupied_bytes=ADMISSION_IDLE_USE_BYTES,
+            ).admissible
+        ):
             raise ValueError(
                 f"{key}: mem-fraction-static {fraction} share of {TOTAL_BYTES} bytes "
                 f"plus {OVERHEAD_BYTES} overhead is not admissible on an idle Spark"
