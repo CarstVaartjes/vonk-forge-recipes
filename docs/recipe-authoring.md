@@ -1100,7 +1100,8 @@ build smokes must not replace runtime engine-schema validation: retain the
 installed engine's refusal before serving (`tests/test_trtllm_speculative_build_guard.py`).
 
 The hosted image build runs `tools/prepare-remote-code-smoke` against its plan.
-For every image, it calls Transformers `check_imports` inside the recipe's
+For every image whose Models select Python modules, it calls Transformers
+`check_imports` inside the recipe's
 installed environment on modules named by `auto_map` in the selected `config.json`,
 `tokenizer_config.json`, `processor_config.json`, `preprocessor_config.json` and
 `video_preprocessor_config.json`,
@@ -1112,6 +1113,22 @@ load (`modelopt-*`, or `quantization` `modelopt`, `modelopt_fp8` or
 `modelopt_mixed`); other engines check every entry. An unregistered
 architecture's Transformers fallback is not checked and fails at load.
 Engine plugins outside that graph belong to the engine's build/import checks.
+For every vLLM image, with or without remote code, the installed vLLM also
+parses the served Model's pinned `config.json` with `get_config`. The served
+path is the one after `serve` or the `model` argument; an argv `/models` is the
+endpoint role's first mount, as the Controller rewrites it, and a launcher's own
+`vllm serve /models` stays `/models`. It is parsed with each `trust-remote-code`
+value its base or option choices can start with, under the interpreter the
+adapter's `/opt/vonk/bin/vllm` launcher names, then the `vllm` script's shebang,
+then `python3`. Only `get_config` itself fails the build: an exception (with
+vLLM's traceback) or a hang after vLLM imported (with its dumped stack, at the
+parse bound). An interpreter that cannot run vLLM, or hangs before importing it,
+yields to the next, and when none can the build prints a `::warning::`
+naming the image, the interpreters and their statuses. A recipe whose served
+path mounts no `config.json` is a plan `::notice::` and is not parsed. Downloads
+retry transient network, 429 and 5xx errors with backoff; changed bytes fail at
+once. (vLLM 0.30.0's own LagunaConfig rejected Laguna's nested RoPE under
+Transformers 5.17 at start on hardware; this parse catches that class at build.)
 The check fetches only pinned configs and source code and verifies the Model's
 hash and size; it loads no weights and requires no GPU. Keep remote-code
 dependencies hash-locked
