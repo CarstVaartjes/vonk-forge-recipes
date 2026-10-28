@@ -48,6 +48,7 @@ from vonk_forge_contracts.sweep import (
     SweepStorageWait,
     SweepWait,
     SweepWaitReason,
+    WorkloadFailureCode,
 )
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
@@ -2189,8 +2190,6 @@ class Sweep:
             "marks": list(signal.marks),
         }
         load["stalled"] = verdict.stalled_detail(document)
-        failure = document.get("failure") or {}
-        failure_code = str(failure.get("code") or document.get("code") or "")
         replaced = policy.supersession(document) if status in SETTLED else None
         if replaced is not None and replaced.successor is not None:
             successor = self._own_load_request(replaced.successor)
@@ -2218,18 +2217,13 @@ class Sweep:
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
                 "state": status,
                 "reason": document.get("status_reason"),
-                "failure_code": failure_code,
                 "adopted_requests": load.get("adopted_requests", []),
                 "operation_id": document.get("current_operation_id") or document["id"],
                 "child_phase": child,
                 "cause": dig(document, "cancellation", "cause"),
-                "failures": dig(
-                    document,
-                    "progress",
-                    "switch_adapter",
-                    "assignment_failures",
-                    default=[],
-                ),
+                "failures": [
+                    f.as_state() for f in policy.assignment_failures(document)
+                ],
             }
             self.state.data["loads"].pop(load["request_key"], None)
         return True
@@ -2523,12 +2517,16 @@ class Sweep:
                     )
                 return
             group = self._lane_group(slot)
+            stored = [
+                policy.AssignmentFailure.from_state(f)
+                for f in app.get("failures") or []
+                if isinstance(f, Mapping)
+            ]
             unattributed = False
             if len(group) > 1:
-                failures = [
-                    f for f in app.get("failures") or [] if isinstance(f, Mapping)
-                ]
-                blamed = policy.blamed(failures, self._lanes(group))
+                blamed = policy.blamed(
+                    [f.as_state() for f in stored], self._lanes(group)
+                )
                 culprits, collateral = self._split(group, blamed)
                 self._requeue_collateral(collateral, culprits, "its application failed")
                 unattributed = not blamed
@@ -2540,24 +2538,16 @@ class Sweep:
             for member in group:
                 own_failure = next(
                     (
-                        item
-                        for item in app.get("failures") or []
-                        if isinstance(item, Mapping)
-                        and member in policy.blamed([item], self._lanes(group))
+                        f
+                        for f in stored
+                        if member in policy.blamed([f.as_state()], self._lanes(group))
                     ),
                     None,
                 )
                 failure = policy.classify_application_failure(
                     phase,
-                    str(own_failure["code"])
-                    if own_failure is not None
-                    and isinstance(own_failure.get("code"), str)
-                    else app.get("failure_code") or f"application.{app['state']}",
-                    str(
-                        own_failure.get("reason") or own_failure.get("detail") or detail
-                    )
-                    if own_failure is not None
-                    else detail,
+                    WorkloadFailureCode.APPLICATION_FAILED,
+                    own_failure.reason or detail if own_failure else detail,
                     evidence={"assignment_failures": app.get("failures") or []},
                 )
                 if unattributed:

@@ -1,0 +1,124 @@
+{
+  "id": "11a29362-1421-4335-8dc0-2a909bbb487d",
+  "state": "failed",
+  "status_reason": "1 assignment(s) need reconciliation: run-switch phase operation failed: failed: the workload process exited: exit_code=137 oom_killed=false exit_cause=oom_killed",
+  "progress": {
+    "intended_profile": {
+      "assignments": [
+        {
+          "alias": "glm-5.3-flash-d3490",
+          "desired_state": "running",
+          "id": "6233b091-a814-5c59-a2c8-04c8c2ab3479",
+          "nodes": [
+            {
+              "endpoint_owner": true,
+              "node_id": "spk_9a86fdbab116442ab6707bf4181a3c1c",
+              "rank": 0,
+              "role": "entrypoint"
+            }
+          ],
+          "topology_name": "solo"
+        },
+        {
+          "alias": "glm-5.3-flash",
+          "desired_state": "running",
+          "id": "ab261cd4-ca71-5d54-a697-0e2b81a6954c",
+          "nodes": [
+            {
+              "endpoint_owner": true,
+              "node_id": "spk_2818d189042b4c77aefa7796f4befd23",
+              "rank": 0,
+              "role": "entrypoint"
+            }
+          ],
+          "topology_name": "solo"
+        }
+      ]
+    },
+    "switch_adapter": {
+      "assignment_failures": [
+        {
+          "assignment_id": "6233b091-a814-5c59-a2c8-04c8c2ab3479",
+          "operation_id": "8155c01c-e68a-4758-8063-b860e624c7eb",
+          "queue_index": 0,
+          "reason": "run-switch phase operation failed: failed: the workload process exited: exit_code=137 oom_killed=false exit_cause=oom_killed",
+          "terminal": true
+        }
+      ]
+    },
+    "effects": [
+      {
+        "application_id": "11a29362-1421-4335-8dc0-2a909bbb487d",
+        "kind": "run",
+        "state": "failed",
+        "target_id": "6233b091-a814-5c59-a2c8-04c8c2ab3479",
+        "node_ids": [
+          "spk_9a86fdbab116442ab6707bf4181a3c1c"
+        ],
+        "queue_index": 0,
+        "operation_id": "8155c01c-e68a-4758-8063-b860e624c7eb",
+        "progress": {
+          "members": [
+            {
+              "node_id": "spk_9a86fdbab116442ab6707bf4181a3c1c",
+              "state": "failed",
+              "error": "run-switch phase operation failed: failed: the workload process exited: exit_code=137 oom_killed=false exit_cause=oom_killed"
+            }
+          ]
+        },
+        "result": {
+          "run_switch": {
+            "failed_phase": "start",
+            "failure_code": "recipe_start_failed"
+          }
+        }
+      },
+      {
+        "application_id": "11a29362-1421-4335-8dc0-2a909bbb487d",
+        "kind": "stop",
+        "state": "unknown",
+        "target_id": "07740d3f-eee6-4598-b317-76810e1c7a50",
+        "node_ids": [
+          "spk_9a86fdbab116442ab6707bf4181a3c1c"
+        ],
+        "queue_index": 1
+      },
+      {
+        "application_id": "6f1cf526-1aa2-4ee7-a741-ecafd7fcfe17",
+        "kind": "run",
+        "state": "failed",
+        "target_id": "ab261cd4-ca71-5d54-a697-0e2b81a6954c",
+        "node_ids": [
+          "spk_2818d189042b4c77aefa7796f4befd23"
+        ],
+        "queue_index": 0,
+        "operation_id": "890dd694-39c1-445d-9282-17c2080c2eb8",
+        "progress": {
+          "members": [
+            {
+              "node_id": "spk_2818d189042b4c77aefa7796f4befd23",
+              "state": "failed",
+              "error": "run-switch phase operation failed: failed: the workload process exited: observed_at=2026-10-28T06:26:53.979021874+00:00 reason=workload.host_memory_exhausted exit_cause=host_memory_exhausted trigger=sustained_full_psi mem_available_bytes=17132748800 memory"
+            }
+          ]
+        },
+        "result": {
+          "run_switch": {
+            "failed_phase": "start",
+            "failure_code": "workload.host_memory_exhausted"
+          }
+        }
+      },
+      {
+        "application_id": "6f1cf526-1aa2-4ee7-a741-ecafd7fcfe17",
+        "kind": "stop",
+        "state": "unknown",
+        "target_id": "1dcd6c1d-27b0-44b6-a0ab-38e27a582adb",
+        "node_ids": [
+          "spk_2818d189042b4c77aefa7796f4befd23"
+        ],
+        "queue_index": 1
+      }
+    ]
+  }
+}
