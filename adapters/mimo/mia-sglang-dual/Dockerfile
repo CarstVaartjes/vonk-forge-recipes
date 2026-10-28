@@ -23,20 +23,20 @@ RUN pip install --no-cache-dir --no-deps --require-hashes -r /opt/mimo26/require
     && python3 -c "import torchaudio; from torchcodec.decoders import AudioDecoder; import shutil; assert shutil.which('ffprobe'), 'ffprobe missing'" \
     && python3 /opt/mimo26/verify-runtime.py \
     && if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
-    && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /state --no-create-home --shell /usr/sbin/nologin vonk; fi \
-    && install --directory --owner 10001 --group 10001 /state /outputs /outputs/cache /outputs/cache/triton
+    && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi \
+    && install --directory --owner 10001 --group 10001 /outputs /outputs/cache /outputs/cache/triton
 
 ENV MODEL_PATH=/models/target \
-    STATE_PATH=/state \
+    STATE_PATH=/outputs/cache/state \
     OFFLOAD_MODE=off \
     PYTHONUNBUFFERED=1 \
     HF_HUB_OFFLINE=1 \
     TRANSFORMERS_OFFLINE=1 \
     SGLANG_DISABLE_USAGE_REPORT=1 \
-    HOME=/state \
+    HOME=/outputs/cache/home \
     XDG_CACHE_HOME=/outputs/cache \
     TRITON_CACHE_DIR=/outputs/cache/triton
 
-WORKDIR /state
+WORKDIR /outputs/cache
 USER 10001:10001
 ENTRYPOINT []

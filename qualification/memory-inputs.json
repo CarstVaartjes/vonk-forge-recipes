@@ -465,6 +465,17 @@
       "state_bytes_per_request": 76677120,
       "value_dim": 128
     },
+    "mimo-v2-6-flash-rl-3b38d063": {
+      "architecture": "MiMoV2ForCausalLM",
+      "configuration_sha256": "61bea4a0f7a0dd8969f8cae528761e26b697dd12ff63e98804c3f0945492e621",
+      "key_dim": 192,
+      "kv_heads": 4,
+      "layers": 9,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/resolve/3b38d063180c3e4aed9691fdc735f3d10b266ee4/config.json; 9 full-attention layers, 39 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 76677120,
+      "value_dim": 128
+    },
     "mimo-v2-6-flash-rl-dcd3fd83": {
       "architecture": "MiMoV2ForCausalLM",
       "configuration_sha256": "61bea4a0f7a0dd8969f8cae528761e26b697dd12ff63e98804c3f0945492e621",
