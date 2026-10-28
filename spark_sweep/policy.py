@@ -628,71 +628,97 @@ def _mentions(text: str, name: str) -> bool:
     )
 
 
-def assignment_failures(document: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """The application's failures, each resolved to the lane it belongs to.
+@dataclass(frozen=True)
+class AssignmentFailure:
+    """One failed assignment of an application, resolved to the lane it belongs to.
 
-    The Controller's ``FleetProfileAssignmentFailure`` names an assignment by id only (no alias,
-    no node), so ``blamed`` could match no lane. Attach the alias and nodes of the assignment in
-    ``progress.intended_profile``. A lane adopted from an earlier application reports its own
-    failed run as a ``run`` effect of that earlier application: it joins as a failure of the
-    assignment placed on exactly those nodes.
+    ``FleetProfileAssignmentFailure`` names an assignment by id only; the alias and nodes come
+    from ``progress.intended_profile``. ``from_effect`` marks the failed ``run`` effect of a
+    lane adopted from an earlier application, which is that lane's own result.
     """
+
+    reason: str
+    assignment_id: str | None = None
+    alias: str | None = None
+    node_ids: tuple[str, ...] = ()
+    failure_code: str | None = None
+    from_effect: bool = False
+
+    def as_state(self) -> dict[str, Any]:
+        """The JSON row persisted with the settled application and read by ``blamed``."""
+        return {
+            "reason": self.reason,
+            "assignment_id": self.assignment_id,
+            "alias": self.alias,
+            "node_ids": list(self.node_ids),
+            "failure_code": self.failure_code,
+            "from_effect": self.from_effect,
+        }
+
+
+def assignment_failures(document: Mapping[str, Any]) -> list[AssignmentFailure]:
+    """The application's failures resolved to their assignments by id (never by text or node)."""
     progress = document.get("progress")
     if not isinstance(progress, Mapping):
         return []
-    assignments = [
-        a
+    owners = {
+        a.get("id"): a
         for a in (progress.get("intended_profile") or {}).get("assignments") or []
         if isinstance(a, Mapping)
+    }
+
+    def resolved(
+        assignment_id: object, reason: str, **fields: Any
+    ) -> AssignmentFailure:
+        owner = owners.get(assignment_id) or {}
+        return AssignmentFailure(
+            reason=reason,
+            assignment_id=assignment_id if isinstance(assignment_id, str) else None,
+            alias=owner.get("alias"),
+            node_ids=tuple(
+                n["node_id"]
+                for n in owner.get("nodes") or []
+                if isinstance(n, Mapping) and isinstance(n.get("node_id"), str)
+            ),
+            **fields,
+        )
+
+    failures = [
+        resolved(f.get("assignment_id"), str(f.get("reason") or ""))
+        for f in (progress.get("switch_adapter") or {}).get("assignment_failures") or []
+        if isinstance(f, Mapping)
     ]
-
-    def placed(a: Mapping[str, Any]) -> list[str]:
-        return [
-            n["node_id"]
-            for n in a.get("nodes") or []
-            if isinstance(n, Mapping) and isinstance(n.get("node_id"), str)
-        ]
-
-    by_id = {a.get("id"): a for a in assignments}
-    failures: list[dict[str, Any]] = []
-    for failure in (progress.get("switch_adapter") or {}).get(
-        "assignment_failures"
-    ) or []:
-        if not isinstance(failure, Mapping):
-            continue
-        item = dict(failure)
-        owner = by_id.get(failure.get("assignment_id"))
-        if owner is not None:
-            item.update(alias=owner.get("alias"), node_ids=placed(owner))
-        failures.append(item)
+    named = {f.assignment_id for f in failures}
     for effect in progress.get("effects") or []:
         if (
             not isinstance(effect, Mapping)
             or effect.get("kind") != "run"
             or effect.get("state") != "failed"
             or effect.get("application_id") == document.get("id")
+            or effect.get("target_id")
+            not in owners  # a run effect's target is its assignment
+            or effect["target_id"] in named
         ):
             continue
-        nodes = sorted(effect.get("node_ids") or [])
-        owner = next((a for a in assignments if sorted(placed(a)) == nodes), None)
-        members = ((effect.get("result") or {}).get("run_switch") or {}).get(
-            "members"
-        ) or []
-        reason = next(
+        code = ((effect.get("result") or {}).get("run_switch") or {}).get(
+            "failure_code"
+        )
+        members = (effect.get("progress") or {}).get("members") or []
+        error = next(
             (
                 str(m["error"])
                 for m in members
                 if isinstance(m, Mapping) and m.get("error")
             ),
-            "the adopted run failed",
+            None,
         )
         failures.append(
-            {
-                "reason": reason,
-                "operation_id": effect.get("operation_id"),
-                "node_ids": nodes,
-                **({"alias": owner.get("alias")} if owner is not None else {}),
-            }
+            resolved(
+                effect["target_id"],
+                error or code or "the adopted run failed",
+                failure_code=code if isinstance(code, str) else None,
+                from_effect=True,
+            )
         )
     return failures
 

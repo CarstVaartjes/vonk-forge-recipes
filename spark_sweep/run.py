@@ -2223,7 +2223,9 @@ class Sweep:
                 "operation_id": document.get("current_operation_id") or document["id"],
                 "child_phase": child,
                 "cause": dig(document, "cancellation", "cause"),
-                "failures": policy.assignment_failures(document),
+                "failures": [
+                    f.as_state() for f in policy.assignment_failures(document)
+                ],
             }
             self.state.data["loads"].pop(load["request_key"], None)
         return True

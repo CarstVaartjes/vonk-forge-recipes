@@ -108,9 +108,6 @@ class FakeRecipe:
     fail_load: str | None = None  # status reason of a failed load
     fail_phase: str = "runtime-install"
     fail_code: str = "application.failed"
-    fail_aborts: bool = (
-        False  # the failure ends the whole application, other lanes unresolved
-    )
     fail_download: str | None = None
     fail_download_code: str = "model.download_failed"
     # The Controller holds the model download back for NAS space (a ``download_blocked``
@@ -630,11 +627,7 @@ class FakeFleet:
                         for run in self.runs:
                             if run["alias"] == item["alias"]:
                                 run["ready"] = True
-            if any(a["fail"] and a["resolved"] and a["aborts"] for a in app["assign"]):
-                app["state"] = (
-                    "failed"  # the Controller ends the application at the failure
-                )
-            elif all(a["resolved"] for a in app["assign"]) and all(
+            if all(a["resolved"] for a in app["assign"]) and all(
                 effect["state"] == "succeeded" for effect in app.get("effects", [])
             ):
                 failed = any(a["fail"] for a in app["assign"])
@@ -1590,7 +1583,6 @@ class FakeFleet:
                     ),
                     "fail": recipe.blocked_then or recipe.fail_load,
                     "fail_code": recipe.fail_code,
-                    "aborts": recipe.fail_aborts,
                     "phase": recipe.fail_phase,
                     "resolved": False,
                 }
