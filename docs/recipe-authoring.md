@@ -313,6 +313,20 @@ one idle host baseline, `ADMISSION_IDLE_USE_BYTES` (130,663,231,488 −
 126,600,000,000 idle-available bytes), calibrated on the proven set: the live
 Controller admitted proven 120,370,379,081-byte peaks on both Sparks of a dual.
 It proves declaration admissibility, not live fit.
+
+A load that uses more than the steady peak and is served from swap declares
+`load_peak_bytes` (strictly above `peak_bytes`; `peak_bytes` stays the steady
+peak) and `minimum_swap_bytes`. Both are omitted when unset, so existing
+documents and digests do not change. Honest numbers only: `load_peak_bytes` is a
+measured peak with its citation, or source-backed; a measurement from a killed
+run is a lower bound and the recipe says so. `minimum_swap_bytes` is the
+creator's stated prerequisite, or the measured swap peak plus the guard margin,
+and is never lowered to fit. Offline validation (`require_admissible_declaration`)
+refuses a load overshoot above the usable part of the 128 GiB swap maximum
+(usable = total − max(2 GiB, 10% of total)), a `minimum_swap_bytes` below what
+the overshoot needs or above 128 GiB, and warns when the needed swap exceeds
+the 64 GiB default. The constants are copied, with citation, in
+`qualification/memory_need.py`.
 The Controller supplies observed host use, exact commitments, unmaterialized
 claims and unknown resident upper bounds to this same function. It does not
 assume the historical idle baseline below. Proven recipes are calibration inputs,
