@@ -269,7 +269,7 @@ def test_controller_exit_summary_blames_only_its_recipe(
         (
             "start",
             "application.failed",
-            "exit_cause=host_memory_exhausted trigger=sustained_memavailable_exhaustion",
+            "exit_cause=host_memory_exhausted trigger=memavailable_exhausted",
         ),
         (
             "start",

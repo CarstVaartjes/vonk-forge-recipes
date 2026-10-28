@@ -21,9 +21,14 @@ class WorkloadExitCause(StrEnum):
 
 
 class WorkloadMemoryTrigger(StrEnum):
+    """The helper host_memory_guard Trigger::as_str words (vector: host-memory-guard-summary-v1)."""
+
     NVIDIA_ALLOCATION_FAILURE = "nvidia_allocation_failure"
     SUSTAINED_FULL_PSI = "sustained_full_psi"
-    SUSTAINED_MEMAVAILABLE_EXHAUSTION = "sustained_memavailable_exhaustion"
+    MEMAVAILABLE_EXHAUSTED = "memavailable_exhausted"
+    MEMORY_AND_SWAP_EXHAUSTED = "memory_and_swap_exhausted"
+    SWAP_NEARLY_FULL_AND_FILLING = "swap_nearly_full_and_filling"
+    SWAP_AND_REFAULT_THRASHING = "swap_and_refault_thrashing"
 
 
 class WorkloadExitFacts(BaseModel):
