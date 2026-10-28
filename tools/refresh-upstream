@@ -2954,6 +2954,15 @@ def verify_steps() -> list[tuple[str, list[str]]]:
             ],
         ),
         (
+            "writable state paths",
+            [
+                sys.executable,
+                "tools/check-writable-state-env",
+                "--base",
+                "origin/main",
+            ],
+        ),
+        (
             "full test suite",
             [
                 sys.executable,
