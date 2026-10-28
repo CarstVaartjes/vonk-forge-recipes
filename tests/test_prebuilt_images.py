@@ -12,6 +12,7 @@ import importlib.machinery
 import importlib.util
 import json
 import os
+import re
 import runpy
 import subprocess
 import sys
@@ -309,16 +310,26 @@ def test_every_recipe_without_an_image_says_why() -> None:
     assert "build failed" in reasons["single"]
 
 
-@pytest.mark.parametrize(("elapsed_minutes", "attempts"), [(0, 3), (345, 1)])
+@pytest.mark.parametrize(("late", "attempts"), [(False, 3), (True, 1)])
 def test_a_build_retry_starts_only_if_it_fits_the_job_timeout(
-    tmp_path: Path, elapsed_minutes: int, attempts: int
+    tmp_path: Path, late: bool, attempts: int
 ) -> None:
     # Run the build job's own retry function with a failing builder. Early, a
-    # transient failure retries; a failure near the 360-minute timeout fails the
-    # job at once instead of starting an attempt the timeout would kill.
+    # transient failure retries; a failure past the retry budget fails the job
+    # at once instead of starting an attempt the job timeout would kill.
     workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
     build = workflow.split("\n  build:\n", 1)[1].split("\n  resolve:\n", 1)[0]
-    assert "timeout-minutes: 360" in build
+    # timeout-minutes cannot read env, so the retry deadline repeats it: both
+    # copies must name the same job timeout, less a margin for the push.
+    timeout = re.search(r"^    timeout-minutes: (\d+)$", build, re.MULTILINE)
+    budget = re.search(
+        r"deadline=\$\(\(JOB_START \+ \((\d+) - (\d+)\) \* 60\)\)", build
+    )
+    assert timeout is not None and budget is not None
+    assert int(budget.group(1)) == int(timeout.group(1))
+    margin = int(budget.group(2))
+    assert 0 < margin < int(timeout.group(1))
+    elapsed_minutes = int(timeout.group(1)) - margin + 5 if late else 0
     lines = [line.strip() for line in build.splitlines()]
     start = next(i for i, line in enumerate(lines) if line.startswith("deadline="))
     end = lines.index("}", start)
