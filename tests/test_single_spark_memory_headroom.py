@@ -505,7 +505,7 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
     assert need.overhead_bytes == 8_000_000_000
     assert need.resident_expansion_bytes == 14_000_000_000
     assert need.total_bytes <= recipe.topology.roles[0].resources.memory.peak_bytes
-    # Honest peak with five state slots is 158 MB above the 106.5 GB planning
+    # Honest peak with five state slots is 158 MB above the 108.47 GB planning
     # limit, so only the Controller's idle admission rule bounds it.
     assert evaluate_memory_admission(
         recipe.topology.roles[0].resources.memory.peak_bytes,
