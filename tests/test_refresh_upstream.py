@@ -2240,6 +2240,7 @@ class SharedContextTests(unittest.TestCase):
         assert not isinstance(combined, str), combined
         self.assertEqual(combined.recipe_id, "a")
         self.assertEqual(set(combined.edits), {"recipes/b.json", "recipes/c.json"})
+        self.assertEqual(combined.label, "b, c")
         self.assertIsInstance(refresh.combine_group(["a"], {"a": current}), str)
 
     def test_group_rejects_conflicting_shared_edits(self) -> None:

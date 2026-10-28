@@ -3595,7 +3595,7 @@ def combine_group(
         held=list(dict.fromkeys(text for part in parts for text in part.held)),
         edits=edits,
         version=lead.version,
-        members=list(members),
+        members=[part.recipe_id for part in parts],  # the recipes that move
     )
 
 
