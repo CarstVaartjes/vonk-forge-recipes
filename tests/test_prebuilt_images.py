@@ -11,8 +11,12 @@ from __future__ import annotations
 import importlib.machinery
 import importlib.util
 import json
+import os
+import re
 import runpy
+import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -296,171 +300,56 @@ def test_new_contract_publication_reconciles_both_unresolved_tensorfold_keys(
     assert select(plan, owner=OWNER, candidates=None, lookup=registry)["builds"] == []
 
 
-def test_a_recipe_declared_unbuildable_is_not_retried_unless_asked_for() -> None:
-    excluded = {"dual": "compiles for hours on the hosted runner"}
-
-    everything = tool.without_excluded(_plan(), None, excluded, requested=["all"])
-    assert everything == {"single", "other"}
-    changed = tool.without_excluded(_plan(), {"dual", "other"}, excluded, requested=[])
-    assert changed == {"other"}
-    # Naming the recipe is an explicit request to try it again.
-    assert tool.without_excluded(_plan(), {"dual"}, excluded, requested=["dual"]) == {
-        "dual"
-    }
-
-
-def test_pr_bounds_only_keys_that_excluded_recipes_alone_use() -> None:
-    # An excluded recipe cannot finish a hosted build; its PR gate must not
-    # wait on one. A key a buildable recipe shares still needs the full build.
-    base, head = _plan(), _plan()
-    for image, key in zip(head["images"], ("c" * 64, "e" * 64), strict=True):
-        image["build_key"] = key
-    candidates = tool.changed_candidates(head, base)
-    selection = tool.select(
-        head, owner=OWNER, candidates=candidates, lookup=_registry({})
-    )
-    assert sorted(item["build_key"] for item in selection["builds"]) == [
-        "c" * 64,
-        "e" * 64,
-    ]
-
-    only_other = tool.bound_excluded(head, selection, {"other": "hours"})
-    assert [item["build_key"] for item in only_other["builds"]] == ["c" * 64]
-    assert [item["build_key"] for item in only_other["bounded"]] == ["e" * 64]
-
-    # "dual" shares its key with the buildable "single": full build stays.
-    one_of_shared = tool.bound_excluded(head, selection, {"dual": "hours"})
-    assert sorted(item["build_key"] for item in one_of_shared["builds"]) == [
-        "c" * 64,
-        "e" * 64,
-    ]
-    assert one_of_shared["bounded"] == []
-
-    everything = tool.bound_excluded(
-        head, selection, {"single": "hours", "dual": "hours", "other": "hours"}
-    )
-    assert everything["builds"] == []
-    assert len(everything["bounded"]) == 2
-
-
-@pytest.mark.parametrize(
-    ("base", "head", "bounded"),
-    [
-        ({"other": "hours"}, {"other": "hours"}, True),
-        # A PR cannot lower its own gate by adding the exclusion...
-        ({}, {"other": "hours"}, False),
-        # ...and a PR that removes one (as #1774 did) proves the full build.
-        ({"other": "hours"}, {}, False),
-    ],
-)
-def test_pr_selection_bounds_only_exclusions_base_and_head_both_declare(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    base: dict[str, str],
-    head: dict[str, str],
-    bounded: bool,
-) -> None:
-    plan, previous = _plan(), _plan()
-    plan["images"][1]["build_key"] = "e" * 64
-    (tmp_path / "plan.json").write_text(json.dumps(plan))
-    (tmp_path / "base-plan.json").write_text(json.dumps(previous))
-    (tmp_path / "image-base").mkdir()
-    (tmp_path / "image-base" / tool.EXCLUSIONS).write_text(json.dumps(base))
-    (tmp_path / tool.EXCLUSIONS).write_text(json.dumps(head))
-    monkeypatch.chdir(tmp_path)
-    select = tool.select
-    monkeypatch.setattr(
-        tool, "select", lambda plan, **kw: select(plan, **kw, lookup=_registry({}))
-    )
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        [
-            "prebuilt-images",
-            "select",
-            "--base-plan",
-            "base-plan.json",
-            "--base-exclusions",
-            f"image-base/{tool.EXCLUSIONS}",
-            "--plan",
-            "plan.json",
-            "--owner",
-            OWNER,
-            "--output",
-            "selection.json",
-        ],
-    )
-    assert tool.main() == 0
-    selection = json.loads((tmp_path / "selection.json").read_text())
-    keys = [
-        [item["build_key"] for item in selection[kind]]
-        for kind in ("builds", "bounded")
-    ]
-    assert keys == ([[], ["e" * 64]] if bounded else [["e" * 64], []])
-
-
-def test_non_pr_selection_never_bounds(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    (tmp_path / "plan.json").write_text(json.dumps(_plan()))
-    (tmp_path / tool.EXCLUSIONS).write_text(json.dumps({"other": "hours"}))
-    monkeypatch.chdir(tmp_path)
-    select = tool.select
-    monkeypatch.setattr(
-        tool, "select", lambda plan, **kw: select(plan, **kw, lookup=_registry({}))
-    )
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        [
-            "prebuilt-images",
-            "select",
-            "--plan",
-            "plan.json",
-            "--owner",
-            OWNER,
-            "--slugs",
-            "other",
-            "--output",
-            "selection.json",
-        ],
-    )
-    assert tool.main() == 0
-    selection = json.loads((tmp_path / "selection.json").read_text())
-    assert selection["bounded"] == []
-    assert [item["build_key"] for item in selection["builds"]] == [OWN]
-
-
-def test_bounded_proof_checks_without_building_and_gates_the_image_result() -> None:
-    workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
-    bounded = workflow.split("\n  bounded:\n", 1)[1].split("\n  build:\n", 1)[0]
-    assert "fromJSON(needs.plan.outputs.bounded)" in bounded
-    assert "docker buildx build --check" in bounded
-    assert "podman" not in bounded
-    build = workflow.split("\n  build:\n", 1)[1].split("\n  resolve:\n", 1)[0]
-    # Bounded keys never enter the full-build matrix, and buildable keys
-    # never leave it.
-    assert "fromJSON(needs.plan.outputs.builds)" in build
-    assert "bounded" not in build
-
-
 def test_every_recipe_without_an_image_says_why() -> None:
     plan = _plan()
     plan["skipped"] = [{"slug": "refused", "reason": "dockerfile.heredoc_forbidden"}]
-    reasons = tool.missing_reasons(
-        plan, ["dual", "single"], {"dual": "compiles for hours"}
-    )
+    reasons = tool.missing_reasons(plan, ["dual", "single"])
 
     assert set(reasons) == {"refused", "dual", "single"}
     assert "dockerfile.heredoc_forbidden" in reasons["refused"]
-    assert "compiles for hours" in reasons["dual"]
     assert "build failed" in reasons["single"]
 
 
-def test_declared_exclusions_name_existing_recipes_and_give_a_reason() -> None:
-    for slug, reason in tool.read_exclusions(ROOT / tool.EXCLUSIONS).items():
-        assert (ROOT / "recipes" / f"{slug}.json").is_file(), slug
-        assert reason.strip(), slug
+@pytest.mark.parametrize(("late", "attempts"), [(False, 3), (True, 1)])
+def test_a_build_retry_starts_only_if_it_fits_the_job_timeout(
+    tmp_path: Path, late: bool, attempts: int
+) -> None:
+    # Run the build job's own retry function with a failing builder. Early, a
+    # transient failure retries; a failure past the retry budget fails the job
+    # at once instead of starting an attempt the job timeout would kill.
+    workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
+    build = workflow.split("\n  build:\n", 1)[1].split("\n  resolve:\n", 1)[0]
+    # timeout-minutes cannot read env, so the retry deadline repeats it: both
+    # copies must name the same job timeout, less a margin for the push.
+    timeout = re.search(r"^    timeout-minutes: (\d+)$", build, re.MULTILINE)
+    budget = re.search(
+        r"deadline=\$\(\(JOB_START \+ \((\d+) - (\d+)\) \* 60\)\)", build
+    )
+    assert timeout is not None and budget is not None
+    assert int(budget.group(1)) == int(timeout.group(1))
+    margin = int(budget.group(2))
+    assert 0 < margin < int(timeout.group(1))
+    elapsed_minutes = int(timeout.group(1)) - margin + 5 if late else 0
+    lines = [line.strip() for line in build.splitlines()]
+    start = next(i for i, line in enumerate(lines) if line.startswith("deadline="))
+    end = lines.index("}", start)
+    script = "\n".join(
+        [
+            "sleep() { :; }",
+            *lines[start : end + 1],
+            f"build_with_retry sh -c 'echo x >> {tmp_path}/calls; exit 1'",
+        ]
+    )
+    now = int(time.time())
+    result = subprocess.run(
+        ["bash", "-c", script],
+        env={**os.environ, "JOB_START": str(now - elapsed_minutes * 60)},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 1, result.stderr
+    assert (tmp_path / "calls").read_text().count("x") == attempts
 
 
 def test_matrix_overflow_continues_after_publication_and_failed_first_batch():

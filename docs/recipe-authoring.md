@@ -251,9 +251,8 @@ parallelism backend starts Ray, so a build step must check the Ray CLI or
 package it uses (`tests/test_ray_vllm_launchers.py`). When the parent image
 has no Ray, install it from a hash lock as described in
 [Dependency locks and build-time smokes](#dependency-locks-and-build-time-smokes). The image workflow lists, in each
-run summary, why a recipe has no prebuilt image; recipes that genuinely cannot
-build on a hosted runner are declared with the reason in
-`prebuilt-image-exclusions.json`.
+run summary, why a recipe has no prebuilt image. Every image builds on a hosted
+runner within the build job's 360-minute timeout; there is no exclusion list.
 
 Leave out unused optional fields. For optional fields with a `None` default,
 explicit `null` and omission have the same meaning; required nullable fields
@@ -1215,9 +1214,9 @@ build memory. A recipe whose image is unavailable publishes without this field
 and can use a Controller build. Publication reports each such recipe as image
 pending in its job summary. The signed bundle includes `plan.json`, binding the
 pending keys and recipe content identities to the release. Deferred batches and
-the daily scheduled reconciliation build missing keys and republish the pins;
-declared hosted-build exclusions are retried only on an explicit recipe request.
-Each build has a 120-minute deadline and failures remain visible in the run.
+the daily scheduled reconciliation build missing keys and republish the pins.
+Each build has a 360-minute deadline (a retry starts only if it still fits) and
+failures remain visible in the run.
 Publication still fails for missing artifacts, mismatched source identities,
 stale build keys, invalid digests or an index that differs from a resolved pin.
 The plan, index and publication must name the same source commit; verification

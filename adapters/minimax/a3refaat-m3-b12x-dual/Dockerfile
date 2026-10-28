@@ -6,9 +6,10 @@
 # through build-deploy.sh with mutable inputs; this file merges its stages and pins every input it can:
 #   * base image nvidia/cuda:13.2.0-devel-ubuntu24.04 by arm64 digest
 #   * vLLM 979b56a66c969ab67655d2155ab4c6c5bed15f65 (the MiniMax-M3 release merge commit; fetched by SHA)
-#   * FlashInfer d768c14e7cf5dd5df45a8a1de78ae815879f108a (v0.6.12, the version that vLLM ref requires), built from
-#     source with upstream's flashinfer_cache.patch. Upstream normally downloads eugr's mutable
-#     `prebuilt-flashinfer-current` wheels, whose July 2026 version is not recoverable.
+#   * FlashInfer d768c14e7cf5dd5df45a8a1de78ae815879f108a (v0.6.12, the version that vLLM ref requires): python and
+#     jit-cache wheels built from source with upstream's flashinfer_cache.patch; the architecture-independent cubin
+#     wheel is FlashInfer's v0.6.12 PyPI release (built from that commit), pinned by sha256. Upstream normally
+#     downloads eugr's mutable `prebuilt-flashinfer-current` wheels, whose July 2026 version is not recoverable.
 #   * zyang-dev/nccl dgxspark-3node-ring at fab1850acd902672d79ca81c2e7fb8e1848c208c (branch head, last commit 2026-03-13)
 #   * Rust 1.96.0 (the stable release on upstream's build date; upstream used `stable`)
 #   * PyPI resolution frozen at 2026-07-05 (uv --exclude-newer), the day after upstream's last commit.
@@ -32,6 +33,7 @@ ENV MAX_JOBS=${BUILD_JOBS} \
     UV_SYSTEM_PYTHON=1 \
     UV_BREAK_SYSTEM_PACKAGES=1 \
     UV_LINK_MODE=copy \
+    UV_NO_CACHE=1 \
     UV_HTTP_TIMEOUT=600 \
     UV_HTTP_RETRIES=10 \
     UV_EXCLUDE_NEWER=2026-07-05T00:00:00Z \
@@ -46,9 +48,15 @@ RUN apt update && \
     && rm -rf /var/lib/apt/lists/* \
     && pip install uv
 
-# The PyTorch index carries no upload dates, so torch is pinned exactly instead.
+# The PyTorch index carries no upload dates, so torch is pinned exactly instead. Every later uv resolution, here and
+# in the runner, is constrained to this torch (UV_CONSTRAINT): the vLLM and FlashInfer wheels compile against it, and
+# nothing else pins it (use_existing_torch.py strips vLLM's pins). Unconstrained, the runner's wheel install swapped
+# torch 2.11.0+cu130 for PyPI torch 2.10.0 (cuda-tile 1.4.0 wants CUDA 13.3 libraries, the cu130 torch pins 13.0),
+# and torchvision 0.26.0+cu130 then failed with "operator torchvision::nms does not exist".
 RUN env -u UV_EXCLUDE_NEWER uv pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 triton --index-url https://download.pytorch.org/whl/cu130 && \
-    uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2" filelock pynvml requests tqdm
+    uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2" filelock pynvml requests tqdm && \
+    mkdir -p /opt/vonk && uv pip freeze | grep -E '^(torch|torchvision|torchaudio|triton)==' > /opt/vonk/torch-constraints.txt
+ENV UV_CONSTRAINT=/opt/vonk/torch-constraints.txt
 
 ARG TORCH_CUDA_ARCH_LIST="12.1a"
 ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} \
@@ -79,14 +87,22 @@ WORKDIR /workspace/flashinfer
 # only for SM90 builds (at this pin they are compiled for sm_90a regardless of FLASHINFER_CUDA_ARCH_LIST, and nvcc
 # ran out of memory on them). The AOT cache compiles three kernels at a time: its CUTLASS GEMMs peak at 7.15 GiB per
 # compiler, and a Spark build is limited to memory derived from the recipe's image_bytes.
+# The cubin wheel is not built here: its build fetches ~15,600 files from NVIDIA's artifact edge, which throttles a
+# builder with HTTP 403 mid-burst. Its kernels are sm_100a/sm_100f/sm_103a only (none run on GB10), but the creator's
+# runtime ships the package, so the release wheel of the same commit is installed by hash.
+# Only the wheels leave this stage. The source and build trees are deleted in the step that made them, and uv keeps no
+# cache (UV_NO_CACHE), because the plan's --layers=false build keeps stage 1 on disk until the final squashed commit.
 COPY flashinfer_cache.patch flashinfer-aot-sink-sm90.patch ./
 RUN patch -p1 < flashinfer_cache.patch && patch -p1 < flashinfer-aot-sink-sm90.patch && \
     sed -i -e 's/license = "Apache-2.0"/license = { text = "Apache-2.0" }/' -e '/license-files/d' pyproject.toml && \
     uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
-    cd flashinfer-cubin && uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
-    cd ../flashinfer-jit-cache && \
+    curl -fsSL --retry 5 -o /workspace/wheels-flashinfer/flashinfer_cubin-0.6.12-py3-none-any.whl \
+        https://files.pythonhosted.org/packages/7d/c6/63b1bb7b1a7ae612ecf53c0e568312c3d004f9f7558b0ab5edcf7900c360/flashinfer_cubin-0.6.12-py3-none-any.whl && \
+    echo "01de132c493bb21d5df42ebe6890966cf83b40aa970dae06b2a3c0bed85f13ec  /workspace/wheels-flashinfer/flashinfer_cubin-0.6.12-py3-none-any.whl" | sha256sum -c - && \
+    cd flashinfer-jit-cache && \
     MAX_JOBS=3 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-flashinfer -v && \
-    cd .. && git rev-parse HEAD > /workspace/wheels-flashinfer/.flashinfer-commit
+    cd .. && git rev-parse HEAD > /workspace/wheels-flashinfer/.flashinfer-commit && \
+    cd / && rm -rf /workspace/flashinfer
 
 # =========================================================
 # (still stage 1) vLLM wheel (MiniMax-M3 release merge + fused fp8-KV patch + Rust tool parser)
@@ -107,10 +123,15 @@ WORKDIR $VLLM_BASE_DIR/vllm
 COPY patches/ /workspace/local-patches/
 RUN git apply -v --whitespace=nowarn /workspace/local-patches/vllm/minimax-m3-fused-fp8-kv.patch
 
+# FlashAttention 3 (vllm-flash-attn hopper/, 194 compiles, about an hour of this build) is not built: it targets
+# sm_90a only (its FA3_ARCHS is empty for 12.1a) and vLLM never selects it on GB10 (fa_utils.get_flash_attn_version
+# uses FA3 on compute capability 9.x only and falls back from it on 10+). FA2, which GB10 runs, is unchanged.
 RUN python3 use_existing_torch.py && \
     sed -i "/flashinfer/d" requirements/cuda.txt && \
     sed -i '/^triton\b/d' requirements/test/cuda.txt && \
     sed -i '/^fastsafetensors\b/d' requirements/test/cuda.txt && \
+    grep -qF 'ext_modules.append(CMakeExtension(name="vllm.vllm_flash_attn._vllm_fa3_C"))' setup.py && \
+    sed -i 's/ext_modules.append(CMakeExtension(name="vllm.vllm_flash_attn._vllm_fa3_C"))/pass/' setup.py && \
     uv pip install -r requirements/build/cuda.txt
 
 # Rust PyO3 tool parser for --tool-call-parser minimax_m3 (upstream --build-rust), toolchain fixed at 1.96.0.
@@ -129,7 +150,8 @@ RUN set -eux; \
 # limited to memory derived from the recipe's image_bytes (vonk-forge catalog_entities.py; checked by
 # tests/test_recipe_build_failures.py).
 RUN MAX_JOBS=3 VLLM_REQUIRE_RUST_FRONTEND=1 uv build --no-build-isolation --wheel . --out-dir=/workspace/wheels-vllm -v && \
-    git rev-parse HEAD > /workspace/wheels-vllm/.vllm-commit
+    git rev-parse HEAD > /workspace/wheels-vllm/.vllm-commit && \
+    cd / && rm -rf /workspace/vllm/vllm
 
 # =========================================================
 # Stage 2: runtime image (upstream Dockerfile runner + Dockerfile.deploy b12x layer + the lane's launch-time mods)
@@ -148,6 +170,7 @@ ENV MAX_JOBS=${BUILD_JOBS} \
     UV_SYSTEM_PYTHON=1 \
     UV_BREAK_SYSTEM_PACKAGES=1 \
     UV_LINK_MODE=copy \
+    UV_NO_CACHE=1 \
     UV_EXCLUDE_NEWER=2026-07-05T00:00:00Z \
     VLLM_BASE_DIR=/workspace/vllm
 
@@ -169,6 +192,9 @@ RUN mkdir -p tiktoken_encodings && \
     echo "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d  tiktoken_encodings/o200k_base.tiktoken" | sha256sum -c - && \
     echo "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7  tiktoken_encodings/cl100k_base.tiktoken" | sha256sum -c -
 
+# The torch the wheels were compiled against (stage 1's freeze); every later uv install here is constrained to it.
+COPY --from=base /opt/vonk/torch-constraints.txt /opt/vonk/torch-constraints.txt
+ENV UV_CONSTRAINT=/opt/vonk/torch-constraints.txt
 RUN env -u UV_EXCLUDE_NEWER uv pip install torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 triton --index-url https://download.pytorch.org/whl/cu130 && \
     uv pip install nvidia-nvshmem-cu13 "apache-tvm-ffi<0.2"
 
