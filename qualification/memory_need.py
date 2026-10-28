@@ -44,13 +44,17 @@ ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
 # Offline copy of the swap policy pinned to vonk-forge d3a5514254d809e7563b5bd4395cef867d30cfb4
 # (#1936 swap-aware memory guard): rust/crates/vonk-agent-protocol/src/
-# host_memory_guard_policy.rs::SWAP_EXHAUSTED_FREE_FLOOR_BYTES (2 GiB) and
-# SWAP_EXHAUSTED_FREE_PERCENT (10), used as total.saturating_sub(max(floor,
-# total / 100 * percent)) in host_memory_guard/decision.rs; and
+# host_memory_guard_policy.rs::SWAP_EXHAUSTED_FREE_FLOOR_BYTES (2 GiB),
+# SWAP_EXHAUSTED_FREE_PERCENT (10) and SWAP_FILLING_USED_PERCENT (90). R1
+# (host_memory_guard/decision.rs:174) keeps max(floor, total / 100 * 10) free;
+# R2 (decision.rs:180) allows at most total / 100 * 90 used. Also
 # agent_protocol/src/vonk_agent_protocol/swap.py::SwapPolicy maximum_gib 128,
-# default_gib 64. These do not redefine live admission or the guard.
-SWAP_FREE_FLOOR_BYTES = 2 * 1024**3
+# default_gib 64. usable/needed are proven against vonk-forge's shared vector
+# (tests/fixtures/swap-v1.json). These do not redefine live admission or the guard.
+GIB = 1024**3
+SWAP_FREE_FLOOR_BYTES = 2 * GIB
 SWAP_FREE_PERCENT = 10
+SWAP_FILLING_USED_PERCENT = 90
 SWAP_MAXIMUM_BYTES = 128 * 1024**3
 SWAP_DEFAULT_BYTES = 64 * 1024**3
 # sglang 94602c9c (and the Qwen3.8 Flash Next r0b0tlab image's qwen4_exp copy)
@@ -1568,22 +1572,22 @@ def declaration_problems(
 
 
 def usable_swap_bytes(total_bytes: int) -> int:
-    """Swap a load may fill before the host guard sees it as exhausted."""
-    return total_bytes - max(
-        SWAP_FREE_FLOOR_BYTES, total_bytes // 100 * SWAP_FREE_PERCENT
+    """Swap a load may fill before the host guard's R1 or R2 applies."""
+    kept_free = max(SWAP_FREE_FLOOR_BYTES, total_bytes // 100 * SWAP_FREE_PERCENT)
+    return max(
+        0,
+        min(total_bytes - kept_free, total_bytes // 100 * SWAP_FILLING_USED_PERCENT),
     )
 
 
-def swap_needed_bytes(overshoot_bytes: int) -> int:
-    """The least swap total whose usable part holds the overshoot."""
-    low, high = overshoot_bytes, overshoot_bytes * 2 + SWAP_FREE_FLOOR_BYTES
-    while low < high:
-        middle = (low + high) // 2
-        if usable_swap_bytes(middle) >= overshoot_bytes:
-            high = middle
-        else:
-            low = middle + 1
-    return low
+def swap_needed_bytes(load_bytes: int) -> int:
+    """The smallest whole-GiB swap total whose usable part holds the load."""
+    if load_bytes <= 0:
+        return 0
+    size_gib = -(-load_bytes // GIB)
+    while usable_swap_bytes(size_gib * GIB) < load_bytes:
+        size_gib += 1
+    return size_gib * GIB
 
 
 def load_overshoot_bytes(memory: RecipeMemoryResources) -> int:

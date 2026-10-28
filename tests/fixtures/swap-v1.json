@@ -1,0 +1,61 @@
+{
+  "source": {
+    "repository": "CarstVaartjes/vonk-forge",
+    "commit": "5e936568924d06ff35e9c3ced0d203512f33ca9e",
+    "path": "agent_protocol/src/vonk_agent_protocol/vectors/swap-v1.json",
+    "sha256": "f2dd970bd0f4e3e41e99d3781b2fb2553b0779bf7cb6b51d06b3a356ef50bf2e",
+    "note": "usable and needed arrays copied verbatim; refresh from the source when it changes"
+  },
+  "usable": [
+    {
+      "total_bytes": 0,
+      "usable_bytes": 0
+    },
+    {
+      "total_bytes": 17179869184,
+      "usable_bytes": 15032385536
+    },
+    {
+      "total_bytes": 21474836480,
+      "usable_bytes": 19327352760
+    },
+    {
+      "total_bytes": 68719476736,
+      "usable_bytes": 61847529030
+    },
+    {
+      "total_bytes": 137438953472,
+      "usable_bytes": 123695058060
+    }
+  ],
+  "needed": [
+    {
+      "load_bytes": 0,
+      "swap_bytes": 0
+    },
+    {
+      "load_bytes": 1,
+      "swap_bytes": 3221225472
+    },
+    {
+      "load_bytes": 15032385536,
+      "swap_bytes": 17179869184
+    },
+    {
+      "load_bytes": 15032385537,
+      "swap_bytes": 18253611008
+    },
+    {
+      "load_bytes": 61847529030,
+      "swap_bytes": 68719476736
+    },
+    {
+      "load_bytes": 61847529031,
+      "swap_bytes": 69793218560
+    },
+    {
+      "load_bytes": 123695058060,
+      "swap_bytes": 137438953472
+    }
+  ]
+}
