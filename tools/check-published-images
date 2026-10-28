@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
-"""Verify every catalog recipe pins its prebuilt image before signing."""
+"""Verify resolved image pins and report pending builds before signing."""
 
 from __future__ import annotations
 
 import argparse
-import json
 import sys
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import BaseModel, TypeAdapter
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from spark_sweep.image_evidence import Digest, PrebuiltImage
+
+
+class PendingReason(StrEnum):
+    # Registry lookups return no digest on 401/403/404 and after exhausted
+    # retries, so a missing pin is not a failed build (publish.yml gates on the
+    # image jobs). The recipe ships unpinned; the next publication pins it.
+    UNRESOLVED = (
+        "no resolved build-<key> digest yet (deferred/scheduled build or lookup)"
+    )
 
 
 class PlannedRecipe(BaseModel):
@@ -51,17 +60,10 @@ def verify(
     plan: ImagePlan,
     index: PublishedIndex,
     images: dict[str, PrebuiltImage],
-    exclusions: dict[str, str],
     source_commit: str,
 ) -> None:
     if plan.source_commit != source_commit or index.source_commit != source_commit:
         raise ValueError("image plan and release must belong to the publication commit")
-    # Every build fits a hosted runner (long keys get the 360-minute lane), so
-    # no recipe may fall back to a Spark build: an exclusion cannot be declared.
-    if exclusions:
-        raise ValueError(
-            f"prebuilt-image-exclusions.json must stay empty: {sorted(exclusions)}"
-        )
     for skipped in plan.skipped:
         raise ValueError(f"{skipped.slug}: image not planned: {skipped.reason}")
     published = {row.source_path: row for row in index.recipes}
@@ -72,9 +74,11 @@ def verify(
                 raise ValueError(f"{recipe.slug}: planned recipe missing from release")
             expected = images.get(recipe.content_sha256)
             if expected is None and row.prebuilt_image is None:
-                raise ValueError(
-                    f"{recipe.slug}: no pinned prebuilt image for {image.build_key}"
+                print(
+                    f"Image pending: {recipe.slug}: {image.build_key}: "
+                    f"{PendingReason.UNRESOLVED}"
                 )
+                continue
             if expected is None or expected.build_key != image.build_key:
                 raise ValueError(
                     f"{recipe.slug}: unresolved current build {image.build_key}"
@@ -96,12 +100,9 @@ def main() -> None:
         ImagePlan.model_validate_json(args.plan.read_bytes()),
         PublishedIndex.model_validate_json(args.index.read_bytes()),
         TypeAdapter(dict[str, PrebuiltImage]).validate_json(args.images.read_bytes()),
-        TypeAdapter(dict[str, str]).validate_python(
-            json.loads(Path("prebuilt-image-exclusions.json").read_bytes())
-        ),
         args.source_commit,
     )
-    print("Release image pins verified")
+    print("Release image pins verified; unresolved images remain pending")
 
 
 if __name__ == "__main__":

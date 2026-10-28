@@ -139,10 +139,8 @@ The final publish job unconditionally repeats lint, format and types, even when
 the reusable producer job chose its light scope.
 PR validation calls the same image workflow at the PR head, compares base/head
 build keys and builds only changed, unpublished keys (including native checks
-and the remote-code smoke). A changed key used only by recipes in
-`prebuilt-image-exclusions.json` gets a bounded proof instead (BuildKit
-Dockerfile check, no build); its full proof is the Spark build and the hardware
-sweep. Successful builds write `candidate-<key>` tags;
+and the remote-code smoke); every key builds in CI, within one 360-minute job
+timeout. Successful builds write `candidate-<key>` tags;
 publication promotes their digests without rebuilding. Keys without a candidate
 use the same build and smoke path at publication; scheduled/manual runs also
 recover historical missing keys.

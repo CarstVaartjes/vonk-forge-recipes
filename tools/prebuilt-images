@@ -12,9 +12,8 @@ revision and prefers the pinned digest over a Spark build.
             tag is missing, one build per distinct key. A key
             another recipe already has is copied instead of rebuilt. Successful
             PR builds write ``candidate-<key>``; these are promoted by digest.
-            ``--base-plan`` limits PRs to changed executable keys. A changed
-            key that only excluded recipes use gets a bounded proof (Dockerfile
-            check, no build); publication builds keys without a candidate.
+            ``--base-plan`` limits PRs to changed executable keys;
+            publication builds keys without a candidate.
 ``resolve`` looks up every recipe's ``build-<key>`` digest for the signed index.
 
 ``platform-ref`` prints the Vonk Forge commit the library is validated with
@@ -26,9 +25,8 @@ revision and prefers the pinned digest over a Spark build.
 ``resolve`` reports missing images; publication leaves those image pins absent
 and reports them as pending while deferred/scheduled builds reconcile them.
 It names the reason for every recipe without an image: refused by the
-Controller's source policy (not planned), declared unbuildable in CI in
-``prebuilt-image-exclusions.json`` (those are not retried until asked for by
-name), or no image in the registry (the build failed or has not run).
+Controller's source policy (not planned), or no image in the registry (the
+build failed or has not run, or the lookup failed).
 """
 
 from __future__ import annotations
@@ -46,11 +44,6 @@ from typing import Any
 
 REGISTRY = "ghcr.io"
 PACKAGE_PREFIX = "vonk-forge-recipe-"
-# Hosted jobs may run 360 minutes. Ordinary keys keep 120; recipes that compile
-# FlashInfer/vLLM from source on the 4-vCPU runner get the full budget.
-JOB_MINUTES = 120
-LONG_JOB_MINUTES = 360
-LONG_BUILD_SLUGS = frozenset({"minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual"})
 # A matrix may hold at most 256 jobs; the rest wait for the next run.
 MAX_BUILDS = 256
 _MANIFEST_TYPES = (
@@ -168,9 +161,6 @@ def select(
             continue
         builds[key] = {
             "build_key": key,
-            "timeout_minutes": LONG_JOB_MINUTES
-            if any(str(recipe["slug"]) in LONG_BUILD_SLUGS for recipe in recipes)
-            else JOB_MINUTES,
             "recipes": [
                 {
                     "slug": str(recipe["slug"]),
@@ -191,41 +181,6 @@ def select(
         ],
         "copies": copies,
     }
-
-
-EXCLUSIONS = Path("prebuilt-image-exclusions.json")
-
-
-def read_exclusions(path: Path = EXCLUSIONS) -> dict[str, str]:
-    """Recipes CI cannot build, each with the reason, from the repository file."""
-
-    if not path.is_file():
-        return {}
-    document = json.loads(path.read_text(encoding="utf-8"))
-    return {str(slug): str(reason) for slug, reason in document.items()}
-
-
-def without_excluded(
-    plan: Mapping[str, Any],
-    candidates: set[str] | None,
-    excluded: Mapping[str, str],
-    *,
-    requested: list[str],
-) -> set[str] | None:
-    """Drop recipes declared unbuildable in CI, unless a run names them.
-
-    A build that cannot finish on a hosted runner would otherwise burn its full
-    job timeout on every platform move.
-    """
-
-    if requested and requested != ["all"]:
-        return candidates
-    universe = (
-        {slug for _key, recipe in _recipes(plan) for slug in [str(recipe["slug"])]}
-        if candidates is None
-        else candidates
-    )
-    return universe - set(excluded)
 
 
 def resolve(
@@ -300,43 +255,7 @@ def changed_candidates(
     }
 
 
-def bound_excluded(
-    plan: Mapping[str, Any], selection: dict[str, Any], excluded: Mapping[str, str]
-) -> dict[str, Any]:
-    """Give PR keys that only declared-unbuildable recipes use a bounded proof.
-
-    A recipe in ``prebuilt-image-exclusions.json`` cannot finish on a hosted
-    runner; its full proof is the Spark build plus the hardware sweep. Its PR
-    therefore checks the Dockerfile and base images without building, so the
-    gate never waits on a build that cannot finish. A key any other recipe
-    uses still requires the full build. ``excluded`` must already be the
-    exclusions both the base and the head declare, so a PR cannot lower its
-    own gate by adding an exclusion. Cost is linear in the plan's recipes.
-    """
-
-    declared = set(excluded)
-    bounded_keys = {
-        str(image["build_key"])
-        for image in plan.get("images", [])
-        if image.get("recipes")
-        and all(str(recipe["slug"]) in declared for recipe in image["recipes"])
-    }
-    return {
-        **selection,
-        "builds": [
-            item
-            for item in selection["builds"]
-            if item["build_key"] not in bounded_keys
-        ],
-        "bounded": [
-            item for item in selection["builds"] if item["build_key"] in bounded_keys
-        ],
-    }
-
-
-def missing_reasons(
-    plan: Mapping[str, Any], missing: list[str], excluded: Mapping[str, str]
-) -> dict[str, str]:
+def missing_reasons(plan: Mapping[str, Any], missing: list[str]) -> dict[str, str]:
     """Why each recipe without a prebuilt image has none."""
 
     reasons = {
@@ -345,10 +264,8 @@ def missing_reasons(
     }
     for slug in missing:
         reasons[slug] = (
-            f"declared unbuildable in CI: {excluded[slug]}"
-            if slug in excluded
-            else "no image in the registry for its build key: the build failed "
-            "or has not run (see the Build jobs of the image workflow)"
+            "no image in the registry for its build key: the build failed, "
+            "has not run or the lookup failed (see the image workflow)"
         )
     return dict(sorted(reasons.items()))
 
@@ -366,12 +283,6 @@ def main() -> int:
     )
     choose.add_argument("--output", type=Path, required=True)
     choose.add_argument("--base-plan", type=Path)
-    choose.add_argument(
-        "--base-exclusions",
-        type=Path,
-        help="the PR base's prebuilt-image-exclusions.json; only exclusions "
-        "both base and head declare bound a key",
-    )
     pin = commands.add_parser("platform-ref")
     pin.add_argument("--workflow", type=Path, default=PLATFORM_WORKFLOW)
     look = commands.add_parser("resolve")
@@ -391,36 +302,17 @@ def main() -> int:
         if arguments.base_plan is not None:
             if plan.get("skipped"):
                 raise SystemExit(f"PR image planner refused recipes: {plan['skipped']}")
-            if arguments.base_exclusions is None:
-                raise SystemExit("PR selection needs --base-exclusions")
-            base = read_exclusions(arguments.base_exclusions)
-            # Lifting an exclusion changes no key; its PR must still prove the build.
             candidates = changed_candidates(
                 plan, json.loads(arguments.base_plan.read_text(encoding="utf-8"))
-            ) | (set(base) - set(read_exclusions()))
-        else:
-            candidates = without_excluded(
-                plan,
-                candidate_slugs(arguments.slugs.split()),
-                read_exclusions(),
-                requested=arguments.slugs.split(),
             )
+        else:
+            candidates = candidate_slugs(arguments.slugs.split())
         selection = select(plan, owner=arguments.owner, candidates=candidates)
         if arguments.base_plan is not None and selection["deferred"]:
             raise SystemExit("PR image matrix exceeds 256 keys; split the change")
-        if arguments.base_plan is not None:
-            both = {
-                slug: reason
-                for slug, reason in read_exclusions().items()
-                if slug in base
-            }
-            selection = bound_excluded(plan, selection, both)
-        else:
-            selection = {**selection, "bounded": []}
         arguments.output.write_text(json.dumps(selection, indent=2), encoding="utf-8")
         print(
             f"{len(selection['builds'])} image build(s), "
-            f"{len(selection['bounded'])} bounded proof(s), "
             f"{len(selection['copies'])} copy(ies), "
             f"{len(selection['deferred'])} deferred"
         )
@@ -429,7 +321,7 @@ def main() -> int:
     arguments.output.write_text(
         json.dumps(images, indent=2, sort_keys=True), encoding="utf-8"
     )
-    reasons = missing_reasons(plan, missing, read_exclusions())
+    reasons = missing_reasons(plan, missing)
     print(f"{len(images)} recipe(s) have a prebuilt image; {len(reasons)} do not")
     for slug, reason in reasons.items():
         print(f"  no prebuilt image: {slug}: {reason}")
