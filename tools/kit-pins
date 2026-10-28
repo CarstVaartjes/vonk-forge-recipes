@@ -533,8 +533,10 @@ def _hub_inventory(repo: str, revision: str) -> list[dict[str, Any]]:
     return catalog.inventory(repo, revision, tree)
 
 
-def cli_source() -> Upstream:
-    sys.path.insert(0, str(ROOT / "tools"))
+def _vendored() -> Any:
+    """``tools/check-vendored-upstream``, loaded once."""
+    if "check_vendored_upstream" in sys.modules:
+        return sys.modules["check_vendored_upstream"]
     import importlib.machinery
     import importlib.util
 
@@ -546,6 +548,26 @@ def cli_source() -> Upstream:
     vendored = importlib.util.module_from_spec(spec)
     sys.modules[loader.name] = vendored
     loader.exec_module(vendored)
+    return vendored
+
+
+def withdrawn(root: Path, recipe: dict[str, Any]) -> bool:
+    """GitHub no longer serves the recipe's kit commit, and the adapter says so.
+
+    The manifest's ``source.unverified`` (tools/check-vendored-upstream) names the kit
+    commit: its declaring files cannot be re-read, so the committed lock stands as the
+    record instead of failing every check on a creator's deleted repository.
+    """
+    kit, adapter = kit_of(recipe), adapter_of(root, recipe)
+    if kit is None or adapter is None:
+        return False
+    mark = (manifest_of(adapter).get("source") or {}).get("unverified")
+    return mark is not None and mark == _vendored().unverified_mark(*kit)
+
+
+def cli_source() -> Upstream:
+    sys.path.insert(0, str(ROOT / "tools"))
+    vendored = _vendored()
     token = vendored._token()
     cache = Path(
         os.environ.get(
@@ -1382,6 +1404,9 @@ def check_images(
         for recipe_id in sorted(names if names is not None else recipes)
         if (kit := kit_of(recipes[recipe_id])) is not None
     }
+    for recipe_id in [r for r in wanted if withdrawn(root, recipes[r])]:
+        notice(f"{recipe_id}: its kit is withdrawn (source.unverified); not rescanned")
+        del wanted[recipe_id]
 
     def scan(key: tuple[str, str, str]) -> list[dict[str, Any]] | KitError:
         try:
@@ -1467,6 +1492,9 @@ def check_recipe(
     lock = read_lock(adapter)
     if lock is None:
         return problems + [f"{label}: no {LOCK}; run tools/kit-pins lock {recipe_id}"]
+    # A withdrawn kit (GitHub no longer serves its commit) is not re-read: the lock's own
+    # declaration stands, and everything below still checks it against the recipe.
+    gone = withdrawn(root, recipe)
     try:
         # Offline in the resolving direction: the lock's own value is used for the pin, so
         # only the declaring file at the pinned kit commit is fetched.
@@ -1476,7 +1504,11 @@ def check_recipe(
             if locked is None:
                 problems.append(f"{label}: {LOCK} lacks '{declaration.name}'")
                 continue
-            repo, ref, reason = read_declared(source, kit[0], kit[1], declaration)
+            repo, ref, reason = (
+                (locked["repo"], locked["ref"], locked.get("overridden"))
+                if gone
+                else read_declared(source, kit[0], kit[1], declaration)
+            )
             pins.append(
                 Pin(
                     declaration.name,
