@@ -249,6 +249,15 @@ jobs:
           set -euo pipefail
           python3 tools/check-model-construction-device --base origin/main
 
+      # Containers run with a read-only root: image-private state variables
+      # (STATE_PATH and the like) must point under /tmp or /outputs. Checks
+      # only added ENV lines of the Dockerfiles recipes build.
+      - name: Reject new image-private state paths on the read-only image
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-writable-state-env --base origin/main
+
       # Every test runs on recipe changes too: the suite takes about as long
       # as any subset, and a subset silently misses recipe-data checks.
       - name: Run the full producer test suite
