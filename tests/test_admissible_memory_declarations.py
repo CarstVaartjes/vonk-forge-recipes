@@ -74,7 +74,6 @@ REPAIRED = (
 # unchanged bytes stay baselined and each is a hardware-led follow-up (#1761).
 RANK_BUDGET_FOLLOW_UPS = {
     "inkling-975b-a41b-nvfp4-sglang-eight",
-    "inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual",
     "inkling-small-nvfp4-sglang-mia-dual",
 }
 
