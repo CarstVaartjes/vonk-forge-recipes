@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/mimo-v2-6-flash-rl-sglang-mia-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "dc25ec541f4655dda677ad6a155d5e5aeb1e14652c38b82bf175c2d5bc28af37",
+        "source_bundle_sha256": "78134ac411670b44d66c8b096f5d377ee88e06cc6054900e5cc27a093a2075b7",
+        "runtime_image": {
+          "build_key": "8528632931c7a93f818c3ab8a7e9a8c4960a5b3889420480696161c953d98127",
+          "image_digest": "sha256:22773c73c1411d1fede6180131bd1610c497154c80f07236147202ad243fccc1"
+        },
+        "model_digests": [
+          "ad2a6f0d7fe60dff701666c9e11209fca89371163835e1395a2d215b2f7a72b1"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "089a1b2e2d2629ada10134fa13a2fe550d9fd9fbfecae6e75ce90f08d90c17d7"
+      ],
+      "tested_at": "2026-10-28T13:18:55.868343Z",
+      "platform": {
+        "controller_source_sha": "9f7d7e0e468f2f11c93f802bfd5d08761904f650",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
