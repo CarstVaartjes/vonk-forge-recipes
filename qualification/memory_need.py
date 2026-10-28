@@ -25,6 +25,7 @@ from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
     evaluate_memory_admission,
 )
+from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 from qualification.model_index import model_index
 
@@ -43,6 +44,17 @@ SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 # 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
 ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
+# Offline copy of the swap policy pinned to vonk-forge d3a5514254d809e7563b5bd4395cef867d30cfb4
+# (#1936 swap-aware memory guard): rust/crates/vonk-agent-protocol/src/
+# host_memory_guard_policy.rs::SWAP_EXHAUSTED_FREE_FLOOR_BYTES (2 GiB) and
+# SWAP_EXHAUSTED_FREE_PERCENT (10), used as total.saturating_sub(max(floor,
+# total / 100 * percent)) in host_memory_guard/decision.rs; and
+# agent_protocol/src/vonk_agent_protocol/swap.py::SwapPolicy maximum_gib 128,
+# default_gib 64. These do not redefine live admission or the guard.
+SWAP_FREE_FLOOR_BYTES = 2 * 1024**3
+SWAP_FREE_PERCENT = 10
+SWAP_MAXIMUM_BYTES = 128 * 1024**3
+SWAP_DEFAULT_BYTES = 64 * 1024**3
 # sglang 94602c9c (and the Qwen3.8 Flash Next r0b0tlab image's qwen4_exp copy)
 # kv_cache_configurator._calculate_mamba_ratio: at most 3 base plus 2
 # extra_buffer overlap state slots per running request.
@@ -1284,7 +1296,7 @@ def memory_warnings(
 ) -> list[str]:
     """Informative catalog estimates; these never change hardware qualification."""
     if recipe.runtime.engine not in {"vllm", "sglang"}:
-        return []
+        return swap_warnings(recipe)
     missing = {
         selection.model.content_sha256 for selection in recipe.models
     } - models.keys()
@@ -1294,8 +1306,8 @@ def memory_warnings(
                 f"WARNING {recipe.identity.slug}: memory estimate unavailable; "
                 f"missing Model inputs: {', '.join(sorted(missing))}"
             )
-        ]
-    warnings = []
+        ] + swap_warnings(recipe)
+    warnings = swap_warnings(recipe)
     for index, variant in enumerate(memory_variants(recipe)):
         prefix = f"WARNING {recipe.identity.slug} [{index}]"
         try:
@@ -1423,6 +1435,74 @@ def declaration_problems(
     return problems
 
 
+def usable_swap_bytes(total_bytes: int) -> int:
+    """Swap a load may fill before the host guard sees it as exhausted."""
+    return total_bytes - max(
+        SWAP_FREE_FLOOR_BYTES, total_bytes // 100 * SWAP_FREE_PERCENT
+    )
+
+
+def swap_needed_bytes(overshoot_bytes: int) -> int:
+    """The least swap total whose usable part holds the overshoot."""
+    low, high = overshoot_bytes, overshoot_bytes * 2 + SWAP_FREE_FLOOR_BYTES
+    while low < high:
+        middle = (low + high) // 2
+        if usable_swap_bytes(middle) >= overshoot_bytes:
+            high = middle
+        else:
+            low = middle + 1
+    return low
+
+
+def load_overshoot_bytes(memory: RecipeMemoryResources) -> int:
+    """Load use beyond the steady peak, which the host serves from swap."""
+    if memory.load_peak_bytes is None:
+        return 0
+    return memory.load_peak_bytes - memory.peak_bytes
+
+
+def swap_warnings(recipe: RecipeDefinition) -> list[str]:
+    """Roles whose load needs more swap than the host default."""
+    return [
+        f"WARNING {recipe.identity.slug}/{role.name}: load needs "
+        f"{swap_needed_bytes(load_overshoot_bytes(role.resources.memory))} bytes "
+        f"of swap, above the {SWAP_DEFAULT_BYTES}-byte default"
+        for variant in memory_variants(recipe)
+        for role in variant.topology.roles
+        if swap_needed_bytes(load_overshoot_bytes(role.resources.memory))
+        > SWAP_DEFAULT_BYTES
+    ]
+
+
+def require_swap_declaration(recipe: RecipeDefinition) -> None:
+    """A load that overshoots the steady peak must fit, and name its swap."""
+    for variant in memory_variants(recipe):
+        for role in variant.topology.roles:
+            memory = role.resources.memory
+            overshoot = load_overshoot_bytes(memory)
+            if overshoot == 0:
+                continue
+            where = f"{recipe.identity.slug}/{role.name}"
+            if overshoot > usable_swap_bytes(SWAP_MAXIMUM_BYTES):
+                raise ValueError(
+                    f"{where}: load overshoot {overshoot} bytes exceeds the "
+                    f"usable part of the {SWAP_MAXIMUM_BYTES}-byte swap maximum "
+                    f"({usable_swap_bytes(SWAP_MAXIMUM_BYTES)}); it can never fit"
+                )
+            needed = swap_needed_bytes(overshoot)
+            if memory.minimum_swap_bytes < needed:
+                raise ValueError(
+                    f"{where}: minimum_swap_bytes {memory.minimum_swap_bytes} "
+                    f"is below the {needed} bytes the {overshoot}-byte load "
+                    "overshoot needs"
+                )
+            if memory.minimum_swap_bytes > SWAP_MAXIMUM_BYTES:
+                raise ValueError(
+                    f"{where}: minimum_swap_bytes {memory.minimum_swap_bytes} "
+                    f"exceeds the {SWAP_MAXIMUM_BYTES}-byte swap maximum"
+                )
+
+
 def require_admissible_declaration(
     recipe: RecipeDefinition, *, pool_bytes: int = SPARK_MEMORY_BYTES
 ) -> None:
@@ -1445,3 +1525,4 @@ def require_admissible_declaration(
                     f"{ADMISSION_IDLE_USE_BYTES} bytes, floor "
                     f"{PLATFORM_MEMORY_FLOOR_BYTES} bytes); reserve by need"
                 )
+    require_swap_declaration(recipe)
