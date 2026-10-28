@@ -315,6 +315,25 @@ def test_rank_budget_guard_rejects_the_failed_settings() -> None:
     assert lower is not None and "static budget" in lower
 
 
+def _fraction(recipe: dict) -> Decimal:
+    from decimal import Decimal
+
+    return next(
+        Decimal(str(item["value"]))
+        for item in recipe["runtime"]["arguments"]
+        if item["name"] == "mem-fraction-static"
+    )
+
+
+def _creator_default(path: str, pattern: str) -> Decimal:
+    import re
+    from decimal import Decimal
+
+    match = re.search(pattern, (ROOT / path).read_text(encoding="utf-8"))
+    assert match, (path, pattern)
+    return Decimal(match.group(1))
+
+
 def test_kv_1m_keeps_the_creators_fraction_that_leaves_pool_room() -> None:
     """The 0.80 edit left 0.12 GB for state pools; the creator's 0.85 leaves room.
 
@@ -328,15 +347,45 @@ def test_kv_1m_keeps_the_creators_fraction_that_leaves_pool_room() -> None:
     from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
 
     recipe = load("recipes/inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual.json")
-    fraction = next(
-        Decimal(str(item["value"]))
-        for item in recipe["runtime"]["arguments"]
-        if item["name"] == "mem-fraction-static"
+    fraction = _fraction(recipe)
+    assert fraction == _creator_default(
+        "adapters/inkling/drowzeys-kvquant-dual/scripts/nvfp4-kv-boot.sh",
+        r'MEMFRAC="\$\{MEMFRAC:-([0-9.]+)\}"',
     )
-    assert fraction == Decimal("0.85")  # nvfp4-kv-boot.sh MEMFRAC
     pre_load_free = (24.01 + 89.10) * 1e9
     rest = 0.12e9 + float(fraction - Decimal("0.800230326246")) * pre_load_free
     assert rest > 5e9  # 0.12 GB failed; one request needs 5 slots x 2.46 MB
+    for role in recipe["topology"]["roles"]:
+        assert role["resources"]["memory"]["peak_bytes"] >= (
+            fraction * TOTAL_BYTES + OVERHEAD_BYTES
+        )
+
+
+def test_mia_dual_keeps_the_creators_fraction() -> None:
+    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
+
+    recipe = load("recipes/inkling-small-nvfp4-sglang-mia-dual.json")
+    fraction = _fraction(recipe)
+    assert fraction == _creator_default(
+        "adapters/inkling/mia-dual/start_sglang.sh",
+        r'MEM_FRACTION_STATIC="\$\{MEM_FRACTION_STATIC:-([0-9.]+)\}"',
+    )
+    for role in recipe["topology"]["roles"]:
+        assert role["resources"]["memory"]["peak_bytes"] >= (
+            fraction * TOTAL_BYTES + OVERHEAD_BYTES
+        )
+
+
+def test_975b_eight_keeps_its_authored_fraction() -> None:
+    """No creator launch script exists for the eight-Spark recipe; 0.80 is the
+    fraction it was added with (a9c33133), before #1647 lowered it to 0.634."""
+    from decimal import Decimal
+
+    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
+
+    recipe = load("recipes/inkling-975b-a41b-nvfp4-sglang-eight.json")
+    fraction = _fraction(recipe)
+    assert fraction == Decimal("0.80")
     for role in recipe["topology"]["roles"]:
         assert role["resources"]["memory"]["peak_bytes"] >= (
             fraction * TOTAL_BYTES + OVERHEAD_BYTES
