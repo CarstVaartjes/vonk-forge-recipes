@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/mimo-v2-6-flash-rl-vllm-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "ac4ca767be3d66e52705fc3bd7762ea253b29b75b3169b5f9365eb8f634bd127",
+        "source_bundle_sha256": "182130eed589ca9479cfed4df3b8f5b350289d1ac4e048e0be1e602121a38f1f",
+        "runtime_image": {
+          "build_key": "8351aa8f842f69d94159210fcd872784f35013780a73fc0405b83195ae094171",
+          "image_digest": "sha256:74c71fc6b9e4465ad78ed02a0ca0d1322285c4f8cf780fe73f33642f4d108b1e"
+        },
+        "model_digests": [
+          "f4070b32ae67dec49ea385cb59aae69cd651050f0ece3e18d3b4e7281bda69d3"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "5f8564e7be4833d12431c8f719deb4c3519ac4b9efaa646e55538a498417e63a"
+      ],
+      "tested_at": "2026-10-28T10:21:50.912568Z",
+      "platform": {
+        "controller_source_sha": "9f7d7e0e468f2f11c93f802bfd5d08761904f650",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}
