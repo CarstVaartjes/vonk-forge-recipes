@@ -15,6 +15,7 @@ LABEL org.opencontainers.image.source="https://github.com/0xSero/glm-5.3-flash-s
 COPY docker /opt/vonk/upstream-docker
 COPY LICENSE /opt/vonk/LICENSE.glm53-exl3-plain-single
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
+COPY vonk-glm53-chat-template.jinja /opt/vonk/glm53-chat-template.jinja
 
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then \
