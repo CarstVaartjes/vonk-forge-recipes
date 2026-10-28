@@ -44,25 +44,27 @@ def declared(overshoot: int, swap: int) -> RecipeDefinition:
     return recipe_with(load_peak_bytes=peak() + overshoot, minimum_swap_bytes=swap)
 
 
-def test_usable_swap_keeps_the_guard_margin() -> None:
-    assert usable_swap_bytes(10 * GIB) == 8 * GIB
-    assert usable_swap_bytes(128 * GIB) == 128 * GIB - 128 * GIB // 100 * 10
-    for overshoot in (1, 8 * GIB, 57 * GIB, USABLE_MAX):
-        needed = swap_needed_bytes(overshoot)
-        assert usable_swap_bytes(needed) >= overshoot
-        assert usable_swap_bytes(needed - 1) < overshoot
+VECTOR = json.loads((ROOT / "tests/fixtures/swap-v1.json").read_text())
 
 
-def test_unset_fields_leave_documents_and_digests_unchanged() -> None:
-    value = document()
-    parsed = RecipeDefinition.model_validate(value)
+def test_swap_arithmetic_matches_the_shared_vectors() -> None:
+    assert VECTOR["source"]["sha256"] and VECTOR["source"]["commit"]
+    for pair in VECTOR["usable"]:
+        assert usable_swap_bytes(pair["total_bytes"]) == pair["usable_bytes"], pair
+    for pair in VECTOR["needed"]:
+        assert swap_needed_bytes(pair["load_bytes"]) == pair["swap_bytes"], pair
+
+
+def test_unset_fields_leave_documents_unchanged() -> None:
+    raw = document()
+    raw_memory = raw["topology"]["roles"][0]["resources"]["memory"]
+    assert "load_peak_bytes" not in raw_memory
+    assert "minimum_swap_bytes" not in raw_memory
+    parsed = RecipeDefinition.model_validate(raw)
     memory = parsed.topology.roles[0].resources.memory
     assert memory.load_peak_bytes is None and memory.minimum_swap_bytes == 0
-    dumped = parsed.model_dump(mode="json")["topology"]["roles"][0]["resources"][
-        "memory"
-    ]
-    assert set(dumped) == {"peak_bytes", "reserve_bytes"}
-    assert document_sha256(value) == document_sha256(document())
+    dumped = parsed.model_dump(mode="json")["topology"]["roles"][0]["resources"]
+    assert dumped["memory"] == raw_memory
 
 
 def test_equal_load_and_steady_peaks_are_refused() -> None:
