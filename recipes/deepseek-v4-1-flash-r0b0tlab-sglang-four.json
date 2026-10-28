@@ -47,7 +47,7 @@
       "spark",
       "vision"
     ],
-    "title": "DeepSeek V4.1 Flash SGLang TP4 four Sparks (r0b0tlab)"
+    "title": "DeepSeek V4.1 Flash · r0b0tlab · SGLang · 4 Sparks"
   },
   "models": [
     {
@@ -1034,7 +1034,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cab6d52acd79c431bcd7304454b96e553e7a3ce2896d0b7ec9d716b77076be1f",
+        "content_sha256": "40f1715fb33dd9a328c1403dc3953c516799b369ba123e4b174221a3c8fcf6e0",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-314113f8"

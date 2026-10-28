@@ -32,18 +32,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash",
-      "title": "DeepSeek V4.1 Flash"
+      "title": "V4.1 Flash"
     },
     "publisher": "antirez",
     "slug": "deepseek-v4-1-flash-ds4-q2-dd8a266f",
     "variant": "DeepSeek V4.1 Flash DS4 Q2 (imatrix)",
-    "version": "ds4-q2-dd8a266f"
+    "version": "ds4-q2"
   },
   "kind": "model",
   "license": {

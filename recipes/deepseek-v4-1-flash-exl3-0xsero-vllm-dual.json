@@ -45,7 +45,7 @@
       "tool-use",
       "vllm"
     ],
-    "title": "DeepSeek V4.1 Flash EXL3 2.77 bpw 0xSero vLLM two Sparks"
+    "title": "DeepSeek V4.1 Flash EXL3 2.77 bpw · 0xSero · vLLM · 2 Sparks"
   },
   "models": [
     {
@@ -3199,7 +3199,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "14dd434fecafcff1c02012ebc908979cb549af95960cc56e892ca76db2c08645",
+        "content_sha256": "69547ee8b37e13c9b016a24d5e8f825e29b1702570691004975c2f7420aef224",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "deepseek-v4-1-flash-exl3-2-77bpw-9e3bbeab"

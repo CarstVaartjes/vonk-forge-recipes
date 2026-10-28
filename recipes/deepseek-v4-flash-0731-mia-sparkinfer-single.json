@@ -47,7 +47,7 @@
       "speculative-decoding",
       "tool-use"
     ],
-    "title": "DeepSeek V4 Flash 0731 Mia SparkInfer single Spark"
+    "title": "DeepSeek V4 Flash 0731 · MiaAI-Lab · SparkInfer (vLLM) · 1 Spark"
   },
   "models": [
     {
@@ -1955,7 +1955,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815",
+        "content_sha256": "c9acc7d5f9fb74d8e26460ab233ce6fabf413c06b76d010d60c50274ad44dfdf",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216-22f28d32"

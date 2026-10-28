@@ -46,7 +46,7 @@
       "single",
       "spark"
     ],
-    "title": "DeepSeek V4.1 Flash DS4 single Spark"
+    "title": "DeepSeek V4.1 Flash · antirez · DS4 · 1 Spark"
   },
   "models": [
     {
@@ -64,7 +64,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "aa4c14c4f11f9b0577775137fd2ec6d58f7a8ba792bcadcc4fe11977e9b6c472",
+        "content_sha256": "c03e9e8b638622232d27f297bd1ded2427f8f04d924c678db1dbccbcf8c39412",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-1-flash-ds4-q2-dd8a266f"

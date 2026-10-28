@@ -46,7 +46,7 @@
       "vision",
       "spark"
     ],
-    "title": "DeepSeek V4.1 Flash 1017 EXL3 2.9bpw TensorFold TP2 (tonyd2wild)"
+    "title": "DeepSeek V4.1 Flash 1017 EXL3 2.9bpw · tonyd2wild · TensorFold · 2 Sparks"
   },
   "models": [
     {
@@ -791,7 +791,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cd61d69743feff214b7f70cc06e6f7a71736341882a56fa5f07a64144e3ad259",
+        "content_sha256": "365d5c83c25b3181d16ef6796f35bd50698e1c626cad058c293b9aa0809083e4",
         "kind": "model",
         "publisher": "libertaidai",
         "slug": "deepseek-v4-1-flash-1017-exl3-2-9bpw-0be63c33"
@@ -835,7 +835,7 @@
       ],
       "id": "engram",
       "model": {
-        "content_sha256": "12ed67e42c35dc08489bacb4d87ebd581bfd7360f404e879622f8cdcae9c3ca7",
+        "content_sha256": "072fa0b180f57135fb91b802570d9ff0d719f3d774ce086bf170689268e05e63",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-1017-native-1bae0e10"

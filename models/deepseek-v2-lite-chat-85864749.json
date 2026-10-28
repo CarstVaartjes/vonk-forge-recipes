@@ -155,12 +155,12 @@
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v2-lite",
-      "title": "DeepSeek-V2-Lite"
+      "title": "V2-Lite"
     },
     "publisher": "deepseek-ai",
     "slug": "deepseek-v2-lite-chat-85864749",
-    "variant": "Chat 85864749",
-    "version": "Chat 85864749"
+    "variant": "Chat",
+    "version": "Chat"
   },
   "kind": "model",
   "license": {

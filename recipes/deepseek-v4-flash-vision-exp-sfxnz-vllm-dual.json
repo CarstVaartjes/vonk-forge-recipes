@@ -54,7 +54,7 @@
       "vision",
       "vllm"
     ],
-    "title": "DeepSeek V4 Flash Vision Experimental sfxnz vLLM two Sparks"
+    "title": "DeepSeek V4 Flash Vision Experimental · sfxnz · vLLM · 2 Sparks"
   },
   "models": [
     {
@@ -964,7 +964,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "638d1db06a623231cef6af65620cfbeba3193a218bfdece6133d09a188e5923a",
+        "content_sha256": "bf8fe32e00dc75cddf2f7dd1b0834484f54cb03dd0d9d95085df0c8c15e522cc",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-vision-exp-86f746b3"

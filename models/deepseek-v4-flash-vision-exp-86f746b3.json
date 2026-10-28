@@ -753,18 +753,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-vision-exp",
-      "title": "DeepSeek V4 Flash Vision Experimental"
+      "title": "V4 Flash Vision Experimental"
     },
     "publisher": "deepseek-ai",
     "slug": "deepseek-v4-flash-vision-exp-86f746b3",
-    "variant": "DeepSeek V4 Flash Vision Experimental official 86f746b3",
-    "version": "vision-exp-86f746b3"
+    "variant": "DeepSeek V4 Flash Vision Experimental official",
+    "version": "vision-exp"
   },
   "kind": "model",
   "license": {

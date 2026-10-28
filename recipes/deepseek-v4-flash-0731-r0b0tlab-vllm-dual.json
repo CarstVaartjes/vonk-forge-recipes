@@ -46,7 +46,7 @@
       "tool-use",
       "vllm"
     ],
-    "title": "DeepSeek V4 Flash 0731 DSpark vLLM 0.26 dual Spark (r0b0tlab)"
+    "title": "DeepSeek V4 Flash 0731 DSpark 0.26 · r0b0tlab · vLLM · 2 Sparks"
   },
   "models": [
     {
@@ -868,7 +868,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "692c2c55ab559586a52a87941f74b62df80c54782bdc7df392078b9d27bed273",
+        "content_sha256": "7df9dbe41f2e0f5224a5a6ac52b0c4589fb90a622b024dacaa094ac0b54dc690",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-0731-9e165c30"

@@ -47,7 +47,7 @@
       "tool-use",
       "vllm"
     ],
-    "title": "DeepSeek V4 Flash REAP 180B (K160) MTP vLLM single Spark (0xSero)"
+    "title": "DeepSeek V4 Flash REAP 180B (K160) MTP · 0xSero · vLLM · 1 Spark"
   },
   "models": [
     {
@@ -785,7 +785,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c56e95b7433f3a96fe0cfe0d923be164641072f6155bef5f0b93bed5b6c1c46e",
+        "content_sha256": "712f8ec320be2f1ccda919e69994075d3851f209417871eecddcc0239afbacfd",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "deepseek-v4-flash-reap-180b-k160-d3c704b7"

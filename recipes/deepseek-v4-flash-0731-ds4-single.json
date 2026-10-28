@@ -47,7 +47,7 @@
       "single",
       "spark"
     ],
-    "title": "DeepSeek V4 Flash 0731 DS4 two-session concurrency single Spark"
+    "title": "DeepSeek V4 Flash 0731 two-session concurrency · antirez · DS4 · 1 Spark"
   },
   "models": [
     {
@@ -65,7 +65,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "22859b6f9d0634714c6753defcef24ffaeca8828bf68e7a1f9cf4303c07f606d",
+        "content_sha256": "ec020b929ba68f66d9b901f1b0d486bfaf55e8b5fe217256b2628bf94f1f1403",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-flash-0731-ds4"

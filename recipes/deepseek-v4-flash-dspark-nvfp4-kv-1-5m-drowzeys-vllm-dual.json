@@ -46,7 +46,7 @@
       "tool-use",
       "vllm"
     ],
-    "title": "DeepSeek V4 Flash DSpark NVFP4-KV 1.5M vLLM two Sparks (drowzeys)"
+    "title": "DeepSeek V4 Flash DSpark NVFP4-KV 1.5M · drowzeys · vLLM · 2 Sparks"
   },
   "models": [
     {
@@ -868,7 +868,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0d116e48651320249e620e159e0da012edcfbeb0c2d33ba77712676662704dce",
+        "content_sha256": "f0b38af2558fcc8f8af0787c74838e54d090b9ed43212b72c6cbee7433487483",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-dspark-62af8fff"

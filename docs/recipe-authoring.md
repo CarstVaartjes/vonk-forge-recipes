@@ -157,6 +157,36 @@ with the upstream creator's slug as its publisher. `tools/check-model-families` 
 that names a republisher or a format, or a slug that two documents describe
 differently, because the public catalog groups by this field.
 
+### Readable catalog names
+
+The catalog owns operator-facing names for both vonkctl and the website. Use
+one vocabulary; clients must not turn slugs, repository names or commit hashes
+into display names.
+
+- `identity.family.title` names the lineage, for example `DeepSeek`.
+- `identity.model.title` names the logical model within that family, for example
+  `V4 Flash` or `V4.1 Flash 1017`. Keep checkpoint capabilities such as Vision
+  and REAP sizes that distinguish models. Quantization and serving engines belong
+  in variant/format and Recipe metadata, respectively.
+- `identity.version` names an upstream model release or checkpoint edition;
+  `identity.variant` describes the selected weights in readable terms. Neither
+  uses a source commit as its display label. Exact pins remain in `source.revision`,
+  identity slugs and content digests.
+- `metadata.title` on a Recipe follows
+  `<family> <model and distinguishing settings> · <recipe creator> · <engine> · <N Sparks>`.
+  Use the creator's upstream spelling and engine branding (`vLLM`, `SGLang`,
+  `TensorFold`, `DS4`). Name a specialized runtime such as `SparkInfer (vLLM)`
+  explicitly. Retain meaningful quantization, context, speculation and canary
+  distinctions. Source ownership is evidence to review, not automatic proof of
+  authorship; preserve full contributor credits in provenance.
+
+For example: `DeepSeek V4 Flash DSpark · r0b0tlab · vLLM · 2 Sparks`.
+Readable names do not replace exact selectors. When editing a Model label,
+update every Recipe reference to its new document digest; keep source revisions,
+file hashes, mount selections and runtime settings unchanged. Qualification is
+bound to content identities and must not be copied to the new digest as if a
+new hardware run had occurred.
+
 Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.
 For GitHub release assets, bind the numeric release ID and each file's numeric

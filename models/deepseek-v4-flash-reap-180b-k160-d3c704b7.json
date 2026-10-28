@@ -673,18 +673,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "0xsero",
       "slug": "deepseek-v4-flash-reap-180b-k160",
-      "title": "DeepSeek V4 Flash REAP 180B K160"
+      "title": "V4 Flash REAP 180B K160"
     },
     "publisher": "0xsero",
     "slug": "deepseek-v4-flash-reap-180b-k160-d3c704b7",
-    "variant": "DeepSeek V4 Flash REAP 180B K160 d3c704b7",
-    "version": "DeepSeek V4 Flash REAP 180B K160 d3c704b7"
+    "variant": "DeepSeek V4 Flash REAP 180B K160",
+    "version": "DeepSeek V4 Flash REAP 180B K160"
   },
   "kind": "model",
   "license": {

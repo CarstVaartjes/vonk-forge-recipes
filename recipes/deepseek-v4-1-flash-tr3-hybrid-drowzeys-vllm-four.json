@@ -50,7 +50,7 @@
       "vision",
       "vllm"
     ],
-    "title": "DeepSeek V4.1 Flash TR3-Hybrid vLLM four Sparks (drowzeys)"
+    "title": "DeepSeek V4.1 Flash TR3-Hybrid · drowzeys · vLLM · 4 Sparks"
   },
   "models": [
     {
@@ -685,7 +685,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "919bec9cd1cf82c04db26f9392ed7e9dc8a3f69899628ab0478159a18b595c17",
+        "content_sha256": "b442b4b68de887863298666127901b4c289cf67dbbd4b69262e671660e6f88d6",
         "kind": "model",
         "publisher": "drowzeys",
         "slug": "deepseek-v4-1-flash-tr3-hybrid-74aa7dfe"

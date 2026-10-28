@@ -519,18 +519,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "sfxnz",
       "slug": "deepseek-v4-1-flash-exl3",
-      "title": "DeepSeek V4.1 Flash EXL3"
+      "title": "V4.1 Flash"
     },
     "publisher": "sfxnz",
     "slug": "deepseek-v4-1-flash-exl3-2bpw-mcg-viterbi-982b7045",
-    "variant": "exl3-2.0bpw-mcg-viterbi-lmhead-mxfp8-982b7045",
-    "version": "exl3-2.0bpw-mcg-viterbi-lmhead-mxfp8-982b7045"
+    "variant": "exl3-2.0bpw-mcg-viterbi-lmhead-mxfp8",
+    "version": "exl3-2.0bpw-mcg-viterbi-lmhead-mxfp8"
   },
   "kind": "model",
   "license": {

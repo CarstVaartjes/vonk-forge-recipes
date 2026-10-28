@@ -1724,18 +1724,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-0731",
-      "title": "DeepSeek V4 Flash 0731"
+      "title": "V4 Flash 0731"
     },
     "publisher": "0xsero",
     "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216-22f28d32",
     "variant": "DeepSeek V4 Flash 0731 REAP-K216 EXL3 3.0 bpw",
-    "version": "0731-reap-k216-exl3-3.0bpw-22f28d32"
+    "version": "0731-reap-k216-exl3-3.0bpw"
   },
   "kind": "model",
   "license": {

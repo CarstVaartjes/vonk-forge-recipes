@@ -680,18 +680,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-dspark",
-      "title": "DeepSeek V4 Flash DSpark"
+      "title": "V4 Flash"
     },
     "publisher": "deepseek-ai",
     "slug": "deepseek-v4-flash-dspark-913f0657",
-    "variant": "dspark-913f0657",
-    "version": "dspark-913f0657"
+    "variant": "dspark",
+    "version": "dspark"
   },
   "kind": "model",
   "license": {

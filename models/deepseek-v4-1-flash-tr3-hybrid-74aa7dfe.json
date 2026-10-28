@@ -528,18 +528,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "drowzeys",
       "slug": "deepseek-v4-1-flash-tr3-hybrid",
-      "title": "DeepSeek V4.1 Flash TR3-Hybrid"
+      "title": "V4.1 Flash TR3-Hybrid"
     },
     "publisher": "drowzeys",
     "slug": "deepseek-v4-1-flash-tr3-hybrid-74aa7dfe",
-    "variant": "74aa7dfeb4edc2d59df71abda01470d795394a26",
-    "version": "74aa7dfeb4edc2d59df71abda01470d795394a26"
+    "variant": "V4.1 Flash TR3-Hybrid",
+    "version": "V4.1 Flash TR3-Hybrid"
   },
   "kind": "model",
   "license": {

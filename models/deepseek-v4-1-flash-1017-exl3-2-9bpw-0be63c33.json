@@ -624,12 +624,12 @@
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash-1017",
-      "title": "DeepSeek V4.1 Flash 1017"
+      "title": "V4.1 Flash 1017"
     },
     "publisher": "libertaidai",
     "slug": "deepseek-v4-1-flash-1017-exl3-2-9bpw-0be63c33",
     "variant": "1017 exl3",
-    "version": "1017-0be63c33"
+    "version": "1017"
   },
   "kind": "model",
   "license": {

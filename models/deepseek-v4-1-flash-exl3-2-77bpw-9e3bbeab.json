@@ -2653,18 +2653,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "0xsero",
       "slug": "deepseek-v4-1-flash-exl3",
-      "title": "DeepSeek V4.1 Flash EXL3"
+      "title": "V4.1 Flash"
     },
     "publisher": "0xsero",
     "slug": "deepseek-v4-1-flash-exl3-2-77bpw-9e3bbeab",
-    "variant": "exl3-2.77bpw-k2k3k5-9e3bbeab",
-    "version": "exl3-2.77bpw-k2k3k5-9e3bbeab"
+    "variant": "exl3-2.77bpw-k2k3k5",
+    "version": "exl3-2.77bpw-k2k3k5"
   },
   "kind": "model",
   "license": {

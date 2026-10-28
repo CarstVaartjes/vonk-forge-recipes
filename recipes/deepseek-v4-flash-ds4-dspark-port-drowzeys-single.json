@@ -44,7 +44,7 @@
       "spark",
       "tool-use"
     ],
-    "title": "DeepSeek V4 Flash ds4 Q2 with DSpark-style speculation (drowzeys) one Spark"
+    "title": "DeepSeek V4 Flash Q2 with DSpark-style speculation · drowzeys · DS4 · 1 Spark"
   },
   "models": [
     {
@@ -72,7 +72,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "08438e74ddda5d47084d1590077d1786c9e8ea8b1be66bb5fdb35f4520e006f2",
+        "content_sha256": "b0e6d21d466e3c96cb68de718af2be41fb377a6e9ca52a2a31b2c6a0d2f33cce",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-flash-ds4-q2-imatrix-mtp-f71f23d5"

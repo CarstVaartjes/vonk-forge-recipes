@@ -55,7 +55,7 @@
       "tool-use",
       "vllm"
     ],
-    "title": "DeepSeek V4.1 Flash EXL3 2.0 bpw sfxnz vLLM two Sparks"
+    "title": "DeepSeek V4.1 Flash EXL3 2.0 bpw · sfxnz · vLLM · 2 Sparks"
   },
   "models": [
     {
@@ -668,7 +668,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e32329911140300872cd575579a42480b797a1c16faf6cf32f4ee67406f6953e",
+        "content_sha256": "f5fa406b50170524e5100072ab6dd76af5fd572cb8c4ef4c0ea5e7b1da46ed71",
         "kind": "model",
         "publisher": "sfxnz",
         "slug": "deepseek-v4-1-flash-exl3-2bpw-mcg-viterbi-982b7045"

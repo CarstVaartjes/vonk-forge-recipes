@@ -48,7 +48,7 @@
       "mia",
       "spark"
     ],
-    "title": "DeepSeek V4.1 Flash 1017 EAQ 2.9bpw TensorFold TP2 (Mia)"
+    "title": "DeepSeek V4.1 Flash 1017 EAQ 2.9bpw · MiaAI-Lab · TensorFold · 2 Sparks"
   },
   "models": [
     {
@@ -573,7 +573,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "da464c8cbd1c228a82f83c1f1e9579dadae1d5b09b5cf05f47cf449b02385f6e",
+        "content_sha256": "27f33d05e7fc55fc1205e82d53f24306f4adad05eccf1707184c6780a7288e6c",
         "kind": "model",
         "publisher": "mia-ailab",
         "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-6d54be4f"
@@ -617,7 +617,7 @@
       ],
       "id": "engram",
       "model": {
-        "content_sha256": "12ed67e42c35dc08489bacb4d87ebd581bfd7360f404e879622f8cdcae9c3ca7",
+        "content_sha256": "072fa0b180f57135fb91b802570d9ff0d719f3d774ce086bf170689268e05e63",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-1017-native-1bae0e10"

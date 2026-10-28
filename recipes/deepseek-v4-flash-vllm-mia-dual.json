@@ -44,7 +44,7 @@
       "tool-use",
       "vllm"
     ],
-    "title": "DeepSeek V4 Flash vLLM two Sparks (Mia)"
+    "title": "DeepSeek V4 Flash · MiaAI-Lab · vLLM · 2 Sparks"
   },
   "models": [
     {
@@ -855,7 +855,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4d545ba0fbacb2101d3189c282ac4e4a4f1dc135a32b42362141e2d9466640f1",
+        "content_sha256": "4e4927cbc59b9b02f57ff56054e8a0d2b93f7de124c3e4c304fc5e388f998dbd",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-60d8d707"

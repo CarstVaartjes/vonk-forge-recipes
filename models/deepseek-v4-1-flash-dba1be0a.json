@@ -807,18 +807,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash",
-      "title": "DeepSeek V4.1 Flash"
+      "title": "V4.1 Flash"
     },
     "publisher": "deepseek-ai",
     "slug": "deepseek-v4-1-flash-dba1be0a",
-    "variant": "official-dba1be0a",
-    "version": "official-dba1be0a"
+    "variant": "official",
+    "version": "official"
   },
   "kind": "model",
   "license": {

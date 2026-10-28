@@ -7,7 +7,7 @@
   ],
   "dependencies": [
     {
-      "content_sha256": "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771",
+      "content_sha256": "7290529965194005d4abbacaab505802c4b36b4646d0a75698600c87d4f12764",
       "kind": "model",
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash-dba1be0a"
@@ -463,18 +463,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "mia-ai-lab",
       "slug": "deepseek-v4-1-flash-exl3",
-      "title": "DeepSeek V4.1 Flash EXL3"
+      "title": "V4.1 Flash"
     },
     "publisher": "mia-ai-lab",
     "slug": "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6",
-    "variant": "exl3-2.9bpw-64ba41b6",
-    "version": "exl3-2.9bpw-64ba41b6"
+    "variant": "exl3-2.9bpw",
+    "version": "exl3-2.9bpw"
   },
   "kind": "model",
   "license": {

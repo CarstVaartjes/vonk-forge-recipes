@@ -444,12 +444,12 @@
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-1-flash-1017",
-      "title": "DeepSeek V4.1 Flash 1017"
+      "title": "V4.1 Flash 1017"
     },
     "publisher": "mia-ailab",
     "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-6d54be4f",
     "variant": "EAQ v1 EXL3 2.9 bpw",
-    "version": "1017-6d54be4f"
+    "version": "1017"
   },
   "kind": "model",
   "license": {

@@ -44,7 +44,7 @@
       "deepseek",
       "moe"
     ],
-    "title": "DeepSeek-V2-Lite Chat SGLang single Spark (NVIDIA playbook)"
+    "title": "DeepSeek-V2-Lite Chat · NVIDIA · SGLang · 1 Spark"
   },
   "models": [
     {
@@ -202,7 +202,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c09c9230b8ab97746c75cae96bb3c2b09516773b68eadcaf64ebf70545237945",
+        "content_sha256": "db447275670c9bf3a049ca30865843b516014e24da92e988c0708f806ba4df10",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v2-lite-chat-85864749"

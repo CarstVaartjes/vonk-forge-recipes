@@ -47,7 +47,7 @@
       "native-vision",
       "vision"
     ],
-    "title": "DeepSeek V4 Flash Vision-Exp DSpark vLLM two Sparks (tonyd2wild)"
+    "title": "DeepSeek V4 Flash Vision Experimental DSpark · tonyd2wild · vLLM · 2 Sparks"
   },
   "models": [
     {
@@ -979,7 +979,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7a5cff0cc5fb0191cb96282a6b7bce85cac8496921d4d73d282a59aefb00a923",
+        "content_sha256": "f7484841b91f877bef60a90ed6002bc675a1ec2ad9b61b6c86ea1b7ada45d3bc",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-vision-exp-6821d6ad"

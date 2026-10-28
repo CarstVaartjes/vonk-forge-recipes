@@ -680,18 +680,18 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek",
+      "title": "DeepSeek"
     },
     "model": {
       "publisher": "deepseek-ai",
       "slug": "deepseek-v4-flash-0731",
-      "title": "DeepSeek V4 Flash 0731"
+      "title": "V4 Flash 0731"
     },
     "publisher": "deepseek-ai",
     "slug": "deepseek-v4-flash-0731-9e165c30",
-    "variant": "0731-9e165c30",
-    "version": "0731-9e165c30"
+    "variant": "0731",
+    "version": "0731"
   },
   "kind": "model",
   "license": {

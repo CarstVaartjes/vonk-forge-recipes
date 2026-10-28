@@ -47,7 +47,7 @@
       "tool-use",
       "vllm"
     ],
-    "title": "DeepSeek V4.1 Flash EXL3 2.9 bpw Mia two Sparks"
+    "title": "DeepSeek V4.1 Flash EXL3 2.9 bpw · MiaAI-Lab · vLLM · 2 Sparks"
   },
   "models": [
     {
@@ -594,7 +594,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d97c40040f4d453fb25dfcf8c7e5d48c59872c1363d1a68aa29c297ed000a801",
+        "content_sha256": "c2038df5ccc00dfef099e1f83cef4d9cdc111e99359a45161e439065e7ca25e2",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6"
@@ -649,7 +649,7 @@
       ],
       "id": "dependency-deepseek-v4-1-flash-dba1be0a",
       "model": {
-        "content_sha256": "3557980356ff5a14cd62aaf3bebeddc3b002409a3192e7daef4b49168ade1771",
+        "content_sha256": "7290529965194005d4abbacaab505802c4b36b4646d0a75698600c87d4f12764",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-dba1be0a"
