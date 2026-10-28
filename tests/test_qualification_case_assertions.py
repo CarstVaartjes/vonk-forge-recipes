@@ -284,7 +284,7 @@ MINIMAL_MEDIA_PARAMETERS = {
     },
     "hunyuan-video-15-i2v-step-distilled-diffusers-single": {"num-frames": 1},
     "ltx-2-19b-dev-fp4-pytorch-single": {"num-frames": 1, "num-inference-steps": 2},
-    "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 120},
+    "fasth3-8step-v2-drowzeys-tensorfold-single": {"num-frames": 124},
 }
 # These unproven recipes share their entire context with a hardware pass.
 # Keep the single adapter unchanged rather than fork it for smaller smokes.
@@ -341,7 +341,7 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
                 )
                 if slug.startswith("minimax"):
                     assert request["profile"] == "smoke-only"
-                    assert request["num_frames"] == 120
+                    assert request["num_frames"] == 124
                     video = next(
                         a for a in spec["assertions"] if a["kind"] == "video-metadata"
                     )

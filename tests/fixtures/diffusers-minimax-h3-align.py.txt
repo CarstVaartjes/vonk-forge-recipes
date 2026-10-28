@@ -1,0 +1,17 @@
+def align_num_frames(num_frames: int, frames_per_chunk: int, latents_per_chunk: int) -> int:
+    r"""
+    Snap a frame count up to the next `frames_per_chunk * n + latents_per_chunk` the video VAE can encode.
+
+    Args:
+        num_frames (`int`): The requested number of frames.
+        frames_per_chunk (`int`): Pixel frames the video VAE encodes per chunk, its `clip_length`.
+        latents_per_chunk (`int`): Latent frames a chunk keeps, the VAE's `tokens_chunk_size`.
+
+    Returns:
+        `int`: The aligned number of frames.
+    """
+    if num_frames < 1:
+        raise ValueError(f"`num_frames` must be positive, got {num_frames}.")
+    while num_frames % frames_per_chunk != latents_per_chunk:
+        num_frames += 1
+    return num_frames
