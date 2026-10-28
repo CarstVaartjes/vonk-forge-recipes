@@ -229,22 +229,54 @@ def test_the_vllm_scripts_env_shebang_interpreter_is_tried_before_python3(
     assert record.read_text() == "served False"
 
 
-def test_a_parse_that_never_returns_fails_with_its_bound(
+# Resolved before any test empties PATH.
+SLEEP = shutil.which("sleep")
+
+
+def hung_python(tmp_path: Path) -> Path:
+    assert SLEEP is not None
+    return script(tmp_path / "hung-python", f"{SLEEP} 30\n")
+
+
+def test_a_hung_interpreter_yields_to_the_next(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    sleep = shutil.which("sleep")
-    assert sleep is not None
-    installed_vllm(tmp_path, monkeypatch, ACCEPTS)
-    hung = script(tmp_path / "hung-python", f"{sleep} 30\n")
-    with pytest.raises(SystemExit, match="did not finish within 1 s"):
-        execute_smoke(
-            tmp_path,
-            pinned(tmp_path, SERVED),
-            [],
-            [("served", False)],
-            [str(hung)],
-            parse_timeout_seconds=1,
-        )
+    record = installed_vllm(tmp_path, monkeypatch, ACCEPTS)
+    hung = hung_python(tmp_path)
+    files = pinned(tmp_path, SERVED)
+    execute_smoke(
+        tmp_path, files, [], [("served", False)], [str(hung)], parse_timeout_seconds=1
+    )
+    assert record.read_text() == "served False"
+
+
+def test_a_hung_interpreter_and_no_other_warns_instead_of_failing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-path"))
+    monkeypatch.delenv("PYTHONPATH", raising=False)
+    hung = hung_python(tmp_path)
+    files = pinned(tmp_path, SERVED)
+    execute_smoke(
+        tmp_path, files, [], [("served", False)], [str(hung)], parse_timeout_seconds=1
+    )
+    out = capsys.readouterr().out
+    assert f"::warning::image {KEY}: no interpreter ran vllm get_config" in out
+    assert f"{hung}: did not finish within 1 s" in out
+
+
+def test_a_get_config_that_hangs_fails_with_its_stack(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capfd: pytest.CaptureFixture[str],
+) -> None:
+    installed_vllm(tmp_path, monkeypatch, "    import time\n    time.sleep(30)\n")
+    files = pinned(tmp_path, SERVED)
+    with pytest.raises(SystemExit, match=r"did not finish within 1 s \(its stack"):
+        execute_smoke(tmp_path, files, [], [("served", False)], parse_timeout_seconds=1)
+    assert "in get_config" in capfd.readouterr().err
 
 
 class Response(io.BytesIO):

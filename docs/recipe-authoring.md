@@ -1120,9 +1120,10 @@ endpoint role's first mount, as the Controller rewrites it, and a launcher's own
 `vllm serve /models` stays `/models`. It is parsed with each `trust-remote-code`
 value its base or option choices can start with, under the interpreter the
 adapter's `/opt/vonk/bin/vllm` launcher names, then the `vllm` script's shebang,
-then `python3`. Only an exception from `get_config` fails the build (with vLLM's
-traceback, or a parse that outlives its bound); an interpreter that cannot run
-vLLM yields to the next, and when none can the build prints a `::warning::`
+then `python3`. Only `get_config` itself fails the build: an exception (with
+vLLM's traceback) or a hang after vLLM imported (with its dumped stack, at the
+parse bound). An interpreter that cannot run vLLM, or hangs before importing it,
+yields to the next, and when none can the build prints a `::warning::`
 naming the image, the interpreters and their statuses. A recipe whose served
 path mounts no `config.json` is a plan `::notice::` and is not parsed. Downloads
 retry transient network, 429 and 5xx errors with backoff; changed bytes fail at

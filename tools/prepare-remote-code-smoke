@@ -228,10 +228,17 @@ VLLM_CONFIGS = {vllm_configs!r}
 ENGINE_PYTHONS = {engine_pythons!r}
 IMAGE = {image!r}
 PARSE_TIMEOUT_SECONDS = 600
+# Printed once vLLM imported: a timeout after it is a hang inside get_config.
+IMPORTED = "vonk-smoke: vllm imported"
 # Exit status 4 only when get_config itself raises: the one rejection. Any other
-# status means this interpreter cannot run vLLM, so the next one is tried.
-PARSE = '''import sys
+# status, or a hang before the import marker, means this interpreter cannot run
+# vLLM, so the next one is tried.
+PARSE = '''import faulthandler
+import sys
 from vllm.transformers_utils.config import get_config
+print("vonk-smoke: vllm imported", flush=True)
+# A get_config that hangs dumps its stack before the parent's bound kills it.
+faulthandler.dump_traceback_later(float(sys.argv[3]) * 0.8)
 try:
     get_config(sys.argv[1], trust_remote_code=sys.argv[2] == "True")
 except Exception:
@@ -343,19 +350,29 @@ if FILES:
                 arguments = [str(Path(temporary) / directory), str(trust_remote_code)]
                 attempts = []
                 for python in list(candidates):
+                    bound = str(PARSE_TIMEOUT_SECONDS)
                     try:
-                        status = subprocess.run(
-                            [python, "-c", PARSE, *arguments],
+                        completed = subprocess.run(
+                            [python, "-c", PARSE, *arguments, bound],
                             timeout=PARSE_TIMEOUT_SECONDS,
-                        ).returncode
-                    except subprocess.TimeoutExpired:
-                        raise SystemExit(
-                            "vllm get_config of " + directory + " under " + python
-                            + " did not finish within " + str(PARSE_TIMEOUT_SECONDS) + " s"
+                            stdout=subprocess.PIPE,
                         )
+                    except subprocess.TimeoutExpired as error:
+                        output = (error.output or b"").decode(errors="replace")
+                        print(output, end="", flush=True)
+                        if IMPORTED in output:
+                            raise SystemExit(
+                                "vllm get_config of " + directory + " under " + python
+                                + " did not finish within " + bound + " s (its stack is above)"
+                            )
+                        # A hang before vLLM imported is this interpreter's fault.
+                        attempts.append(python + ": did not finish within " + bound + " s")
+                        continue
                     except OSError as error:
                         attempts.append(python + ": " + str(error))
                         continue
+                    print(completed.stdout.decode(errors="replace"), end="", flush=True)
+                    status = completed.returncode
                     if status == 0:
                         # The interpreter that runs vLLM parses the rest first.
                         candidates.remove(python)
