@@ -106,15 +106,39 @@ class ServedConfig(NamedTuple):
     interpreters: tuple[str, ...]
 
 
-def served_path(recipe: RecipeDefinition) -> str:
+def primary_target(recipe: RecipeDefinition) -> str | None:
+    """The endpoint role's first mounted target, in recipe.models order."""
+    roles = recipe.topology.roles
+    role = next((role.name for role in roles if role.endpoint_owner), roles[0].name)
+    for selection in recipe.models:
+        for item in selection.files:
+            if role in item.roles:
+                return item.mount.target
+    return None
+
+
+def served_path(recipe: RecipeDefinition) -> str | None:
     """Where vLLM reads the served Model: `serve <path>`, `--model`, or /models."""
     entrypoint = recipe.runtime.entrypoint
     if "serve" in entrypoint[:-1]:
-        return entrypoint[entrypoint.index("serve") + 1]
-    for argument in recipe.runtime.arguments:
-        if argument.name == "model" and isinstance(argument.value, str):
-            return argument.value
-    return LAUNCHER_SERVED_PATH
+        path: str | None = entrypoint[entrypoint.index("serve") + 1]
+    else:
+        path = next(
+            (
+                argument.value
+                for argument in recipe.runtime.arguments
+                if argument.name == "model" and isinstance(argument.value, str)
+            ),
+            None,
+        )
+        if path is None:
+            # A launcher's own `vllm serve /models` is not in the argv the
+            # Controller rewrites, so it serves /models as written.
+            return LAUNCHER_SERVED_PATH
+    # The Controller rewrites every argv value exactly /models to the endpoint
+    # role's first mount target for every engine but SGLang (vonk-forge
+    # control/src/vonk_control/harnesses/canonical.py:460-466).
+    return primary_target(recipe) if path == LAUNCHER_SERVED_PATH else path
 
 
 def trust_remote_code(recipe: RecipeDefinition) -> tuple[bool, ...]:
@@ -153,6 +177,8 @@ def engine_interpreters(recipe: RecipeDefinition, root: Path) -> tuple[str, ...]
 def served_config(recipe: RecipeDefinition, root: Path) -> ServedConfig | str:
     """The served Model's pinned config.json, or why a vLLM recipe has none."""
     path = served_path(recipe)
+    if path is None:
+        return "the endpoint role mounts no Model"
     selection = next(
         (
             selection
@@ -201,15 +227,17 @@ VLLM_CONFIGS = {vllm_configs!r}
 # The adapter's engine interpreters, tried before this image's python3.
 ENGINE_PYTHONS = {engine_pythons!r}
 IMAGE = {image!r}
-# Exit status 3: this interpreter cannot import vLLM, so try the next one.
+PARSE_TIMEOUT_SECONDS = 600
+# Exit status 4 only when get_config itself raises: the one rejection. Any other
+# status means this interpreter cannot run vLLM, so the next one is tried.
 PARSE = '''import sys
+from vllm.transformers_utils.config import get_config
 try:
-    from vllm.transformers_utils.config import get_config
-except ModuleNotFoundError as error:
-    if (error.name or "").split(".")[0] == "vllm":
-        sys.exit(3)
-    raise
-get_config(sys.argv[1], trust_remote_code=sys.argv[2] == "True")
+    get_config(sys.argv[1], trust_remote_code=sys.argv[2] == "True")
+except Exception:
+    import traceback
+    traceback.print_exc()
+    sys.exit(4)
 '''
 
 if FILES:
@@ -217,9 +245,25 @@ if FILES:
         files = {{Path(temporary) / name: (url, digest, size) for url, digest, size, name in FILES}}
 
         def download(path):
+            import random
+            import time
+            import urllib.error
+
             url, digest, size = files[path]
-            with urllib.request.urlopen(url, timeout=30) as response:
-                content = response.read(size + 1)
+            # Transient network and server errors are retried with jittered
+            # backoff; a client error or changed bytes fail at once.
+            for attempt in range(5):
+                try:
+                    with urllib.request.urlopen(url, timeout=30) as response:
+                        content = response.read(size + 1)
+                    break
+                except urllib.error.HTTPError as error:
+                    if (error.code != 429 and error.code < 500) or attempt == 4:
+                        raise
+                except (urllib.error.URLError, TimeoutError, ConnectionError):
+                    if attempt == 4:
+                        raise
+                time.sleep(min(30, 2**attempt) * (0.5 + random.random() / 2))
             if len(content) != size or hashlib.sha256(content).hexdigest() != digest:
                 raise RuntimeError("remote-code content mismatch: " + url)
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -268,28 +312,67 @@ if FILES:
             for name, value in list(os.environ.items()):
                 if value.startswith("/outputs/"):
                     os.environ[name] = temporary + value
-            candidates = [python for python in ENGINE_PYTHONS if os.access(python, os.X_OK)]
+
+            # The interpreter a script's #! line runs, resolved like exec.
+            def shebang(path):
+                try:
+                    with open(path, "rb") as script:
+                        line = script.readline(4096)
+                except OSError:
+                    return None
+                if not line.startswith(b"#!"):
+                    return None
+                words = line[2:].decode(errors="replace").split()
+                if words and words[0].endswith("/env"):
+                    words = [word for word in words[1:] if not word.startswith("-")]
+                    return shutil.which(words[0]) if words else None
+                return words[0] if words else None
+
+            candidates = list(ENGINE_PYTHONS)
             executable = shutil.which("vllm")
             if executable is not None:
-                with open(executable, "rb") as script:
-                    line = script.readline()
-                if line.startswith(b"#!") and b"python" in line:
-                    candidates.append(line[2:].decode().split()[0])
+                candidates.append(shebang(executable))
             candidates.append(sys.executable)
-            candidates = list(dict.fromkeys(candidates))
+            candidates = [
+                python
+                for python in dict.fromkeys(candidates)
+                if python and os.path.isfile(python) and os.access(python, os.X_OK)
+            ]
             for directory, trust_remote_code in VLLM_CONFIGS:
                 print("vllm get_config: " + directory + " trust_remote_code=" + str(trust_remote_code), flush=True)
                 arguments = [str(Path(temporary) / directory), str(trust_remote_code)]
-                while candidates:
-                    status = subprocess.run([candidates[0], "-c", PARSE, *arguments]).returncode
-                    if status != 3:
+                attempts = []
+                for python in list(candidates):
+                    try:
+                        status = subprocess.run(
+                            [python, "-c", PARSE, *arguments],
+                            timeout=PARSE_TIMEOUT_SECONDS,
+                        ).returncode
+                    except subprocess.TimeoutExpired:
+                        raise SystemExit(
+                            "vllm get_config of " + directory + " under " + python
+                            + " did not finish within " + str(PARSE_TIMEOUT_SECONDS) + " s"
+                        )
+                    except OSError as error:
+                        attempts.append(python + ": " + str(error))
+                        continue
+                    if status == 0:
+                        # The interpreter that runs vLLM parses the rest first.
+                        candidates.remove(python)
+                        candidates.insert(0, python)
                         break
-                    candidates.pop(0)
-                if not candidates:
-                    print("::warning::image " + IMAGE + ": no interpreter imports vllm; its served config is not parsed", flush=True)
-                    break
-                if status != 0:
-                    raise SystemExit("vllm rejected the served config of " + directory)
+                    if status == 4:
+                        raise SystemExit(
+                            "vllm rejected the served config of " + directory
+                            + " under " + python + " (its traceback is above)"
+                        )
+                    attempts.append(python + ": exit " + str(status))
+                else:
+                    print(
+                        "::warning::image " + IMAGE + ": no interpreter ran vllm get_config for "
+                        + directory + " (" + ("; ".join(attempts) or "no interpreter found") + ")",
+                        flush=True,
+                    )
 """
 
 
@@ -363,8 +446,8 @@ def prepare(plan: Plan, output: Path, root: Path = ROOT) -> None:
             served = served_config(recipe, root)
             if isinstance(served, str):
                 print(
-                    f"note: {planned.source_path}: no vLLM config parse: {served}",
-                    file=sys.stderr,
+                    f"::notice::{planned.source_path}: no vLLM config parse: {served}",
+                    flush=True,
                 )
                 continue
             files.add(served.file)

@@ -1114,16 +1114,20 @@ load (`modelopt-*`, or `quantization` `modelopt`, `modelopt_fp8` or
 architecture's Transformers fallback is not checked and fails at load.
 Engine plugins outside that graph belong to the engine's build/import checks.
 For every vLLM image, with or without remote code, the installed vLLM also
-parses the served Model's pinned `config.json` with `get_config`. The served Model
-is the one mounted at the path after `serve`, the `model` argument, or `/models`
-for a launcher, parsed with each `trust-remote-code` value its base or option
-choices can start with. It runs under the interpreter the adapter's
-`/opt/vonk/bin/vllm` launcher names, then the `vllm` script's own, then `python3`;
-when none imports vLLM the build prints a `::warning::` naming the image. A
-recipe whose served path mounts no `config.json` is named in a plan `note:`
-and is not parsed. A rejected config fails the build instead of the start
-(vLLM 0.30.0's own LagunaConfig rejected Laguna's nested RoPE under
-Transformers 5.17).
+parses the served Model's pinned `config.json` with `get_config`. The served
+path is the one after `serve` or the `model` argument; an argv `/models` is the
+endpoint role's first mount, as the Controller rewrites it, and a launcher's own
+`vllm serve /models` stays `/models`. It is parsed with each `trust-remote-code`
+value its base or option choices can start with, under the interpreter the
+adapter's `/opt/vonk/bin/vllm` launcher names, then the `vllm` script's shebang,
+then `python3`. Only an exception from `get_config` fails the build (with vLLM's
+traceback, or a parse that outlives its bound); an interpreter that cannot run
+vLLM yields to the next, and when none can the build prints a `::warning::`
+naming the image, the interpreters and their statuses. A recipe whose served
+path mounts no `config.json` is a plan `::notice::` and is not parsed. Downloads
+retry transient network, 429 and 5xx errors with backoff; changed bytes fail at
+once. (vLLM 0.30.0's own LagunaConfig rejected Laguna's nested RoPE under
+Transformers 5.17 at start on hardware; this parse catches that class at build.)
 The check fetches only pinned configs and source code and verifies the Model's
 hash and size; it loads no weights and requires no GPU. Keep remote-code
 dependencies hash-locked
