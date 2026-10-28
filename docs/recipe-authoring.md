@@ -457,9 +457,10 @@ expansion and capped token/state pools in `mem-fraction-static` × the lowest id
 available bytes. Its absolute `max-total-tokens` cap must hold one full-context
 request, not context × `max-running-requests`: SGLang schedules requests within
 it, and the proven Qwen3.8 Flash Next W4A16 dual caps one 262,144-token context
-at concurrency 4. A hybrid model's `max-mamba-cache-size` must hold one
-request's five state slots; at startup SGLang lowers `max-running-requests` to
-slots // 5, so 5 slots serve concurrency 1. With speculation the budget also
+at concurrency 4. A hybrid model's `max-mamba-cache-size` must hold five
+state slots per running request (`max-running-requests`); at startup SGLang lowers
+`max-running-requests` to slots // 5 and fails below one, so 5 slots serve
+concurrency 1 and 20 serve concurrency 4. With speculation the budget also
 charges (min(`max-running-requests`, slots // 5) + 1) ×
 `speculative-num-draft-tokens` intermediate state slots. Geometry that names a
 `runtime_image_digest` applies only to that image. A multi-Spark vLLM recipe file a change touches must bound KV

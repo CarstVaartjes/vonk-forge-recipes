@@ -347,15 +347,15 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
     recipe.runtime.arguments.remove(cap)
     with pytest.raises(ValueError, match="set absolute max-total-tokens"):
         require_memory_need(recipe, models, inputs, document_digest="")
-    # The state cap holds one request's five slots, not five per running request.
+    # The state cap holds five slots for each of the four running requests.
     recipe = recipe_for(QWEN_NEXT)
     slots = next(
         arg for arg in recipe.runtime.arguments if arg.name == "max-mamba-cache-size"
     )
-    slots.value = 5
+    slots.value = 20
     require_memory_need(recipe, models, inputs, document_digest="")
-    slots.value = 4
-    with pytest.raises(ValueError, match="state slots of one request"):
+    slots.value = 19
+    with pytest.raises(ValueError, match="state slots of each of 4 running"):
         require_memory_need(recipe, models, inputs, document_digest="")
 
     # Fault injection at the budget edge: without speculation 0.571 holds the

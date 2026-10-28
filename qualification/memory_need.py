@@ -468,11 +468,7 @@ def calculate_need(
         kv += cache_need_for_context(recipe, geometry, context) * concurrency
         slots = concurrency
         if geometry.state_padding:
-            slots = positive_argument(recipe, "max-mamba-cache-size")
-            if slots < concurrency:
-                raise ValueError(
-                    f"{label}: absolute state pool cannot hold concurrency"
-                )
+            slots = sglang_mamba_slots(recipe, label)
         state += geometry.state_bytes_per_request * (slots + geometry.state_padding)
     # A draft's weights are counted above, like the target's; vLLM holds
     # nothing else for it beside its budget (vllm_memory_fit.py).
@@ -507,6 +503,24 @@ def pinned_geometry(
     ):
         raise ValueError(f"{label}: cache geometry does not match the pinned image")
     return geometry
+
+
+def sglang_mamba_slots(recipe: RecipeDefinition, label: str) -> int:
+    """max-mamba-cache-size, which must hold five state slots per running request.
+
+    kv_cache_configurator.resolve_max_num_reqs sets max_num_reqs to
+    max-mamba-cache-size // 5 and raises at 0, so fewer slots either fail the
+    start (operation 31e3de45, 2 slots) or silently lower the concurrency.
+    """
+    slots = positive_argument(recipe, "max-mamba-cache-size")
+    running = positive_argument(recipe, "max-running-requests")
+    if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST * running:
+        raise ValueError(
+            f"{label}: max-mamba-cache-size {slots} cannot hold the "
+            f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots of each of "
+            f"{running} running requests"
+        )
+    return slots
 
 
 def sglang_static_need(
@@ -561,12 +575,7 @@ def sglang_static_need(
         if geometry.sglang_state_bytes_per_slot:
             if argument_value(recipe, "max-mamba-cache-size") is None:
                 raise ValueError(f"{key}: set absolute max-mamba-cache-size")
-            slots = positive_argument(recipe, "max-mamba-cache-size")
-            if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST:
-                raise ValueError(
-                    f"{key}: max-mamba-cache-size {slots} cannot hold the "
-                    f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots of one request"
-                )
+            slots = sglang_mamba_slots(recipe, key)
             need += geometry.sglang_state_bytes_per_slot * (slots + 1)
             if argument_value(recipe, "speculative-algorithm") is not None:
                 # _handle_max_mamba_cache: per-step intermediate state for the
@@ -586,8 +595,7 @@ def sglang_static_need(
             if argument_value(recipe, "max-mamba-cache-size") is None:
                 raise ValueError(f"{key}: set absolute max-mamba-cache-size")
             need += geometry.state_bytes_per_request * (
-                positive_argument(recipe, "max-mamba-cache-size")
-                + geometry.state_padding
+                sglang_mamba_slots(recipe, key) + geometry.state_padding
             )
     return need
 
@@ -609,7 +617,7 @@ def require_sglang_rank_budget(
     (require_absolute_kv_capacity), not context x max-running-requests: SGLang
     schedules requests within it. The proven Qwen3.8 Flash Next W4A16 r0b0tlab
     dual caps one 262,144-token context at concurrency 4. The state cap must
-    hold one request's slots: at startup kv_cache_configurator
+    hold five slots per running request: at startup kv_cache_configurator
     .resolve_max_num_reqs lowers max-running-requests to max-mamba-cache-size
     // 5 and fails only below one, so 5 slots serve concurrency 1. With
     speculation, _handle_max_mamba_cache adds intermediate state for those
