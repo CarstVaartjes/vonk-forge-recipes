@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import importlib.machinery
 import json
 import runpy
 import sys
 import types
+from collections.abc import Callable
 from pathlib import Path
 from unittest.mock import patch
 
@@ -84,6 +86,110 @@ def test_moss_smoke_covers_pinned_model_and_processor_imports(tmp_path: Path) ->
     assert "video_preprocessor_config.json" in program
 
 
+def fake_vllm(
+    get_config: Callable[[str, bool], None],
+) -> dict[str, types.ModuleType | None]:
+    """The import path the smoke uses into an installed vLLM, and nothing else."""
+    modules: dict[str, types.ModuleType | None] = {}
+    for name in ("vllm", "vllm.transformers_utils", "vllm.transformers_utils.config"):
+        module = types.ModuleType(name)
+        module.__spec__ = importlib.machinery.ModuleSpec(name, None)
+        modules[name] = module
+        if name.endswith(".config"):
+            module.__dict__["get_config"] = get_config
+    return modules
+
+
+LAGUNA_SOURCES = {
+    "laguna/config.json": b'{"auto_map":{"AutoConfig":"configuration_laguna.LagunaConfig"}}',
+    "laguna/configuration_laguna.py": b"import json\n",
+}
+
+
+def pinned(
+    tmp_path: Path, sources: dict[str, bytes]
+) -> list[tuple[str, str, int, str]]:
+    files = []
+    for name, content in sources.items():
+        source = tmp_path / "source" / name
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_bytes(content)
+        files.append(
+            (source.as_uri(), hashlib.sha256(content).hexdigest(), len(content), name)
+        )
+    return files
+
+
+def test_vllm_parses_the_served_config_and_a_rejection_fails_the_smoke(
+    tmp_path: Path,
+) -> None:
+    parsed: list[tuple[str, bool]] = []
+
+    def accepts(path: str, trust_remote_code: bool) -> None:
+        assert (Path(path) / "config.json").is_file()
+        parsed.append((Path(path).name, trust_remote_code))
+
+    files = pinned(tmp_path, LAGUNA_SOURCES)
+    execute_smoke(tmp_path, files, [], [("laguna", True)], fake_vllm(accepts))
+    assert parsed == [("laguna", True)]
+
+    def rejects(path: str, trust_remote_code: bool) -> None:
+        # vLLM 0.30.0's LagunaConfig under Transformers 5.17 (sweep 2026-10-27).
+        raise AttributeError("'str' object has no attribute 'get'")
+
+    with pytest.raises(AttributeError, match="has no attribute 'get'"):
+        execute_smoke(tmp_path, files, [], [("laguna", False)], fake_vllm(rejects))
+
+
+def test_an_image_without_importable_vllm_skips_the_config_parse(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    files = pinned(tmp_path, LAGUNA_SOURCES)
+    # A None entry makes importlib.util.find_spec report the module absent.
+    absent: dict[str, types.ModuleType | None] = {"vllm": None}
+    assert execute_smoke(tmp_path, files, [], [("laguna", False)], absent) == [
+        "configuration_laguna.py"
+    ]
+    assert "skipped, python3 cannot import vllm" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("source", "served"),
+    [
+        # vLLM 0.30.0 rejected this config at start on hardware (2026-10-27).
+        (
+            "recipes/laguna-s-2-1-nvfp4-vllm-single.json",
+            ("laguna-s-2-1-nvfp4-07614121", False),
+        ),
+        (
+            "recipes/laguna-s-2-1-nvfp4-vllm-low-memory-canary-single.json",
+            ("laguna-s-2-1-nvfp4-07614121", False),
+        ),
+        # The served target, never its drafter; the recipe's trust flag.
+        (
+            "recipes/laguna-s-2-1-nvfp4-r0b0tlab-vllm-single.json",
+            ("laguna-s-2-1-nvfp4-07614121", True),
+        ),
+        ("recipes/moss-vl-realtime-11b-pytorch-single.json", None),
+    ],
+)
+def test_vllm_recipes_plan_their_served_config_parse(
+    tmp_path: Path, source: str, served: tuple[str, bool] | None
+) -> None:
+    plan = TOOL["Plan"].model_validate(
+        {"images": [{"build_key": KEY, "recipes": [{"source_path": source}]}]}
+    )
+    TOOL["prepare"](plan, tmp_path)
+    program = (tmp_path / KEY / "remote-code-smoke.py").read_text()
+    emitted = next(
+        ast.literal_eval(node.value)
+        for node in ast.parse(program).body
+        if isinstance(node, ast.Assign)
+        and ast.unparse(node.targets[0]) == "VLLM_CONFIGS"
+    )
+    assert emitted == ([] if served is None else [served])
+
+
 def test_image_workflow_checks_imports_before_platform_layer_and_push() -> None:
     workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
     assert "python tools/prepare-remote-code-smoke" in workflow
@@ -115,7 +221,11 @@ def run_smoke(
 
 
 def execute_smoke(
-    tmp_path: Path, files: list[tuple[str, str, int, str]], model_code: list[str]
+    tmp_path: Path,
+    files: list[tuple[str, str, int, str]],
+    model_code: list[str],
+    vllm_configs: list[tuple[str, bool]] | None = None,
+    modules: dict[str, types.ModuleType | None] | None = None,
 ) -> list[str]:
     module = types.ModuleType("transformers.dynamic_module_utils")
     checked: list[str] = []
@@ -137,8 +247,14 @@ def execute_smoke(
 
     module.__dict__["check_imports"] = check_imports
     script = tmp_path / "remote-code-smoke.py"
-    script.write_text(TOOL["CHECK"].format(files=files, model_code=model_code))
-    with patch.dict(sys.modules, {"transformers.dynamic_module_utils": module}):
+    script.write_text(
+        TOOL["CHECK"].format(
+            files=files, model_code=model_code, vllm_configs=vllm_configs or []
+        )
+    )
+    with patch.dict(
+        sys.modules, {"transformers.dynamic_module_utils": module, **(modules or {})}
+    ):
         runpy.run_path(str(script))
     return checked
 

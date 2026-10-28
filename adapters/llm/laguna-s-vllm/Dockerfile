@@ -1,9 +1,9 @@
-FROM docker.io/vllm/vllm-openai@sha256:4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56
+FROM docker.io/vllm/vllm-openai@sha256:3f7dd5b777d34d1724456ce71f87385dca288c3bb23029ab27dee358f5d2b971
 
 LABEL org.opencontainers.image.source="https://github.com/vllm-project/vllm" \
-      org.opencontainers.image.revision="ced6857afa0ea7b2e3f0846a62e1394e90f15607" \
+      org.opencontainers.image.revision="db9527a46873454610df6dbedf79a36d6bf1a7f6" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      io.vonk.vllm.build-commit="ced6857afa0ea7b2e3f0846a62e1394e90f15607"
+      io.vonk.vllm.build-commit="db9527a46873454610df6dbedf79a36d6bf1a7f6"
 
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
     && if ! getent passwd 10001 >/dev/null; then useradd --uid 10001 --gid 10001 --home-dir /outputs/cache/home --no-create-home --shell /usr/sbin/nologin vonk; fi \
