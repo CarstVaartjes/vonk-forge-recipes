@@ -25,7 +25,7 @@ from qualification.memory_need import (
     per_rank_need,
     require_admissible_declaration,
     require_memory_need,
-    sglang_static_need,
+    require_sglang_rank_budget,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -181,31 +181,23 @@ def test_repaired_role_declares_its_measured_peak_above_the_floor() -> None:
         require_repaired_declaration(slug, recipe)
 
 
-# Measured SGLang pre-load free memory on a Spark (hardware runs, 2026-10): the
-# base mem-fraction-static multiplies. The creators' own fractions hold the
-# weights; a fraction cut below them can never boot (#1647).
-SGLANG_MEASURED_BASE_BYTES = 121_450_000_000
-
-
 @pytest.mark.parametrize(
-    ("slug", "fraction", "max_total_tokens"),
+    ("slug", "shaved"),
     [
-        ("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual", "0.80", 507904),
-        ("mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual", "0.85", 524288),
+        ("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual", "0.645978808810"),
+        ("mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual", "0.718702620795"),
     ],
 )
-def test_sglang_fraction_holds_rank_weights_and_one_request(
-    slug: str, fraction: str, max_total_tokens: int
-) -> None:
+def test_sglang_rank_budget_refuses_the_shaved_fraction(slug: str, shaved: str) -> None:
+    """#1647 cut the fraction below the per-rank weights plus one request's pools."""
     recipe = recipe_for(slug)
-    assert argument_value(recipe, "max-total-tokens") == max_total_tokens
-    held = Decimal(str(argument_value(recipe, "mem-fraction-static")))
-    need = sglang_static_need(
-        recipe, catalog_models(), load_inputs(), slug, pinned=True
-    )
-    # Per-rank sharded weights plus the capped pools of one full request.
-    assert held * SGLANG_MEASURED_BASE_BYTES >= need
-    assert held >= Decimal(fraction)
+    key = f"vonk-forge/{slug}"
+    require_sglang_rank_budget(recipe, catalog_models(), load_inputs(), key)
+    next(
+        a for a in recipe.runtime.arguments if a.name == "mem-fraction-static"
+    ).value = shaved
+    with pytest.raises(ValueError, match="static budget"):
+        require_sglang_rank_budget(recipe, catalog_models(), load_inputs(), key)
 
 
 def test_catalog_checks_each_supported_document() -> None:
