@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import io
 import json
 import runpy
+import shutil
 import sys
 import types
+import urllib.error
+from email.message import Message
 from pathlib import Path
+from typing import Self
 from unittest.mock import patch
 
 import pytest
@@ -84,6 +89,314 @@ def test_moss_smoke_covers_pinned_model_and_processor_imports(tmp_path: Path) ->
     assert "video_preprocessor_config.json" in program
 
 
+def pinned(
+    tmp_path: Path, sources: dict[str, bytes]
+) -> list[tuple[str, str, int, str]]:
+    files = []
+    for name, content in sources.items():
+        path = tmp_path / "source" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+        files.append(
+            (path.as_uri(), hashlib.sha256(content).hexdigest(), len(content), name)
+        )
+    return files
+
+
+# A served Model without remote code: only its config.json is pinned.
+SERVED = {"served/config.json": b'{"model_type": "laguna"}'}
+
+
+def installed_vllm(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, get_config: str
+) -> Path:
+    """A vLLM whose get_config body is ``get_config``, importable by subprocesses."""
+    package = tmp_path / "site" / "vllm" / "transformers_utils"
+    package.mkdir(parents=True)
+    for directory in (package.parent, package):
+        (directory / "__init__.py").write_text("")
+    record = tmp_path / "parsed.txt"
+    (package / "config.py").write_text(
+        "import pathlib\n"
+        "def get_config(path, trust_remote_code):\n"
+        f"    record = pathlib.Path({str(record)!r})\n"
+        "    assert (pathlib.Path(path) / 'config.json').is_file()\n"
+        f"{get_config}"
+    )
+    monkeypatch.setenv("PYTHONPATH", str(tmp_path / "site"))
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-path"))
+    return record
+
+
+ACCEPTS = (
+    "    record.write_text(pathlib.Path(path).name + ' ' + str(trust_remote_code))\n"
+)
+
+
+def test_vllm_parses_the_served_config_of_a_model_without_remote_code(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    record = installed_vllm(tmp_path, monkeypatch, ACCEPTS)
+    assert (
+        execute_smoke(tmp_path, pinned(tmp_path, SERVED), [], [("served", True)]) == []
+    )
+    assert record.read_text() == "served True"
+
+
+def test_a_config_the_installed_vllm_rejects_fails_the_smoke(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # vLLM 0.30.0's LagunaConfig under Transformers 5.17 (sweep 2026-10-27).
+    installed_vllm(
+        tmp_path,
+        monkeypatch,
+        "    raise AttributeError(\"'str' object has no attribute 'get'\")\n",
+    )
+    with pytest.raises(SystemExit, match="vllm rejected the served config of served"):
+        execute_smoke(tmp_path, pinned(tmp_path, SERVED), [], [("served", False)])
+
+
+def test_the_adapter_engine_interpreter_parses_before_python3(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    record = installed_vllm(tmp_path, monkeypatch, ACCEPTS)
+    used = tmp_path / "used.txt"
+    engine = tmp_path / "engine-python"
+    engine.write_text(f'#!/bin/sh\necho engine >> {used}\nexec {sys.executable} "$@"\n')
+    engine.chmod(0o755)
+    # An interpreter that cannot run vLLM (any status but 4) yields to the next.
+    without = tmp_path / "python-without-vllm"
+    without.write_text(f"#!/bin/sh\necho without >> {used}\nexit 1\n")
+    without.chmod(0o755)
+    files = pinned(tmp_path, SERVED)
+    execute_smoke(tmp_path, files, [], [("served", False)], [str(without), str(engine)])
+    assert used.read_text().split() == ["without", "engine"]
+    assert record.read_text() == "served False"
+
+
+def script(path: Path, body: str) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("#!/bin/sh\n" + body)
+    path.chmod(0o755)
+    return path
+
+
+def test_no_interpreter_with_vllm_warns_on_the_image_instead_of_failing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-path"))
+    monkeypatch.delenv("PYTHONPATH", raising=False)
+    broken = script(tmp_path / "broken-python", "exit 1\n")
+    execute_smoke(
+        tmp_path, pinned(tmp_path, SERVED), [], [("served", False)], [str(broken)]
+    )
+    out = capsys.readouterr().out
+    assert (
+        f"::warning::image {KEY}: no interpreter ran vllm get_config for served" in out
+    )
+    # Each interpreter tried is named with its status; none counts as a rejection.
+    assert f"{broken}: exit 1" in out
+    assert f"{sys.executable}: exit 1" in out
+
+
+def test_a_missing_or_unrunnable_interpreter_is_skipped(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    record = installed_vllm(tmp_path, monkeypatch, ACCEPTS)
+    unrunnable = tmp_path / "not-executable-python"
+    unrunnable.write_text("#!/bin/sh\nexit 4\n")
+    pythons = [str(tmp_path / "absent" / "python"), str(unrunnable)]
+    execute_smoke(tmp_path, pinned(tmp_path, SERVED), [], [("served", False)], pythons)
+    assert record.read_text() == "served False"
+
+
+def test_the_vllm_scripts_env_shebang_interpreter_is_tried_before_python3(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    record = installed_vllm(tmp_path, monkeypatch, ACCEPTS)
+    used = tmp_path / "used.txt"
+    bin_dir = tmp_path / "bin"
+    script(
+        bin_dir / "enginepy", f'echo enginepy >> {used}\nexec {sys.executable} "$@"\n'
+    )
+    (bin_dir / "vllm").write_text("#!/usr/bin/env enginepy\n")
+    (bin_dir / "vllm").chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_dir))
+    execute_smoke(tmp_path, pinned(tmp_path, SERVED), [], [("served", False)])
+    assert used.read_text().split() == ["enginepy"]
+    assert record.read_text() == "served False"
+
+
+# Resolved before any test empties PATH.
+SLEEP = shutil.which("sleep")
+
+
+def hung_python(tmp_path: Path) -> Path:
+    assert SLEEP is not None
+    return script(tmp_path / "hung-python", f"{SLEEP} 30\n")
+
+
+def test_a_hung_interpreter_yields_to_the_next(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    record = installed_vllm(tmp_path, monkeypatch, ACCEPTS)
+    hung = hung_python(tmp_path)
+    files = pinned(tmp_path, SERVED)
+    execute_smoke(
+        tmp_path, files, [], [("served", False)], [str(hung)], parse_timeout_seconds=1
+    )
+    assert record.read_text() == "served False"
+
+
+def test_a_hung_interpreter_and_no_other_warns_instead_of_failing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("PATH", str(tmp_path / "empty-path"))
+    monkeypatch.delenv("PYTHONPATH", raising=False)
+    hung = hung_python(tmp_path)
+    files = pinned(tmp_path, SERVED)
+    execute_smoke(
+        tmp_path, files, [], [("served", False)], [str(hung)], parse_timeout_seconds=1
+    )
+    out = capsys.readouterr().out
+    assert f"::warning::image {KEY}: no interpreter ran vllm get_config" in out
+    assert f"{hung}: did not finish within 1 s" in out
+
+
+def test_a_get_config_that_hangs_fails_with_its_stack(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capfd: pytest.CaptureFixture[str],
+) -> None:
+    installed_vllm(tmp_path, monkeypatch, "    import time\n    time.sleep(30)\n")
+    files = pinned(tmp_path, SERVED)
+    with pytest.raises(SystemExit, match=r"did not finish within 1 s \(its stack"):
+        execute_smoke(tmp_path, files, [], [("served", False)], parse_timeout_seconds=1)
+    assert "in get_config" in capfd.readouterr().err
+
+
+class Response(io.BytesIO):
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        self.close()
+
+
+def test_transient_download_errors_are_retried_and_client_errors_are_not(
+    tmp_path: Path,
+) -> None:
+    content = SERVED["served/config.json"]
+    url = "https://huggingface.co/x/resolve/r/config.json"
+    files = [
+        (url, hashlib.sha256(content).hexdigest(), len(content), "served/config.json")
+    ]
+    outcomes: list[object] = [
+        urllib.error.HTTPError(url, 503, "unavailable", Message(), None),
+        urllib.error.HTTPError(url, 429, "slow down", Message(), None),
+        urllib.error.URLError("connection reset"),
+        TimeoutError("read timed out"),
+    ]
+    calls: list[str] = []
+
+    def urlopen(requested: str, timeout: int) -> Response:
+        calls.append(requested)
+        if outcomes:
+            outcome = outcomes.pop(0)
+            assert isinstance(outcome, BaseException)
+            raise outcome
+        return Response(content)
+
+    with patch("urllib.request.urlopen", urlopen), patch("time.sleep") as sleep:
+        assert execute_smoke(tmp_path, files, []) == []
+    assert len(calls) == 5 and sleep.call_count == 4
+
+    def missing(requested: str, timeout: int) -> Response:
+        calls.append(requested)
+        raise urllib.error.HTTPError(url, 404, "not found", Message(), None)
+
+    calls.clear()
+    with (
+        patch("urllib.request.urlopen", missing),
+        patch("time.sleep"),
+        pytest.raises(urllib.error.HTTPError),
+    ):
+        execute_smoke(tmp_path, files, [])
+    assert len(calls) == 1
+
+
+def emitted(program: str, name: str) -> object:
+    for node in ast.parse(program).body:
+        if isinstance(node, ast.Assign) and ast.unparse(node.targets[0]) == name:
+            return ast.literal_eval(node.value)
+    raise AssertionError(f"{name} missing")
+
+
+@pytest.mark.parametrize(
+    ("source", "configs", "pythons"),
+    [
+        # No remote code: main generated no smoke for it at all.
+        (
+            "recipes/gemma-4-26b-a4b-vllm-single.json",
+            [("gemma-4-26b-a4b-it-4d7ae498", False)],
+            [],
+        ),
+        # vLLM 0.30.0 rejected this config at start on hardware (2026-10-27).
+        (
+            "recipes/laguna-s-2-1-nvfp4-vllm-single.json",
+            [("laguna-s-2-1-nvfp4-07614121", False)],
+            [],
+        ),
+        # The served target, never its drafter; the recipe's trust flag.
+        (
+            "recipes/laguna-s-2-1-nvfp4-r0b0tlab-vllm-single.json",
+            [("laguna-s-2-1-nvfp4-07614121", True)],
+            [],
+        ),
+        # The Controller rewrites argv /models to the endpoint role's first
+        # mount (/models/target), never to the drafter.
+        (
+            "recipes/nemotron-3-5-bolt-lilicorr-nvidia-vllm-single.json",
+            [("nemotron-3-5-bolt-24gb-c6cc2e8f", True)],
+            [],
+        ),
+        # A bare launcher serves /models; its adapter names the engine Python.
+        (
+            "recipes/mimo-v2-6-pro-mopd-arvq-drowzeys-vllm-four.json",
+            [("mimo-v2-6-pro-mopd-arvq-hybrid21-bb83094e", True)],
+            ["/opt/arvq/.venv/bin/python"],
+        ),
+    ],
+)
+def test_every_vllm_recipe_plans_its_served_config_parse(
+    tmp_path: Path,
+    source: str,
+    configs: list[tuple[str, bool]],
+    pythons: list[str],
+) -> None:
+    plan = TOOL["Plan"].model_validate(
+        {"images": [{"build_key": KEY, "recipes": [{"source_path": source}]}]}
+    )
+    TOOL["prepare"](plan, tmp_path)
+    program = (tmp_path / KEY / "remote-code-smoke.py").read_text()
+    assert emitted(program, "VLLM_CONFIGS") == configs
+    assert emitted(program, "ENGINE_PYTHONS") == pythons
+    files = emitted(program, "FILES")
+    assert isinstance(files, list)
+    assert f"{configs[0][0]}/config.json" in [name for *_, name in files]
+
+
+def test_a_trust_remote_code_choice_also_parses_with_remote_code() -> None:
+    source = "recipes/deepseek-v4-1-flash-exl3-mia-dual.json"
+    assert TOOL["trust_remote_code"](recipe(source)) == (False,)
+    changed = with_argument(source, "trust-remote-code", True, True)
+    assert TOOL["trust_remote_code"](changed) == (False, True)
+
+
 def test_image_workflow_checks_imports_before_platform_layer_and_push() -> None:
     workflow = (ROOT / ".github/workflows/recipe-images.yml").read_text()
     assert "python tools/prepare-remote-code-smoke" in workflow
@@ -115,7 +428,12 @@ def run_smoke(
 
 
 def execute_smoke(
-    tmp_path: Path, files: list[tuple[str, str, int, str]], model_code: list[str]
+    tmp_path: Path,
+    files: list[tuple[str, str, int, str]],
+    model_code: list[str],
+    vllm_configs: list[tuple[str, bool]] | None = None,
+    engine_pythons: list[str] | None = None,
+    parse_timeout_seconds: int | None = None,
 ) -> list[str]:
     module = types.ModuleType("transformers.dynamic_module_utils")
     checked: list[str] = []
@@ -137,7 +455,24 @@ def execute_smoke(
 
     module.__dict__["check_imports"] = check_imports
     script = tmp_path / "remote-code-smoke.py"
-    script.write_text(TOOL["CHECK"].format(files=files, model_code=model_code))
+    script.write_text(
+        TOOL["CHECK"].format(
+            files=files,
+            model_code=model_code,
+            vllm_configs=vllm_configs or [],
+            engine_pythons=engine_pythons or [],
+            image=KEY,
+        )
+    )
+    if parse_timeout_seconds is not None:
+        program = script.read_text()
+        assert "PARSE_TIMEOUT_SECONDS = 600" in program
+        script.write_text(
+            program.replace(
+                "PARSE_TIMEOUT_SECONDS = 600",
+                f"PARSE_TIMEOUT_SECONDS = {parse_timeout_seconds}",
+            )
+        )
     with patch.dict(sys.modules, {"transformers.dynamic_module_utils": module}):
         runpy.run_path(str(script))
     return checked
