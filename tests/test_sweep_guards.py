@@ -709,3 +709,30 @@ def test_wait_evidence_guard_rejects_free_text_only_holds():
 @pytest.mark.parametrize("path", SWEEP, ids=lambda p: p.name)
 def test_waits_must_carry_progress_evidence_and_a_typed_next_check(path):
     assert waits_without_evidence(path.read_text()) == [], str(path)
+
+
+def test_assignment_failures_are_read_only_through_the_typed_resolver() -> None:
+    """The Controller's failure rows name assignments by id; only ``policy.assignment_failures``
+    may read them (and ``intended_profile``), or a lane is blamed for another's failure again."""
+    allowed = ROOT / "spark_sweep" / "policy.py"
+    offenders = []
+    for path in sorted((ROOT / "spark_sweep").glob("*.py")):
+        if path == allowed:
+            continue
+        for node in ast.walk(ast.parse(path.read_text())):
+            # A read is a call argument (``.get("x")``, ``dig(d, "x")``) or a subscript.
+            if isinstance(node, ast.Call):
+                keys = [*node.args, *(k.value for k in node.keywords)]
+            elif isinstance(node, ast.Subscript):
+                keys = [node.slice]
+            else:
+                continue
+            if any(
+                isinstance(k, ast.Constant)
+                and k.value in ("assignment_failures", "intended_profile")
+                for k in keys
+            ):
+                offenders.append(f"{path.name}:{node.lineno}")
+    assert not offenders, (
+        f"read through policy.assignment_failures instead: {offenders}"
+    )

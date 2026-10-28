@@ -644,6 +644,18 @@ class AssignmentFailure:
     failure_code: str | None = None
     from_effect: bool = False
 
+    @classmethod
+    def from_state(cls, row: Mapping[str, Any]) -> AssignmentFailure:
+        """Read a persisted row back; a row written before this type keeps what it has."""
+        return cls(
+            reason=str(row.get("reason") or ""),
+            assignment_id=row.get("assignment_id"),
+            alias=row.get("alias"),
+            node_ids=tuple(row.get("node_ids") or ()),
+            failure_code=row.get("failure_code"),
+            from_effect=bool(row.get("from_effect")),
+        )
+
     def as_state(self) -> dict[str, Any]:
         """The JSON row persisted with the settled application and read by ``blamed``."""
         return {

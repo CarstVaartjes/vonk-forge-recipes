@@ -2517,12 +2517,16 @@ class Sweep:
                     )
                 return
             group = self._lane_group(slot)
+            stored = [
+                policy.AssignmentFailure.from_state(f)
+                for f in app.get("failures") or []
+                if isinstance(f, Mapping)
+            ]
             unattributed = False
             if len(group) > 1:
-                failures = [
-                    f for f in app.get("failures") or [] if isinstance(f, Mapping)
-                ]
-                blamed = policy.blamed(failures, self._lanes(group))
+                blamed = policy.blamed(
+                    [f.as_state() for f in stored], self._lanes(group)
+                )
                 culprits, collateral = self._split(group, blamed)
                 self._requeue_collateral(collateral, culprits, "its application failed")
                 unattributed = not blamed
@@ -2534,21 +2538,16 @@ class Sweep:
             for member in group:
                 own_failure = next(
                     (
-                        item
-                        for item in app.get("failures") or []
-                        if isinstance(item, Mapping)
-                        and member in policy.blamed([item], self._lanes(group))
+                        f
+                        for f in stored
+                        if member in policy.blamed([f.as_state()], self._lanes(group))
                     ),
                     None,
                 )
                 failure = policy.classify_application_failure(
                     phase,
                     WorkloadFailureCode.APPLICATION_FAILED,
-                    str(
-                        own_failure.get("reason") or own_failure.get("detail") or detail
-                    )
-                    if own_failure is not None
-                    else detail,
+                    own_failure.reason or detail if own_failure else detail,
                     evidence={"assignment_failures": app.get("failures") or []},
                 )
                 if unattributed:

@@ -574,7 +574,9 @@ def test_an_adopted_lanes_own_failed_run_effect_is_its_own_result(
                     "node_ids": [n["node_id"] for n in owner["nodes"]],
                     "state": "failed",
                     "progress": {"members": [{"error": failure["reason"]}]},
-                    "result": {"run_switch": {"failure_code": "runtime.exit"}},
+                    "result": {
+                        "run_switch": {"failure_code": "workload.host_memory_exhausted"}
+                    },
                 }
             ]
         return document
