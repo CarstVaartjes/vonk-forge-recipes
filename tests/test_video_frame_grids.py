@@ -10,6 +10,7 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -77,7 +78,7 @@ def _accepted(grid: dict[str, int]) -> list[int]:
 
 def test_comfyui_grid_matches_pinned_upstream():
     source = (FIXTURES / "comfyui-minimax-h3-align.py.txt").read_text()
-    namespace: dict[str, object] = {}
+    namespace: dict[str, Any] = {}
     exec(source, namespace)  # noqa: S102 - vendored upstream function text
     align = namespace["align_frame_count"]
     # ComfyUI 5a665890 nodes_minimax_h3.py: tooltip "trained range is ~124-362".
@@ -89,10 +90,10 @@ def test_comfyui_grid_matches_pinned_upstream():
 
 @pytest.mark.parametrize("path", [MINIMAX, MINIMAX_FL2VA])
 def test_diffusers_grid_matches_pinned_upstream(path):
-    namespace: dict[str, object] = {}
+    namespace: dict[str, Any] = {}
     exec((FIXTURES / "diffusers-minimax-h3-align.py.txt").read_text(), namespace)  # noqa: S102
     align = namespace["align_num_frames"]
-    duration = {}
+    duration: dict[str, Any] = {}
     body = (FIXTURES / "diffusers-minimax-h3-duration.py.txt").read_text()
     exec("class Components:\n" + body, duration)  # noqa: S102
     components = duration["Components"]()
