@@ -450,6 +450,70 @@ class LockCheckTests(unittest.TestCase):
             self.assertEqual(self.check(Path(tmp), KIT_NEW), [])
 
 
+class WithdrawnKitTests(unittest.TestCase):
+    """A creator deleted the kit repository: the marked recipe keeps its committed lock."""
+
+    GONE = "d" * 40
+
+    def adapter(self, root: Path, *, marked: bool) -> dict[str, Any]:
+        directory = root / "adapters/mia"
+        directory.mkdir(parents=True)
+        image = {
+            "datasource": "oci-image",
+            "file": "Dockerfile.production",
+            "pattern": r"^ARG BASE=ghcr\.io/creator/image@(?P<version>sha256:[0-9a-f]{64})$",
+            "repo": "ghcr.io/creator/image",
+        }
+        source: dict[str, str] = {"repo": KIT, "commit": self.GONE}
+        if marked:
+            source["unverified"] = vendored.unverified_mark(KIT, self.GONE)
+        (directory / "vendored-upstream.json").write_text(
+            json.dumps({"kit": {"dependencies": {"image": image}}, "source": source})
+        )
+        digest = "sha256:" + "e" * 64
+        (directory / "kit-lock.json").write_text(
+            kit_pins.lock_text(
+                {
+                    "dependencies": {
+                        "image": {
+                            "datasource": "oci-image",
+                            "digest": digest,
+                            "kind": "digest",
+                            "ref": digest,
+                            "repo": "ghcr.io/creator/image",
+                        }
+                    },
+                    "kit": {"commit": self.GONE, "repo": KIT},
+                }
+            )
+        )
+        (directory / "Dockerfile").write_text(f"FROM ghcr.io/creator/image@{digest}\n")
+        return recipe_for(self.GONE)
+
+    def problems(self, marked: bool) -> tuple[list[str], list[str]]:
+        scanned: list[str] = []
+
+        def images(repo: str, commit: str, scope: str) -> list[Any]:
+            scanned.append(commit)
+            raise kit_pins.KitError(f"cannot scan {repo}@{commit}: HTTP 404")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            recipe = self.adapter(Path(tmp), marked=marked)
+            source = kit_pins.Upstream(kit_pins.GitHub(FakeApi()), images=images)
+            problems = kit_pins.check_recipe(
+                Path(tmp), "mia", recipe, source
+            ) + kit_pins.check_images(Path(tmp), {"mia": recipe}, source)
+        return problems, scanned
+
+    def test_the_marked_kit_is_not_re_read(self) -> None:
+        self.assertEqual(self.problems(marked=True), ([], []))
+
+    def test_an_unmarked_deleted_kit_still_fails_with_evidence(self) -> None:
+        problems, _ = self.problems(marked=False)
+        self.assertTrue(any("cannot read" in p for p in problems), problems)
+        self.assertTrue(any("cannot scan" in p for p in problems), problems)
+
+
 class ApplyLockTests(unittest.TestCase):
     def test_moving_the_kit_moves_the_lock_the_archive_and_the_dockerfile(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
