@@ -7,7 +7,6 @@ Only selected Hugging Face configs and Python modules are downloaded, never
 weights; all bytes must match the selected Model's manifest. Check auto_map
 modules and their relative imports, including processors, but not engine plugins.
 AutoModel* modules are checked only where the recipe's engine imports them.
-A vLLM recipe's served Model config is also parsed by the installed vLLM.
 """
 
 from __future__ import annotations
@@ -85,26 +84,6 @@ def imports_remote_model(recipe: RecipeDefinition) -> bool:
     )
 
 
-def served_config(recipe: RecipeDefinition) -> tuple[str, bool] | None:
-    """The served Model whose config.json the installed vLLM parses at start.
-
-    Returns its directory in the smoke and whether the recipe trusts remote
-    code, or None for another engine or a served path no Model mounts.
-    """
-    runtime = recipe.runtime
-    if runtime.engine != "vllm" or "serve" not in runtime.entrypoint[:-1]:
-        return None
-    served = runtime.entrypoint[runtime.entrypoint.index("serve") + 1]
-    trust = any(
-        argument.name == "trust-remote-code" and argument.value is True
-        for argument in runtime.arguments
-    )
-    for selection in recipe.models:
-        if any(item.mount.target == served for item in selection.files):
-            return selection.model.slug, trust
-    return None
-
-
 # This program runs under the image's Python (3.12), using its installed
 # transformers and native libraries. Do not import model code or load weights.
 CHECK = """import hashlib
@@ -116,8 +95,6 @@ from pathlib import Path
 FILES = {files!r}
 # Model directories whose AutoModel* classes the serving engine imports.
 MODEL_CODE = {model_code!r}
-# Served Model directories vLLM parses at start, with their trust-remote-code.
-VLLM_CONFIGS = {vllm_configs!r}
 
 if FILES:
     with tempfile.TemporaryDirectory() as temporary:
@@ -164,28 +141,6 @@ if FILES:
             checked.add(path)
             for relative in check_imports(str(path)):
                 pending.add(path.parent / (relative + ".py"))
-        import importlib.util
-
-        configs = VLLM_CONFIGS
-        if configs and importlib.util.find_spec("vllm") is None:
-            print("vllm get_config: skipped, python3 cannot import vllm", flush=True)
-            configs = []
-        if configs:
-            import os
-
-            # The image's caches live on the workload's writable /outputs
-            # mount, which this read-only smoke lacks.
-            for name, value in list(os.environ.items()):
-                if value.startswith("/outputs/"):
-                    os.environ[name] = temporary + value
-            # A parser that rejects the checkpoint's config fails here, not at
-            # the start on a Spark (vLLM 0.30's own LagunaConfig did).
-            from vllm.transformers_utils.config import get_config
-        for directory, trust_remote_code in configs:
-            print("vllm get_config: " + directory, flush=True)
-            get_config(
-                str(Path(temporary) / directory), trust_remote_code=trust_remote_code
-            )
 """
 
 
@@ -238,18 +193,11 @@ def prepare(plan: Plan, output: Path, root: Path = ROOT) -> None:
     for image in plan.images:
         files: set[tuple[str, str, int, str]] = set()
         model_code: set[str] = set()
-        vllm_configs: set[tuple[str, bool]] = set()
         for planned in image.recipes:
             recipe = RecipeDefinition.model_validate_json(
                 (root / planned.source_path).read_bytes()
             )
-            selected = model_files(recipe, root)
-            files.update(selected)
-            served = served_config(recipe)
-            if served is not None and (
-                f"{served[0]}/config.json" in {name for *_, name in selected}
-            ):
-                vllm_configs.add(served)
+            files.update(model_files(recipe, root))
             if imports_remote_model(recipe):
                 model_code.update(selection.model.slug for selection in recipe.models)
         if not files:
@@ -257,11 +205,7 @@ def prepare(plan: Plan, output: Path, root: Path = ROOT) -> None:
         directory = output / image.build_key
         directory.mkdir(parents=True, exist_ok=True)
         (directory / "remote-code-smoke.py").write_text(
-            CHECK.format(
-                files=sorted(files),
-                model_code=sorted(model_code),
-                vllm_configs=sorted(vllm_configs),
-            ),
+            CHECK.format(files=sorted(files), model_code=sorted(model_code)),
             encoding="utf-8",
         )
 

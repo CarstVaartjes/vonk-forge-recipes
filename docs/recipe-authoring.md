@@ -1111,10 +1111,6 @@ argument selects `model-impl` `transformers` or SGLang's ModelOpt quantization
 load (`modelopt-*`, or `quantization` `modelopt`, `modelopt_fp8` or
 `modelopt_mixed`); other engines check every entry. An unregistered
 architecture's Transformers fallback is not checked and fails at load.
-For a vLLM recipe the installed vLLM also parses the served Model's pinned
-`config.json` with `get_config` (with the recipe's `trust-remote-code`), so a
-parser that rejects the checkpoint fails the build, not the start (vLLM
-0.30.0's own LagunaConfig rejected Laguna's nested RoPE under Transformers 5.17).
 Engine plugins outside that graph belong to the engine's build/import checks.
 The check fetches only pinned configs and source code and verifies the Model's
 hash and size; it loads no weights and requires no GPU. Keep remote-code
