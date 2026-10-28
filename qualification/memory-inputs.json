@@ -476,6 +476,17 @@
       "state_bytes_per_request": 76677120,
       "value_dim": 128
     },
+    "mimo-v2-6-flash-rl-nvfp4-0c75a7a5": {
+      "architecture": "MiMoV2ForCausalLM",
+      "configuration_sha256": "3cbf116559b5d9e876e84541d93ee8986620006fab1b58bacc333bef35de9468",
+      "key_dim": 192,
+      "kv_heads": 4,
+      "layers": 9,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/r0b0tlab/MiMo-V2.6-Flash-RL-NVFP4/resolve/0c75a7a5ea64b6a4a4179a17a01d593a5ca695cb/config.json; 9 full-attention layers, 39 sliding layers (same attention geometry as the base dcd3fd83). Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 76677120,
+      "value_dim": 128
+    },
     "mimo-v2-6-pro-mopd-arvq-hybrid21-bb83094e": {
       "architecture": "MiMoV2ForCausalLM",
       "configuration_sha256": "86b2b225ed44dc3af7d3c225c87df98f68c9e40709127e355f752734dd792f5b",

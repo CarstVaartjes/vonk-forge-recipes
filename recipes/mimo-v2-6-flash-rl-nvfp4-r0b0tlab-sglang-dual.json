@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab's preferred serve of its NVFP4 export of XiaomiMiMo/MiMo-V2.6-Flash-RL on two GB10 Sparks: SGLang nightly 582389ce with tensor and expert parallel 2, Marlin MoE runner, calibrated FP8 KV cache, in-checkpoint EAGLE MTP (3 steps, 4 draft tokens), MiMo tool and reasoning parsers, and multimodal input (image; upstream also probed audio and video). Upstream default context 524,288 (model native 1M) with 8 running requests and a pinned 4096 draft window. Licences: r0b0tlab original work MIT, base model MIT, SGLang and the vendored patches Apache-2.0 (information only). Upstream claims +21% decode over the vendor MXFP4 checkpoint (median 69.1 vs 56.9 tok/s at bs=8); not measured here. The upstream DFlash lane is not selectable because options cannot remove the MTP arguments.",
+    "description": "r0b0tlab's preferred serve of its NVFP4 export of XiaomiMiMo/MiMo-V2.6-Flash-RL on two GB10 Sparks: SGLang nightly 582389ce with tensor and expert parallel 2, Marlin MoE runner, calibrated FP8 KV cache, in-checkpoint EAGLE MTP (3 steps, 4 draft tokens), MiMo tool and reasoning parsers, and multimodal input (image; upstream also probed audio and video). Upstream default context 524,288 (model native 1M) with 8 running requests and a pinned 4096 draft window. Licences: r0b0tlab original work MIT, base model MIT, SGLang and the vendored patches Apache-2.0 (information only). Upstream claims +21% decode over the vendor MXFP4 checkpoint (median 69.1 vs 56.9 tok/s at bs=8); not measured here. The upstream DFlash lane is not selectable because options cannot remove the MTP arguments. Memory deviates from the creator's mem-fraction-static 0.90 (profiles/MTP-500k-mm.env @ 2852795b), which needs about 125.6e9 per Spark and is not admissible on two Sparks: this recipe uses 0.85 with a 524,288-token pool pinned by max-total-tokens (the creator's CELL-TC ran 0.87; below about 0.83 the 524k context no longer fits).",
     "tags": [
       "candidate",
       "distributed",
@@ -1110,7 +1110,7 @@
   },
   "release": {
     "released_at": "2026-09-30",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1137,7 +1137,12 @@
       {
         "name": "mem-fraction-static",
         "setting": null,
-        "value": "0.718702620795"
+        "value": "0.85"
+      },
+      {
+        "name": "max-total-tokens",
+        "setting": null,
+        "value": 524288
       },
       {
         "name": "moe-runner-backend",
@@ -1297,7 +1302,7 @@
             "working_bytes": 50000000000
           },
           "memory": {
-            "peak_bytes": 101908006912,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }
@@ -1314,7 +1319,7 @@
             "working_bytes": 50000000000
           },
           "memory": {
-            "peak_bytes": 101908006912,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }
