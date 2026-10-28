@@ -26,6 +26,8 @@ from vonk_forge_contracts.memory_admission import (
     evaluate_memory_admission,
 )
 
+from qualification.model_index import model_index
+
 # Offline policy pinned to vonk-forge cee017ae806f0ac4c0842a3652f8ef7ee57388b8:
 # control/src/vonk_control/resource_planning/types.py::PLATFORM_MEMORY_FLOOR_BYTES
 # and rust/crates/vonk-agent-protocol/src/host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES.
@@ -240,32 +242,43 @@ class MemoryInputs(BaseModel):
     # rule (2026-10-26): Engram tables are never memory usage.
     engram_files: dict[str, str]
     historical_sources: list[str]
-    historical_documents: dict[str, list[str]]
+    # Execution fingerprints (vonk_forge_contracts.execution_sha256) of the
+    # recipes the catalog accepted before the memory gate.
+    historical_executions: dict[str, list[str]]
 
 
 def unchanged_recipe(
     recipe: RecipeDefinition, document_digest: str, inputs: MemoryInputs
 ) -> bool:
-    """Recognize exact content in the committed snapshot or qualification evidence."""
+    """Recognize executable content recorded in the snapshot or qualification evidence.
+
+    Equal execution fingerprints are the same recipe: a display edit does not
+    make it new. Evidence recorded before fingerprints existed matches by its
+    exact document digest.
+    """
     from spark_sweep.qualification import read_evidence
 
     if not document_digest:
-        return False
-    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    known = document_digest in inputs.historical_documents.get(key, []) or any(
-        record.identity.content_sha256 == document_digest
-        for record in read_evidence(ROOT, key).records
-    )
-    if not known:
         return False
     # Bind the caller's digest AND parsed recipe to the authored bytes. An old
     # digest cannot waive an edited file or an in-memory launch mutation.
     document = json.loads(
         (ROOT / "recipes" / f"{recipe.identity.slug}.json").read_text()
     )
-    return (
-        document_sha256(document) == document_digest
-        and RecipeDefinition.model_validate(document) == recipe
+    if (
+        document_sha256(document) != document_digest
+        or RecipeDefinition.model_validate(document) != recipe
+    ):
+        return False
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    fingerprint = model_index(ROOT).fingerprint(document, document_digest)
+    return any(
+        record.identity.content_sha256 == document_digest
+        or (fingerprint is not None and record.identity.execution_sha256 == fingerprint)
+        for record in read_evidence(ROOT, key).records
+    ) or (
+        fingerprint is not None
+        and fingerprint in inputs.historical_executions.get(key, [])
     )
 
 

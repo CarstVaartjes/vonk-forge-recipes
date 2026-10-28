@@ -5,6 +5,7 @@
     {
       "identity": {
         "content_sha256": "b23adbfb2fbdd4f3fc0e4e8c88a3bf1d571b69727193376667f1253839979081",
+        "execution_sha256": "b54da7f84d6194901b4ba4d59a2ccd885d8aa7ee4c03cd293bb7d6275164a205",
         "model_digests": [],
         "models_resolved": false
       },
@@ -25,6 +26,7 @@
     {
       "identity": {
         "content_sha256": "b23adbfb2fbdd4f3fc0e4e8c88a3bf1d571b69727193376667f1253839979081",
+        "execution_sha256": "b54da7f84d6194901b4ba4d59a2ccd885d8aa7ee4c03cd293bb7d6275164a205",
         "runtime_image": {
           "build_key": "ab212f7efea4de78ed28b8f3ae340e144f4f700315011092e60197b11baa318f",
           "image_digest": "sha256:f55ce1df39ed97538561200cc4c8dd2889b117e5a777570ecf5f81c29b0ae7d5"

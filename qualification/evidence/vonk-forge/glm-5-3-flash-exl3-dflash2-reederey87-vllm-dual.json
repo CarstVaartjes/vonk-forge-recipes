@@ -170,6 +170,7 @@
     {
       "identity": {
         "content_sha256": "a997c65ff68c5e1c7774536790d3f70dca86a5152ffe83ba8b7717fce140fec4",
+        "execution_sha256": "8b42277a5353f8178d8592febd968acc5cc842430c97ecf1a33134ad2c701ab0",
         "runtime_image": {
           "build_key": "7c83795ac2e586ce62a808f745cef75346f355302d0dff3e8bf08f529a608b9f",
           "image_digest": "sha256:a07499f721a09604e6e9e987bc518574e7dbbcbde1b2f52709d2bf2336030c6e"

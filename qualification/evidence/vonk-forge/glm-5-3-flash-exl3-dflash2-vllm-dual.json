@@ -211,6 +211,7 @@
     {
       "identity": {
         "content_sha256": "60fab1c93fb0cb8137587b31f2cc0753ffe938fa13eb3094e4922b8e1b83818c",
+        "execution_sha256": "facab7b3012696578c74154236068cfc01bd5ef8bb45e31acbe27ff0bdeb59d9",
         "source_bundle_sha256": "2caeb1326d966c0b19105ed1e5c02ebb3fcb3c88638231080c89a11bf6dd0513",
         "runtime_image": {
           "build_key": "19b48e53cb65d8699d9a647dcc8bef4efa32dc2ec77e7716f4f524c1c320795e",

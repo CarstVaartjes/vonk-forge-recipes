@@ -100,6 +100,7 @@
     {
       "identity": {
         "content_sha256": "658278656391c93040123f25b4e8d43e8dcbff83f97cc66f3bc0091f62f8ac1b",
+        "execution_sha256": "1720dfe5f1ffbdd06fa3c115d0a8047866432e36dfa2d2862a2000c01d9474b5",
         "runtime_image": {
           "build_key": "da8058fb23ba7f82fbe7be5cb0d844fbbff4db31a9a649aa3a0fb67f12cf4bab",
           "image_digest": "sha256:c2360ba3d9556b08a5884f29c6b8d9fb04120e96568bab9be02ea0d744b1c917"
@@ -129,6 +130,7 @@
     {
       "identity": {
         "content_sha256": "658278656391c93040123f25b4e8d43e8dcbff83f97cc66f3bc0091f62f8ac1b",
+        "execution_sha256": "1720dfe5f1ffbdd06fa3c115d0a8047866432e36dfa2d2862a2000c01d9474b5",
         "source_bundle_sha256": "8a81d0b652c6c286bce4103ded34886592cba5c4a31e660507a31e403b0afef2",
         "runtime_image": {
           "build_key": "da8058fb23ba7f82fbe7be5cb0d844fbbff4db31a9a649aa3a0fb67f12cf4bab",

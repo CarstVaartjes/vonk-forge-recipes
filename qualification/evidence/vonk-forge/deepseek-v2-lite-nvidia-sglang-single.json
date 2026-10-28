@@ -51,6 +51,7 @@
     {
       "identity": {
         "content_sha256": "39145ed63c05292d249b48147640d908d5a0335c5dda22e0492003a4e98d6517",
+        "execution_sha256": "b45d63581a2cc3a954219fbfb692472abec77c3cf68dd603d6f787bcd5941add",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

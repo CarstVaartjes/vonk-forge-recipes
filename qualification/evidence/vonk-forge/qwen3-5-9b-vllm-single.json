@@ -52,6 +52,7 @@
     {
       "identity": {
         "content_sha256": "9122334385b8816c899dea554ed028c59aa20e5b6bb4de2597508d017e953783",
+        "execution_sha256": "9d4a59a4ef1c2e346342180dd4cbcc1042b6e30a7ad180d61a1aea24b2ea402b",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

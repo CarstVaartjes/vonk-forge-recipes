@@ -159,6 +159,7 @@
     {
       "identity": {
         "content_sha256": "c3807ff5401e42aac7bf64bdc0f666fa5285df31d54c14a832bbcf8cc41d0693",
+        "execution_sha256": "b590f38efd5a90bfaeb257a15fb1284ca40584a9d378ca3ebc2472d7eb2910e8",
         "source_bundle_sha256": "90ac7c1cc2eb4b61a29289b419a9337c057dfa50c11d370e06ff662cd55e5ef9",
         "runtime_image": {
           "build_key": "8089df1fd7e9082e84b7b4c295a49494491691f9fd92cf9c14ace0ed48665609",

@@ -5,6 +5,7 @@
     {
       "identity": {
         "content_sha256": "9f6102679afb0fe537486d670ff8c4fc28590d2086092859800a2704fad6c3b3",
+        "execution_sha256": "b3896c304534bf84d306ac7280c447d9c85fda53de7fa5eac8257f4e4df46a10",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -28,6 +29,7 @@
     {
       "identity": {
         "content_sha256": "9f6102679afb0fe537486d670ff8c4fc28590d2086092859800a2704fad6c3b3",
+        "execution_sha256": "b3896c304534bf84d306ac7280c447d9c85fda53de7fa5eac8257f4e4df46a10",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

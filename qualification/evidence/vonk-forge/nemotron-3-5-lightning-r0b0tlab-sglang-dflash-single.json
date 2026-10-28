@@ -25,6 +25,7 @@
     {
       "identity": {
         "content_sha256": "c4046f996f30ced04c64eea1ba84b06a0cde0f5ecae81d53d742d645e6495924",
+        "execution_sha256": "02535b977f8e09e56f90adea00fdbebf29a59af36d2983047c211435ae0fe61c",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

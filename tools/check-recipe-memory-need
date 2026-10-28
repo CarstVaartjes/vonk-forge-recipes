@@ -29,23 +29,81 @@ from qualification.memory_need import (
     require_memory_need,
     unchanged_recipe,
 )
+from qualification.model_index import ModelIndex, model_index
 from spark_sweep.qualification import read_evidence
 
 
+def _git(root: Path, *args: str, stdin: bytes | None = None) -> bytes:
+    return subprocess.run(
+        ["git", "-C", str(root), *args],
+        input=stdin,
+        capture_output=True,
+        check=True,
+    ).stdout
+
+
+def _base_documents(root: Path, revision: str, directory: str) -> dict[str, dict]:
+    """The JSON documents under ``directory`` at ``revision``, by repository path."""
+    names = _git(root, "ls-tree", "-r", "--name-only", revision, "--", directory)
+    paths = [n for n in names.decode().splitlines() if n.endswith(".json")]
+    if not paths:
+        return {}
+    # One process for every blob; an unreadable one is simply absent.
+    out = _git(
+        root,
+        "cat-file",
+        "--batch",
+        stdin="".join(f"{revision}:{path}\n" for path in paths).encode(),
+    )
+    documents: dict[str, dict] = {}
+    position = 0
+    for path in paths:
+        end = out.index(b"\n", position)
+        header = out[position:end].split()
+        if len(header) != 3:
+            position = end + 1
+            continue
+        size = int(header[2])
+        try:
+            documents[path] = json.loads(out[end + 1 : end + 1 + size])
+        except ValueError:
+            pass
+        position = end + 1 + size + 1
+    return documents
+
+
 def touched_recipes(root: Path, base: str) -> list[Path]:
-    """Recipe files added or modified since the merge base, including untracked."""
+    """Recipes whose execution differs from the merge base, including untracked.
+
+    An edit that only changes authored display fields (the lists in
+    ``vonk_forge_contracts.canonical``) leaves the recipe untouched.
+    """
 
     def git(*args: str) -> list[str]:
-        return subprocess.run(
-            ["git", "-C", str(root), *args, "--", "recipes/*.json"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.splitlines()
+        return _git(root, *args, "--", "recipes/*.json").decode().splitlines()
 
     names = git("diff", "--name-only", "--diff-filter=AMR", "--merge-base", base)
     names += git("ls-files", "--others", "--exclude-standard")
-    return sorted({root / name for name in names})
+    names = sorted(set(names))
+    if not names:
+        return []
+    revision = _git(root, "merge-base", base, "HEAD").decode().strip()
+    base_index = ModelIndex.from_documents(
+        _base_documents(root, revision, "models").values()
+    )
+    base_recipes = _base_documents(root, revision, "recipes")
+    current_index = model_index(root)
+    touched = []
+    for name in names:
+        before = base_recipes.get(name)
+        fingerprint = current_index.fingerprint(json.loads((root / name).read_text()))
+        if (
+            before is None
+            or fingerprint is None
+            or base_index.fingerprint(before) != fingerprint
+        ):
+            touched.append(root / name)
+    return touched
 
 
 def main() -> int:
@@ -59,10 +117,10 @@ def main() -> int:
         "--calibrate", action="store_true", help="audit hardware passes"
     )
     args = parser.parse_args()
-    models: dict[str, ModelDefinition] = {}
-    for path in sorted((ROOT / "models").glob("*.json")):
-        document = json.loads(path.read_text())
-        models[document_sha256(document)] = ModelDefinition.model_validate(document)
+    models = {
+        digest: ModelDefinition.model_validate(document)
+        for digest, document in model_index(ROOT).documents.items()
+    }
     inputs = load_inputs()
     failed = flagged = proven_count = applicable = 0
     paths = (

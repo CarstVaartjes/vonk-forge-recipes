@@ -28,6 +28,7 @@
     {
       "identity": {
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
+        "execution_sha256": "84ec16b0bdd3978730804dc0da3c2df456564009233868debb01d2778ebce929",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -51,6 +52,7 @@
     {
       "identity": {
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
+        "execution_sha256": "84ec16b0bdd3978730804dc0da3c2df456564009233868debb01d2778ebce929",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -74,6 +76,7 @@
     {
       "identity": {
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
+        "execution_sha256": "84ec16b0bdd3978730804dc0da3c2df456564009233868debb01d2778ebce929",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -97,6 +100,7 @@
     {
       "identity": {
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
+        "execution_sha256": "84ec16b0bdd3978730804dc0da3c2df456564009233868debb01d2778ebce929",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -120,6 +124,7 @@
     {
       "identity": {
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
+        "execution_sha256": "84ec16b0bdd3978730804dc0da3c2df456564009233868debb01d2778ebce929",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

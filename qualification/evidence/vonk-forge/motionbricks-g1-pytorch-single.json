@@ -5,6 +5,7 @@
     {
       "identity": {
         "content_sha256": "345c1783b689f3b8cfa0145e74e79fa89bc04793e449f3d53f0793160fc9aaf6",
+        "execution_sha256": "8764a16aef57faf140ef703781b9cfd4e54a5b71a752939e616f221252e39f9f",
         "source_bundle_sha256": "18ad9a5f2dffec621f5f9372acb2b6f0e3060d86d267b4972bd9148c0993d713",
         "runtime_image": {
           "build_key": "305f97d195999ddc4aea456252c5284b3e8828db4d7602fd687ed522f914c561",
@@ -35,6 +36,7 @@
     {
       "identity": {
         "content_sha256": "345c1783b689f3b8cfa0145e74e79fa89bc04793e449f3d53f0793160fc9aaf6",
+        "execution_sha256": "8764a16aef57faf140ef703781b9cfd4e54a5b71a752939e616f221252e39f9f",
         "source_bundle_sha256": "18ad9a5f2dffec621f5f9372acb2b6f0e3060d86d267b4972bd9148c0993d713",
         "runtime_image": {
           "build_key": "305f97d195999ddc4aea456252c5284b3e8828db4d7602fd687ed522f914c561",

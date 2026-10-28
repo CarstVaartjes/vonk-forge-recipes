@@ -35,6 +35,7 @@
     {
       "identity": {
         "content_sha256": "5eedc2580740cb56b1f173cc9dfcd2f89d24de100d2453057f4108194fa3e600",
+        "execution_sha256": "7007246794f7d5df68b8cb717164790d2d5b07c5e8955a12b4dc17dd3d4c3772",
         "source_bundle_sha256": "784fab7843585bd9c49e1f8049b671d4fb170ca24cfc9d0677cd009ca21d4676",
         "runtime_image": {
           "build_key": "fd5483e7c0b21209c834cc0d23905a46217f6d159e15159691c4ead99a96c0f9",

@@ -123,6 +123,7 @@
     {
       "identity": {
         "content_sha256": "59d84333acd56b29c3a442f3296413d200ce0be2c9d88bad94edd90d854d1c66",
+        "execution_sha256": "44efe2cb6919377c7b3f75a8ddf0e2ea9e97deefa87e864fac091b6ff47557ce",
         "source_bundle_sha256": "3bb491f9fc4e7db1a3c051cea6461d8fe66c691412b99a11b887943eeda008b7",
         "runtime_image": {
           "build_key": "f046aafc7e471dd57f5cee33978440ac526bf1946aeddc5382f2da1864a44e23",

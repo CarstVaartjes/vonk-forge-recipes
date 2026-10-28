@@ -50,6 +50,7 @@
     {
       "identity": {
         "content_sha256": "6fb360440af410e3de5ae4bd3f57b3b69367a64c9ba804f58520bbe392d71066",
+        "execution_sha256": "0952aa37232ecdafe818c1b0fa23e3ecbc4fb82fec02f4dd28bb51f43f8a0f06",
         "source_bundle_sha256": "71dace1219b7adc60ab60fbf3c9a2ba1f4dcc1fc8bdc18bf8d97ecdd3177545e",
         "runtime_image": {
           "build_key": "daec1afbfd4abb4630f9f20d313eb01b6f1cf1f4ae376709226663c8ed7212f9",

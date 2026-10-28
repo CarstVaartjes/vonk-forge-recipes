@@ -186,6 +186,7 @@
     {
       "identity": {
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
+        "execution_sha256": "3638ae801b4c1c275480a6c8c60ddd0d0b834c8af74debad212d2aa917338211",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -209,6 +210,7 @@
     {
       "identity": {
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
+        "execution_sha256": "3638ae801b4c1c275480a6c8c60ddd0d0b834c8af74debad212d2aa917338211",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -232,6 +234,7 @@
     {
       "identity": {
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
+        "execution_sha256": "3638ae801b4c1c275480a6c8c60ddd0d0b834c8af74debad212d2aa917338211",
         "model_digests": [],
         "models_resolved": false
       },
@@ -252,6 +255,7 @@
     {
       "identity": {
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
+        "execution_sha256": "3638ae801b4c1c275480a6c8c60ddd0d0b834c8af74debad212d2aa917338211",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -275,6 +279,7 @@
     {
       "identity": {
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
+        "execution_sha256": "3638ae801b4c1c275480a6c8c60ddd0d0b834c8af74debad212d2aa917338211",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -298,6 +303,7 @@
     {
       "identity": {
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
+        "execution_sha256": "3638ae801b4c1c275480a6c8c60ddd0d0b834c8af74debad212d2aa917338211",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -321,6 +327,7 @@
     {
       "identity": {
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
+        "execution_sha256": "3638ae801b4c1c275480a6c8c60ddd0d0b834c8af74debad212d2aa917338211",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

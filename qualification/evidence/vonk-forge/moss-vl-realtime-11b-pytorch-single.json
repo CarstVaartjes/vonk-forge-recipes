@@ -25,6 +25,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -48,6 +49,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -71,6 +73,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -94,6 +97,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [
           "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
         ],
@@ -119,6 +123,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [
           "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
         ],
@@ -144,6 +149,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [
           "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
         ],
@@ -169,6 +175,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [
           "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
         ],
@@ -194,6 +201,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [
           "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
         ],
@@ -219,6 +227,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [
           "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
         ],
@@ -244,6 +253,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [
           "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
         ],
@@ -269,6 +279,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [
           "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
         ],
@@ -294,6 +305,7 @@
     {
       "identity": {
         "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "execution_sha256": "b6cdece9468a90608b8b5a6c434bece9c4327ed9f54fa2c556e29b6a8731a898",
         "model_digests": [
           "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
         ],

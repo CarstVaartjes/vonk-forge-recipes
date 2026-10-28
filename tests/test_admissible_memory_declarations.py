@@ -26,6 +26,7 @@ from qualification.memory_need import (
     require_admissible_declaration,
     require_memory_need,
 )
+from qualification.model_index import model_index
 
 ROOT = Path(__file__).resolve().parents[1]
 PROVEN = json.loads((ROOT / "tests/fixtures/proven-recipe-bytes.json").read_text())
@@ -271,7 +272,9 @@ def test_recorded_content_precedes_admission(monkeypatch) -> None:
     digest = document_sha256(document)
     inputs = load_inputs()
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    inputs.historical_documents[key] = [digest]
+    inputs.historical_executions[key] = [
+        model_index(ROOT).fingerprint(document, digest)
+    ]
     calls = []
 
     def reject(*args, **kwargs):

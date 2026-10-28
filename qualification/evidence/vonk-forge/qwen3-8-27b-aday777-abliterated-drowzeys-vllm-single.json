@@ -306,6 +306,7 @@
     {
       "identity": {
         "content_sha256": "2c694088cc689b33047601294b3902d4b8022192c48cec4b70eb0c54c02cf1d0",
+        "execution_sha256": "30a4386fc144fafb42a663a87ee636c41e9a7352ba3ca1a6727481b94b98648a",
         "source_bundle_sha256": "a8aea59784d9f897bf426b2bfa02d8a84c0f63f9d004c6e1c53f778c6b87a317",
         "runtime_image": {
           "build_key": "fcaa7da5fa83f4d6246f2d70d346a37d61609c5f8d56e59c8c97580041122f28",

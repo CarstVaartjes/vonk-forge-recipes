@@ -5,6 +5,7 @@
     {
       "identity": {
         "content_sha256": "923666a0571490724ab2037fe0df438747c4a52ec1c826c86250f0a3079598a3",
+        "execution_sha256": "9131d03e8c8c1171a13bfff454e44b90bcacc2c1c8e93012d6af02318ad0410d",
         "runtime_image": {
           "build_key": "e4b156831b554af747a32bb6dfda0f4e4fb96c65c6ce00685fd216e248687092",
           "image_digest": "sha256:946286a4e98c00156c36307a69652d0d0942b06e4b023363ccca372e230333a5"
@@ -34,6 +35,7 @@
     {
       "identity": {
         "content_sha256": "923666a0571490724ab2037fe0df438747c4a52ec1c826c86250f0a3079598a3",
+        "execution_sha256": "9131d03e8c8c1171a13bfff454e44b90bcacc2c1c8e93012d6af02318ad0410d",
         "source_bundle_sha256": "02415eeda89c0ec770bbf1ab86e94e0d21c873e9f552544cab32dc79658c6cff",
         "runtime_image": {
           "build_key": "e4b156831b554af747a32bb6dfda0f4e4fb96c65c6ce00685fd216e248687092",
@@ -64,6 +66,7 @@
     {
       "identity": {
         "content_sha256": "923666a0571490724ab2037fe0df438747c4a52ec1c826c86250f0a3079598a3",
+        "execution_sha256": "9131d03e8c8c1171a13bfff454e44b90bcacc2c1c8e93012d6af02318ad0410d",
         "source_bundle_sha256": "6cb455dcab844e83958064927027fa25b4db7cfb64d5b839a0a0d1694b52b2b0",
         "runtime_image": {
           "build_key": "9703ff28bc8227980de464a815d944c2d53e5dbf82df83abec4f8930637c76ae",

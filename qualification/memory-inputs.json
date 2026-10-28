@@ -653,738 +653,738 @@
     "76a05106ece259be83d1bfea0dcb54f23377864ee60fd321690f35e6698a2af5": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards.",
     "9dc51433e195bc78b5ad846b68643cc0351d3b174e5e4309222d3b7402c83afd": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards."
   },
-  "historical_documents": {
+  "historical_executions": {
     "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single": [
-      "304512d867250e6fbea3d7d163d011bb5432361e2f4195c0df7ca2da0b4a6341"
+      "6a39ea64c8411e2f6ab43632e75df32d8335bac8c2017e0eb26c1a23b3f99f8a"
     ],
     "vonk-forge/d3-edge-vllm-single": [
-      "b42b7a0958a349da11be5247b4d75636b424bac2c2f7da2212f1951b7187c7a4"
+      "451f44d8a5befe28a6d5b248b87098da017e03a550918075d976b918090ab8d7"
     ],
     "vonk-forge/d3-flash-vllm-single": [
-      "1fffb6ab832df08389b448a3861efeda72bab70201d4b5c3f019532efe7758dd"
+      "3cae83266b4208c61dc55702199d580a4f1584daec4674f0def186adc0b65b91"
     ],
     "vonk-forge/d3-lite-vllm-single": [
-      "8cf9e4d289aa6e1f5e5f378807889ce8d9b76a14a1682e6fa2de085f2e9c391d"
+      "c33c09d216a00c933f229818656479e4bbb4a99e7ca4a081dcc47d18b8576e7a"
     ],
     "vonk-forge/d3-mini-vllm-single": [
-      "26628c8ef81891e35f1060cce9fdce3a8a2c3d5788323a2620fcb196819f28d3"
+      "d8f59d7e9f9c6bbbb77cefc2aeda2ca94881235109287bb58d2fb25602502087"
     ],
     "vonk-forge/d3-nano-vllm-single": [
-      "e4c75bcfe7869848f03494b108152e7a8216558fed05a2e3b4033426f0e8d08b"
+      "dfef3ff57e39494ba0b84efa2ed72695c854882a97da62e973be28ed506b3e4d"
     ],
     "vonk-forge/d3-vllm-single": [
-      "0889e88e19043650f4178c90dce52e6bac661acbb9fe976c0e81b8dd8f20f881"
+      "4fd25f3bfd8ab7f23df3a39c9e0f143e5ea894498031408c6724d6af14ee6b21"
     ],
     "vonk-forge/deepseek-v2-lite-nvidia-sglang-single": [
-      "39145ed63c05292d249b48147640d908d5a0335c5dda22e0492003a4e98d6517"
+      "b45d63581a2cc3a954219fbfb692472abec77c3cf68dd603d6f787bcd5941add"
     ],
     "vonk-forge/deepseek-v4-1-flash-1017-mia-sglang-four": [
-      "9e694e2176cfd0d25099170980fb9254de7dd581fb2cdbedcc943b9b71ce3271"
+      "514acca19a13cf2bbd3c4022c5f584c78009cb4d754c18a4ee3aab8825d0165a"
     ],
     "vonk-forge/deepseek-v4-1-flash-1017-mia-sglang-triple": [
-      "2da0c551e0e0a376b2983237152fa986a07fca163e787cdaaa932d4417a015f0"
+      "75abc9a39b9ea6fded2daadbbe336db9a4f68c13f280283ca1bc8fefb2805082"
     ],
     "vonk-forge/deepseek-v4-1-flash-exl3-0xsero-vllm-dual": [
-      "17941e81b5802a96d17795aa10c8885cbeeabcf6b2f91de5a744595e78f33a17"
+      "424ebb5da07a2bbc441dda0e3b9eb84770b83538c2365516e1939b6a6d022314"
     ],
     "vonk-forge/deepseek-v4-1-flash-exl3-mia-dual": [
-      "aa385fa2e65683a422beb0e7604fa4b2bf68f9ec36dec66ea321d42d73fa52c4"
+      "7a5a372144524709b34747361f650a542ddf911b2758ace1128539d01d368ccf"
     ],
     "vonk-forge/deepseek-v4-1-flash-exl3-sfxnz-vllm-dual": [
-      "64a071eef3f961f9b61e45ac1f0d326fc4ed9339128217aff08a5ce6bbdb5115"
+      "f4343400f7325b4c253e17a043fc733aee77866eba0aa982978dde41d3872f5a"
     ],
     "vonk-forge/deepseek-v4-1-flash-r0b0tlab-sglang-four": [
-      "3eece82b155ad1e972d2ab14e8fa6281ac480f74bbd26860a83537c2c648eff3"
+      "8d13c262d35c64bf4503a44a00c90b5a371c38e07639919ee5cb6b8c5c1c4106"
     ],
     "vonk-forge/deepseek-v4-1-flash-tr3-hybrid-drowzeys-vllm-four": [
-      "78b3d142b73f3a6dfb50b300f839ebfd62c58a028fa7f7674c2729659e54954f"
+      "c4c28c7c0d41b0b1a87abdb8838b60e50356313c63b29b2c4a5ec08fb81f59a6"
     ],
     "vonk-forge/deepseek-v4-flash-0731-dspark-tonyd2wild-vllm-dual": [
-      "a85ae180dc4ea368cce332d7d0684338a533c8fc54f1c532b49d9fb40aed4373"
+      "9ff929d8478ee69810138a2a087bc7c52fb1c35219642435c008c34ba67e97da"
     ],
     "vonk-forge/deepseek-v4-flash-0731-eugr-vllm-dual": [
-      "81fa853ced526d6104d6802a400ea8f3c24d24c231f304856056a7ab818feb67"
+      "12c4b4d6613ddaf91c8d24ed8da0f527fffc8e4a5053bc90a0d960c72f48b54f"
     ],
     "vonk-forge/deepseek-v4-flash-0731-mia-sparkinfer-single": [
-      "1968ad9e5a66addcff0b03e8a0cd1db104bee0ab3bf2694eb27ab3458fb66778"
+      "a501fd006826496981783bcd1a1aac854be4892656242087512b6b8800b53f01"
     ],
     "vonk-forge/deepseek-v4-flash-0731-r0b0tlab-vllm-dual": [
-      "7eb55fa3af08fbd90b5e9035ead8af2703c21539d23c73430104cded2c7ad4c4"
+      "67c04e8ab03e6e0672b5474c6d08cae59bb9a1541c0918c04cff52175644fbae"
     ],
     "vonk-forge/deepseek-v4-flash-0731-sparkinfer-single": [
-      "923666a0571490724ab2037fe0df438747c4a52ec1c826c86250f0a3079598a3"
+      "9131d03e8c8c1171a13bfff454e44b90bcacc2c1c8e93012d6af02318ad0410d"
     ],
     "vonk-forge/deepseek-v4-flash-0731-sparkinfer-target-only-canary-single": [
-      "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7"
+      "674e1f9bf1e0bb9f2d5fd09bbbf85236ebc40ce25f119871d6f85ea8a624549d"
     ],
     "vonk-forge/deepseek-v4-flash-dspark-nvfp4-kv-1-5m-drowzeys-vllm-dual": [
-      "a0f1e83ab45d09ace02e9c576d12cb2ec6fb39762af6f6bd6bc8a15d5de0fbef"
+      "d1739e2661c4f3c17ea25f212756c804b81445ba959fd9cbc92a125d3668d13f"
     ],
     "vonk-forge/deepseek-v4-flash-dspark-r0b0tlab-vllm-025-dual": [
-      "b1709d2285b580b6674602e5df7765a6c372634d46d61c19394130a1aacabc65"
+      "284ffbbb41a080c6e0409d7d0ca60a06d71ae12efdd4892c829ddd07b9d95e1a"
     ],
     "vonk-forge/deepseek-v4-flash-eugr-vllm-dual": [
-      "d93c25465ec54d0522a048f268492a81e76cd4ddc60a29aa0b1a1ffa339a8d58"
+      "448f2340a02a4a2bc2777d77b5126acb577ed3451b6f01d76790c2f095ed708a"
     ],
     "vonk-forge/deepseek-v4-flash-fp8-r0b0tlab-vllm-dual": [
-      "253d699b0cdf705e1b783fcd59117b2ec6d63392d1b0362611c79541daf70cc0"
+      "721ddfa6b186704ede48161c707f2ebdbc9a29c773d8d2acdbf9265a40922c35"
     ],
     "vonk-forge/deepseek-v4-flash-jasl-tonyd2wild-vllm-dual": [
-      "2ed6469f108b3d9d4f67960f5b07a940c59d19e435b6cd25b527ead835ab1909"
+      "80a0fc09c37c90e205d8f03f492551b83ee39dee83c49ace177d842420dc1df4"
     ],
     "vonk-forge/deepseek-v4-flash-mtp-tonyd2wild-vllm-dual": [
-      "82393b35158527ddb543961c0e45f8bf5a67830753c38d6919f9f1182e88b19f"
+      "bae878c40c4946b88a5ec5f7a0c57854148d8750e8956b2210308086883892c2"
     ],
     "vonk-forge/deepseek-v4-flash-mtp-tonyd2wild-vllm-four": [
-      "6bc3cfb44b277890d0fe22b9bc595a69a0eddc9bc69c94c9692efcf18ad83f2a"
+      "0652d3f60330cfc94a4b7a062db2a839079b55bb42152b4f3b2f3b58288dd88d"
     ],
     "vonk-forge/deepseek-v4-flash-reap-162b-0xsero-vllm-single": [
-      "29bbd562ec29c76123f2a031b40964418063a53e0d00cba3e59624dc47a9dd2d"
+      "76e4adcaaf19d591b2f229c3ce91f251df6076ed3888b67ecd434cbd64e6e9c1"
     ],
     "vonk-forge/deepseek-v4-flash-reap-180b-0xsero-vllm-single": [
-      "7fb965786a723b6816b6b03f3688a9afcdb980f7d1ffb459e0f1f9fd13d536f1"
+      "21755dcce25e0a72c6c03ceeb9b58b82ae8e33cff6dd0d29ad7f222f84334380"
     ],
     "vonk-forge/deepseek-v4-flash-vision-exp-dspark-tonyd2wild-vllm-dual": [
-      "93b7374eb57946348ba70b61393f321ecc2e21f94822c52e21f3b7280829a0d4"
+      "9a54431de0d0d4f7b0dd6e8a4533f5a3891be628757096a42415389af736eaba"
     ],
     "vonk-forge/deepseek-v4-flash-vision-exp-eugr-vllm-dual": [
-      "9866ab75030511fe8263ddc79ccbbc04cdbc771e4c98065a523707e865ef2f06"
+      "09bd84dcd324f9290202b0e1a0fc6a2338e0149f1dbc4354b84ab43136d55221"
     ],
     "vonk-forge/deepseek-v4-flash-vision-exp-mia-dual": [
-      "ddeafe16d41deaff8abcb8d72b9f118473767730b8debacdda0087012c50226d"
+      "9f9f9dd06643979a2961e8db88354eb21ee59bedeba80176d6384c0d786fbb2b"
     ],
     "vonk-forge/deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual": [
-      "eed43c82f034fc37620f5be25aa872ed4ebe3d40c3fcae75aaddb74beeafee74"
+      "88e9778097dd5e7e812b970c6d0cf656bc0bce2c703088228d1fcfe51bb4b18b"
     ],
     "vonk-forge/deepseek-v4-flash-vision-exp-sfxnz-vllm-dual": [
-      "d009df6a9435f17077faa6209763c2d866999459efad551b087a42e6ac0b6b5e"
+      "cdb62fc70fbe1471a0c1df74189294807be18cfdb94d85be69ba8a1492076d05"
     ],
     "vonk-forge/deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual": [
-      "b0d1077e1840d8ab804d1a2f75e31d8e167bf35d80ffd4e1480c678bf34e8988"
+      "dd0492850074ee4e2c6d7365309714f7df784433aa68547bc959cbaa9d7c7bd2"
     ],
     "vonk-forge/deepseek-v4-flash-vllm-mia-dual": [
-      "2dd054c675e8eb3737845234036bba7ee97884785ffaab3341e0d1232378a301"
+      "49acd456e7ec0bab88f30364e7f06a0b0379628ef0d6bafd71f93ddbb52661f7"
     ],
     "vonk-forge/diffusiongemma-26b-a4b-it-eugr-vllm-single": [
-      "e3de58c2ce1b14e8b6a3c2b137313fc666dc143ff7919a1ae8f6dab0f17cdc25"
+      "a5776b496e577cabdd39b123bdf33fac4a25ef3664eaa2c6d5910aefa72dfb2c"
     ],
     "vonk-forge/diffusiongemma-26b-a4b-it-nvfp4-eugr-vllm-single": [
-      "7a201c7c9fefee057c9a122dc5b7f0b2c7f8fcca1c68c2e6291e81a37dff47df",
-      "9d81e82d393e8b9a55bae8c07d22c2c80a129fecb83924aef1e6608cfb62047e"
+      "440b2c9e03a0f147d034d92d0fd239e2059545289d3b409118323403bed0edd7",
+      "db564b9659216ad6a5ba1e0d730e14302342e750d6eef0f267684e320e1ead28"
     ],
     "vonk-forge/diffusiongemma-26b-a4b-it-nvfp4-nvidia-vllm-single": [
-      "6c5a46505fe1f285c2b9c3a20baeb3c71d63afcd5aa72d9521f7d74e348c33ba"
+      "02fa73a9630a41bc2a70233ce94f229136068a05afaf64228e8bcde8b85c4d5c"
     ],
     "vonk-forge/diffusiongemma-26b-a4b-it-nvidia-vllm-single": [
-      "75fb72c42e4a06cf7c20e6923e961709a2daad4dc6ddfcb2cbd440b1ade37158"
+      "88f25db333054a1c9cd7e6b27047c107bcb9a2e0c9d26fd4df80966c9609c253"
     ],
     "vonk-forge/diffusiongemma-26b-nvfp4-r0b0tlab-vllm-single": [
-      "ae462f524e9a279a48d9981a7d9b40f5a26449e1f4f7e83c6e488cc08dd7563d"
+      "61e2d9d50f3e50137f24d2c556921417aaacb20230648b8cbd1e24be5cdea6e0"
     ],
     "vonk-forge/fastcontext-1-0-4b-rl-nvfp4-r0b0tlab-vllm-single": [
-      "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d"
+      "84ec16b0bdd3978730804dc0da3c2df456564009233868debb01d2778ebce929"
     ],
     "vonk-forge/gemma-4-26b-a4b-it-eugr-vllm-dual": [
-      "ff1c34765ff9392ee102931f84ac3fde7319b4a02964c53f1cfe76469bbeb70d"
+      "2b08dae8377f0fdc8aac9a005a7b3144a0ffeb2f1d90803fc44bcc28ddef6553"
     ],
     "vonk-forge/gemma-4-26b-a4b-it-eugr-vllm-single": [
-      "2e42d642115cf701bdfac46dcc150d9a7a57f285d4463260701ac3ac06bb1bed"
+      "12a23bb2a9f2896c87b09a0c6bc87ed15e6c25feb7617be64b4275b80378d42b"
     ],
     "vonk-forge/gemma-4-26b-a4b-it-nvfp4-eugr-vllm-single": [
-      "2f8c5ef13bb244e48e1a04e70e38ed6260f7778e3ed0205e86fe6a3986612802",
-      "60a35b3028ff4741637b5e14ac81d58799aa0eba4cdbc9c7646abe130aa0e43f"
+      "a16eab9ce24e52fe25d0018e00635bfb7c90aac974cc4341df19a6134d2b7a42",
+      "fecf32cdc107809ed8e5262473320005a20407c85d63976cf1d5f189be9277d0"
     ],
     "vonk-forge/gemma-4-26b-a4b-vllm-mia-single": [
-      "a10ef9241bc8581d28f842008a75fe88df788d11438eaad5795f17122ab864da"
+      "a4a461e0a476ff1b66e26708c2b3aac1ecda0eb4cbe9369668794c6792741a76"
     ],
     "vonk-forge/gemma-4-26b-a4b-vllm-single": [
-      "156659400e55e0fd5f01862097804f8a63b6e828908f60addde749256df9629a"
+      "02adb2b5af422fe8304953949b1a2699acf5992924bebcb558979119dc26db7d"
     ],
     "vonk-forge/gemma-4-26b-a4b-vllm028-single": [
-      "3622ba384cf66d8d02f572cabb0bc87a75a439ecbc2b066c607f6189171d2875"
+      "a52d1442c0eba9f22d01e00a0b1b4aba717cbc23d1d0e4b45fc6f786895bbff4"
     ],
     "vonk-forge/gemma-4-31b-it-nvfp4-nvidia-vllm-single": [
-      "0904d63fb88f0bcda0a3b1ea195c843f9c25c920d8bdd5f526135e42c8f1103e"
+      "1f5edb52aa81367d2e07d0ac7c057218a5cb54c9ab0173ce6ba4e675132f7af9"
     ],
     "vonk-forge/gemma-4-31b-it-nvfp4-vllm-mia-single": [
-      "8d95e435a4d9f109701442a12260f7643f2f70ae2717b424fa29be50fb2b1bb7"
+      "ea1c50034e67727ea5b144b9bcc04e67fc8589b05b14b80133d22631e5280201"
     ],
     "vonk-forge/gemma-4-31b-it-nvidia-vllm-single": [
-      "53a5e2e048f93cdb04f57c2376dc723fbfaacac486c37d54161bb0fd70d2f82d"
+      "543739cc61f4b4374807ba1f1d9a4bfdd0068a10e35eb3041e6f01c6c124f5c8"
     ],
     "vonk-forge/gemma-4-e2b-it-nvidia-vllm-single": [
-      "2daaaf3a76639757f99769a4fa553e0ee1ffdaea20774ae26a55c46b90e74483"
+      "5b767e60028527d6f413dc739fa2429fefa11a1777a0a35e4d3853a78ff362fd"
     ],
     "vonk-forge/gemma-4-e4b-it-nvidia-vllm-single": [
-      "7c87ed9d587a84db04880a1b314a989b28128e11957593761dc29cfa54b4e99e"
+      "f9b82fd2a0fcde70a1690a89b98df16dda4a4a9a2e6a7c47eee1ae3d7427459a"
     ],
     "vonk-forge/glm-4-7-flash-awq-4bit-eugr-vllm-dual": [
-      "adee3a33dc4f167ba7cc3b1999f81312675a2c1bdcc0fa8f6006170c62b02111",
-      "c440a0ad30f20c9b4bd8a04a881c1c51c1c730bc11bf3900448addb2b8aa4f17"
+      "5e0475d221a1dd0c6cd8621df63e8b8e1b3d5dfd304a496bb90535bde0e8d9d5",
+      "6793425f216b871bcd257b7735aa54f68b48b04402c01e8efb03a56af0438ee2"
     ],
     "vonk-forge/glm-4-7-flash-awq-4bit-eugr-vllm-single": [
-      "6555dc7d646e54759ae9fa8950a4a8b72572ffa876a9896d1b269318f3f1522b",
-      "6d199b277530827e46ae026b6d3c88b83a25b358409195baa3255dce676eeae6"
+      "229d199adfc94c4b65b6eea91870921d060cd06f10a3e33dbf800fe9fc921c32",
+      "a2b369bf3e0b754283420780a100d552ff82fdf7f164c06ea9bea360a1dcc21f"
     ],
     "vonk-forge/glm-5-2-aqlm-vllm-triple": [
-      "9713928748a9c19d90869c3a1987aab477e6365c2014ecb3545f32677df0de2c"
+      "7e3dc953189d58568062a955b6d172e7ae44b574b30f8d7e12ace869ecdb98b5"
     ],
     "vonk-forge/glm-5-2-quanttrio-200k-mtp-tonyd2wild-vllm-four": [
-      "4594b8f34c488211b7c0ecf51791bcf1370e9bd2a4376f83bb3c395ae771959d"
+      "a5f904c7a7f35a63635b9ab9b3c6b6956f590641f2791cd2f828c9a6f224bfc2"
     ],
     "vonk-forge/glm-5-2-quanttrio-nvfp4-kv-tonyd2wild-vllm-four": [
-      "b1df2e40cf00e7e340898ed0d2a82f29086adefb2c3fad4a3ec0c60b0ba4c12a"
+      "2cf900a008e2c04b39f0512f8777e1c12de96ec9b426a53cf157a122d86ea350"
     ],
     "vonk-forge/glm-5-2-quanttrio-vllm-four": [
-      "bd7da52f535b03712d02b1e9134350956e7de4517bad18dc69ca9282885d192a"
+      "7e78547ebef7202be1596c0937397eb69c82d81fb5c9ac460b2f8d9dfbf74a11"
     ],
     "vonk-forge/glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single": [
-      "447ff626e6b76328321e13599a49b5d900b1764cf31479938c7c35227d5a45bf"
+      "6a35a2bfa8dabd7ab2657b50ecd4b794d2ab7ae8b3935072154eb6c3948a5c56"
     ],
     "vonk-forge/glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual": [
-      "4e0ce1e7099b1c88b023ec86ad2a02bee0e28d1ef59b21f89a3a4501b22b6ef0"
+      "c364c2a9a7cd970a0bc3a06c076d0410b7711479031bb8b4d1d323d4ae61f510"
     ],
     "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual": [
-      "60fab1c93fb0cb8137587b31f2cc0753ffe938fa13eb3094e4922b8e1b83818c",
-      "e464859341620e545b07094ea563daf9f2f0b3ca5f7bb4c2fbfcbcd852c2faeb"
+      "7dc994d55bd774ddfd9d1286de70e5c503f82e4fd968413de0aad22f4d87b39a",
+      "facab7b3012696578c74154236068cfc01bd5ef8bb45e31acbe27ff0bdeb59d9"
     ],
     "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-mia-four": [
-      "48d2e4b0b33ce12cb60eea310a332aef593d011337c9d8885000b7076f57cc95"
+      "67555e5df0bef371ddcdc4e9626a9b5e27675685a118e0c57c161447a3e5edd9"
     ],
     "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-mia-triple": [
-      "3b7b9e427a64742c35b6baf5377d0883c7d6723edbb2d3204b64716c540c0adf"
+      "5dea724484af9950120a967b7a4cd242f3991c5d9d02a1d22b65cd6954ab9130"
     ],
     "vonk-forge/glm-5-3-flash-exl3-k2-0xsero-vllm-single": [
-      "c88ed82130a7da68486abaad438ad73a163a1ae8b6a99a6b0c519be388496db8"
+      "8a0439f1f286208db5c0ce236df9d247bc124f192946c8ac7e5e67b79ecfb384"
     ],
     "vonk-forge/glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single": [
-      "6e5f713f3487415a3e3081e186ac9afd07d4346a7f0a43e3fe1a0f4ad474f653"
+      "09802a87142906944797512c63d2fe7f7799510411ffda33de3356e12c6b1ada"
     ],
     "vonk-forge/glm-5-3-flash-nvfp4-0xsero-sglang-dual": [
-      "54978c8b7315a8c17d68aea0964430cbbb289921b18c4a2db0ab66fc898dbfdb"
+      "bed76b4f1a6ba0a19cf65a58f2542a56cde6b68ad33c10cf61dfe478392e9609"
     ],
     "vonk-forge/glm-5-3-flash-nvfp4-spark-eugr-vllm-dual": [
-      "5001a26a835d815d87027a2139a96cc4bdc56b0828052bf94cfcf53771df6164"
+      "138c2d5cfc51b5dea2359d58739fe993fd874cf293bba51ca2295da098db82d5"
     ],
     "vonk-forge/glm-5-3-flash-nvfp4-vllm-dual": [
-      "d34ccd46bf92d9c436cfe3ac486a56bc104a1f8c420c5aaf562608e402b09b67"
+      "8a1a2f44adec5aaa2d6cb2dd508c10ab86a61cda94c5fd511a2c52acf8fc18ea"
     ],
     "vonk-forge/glm-5-3-flash-nvfp4-vllm-four": [
-      "01890627df70f55f41194a21a0c18aaffc69bb2ea5ed31e5f811f0075fdf597a"
+      "fb1886062e33bba1eee426b6ad78668e648aa972301576216744e3c4a4275f45"
     ],
     "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": [
-      "507f9a24a3bdcc74491261f4c1693f34b92d6ef92b11c8cfd4ef81d3c0fa8855",
-      "7cb340f9a04b65808078f91464d73af8353e8dd5b1d801921853e4ce1a80e29e"
+      "c86e57b2ecd453a72bdaef0c58b56746ad8a6ec4c5cbc4c8fc27db61f966d523",
+      "cbdb3720e3e4e82c1c584153c2fa51177dcb9531ad909f2f7b9ac0fe0637e494"
     ],
     "vonk-forge/glm-5-3-int4-int8mix-mtp-tonyd2wild-vllm-four": [
-      "96f1d9b58e813713c1f5687eea082421ae715aef5edebc8a9c79e17c557c0fc9"
+      "94d5bf93dd71b4a8bb9b7c6fe3d5cf6e58acdc15f9accee23016d90397ea4f3a"
     ],
     "vonk-forge/gpt-oss-120b-nvidia-sglang-single": [
-      "3e12532266c74215a3d463698b049291a73e77d9db55ccd0b9ce57f98ac66e18"
+      "63c743c88a50f479706ef3448edc3676c264628150ba780e0a70d470b4dc7246"
     ],
     "vonk-forge/gpt-oss-120b-nvidia-vllm-single": [
-      "4036b68dd07963124d11364948fc2f36c3dfd23f98cfa12a03c863aa68e0706c"
+      "c596425d7f1a7d5a328667a493e6a079abde8e5fbe0cc3a380acd56149c8c58c"
     ],
     "vonk-forge/gpt-oss-20b-nvidia-sglang-single": [
-      "36400a29febe00073704f9cd4f11b7b2af7c2ea34e2fc60c0b912244a3793097"
+      "1637d722b5eddca3625c08923f45819b25e4d2ff10d9fe44840e918a86e2cc97"
     ],
     "vonk-forge/gpt-oss-20b-nvidia-vllm-single": [
-      "81c80249c628a1283de644a4c3ada518b4a9a8cb34dd0275d83eb65f16ed57f8"
+      "60bb1d279e083ef2bbb92b779eca1bd5e717e5d8a9c5309fc36e8fb7162cf3a0"
     ],
     "vonk-forge/hunyuanocr-1-5-vllm-single": [
-      "de17e03dbf3fabe172669ad627ca26bee89c9b33edbbaec7bf7b4b91b032b61d"
+      "b9013014a49e0ca97713096238173d5118b72c8b5288830c447075cf78c366ed"
     ],
     "vonk-forge/hy-memory-30b-a3b-vllm-single": [
-      "64851fc4742ab81ec4092cffbb548a0c04d0d709f7b7fdcce329bb5e4f65a729"
+      "3a5cff80700e15f05e90a5ba3870280a3c8b3dca5900557601e12c44d554d712"
     ],
     "vonk-forge/hy3-295b-nvfp4-a4q-drowzeys-vllm-dual": [
-      "2e9bcd49382fdaefb1e72e69d25a5093895f7b99a8d6931adf66dc945c054cd3"
+      "dab741ebf24f204879228d9faca6ea0b0faf3b47f89ffee01912cf0a757cdbf7"
     ],
     "vonk-forge/hy3-295b-nvfp4-mtp-tonyd2wild-vllm-dual": [
-      "23cacab5be1a2c87174f1b92437688c36363d3dd0e34e3c11baec957bbba3b14"
+      "34ddf3a37da089a1c5af523b36cf64ef12103f2bb94878710d008dd51ea6a718"
     ],
     "vonk-forge/hy3-295b-nvfp4-vllm-mia-dual": [
-      "4baf24d8cbf12d48c0ec60216a3709e36b137f2158cf862da72e4a89038919ba"
+      "94b6b8e7daeb10600dcc5d2c2adcbd3cf1cf110f4dd4d9e6266ecea11be23ef2"
     ],
     "vonk-forge/inkling-975b-a41b-nvfp4-sglang-eight": [
-      "e735758f705331b89ac3984e79a2d21c289cff1abac4de763fe5b7b8e5ac781d",
-      "a3c68c4653bd04ccfb1b6ccfcc8de0a901369ed696064d83c1d18fbba35f1ca0"
+      "210e815c4811c694e2baa4a8fd343d42f5dc5df9872715ac32179b3f7a86866f",
+      "b11bb6d44b6a6cf4b079b39f6340879bace4124e4d95adc42ca3780c0b9b38db"
     ],
     "vonk-forge/inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual": [
-      "b5e6c34bbefab52c0633fe2d10fbad344a41e2345dce1d101470f24551db4360"
+      "cb681bf739c7820e0855f714f239d3fb4b158eadb794902bde9b03d32649d8c6"
     ],
     "vonk-forge/inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual": [
-      "ff535a0cad31392e7db97778dd80347e06d66726ccea57136c727e50682a8bd6",
-      "c04cd325ac3faeecf4846d0e025553b8423c3a48ae79dace1a34946179f50a62"
+      "6c8642fe071bfe5a6396fa7e9b704cddbd1c9ee1786ba324c94ace07145d5b5d",
+      "86bc221051f4a1e7a7c39017683c0f14f52fd99b8ed2da07f0af8ff3274badb0"
     ],
     "vonk-forge/inkling-small-nvfp4-mtp-tonyd2wild-vllm-dual": [
-      "82ca08c7af6f4379597a55f8a99a92aa50b564394761efaaa4b48ef8d2a40db8"
+      "fc9d91f2a5b12844eee85977fa8b65ef12bfbad7a0471995d866f168307a1d8b"
     ],
     "vonk-forge/inkling-small-nvfp4-sglang-dual": [
-      "2bd42c7950122598f6eeedca4bc1b363162c0bd551c6208b2408fc1d3cc28630"
+      "9bd9130572e58e8f43304bcde6b2ed79221871ce805530ef27b60089b605ece1"
     ],
     "vonk-forge/inkling-small-nvfp4-sglang-mia-dual": [
-      "63c2735f46df91e528bc173c839c6140c2d961062203f8bf5ff9632a76887250",
-      "c36e6cab36b17c3a1dce6a2e058ec734b5d146177597fa4b3a023f5c1fa69b58"
+      "7373acb40c8af2264c89b3708b954f673dd8ca5555f66145933ee6e453012764",
+      "797b13017017445ce8d08024bdacd711ae6f1b522419dc67e6b25697b600f8b9"
     ],
     "vonk-forge/laguna-m-1-nvfp4-r0b0tlab-vllm-dual": [
-      "630397ec0aecb2be0d6a261b9259e0927345ef63c8711135b79bda2de2eecfca"
+      "28a0527c8edc689241a4ed2e260aaafe9bf1438b03dd042b50312b8a9edb7fd8"
     ],
     "vonk-forge/laguna-s-2-1-nvfp4-dflash-vllm-mia-single": [
-      "b72a8ee12c5fee352a60a363bedbab9d4b86522670be20cb66aee6ca9b12ab20"
+      "c80892fe61aa56f3f6575a47095d78550203448b998105b3da23eeb8f99cd38c"
     ],
     "vonk-forge/laguna-s-2-1-nvfp4-r0b0tlab-vllm-single": [
-      "7b2c74efff1cc454c11fd999c134253133d88143affa35be815cd18ab2f0f822"
+      "19fa598af95fb04fd52d0e6c585eee0990172a8ed0c69af077fed81a8dc57a94"
     ],
     "vonk-forge/laguna-s-2-1-nvfp4-vllm-low-memory-canary-single": [
-      "481e03551d45f76253260c70cff12d3cdb17785de0271d4ab1195779cce30134"
+      "0bb38766cfc22679cd748a4e3c8790262f092544dfa0d919a96325aa8738fb2e"
     ],
     "vonk-forge/laguna-s-2-1-nvfp4-vllm-single": [
-      "a39a29f3ca60f0b2279f915ac30a36c546e542149d2e18a3b83345725001dbcc"
+      "9eac1e73abe3f64cffb28e2ab4ccc4503eec896b497fb22cf59ce5a0b17e5f0f"
     ],
     "vonk-forge/laguna-xs-2-1-nvfp4-vllm-single": [
-      "684961e5aa8a865c586b58de70f9baefa6488d034721f61c8bdb40da8c1101a3"
+      "3291c4195ef40e20d10434381ad88cfdfd65f7fca7c286fde1a7650c55cb9350"
     ],
     "vonk-forge/leanstral-1-5-119b-a6b-vllm-mia-dual": [
-      "6aac97c5989c3199187429e2faca78bcdab4234ff94b6078674043321108dbab"
+      "6d5481411466cb472e5a0ffdca2427c573185f93c67f148fa107f9cda20b7149"
     ],
     "vonk-forge/lfm2-5-24b-a2b-bf16-vllm-single": [
-      "445cb0590e0049011280b5404173243d76f5d1a93a08e0940b0f3aa676642eeb"
+      "f8c11ad59bab0dd8dedf0bc6ce5ed5584e1425821bc866a1b7ceaec80c98ea3f"
     ],
     "vonk-forge/lfm2-5-vl-3b-vllm-single": [
-      "076550af82e3925032d66ad97b149ad664cc8a8e28413834414d70c9ba912562"
+      "20f0006c53b32d70613aa2220c2ee1af53e0d4f4d4cf9edd17f11eb226cb4d9f"
     ],
     "vonk-forge/lfm2-5-vl-3b-vllm028-single": [
-      "9f6102679afb0fe537486d670ff8c4fc28590d2086092859800a2704fad6c3b3"
+      "b3896c304534bf84d306ac7280c447d9c85fda53de7fa5eac8257f4e4df46a10"
     ],
     "vonk-forge/lightonocr-3-0-8b-vllm-single": [
-      "1a04fc305dafac0dc138f829e12899ede7c49714606fd14c4143b9c4a169d48c"
+      "7424dd838ba975b829e13e38d012b154b623838c1c63dae8e6e99a0cd657255b"
     ],
     "vonk-forge/lightonocr-3-1b-vllm-single": [
-      "6d28cac63e004a3bc6ed6e54d15cfd5e25a40f264234bc111249f6470e717b5f"
+      "9b770bd7913959bbb4ee6810ce17a2b9e94a0e10aa17f7088d7f2bc1f8f4278e"
     ],
     "vonk-forge/lightonocr-3-4b-vllm-single": [
-      "3f8915a454e4986cac3b2375847bbfc08edfcd20ee0d083430309152274c3483"
+      "69842d82e43fa4937ae2b99c547e43c51e9573b573f2584ecfda6f8fdcf82807"
     ],
     "vonk-forge/ling-3-0-flash-dspark-sglang-single": [
-      "a6f2b8b1280068082dc84fd9304fae5bfb37b9f4602df254289535ad32c7e45d"
+      "b432a54ad179a031c7dba3865c7d0be6b4c7c37a099cfe32169e9273562e42f3"
     ],
     "vonk-forge/ling-3-0-flash-vl-nvfp4-mp-r0b0tlab-vllm-single": [
-      "7408b88f1cc7939ad8be4d1e7c02e3ee1c64daa8a9b89263e018b9bbe5ccc7ca"
+      "c120edea53bb17744e85f98e5957f6e43b049452445b235ace582f72855aaf08"
     ],
     "vonk-forge/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual": [
-      "fe07c0ae7a5c69e52cfb0aecc247c25d560a165af8fcf568092df392f90794d2"
+      "76a6c411b03cb6f1babc898d6a4e39aeee8d3a3aeebf8610ef46a4f7da9e3ebb"
     ],
     "vonk-forge/llama-3-1-8b-instruct-fp8-nvidia-sglang-single": [
-      "1832241dfac980b81de32f613e29aeae3c2e579014ed567c0dd6f7c9cf3ef1cb",
-      "a3f50d992ac6558099bb11b3df8766e11ddb513338eda163615818fa944f1f07"
+      "7a1f0db08306f63aa913cf501575215448878bcd85ba53a8ae3e99089e8857e8",
+      "adc9b3efcefed1a6d0d4b4bb30d1ae55fc3b0f724d5d485d837c1de9e988fc97"
     ],
     "vonk-forge/llama-3-1-8b-instruct-fp8-nvidia-vllm-single": [
-      "8b2beb9fd873ed312819a04ba968969934b87c13f403f8d9d4e63ae6ef0a9042",
-      "a30d2d7a6d5e1d7c6364e3f89de4a5b4cea94f6470b662be19d7cfc2e11b5244"
+      "16ccbb15f4297d5b0a1836fada6b39f92e8f151b8a4a7df3fd6777b3ac61a9b6",
+      "95447e94aa685d94a568bd6a27ccaa20431e728856599e486ee6d2d857b4ff75"
     ],
     "vonk-forge/llama-3-1-8b-instruct-nvfp4-nvidia-sglang-single": [
-      "b89a033ab5d8be55574aaebf3f256f29807d889863f857379cd84fdb207fd400",
-      "f706c274770c2043d5235c6bf474a26b46709ab090b5d9b56402d3e8c17fae88"
+      "28570a5be34755e0cbd2bcafad4055f8e1756172b7b1de55982179d87153ffef",
+      "83d1dafae68715ab5d4effb347e302b136ef528a71848d779bfb9234998e7646"
     ],
     "vonk-forge/llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single": [
-      "b0d39b6807807eed424e365e8589b4f4f2ce3bfa766817b1f80abc923a18228a",
-      "c6a5fd6c43041e53c1cf4bd03eb8cdc8e58dfd4fa8cc137c1420fa13f1d29417"
+      "364d62d9bf2e5c1c0cbf47799ab83ca828c31a142ca7d5f9e5e8b75f383e6c5d",
+      "8913232d67836fe2fea4832c8a7dc978e4509ef237e93f57e9f00ff8c5e33a2e"
     ],
     "vonk-forge/llama-3-3-70b-instruct-nvfp4-nvidia-sglang-single": [
-      "a7972cd271f4452bebf978822c29e4dd0bc6e5b6d59f3470c39d60995182b62c"
+      "84b809ea85ecfaeeeb55e303f649e032904cdabbd406f47805adde588deb199d"
     ],
     "vonk-forge/llama-3-3-70b-instruct-nvfp4-nvidia-vllm-single": [
-      "55defee2390ad092667f8efb363ef6a26491a6ec61ba9edb4331794e33d2ac15"
+      "e1f447282cbdc0d225d3335f89950a64dc397734ddc0edecdd15204b233fd328"
     ],
     "vonk-forge/mellum2-1-12b-thinking-vllm-single": [
-      "1b8c819c8a515f9d5cb83d812ff515c3b49cc4a356625fb5f8791f8b746b5849"
+      "2a05c35a57c4fc118f6c7ea92831f745df3ed0ca5cafd67155bc9991b7b3f3ee"
     ],
     "vonk-forge/mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual": [
-      "f1094f20d3ca2a207a85ad3577b7a1f506cf61715a26e952620d9050faa08081"
+      "3805b8dcd69e1b17768fe306b7c37ee911d6c64258781ac8ace3bc2c975edefe"
     ],
     "vonk-forge/mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-triple": [
-      "41cd700fc36079136f28547d948633afb8ca2ba73aebc195fab832e645a4332b"
+      "29eadb81c00b7461c93edd7ffc4420899a70a5bdc5c311ce0427524fd672ac06"
     ],
     "vonk-forge/mimo-v2-5-omni-nvfp4-vllm-mia-dual": [
-      "8b096f4c04afd76948ac0c7050f5b66dcecf4c5dea064afffb04fefded7ef802"
+      "3bee56fb17269319a57f767333ed7780848d059ec3e456729ceb4236dfdbf912"
     ],
     "vonk-forge/mimo-v2-6-distill-qwen-9b-sglang-single": [
-      "9a10d5f81873a2d1baeac9603a0f7058dbcead0b30cf2660bcc3a45a492938a5"
+      "d2749a1b5a4e32a55313bf918ef570569f2c2cff4a591d9b396fff9e490c4be5"
     ],
     "vonk-forge/mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual": [
-      "85dd493254a5cf007ca58da514a2d48213caf9fcf892255ef624a1e9dfa0f255",
-      "8df0b041d5cbc849301b4769b3c2db42daad6819f1b86bb65adb6af79214ce1e"
+      "00194f07d6318a972fe1010e71a8e5f8ca898ca94579b707140f40b9627ddeb9",
+      "6e68b907ed1f64c9c7715e78c8a49a3b6b7998ab0c272451e5c377386632937a"
     ],
     "vonk-forge/mimo-v2-6-flash-rl-sglang-mia-dual": [
-      "dc25ec541f4655dda677ad6a155d5e5aeb1e14652c38b82bf175c2d5bc28af37"
+      "49f661a696e6b9c323a2fe173cd197843d99df57859cf12abc726a764bd47a7d"
     ],
     "vonk-forge/mimo-v2-6-flash-rl-vllm-dual": [
-      "650e42b17f8e5d136ad06ab36e4eacd71ef22f0e16cd9783d69d9f9971314292"
+      "8479f020919a2a4a843a646414523c7336f5366bb28fbd76fc00e2aa2219ea07"
     ],
     "vonk-forge/mimo-v2-6-pro-mopd-arvq-drowzeys-vllm-four": [
-      "ccaba7f4af7848862ebf30e4e4b01820cb18eac441a64a67d507dab7579b94fa"
+      "c68a2e4626c0f94bdb2a3841978b8b732282bf151fdd302342122ac51871db08"
     ],
     "vonk-forge/minimax-m2-5-awq-4bit-eugr-vllm-dual": [
-      "4bc98771a0f6166310ec1736dbee47ea3bd24473ed2f45dfcc44aea2d55414c7"
+      "e73e29374ca10218b6fb56782d93a30bea30a6e2eee23091190de0ead1ad09a5"
     ],
     "vonk-forge/minimax-m2-7-awq-4bit-eugr-vllm-dual": [
-      "6e2b5518389b62454d41bfaac97c36275ab9153e261fa80d789aac9aec75b568"
+      "e44ab5c4b9e45a31dc92919bc7c4378ccfae2d6da214c5c4be43bcda2b60ff16"
     ],
     "vonk-forge/minimax-m2-7-nvfp4-r0b0tlab-vllm-dual": [
-      "5950fe57bf27a538227480c89feb120f19c50be8d6ae89c27a92d38bcfed417b"
+      "676f2608e373cd673954d515b09ccca9e813ee0887ad7d2d833ff65d56d99195"
     ],
     "vonk-forge/minimax-m2-awq-eugr-vllm-dual": [
-      "8331f2538fe366863d5ce20d2ae21739231f30c081d6f1894fa21baaa681f5db"
+      "08098da38e40048ab759120a90db4cf867297c3a896d07d69ce468354c38b412"
     ],
     "vonk-forge/minimax-m3-nvfp4-tonyd2wild-vllm-triple": [
-      "9bcf68c4ab5e51f10fad6140689a1b7a53bea2e8d82e96c066d7439ef892013a"
+      "7838c36b7db41fdfa3747ddbeea2b75a06c54be1f9aef72459c6c678fdd5bdd6"
     ],
     "vonk-forge/minimax-m3-w4a16-gptq-eagle3-tonyd2wild-vllm-dual": [
-      "11ecddb9be15c7b0910906cb3778fadd96f1ae6c0362a1897697f61adcc53532"
+      "d03a4734a007a063cdda0702b7346e3a152206897d9d8275ffb7e48562568513"
     ],
     "vonk-forge/muse-glimmer-30b-bf16-vllm-single": [
-      "5c3cd4ee1ab52447e77c1685cbffe18b095b0222ea46c97c43188c5b873121e7"
+      "b273c4d99ef528c6b0b01ce84dc7c5ab209b62d3510a936b33a2372dc848e83d"
     ],
     "vonk-forge/muse-glimmer-30b-nvfp4-r0b0tlab-vllm-single": [
-      "6729e1346d67508153de38f58ff5e772a8d54b7240741e633b9aa101d5b776de"
+      "0c38ece582bb2181145b1e0c19e1aedd3799d180b71f37b38c0dfd3a34f3b8dd"
     ],
     "vonk-forge/muse-glimmer-30b-nvfp4-vllm-mia-single": [
-      "f83f031762520444239f4118a1126b3281c6adcda4deb6e8a64d1b60b4e744ff"
+      "cbb9f546f237185de646ef5689d93979aa323d5dc5c288e02efc7d2968d58ed6"
     ],
     "vonk-forge/muse-spark-open-nvfp4-vllm-eight": [
-      "6e9eb84f829306d60322ba90e947685b1b2ffb84a0fb94683e6e0ab682c68106"
+      "20261b0a1e7e85691cf2872f6737debdd094b66d185d80e87c9c93238898a71a"
     ],
     "vonk-forge/nemotron-3-5-bolt-lilicorr-nvidia-vllm-single": [
-      "f34e1211a581fd04a5cb0334a0d470d589ead91e1ea6eda7322e036bc8df40de"
+      "b56740ef94e3fa7743715c0870627facbef45212d00791a5fec27efa5da1221b"
     ],
     "vonk-forge/nemotron-3-5-bolt-lilicorr-vcruz-vllm-single": [
-      "cca4a26db3d70671523b3f890ac66afda8dd2e718cff8a2cc03795bd64f0659d"
+      "4dfcc9c6ebb06b34b84deb886be4f9babd31cbd02c561e89fdc18e63b738c189"
     ],
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-nvfp4-eugr-vllm-dual": [
-      "d8bd0d00355bb8cb75ee7c6d44ae281107501af88c239acc4941bd184f2f11ab",
-      "fd7d20afe9a5705bb8ffd90b2d6354dc6bcb030ed0be3cb7ecc77fa6ddb2c82f"
+      "9c4c350af921cb889dccc9972f9e39873f20d6c16b2f3a94c20d2705b15e11cc",
+      "a399e3cae9c01c38caeeb16536758ce96d1e1583d57c8bc5f98084fb3be53d3c"
     ],
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-nvfp4-eugr-vllm-single": [
-      "05b36c689d2ace53e216559824f1bb9a1dee9208cf6cf6e6b3df26e20301e578",
-      "a65e7e395a8fe00c82bfe4bcb67aa428d670e4b3cb011c4f65abe85db64ad411"
+      "6c38b3a1570accc089d49651810913de7826f852c2ec5e1706d4b9082acc61d6",
+      "9e976a9cc23945c1d4ce110ac0965b32a840594a4795a46171fd1156d6d484e2"
     ],
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-sfxnz-vllm-single": [
-      "67ca2eeeb32423b2fec6ef02344f66299b3e640ffee9176259b4c7541b23649a"
+      "159926c703b6814c32bcdae9f36f3ee2e4c5ebf4918218a9b380ee918c222be7"
     ],
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-sglang-dspark-mia-single": [
-      "28f8957fe89142464cfcbb89c4263be3a671937ab1abe67a67f09e1569f349a5"
+      "513ebe628df0b70918094dc7a61e77f8795b5885e9e874cb6cd3602d54eb0868"
     ],
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single": [
-      "6791b84efb39717ee71abca8b0cc53ffd127caa5ab4887e6294fca514173378c"
+      "f5bff03b4d21378aaaf355b2f73df847cc25312c55361635cb88a00e8431b44b"
     ],
     "vonk-forge/nemotron-3-5-lightning-30b-a3b-vllm-single": [
-      "745df627b5b8fce5f7dc77f50ca6d414682af14e8181a2a76d31840f295e74f4"
+      "31a277876577ff54f540d508f7e76658d28a13af9742b545a4098394686daa2c"
     ],
     "vonk-forge/nemotron-3-5-lightning-dspark-lowmem-canary-single": [
-      "f3b3af6ff033024bf91bea27f00438f256c6e34c260c9f70c986650b4cacb40a"
+      "e7fc8475649c248b2cc80d8e7b0c5b8ba4dbcdd4ee1bf042763b1b80e0d08092"
     ],
     "vonk-forge/nemotron-3-5-lightning-r0b0tlab-sglang-dflash-single": [
-      "c4046f996f30ced04c64eea1ba84b06a0cde0f5ecae81d53d742d645e6495924"
+      "02535b977f8e09e56f90adea00fdbebf29a59af36d2983047c211435ae0fe61c"
     ],
     "vonk-forge/nemotron-3-5-lightning-r0b0tlab-sglang-eagle-single": [
-      "08e820464c334d2cd6702367b90235e9a18d6a504ea673e77c29f39b56602735"
+      "bd4c5837ba910e416ad78c9eb15c00cf25a559d6437ab69cf2b5998fddb50b4a"
     ],
     "vonk-forge/nemotron-3-5-lightning-r0b0tlab-vllm-mtp-single": [
-      "3a9c978e5a77b90f27c03e6e86099a742120dafd5ee1e32d03fe394907c93453"
+      "2721d68bccf531408ef68712b24d70b6827fd94c946493492dc505367a6c07a3"
     ],
     "vonk-forge/nemotron-3-5-super-vl-lilicorr-sfxnz-vllm-single": [
-      "5260e454348f7ee61eeb20a30d5ba5b378232823de65720651e06d02470d90a3"
+      "01ffc1763ac2fdcd63bd3cf6bd5431fb98f329edacfb8bfab98a7335ffcc38fa"
     ],
     "vonk-forge/nemotron-3-5-super-vl-nvfp4-lilicorr-vllm-single": [
-      "16db6a5013400d3195d0c2e2b3520a01c846754b9893a70e77586b2efebd3e95"
+      "41ad46d462e85f48056e3c22fc44c6daab594cc40848756315ad7a910f2ce4ec"
     ],
     "vonk-forge/nemotron-3-nano-30b-a3b-bf16-nvidia-vllm-single": [
-      "a89dfc81a5e604afd418e76e984d482f2ceed32098ee1806a4d93f1805e11713"
+      "398e28be5af938f0248dddef8612fc1ace570d922b95b1b27c4358a927ca630b"
     ],
     "vonk-forge/nemotron-3-nano-30b-a3b-fp8-nvidia-vllm-single": [
-      "94cf12498dddc8965c186c9a065bc088cf550a43a09642d2575b100ec576e48a"
+      "e56659a14f4137d056dccfc86dcc0cc8d6ed70096859d267269d494434515c5d"
     ],
     "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-eugr-vllm-single": [
-      "2032fe0a411d09c22aa19d3b67dd0b018373d1da8bc74b7b16361af43f01110e",
-      "9874e336dd99c3237193c6accdb976fdd632d8f576768c74297c68b188739406"
+      "38c7dc811c68151b2fef21eb104d221f4cb5c5aa662443fa1e2c239cc9237c6c",
+      "3b73f5427f063e5a929ed6cf40a366fda46f2d254bd356bc6573b00cf10167a5"
     ],
     "vonk-forge/nemotron-3-nano-30b-a3b-nvfp4-nvidia-sglang-single": [
-      "f9a2365bdfbb06d70f03009ece1f86b62ccdacc0c5832df41b79bd814956c224"
+      "5856d1becbc037807c878065dd5839b48d5b7f7ed1a42d8a2dc6d0bc0ac28ace"
     ],
     "vonk-forge/nemotron-3-nano-30b-a3b-vllm-single": [
-      "38995ba3f4de1ccefd2b3d076b1abe1ac5d3c21af76091d0345da5a1e8b4c8ec"
+      "1e8a1a90a4c06352958e1aa74d8a8dc82467d92065ad035fcf95651248c95fe2"
     ],
     "vonk-forge/nemotron-3-nano-omni-30b-a3b-bf16-nvidia-sglang-single": [
-      "6700e9e0ef173db42c593c67d24ce09bdc05b21720ada67fb06476081886d579"
+      "a41e1cfca3a56f24ca3c9863c99202d6cc724a218fbe892faaf6f78903a1be3a"
     ],
     "vonk-forge/nemotron-3-nano-omni-30b-a3b-vllm-single": [
-      "e077494e1201c4a9730e2341289ba8c6a584e5c83cb3ebff8ee4e1e6704a83d2"
+      "7c4db7122917863cdbbadc27bb97d57404a31bbe31abe9cc319339cd4b29e143"
     ],
     "vonk-forge/nemotron-3-super-120b-a12b-nvfp4-eugr-vllm-dual": [
-      "e987063d69f32e817ceea2624f244b685e6b1012ef4e5e05661dca2c76956275"
+      "54bf0c2654c038f0282333ecbabcb36bd47b47442f6bb146b1e77aa10e4bb987"
     ],
     "vonk-forge/nemotron-3-super-120b-a12b-nvfp4-eugr-vllm-single": [
-      "81876d614a9afe09fd504e7039d343a741a057ae3545f82e2a8814b6cdc7b96b"
+      "d20bca75890c85dbcc2d1d413bc8bcb38bfb8f406ac45228c1bbc8407154f164"
     ],
     "vonk-forge/nemotron-3-super-120b-a12b-nvfp4-r0b0tlab-sglang-single": [
-      "c223bb07252ee8452a01ce112721509b5f1323f5d66e39f96c0301001659b67d"
+      "1149d569be278861281a44f541768c5450d0f9a6975d73a25630ffedfcf7fdd3"
     ],
     "vonk-forge/nemotron-3-super-120b-a12b-vllm-single": [
-      "07799cf34f84bc5f64a82105e03013c8ed460b55fb83aa96a3090dcf82af5304"
+      "8deebe375d643c2fa79f0b3c1972cf6c787f2485d05753a2fe098ab9914a175f"
     ],
     "vonk-forge/nemotron-labs-3-puzzle-75b-a9b-nvfp4-drowzeys-vllm-single": [
-      "001db10a839592c8524648b00b3167eb30bfacf28609d3ec29e9398b6fbf478d"
+      "1acaab0229bb43215f64321e210dcd411c77a384b3a1c2bc0acfb442c6b0744f"
     ],
     "vonk-forge/nemotron-labs-3-puzzle-75b-a9b-nvfp4-vllm-mia-single": [
-      "005497265a424cb39aa8adafaab5aa247b574e62152b36242773d88db19599be"
+      "bab549b6ab3c3fdeb3c5511569ba237f1ab4cdff97bd721438f811dcf9ff91e6"
     ],
     "vonk-forge/nex-n2-mini-nvfp4-r0b0tlab-vllm-single": [
-      "a01132e694919ade3b55603a108e78586f34978f87c7f9a97a4940f35fd11ac0"
+      "f9bebbdab81dc12c1879e5ced34849482e552a4af727a5df750e26d81c884ca7"
     ],
     "vonk-forge/ornith-1-5-35b-a3b-nvfp4-sfxnz-vllm-single": [
-      "d61d63590c7f05d32e5b3461792880c2fd58f1e70a964b2cd1f028893d077096"
+      "76f38930695c465c4b3e1e094e32097c0a002e4f22d2768fbec8dd8815fb7289"
     ],
     "vonk-forge/ornith-1-5-35b-a3b-nvfp4-vllm-b12x-mia-single": [
-      "b3582b600e90075e69fadc81f3b1d8b378441175399cf1275c739d469bf3a5cd"
+      "c2a07eb03a841bd77a237e174b437308402912783d78a8bbddf17277fdbe87ee"
     ],
     "vonk-forge/ornith-1-5-35b-a3b-nvfp4-vllm-single": [
-      "1a64c0cbadcb0b258837759ceb814a8c1437fa4be95756e64606b2f7786ff9b0"
+      "3517738e629a40e57a2f0b723526e9dcb95b7e058608bbc8819c3daf0467b8b4"
     ],
     "vonk-forge/ornith-1-5-35b-a3b-nvfp4-w4a16-r0b0tlab-sglang-single": [
-      "a851a382f9c43b468e58a856c224d4be4d12323d81ded45c140119f196bbb868"
+      "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c"
     ],
     "vonk-forge/phi-4-multimodal-instruct-fp8-nvidia-sglang-single": [
-      "091263bae5d528703f8aa9a7d7c7a0ecb81ca398c7b79ffb8a31ddae24acd643"
+      "7de390ed7e71b9a724f09f87d3c89cab7d45e092f97d04c3ad93ee19af135d95"
     ],
     "vonk-forge/phi-4-multimodal-instruct-fp8-nvidia-vllm-single": [
-      "29eaf93daef145ab3a131700ef098714d52e5f2bc63c56a273236e7090206fe8",
-      "4f27c83d6569105294b09ff4f2cdddfbe4f54cc5dcfa066e6ad6870d5f562a69"
+      "6d947ac4f2f500e6a6edb7b775301d444860493da2f5ce952cd045aaf735a6ab",
+      "f91e36bcf2b4baf111f28cd56fa225028f0f1c1e56a436f82894415b2df92525"
     ],
     "vonk-forge/phi-4-multimodal-instruct-nvfp4-nvidia-sglang-single": [
-      "762c22c95959aba047acb0b28845cbdafccf4244695e9469a658cfa8a6d15f6d"
+      "40727cb5efc60694a8f2483afca982b582e9d8a21d9e41ac535e02418728361a"
     ],
     "vonk-forge/phi-4-multimodal-instruct-nvfp4-nvidia-vllm-single": [
-      "14243140fc438cebcc91a78e1dbb1c136fe9b33348bb1def61e3b3318b4ffb7a",
-      "fa4f502f0f498877152e0b3569f843dc5fc7bd0d1d6b0ae18d18ebed3b1b4f87"
+      "75f0cf9d854a711ac0be8d634e2584db4d4741212e2d3e637ac0c981b0f38d33",
+      "c807f2f83c8788d67933fa867a8f41e5b1021c97d88bfe93b280d2ae028a42be"
     ],
     "vonk-forge/phi-4-reasoning-plus-fp8-nvidia-sglang-single": [
-      "d5b6f34637651e0c6427d9ed007b4da5903e0a38b1333eb6aa3cf0681a23f522"
+      "4061907fb5c7fdb8a7c0df5e1e63098c61294d30e1129535ac94ede26af439d5"
     ],
     "vonk-forge/phi-4-reasoning-plus-fp8-nvidia-vllm-single": [
-      "72ac7f0441426bbdf895bb2cca2fc504f533fdd77b648912a715b4308e0c00b7"
+      "0a6c94c849efe9a142ce830616b166a534c5ef7717e673710a8eab10b8016305"
     ],
     "vonk-forge/phi-4-reasoning-plus-nvfp4-nvidia-sglang-single": [
-      "610b83f10c135acd7d1fe0777d3557fc9f862d415ecf0ed20d5c6e26460a3374",
-      "e9ba9bd0f084f82fd8c00c720ea77dfe0d6f42b4eb59f177b4fb161da8912c5b"
+      "59af686b73030034b05475c53992fdb9fd57fe644af7d68d0ae03d1143ee1058",
+      "c2261770f49434ea58eb93eec91d607766225216b333e85f28f670429e46096e"
     ],
     "vonk-forge/phi-4-reasoning-plus-nvfp4-nvidia-vllm-single": [
-      "9f06cc8c2eaf96308a2038eb56dcf267fecd3628fcc4584a0a4c66818198b321",
-      "af5ee00da9787184c546cbefa4fc831b193bff7bfd870c5e157a5cf2f9264c6e"
+      "711534ec26cc36b8311e9d046625bd169c0a543ed643d38edfbcc8fbf776c450",
+      "b2a5b2297b69b88fef695db9d22e50bbaf309edb3453cece43afee6f42983a65"
     ],
     "vonk-forge/qwen2-5-vl-7b-instruct-nvfp4-nvidia-vllm-single": [
-      "00356b945c6e9265b7bbdcf120d27d7d1629cb7840f0d82e961d4b4bada63c73",
-      "e73d5856a5c9f3ae4389931e43b0edddad99a8a65b9dc3ee3be10ee99f431002"
+      "267319199760c5a568d191158fffe4254d1a4c9262dd3b941cea97a6c28a8750",
+      "fd57c5e1b15240660a025900dbfb9281162731e5c36980d231ab3c8df9538c59"
     ],
     "vonk-forge/qwen3-14b-fp8-nvidia-sglang-single": [
-      "64346d2353d35d2335e6730d5ee91da3d050fd43a43df2c2d24c02c96a5804cf"
+      "52289ee828edbda48f3f7dfd4a32d759c139735b1e3978885e59819ec2e0a527"
     ],
     "vonk-forge/qwen3-14b-fp8-nvidia-vllm-single": [
-      "197e02386f31a25af479bc470f6a0a0c69b726bfed685c0c15443598d078d409"
+      "da43da3cc612e88de31bf744ab171dbef0bebe2373792844c58a1adf96673f81"
     ],
     "vonk-forge/qwen3-14b-nvfp4-nvidia-sglang-single": [
-      "c4a8734b79e2f7e2a7dfe92e537bd6be0aa23968ffcf0a93a545ada979b877a7",
-      "d9cfaf05c9313a7a602e43979a0bca7128248ce06a9b15927fac6756ce21834b"
+      "b3145ddca3e8845bcf7833c57583dd3eada5d2388f5e9c0bc0738234c20f8cac",
+      "b39819a393de7f6d5b998a1704912a245c67b39596a07b6200cadf542c8ec6e3"
     ],
     "vonk-forge/qwen3-14b-nvfp4-nvidia-vllm-single": [
-      "263366367699b7c9b9541e83732f6f5c5f3af4e8ab87f053e02f302c73e54f5e"
+      "9c0607016f52c87224e26e71f77d4d54c30deb0dc02e2a21275e4288132522e8"
     ],
     "vonk-forge/qwen3-32b-nvfp4-nvidia-sglang-single": [
-      "ffe520b291a683a6df87db21fe8ecba8d35e03539e42c4d5a334ba96d501f2ef"
+      "7c403c690ff0855cd1bbea35541efec8372eb3a76f21916b9b86caf8296cb38f"
     ],
     "vonk-forge/qwen3-32b-nvfp4-nvidia-vllm-single": [
-      "4fc2345f64fdba8bd5e7b6d24bdbc4539836caa5d090ce3afec583d19b1aa43b"
+      "1fb059e6abce9b36d2435517b32a5cb2dc91a70f69ca0d953965e2c3246e7787"
     ],
     "vonk-forge/qwen3-5-122b-a10b-fp8-eugr-vllm-dual": [
-      "eedab9ca6e4247f0e8cf5e9a0d4aa450fdf8b95577be8bbfb0cc0c905bd050ea"
+      "6ad9bb976c18d14ad3cdbaf44e46cba4148268ceed02247172595a29040fa733"
     ],
     "vonk-forge/qwen3-5-122b-a10b-int4-autoround-eugr-vllm-dual": [
-      "980eb6e1fb3d93a34cdbd0249ae1f920763a4922f6310f34372a29cba1df8655"
+      "043be9490cad1104d7cb43f33f0dba62934f8d10006cf4e64012ea09c6ffa731"
     ],
     "vonk-forge/qwen3-5-122b-a10b-int4-autoround-eugr-vllm-single": [
-      "17e8aef286dc9a42eb2dffaede8cd802137531b296908d4979ce60a20c0a86c2"
+      "3adc63fed27f288f97cc0fed8a853c1e3b611614feb98a5c0e27e5d69c9556b4"
     ],
     "vonk-forge/qwen3-5-35b-a3b-fp8-eugr-vllm-dual": [
-      "fc9975930d552c042819be23718fe0ff0f53850584379003e2be8a4af3a45485"
+      "a8131d891876af6e5db4c044b947d3facb9bf061cfd6bc9cfafd5ae6c06e6b5d"
     ],
     "vonk-forge/qwen3-5-35b-a3b-fp8-eugr-vllm-single": [
-      "60fa95c9f684abed0ead7b931f27b8551f927febd4d3d9dfed5b5dca1c31d4dc"
+      "5999788d9a30a0270126cba974fc6333482f603e7b9c27321a29b87c4269ea42"
     ],
     "vonk-forge/qwen3-5-9b-vllm-single": [
-      "9122334385b8816c899dea554ed028c59aa20e5b6bb4de2597508d017e953783"
+      "9d4a59a4ef1c2e346342180dd4cbcc1042b6e30a7ad180d61a1aea24b2ea402b"
     ],
     "vonk-forge/qwen3-6-27b-nvfp4-dflash-vllm-mia-single": [
-      "cfd0a388a362afdebdf5fd7ff644f0f11740d6ba0b3391da1f63d8da21ee08e7"
+      "6763b7a705e4628506a92e31eadaf34e4e4d47fcfeed9181269a31ec6e9c2e8c"
     ],
     "vonk-forge/qwen3-6-27b-nvfp4-r0b0tlab-vllm-single": [
-      "064608449c6cc8e1e33b8bafa79ca95092f1a5a51e646d1ed3ac448a84cf6780"
+      "5b80c35989d74d3c353b7ac4a41ee6cb78c3ce318a4b35f5169828c66d9dade4"
     ],
     "vonk-forge/qwen3-6-27b-vllm-single": [
-      "b74b36a2e93dbb11a2da66f820ba14e9319e8c9b9ae74b38800b398778dac18e"
+      "8afbed7531bfe475f1a261a9153ea733e1d273e5b42df0611c5555d596a67e17"
     ],
     "vonk-forge/qwen3-6-35b-a3b-fp8-dflash-eugr-vllm-dual": [
-      "27f29b7fe9a517b4b70f910cd8f14401f0a4ee635788086840aff2e70ed4610c"
+      "89af2a8544d0846a54a39825474a3bca7506d3766e2beb1cda5c567923fdc2c4"
     ],
     "vonk-forge/qwen3-6-35b-a3b-fp8-dflash-eugr-vllm-single": [
-      "3b8b1df1a634b3c66ad4e2477b51c3f4908910c8969fb560403b8e33c1a3b24b"
+      "02068346d25aed1b6351c5c8654bee1b37a0aafc587316d8d6caef8d876b37e3"
     ],
     "vonk-forge/qwen3-6-35b-a3b-fp8-eugr-vllm-dual": [
-      "0a03d8716ec162b8b9cc2acd34a948eeb1c7cd3e2ffcb307519c3390cc48adab"
+      "0e72cec05b258373e1e3021d54b201bcd3c45798469c000582f5cfd3e8d7ac78"
     ],
     "vonk-forge/qwen3-6-35b-a3b-fp8-eugr-vllm-single": [
-      "33c981ed187ff27665709e0b45abafc847a04fb261cad1c222c00fee017f1fc3"
+      "b023c6ca5ec26eb25f524b8edf757bc04bc4ee637193e99617ee2f330f726b6d"
     ],
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-eugr-vllm-dual": [
-      "39a2a7328e03f934299f1c51aac78c8ad870f8c5f78a7e1a19b3b3a8444c56ba",
-      "882b9f356487131a019e3ffaf5d1fb7b7efcfc8282bd859b841091fb4c4f0774"
+      "2ca7a0887b91bd6dcbf08166071d8697a5ebb3292e4d21c914218b786b2221cc",
+      "49ef310129f820f803c76242a93632f3ae15ebd11c4e4630683384db779ad1fa"
     ],
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-eugr-vllm-single": [
-      "8d76702194b976c5fdbc62d66e5e78a07d7309c6a0f8f1c8a6326df79b7a155a"
+      "ca7a81df4cf40f12ae6a5154e43786d6fe7829c427e12654316bee56fddecf4b"
     ],
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-fast-r0b0tlab-vllm-single": [
-      "947d42db52ecb52bd3fb3f077472061be4f031417ddce7340c2bc778fba493d9"
+      "e384e7b96b355db976dc15f7752e28530ec6fb7b292f1002da1e4b764e6ded30"
     ],
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single": [
-      "07c8bb5f5819751f53c2ac9f3e95887469c3aee1cc374a738c6d23a4ff8a08a7"
+      "3d264069b511d2dbb688b5cbd97cf832cc61c86696018fd616c01ce7d40fd727"
     ],
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-redhat-r0b0tlab-sglang-single": [
-      "467c3faa02da116a76ac3e81f19ea1d7c1f228f82bb59a4f58dcdcf712faf092"
+      "56ed2c07fb9a33c9669898af9741fed8d2b388abce604d7347812bb68e4bad18"
     ],
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-vllm-mia-single": [
-      "3f124419bdd83e571b29b10236f45ed4efbea7523be5622d403ff68eeebeb9ff"
+      "e78df17db7a8a4664b0d87de036327c72f00fe65d39cf720475cee77a44afb74"
     ],
     "vonk-forge/qwen3-6-35b-a3b-nvfp4-vllm-single": [
-      "a0a644cbd685c09da9dc0dfb969091a347375d9edba199240fc0cf44b39bd992"
+      "1f3a0b3bd933f00ee360a21f044d638cf200d55170597bd68a69d2146e5dd394"
     ],
     "vonk-forge/qwen3-6-35b-a3b-unsloth-nvfp4-vllm-mia-single": [
-      "c3010b342127dc2c5f8ed864fb6ab406a1d9b8659acef6f29dc1db422f280fa7"
+      "0d81f70a358842d798797892cb202690e9eb0abd33e09522bafc960387046cea"
     ],
     "vonk-forge/qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single": [
-      "18ba5b64703ee366ce1c044a348f706cac718602902aebed022cc560632945f9"
+      "58428bdd1f1129ddf833ca49e9c01a62c32ccc62d311aa5552d6e980ec1430b3"
     ],
     "vonk-forge/qwen3-8-27b-aeon-abliterated-dflash2-drowzeys-vllm-single": [
-      "8d95823ff13df6eb331401cc8e8770c7b05cc2922fe98c2f686f779cfd822907"
+      "e61b5186122a55a2d1b127b4431d31fd6c5dc7b95d482352147c371aaca77db0"
     ],
     "vonk-forge/qwen3-8-27b-fp8-vllm-single": [
-      "682b8089841eb03f0c8441505f87c8b1cb57fab9961793b2dca8648f95eca32c"
+      "dfe0bc7dfe52a56f30746588a6d07a98d64581cb7da3bc584193f86212b2e548"
     ],
     "vonk-forge/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-dual": [
-      "c0861f028e153cc8ffe182b9b03de5100d7b8d8d9beff0200f82b7b21ce9f16e",
-      "d5c9a33a748cce10500ffdeb7709214abe062f175bc9d3e5fe8bcbcde5d855a1"
+      "4aff5a9be0fea67cbd387f01b4cb9b06b00a8d030e066a4ba4d5f2b01280be03",
+      "d934adc6890f8262e4b33dc0bcaf3c32bf8bca033b41d7e291d19f2d278cdd27"
     ],
     "vonk-forge/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single": [
-      "4136c7280856c5d3842126b1bab5d3b07617a32c0a28f72f15cc7bee54ae9c3f"
+      "0fddd931e7a794fef8db980feeda552bac09d5e7177e1f8cb1b184e523d4adc6"
     ],
     "vonk-forge/qwen3-8-27b-nvfp4-drowzeys-vllm-single": [
-      "3b7c4d852f6ace800bb119044e82e44f1ddbd9c62478edc3e779958b59d49cca"
+      "764b0c49995f3c2127d7d6ff7d6d3cc98c60f456c7c59f16642e94ec1a4b708a"
     ],
     "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single": [
-      "2cc1718c55d3b4a81bead6d4e85519953c558cdc8b9403bef4fc132314b5dfb5"
+      "60c6ff14489f026dc09ea6727eee86cac3068943ec7f1d468803066ca2204abc"
     ],
     "vonk-forge/qwen3-8-27b-nvfp4-mtp-r0b0tlab-sglang-single": [
-      "395cc85d1b39e028325de33ba751c6b9d6f6f212a6ad35d98281c205fd8312f3"
+      "80f4d54a1b68db827ee3b5d770123853598feac6d8571ae49f39e8e380eea6bf"
     ],
     "vonk-forge/qwen3-8-27b-nvfp4-mtp-r0b0tlab-vllm-single": [
-      "507cd2a5cc3a48ba6d768a258a222d65234b97a3894304c3d740c85c59ad006b"
+      "86af7b6aab3e8a920ee8297478d095a5b98489c558476183222faa83d527a10d"
     ],
     "vonk-forge/qwen3-8-27b-nvfp4-vllm-mia-single": [
-      "da1f6a3b45619df1dec736500a87c5bd8108d04491448daef0caa58d651cecf0"
+      "bbfd6572a029908d55bee4e94ff41793054696d8414b7161cac4362156e601e5"
     ],
     "vonk-forge/qwen3-8-27b-vllm-single": [
-      "9525d64a742c798eaad8945ebdb4de5dd698207a92d313255ff008df9ea55b6d"
+      "6a972e59162cc4ff009c2eea01398cf0094991d4725dd42631c47a56d5724eb9"
     ],
     "vonk-forge/qwen3-8-flash-next-fp4-local-nvidia-vllm-dual": [
-      "a6088554d3125ea877a5402a7a86a35189d43eb7439dca3e1815496eeee39c06"
+      "b983140f737411178d1ad4a2aecb6d7c48f4812e3da737893fe6afa08c423a6d"
     ],
     "vonk-forge/qwen3-8-flash-next-fp4-local-vcruz-vllm-single": [
-      "8f130bc01594bd2f2d5b543720068c31e4c2e47db10d72a9be458d7720e91478"
+      "2df9ed6a5f9d6f1342bf771581ccb8fa6dad91cd60bb9c92a4a72f9f42ba71b6"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-eugr-vllm-dual": [
-      "70f166446da9baea9a817d0be42ae69db021b330b707a06bd9dd57c2918347ee"
+      "6008fed8184794c87400b3ed9eb8413f4fb4018b4fdaa30177f80b9e9ece234a"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-eugr-vllm-single": [
-      "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8"
+      "479e1051fef0d17dc83aec7365da28aeacfa9711d98a770806f0283b90048890"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single": [
-      "08d752c1e3ea271ff44c9743e473f04e065077e844ca06ce2f4e2fa6af0f104e"
+      "85966450ff1b23c1d693e371a6f7bb2a625eefc568005ea2e09439475a90ebe1"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-sfxnz-vllm-dual": [
-      "0fad2f12e02c55c90398d30791850318491d86388eb2d5b59aa8c288eb590062"
+      "307fc4f3f2f878f06dc73c3cb72e577b61c7e770cb96b3fb270536bcbfc29250"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-dual": [
-      "9a0466b898d9849f10e22fb5799efd7260922ff9d181389449f59011a308ea91"
+      "e3a30f52d9c90d122991c7985b62a16820d1761c58e9bd93a16579567cd96e69"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-four": [
-      "02a9bd2624fa6328dde31d269333a58c9543f8d81dcebea2bca09df371b31577"
+      "1f48500b8fb25ca9248f6a58392553b64ed4997375767efe3b091ca58c2034a1"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-single": [
-      "a02d17da3151d71270947463ff9c6b1c2a9257c89c1163471f6daca2e4987227"
+      "36399d558154d3de136a55d030c73c87a9e50e7a3136e54295b67c4caa867740"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual": [
-      "9a3ede86f05b0e7580eb68a5694adce04801d8a3e6f4ea082444407b0c1c14ae"
+      "3c54348d05e86c2d5f4b9a5f65b62c129a8d8c1dee78c89e6dd64d43c274e3d1"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-single": [
-      "1b1ec6f21ddd38637aa67b89a70b3d135f840343e6c290a69c1fe37bacf2980f"
+      "cf78fe9fe4c68aaa8cfa5ef0551d7ae7fe62025da4f0f37f3574dc2f903f1b17"
     ],
     "vonk-forge/qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual": [
-      "7c52c0c3c837ecb0c232b9ad1dbcfdbd91deede3bc7b839416d6998517e4a540",
-      "9b60b9a7b0ab85267296f0c60d5573c876d780f0d85434514973185d3e441c73"
+      "79f66830a887545beb7fdf774c9374d900fda2c5e0696b74bef04ee547d298ed",
+      "c09ceef60466d84d2f6c6ea759b10139ba3f0bdd29c3c96624ea91d0973a2ef1"
     ],
     "vonk-forge/qwen3-8b-fp8-nvidia-sglang-single": [
-      "1d9462a46960fe86463027122044f4c4495d312c494cb2b3a8d8c2e0abab297d",
-      "a8648fcedae7d58b200269a0ff2739468ca89f7b3aad89a9c42c8860ad3ebdea"
+      "176a3c2ff14fc9d6f3b4ece5e1cb2fa67680d5096624c8e410cdfd04d71cf55a",
+      "a9df566207c7600881b69435be579227ff573bdd568f23fe8be4c39febaf06e5"
     ],
     "vonk-forge/qwen3-8b-fp8-nvidia-vllm-single": [
-      "58889bfc0369cda93bcd9e8bc85de31369cd6c14e7e11f216554f04d806d3160",
-      "bbfffdcf8f2aaa5c4f8f31d947dee2fe5ef0b9bf8f517e1467f80a1a3248d637"
+      "793c14eee9c3f056d49ec03fac002109279aff9b679fbabc144e2a822caca13f",
+      "a1741a5ef78f09d787b416d3ddacad8a2164bb4d2aeebccd48eacdb6d9b82416"
     ],
     "vonk-forge/qwen3-8b-nvfp4-nvidia-sglang-single": [
-      "0a2b25173514f78657ee6f03358d163c385baa7ac776cba67f118a7ad378ba70",
-      "463c08fbec1fb3115a1e75029bfb89055923c9c6ea95149d99b4d46422fd5a66"
+      "91acec933b169884441ac3829e8a03475b932cb06c3eddbacbcfc2454201b6db",
+      "ff6ce273ce8c7e5e0aa3b3d41c1b417364217ceb9f5b5c8442e20dd8ade49844"
     ],
     "vonk-forge/qwen3-8b-nvfp4-nvidia-vllm-single": [
-      "0d45fa7179f3923413cf346dec272943774d661d952747fd97854d2e9916f4af",
-      "3fbe8db259ce37c731c5c10a46f4bf2b33629fdfed43e927a72ad002f86552e5"
+      "6956bf738bc11f706ecb70eb93510a21a432ebc73ea2ad35d714354e18173ba6",
+      "889659e79704fbdf8ffc98c6621f8a018579aa6168d2c3724b9d2d494863359e"
     ],
     "vonk-forge/qwen3-coder-next-fp8-eugr-vllm-dual": [
-      "39820597156b8ddba8e2250419db1ed3c195f65b65e0d6112849ba34df1a94c3"
+      "be7139875ec08dd48a569848f18ea9b12c7b93b3814dc034d972fd6312a57f20"
     ],
     "vonk-forge/qwen3-coder-next-fp8-eugr-vllm-single": [
-      "ff896bbc46c69c5fd7fee85b00bc563112e7f3ab18dde376e42f68e1f27e8f10"
+      "2351e2d9606e31ab4fd08ac7faf99754dd1a0c3d8bb41f5be327db05be2854b3"
     ],
     "vonk-forge/qwen3-coder-next-int4-autoround-eugr-vllm-single": [
-      "62343f09a32a5d532d7d4ff571a44013b3306b110656591623315e064060170c"
+      "265fe7aa39d110df8aeea10f9f4a384e40b74df6a193d101a08c5e2ecf520671"
     ],
     "vonk-forge/step-3-7-flash-nvfp4-eugr-vllm-dual": [
-      "78d810962c3188e5f3f77f67f90f72dc0bf4d547d8ff0ce9c3a7513d33dafdf6"
+      "60ec09e11df469a4f7696f5c94eb22a6955e5b52ca01e02bb12e50eb239f927c"
     ],
     "vonk-forge/step-3-7-flash-nvfp4-r0b0tlab-vllm-dual": [
-      "0406e8725b4de7d0604c8f3324aeae4b738231853fce3e76fca7f933848299e2"
+      "0d999856d564ef90d9e4246a3f71419f62cb66c56bad7afcb321be44e11d1309"
     ],
     "vonk-forge/step-3-7-flash-nvfp4-vllm-mia-dual": [
-      "96a5a6d83173a0b1f688177ad7c44a1aeb4b804eacd74718caf2571893eb6a2f"
+      "a8f7b1f65a8b3096f881b9b2a47c5a82c2836f1962ce26b3d3cda748c13263c3"
     ],
     "vonk-forge/step-5-preview-exl3-vllm-four": [
-      "139717a16589f5f38e02e5da114a43eb2fb8255bdfb768fe75464c3ca3f0c371"
+      "3bfd0615bf48dcc6d9a27e7f712d68baa4f1a78b7601a7ec6b8b59c765a10fc2"
     ],
     "vonk-forge/ui-mate-27b-vllm-single": [
-      "ea66a4e74fd92d19199def234e144f7b90e204a36077b5ba9f7ef114656f4902"
+      "cad2e10de2dbcfd494a805f66dfd44d8fd3fca927aff7e0e6d2943acf67ab37c"
     ],
     "vonk-forge/vibethinker-3b-nvfp4-r0b0tlab-vllm-single": [
-      "b49a53b06d3f702518bc66b7b7f835cecbae9737b542e0c655b03452c09847c8"
+      "e5b9097adc0898e08a573360562eac5236b46aba4df92524fd239032e077acf1"
     ],
     "vonk-forge/xyz-aquila-mini-nvfp4-r0b0tlab-vllm-single": [
-      "432e1e316a4f4067d9fb68e16750fdc8d20feb20d41c3e612f7829d996901f72"
+      "050e6ab559b3688cffd14d25e68252a88bc208ca5a30a3ee9efa0dc5b3758c5f"
     ]
   },
   "historical_sources": [

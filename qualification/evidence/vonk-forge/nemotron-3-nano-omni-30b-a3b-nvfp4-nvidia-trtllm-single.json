@@ -28,6 +28,7 @@
     {
       "identity": {
         "content_sha256": "c42177a4587735670926f0d9704218c0a3ad35ecc4c79bf0955f79707c07c317",
+        "execution_sha256": "5118e861083c6c53565470e72414469be16c7feff3f25939a34c7793cbb5440b",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

@@ -155,6 +155,7 @@
     {
       "identity": {
         "content_sha256": "fe6945afbc9b789b59de09ba6b6594d13ece78885e21de5c476f0ce0c590622b",
+        "execution_sha256": "678b9419052643a7d4e98c4c14c4abced8c1ef7bab93eba59994f00d07dc1814",
         "model_digests": [
           "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
           "67b76d66b7e9d57616038999fecb94d7e362115942438219529357672c15f043"

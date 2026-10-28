@@ -161,6 +161,7 @@
     {
       "identity": {
         "content_sha256": "4136c7280856c5d3842126b1bab5d3b07617a32c0a28f72f15cc7bee54ae9c3f",
+        "execution_sha256": "0fddd931e7a794fef8db980feeda552bac09d5e7177e1f8cb1b184e523d4adc6",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

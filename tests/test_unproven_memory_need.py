@@ -27,6 +27,7 @@ from qualification.memory_need import (
     require_admissible_declaration,
     require_memory_need,
 )
+from qualification.model_index import model_index
 
 ROOT = Path(__file__).resolve().parents[1]
 MOSAIC = "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single"
@@ -40,6 +41,7 @@ def untested_root(tmp_path: Path, monkeypatch, slug: str) -> Path:
     (tmp_path / "recipes" / f"{slug}.json").write_text(
         (ROOT / "recipes" / f"{slug}.json").read_text()
     )
+    (tmp_path / "models").symlink_to(ROOT / "models")
     monkeypatch.setattr(memory, "ROOT", tmp_path)
     return tmp_path
 
@@ -83,8 +85,10 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
     authored = tmp_path / "recipes" / source.name
     authored.parent.mkdir()
     authored.write_text(source.read_text())
+    (tmp_path / "models").symlink_to(ROOT / "models")
+    fingerprint = model_index(ROOT).fingerprint(document, digest)
     inputs = load_inputs().model_copy(
-        update={"historical_documents": {key: [digest]} if use_snapshot else {}}
+        update={"historical_executions": {key: [fingerprint]} if use_snapshot else {}}
     )
     if not use_snapshot:
         # Synthetic platform failure for exactly these bytes, never the live corpus.

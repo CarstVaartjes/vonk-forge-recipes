@@ -5,6 +5,7 @@
     {
       "identity": {
         "content_sha256": "1fd72fed00e26a16620d9bf0cc11c10d224c7ccfe5d5876f01864cc03c467ffd",
+        "execution_sha256": "acd8b7417c017dd8fa4493df2f7fdf1113a0c9544b67115dd6b7e1ba895b504c",
         "model_digests": [],
         "required_sparks": 2,
         "models_resolved": false
@@ -28,6 +29,7 @@
     {
       "identity": {
         "content_sha256": "1fd72fed00e26a16620d9bf0cc11c10d224c7ccfe5d5876f01864cc03c467ffd",
+        "execution_sha256": "acd8b7417c017dd8fa4493df2f7fdf1113a0c9544b67115dd6b7e1ba895b504c",
         "runtime_image": {
           "build_key": "16456ad5f4460d7733ca0e263794b314b5ec2c8a9d8fd1c815779ab154deef2f",
           "image_digest": "sha256:37d585e268f6cc8b4b14e02eeac703cb9573154cc2f76dd1b93125e296060f40"

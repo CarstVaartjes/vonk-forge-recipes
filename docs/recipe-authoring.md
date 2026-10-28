@@ -21,6 +21,18 @@ matching recipe, resolved Models and recorded topology retain local proof unless
 image-bound evidence establishes a different runtime. Restoring that proof must
 retain its measured identity, never fill missing pins from the current library.
 
+Proof follows what a recipe executes, not how it is labelled. Each evidence
+record may carry `execution_sha256`, the `vonk_forge_contracts.execution_sha256`
+of the exact recipe and Model bytes it was proven on; it is the same on every
+document that differs only in the authored display fields listed in
+`RECIPE_DISPLAY_FIELDS` and `MODEL_DISPLAY_FIELDS` in
+`contracts/src/vonk_forge_contracts/canonical.py`. A field outside those lists,
+including one added later, is execution. Image and source-bundle identities are
+compared separately. A fingerprint is derived from the document the record's
+`content_sha256` names, never inferred from today's recipe; a record without one
+matches only its exact document. The memory gate and `--base` change check use
+the same fingerprint, so a display-only edit is neither new nor touched.
+
 The contract 2.4.0 models and `derive_status` are the authority. Evidence lives
 separately in `qualification/evidence/<publisher>/<recipe-slug>.json`; recording
 it never changes the recipe's content digest. Each record binds recipe
@@ -417,10 +429,11 @@ is a **WARNING**, not a rejection: proven singles run utilization-sized pools
 above it. Never omit a failing recipe to pass the check.
 
 **C.** Assume an existing recipe works until hardware evidence says otherwise.
-Only new or changed recipe documents are subject to the need guard. An exact
-`content_sha256` in the committed `historical_documents` snapshot in
-`qualification/memory-inputs.json` or in any `qualification/evidence/` record
-identifies existing content, regardless of its qualification outcome. The snapshot's
+Only new or changed recipe executions are subject to the need guard. An exact
+`content_sha256` or an `execution_sha256` in a `qualification/evidence/` record, or
+an execution fingerprint in the committed `historical_executions` snapshot in
+`qualification/memory-inputs.json`, identifies existing content, regardless of its
+qualification outcome. The snapshot's
 `historical_sources` records its source commits; it is a content baseline, never
 hardware proof. Validation reads these committed identities without Git or remote
 refs. Changed content and new ids must satisfy the need guard; supplying an old

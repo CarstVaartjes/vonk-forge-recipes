@@ -5,6 +5,7 @@
     {
       "identity": {
         "content_sha256": "9a3ede86f05b0e7580eb68a5694adce04801d8a3e6f4ea082444407b0c1c14ae",
+        "execution_sha256": "3c54348d05e86c2d5f4b9a5f65b62c129a8d8c1dee78c89e6dd64d43c274e3d1",
         "source_bundle_sha256": "a4c58afc09c4f10eb3f8b59fde9e5998e104fd14473484b2266d7e8ed43b632f",
         "runtime_image": {
           "build_key": "520de6e48bc6576ddd1ecc1e58cd7c13fcdd0751ee4bf7b31e7ac926e3a8e7e1",

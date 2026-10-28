@@ -30,6 +30,7 @@
     {
       "identity": {
         "content_sha256": "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7",
+        "execution_sha256": "674e1f9bf1e0bb9f2d5fd09bbbf85236ebc40ce25f119871d6f85ea8a624549d",
         "model_digests": [
           "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
         ],
@@ -55,6 +56,7 @@
     {
       "identity": {
         "content_sha256": "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7",
+        "execution_sha256": "674e1f9bf1e0bb9f2d5fd09bbbf85236ebc40ce25f119871d6f85ea8a624549d",
         "model_digests": [
           "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
         ],

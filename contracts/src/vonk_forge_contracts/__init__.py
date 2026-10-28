@@ -15,7 +15,13 @@ ignore fields a newer minor release added, and identify a document by the
 from __future__ import annotations
 
 from ._version import __version__
-from .canonical import canonical_json, document_sha256, read_model, read_recipe
+from .canonical import (
+    canonical_json,
+    document_sha256,
+    execution_sha256,
+    read_model,
+    read_recipe,
+)
 from .endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 from .model import (
     GitHubLfsSource,
@@ -112,6 +118,7 @@ __all__ = [
     "canonical_json",
     "derive_status",
     "document_sha256",
+    "execution_sha256",
     "published_qualification_status_json_schema",
     "published_status",
     "qualification_evidence_json_schema",

@@ -74,6 +74,7 @@
     {
       "identity": {
         "content_sha256": "82530a7d8dca7501a959c3e9f182ce5e6eb3fc42b885e138c902c92df3cc1579",
+        "execution_sha256": "75f64744cdeead2b50cd68e896adebcd01d960e3f740a9f37b0ff26fe142a80a",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -97,6 +98,7 @@
     {
       "identity": {
         "content_sha256": "82530a7d8dca7501a959c3e9f182ce5e6eb3fc42b885e138c902c92df3cc1579",
+        "execution_sha256": "75f64744cdeead2b50cd68e896adebcd01d960e3f740a9f37b0ff26fe142a80a",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

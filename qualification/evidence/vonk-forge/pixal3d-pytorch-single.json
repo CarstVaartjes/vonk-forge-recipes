@@ -143,6 +143,7 @@
     {
       "identity": {
         "content_sha256": "0b0eda2f83682b5590d6c22545d0825a174ecfe85092bb89ada14dea50d4db6e",
+        "execution_sha256": "297608fe70fb9f333b02f6efd4fe721165f17db5f89f81d0c1a6984c95e41905",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -166,6 +167,7 @@
     {
       "identity": {
         "content_sha256": "0b0eda2f83682b5590d6c22545d0825a174ecfe85092bb89ada14dea50d4db6e",
+        "execution_sha256": "297608fe70fb9f333b02f6efd4fe721165f17db5f89f81d0c1a6984c95e41905",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

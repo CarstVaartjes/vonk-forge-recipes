@@ -120,6 +120,7 @@
     {
       "identity": {
         "content_sha256": "3ae4686e7a974c4c0061fc5c49c7c6e4315f2fc7d64bbce987549ac1080ce005",
+        "execution_sha256": "9298703a29f03d8b66654e85c608534c1e6943a010b944946e8b014844af92e1",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -143,6 +144,7 @@
     {
       "identity": {
         "content_sha256": "3ae4686e7a974c4c0061fc5c49c7c6e4315f2fc7d64bbce987549ac1080ce005",
+        "execution_sha256": "9298703a29f03d8b66654e85c608534c1e6943a010b944946e8b014844af92e1",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -166,6 +168,7 @@
     {
       "identity": {
         "content_sha256": "3ae4686e7a974c4c0061fc5c49c7c6e4315f2fc7d64bbce987549ac1080ce005",
+        "execution_sha256": "9298703a29f03d8b66654e85c608534c1e6943a010b944946e8b014844af92e1",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

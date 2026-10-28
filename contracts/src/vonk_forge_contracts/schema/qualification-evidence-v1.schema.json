@@ -149,6 +149,19 @@
           "title": "Content Sha256",
           "type": "string"
         },
+        "execution_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Execution Sha256"
+        },
         "source_bundle_sha256": {
           "anyOf": [
             {
