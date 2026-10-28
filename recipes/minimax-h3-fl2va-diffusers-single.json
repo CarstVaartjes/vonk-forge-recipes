@@ -99,7 +99,7 @@
         "max_total_bytes": 1073741824,
         "slots": [
           {
-            "description": "Generated H.264/AAC MP4 with requested 32-multiple geometry and 120..345 frames at 24 fps, plus synchronized 32 kHz stereo audio.",
+            "description": "Generated H.264/AAC MP4 with requested 32-multiple geometry and 124..345 frames on the 17k+5 grid at 24 fps, plus synchronized 32 kHz stereo audio.",
             "extensions": [
               ".mp4"
             ],
