@@ -2292,6 +2292,28 @@ class SharedContextTests(unittest.TestCase):
             )
         self.assertFalse([c for c in calls if c[:2] == ("pr", "close")])
 
+    def test_a_group_issue_keeps_the_failed_check_evidence(self) -> None:
+        # A current sibling with evidence of its own must not shift the slice that
+        # carries publishing's "Failed checks" section into the lead's issue.
+        current = refresh.Assessment("a", evidence=["a: newest is shown"])
+        moving = self.assessment("b", edits={"recipes/b.json": b"2"})
+        moving.evidence.append("b: model moved")
+        combined = refresh.combine_group(["a", "b"], {"a": current, "b": moving})
+        assert not isinstance(combined, str), combined
+
+        def publish(_root, assessment, _summary):
+            assessment.reasons.append("refresh PR #5 checks failed")
+            assessment.evidence.append("### Failed checks of PR #5")
+            return 5
+
+        with patch("refresh_upstream.publish_mechanical", side_effect=publish):
+            number = refresh.publish_group(
+                Path("."), combined, moving, refresh.Summary()
+            )
+        self.assertEqual(number, 5)
+        self.assertIn("### Failed checks of PR #5", moving.evidence)
+        self.assertIn("refresh PR #5 checks failed", moving.reasons)
+
     def test_group_rejects_conflicting_shared_edits(self) -> None:
         assessed = {
             "a": self.assessment("a", edits={"lock": b"L1"}),

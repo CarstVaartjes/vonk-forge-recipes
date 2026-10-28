@@ -3614,6 +3614,22 @@ def combine_group(
     )
 
 
+def publish_group(
+    root: Path, combined: Assessment, result: Assessment, summary: Summary
+) -> int | None:
+    """Publish a group's PR; ``result``'s issue gets what publishing found out.
+
+    That is the reasons and the evidence publishing added (a failed check's log tail),
+    counted on the combined assessment itself: a current member adds nothing to it.
+    """
+    seen = len(combined.evidence)
+    number = publish_mechanical(root, combined, summary)
+    result.pull_request = number
+    result.reasons.extend(combined.reasons)
+    result.evidence.extend(combined.evidence[seen:])
+    return number
+
+
 def supersede_member_prs(
     members: list[str], lead: str, number: int, summary: Summary
 ) -> None:
@@ -4226,12 +4242,8 @@ def command_run(arguments: argparse.Namespace) -> int:
                             f"or not at all: {combined}"
                         )
                     else:
-                        seen = sum(len(assessed[m].evidence) for m in members)
-                        number = publish_mechanical(root, combined, summary)
-                        result.pull_request = number
+                        number = publish_group(root, combined, result, summary)
                         prepared_prs.update(dict.fromkeys(members, number))
-                        result.reasons.extend(combined.reasons)
-                        result.evidence.extend(combined.evidence[seen:])
                         if number is not None:
                             published.add(combined.recipe_id)
                             handled.update(members)
