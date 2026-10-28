@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 from pydantic import ValidationError
-from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 from qualification.memory_need import (
