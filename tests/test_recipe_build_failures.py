@@ -6,6 +6,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -34,6 +35,18 @@ def test_no_adapter_builds_nccl_debian_packages() -> None:
         path.relative_to(ROOT)
         for path in (ROOT / "adapters").rglob("Dockerfile")
         if packaging.search(path.read_text())
+    ] == []
+
+
+def test_no_adapter_builds_the_flashinfer_cubin_wheel() -> None:
+    # Building flashinfer-cubin downloads ~15,600 files from NVIDIA's artifact
+    # edge, which throttles a CI runner with 403s mid-burst; every MiniMax M3
+    # dual build failed there. Adapters install the release wheel by hash.
+    source_build = re.compile(r"\bcd \S*flashinfer-cubin\b")
+    assert [
+        path.relative_to(ROOT)
+        for path in (ROOT / "adapters").rglob("Dockerfile")
+        if source_build.search(path.read_text())
     ] == []
 
 
@@ -131,6 +144,32 @@ def test_minimax_dual_verifier_requires_the_mesh_nccl(
         with pytest.raises(SystemExit, match="is not the mesh build"):
             verifier.verify_nccl()
         assert loaded == []
+
+
+@pytest.mark.parametrize("replaced", [False, True])
+def test_minimax_dual_verifier_requires_the_build_torch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, replaced: bool
+) -> None:
+    # CI build 2026-10-27: the runner's wheel install swapped stage 1's torch
+    # 2.11.0+cu130 for PyPI torch 2.10.0, so torchvision::nms did not exist.
+    verifier = load_minimax_dual_verifier()
+    pinned = {
+        "torch": "2.11.0+cu130",
+        "torchvision": "0.26.0+cu130",
+        "torchaudio": "2.11.0+cu130",
+        "triton": "3.6.0",
+    }
+    constraints = tmp_path / "torch-constraints.txt"
+    constraints.write_text("".join(f"{name}=={v}\n" for name, v in pinned.items()))
+    installed = {**pinned, "torch": "2.10.0"} if replaced else pinned
+    monkeypatch.setattr(verifier, "TORCH_CONSTRAINTS", constraints)
+    monkeypatch.setattr(verifier.importlib.metadata, "version", installed.__getitem__)
+    monkeypatch.setitem(sys.modules, "torchvision", ModuleType("torchvision"))
+    if replaced:
+        with pytest.raises(SystemExit, match="torch stack differs"):
+            verifier.verify_torch()
+    else:
+        verifier.verify_torch()
 
 
 def test_skintokens_archive_host_and_digest_are_closed() -> None:
