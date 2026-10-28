@@ -344,9 +344,11 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
     cap.value = context - 1
     with pytest.raises(ValueError, match="one full-context request"):
         require_memory_need(recipe, models, inputs, document_digest="")
+    # Uncapped, the fraction bounds the pools and the Controller admits the
+    # declared peak: only SGLang's startup room is checked (see
+    # test_inkling_recipes.py for the failing side).
     recipe.runtime.arguments.remove(cap)
-    with pytest.raises(ValueError, match="set absolute max-total-tokens"):
-        require_memory_need(recipe, models, inputs, document_digest="")
+    require_memory_need(recipe, models, inputs, document_digest="")
     # The state cap holds one request's five slots, not five per running request.
     recipe = recipe_for(QWEN_NEXT)
     slots = next(

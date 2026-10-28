@@ -114,7 +114,7 @@ def main() -> int:
             )
             proof = hardware_proven(recipe, digest)
             print(f"{key}: hardware-proven={proof}; unchanged={unchanged}")
-            for warning in memory_warnings(recipe, models, inputs):
+            for warning in memory_warnings(recipe, models, inputs, digest):
                 print(warning)
         except (ValueError, TypeError) as error:
             failed += 1
