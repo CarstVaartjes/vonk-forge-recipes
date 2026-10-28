@@ -260,7 +260,12 @@ def _local_files(adapter: Path, root: Path) -> list[str]:
     return files
 
 
-def check_adapter(adapter: Path, root: Path, load_tree: TreeLoader) -> Report:
+def check_adapter(
+    adapter: Path,
+    root: Path,
+    load_tree: TreeLoader,
+    on_github: Callable[[str, str], bool | None] = commit_on_github,
+) -> Report:
     label = adapter.relative_to(root).as_posix()
     report = Report(label)
     manifest_path = adapter / MANIFEST
@@ -279,6 +284,12 @@ def check_adapter(adapter: Path, root: Path, load_tree: TreeLoader) -> Report:
             report.problems.append(
                 f"{label}: {MANIFEST} source.unverified must read "
                 f"'{unverified_mark(repo, commit)}', not '{mark}'"
+            )
+        elif on_github(repo, commit):
+            # The mark heals: once GitHub serves the commit, the files are judged again.
+            report.problems.append(
+                f"{label}: {repo}@{commit[:12]} is on GitHub now; remove "
+                f"source.unverified from {MANIFEST}"
             )
         else:
             report.note = f"provenance unverified ({mark}): vendored files not judged"

@@ -423,14 +423,16 @@ class GuardTests(unittest.TestCase):
                 raise RuntimeError("No commit found")
 
             adapter = root / "adapters/eugr/x"
-            report = vendored.check_adapter(adapter, root, unreadable)
+            report = vendored.check_adapter(adapter, root, unreadable, lambda *_: False)
             self.assertEqual(report.problems, [])
             self.assertIn("unverified", report.note)
+            served = vendored.check_adapter(adapter, root, unreadable, lambda *_: True)
+            self.assertIn("is on GitHub now", served.problems[0])  # the mark heals
             manifest = adapter / "vendored-upstream.json"
             document = json.loads(manifest.read_text())
             document["source"]["unverified"] = "trust me"
             manifest.write_text(json.dumps(document))
-            report = vendored.check_adapter(adapter, root, unreadable)
+            report = vendored.check_adapter(adapter, root, unreadable, lambda *_: False)
             self.assertIn("must read", report.problems[0])
 
     def test_a_changed_recipe_must_claim_its_images_build_commit(self) -> None:

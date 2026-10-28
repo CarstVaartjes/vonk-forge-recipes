@@ -455,7 +455,9 @@ class WithdrawnKitTests(unittest.TestCase):
 
     GONE = "d" * 40
 
-    def adapter(self, root: Path, *, marked: bool) -> dict[str, Any]:
+    def adapter(
+        self, root: Path, *, marked: bool, built_from: str = "e" * 64
+    ) -> dict[str, Any]:
         directory = root / "adapters/mia"
         directory.mkdir(parents=True)
         image = {
@@ -487,10 +489,14 @@ class WithdrawnKitTests(unittest.TestCase):
                 }
             )
         )
-        (directory / "Dockerfile").write_text(f"FROM ghcr.io/creator/image@{digest}\n")
+        (directory / "Dockerfile").write_text(
+            f"FROM ghcr.io/creator/image@sha256:{built_from}\n"
+        )
         return recipe_for(self.GONE)
 
-    def problems(self, marked: bool) -> tuple[list[str], list[str]]:
+    def problems(
+        self, marked: bool, built_from: str = "e" * 64
+    ) -> tuple[list[str], list[str]]:
         scanned: list[str] = []
 
         def images(repo: str, commit: str, scope: str) -> list[Any]:
@@ -498,7 +504,7 @@ class WithdrawnKitTests(unittest.TestCase):
             raise kit_pins.KitError(f"cannot scan {repo}@{commit}: HTTP 404")
 
         with tempfile.TemporaryDirectory() as tmp:
-            recipe = self.adapter(Path(tmp), marked=marked)
+            recipe = self.adapter(Path(tmp), marked=marked, built_from=built_from)
             source = kit_pins.Upstream(kit_pins.GitHub(FakeApi()), images=images)
             problems = kit_pins.check_recipe(
                 Path(tmp), "mia", recipe, source
@@ -507,6 +513,10 @@ class WithdrawnKitTests(unittest.TestCase):
 
     def test_the_marked_kit_is_not_re_read(self) -> None:
         self.assertEqual(self.problems(marked=True), ([], []))
+
+    def test_the_lock_still_binds_a_marked_recipe(self) -> None:
+        problems, _ = self.problems(marked=True, built_from="f" * 64)
+        self.assertTrue(problems, "a Dockerfile that left the lock must still fail")
 
     def test_an_unmarked_deleted_kit_still_fails_with_evidence(self) -> None:
         problems, _ = self.problems(marked=False)

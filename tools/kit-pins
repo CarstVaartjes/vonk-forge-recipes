@@ -1403,8 +1403,10 @@ def check_images(
         recipe_id: (*kit, kit_scope(recipes[recipe_id]))
         for recipe_id in sorted(names if names is not None else recipes)
         if (kit := kit_of(recipes[recipe_id])) is not None
-        and not withdrawn(root, recipes[recipe_id])
     }
+    for recipe_id in [r for r in wanted if withdrawn(root, recipes[r])]:
+        notice(f"{recipe_id}: its kit is withdrawn (source.unverified); not rescanned")
+        del wanted[recipe_id]
 
     def scan(key: tuple[str, str, str]) -> list[dict[str, Any]] | KitError:
         try:
@@ -1490,8 +1492,9 @@ def check_recipe(
     lock = read_lock(adapter)
     if lock is None:
         return problems + [f"{label}: no {LOCK}; run tools/kit-pins lock {recipe_id}"]
-    if withdrawn(root, recipe):
-        return problems
+    # A withdrawn kit (GitHub no longer serves its commit) is not re-read: the lock's own
+    # declaration stands, and everything below still checks it against the recipe.
+    gone = withdrawn(root, recipe)
     try:
         # Offline in the resolving direction: the lock's own value is used for the pin, so
         # only the declaring file at the pinned kit commit is fetched.
@@ -1501,7 +1504,11 @@ def check_recipe(
             if locked is None:
                 problems.append(f"{label}: {LOCK} lacks '{declaration.name}'")
                 continue
-            repo, ref, reason = read_declared(source, kit[0], kit[1], declaration)
+            repo, ref, reason = (
+                (locked["repo"], locked["ref"], locked.get("overridden"))
+                if gone
+                else read_declared(source, kit[0], kit[1], declaration)
+            )
             pins.append(
                 Pin(
                     declaration.name,
