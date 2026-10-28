@@ -567,6 +567,7 @@ def test_nemotron_lightning_capped_demand_matches_the_hardware_row() -> None:
     )
     assert capped is not None
     demand = sglang_demand(recipe, capped)
+    assert demand is not None
     assert demand == capped + OVERHEAD_BYTES
     # The static model sits below the 58.0e9 measured (graphs, drafter); the
     # declared peak covers the measurement and the fraction model overstated it.
