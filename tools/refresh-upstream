@@ -93,6 +93,8 @@ CHAIN_MAX_RUNS = 4
 MATERIAL_ENVELOPE_PERCENT = 1
 # The proven recipes' exact bytes; a refresh that moves one rewrites its entry.
 PROVEN_BYTES = "tests/fixtures/proven-recipe-bytes.json"
+# What judges a refresh PR: a failed PR moves forward again when main changes these.
+CHECK_PATHS = ("tools/", "tests/", ".github/")
 MAX_BODY = 60000
 VERSION_TAG = re.compile(r"^v?(\d+(?:\.\d+)*)$")
 OWN_VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
@@ -3359,6 +3361,14 @@ def carries(root: Path, head: str, tree: str) -> bool:
     )
 
 
+def checks_moved(root: Path, head: str) -> bool:
+    """Whether main changed what judges a PR (tools, tests, workflows) since ``head``."""
+    base = git("merge-base", head, "origin/main", cwd=root)
+    return bool(
+        git("diff", "--name-only", base, "origin/main", "--", *CHECK_PATHS, cwd=root)
+    )
+
+
 def follow_proven_bytes(root: Path, edits: dict[str, bytes | None]) -> None:
     """A proven recipe that a refresh moves carries its new bytes into the proven guard.
 
@@ -3455,14 +3465,19 @@ def _publish(
     if git("ls-remote", "origin", f"refs/heads/{branch}", cwd=root):
         git("fetch", "-q", "origin", branch, cwd=root)
         head = git("rev-parse", "FETCH_HEAD", cwd=root)
-    if open_pr and head and carries(root, head, tree):
+    state = check_state(open_pr.get("statusCheckRollup")) if open_pr else "none"
+    if (
+        open_pr
+        and head
+        and carries(root, head, tree)
+        and not (state in {"failed", "cancelled"} and checks_moved(root, head))
+    ):
         number = int(open_pr["number"])
-        state = check_state(open_pr.get("statusCheckRollup"))
         if state in {"failed", "cancelled"}:
             assessment.reasons.append(
                 f"refresh PR #{number} carries this exact refresh and its checks "
-                f"{state}; it is not pushed again: read the checks, then re-run them "
-                "or repair the recipe"
+                f"{state}; it moves forward again when upstream or main's checks "
+                f"({', '.join(CHECK_PATHS)}) change, or after a repair of the recipe"
             )
             assessment.evidence.append(
                 f"### Failed checks of PR #{number}\n\n"
@@ -3687,8 +3702,13 @@ def close_stale_refresh_prs(
                 "refreshes them together; a pull request for one of them alone leaves "
                 "the shared pins inconsistent."
             )
-        elif recipe_id in (published or set()) or (
-            result is not None and (result.unreachable or result.prepared)
+        elif any(  # a group's branch lives while any member still moves
+            member in (published or set())
+            or (
+                (part := assessed.get(member)) is not None
+                and (part.unreachable or part.prepared)
+            )
+            for member in together or [recipe_id]
         ):
             continue
         elif result is None:

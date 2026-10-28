@@ -59,7 +59,7 @@ def catalog(root: Path, revision: str = HELD) -> None:
         json.dumps(
             {
                 "held": {
-                    "model": {"repository": REPOSITORY, "revision": HELD},
+                    "model": {"repository": REPOSITORY},
                     "declined": DECLINED,
                     "reason": "the declined revision does not fit one Spark",
                     "upstream": "https://github.com/o/r/pull/1850",
@@ -89,12 +89,16 @@ class CheckTests(unittest.TestCase):
     def test_moving_a_held_recipe_without_its_hold_fails(self) -> None:
         found = self.problems(DECLINED)
         self.assertEqual(len(found), 1)
-        self.assertIn("update/remove the hold", found[0])
+        self.assertIn("remove the hold", found[0])
 
-    def test_hold_needs_reason_upstream_and_revisions(self) -> None:
-        self.assertIn("needs a reason", self.problems(reason="")[0])
-        self.assertIn("needs a reason", self.problems(upstream="#1850")[0])
-        self.assertIn("40-hex", self.problems(declined="826aacdf")[0])
+    def test_a_newer_revision_passes_so_the_hold_lapses(self) -> None:
+        self.assertEqual(self.problems(NEWER), [])
+
+    def test_hold_needs_reason_upstream_and_revision(self) -> None:
+        self.assertIn("reason", self.problems(reason="")[0])
+        self.assertIn("upstream", self.problems(upstream="#1850")[0])
+        self.assertIn("declined", self.problems(declined="826aacdf")[0])
+        self.assertIn("extra", self.problems(note="x")[0])
 
     def test_hold_for_a_missing_recipe_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
