@@ -108,6 +108,9 @@ class FakeRecipe:
     fail_load: str | None = None  # status reason of a failed load
     fail_phase: str = "runtime-install"
     fail_code: str = "application.failed"
+    fail_aborts: bool = (
+        False  # the failure ends the whole application, other lanes unresolved
+    )
     fail_download: str | None = None
     fail_download_code: str = "model.download_failed"
     # The Controller holds the model download back for NAS space (a ``download_blocked``
@@ -489,7 +492,7 @@ class FakeFleet:
 
     def _id(self, prefix: str) -> str:
         self.next_id += 1
-        if prefix in ("app", "assignment"):
+        if prefix in ("app", "assignment", "operation"):
             return str(uuid5(NAMESPACE_URL, f"vonk-sweep-fake/{prefix}/{self.next_id}"))
         return f"{prefix}-{self.next_id:04d}"
 
@@ -611,19 +614,27 @@ class FakeFleet:
                             r for r in self.runs if r["alias"] != item["alias"]
                         ]
                         app["reason"] = item["fail"]
+                        # FleetProfileAssignmentFailure: ids and a reason, no alias or node.
                         app.setdefault("failures", []).append(
                             {
-                                "alias": item["alias"],
+                                "queue_index": item["ordinal"] - 1,
+                                "assignment_id": item["assignment_ids"][0],
+                                "operation_id": self._id("operation"),
                                 "reason": item["fail"],
-                                "code": item["fail_code"],
+                                "terminal": True,
                             }
                         )
+                        app.setdefault("failure_code", item["fail_code"])
                         app["phase"] = item["phase"]
                     else:
                         for run in self.runs:
                             if run["alias"] == item["alias"]:
                                 run["ready"] = True
-            if all(a["resolved"] for a in app["assign"]) and all(
+            if any(a["fail"] and a["resolved"] and a["aborts"] for a in app["assign"]):
+                app["state"] = (
+                    "failed"  # the Controller ends the application at the failure
+                )
+            elif all(a["resolved"] for a in app["assign"]) and all(
                 effect["state"] == "succeeded" for effect in app.get("effects", [])
             ):
                 failed = any(a["fail"] for a in app["assign"])
@@ -1567,6 +1578,7 @@ class FakeFleet:
             assign.append(
                 {
                     "alias": alias,
+                    "node_ids": [names[s] for s in x["spark_ids"]],
                     "ordinal": len(assign) + 1,
                     "assignment_ids": [self._id("assignment")],
                     "at": (
@@ -1578,6 +1590,7 @@ class FakeFleet:
                     ),
                     "fail": recipe.blocked_then or recipe.fail_load,
                     "fail_code": recipe.fail_code,
+                    "aborts": recipe.fail_aborts,
                     "phase": recipe.fail_phase,
                     "resolved": False,
                 }
@@ -1760,6 +1773,11 @@ class FakeFleet:
             "reason_code": app.get("reason_code"),
             "retry_of_application_id": app.get("successor_of"),
             "blockers": app.get("blockers", []),
+            **(
+                {"failure": {"code": app["failure_code"]}}
+                if app.get("failure_code")
+                else {}
+            ),
             "current_operation_id": None if pending else app["id"],
             **(
                 {"current_step": 0, "wait": self._admission_wait(app)}
@@ -1783,6 +1801,19 @@ class FakeFleet:
                     else {}
                 ),
                 "child_progress": {} if pending else self._child_progress(app),
+                "intended_profile": {
+                    "assignments": [
+                        {
+                            "id": item["assignment_ids"][0],
+                            "alias": item["alias"],
+                            "nodes": [
+                                {"node_id": node, "rank": rank}
+                                for rank, node in enumerate(item["node_ids"])
+                            ],
+                        }
+                        for item in app["assign"]
+                    ]
+                },
                 "switch_adapter": {"assignment_failures": app.get("failures", [])},
                 "blockers": (
                     app.get("held_by", [])

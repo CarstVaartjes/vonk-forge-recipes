@@ -2223,13 +2223,7 @@ class Sweep:
                 "operation_id": document.get("current_operation_id") or document["id"],
                 "child_phase": child,
                 "cause": dig(document, "cancellation", "cause"),
-                "failures": dig(
-                    document,
-                    "progress",
-                    "switch_adapter",
-                    "assignment_failures",
-                    default=[],
-                ),
+                "failures": policy.assignment_failures(document),
             }
             self.state.data["loads"].pop(load["request_key"], None)
         return True
@@ -2549,10 +2543,7 @@ class Sweep:
                 )
                 failure = policy.classify_application_failure(
                     phase,
-                    str(own_failure["code"])
-                    if own_failure is not None
-                    and isinstance(own_failure.get("code"), str)
-                    else app.get("failure_code") or f"application.{app['state']}",
+                    app.get("failure_code") or f"application.{app['state']}",
                     str(
                         own_failure.get("reason") or own_failure.get("detail") or detail
                     )

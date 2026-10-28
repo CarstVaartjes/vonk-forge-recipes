@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
@@ -383,3 +385,145 @@ def test_real_assignment_failure_shape_uses_its_exit_reason(
     )
     record = from_history(row)
     assert record is not None and record.blame == QualificationBlame.RECIPE
+
+
+# The Controller's FleetProfileAssignmentFailure, field for field
+# (control/src/vonk_control/fleet_profile_contract/switch_state.py).
+ASSIGNMENT_FAILURE_FIELDS = {
+    "queue_index",
+    "assignment_id",
+    "operation_id",
+    "reason",
+    "terminal",
+}
+
+
+# A real runtime exit: the Controller's reason carries the helper's exit facts and, like the
+# real one, names no recipe or alias.
+EXIT = "runtime_process_exited: exit_code=2 exit_cause=bad_arguments exception={}"
+
+
+def _shared(tmp_path, gateway, bad, other):
+    """Two lanes in one application: the whole-profile load adopted the first lane's load."""
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [bad, other],
+        [FakeModel("m1", local="cached"), FakeModel("m2", local="cached")],
+        gateway=gateway,
+        only=("bad",),
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep._tick()
+    clock.sleep(20)
+    sweep._tick()
+    sweep.cfg = replace(sweep.cfg, only=())
+    sweep.refresh_catalog()
+    clock.sleep(20)
+    sweep._tick()
+    keys = [bad.key, other.key]
+    request = sweep.state.slots[keys[1]]["request_key"]
+    assert sweep.state.data["loads"][request]["adopted_requests"]
+    # What polling the whole-profile application does for every adopted lane.
+    sweep._carry_loading_slots(request)
+    assert len({sweep.state.slots[k]["request_key"] for k in keys}) == 1
+    return sweep, fleet, clock
+
+
+def _settle(sweep, clock):
+    for _ in range(400):
+        clock.sleep(20)
+        sweep._tick()
+        if all(
+            e["status"] in (RecipeStatus.FAILED, RecipeStatus.PASSED)
+            for e in sweep.state.recipes.values()
+        ):
+            return
+
+
+def _recipes(fail_load):
+    return (
+        FakeRecipe(
+            "bad",
+            ("m1",),
+            local="cached",
+            load_seconds=300,
+            fail_load=fail_load,
+            fail_phase="start",
+            fail_aborts=True,
+        ),
+        FakeRecipe("good", ("m2",), local="cached", load_seconds=3000),
+    )
+
+
+def test_the_fake_speaks_the_real_failure_contract(tmp_path, gateway) -> None:
+    sweep, fleet, clock = _shared(tmp_path, gateway, *_recipes(EXIT.format("fault1")))
+    _settle(sweep, clock)
+    app = next(a for a in fleet.apps.values() if a.get("failures"))
+    document = fleet._app_doc(app)["progress"]
+    failures = document["switch_adapter"]["assignment_failures"]
+    assert failures
+    owners = {a["id"] for a in document["intended_profile"]["assignments"]}
+    for failure in failures:
+        assert set(failure) <= ASSIGNMENT_FAILURE_FIELDS
+        assert failure["assignment_id"] in owners
+
+
+def test_one_failing_recipe_of_a_shared_application_is_the_only_one_blamed(
+    tmp_path, gateway
+) -> None:
+    sweep, _, clock = _shared(tmp_path, gateway, *_recipes(EXIT.format("fault1")))
+    _settle(sweep, clock)
+    bad, good = _status(sweep, "bad"), _status(sweep, "good")
+    assert bad["status"] == RecipeStatus.FAILED
+    assert bad["attempts"] == 1
+    assert bad["code"] == Code.RUNTIME_EXIT
+    assert "exception=fault1" in bad["error"]
+    assert good["status"] == RecipeStatus.PASSED
+    assert not any(
+        "fault1" in str(row.get("error"))
+        for row in sweep.log.entries()
+        if str(row.get("recipe", "")).endswith("/good")
+    )
+
+
+def test_an_adopted_lanes_own_failed_run_effect_is_its_own_result(
+    tmp_path, gateway
+) -> None:
+    bad, adopted = _recipes(EXIT.format("fault1"))
+    adopted.fail_load, adopted.fail_phase = EXIT.format("fault2"), "start"
+    sweep, fleet, clock = _shared(tmp_path, gateway, bad, adopted)
+    original = fleet._app_doc
+
+    def controller_reply(app):
+        document = original(app)
+        progress = document["progress"]
+        assignments = {a["id"]: a for a in progress["intended_profile"]["assignments"]}
+        failures = progress["switch_adapter"]["assignment_failures"]
+        # The adopted lane failed under an earlier application: only its run effect says so.
+        for failure in [f for f in failures if "fault2" in f["reason"]]:
+            failures.remove(failure)
+            owner = assignments[failure["assignment_id"]]
+            progress["effects"] = [
+                {
+                    "effect_id": "e1",
+                    "application_id": "00000000-0000-4000-8000-0000000000aa",
+                    "kind": "run",
+                    "target_id": "00000000-0000-4000-8000-0000000000bb",
+                    "node_ids": [n["node_id"] for n in owner["nodes"]],
+                    "state": "failed",
+                    "result": {
+                        "run_switch": {"members": [{"error": EXIT.format("fault2")}]}
+                    },
+                }
+            ]
+        return document
+
+    fleet._app_doc = controller_reply
+    _settle(sweep, clock)
+    for slug, fault in (("bad", "fault1"), ("good", "fault2")):
+        entry = _status(sweep, slug)
+        assert entry["status"] == RecipeStatus.FAILED
+        assert entry["attempts"] == 1
+        assert entry["code"] == Code.RUNTIME_EXIT
+        assert f"exception={fault}" in entry["error"]

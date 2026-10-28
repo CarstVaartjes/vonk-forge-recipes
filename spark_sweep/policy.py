@@ -628,6 +628,75 @@ def _mentions(text: str, name: str) -> bool:
     )
 
 
+def assignment_failures(document: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """The application's failures, each resolved to the lane it belongs to.
+
+    The Controller's ``FleetProfileAssignmentFailure`` names an assignment by id only (no alias,
+    no node), so ``blamed`` could match no lane. Attach the alias and nodes of the assignment in
+    ``progress.intended_profile``. A lane adopted from an earlier application reports its own
+    failed run as a ``run`` effect of that earlier application: it joins as a failure of the
+    assignment placed on exactly those nodes.
+    """
+    progress = document.get("progress")
+    if not isinstance(progress, Mapping):
+        return []
+    assignments = [
+        a
+        for a in (progress.get("intended_profile") or {}).get("assignments") or []
+        if isinstance(a, Mapping)
+    ]
+
+    def placed(a: Mapping[str, Any]) -> list[str]:
+        return [
+            n["node_id"]
+            for n in a.get("nodes") or []
+            if isinstance(n, Mapping) and isinstance(n.get("node_id"), str)
+        ]
+
+    by_id = {a.get("id"): a for a in assignments}
+    failures: list[dict[str, Any]] = []
+    for failure in (progress.get("switch_adapter") or {}).get(
+        "assignment_failures"
+    ) or []:
+        if not isinstance(failure, Mapping):
+            continue
+        item = dict(failure)
+        owner = by_id.get(failure.get("assignment_id"))
+        if owner is not None:
+            item.update(alias=owner.get("alias"), node_ids=placed(owner))
+        failures.append(item)
+    for effect in progress.get("effects") or []:
+        if (
+            not isinstance(effect, Mapping)
+            or effect.get("kind") != "run"
+            or effect.get("state") != "failed"
+            or effect.get("application_id") == document.get("id")
+        ):
+            continue
+        nodes = sorted(effect.get("node_ids") or [])
+        owner = next((a for a in assignments if sorted(placed(a)) == nodes), None)
+        members = ((effect.get("result") or {}).get("run_switch") or {}).get(
+            "members"
+        ) or []
+        reason = next(
+            (
+                str(m["error"])
+                for m in members
+                if isinstance(m, Mapping) and m.get("error")
+            ),
+            "the adopted run failed",
+        )
+        failures.append(
+            {
+                "reason": reason,
+                "operation_id": effect.get("operation_id"),
+                "node_ids": nodes,
+                **({"alias": owner.get("alias")} if owner is not None else {}),
+            }
+        )
+    return failures
+
+
 def blamed(
     items: Iterable[Mapping[str, Any]], lanes: Mapping[str, Mapping[str, Sequence[str]]]
 ) -> set[str]:
