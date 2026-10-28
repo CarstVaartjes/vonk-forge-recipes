@@ -55,7 +55,7 @@ def read_recipe(document: Mapping[str, object]) -> RecipeDefinition:
     return RecipeDefinition.model_validate(document, extra="ignore")
 
 
-# The one list of authored display fields the execution fingerprint ignores,
+# The one list of authored display fields the qualification fingerprint ignores,
 # as leaf paths. Everything else, including fields added later, stays covered.
 RECIPE_DISPLAY_FIELDS: tuple[tuple[str, ...], ...] = (
     ("metadata", "title"),
@@ -79,7 +79,7 @@ def _drop(value: dict[str, Any], path: tuple[str, ...]) -> None:
     value.pop(path[-1], None)
 
 
-def execution_sha256(
+def qualification_fingerprint_sha256(
     recipe: Mapping[str, object], models: Mapping[str, Mapping[str, object]]
 ) -> str:
     """Hash what a Recipe executes, ignoring only the display fields above.

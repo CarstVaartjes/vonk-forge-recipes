@@ -25,7 +25,7 @@
     {
       "identity": {
         "content_sha256": "efb1c19deb5bb755ccc293c5969e4e7c2714cf3a3278f5e5a43dad3a91258f99",
-        "execution_sha256": "6d0e9993b35c3705aec980043bdf34203e87d8d032a0f6f9ddee777865e74320",
+        "qualification_fingerprint_sha256": "6d0e9993b35c3705aec980043bdf34203e87d8d032a0f6f9ddee777865e74320",
         "model_digests": [
           "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
           "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb"
@@ -52,7 +52,7 @@
     {
       "identity": {
         "content_sha256": "efb1c19deb5bb755ccc293c5969e4e7c2714cf3a3278f5e5a43dad3a91258f99",
-        "execution_sha256": "6d0e9993b35c3705aec980043bdf34203e87d8d032a0f6f9ddee777865e74320",
+        "qualification_fingerprint_sha256": "6d0e9993b35c3705aec980043bdf34203e87d8d032a0f6f9ddee777865e74320",
         "model_digests": [
           "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
           "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb"
@@ -79,7 +79,7 @@
     {
       "identity": {
         "content_sha256": "efb1c19deb5bb755ccc293c5969e4e7c2714cf3a3278f5e5a43dad3a91258f99",
-        "execution_sha256": "6d0e9993b35c3705aec980043bdf34203e87d8d032a0f6f9ddee777865e74320",
+        "qualification_fingerprint_sha256": "6d0e9993b35c3705aec980043bdf34203e87d8d032a0f6f9ddee777865e74320",
         "model_digests": [
           "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
           "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb"

@@ -372,7 +372,7 @@
     {
       "identity": {
         "content_sha256": "ed2f62b47d0f60a620a9bc189848d976564fd65651d601219645db608f314f1b",
-        "execution_sha256": "6468b73de5d93d3df1eabfbea8f265ec6e7677ebd5617ffa7f764fb21ec54ce4",
+        "qualification_fingerprint_sha256": "6468b73de5d93d3df1eabfbea8f265ec6e7677ebd5617ffa7f764fb21ec54ce4",
         "model_digests": [
           "67741520c530ad3d4dee0bf01abb24d86961f0b5df7c5b34ee5bb60e4ecdeeb4",
           "93ad9df26ac5d64c323fc4f34eb557ecbfd100ccb65e067601e7499543f428d2",

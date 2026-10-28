@@ -5,7 +5,7 @@
     {
       "identity": {
         "content_sha256": "1fffb6ab832df08389b448a3861efeda72bab70201d4b5c3f019532efe7758dd",
-        "execution_sha256": "3cae83266b4208c61dc55702199d580a4f1584daec4674f0def186adc0b65b91",
+        "qualification_fingerprint_sha256": "3cae83266b4208c61dc55702199d580a4f1584daec4674f0def186adc0b65b91",
         "model_digests": [
           "b0fa8a89d056aa69dae70461fe2e3be052585f901dc3d1bcb3adeed9b228e3ec"
         ],
@@ -31,7 +31,7 @@
     {
       "identity": {
         "content_sha256": "1fffb6ab832df08389b448a3861efeda72bab70201d4b5c3f019532efe7758dd",
-        "execution_sha256": "3cae83266b4208c61dc55702199d580a4f1584daec4674f0def186adc0b65b91",
+        "qualification_fingerprint_sha256": "3cae83266b4208c61dc55702199d580a4f1584daec4674f0def186adc0b65b91",
         "model_digests": [
           "b0fa8a89d056aa69dae70461fe2e3be052585f901dc3d1bcb3adeed9b228e3ec"
         ],
@@ -57,7 +57,7 @@
     {
       "identity": {
         "content_sha256": "1fffb6ab832df08389b448a3861efeda72bab70201d4b5c3f019532efe7758dd",
-        "execution_sha256": "3cae83266b4208c61dc55702199d580a4f1584daec4674f0def186adc0b65b91",
+        "qualification_fingerprint_sha256": "3cae83266b4208c61dc55702199d580a4f1584daec4674f0def186adc0b65b91",
         "model_digests": [
           "b0fa8a89d056aa69dae70461fe2e3be052585f901dc3d1bcb3adeed9b228e3ec"
         ],

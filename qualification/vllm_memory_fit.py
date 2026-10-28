@@ -1,10 +1,8 @@
 """Hardware-calibrated per-node vLLM envelopes, shared by producer guards."""
 
-import json
 from decimal import Decimal
-from pathlib import Path
 
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 
 from qualification.memory_need import (
@@ -15,6 +13,7 @@ from qualification.memory_need import (
     VLLM_DEFAULT_UTILIZATION,
     speculative_config,
 )
+from qualification.model_index import model_index
 
 # A speculative drafter holds nothing beside `gpu-memory-utilization`, whatever
 # mechanism loads it (vLLM v0.30.0 lines; the same accounting at af5b4857e,
@@ -68,13 +67,11 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
         assert recipe.topology.node_count == 1, (
             "Absolute multi-Spark pools need a per-rank need model"
         )
-        root = Path(__file__).resolve().parents[1]
-        models: dict[str, ModelDefinition] = {}
-        for selection in recipe.models:
-            document = json.loads(
-                (root / "models" / f"{selection.model.slug}.json").read_text()
-            )
-            models[document_sha256(document)] = ModelDefinition.model_validate(document)
+        documents = model_index().documents
+        models = {
+            digest: ModelDefinition.model_validate(documents[digest])
+            for digest in {s.model.content_sha256 for s in recipe.models}
+        }
         need = calculate_need(recipe, models, load_inputs())
         required_peak = Decimal(need.total_bytes)
     else:

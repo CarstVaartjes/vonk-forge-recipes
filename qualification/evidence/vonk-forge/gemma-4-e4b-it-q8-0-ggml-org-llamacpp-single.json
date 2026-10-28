@@ -119,7 +119,7 @@
     {
       "identity": {
         "content_sha256": "77f600e5d537683ae45e1bcf9f2eb21c89061b75e9f467bee4eae3f3e02a99cf",
-        "execution_sha256": "c6cbcd12b3eabecce0a5f84bc10dfd6defec715057f4b9099d2ebaf7cf96bb1c",
+        "qualification_fingerprint_sha256": "c6cbcd12b3eabecce0a5f84bc10dfd6defec715057f4b9099d2ebaf7cf96bb1c",
         "model_digests": [
           "6f918045c073026ac2db97d432a15445c799a99123274ee3d992c81aeeb4d07a"
         ],

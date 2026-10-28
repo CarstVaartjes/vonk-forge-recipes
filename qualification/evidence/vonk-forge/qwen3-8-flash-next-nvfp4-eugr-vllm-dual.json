@@ -5,7 +5,7 @@
     {
       "identity": {
         "content_sha256": "70f166446da9baea9a817d0be42ae69db021b330b707a06bd9dd57c2918347ee",
-        "execution_sha256": "6008fed8184794c87400b3ed9eb8413f4fb4018b4fdaa30177f80b9e9ece234a",
+        "qualification_fingerprint_sha256": "6008fed8184794c87400b3ed9eb8413f4fb4018b4fdaa30177f80b9e9ece234a",
         "runtime_image": {
           "build_key": "22a487915de610874b9f03ef1fcf0e9dd6b2c9d6c4fd0c6ec4432d4398716b39",
           "image_digest": "sha256:7ac40fac0a60f81e967901aca0c2a746d787c6cf5b306b3b6ed90e7615cf8010"

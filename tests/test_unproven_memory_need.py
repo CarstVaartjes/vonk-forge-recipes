@@ -88,7 +88,7 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
     (tmp_path / "models").symlink_to(ROOT / "models")
     fingerprint = model_index(ROOT).fingerprint(document, digest)
     inputs = load_inputs().model_copy(
-        update={"historical_executions": {key: [fingerprint]} if use_snapshot else {}}
+        update={"historical_fingerprints": {key: [fingerprint]} if use_snapshot else {}}
     )
     if not use_snapshot:
         # Synthetic platform failure for exactly these bytes, never the live corpus.

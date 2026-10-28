@@ -150,8 +150,8 @@ class QualificationRuntimeImage(PublicQualificationModel):
 
 class QualificationIdentity(PublicQualificationModel):
     content_sha256: Digest
-    # Executable content without display fields (canonical.execution_sha256).
-    execution_sha256: Digest | None = None
+    # Executable content without display fields (canonical.qualification_fingerprint_sha256).
+    qualification_fingerprint_sha256: Digest | None = None
     source_bundle_sha256: Digest | None = None
     runtime_image: QualificationRuntimeImage | None = None
     model_digests: tuple[Digest, ...] = ()
@@ -299,20 +299,35 @@ class PublishedQualificationStatusView(PublicQualificationModel):
     required_sparks: int = Field(ge=1)
 
 
-def _both_fingerprinted(
+def fingerprint_decides(
     previous: QualificationIdentity, current: QualificationIdentity
 ) -> bool:
+    """The qualification fingerprint may stand in for the exact document.
+
+    Source bundles and runtime images are not part of the recipe document by
+    digest, so the fingerprint is trusted only when the previous record bound
+    both and the current identity carries the same ones. Otherwise a changed
+    adapter or image behind a display-only version bump would stay proven.
+    """
     return (
-        previous.execution_sha256 is not None and current.execution_sha256 is not None
+        previous.qualification_fingerprint_sha256 is not None
+        and current.qualification_fingerprint_sha256 is not None
+        and previous.source_bundle_sha256 is not None
+        and previous.runtime_image is not None
+        and previous.source_bundle_sha256 == current.source_bundle_sha256
+        and previous.runtime_image == current.runtime_image
     )
 
 
-def _same_execution(
+def same_execution(
     previous: QualificationIdentity, current: QualificationIdentity
 ) -> bool:
-    """Equal fingerprints, else (an unfingerprinted side) equal exact documents."""
-    if _both_fingerprinted(previous, current):
-        return previous.execution_sha256 == current.execution_sha256
+    """The one equivalence rule: equal fingerprints where they decide, else exact documents."""
+    if fingerprint_decides(previous, current):
+        return (
+            previous.qualification_fingerprint_sha256
+            == current.qualification_fingerprint_sha256
+        )
     return previous.content_sha256 == current.content_sha256
 
 
@@ -324,7 +339,7 @@ def _changes(
         for change, differs in (
             (
                 QualificationChange.RECIPE,
-                not _same_execution(previous, current),
+                not same_execution(previous, current),
             ),
             (
                 QualificationChange.IMAGE,
@@ -342,8 +357,8 @@ def _changes(
                 or (
                     previous.model_digests != current.model_digests
                     and not (
-                        _both_fingerprinted(previous, current)
-                        and previous.execution_sha256 == current.execution_sha256
+                        fingerprint_decides(previous, current)
+                        and same_execution(previous, current)
                     )
                 ),
             ),
@@ -358,13 +373,13 @@ def _same_content_identity(
     # Compare recorded content, never turn missing historical provenance into a
     # changed pin. Publication separately requires fully resolved exact proof.
     return (
-        _same_execution(previous, current)
+        same_execution(previous, current)
         and (
             previous.source_bundle_sha256 is None
             or previous.source_bundle_sha256 == current.source_bundle_sha256
         )
         and (
-            _both_fingerprinted(previous, current)
+            fingerprint_decides(previous, current)
             or previous.model_digests == current.model_digests
         )
         and previous.models_resolved == current.models_resolved

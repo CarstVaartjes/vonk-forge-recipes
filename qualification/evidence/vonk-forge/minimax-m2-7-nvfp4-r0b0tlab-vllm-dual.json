@@ -65,7 +65,7 @@
     {
       "identity": {
         "content_sha256": "12a6ecf220a3f46781a94c6e1246eb42abd3f16b6b91dd9735a67dbb0f492bb3",
-        "execution_sha256": "b20d4aa334479332f8d71ed24a3a4eb105da6ba72c6bbcfdb6403e46f05b8770",
+        "qualification_fingerprint_sha256": "b20d4aa334479332f8d71ed24a3a4eb105da6ba72c6bbcfdb6403e46f05b8770",
         "source_bundle_sha256": "903cd25c6a022bb6a7d60e0b2462f4e12ec29dd416db2bc7463269a8502bacc7",
         "runtime_image": {
           "build_key": "f42a9e6e8898fba75a717a449003b2f5c3941264d77d8288cdcbb7bfd7a766f1",

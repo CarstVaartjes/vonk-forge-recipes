@@ -167,7 +167,7 @@
     {
       "identity": {
         "content_sha256": "1dab81eba8ce745f72386a3f55c65907db9185a5f78948436052a77370a8f3ae",
-        "execution_sha256": "c72e29ce2c35345c9d96e2d2d2d46754d3fca05dc1406517ea3aa3e87ab23a92",
+        "qualification_fingerprint_sha256": "c72e29ce2c35345c9d96e2d2d2d46754d3fca05dc1406517ea3aa3e87ab23a92",
         "model_digests": [
           "8035bc75802cd3104ee6c24ea32c5d2c7d07fb0e7d730fb242669dac0cf4a134"
         ],

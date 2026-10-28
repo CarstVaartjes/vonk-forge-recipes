@@ -97,7 +97,7 @@
     {
       "identity": {
         "content_sha256": "a851a382f9c43b468e58a856c224d4be4d12323d81ded45c140119f196bbb868",
-        "execution_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
+        "qualification_fingerprint_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -121,7 +121,7 @@
     {
       "identity": {
         "content_sha256": "a851a382f9c43b468e58a856c224d4be4d12323d81ded45c140119f196bbb868",
-        "execution_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
+        "qualification_fingerprint_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -145,7 +145,7 @@
     {
       "identity": {
         "content_sha256": "a851a382f9c43b468e58a856c224d4be4d12323d81ded45c140119f196bbb868",
-        "execution_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
+        "qualification_fingerprint_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -169,7 +169,7 @@
     {
       "identity": {
         "content_sha256": "a851a382f9c43b468e58a856c224d4be4d12323d81ded45c140119f196bbb868",
-        "execution_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
+        "qualification_fingerprint_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -193,7 +193,7 @@
     {
       "identity": {
         "content_sha256": "a851a382f9c43b468e58a856c224d4be4d12323d81ded45c140119f196bbb868",
-        "execution_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
+        "qualification_fingerprint_sha256": "ee6d93af9ad85dd1b6c9e50bf828119b55ebae77a1b4b7463b919f9b2158f19c",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

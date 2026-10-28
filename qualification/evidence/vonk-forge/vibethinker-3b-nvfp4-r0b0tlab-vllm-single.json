@@ -74,7 +74,7 @@
     {
       "identity": {
         "content_sha256": "b49a53b06d3f702518bc66b7b7f835cecbae9737b542e0c655b03452c09847c8",
-        "execution_sha256": "e5b9097adc0898e08a573360562eac5236b46aba4df92524fd239032e077acf1",
+        "qualification_fingerprint_sha256": "e5b9097adc0898e08a573360562eac5236b46aba4df92524fd239032e077acf1",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

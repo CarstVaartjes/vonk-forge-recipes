@@ -22,13 +22,16 @@ image-bound evidence establishes a different runtime. Restoring that proof must
 retain its measured identity, never fill missing pins from the current library.
 
 Proof follows what a recipe executes, not how it is labelled. Each evidence
-record may carry `execution_sha256`, the `vonk_forge_contracts.execution_sha256`
+record may carry `qualification_fingerprint_sha256`, the `vonk_forge_contracts.qualification_fingerprint_sha256`
 of the exact recipe and Model bytes it was proven on; it is the same on every
 document that differs only in the authored display fields listed in
 `RECIPE_DISPLAY_FIELDS` and `MODEL_DISPLAY_FIELDS` in
 `contracts/src/vonk_forge_contracts/canonical.py`. A field outside those lists,
 including one added later, is execution. Image and source-bundle identities are
-compared separately. A fingerprint is derived from the document the record's
+compared separately: the fingerprint decides only when the proven record bound both a
+source bundle and a runtime image and the current ones are identical; otherwise
+only the exact document matches (`fingerprint_decides`, `same_execution` in the
+contracts). A fingerprint is derived from the document the record's
 `content_sha256` names, never inferred from today's recipe; a record without one
 matches only its exact document. The memory gate and `--base` change check use
 the same fingerprint, so a display-only edit is neither new nor touched.
@@ -430,8 +433,8 @@ above it. Never omit a failing recipe to pass the check.
 
 **C.** Assume an existing recipe works until hardware evidence says otherwise.
 Only new or changed recipe executions are subject to the need guard. An exact
-`content_sha256` or an `execution_sha256` in a `qualification/evidence/` record, or
-an execution fingerprint in the committed `historical_executions` snapshot in
+`content_sha256` or an `qualification_fingerprint_sha256` in a `qualification/evidence/` record, or
+an qualification fingerprint in the committed `historical_fingerprints` snapshot in
 `qualification/memory-inputs.json`, identifies existing content, regardless of its
 qualification outcome. The snapshot's
 `historical_sources` records its source commits; it is a content baseline, never

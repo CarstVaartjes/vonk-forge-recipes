@@ -140,7 +140,7 @@
     {
       "identity": {
         "content_sha256": "36400a29febe00073704f9cd4f11b7b2af7c2ea34e2fc60c0b912244a3793097",
-        "execution_sha256": "1637d722b5eddca3625c08923f45819b25e4d2ff10d9fe44840e918a86e2cc97",
+        "qualification_fingerprint_sha256": "1637d722b5eddca3625c08923f45819b25e4d2ff10d9fe44840e918a86e2cc97",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

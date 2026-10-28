@@ -100,7 +100,7 @@
     {
       "identity": {
         "content_sha256": "463c08fbec1fb3115a1e75029bfb89055923c9c6ea95149d99b4d46422fd5a66",
-        "execution_sha256": "91acec933b169884441ac3829e8a03475b932cb06c3eddbacbcfc2454201b6db",
+        "qualification_fingerprint_sha256": "91acec933b169884441ac3829e8a03475b932cb06c3eddbacbcfc2454201b6db",
         "model_digests": [
           "4676b15663a8ac635a714eb09272568bada7bcae4e670730388d7f56ee0c379c"
         ],
@@ -123,7 +123,7 @@
     {
       "identity": {
         "content_sha256": "463c08fbec1fb3115a1e75029bfb89055923c9c6ea95149d99b4d46422fd5a66",
-        "execution_sha256": "91acec933b169884441ac3829e8a03475b932cb06c3eddbacbcfc2454201b6db",
+        "qualification_fingerprint_sha256": "91acec933b169884441ac3829e8a03475b932cb06c3eddbacbcfc2454201b6db",
         "source_bundle_sha256": "5b75542291a03262a79a51d5fa8a4bef677116d96b8940de0a32b62fb323a462",
         "runtime_image": {
           "build_key": "e9765d641744ae1f2e72140292d97b6dc38ddc5ddd16e8d7a1fc00c1ba9e53ec",
@@ -154,7 +154,7 @@
     {
       "identity": {
         "content_sha256": "463c08fbec1fb3115a1e75029bfb89055923c9c6ea95149d99b4d46422fd5a66",
-        "execution_sha256": "91acec933b169884441ac3829e8a03475b932cb06c3eddbacbcfc2454201b6db",
+        "qualification_fingerprint_sha256": "91acec933b169884441ac3829e8a03475b932cb06c3eddbacbcfc2454201b6db",
         "source_bundle_sha256": "5b75542291a03262a79a51d5fa8a4bef677116d96b8940de0a32b62fb323a462",
         "runtime_image": {
           "build_key": "e9765d641744ae1f2e72140292d97b6dc38ddc5ddd16e8d7a1fc00c1ba9e53ec",

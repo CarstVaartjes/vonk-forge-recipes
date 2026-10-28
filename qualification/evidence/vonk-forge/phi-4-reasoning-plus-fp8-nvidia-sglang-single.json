@@ -28,7 +28,7 @@
     {
       "identity": {
         "content_sha256": "d5b6f34637651e0c6427d9ed007b4da5903e0a38b1333eb6aa3cf0681a23f522",
-        "execution_sha256": "4061907fb5c7fdb8a7c0df5e1e63098c61294d30e1129535ac94ede26af439d5",
+        "qualification_fingerprint_sha256": "4061907fb5c7fdb8a7c0df5e1e63098c61294d30e1129535ac94ede26af439d5",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

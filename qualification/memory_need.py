@@ -242,9 +242,9 @@ class MemoryInputs(BaseModel):
     # rule (2026-10-26): Engram tables are never memory usage.
     engram_files: dict[str, str]
     historical_sources: list[str]
-    # Execution fingerprints (vonk_forge_contracts.execution_sha256) of the
+    # Execution fingerprints (vonk_forge_contracts.qualification_fingerprint_sha256) of the
     # recipes the catalog accepted before the memory gate.
-    historical_executions: dict[str, list[str]]
+    historical_fingerprints: dict[str, list[str]]
 
 
 def unchanged_recipe(
@@ -252,7 +252,7 @@ def unchanged_recipe(
 ) -> bool:
     """Recognize executable content recorded in the snapshot or qualification evidence.
 
-    Equal execution fingerprints are the same recipe: a display edit does not
+    Equal qualification fingerprints are the same recipe: a display edit does not
     make it new. Evidence recorded before fingerprints existed matches by its
     exact document digest.
     """
@@ -274,11 +274,14 @@ def unchanged_recipe(
     fingerprint = model_index(ROOT).fingerprint(document, document_digest)
     return any(
         record.identity.content_sha256 == document_digest
-        or (fingerprint is not None and record.identity.execution_sha256 == fingerprint)
+        or (
+            fingerprint is not None
+            and record.identity.qualification_fingerprint_sha256 == fingerprint
+        )
         for record in read_evidence(ROOT, key).records
     ) or (
         fingerprint is not None
-        and fingerprint in inputs.historical_executions.get(key, [])
+        and fingerprint in inputs.historical_fingerprints.get(key, [])
     )
 
 

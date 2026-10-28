@@ -5,7 +5,7 @@
     {
       "identity": {
         "content_sha256": "2b42aa73af6c38160b4414396458abd77163ffda8b9c33139ee5c7e31d232bb6",
-        "execution_sha256": "4a74f2643de899b4c892af059e0547bf33381ead36dc9a0b48142a6fd6385807",
+        "qualification_fingerprint_sha256": "4a74f2643de899b4c892af059e0547bf33381ead36dc9a0b48142a6fd6385807",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -29,7 +29,7 @@
     {
       "identity": {
         "content_sha256": "2b42aa73af6c38160b4414396458abd77163ffda8b9c33139ee5c7e31d232bb6",
-        "execution_sha256": "4a74f2643de899b4c892af059e0547bf33381ead36dc9a0b48142a6fd6385807",
+        "qualification_fingerprint_sha256": "4a74f2643de899b4c892af059e0547bf33381ead36dc9a0b48142a6fd6385807",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false
@@ -53,7 +53,7 @@
     {
       "identity": {
         "content_sha256": "2b42aa73af6c38160b4414396458abd77163ffda8b9c33139ee5c7e31d232bb6",
-        "execution_sha256": "4a74f2643de899b4c892af059e0547bf33381ead36dc9a0b48142a6fd6385807",
+        "qualification_fingerprint_sha256": "4a74f2643de899b4c892af059e0547bf33381ead36dc9a0b48142a6fd6385807",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

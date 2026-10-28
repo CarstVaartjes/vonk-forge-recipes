@@ -33,7 +33,7 @@ from qualification.case_assertions import require_valid_case_assertions
 from qualification.definitions_loader import load_definitions
 from qualification.media_types import require_canonical_recipe_media
 from qualification.memory_need import load_inputs, memory_warnings, require_memory_need
-from qualification.model_index import ModelIndex, model_index
+from qualification.model_index import model_index
 from qualification.service_aliases import require_valid_service_aliases
 
 QUALIFICATION_ROOT = ROOT / "qualification"
@@ -198,10 +198,8 @@ def _commit_time(cwd: Path, commit: str) -> str:
 def _catalog_entity_documents() -> dict[str, dict[str, Any]]:
     """The authored Model documents (never re-serialized copies), by publisher/slug."""
     index = model_index(ROOT)
-    if index.unreadable:
-        raise SystemExit(
-            f"unreadable or invalid model documents: {', '.join(index.unreadable)}"
-        )
+    for name, error in index.unreadable.items():
+        raise SystemExit(f"model contract validation failed (models/{name}): {error}")
     for key, document in index.by_selector.items():
         if document.get("kind") != "model":
             raise SystemExit(f"model document is not kind=model: {key}")
@@ -692,7 +690,7 @@ def build(
     entities = _catalog_entity_documents()
     from vonk_forge_contracts import ModelDefinition
 
-    index = ModelIndex.from_documents(entities.values())
+    index = model_index(ROOT)
     memory_models = {
         digest: ModelDefinition.model_validate(document)
         for digest, document in index.documents.items()
@@ -746,7 +744,9 @@ def build(
         image = entry.get("prebuilt_image")
         identity = QualificationIdentity(
             content_sha256=entry["content_sha256"],
-            execution_sha256=index.fingerprint(document, entry["content_sha256"]),
+            qualification_fingerprint_sha256=index.fingerprint(
+                document, entry["content_sha256"]
+            ),
             source_bundle_sha256=entry["source_bundle_sha256"],
             runtime_image=QualificationRuntimeImage(
                 build_key=image["build_key"],

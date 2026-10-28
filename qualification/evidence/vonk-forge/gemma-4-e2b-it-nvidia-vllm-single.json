@@ -52,7 +52,7 @@
     {
       "identity": {
         "content_sha256": "2daaaf3a76639757f99769a4fa553e0ee1ffdaea20774ae26a55c46b90e74483",
-        "execution_sha256": "5b767e60028527d6f413dc739fa2429fefa11a1777a0a35e4d3853a78ff362fd",
+        "qualification_fingerprint_sha256": "5b767e60028527d6f413dc739fa2429fefa11a1777a0a35e4d3853a78ff362fd",
         "model_digests": [],
         "required_sparks": 1,
         "models_resolved": false

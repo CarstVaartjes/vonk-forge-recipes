@@ -18,7 +18,7 @@ from ._version import __version__
 from .canonical import (
     canonical_json,
     document_sha256,
-    execution_sha256,
+    qualification_fingerprint_sha256,
     read_model,
     read_recipe,
 )
@@ -64,10 +64,12 @@ from .qualification_status import (
     QualificationUnverifiedReason,
     RecipeQualificationEvidence,
     derive_status,
+    fingerprint_decides,
     published_qualification_status_json_schema,
     published_status,
     qualification_evidence_json_schema,
     qualification_status_json_schema,
+    same_execution,
 )
 from .recipe import RecipeDefinition, RecipeOptionError
 
@@ -118,14 +120,16 @@ __all__ = [
     "canonical_json",
     "derive_status",
     "document_sha256",
-    "execution_sha256",
+    "fingerprint_decides",
     "published_qualification_status_json_schema",
     "published_status",
     "qualification_evidence_json_schema",
+    "qualification_fingerprint_sha256",
     "qualification_status_json_schema",
     "read_model",
     "read_recipe",
     "recovery_coverage_id",
+    "same_execution",
 ]
 
 

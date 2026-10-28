@@ -193,7 +193,7 @@
     {
       "identity": {
         "content_sha256": "3f4d44ff8d7e9f43b3b1c28448781818a1966abd41268300638745d7b94fdcc0",
-        "execution_sha256": "2016770a2f8855875cf9798d16099387873d9ea425778e4c17ddd80a4a4c2eae",
+        "qualification_fingerprint_sha256": "2016770a2f8855875cf9798d16099387873d9ea425778e4c17ddd80a4a4c2eae",
         "model_digests": [
           "51e1fffc10758b90720f3b0e7e13eccee6f74bc89e58bc2266b9d9d1d4c6ba06"
         ],

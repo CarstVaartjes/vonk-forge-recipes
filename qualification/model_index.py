@@ -1,4 +1,4 @@
-"""The one reader of the authored Model documents, and the execution fingerprint.
+"""The one reader of the authored Model documents, and the qualification fingerprint.
 
 Every consumer (the sweep, the memory gate, the catalog build, the change gate)
 asks this module for the Models of a catalog and for a Recipe's execution
@@ -16,7 +16,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from vonk_forge_contracts import ModelDefinition, document_sha256, execution_sha256
+from vonk_forge_contracts import (
+    ModelDefinition,
+    document_sha256,
+    qualification_fingerprint_sha256,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,18 +29,21 @@ ROOT = Path(__file__).resolve().parents[1]
 class ModelIndex:
     documents: dict[str, dict[str, Any]]  # document digest -> authored document
     by_selector: dict[str, dict[str, Any]]  # "publisher/slug" -> authored document
-    unreadable: tuple[str, ...] = ()
-    # Fingerprints by accepted recipe, for callers that cannot afford to reread it.
-    accepted: dict[tuple[str, str, tuple[str, ...]], str] = field(
-        default_factory=dict, repr=False
-    )
+    unreadable: dict[str, str] = field(default_factory=dict)  # file name -> reason
+    # (recipe file signature, fingerprint or a remembered miss) by accepted recipe,
+    # for callers that cannot afford to reread the recipe file.
+    accepted: dict[
+        tuple[str, str, tuple[str, ...]], tuple[tuple[int, int] | None, str | None]
+    ] = field(default_factory=dict, repr=False)
     _fingerprints: dict[tuple[str, tuple[str, ...]], str | None] = field(
         default_factory=dict, repr=False
     )
 
     @classmethod
     def from_documents(
-        cls, documents: Iterable[Mapping[str, Any]], unreadable: tuple[str, ...] = ()
+        cls,
+        documents: Iterable[Mapping[str, Any]],
+        unreadable: dict[str, str] | None = None,
     ) -> ModelIndex:
         by_digest: dict[str, dict[str, Any]] = {}
         by_selector: dict[str, dict[str, Any]] = {}
@@ -44,12 +51,12 @@ class ModelIndex:
             by_digest[document_sha256(document)] = dict(document)
             identity = document["identity"]
             by_selector[f"{identity['publisher']}/{identity['slug']}"] = dict(document)
-        return cls(by_digest, by_selector, unreadable)
+        return cls(by_digest, by_selector, unreadable or {})
 
     def fingerprint(
         self, recipe: Mapping[str, Any], content_sha256: str | None = None
     ) -> str | None:
-        """The recipe's execution fingerprint, or None when a Model is unavailable.
+        """The recipe's qualification fingerprint, or None when a Model is unavailable.
 
         Memoized by (recipe digest, Model digests); the Recipe is hashed only
         when the caller does not already know its digest.
@@ -64,7 +71,9 @@ class ModelIndex:
         key = (digest, models)
         if key not in self._fingerprints:
             try:
-                self._fingerprints[key] = execution_sha256(recipe, self.documents)
+                self._fingerprints[key] = qualification_fingerprint_sha256(
+                    recipe, self.documents
+                )
             except (ValueError, KeyError, TypeError):
                 self._fingerprints[key] = None
         return self._fingerprints[key]
@@ -72,16 +81,16 @@ class ModelIndex:
 
 def _read_models(directory: Path) -> ModelIndex:
     documents: list[dict[str, Any]] = []
-    unreadable: list[str] = []
+    unreadable: dict[str, str] = {}
     for path in sorted(directory.glob("*.json")):
         try:
             document = json.loads(path.read_text(encoding="utf-8"))
             ModelDefinition.model_validate(document)
-        except (OSError, ValueError):
-            unreadable.append(path.name)
+        except (OSError, ValueError) as error:
+            unreadable[path.name] = str(error)
         else:
             documents.append(document)
-    return ModelIndex.from_documents(documents, tuple(unreadable))
+    return ModelIndex.from_documents(documents, unreadable)
 
 
 _cache: dict[Path, tuple[tuple[int, int], ModelIndex]] = {}

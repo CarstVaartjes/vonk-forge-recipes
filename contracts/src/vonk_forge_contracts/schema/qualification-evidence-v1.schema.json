@@ -149,7 +149,7 @@
           "title": "Content Sha256",
           "type": "string"
         },
-        "execution_sha256": {
+        "qualification_fingerprint_sha256": {
           "anyOf": [
             {
               "pattern": "^[0-9a-f]{64}$",
@@ -160,7 +160,7 @@
             }
           ],
           "default": null,
-          "title": "Execution Sha256"
+          "title": "Qualification Fingerprint Sha256"
         },
         "source_bundle_sha256": {
           "anyOf": [
