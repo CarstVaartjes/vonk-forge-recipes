@@ -48,8 +48,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", default="/outputs")
     parser.add_argument("--num-frames", type=int, default=124)
     args = parser.parse_args()
-    if not 120 <= args.num_frames <= 344 or args.num_frames % 4:
-        raise ValueError("num-frames must be a multiple of 4 between 120 and 344")
+    if not 124 <= args.num_frames <= 344 or (args.num_frames - 5) % 17:
+        raise ValueError("num-frames must be on the model's 17k+5 grid between 124 and 344")
     return args
 
 

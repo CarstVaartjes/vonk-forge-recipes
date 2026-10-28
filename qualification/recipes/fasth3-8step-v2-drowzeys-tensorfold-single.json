@@ -3,7 +3,7 @@
   "recipes": {
     "interface": "video-job",
     "parameters": {
-      "num-frames": 120
+      "num-frames": 124
     },
     "inputs": [
       {
@@ -46,9 +46,9 @@
         "height": 480,
         "fps": 24,
         "fps_tolerance": 0.01,
-        "frame_count": 120,
-        "minimum_duration_seconds": 4.958333333333333,
-        "maximum_duration_seconds": 5.041666666666667,
+        "frame_count": 124,
+        "minimum_duration_seconds": 5.125,
+        "maximum_duration_seconds": 5.208333333333333,
         "stream_count": 2,
         "audio_streams": 1,
         "codec": "h264"
