@@ -777,10 +777,13 @@ def sglang_startup_rest(
     )
     draft = 0
     if argument_value(recipe, "speculative-algorithm") is not None:
-        block = argument_value(recipe, "speculative-dspark-block-size")
-        draft = int(
-            argument_value(recipe, "speculative-num-draft-tokens")
-            or (int(str(block)) + 1 if block is not None else 1)
+        # DSPARK's verify window is the block size plus one (server_args).
+        draft = (
+            positive_argument(recipe, "speculative-num-draft-tokens")
+            if argument_value(recipe, "speculative-num-draft-tokens") is not None
+            else positive_argument(recipe, "speculative-dspark-block-size") + 1
+            if argument_value(recipe, "speculative-dspark-block-size") is not None
+            else 1
         )
     minimum = Decimal(0)
     for index, selection in enumerate(recipe.models):
