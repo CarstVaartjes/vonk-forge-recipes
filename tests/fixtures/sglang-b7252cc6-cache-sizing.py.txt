@@ -1,6 +1,8 @@
 # From https://github.com/sgl-project/sglang/blob/b7252cc6b0c78b25ecea7ee5efa91a6ae37d0f19/python/sglang/srt/mem_cache/kv_cache_configurator.py
 # (dev-inkling-dspark; the base of ghcr.io/drowzeys/inkling-sglang-gb10@sha256:079775a8deb4,
-# see adapters/inkling/drowzeys-kvquant-dual/Dockerfile).
+# see adapters/inkling/drowzeys-kvquant-dual/Dockerfile). The drowzeys kvquant overlay
+# (adapters/inkling/drowzeys-kvquant-dual/scripts/bake-image.sh:46 @ 539a7747)
+# replaces kv_cache_configurator.py; the replayed methods are byte-identical.
 # SGLang contributors; Apache-2.0. Module constants and the three methods the
 # hybrid state sizing runs are reproduced without changes inside a class shell.
 

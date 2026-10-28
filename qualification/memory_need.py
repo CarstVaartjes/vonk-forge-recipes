@@ -63,10 +63,8 @@ IDLE_USE_BYTES = TOTAL_BYTES - IDLE_AVAILABLE_BYTES
 # (113.11 GiB before load, SGLang prints GiB, against 125,650,657,280 idle) and
 # 4.70e9 on the GLM a0 single-Spark start (114.89 GiB before load against
 # 128.06e9 MemAvailable). The larger one is the planning figure; this is the one
-# owner of SGLang's base. The capped check stays on IDLE_AVAILABLE_BYTES: the
-# proven Qwen3.8 Flash Next W4A16 r0b0tlab dual needs 70.61e9 against 0.571 x
-# the pre-load free memory, which only the idle figure covers, and rules
-# calibrate on the proven set.
+# owner of SGLang's base. Capped and uncapped launches profile the same way
+# (_profile_available_bytes); a cap enters only in _apply_token_constraints.
 SGLANG_CUDA_CONTEXT_BYTES = 4_700_000_000
 SGLANG_PRELOAD_FREE_BYTES = IDLE_AVAILABLE_BYTES - SGLANG_CUDA_CONTEXT_BYTES
 # vonk-forge 040c51b8531523bebe542b5e1f7b9403e0767f72:
@@ -706,11 +704,7 @@ def require_sglang_rank_budget(
         raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
     uncapped = argument_value(recipe, "max-total-tokens") is None
     need = sglang_static_need(recipe, models, inputs, key, pinned=not uncapped)
-    base = (
-        sglang_preload_free_bytes(recipe, models, inputs)
-        if uncapped
-        else IDLE_AVAILABLE_BYTES
-    )
+    base = sglang_preload_free_bytes(recipe, models, inputs)
     static_bytes = Decimal(str(fraction)) * base
     if uncapped:
         # Uncapped, SGLang sizes the pools from what the fraction leaves after
@@ -731,7 +725,7 @@ def require_sglang_rank_budget(
     if not static_bytes.is_finite() or static_bytes < need:
         raise ValueError(
             f"{key}: static budget {static_bytes:.0f} bytes (mem-fraction-static x "
-            f"idle available {IDLE_AVAILABLE_BYTES}) cannot hold sharded weights, "
+            f"SGLang pre-load free {base}) cannot hold sharded weights, "
             f"resident expansion and capped pools ({need} bytes/rank); increase "
             "mem-fraction-static while retaining the absolute caps"
         )
@@ -1288,10 +1282,11 @@ def require_bounded_kv_pool(
         # fraction reserves.
         share = Decimal(str(fraction))
         resident = sglang_static_need(recipe, models, inputs, key, pinned=False)
-        if share * IDLE_AVAILABLE_BYTES < resident:
+        base = sglang_preload_free_bytes(recipe, models, inputs)
+        if share * base < resident:
             raise ValueError(
-                f"{key}: mem-fraction-static {fraction} x idle available "
-                f"{IDLE_AVAILABLE_BYTES} cannot hold the selected weights, resident "
+                f"{key}: mem-fraction-static {fraction} x SGLang pre-load free "
+                f"{base} cannot hold the selected weights, resident "
                 f"expansion and capped pools ({resident} bytes)"
             )
         demand = sglang_demand(
@@ -1443,7 +1438,7 @@ def memory_warnings(
                     f"{recipe.identity.publisher}/{recipe.identity.slug}",
                 )
             except (ValueError, TypeError) as error:
-                warnings.append(f"{prefix}: startup room not met: {error}")
+                warnings.append(f"{prefix}: {error}")
         rank = per_rank_need(variant, models, inputs)
         warnings.append(
             f"{prefix}: loading floor {rank.peak_bytes} bytes/rank; "

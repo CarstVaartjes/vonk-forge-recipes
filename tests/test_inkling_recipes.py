@@ -233,10 +233,12 @@ def test_pinned_sglang_sizing_rejects_failed_fraction_and_holds_the_caps() -> No
     assert sizer._calculate_mamba_ratio() == 5
     assert sizer.resolve_max_num_reqs(tokens) == concurrency
 
-    # Well below the proven fraction the profiled pool no longer holds the cap.
-    schedule.mem_fraction_static = float(arguments["mem-fraction-static"]) - 0.04
-    budget = sizer._profile_available_bytes(SGLANG_PRELOAD_FREE_BYTES / gib)
-    assert sizer._apply_token_constraints(int(budget // cell)) < tokens
+    # The profiled pool holds the cap from 0.802 and not at 0.801, the same
+    # edge as the rank budget (test_rank_budget_guard_pins_the_capped_edge).
+    for fraction, holds in (("0.801", False), ("0.802", True)):
+        schedule.mem_fraction_static = float(fraction)
+        budget = sizer._profile_available_bytes(SGLANG_PRELOAD_FREE_BYTES / gib)
+        assert (int(budget // cell) >= tokens) is holds, fraction
     # The failed fraction cannot profile even with the caps.
     schedule.mem_fraction_static = float(FAILED_FRACTION)
     with pytest.raises(ValueError, match="Loaded weights leave no GPU memory"):
@@ -471,7 +473,7 @@ def test_unproven_unchanged_document_reports_its_startup_room() -> None:
         load_inputs(),
         document_sha256(document),
     )
-    assert any("startup room not met" in item for item in warnings)
+    assert any("SGLang needs to start" in item for item in warnings)
     assert not any("WARNING" in item[len("WARNING") :] for item in warnings)
 
 
@@ -543,3 +545,64 @@ def test_975b_eight_keeps_its_authored_fraction() -> None:
         assert role["resources"]["memory"]["peak_bytes"] >= (
             fraction * TOTAL_BYTES + OVERHEAD_BYTES
         )
+
+
+def test_rank_budget_guard_pins_the_capped_edge() -> None:
+    """The proven plain dual's caps fit from 0.802 of the pre-load free memory."""
+    assert _rank_budget_error(**{"mem-fraction-static": "0.801"}) is not None
+    assert _rank_budget_error(**{"mem-fraction-static": "0.802"}) is None
+
+
+def _replayed_slots(fraction: float) -> int:
+    """max_mamba_cache_size the vendored sizing computes at this fraction."""
+    pre = KV_1M_PRE_LOAD_GIB
+    resident_gib = 89.10 + 1.30
+    sizer, schedule = _dspark_sizer(fraction, pre - resident_gib)
+    try:
+        sizer._profile_available_bytes(pre)
+    except RuntimeError:
+        pass
+    return schedule.max_mamba_cache_size or 0
+
+
+def test_startup_room_boundary_is_the_replays_fifth_slot() -> None:
+    """One request needs five slots: the check flips where the replay reaches K = 5."""
+    from decimal import Decimal
+
+    low, high = 0.8002, 0.85
+    assert _replayed_slots(low) < 5 <= _replayed_slots(high)
+    while high - low > 1e-10:
+        middle = (low + high) / 2
+        if _replayed_slots(middle) >= 5:
+            high = middle
+        else:
+            low = middle
+    assert _replayed_slots(low) == 4 and _replayed_slots(high) == 5
+
+    def error(fraction: float) -> bool:
+        """Whether the base launch (block size 7, the replay's) is refused."""
+        from catalog_documents import catalog_models
+        from vonk_forge_contracts import RecipeDefinition
+
+        from qualification.memory_need import (
+            load_inputs,
+            require_sglang_rank_budget,
+        )
+
+        document = load(KV_1M)
+        for item in document["runtime"]["arguments"]:
+            if item["name"] == "mem-fraction-static":
+                item["value"] = f"{Decimal(fraction):.12f}"
+        try:
+            require_sglang_rank_budget(
+                RecipeDefinition.model_validate(document),
+                catalog_models(),
+                load_inputs(),
+                "k",
+            )
+        except ValueError:
+            return True
+        return False
+
+    assert error(low)
+    assert not error(high)
