@@ -24,46 +24,18 @@ def test_triton_marlin_ornith_modes_do_not_import_deepgemm() -> None:
         assert env.get("SGLANG_ENABLE_JIT_DEEPGEMM") == "0"
 
 
-def test_disabled_deepgemm_never_imports_toolkit_dependent_module(
-    tmp_path: Path,
-) -> None:
-    import subprocess
-    import sys
-
-    # Upstream e76d36214b0f4a6d1cd7af6bab6e199c97bcddfa, configurer.py;
-    # its import line matches the sweep traceback. DeepGEMM asserts without nvcc.
-    source = ROOT / "tests/fixtures/ornith-deepgemm-configurer.py.txt"
-    target = tmp_path / "configurer.py"
-    target.write_bytes(source.read_bytes())
-    patch = ROOT / "adapters/nvidia/r0b0tlab-ornith-sglang-single/patch-deepgemm.py"
-    script = """
-import runpy, sys, types
-for name in ("sglang", "sglang.srt", "sglang.srt.environ", "sglang.srt.utils"):
-    sys.modules[name] = types.ModuleType(name)
-sys.modules["sglang.srt.environ"].envs = types.SimpleNamespace(
-    SGLANG_ENABLE_JIT_DEEPGEMM=types.SimpleNamespace(get=lambda: False))
-utils = sys.modules["sglang.srt.utils"]
-utils.get_device_sm = lambda: 121
-utils.is_cuda = lambda: True
-utils.is_musa = lambda: False
-utils.is_sm100_supported = lambda: False
-result = runpy.run_path(sys.argv[1])
-assert result["ENABLE_JIT_DEEPGEMM"] is False
-"""
-    (tmp_path / "deep_gemm.py").write_text(
-        "raise AssertionError('CUDA toolkit unavailable')\n"
-    )
-    # Reproduce the upstream fault before applying the build-time patch.
-    import os
-
-    env = {**os.environ, "PYTHONPATH": str(tmp_path)}
-    before = subprocess.run(
-        [sys.executable, "-c", script, str(target)],
-        env=env,
-        capture_output=True,
-        check=False,
-    )
-    assert before.returncode != 0
-    assert b"CUDA toolkit unavailable" in before.stderr
-    subprocess.run([sys.executable, str(patch), str(target)], check=True)
-    subprocess.run([sys.executable, "-c", script, str(target)], env=env, check=True)
+def test_runtime_only_image_drops_toolkit_extensions_and_imports_without_them() -> None:
+    # The base has no CUDA toolkit: deep_ep asserts in find_cuda_home on import
+    # (outside SGLang's ImportError guard) and deep_gemm asserts the same way.
+    # Removing both lets SGLang's own guards apply; the build then imports the
+    # dispatcher and LoRA modules with no GPU and no CUDA_HOME, so a regression
+    # fails the image build instead of the hardware start.
+    adapter = ROOT / "adapters/nvidia/r0b0tlab-ornith-sglang-single"
+    dockerfile = (adapter / "Dockerfile").read_text()
+    for removed in ("deep_ep", "deep_gemm", "sgl_deep_ep-*", "sgl_deep_gemm-*"):
+        assert f"site-packages/{removed}" in dockerfile
+    assert "env -u CUDA_HOME -u CUDA_PATH /opt/venv/bin/python -c" in dockerfile
+    assert "sglang.srt.layers.moe.token_dispatcher.deepep" in dockerfile
+    assert "sglang.srt.lora.lora_manager" in dockerfile
+    assert not (adapter / "patch-deepgemm.py").exists()
+    assert "CUDA_HOME=" not in dockerfile

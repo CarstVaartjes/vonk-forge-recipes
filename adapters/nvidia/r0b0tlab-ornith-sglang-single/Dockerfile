@@ -16,10 +16,19 @@ RUN mkdir -p /opt/vonk/prewarm \
     && cp -a /home/sglang/.cache/sglang /opt/vonk/prewarm/sglang \
     && if [ -d /home/sglang/.cache/triton ]; then cp -a /home/sglang/.cache/triton /opt/vonk/prewarm/triton; fi \
     && chmod -R a+rX /opt/vonk/prewarm
-# The pinned SGLang checks its opt-out only after importing DeepGEMM. That
-# import asserts on this runtime-only image, even when JIT is disabled.
-COPY patch-deepgemm.py /opt/vonk/patch-deepgemm.py
-RUN /opt/venv/bin/python /opt/vonk/patch-deepgemm.py /opt/venv/lib/python3.12/site-packages/sglang/srt/layers/deep_gemm_wrapper/configurer.py
+# The image is runtime-only: no CUDA toolkit, no CUDA_HOME. The two toolkit-dependent
+# extensions in it, DeepEP and DeepGEMM, assert on import without a toolkit (DeepEP in
+# find_cuda_home at deep_ep/__init__.py, outside the ImportError SGLang's dispatcher
+# guards), and this recipe uses neither (no --moe-a2a-backend, SGLANG_ENABLE_JIT_DEEPGEMM=0).
+# With them removed, SGLang's own ImportError guards (token_dispatcher/deepep.py,
+# deep_gemm_wrapper/configurer.py) take their documented fallback. The import below
+# runs without a GPU or toolkit, so a base that import-fails again stops the build.
+RUN rm -rf /opt/venv/lib/python3.12/site-packages/deep_ep \
+        /opt/venv/lib/python3.12/site-packages/deep_gemm \
+        /opt/venv/lib/python3.12/site-packages/sgl_deep_ep-*.dist-info \
+        /opt/venv/lib/python3.12/site-packages/sgl_deep_gemm-*.dist-info \
+    && env -u CUDA_HOME -u CUDA_PATH /opt/venv/bin/python -c \
+        "import importlib.util as u; assert u.find_spec('deep_ep') is None and u.find_spec('deep_gemm') is None; import sglang.srt.layers.moe.token_dispatcher.deepep, sglang.srt.lora.lora_manager"
 COPY LICENSE.upstream /opt/vonk/licenses/LICENSE.upstream
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
 RUN if ! getent group 10001 >/dev/null; then groupadd --gid 10001 vonk; fi \
