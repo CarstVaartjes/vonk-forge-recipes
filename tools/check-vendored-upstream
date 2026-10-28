@@ -48,6 +48,7 @@ Manifest ``vendored-upstream.json``::
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -260,12 +261,25 @@ def _local_files(adapter: Path, root: Path) -> list[str]:
     return files
 
 
+def changed_paths(root: Path, base: str) -> set[str]:
+    """Paths this change touches against ``base`` (``base...HEAD``)."""
+    completed = subprocess.run(
+        ["git", "-C", str(root), "diff", "--name-only", f"{base}...HEAD"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return set(completed.stdout.split())
+
+
 def check_adapter(
     adapter: Path,
     root: Path,
     load_tree: TreeLoader,
     on_github: Callable[[str, str], bool | None] = commit_on_github,
+    changed: bool = False,
 ) -> Report:
+    """Problems and notes of one adapter; ``changed``: this change touches it."""
     label = adapter.relative_to(root).as_posix()
     report = Report(label)
     manifest_path = adapter / MANIFEST
@@ -286,11 +300,17 @@ def check_adapter(
                 f"'{unverified_mark(repo, commit)}', not '{mark}'"
             )
         elif on_github(repo, commit):
-            # The mark heals: once GitHub serves the commit, the files are judged again.
-            report.problems.append(
-                f"{label}: {repo}@{commit[:12]} is on GitHub now; remove "
-                f"source.unverified from {MANIFEST}"
+            # GitHub serves the commit again. A change to this adapter must drop the mark
+            # (kit-pins skips the lock re-read while it stands); any other change only
+            # sees a note, so the stale mark never blames an unrelated PR or refresh.
+            served = (
+                f"{repo}@{commit[:12]} is on GitHub now; remove source.unverified "
+                f"from {MANIFEST}"
             )
+            if changed:
+                report.problems.append(f"{label}: {served}")
+            else:
+                report.note = served
         else:
             report.note = f"provenance unverified ({mark}): vendored files not judged"
         return report
@@ -376,8 +396,23 @@ def adapter_dirs(root: Path) -> list[Path]:
     return [p for p in found if not any(q != p and q in p.parents for q in found)]
 
 
-def main() -> int:
-    reports = [check_adapter(a, ROOT, fetch_tree) for a in adapter_dirs(ROOT)]
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base", default="origin/main")
+    arguments = parser.parse_args(argv)
+    touched = changed_paths(ROOT, arguments.base)
+    reports = [
+        check_adapter(
+            adapter,
+            ROOT,
+            fetch_tree,
+            changed=any(
+                name.startswith(adapter.relative_to(ROOT).as_posix() + "/")
+                for name in touched
+            ),
+        )
+        for adapter in adapter_dirs(ROOT)
+    ]
     failed = 0
     for report in reports:
         for problem in report.problems:

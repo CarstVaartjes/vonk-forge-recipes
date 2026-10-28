@@ -426,8 +426,17 @@ class GuardTests(unittest.TestCase):
             report = vendored.check_adapter(adapter, root, unreadable, lambda *_: False)
             self.assertEqual(report.problems, [])
             self.assertIn("unverified", report.note)
-            served = vendored.check_adapter(adapter, root, unreadable, lambda *_: True)
-            self.assertIn("is on GitHub now", served.problems[0])  # the mark heals
+            # GitHub serves the commit again: an unrelated change stays green, a change
+            # to this adapter must drop the mark.
+            unrelated = vendored.check_adapter(
+                adapter, root, unreadable, lambda *_: True
+            )
+            self.assertEqual(unrelated.problems, [])
+            self.assertIn("remove source.unverified", unrelated.note)
+            touched = vendored.check_adapter(
+                adapter, root, unreadable, lambda *_: True, changed=True
+            )
+            self.assertIn("remove source.unverified", touched.problems[0])
             manifest = adapter / "vendored-upstream.json"
             document = json.loads(manifest.read_text())
             document["source"]["unverified"] = "trust me"
