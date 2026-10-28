@@ -183,9 +183,25 @@ into display names.
 For example: `DeepSeek V4 Flash DSpark · r0b0tlab · vLLM · 2 Sparks`.
 Readable names do not replace exact selectors. When editing a Model label,
 update every Recipe reference to its new document digest; keep source revisions,
-file hashes, mount selections and runtime settings unchanged. Qualification is
-bound to content identities and must not be copied to the new digest as if a
-new hardware run had occurred.
+file hashes, mount selections and runtime settings unchanged. Qualification records retain their original document digest and test date.
+The shared `execution_sha256` binds executable content independently of display
+metadata. It resolves and authenticates every exact Model reference before
+removing Model family/model/version/variant labels and metadata, Recipe
+title/description/tags, release labels and contributor credits. All other fields
+remain covered, including alignment, source pins, model files, capabilities,
+formats, build, runtime, topology, interfaces, settings, options and validation.
+Source-bundle and image identities are checked separately and must still match.
+
+A label edit keeps the stable publisher/slug and `release.version`; an execution
+change replaces the current definition and updates its version. Git and PRs hold
+the readable change history; the catalog does not retain executable old versions.
+Full document digests and signatures still authenticate every published byte.
+Historical proof without a verified execution fingerprint remains conservative:
+it only matches its exact document. Fingerprints added to historical evidence
+must be computed from the source document matching that record's original digest,
+with its exact Model closure, never inferred from today's recipe. The initial
+backfill uses source commit `966c1549`; test dates, outcomes, image/source pins and
+original content digests are preserved. Missing provenance remains unknown.
 
 Resolve an immutable source identity and enumerate the files needed to load
 the model, including configuration, tokenizer, companion data, and license.

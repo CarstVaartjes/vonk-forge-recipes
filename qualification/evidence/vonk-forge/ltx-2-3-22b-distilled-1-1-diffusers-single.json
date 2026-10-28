@@ -30,7 +30,8 @@
           "b60b82a99f796b592cf77c5beec52096ec65ee285ff12dddd6a6964e074c548e"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "66612d9670b13010e6e2cd68dd049f37377c2fa03fbf0ddafdc6ee8f70211aaa"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",
@@ -55,7 +56,8 @@
           "b60b82a99f796b592cf77c5beec52096ec65ee285ff12dddd6a6964e074c548e"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "66612d9670b13010e6e2cd68dd049f37377c2fa03fbf0ddafdc6ee8f70211aaa"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",

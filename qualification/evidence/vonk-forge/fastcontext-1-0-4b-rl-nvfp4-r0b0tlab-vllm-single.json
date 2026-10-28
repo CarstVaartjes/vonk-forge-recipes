@@ -30,7 +30,8 @@
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "ba098e50921900211fafc04dbe5107216cef6280526e09daeac7127d1a642995"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -53,7 +54,8 @@
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "ba098e50921900211fafc04dbe5107216cef6280526e09daeac7127d1a642995"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -76,7 +78,8 @@
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "ba098e50921900211fafc04dbe5107216cef6280526e09daeac7127d1a642995"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -99,7 +102,8 @@
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "ba098e50921900211fafc04dbe5107216cef6280526e09daeac7127d1a642995"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -122,7 +126,8 @@
         "content_sha256": "ff02c5c34d1ea5da10c33d08c76a0c1cd0f5451e7031e6f7253ca4ceddee541d",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "ba098e50921900211fafc04dbe5107216cef6280526e09daeac7127d1a642995"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",

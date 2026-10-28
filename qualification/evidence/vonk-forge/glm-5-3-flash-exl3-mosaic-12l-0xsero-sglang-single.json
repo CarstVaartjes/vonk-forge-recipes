@@ -108,7 +108,8 @@
           "7b4d3d83e6074a297408fce13ee492039d0d92a4fff1a1a9374f9776c4be1a87"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "adcb0fbf948519a181cfca0472b4f2d6039900314528da2a3e8ad5de40ccea4f"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -138,7 +139,8 @@
           "7b4d3d83e6074a297408fce13ee492039d0d92a4fff1a1a9374f9776c4be1a87"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "adcb0fbf948519a181cfca0472b4f2d6039900314528da2a3e8ad5de40ccea4f"
       },
       "outcome": "failed",
       "blame": "recipe",

@@ -36,7 +36,8 @@
           "7bd5da4710ca298553b79222c6d6a308a8756f9be2e998a836166c4b215572d2"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "5a1e0f5b13ad4962527c606c451f8e341c91b576d0e363baf42515ad6948b5c6"
       },
       "outcome": "failed",
       "blame": "platform",

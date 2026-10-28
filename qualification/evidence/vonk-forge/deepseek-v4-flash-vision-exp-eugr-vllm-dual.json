@@ -124,7 +124,8 @@
           "7a5cff0cc5fb0191cb96282a6b7bce85cac8496921d4d73d282a59aefb00a923"
         ],
         "required_sparks": 2,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "a2492264d8b14beb5294d11fdfc25a79a8ae3ddd7fbe13c02423bd9ef9efa758"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",

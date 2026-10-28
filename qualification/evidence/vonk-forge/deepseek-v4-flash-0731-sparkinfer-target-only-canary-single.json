@@ -34,7 +34,8 @@
           "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "fd56c607448f0031f5e9a92e6bfd4ad1e6c92a33171f00dffaf2e6147b2321e6"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -59,7 +60,8 @@
           "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "fd56c607448f0031f5e9a92e6bfd4ad1e6c92a33171f00dffaf2e6147b2321e6"
       },
       "outcome": "failed",
       "blame": "platform",

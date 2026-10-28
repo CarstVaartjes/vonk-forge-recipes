@@ -9,7 +9,8 @@
           "c451035621cab6cddd7c7a58b8c0f886285c4462f80b3007229dd57f76e44b62"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "083d6d23eabae04a020b75d86a139389ecc6aa4d450f819c8cd97b43b33737a5"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -34,7 +35,8 @@
           "c451035621cab6cddd7c7a58b8c0f886285c4462f80b3007229dd57f76e44b62"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "083d6d23eabae04a020b75d86a139389ecc6aa4d450f819c8cd97b43b33737a5"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -59,7 +61,8 @@
           "c451035621cab6cddd7c7a58b8c0f886285c4462f80b3007229dd57f76e44b62"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "083d6d23eabae04a020b75d86a139389ecc6aa4d450f819c8cd97b43b33737a5"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -84,7 +87,8 @@
           "c451035621cab6cddd7c7a58b8c0f886285c4462f80b3007229dd57f76e44b62"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "083d6d23eabae04a020b75d86a139389ecc6aa4d450f819c8cd97b43b33737a5"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",

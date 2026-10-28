@@ -7,7 +7,8 @@
         "content_sha256": "b74b36a2e93dbb11a2da66f820ba14e9319e8c9b9ae74b38800b398778dac18e",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "031c8f9982ab1ba543ed98a6ad7dd4dee6c30d496efd2121019f1a4275f314bc"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",

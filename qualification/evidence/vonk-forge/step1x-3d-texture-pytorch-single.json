@@ -188,7 +188,8 @@
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "bc9e99b66ff542457c7059f5220a2d36bdc2a97baf60806dee59ee27de4e44f2"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -211,7 +212,8 @@
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "bc9e99b66ff542457c7059f5220a2d36bdc2a97baf60806dee59ee27de4e44f2"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -233,7 +235,8 @@
       "identity": {
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
         "model_digests": [],
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "bc9e99b66ff542457c7059f5220a2d36bdc2a97baf60806dee59ee27de4e44f2"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -254,7 +257,8 @@
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "bc9e99b66ff542457c7059f5220a2d36bdc2a97baf60806dee59ee27de4e44f2"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -277,7 +281,8 @@
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "bc9e99b66ff542457c7059f5220a2d36bdc2a97baf60806dee59ee27de4e44f2"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -300,7 +305,8 @@
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "bc9e99b66ff542457c7059f5220a2d36bdc2a97baf60806dee59ee27de4e44f2"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -323,7 +329,8 @@
         "content_sha256": "0c6f2a72f746d16c303b12ad08233802ed99d29cec439d674162671d3784a496",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "bc9e99b66ff542457c7059f5220a2d36bdc2a97baf60806dee59ee27de4e44f2"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",

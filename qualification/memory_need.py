@@ -241,6 +241,7 @@ class MemoryInputs(BaseModel):
     engram_files: dict[str, str]
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
+    historical_executions: dict[str, list[str]] = Field(default_factory=dict)
 
 
 def unchanged_recipe(
@@ -266,6 +267,41 @@ def unchanged_recipe(
     return (
         document_sha256(document) == document_digest
         and RecipeDefinition.model_validate(document) == recipe
+    )
+
+
+def unchanged_execution(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+) -> bool:
+    """Recognize accepted executable content independently of display labels."""
+    from vonk_forge_contracts import execution_sha256
+
+    document = json.loads(
+        (ROOT / "recipes" / f"{recipe.identity.slug}.json").read_text()
+    )
+    if RecipeDefinition.model_validate(document) != recipe:
+        return False
+    documents = {
+        document_sha256(value): value
+        for path in (ROOT / "models").glob("*.json")
+        for value in [json.loads(path.read_text())]
+    }
+    # Bind the caller's resolved Model set as well as authored bytes.
+    if any(
+        digest not in documents
+        or ModelDefinition.model_validate(documents[digest]) != model
+        for digest, model in models.items()
+    ):
+        return False
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    fingerprint = execution_sha256(document, documents)
+    from spark_sweep.qualification import read_evidence
+
+    return fingerprint in inputs.historical_executions.get(key, []) or any(
+        record.identity.execution_sha256 == fingerprint
+        for record in read_evidence(ROOT, key).records
     )
 
 
@@ -975,7 +1011,9 @@ def require_memory_need(
     """
     require_absolute_kv_capacity(recipe, models, inputs)
     # Recorded content is judged by hardware, not by this offline check.
-    if unchanged_recipe(recipe, document_digest, inputs):
+    if unchanged_recipe(recipe, document_digest, inputs) or unchanged_execution(
+        recipe, models, inputs
+    ):
         return
     require_admissible_declaration(recipe)
     if recipe.runtime.engine not in {"vllm", "sglang"}:

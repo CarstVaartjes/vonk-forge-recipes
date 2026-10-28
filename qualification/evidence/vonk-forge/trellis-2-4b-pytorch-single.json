@@ -122,7 +122,8 @@
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "4885ed5024e98ec1905de48143fd42d0ed3252c15af6107dccebd8458396cca5"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -145,7 +146,8 @@
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "4885ed5024e98ec1905de48143fd42d0ed3252c15af6107dccebd8458396cca5"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -168,7 +170,8 @@
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "4885ed5024e98ec1905de48143fd42d0ed3252c15af6107dccebd8458396cca5"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -191,7 +194,8 @@
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "4885ed5024e98ec1905de48143fd42d0ed3252c15af6107dccebd8458396cca5"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -214,7 +218,8 @@
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "4885ed5024e98ec1905de48143fd42d0ed3252c15af6107dccebd8458396cca5"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -237,7 +242,8 @@
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "4885ed5024e98ec1905de48143fd42d0ed3252c15af6107dccebd8458396cca5"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -264,7 +270,8 @@
           "dbef284f6dd0faf1d52eb25a73de1270110c1a6b7fd9281a6f2e201653afaf92"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "4885ed5024e98ec1905de48143fd42d0ed3252c15af6107dccebd8458396cca5"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -291,7 +298,8 @@
           "dbef284f6dd0faf1d52eb25a73de1270110c1a6b7fd9281a6f2e201653afaf92"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "4885ed5024e98ec1905de48143fd42d0ed3252c15af6107dccebd8458396cca5"
       },
       "outcome": "failed",
       "blame": "recipe",

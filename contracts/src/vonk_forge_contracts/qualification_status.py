@@ -150,6 +150,7 @@ class QualificationRuntimeImage(PublicQualificationModel):
 
 class QualificationIdentity(PublicQualificationModel):
     content_sha256: Digest
+    execution_sha256: Digest | None = None
     source_bundle_sha256: Digest | None = None
     runtime_image: QualificationRuntimeImage | None = None
     model_digests: tuple[Digest, ...] = ()
@@ -297,6 +298,14 @@ class PublishedQualificationStatusView(PublicQualificationModel):
     required_sparks: int = Field(ge=1)
 
 
+def _same_execution(
+    previous: QualificationIdentity, current: QualificationIdentity
+) -> bool:
+    if previous.execution_sha256 is not None and current.execution_sha256 is not None:
+        return previous.execution_sha256 == current.execution_sha256
+    return previous.content_sha256 == current.content_sha256
+
+
 def _changes(
     previous: QualificationIdentity, current: QualificationIdentity
 ) -> tuple[QualificationChange, ...]:
@@ -305,7 +314,7 @@ def _changes(
         for change, differs in (
             (
                 QualificationChange.RECIPE,
-                previous.content_sha256 != current.content_sha256,
+                not _same_execution(previous, current),
             ),
             (
                 QualificationChange.IMAGE,
@@ -319,8 +328,14 @@ def _changes(
             ),
             (
                 QualificationChange.MODEL,
-                (previous.model_digests, previous.models_resolved)
-                != (current.model_digests, current.models_resolved),
+                (previous.models_resolved != current.models_resolved)
+                or (
+                    not (
+                        previous.execution_sha256 is not None
+                        and previous.execution_sha256 == current.execution_sha256
+                    )
+                    and previous.model_digests != current.model_digests
+                ),
             ),
         )
         if differs
@@ -333,12 +348,16 @@ def _same_content_identity(
     # Compare recorded content, never turn missing historical provenance into a
     # changed pin. Publication separately requires fully resolved exact proof.
     return (
-        previous.content_sha256 == current.content_sha256
+        _same_execution(previous, current)
         and (
             previous.source_bundle_sha256 is None
             or previous.source_bundle_sha256 == current.source_bundle_sha256
         )
-        and previous.model_digests == current.model_digests
+        and (
+            previous.execution_sha256 is not None
+            and current.execution_sha256 is not None
+            or previous.model_digests == current.model_digests
+        )
         and previous.models_resolved == current.models_resolved
         and previous.required_sparks in (None, current.required_sparks)
         and (
@@ -466,7 +485,10 @@ def published_status(
         certified = [
             r
             for r in evidence.records
-            if r.identity == current_identity
+            if _same_content_identity(r.identity, current_identity)
+            and r.identity.source_bundle_sha256 == current_identity.source_bundle_sha256
+            and r.identity.runtime_image == current_identity.runtime_image
+            and r.identity.required_sparks == current_identity.required_sparks
             and r.outcome == QualificationOutcome.PASSED
             and r.identity.resolved
             and r.platform.resolved

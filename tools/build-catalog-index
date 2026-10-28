@@ -753,7 +753,12 @@ def build(
     for entry in recipes:
         document = entry["document"]
         image = entry.get("prebuilt_image")
+        from vonk_forge_contracts import execution_sha256
+
         identity = QualificationIdentity(
+            execution_sha256=execution_sha256(
+                document, {document_sha256(d): d for d in entities.values()}
+            ),
             content_sha256=entry["content_sha256"],
             source_bundle_sha256=entry["source_bundle_sha256"],
             runtime_image=QualificationRuntimeImage(

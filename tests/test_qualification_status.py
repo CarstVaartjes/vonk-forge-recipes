@@ -352,11 +352,19 @@ def test_sweep_restore_and_retry_failed_use_evidence(tmp_path):
 
 def test_published_catalog_matches_shared_derivation(built_catalog):
     catalog, _ = built_catalog
+    from vonk_forge_contracts import document_sha256, execution_sha256
+
+    models = {
+        document_sha256(d): d
+        for p in (ROOT / "models").glob("*.json")
+        for d in [json.loads(p.read_text())]
+    }
     for entry in catalog["recipes"]:
         document = entry["document"]
         key = f"{document['identity']['publisher']}/{document['identity']['slug']}"
         identity = Identity(
             content_sha256=entry["content_sha256"],
+            execution_sha256=execution_sha256(document, models),
             source_bundle_sha256=entry["source_bundle_sha256"],
             model_digests=tuple(
                 sorted({b["model"]["content_sha256"] for b in document["models"]})
@@ -407,7 +415,13 @@ def test_catalog_derives_after_resolving_release_image(
     )
     write_evidence(tmp_path, Evidence(recipe_key=key, records=(record(identity),)))
     monkeypatch.setitem(globals_, "ROOT", tmp_path)
-    monkeypatch.setitem(globals_, "_catalog_entity_documents", dict)
+    monkeypatch.setitem(
+        globals_,
+        "_catalog_entity_documents",
+        lambda: {
+            p.stem: json.loads(p.read_text()) for p in (ROOT / "models").glob("*.json")
+        },
+    )
     monkeypatch.setitem(
         globals_,
         "recipe_package",
@@ -1247,3 +1261,105 @@ def test_pass_recorded_before_source_digests_stays_working():
     changed = derive_status(evidence(bound), moved, 2, False)
     assert changed.status == Status.RECHECK
     assert changed.changed == (Change.SOURCE,)
+
+
+def test_display_edits_preserve_proof_but_execution_edits_do_not():
+    from copy import deepcopy
+
+    from vonk_forge_contracts import document_sha256, execution_sha256
+
+    recipe = json.loads(
+        (ROOT / "recipes/deepseek-v4-1-flash-1017-mia-sglang-four.json").read_text()
+    )
+    models = {
+        document_sha256(d): d
+        for p in (ROOT / "models").glob("*.json")
+        for d in [json.loads(p.read_text())]
+    }
+    fingerprint = execution_sha256(recipe, models)
+    original = A.model_copy(update={"execution_sha256": fingerprint})
+    renamed = deepcopy(recipe)
+    renamed["metadata"]["title"] = "A readable recipe name"
+    renamed["metadata"]["description"] = "Clearer description"
+    assert execution_sha256(renamed, models) == fingerprint
+    current = original.model_copy(
+        update={"content_sha256": "f" * 64, "model_digests": ("9" * 64,)}
+    )
+    assert (
+        derive_status(evidence(record(original)), current, 4, False).status
+        == Status.WORKING
+    )
+    changed = deepcopy(recipe)
+    changed["topology"]["node_count"] += 1
+    changed["topology"]["roles"][-1]["count"] += 1
+    changed["topology"]["parallelism"]["tensor"] += 1
+    assert execution_sha256(changed, models) != fingerprint
+    changed_identity = current.model_copy(
+        update={"execution_sha256": execution_sha256(changed, models)}
+    )
+    assert (
+        derive_status(evidence(record(original)), changed_identity, 4, False).status
+        == Status.RECHECK
+    )
+    # Old evidence without an execution binding cannot certify a renamed document.
+    assert derive_status(evidence(record()), current, 4, False).status == Status.RECHECK
+    # An unchanged execution fingerprint never certifies a different image.
+    image_changed = current.model_copy(
+        update={
+            "runtime_image": Image(
+                build_key="1" * 64, image_digest="sha256:" + "2" * 64
+            )
+        }
+    )
+    assert (
+        derive_status(evidence(record(original)), image_changed, 4, False).status
+        == Status.RECHECK
+    )
+
+
+def test_execution_identity_rejects_substituted_model_bytes():
+    from vonk_forge_contracts import document_sha256, execution_sha256
+
+    recipe = json.loads(
+        (ROOT / "recipes/deepseek-v4-1-flash-1017-mia-sglang-four.json").read_text()
+    )
+    models = {
+        document_sha256(d): d
+        for p in (ROOT / "models").glob("*.json")
+        for d in [json.loads(p.read_text())]
+    }
+    digest = recipe["models"][0]["model"]["content_sha256"]
+    models[digest]["source"]["revision"] = "0" * 40
+    with pytest.raises(ValueError, match="different digest"):
+        execution_sha256(recipe, models)
+
+
+def test_model_label_change_preserves_execution_but_weight_change_does_not():
+    from copy import deepcopy
+
+    from vonk_forge_contracts import document_sha256, execution_sha256
+
+    recipe = json.loads(
+        (ROOT / "recipes/deepseek-v4-1-flash-1017-mia-sglang-four.json").read_text()
+    )
+    models = {
+        document_sha256(d): d
+        for p in (ROOT / "models").glob("*.json")
+        for d in [json.loads(p.read_text())]
+    }
+    before = execution_sha256(recipe, models)
+    original_digest = recipe["models"][0]["model"]["content_sha256"]
+    renamed = deepcopy(models[original_digest])
+    renamed["identity"]["model"]["title"] = "Readable model"
+    renamed["identity"]["family"]["title"] = "Readable family"
+    renamed["identity"]["variant"] = "Readable variant"
+    renamed_digest = document_sha256(renamed)
+    models[renamed_digest] = renamed
+    recipe["models"][0]["model"]["content_sha256"] = renamed_digest
+    assert execution_sha256(recipe, models) == before
+    weights = deepcopy(renamed)
+    weights["files"][0]["sha256"] = "0" * 64
+    weights_digest = document_sha256(weights)
+    models[weights_digest] = weights
+    recipe["models"][0]["model"]["content_sha256"] = weights_digest
+    assert execution_sha256(recipe, models) != before

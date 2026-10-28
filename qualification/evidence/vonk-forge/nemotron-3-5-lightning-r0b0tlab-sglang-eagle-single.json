@@ -7,7 +7,8 @@
         "content_sha256": "08e820464c334d2cd6702367b90235e9a18d6a504ea673e77c29f39b56602735",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "400d74021818e23ea59f40f1174619641beb6e0f1d67f8b84e71e97275c6835f"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -30,7 +31,8 @@
         "content_sha256": "08e820464c334d2cd6702367b90235e9a18d6a504ea673e77c29f39b56602735",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "400d74021818e23ea59f40f1174619641beb6e0f1d67f8b84e71e97275c6835f"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",

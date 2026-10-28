@@ -6,7 +6,8 @@
       "identity": {
         "content_sha256": "a02d17da3151d71270947463ff9c6b1c2a9257c89c1163471f6daca2e4987227",
         "model_digests": [],
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "2ddfa368fa1fdd39434099b1b2b42b3b66125b5bd7a3e6f8a2a4e92af8fd535f"
       },
       "outcome": "failed",
       "blame": "platform",

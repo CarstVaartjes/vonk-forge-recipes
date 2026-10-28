@@ -9,7 +9,8 @@
           "6d165c1b7cdc514e501ae58116a25a1d60a9e84732d0173935645b2253421fe1"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "281100fada15cf02448d8cd8ee4b9d9548228c96c2566eb2a4f7ddbeec6967c7"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -34,7 +35,8 @@
           "6d165c1b7cdc514e501ae58116a25a1d60a9e84732d0173935645b2253421fe1"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "281100fada15cf02448d8cd8ee4b9d9548228c96c2566eb2a4f7ddbeec6967c7"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -59,7 +61,8 @@
           "6d165c1b7cdc514e501ae58116a25a1d60a9e84732d0173935645b2253421fe1"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "281100fada15cf02448d8cd8ee4b9d9548228c96c2566eb2a4f7ddbeec6967c7"
       },
       "outcome": "failed",
       "blame": "platform",

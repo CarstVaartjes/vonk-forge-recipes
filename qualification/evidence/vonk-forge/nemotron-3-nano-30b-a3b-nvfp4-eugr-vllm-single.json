@@ -59,7 +59,8 @@
           "78c8b06c2b95d40529a9836439480ee7b8d1dfa143491d9790ae9170c5c0fefa"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "54f4e2d2a674394932e71712696f08a1acd72144ba92dbb6d66d7a45327365d3"
       },
       "outcome": "failed",
       "blame": "platform",

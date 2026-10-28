@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 from enum import StrEnum
+from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -21,6 +23,7 @@ class VerdictIdentity(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     content_sha256: str
+    execution_sha256: str | None = None
     source_bundle_sha256: str | None = None
     runtime_image: RuntimeImageIdentity | None = None
     model_digests: tuple[str, ...]
@@ -54,9 +57,29 @@ class ControllerWaitHold(BaseModel):
         return self.not_before is None
 
 
+def _execution_identity(recipe: Recipe) -> str | None:
+    """Resolve only the exact catalog bytes the Controller accepted."""
+    from vonk_forge_contracts import document_sha256, execution_sha256
+
+    root = Path(__file__).resolve().parents[1]
+    path = root / "recipes" / f"{recipe.key.split('/')[-1]}.json"
+    if not path.exists():
+        return None
+    document = json.loads(path.read_text())
+    if document_sha256(document) != recipe.content_sha256:
+        return None
+    models = {
+        document_sha256(d): d
+        for p in (root / "models").glob("*.json")
+        for d in [json.loads(p.read_text())]
+    }
+    return execution_sha256(document, models)
+
+
 def content_identity(recipe: Recipe) -> VerdictIdentity:
     return VerdictIdentity(
         content_sha256=recipe.content_sha256,
+        execution_sha256=_execution_identity(recipe),
         source_bundle_sha256=recipe.source_bundle_sha256,
         runtime_image=recipe.runtime_image,
         model_digests=tuple(sorted(set(recipe.model_digests))),
@@ -70,6 +93,7 @@ def current_identity(recipe: Recipe) -> QualificationIdentity:
     identity = content_identity(recipe)
     return QualificationIdentity(
         content_sha256=identity.content_sha256,
+        execution_sha256=identity.execution_sha256,
         source_bundle_sha256=identity.source_bundle_sha256,
         runtime_image=QualificationRuntimeImage.model_validate(
             identity.runtime_image.model_dump()

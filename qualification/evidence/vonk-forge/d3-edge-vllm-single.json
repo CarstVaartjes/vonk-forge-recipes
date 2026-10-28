@@ -9,7 +9,8 @@
           "9b76e3f6c3e0197bb8c2cd05c1be8df0d7ef2d4aa9d4a77af99e3a173e616a9b"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c3363807815531784900936e29c87a9299c36c8678bf2074b62aa95ef99657c7"
       },
       "outcome": "failed",
       "blame": "platform",

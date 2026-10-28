@@ -6,7 +6,8 @@
       "identity": {
         "content_sha256": "1968ad9e5a66addcff0b03e8a0cd1db104bee0ab3bf2694eb27ab3458fb66778",
         "model_digests": [],
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "451a39c62ebac7020a27b9a4a5c158f1e2de172aa8ad81aadf92d6c3b00b9de0"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -33,7 +34,8 @@
           "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "451a39c62ebac7020a27b9a4a5c158f1e2de172aa8ad81aadf92d6c3b00b9de0"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -63,7 +65,8 @@
           "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "451a39c62ebac7020a27b9a4a5c158f1e2de172aa8ad81aadf92d6c3b00b9de0"
       },
       "outcome": "failed",
       "blame": "platform",

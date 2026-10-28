@@ -14,7 +14,8 @@
           "73fe71f01ddc4aa6a1501e1bedf04150f295ab6d8d3c08d15e604b7cb0d13e83"
         ],
         "required_sparks": 2,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "3e09950e1603b5ff5afe9a31253b56ac5a1dce5e47ee05113bd806490f56b080"
       },
       "outcome": "failed",
       "blame": "platform",

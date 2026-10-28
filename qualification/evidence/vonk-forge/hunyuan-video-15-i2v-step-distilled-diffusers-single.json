@@ -227,7 +227,8 @@
           "c665cdc7df4402b933e201b860b0a11025f5ae1926d5070a2f9cffa669e1b420"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "e28c6d8a186209fa2dfe7223fc06c0a99401ce885e8fda794538243ed5e03de8"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -257,7 +258,8 @@
           "c665cdc7df4402b933e201b860b0a11025f5ae1926d5070a2f9cffa669e1b420"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "e28c6d8a186209fa2dfe7223fc06c0a99401ce885e8fda794538243ed5e03de8"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",

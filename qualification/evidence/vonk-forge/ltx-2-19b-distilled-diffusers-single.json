@@ -30,7 +30,8 @@
           "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "5c393437a32fd02bc2b43f8d44c574094432260ef71bf487c06bc31e225d7aca"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -56,7 +57,8 @@
           "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "5c393437a32fd02bc2b43f8d44c574094432260ef71bf487c06bc31e225d7aca"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -82,7 +84,8 @@
           "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb"
         ],
         "required_sparks": 1,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "5c393437a32fd02bc2b43f8d44c574094432260ef71bf487c06bc31e225d7aca"
       },
       "outcome": "failed",
       "blame": "recipe",

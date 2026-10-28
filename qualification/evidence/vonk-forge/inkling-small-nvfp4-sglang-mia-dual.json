@@ -15,7 +15,8 @@
           "d181d851f59f52d91a0f393c52092a591048cbfb6e9b2e48df39c374f9c14b55"
         ],
         "required_sparks": 2,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "8f08bba70242f7b77fa4ecabcaa274833a2d704818d0e0c03e80b4ac2b65f810"
       },
       "outcome": "failed",
       "blame": "recipe",

@@ -13,7 +13,8 @@
           "02870eddf877fd08ddfff06aad1c7e94c0b1984b17e96f315850f7b539bf0f14"
         ],
         "required_sparks": 2,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "80a15f70f3e4e5b948754ff72a24d2df126cab498720f8f5a2dbbc725c10ba4d"
       },
       "outcome": "failed",
       "blame": "platform",

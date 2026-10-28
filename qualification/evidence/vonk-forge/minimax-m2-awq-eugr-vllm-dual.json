@@ -13,7 +13,8 @@
           "af9295f0ab0778c3fbb0249bf03a1a67f7decf44437212e75cefa18b6b892f63"
         ],
         "required_sparks": 2,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "272a7627494c056533668fa68b15fbacbfa79bc607a50c90826f1143f874782c"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -42,7 +43,8 @@
           "af9295f0ab0778c3fbb0249bf03a1a67f7decf44437212e75cefa18b6b892f63"
         ],
         "required_sparks": 2,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "272a7627494c056533668fa68b15fbacbfa79bc607a50c90826f1143f874782c"
       },
       "outcome": "failed",
       "blame": "platform",

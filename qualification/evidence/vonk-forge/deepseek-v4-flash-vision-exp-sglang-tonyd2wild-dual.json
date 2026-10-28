@@ -39,7 +39,8 @@
           "7a5cff0cc5fb0191cb96282a6b7bce85cac8496921d4d73d282a59aefb00a923"
         ],
         "required_sparks": 2,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "7ff7e6275284e71e3524daf0b670c3dfc82c1088a47b1144faaa35734d2abcd7"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -69,7 +70,8 @@
           "7a5cff0cc5fb0191cb96282a6b7bce85cac8496921d4d73d282a59aefb00a923"
         ],
         "required_sparks": 2,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "7ff7e6275284e71e3524daf0b670c3dfc82c1088a47b1144faaa35734d2abcd7"
       },
       "outcome": "failed",
       "blame": "platform",

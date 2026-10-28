@@ -7,7 +7,8 @@
         "content_sha256": "d7cb71677a64194ac35444936ace789c3a7a589b65fec06370ddb7ae0697f7bc",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "877acf978f22e367e7f46deb2162a1342e090a1e472740e8d182ab43fe27d9d3"
       },
       "outcome": "failed",
       "blame": "recipe",
@@ -29,7 +30,8 @@
       "identity": {
         "content_sha256": "d7cb71677a64194ac35444936ace789c3a7a589b65fec06370ddb7ae0697f7bc",
         "model_digests": [],
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "877acf978f22e367e7f46deb2162a1342e090a1e472740e8d182ab43fe27d9d3"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -49,7 +51,8 @@
       "identity": {
         "content_sha256": "d7cb71677a64194ac35444936ace789c3a7a589b65fec06370ddb7ae0697f7bc",
         "model_digests": [],
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "877acf978f22e367e7f46deb2162a1342e090a1e472740e8d182ab43fe27d9d3"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -70,7 +73,8 @@
         "content_sha256": "d7cb71677a64194ac35444936ace789c3a7a589b65fec06370ddb7ae0697f7bc",
         "model_digests": [],
         "required_sparks": 1,
-        "models_resolved": false
+        "models_resolved": false,
+        "execution_sha256": "877acf978f22e367e7f46deb2162a1342e090a1e472740e8d182ab43fe27d9d3"
       },
       "outcome": "passed",
       "cause_code": "qualification.hardware_pass",

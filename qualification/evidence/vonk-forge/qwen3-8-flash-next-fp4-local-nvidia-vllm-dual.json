@@ -13,7 +13,8 @@
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
         "required_sparks": 2,
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -41,7 +42,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -67,7 +69,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -93,7 +96,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -119,7 +123,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -145,7 +150,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -171,7 +177,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -197,7 +204,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -223,7 +231,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -249,7 +258,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -275,7 +285,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -301,7 +312,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -327,7 +339,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -353,7 +366,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -379,7 +393,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -405,7 +420,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -431,7 +447,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -457,7 +474,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -482,7 +500,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -508,7 +527,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -534,7 +554,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -560,7 +581,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -586,7 +608,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -612,7 +635,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -638,7 +662,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -664,7 +689,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -690,7 +716,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -716,7 +743,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -742,7 +770,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -768,7 +797,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -794,7 +824,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -820,7 +851,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -846,7 +878,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -872,7 +905,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -898,7 +932,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -924,7 +959,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -950,7 +986,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -976,7 +1013,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -1002,7 +1040,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -1028,7 +1067,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -1054,7 +1094,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -1080,7 +1121,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -1106,7 +1148,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -1132,7 +1175,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
@@ -1158,7 +1202,8 @@
         "model_digests": [
           "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f"
         ],
-        "models_resolved": true
+        "models_resolved": true,
+        "execution_sha256": "c21b9f09a7358d00d254d05c2b57f883680642a254d3df3dd1aec0363af11369"
       },
       "outcome": "failed",
       "blame": "platform",
