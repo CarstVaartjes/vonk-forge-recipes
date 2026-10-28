@@ -87,6 +87,12 @@ def recipe_for(slug: str) -> RecipeDefinition:
 
 
 def test_proven_recipe_documents_remain_byte_identical() -> None:
+    """Proven bytes change only with their entry here; an upstream refresh writes both.
+
+    Owner (2026-10-26): proven recipes move to the newest upstream version and the sweep
+    re-checks them (``tools/refresh-upstream`` ``follow_proven_bytes``). Any other edit
+    of a proven document must update this fixture deliberately.
+    """
     assert len(PROVEN) == 180
     for key, digest in PROVEN.items():
         path = ROOT / "recipes" / f"{key.split('/')[1]}.json"
