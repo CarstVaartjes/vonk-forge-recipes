@@ -341,7 +341,7 @@ def test_every_media_smoke_has_minimal_controls_or_reviewed_identity_boundary():
                 )
                 if slug.startswith("minimax"):
                     assert request["profile"] == "smoke-only"
-                    assert request["num_frames"] == 120
+                    assert request["num_frames"] == 124
                     video = next(
                         a for a in spec["assertions"] if a["kind"] == "video-metadata"
                     )

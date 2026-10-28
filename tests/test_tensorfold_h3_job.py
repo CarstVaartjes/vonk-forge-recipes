@@ -146,7 +146,7 @@ def test_smoke_frame_override_updates_graph_and_output_assertion(monkeypatch):
         JOB.run_job()
 
 
-@pytest.mark.parametrize("frames", ["120", "123", "128", "345"])
+@pytest.mark.parametrize("frames", ["120", "123", "128", "363"])
 def test_num_frames_off_the_model_grid_is_rejected_before_inference(
     monkeypatch, frames
 ):

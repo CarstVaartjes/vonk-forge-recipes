@@ -39,6 +39,21 @@ MEDIA_EXTENSIONS = frozenset(
 )
 
 
+# The model's frame grid: ComfyUI snaps a requested length up to the next 17k+5
+# (k 7..21, the node's trained range of 124 to 362 frames at 24 fps).
+FRAME_GRID_STEP = 17
+FRAME_GRID_OFFSET = 5
+FRAME_GRID_MIN = 124
+FRAME_GRID_MAX = 362
+
+
+def on_frame_grid(frames: int) -> bool:
+    return (
+        FRAME_GRID_MIN <= frames <= FRAME_GRID_MAX
+        and frames % FRAME_GRID_STEP == FRAME_GRID_OFFSET
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--workflow", required=True)
@@ -48,8 +63,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", default="/outputs")
     parser.add_argument("--num-frames", type=int, default=124)
     args = parser.parse_args()
-    if not 124 <= args.num_frames <= 344 or (args.num_frames - 5) % 17:
-        raise ValueError("num-frames must be on the model's 17k+5 grid between 124 and 344")
+    if not on_frame_grid(args.num_frames):
+        raise ValueError(
+            "num-frames must be on the model's 17k+5 grid: 124, 141, ... 362"
+        )
     return args
 
 
