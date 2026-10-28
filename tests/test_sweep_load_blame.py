@@ -14,6 +14,7 @@ pytestmark = pytest.mark.usefixtures("bounded_clock")
 
 from vonk_forge_contracts import QualificationBlame
 from vonk_forge_contracts import QualificationCauseCode as Code
+from vonk_forge_contracts.sweep import WorkloadExitCause
 
 from spark_sweep import policy
 from spark_sweep.lifecycle import RecipeStatus
@@ -389,6 +390,45 @@ def test_real_assignment_failure_shape_uses_its_exit_reason(
     assert record is not None and record.blame == QualificationBlame.RECIPE
 
 
+# The Controller's FleetProfileAssignmentFailure, field for field
+# (control/src/vonk_control/fleet_profile_contract/switch_state.py).
+ASSIGNMENT_FAILURE_FIELDS = {
+    "queue_index",
+    "assignment_id",
+    "operation_id",
+    "reason",
+    "terminal",
+}
+
+
+# FleetProfileApplicationView (fleet_profile_contract/review.py), field for field.
+APPLICATION_VIEW_FIELDS = {
+    "id",
+    "request_key",
+    "profile_id",
+    "profile_digest",
+    "plan_digest",
+    "attempt",
+    "retry_of_application_id",
+    "superseded_by",
+    "reason_code",
+    "state",
+    "current_step",
+    "total_steps",
+    "current_operation_id",
+    "status_reason",
+    "progress",
+    "cancellation",
+    "result",
+    "projection_issue",
+    "blockers",
+    "wait",
+    "next_attempt_at",
+    "created_at",
+    "updated_at",
+}
+
+
 # A real runtime exit: the Controller's reason carries the helper's exit facts and, like the
 # real one, names no recipe or alias.
 EXIT = "runtime_process_exited: exit_code=2 exit_cause=bad_arguments exception={}"
@@ -476,10 +516,14 @@ def test_the_fake_matches_the_real_documents_shape(tmp_path, gateway) -> None:
     sweep, fleet, clock = _shared(tmp_path, gateway, *_recipes(EXIT.format("fault1")))
     _settle(sweep, clock)
     app = next(a for a in fleet.apps.values() if a.get("failures"))
-    fake = fleet._app_doc(app)["progress"]
+    application = fleet._app_doc(app)
+    assert set(application) <= APPLICATION_VIEW_FIELDS
+    fake = application["progress"]
     (real_failure,) = real["switch_adapter"]["assignment_failures"]
-    for failure in fake["switch_adapter"]["assignment_failures"]:
-        assert set(failure) == set(real_failure)
+    failures = fake["switch_adapter"]["assignment_failures"]
+    assert failures
+    for failure in failures:
+        assert set(failure) == set(real_failure) == ASSIGNMENT_FAILURE_FIELDS
     (real_owner, _) = real["intended_profile"]["assignments"]
     for owner in fake["intended_profile"]["assignments"]:
         assert set(owner) <= set(real_owner)
@@ -541,3 +585,43 @@ def test_an_adopted_lanes_own_failed_run_effect_is_its_own_result(
     assert entry["status"] == RecipeStatus.FAILED and entry["attempts"] == 1
     assert "exception=fault2" in entry["error"]
     assert _status(sweep, "bad")["attempts"] == 1
+
+
+@pytest.mark.parametrize(
+    ("cause", "expected_code"),
+    [
+        (WorkloadExitCause.BAD_ARGUMENTS, Code.RUNTIME_EXIT),
+        (WorkloadExitCause.OOM_KILLED, Code.RUNTIME_OOM),
+    ],
+)
+def test_assignment_reason_alone_supplies_the_lane_code(
+    tmp_path, gateway, cause, expected_code
+) -> None:
+    bad, good = _recipes(f"runtime_process_exited: exit_cause={cause}")
+    sweep, fleet, clock = _shared(tmp_path, gateway, bad, good)
+    original = fleet._app_doc
+
+    def controller_reply(app):
+        # No aggregate cause: the only failure facts belong to the assignment.
+        document = {
+            key: value
+            for key, value in original(app).items()
+            if key in APPLICATION_VIEW_FIELDS
+        }
+        document["status_reason"] = None
+        return document
+
+    fleet._app_doc = controller_reply
+    observed = []
+    fail_slot = sweep._fail_slot
+
+    def record_failure(key, slot, failure, app):
+        observed.append(dict(app))
+        return fail_slot(key, slot, failure, app)
+
+    sweep._fail_slot = record_failure
+    _settle(sweep, clock)
+    assert observed
+    assert _status(sweep, "bad")["code"] == expected_code
+    assert _status(sweep, "good")["status"] == RecipeStatus.PASSED
+    assert all("failure_code" not in app for app in observed)

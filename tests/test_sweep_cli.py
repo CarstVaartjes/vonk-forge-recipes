@@ -146,9 +146,8 @@ def test_a_full_run_writes_state_results_status_and_report(
         FakeRecipe(
             "b",
             ("m2",),
-            fail_load="container exited with code 1",
+            fail_load="runtime_process_exited: exit_cause=bad_arguments exception=container exited with code 1",
             fail_phase="start",
-            fail_code="recipe.runtime_exit",
         ),
     ]
     fleet = _fleet(recipes, [FakeModel("m1"), FakeModel("m2")], gateway.start())

@@ -32,9 +32,8 @@ def test_failed_verdict_requeues_when_only_the_published_image_changes(
         "runtime",
         digests=("d" * 64,),
         content="e" * 64,
-        fail_load="runtime exited",
+        fail_load="runtime_process_exited: exit_cause=bad_arguments exception=runtime exited",
         fail_phase="start",
-        fail_code="recipe.runtime_exit",
     )
     sweep, fleet, _ = make_sweep(
         tmp_path, [fake], [FakeModel("d" * 64)], gateway=gateway

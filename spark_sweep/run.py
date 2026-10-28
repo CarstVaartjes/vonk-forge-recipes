@@ -48,6 +48,7 @@ from vonk_forge_contracts.sweep import (
     SweepStorageWait,
     SweepWait,
     SweepWaitReason,
+    WorkloadFailureCode,
 )
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
@@ -2189,8 +2190,6 @@ class Sweep:
             "marks": list(signal.marks),
         }
         load["stalled"] = verdict.stalled_detail(document)
-        failure = document.get("failure") or {}
-        failure_code = str(failure.get("code") or document.get("code") or "")
         replaced = policy.supersession(document) if status in SETTLED else None
         if replaced is not None and replaced.successor is not None:
             successor = self._own_load_request(replaced.successor)
@@ -2218,7 +2217,6 @@ class Sweep:
             self.state.data.setdefault("apps", {})[load["request_key"]] = {
                 "state": status,
                 "reason": document.get("status_reason"),
-                "failure_code": failure_code,
                 "adopted_requests": load.get("adopted_requests", []),
                 "operation_id": document.get("current_operation_id") or document["id"],
                 "child_phase": child,
@@ -2545,7 +2543,7 @@ class Sweep:
                 )
                 failure = policy.classify_application_failure(
                     phase,
-                    app.get("failure_code") or f"application.{app['state']}",
+                    WorkloadFailureCode.APPLICATION_FAILED,
                     str(
                         own_failure.get("reason") or own_failure.get("detail") or detail
                     )

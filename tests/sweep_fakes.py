@@ -107,7 +107,6 @@ class FakeRecipe:
     )
     fail_load: str | None = None  # status reason of a failed load
     fail_phase: str = "runtime-install"
-    fail_code: str = "application.failed"
     fail_download: str | None = None
     fail_download_code: str = "model.download_failed"
     # The Controller holds the model download back for NAS space (a ``download_blocked``
@@ -621,7 +620,6 @@ class FakeFleet:
                                 "terminal": True,
                             }
                         )
-                        app.setdefault("failure_code", item["fail_code"])
                         app["phase"] = item["phase"]
                     else:
                         for run in self.runs:
@@ -1582,7 +1580,6 @@ class FakeFleet:
                         + recipe.load_seconds
                     ),
                     "fail": recipe.blocked_then or recipe.fail_load,
-                    "fail_code": recipe.fail_code,
                     "phase": recipe.fail_phase,
                     "resolved": False,
                 }
@@ -1765,11 +1762,6 @@ class FakeFleet:
             "reason_code": app.get("reason_code"),
             "retry_of_application_id": app.get("successor_of"),
             "blockers": app.get("blockers", []),
-            **(
-                {"failure": {"code": app["failure_code"]}}
-                if app.get("failure_code")
-                else {}
-            ),
             "current_operation_id": None if pending else app["id"],
             **(
                 {"current_step": 0, "wait": self._admission_wait(app)}
