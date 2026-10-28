@@ -45,6 +45,8 @@ OVERHEAD_BYTES = 8_000_000_000
 # kv_cache_configurator._calculate_mamba_ratio: at most 3 base plus 2
 # extra_buffer overlap state slots per running request.
 SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
+# server_args.mamba_full_memory_ratio default (sglang b7252cc6 and 94602c9c).
+SGLANG_MAMBA_FULL_MEMORY_RATIO = Decimal("0.9")
 # The DeepSeek V4.1 Engram row store's resident cache size (GiB per Spark).
 ENGRAM_ROW_CACHE_ENVIRONMENT = "DSV41_CACHE_GIB"
 # vLLM's gpu-memory-utilization when a launch omits it.
@@ -56,6 +58,15 @@ ROOT = Path(__file__).resolve().parents[1]
 TOTAL_BYTES = SPARK_MEMORY_BYTES
 IDLE_AVAILABLE_BYTES = SPARK_3542_IDLE_AVAILABLE_BYTES
 IDLE_USE_BYTES = TOTAL_BYTES - IDLE_AVAILABLE_BYTES
+# SGLang's pre-load free memory on GB10 is MemAvailable after CUDA init: the
+# CUDA context takes about 4.2e9 bytes on the 2026-10-28 Inkling TP2 start
+# (113.11 GiB before load, SGLang prints GiB, against 125,650,657,280 idle) and
+# 4.70e9 on the GLM a0 single-Spark start (114.89 GiB before load against
+# 128.06e9 MemAvailable). The larger one is the planning figure; this is the one
+# owner of SGLang's base. Capped and uncapped launches profile the same way
+# (_profile_available_bytes); a cap enters only in _apply_token_constraints.
+SGLANG_CUDA_CONTEXT_BYTES = 4_700_000_000
+SGLANG_PRELOAD_FREE_BYTES = IDLE_AVAILABLE_BYTES - SGLANG_CUDA_CONTEXT_BYTES
 # vonk-forge 040c51b8531523bebe542b5e1f7b9403e0767f72:
 # rust/crates/vonk-agent-helper/src/host_memory_guard.rs re-exports
 # host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES. This is a planning floor;
@@ -201,6 +212,9 @@ class CacheGeometry(BaseModel):
     sglang_swa_layers: int = Field(default=0, ge=0)
     # SGLang per-rank hybrid state per max-mamba-cache-size slot (+1 padding).
     sglang_state_bytes_per_slot: int = Field(default=0, ge=0)
+    # SGLang's pre-load free memory measured on this runtime image, when known;
+    # otherwise SGLANG_PRELOAD_FREE_BYTES.
+    sglang_preload_free_bytes: int | None = Field(default=None, gt=0)
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
     @model_validator(mode="after")
@@ -485,7 +499,10 @@ def pinned_geometry(
 ) -> CacheGeometry:
     """Geometry bound to the selected configuration and, if pinned, the image."""
     label = recipe.identity.slug
-    geometry = geometries.get(slug)
+    # An entry keyed "<slug>@<image digest>" is the one for that runtime image.
+    geometry = geometries.get(
+        f"{slug}@{recipe.execution.build.base_image.digest}"
+    ) or geometries.get(slug)
     if geometry is None:
         raise ValueError(
             f"{label}: add source-backed cache geometry for {slug} to qualification/memory-inputs.json"
@@ -503,6 +520,31 @@ def pinned_geometry(
     ):
         raise ValueError(f"{label}: cache geometry does not match the pinned image")
     return geometry
+
+
+def sglang_token_pools(
+    recipe: RecipeDefinition, geometry: CacheGeometry, tokens: int, key: str
+) -> int:
+    """Per-rank bytes of the full-attention pool and the pooled sliding layers."""
+    need = cache_need_for_context(recipe, geometry, tokens)
+    if geometry.sglang_swa_layers:
+        ratio = argument_value(recipe, "swa-full-tokens-ratio")
+        if ratio is None:
+            raise ValueError(f"{key}: declare swa-full-tokens-ratio")
+        swa = geometry.model_copy(
+            update={
+                "layers": geometry.sglang_swa_layers,
+                "sliding_layers": 0,
+                "token_bytes": None,
+                "token_bytes_by_dtype": {},
+                "replicated_token_bytes": 0,
+            }
+        )
+        swa_tokens = int(
+            (Decimal(str(ratio)) * tokens).to_integral_value(ROUND_CEILING)
+        )
+        need += cache_need_for_context(recipe, swa, swa_tokens)
+    return need
 
 
 def sglang_mamba_slots(recipe: RecipeDefinition, label: str) -> int:
@@ -554,24 +596,7 @@ def sglang_static_need(
         need += geometry.resident_expansion_bytes
         if not capped:
             continue
-        need += cache_need_for_context(recipe, geometry, tokens)
-        if geometry.sglang_swa_layers:
-            ratio = argument_value(recipe, "swa-full-tokens-ratio")
-            if ratio is None:
-                raise ValueError(f"{key}: declare swa-full-tokens-ratio")
-            swa = geometry.model_copy(
-                update={
-                    "layers": geometry.sglang_swa_layers,
-                    "sliding_layers": 0,
-                    "token_bytes": None,
-                    "token_bytes_by_dtype": {},
-                    "replicated_token_bytes": 0,
-                }
-            )
-            swa_tokens = int(
-                (Decimal(str(ratio)) * tokens).to_integral_value(ROUND_CEILING)
-            )
-            need += cache_need_for_context(recipe, swa, swa_tokens)
+        need += sglang_token_pools(recipe, geometry, tokens, key)
         if geometry.sglang_state_bytes_per_slot:
             if argument_value(recipe, "max-mamba-cache-size") is None:
                 raise ValueError(f"{key}: set absolute max-mamba-cache-size")
@@ -674,22 +699,110 @@ def require_sglang_rank_budget(
     speculation, _handle_max_mamba_cache adds intermediate state for those
     running requests plus the padding slot, per draft token.
     """
-    if argument_value(recipe, "max-total-tokens") is None:
-        raise ValueError(
-            f"{key}: set absolute max-total-tokens; a static fraction does not bound KV by need"
-        )
     fraction = argument_value(recipe, "mem-fraction-static")
     if fraction is None:
         raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
-    need = sglang_static_need(recipe, models, inputs, key, pinned=True)
-    static_bytes = Decimal(str(fraction)) * IDLE_AVAILABLE_BYTES
+    uncapped = argument_value(recipe, "max-total-tokens") is None
+    need = sglang_static_need(recipe, models, inputs, key, pinned=not uncapped)
+    base = sglang_preload_free_bytes(recipe, models, inputs)
+    static_bytes = Decimal(str(fraction)) * base
+    if uncapped:
+        # Uncapped, SGLang sizes the pools from what the fraction leaves after
+        # the resident weights: the declared peak (fraction x total + overhead)
+        # bounds them and the Controller's admission of that peak is the memory
+        # authority. The check guards only whether SGLang can start.
+        minimum = sglang_startup_rest(recipe, models, inputs, key)
+        rest = static_bytes - need
+        if not rest.is_finite() or rest < minimum:
+            raise ValueError(
+                f"{key}: mem-fraction-static {fraction} x SGLang pre-load free "
+                f"{base} leaves {rest:.0f} bytes/rank after "
+                f"sharded weights and resident expansion ({need} bytes), below the "
+                f"{minimum} bytes SGLang needs to start (one request's state slots "
+                "and one KV token); increase mem-fraction-static"
+            )
+        return
     if not static_bytes.is_finite() or static_bytes < need:
         raise ValueError(
             f"{key}: static budget {static_bytes:.0f} bytes (mem-fraction-static x "
-            f"idle available {IDLE_AVAILABLE_BYTES}) cannot hold sharded weights, "
+            f"SGLang pre-load free {base}) cannot hold sharded weights, "
             f"resident expansion and capped pools ({need} bytes/rank); increase "
             "mem-fraction-static while retaining the absolute caps"
         )
+
+
+def sglang_preload_free_bytes(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+) -> int:
+    """SGLang's pre-load free memory: the primary Model's image measurement, else the default."""
+    selection = recipe.models[0]
+    geometry = applicable_geometry(
+        recipe, selection.model.slug, models[selection.model.content_sha256], inputs
+    )
+    if geometry is None or geometry.sglang_preload_free_bytes is None:
+        return SGLANG_PRELOAD_FREE_BYTES
+    return geometry.sglang_preload_free_bytes
+
+
+def sglang_startup_rest(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    key: str,
+) -> int:
+    """Least per-rank rest memory (fraction x pre-load free minus resident) SGLang starts on.
+
+    kv_cache_configurator._handle_max_mamba_cache gives the state pool
+    mamba-full-memory-ratio / (1 + ratio) of the rest and solves, per rank,
+    (K + 1) x state + (K / 5 + 1) x D x state <= that budget for the slots K
+    (D draft tokens, 0 without speculation); resolve_max_num_reqs then needs
+    K // 5 >= 1 (SGLANG_MAMBA_SLOTS_PER_REQUEST). The pool also needs room
+    for one KV token beside the state. Only the primary Model's geometry is
+    required; a draft Model is resident weights (rank_weight_bytes) and
+    expansion without pools of its own.
+    """
+    ratio = Decimal(
+        str(
+            argument_value(recipe, "mamba-full-memory-ratio")
+            or SGLANG_MAMBA_FULL_MEMORY_RATIO
+        )
+    )
+    draft = 0
+    if argument_value(recipe, "speculative-algorithm") is not None:
+        # DSPARK's verify window is the block size plus one (server_args).
+        draft = (
+            positive_argument(recipe, "speculative-num-draft-tokens")
+            if argument_value(recipe, "speculative-num-draft-tokens") is not None
+            else positive_argument(recipe, "speculative-dspark-block-size") + 1
+            if argument_value(recipe, "speculative-dspark-block-size") is not None
+            else 1
+        )
+    minimum = Decimal(0)
+    for index, selection in enumerate(recipe.models):
+        model = models[selection.model.content_sha256]
+        geometry = (
+            pinned_geometry(recipe, selection.model.slug, model, inputs.geometries)
+            if index == 0
+            else applicable_geometry(recipe, selection.model.slug, model, inputs)
+        )
+        if geometry is None:
+            continue
+        kv = sglang_token_pools(recipe, geometry, 1, key)
+        slot = geometry.sglang_state_bytes_per_slot
+        if slot:
+            slots = SGLANG_MAMBA_SLOTS_PER_REQUEST
+            budget = slot * (1 + draft) + slots * slot * (
+                1 + Decimal(draft) / SGLANG_MAMBA_SLOTS_PER_REQUEST
+            )
+            held = slot * (slots + 1) + slot * (1 + 1) * draft
+            minimum += max(budget * (1 + ratio) / ratio, held + kv)
+        else:
+            minimum += kv
+        if geometry.state_padding:
+            minimum += geometry.state_bytes_per_request * (1 + geometry.state_padding)
+    return int(minimum.to_integral_value(ROUND_CEILING))
 
 
 def memory_variants(recipe: RecipeDefinition) -> list[RecipeDefinition]:
@@ -755,6 +868,7 @@ def attention_token_bytes(
         "fp8_e4m3",
         "fp8_e5m2",
         "nvfp4",
+        "fp4_mx_block16",
     }:
         raise ValueError(
             f"{recipe.identity.slug}: supply cache layout calibration for dtype {dtype}"
@@ -771,8 +885,11 @@ def attention_token_bytes(
         token_bytes = layers * heads * (geometry.key_dim + geometry.value_dim) * 2
     elif dtype in ("fp8", "fp8_e4m3", "fp8_e5m2"):
         token_bytes = layers * heads * (geometry.key_dim + geometry.value_dim)
-    elif dtype == "nvfp4":
-        # Packed data plus one FP8 scale per 16 elements, separately for K/V.
+    elif dtype in ("nvfp4", "fp4_mx_block16"):
+        # Packed data plus one scale byte per 16 elements, separately for K/V.
+        # fp4_mx_block16 is the triton lane's layout: packed e2m1 plus a uint8
+        # biased-exponent scale per 16 elements, 0.5625 bytes/element
+        # (adapters/inkling/drowzeys-kvquant-dual/scripts/nvfp4-kv-boot.sh:11-12).
         token_bytes = (
             layers
             * heads
@@ -1105,8 +1222,6 @@ def applicable_geometry(
     inputs: MemoryInputs,
 ) -> CacheGeometry | None:
     """Source-backed geometry pinned to this launch, if any."""
-    if slug not in inputs.geometries:
-        return None
     try:
         return pinned_geometry(recipe, slug, model, inputs.geometries)
     except ValueError:
@@ -1167,10 +1282,11 @@ def require_bounded_kv_pool(
         # fraction reserves.
         share = Decimal(str(fraction))
         resident = sglang_static_need(recipe, models, inputs, key, pinned=False)
-        if share * IDLE_AVAILABLE_BYTES < resident:
+        base = sglang_preload_free_bytes(recipe, models, inputs)
+        if share * base < resident:
             raise ValueError(
-                f"{key}: mem-fraction-static {fraction} x idle available "
-                f"{IDLE_AVAILABLE_BYTES} cannot hold the selected weights, resident "
+                f"{key}: mem-fraction-static {fraction} x SGLang pre-load free "
+                f"{base} cannot hold the selected weights, resident "
                 f"expansion and capped pools ({resident} bytes)"
             )
         demand = sglang_demand(
@@ -1276,8 +1392,14 @@ def memory_warnings(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
+    document_digest: str = "",
 ) -> list[str]:
-    """Informative catalog estimates; these never change hardware qualification."""
+    """Informative catalog estimates; these never change hardware qualification.
+
+    A recorded or snapshotted multi-Spark SGLang document that is not
+    hardware-proven is skipped by require_memory_need; its startup room is
+    reported here so a shaved fraction stays visible until the document changes.
+    """
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return []
     missing = {
@@ -1302,6 +1424,21 @@ def memory_warnings(
                 f"{prefix}: estimated workload {need.total_bytes} bytes/rank; "
                 f"planning limit {LIMIT_BYTES}; hardware test required"
             )
+        if (
+            variant.runtime.engine == "sglang"
+            and variant.topology.node_count > 1
+            and document_digest
+            and not hardware_proven(recipe, document_digest)
+        ):
+            try:
+                require_sglang_rank_budget(
+                    variant,
+                    models,
+                    inputs,
+                    f"{recipe.identity.publisher}/{recipe.identity.slug}",
+                )
+            except (ValueError, TypeError) as error:
+                warnings.append(f"{prefix}: {error}")
         rank = per_rank_need(variant, models, inputs)
         warnings.append(
             f"{prefix}: loading floor {rank.peak_bytes} bytes/rank; "
