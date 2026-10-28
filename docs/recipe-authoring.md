@@ -1100,7 +1100,8 @@ build smokes must not replace runtime engine-schema validation: retain the
 installed engine's refusal before serving (`tests/test_trtllm_speculative_build_guard.py`).
 
 The hosted image build runs `tools/prepare-remote-code-smoke` against its plan.
-For every image, it calls Transformers `check_imports` inside the recipe's
+For every image whose Models select Python modules, it calls Transformers
+`check_imports` inside the recipe's
 installed environment on modules named by `auto_map` in the selected `config.json`,
 `tokenizer_config.json`, `processor_config.json`, `preprocessor_config.json` and
 `video_preprocessor_config.json`,
@@ -1112,6 +1113,17 @@ load (`modelopt-*`, or `quantization` `modelopt`, `modelopt_fp8` or
 `modelopt_mixed`); other engines check every entry. An unregistered
 architecture's Transformers fallback is not checked and fails at load.
 Engine plugins outside that graph belong to the engine's build/import checks.
+For every vLLM image, with or without remote code, the installed vLLM also
+parses the served Model's pinned `config.json` with `get_config`. The served Model
+is the one mounted at the path after `serve`, the `model` argument, or `/models`
+for a launcher, parsed with each `trust-remote-code` value its base or option
+choices can start with. It runs under the interpreter the adapter's
+`/opt/vonk/bin/vllm` launcher names, then the `vllm` script's own, then `python3`;
+when none imports vLLM the build prints a `::warning::` naming the image. A
+recipe whose served path mounts no `config.json` is named in a plan `note:`
+and is not parsed. A rejected config fails the build instead of the start
+(vLLM 0.30.0's own LagunaConfig rejected Laguna's nested RoPE under
+Transformers 5.17).
 The check fetches only pinned configs and source code and verifies the Model's
 hash and size; it loads no weights and requires no GPU. Keep remote-code
 dependencies hash-locked

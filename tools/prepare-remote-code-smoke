@@ -7,21 +7,26 @@ Only selected Hugging Face configs and Python modules are downloaded, never
 weights; all bytes must match the selected Model's manifest. Check auto_map
 modules and their relative imports, including processors, but not engine plugins.
 AutoModel* modules are checked only where the recipe's engine imports them.
+Every vLLM recipe also has its served Model's pinned config.json parsed by the
+installed vLLM, remote code or not, so a config the engine rejects fails the
+build instead of the start.
 """
 
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
+from typing import NamedTuple
 from urllib.parse import quote
 
 from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts/src"))
-from vonk_forge_contracts.model import ModelDefinition, ModelSource
-from vonk_forge_contracts.recipe import RecipeDefinition
+from vonk_forge_contracts.model import ModelDefinition, ModelFile, ModelSource
+from vonk_forge_contracts.recipe import RecipeDefinition, RecipeModelSelection
 
 
 class PlannedRecipe(BaseModel):
@@ -84,6 +89,102 @@ def imports_remote_model(recipe: RecipeDefinition) -> bool:
     )
 
 
+# Every vLLM launcher in this library ends in `vllm serve /models`.
+LAUNCHER_SERVED_PATH = "/models"
+LAUNCHER = re.compile(
+    r"^COPY\b[^\n]*\s(\S+)[ \t]+/opt/vonk/bin/vllm[ \t]*$", re.MULTILINE
+)
+INTERPRETER = re.compile(r"[\"'](/[\w./-]+/bin/python[0-9.]*)[\"']")
+
+
+class ServedConfig(NamedTuple):
+    """The served Model's config.json and how vLLM parses it."""
+
+    file: tuple[str, str, int, str]
+    directory: str
+    trust_remote_code: tuple[bool, ...]
+    interpreters: tuple[str, ...]
+
+
+def served_path(recipe: RecipeDefinition) -> str:
+    """Where vLLM reads the served Model: `serve <path>`, `--model`, or /models."""
+    entrypoint = recipe.runtime.entrypoint
+    if "serve" in entrypoint[:-1]:
+        return entrypoint[entrypoint.index("serve") + 1]
+    for argument in recipe.runtime.arguments:
+        if argument.name == "model" and isinstance(argument.value, str):
+            return argument.value
+    return LAUNCHER_SERVED_PATH
+
+
+def trust_remote_code(recipe: RecipeDefinition) -> tuple[bool, ...]:
+    """The trust-remote-code values the engine can start with: base and choices."""
+    runtime = recipe.runtime
+    base = any(
+        argument.name == "trust-remote-code" and argument.value is True
+        for argument in runtime.arguments
+    ) or any(
+        variable.name == "VLLM_TRUST_REMOTE_CODE"
+        and str(variable.value).lower() in ("1", "true")
+        for variable in runtime.environment
+    )
+    chosen = any(
+        argument.name == "trust-remote-code" and argument.value is True
+        for option in recipe.options
+        for choice in option.choices
+        for argument in choice.args
+    )
+    return tuple(sorted({base, base or chosen}))
+
+
+def engine_interpreters(recipe: RecipeDefinition, root: Path) -> tuple[str, ...]:
+    """Interpreters the adapter's vLLM launcher names (its engine's Python)."""
+    build = recipe.execution.build
+    match = LAUNCHER.search((root / build.dockerfile).read_text(encoding="utf-8"))
+    if match is None:
+        return ()
+    launcher = root / build.context.path / match.group(1)
+    if not launcher.is_file():
+        return ()
+    text = launcher.read_text(encoding="utf-8", errors="replace")
+    return tuple(dict.fromkeys(INTERPRETER.findall(text)))
+
+
+def served_config(recipe: RecipeDefinition, root: Path) -> ServedConfig | str:
+    """The served Model's pinned config.json, or why a vLLM recipe has none."""
+    path = served_path(recipe)
+    selection = next(
+        (
+            selection
+            for selection in recipe.models
+            if any(item.mount.target == path for item in selection.files)
+        ),
+        None,
+    )
+    if selection is None:
+        return f"no Model mounts the served path {path}"
+    model = _model(selection, root)
+    selected = {item.file_id for item in selection.files}
+    config = next(
+        (
+            file
+            for file in model.files
+            if file.id in selected and file.path == "config.json"
+        ),
+        None,
+    )
+    if config is None:
+        return "the served Model selects no config.json"
+    if not _from_hugging_face(model):
+        return f"the served Model's source is not Hugging Face: {model.source}"
+    return ServedConfig(
+        _pinned(selection, model, config),
+        selection.model.slug,
+        trust_remote_code(recipe),
+        engine_interpreters(recipe, root),
+    )
+
+
 # This program runs under the image's Python (3.12), using its installed
 # transformers and native libraries. Do not import model code or load weights.
 CHECK = """import hashlib
@@ -95,6 +196,21 @@ from pathlib import Path
 FILES = {files!r}
 # Model directories whose AutoModel* classes the serving engine imports.
 MODEL_CODE = {model_code!r}
+# Served Model directories vLLM parses at start, with their trust-remote-code.
+VLLM_CONFIGS = {vllm_configs!r}
+# The adapter's engine interpreters, tried before this image's python3.
+ENGINE_PYTHONS = {engine_pythons!r}
+IMAGE = {image!r}
+# Exit status 3: this interpreter cannot import vLLM, so try the next one.
+PARSE = '''import sys
+try:
+    from vllm.transformers_utils.config import get_config
+except ModuleNotFoundError as error:
+    if (error.name or "").split(".")[0] == "vllm":
+        sys.exit(3)
+    raise
+get_config(sys.argv[1], trust_remote_code=sys.argv[2] == "True")
+'''
 
 if FILES:
     with tempfile.TemporaryDirectory() as temporary:
@@ -141,7 +257,62 @@ if FILES:
             checked.add(path)
             for relative in check_imports(str(path)):
                 pending.add(path.parent / (relative + ".py"))
+        if VLLM_CONFIGS:
+            import os
+            import shutil
+            import subprocess
+            import sys
+
+            # The image's caches live on the workload's writable /outputs
+            # mount, which this read-only smoke lacks.
+            for name, value in list(os.environ.items()):
+                if value.startswith("/outputs/"):
+                    os.environ[name] = temporary + value
+            candidates = [python for python in ENGINE_PYTHONS if os.access(python, os.X_OK)]
+            executable = shutil.which("vllm")
+            if executable is not None:
+                with open(executable, "rb") as script:
+                    line = script.readline()
+                if line.startswith(b"#!") and b"python" in line:
+                    candidates.append(line[2:].decode().split()[0])
+            candidates.append(sys.executable)
+            candidates = list(dict.fromkeys(candidates))
+            for directory, trust_remote_code in VLLM_CONFIGS:
+                print("vllm get_config: " + directory + " trust_remote_code=" + str(trust_remote_code), flush=True)
+                arguments = [str(Path(temporary) / directory), str(trust_remote_code)]
+                while candidates:
+                    status = subprocess.run([candidates[0], "-c", PARSE, *arguments]).returncode
+                    if status != 3:
+                        break
+                    candidates.pop(0)
+                if not candidates:
+                    print("::warning::image " + IMAGE + ": no interpreter imports vllm; its served config is not parsed", flush=True)
+                    break
+                if status != 0:
+                    raise SystemExit("vllm rejected the served config of " + directory)
 """
+
+
+def _model(selection: RecipeModelSelection, root: Path) -> ModelDefinition:
+    return ModelDefinition.model_validate_json(
+        (root / "models" / f"{selection.model.slug}.json").read_bytes()
+    )
+
+
+def _from_hugging_face(model: ModelDefinition) -> bool:
+    return isinstance(model.source, ModelSource) and model.source.repository.startswith(
+        "https://huggingface.co/"
+    )
+
+
+def _pinned(
+    selection: RecipeModelSelection, model: ModelDefinition, file: ModelFile
+) -> tuple[str, str, int, str]:
+    assert isinstance(model.source, ModelSource)
+    url = (
+        f"{model.source.repository}/resolve/{model.source.revision}/{quote(file.path)}"
+    )
+    return (url, file.sha256, file.size_bytes, f"{selection.model.slug}/{file.path}")
 
 
 def model_files(
@@ -149,9 +320,7 @@ def model_files(
 ) -> list[tuple[str, str, int, str]]:
     files: list[tuple[str, str, int, str]] = []
     for selection in recipe.models:
-        model = ModelDefinition.model_validate_json(
-            (root / "models" / f"{selection.model.slug}.json").read_bytes()
-        )
+        model = _model(selection, root)
         selected = {item.file_id for item in selection.files}
         if not any(
             file.id in selected and file.path.endswith(".py") for file in model.files
@@ -170,22 +339,9 @@ def model_files(
                 )
             ):
                 continue
-            if not isinstance(
-                model.source, ModelSource
-            ) or not model.source.repository.startswith("https://huggingface.co/"):
+            if not _from_hugging_face(model):
                 raise ValueError(f"unsupported remote-code source: {model.source}")
-            url = (
-                f"{model.source.repository}/resolve/{model.source.revision}/"
-                f"{quote(file.path)}"
-            )
-            files.append(
-                (
-                    url,
-                    file.sha256,
-                    file.size_bytes,
-                    f"{selection.model.slug}/{file.path}",
-                )
-            )
+            files.append(_pinned(selection, model, file))
     return files
 
 
@@ -193,6 +349,8 @@ def prepare(plan: Plan, output: Path, root: Path = ROOT) -> None:
     for image in plan.images:
         files: set[tuple[str, str, int, str]] = set()
         model_code: set[str] = set()
+        vllm_configs: set[tuple[str, bool]] = set()
+        engine_pythons: dict[str, None] = {}
         for planned in image.recipes:
             recipe = RecipeDefinition.model_validate_json(
                 (root / planned.source_path).read_bytes()
@@ -200,12 +358,32 @@ def prepare(plan: Plan, output: Path, root: Path = ROOT) -> None:
             files.update(model_files(recipe, root))
             if imports_remote_model(recipe):
                 model_code.update(selection.model.slug for selection in recipe.models)
+            if recipe.runtime.engine != "vllm":
+                continue
+            served = served_config(recipe, root)
+            if isinstance(served, str):
+                print(
+                    f"note: {planned.source_path}: no vLLM config parse: {served}",
+                    file=sys.stderr,
+                )
+                continue
+            files.add(served.file)
+            vllm_configs.update(
+                (served.directory, trust) for trust in served.trust_remote_code
+            )
+            engine_pythons.update(dict.fromkeys(served.interpreters))
         if not files:
             continue  # Native engines need neither Transformers nor Python.
         directory = output / image.build_key
         directory.mkdir(parents=True, exist_ok=True)
         (directory / "remote-code-smoke.py").write_text(
-            CHECK.format(files=sorted(files), model_code=sorted(model_code)),
+            CHECK.format(
+                files=sorted(files),
+                model_code=sorted(model_code),
+                vllm_configs=sorted(vllm_configs),
+                engine_pythons=list(engine_pythons),
+                image=image.build_key,
+            ),
             encoding="utf-8",
         )
 
