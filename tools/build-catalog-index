@@ -690,7 +690,7 @@ def build(
 ) -> dict[str, Any]:
     package_dir.mkdir(parents=True, exist_ok=True)
     entities = _catalog_entity_documents()
-    from vonk_forge_contracts import ModelDefinition, document_sha256
+    from vonk_forge_contracts import ModelDefinition
 
     index = ModelIndex.from_documents(entities.values())
     memory_models = {

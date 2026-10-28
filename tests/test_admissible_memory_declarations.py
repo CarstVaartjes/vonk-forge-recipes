@@ -272,9 +272,9 @@ def test_recorded_content_precedes_admission(monkeypatch) -> None:
     digest = document_sha256(document)
     inputs = load_inputs()
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    inputs.historical_executions[key] = [
-        model_index(ROOT).fingerprint(document, digest)
-    ]
+    fingerprint = model_index(ROOT).fingerprint(document, digest)
+    assert fingerprint is not None
+    inputs.historical_executions[key] = [fingerprint]
     calls = []
 
     def reject(*args, **kwargs):
