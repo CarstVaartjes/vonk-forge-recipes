@@ -58,8 +58,9 @@ IDLE_AVAILABLE_BYTES = SPARK_3542_IDLE_AVAILABLE_BYTES
 IDLE_USE_BYTES = TOTAL_BYTES - IDLE_AVAILABLE_BYTES
 # vonk-forge 040c51b8531523bebe542b5e1f7b9403e0767f72:
 # rust/crates/vonk-agent-helper/src/host_memory_guard.rs re-exports
-# host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES. This is a planning floor;
-# the live guard also requires sustained pressure (30% full PSI, 3 seconds).
+# host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES. It is now only this
+# estimator's planning floor: the live guard (vonk-forge #1936, swap-aware
+# R1-R5) has no per-sample MemAvailable bar; every condition is sustained.
 GUARD_BYTES = 16 * 1024**3
 LIMIT_BYTES = TOTAL_BYTES - GUARD_BYTES - IDLE_USE_BYTES
 
