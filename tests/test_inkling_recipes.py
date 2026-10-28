@@ -313,3 +313,31 @@ def test_rank_budget_guard_rejects_the_failed_settings() -> None:
         assert error is not None and message in error, (changes, error)
     lower = _rank_budget_error(**{"mem-fraction-static": "0.825"})
     assert lower is not None and "static budget" in lower
+
+
+def test_kv_1m_keeps_the_creators_fraction_that_leaves_pool_room() -> None:
+    """The 0.80 edit left 0.12 GB for state pools; the creator's 0.85 leaves room.
+
+    Hardware, 2026-10-28 (op c812b815): at mem-fraction-static 0.800230326246
+    SGLang printed avail mem 24.01 GB after loading 89.10 GB of weights and
+    total_rest_memory=0.12 GB (mamba_cache_per_req=2.46 MB), then refused to
+    start. Each 0.01 of fraction adds 0.01 x pre-load free memory to the rest.
+    """
+    from decimal import Decimal
+
+    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
+
+    recipe = load("recipes/inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual.json")
+    fraction = next(
+        Decimal(str(item["value"]))
+        for item in recipe["runtime"]["arguments"]
+        if item["name"] == "mem-fraction-static"
+    )
+    assert fraction == Decimal("0.85")  # nvfp4-kv-boot.sh MEMFRAC
+    pre_load_free = (24.01 + 89.10) * 1e9
+    rest = 0.12e9 + float(fraction - Decimal("0.800230326246")) * pre_load_free
+    assert rest > 5e9  # 0.12 GB failed; one request needs 5 slots x 2.46 MB
+    for role in recipe["topology"]["roles"]:
+        assert role["resources"]["memory"]["peak_bytes"] >= (
+            fraction * TOTAL_BYTES + OVERHEAD_BYTES
+        )
