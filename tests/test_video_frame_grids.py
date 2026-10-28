@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -33,13 +34,18 @@ EXPORTED_GRID = {
     "minimax-h3-diffusers-single": MINIMAX,
     "minimax-h3-fl2va-diffusers-single": MINIMAX_FL2VA,
 }
-# Proven adapters (vendored or shared with proven recipes) keep their own
-# hand-copied check, so changing them would move a proven content identity.
-# (step, offset, maximum, adapter, validation expression)
-HAND_COPIED_GRID = {
-    "ltx": (8, 1, 193, VIDEO / "ltx2-pytorch/pipelines/run.py", "% 8 != 1"),
-    "hunyuan": (4, 1, 121, VIDEO / "hunyuan-video-15-native/run.py", "% 4 != 1"),
-    "mova": (4, 1, 193, VIDEO / "mova-pytorch/run.py", "% 4 != 1"),
+# Proven adapters keep their own validation (changing them would move a proven
+# content identity). Their bounds and step are read from the adapter source:
+# `1 <= args.num_frames <= BOUND or args.num_frames % STEP != OFFSET`.
+HAND_COPIED_ADAPTERS = {
+    "ltx2-pytorch": VIDEO / "ltx2-pytorch/pipelines/run.py",
+    "hunyuan-video-15-native": VIDEO / "hunyuan-video-15-native/run.py",
+    "mova-pytorch": VIDEO / "mova-pytorch/run.py",
+}
+# Adapters that render one fixed `FRAME_COUNT`; the case must ask for exactly it.
+FIXED_COUNT_ADAPTERS = {
+    "ltx2-sync-native": VIDEO / "ltx2-sync-native/run.py",
+    "ltx23-sync-native-disk": VIDEO / "ltx23-sync-native-disk/run.py",
 }
 # Fixed ComfyUI/request-controlled workflows: no adapter frame-count knob.
 NO_FRAME_KNOB = {
@@ -49,6 +55,9 @@ NO_FRAME_KNOB = {
     "wan-dancer-14b-disk-offload-pytorch-single",
     "wan-dancer-14b-pytorch-single",
 }
+CHECK = re.compile(
+    r"1 <= args\.num_frames <= (\w+) or args\.num_frames % (\d+) != (\d+)"
+)
 
 
 def _grid(path: Path) -> dict[str, int]:
@@ -127,28 +136,50 @@ def _video_cases():
                 yield path.stem, video["frame_count"]
 
 
-def _family(slug: str) -> str | None:
-    for name in HAND_COPIED_GRID:
-        if slug.startswith(name):
-            return name
-    return None
+def _int_constant(path: Path, name: str) -> int:
+    for node in ast.parse(path.read_text()).body:
+        if (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+            and node.targets[0].id == name
+        ):
+            return ast.literal_eval(node.value)
+    raise AssertionError(f"{path} has no module constant {name}")
+
+
+def _hand_copied(path: Path) -> tuple[int, int, int]:
+    """(maximum, step, offset) as the adapter's own check states them."""
+    match = CHECK.search(path.read_text())
+    assert match, f"{path}: frame-count check not in the expected form"
+    bound = match.group(1)
+    maximum = int(bound) if bound.isdigit() else _int_constant(path, bound)
+    return maximum, int(match.group(2)), int(match.group(3))
+
+
+def _adapter_dir(slug: str) -> str | None:
+    text = (ROOT / "recipes" / f"{slug}.json").read_text()
+    names = set(re.findall(r"adapters/video/([A-Za-z0-9._-]+)", text))
+    assert len(names) <= 1, (slug, names)
+    return next(iter(names), None)
 
 
 def test_every_video_case_asks_for_a_frame_count_on_its_adapter_grid():
     seen = set()
     for slug, frames in _video_cases():
         seen.add(slug)
+        adapter = _adapter_dir(slug)
         if slug in EXPORTED_GRID:
             assert _on_grid(_grid(EXPORTED_GRID[slug]), frames), (slug, frames)
-        elif (family := _family(slug)) is not None:
-            step, offset, maximum, _, _ = HAND_COPIED_GRID[family]
+        elif adapter in HAND_COPIED_ADAPTERS:
+            maximum, step, offset = _hand_copied(HAND_COPIED_ADAPTERS[adapter])
             assert 1 <= frames <= maximum and frames % step == offset, (slug, frames)
+        elif adapter in FIXED_COUNT_ADAPTERS:
+            fixed = _int_constant(FIXED_COUNT_ADAPTERS[adapter], "FRAME_COUNT")
+            assert frames == fixed, (slug, frames, fixed)
         else:
             assert slug in NO_FRAME_KNOB, f"{slug}: declare its frame grid owner"
     assert set(EXPORTED_GRID) <= seen
-
-
-def test_hand_copied_grids_still_exist_in_their_adapters():
-    for step, offset, _, adapter, expression in HAND_COPIED_GRID.values():
-        assert expression == f"% {step} != {offset}"
-        assert expression in adapter.read_text(), adapter
+    assert {"ltx2-sync-native", "ltx23-sync-native-disk"} <= {
+        _adapter_dir(slug) for slug in seen
+    }
