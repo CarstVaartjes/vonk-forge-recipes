@@ -25,6 +25,7 @@ from qualification.memory_need import (
     per_rank_need,
     require_admissible_declaration,
     require_memory_need,
+    require_sglang_rank_budget,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,11 +73,9 @@ REPAIRED = (
 # The multi-Spark SGLang rank budget rejects these repairs as new content; their
 # unchanged bytes stay baselined and each is a hardware-led follow-up (#1761).
 RANK_BUDGET_FOLLOW_UPS = {
-    "deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual",
     "inkling-975b-a41b-nvfp4-sglang-eight",
     "inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual",
     "inkling-small-nvfp4-sglang-mia-dual",
-    "mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual",
 }
 
 
@@ -182,6 +181,25 @@ def test_repaired_role_declares_its_measured_peak_above_the_floor() -> None:
         require_repaired_declaration(slug, recipe)
 
 
+@pytest.mark.parametrize(
+    ("slug", "shaved"),
+    [
+        ("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual", "0.645978808810"),
+        ("mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual", "0.718702620795"),
+    ],
+)
+def test_sglang_rank_budget_refuses_the_shaved_fraction(slug: str, shaved: str) -> None:
+    """#1647 cut the fraction below the per-rank weights plus one request's pools."""
+    recipe = recipe_for(slug)
+    key = f"vonk-forge/{slug}"
+    require_sglang_rank_budget(recipe, catalog_models(), load_inputs(), key)
+    next(
+        a for a in recipe.runtime.arguments if a.name == "mem-fraction-static"
+    ).value = shaved
+    with pytest.raises(ValueError, match="static budget"):
+        require_sglang_rank_budget(recipe, catalog_models(), load_inputs(), key)
+
+
 def test_catalog_checks_each_supported_document() -> None:
     for path in sorted((ROOT / "recipes").glob("*.json")):
         document = json.loads(path.read_text())
@@ -206,7 +224,7 @@ def test_static_budget_drift_cannot_hide_behind_a_smaller_declaration() -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
     next(
         a for a in recipe.runtime.arguments if a.name == "mem-fraction-static"
-    ).value = "0.80"
+    ).value = "0.85"
     with pytest.raises(ValueError, match="static allocation"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
 
@@ -217,7 +235,7 @@ def test_repaired_deferral_uses_shared_admission_with_owned_idle_host() -> None:
     # baseline must admit them too (it is not the estimator's 3542 incident).
     assert ADMISSION_IDLE_USE_BYTES <= TOTAL_BYTES - OS_FLOOR_BYTES - 120_370_379_081
     for role in recipe.topology.roles:
-        assert role.resources.memory.peak_bytes == 92_405_678_632
+        assert role.resources.memory.peak_bytes == 112_530_585_191
         assert evaluate_memory_admission(
             role.resources.memory.peak_bytes,
             TOTAL_BYTES,
