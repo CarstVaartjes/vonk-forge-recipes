@@ -791,10 +791,18 @@ launch names, complete selected Model files and passing producer checks. Changes
 to patched runtime files or missing selected files need review; metadata-only
 changes do not independently justify rebuilding identical content. Shared build
 contexts refresh together. Human repairs may intentionally diverge with evidence.
+A proven recipe moves too: the refresh rewrites its entry in
+`tests/fixtures/proven-recipe-bytes.json` and the sweep re-checks it. A refresh
+branch only moves forward (never force-pushed); a PR whose checks failed on an
+unchanged refresh is reported in the recipe's review issue and moves forward again
+only when upstream or main's checks (`tools/`, `tests/`, `.github/`) change.
 
 Respect `base-image-holds.json`: a held base and Dockerfile must agree until the
 hold is updated/removed with working evidence (`tools/check-base-image-holds`,
-`tests/test_base_image_holds.py`). Recipes in `published-images.json` follow the
+`tests/test_base_image_holds.py`). `model-revision-holds.json` declines one Model
+revision that cannot run on the recipe's Sparks, with its reason; a newer
+upstream revision is assessed again (`tools/check-model-revision-holds`,
+`tests/test_model_revision_holds.py`). Recipes in `published-images.json` follow the
 published image digest and its recorded build commit, not unrelated newer Git
 heads. `tools/check-image-provenance --base origin/main` checks changed recipes.
 An unavailable recorded commit needs the explicit unverified provenance mark
@@ -1027,6 +1035,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | `tools/kit-pins check`, `tests/test_kit_pins.py`, `tests/test_kit_prebuilt_images.py` | Kit declarations, lock, image/base/model consumers agree. Regenerate the lock; use a justified override/image exception only for an intentional deviation. |
 | `tools/check-image-provenance`, `tests/test_published_image_follow.py` | Claimed build commit matches the selected source image. Fix provenance or supply the supported explicit unavailable-commit evidence. |
 | `tools/check-base-image-holds`, `tests/test_base_image_holds.py` | A held digest stays consistent. Change/remove the hold only with replacement evidence. |
+| `tools/check-model-revision-holds`, `tests/test_model_revision_holds.py` | No recipe uses the Model revision its hold declines. Remove the hold only with evidence that the declined revision runs. |
 | `tests/test_memory_envelope.py`, `tests/test_single_spark_memory_headroom.py` | Memory consistency, component accounting and need checks. Repair the reported launch/envelope inconsistency; follow the memory section above. |
 | `tests/test_recipe_capabilities.py`, `tests/test_chat_configuration.py`, `tests/test_served_model_name.py` | Served Model, parser flags, aliases, tags and cases agree. Enable the real launch support or stop claiming the capability; use chat-trained weights or an explicit supported template. |
 | `tests/test_recipe_option_controls.py`, `tests/test_qwen36_fp8_options.py` | Deployment choices and base defaults execute as declared. Bind actual runtime differences, keep request controls per request. |
