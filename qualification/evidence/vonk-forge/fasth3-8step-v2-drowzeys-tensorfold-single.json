@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/fasth3-8step-v2-drowzeys-tensorfold-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "dc63078452ea9fd62e90429921602db3e0edb6993974aa98acb28686bd538935",
+        "source_bundle_sha256": "cd3eeea0beaf3f4ee613b994d9a665074e53ab0edc6d1c88a4659247526703e8",
+        "runtime_image": {
+          "build_key": "605536af4c6f2abde04455599787938ebc4f6bfb84909f5ba3087e82139d7d1c",
+          "image_digest": "sha256:17a191ad50f6fff51e01cffd3714c5e23e5dbafcb44d66aceaefb38e35fd2687"
+        },
+        "model_digests": [
+          "09eb1b5a43b384ec06fc6038bcea8c460456058882ecf825c6b3095f5a002133"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "8eb669deeae43cf920b21bb22388f56c5d4ee7c4d20f08e9f537f3e2b86c347b"
+      ],
+      "tested_at": "2026-10-28T07:45:05.203721Z",
+      "platform": {
+        "controller_source_sha": "9f7d7e0e468f2f11c93f802bfd5d08761904f650",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    }
+  ]
+}
