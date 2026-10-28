@@ -555,28 +555,31 @@ def test_uncapped_sglang_fraction_stays_the_calibrated_proxy() -> None:
     assert sglang_demand(recipe, 40_000_000_000) == Decimal(48_000_000_000)
 
 
-def test_nemotron_lightning_capped_demand_matches_the_hardware_row() -> None:
-    """Proven at 0.85 with 65,536 tokens: 58.0e9 measured, 119.06e9 by fraction."""
+def test_hybrid_without_mamba_cap_stays_on_the_fraction_model() -> None:
+    """nemotron-3-5-lightning is a proven 0.85 launch with no max-mamba-cache-size:
+    the Mamba pool grows with the fraction, so it is not capped and 119.06e9
+    (0.85 x total + 8e9) is the demand; 0.95 is refused whatever the peak."""
     recipe = RecipeDefinition.model_validate_json(
         (
             ROOT / "recipes/nemotron-3-5-lightning-r0b0tlab-sglang-eagle-single.json"
         ).read_text()
     )
-    capped = sglang_capped_static_need(
-        recipe, catalog_models(), INPUTS, "nemotron", pinned=False
+    assert argument_value(recipe, "max-total-tokens") is not None
+    assert (
+        sglang_capped_static_need(recipe, catalog_models(), INPUTS, "nemotron") is None
     )
-    assert capped is not None
-    demand = sglang_demand(recipe, capped)
-    assert demand is not None
-    assert demand == capped + OVERHEAD_BYTES
-    # The static model sits below the 58.0e9 measured (graphs, drafter); the
-    # declared peak covers the measurement and the fraction model overstated it.
-    declared = recipe.topology.roles[0].resources.memory.peak_bytes
-    assert demand <= declared
-    assert 58_000_000_000 <= declared < Decimal("0.85") * TOTAL_BYTES + OVERHEAD_BYTES
     require_memory_need(
         recipe, catalog_models(), INPUTS, document_digest="", touched=True
     )
+    next(
+        item for item in recipe.runtime.arguments if item.name == "mem-fraction-static"
+    ).value = "0.95"
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = 40_000_000_000
+    with pytest.raises(ValueError, match="not admissible on an idle Spark"):
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
 
 
 @pytest.mark.parametrize("defect", ["graphs", "image", "state-cap"])

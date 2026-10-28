@@ -353,8 +353,11 @@ overhead. SGLang's base on GB10 is host MemAvailable after CUDA init
 (`utils/common.py` is_integrated path), so the calculator charges the Spark's total
 memory. When `max-total-tokens` (and, for hybrid geometries, `max-mamba-cache-size`)
 caps every pool, SGLang allocates only those pools and the fraction merely gates
-remaining memory > 0, so the demand is the static need plus the 8 GB overhead
-(nemotron-3-5-lightning r0b0tlab at 0.85 and 65,536 tokens used 58.0e9 measured).
+remaining memory > 0, so the demand is the static need plus the 8 GB overhead.
+This rule is derived from the SGLang source and is uncalibrated: no fully capped
+proven run (graph-less, no speculation) backs it, and capped recipes with CUDA
+graphs or speculation rest on the 8 GB overhead. A hybrid Model without
+`max-mamba-cache-size` is not capped (the Mamba pool grows with the fraction).
 An uncapped pool keeps the calibrated fraction × total + 8 GB. SGLang derives an omitted fraction at launch, so none is required. A pool-less single-Spark vLLM declaration's peak must cover its
 utilization budget plus the overhead, since the Controller
 reserves the declared peak. `tests/test_absolute_kv_capacity.py` replays the recorded

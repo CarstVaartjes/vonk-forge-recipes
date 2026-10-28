@@ -597,22 +597,26 @@ def sglang_capped_static_need(
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
     key: str,
-    *,
-    pinned: bool,
 ) -> int | None:
     """Per-rank static need when the recipe caps every SGLang pool, else None.
 
     Capped means max-total-tokens is set, the geometry of every Model is known
-    (an unknown one could hide an uncapped pool) and a hybrid geometry's
-    max-mamba-cache-size is set (sglang_static_need raises when it is not).
+    (an unknown one could hide an uncapped pool) and a hybrid Model's
+    max-mamba-cache-size is set: without it SGLang sizes the Mamba pool by
+    mamba_full_memory_ratio from the fraction, whichever engine the geometry
+    was pinned for (sglang_static_need only knows SGLang state fields).
     """
     if argument_value(recipe, "max-total-tokens") is None:
         return None
+    mamba_capped = argument_value(recipe, "max-mamba-cache-size") is not None
     for selection in recipe.models:
         model = models[selection.model.content_sha256]
-        if applicable_geometry(recipe, selection.model.slug, model, inputs) is None:
+        geometry = applicable_geometry(recipe, selection.model.slug, model, inputs)
+        if geometry is None or (
+            geometry.architecture in HYBRID_ARCHITECTURES and not mamba_capped
+        ):
             return None
-    return sglang_static_need(recipe, models, inputs, key, pinned=pinned)
+    return sglang_static_need(recipe, models, inputs, key, pinned=False)
 
 
 def sglang_demand(recipe: RecipeDefinition, capped_need: int | None) -> Decimal | None:
@@ -625,8 +629,9 @@ def sglang_demand(recipe: RecipeDefinition, capped_need: int | None) -> Decimal 
     takes min(capacity, max-total-tokens), _handle_max_mamba_cache the
     max-mamba-cache-size slots) SGLang allocates only that need and the
     fraction merely gates the remainder > 0: demand is the need plus the
-    runtime overhead (nemotron-3-5-lightning r0b0tlab at 0.85 and 65,536
-    tokens measured 58.0e9 used). An uncapped pool grows into what the fraction
+    runtime overhead. This rule is derived from the SGLang source and is not
+    calibrated on a fully capped proven run; capped recipes with CUDA graphs or
+    speculation rest on OVERHEAD_BYTES. An uncapped pool grows into what the fraction
     leaves: mem-fraction-static x total plus overhead, calibrated on the proven
     0.75 recipes (105.6e9 to 109.4e9 measured against 106.0e9).
     """
@@ -1056,13 +1061,7 @@ def require_memory_need(
                 if envelope is not None and role.resources.memory.peak_bytes < envelope
             ]
             if single
-            else declaration_problems(
-                variant,
-                need,
-                sglang_capped_static_need(variant, models, inputs, key, pinned=True)
-                if variant.runtime.engine == "sglang"
-                else None,
-            )
+            else declaration_problems(variant, need)
         )
         if problems:
             raise ValueError(f"{key}: " + "; ".join(problems))
@@ -1168,7 +1167,7 @@ def require_bounded_kv_pool(
             )
         demand = sglang_demand(
             recipe,
-            sglang_capped_static_need(recipe, models, inputs, key, pinned=False),
+            sglang_capped_static_need(recipe, models, inputs, key),
         )
         if (
             demand is None
@@ -1384,18 +1383,14 @@ def per_rank_need(
 
 
 def declaration_problems(
-    recipe: RecipeDefinition,
-    need: PerRankMemoryNeed,
-    capped_need: int | None = None,
+    recipe: RecipeDefinition, need: PerRankMemoryNeed
 ) -> list[str]:
-    """An oversized estimate is valid; hiding demand or headroom is not.
-
-    ``capped_need`` is sglang_capped_static_need; see sglang_demand.
-    """
+    """An oversized estimate is valid; hiding demand or headroom is not."""
     problems: list[str] = []
+    fraction = argument_value(recipe, "mem-fraction-static")
     static_peak = (
-        sglang_demand(recipe, capped_need)
-        if recipe.runtime.engine == "sglang"
+        Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        if recipe.runtime.engine == "sglang" and fraction is not None
         else None
     )
     for role in recipe.topology.roles:
