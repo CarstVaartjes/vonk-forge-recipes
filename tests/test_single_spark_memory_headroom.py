@@ -433,11 +433,13 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
         ).read_text()
     )
     args = {item.name: item.value for item in recipe.runtime.arguments}
+    concurrency = int(str(argument_value(recipe, "max-running-requests")))
+    context = int(str(argument_value(recipe, "context-length")))
     schedule = SimpleNamespace(
         mem_fraction_static=float(str(args["mem-fraction-static"])),
         max_total_tokens=args.get("max-total-tokens"),
         max_mamba_cache_size=args.get("max-mamba-cache-size"),
-        max_running_requests=recipe.settings.concurrency.value,
+        max_running_requests=concurrency,
         mamba_full_memory_ratio=1.0,
         disable_overlap_schedule=False,
     )
@@ -475,9 +477,7 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
     sizer = namespace["CacheSizer"]()
     sizer.device, sizer.gpu_id = "cuda", 0
     sizer.post_capture_kv_active = False
-    sizer.model_config = SimpleNamespace(
-        is_multimodal=True, context_len=recipe.settings.context_tokens.value
-    )
+    sizer.model_config = SimpleNamespace(is_multimodal=True, context_len=context)
     sizer.ps = SimpleNamespace(pp_size=1, attn_dp_size=1)
     sizer.spec_algorithm = SimpleNamespace(is_none=lambda: True)
     sizer.mambaish_config = SimpleNamespace(
@@ -491,15 +491,15 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
     assert budget > 0
     # Five state slots serve the recipe's one running request; the pool is the
     # recipe's own value, not autosized.
-    assert schedule.max_mamba_cache_size == 5 * recipe.settings.concurrency.value
+    assert schedule.max_mamba_cache_size == 5 * concurrency
     assert sizer._apply_token_constraints(1_000_000) == 8192
     assert sizer._calculate_mamba_ratio() == SGLANG_MAMBA_SLOTS_PER_REQUEST
-    assert sizer.resolve_max_num_reqs(8192) == recipe.settings.concurrency.value
+    assert sizer.resolve_max_num_reqs(8192) == concurrency
     # 2026-10-28 operation 31e3de45: two slots floor to zero requests.
     schedule.max_mamba_cache_size = 2
     with pytest.raises(RuntimeError, match="too small to serve any requests"):
         sizer.resolve_max_num_reqs(8192)
-    schedule.max_mamba_cache_size = 5 * recipe.settings.concurrency.value
+    schedule.max_mamba_cache_size = 5 * concurrency
     checked(recipe)
     need = calculate_need(recipe, catalog_models(), INPUTS)
     assert need.kv_bytes == 8192 * 65536
