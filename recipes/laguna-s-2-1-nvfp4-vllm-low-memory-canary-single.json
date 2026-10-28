@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "4864d46625cbc3307623e29ac742030655e27249feba7b97ec925ce4cc4dfb56",
+        "digest": "3f7dd5b777d34d1724456ce71f87385dca288c3bb23029ab27dee358f5d2b971",
         "repository": "docker.io/vllm/vllm-openai"
       },
       "context": {
@@ -344,8 +344,8 @@
     "source_reference": "https://huggingface.co/poolside/Laguna-S-2.1-NVFP4/tree/07614121b31898586430f189d27a25a0be310843"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.1.1"
+    "released_at": "2026-10-28",
+    "version": "1.1.2"
   },
   "runtime": {
     "arguments": [
