@@ -1,0 +1,29 @@
+{
+  "laguna-s-2-1-nvfp4-dflash-vllm-mia-single": {
+    "declined": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
+    "model": {
+      "repository": "poolside/Laguna-S-2.1-NVFP4",
+      "revision": "07614121b31898586430f189d27a25a0be310843"
+    },
+    "reason": "826aacdf (RC2 export f8fdfcdc) keeps 8 expert layers in BF16: 99.7 GB of weights instead of 71.9 GB, and no FP8 KV-cache scheme. On one Spark the weights plus the 8 GB overhead leave under 5 GB of the largest admissible 0.86 share, and vLLM measured -23.95 GiB of KV cache on it (sweep 2026-10-27). 07614121 is the newest revision with upstream's measured weight footprint.",
+    "upstream": "https://github.com/CarstVaartjes/vonk-forge-recipes/pull/1850"
+  },
+  "laguna-s-2-1-nvfp4-vllm-low-memory-canary-single": {
+    "declined": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
+    "model": {
+      "repository": "poolside/Laguna-S-2.1-NVFP4",
+      "revision": "07614121b31898586430f189d27a25a0be310843"
+    },
+    "reason": "826aacdf (RC2 export f8fdfcdc) keeps 8 expert layers in BF16: 99.7 GB of weights instead of 71.9 GB, and no FP8 KV-cache scheme. On one Spark the weights plus the 8 GB overhead leave under 5 GB of the largest admissible 0.86 share, and vLLM measured -23.95 GiB of KV cache on it (sweep 2026-10-27). 07614121 is the newest revision with upstream's measured weight footprint.",
+    "upstream": "https://github.com/CarstVaartjes/vonk-forge-recipes/pull/1850"
+  },
+  "laguna-s-2-1-nvfp4-vllm-single": {
+    "declined": "826aacdf6d8b2699d4e367def6f17c83b06044c2",
+    "model": {
+      "repository": "poolside/Laguna-S-2.1-NVFP4",
+      "revision": "07614121b31898586430f189d27a25a0be310843"
+    },
+    "reason": "826aacdf (RC2 export f8fdfcdc) keeps 8 expert layers in BF16: 99.7 GB of weights instead of 71.9 GB, and no FP8 KV-cache scheme. On one Spark the weights plus the 8 GB overhead leave under 5 GB of the largest admissible 0.86 share, and vLLM measured -23.95 GiB of KV cache on it (sweep 2026-10-27). 07614121 is the newest revision with upstream's measured weight footprint.",
+    "upstream": "https://github.com/CarstVaartjes/vonk-forge-recipes/pull/1850"
+  }
+}

@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""Keep a held Model revision where it is held.
+
+``model-revision-holds.json`` names recipes whose Model must not move to one specific newer
+revision (it does not run on the recipe's Sparks), with the reason and an upstream link::
+
+    {"<recipe id>": {"model": {"repository": "<owner>/<name>", "revision": "<40 hex>"},
+                     "declined": "<40 hex>", "reason": "why", "upstream": "https://..."}}
+
+The recipe's Model from that Hugging Face repository must be at ``revision``. Moving it
+means updating or removing the hold in the same change. ``tools/refresh-upstream`` does
+not propose the ``declined`` revision; a revision newer than that one is assessed as
+usual, so a hold never outlives the upstream state it was written for.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+HOLDS = "model-revision-holds.json"
+REVISION = re.compile(r"^[0-9a-f]{40}$")
+HUB = "https://huggingface.co/"
+
+
+def holds(root: Path) -> dict[str, dict[str, Any]]:
+    """The declared holds by recipe id; none when the file is absent."""
+    path = root / HOLDS
+    if not path.is_file():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def declines(hold: dict[str, Any] | None, repository: str, revision: str) -> bool:
+    """Whether this hold declines moving ``repository`` to ``revision``."""
+    return (
+        hold is not None
+        and str(hold["model"]["repository"]).lower() == repository.lower()
+        and hold["declined"] == revision
+    )
+
+
+def describe(hold: dict[str, Any]) -> str:
+    model = hold["model"]
+    return (
+        f"{model['repository']} stays at `{model['revision'][:12]}`; "
+        f"`{hold['declined'][:12]}` is declined: {hold.get('reason', '')} "
+        f"({hold.get('upstream', '')})"
+    )
+
+
+def problems(root: Path) -> list[str]:
+    found: list[str] = []
+    for recipe_id, hold in holds(root).items():
+        where = f"{HOLDS} {recipe_id}"
+        model = hold.get("model") or {}
+        repository, revision = model.get("repository"), model.get("revision")
+        if (
+            not repository
+            or not REVISION.match(str(revision))
+            or not REVISION.match(str(hold.get("declined")))
+        ):
+            found.append(
+                f"{where}: a hold needs model.repository, model.revision and declined "
+                "(40-hex revisions)"
+            )
+            continue
+        if not hold.get("reason") or not str(hold.get("upstream", "")).startswith(
+            "https://"
+        ):
+            found.append(f"{where}: a hold needs a reason and an https upstream link")
+        path = root / "recipes" / f"{recipe_id}.json"
+        if not path.is_file():
+            found.append(f"{where}: no recipe {path.name}; remove the hold")
+            continue
+        recipe = json.loads(path.read_text(encoding="utf-8"))
+        pinned: list[str] = []
+        for reference in recipe["models"]:
+            model_path = root / "models" / f"{reference['model']['slug']}.json"
+            source = json.loads(model_path.read_text(encoding="utf-8"))["source"]
+            if source["repository"].lower() == (HUB + repository).lower():
+                pinned.append(source["revision"])
+        if not pinned or set(pinned) != {revision}:
+            found.append(
+                f"{where}: the recipe's Model from {repository} is at "
+                f"{', '.join(r[:12] for r in pinned) or 'nothing'}, but {describe(hold)}. "
+                "Keep the held revision, or update/remove the hold in the same change."
+            )
+    return found
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args(argv)
+    found = problems(arguments.root)
+    for problem in found:
+        print(problem, file=sys.stderr)
+    if found:
+        return 1
+    print("Every held Model revision is where its hold says.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

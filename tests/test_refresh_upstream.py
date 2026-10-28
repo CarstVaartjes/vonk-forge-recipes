@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.machinery
 import importlib.util
 import json
@@ -11,7 +12,7 @@ import types
 import unittest
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 from unittest.mock import patch
 
 from tools._catalog_model import roles_for
@@ -875,23 +876,6 @@ class MergeGateTests(unittest.TestCase):
         self.assertEqual(decide("workflow_run", "success", []), "run=true")
         self.assertEqual(decide("workflow_run", "failure", []), "run=false")
         self.assertEqual(decide("workflow_run", "success", recent), "run=false")
-
-    def test_only_behind_refresh_branches_are_updated(self) -> None:
-        pulls = [
-            {"number": 1, "headRefName": "refresh/a", "mergeStateStatus": "BEHIND"},
-            {"number": 2, "headRefName": "refresh/b", "mergeStateStatus": "CLEAN"},
-            {"number": 3, "headRefName": "codex/x", "mergeStateStatus": "BEHIND"},
-        ]
-        self.assertEqual(
-            [p["number"] for p in refresh.stale_mechanical_prs(pulls)], [1]
-        )
-        summary = refresh.Summary()
-        with (
-            patch("refresh_upstream.gh_json", return_value=pulls),
-            patch("refresh_upstream.gh", return_value="") as gh,
-        ):
-            refresh.update_stale_prs(summary)
-        gh.assert_called_once_with("pr", "update-branch", "1", check=False)
 
 
 class NeverDowngradeTests(unittest.TestCase):
@@ -2049,13 +2033,11 @@ class SelfHealingTests(unittest.TestCase):
         self.assertEqual(sorted(t for t in ci - skipped if t not in covered), [])
         self.assertIn("check", dict(refresh.verify_steps())["kit-declared pins"])
 
-    def test_pr_body_carries_failure_count(self) -> None:
-        body = refresh.pr_body(refresh.Assessment("recipe"), 2)
-        self.assertEqual(refresh.previous_failures(body), 2)
-        self.assertEqual(refresh.previous_failures(None), 0)
-
-    def republish(self, rollup, body: str = "") -> tuple[list, str, str, object]:
-        assessment = refresh.Assessment("recipe", edits={"recipe.json": b"new pin\n"})
+    def republish(
+        self, rollup, *, pin: bytes = b"new pin\n", main_moves: bool = False
+    ) -> tuple[list, str, str, Any, bool]:
+        """A refresh PR prepared earlier; this run assesses ``pin`` against main."""
+        assessment = refresh.Assessment("recipe", edits={"recipe.json": pin})
         calls: list[tuple[str, ...]] = []
         env = {
             "GIT_CONFIG_GLOBAL": os.devnull,
@@ -2072,12 +2054,17 @@ class SelfHealingTests(unittest.TestCase):
             (root / "recipe.json").write_bytes(b"old pin\n")
             refresh.git("add", "recipe.json", cwd=root)
             refresh.git("commit", "-qm", "Base", cwd=root)
-            main = refresh.git("rev-parse", "HEAD", cwd=root)
-            refresh.git("update-ref", "refs/remotes/origin/main", main, cwd=root)
             refresh.git("switch", "-qc", "refresh/recipe", cwd=root)
-            refresh.apply_edits(root, assessment.edits)
+            refresh.apply_edits(root, {"recipe.json": b"new pin\n"})
             refresh.git("commit", "-qam", "Prepared refresh", cwd=root)
             before = refresh.git("rev-parse", "HEAD", cwd=root)
+            refresh.git("switch", "-q", "main", cwd=root)
+            if main_moves:  # another recipe merged meanwhile
+                (root / "other.json").write_bytes(b"other\n")
+                refresh.git("add", "other.json", cwd=root)
+                refresh.git("commit", "-qm", "Other change", cwd=root)
+            main = refresh.git("rev-parse", "HEAD", cwd=root)
+            refresh.git("update-ref", "refs/remotes/origin/main", main, cwd=root)
 
             def github(*arguments: str, check: bool = True) -> str:
                 calls.append(arguments)
@@ -2087,7 +2074,7 @@ class SelfHealingTests(unittest.TestCase):
                             {
                                 "number": 9,
                                 "state": "OPEN",
-                                "body": body,
+                                "body": "",
                                 "statusCheckRollup": rollup,
                             }
                         ]
@@ -2106,27 +2093,81 @@ class SelfHealingTests(unittest.TestCase):
             ):
                 refresh.publish_mechanical(root, assessment, refresh.Summary())
             after = refresh.git("rev-parse", "refs/heads/refresh/recipe", cwd=root)
-        return calls, before, after, assessment
+            forward = (
+                refresh.run(
+                    ["git", "merge-base", "--is-ancestor", before, after],
+                    cwd=root,
+                    check=False,
+                ).returncode
+                == 0
+            )
+            if after != before:
+                self.assertEqual(
+                    refresh.git("show", f"{after}:recipe.json", cwd=root),
+                    pin.decode().strip(),
+                )
+                self.assertEqual(
+                    refresh.git("diff", "--name-only", main, after, cwd=root),
+                    "recipe.json",
+                )
+        return calls, before, after, assessment, forward
 
-    def test_failed_checks_regenerate_even_when_the_tree_is_unchanged(self) -> None:
-        calls, before, after, _ = self.republish(failing())
-        self.assertNotEqual(before, after)
-        edit = next(c for c in calls if c[:2] == ("pr", "edit"))
-        self.assertIn("<!-- refresh-failures: 1 -->", edit[-1])
+    def test_failed_checks_on_the_carried_refresh_are_reported_not_pushed(
+        self,
+    ) -> None:
+        calls, before, after, assessment, _ = self.republish(failing())
+        self.assertEqual(before, after)
+        self.assertFalse(
+            [c for c in calls if c[:2] in {("pr", "edit"), ("pr", "merge")}]
+        )
+        self.assertIn("not pushed again", assessment.reasons[0])
+        self.assertIn("BOOM: kit lock is stale", "".join(assessment.evidence))
 
-    def test_cancelled_checks_regenerate(self) -> None:
-        _, before, after, _ = self.republish([{"conclusion": "CANCELLED"}])
-        self.assertNotEqual(before, after)
+    def test_cancelled_checks_are_reported_not_pushed(self) -> None:
+        _, before, after, assessment, _ = self.republish([{"conclusion": "CANCELLED"}])
+        self.assertEqual(before, after)
+        self.assertIn("cancelled", assessment.reasons[0])
 
     def test_passing_unchanged_pr_is_left_alone(self) -> None:
-        calls, before, after, _ = self.republish([{"conclusion": "SUCCESS"}])
+        calls, before, after, _, _ = self.republish([{"conclusion": "SUCCESS"}])
         self.assertEqual(before, after)
         self.assertFalse([c for c in calls if c[:2] == ("pr", "edit")])
 
-    def test_repeated_failures_report_evidence_for_the_review_issue(self) -> None:
-        marker = f"<!-- refresh-failures: {refresh.FAILURE_LIMIT - 1} -->"
-        calls, _, _, _ = self.republish(failing(), marker)
-        self.assertTrue([c for c in calls if c[:2] == ("run", "view")])
+    def test_main_moving_elsewhere_pushes_nothing(self) -> None:
+        _, before, after, assessment, _ = self.republish(
+            [{"conclusion": "SUCCESS"}], main_moves=True
+        )
+        self.assertEqual(before, after)
+        self.assertEqual(assessment.reasons, [])
+
+    def test_a_newer_refresh_moves_the_branch_forward_without_force(self) -> None:
+        for rollup in ([{"conclusion": "SUCCESS"}], failing()):
+            with self.subTest(rollup=rollup):
+                calls, before, after, assessment, forward = self.republish(
+                    rollup, pin=b"newer pin\n", main_moves=True
+                )
+                self.assertNotEqual(before, after)
+                self.assertTrue(forward, "the push must be a fast-forward")
+                self.assertEqual(assessment.reasons, [])
+                self.assertTrue([c for c in calls if c[:2] == ("pr", "edit")])
+
+    def test_a_refreshed_proven_recipe_rewrites_its_guard_entry(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / refresh.PROVEN_BYTES).parent.mkdir(parents=True)
+            (root / refresh.PROVEN_BYTES).write_text(
+                json.dumps({"vonk-forge/a": "0" * 64, "vonk-forge/b": "1" * 64})
+            )
+            edits: dict[str, bytes | None] = {"recipes/a.json": b"moved\n"}
+            refresh.follow_proven_bytes(root, edits)
+            guard = json.loads(edits[refresh.PROVEN_BYTES] or b"")
+            self.assertEqual(
+                guard["vonk-forge/a"], hashlib.sha256(b"moved\n").hexdigest()
+            )
+            self.assertEqual(guard["vonk-forge/b"], "1" * 64)
+            unproven: dict[str, bytes | None] = {"recipes/c.json": b"moved\n"}
+            refresh.follow_proven_bytes(root, unproven)
+            self.assertNotIn(refresh.PROVEN_BYTES, unproven)
 
     def test_failure_evidence_has_the_log_tail(self) -> None:
         with patch("refresh_upstream.gh", return_value="x\nBOOM: stale\n"):
@@ -2185,6 +2226,21 @@ class SharedContextTests(unittest.TestCase):
         self.assertIsInstance(
             refresh.combine_group(["a", "b"], {"a": assessed["a"]}), str
         )
+
+    def test_a_current_sibling_does_not_hold_the_group_back(self) -> None:
+        # Since 2026-10-19 the Nemotron Lightning DSpark Model moved for three recipes
+        # whose contexts they share with current siblings; every run deferred them.
+        current = refresh.Assessment("a")
+        assessed = {
+            "a": current,
+            "b": self.assessment("b", edits={"recipes/b.json": b"2"}),
+            "c": self.assessment("c", edits={"recipes/c.json": b"3"}),
+        }
+        combined = refresh.combine_group(["a", "b", "c"], assessed)
+        assert not isinstance(combined, str), combined
+        self.assertEqual(combined.recipe_id, "a")
+        self.assertEqual(set(combined.edits), {"recipes/b.json", "recipes/c.json"})
+        self.assertIsInstance(refresh.combine_group(["a"], {"a": current}), str)
 
     def test_group_rejects_conflicting_shared_edits(self) -> None:
         assessed = {
@@ -2248,6 +2304,23 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
         )
         closed = [c[2] for c in calls if c[:2] == ("issue", "close")]
         self.assertEqual(closed, ["1", "3", "5"])
+
+    def test_an_older_duplicate_issue_closes_in_favour_of_the_newest(self) -> None:
+        # #1563/#1714: two open issues for one recipe; only the newest is kept current.
+        title = refresh.issue_title("drifted")
+        issues = {
+            "open": [
+                {"number": 1563, "title": title},
+                {"number": 1714, "title": title},
+            ]
+        }
+        assessed = {"drifted": self.assessment("drifted", item=True, reason="x")}
+        calls = self.run_gh(
+            issues, refresh.close_current_issues, assessed, set(), refresh.Summary()
+        )
+        closes = [c for c in calls if c[:2] == ("issue", "close")]
+        self.assertEqual([c[2] for c in closes], ["1563"])
+        self.assertIn("#1714", closes[0][-1])
 
     def test_a_recipe_that_needs_review_again_reopens_its_issue(self) -> None:
         title = refresh.issue_title("recipe")

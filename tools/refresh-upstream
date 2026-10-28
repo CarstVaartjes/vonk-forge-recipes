@@ -70,16 +70,13 @@ vendored = _load("check-vendored-upstream")
 kit_pins = _load("kit-pins")
 catalog = _load("catalog-hf-model")
 base_holds = _load("check-base-image-holds")
+model_holds = _load("check-model-revision-holds")
 RefreshAppAuth = _load("_refresh_auth.py").RefreshAppAuth
 APP_AUTH: Any = None
 
 SHA = re.compile(r"^[0-9a-f]{40}$")
 LABEL_NEEDS_REVIEW = "refresh:needs-review"
 LABEL_MECHANICAL = "refresh:mechanical"
-# A refresh PR whose checks fail is regenerated on every run; after this many failed
-# runs in a row the failure is made visible in the recipe's needs-review issue.
-FAILURE_LIMIT = 3
-FAILURES_MARKER = re.compile(r"<!-- refresh-failures: (\d+) -->")
 FAILED_CONCLUSIONS = {"FAILURE", "TIMED_OUT", "STARTUP_FAILURE", "ERROR"}
 # Full-suite verification takes minutes per recipe, so a run pushes (prepares) at most
 # this many new or updated PRs; the rest wait for the next run, which the publish
@@ -94,6 +91,8 @@ CHAIN_WINDOW_MINUTES = 30
 CHAIN_MAX_RUNS = 4
 # A model revision that resizes the disk envelope by more than this needs a human.
 MATERIAL_ENVELOPE_PERCENT = 1
+# The proven recipes' exact bytes; a refresh that moves one rewrites its entry.
+PROVEN_BYTES = "tests/fixtures/proven-recipe-bytes.json"
 MAX_BODY = 60000
 VERSION_TAG = re.compile(r"^v?(\d+(?:\.\d+)*)$")
 OWN_VERSION = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
@@ -2159,6 +2158,7 @@ class Assessor:
         edits: dict[str, bytes | None] = {}
         new_recipe = json.loads(json.dumps(recipe))
         hold = base_holds.holds(self.catalog.root).get(recipe_id)
+        model_hold = model_holds.holds(self.catalog.root).get(recipe_id)
         for item in result.items:
             moved = item.image[0] if item.image else item.repo
             if (item.image or item.kind == "image") and base_holds.moves_held_image(
@@ -2169,6 +2169,17 @@ class Assessor:
                 result.evidence.append(
                     f"### {item.label}\n\n- newest `{item.target.sha}` is not followed: "
                     f"{base_holds.describe(hold)}\n"
+                )
+                continue
+            if item.provider == "huggingface" and model_holds.declines(
+                model_hold, item.repo, item.target.sha
+            ):
+                # The declined revision stays declined (model-revision-holds.json); a
+                # newer one is assessed again.
+                item.noop = True
+                result.evidence.append(
+                    f"### {item.label}\n\n- newest `{item.target.sha}` is not followed: "
+                    f"{model_holds.describe(model_hold)}\n"
                 )
                 continue
             try:
@@ -3018,7 +3029,7 @@ def render_pins(assessment: Assessment) -> str:
     return "\n".join(rows)
 
 
-def pr_body(assessment: Assessment, failures: int = 0) -> str:
+def pr_body(assessment: Assessment) -> str:
     version = assessment.version
     body = [
         (
@@ -3051,7 +3062,6 @@ def pr_body(assessment: Assessment, failures: int = 0) -> str:
         *assessment.evidence,
         f"<!-- refresh-recipe: {assessment.recipe_id} -->",
         f"<!-- refresh-target: {assessment.fingerprint()} -->",
-        f"<!-- refresh-failures: {failures} -->",
         "",
         "🤖 Generated with [Claude Code](https://claude.com/claude-code)",
         "",
@@ -3329,9 +3339,47 @@ def failed_check_evidence(rollup: list[dict[str, Any]] | None) -> str:
     return "\n".join(lines)
 
 
-def previous_failures(body: str | None) -> int:
-    found = FAILURES_MARKER.search(body or "")
-    return int(found.group(1)) if found else 0
+def carries(root: Path, head: str, tree: str) -> bool:
+    """Whether branch ``head`` already holds exactly the refresh that ``tree`` is.
+
+    Its changes since it last met main are the files the refresh changes, with the same
+    bytes, and main has not touched those files since (so the squash merge applies).
+    """
+    changed = git(
+        "diff", "--name-only", "--no-renames", "origin/main", tree, cwd=root
+    ).split()
+    base = git("merge-base", head, "origin/main", cwd=root)
+    carried = git("diff", "--name-only", "--no-renames", base, head, cwd=root).split()
+    if not changed or sorted(carried) != sorted(changed):
+        return False
+    if git("diff", "--name-only", base, "origin/main", "--", *changed, cwd=root):
+        return False
+    return git("ls-tree", "-r", head, "--", *changed, cwd=root) == git(
+        "ls-tree", "-r", tree, "--", *changed, cwd=root
+    )
+
+
+def follow_proven_bytes(root: Path, edits: dict[str, bytes | None]) -> None:
+    """A proven recipe that a refresh moves carries its new bytes into the proven guard.
+
+    Owner (2026-10-26): proven recipes move to the newest upstream version and the sweep
+    re-checks them (their evidence no longer matches the new digest). The guard
+    (``tests/test_admissible_memory_declarations.py``) still refuses any other edit.
+    """
+    path = root / PROVEN_BYTES
+    if not path.is_file():
+        return
+    proven = json.loads(path.read_text(encoding="utf-8"))
+    moved = {
+        key: hashlib.sha256(data).hexdigest()
+        for key in proven
+        if (data := edits.get(f"recipes/{key.split('/', 1)[1]}.json")) is not None
+    }
+    if any(proven[key] != digest for key, digest in moved.items()):
+        proven.update(moved)
+        edits[PROVEN_BYTES] = (
+            json.dumps(proven, indent=2, sort_keys=True) + "\n"
+        ).encode()
 
 
 def publish_mechanical(
@@ -3346,12 +3394,13 @@ def publish_mechanical(
 def _publish(
     root: Path, assessment: Assessment, summary: Summary, *, arm: bool
 ) -> int | None:
-    """Prepare (or regenerate) the refresh PR on the newest upstream; returns its number.
+    """Prepare (or move forward) the refresh PR on the newest upstream; returns its number.
 
-    Every run rebuilds the branch from main and force-pushes it when anything differs. A
-    PR whose checks failed or were cancelled is never left as it is: it is pushed again
-    (a fresh commit restarts the checks) and, once it failed ``FAILURE_LIMIT`` runs in a
-    row, the failure is reported in the recipe's one needs-review issue.
+    The branch only moves forward: a new commit has the branch head and main as its
+    parents and main plus this refresh as its tree, so the push is a fast-forward, never
+    forced. Nothing is pushed while the branch already carries this exact refresh, so a
+    PR is never pushed again only to restart its checks: failed or cancelled checks on
+    the current refresh are evidence for the recipe's needs-review issue.
     """
     recipe_id = assessment.recipe_id
     branch = f"refresh/{recipe_id}"
@@ -3372,21 +3421,6 @@ def _publish(
         )
         return None
     open_pr = next((pr for pr in existing if pr["state"] == "OPEN"), None)
-    state = check_state(open_pr.get("statusCheckRollup")) if open_pr else "none"
-    failures = previous_failures(open_pr["body"]) if open_pr else 0
-    if state == "failed":
-        failures += 1
-    elif state == "passed":
-        failures = 0
-    if open_pr and failures >= FAILURE_LIMIT:
-        assessment.reasons.append(
-            f"refresh PR #{open_pr['number']} failed its checks in {failures} runs in a "
-            "row and is regenerated every run; it needs a human look"
-        )
-        assessment.evidence.append(
-            f"### Failed checks of PR #{open_pr['number']}\n\n"
-            f"{failed_check_evidence(open_pr.get('statusCheckRollup'))}\n"
-        )
     if summary.started is not None:
         # A run assesses main as it was when the run started, with that commit's code,
         # and prepares PRs for up to two hours. When main has since changed the refresher
@@ -3413,7 +3447,35 @@ def _publish(
     git("switch", "--detach", "origin/main", cwd=root)
     git("reset", "--hard", "origin/main", cwd=root)
     git("clean", "-fdq", cwd=root)
+    follow_proven_bytes(root, assessment.edits)
     apply_edits(root, assessment.edits)
+    git("add", "-A", cwd=root)
+    tree = git("write-tree", cwd=root)
+    head = None
+    if git("ls-remote", "origin", f"refs/heads/{branch}", cwd=root):
+        git("fetch", "-q", "origin", branch, cwd=root)
+        head = git("rev-parse", "FETCH_HEAD", cwd=root)
+    if open_pr and head and carries(root, head, tree):
+        number = int(open_pr["number"])
+        state = check_state(open_pr.get("statusCheckRollup"))
+        if state in {"failed", "cancelled"}:
+            assessment.reasons.append(
+                f"refresh PR #{number} carries this exact refresh and its checks "
+                f"{state}; it is not pushed again: read the checks, then re-run them "
+                "or repair the recipe"
+            )
+            assessment.evidence.append(
+                f"### Failed checks of PR #{number}\n\n"
+                f"{failed_check_evidence(open_pr.get('statusCheckRollup'))}\n"
+            )
+        else:
+            if arm:
+                arm_mechanical_pr(number, recipe_id, summary)
+            summary.mechanical.append(
+                f"{recipe_id}: PR #{number} already current"
+                + ("" if arm else " (review, not armed)")
+            )
+        return number
     failure = verify(root, recipe_id)
     if failure is not None:
         assessment.reasons.append(
@@ -3422,30 +3484,20 @@ def _publish(
         git("reset", "--hard", "origin/main", cwd=root)
         git("clean", "-fdq", cwd=root)
         return None
-    git("add", "-A", cwd=root)
-    git(
-        "commit",
-        "-q",
+    parents = [head] if head else []
+    parents.append(git("rev-parse", "origin/main", cwd=root))
+    commit = git(
+        "commit-tree",
+        tree,
+        *(flag for parent in parents for flag in ("-p", parent)),
         "-m",
         f"Refresh {assessment.label} to the newest upstream pins\n\n{render_pins(assessment)}",
         cwd=root,
     )
-    tree = git("rev-parse", "HEAD^{tree}", cwd=root)
-    remote = git("ls-remote", "origin", f"refs/heads/{branch}", cwd=root)
-    if open_pr and remote and state not in {"failed", "cancelled"}:
-        git("fetch", "-q", "origin", branch, cwd=root)
-        if git("rev-parse", "FETCH_HEAD^{tree}", cwd=root) == tree:
-            if arm:
-                arm_mechanical_pr(open_pr["number"], recipe_id, summary)
-            summary.mechanical.append(
-                f"{recipe_id}: PR #{open_pr['number']} already current"
-                + ("" if arm else " (review, not armed)")
-            )
-            return int(open_pr["number"])
-    git("push", "-q", "--force", "origin", f"HEAD:refs/heads/{branch}", cwd=root)
+    git("push", "-q", "origin", f"{commit}:refs/heads/{branch}", cwd=root)
     summary.prepared += 1
     title = f"Refresh {assessment.label} to the newest upstream pins"
-    body = pr_body(assessment, failures)
+    body = pr_body(assessment)
     label, other = (
         (LABEL_MECHANICAL, LABEL_NEEDS_REVIEW)
         if arm
@@ -3513,13 +3565,21 @@ def sharing_groups(catalog_: Catalog) -> dict[str, list[str]]:
 def combine_group(
     members: list[str], assessed: dict[str, Assessment]
 ) -> Assessment | str:
-    """One assessment that refreshes all ``members`` together, or why that is not possible."""
+    """One assessment that refreshes all ``members`` together, or why that is not possible.
+
+    A member that is current has nothing of its own to move (a sibling's own Model
+    revision moved, not the shared pins), so it never holds the others back.
+    """
     parts: list[Assessment] = []
     for member in members:
         part = assessed.get(member)
+        if part is not None and not part.drifted and not part.unreachable:
+            continue
         if part is None or not part.prepared:
             return f"{member} sharing the build context is not mechanical right now"
         parts.append(part)
+    if not parts:
+        return "no member of the shared build context drifted"
     edits: dict[str, bytes | None] = {}
     for part in parts:
         for name, data in part.edits.items():
@@ -3528,7 +3588,7 @@ def combine_group(
             edits[name] = data
     lead = parts[0]
     return Assessment(
-        recipe_id=lead.recipe_id,
+        recipe_id=members[0],  # the group's branch (close_stale_refresh_prs)
         items=[item for part in parts for item in part.items],
         evidence=[text for part in parts for text in part.evidence],
         notes=list(dict.fromkeys(note for part in parts for note in part.notes)),
@@ -3713,7 +3773,9 @@ def close_current_issues(
     That is a recipe that is current or gone, or whose refresh pull request this run
     prepared (``handled``). A drifted recipe without one keeps its issue: a refresh
     that is mechanical on paper but was deferred, refused or failed its checks has not
-    been handled, and closing its issue would only reopen it next run.
+    been handled, and closing its issue would only reopen it next run. A recipe has one
+    issue: an older open issue with the same title is closed in favour of the newest,
+    which is the one ``sync_issue`` keeps current.
     """
     issues = gh_json(
         "issue",
@@ -3728,12 +3790,20 @@ def close_current_issues(
         "number,title",
     )
     prefix = issue_title("")
+    newest: dict[str, int] = {}
+    for issue in issues:
+        newest[issue["title"]] = max(newest.get(issue["title"], 0), issue["number"])
     for issue in issues:
         if not issue["title"].startswith(prefix):
             continue
         recipe_id = issue["title"][len(prefix) :]
         result = assessed.get(recipe_id)
-        if result is None:
+        if issue["number"] != newest[issue["title"]]:
+            note = (
+                f"Superseded by #{newest[issue['title']]}, this recipe's current review "
+                "issue."
+            )
+        elif result is None:
             note = "The recipe no longer exists."
         elif result.unreachable:
             continue
@@ -3802,38 +3872,6 @@ def foreign_open_prs() -> dict[int, set[str]]:
         ).split()
         found[int(number)] = set(names)
     return found
-
-
-def update_stale_prs(summary: Summary) -> None:
-    """Bring open refresh:mechanical PRs that fell behind main up to date.
-
-    Best effort: a PR whose recipe still drifts was already regenerated on main by this
-    run; the rest are merged forward. A merge conflict is left to the next regeneration.
-    """
-    pull_requests = gh_json(
-        "pr",
-        "list",
-        "--state",
-        "open",
-        "--label",
-        LABEL_MECHANICAL,
-        "--limit",
-        "200",
-        "--json",
-        "number,headRefName,mergeStateStatus",
-    )
-    for pr in stale_mechanical_prs(pull_requests):
-        result = gh("pr", "update-branch", str(pr["number"]), check=False)
-        summary.lines.append(f"PR #{pr['number']}: updated from main {result.strip()}")
-
-
-def stale_mechanical_prs(pull_requests: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [
-        pr
-        for pr in pull_requests
-        if str(pr.get("headRefName", "")).startswith("refresh/")
-        and pr.get("mergeStateStatus") == "BEHIND"
-    ]
 
 
 def refresh_is_spinning(
@@ -4197,7 +4235,6 @@ def command_run(arguments: argparse.Namespace) -> int:
             "close stale refresh PRs",
             lambda: close_stale_refresh_prs(assessed, summary, groups, published),
         ),
-        ("update stale PRs", lambda: update_stale_prs(summary)),
     ):
         read_optional(
             source,
