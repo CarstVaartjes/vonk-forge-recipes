@@ -592,6 +592,52 @@ def sglang_static_need(
     return need
 
 
+def sglang_capped_static_need(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    key: str,
+    *,
+    pinned: bool,
+) -> int | None:
+    """Per-rank static need when the recipe caps every SGLang pool, else None.
+
+    Capped means max-total-tokens is set, the geometry of every Model is known
+    (an unknown one could hide an uncapped pool) and a hybrid geometry's
+    max-mamba-cache-size is set (sglang_static_need raises when it is not).
+    """
+    if argument_value(recipe, "max-total-tokens") is None:
+        return None
+    for selection in recipe.models:
+        model = models[selection.model.content_sha256]
+        if applicable_geometry(recipe, selection.model.slug, model, inputs) is None:
+            return None
+    return sglang_static_need(recipe, models, inputs, key, pinned=pinned)
+
+
+def sglang_demand(recipe: RecipeDefinition, capped_need: int | None) -> Decimal | None:
+    """Per-rank bytes an SGLang launch takes from a Spark, None without a fraction.
+
+    The base on GB10 is host MemAvailable after CUDA init (sglang
+    utils/common.py is_integrated path), so the admission model charges the
+    Spark's total memory. With every pool capped (``capped_need`` from
+    sglang_capped_static_need; kv_cache_configurator._apply_token_constraints
+    takes min(capacity, max-total-tokens), _handle_max_mamba_cache the
+    max-mamba-cache-size slots) SGLang allocates only that need and the
+    fraction merely gates the remainder > 0: demand is the need plus the
+    runtime overhead (nemotron-3-5-lightning r0b0tlab at 0.85 and 65,536
+    tokens measured 58.0e9 used). An uncapped pool grows into what the fraction
+    leaves: mem-fraction-static x total plus overhead, calibrated on the proven
+    0.75 recipes (105.6e9 to 109.4e9 measured against 106.0e9).
+    """
+    fraction = argument_value(recipe, "mem-fraction-static")
+    if fraction is None:
+        return None
+    if capped_need is not None:
+        return Decimal(capped_need + OVERHEAD_BYTES)
+    return Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+
+
 def require_sglang_rank_budget(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
@@ -1010,7 +1056,13 @@ def require_memory_need(
                 if envelope is not None and role.resources.memory.peak_bytes < envelope
             ]
             if single
-            else declaration_problems(variant, need)
+            else declaration_problems(
+                variant,
+                need,
+                sglang_capped_static_need(variant, models, inputs, key, pinned=True)
+                if variant.runtime.engine == "sglang"
+                else None,
+            )
         )
         if problems:
             raise ValueError(f"{key}: " + "; ".join(problems))
@@ -1114,11 +1166,18 @@ def require_bounded_kv_pool(
                 f"{IDLE_AVAILABLE_BYTES} cannot hold the selected weights, resident "
                 f"expansion and capped pools ({resident} bytes)"
             )
-        if not evaluate_memory_admission(
-            int(share * TOTAL_BYTES) + OVERHEAD_BYTES,
-            SPARK_MEMORY_BYTES,
-            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
-        ).admissible:
+        demand = sglang_demand(
+            recipe,
+            sglang_capped_static_need(recipe, models, inputs, key, pinned=False),
+        )
+        if (
+            demand is None
+            or not evaluate_memory_admission(
+                int(demand),
+                SPARK_MEMORY_BYTES,
+                occupied_bytes=ADMISSION_IDLE_USE_BYTES,
+            ).admissible
+        ):
             raise ValueError(
                 f"{key}: mem-fraction-static {fraction} share of {TOTAL_BYTES} bytes "
                 f"plus {OVERHEAD_BYTES} overhead is not admissible on an idle Spark"
@@ -1325,14 +1384,18 @@ def per_rank_need(
 
 
 def declaration_problems(
-    recipe: RecipeDefinition, need: PerRankMemoryNeed
+    recipe: RecipeDefinition,
+    need: PerRankMemoryNeed,
+    capped_need: int | None = None,
 ) -> list[str]:
-    """An oversized estimate is valid; hiding demand or headroom is not."""
+    """An oversized estimate is valid; hiding demand or headroom is not.
+
+    ``capped_need`` is sglang_capped_static_need; see sglang_demand.
+    """
     problems: list[str] = []
-    fraction = argument_value(recipe, "mem-fraction-static")
     static_peak = (
-        Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
-        if recipe.runtime.engine == "sglang" and fraction is not None
+        sglang_demand(recipe, capped_need)
+        if recipe.runtime.engine == "sglang"
         else None
     )
     for role in recipe.topology.roles:
