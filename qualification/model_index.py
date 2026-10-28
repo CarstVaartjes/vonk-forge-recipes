@@ -54,8 +54,13 @@ class ModelIndex:
         Memoized by (recipe digest, Model digests); the Recipe is hashed only
         when the caller does not already know its digest.
         """
-        digest = content_sha256 or document_sha256(recipe)
-        models = tuple(sorted({m["model"]["content_sha256"] for m in recipe["models"]}))
+        try:
+            digest = content_sha256 or document_sha256(recipe)
+            models = tuple(
+                sorted({m["model"]["content_sha256"] for m in recipe["models"]})
+            )
+        except (KeyError, TypeError):
+            return None  # not a recipe document: no fingerprint
         key = (digest, models)
         if key not in self._fingerprints:
             try:
