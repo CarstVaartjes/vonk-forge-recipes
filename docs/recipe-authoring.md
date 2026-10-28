@@ -388,13 +388,15 @@ Preserve proven recipe bytes; an estimate is never physical acceptance.
 
 The informative workload estimator (not declaration admission) uses
 **130,663,231,488 total bytes − 17,179,869,184 bytes
-(16 GiB host guard floor) − 5,012,574,208 measured idle bytes = 108,470,788,096
-bytes**. Sources: vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
-`rust/crates/vonk-agent-helper/src/host_memory_guard.rs`, re-exporting
-`host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES`; spark-3542 2026-10-15/16
-incident telemetry, **125,650,657,280 bytes idle MemAvailable**, retained in the
-calculator's historical source. The live guard also requires sustained pressure
-(full PSI 30%, 3 seconds); the estimator leaves its planning floor. Runtime
+(16 GiB planning floor) − 5,012,574,208 measured idle bytes = 108,470,788,096
+bytes**. The 16 GiB floor began as the host guard's old per-sample MemAvailable
+bar (vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
+`host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES`); it is now only this
+estimator's planning floor. The live guard (vonk-forge #1936) is swap-aware and
+has no per-sample bar: every condition is sustained for its rule's window, and
+a load that swaps steadily is never stopped. Idle use is from spark-3542
+2026-10-15/16 incident telemetry, **125,650,657,280 bytes idle MemAvailable**,
+retained in the calculator's historical source. Runtime
 overhead currently uses an **8,000,000,000-byte estimate**, not a measurement. A vLLM
 speculative drafter adds nothing beside the budget, however it is loaded: the
 worker loads it after its free-memory snapshot and profiles it inside
