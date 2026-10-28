@@ -150,9 +150,8 @@ def test_a_changed_recipe_document_requeues_only_that_recipe(
             "bad",
             ("2" * 64,),
             content="c" * 64,
-            fail_load="driver mismatch",
+            fail_load="runtime_process_exited: exit_cause=bad_arguments exception=driver mismatch",
             fail_phase="start",
-            fail_code="recipe.runtime_exit",
         ),
         FakeRecipe("same", ("3" * 64,), content="c" * 64),
     ]
@@ -211,9 +210,8 @@ def test_the_status_files_describe_lanes_queue_throughput_and_clusters(
         FakeRecipe(
             "b",
             ("m2",),
-            fail_load="driver mismatch",
+            fail_load="runtime_process_exited: exit_cause=bad_arguments exception=driver mismatch",
             fail_phase="start",
-            fail_code="recipe.runtime_exit",
         ),
     ]
     sweep, _, clock = make_sweep(

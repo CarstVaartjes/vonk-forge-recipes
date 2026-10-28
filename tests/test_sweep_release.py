@@ -11,6 +11,8 @@ from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
 
+from vonk_forge_contracts.sweep import WorkloadFailureCode
+
 from spark_sweep.cli import main
 
 OLD, NEW = "1" * 40, "2" * 40
@@ -53,9 +55,8 @@ def _failing_set() -> tuple[list[FakeRecipe], list[FakeModel]]:
             "oom",
             ("4" * 64,),
             content="c" * 64,
-            fail_load="CUDA error: out of memory",
+            fail_load="runtime_process_exited: exit_cause=oom_killed exception=CUDA error: out of memory",
             fail_phase="start",
-            fail_code="recipe.runtime_oom",
         ),
         FakeRecipe("fine", ("5" * 64,), content="c" * 64),
     ]
@@ -285,7 +286,6 @@ def test_failures_are_grouped_by_controller_release_on_the_status_page(
 ) -> None:
     recipes, models = _failing_set()
     sweep, fleet, _ = make_sweep(tmp_path, recipes, models, gateway=gateway)
-    fleet.recipes["vonk-forge/image-bug"].fail_code = "recipe.runtime_exit"
     fleet.release_sha = OLD
     fleet.api_source_sha = OLD
     sweep.run()
@@ -302,7 +302,8 @@ def test_failures_are_grouped_by_controller_release_on_the_status_page(
     groups = {g["release"]: g for g in status["failures_by_release"]}
     assert status["release"] == NEW
     assert NEW not in groups  # A new process does not rewrite old failure provenance.
-    assert groups[OLD]["failed"] == 4 and not groups[OLD]["current"]
+    assert groups[OLD]["failed"] == 3 and not groups[OLD]["current"]
+    assert _entry(again, "image-bug")["status"] == "deferred"
     page = (tmp_path / "status.md").read_text()
     assert "## Failures by Controller release" in page and f"release {OLD[:12]}" in page
 
@@ -467,7 +468,9 @@ def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
     )
     sweep._record_failure(
         fake.key,
-        policy.classify("start", fake.fail_code, "injected failure"),
+        policy.classify(
+            "start", WorkloadFailureCode.APPLICATION_FAILED, "injected failure"
+        ),
         None,
     )
     row = next(
