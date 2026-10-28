@@ -132,9 +132,8 @@ def test_failed_load_row_carries_operation_and_reason(
     bad = FakeRecipe(
         "bad",
         ("m2",),
-        fail_load="container exited with code 1",
+        fail_load="runtime_process_exited: exit_cause=bad_arguments exception=container exited with code 1",
         fail_phase="start",
-        fail_code="recipe.runtime_exit",
     )
     sweep, _, _ = make_sweep(tmp_path, [bad], [FakeModel("m2")], gateway=gateway)
     sweep.run()

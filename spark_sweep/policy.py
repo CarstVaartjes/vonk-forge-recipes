@@ -628,6 +628,113 @@ def _mentions(text: str, name: str) -> bool:
     )
 
 
+@dataclass(frozen=True)
+class AssignmentFailure:
+    """One failed assignment of an application, resolved to the lane it belongs to.
+
+    ``FleetProfileAssignmentFailure`` names an assignment by id only; the alias and nodes come
+    from ``progress.intended_profile``. ``from_effect`` marks the failed ``run`` effect of a
+    lane adopted from an earlier application, which is that lane's own result.
+    """
+
+    reason: str
+    assignment_id: str | None = None
+    alias: str | None = None
+    node_ids: tuple[str, ...] = ()
+    failure_code: str | None = None
+    from_effect: bool = False
+
+    @classmethod
+    def from_state(cls, row: Mapping[str, Any]) -> AssignmentFailure:
+        """Read a persisted row back; a row written before this type keeps what it has."""
+        return cls(
+            reason=str(row.get("reason") or ""),
+            assignment_id=row.get("assignment_id"),
+            alias=row.get("alias"),
+            node_ids=tuple(row.get("node_ids") or ()),
+            failure_code=row.get("failure_code"),
+            from_effect=bool(row.get("from_effect")),
+        )
+
+    def as_state(self) -> dict[str, Any]:
+        """The JSON row persisted with the settled application and read by ``blamed``."""
+        return {
+            "reason": self.reason,
+            "assignment_id": self.assignment_id,
+            "alias": self.alias,
+            "node_ids": list(self.node_ids),
+            "failure_code": self.failure_code,
+            "from_effect": self.from_effect,
+        }
+
+
+def assignment_failures(document: Mapping[str, Any]) -> list[AssignmentFailure]:
+    """The application's failures resolved to their assignments by id (never by text or node)."""
+    progress = document.get("progress")
+    if not isinstance(progress, Mapping):
+        return []
+    owners = {
+        a.get("id"): a
+        for a in (progress.get("intended_profile") or {}).get("assignments") or []
+        if isinstance(a, Mapping)
+    }
+
+    def resolved(
+        assignment_id: object, reason: str, **fields: Any
+    ) -> AssignmentFailure:
+        owner = owners.get(assignment_id) or {}
+        return AssignmentFailure(
+            reason=reason,
+            assignment_id=assignment_id if isinstance(assignment_id, str) else None,
+            alias=owner.get("alias"),
+            node_ids=tuple(
+                n["node_id"]
+                for n in owner.get("nodes") or []
+                if isinstance(n, Mapping) and isinstance(n.get("node_id"), str)
+            ),
+            **fields,
+        )
+
+    failures = [
+        resolved(f.get("assignment_id"), str(f.get("reason") or ""))
+        for f in (progress.get("switch_adapter") or {}).get("assignment_failures") or []
+        if isinstance(f, Mapping)
+    ]
+    named = {f.assignment_id for f in failures}
+    for effect in progress.get("effects") or []:
+        if (
+            not isinstance(effect, Mapping)
+            or effect.get("kind") != "run"
+            or effect.get("state") != "failed"
+            or effect.get("application_id") == document.get("id")
+            or effect.get("target_id")
+            not in owners  # a run effect's target is its assignment
+            or effect["target_id"] in named
+        ):
+            continue
+        code = ((effect.get("result") or {}).get("run_switch") or {}).get(
+            "failure_code"
+        )
+        members = (effect.get("progress") or {}).get("members") or []
+        error = next(
+            (
+                str(m["error"])
+                for m in members
+                if isinstance(m, Mapping) and m.get("error")
+            ),
+            None,
+        )
+        failures.append(
+            resolved(
+                effect["target_id"],
+                error or code or "the adopted run failed",
+                failure_code=code if isinstance(code, str) else None,
+                from_effect=True,
+            )
+        )
+    return failures
+
+
 def blamed(
     items: Iterable[Mapping[str, Any]], lanes: Mapping[str, Mapping[str, Sequence[str]]]
 ) -> set[str]:
