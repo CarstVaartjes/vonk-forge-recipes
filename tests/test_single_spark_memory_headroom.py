@@ -24,6 +24,8 @@ from qualification.memory_need import (
     load_inputs,
     rank_weight_bytes,
     require_memory_need,
+    sglang_capped_static_need,
+    sglang_demand,
     vllm_utilization_envelope,
 )
 
@@ -504,9 +506,8 @@ def glm_a0() -> RecipeDefinition:
         # peak and the 106.8 GB static budget of 0.85 x 125.65 GB.
         ("max-total-tokens", 262144, "peak understates SGLang static need"),
         ("max-mamba-cache-size", 16, "peak understates SGLang static need"),
-        # The OOM-killed fa86311a fraction, and a capped launch's 0.95.
+        # The OOM-killed fa86311a fraction.
         ("mem-fraction-static", "0.75", "cannot hold the selected weights"),
-        ("mem-fraction-static", "0.95", "not admissible on an idle Spark"),
     ],
 )
 def test_capped_sglang_guard_rejects_restored_large_pools(
@@ -518,6 +519,64 @@ def test_capped_sglang_guard_rejects_restored_large_pools(
     )
     next(item for item in recipe.runtime.arguments if item.name == name).value = value
     with pytest.raises(ValueError, match=match):
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
+
+
+def test_capped_sglang_pools_are_admitted_by_need_not_by_fraction() -> None:
+    """The fraction gates only rest > 0 when both pools are capped (SGLang
+    kv_cache_configurator): a capped recipe at 0.95 takes need + overhead."""
+    recipe = glm_a0()
+    next(
+        item for item in recipe.runtime.arguments if item.name == "mem-fraction-static"
+    ).value = "0.95"
+    require_memory_need(
+        recipe, catalog_models(), INPUTS, document_digest="", touched=True
+    )
+    # Uncapping the token pool restores the fraction model: 0.95 is refused.
+    recipe.runtime.arguments.remove(
+        next(
+            item for item in recipe.runtime.arguments if item.name == "max-total-tokens"
+        )
+    )
+    with pytest.raises(ValueError):
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
+
+
+def test_uncapped_sglang_fraction_stays_the_calibrated_proxy() -> None:
+    recipe = glm_a0()
+    fraction = argument_value(recipe, "mem-fraction-static")
+    assert sglang_demand(recipe, None) == Decimal(str(fraction)) * TOTAL_BYTES + (
+        OVERHEAD_BYTES
+    )
+    assert sglang_demand(recipe, 40_000_000_000) == Decimal(48_000_000_000)
+
+
+def test_hybrid_without_mamba_cap_stays_on_the_fraction_model() -> None:
+    """nemotron-3-5-lightning is a proven 0.85 launch with no max-mamba-cache-size:
+    the Mamba pool grows with the fraction, so it is not capped and 119.06e9
+    (0.85 x total + 8e9) is the demand; 0.95 is refused whatever the peak."""
+    recipe = RecipeDefinition.model_validate_json(
+        (
+            ROOT / "recipes/nemotron-3-5-lightning-r0b0tlab-sglang-eagle-single.json"
+        ).read_text()
+    )
+    assert argument_value(recipe, "max-total-tokens") is not None
+    assert (
+        sglang_capped_static_need(recipe, catalog_models(), INPUTS, "nemotron") is None
+    )
+    require_memory_need(
+        recipe, catalog_models(), INPUTS, document_digest="", touched=True
+    )
+    next(
+        item for item in recipe.runtime.arguments if item.name == "mem-fraction-static"
+    ).value = "0.95"
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = 40_000_000_000
+    with pytest.raises(ValueError, match="not admissible on an idle Spark"):
         require_memory_need(
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
         )
