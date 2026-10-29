@@ -34,7 +34,9 @@ from .auth_contract import SmokeAuthClass
 from .lifecycle import ACTIVE, LifecycleState
 from .policy import (
     CLIENT_CREDENTIAL,
+    CONTROLLER_WAIT,
     RECIPE_FAILURE_CODES,
+    REVIEW_FINAL_CODES,
     SWAP_SHORT,
     Failure,
     activity,
@@ -67,6 +69,10 @@ STALLED_CODE = "progress.stalled"
 #: ModelCacheCode.DOWNLOAD_BLOCKED: the Controller holds a model download for NAS space
 #: while retention evicts. The Controller owns that wait; it is no infrastructure problem.
 NAS_SPACE_CODE = "model_cache.download_blocked"
+#: Source name of a long Controller review wait's escalation (``review-wait:<code>``).
+REVIEW_WAIT_SOURCE = "review-wait"
+#: The codes a refused review may end the recipe on.
+REVIEW_VERDICT_CODES = frozenset(REVIEW_FINAL_CODES | RECIPE_FAILURE_CODES.keys())
 #: Blockers that name a preparation (build, image, download, install) the Controller runs.
 PREPARATION_CODES = frozenset(
     {
@@ -101,7 +107,13 @@ UNATTRIBUTED = "unattributed"
 #: A fleet swap shortfall (``policy.SWAP_SHORT``): the Controller's remedy is swap or time,
 #: never the recipe's verdict; its never-fits word is ``demand_exceeds_capacity``.
 WAIT_CLASSES = frozenset(
-    {SMOKE_BUSY, CLIENT_CREDENTIAL, SweepWaitCode.BUDGET_EXHAUSTED, SWAP_SHORT}
+    {
+        SMOKE_BUSY,
+        CLIENT_CREDENTIAL,
+        SweepWaitCode.BUDGET_EXHAUSTED,
+        SWAP_SHORT,
+        CONTROLLER_WAIT,
+    }
 )
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport
 #: error after its own retries: the cause is uncertain, so it is observed once more.
@@ -425,7 +437,11 @@ def disposition(failure: Failure) -> Disposition:
     if failure.klass == UNATTRIBUTED:
         # Even a recipe code is nobody's verdict while nothing names whose it is.
         return Disposition.OBSERVE
-    if failure.klass in FAIL_CLASSES or failure.code in RECIPE_FAILURE_CODES:
+    if (
+        failure.klass in FAIL_CLASSES
+        or failure.code in RECIPE_FAILURE_CODES
+        or failure.code in REVIEW_FINAL_CODES
+    ):
         return Disposition.FAIL
     if failure.klass in WAIT_CLASSES:
         return Disposition.WAIT

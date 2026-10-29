@@ -1,11 +1,14 @@
 {
   "source": {
-    "RunSwitchCode": "https://github.com/CarstVaartjes/vonk-forge/blob/fc6059e42edb1b26416fd78493138201f427de96/agent_protocol/src/vonk_agent_protocol/reason_codes/runs.py",
+    "RunSwitchCode": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/agent_protocol/src/vonk_agent_protocol/reason_codes/runs.py",
     "ProfileReasonCode": "https://github.com/CarstVaartjes/vonk-forge/blob/265c24111333757636d616c4e3e46880fd1008e2/agent_protocol/src/vonk_agent_protocol/reason_codes/profiles.py",
     "ErrorDecision": "https://github.com/CarstVaartjes/vonk-forge/blob/265c24111333757636d616c4e3e46880fd1008e2/src/cluster_profiles/error_reporting.py",
     "ProgressAlarmCode": "https://github.com/CarstVaartjes/vonk-forge/blob/bbd1d43c2673c7aee7675d8975c429435a986420/control/src/vonk_control/operation_blockers.py",
     "ModelCacheCode": "https://github.com/CarstVaartjes/vonk-forge/blob/4ae66835229cfe73b288ea2a3bc2cbc0b55c274a/agent_protocol/src/vonk_agent_protocol/reason_codes/model_cache.py",
-    "RunAdmissionCode": "https://github.com/CarstVaartjes/vonk-forge/blob/fc6059e42edb1b26416fd78493138201f427de96/agent_protocol/src/vonk_agent_protocol/lifecycle_vocabulary.py"
+    "RunAdmissionCode": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/agent_protocol/src/vonk_agent_protocol/lifecycle_vocabulary.py",
+    "ResourceBlockerCode": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/agent_protocol/src/vonk_agent_protocol/lifecycle_vocabulary.py",
+    "ProjectionCode": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/agent_protocol/src/vonk_agent_protocol/reason_codes/profiles.py",
+    "ControllerWaitCodes": "https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/control/src/vonk_control/run_admission.py (RETRYABLE_PLAN_BLOCKERS, RUN_ADMISSION_WAIT_CODES), https://github.com/CarstVaartjes/vonk-forge/blob/b2e0070c6ad6b65e35ea9e4221f492be8744b9c7/control/src/vonk_control/run_switch_operations/constants.py (_MEMORY_STOP_CONDITIONAL_REFUSALS)"
   },
   "RunSwitchCode": [
     "gpu-clock.above-default",
@@ -364,5 +367,65 @@
     "run.stale_inventory",
     "run.target_membership_changed",
     "run.unreconciled_lost_rank"
+  ],
+  "ResourceBlockerCode": [
+    "resource.capacity_unknown",
+    "resource.demand_exceeds_capacity",
+    "resource.insufficient",
+    "resource.insufficient_capacity",
+    "resource.insufficient_capacity_after_stop",
+    "resource.insufficient_reservation_budget",
+    "resource.insufficient_swap",
+    "resource.resident_usage_unknown"
+  ],
+  "ProjectionCode": [
+    "cpu.low-clock",
+    "evidence.repeating",
+    "fleet.frame_budget_exceeded",
+    "fleet.frame_encoding_unavailable",
+    "fleet.stored_event_payload_unavailable",
+    "host.desktop-at-boot",
+    "host.desktop-running",
+    "host.display-memory",
+    "host.gpu-clock-uncapped",
+    "host.store-retention",
+    "host.swap-short",
+    "install.partial",
+    "inventory.missing",
+    "inventory.stale",
+    "model.store_layout",
+    "network.nas-route-wifi-no-wired-port",
+    "network.nas-route-wifi-wired-port-down",
+    "network.nas-route-wifi-wired-port-unused",
+    "network.nas-transfer-slow",
+    "node.gpu_requires_reset",
+    "node.gpu_unavailable",
+    "node.offline",
+    "observation.transfer_unavailable",
+    "profile.retrying",
+    "recipe.update_available",
+    "run.degraded",
+    "telemetry.delayed",
+    "telemetry.missing",
+    "telemetry.stale"
+  ],
+  "ControllerWaitCodes": [
+    "node.gpu_requires_reset",
+    "node.gpu_unavailable",
+    "resource.insufficient",
+    "run-switch.resource.insufficient_capacity",
+    "run-switch.resource.insufficient_capacity_after_stop",
+    "run-switch.resource.insufficient_reservation_budget",
+    "run-switch.resource.insufficient_swap",
+    "run-switch.resource.resident_usage_unknown",
+    "run.capacity_busy",
+    "run.insufficient_memory",
+    "run.insufficient_swap",
+    "run.inventory_missing",
+    "run.mapping_not_ready",
+    "run.port_occupied",
+    "run.rendezvous_port_occupied",
+    "run.stale_inventory",
+    "run.target_membership_changed"
   ]
 }
