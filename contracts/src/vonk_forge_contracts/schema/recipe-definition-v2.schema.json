@@ -788,6 +788,25 @@
           "minimum": 0,
           "title": "Reserve Bytes",
           "type": "integer"
+        },
+        "load_peak_bytes": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Load Peak Bytes"
+        },
+        "minimum_swap_bytes": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Minimum Swap Bytes",
+          "type": "integer"
         }
       },
       "required": [
