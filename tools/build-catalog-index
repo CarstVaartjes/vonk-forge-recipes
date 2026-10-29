@@ -31,6 +31,7 @@ def image_diagnostic(diagnostic: InputDiagnostic) -> None:
 
 from qualification.case_assertions import require_valid_case_assertions
 from qualification.definitions_loader import load_definitions
+from qualification.documents import model_display, recipe_display
 from qualification.media_types import require_canonical_recipe_media
 from qualification.memory_need import load_inputs, memory_warnings, require_memory_need
 from qualification.service_aliases import require_valid_service_aliases
@@ -700,7 +701,7 @@ def build(
 ) -> dict[str, Any]:
     package_dir.mkdir(parents=True, exist_ok=True)
     entities = _catalog_entity_documents()
-    from vonk_forge_contracts import ModelDefinition, document_sha256
+    from vonk_forge_contracts import ModelDefinition, document_sha256, published_json
 
     memory_models = {
         document_sha256(document): ModelDefinition.model_validate(document)
@@ -737,6 +738,7 @@ def build(
                 "content_sha256": document_sha256(document),
                 "source_bundle_sha256": metadata["source_bundle_sha256"],
                 "document": document,
+                "display": published_json(recipe_display(path.stem)),
                 "package": metadata,
                 "release": document["release"],
             }
@@ -784,6 +786,7 @@ def build(
             "source_path": f"models/{document['identity']['slug']}.json",
             "content_sha256": document_sha256(document),
             "document": document,
+            "display": published_json(model_display(str(document["identity"]["slug"]))),
         }
         for document in sorted(
             entities.values(), key=lambda item: str(item["identity"]["slug"])

@@ -14,6 +14,7 @@ from typing import ClassVar, Protocol, cast
 from unittest import mock
 
 from catalog_documents import catalog_models, model_digest
+from documents import model_display
 from vonk_forge_contracts.model import ModelDefinition
 from vonk_forge_contracts.recipe import RecipeDefinition
 from vonk_forge_contracts.resolver import (
@@ -549,7 +550,10 @@ class LabelEncoder:
             "weights", {role for item in clip.files for role in item.roles}
         )
         self.assertEqual(clip.license.spdx, "MIT")
-        self.assertIn("cautions against deployed use", clip.metadata.description)
+        self.assertIn(
+            "cautions against deployed use",
+            model_display(clip.identity.slug).description,
+        )
 
         sdxl = models[("stabilityai", "stable-diffusion-xl-base-1-0")]
         self.assertEqual(

@@ -50,6 +50,7 @@ from vonk_forge_contracts.recipe import RecipeBuildDefinition
 
 from qualification.catalog_source import current_catalog_package_tree
 from qualification.coverage_identity import execution_stack_identity
+from qualification.documents import model_display
 
 RECIPE_DIRECTORY = ROOT / "recipes"
 MODEL_DIRECTORY = ROOT / "models"
@@ -335,7 +336,7 @@ def _row(
                 "key": model_key,
                 "selection": selection.id,
                 "family": model.identity.family.slug,
-                "family_title": model.identity.family.title,
+                "family_title": model_display(model.identity.slug).family_title,
                 "model": model.identity.model.slug,
                 "variant": model.identity.variant,
                 "precision": model.format.precision,

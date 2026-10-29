@@ -16,6 +16,16 @@ from __future__ import annotations
 
 from ._version import __version__
 from .canonical import canonical_json, document_sha256, read_model, read_recipe
+from .display import (
+    ModelDisplay,
+    ModelDisplayIdentity,
+    RecipeDisplay,
+    model_display_of,
+    published_json,
+    read_model_display,
+    read_recipe_display,
+    recipe_display_of,
+)
 from .endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 from .model import (
     GitHubLfsSource,
@@ -77,6 +87,8 @@ __all__ = [
     "GitHubReleaseAsset",
     "GitHubReleaseSource",
     "ModelDefinition",
+    "ModelDisplay",
+    "ModelDisplayIdentity",
     "PublishedQualificationStatusView",
     "QualificationAuthority",
     "QualificationBatch",
@@ -101,6 +113,7 @@ __all__ = [
     "QualificationUnverifiedReason",
     "RecipeAuthorityRow",
     "RecipeDefinition",
+    "RecipeDisplay",
     "RecipeOptionError",
     "RecipeQualificationEvidence",
     "RecoveryCoverage",
@@ -112,12 +125,17 @@ __all__ = [
     "canonical_json",
     "derive_status",
     "document_sha256",
+    "model_display_of",
+    "published_json",
     "published_qualification_status_json_schema",
     "published_status",
     "qualification_evidence_json_schema",
     "qualification_status_json_schema",
     "read_model",
+    "read_model_display",
     "read_recipe",
+    "read_recipe_display",
+    "recipe_display_of",
     "recovery_coverage_id",
 ]
 
@@ -139,4 +157,24 @@ def recipe_json_schema() -> dict[str, object]:
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v2.schema.json",
         **RecipeDefinition.model_json_schema(ref_template="#/$defs/{model}"),
+    }
+
+
+def recipe_display_json_schema() -> dict[str, object]:
+    """Return the generated JSON Schema for :class:`RecipeDisplay`."""
+
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-display-v2.schema.json",
+        **RecipeDisplay.model_json_schema(ref_template="#/$defs/{model}"),
+    }
+
+
+def model_display_json_schema() -> dict[str, object]:
+    """Return the generated JSON Schema for :class:`ModelDisplay`."""
+
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://api.vonkforge.ai/contracts/model-display-v2.schema.json",
+        **ModelDisplay.model_json_schema(ref_template="#/$defs/{model}"),
     }

@@ -5,6 +5,7 @@ import json
 import unittest
 from pathlib import Path
 
+from documents import display_of
 from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,9 +34,7 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
         for slug, nodes in RECIPES.items():
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             self.assertEqual(recipe["topology"]["node_count"], nodes)
-            self.assertTrue(
-                {"candidate", "executable"} <= set(recipe["metadata"]["tags"])
-            )
+            self.assertTrue({"candidate", "executable"} <= set(display_of(recipe).tags))
             self.assertTrue(recipe["models"])
 
     def test_per_node_disk_envelopes_are_bounded(self) -> None:

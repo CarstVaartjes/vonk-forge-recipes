@@ -6,6 +6,7 @@ import runpy
 import unittest
 from pathlib import Path
 
+from documents import display_of
 from generated_catalog import GENERATED
 
 from tools.protocol_wheel import selection
@@ -44,9 +45,7 @@ class LtxNative14RefreshTests(unittest.TestCase):
     def test_historical_recipes_keep_explicit_candidate_metadata(self) -> None:
         for slug in RECIPES:
             recipe = load(ROOT / "recipes" / f"{slug}.json")
-            self.assertTrue(
-                {"executable", "candidate"} <= set(recipe["metadata"]["tags"])
-            )
+            self.assertTrue({"executable", "candidate"} <= set(display_of(recipe).tags))
             self.assertTrue(recipe["models"])
             self.assertEqual(recipe["topology"]["node_count"], 1)
 

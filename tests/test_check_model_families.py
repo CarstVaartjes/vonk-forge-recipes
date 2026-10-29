@@ -17,18 +17,22 @@ sys.modules[LOADER.name] = families
 LOADER.exec_module(families)
 
 
+EXAMPLE = json.loads(
+    (
+        ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json"
+    ).read_text()
+)
+
+
 def _write(root: Path, name: str, publisher: str, family: dict[str, str]) -> None:
     (root / "models").mkdir(exist_ok=True)
-    document = {
-        "identity": {
-            "publisher": publisher,
-            "slug": f"{name}-aaaaaaaa",
-            "family": family,
-            "model": {"publisher": publisher, "slug": name, "title": name},
-            "version": "1",
-            "variant": "x",
-        }
-    }
+    document = json.loads(json.dumps(EXAMPLE))
+    document["identity"].update(
+        publisher=publisher,
+        slug=name,
+        family=family,
+        model={"publisher": publisher, "slug": name, "title": name},
+    )
     (root / "models" / f"{name}.json").write_text(json.dumps(document))
 
 
@@ -45,11 +49,11 @@ def test_republished_checkpoints_share_one_family(tmp_path: Path) -> None:
 
 def test_one_slug_cannot_mean_two_families(tmp_path: Path) -> None:
     _write(
-        tmp_path, "a", "qwen", {"publisher": "qwen", "slug": "qwen", "title": "Qwen"}
+        tmp_path, "aa", "qwen", {"publisher": "qwen", "slug": "qwen", "title": "Qwen"}
     )
     _write(
         tmp_path,
-        "b",
+        "bb",
         "nvidia",
         {"publisher": "nvidia", "slug": "qwen", "title": "NVIDIA Qwen"},
     )

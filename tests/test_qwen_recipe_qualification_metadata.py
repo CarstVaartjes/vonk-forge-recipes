@@ -4,6 +4,8 @@ import json
 import unittest
 from pathlib import Path
 
+from documents import display_of
+
 ROOT = Path(__file__).resolve().parents[1]
 QWEN_RECIPES = {
     "qwen3-5-9b-vllm-single",
@@ -27,18 +29,18 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
         for slug in sorted(QWEN_RECIPES):
             with self.subTest(recipe=slug):
                 recipe = _recipe(slug)
-                tags = set(recipe["metadata"]["tags"])
+                tags = set(display_of(recipe).tags)
                 self.assertTrue(
                     {"multimodal", "vision", "text-qualified", "vision-unproven"}
                     <= tags
                 )
                 self.assertIn(
                     "Current qualification proves bounded text chat only",
-                    recipe["metadata"]["description"],
+                    display_of(recipe).description,
                 )
                 self.assertIn(
                     "vision serving remains unproven on Spark",
-                    recipe["metadata"]["description"],
+                    display_of(recipe).description,
                 )
                 checks = recipe["validation"]["serving"]["checks"]
                 self.assertEqual(
@@ -55,8 +57,8 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
                 )
 
     def test_qwen38_fp8_is_preferred_dense_default(self) -> None:
-        preferred = set(_recipe("qwen3-8-27b-fp8-vllm-single")["metadata"]["tags"])
-        older_dense = set(_recipe("qwen3-6-27b-vllm-single")["metadata"]["tags"])
+        preferred = set(display_of(_recipe("qwen3-8-27b-fp8-vllm-single")).tags)
+        older_dense = set(display_of(_recipe("qwen3-6-27b-vllm-single")).tags)
 
         self.assertTrue({"preferred-dense", "default"} <= preferred)
         self.assertNotIn("superseded", preferred)
@@ -67,7 +69,7 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
             "qwen3-8-27b-nvfp4-dspark-sglang-single",
         ):
             with self.subTest(alternative=alternative):
-                tags = set(_recipe(alternative)["metadata"]["tags"])
+                tags = set(display_of(_recipe(alternative)).tags)
                 self.assertTrue({"preferred-dense", "default"}.isdisjoint(tags))
 
 

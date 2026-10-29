@@ -8,6 +8,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts/src"))
+from documents import display_of
 from vonk_forge_contracts import RecipeDefinition, RecipeOptionError, document_sha256
 
 HY3 = ROOT / "recipes/hy3-295b-nvfp4-mtp-tonyd2wild-vllm-dual.json"
@@ -98,7 +99,7 @@ class RecipeRefreshRepairTests(unittest.TestCase):
 
         declared = recipe["topology"]["roles"][0]["resources"]["disk"]["artifact_bytes"]
         self.assertEqual(declared, total_artifact_bytes)
-        self.assertIn("vLLM 0.25.0 or later", recipe["metadata"]["description"])
+        self.assertIn("vLLM 0.25.0 or later", display_of(recipe).description)
 
 
 if __name__ == "__main__":

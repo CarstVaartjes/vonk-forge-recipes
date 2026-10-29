@@ -6,6 +6,8 @@ import json
 import unittest
 from pathlib import Path
 
+from documents import display_of
+
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE = (
     "docker.io/vllm/vllm-openai@sha256:"
@@ -67,7 +69,7 @@ class Vllm028MigrationTests(unittest.TestCase):
         recipe = load("recipes/gemma-4-26b-a4b-vllm-single.json")
         dockerfile = (ROOT / "adapters/llm/vllm-openai/Dockerfile").read_text()
         self.assertIn("ced6857afa0ea7b2e3f0846a62e1394e90f15607", dockerfile)
-        self.assertIn("tool-use", recipe["metadata"]["tags"])
+        self.assertIn("tool-use", display_of(recipe).tags)
         arguments = {
             argument["name"]: argument["value"]
             for argument in recipe["runtime"]["arguments"]

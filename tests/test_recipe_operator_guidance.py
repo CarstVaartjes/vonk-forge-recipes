@@ -4,6 +4,8 @@ import json
 import unittest
 from pathlib import Path
 
+from documents import display_of
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -19,7 +21,7 @@ def _slot(recipe: dict[str, object], direction: str, slot_id: str) -> dict[str, 
 class RecipeOperatorGuidanceTests(unittest.TestCase):
     def test_wan_default_preserves_memory_headroom(self) -> None:
         recommended = _recipe("wan-2-2-ti2v-5b-comfyui-single")
-        recommended_tags = set(recommended["metadata"]["tags"])
+        recommended_tags = set(display_of(recommended).tags)
         self.assertGreaterEqual(
             recommended_tags, {"recommended", "default", "memory-headroom"}
         )
@@ -34,7 +36,7 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
         ):
             with self.subTest(slug=slug):
                 recipe = _recipe(slug)
-                tags = set(recipe["metadata"]["tags"])
+                tags = set(display_of(recipe).tags)
                 self.assertGreaterEqual(
                     tags, {"memory-tight", "physical-oom-gated", "not-default"}
                 )
@@ -47,7 +49,7 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
         for slug in ("skintokens-pytorch-single", "triposg-pytorch-single"):
             with self.subTest(slug=slug):
                 recipe = _recipe(slug)
-                tags = set(recipe["metadata"]["tags"])
+                tags = set(display_of(recipe).tags)
                 self.assertGreaterEqual(
                     tags,
                     {
@@ -58,7 +60,7 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
                         "physical-acceptance-required",
                     },
                 )
-                description = recipe["metadata"]["description"].lower()
+                description = display_of(recipe).description.lower()
                 self.assertIn("not accepted", description)
                 self.assertIn("build", description)
                 self.assertIn("physical", description)
@@ -68,7 +70,7 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
         texture = _recipe("step1x-3d-texture-pytorch-single")
         texture_mesh = _slot(texture, "input", "mesh")
         self.assertEqual(texture_mesh["max_file_bytes"], 240 * 1024 * 1024)
-        self.assertIn("accepts-step1x-geometry", texture["metadata"]["tags"])
+        self.assertIn("accepts-step1x-geometry", display_of(texture).tags)
 
         for slug in (
             "step1x-3d-geometry-pytorch-single",
@@ -83,14 +85,14 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
                 self.assertEqual(
                     geometry_mesh["extensions"], texture_mesh["extensions"]
                 )
-                description = geometry["metadata"]["description"]
+                description = display_of(geometry).description
                 self.assertIn(
                     "vonk-forge/step1x-3d-texture-pytorch-single", description
                 )
                 self.assertIn("up to 240 MiB", description)
-                self.assertIn("next-step-texture", geometry["metadata"]["tags"])
+                self.assertIn("next-step-texture", display_of(geometry).tags)
 
-        texture_description = texture["metadata"]["description"]
+        texture_description = display_of(texture).description
         self.assertIn(
             "vonk-forge/step1x-3d-geometry-pytorch-single", texture_description
         )
@@ -102,9 +104,9 @@ class RecipeOperatorGuidanceTests(unittest.TestCase):
 
     def test_ui_mate_is_described_as_a_non_actuating_proposal_interface(self) -> None:
         recipe = _recipe("ui-mate-27b-vllm-single")
-        tags = set(recipe["metadata"]["tags"])
+        tags = set(display_of(recipe).tags)
         self.assertGreaterEqual(tags, {"action-proposal", "human-approval-required"})
-        description = recipe["metadata"]["description"].lower()
+        description = display_of(recipe).description.lower()
         self.assertIn("non-actuating", description)
         self.assertIn("approve", description)
         self.assertIn("execute actions externally", description)

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from documents import recipe_display
 from vonk_forge_contracts import (
     QualificationBlame,
     QualificationCauseCode,
@@ -180,7 +181,7 @@ def test_mosaic_failure_has_honest_demand_without_retuning_siblings() -> None:
     )
     need = calculate_need(recipe, catalog_models(), load_inputs())
     assert need.total_bytes == 119_501_146_944 > need.limit_bytes == 108_470_788_096
-    assert "does-not-fit" in recipe.metadata.tags
+    assert "does-not-fit" in recipe_display(recipe.identity.slug).tags
     assert all(
         role.resources.memory.peak_bytes >= need.total_bytes
         for role in recipe.topology.roles

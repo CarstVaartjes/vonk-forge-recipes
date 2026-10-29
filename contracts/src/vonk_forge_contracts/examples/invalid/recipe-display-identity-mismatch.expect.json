@@ -1,0 +1,4 @@
+{
+  "contract": "RecipeDisplayOfDocument",
+  "error_contains": "identity differs from its document"
+}
