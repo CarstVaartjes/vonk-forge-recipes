@@ -380,8 +380,8 @@ reserves the declared peak. `tests/test_absolute_kv_capacity.py` replays the rec
 failures and must reject each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
 multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
-startup budget whose fraction of physical memory plus runtime overhead fits the
-smallest role peak: vLLM checks it against free memory before loading weights.
+startup budget whose fraction of physical memory fits every role peak: vLLM
+checks free memory ≥ utilization × total before loading weights.
 
 An absolute pool must also hold one request at the declared context (or the
 pinned model default when the engine context is omitted/automatic), including block rounding, packed scales
