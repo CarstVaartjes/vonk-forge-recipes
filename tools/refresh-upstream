@@ -2963,6 +2963,15 @@ def verify_steps() -> list[tuple[str, list[str]]]:
             ],
         ),
         (
+            "document reads",
+            [
+                sys.executable,
+                "tools/check-document-reads",
+                "--base",
+                "origin/main",
+            ],
+        ),
+        (
             "full test suite",
             [
                 sys.executable,
