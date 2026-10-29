@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint, running tonyd2wild's published image ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 (the v1-v9 SM121 patch stack and DFlash2 overlay of his 2ac4e8d kit on the vLLM CUDA 13 day-0 image), the tag the kit's own 1M-context launcher runs, pinned by digest and not rebuilt from the kit's sources; a thin layer adds the Controller's launcher, the kit's SM121 indexer patch (which its launcher bind-mounts at run time) and its multimodal chat template. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary; the source profile is 1M context, 64 sequences, 16K batched tokens, 24 GiB FP8 E4M3 KV, Marlin, DFlash2 K7, and FULL_AND_PIECEWISE graphs. This is upstream's retained 1M-context fp8/marlin lane with the LibertAI Model; the upstream README's default is now a locally built nvidia-based 500K lane that needs local weight quantization and patched vLLM files, and is not packaged here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.85) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
+    "description": "Executable Candidate native TP4 recipe for LibertAI's calibrated 181 GiB GLM 5.3 Flash NVFP4 multimodal checkpoint, running tonyd2wild's published image ghcr.io/tonyd2wild/vllm-glm53-flash:sm121-v11-dflash2 (the v1-v9 SM121 patch stack and DFlash2 overlay of his 2ac4e8d kit on the vLLM CUDA 13 day-0 image), the tag the kit's own 1M-context launcher runs, pinned by digest and not rebuilt from the kit's sources; a thin layer adds the Controller's launcher, the kit's SM121 indexer patch (which its launcher bind-mounts at run time) and its multimodal chat template. Its exact four-rank topology is unsupported on Vonk's current one- or two-Spark configuration and remains installable only for a future scale canary; the source profile is 1M context, 64 sequences, 16K batched tokens, 24 GiB FP8 E4M3 KV, Marlin, DFlash2 K7, and FULL_AND_PIECEWISE graphs. This is upstream's retained 1M-context fp8/marlin lane with the LibertAI Model; the upstream README's default is now a locally built nvidia-based 500K lane that needs local weight quantization and patched vLLM files, and is not packaged here. Memory follows the creator's settings: gpu-memory-utilization 0.85 beside the 24 GiB (25,769,803,776-byte) FP8 KV pool per rank, as in tonyd2wild's launch-glm53-tp4-24g.sh at 2ac4e8dd (lines 86 and 98). The per-node peak is 0.85 x 130,663,231,488 bytes plus 8 GB, the free memory vLLM checks at startup beside the pinned pool; the reserve is 8 GB, with a separate 6 GB OS floor. Upstream requires swap to exist but not be used (vm.swappiness=0).",
     "tags": [
       "executable",
       "candidate",
@@ -1580,7 +1580,7 @@
   },
   "release": {
     "released_at": "2026-09-21",
-    "version": "1.3.4"
+    "version": "1.3.5"
   },
   "runtime": {
     "arguments": [
@@ -1607,7 +1607,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.6"
+        "value": "0.85"
       },
       {
         "name": "max-model-len",
@@ -1803,7 +1803,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 103397938893,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }
@@ -1820,7 +1820,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 103397938893,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }
