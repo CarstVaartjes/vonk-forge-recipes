@@ -543,10 +543,37 @@ SWAP_SHORT = "swap-short"
 SWAP_WAIT_CODES = frozenset(
     {"run-switch.resource.insufficient_swap", "run.insufficient_swap"}
 )
+#: The Controller says the same request fails the same way and ends on its first occurrence
+#: (``ResourceBlockerCode`` docstring, agent_protocol lifecycle_vocabulary.py: "demand_exceeds_capacity
+#: ... the same request fails the same way and ends on its first occurrence"). The only words
+#: a review may fail on; add one only with such a citation. Every other review blocker waits.
+FIT = "fit"
+REVIEW_FINAL_CODES = frozenset(
+    {"resource.demand_exceeds_capacity", "run-switch.resource.demand_exceeds_capacity"}
+)
+#: The memory family a clearing or an eviction can answer: observed, never a verdict by itself
+#: (``ResourceBlockerCode`` docstring: "Those are waits: a claim, a stop or a fresh inventory
+#: can free the memory"; ``_MEMORY_STOP_CONDITIONAL_REFUSALS`` names the same words).
+CAPACITY_CODES = frozenset(
+    {
+        "run-switch.resource.insufficient",
+        "run-switch.resource.insufficient_capacity",
+        "run-switch.resource.insufficient_capacity_after_stop",
+        "run.insufficient_memory",
+    }
+)
+#: A Controller blocker the sweep has no verdict for: the Controller owns the wait and the
+#: sweep re-reviews later. Never a recipe's verdict, never a deferral.
+CONTROLLER_WAIT = "controller-wait"
+#: Wrappers that always travel with the blocker that says why.
+_WRAPPER_CODES = frozenset(
+    {"run-switch.run_admission_blocked", "run-switch.run_admission_unavailable"}
+)
 _CODE_CLASSES = {
     **RECIPE_FAILURE_CODES,
     **dict.fromkeys(SWAP_WAIT_CODES, SWAP_SHORT),
-    "run-switch.resource.insufficient_capacity": "capacity",
+    **dict.fromkeys(CAPACITY_CODES, "capacity"),
+    **dict.fromkeys(REVIEW_FINAL_CODES, FIT),
     "storage.insufficient_capacity": "capacity",
     "controller.transport_timeout": "network",
 }
@@ -875,7 +902,7 @@ def classify(
     if phase == "smoke" and klass == "network":
         klass = "smoke-timeout"
     if not klass:
-        klass = {"smoke": "smoke", "review": "fit"}.get(phase, phase)
+        klass = {"smoke": "smoke", "review": CONTROLLER_WAIT}.get(phase, phase)
     signature = f"{phase}|{klass}|{code or '-'}|{_normalise(detail)}"
     cluster = hashlib.sha1(signature.encode()).hexdigest()[:10]
     proof: dict[str, Any] = {
@@ -964,3 +991,26 @@ def supersession(document: Mapping[str, Any]) -> Supersession | None:
         return None
     successor = document.get("superseded_by")
     return Supersession(successor if isinstance(successor, str) and successor else None)
+
+
+def review_blocker(
+    blockers: Sequence[tuple[str, str]], preparation: Collection[str] = ()
+) -> tuple[str, str]:
+    """The (code, detail) that decides a refused review, over the whole blocker set.
+
+    The Controller sorts blockers by code, so the first is the alphabetically first word,
+    not the cause. A final word wins, then the memory family, then a preparation, then a swap
+    wait, then the first word that is not a wrapper. The detail joins every blocker.
+    """
+    if not blockers:
+        return "review.blocked", ""
+    detail = "; ".join(f"{code}: {text}".strip(": ") for code, text in blockers)
+    final = RECIPE_FAILURE_CODES.keys() | REVIEW_FINAL_CODES
+    for group in (final, CAPACITY_CODES, preparation, SWAP_WAIT_CODES):
+        for code, _ in blockers:
+            if code in group:
+                return code, detail
+    for code, _ in blockers:
+        if code not in _WRAPPER_CODES:
+            return code, detail
+    return blockers[0][0], detail

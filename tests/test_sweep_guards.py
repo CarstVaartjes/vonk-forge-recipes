@@ -12,13 +12,16 @@ from __future__ import annotations
 
 import ast
 import json
+import re
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 from spark_sweep import policy, verdict
 from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING
+from spark_sweep.verdict import Disposition
 
 ROOT = Path(__file__).resolve().parents[1]
 SWEEP = [*sorted((ROOT / "spark_sweep").glob("*.py")), ROOT / "tools/sweep-recipes"]
@@ -453,10 +456,55 @@ def test_verdict_codes_match_the_published_enums() -> None:
         verdict.NAS_SPACE_CODE,
         *verdict.PREPARATION_CODES,
         *policy.SWAP_WAIT_CODES,
+        *policy.REVIEW_FINAL_CODES,
+        *policy.CAPACITY_CODES,
         *verdict.CLIENT_WAIT_DECISIONS,
         verdict.CLIENT_EXIT_DECISION,
     }
     assert used <= words, sorted(used - words)
+
+
+def _vocabulary() -> dict[str, Any]:
+    return json.loads((ROOT / "tests/fixtures/sweep-vocabulary.json").read_text())
+
+
+_BLOCKER_LISTS = (
+    "RunSwitchCode",
+    "RunAdmissionCode",
+    "ResourceBlockerCode",
+    "ProjectionCode",
+)
+
+
+def test_the_vocabulary_sources_pin_a_vonk_forge_commit() -> None:
+    for name, url in _vocabulary()["source"].items():
+        assert re.search(r"/blob/[0-9a-f]{40}/", url), f"{name}: pin the source commit"
+
+
+def test_every_code_class_word_is_a_published_word_or_named_here() -> None:
+    published = {w for n in _BLOCKER_LISTS for w in _vocabulary()[n]}
+    # Not vonk-forge words: the sweep's own download-space and transport classes.
+    own = {"storage.insufficient_capacity", "controller.transport_timeout"}
+    keys = set(policy._CODE_CLASSES) - set(policy.RECIPE_FAILURE_CODES) - own
+    assert keys <= published, sorted(keys - published)
+
+
+def test_the_sweep_never_fails_what_the_controller_retries() -> None:
+    waits = set(_vocabulary()["ControllerWaitCodes"])
+    assert waits
+    assert not policy.REVIEW_FINAL_CODES & waits
+    for word in sorted(waits):
+        got = verdict.disposition(policy.classify("review", word, "x"))
+        assert got is not Disposition.FAIL, word
+
+
+@pytest.mark.parametrize(
+    "word", sorted({w for n in _BLOCKER_LISTS for w in _vocabulary()[n]})
+)
+def test_every_published_blocker_word_waits_unless_declared_final(word: str) -> None:
+    got = verdict.disposition(policy.classify("review", word, "x"))
+    if got is Disposition.FAIL:
+        assert word in policy.REVIEW_FINAL_CODES | policy.RECIPE_FAILURE_CODES.keys()
 
 
 def dig_counts() -> dict[str, int]:

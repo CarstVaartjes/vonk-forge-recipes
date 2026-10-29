@@ -191,7 +191,9 @@ def test_a_missing_build_beside_another_lanes_disk_blocker_is_a_wait_not_a_verdi
     entry_a = sweep.state.entry(lane_a.recipe.key)
     assert sweep.state.status(lane_a.recipe.key) != "failed"
     assert entry_a["defer_until"] > clock.now()
-    assert sweep.state.entry(lane_b.recipe.key)["attempts"] == 1  # as before: recorded
+    # a Controller blocker the sweep has no verdict for is a wait too: no attempt spent
+    assert sweep.state.entry(lane_b.recipe.key).get("attempts", 0) == 0
+    assert sweep.state.status(lane_b.recipe.key) == "pending"
     assert entry_a.get("attempts", 0) == 0
 
 

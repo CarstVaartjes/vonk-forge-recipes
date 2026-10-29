@@ -1480,7 +1480,16 @@ class Sweep:
         for key, entry in self.state.recipes.items():
             if (
                 entry.get("status") == RecipeStatus.DEFERRED
-                and entry.get("failure_class") in verdict.OBSERVE_CLASSES
+                and (
+                    entry.get("failure_class") in verdict.OBSERVE_CLASSES
+                    # A review refusal the sweep once ended as a fit verdict: only the
+                    # Controller's final words still do (the rest are its waits).
+                    or (
+                        entry.get("phase") == "review"
+                        and entry.get("failure_class") == policy.FIT
+                        and entry.get("code") not in verdict.REVIEW_VERDICT_CODES
+                    )
+                )
                 and self._selected_key(key)
             ):
                 # A saved count-exhausted uncertainty still has an owner on restart.
@@ -4550,6 +4559,8 @@ class Sweep:
                 if isinstance(decision, dict) and decision.get("allowed") is True
             }
             remaining = [p for alias, p in aliases.items() if alias in admitted]
+            for placement in remaining:
+                self._clear_review_wait(self.state.entry(placement.recipe.key))
             if remaining and len(remaining) < len(added):
                 # A rejected batch accepted nothing. Re-plan the smaller set,
                 # including a fresh review and binding, so one held Spark cannot
@@ -4557,6 +4568,8 @@ class Sweep:
                 self._apply(remaining, now)
             return
         self.clear_infra("review")
+        for placement in added:
+            self._clear_review_wait(self.state.entry(placement.recipe.key))
         seq = int(self.state.data["load_seq"]) + 1
         key = request_key(
             "sweep-load",
@@ -4922,9 +4935,8 @@ class Sweep:
         for placement in blocked:
             key = placement.recipe.key
             entry = self.state.entry(key)
-            code, detail = reasons.get(
-                self._alias(placement.recipe), [("review.blocked", "")]
-            )[0]
+            blockers = reasons.get(self._alias(placement.recipe), [])
+            code, detail = policy.review_blocker(blockers, verdict.PREPARATION_CODES)
             # A preparation (build, image, download) the Controller has not finished is a
             # wait, never a verdict: the next review (alone, or with lanes that fit) takes the
             # wait-for-preparation path. A busy lane may hold the room: wait for it too.
@@ -4998,8 +5010,49 @@ class Sweep:
                     failure,
                     evidence={**failure.evidence, "freeing_attempts": freeing},
                 )
+            if verdict.disposition(failure) is Disposition.WAIT:
+                codes = tuple(sorted({c for c, _ in blockers}))
+                self._watch_review_wait(key, entry, placement, failure, codes, now)
+            elif verdict.disposition(failure) is Disposition.FAIL:
+                self._clear_review_wait(entry)
             # Only the observed demand, never a clearing count, can settle capacity.
             self._record_failure(key, failure, None, document=document)
+
+    def _watch_review_wait(
+        self,
+        key: str,
+        entry: dict[str, Any],
+        placement: policy.Placement,
+        failure: policy.Failure,
+        codes: tuple[str, ...],
+        now: float,
+    ) -> None:
+        """A review wait is never silent: the same blocker words past ``idle_alert_seconds``
+        are an escalation (informational; it pauses nothing and ends nothing). The detail
+        carries live readings, so only the codes are the signature; it is the alarm text."""
+        watch = entry.setdefault("review_watch", {})
+        identity = placement.recipe.content_sha256
+        if watch.get("content_sha256") != identity:
+            self._clear_review_wait(entry)
+            watch = entry.setdefault("review_watch", {"content_sha256": identity})
+        signal = verdict.Signal(signature=codes)
+        progress = verdict.progress_verdict(
+            signal, watch, window=self.cfg.idle_alert_seconds, now=now
+        )
+        if progress is Progress.STALLED:
+            source = f"{verdict.REVIEW_WAIT_SOURCE}:{failure.code}"
+            if watch.get("source") not in (None, source):
+                self.clear_infra(watch["source"])
+            watch["source"] = source
+            self.note_infra(
+                source, failure.detail, dependency=failure.detail, escalated=True
+            )
+
+    def _clear_review_wait(self, entry: dict[str, Any]) -> None:
+        """Admission, a content change or a final verdict ends a review wait's alarm and watch."""
+        watch = entry.pop("review_watch", None)
+        if isinstance(watch, dict) and watch.get("source"):
+            self.clear_infra(watch["source"])
 
     def _beyond_idle_spark(self, document: Mapping[str, Any], alias: str) -> bool:
         """The Controller's own demand for a node, with its reserve, exceeds that Spark's
@@ -5018,7 +5071,12 @@ class Sweep:
         return False
 
     def note_infra(
-        self, source: str, message: str, *, dependency: str | None = None
+        self,
+        source: str,
+        message: str,
+        *,
+        dependency: str | None = None,
+        escalated: bool = False,
     ) -> None:
         """Pause that kind of work, preserving retry history until its predicate passes."""
         now = self.clock.now()
@@ -5035,7 +5093,9 @@ class Sweep:
         if dependency is not None:
             item.dependency = dependency
             if item.escalate_at is None:
-                item.escalate_at = item.since + self.cfg.idle_alert_seconds
+                item.escalate_at = item.since + (
+                    0 if escalated else self.cfg.idle_alert_seconds
+                )
         item.until = now + min(INFRA_BASE * 2 ** min(item.count - 1, 20), INFRA_CAP)
         self.state.data["infra"][source] = item.model_dump(exclude_none=True)
         if source == "download":
