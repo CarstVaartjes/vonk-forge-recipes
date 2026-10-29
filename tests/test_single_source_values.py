@@ -79,6 +79,27 @@ def test_rejects_protocol_wheel_family() -> None:
             assert all("selection.json" in str(issue) for issue in issues)
 
 
+def test_vendored_upstream_bytes_are_not_our_memory_policy(tmp_path: Path) -> None:
+    from tools.single_source_values import upstream_files
+
+    base = "adapters/x/"
+    (tmp_path / base).mkdir(parents=True)
+    (tmp_path / base / "vendored-upstream.json").write_text(
+        '{"ours": ["wrapper.py", "serve/ours/"]}'
+    )
+    files = [
+        base + name
+        for name in (
+            "vendored-upstream.json",
+            "Dockerfile",
+            "wrapper.py",
+            "serve/ours/a.py",
+            "serve/kernel.py",
+        )
+    ]
+    assert upstream_files(tmp_path, files) == {base + "serve/kernel.py"}
+
+
 def test_unrelated_package_version_is_not_recipe_contract_version() -> None:
     registration = Registration(
         semantic_id="test.version",
@@ -107,9 +128,7 @@ def test_memory_guard_normalizes_expressions_and_preserves_other_domains(
         kind=ValueKind.MEMORY_BYTES,
     )
     forms = [str(value), f"{value:_}", f"{value} / 2 * 2"]
-    if symbol == "OS_FLOOR_BYTES":
-        forms += [f"{value // 1000**3} * 1000**3", f'"{value // 1000**3}GB"']
-    if symbol == "GUARD_BYTES":
+    if symbol in {"OS_FLOOR_BYTES", "GUARD_BYTES"}:
         forms += [f"{value // 1024**3} * 1024**3", f'"{value // 1024**3}GiB"']
     for expression in forms:
         assert scan_source(
