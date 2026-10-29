@@ -106,6 +106,8 @@ class FakeRecipe:
         False  # the blocker does not say which assignment it is about
     )
     fail_load: str | None = None  # status reason of a failed load
+    load_peak: int | None = None  # the role's declared load peak
+    minimum_swap: int = 0  # the role's declared minimum swap
     fail_phase: str = "runtime-install"
     fail_download: str | None = None
     fail_download_code: str = "model.download_failed"
@@ -430,6 +432,8 @@ class FakeFleet:
         self.max_assignments: int | None = None  # the contract's $.assignments maxItems
         self.flaky_fleet_reads = 0  # fleet reads that show the second Spark not online
         self.fleet_reads = 0
+        # node id -> (swap total, swap free) bytes in the fleet document; absent: unreported
+        self.swap: dict[str, tuple[int, int]] = {}
         self.stale_loads = 0  # loads answered with the profile's previous application
         self.supersede: list[
             str
@@ -928,7 +932,18 @@ class FakeFleet:
                 ],
                 "topology": {
                     "node_count": r.node_count,
-                    "roles": [{"resources": {"disk": {"artifact_bytes": 20 * GB}}}],
+                    "roles": [
+                        {
+                            "resources": {
+                                "disk": {"artifact_bytes": 20 * GB},
+                                "memory": {
+                                    "peak_bytes": r.memory,
+                                    "load_peak_bytes": r.load_peak,
+                                    "minimum_swap_bytes": r.minimum_swap,
+                                },
+                            }
+                        }
+                    ],
                 },
                 "base_image_digest": f"base-{r.engine}",
                 "source_bundle_sha256": None,
@@ -1158,6 +1173,18 @@ class FakeFleet:
                     "inventory": {
                         "host_memory_total_bytes": SPARK_MEMORY,
                         "disk_free_bytes": 10**12,
+                        **(
+                            {
+                                "host_settings": {
+                                    "swap": {
+                                        "total_bytes": self.swap[node_id][0],
+                                        "free_bytes": self.swap[node_id][1],
+                                    }
+                                }
+                            }
+                            if node_id in self.swap
+                            else {}
+                        ),
                     },
                     "loaded": loaded,
                     "telemetry": {

@@ -1,12 +1,15 @@
 {
   "source": {
-    "RunSwitchCode": "https://github.com/CarstVaartjes/vonk-forge/blob/265c24111333757636d616c4e3e46880fd1008e2/agent_protocol/src/vonk_agent_protocol/reason_codes/runs.py",
+    "RunSwitchCode": "https://github.com/CarstVaartjes/vonk-forge/blob/fc6059e42edb1b26416fd78493138201f427de96/agent_protocol/src/vonk_agent_protocol/reason_codes/runs.py",
     "ProfileReasonCode": "https://github.com/CarstVaartjes/vonk-forge/blob/265c24111333757636d616c4e3e46880fd1008e2/agent_protocol/src/vonk_agent_protocol/reason_codes/profiles.py",
     "ErrorDecision": "https://github.com/CarstVaartjes/vonk-forge/blob/265c24111333757636d616c4e3e46880fd1008e2/src/cluster_profiles/error_reporting.py",
     "ProgressAlarmCode": "https://github.com/CarstVaartjes/vonk-forge/blob/bbd1d43c2673c7aee7675d8975c429435a986420/control/src/vonk_control/operation_blockers.py",
-    "ModelCacheCode": "https://github.com/CarstVaartjes/vonk-forge/blob/4ae66835229cfe73b288ea2a3bc2cbc0b55c274a/agent_protocol/src/vonk_agent_protocol/reason_codes/model_cache.py"
+    "ModelCacheCode": "https://github.com/CarstVaartjes/vonk-forge/blob/4ae66835229cfe73b288ea2a3bc2cbc0b55c274a/agent_protocol/src/vonk_agent_protocol/reason_codes/model_cache.py",
+    "RunAdmissionCode": "https://github.com/CarstVaartjes/vonk-forge/blob/fc6059e42edb1b26416fd78493138201f427de96/agent_protocol/src/vonk_agent_protocol/lifecycle_vocabulary.py"
   },
   "RunSwitchCode": [
+    "gpu-clock.above-default",
+    "gpu-clock.invalid",
     "run-switch.active-run-conflict",
     "run-switch.advance-failed",
     "run-switch.agent-upgrade-required",
@@ -126,6 +129,7 @@
     "run-switch.request_key_reused_differently",
     "run-switch.resource-contract-invalid",
     "run-switch.resource.capacity_unknown",
+    "run-switch.resource.demand_exceeds_capacity",
     "run-switch.resource.envelope_exceeds_capacity",
     "run-switch.resource.envelope_unverified",
     "run-switch.resource.estimate_uncertain",
@@ -135,6 +139,7 @@
     "run-switch.resource.insufficient_capacity",
     "run-switch.resource.insufficient_capacity_after_stop",
     "run-switch.resource.insufficient_reservation_budget",
+    "run-switch.resource.insufficient_swap",
     "run-switch.resource.knobs_invalid",
     "run-switch.resource.parallelism_duplicate",
     "run-switch.resource.parallelism_inconsistent",
@@ -341,5 +346,23 @@
     "model_cache.upstream_check_budget_exhausted",
     "model_cache.upstream_check_failed",
     "model_cache.upstream_revision_invalid"
+  ],
+  "RunAdmissionCode": [
+    "run.capacity_busy",
+    "run.dependencies_stale",
+    "run.fabric_address_duplicate",
+    "run.fabric_address_missing",
+    "run.insufficient_memory",
+    "run.insufficient_swap",
+    "run.inventory_missing",
+    "run.mapping_not_ready",
+    "run.not_installed",
+    "run.plan_invalid",
+    "run.plan_stale",
+    "run.port_occupied",
+    "run.rendezvous_port_occupied",
+    "run.stale_inventory",
+    "run.target_membership_changed",
+    "run.unreconciled_lost_rank"
   ]
 }

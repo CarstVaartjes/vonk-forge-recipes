@@ -2057,6 +2057,8 @@ class Sweep:
             slot["node_ids"],
             str(slot["alias"]),
             recipe.memory_bytes,
+            recipe.load_peak_bytes,
+            recipe.minimum_swap_bytes,
         )
         quality = result.quality_notes + memory.notes(observed)
         if quality:

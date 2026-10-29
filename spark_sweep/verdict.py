@@ -35,6 +35,7 @@ from .lifecycle import ACTIVE, LifecycleState
 from .policy import (
     CLIENT_CREDENTIAL,
     RECIPE_FAILURE_CODES,
+    SWAP_SHORT,
     Failure,
     activity,
     forward_marks,
@@ -97,8 +98,10 @@ TEMPORARY_HTTP = frozenset({408, 429, 502, 503, 504})
 SMOKE_BUSY = "smoke-busy"
 #: A shared load ended and nothing the Controller said names which recipe caused it.
 UNATTRIBUTED = "unattributed"
+#: A fleet swap shortfall (``policy.SWAP_SHORT``): the Controller's remedy is swap or time,
+#: never the recipe's verdict; its never-fits word is ``demand_exceeds_capacity``.
 WAIT_CLASSES = frozenset(
-    {SMOKE_BUSY, CLIENT_CREDENTIAL, SweepWaitCode.BUDGET_EXHAUSTED}
+    {SMOKE_BUSY, CLIENT_CREDENTIAL, SweepWaitCode.BUDGET_EXHAUSTED, SWAP_SHORT}
 )
 #: Uncertain outcomes. ``network`` is a Controller operation that ended failed on a transport
 #: error after its own retries: the cause is uncertain, so it is observed once more.

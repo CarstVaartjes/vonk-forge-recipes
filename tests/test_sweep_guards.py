@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from spark_sweep import verdict
+from spark_sweep import policy, verdict
 from spark_sweep.lifecycle import ACTIVE, STATES, TERMINAL, WAITING
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -452,6 +452,7 @@ def test_verdict_codes_match_the_published_enums() -> None:
         verdict.STALLED_CODE,
         verdict.NAS_SPACE_CODE,
         *verdict.PREPARATION_CODES,
+        *policy.SWAP_WAIT_CODES,
         *verdict.CLIENT_WAIT_DECISIONS,
         verdict.CLIENT_EXIT_DECISION,
     }
