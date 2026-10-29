@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Installable Candidate reproducing MiaAI-Lab's public 6f7d1590 kit (release 2026-09-19, no upstream version tag) by running her published image ghcr.io/miaai-lab/deepseek-v4.1-flash-exl3-2x-dgx-sparks (tag 2.9bpw, sha256:2f0cf3adc0f989c1d446be274df864eb799630175f604c3b22b71b7205971dce, the digest the kit's docs pin) as published, not rebuilding it from the kit's Dockerfile (a thin layer adds the Controller launcher, the Responses text-content patch the kit applies at container start, and the non-root user), serving: the 196 GiB Mia-AiLab EXL3 2.9 bpw checkpoint at 64ba41b6, tensor-parallel 2 over the Spark fabric, native DSpark (k=3), file-backed Engram tables read from shards 47 and 48 of the official deepseek-ai/DeepSeek-V4.1-Flash checkpoint (dba1be0a, declared as a second Model, about 189 GiB per node), 600k context, 2 sequences, a 2.5 GiB pinned KV pool, vision input and tools. Chosen over sfxnz's 3de91468 kit (MIT, 2.0 bpw pack, claims 39.6 tok/s greedy) because it is a published prebuilt image, the higher-quality 2.9 bpw pack and the closest sibling of the existing Mia EXL3 recipe; sfxnz's kit needs a chain of patch images, a 334 GB pack and further first-use kernel compilation. The kit source is AGPL-3.0 with earlier MIT contributions (upstream-LICENSE, upstream-LICENSE-MIT); both Models are MIT. Upstream claims (not measured here): about 23 to 39 tok/s single stream depending on workload, 774,400-token KV pool, and a first boot of about 25 minutes. Not exposed: the cooperative-MoE binary (needs an unpinned prebuilt library), Engram row packing (a host-side artifact), the language-model-only switch, the memory-guard watchdog and the third-party abliterated overlay. The engine-ready timeout is 3600 s (upstream 1500 s) because upstream reports a first boot of about 25 minutes. Thinking is on by default (reasoning effort high), so a small max_tokens can return empty content unless chat_template_kwargs.enable_thinking is false. Vonk physical acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. GB10 fit: GPU utilization 0.88 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "Installable Candidate reproducing MiaAI-Lab's public 6f7d1590 kit (release 2026-09-19, no upstream version tag) by running her published image ghcr.io/miaai-lab/deepseek-v4.1-flash-exl3-2x-dgx-sparks (tag 2.9bpw, sha256:2f0cf3adc0f989c1d446be274df864eb799630175f604c3b22b71b7205971dce, the digest the kit's docs pin) as published, not rebuilding it from the kit's Dockerfile (a thin layer adds the Controller launcher, the Responses text-content patch the kit applies at container start, and the non-root user), serving: the 196 GiB Mia-AiLab EXL3 2.9 bpw checkpoint at 64ba41b6, tensor-parallel 2 over the Spark fabric, native DSpark (k=3), file-backed Engram tables read from shards 47 and 48 of the official deepseek-ai/DeepSeek-V4.1-Flash checkpoint (dba1be0a, declared as a second Model, about 189 GiB per node), 600k context, 2 sequences, a 2.5 GiB pinned KV pool, vision input and tools. Chosen over sfxnz's 3de91468 kit (MIT, 2.0 bpw pack, claims 39.6 tok/s greedy) because it is a published prebuilt image, the higher-quality 2.9 bpw pack and the closest sibling of the existing Mia EXL3 recipe; sfxnz's kit needs a chain of patch images, a 334 GB pack and further first-use kernel compilation. The kit source is AGPL-3.0 with earlier MIT contributions (upstream-LICENSE, upstream-LICENSE-MIT); both Models are MIT. Upstream claims (not measured here): about 23 to 39 tok/s single stream depending on workload, 774,400-token KV pool, and a first boot of about 25 minutes. Not exposed: the cooperative-MoE binary (needs an unpinned prebuilt library), Engram row packing (a host-side artifact), the language-model-only switch, the memory-guard watchdog and the third-party abliterated overlay. The engine-ready timeout is 3600 s (upstream 1500 s) because upstream reports a first boot of about 25 minutes. Thinking is on by default (reasoning effort high), so a small max_tokens can return empty content unless chat_template_kwargs.enable_thinking is false. Vonk physical acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.88 beside the fixed 2,684,354,560-byte (2.5 GiB) KV pool, as in MiaAI-Lab's .env.example at 6f7d1590 (lines 146 and 151); with a pinned pool the utilization is only vLLM's startup free-memory check (line 143). The declared peak, 115,984,824,099 bytes, is the loading floor: the weights per rank, the pool and 8 GB of runtime overhead; the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "candidate",
       "deepseek",
@@ -755,7 +755,7 @@
   },
   "release": {
     "released_at": "2026-09-19",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -827,7 +827,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.86"
+        "value": "0.88"
       },
       {
         "name": "max-num-seqs",
@@ -1111,7 +1111,7 @@
             "working_bytes": 20000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
+            "peak_bytes": 115984824099,
             "reserve_bytes": 8000000000
           }
         }
@@ -1128,7 +1128,7 @@
             "working_bytes": 20000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
+            "peak_bytes": 115984824099,
             "reserve_bytes": 8000000000
           }
         }
