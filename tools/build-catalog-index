@@ -738,7 +738,7 @@ def build(
                 "content_sha256": document_sha256(document),
                 "source_bundle_sha256": metadata["source_bundle_sha256"],
                 "document": document,
-                "display": published_json(recipe_display(path.stem)),
+                "display": published_json(recipe_display(path.stem, ROOT)),
                 "package": metadata,
                 "release": document["release"],
             }
@@ -786,7 +786,9 @@ def build(
             "source_path": f"models/{document['identity']['slug']}.json",
             "content_sha256": document_sha256(document),
             "document": document,
-            "display": published_json(model_display(str(document["identity"]["slug"]))),
+            "display": published_json(
+                model_display(str(document["identity"]["slug"]), ROOT)
+            ),
         }
         for document in sorted(
             entities.values(), key=lambda item: str(item["identity"]["slug"])
