@@ -273,8 +273,8 @@ fabric with a 200 Gbit/s floor, endpoint withdrawal on rank loss, worker-first
 recovery and endpoint-owner-first stopping; do not author contradictory copies
 of those derived properties (`RecipeTopology`, `tests/test_contracts.py`).
 Declare per-role
-unified memory as `peak_bytes` (the most the workload uses at any time,
-startup or steady state) plus `reserve_bytes`, and disk as image, artifact,
+unified memory as `peak_bytes` (the most the workload uses while serving; a
+higher load-time peak goes in `load_peak_bytes`) plus `reserve_bytes`, and disk as image, artifact,
 working (staging plus caches) and safety-margin bytes. Declare `node_count`,
 roles and their start order. Bind tunable
 arguments to the corresponding declared settings instead of maintaining two

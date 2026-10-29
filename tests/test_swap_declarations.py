@@ -1,5 +1,6 @@
 """Split peaks: a load that overshoots the steady peak names the swap it needs."""
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from qualification.memory_need import (
     memory_warnings,
     require_admissible_declaration,
     swap_needed_bytes,
+    swap_warnings,
     usable_swap_bytes,
 )
 
@@ -44,11 +46,37 @@ def declared(overshoot: int, swap: int) -> RecipeDefinition:
     return recipe_with(load_peak_bytes=peak() + overshoot, minimum_swap_bytes=swap)
 
 
-VECTOR = json.loads((ROOT / "tests/fixtures/swap-v1.json").read_text())
+# Vendored verbatim from vonk-forge (the one owner: SwapPolicy, asserted against
+# this vector by its own tests).
+VECTOR_PATH = ROOT / "tests/fixtures/swap-v1.json"
+VECTOR_SOURCE = (
+    "https://github.com/CarstVaartjes/vonk-forge/blob/5e936568924d06ff35e9c3ced0d203512f33ca9e/"
+    "agent_protocol/src/vonk_agent_protocol/vectors/swap-v1.json"
+)
+VECTOR_SHA256 = "f2dd970bd0f4e3e41e99d3781b2fb2553b0779bf7cb6b51d06b3a356ef50bf2e"
+VECTOR = json.loads(VECTOR_PATH.read_text())
+
+
+def test_vendored_vector_is_the_published_bytes() -> None:
+    assert hashlib.sha256(VECTOR_PATH.read_bytes()).hexdigest() == VECTOR_SHA256, (
+        f"re-vendor from {VECTOR_SOURCE} and update the sha"
+    )
+
+
+def test_swap_maximum_is_the_largest_valid_size() -> None:
+    valid = [row["size_gib"] for row in VECTOR["valid"]]
+    invalid = [row["size_gib"] for row in VECTOR["invalid"]]
+    assert max(valid) * GIB == SWAP_MAXIMUM_BYTES
+    assert SWAP_MAXIMUM_BYTES // GIB + 1 in invalid
+    assert SWAP_DEFAULT_BYTES // GIB in valid
+
+
+def test_huge_load_peak_warns_without_unbounded_work() -> None:
+    recipe = recipe_with(load_peak_bytes=peak() + 10**21, minimum_swap_bytes=0)
+    assert swap_warnings(recipe) == []
 
 
 def test_swap_arithmetic_matches_the_shared_vectors() -> None:
-    assert VECTOR["source"]["sha256"] and VECTOR["source"]["commit"]
     for pair in VECTOR["usable"]:
         assert usable_swap_bytes(pair["total_bytes"]) == pair["usable_bytes"], pair
     for pair in VECTOR["needed"]:
