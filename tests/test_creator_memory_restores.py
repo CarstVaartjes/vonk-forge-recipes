@@ -35,6 +35,16 @@ MIA_G26 = "https://github.com/MiaAI-Lab/Gemma-4-26B-A4B-DGX-Spark-18-concurrenci
 MIA_G31 = "https://github.com/MiaAI-Lab/Gemma-4-31B-IT-NVFP4-Recipe/blob/ac429cca70aedfa4afb446cefc5f5f1bfa1e8802"
 MIA_MUSE = "https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO/blob/1b71dc011010a3e2c373eafd8a41f12c7c7913fc"
 MIA_Q36 = "https://github.com/MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark/blob/c9b071012e8e7a74cdb5277413332d0767ba7fff"
+TONY_JASL = "https://github.com/tonyd2wild/DS4-Jasl-Sparkrun-GB10-Fix/blob/050f1ba36d376f6a629894be795ebb79bc74501d"
+TONY_DS1M = "https://github.com/tonyd2wild/DeepSeek-V4-Flash-2x-Spark-1M/blob/7cc2c55c7b6428dcf49401dae63583c2e0141cdf"
+MIA_DS1M = "https://github.com/MiaAI-Lab/DeepSeek-V4-Flash-Dual-DGX-Spark-1M-Context/blob/d84319952b41df812603830cd13ae921c39860f7"
+MIA_LEAN = "https://github.com/MiaAI-Lab/Leanstral-1.5-119B-A6B_2x_DGX_Sparks_vLLM/blob/94d729896226db3eaf7f584e79b7c1f0028bab1d"
+MIA_EXL3 = "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks/blob/6f7d1590ad49a2b8995188e45d7b9db31e677452"
+R0B0_GLM = "https://github.com/r0b0tlab/glm53-flash-nvfp4-sm121/blob/222697317a4a165767ab8ef17b44cf969a5ece09"
+SERO = "https://github.com/0xSero/deepseek-spark/blob/97fd6f02e26870416d3c6b450d4fa3217d9db124/runtime/configs"
+TONY_QT200 = "https://github.com/tonyd2wild/GLM-5.2-QuantTrio-200K-4x-DGX-Spark--36tok-s/blob/162d7a766e4bc9de1809ff724339538380c43b0c"
+TONY_NVFP4KV = "https://github.com/tonyd2wild/GLM-5.2-NVFP4-KV-4x-DGX-Spark-300kctx-42tok-s/blob/34e81562984bda993e0c9ed01ed6900c17e4857b"
+TONY_G53 = "https://github.com/tonyd2wild/GLM-5.3-Int4-Int8Mix-TP4-4x-DGX-Spark/blob/f5440eff7f80ae1b7f30898871a50707ba17d115"
 DROWZEYS = "https://github.com/drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark/blob/fca3d18bcab52b65e4a428b883cbcbcb0a7a3443"
 AEON = "adapters/qwen/drowzeys-aeon-dflash2-single"
 GMU = r'GMU="\$\{GMU:-([0-9.]+)\}"'
@@ -204,6 +214,84 @@ CREATOR = {
         # The creator's DFlash2 profile runs the base 0.70 (serve.sh#L103).
         options={"speculation/dflash2": {"gpu-memory-utilization": "0.70"}},
     ),
+    "deepseek-v4-flash-jasl-tonyd2wild-vllm-dual": Creator(
+        source=f"{TONY_JASL}/recipe/deepseek4-flash-fp8-mtp-vllm-sparkfix.yaml#L16",
+        arguments={"gpu-memory-utilization": "0.825"},
+        absent=("kv-cache-memory-bytes",),
+    ),
+    "deepseek-v4-flash-mtp-tonyd2wild-vllm-dual": Creator(
+        source=f"{TONY_DS1M}/launch/ds4-1m-launch.sh#L30",
+        arguments={"gpu-memory-utilization": "0.82"},
+        absent=("kv-cache-memory-bytes",),
+        context_tokens=1000000,
+        # The creator's 500K rollback profile (launch/ds4-500k-launch.sh#L30).
+        options={"memory/profile-500k": {"gpu-memory-utilization": "0.80"}},
+    ),
+    "deepseek-v4-flash-vllm-mia-dual": Creator(
+        source=f"{MIA_DS1M}/docker-compose.yml#L68",
+        arguments={"gpu-memory-utilization": "0.83"},
+        absent=("kv-cache-memory-bytes",),
+        context_tokens=1000000,
+        # The creator's out-of-memory fallback (README#L232).
+        options={"memory/util-075": {"gpu-memory-utilization": "0.75"}},
+    ),
+    "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": Creator(
+        source=f"{R0B0_GLM}/serve/boot_dflash2.sh#L14",
+        arguments={"gpu-memory-utilization": "0.86"},
+        os_floor_reserve=True,
+    ),
+    "leanstral-1-5-119b-a6b-vllm-mia-dual": Creator(
+        source=f"{MIA_LEAN}/start.sh#L21",
+        arguments={"gpu-memory-utilization": "0.85"},
+        absent=("kv-cache-memory-bytes",),
+    ),
+    "deepseek-v4-1-flash-exl3-mia-dual": Creator(
+        source=f"{MIA_EXL3}/.env.example#L146",
+        arguments={
+            "gpu-memory-utilization": "0.88",
+            "kv-cache-memory-bytes": "2684354560",
+        },
+        # Beside a pinned pool the utilization is only vLLM's startup check (#L143);
+        # the honest peak is the per-rank loading floor.
+        peak=115984824099,
+    ),
+    "deepseek-v4-flash-reap-162b-0xsero-vllm-single": Creator(
+        source=f"{SERO}/k144-nospec-200k.env#L9",
+        arguments={"gpu-memory-utilization": "0.88", "kv-cache-memory-bytes": "14G"},
+        peak=120370379081,
+    ),
+    "deepseek-v4-flash-reap-180b-0xsero-vllm-single": Creator(
+        source=f"{SERO}/k160-mtp2-200k.env#L9",
+        arguments={"gpu-memory-utilization": "0.88", "kv-cache-memory-bytes": "6G"},
+        peak=120370379081,
+    ),
+    "glm-5-2-quanttrio-200k-mtp-tonyd2wild-vllm-four": Creator(
+        source=f"{TONY_QT200}/launch.sh#L209",
+        arguments={
+            "gpu-memory-utilization": "0.91",
+            "kv-cache-memory-bytes": "10950000000",
+        },
+        context_tokens=200000,
+        peak=120320253504,
+    ),
+    "glm-5-2-quanttrio-nvfp4-kv-tonyd2wild-vllm-four": Creator(
+        source=f"{TONY_NVFP4KV}/serve/speednight-nvfp4.sh#L170",
+        arguments={
+            "gpu-memory-utilization": "0.91",
+            "kv-cache-memory-bytes": "10950000000",
+        },
+        context_tokens=316000,
+        peak=120320253504,
+    ),
+    "glm-5-3-int4-int8mix-mtp-tonyd2wild-vllm-four": Creator(
+        source=f"{TONY_G53}/launch/launch-glm53-tp4.sh#L132",
+        arguments={
+            "gpu-memory-utilization": "0.91",
+            "kv-cache-memory-bytes": "10950000000",
+        },
+        context_tokens=200000,
+        peak=120260467668,
+    ),
 }
 
 
@@ -325,3 +413,25 @@ def test_the_creators_gemma_31b_095_choice_can_never_be_admitted() -> None:
         role.resources.memory.peak_bytes = peak
     with pytest.raises(ValueError, match="not admissible"):
         require_admissible_declaration(widened)
+
+
+@pytest.mark.parametrize(
+    "slug",
+    [
+        "deepseek-v4-flash-reap-162b-0xsero-vllm-single",
+        "deepseek-v4-flash-reap-180b-0xsero-vllm-single",
+    ],
+)
+def test_lowering_a_reap_single_peak_below_its_loading_floor_is_refused(
+    slug: str,
+) -> None:
+    models, inputs = catalog_models(), load_inputs()
+    recipe = load_recipe(slug)
+    digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
+    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
+    floor = per_rank_need(recipe, models, inputs).peak_bytes
+    below = load_recipe(slug)
+    for role in below.topology.roles:
+        role.resources.memory.peak_bytes = floor - 1
+    with pytest.raises(ValueError, match="peak understates"):
+        require_memory_need(below, models, inputs, document_digest=digest, touched=True)

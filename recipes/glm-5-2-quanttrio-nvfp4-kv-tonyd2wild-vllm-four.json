@@ -34,7 +34,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Unpruned GLM-5.2 (744B total, 40B active; QuantTrio Int4-Int8Mix, compressed-tensors) on four Sparks with vLLM tensor parallel 4, a true 4-bit NVFP4 (E2M1) DeepSeek-MLA KV cache (400 bytes per token against 656 for FP8) in a fixed 10.95 GB pool, a 316,000-token context, MTP with five drafted tokens, FLASHMLA_SPARSE attention with patched b12x kernels and full CUDA graphs. Basis: tonyd2wild's NVFP4-KV port (Apache-2.0; store kernel adapted from danielwoz/vllm-dspark-nvfp4) on drowzeys' published probe-modded vLLM ab666069 image, the base upstream patches locally; the upstream run-time kernel overlay is the ten-file set of his 200K QuantTrio repository, patched and installed at build time. The same creator's FP8-KV variant is glm-5-2-quanttrio-200k-mtp-tonyd2wild-vllm-four. Upstream figures (317K-token KV pool against 200K for FP8, 42.5 tok/s peak single stream on MTP-friendly content, 23.7 tok/s on mixed content) are claims until measured here; the 4-bit cache lowers MTP acceptance on mixed content; Vonk physical four-Spark acceptance is pending. GB10 memory correction: GPU utilization 0.91 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context, the explicit KV-cache byte limit and other kit flags are retained; the GPU utilization budget is reduced. Absolute KV correction: 10,278,747,648 bytes per rank covers 6 simultaneous full-context requests at 27,872 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 316,000 tokens to 27,872 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
+    "description": "Unpruned GLM-5.2 (744B total, 40B active; QuantTrio Int4-Int8Mix, compressed-tensors) on four Sparks with vLLM tensor parallel 4, a true 4-bit NVFP4 (E2M1) DeepSeek-MLA KV cache (400 bytes per token against 656 for FP8) in a fixed 10.95 GB pool, a 316,000-token context, MTP with five drafted tokens, FLASHMLA_SPARSE attention with patched b12x kernels and full CUDA graphs. Basis: tonyd2wild's NVFP4-KV port (Apache-2.0; store kernel adapted from danielwoz/vllm-dspark-nvfp4) on drowzeys' published probe-modded vLLM ab666069 image, the base upstream patches locally; the upstream run-time kernel overlay is the ten-file set of his 200K QuantTrio repository, patched and installed at build time. The same creator's FP8-KV variant is glm-5-2-quanttrio-200k-mtp-tonyd2wild-vllm-four. Upstream figures (317K-token KV pool against 200K for FP8, 42.5 tok/s peak single stream on MTP-friendly content, 23.7 tok/s on mixed content) are claims until measured here; the 4-bit cache lowers MTP acceptance on mixed content; Vonk physical four-Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.91 beside the fixed 10.95 GB NVFP4 KV pool and a 316,000-token context, as in tonyd2wild's serve/speednight-nvfp4.sh at 34e81562 (lines 169 and 170); with a fixed pool the utilization is vLLM's startup free-memory check, and upstream calls the pool load-bearing and measured (OPERATIONS.md line 88; 317,279 tokens, line 14). The declared peak is the per-rank loading floor: the weights, the pool and 8 GB of runtime overhead; the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "chat",
       "distributed",
@@ -1665,7 +1665,7 @@
   },
   "release": {
     "released_at": "2026-07-21",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -1737,12 +1737,12 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.854479"
+        "value": "0.91"
       },
       {
         "name": "kv-cache-memory-bytes",
         "setting": null,
-        "value": 10278747648
+        "value": 10950000000
       },
       {
         "name": "kv-cache-dtype",
@@ -1854,7 +1854,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 27872
+      "value": 316000
     },
     "kind": "generation",
     "knobs": {},
@@ -1882,7 +1882,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 119649001152,
+            "peak_bytes": 120320253504,
             "reserve_bytes": 8000000000
           }
         }
@@ -1899,7 +1899,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 119649001152,
+            "peak_bytes": 120320253504,
             "reserve_bytes": 8000000000
           }
         }
