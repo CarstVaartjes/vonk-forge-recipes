@@ -3,15 +3,19 @@
 import json
 import runpy
 import subprocess
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
 from documents import recipe_display
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
+    ADMISSION_IDLE_USE_BYTES,
+    SPARK_MEMORY_BYTES,
     absolute_kv_need,
     argument_value,
     cache_bytes,
@@ -21,12 +25,15 @@ from qualification.memory_need import (
     require_absolute_kv_capacity,
     require_memory_need,
     require_sglang_rank_budget,
+    vllm_utilization_envelope,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 VISION = "deepseek-v4-flash-vision-exp-mia-dual"
 LAGUNA = "laguna-m-1-nvfp4-r0b0tlab-vllm-dual"
 QWEN_NEXT = "qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual"
+JASL = "deepseek-v4-flash-jasl-tonyd2wild-vllm-dual"
+GLM_DFLASH2 = "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual"
 
 
 def recipe_for(slug: str = VISION) -> RecipeDefinition:
@@ -191,6 +198,30 @@ def test_corrected_pools_cover_all_declared_concurrency() -> None:
             )
 
 
+def utilization_argument(recipe: RecipeDefinition) -> RecipeRuntimeArgument:
+    return next(
+        arg for arg in recipe.runtime.arguments if arg.name == "gpu-memory-utilization"
+    )
+
+
+def admissible(recipe: RecipeDefinition) -> bool:
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    return evaluate_memory_admission(
+        envelope, SPARK_MEMORY_BYTES, occupied_bytes=ADMISSION_IDLE_USE_BYTES
+    ).admissible
+
+
+def smallest_inadmissible_utilization(recipe: RecipeDefinition) -> Decimal:
+    utilization = utilization_argument(recipe)
+    for hundredths in range(50, 100):
+        candidate = Decimal(hundredths) / 100
+        utilization.value = str(candidate)
+        if not admissible(recipe):
+            return candidate
+    raise AssertionError("every two-decimal utilization is admissible")
+
+
 def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None:
     recipe = recipe_for(LAGUNA)
     models, inputs = catalog_models(), load_inputs()
@@ -205,9 +236,16 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     pool.value = one - 1
     with pytest.raises(ValueError, match="one full-context request"):
         require_memory_need(recipe, models, inputs, document_digest="", touched=True)
-    # Fault injection: Laguna's failed launch, 0.82 with no pool.
+    # Fault injection: a pool-less budget the Spark cannot admit. Laguna's
+    # 0.82 stop on 2026-10-26 was the removed per-sample 16 GiB bar, so 0.82
+    # itself is no longer refused; the smallest two-decimal utilization whose
+    # envelope is inadmissible still is.
     recipe.runtime.arguments.remove(pool)
-    with pytest.raises(ValueError, match="set absolute kv-cache-memory-bytes"):
+    utilization = utilization_argument(recipe)
+    utilization.value = "0.82"
+    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    utilization.value = str(smallest_inadmissible_utilization(recipe))
+    with pytest.raises(ValueError, match="admissible on an idle Spark"):
         require_memory_need(recipe, models, inputs, document_digest="", touched=True)
     # Files the change does not touch keep their utilization-sized pools.
     require_memory_need(recipe, models, inputs, document_digest="")
@@ -439,3 +477,45 @@ def test_only_recipe_files_changed_since_the_merge_base_are_touched(
         tmp_path / "recipes/edited.json",
         tmp_path / "recipes/new.json",
     ]
+
+
+def creator_dual(slug: str, utilization: str) -> RecipeDefinition:
+    """The recipe at its creator's utilization, every role declaring the envelope."""
+    recipe = recipe_for(slug)
+    utilization_argument(recipe).value = utilization
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = envelope
+    return recipe
+
+
+@pytest.mark.parametrize(
+    ("slug", "utilization", "reserve_bytes"),
+    [
+        # sparkfix.yaml#L16 at 050f1ba3.
+        (JASL, "0.825", None),
+        # boot_dflash2.sh#L14 at 22269731; passed on hardware, pool-less (7cb340f9).
+        (GLM_DFLASH2, "0.86", 8_000_000_000),
+    ],
+)
+def test_creator_dual_utilizations_are_bounded_by_admission(
+    slug: str, utilization: str, reserve_bytes: int | None
+) -> None:
+    recipe = creator_dual(slug, utilization)
+    if reserve_bytes is not None:
+        for role in recipe.topology.roles:
+            role.resources.memory.reserve_bytes = reserve_bytes
+    assert admissible(recipe)
+    require_memory_need(
+        recipe, catalog_models(), load_inputs(), document_digest="", touched=True
+    )
+
+
+def test_a_dual_utilization_the_spark_cannot_admit_is_still_refused() -> None:
+    recipe = creator_dual(JASL, "0.90")
+    assert not admissible(recipe)
+    with pytest.raises(ValueError, match="admissible on an idle Spark"):
+        require_memory_need(
+            recipe, catalog_models(), load_inputs(), document_digest="", touched=True
+        )
