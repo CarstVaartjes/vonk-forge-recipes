@@ -22,8 +22,15 @@ class Disk(Projection):
     artifact_bytes: int = 0
 
 
+class RoleMemory(Projection):
+    peak_bytes: int = 0
+    load_peak_bytes: int | None = None
+    minimum_swap_bytes: int = 0
+
+
 class RoleResources(Projection):
     disk: Disk = Field(default_factory=Disk)
+    memory: RoleMemory = Field(default_factory=RoleMemory)
 
 
 class Role(Projection):

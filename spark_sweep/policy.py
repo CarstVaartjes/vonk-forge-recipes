@@ -534,8 +534,18 @@ RECIPE_FAILURE_CODES: dict[str, str] = {
     QualificationCauseCode.RUNTIME_OOM: "oom",
     QualificationCauseCode.RUNTIME_EXIT: "start",
 }
+#: A fleet swap shortfall, never a recipe verdict: the swap setting is below what the load
+#: needs, swap is still being applied or in use, or another load still starting holds it.
+#: Words published by vonk-forge (``RunSwitchCode``, ``RunAdmissionCode``): a review names the
+#: first, a profile application the second. A load no swap setting can hold arrives as the
+#: Controller's ``run-switch.resource.demand_exceeds_capacity`` and stays a failure.
+SWAP_SHORT = "swap-short"
+SWAP_WAIT_CODES = frozenset(
+    {"run-switch.resource.insufficient_swap", "run.insufficient_swap"}
+)
 _CODE_CLASSES = {
     **RECIPE_FAILURE_CODES,
+    **dict.fromkeys(SWAP_WAIT_CODES, SWAP_SHORT),
     "run-switch.resource.insufficient_capacity": "capacity",
     "storage.insufficient_capacity": "capacity",
     "controller.transport_timeout": "network",
