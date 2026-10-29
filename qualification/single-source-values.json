@@ -29,8 +29,7 @@
     "selector": "GUARD_BYTES",
     "kind": "memory-bytes",
     "consumer_symbols": [
-      "GUARD_BYTES",
-      "STALL_AVAILABLE_BYTES"
+      "GUARD_BYTES"
     ]
   }
 ]

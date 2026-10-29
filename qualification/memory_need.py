@@ -28,9 +28,12 @@ from vonk_forge_contracts.memory_admission import (
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 # Offline policy pinned to vonk-forge cee017ae806f0ac4c0842a3652f8ef7ee57388b8:
-# control/src/vonk_control/resource_planning/types.py::PLATFORM_MEMORY_FLOOR_BYTES
-# and rust/crates/vonk-agent-protocol/src/host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES.
-# These estimates do not redefine live admission or the sustained-pressure guard.
+# control/src/vonk_control/resource_planning/types.py::PLATFORM_MEMORY_FLOOR_BYTES.
+# GUARD_BYTES below is this estimator's own headroom; the live host memory guard
+# (vonk-forge #1936 fc6059e42edb1b26416fd78493138201f427de96,
+# rust/crates/vonk-agent-protocol/src/host_memory_guard_policy.rs) has no
+# per-sample MemAvailable bar. These estimates do not redefine live admission
+# or the guard.
 OS_FLOOR_BYTES = PLATFORM_MEMORY_FLOOR_BYTES
 # Historical GB10 total, not a substitute for available live node telemetry.
 SPARK_MEMORY_BYTES = 130_663_231_488
@@ -42,15 +45,15 @@ SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 # 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
 ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
-# Offline copy of the swap policy pinned to vonk-forge d3a5514254d809e7563b5bd4395cef867d30cfb4
+# Offline copy of the swap policy pinned to vonk-forge fc6059e42edb1b26416fd78493138201f427de96
 # (#1936 swap-aware memory guard): rust/crates/vonk-agent-protocol/src/
 # host_memory_guard_policy.rs::SWAP_EXHAUSTED_FREE_FLOOR_BYTES (2 GiB),
 # SWAP_EXHAUSTED_FREE_PERCENT (10) and SWAP_FILLING_USED_PERCENT (90). R1
-# (host_memory_guard/decision.rs:174) keeps max(floor, total / 100 * 10) free;
-# R2 (decision.rs:180) allows at most total / 100 * 90 used. Also
+# (vonk-agent-helper/src/host_memory_guard/decision.rs:185) keeps max(floor, total / 100 * 10) free;
+# R2 (decision.rs:191) allows at most total / 100 * 90 used. Also
 # agent_protocol/src/vonk_agent_protocol/swap.py::SwapPolicy maximum_gib 128,
 # default_gib 64. usable/needed are proven against vonk-forge's shared vector
-# (tests/fixtures/swap-v1.json). These do not redefine live admission or the guard.
+# (agent_protocol/src/vonk_agent_protocol/vectors/swap-v1.json). These do not redefine live admission or the guard.
 GIB = 1024**3
 SWAP_FREE_FLOOR_BYTES = 2 * GIB
 SWAP_FREE_PERCENT = 10
@@ -83,10 +86,12 @@ IDLE_USE_BYTES = TOTAL_BYTES - IDLE_AVAILABLE_BYTES
 # (_profile_available_bytes); a cap enters only in _apply_token_constraints.
 SGLANG_CUDA_CONTEXT_BYTES = 4_700_000_000
 SGLANG_PRELOAD_FREE_BYTES = IDLE_AVAILABLE_BYTES - SGLANG_CUDA_CONTEXT_BYTES
-# vonk-forge 040c51b8531523bebe542b5e1f7b9403e0767f72:
-# rust/crates/vonk-agent-helper/src/host_memory_guard.rs re-exports
-# host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES. This is a planning floor;
-# the live guard also requires sustained pressure (30% full PSI, 3 seconds).
+# The estimator's own headroom rule: the informative workload limit subtracts
+# it, and a touched multi-Spark utilization-sized pool whose share plus overhead
+# does not leave it is refused (require_bounded_kv_pool). It began as the host memory
+# guard's per-sample MemAvailable bar (vonk-forge 040c51b8531523bebe542b5e1f7b9403e0767f72,
+# host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES), which the swap-aware
+# guard (vonk-forge #1936) removed; the live guard's rules are R1-R5 there.
 GUARD_BYTES = 16 * 1024**3
 LIMIT_BYTES = TOTAL_BYTES - GUARD_BYTES - IDLE_USE_BYTES
 
@@ -1254,8 +1259,9 @@ def require_bounded_kv_pool(
 
     A utilization-sized pool grows into what remains: on 2026-10-26 Laguna M.1
     at TP=2 and 0.82 took 475,392 tokens for a 4 x 8,192-token workload and
-    left its entrypoint Spark at the 16 GiB host memory guard floor. Its
-    budget plus overhead exceeded the Spark total minus that guard; every
+    left its entrypoint Spark at 16 GiB MemAvailable, the host memory guard's
+    per-sample bar at the time. Its budget plus overhead exceeded the Spark
+    total minus that headroom (GUARD_BYTES); every
     hardware-proven utilization-sized dual runs at 0.80 or below, inside it.
     Proven single-Spark documents run up to 0.86 (SGLang 0.85), whose share
     plus overhead is the largest admitted peak, 120,370,379,081 bytes: on one
@@ -1350,7 +1356,7 @@ def require_bounded_kv_pool(
             f"it within admission, shorten the context or set absolute {pools[0]}"
         )
     if recipe.topology.node_count != 1:
-        ceiling = f"leaves the {GUARD_BYTES}-byte host memory guard"
+        ceiling = f"leaves the {GUARD_BYTES}-byte estimator headroom"
         bounded = share * TOTAL_BYTES + OVERHEAD_BYTES <= TOTAL_BYTES - GUARD_BYTES
     else:
         budget = (vllm_utilization_envelope(recipe) or 0) + sum(
