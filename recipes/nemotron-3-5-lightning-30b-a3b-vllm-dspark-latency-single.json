@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Specialized high-context, low-concurrency single-DGX-Spark profile pairing NVIDIA's exact Nemotron 3.5 Lightning NVFP4 target with its official DSpark companion at the declared 1M-token context. Its declared memory contract is tight, so it is not the default Nemotron text profile; physical GB10 latency, acceptance-rate, memory, and output-equivalence canaries are still required. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.85) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
+    "description": "Specialized high-context, low-concurrency single-DGX-Spark profile pairing NVIDIA's exact Nemotron 3.5 Lightning NVFP4 target with its official DSpark companion at the declared 1M-token context. Its declared memory contract is tight, so it is not the default Nemotron text profile; physical GB10 latency, acceptance-rate, memory, and output-equivalence canaries are still required. Memory follows the creator's settings: gpu-memory-utilization 0.85, as in NVIDIA's model card at bee75962 (the DGX Spark vLLM command, README lines 114 and 296). The steady per-node peak is 0.85 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "candidate",
       "executable",
@@ -846,7 +846,7 @@
   },
   "release": {
     "released_at": "2026-09-28",
-    "version": "1.2.0"
+    "version": "1.2.1"
   },
   "runtime": {
     "arguments": [
@@ -868,7 +868,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.6"
+        "value": "0.85"
       },
       {
         "name": "moe-backend",
@@ -971,7 +971,7 @@
             "working_bytes": 40000000000
           },
           "memory": {
-            "peak_bytes": 103397938893,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }

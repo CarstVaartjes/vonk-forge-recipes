@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding from MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark at c9b07101: NVIDIA's exact Qwen3.6 27B NVFP4 checkpoint with the z-lab Qwen3.6-27B-DFlash draft (10 speculative tokens), TP1, bf16 KV cache, flash_attn, 256K context, 4 sequences, Qwen3 reasoning and qwen3_coder tool parsing, and upstream's froggeric v20 chat template with thinking on and preserved. Upstream runs the mutable vllm/vllm-openai:nightly-aarch64 tag; this recipe pins the arm64 image current on 2026-09-29 (vLLM build 36768d1b), so behaviour can differ from upstream's measurement. Upstream claims (not measured here): about 45.6 tok/s single stream and 102 tok/s aggregate at 4 streams. The upstream README's language-model-only line is not in its start.sh and is not applied; vision serving is unproven. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.84) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
+    "description": "Candidate single-Spark vLLM binding from MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark at c9b07101: NVIDIA's exact Qwen3.6 27B NVFP4 checkpoint with the z-lab Qwen3.6-27B-DFlash draft (10 speculative tokens), TP1, bf16 KV cache, flash_attn, 256K context, 4 sequences, Qwen3 reasoning and qwen3_coder tool parsing, and upstream's froggeric v20 chat template with thinking on and preserved. Upstream runs the mutable vllm/vllm-openai:nightly-aarch64 tag; this recipe pins the arm64 image current on 2026-09-29 (vLLM build 36768d1b), so behaviour can differ from upstream's measurement. Upstream claims (not measured here): about 45.6 tok/s single stream and 102 tok/s aggregate at 4 streams. The upstream README's language-model-only line is not in its start.sh and is not applied; vision serving is unproven. Physical Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.84, as in MiaAI-Lab's start.sh at c9b07101 (line 83). The steady per-node peak is 0.84 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "candidate",
       "dflash",
@@ -319,7 +319,7 @@
   },
   "release": {
     "released_at": "2026-07-31",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -361,7 +361,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.6"
+        "value": "0.84"
       },
       {
         "name": "max-model-len",
@@ -496,7 +496,7 @@
             "working_bytes": 50804935102
           },
           "memory": {
-            "peak_bytes": 103397938893,
+            "peak_bytes": 117757114450,
             "reserve_bytes": 8000000000
           }
         }
