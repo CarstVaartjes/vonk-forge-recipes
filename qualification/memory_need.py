@@ -86,9 +86,8 @@ IDLE_USE_BYTES = TOTAL_BYTES - IDLE_AVAILABLE_BYTES
 # (_profile_available_bytes); a cap enters only in _apply_token_constraints.
 SGLANG_CUDA_CONTEXT_BYTES = 4_700_000_000
 SGLANG_PRELOAD_FREE_BYTES = IDLE_AVAILABLE_BYTES - SGLANG_CUDA_CONTEXT_BYTES
-# The estimator's own headroom rule: the informative workload limit subtracts
-# it, and a touched multi-Spark utilization-sized pool whose share plus overhead
-# does not leave it is refused (require_bounded_kv_pool). It began as the host memory
+# The estimator's own headroom: the informative workload limit subtracts it;
+# it bounds no touched recipe. It began as the host memory
 # guard's per-sample MemAvailable bar (vonk-forge 040c51b8531523bebe542b5e1f7b9403e0767f72,
 # host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES), which the swap-aware
 # guard (vonk-forge #1936) removed; the live guard's rules are R1-R5 there.
@@ -1257,16 +1256,16 @@ def require_bounded_kv_pool(
 ) -> None:
     """A touched recipe bounds KV, calibrated on the proven set.
 
-    A utilization-sized pool grows into what remains: on 2026-10-26 Laguna M.1
-    at TP=2 and 0.82 took 475,392 tokens for a 4 x 8,192-token workload and
-    left its entrypoint Spark at 16 GiB MemAvailable, the host memory guard's
-    per-sample bar at the time. Its budget plus overhead exceeded the Spark
-    total minus that headroom (GUARD_BYTES); every
-    hardware-proven utilization-sized dual runs at 0.80 or below, inside it.
+    A touched pool-less vLLM budget, on one Spark or several, must be
+    admissible on an idle Spark. The 2026-10-26 Laguna M.1 stop (TP=2, 0.82,
+    475,392 pool tokens, 16 GiB MemAvailable) was the host memory guard's
+    per-sample 16 GiB bar, which the swap-aware guard (vonk-forge #1936)
+    removed; GLM 5.3 Flash NVFP4 DFlash2 dual passed pool-less at the
+    creator's 0.86 on hardware (7cb340f9a04b, 2026-10-08).
     Proven single-Spark documents run up to 0.86 (SGLang 0.85), whose share
-    plus overhead is the largest admitted peak, 120,370,379,081 bytes: on one
-    Spark the budget, plus the source-backed resident expansion of geometry
-    pinned to the launch, must be admissible on an idle Spark: gpt-oss-120b 4036b68d at
+    plus overhead is the largest admitted peak, 120,370,379,081 bytes. The
+    budget, plus the source-backed resident expansion of geometry pinned to
+    the launch, is what admission checks: gpt-oss-120b 4036b68d at
     0.85 beside its 10 GB Marlin repack exhausted host memory on 2026-10-21.
     A declared SGLang single fraction, capped or not, must be admissible and
     hold its weights, expansion and capped pools: GLM a0 fa86311a at 0.75 was
@@ -1355,31 +1354,27 @@ def require_bounded_kv_pool(
             f"overhead{request}, leaving vLLM no memory for KV cache blocks; raise "
             f"it within admission, shorten the context or set absolute {pools[0]}"
         )
-    if recipe.topology.node_count != 1:
-        ceiling = f"leaves the {GUARD_BYTES}-byte estimator headroom"
-        bounded = share * TOTAL_BYTES + OVERHEAD_BYTES <= TOTAL_BYTES - GUARD_BYTES
-    else:
-        budget = (vllm_utilization_envelope(recipe) or 0) + sum(
-            geometry.resident_expansion_bytes
-            for selection in recipe.models
-            if (
-                geometry := applicable_geometry(
-                    recipe,
-                    selection.model.slug,
-                    models[selection.model.content_sha256],
-                    inputs,
-                )
+    budget = (vllm_utilization_envelope(recipe) or 0) + sum(
+        geometry.resident_expansion_bytes
+        for selection in recipe.models
+        if (
+            geometry := applicable_geometry(
+                recipe,
+                selection.model.slug,
+                models[selection.model.content_sha256],
+                inputs,
             )
-            is not None
         )
-        ceiling = "is admissible on an idle Spark"
-        bounded = evaluate_memory_admission(
-            budget, SPARK_MEMORY_BYTES, occupied_bytes=ADMISSION_IDLE_USE_BYTES
-        ).admissible
+        is not None
+    )
+    bounded = evaluate_memory_admission(
+        budget, SPARK_MEMORY_BYTES, occupied_bytes=ADMISSION_IDLE_USE_BYTES
+    ).admissible
     if not bounded:
         raise ValueError(
             f"{key}: set absolute {pools[0]}, or a {name} whose share of "
-            f"{TOTAL_BYTES} bytes plus {OVERHEAD_BYTES} overhead {ceiling}"
+            f"{TOTAL_BYTES} bytes plus {OVERHEAD_BYTES} overhead is admissible on "
+            "an idle Spark"
         )
 
 
