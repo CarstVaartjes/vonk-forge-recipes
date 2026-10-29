@@ -14,6 +14,9 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from documents import recipe_display
+from vonk_forge_contracts import RecipeDisplay
+from vonk_forge_contracts.recipe import RecipeIdentity
 
 from qualification.capabilities import (
     ROOT,
@@ -45,9 +48,10 @@ SERVICE_SLUGS = sorted(key.split("/", 1)[1] for key in DEFINITIONS["service_reci
 @pytest.mark.parametrize("slug", SERVICE_SLUGS)
 def test_a_recipes_smoke_cases_and_tags_match_what_its_engine_serves(slug: str) -> None:
     recipe = _recipe(slug)
-    caps = serving_capabilities(recipe, slug, MODELS)
+    display = recipe_display(slug)
+    caps = serving_capabilities(recipe, slug, MODELS, display)
     cases = DEFINITIONS["service_recipes"][f"vonk-forge/{slug}"]["smoke_cases"]
-    assert generic_case_problems(slug, recipe, cases, caps) == []
+    assert generic_case_problems(slug, recipe, cases, caps, display) == []
 
 
 def test_every_smoke_case_names_a_reviewed_template() -> None:
@@ -62,9 +66,17 @@ def _caps(**changes: bool) -> Capabilities:
     return Capabilities(flags_from="test", **values)
 
 
-def _vllm(*arguments: tuple[str, Any], tags: tuple[str, ...] = ()) -> dict[str, Any]:
+def _display(*tags: str) -> RecipeDisplay:
+    return RecipeDisplay(
+        identity=RecipeIdentity(publisher="vonk-forge", slug="x-test"),
+        title="X",
+        description="X",
+        tags=list(tags),
+    )
+
+
+def _vllm(*arguments: tuple[str, Any]) -> dict[str, Any]:
     return {
-        "metadata": {"tags": list(tags)},
         "models": [],
         "runtime": {
             "engine": "vllm",
@@ -76,9 +88,9 @@ def _vllm(*arguments: tuple[str, Any], tags: tuple[str, ...] = ()) -> dict[str, 
 def test_vllm_tools_need_both_the_parser_and_auto_tool_choice() -> None:
     both = _vllm(("tool-call-parser", "hermes"), ("enable-auto-tool-choice", True))
     parser_only = _vllm(("tool-call-parser", "hermes"))
-    assert serving_capabilities(both, "x", {}).tools
-    assert not serving_capabilities(parser_only, "x", {}).tools
-    assert not serving_capabilities(_vllm(), "x", {}).tools
+    assert serving_capabilities(both, "x", {}, _display()).tools
+    assert not serving_capabilities(parser_only, "x", {}, _display()).tools
+    assert not serving_capabilities(_vllm(), "x", {}, _display()).tools
 
 
 def test_sglang_and_trtllm_use_their_own_flag_spelling() -> None:
@@ -87,35 +99,50 @@ def test_sglang_and_trtllm_use_their_own_flag_spelling() -> None:
     trtllm = _vllm(("tool_parser", "qwen3"), ("reasoning_parser", "qwen3"))
     trtllm["runtime"]["engine"] = "tensorrt-llm"
     for recipe in (sglang, trtllm):
-        caps = serving_capabilities(recipe, "x", {})
+        caps = serving_capabilities(recipe, "x", {}, _display())
         assert caps.tools and caps.reasoning_parser
 
 
 def test_a_tool_case_without_a_parser_is_reported() -> None:
     recipe = _vllm()
+    display = _display()
     problems = generic_case_problems(
-        "x", recipe, ["M0", "A323", "T_PRODUCT"], serving_capabilities(recipe, "x", {})
+        "x",
+        recipe,
+        ["M0", "A323", "T_PRODUCT"],
+        serving_capabilities(recipe, "x", {}, display),
+        display,
     )
     assert any("tool cases" in problem for problem in problems)
 
 
 def test_the_tool_use_tag_must_match_the_parser() -> None:
-    recipe = _vllm(tags=("tool-use",))
+    recipe = _vllm()
+    display = _display("tool-use")
     problems = generic_case_problems(
-        "x", recipe, ["M0", "A323"], serving_capabilities(recipe, "x", {})
+        "x",
+        recipe,
+        ["M0", "A323"],
+        serving_capabilities(recipe, "x", {}, display),
+        display,
     )
     assert any("tag tool-use" in problem for problem in problems)
 
 
 def test_a_reasoning_model_without_a_parser_uses_the_unparsed_arithmetic_case() -> None:
-    recipe = _vllm(tags=("reasoning",))
-    caps = serving_capabilities(recipe, "x", {})
-    assert generic_case_problems("x", recipe, ["M0", "A323"], caps)
-    assert not generic_case_problems("x", recipe, ["M0", "A323_UNPARSED"], caps)
-    parsed = _vllm(("reasoning-parser", "qwen3"), tags=("reasoning",))
-    parsed_caps = serving_capabilities(parsed, "x", {})
-    assert not generic_case_problems("x", parsed, ["M0", "A323"], parsed_caps)
-    assert generic_case_problems("x", parsed, ["M0", "A323_UNPARSED"], parsed_caps)
+    recipe = _vllm()
+    display = _display("reasoning")
+    caps = serving_capabilities(recipe, "x", {}, display)
+    assert generic_case_problems("x", recipe, ["M0", "A323"], caps, display)
+    assert not generic_case_problems(
+        "x", recipe, ["M0", "A323_UNPARSED"], caps, display
+    )
+    parsed = _vllm(("reasoning-parser", "qwen3"))
+    parsed_caps = serving_capabilities(parsed, "x", {}, display)
+    assert not generic_case_problems("x", parsed, ["M0", "A323"], parsed_caps, display)
+    assert generic_case_problems(
+        "x", parsed, ["M0", "A323_UNPARSED"], parsed_caps, display
+    )
 
 
 @pytest.mark.parametrize(
@@ -125,30 +152,40 @@ def test_a_reasoning_model_without_a_parser_uses_the_unparsed_arithmetic_case() 
 def test_a_parser_that_keeps_thinking_in_content_does_not_parse_reasoning(
     engine: str, parser: str
 ) -> None:
-    appended = _vllm(("reasoning-parser", parser), tags=("reasoning",))
+    appended = _vllm(("reasoning-parser", parser))
     appended["runtime"]["engine"] = engine
-    caps = serving_capabilities(appended, "x", {})
+    display = _display("reasoning")
+    caps = serving_capabilities(appended, "x", {}, display)
     assert not caps.reasoning_parser
-    assert generic_case_problems("x", appended, ["M0", "A391"], caps)
-    assert not generic_case_problems("x", appended, ["M0", "A391_UNPARSED"], caps)
-    split = _vllm(("reasoning-parser", "minimax_m2"), tags=("reasoning",))
-    split_caps = serving_capabilities(split, "x", {})
+    assert generic_case_problems("x", appended, ["M0", "A391"], caps, display)
+    assert not generic_case_problems(
+        "x", appended, ["M0", "A391_UNPARSED"], caps, display
+    )
+    split = _vllm(("reasoning-parser", "minimax_m2"))
+    split_caps = serving_capabilities(split, "x", {}, display)
     assert split_caps.reasoning_parser
-    assert not generic_case_problems("x", split, ["M0", "A391"], split_caps)
+    assert not generic_case_problems("x", split, ["M0", "A391"], split_caps, display)
 
 
 def test_tensorrt_llm_append_think_still_splits_reasoning() -> None:
-    recipe = _vllm(("reasoning_parser", "minimax_m2_append_think"), tags=("reasoning",))
+    recipe = _vllm(("reasoning_parser", "minimax_m2_append_think"))
     recipe["runtime"]["engine"] = "tensorrt-llm"
-    assert serving_capabilities(recipe, "x", {}).reasoning_parser
+    assert serving_capabilities(recipe, "x", {}, _display("reasoning")).reasoning_parser
 
 
 def test_an_image_case_needs_a_multimodal_recipe() -> None:
     recipe = _vllm()
+    display = _display()
     assert generic_case_problems(
-        "x", recipe, ["M0", "V7"], serving_capabilities(recipe, "x", {})
+        "x",
+        recipe,
+        ["M0", "V7"],
+        serving_capabilities(recipe, "x", {}, display),
+        display,
     )
-    assert not generic_case_problems("x", recipe, ["M0", "V7"], _caps(vision=True))
+    assert not generic_case_problems(
+        "x", recipe, ["M0", "V7"], _caps(vision=True), display
+    )
 
 
 def test_unparsed_reasoning_is_valid_content_not_a_functional_failure() -> None:

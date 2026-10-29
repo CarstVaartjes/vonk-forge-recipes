@@ -20,6 +20,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from qualification.documents import model_display
 
 # Weight formats, quantizers and packaging words that belong to a version or
 # variant, never to the lineage.
@@ -69,7 +72,7 @@ def check(root: Path) -> list[str]:
         name = f"models/{path.name}"
         slug = str(family["slug"])
         publisher = str(family["publisher"])
-        title = str(family["title"])
+        title = model_display(path.stem, root).family_title
         record = identities.setdefault(
             slug, {"publisher": set(), "title": set(), "files": set()}
         )

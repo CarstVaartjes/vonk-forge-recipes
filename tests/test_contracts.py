@@ -21,9 +21,11 @@ from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
     document_sha256,
+    model_display_json_schema,
     model_json_schema,
     read_model,
     read_recipe,
+    recipe_display_json_schema,
     recipe_json_schema,
 )
 from vonk_forge_contracts.recipe import (
@@ -193,6 +195,39 @@ def test_examples_validate_against_the_two_roots_and_generated_schemas() -> None
     assert parsed_model.kind == "model"
     assert set(parsed_model.capabilities) == {"image-generation", "text-generation"}
     assert parsed_model.download_bytes == parsed_model.installed_bytes == 1024
+
+
+def test_display_examples_validate_against_the_generated_display_schemas() -> None:
+    examples = ROOT / "contracts/src/vonk_forge_contracts/examples"
+    for path in sorted(examples.glob("recipe-display-*.json")):
+        Draft202012Validator(recipe_display_json_schema()).validate(
+            json.loads(path.read_text())
+        )
+    for path in sorted(examples.glob("model-display*.json")):
+        Draft202012Validator(model_display_json_schema()).validate(
+            json.loads(path.read_text())
+        )
+
+
+def test_every_invalid_display_vector_names_its_contract_and_error() -> None:
+    invalid = ROOT / "contracts/src/vonk_forge_contracts/examples/invalid"
+    vectors = sorted(
+        path
+        for path in invalid.glob("*.json")
+        if not path.name.endswith(".expect.json")
+    )
+    assert vectors
+    for path in vectors:
+        expect = json.loads(path.with_suffix(".expect.json").read_text())
+        assert set(expect) == {"contract", "error_contains"}, path.name
+        assert expect["error_contains"], path.name
+    # The generated schemas also refuse what a display may never carry.
+    runtime = json.loads((invalid / "recipe-display-with-runtime.json").read_text())
+    with pytest.raises(Exception, match="runtime"):
+        Draft202012Validator(recipe_display_json_schema()).validate(runtime)
+    kind = json.loads((invalid / "recipe-display-kind-recipe.json").read_text())
+    with pytest.raises(Exception, match="recipe-display"):
+        Draft202012Validator(recipe_display_json_schema()).validate(kind)
 
 
 def test_model_manifest_deduplicates_download_projection_and_rejects_conflicting_size() -> (

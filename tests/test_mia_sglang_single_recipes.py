@@ -8,6 +8,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from documents import display_of
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -74,7 +76,7 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
         self.assertEqual(
             memory["peak_bytes"] + memory["reserve_bytes"], 126_000_000_000
         )
-        self.assertIn("262144 context", recipe["metadata"]["description"])
+        self.assertIn("262144 context", display_of(recipe).description)
 
     def test_qwen27_profile_binds_external_dspark_draft(self) -> None:
         recipe = load("recipes/qwen3-8-27b-nvfp4-dspark-sglang-single.json")

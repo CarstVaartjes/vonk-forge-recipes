@@ -1,0 +1,4 @@
+{
+  "contract": "ModelDisplay",
+  "error_contains": "display tags must be unique"
+}

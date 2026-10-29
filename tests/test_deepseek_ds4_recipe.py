@@ -16,6 +16,7 @@ import json
 import unittest
 from pathlib import Path
 
+from documents import display_of
 from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,7 +37,7 @@ def digest(path: Path) -> str:
 class DeepseekDs4RecipeTests(unittest.TestCase):
     def test_cuda_profile_describes_ordered_two_session_fallback(self) -> None:
         recipe = load(RECIPE)
-        self.assertIn("two-session concurrency", recipe["metadata"]["title"])
+        self.assertIn("two-session concurrency", display_of(recipe).title)
         self.assertEqual(
             next(
                 a["setting"]

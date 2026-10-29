@@ -18,6 +18,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
+from documents import display_of
 from generated_catalog import GENERATED
 from vonk_forge_contracts import (
     RecipeDefinition,
@@ -117,7 +118,7 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
         )
         self.assertTrue(
             {"experimental", "disk-offload", "physical-oom-gated", "not-default"}
-            <= set(recipe["metadata"]["tags"])
+            <= set(display_of(recipe).tags)
         )
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]

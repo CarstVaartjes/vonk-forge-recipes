@@ -1,0 +1,14 @@
+{
+  "description": "A small model used only for contract examples.",
+  "family_title": "Synthetic",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-fp16"
+  },
+  "kind": "model-display",
+  "model_title": "Synthetic Tiny",
+  "tags": [
+    "synthetic",
+    "text"
+  ]
+}

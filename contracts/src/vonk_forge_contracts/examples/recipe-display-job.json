@@ -1,0 +1,13 @@
+{
+  "description": "Synthetic image job example.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-image-job"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "synthetic",
+    "text"
+  ],
+  "title": "Synthetic image job"
+}

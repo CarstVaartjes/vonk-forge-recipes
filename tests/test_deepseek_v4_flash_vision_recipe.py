@@ -5,6 +5,7 @@ import json
 import unittest
 from pathlib import Path
 
+from documents import display_of
 from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,7 +65,7 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
         }
         self.assertEqual(arguments["served-model-name"], "deepseek-v4-flash-vision-exp")
         self.assertLess(self.recipe["settings"]["context_tokens"]["value"], 1_048_576)
-        self.assertIn("Context is capped", self.recipe["metadata"]["description"])
+        self.assertIn("Context is capped", display_of(self.recipe).description)
         self.assertEqual(json.loads(arguments["limit-mm-per-prompt"]), {"image": 8})
         self.assertEqual(self.recipe["interfaces"][0]["adapter"], "openai")
 
@@ -122,7 +123,7 @@ class DeepSeekV4FlashVisionRecipeTests(unittest.TestCase):
             if item["source_path"] == f"recipes/{RECIPE.name}"
         )
         self.assertEqual(entry["package"]["recipe_content_sha256"], digest(RECIPE))
-        self.assertIn("candidate", self.recipe["metadata"]["tags"])
+        self.assertIn("candidate", display_of(self.recipe).tags)
 
 
 if __name__ == "__main__":
