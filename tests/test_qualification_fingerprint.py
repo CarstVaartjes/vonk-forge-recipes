@@ -172,7 +172,8 @@ def test_catalog_pass_reads_and_hashes_each_model_once(monkeypatch):
     recipes = [sweep_recipe(d, document_sha256(d)) for d in documents]
     model_index_module._cache.clear()
     reads: list[str] = []
-    hashes: list[int] = []
+    loaded: list[str] = []  # documents hashed to key the index
+    stripped: list[str] = []  # documents hashed to fingerprint
     real_read = Path.read_text
     real_hash = document_sha256
 
@@ -180,14 +181,19 @@ def test_catalog_pass_reads_and_hashes_each_model_once(monkeypatch):
         reads.append(self.parent.name + "/" + self.name)
         return real_read(self, *args, **kwargs)
 
-    def counting_hash(document):
-        hashes.append(1)
-        return real_hash(document)
+    def counting(into: list[str]):
+        def count(document):
+            into.append(document["kind"])
+            return real_hash(document)
+
+        return count
 
     monkeypatch.setattr(Path, "read_text", read_text)
-    monkeypatch.setattr("vonk_forge_contracts.canonical.document_sha256", counting_hash)
-    monkeypatch.setattr(model_index_module, "document_sha256", counting_hash)
-    monkeypatch.setattr(sweep_identity, "document_sha256", counting_hash)
+    monkeypatch.setattr(
+        "vonk_forge_contracts.canonical.document_sha256", counting(stripped)
+    )
+    monkeypatch.setattr(model_index_module, "document_sha256", counting(loaded))
+    monkeypatch.setattr(sweep_identity, "document_sha256", counting(loaded))
 
     first = [sweep_identity.content_identity(r) for r in recipes]
     assert sorted(n for n in reads if n.startswith("models/")) == [
@@ -195,12 +201,18 @@ def test_catalog_pass_reads_and_hashes_each_model_once(monkeypatch):
     ]
     assert sum(1 for n in reads if n.startswith("recipes/")) == len(recipes)
     assert all(i.qualification_fingerprint_sha256 for i in first)
+    # Each Model is hashed once to key the index and once stripped, never per recipe.
+    assert loaded.count("model") == len(names)
+    referenced = {m["model"]["content_sha256"] for d in documents for m in d["models"]}
+    assert stripped.count("model") == len(referenced)
+    assert stripped.count("recipe") == len(recipes)
 
     reads.clear()
-    hashes.clear()
+    loaded.clear()
+    stripped.clear()
     second = [sweep_identity.content_identity(r) for r in recipes]
     assert second == first
-    assert reads == [] and hashes == []
+    assert reads == [] and loaded == [] and stripped == []
 
 
 def test_index_is_content_addressed():
@@ -212,7 +224,8 @@ def test_index_is_content_addressed():
 # Library code and the two catalog consumers read Models only through the index.
 # Other tools author or inspect single Model files by slug (refresh-upstream,
 # kit-pins, check-model-families, check-recipe-model-references,
-# check-upstream-drift, _catalog_model.py, build-family-aware-coverage,
+# check-upstream-drift, check-model-revision-holds, build-qualification-authority,
+# generate-contract-examples, _catalog_model.py, build-family-aware-coverage,
 # prepare-remote-code-smoke): they are not consumers of the catalog's fingerprints.
 MODEL_PATH = re.compile(
     r"""/\s*["']models["']|["']models["']\s*\)\s*\.(?:glob|rglob|iterdir)"""
@@ -235,3 +248,23 @@ def test_one_owner_reads_models_and_computes_fingerprints():
         assert path == owner or "qualification_fingerprint_sha256(" not in text, (
             path.name
         )
+
+
+# Identities in sweep state predate the fingerprint, and the fingerprint follows
+# from content and Models: compare them with ``same_identity``, never ``==``.
+RAW_IDENTITY_COMPARISON = re.compile(
+    r"(?<![\w.])(?:\w+\.)*(?:identity|content_identity\(.*?\)|current_identity\(.*?\))"
+    r"\s*[!=]="
+)
+
+
+def test_sweep_compares_identities_only_through_same_identity():
+    for path in sorted((ROOT / "spark_sweep").glob("*.py")):
+        if path.name == "identity.py":
+            continue
+        for number, line in enumerate(path.read_text().splitlines(), 1):
+            if "controller.identity" in line or "target_identity" in line:
+                continue  # a Controller operation identity, not a recipe identity
+            assert not RAW_IDENTITY_COMPARISON.search(line), (
+                f"{path.name}:{number}: use same_identity"
+            )

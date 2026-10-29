@@ -1,7 +1,7 @@
 """The one reader of the authored Model documents, and the qualification fingerprint.
 
 Every consumer (the sweep, the memory gate, the catalog build, the change gate)
-asks this module for the Models of a catalog and for a Recipe's execution
+asks this module for the Models of a catalog and for a Recipe's qualification
 fingerprint. Documents are keyed by the digest of their own bytes, so an index
 that is out of date can only miss a Model, never return the wrong bytes. An
 unreadable or invalid Model file is a miss, not an error.
@@ -35,6 +35,7 @@ class ModelIndex:
     accepted: dict[
         tuple[str, str, tuple[str, ...]], tuple[tuple[int, int] | None, str | None]
     ] = field(default_factory=dict, repr=False)
+    _stripped: dict[str, str] = field(default_factory=dict, repr=False)
     _fingerprints: dict[tuple[str, tuple[str, ...]], str | None] = field(
         default_factory=dict, repr=False
     )
@@ -72,7 +73,10 @@ class ModelIndex:
         if key not in self._fingerprints:
             try:
                 self._fingerprints[key] = qualification_fingerprint_sha256(
-                    recipe, self.documents
+                    recipe,
+                    self.documents,
+                    resolved=self._stripped,
+                    authenticated=True,
                 )
             except (ValueError, KeyError, TypeError):
                 self._fingerprints[key] = None

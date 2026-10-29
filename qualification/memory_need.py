@@ -258,7 +258,7 @@ class MemoryInputs(BaseModel):
     # rule (2026-10-26): Engram tables are never memory usage.
     engram_files: dict[str, str]
     historical_sources: list[str]
-    # Execution fingerprints (vonk_forge_contracts.qualification_fingerprint_sha256) of the
+    # Qualification fingerprints (vonk_forge_contracts.qualification_fingerprint_sha256) of the
     # recipes the catalog accepted before the memory gate.
     historical_fingerprints: dict[str, list[str]]
 

@@ -33,7 +33,7 @@ from typing import Any
 from vonk_forge_contracts.sweep import SweepWaitReason
 
 from .catalog import Model, Recipe
-from .identity import AcceptedRequest, content_identity, verdict_matches
+from .identity import AcceptedRequest, content_identity, same_identity, verdict_matches
 from .lifecycle import TERMINAL, WAITING, LifecycleState, RetestReason, active
 from .policy import (
     Boost,
@@ -360,9 +360,9 @@ class Prefetcher:
             elif record is not None and record.get("state") == "external":
                 if recipe.local == "cached":
                     accepted = AcceptedRequest.read(record)
-                    if accepted is not None and content_identity(
-                        accepted.recipe
-                    ) == content_identity(recipe):
+                    if accepted is not None and same_identity(
+                        content_identity(accepted.recipe), content_identity(recipe)
+                    ):
                         record.update(state=LifecycleState.SUCCEEDED, done_at=now)
                         self.on_done(key)
                     else:
@@ -457,9 +457,9 @@ class Prefetcher:
             "download", self.state.nonce, recipe.key, recipe.content_sha256, attempt
         )
         accepted = AcceptedRequest.read(record)
-        same_content = accepted is not None and content_identity(
-            accepted.recipe
-        ) == content_identity(recipe)
+        same_content = accepted is not None and same_identity(
+            content_identity(accepted.recipe), content_identity(recipe)
+        )
         retry_of = (
             record.get("operation_id")
             if record.get("state") == LifecycleState.FAILED and same_content
@@ -775,7 +775,9 @@ class Prefetcher:
                 record.get("rejection_verified_at") is not None
                 and accepted is not None
                 and (
-                    content_identity(accepted.recipe) != content_identity(recipe)
+                    not same_identity(
+                        content_identity(accepted.recipe), content_identity(recipe)
+                    )
                     or (
                         isinstance(
                             retest := self.state.entry(recipe.key).get("retest"),
@@ -794,9 +796,9 @@ class Prefetcher:
         if recipe.cache_ready:
             return False
         accepted = AcceptedRequest.read(record)
-        if accepted is not None and content_identity(
-            accepted.recipe
-        ) != content_identity(recipe):
+        if accepted is not None and not same_identity(
+            content_identity(accepted.recipe), content_identity(recipe)
+        ):
             # A new document needs a new selector request, never a retry of the old parent.
             if record.get("state") == LifecycleState.SUCCEEDED:
                 return True

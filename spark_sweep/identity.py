@@ -122,6 +122,20 @@ def current_identity(recipe: Recipe) -> QualificationIdentity:
     )
 
 
+def same_identity[T: (QualificationIdentity, VerdictIdentity)](
+    previous: T, current: T
+) -> bool:
+    """Identities of the same content, whatever either side recorded as fingerprint.
+
+    The fingerprint follows from the content digest and the Models the checkout
+    holds, so a stored identity without it, or a checkout whose bytes differ,
+    must not read as a different recipe. Every comparison of identities held in
+    sweep state goes through here.
+    """
+    drop = {"qualification_fingerprint_sha256": None}
+    return previous.model_copy(update=drop) == current.model_copy(update=drop)
+
+
 def recorded_identity(entry: Mapping[str, Any]) -> VerdictIdentity | None:
     value = entry.get("verdict_identity")
     return VerdictIdentity.model_validate(value) if value is not None else None

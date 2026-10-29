@@ -450,7 +450,7 @@ above it. Never omit a failing recipe to pass the check.
 **C.** Assume an existing recipe works until hardware evidence says otherwise.
 Only new or changed recipe executions are subject to the need guard. An exact
 `content_sha256` or an `qualification_fingerprint_sha256` in a `qualification/evidence/` record, or
-an qualification fingerprint in the committed `historical_fingerprints` snapshot in
+a qualification fingerprint in the committed `historical_fingerprints` snapshot in
 `qualification/memory-inputs.json`, identifies existing content, regardless of its
 qualification outcome. The snapshot's
 `historical_sources` records its source commits; it is a content baseline, never

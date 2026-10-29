@@ -76,6 +76,7 @@ from .identity import (
     IdentityReason,
     VerdictIdentity,
     content_identity,
+    same_identity,
     verdict_matches,
 )
 from .lifecycle import ACTIVE as ACTIVE_APP
@@ -818,7 +819,9 @@ class Sweep:
             if (
                 view.status == QualificationStatus.BLOCKED_PLATFORM
                 and view.last_failure is not None
-                and view.last_failure.identity != current_identity(recipe)
+                and not same_identity(
+                    view.last_failure.identity, current_identity(recipe)
+                )
             ):
                 why = RetestReason.DEFERRED_OLDER_REVISION
         if entry.get("status") == RecipeStatus.PENDING:
@@ -2020,9 +2023,9 @@ class Sweep:
         recipe = accepted.recipe
         download = self.state.downloads.get(key, {})
         downloaded = AcceptedRequest.read(download)
-        if downloaded is None or content_identity(
-            downloaded.recipe
-        ) != content_identity(recipe):
+        if downloaded is None or not same_identity(
+            content_identity(downloaded.recipe), content_identity(recipe)
+        ):
             download = {}
         timings = {
             "download_s": round(
@@ -2443,7 +2446,7 @@ class Sweep:
         held = (
             verdict.held_receipt(self.state.data["loads"].get(slot["request_key"]))
             and latest is not None
-            and current_identity(latest) == current_identity(recipe)
+            and same_identity(current_identity(latest), current_identity(recipe))
         )
         if self.blind or slot["request_key"] in self.unobserved_loads:
             # Unknown is no ending: a receipt last seen held stays held.
@@ -2810,7 +2813,7 @@ class Sweep:
                 request_key=slot["request_key"],
                 # Content that kept ending keeps its re-plan pace.
                 ended_since=previous.ended_since
-                if previous is not None and previous.identity == identity
+                if previous is not None and same_identity(previous.identity, identity)
                 else None,
                 platform=load.get("wait_platform")
                 or {
@@ -3150,7 +3153,9 @@ class Sweep:
         if (
             download.get("state") == LifecycleState.SUCCEEDED
             and accepted is not None
-            and content_identity(accepted.recipe) == content_identity(recipe)
+            and same_identity(
+                content_identity(accepted.recipe), content_identity(recipe)
+            )
             and (
                 self.model_list.complete_started_at
                 <= float(download.get("done_at") or 0.0)
@@ -3180,7 +3185,7 @@ class Sweep:
                 continue
             if (
                 key in waits
-                and waits[key].identity == current_identity(recipe)
+                and same_identity(waits[key].identity, current_identity(recipe))
                 and (waits[key].live or now < float(waits[key].not_before or 0))
             ):
                 continue  # re-observe the original receipt, never replay unchanged intent
@@ -3428,7 +3433,7 @@ class Sweep:
             if controller is None or controller.identity is None:
                 continue
             if any(
-                other.identity != hold.identity
+                not same_identity(other.identity, hold.identity)
                 and other.wait.controller is not None
                 and other.wait.controller.identity == controller.identity
                 for other in holds
@@ -3454,7 +3459,9 @@ class Sweep:
         platform = self._component_observations()
         for key, hold in self.controller_wait_holds().items():
             recipe = self.recipes.get(key)
-            if recipe is not None and current_identity(recipe) != hold.identity:
+            if recipe is not None and not same_identity(
+                current_identity(recipe), hold.identity
+            ):
                 self.state.entry(key).pop("controller_wait", None)
                 continue  # latest content gets a fresh canonical review
             if any(

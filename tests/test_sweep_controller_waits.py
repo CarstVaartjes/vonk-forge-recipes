@@ -677,3 +677,29 @@ def test_hold_saved_without_operation_ids_adopts_them_on_its_next_observation(
     assert "vonk-forge/b" in sweep.controller_wait_holds()
     for key in ("vonk-forge/a", "vonk-forge/b"):
         assert sweep.state.entry(key).get("attempts", 0) == 0
+
+
+FINGERPRINT = "f" * 64
+
+
+def test_a_hold_stored_without_the_fingerprint_survives_a_restart_and_a_flip(
+    tmp_path, monkeypatch
+) -> None:
+    """Stored identities predate the fingerprint, and a pull can flip it None<->value."""
+    from spark_sweep import identity
+
+    sweep, _, clock, _ = prepare(tmp_path, monkeypatch)
+    expire(sweep, clock)
+    stored = sweep.controller_wait_holds()["vonk-forge/a"]
+    assert stored.live and stored.identity.qualification_fingerprint_sha256 is None
+    sweep.state.save()
+    sweep.state = State.load(tmp_path / "state.json", clock.now)
+    # The new code derives a fingerprint for the same content.
+    monkeypatch.setattr(identity, "_fingerprint_identity", lambda recipe: FINGERPRINT)
+    sweep._refresh_controller_waits(clock.now())
+    kept = sweep.controller_wait_holds()["vonk-forge/a"]
+    assert kept.live and kept.application_id == stored.application_id
+    # And back to none when the checkout holds other bytes.
+    monkeypatch.setattr(identity, "_fingerprint_identity", lambda recipe: None)
+    sweep._refresh_controller_waits(clock.now())
+    assert sweep.controller_wait_holds()["vonk-forge/a"].live

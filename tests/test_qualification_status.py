@@ -1247,3 +1247,19 @@ def test_pass_recorded_before_source_digests_stays_working():
     changed = derive_status(evidence(bound), moved, 2, False)
     assert changed.status == Status.RECHECK
     assert changed.changed == (Change.SOURCE,)
+
+
+def test_a_same_content_deferral_is_not_requeued_as_an_older_revision(
+    tmp_path, monkeypatch
+):
+    from spark_sweep import identity
+    from spark_sweep.lifecycle import RecipeStatus
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    failed = record(A, Outcome.FAILED, Blame.PLATFORM)
+    sweep.qualification_evidence[KEY] = evidence(failed)
+    sweep.state.entry(KEY).update(status=RecipeStatus.DEFERRED)
+    # The stored record has no fingerprint; today's identity of the same content has one.
+    monkeypatch.setattr(identity, "_fingerprint_identity", lambda recipe: "f" * 64)
+    sweep._reconcile_entry(sweep.recipes[KEY], 2)
+    assert "requeued_because" not in sweep.state.entry(KEY)

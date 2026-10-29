@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from typing import Any, cast
 
 from .model import ModelDefinition
@@ -80,7 +80,11 @@ def _drop(value: dict[str, Any], path: tuple[str, ...]) -> None:
 
 
 def qualification_fingerprint_sha256(
-    recipe: Mapping[str, object], models: Mapping[str, Mapping[str, object]]
+    recipe: Mapping[str, object],
+    models: Mapping[str, Mapping[str, object]],
+    *,
+    resolved: MutableMapping[str, str] | None = None,
+    authenticated: bool = False,
 ) -> str:
     """Hash what a Recipe executes, ignoring only the display fields above.
 
@@ -89,11 +93,17 @@ def qualification_fingerprint_sha256(
     the fingerprint while a changed file, source, format or variant does not.
     This is a qualification-equivalence key, never an asset verification digest.
     Raises ValueError when a reference is missing, mismatched or cyclic.
+
+    A caller that holds many recipes passes ``resolved`` (Model digest to its
+    stripped digest) so each Model is stripped and hashed once, and
+    ``authenticated=True`` when ``models`` is keyed by the digest it computed
+    itself, which makes re-checking each key redundant.
     """
 
     read_recipe(recipe)
     visiting: set[str] = set()
-    resolved: dict[str, str] = {}
+    if resolved is None:
+        resolved = {}
 
     def resolve(digest: str) -> str:
         if digest in resolved:
@@ -101,9 +111,10 @@ def qualification_fingerprint_sha256(
         if digest in visiting:
             raise ValueError("cyclic Model dependencies")
         model = models.get(digest)
-        if model is None or document_sha256(model) != digest:
+        if model is None or (not authenticated and document_sha256(model) != digest):
             raise ValueError("Model reference is missing or has a different digest")
-        read_model(model)
+        if not authenticated:
+            read_model(model)
         visiting.add(digest)
         value: dict[str, Any] = copy.deepcopy(dict(model))
         for path in MODEL_DISPLAY_FIELDS:
