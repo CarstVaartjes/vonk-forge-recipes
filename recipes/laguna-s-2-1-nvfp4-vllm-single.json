@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna S 2.1 NVFP4 checkpoint 07614121 (71.9 GB, FP8 KV cache scheme, 262,144 positions; the same files the r0b0tlab and Mia singles share). The earlier 826aacdf export (99.7 GB, experts of layers 40-47 in BF16) cannot fit one Spark: its weights alone plus the 8 GB overhead exceed the 0.78 budget. GB10 fit: GPU utilization 0.80 → 0.78 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna S 2.1 NVFP4 checkpoint 07614121 (71.9 GB, FP8 KV cache scheme, 262,144 positions; the same files the r0b0tlab and Mia singles share). The earlier 826aacdf export (99.7 GB, experts of layers 40-47 in BF16) is not used. Memory follows the creator's settings: gpu-memory-utilization 0.85, as in Poolside's model card at 07614121 (README line 185). The steady per-node peak is 0.85 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak. The card's DFlash profile (262,144 context, 32 sequences, a k=15 drafter) is a different recipe shape and is not part of this one.",
     "tags": [
       "executable",
       "candidate",
@@ -340,7 +340,7 @@
   },
   "release": {
     "released_at": "2026-10-28",
-    "version": "1.1.2"
+    "version": "1.1.3"
   },
   "runtime": {
     "arguments": [
@@ -362,7 +362,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.78"
+        "value": "0.85"
       },
       {
         "name": "reasoning-parser",
@@ -435,7 +435,7 @@
             "working_bytes": 147877264802
           },
           "memory": {
-            "peak_bytes": 119386735371,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }

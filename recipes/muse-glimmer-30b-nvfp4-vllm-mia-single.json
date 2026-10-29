@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B NVFP4 (RedHatAI W4A4) with the official Meta DFlash drafter, FP8 KV cache and the muse_glimmer reasoning/tool parsers, following the MiaAI-Lab DGX Spark launch profile on the official vLLM 0.30.0 ARM64 image. Context defaults to the model's native 131072 (upstream's 262144 needs an unmerged RoPE-cache patch on a vLLM fork). Chat, vision, reasoning, tool calling and DFlash speedup remain Candidate capabilities; upstream throughput figures are its own claims. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so the peak budgets the unchanged 0.42 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
+    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B NVFP4 (RedHatAI W4A4) with the official Meta DFlash drafter, FP8 KV cache and the muse_glimmer reasoning/tool parsers, following the MiaAI-Lab DGX Spark launch profile on the official vLLM 0.30.0 ARM64 image. Context defaults to the model's native 131072 (upstream's 262144 needs an unmerged RoPE-cache patch on a vLLM fork). Chat, vision, reasoning, tool calling and DFlash speedup remain Candidate capabilities; upstream throughput figures are its own claims. Memory follows the creator's settings: gpu-memory-utilization 0.42, as in MiaAI-Lab's start.sh at 1b71dc01 (line 37). The steady per-node peak is 0.42 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "executable",
       "candidate",
@@ -319,7 +319,7 @@
   },
   "release": {
     "released_at": "2026-10-01",
-    "version": "1.0.3"
+    "version": "1.0.4"
   },
   "runtime": {
     "arguments": [
@@ -454,7 +454,7 @@
             "working_bytes": 57042539156
           },
           "memory": {
-            "peak_bytes": 79878557225,
+            "peak_bytes": 62878557225,
             "reserve_bytes": 8000000000
           }
         }
