@@ -8,13 +8,17 @@ from pathlib import Path
 import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification.memory_need import (
+    ADMISSION_IDLE_USE_BYTES,
     GUARD_BYTES,
     IDLE_USE_BYTES,
     LIMIT_BYTES,
     OVERHEAD_BYTES,
+    SGLANG_MAMBA_SLOTS_PER_REQUEST,
+    SPARK_MEMORY_BYTES,
     TOTAL_BYTES,
     CacheGeometry,
     argument_value,
@@ -24,6 +28,9 @@ from qualification.memory_need import (
     load_inputs,
     rank_weight_bytes,
     require_memory_need,
+    sglang_capped_static_need,
+    sglang_demand,
+    sglang_static_need,
     vllm_utilization_envelope,
 )
 
@@ -426,12 +433,15 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
         ).read_text()
     )
     args = {item.name: item.value for item in recipe.runtime.arguments}
+    concurrency = int(str(argument_value(recipe, "max-running-requests")))
+    context = int(str(argument_value(recipe, "context-length")))
     schedule = SimpleNamespace(
         mem_fraction_static=float(str(args["mem-fraction-static"])),
         max_total_tokens=args.get("max-total-tokens"),
         max_mamba_cache_size=args.get("max-mamba-cache-size"),
-        max_running_requests=1,
+        max_running_requests=concurrency,
         mamba_full_memory_ratio=1.0,
+        disable_overlap_schedule=False,
     )
 
     def override(_reason: str, **values: int) -> None:
@@ -443,6 +453,10 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
         init_globals={
             "math": math,
             "logging": logging,
+            "logger": logging.getLogger("sglang"),
+            "envs": SimpleNamespace(
+                SGLANG_OPT_MAMBA_SKIP_DECODE_LOCK=SimpleNamespace(get=lambda: False)
+            ),
             "get_schedule": lambda: schedule,
             "get_available_gpu_memory": lambda *a, **kw: 30 - 6.32,
             "get_world_group": lambda: SimpleNamespace(world_size=1, cpu_group=None),
@@ -450,7 +464,11 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
             "get_memory": lambda: SimpleNamespace(disable_radix_cache=False),
             "mm_runtime_reservation_gb": lambda **kw: 0,
             "get_exec": lambda: SimpleNamespace(
-                mamba=SimpleNamespace(enable_linear_replayssm_spec=False)
+                mamba=SimpleNamespace(
+                    enable_linear_replayssm_spec=False,
+                    enable_mamba_extra_buffer=True,
+                    enable_mamba_extra_buffer_lazy=False,
+                )
             ),
             "get_context": lambda: SimpleNamespace(override=override),
             "get_parallel": lambda: SimpleNamespace(config=SimpleNamespace(pp_size=1)),
@@ -459,7 +477,7 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
     sizer = namespace["CacheSizer"]()
     sizer.device, sizer.gpu_id = "cuda", 0
     sizer.post_capture_kv_active = False
-    sizer.model_config = SimpleNamespace(is_multimodal=True)
+    sizer.model_config = SimpleNamespace(is_multimodal=True, context_len=context)
     sizer.ps = SimpleNamespace(pp_size=1, attn_dp_size=1)
     sizer.spec_algorithm = SimpleNamespace(is_none=lambda: True)
     sizer.mambaish_config = SimpleNamespace(
@@ -471,16 +489,31 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
     # pre-load free memory was truncated; 120 GiB is a synthetic test input.
     budget = sizer._profile_available_bytes(120)
     assert budget > 0
-    assert schedule.max_mamba_cache_size == 2
+    # Five state slots serve the recipe's one running request; the pool is the
+    # recipe's own value, not autosized.
+    assert schedule.max_mamba_cache_size == 5 * concurrency
     assert sizer._apply_token_constraints(1_000_000) == 8192
+    assert sizer._calculate_mamba_ratio() == SGLANG_MAMBA_SLOTS_PER_REQUEST
+    assert sizer.resolve_max_num_reqs(8192) == concurrency
+    # 2026-10-28 operation 31e3de45: two slots floor to zero requests.
+    schedule.max_mamba_cache_size = 2
+    with pytest.raises(RuntimeError, match="too small to serve any requests"):
+        sizer.resolve_max_num_reqs(8192)
+    schedule.max_mamba_cache_size = 5 * concurrency
     checked(recipe)
     need = calculate_need(recipe, catalog_models(), INPUTS)
     assert need.kv_bytes == 8192 * 65536
-    assert need.state_bytes == 3 * 150 * 1024**2
+    assert need.state_bytes == 6 * 150 * 1024**2
     assert need.overhead_bytes == 8_000_000_000
     assert need.resident_expansion_bytes == 14_000_000_000
     assert need.total_bytes <= recipe.topology.roles[0].resources.memory.peak_bytes
-    assert recipe.topology.roles[0].resources.memory.peak_bytes <= LIMIT_BYTES
+    # Honest peak with five state slots is 158 MB above the 108.47 GB planning
+    # limit, so only the Controller's idle admission rule bounds it.
+    assert evaluate_memory_admission(
+        recipe.topology.roles[0].resources.memory.peak_bytes,
+        SPARK_MEMORY_BYTES,
+        occupied_bytes=ADMISSION_IDLE_USE_BYTES,
+    ).admissible
 
     # Replay the rejected profile through the image's actual sizing functions.
     schedule.mem_fraction_static = 0.75
@@ -504,9 +537,8 @@ def glm_a0() -> RecipeDefinition:
         # peak and the 106.8 GB static budget of 0.85 x 125.65 GB.
         ("max-total-tokens", 262144, "peak understates SGLang static need"),
         ("max-mamba-cache-size", 16, "peak understates SGLang static need"),
-        # The OOM-killed fa86311a fraction, and a capped launch's 0.95.
+        # The OOM-killed fa86311a fraction.
         ("mem-fraction-static", "0.75", "cannot hold the selected weights"),
-        ("mem-fraction-static", "0.95", "not admissible on an idle Spark"),
     ],
 )
 def test_capped_sglang_guard_rejects_restored_large_pools(
@@ -518,6 +550,64 @@ def test_capped_sglang_guard_rejects_restored_large_pools(
     )
     next(item for item in recipe.runtime.arguments if item.name == name).value = value
     with pytest.raises(ValueError, match=match):
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
+
+
+def test_capped_sglang_pools_are_admitted_by_need_not_by_fraction() -> None:
+    """The fraction gates only rest > 0 when both pools are capped (SGLang
+    kv_cache_configurator): a capped recipe at 0.95 takes need + overhead."""
+    recipe = glm_a0()
+    next(
+        item for item in recipe.runtime.arguments if item.name == "mem-fraction-static"
+    ).value = "0.95"
+    require_memory_need(
+        recipe, catalog_models(), INPUTS, document_digest="", touched=True
+    )
+    # Uncapping the token pool restores the fraction model: 0.95 is refused.
+    recipe.runtime.arguments.remove(
+        next(
+            item for item in recipe.runtime.arguments if item.name == "max-total-tokens"
+        )
+    )
+    with pytest.raises(ValueError):
+        require_memory_need(
+            recipe, catalog_models(), INPUTS, document_digest="", touched=True
+        )
+
+
+def test_uncapped_sglang_fraction_stays_the_calibrated_proxy() -> None:
+    recipe = glm_a0()
+    fraction = argument_value(recipe, "mem-fraction-static")
+    assert sglang_demand(recipe, None) == Decimal(str(fraction)) * TOTAL_BYTES + (
+        OVERHEAD_BYTES
+    )
+    assert sglang_demand(recipe, 40_000_000_000) == Decimal(48_000_000_000)
+
+
+def test_hybrid_without_mamba_cap_stays_on_the_fraction_model() -> None:
+    """nemotron-3-5-lightning is a proven 0.85 launch with no max-mamba-cache-size:
+    the Mamba pool grows with the fraction, so it is not capped and 119.06e9
+    (0.85 x total + 8e9) is the demand; 0.95 is refused whatever the peak."""
+    recipe = RecipeDefinition.model_validate_json(
+        (
+            ROOT / "recipes/nemotron-3-5-lightning-r0b0tlab-sglang-eagle-single.json"
+        ).read_text()
+    )
+    assert argument_value(recipe, "max-total-tokens") is not None
+    assert (
+        sglang_capped_static_need(recipe, catalog_models(), INPUTS, "nemotron") is None
+    )
+    require_memory_need(
+        recipe, catalog_models(), INPUTS, document_digest="", touched=True
+    )
+    next(
+        item for item in recipe.runtime.arguments if item.name == "mem-fraction-static"
+    ).value = "0.95"
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = 40_000_000_000
+    with pytest.raises(ValueError, match="not admissible on an idle Spark"):
         require_memory_need(
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
         )
@@ -543,3 +633,15 @@ def test_hybrid_estimate_rejects_uncalibrated_runtime(defect: str) -> None:
         ]
     with pytest.raises((ValueError, TypeError)):
         calculate_need(recipe, catalog_models(), INPUTS)
+
+
+@pytest.mark.parametrize("slots", [2, 4])
+def test_state_padding_geometry_needs_five_state_slots_per_request(slots: int) -> None:
+    recipe = glm_a0()
+    next(
+        item for item in recipe.runtime.arguments if item.name == "max-mamba-cache-size"
+    ).value = slots
+    with pytest.raises(ValueError, match="cannot hold the 5 state slots"):
+        calculate_need(recipe, catalog_models(), INPUTS)
+    with pytest.raises(ValueError, match="cannot hold the 5 state slots"):
+        sglang_static_need(recipe, catalog_models(), INPUTS, "glm", pinned=False)

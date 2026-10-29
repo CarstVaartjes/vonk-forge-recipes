@@ -126,7 +126,7 @@ def test_smoke_frame_override_updates_graph_and_output_assertion(monkeypatch):
             "--seed",
             "0",
             "--num-frames",
-            "120",
+            "141",
         ],
     )
     monkeypatch.setattr(JOB, "load_workflow", lambda *_: document)
@@ -136,11 +136,36 @@ def test_smoke_frame_override_updates_graph_and_output_assertion(monkeypatch):
         pass
 
     def inspect_graph(updated, manifest):
-        assert updated["prompt"]["6"]["inputs"]["length"] == 120
-        assert updated["result"]["video"]["frames"] == 120
+        assert updated["prompt"]["6"]["inputs"]["length"] == 141
+        assert updated["result"]["video"]["frames"] == 141
         assert updated["prompt"]["10"]["inputs"]["steps"] == 8
         raise Observed
 
     monkeypatch.setattr(JOB, "input_names", inspect_graph)
     with pytest.raises(Observed):
         JOB.run_job()
+
+
+@pytest.mark.parametrize("frames", ["120", "123", "128", "363"])
+def test_num_frames_off_the_model_grid_is_rejected_before_inference(
+    monkeypatch, frames
+):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "job",
+            "--workflow",
+            "w",
+            "--workflow-sha256",
+            "x",
+            "--output-mime",
+            "video/mp4",
+            "--seed",
+            "0",
+            "--num-frames",
+            frames,
+        ],
+    )
+    with pytest.raises(ValueError, match=r"17k\+5 grid"):
+        JOB.parse_args()

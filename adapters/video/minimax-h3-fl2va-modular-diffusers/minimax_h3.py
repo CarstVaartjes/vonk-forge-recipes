@@ -87,11 +87,28 @@ def _positive_multiple(value: object, field: str, default: int) -> int:
     return value
 
 
+# The model's frame grid: diffusers snaps a requested length up to the next
+# 17k+5 and allows 5 to 15 seconds at 24 fps (k 7..20).
+FRAME_GRID_STEP = 17
+FRAME_GRID_OFFSET = 5
+FRAME_GRID_MIN = 124
+FRAME_GRID_MAX = 345
+
+
+def on_frame_grid(frames: int) -> bool:
+    return (
+        FRAME_GRID_MIN <= frames <= FRAME_GRID_MAX
+        and frames % FRAME_GRID_STEP == FRAME_GRID_OFFSET
+    )
+
+
 def _num_frames(value: object) -> int:
     if value is None:
         return 124
-    if type(value) is not int or not 120 <= value <= 345:
-        raise ValueError("num_frames must request 120..345 frames at 24 fps")
+    if type(value) is not int or not on_frame_grid(value):
+        raise ValueError(
+            "num_frames must be on the model's 17k+5 grid at 24 fps: 124, 141, ... 345"
+        )
     return value
 
 

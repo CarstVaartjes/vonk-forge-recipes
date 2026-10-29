@@ -25,11 +25,12 @@ from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
     evaluate_memory_admission,
 )
+from vonk_forge_contracts.recipe import RecipeMemoryResources
 
 # Offline policy pinned to vonk-forge cee017ae806f0ac4c0842a3652f8ef7ee57388b8:
 # control/src/vonk_control/resource_planning/types.py::PLATFORM_MEMORY_FLOOR_BYTES.
 # GUARD_BYTES below is this estimator's own headroom; the live host memory guard
-# (vonk-forge #1936 fef665bf820346c885d50723e3179b2335c9216a,
+# (vonk-forge #1936 fc6059e42edb1b26416fd78493138201f427de96,
 # rust/crates/vonk-agent-protocol/src/host_memory_guard_policy.rs) has no
 # per-sample MemAvailable bar. These estimates do not redefine live admission
 # or the guard.
@@ -44,10 +45,27 @@ SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 # 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
 ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
+# Offline copy of the swap policy pinned to vonk-forge fc6059e42edb1b26416fd78493138201f427de96
+# (#1936 swap-aware memory guard): rust/crates/vonk-agent-protocol/src/
+# host_memory_guard_policy.rs::SWAP_EXHAUSTED_FREE_FLOOR_BYTES (2 GiB),
+# SWAP_EXHAUSTED_FREE_PERCENT (10) and SWAP_FILLING_USED_PERCENT (90). R1
+# (vonk-agent-helper/src/host_memory_guard/decision.rs:185) keeps max(floor, total / 100 * 10) free;
+# R2 (decision.rs:191) allows at most total / 100 * 90 used. Also
+# agent_protocol/src/vonk_agent_protocol/swap.py::SwapPolicy maximum_gib 128,
+# default_gib 64. usable/needed are proven against vonk-forge's shared vector
+# (agent_protocol/src/vonk_agent_protocol/vectors/swap-v1.json). These do not redefine live admission or the guard.
+GIB = 1024**3
+SWAP_FREE_FLOOR_BYTES = 2 * GIB
+SWAP_FREE_PERCENT = 10
+SWAP_FILLING_USED_PERCENT = 90
+SWAP_MAXIMUM_BYTES = 128 * 1024**3
+SWAP_DEFAULT_BYTES = 64 * 1024**3
 # sglang 94602c9c (and the Qwen3.8 Flash Next r0b0tlab image's qwen4_exp copy)
 # kv_cache_configurator._calculate_mamba_ratio: at most 3 base plus 2
 # extra_buffer overlap state slots per running request.
 SGLANG_MAMBA_SLOTS_PER_REQUEST = 5
+# server_args.mamba_full_memory_ratio default (sglang b7252cc6 and 94602c9c).
+SGLANG_MAMBA_FULL_MEMORY_RATIO = Decimal("0.9")
 # The DeepSeek V4.1 Engram row store's resident cache size (GiB per Spark).
 ENGRAM_ROW_CACHE_ENVIRONMENT = "DSV41_CACHE_GIB"
 # vLLM's gpu-memory-utilization when a launch omits it.
@@ -59,6 +77,15 @@ ROOT = Path(__file__).resolve().parents[1]
 TOTAL_BYTES = SPARK_MEMORY_BYTES
 IDLE_AVAILABLE_BYTES = SPARK_3542_IDLE_AVAILABLE_BYTES
 IDLE_USE_BYTES = TOTAL_BYTES - IDLE_AVAILABLE_BYTES
+# SGLang's pre-load free memory on GB10 is MemAvailable after CUDA init: the
+# CUDA context takes about 4.2e9 bytes on the 2026-10-28 Inkling TP2 start
+# (113.11 GiB before load, SGLang prints GiB, against 125,650,657,280 idle) and
+# 4.70e9 on the GLM a0 single-Spark start (114.89 GiB before load against
+# 128.06e9 MemAvailable). The larger one is the planning figure; this is the one
+# owner of SGLang's base. Capped and uncapped launches profile the same way
+# (_profile_available_bytes); a cap enters only in _apply_token_constraints.
+SGLANG_CUDA_CONTEXT_BYTES = 4_700_000_000
+SGLANG_PRELOAD_FREE_BYTES = IDLE_AVAILABLE_BYTES - SGLANG_CUDA_CONTEXT_BYTES
 # The estimator's own headroom rule: the informative workload limit subtracts
 # it, and a touched multi-Spark utilization-sized pool whose share plus overhead
 # does not leave it is refused (require_bounded_kv_pool). It began as the host memory
@@ -206,6 +233,9 @@ class CacheGeometry(BaseModel):
     sglang_swa_layers: int = Field(default=0, ge=0)
     # SGLang per-rank hybrid state per max-mamba-cache-size slot (+1 padding).
     sglang_state_bytes_per_slot: int = Field(default=0, ge=0)
+    # SGLang's pre-load free memory measured on this runtime image, when known;
+    # otherwise SGLANG_PRELOAD_FREE_BYTES.
+    sglang_preload_free_bytes: int | None = Field(default=None, gt=0)
     runtime_image_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
     @model_validator(mode="after")
@@ -473,11 +503,7 @@ def calculate_need(
         kv += cache_need_for_context(recipe, geometry, context) * concurrency
         slots = concurrency
         if geometry.state_padding:
-            slots = positive_argument(recipe, "max-mamba-cache-size")
-            if slots < concurrency:
-                raise ValueError(
-                    f"{label}: absolute state pool cannot hold concurrency"
-                )
+            slots = sglang_mamba_slots(recipe, label)
         state += geometry.state_bytes_per_request * (slots + geometry.state_padding)
     # A draft's weights are counted above, like the target's; vLLM holds
     # nothing else for it beside its budget (vllm_memory_fit.py).
@@ -494,7 +520,10 @@ def pinned_geometry(
 ) -> CacheGeometry:
     """Geometry bound to the selected configuration and, if pinned, the image."""
     label = recipe.identity.slug
-    geometry = geometries.get(slug)
+    # An entry keyed "<slug>@<image digest>" is the one for that runtime image.
+    geometry = geometries.get(
+        f"{slug}@{recipe.execution.build.base_image.digest}"
+    ) or geometries.get(slug)
     if geometry is None:
         raise ValueError(
             f"{label}: add source-backed cache geometry for {slug} to qualification/memory-inputs.json"
@@ -512,6 +541,49 @@ def pinned_geometry(
     ):
         raise ValueError(f"{label}: cache geometry does not match the pinned image")
     return geometry
+
+
+def sglang_token_pools(
+    recipe: RecipeDefinition, geometry: CacheGeometry, tokens: int, key: str
+) -> int:
+    """Per-rank bytes of the full-attention pool and the pooled sliding layers."""
+    need = cache_need_for_context(recipe, geometry, tokens)
+    if geometry.sglang_swa_layers:
+        ratio = argument_value(recipe, "swa-full-tokens-ratio")
+        if ratio is None:
+            raise ValueError(f"{key}: declare swa-full-tokens-ratio")
+        swa = geometry.model_copy(
+            update={
+                "layers": geometry.sglang_swa_layers,
+                "sliding_layers": 0,
+                "token_bytes": None,
+                "token_bytes_by_dtype": {},
+                "replicated_token_bytes": 0,
+            }
+        )
+        swa_tokens = int(
+            (Decimal(str(ratio)) * tokens).to_integral_value(ROUND_CEILING)
+        )
+        need += cache_need_for_context(recipe, swa, swa_tokens)
+    return need
+
+
+def sglang_mamba_slots(recipe: RecipeDefinition, label: str) -> int:
+    """max-mamba-cache-size, which must hold five state slots per running request.
+
+    kv_cache_configurator.resolve_max_num_reqs sets max_num_reqs to
+    max-mamba-cache-size // 5 and raises at 0, so fewer slots either fail the
+    start (operation 31e3de45, 2 slots) or silently lower the concurrency.
+    """
+    slots = positive_argument(recipe, "max-mamba-cache-size")
+    running = positive_argument(recipe, "max-running-requests")
+    if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST * running:
+        raise ValueError(
+            f"{label}: max-mamba-cache-size {slots} cannot hold the "
+            f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots of each of "
+            f"{running} running requests"
+        )
+    return slots
 
 
 def sglang_static_need(
@@ -545,33 +617,11 @@ def sglang_static_need(
         need += geometry.resident_expansion_bytes
         if not capped:
             continue
-        need += cache_need_for_context(recipe, geometry, tokens)
-        if geometry.sglang_swa_layers:
-            ratio = argument_value(recipe, "swa-full-tokens-ratio")
-            if ratio is None:
-                raise ValueError(f"{key}: declare swa-full-tokens-ratio")
-            swa = geometry.model_copy(
-                update={
-                    "layers": geometry.sglang_swa_layers,
-                    "sliding_layers": 0,
-                    "token_bytes": None,
-                    "token_bytes_by_dtype": {},
-                    "replicated_token_bytes": 0,
-                }
-            )
-            swa_tokens = int(
-                (Decimal(str(ratio)) * tokens).to_integral_value(ROUND_CEILING)
-            )
-            need += cache_need_for_context(recipe, swa, swa_tokens)
+        need += sglang_token_pools(recipe, geometry, tokens, key)
         if geometry.sglang_state_bytes_per_slot:
             if argument_value(recipe, "max-mamba-cache-size") is None:
                 raise ValueError(f"{key}: set absolute max-mamba-cache-size")
-            slots = positive_argument(recipe, "max-mamba-cache-size")
-            if slots < SGLANG_MAMBA_SLOTS_PER_REQUEST:
-                raise ValueError(
-                    f"{key}: max-mamba-cache-size {slots} cannot hold the "
-                    f"{SGLANG_MAMBA_SLOTS_PER_REQUEST} state slots of one request"
-                )
+            slots = sglang_mamba_slots(recipe, key)
             need += geometry.sglang_state_bytes_per_slot * (slots + 1)
             if argument_value(recipe, "speculative-algorithm") is not None:
                 # _handle_max_mamba_cache: per-step intermediate state for the
@@ -591,10 +641,60 @@ def sglang_static_need(
             if argument_value(recipe, "max-mamba-cache-size") is None:
                 raise ValueError(f"{key}: set absolute max-mamba-cache-size")
             need += geometry.state_bytes_per_request * (
-                positive_argument(recipe, "max-mamba-cache-size")
-                + geometry.state_padding
+                sglang_mamba_slots(recipe, key) + geometry.state_padding
             )
     return need
+
+
+def sglang_capped_static_need(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    key: str,
+) -> int | None:
+    """Per-rank static need when the recipe caps every SGLang pool, else None.
+
+    Capped means max-total-tokens is set, the geometry of every Model is known
+    (an unknown one could hide an uncapped pool) and a hybrid Model's
+    max-mamba-cache-size is set: without it SGLang sizes the Mamba pool by
+    mamba_full_memory_ratio from the fraction, whichever engine the geometry
+    was pinned for (sglang_static_need only knows SGLang state fields).
+    """
+    if argument_value(recipe, "max-total-tokens") is None:
+        return None
+    mamba_capped = argument_value(recipe, "max-mamba-cache-size") is not None
+    for selection in recipe.models:
+        model = models[selection.model.content_sha256]
+        geometry = applicable_geometry(recipe, selection.model.slug, model, inputs)
+        if geometry is None or (
+            geometry.architecture in HYBRID_ARCHITECTURES and not mamba_capped
+        ):
+            return None
+    return sglang_static_need(recipe, models, inputs, key, pinned=False)
+
+
+def sglang_demand(recipe: RecipeDefinition, capped_need: int | None) -> Decimal | None:
+    """Per-rank bytes an SGLang launch takes from a Spark, None without a fraction.
+
+    The base on GB10 is host MemAvailable after CUDA init (sglang
+    utils/common.py is_integrated path), so the admission model charges the
+    Spark's total memory. With every pool capped (``capped_need`` from
+    sglang_capped_static_need; kv_cache_configurator._apply_token_constraints
+    takes min(capacity, max-total-tokens), _handle_max_mamba_cache the
+    max-mamba-cache-size slots) SGLang allocates only that need and the
+    fraction merely gates the remainder > 0: demand is the need plus the
+    runtime overhead. This rule is derived from the SGLang source and is not
+    calibrated on a fully capped proven run; capped recipes with CUDA graphs or
+    speculation rest on OVERHEAD_BYTES. An uncapped pool grows into what the fraction
+    leaves: mem-fraction-static x total plus overhead, calibrated on the proven
+    0.75 recipes (105.6e9 to 109.4e9 measured against 106.0e9).
+    """
+    fraction = argument_value(recipe, "mem-fraction-static")
+    if fraction is None:
+        return None
+    if capped_need is not None:
+        return Decimal(capped_need + OVERHEAD_BYTES)
+    return Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
 
 
 def require_sglang_rank_budget(
@@ -614,28 +714,116 @@ def require_sglang_rank_budget(
     (require_absolute_kv_capacity), not context x max-running-requests: SGLang
     schedules requests within it. The proven Qwen3.8 Flash Next W4A16 r0b0tlab
     dual caps one 262,144-token context at concurrency 4. The state cap must
-    hold one request's slots: at startup kv_cache_configurator
+    hold five slots per running request: at startup kv_cache_configurator
     .resolve_max_num_reqs lowers max-running-requests to max-mamba-cache-size
     // 5 and fails only below one, so 5 slots serve concurrency 1. With
     speculation, _handle_max_mamba_cache adds intermediate state for those
     running requests plus the padding slot, per draft token.
     """
-    if argument_value(recipe, "max-total-tokens") is None:
-        raise ValueError(
-            f"{key}: set absolute max-total-tokens; a static fraction does not bound KV by need"
-        )
     fraction = argument_value(recipe, "mem-fraction-static")
     if fraction is None:
         raise ValueError(f"{key}: declare mem-fraction-static for the static budget")
-    need = sglang_static_need(recipe, models, inputs, key, pinned=True)
-    static_bytes = Decimal(str(fraction)) * IDLE_AVAILABLE_BYTES
+    uncapped = argument_value(recipe, "max-total-tokens") is None
+    need = sglang_static_need(recipe, models, inputs, key, pinned=not uncapped)
+    base = sglang_preload_free_bytes(recipe, models, inputs)
+    static_bytes = Decimal(str(fraction)) * base
+    if uncapped:
+        # Uncapped, SGLang sizes the pools from what the fraction leaves after
+        # the resident weights: the declared peak (fraction x total + overhead)
+        # bounds them and the Controller's admission of that peak is the memory
+        # authority. The check guards only whether SGLang can start.
+        minimum = sglang_startup_rest(recipe, models, inputs, key)
+        rest = static_bytes - need
+        if not rest.is_finite() or rest < minimum:
+            raise ValueError(
+                f"{key}: mem-fraction-static {fraction} x SGLang pre-load free "
+                f"{base} leaves {rest:.0f} bytes/rank after "
+                f"sharded weights and resident expansion ({need} bytes), below the "
+                f"{minimum} bytes SGLang needs to start (one request's state slots "
+                "and one KV token); increase mem-fraction-static"
+            )
+        return
     if not static_bytes.is_finite() or static_bytes < need:
         raise ValueError(
             f"{key}: static budget {static_bytes:.0f} bytes (mem-fraction-static x "
-            f"idle available {IDLE_AVAILABLE_BYTES}) cannot hold sharded weights, "
+            f"SGLang pre-load free {base}) cannot hold sharded weights, "
             f"resident expansion and capped pools ({need} bytes/rank); increase "
             "mem-fraction-static while retaining the absolute caps"
         )
+
+
+def sglang_preload_free_bytes(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+) -> int:
+    """SGLang's pre-load free memory: the primary Model's image measurement, else the default."""
+    selection = recipe.models[0]
+    geometry = applicable_geometry(
+        recipe, selection.model.slug, models[selection.model.content_sha256], inputs
+    )
+    if geometry is None or geometry.sglang_preload_free_bytes is None:
+        return SGLANG_PRELOAD_FREE_BYTES
+    return geometry.sglang_preload_free_bytes
+
+
+def sglang_startup_rest(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+    key: str,
+) -> int:
+    """Least per-rank rest memory (fraction x pre-load free minus resident) SGLang starts on.
+
+    kv_cache_configurator._handle_max_mamba_cache gives the state pool
+    mamba-full-memory-ratio / (1 + ratio) of the rest and solves, per rank,
+    (K + 1) x state + (K / 5 + 1) x D x state <= that budget for the slots K
+    (D draft tokens, 0 without speculation); resolve_max_num_reqs then needs
+    K // 5 >= 1 (SGLANG_MAMBA_SLOTS_PER_REQUEST). The pool also needs room
+    for one KV token beside the state. Only the primary Model's geometry is
+    required; a draft Model is resident weights (rank_weight_bytes) and
+    expansion without pools of its own.
+    """
+    ratio = Decimal(
+        str(
+            argument_value(recipe, "mamba-full-memory-ratio")
+            or SGLANG_MAMBA_FULL_MEMORY_RATIO
+        )
+    )
+    draft = 0
+    if argument_value(recipe, "speculative-algorithm") is not None:
+        # DSPARK's verify window is the block size plus one (server_args).
+        draft = (
+            positive_argument(recipe, "speculative-num-draft-tokens")
+            if argument_value(recipe, "speculative-num-draft-tokens") is not None
+            else positive_argument(recipe, "speculative-dspark-block-size") + 1
+            if argument_value(recipe, "speculative-dspark-block-size") is not None
+            else 1
+        )
+    minimum = Decimal(0)
+    for index, selection in enumerate(recipe.models):
+        model = models[selection.model.content_sha256]
+        geometry = (
+            pinned_geometry(recipe, selection.model.slug, model, inputs.geometries)
+            if index == 0
+            else applicable_geometry(recipe, selection.model.slug, model, inputs)
+        )
+        if geometry is None:
+            continue
+        kv = sglang_token_pools(recipe, geometry, 1, key)
+        slot = geometry.sglang_state_bytes_per_slot
+        if slot:
+            slots = SGLANG_MAMBA_SLOTS_PER_REQUEST
+            budget = slot * (1 + draft) + slots * slot * (
+                1 + Decimal(draft) / SGLANG_MAMBA_SLOTS_PER_REQUEST
+            )
+            held = slot * (slots + 1) + slot * (1 + 1) * draft
+            minimum += max(budget * (1 + ratio) / ratio, held + kv)
+        else:
+            minimum += kv
+        if geometry.state_padding:
+            minimum += geometry.state_bytes_per_request * (1 + geometry.state_padding)
+    return int(minimum.to_integral_value(ROUND_CEILING))
 
 
 def memory_variants(recipe: RecipeDefinition) -> list[RecipeDefinition]:
@@ -701,6 +889,7 @@ def attention_token_bytes(
         "fp8_e4m3",
         "fp8_e5m2",
         "nvfp4",
+        "fp4_mx_block16",
     }:
         raise ValueError(
             f"{recipe.identity.slug}: supply cache layout calibration for dtype {dtype}"
@@ -717,8 +906,11 @@ def attention_token_bytes(
         token_bytes = layers * heads * (geometry.key_dim + geometry.value_dim) * 2
     elif dtype in ("fp8", "fp8_e4m3", "fp8_e5m2"):
         token_bytes = layers * heads * (geometry.key_dim + geometry.value_dim)
-    elif dtype == "nvfp4":
-        # Packed data plus one FP8 scale per 16 elements, separately for K/V.
+    elif dtype in ("nvfp4", "fp4_mx_block16"):
+        # Packed data plus one scale byte per 16 elements, separately for K/V.
+        # fp4_mx_block16 is the triton lane's layout: packed e2m1 plus a uint8
+        # biased-exponent scale per 16 elements, 0.5625 bytes/element
+        # (adapters/inkling/drowzeys-kvquant-dual/scripts/nvfp4-kv-boot.sh:11-12).
         token_bytes = (
             layers
             * heads
@@ -1051,8 +1243,6 @@ def applicable_geometry(
     inputs: MemoryInputs,
 ) -> CacheGeometry | None:
     """Source-backed geometry pinned to this launch, if any."""
-    if slug not in inputs.geometries:
-        return None
     try:
         return pinned_geometry(recipe, slug, model, inputs.geometries)
     except ValueError:
@@ -1114,17 +1304,25 @@ def require_bounded_kv_pool(
         # fraction reserves.
         share = Decimal(str(fraction))
         resident = sglang_static_need(recipe, models, inputs, key, pinned=False)
-        if share * IDLE_AVAILABLE_BYTES < resident:
+        base = sglang_preload_free_bytes(recipe, models, inputs)
+        if share * base < resident:
             raise ValueError(
-                f"{key}: mem-fraction-static {fraction} x idle available "
-                f"{IDLE_AVAILABLE_BYTES} cannot hold the selected weights, resident "
+                f"{key}: mem-fraction-static {fraction} x SGLang pre-load free "
+                f"{base} cannot hold the selected weights, resident "
                 f"expansion and capped pools ({resident} bytes)"
             )
-        if not evaluate_memory_admission(
-            int(share * TOTAL_BYTES) + OVERHEAD_BYTES,
-            SPARK_MEMORY_BYTES,
-            occupied_bytes=ADMISSION_IDLE_USE_BYTES,
-        ).admissible:
+        demand = sglang_demand(
+            recipe,
+            sglang_capped_static_need(recipe, models, inputs, key),
+        )
+        if (
+            demand is None
+            or not evaluate_memory_admission(
+                int(demand),
+                SPARK_MEMORY_BYTES,
+                occupied_bytes=ADMISSION_IDLE_USE_BYTES,
+            ).admissible
+        ):
             raise ValueError(
                 f"{key}: mem-fraction-static {fraction} share of {TOTAL_BYTES} bytes "
                 f"plus {OVERHEAD_BYTES} overhead is not admissible on an idle Spark"
@@ -1216,10 +1414,16 @@ def memory_warnings(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
     inputs: MemoryInputs,
+    document_digest: str = "",
 ) -> list[str]:
-    """Informative catalog estimates; these never change hardware qualification."""
+    """Informative catalog estimates; these never change hardware qualification.
+
+    A recorded or snapshotted multi-Spark SGLang document that is not
+    hardware-proven is skipped by require_memory_need; its startup room is
+    reported here so a shaved fraction stays visible until the document changes.
+    """
     if recipe.runtime.engine not in {"vllm", "sglang"}:
-        return []
+        return swap_warnings(recipe)
     missing = {
         selection.model.content_sha256 for selection in recipe.models
     } - models.keys()
@@ -1229,8 +1433,8 @@ def memory_warnings(
                 f"WARNING {recipe.identity.slug}: memory estimate unavailable; "
                 f"missing Model inputs: {', '.join(sorted(missing))}"
             )
-        ]
-    warnings = []
+        ] + swap_warnings(recipe)
+    warnings = swap_warnings(recipe)
     for index, variant in enumerate(memory_variants(recipe)):
         prefix = f"WARNING {recipe.identity.slug} [{index}]"
         try:
@@ -1242,6 +1446,21 @@ def memory_warnings(
                 f"{prefix}: estimated workload {need.total_bytes} bytes/rank; "
                 f"planning limit {LIMIT_BYTES}; hardware test required"
             )
+        if (
+            variant.runtime.engine == "sglang"
+            and variant.topology.node_count > 1
+            and document_digest
+            and not hardware_proven(recipe, document_digest)
+        ):
+            try:
+                require_sglang_rank_budget(
+                    variant,
+                    models,
+                    inputs,
+                    f"{recipe.identity.publisher}/{recipe.identity.slug}",
+                )
+            except (ValueError, TypeError) as error:
+                warnings.append(f"{prefix}: {error}")
         rank = per_rank_need(variant, models, inputs)
         warnings.append(
             f"{prefix}: loading floor {rank.peak_bytes} bytes/rank; "
@@ -1358,6 +1577,82 @@ def declaration_problems(
     return problems
 
 
+def usable_swap_bytes(total_bytes: int) -> int:
+    """Swap a load may fill before the host guard's R1 or R2 applies."""
+    kept_free = max(SWAP_FREE_FLOOR_BYTES, total_bytes // 100 * SWAP_FREE_PERCENT)
+    return max(
+        0,
+        min(total_bytes - kept_free, total_bytes // 100 * SWAP_FILLING_USED_PERCENT),
+    )
+
+
+def swap_needed_bytes(load_bytes: int) -> int:
+    """The smallest whole-GiB swap total whose usable part holds the load."""
+    if load_bytes <= 0:
+        return 0
+    size_gib = -(-load_bytes // GIB)
+    while usable_swap_bytes(size_gib * GIB) < load_bytes:
+        size_gib += 1
+    return size_gib * GIB
+
+
+def load_overshoot_bytes(memory: RecipeMemoryResources) -> int:
+    """Load use beyond the steady peak, which the host serves from swap."""
+    if memory.load_peak_bytes is None:
+        return 0
+    return memory.load_peak_bytes - memory.peak_bytes
+
+
+def swap_warnings(recipe: RecipeDefinition) -> list[str]:
+    """Roles whose load needs more swap than the host default.
+
+    An overshoot beyond the usable maximum is refused by require_swap_declaration;
+    skipping it here keeps swap_needed_bytes bounded for any declared value.
+    """
+    warnings = []
+    for variant in memory_variants(recipe):
+        for role in variant.topology.roles:
+            overshoot = load_overshoot_bytes(role.resources.memory)
+            if overshoot > usable_swap_bytes(SWAP_MAXIMUM_BYTES):
+                continue
+            needed = swap_needed_bytes(overshoot)
+            if needed > SWAP_DEFAULT_BYTES:
+                warnings.append(
+                    f"WARNING {recipe.identity.slug}/{role.name}: load needs "
+                    f"{needed} bytes of swap, above the {SWAP_DEFAULT_BYTES}-byte default"
+                )
+    return warnings
+
+
+def require_swap_declaration(recipe: RecipeDefinition) -> None:
+    """A load that overshoots the steady peak must fit, and name its swap."""
+    for variant in memory_variants(recipe):
+        for role in variant.topology.roles:
+            memory = role.resources.memory
+            overshoot = load_overshoot_bytes(memory)
+            if overshoot == 0:
+                continue
+            where = f"{recipe.identity.slug}/{role.name}"
+            if overshoot > usable_swap_bytes(SWAP_MAXIMUM_BYTES):
+                raise ValueError(
+                    f"{where}: load overshoot {overshoot} bytes exceeds the "
+                    f"usable part of the {SWAP_MAXIMUM_BYTES}-byte swap maximum "
+                    f"({usable_swap_bytes(SWAP_MAXIMUM_BYTES)}); it can never fit"
+                )
+            needed = swap_needed_bytes(overshoot)
+            if memory.minimum_swap_bytes < needed:
+                raise ValueError(
+                    f"{where}: minimum_swap_bytes {memory.minimum_swap_bytes} "
+                    f"is below the {needed} bytes the {overshoot}-byte load "
+                    "overshoot needs"
+                )
+            if memory.minimum_swap_bytes > SWAP_MAXIMUM_BYTES:
+                raise ValueError(
+                    f"{where}: minimum_swap_bytes {memory.minimum_swap_bytes} "
+                    f"exceeds the {SWAP_MAXIMUM_BYTES}-byte swap maximum"
+                )
+
+
 def require_admissible_declaration(
     recipe: RecipeDefinition, *, pool_bytes: int = SPARK_MEMORY_BYTES
 ) -> None:
@@ -1380,3 +1675,4 @@ def require_admissible_declaration(
                     f"{ADMISSION_IDLE_USE_BYTES} bytes, floor "
                     f"{PLATFORM_MEMORY_FLOOR_BYTES} bytes); reserve by need"
                 )
+    require_swap_declaration(recipe)

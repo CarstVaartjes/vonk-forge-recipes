@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/mimo-v2-6-flash-rl-sglang-mia-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "dc25ec541f4655dda677ad6a155d5e5aeb1e14652c38b82bf175c2d5bc28af37",
+        "source_bundle_sha256": "78134ac411670b44d66c8b096f5d377ee88e06cc6054900e5cc27a093a2075b7",
+        "runtime_image": {
+          "build_key": "8528632931c7a93f818c3ab8a7e9a8c4960a5b3889420480696161c953d98127",
+          "image_digest": "sha256:22773c73c1411d1fede6180131bd1610c497154c80f07236147202ad243fccc1"
+        },
+        "model_digests": [
+          "ad2a6f0d7fe60dff701666c9e11209fca89371163835e1395a2d215b2f7a72b1"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "089a1b2e2d2629ada10134fa13a2fe550d9fd9fbfecae6e75ce90f08d90c17d7"
+      ],
+      "tested_at": "2026-10-28T13:18:55.868343Z",
+      "platform": {
+        "controller_source_sha": "9f7d7e0e468f2f11c93f802bfd5d08761904f650",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "d9ee0c470c196d9756192b085064b40676a4fd33d9f6aaa5f4d49ddc58e9acbc",
+        "source_bundle_sha256": "4322fc543e2e8727a321668b926a47732e99c7d890ffd31b0b0a19149db61556",
+        "runtime_image": {
+          "build_key": "8e645305760e1582863a23ec8ebe0d155f3c3c9b1dbb8779be9d225e3b4783b6",
+          "image_digest": "sha256:a11060c19ce218687a8a37344d628c1fe20c98f1a80ef33edf82abdc8acf581a"
+        },
+        "model_digests": [
+          "ad2a6f0d7fe60dff701666c9e11209fca89371163835e1395a2d215b2f7a72b1"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "ef96cd6b1646d1471cbf8383e551754c681a8612bbb058a677c0dfad8056ab00"
+      ],
+      "tested_at": "2026-10-29T08:58:34.228935Z",
+      "platform": {
+        "controller_source_sha": "a1095fe7031d69044420ace99babb1dae9b9533c",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer"
+      ]
+    }
+  ]
+}

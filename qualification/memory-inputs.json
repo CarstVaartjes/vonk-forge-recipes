@@ -387,10 +387,10 @@
       "kv_heads": 8,
       "layers": 7,
       "max_context_tokens": 1048576,
-      "resident_expansion_bytes": 12611097723,
+      "resident_expansion_bytes": 5846526116,
       "sglang_state_bytes_per_slot": 2584739,
       "sglang_swa_layers": 35,
-      "source": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/resolve/b6a99534467840620d411e4cd4ad5819b2610d9c/config.json; 7 full-attention layers, 35 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term. SGLang terms (image b0d8718a, sglang 94602c9c) from the 2026-10-24 TP2 start failure (operation 1d9c19ee, run 668e2361, content 6010d4a3): total_rest_memory=-6.49 GB at mem-fraction-static 0.696475667681 and mamba_cache_per_req=2.46 MB per rank. Resident weights, expansion and multimodal reservation are at most 0.696475667681 x SPARK_MEMORY_BYTES + 6.495 GiB (pre-load free memory cannot exceed total); minus ceil(selected weights / 2) that leaves a 12,611,097,723-byte resident expansion. The 35 local_layer_ids are pooled by SGLang's swa-full-tokens-ratio; the per-slot state is 2,584,739 bytes, the largest byte count SGLang prints as 2.46 MB. Decode graph capture follows this profiling and is outside it.",
+      "source": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/resolve/b6a99534467840620d411e4cd4ad5819b2610d9c/config.json; 7 full-attention layers, 35 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term. SGLang terms (image b0d8718a, sglang 94602c9c) from the 2026-10-24 TP2 start failure (operation 1d9c19ee, run 668e2361, content 6010d4a3): total_rest_memory=-6.49 GiB at mem-fraction-static 0.696475667681 and mamba_cache_per_req=2.46 MiB per rank. SGLang prints GiB. Resident weights, expansion and multimodal reservation are at most 0.696475667681 x SGLANG_PRELOAD_FREE_BYTES + 6.495 GiB; minus ceil(selected weights / 2) that leaves a 5,846,526,116-byte resident expansion. The 35 local_layer_ids are pooled by SGLang's swa-full-tokens-ratio; the per-slot state is 2,584,739 bytes, the largest byte count SGLang prints as 2.46 MiB. Decode graph capture follows this profiling and is outside it.",
       "state_bytes_per_request": 110100480,
       "value_dim": 128
     },
@@ -465,6 +465,17 @@
       "state_bytes_per_request": 76677120,
       "value_dim": 128
     },
+    "mimo-v2-6-flash-rl-3b38d063": {
+      "architecture": "MiMoV2ForCausalLM",
+      "configuration_sha256": "61bea4a0f7a0dd8969f8cae528761e26b697dd12ff63e98804c3f0945492e621",
+      "key_dim": 192,
+      "kv_heads": 4,
+      "layers": 9,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/resolve/3b38d063180c3e4aed9691fdc735f3d10b266ee4/config.json; 9 full-attention layers, 39 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 76677120,
+      "value_dim": 128
+    },
     "mimo-v2-6-flash-rl-dcd3fd83": {
       "architecture": "MiMoV2ForCausalLM",
       "configuration_sha256": "61bea4a0f7a0dd8969f8cae528761e26b697dd12ff63e98804c3f0945492e621",
@@ -473,6 +484,17 @@
       "layers": 9,
       "max_context_tokens": 1048576,
       "source": "https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Flash-RL/resolve/dcd3fd83fb181622fbc606fbb1709901982a62c2/config.json; 9 full-attention layers, 39 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
+      "state_bytes_per_request": 76677120,
+      "value_dim": 128
+    },
+    "mimo-v2-6-flash-rl-nvfp4-0c75a7a5": {
+      "architecture": "MiMoV2ForCausalLM",
+      "configuration_sha256": "3cbf116559b5d9e876e84541d93ee8986620006fab1b58bacc333bef35de9468",
+      "key_dim": 192,
+      "kv_heads": 4,
+      "layers": 9,
+      "max_context_tokens": 1048576,
+      "source": "https://huggingface.co/r0b0tlab/MiMo-V2.6-Flash-RL-NVFP4/resolve/0c75a7a5ea64b6a4a4179a17a01d593a5ca695cb/config.json; 9 full-attention layers, 39 sliding layers (same attention geometry as the base dcd3fd83). Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
       "state_bytes_per_request": 76677120,
       "value_dim": 128
     },
@@ -645,6 +667,22 @@
       "source": "https://huggingface.co/0xSero/Step-5-Preview-Spark/resolve/51a46a7f62eee1225d124170da903bba23d04a26/config.json; 23 full-attention layers, 69 sliding layers. Bound sliding state by BF16 K/V at window + 256 tokens per layer, without TP savings for the small state term.",
       "state_bytes_per_request": 162791424,
       "value_dim": 192
+    },
+    "inkling-small-nvfp4@079775a8deb415d16b89a505df0795987add3395e6e63a42a885a712ccb1ddc3": {
+      "architecture": "InklingForConditionalGeneration",
+      "configuration_sha256": "dcb5b1d587bce2f1e6b29833d739a724d05b4bfaa2dc1164fbe679330478ba53",
+      "key_dim": 128,
+      "kv_heads": 8,
+      "layers": 7,
+      "max_context_tokens": 1048576,
+      "resident_expansion_bytes": 10799744589,
+      "sglang_state_bytes_per_slot": 2584739,
+      "sglang_swa_layers": 35,
+      "source": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/resolve/b6a99534467840620d411e4cd4ad5819b2610d9c/config.json; same configuration and per-slot state as the plain-image entry. Image 079775a8 (ghcr.io/drowzeys/inkling-sglang-gb10 kvquant, lmsysorg/sglang dev-inkling-dspark b7252cc6, DSPARK drafter). Resident bytes from the 2026-10-28 TP2 start failure of inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual (operation c812b815, rank 0): 'Load weight end ... mem usage=89.10 GB' for the target and 'mem usage=1.30 GB' for the DSparkDraftModel (SGLang prints GiB), then 'Computed max_mamba_cache_size=-2 (total_rest_memory=0.12 GB, mamba_cache_per_req=2.46 MB)' at mem-fraction-static 0.800230326246. Resident 90.40 GiB = 97,066,260,890 bytes minus the 86,266,516,301 bytes of selected weights per rank (target and drafter files / 2) is the 10,799,744,589-byte expansion, drafter included. SGLang's pre-load free memory on this image is 24.01 + 89.10 = 113.11 GiB = 121,450,937,713 bytes (the same log lines).",
+      "state_bytes_per_request": 110100480,
+      "value_dim": 128,
+      "runtime_image_digest": "079775a8deb415d16b89a505df0795987add3395e6e63a42a885a712ccb1ddc3",
+      "sglang_preload_free_bytes": 121450937713
     }
   },
   "engram_files": {
