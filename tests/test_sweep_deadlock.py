@@ -14,6 +14,7 @@ from typing import Any
 import pytest
 from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
+from spark_sweep import policy
 from spark_sweep.identity import content_identity
 
 pytest_plugins = ["sweep_bounds"]
@@ -256,8 +257,11 @@ def test_a_pass_records_the_swap_each_spark_reported_and_the_declared_values(
     )
 
 
-def _refusal(*codes: str) -> tuple[int, dict[str, Any]]:
-    """A review refusal with the blockers in the order given (the Controller sorts them)."""
+def _refusal(*codes: str, reading: int | None = None) -> tuple[int, dict[str, Any]]:
+    """A review refusal with the blockers in the order given (the Controller sorts them).
+
+    ``reading`` puts a live number in each detail, as the Controller's swap detail does.
+    """
     return 2, {
         "allowed": False,
         "effects": {"runs": []},
@@ -265,7 +269,14 @@ def _refusal(*codes: str) -> tuple[int, dict[str, Any]]:
             {
                 "alias": "a",
                 "allowed": False,
-                "blockers": [{"code": c, "detail": f"{c} detail"} for c in codes],
+                "blockers": [
+                    {
+                        "code": c,
+                        "detail": f"{c} detail"
+                        + ("" if reading is None else f" {reading} in use"),
+                    }
+                    for c in codes
+                ],
             }
         ],
     }
@@ -382,8 +393,9 @@ def test_a_final_word_decides_in_any_order(
     assert ended and {r.get("disposition") for r in ended} == {"fail"}
 
 
+@pytest.mark.parametrize("live_reading", [False, True])
 def test_a_long_review_wait_escalates_and_clears_when_the_review_admits(
-    tmp_path: Path, gateway: Gateway
+    tmp_path: Path, gateway: Gateway, live_reading: bool
 ) -> None:
     from spark_sweep.report import build_status
 
@@ -405,7 +417,7 @@ def test_a_long_review_wait_escalates_and_clears_when_the_review_admits(
             and any(i["desired_state"] == "running" for i in data["assignments"])
             and clock.now() < start + window + 120
         ):
-            return _refusal(*codes)
+            return _refusal(*codes, reading=int(clock.now()) if live_reading else None)
         return real(n, data, a)
 
     def observe(now: float) -> None:
@@ -467,3 +479,25 @@ def test_a_stored_fit_outcome_on_a_final_word_stays_deferred(
     resumed.refresh_catalog()
     resumed.requeue_uncertain()
     assert resumed.state.recipes[recipe.key]["status"] == "deferred"
+
+
+def test_a_busy_lane_between_reviews_does_not_restart_a_long_waits_window(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, _, clock = make_sweep(
+        tmp_path, [FakeRecipe("a")], [FakeModel("m1")], gateway=gateway
+    )
+    sweep.refresh_catalog()
+    placement = policy.Placement(sweep.recipes["vonk-forge/a"], ("spk_a",))
+    aliases = {sweep._alias(placement.recipe): placement}
+    code = "run-switch.resource.insufficient_swap"
+    start = clock.now()
+    for step in range(int(sweep.cfg.idle_alert_seconds // 30) + 3):
+        _, document = _refusal(code, reading=step)
+        sweep.state.slots.clear()
+        if step % 2:  # back-to-back lanes: another lane is smoking on this review
+            sweep.state.slots["other"] = {"phase": "smoking"}
+        sweep._blocked(document, aliases, [placement], clock.now())
+        clock.t += 30
+    assert clock.now() - start > sweep.cfg.idle_alert_seconds
+    assert f"review-wait:{code}" in sweep.state.data["infra"]
