@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "r0b0tlab’s single-GB10 native-SM121 vLLM profile for Poolside Laguna S 2.1 NVFP4, on the checkpoint pair the kit declares in its production runtime manifest, primary 07614121 and its quantization-matched DFlash-NVFP4 drafter 72379475 (the later August 2026 pair, 826aacdf and b3b5921a, which ships a native 1,048,576-token context, is not used). This recipe keeps the upstream adapter’s source-qualified 262,144-token / 32-sequence profile, FlashInfer attention, FlashInfer-CUTLASS NVFP4 experts, FP8 KV, and DFlash K=7. The specialized image remains pinned to r0b0tlab’s immutable vLLM 0.25.1 SM121/FlashInfer build; Poolside requires vLLM 0.25.0 or later and the model is loaded from mounted files with trust-remote-code. The source repository’s measured performance and quality evidence is bound to this pair (its scripts/verify_release.py names another primary revision, 216d1f13, an inconsistency inside the kit); target and draft compatibility, context behavior, memory fit, tool behavior, and output quality remain unverified here. Licences: target OpenMDW 1.1; package MIT; vLLM Apache-2.0; draft card declares no licence (information only). GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization stays below the creator’s 0.85, and the peak budgets utilization x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance. Utilization correction (2026-10-27): 0.6 left 4.25 GB beside the 74.15 GB of target and draft weights, and vLLM found no memory for KV cache blocks on hardware (2026-10-19, 2026-10-27), so utilization is 0.72, the largest two-decimal budget whose peak stays within the largest peak the live Controller has admitted (120,370,379,081 bytes); hardware fit remains to be proven.",
+    "description": "r0b0tlab’s single-GB10 native-SM121 vLLM profile for Poolside Laguna S 2.1 NVFP4, on the checkpoint pair the kit declares in its production runtime manifest, primary 07614121 and its quantization-matched DFlash-NVFP4 drafter 72379475 (the later August 2026 pair, 826aacdf and b3b5921a, which ships a native 1,048,576-token context, is not used). This recipe keeps the upstream adapter’s source-qualified 262,144-token / 32-sequence profile, FlashInfer attention, FlashInfer-CUTLASS NVFP4 experts, FP8 KV, and DFlash K=7. The specialized image remains pinned to r0b0tlab’s immutable vLLM 0.25.1 SM121/FlashInfer build; Poolside requires vLLM 0.25.0 or later and the model is loaded from mounted files with trust-remote-code. The source repository’s measured performance and quality evidence is bound to this pair (its scripts/verify_release.py names another primary revision, 216d1f13, an inconsistency inside the kit); target and draft compatibility, context behavior, memory fit, tool behavior, and output quality remain unverified here. Licences: target OpenMDW 1.1; package MIT; vLLM Apache-2.0; draft card declares no licence (information only). Memory follows the creator's settings: gpu-memory-utilization 0.85, as in r0b0tlab's sparkrun/recipes/laguna-s-2.1-nvfp4-vllm-r0b0tlab.yaml at 4cf44cf3 (line 27). The steady per-node peak is 0.85 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, with a separate 6 GB OS floor. The earlier lowered 0.6 left 4.25 GB beside the 74.15 GB of target and draft weights and vLLM found no KV cache blocks (2026-10-19, 2026-10-27); 0.85 leaves about 28.9 GB.",
     "tags": [
       "candidate",
       "dflash",
@@ -455,7 +455,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.72"
+        "value": "0.85"
       },
       {
         "name": "speculative-config",
@@ -554,7 +554,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 119077526672,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }
