@@ -235,11 +235,11 @@
       "kv_heads": 1,
       "layers": 78,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/resolve/1d3bcfe5ec549ecd000fd80b37f191183842e983/config.json",
+      "source": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/resolve/1d3bcfe5ec549ecd000fd80b37f191183842e983/config.json; per-token bytes across all layers = main-cache layers x record + indexer-cache layers x 132. Main record: 656 (fp8_ds_mla) or 400 (nvfp4_ds_mla) per layer, https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-nvfp4kv-four/LAYOUT-SPEC.md. Main layers: 78 backbone + 1 MTP layer (deepseek_v2.py:1801-1805, num_nextn_predict_layers 1). Indexer cache: DeepseekV32IndexerCache uint8, head_dim 128 + 128//128*4 = 132 per token (deepseek_v2.py:575-596,655-660), allocated as an MLAAttentionSpec at the same block size inside the kv-cache-memory-bytes pool, not beside it. Indexer layers: layers with max(layer-index_skip_topk_offset+1,0) % index_topk_freq == 0, plus every MTP layer (deepseek_v2.py:1038-1070 in https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-quanttrio-four/kernels/deepseek_v2.py). Config index_skip_topk_offset 3, index_topk_freq 4: 21 backbone + 1 MTP = 22 indexer layers. fp8 79*656+22*132 = 54728, nvfp4 79*400+22*132 = 34504.",
       "tensor_replicated": true,
       "token_bytes_by_dtype": {
-        "fp8_ds_mla": 61464,
-        "nvfp4_ds_mla": 61464
+        "fp8_ds_mla": 54728,
+        "nvfp4_ds_mla": 34504
       },
       "value_dim": 64
     },
@@ -250,11 +250,11 @@
       "kv_heads": 1,
       "layers": 78,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/resolve/53e0082eedebd806b63e19779c47905937d768ca/config.json",
+      "source": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/resolve/53e0082eedebd806b63e19779c47905937d768ca/config.json; per-token bytes across all layers = main-cache layers x record + indexer-cache layers x 132. Main record: 656 (fp8_ds_mla) or 400 (nvfp4_ds_mla) per layer, https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-nvfp4kv-four/LAYOUT-SPEC.md. Main layers: 78 backbone + 1 MTP layer (deepseek_v2.py:1801-1805, num_nextn_predict_layers 1). Indexer cache: DeepseekV32IndexerCache uint8, head_dim 128 + 128//128*4 = 132 per token (deepseek_v2.py:575-596,655-660), allocated as an MLAAttentionSpec at the same block size inside the kv-cache-memory-bytes pool, not beside it. Indexer layers: layers with max(layer-index_skip_topk_offset+1,0) % index_topk_freq == 0, plus every MTP layer (deepseek_v2.py:1038-1070 in https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-quanttrio-four/kernels/deepseek_v2.py). The recipe overrides index_topk_freq to 8 (hf-overrides in recipes/glm-5-2-aqlm-vllm-triple.json): 12 backbone + 1 MTP = 13 indexer layers. fp8 79*656+13*132 = 53540, nvfp4 79*400+13*132 = 33316; this geometry is bound to that override.",
       "tensor_replicated": true,
       "token_bytes_by_dtype": {
-        "fp8_ds_mla": 61464,
-        "nvfp4_ds_mla": 61464
+        "fp8_ds_mla": 53540,
+        "nvfp4_ds_mla": 33316
       },
       "value_dim": 64
     },
@@ -341,11 +341,11 @@
       "kv_heads": 1,
       "layers": 78,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/Tech2wild/GLM-5.3-Int4-Int8Mix/resolve/206507bbb047d8223964a0414cd83230c59428f9/config.json",
+      "source": "https://huggingface.co/Tech2wild/GLM-5.3-Int4-Int8Mix/resolve/206507bbb047d8223964a0414cd83230c59428f9/config.json; per-token bytes across all layers = main-cache layers x record + indexer-cache layers x 132. Main record: 656 (fp8_ds_mla) or 400 (nvfp4_ds_mla) per layer, https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-nvfp4kv-four/LAYOUT-SPEC.md. Main layers: 78 backbone + 1 MTP layer (deepseek_v2.py:1801-1805, num_nextn_predict_layers 1). Indexer cache: DeepseekV32IndexerCache uint8, head_dim 128 + 128//128*4 = 132 per token (deepseek_v2.py:575-596,655-660), allocated as an MLAAttentionSpec at the same block size inside the kv-cache-memory-bytes pool, not beside it. Indexer layers: layers with max(layer-index_skip_topk_offset+1,0) % index_topk_freq == 0, plus every MTP layer (deepseek_v2.py:1038-1070 in https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-quanttrio-four/kernels/deepseek_v2.py). Config index_skip_topk_offset 3, index_topk_freq 4: 21 backbone + 1 MTP = 22 indexer layers. fp8 79*656+22*132 = 54728, nvfp4 79*400+22*132 = 34504.",
       "tensor_replicated": true,
       "token_bytes_by_dtype": {
-        "fp8_ds_mla": 61464,
-        "nvfp4_ds_mla": 61464
+        "fp8_ds_mla": 54728,
+        "nvfp4_ds_mla": 34504
       },
       "value_dim": 64
     },

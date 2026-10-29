@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from documents import recipe as document_recipe
 from documents import recipe_display
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
@@ -519,3 +520,83 @@ def test_a_dual_utilization_the_spark_cannot_admit_is_still_refused() -> None:
         require_memory_need(
             recipe, catalog_models(), load_inputs(), document_digest="", touched=True
         )
+
+
+# Creator-logged pools (GLM DSA, fp8/nvfp4 sparse-MLA): recipe, dtype, context,
+# pool bytes and the tokens the creator's vLLM logged for that pool.
+GLM_DSA_CREATOR_POOLS = [
+    pytest.param(
+        "glm-5-2-quanttrio-200k-mtp-tonyd2wild-vllm-four",
+        "fp8_ds_mla",
+        200_000,
+        10_950_000_000,
+        200_064,
+        id="glm-5.2-quanttrio-fp8",
+    ),
+    pytest.param(
+        "glm-5-3-int4-int8mix-mtp-tonyd2wild-vllm-four",
+        "fp8_ds_mla",
+        200_000,
+        10_950_000_000,
+        200_064,
+        id="glm-5.3-int4-fp8",
+    ),
+    pytest.param(
+        "glm-5-2-quanttrio-nvfp4-kv-tonyd2wild-vllm-four",
+        "nvfp4_ds_mla",
+        316_000,
+        10_950_000_000,
+        317_279,
+        id="glm-5.2-nvfp4-kv",
+    ),
+    pytest.param(
+        "glm-5-2-aqlm-vllm-triple",
+        "nvfp4_ds_mla",
+        348_160,
+        11_811_160_064,
+        354_496,
+        id="glm-5.2-aqlm",
+    ),
+]
+
+
+def creator_glm_recipe(
+    slug: str, dtype: str, context: int, pool: int
+) -> RecipeDefinition:
+    recipe = document_recipe(slug)
+    assert recipe.settings.kind == "generation"
+    recipe.settings.context_tokens.value = context
+    set_pool(recipe, pool)
+    assert argument_value(recipe, "kv-cache-dtype") == dtype
+    return recipe
+
+
+def set_pool(recipe: RecipeDefinition, pool: int) -> None:
+    next(
+        arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
+    ).value = pool
+
+
+@pytest.mark.parametrize("slug,dtype,context,pool,logged", GLM_DSA_CREATOR_POOLS)
+def test_glm_dsa_creator_pools_hold_their_logged_context(
+    slug: str, dtype: str, context: int, pool: int, logged: int
+) -> None:
+    recipe = creator_glm_recipe(slug, dtype, context, pool)
+    require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    # The derived per-token rate also predicts at least the tokens the
+    # creator's vLLM logged for this pool.
+    need = absolute_kv_need(recipe, catalog_models(), load_inputs())
+    assert pool // (need // context) >= logged
+
+
+@pytest.mark.parametrize("slug,dtype,context,pool,logged", GLM_DSA_CREATOR_POOLS)
+def test_glm_dsa_pool_one_byte_below_the_need_is_still_refused(
+    slug: str, dtype: str, context: int, pool: int, logged: int
+) -> None:
+    recipe = creator_glm_recipe(slug, dtype, context, pool)
+    need = absolute_kv_need(recipe, catalog_models(), load_inputs())
+    set_pool(recipe, need)
+    require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    set_pool(recipe, need - 1)
+    with pytest.raises(ValueError, match="cannot hold one full-context request"):
+        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
