@@ -5,6 +5,7 @@ import json
 import unittest
 from pathlib import Path
 
+from documents import recipe_display
 from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,7 +44,7 @@ class LowMemoryCanaryRecipeTests(unittest.TestCase):
                 original["models"][0]["model"]["slug"],
                 canary["models"][0]["model"]["slug"],
             )
-            self.assertIn("canary", canary["metadata"]["tags"])
+            self.assertIn("canary", recipe_display(canary["identity"]["slug"]).tags)
 
     def test_canaries_reuse_exact_model_files_and_build_inputs(self) -> None:
         for original_slug, canary_slug in PAIRS:

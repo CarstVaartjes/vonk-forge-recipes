@@ -1,0 +1,14 @@
+{
+  "description": "A Git LFS model used only for contract examples.",
+  "family_title": "Synthetic",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-lfs"
+  },
+  "kind": "model-display",
+  "model_title": "Synthetic Tiny",
+  "tags": [
+    "synthetic",
+    "text"
+  ]
+}

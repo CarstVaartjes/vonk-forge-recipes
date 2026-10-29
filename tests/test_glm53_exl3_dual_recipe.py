@@ -8,6 +8,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from documents import recipe_display
+
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE = ROOT / "recipes/glm-5-3-flash-exl3-dflash2-vllm-dual.json"
 ADAPTER = ROOT / "adapters/glm/mia-exl3-dflash2-dual"
@@ -23,7 +25,10 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertEqual(recipe["topology"]["node_count"], 2)
         self.assertEqual(recipe["topology"]["parallelism"]["backend"], "mp")
         self.assertGreaterEqual(len(recipe["models"]), 1)
-        self.assertTrue({"candidate", "executable"} <= set(recipe["metadata"]["tags"]))
+        self.assertTrue(
+            {"candidate", "executable"}
+            <= set(recipe_display(recipe["identity"]["slug"]).tags)
+        )
         self.assertTrue(all(selection["files"] for selection in recipe["models"]))
         drafter = next(
             selection
@@ -236,7 +241,9 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
         self.assertEqual(environment["GLM53_APC_NO_STORE"], "1")
         self.assertEqual(environment["GLM53_KV_CAPACITY_LOG"], "1")
         self.assertEqual(environment["GLM53_SPINWAIT_MS"], "stock")
-        self.assertIn("AGPL-3.0", recipe["metadata"]["description"])
+        self.assertIn(
+            "AGPL-3.0", recipe_display(recipe["identity"]["slug"]).description
+        )
         self.assertIn("AGPL-3.0", recipe["provenance"]["attribution"][-4])
 
     def test_the_overlay_that_disables_persistent_topk_is_applied_at_build_time(

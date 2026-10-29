@@ -1,0 +1,16 @@
+{
+  "description": "Synthetic source-build example.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-build"
+  },
+  "kind": "recipe-display",
+  "runtime": {
+    "engine": "vllm"
+  },
+  "tags": [
+    "synthetic",
+    "text"
+  ],
+  "title": "Synthetic Tiny build"
+}

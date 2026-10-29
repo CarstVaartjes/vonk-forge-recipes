@@ -6,6 +6,7 @@ import runpy
 import unittest
 from pathlib import Path
 
+from documents import recipe_display
 from generated_catalog import GENERATED
 
 from tools.protocol_wheel import selection
@@ -45,7 +46,8 @@ class LtxNative14RefreshTests(unittest.TestCase):
         for slug in RECIPES:
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             self.assertTrue(
-                {"executable", "candidate"} <= set(recipe["metadata"]["tags"])
+                {"executable", "candidate"}
+                <= set(recipe_display(recipe["identity"]["slug"]).tags)
             )
             self.assertTrue(recipe["models"])
             self.assertEqual(recipe["topology"]["node_count"], 1)
