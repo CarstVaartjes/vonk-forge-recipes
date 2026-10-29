@@ -220,7 +220,6 @@ def _load_pipeline(workflow: str):
                 "audio_proj_out",
             ],
         ),
-        low_cpu_mem_usage=False,
     )
     pipe.update_components(
         **{transformer_name: transformer},
