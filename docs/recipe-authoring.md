@@ -503,8 +503,10 @@ charges (min(`max-running-requests`, slots // 5) + 1) ×
 (`tools/check-recipe-memory-need --base origin/main`): an absolute
 `kv-cache-memory-bytes` pool that holds one full-context request per rank, or a
 `gpu-memory-utilization` whose share of physical memory plus the 8 GB overhead
-leaves the 16 GiB estimator headroom. Laguna M.1 at 0.82 with no pool fell to
-16 GiB MemAvailable, the host guard's per-sample bar at the time, on 2026-10-26; proven utilization-sized duals run at 0.80 or below. The
+is admissible on an idle Spark, as for a single Spark. The Laguna M.1 stop at
+0.82 with no pool on 2026-10-26 was the host guard's per-sample 16 GiB bar,
+since removed; the GLM 5.3 Flash NVFP4 DFlash2 dual passed pool-less at the
+creator's 0.86. The
 pool need not hold context × `max-num-seqs`: vLLM schedules sequences within it,
 proven duals hold fewer, and the DSpark vLLM 0.25 dual pool sized for
 16 × 200,000 tokens exhausted host memory on both Sparks.
