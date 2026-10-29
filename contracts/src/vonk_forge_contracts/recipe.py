@@ -443,7 +443,8 @@ class RecipeRuntime(_RecipeContract):
 class RecipeMemoryResources(_RecipeContract):
     """Unified (DGX Spark) memory one role needs."""
 
-    # The most the workload uses at any time: startup or steady state.
+    # The most the workload uses while serving; a higher load-time peak goes in
+    # load_peak_bytes.
     peak_bytes: StrictInt = Field(ge=1)
     # Memory left to the host operating system and runtime.
     reserve_bytes: StrictInt = Field(ge=0)

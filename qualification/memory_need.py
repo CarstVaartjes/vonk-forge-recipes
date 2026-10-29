@@ -1598,16 +1598,24 @@ def load_overshoot_bytes(memory: RecipeMemoryResources) -> int:
 
 
 def swap_warnings(recipe: RecipeDefinition) -> list[str]:
-    """Roles whose load needs more swap than the host default."""
-    return [
-        f"WARNING {recipe.identity.slug}/{role.name}: load needs "
-        f"{swap_needed_bytes(load_overshoot_bytes(role.resources.memory))} bytes "
-        f"of swap, above the {SWAP_DEFAULT_BYTES}-byte default"
-        for variant in memory_variants(recipe)
-        for role in variant.topology.roles
-        if swap_needed_bytes(load_overshoot_bytes(role.resources.memory))
-        > SWAP_DEFAULT_BYTES
-    ]
+    """Roles whose load needs more swap than the host default.
+
+    An overshoot beyond the usable maximum is refused by require_swap_declaration;
+    skipping it here keeps swap_needed_bytes bounded for any declared value.
+    """
+    warnings = []
+    for variant in memory_variants(recipe):
+        for role in variant.topology.roles:
+            overshoot = load_overshoot_bytes(role.resources.memory)
+            if overshoot > usable_swap_bytes(SWAP_MAXIMUM_BYTES):
+                continue
+            needed = swap_needed_bytes(overshoot)
+            if needed > SWAP_DEFAULT_BYTES:
+                warnings.append(
+                    f"WARNING {recipe.identity.slug}/{role.name}: load needs "
+                    f"{needed} bytes of swap, above the {SWAP_DEFAULT_BYTES}-byte default"
+                )
+    return warnings
 
 
 def require_swap_declaration(recipe: RecipeDefinition) -> None:
