@@ -45,6 +45,9 @@ SERO = "https://github.com/0xSero/deepseek-spark/blob/97fd6f02e26870416d3c6b450d
 TONY_QT200 = "https://github.com/tonyd2wild/GLM-5.2-QuantTrio-200K-4x-DGX-Spark--36tok-s/blob/162d7a766e4bc9de1809ff724339538380c43b0c"
 TONY_NVFP4KV = "https://github.com/tonyd2wild/GLM-5.2-NVFP4-KV-4x-DGX-Spark-300kctx-42tok-s/blob/34e81562984bda993e0c9ed01ed6900c17e4857b"
 TONY_G53 = "https://github.com/tonyd2wild/GLM-5.3-Int4-Int8Mix-TP4-4x-DGX-Spark/blob/f5440eff7f80ae1b7f30898871a50707ba17d115"
+EUGR_GLM = "https://github.com/eugr/spark-vllm-docker/blob/303b4a29a6bd390428d363358964ad298dc20625/recipes"
+TONY_MIMO = "https://github.com/tonyd2wild/MiMo-V2.5-TP3-NVFP4-KV-3xDGX-Spark/blob/8024c85b5e5fc5c9edd9db7b40f607683372cb0c/recipes"
+R0B0_Q36 = "https://github.com/r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm/blob/106fb53372c260e719c97d5b59e48142792783c7"
 DROWZEYS = "https://github.com/drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark/blob/fca3d18bcab52b65e4a428b883cbcbcb0a7a3443"
 AEON = "adapters/qwen/drowzeys-aeon-dflash2-single"
 GMU = r'GMU="\$\{GMU:-([0-9.]+)\}"'
@@ -292,6 +295,21 @@ CREATOR = {
         context_tokens=200000,
         peak=120260467668,
     ),
+    "glm-5-3-flash-nvfp4-spark-eugr-vllm-dual": Creator(
+        source=f"{EUGR_GLM}/glm-5.3-flash.yaml#L30",
+        arguments={"gpu-memory-utilization": "0.87"},
+        # The yaml declares kv_cache_memory_bytes 8G (#L29) its command never passes.
+        absent=("kv-cache-memory-bytes",),
+    ),
+    "mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-triple": Creator(
+        source=f"{TONY_MIMO}/mimo-v25-tp3-omni-1mctx-6seq-mtp2-nvfp4kv.yaml#L34",
+        arguments={"gpu-memory-utilization": "0.89"},
+        absent=("kv-cache-memory-bytes",),
+    ),
+    "qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single": Creator(
+        source=f"{R0B0_Q36}/Dockerfile.v025#L23",
+        arguments={"gpu-memory-utilization": "0.88"},
+    ),
 }
 
 
@@ -435,3 +453,16 @@ def test_lowering_a_reap_single_peak_below_its_loading_floor_is_refused(
         role.resources.memory.peak_bytes = floor - 1
     with pytest.raises(ValueError, match="peak understates"):
         require_memory_need(below, models, inputs, document_digest=digest, touched=True)
+
+
+def test_lowering_the_r0b0tlab_qwen36_single_peak_by_one_byte_is_refused() -> None:
+    recipe = load_recipe("qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single")
+    models, inputs = catalog_models(), load_inputs()
+    digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
+    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes -= 1
+    with pytest.raises(ValueError, match="peak understates"):
+        require_memory_need(
+            recipe, models, inputs, document_digest=digest, touched=True
+        )
