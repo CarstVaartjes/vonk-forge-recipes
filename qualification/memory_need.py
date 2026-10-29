@@ -27,8 +27,7 @@ from vonk_forge_contracts.memory_admission import (
 )
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 
-# Offline policy pinned to vonk-forge cee017ae806f0ac4c0842a3652f8ef7ee57388b8:
-# control/src/vonk_control/resource_planning/types.py::PLATFORM_MEMORY_FLOOR_BYTES.
+# The platform floor is owned by vonk_forge_contracts.memory_admission (contracts 2.8.1).
 # GUARD_BYTES below is this estimator's own headroom; the live host memory guard
 # (vonk-forge #1936 fc6059e42edb1b26416fd78493138201f427de96,
 # rust/crates/vonk-agent-protocol/src/host_memory_guard_policy.rs) has no
