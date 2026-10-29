@@ -347,6 +347,14 @@ never fit: report it; never shave the number. The guard is calibrated on the pro
 `tests/test_absolute_kv_capacity.py` replays through the touched path for every
 proven vLLM/SGLang document. A KV pool holds at least one full-context request,
 not declared context × engine concurrency: engines schedule requests within it.
+GLM DSA (sparse-MLA) pools count the indexer cache inside the same pool: bytes per
+token are (backbone + MTP layers) × the main record (656 fp8_ds_mla, 400
+nvfp4_ds_mla) plus the layers that build an indexer (the full layers of
+`index_topk_freq`/`index_skip_topk_offset`, plus the MTP layer) × 132. That
+reproduces the creators' logged pools (200,064 tokens in 10.95 GB fp8; 317,312
+nvfp4; 354,496 in 11,811,160,064 for the AQLM recipe, whose
+`index_topk_freq` 8 override leaves 13 indexer layers). The derivation is in the
+`source` of each geometry in `qualification/memory-inputs.json`.
 A single-Spark recipe file a change touches must bound KV: an absolute pool
 (vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens`), or a declared
 `gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
