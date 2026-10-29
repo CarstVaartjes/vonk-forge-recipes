@@ -74,6 +74,8 @@ class Recipe:
     runtime_image: RuntimeImageIdentity | None = None
     library_commit: str | None = None
     source_bundle_sha256: str | None = None
+    load_peak_bytes: int | None = None  # the largest declared load peak over roles
+    minimum_swap_bytes: int = 0  # the largest declared minimum swap over roles
 
     @property
     def model_set(self) -> frozenset[str]:
@@ -148,6 +150,21 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         base_image=str(dig(document, "base_image_digest", default="")),
         cache_ready=dig(row, "assessment", "cache", "state") == "ready",
         library_commit=library_commit or None,
+        load_peak_bytes=max(
+            (
+                peak
+                for role in projected.projected.topology.roles
+                if (peak := role.resources.memory.load_peak_bytes) is not None
+            ),
+            default=None,
+        ),
+        minimum_swap_bytes=max(
+            (
+                role.resources.memory.minimum_swap_bytes
+                for role in projected.projected.topology.roles
+            ),
+            default=0,
+        ),
         source_bundle_sha256=projected.projected.source_bundle_sha256,
         runtime_image=RuntimeImageIdentity(
             build_key=projected.prebuilt_image.build_key,

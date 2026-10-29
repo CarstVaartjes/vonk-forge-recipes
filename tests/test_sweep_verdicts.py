@@ -164,6 +164,17 @@ def test_cli_errors_are_decided_by_their_published_fields(
             policy.classify("review", "run-switch.resource.insufficient_capacity", "x"),
             "observe",
         ),
+        (
+            policy.classify("review", "run-switch.resource.insufficient_swap", "x"),
+            "wait",
+        ),
+        (policy.classify("start", "run.insufficient_swap", "x"), "wait"),
+        (
+            policy.classify(
+                "review", "run-switch.resource.demand_exceeds_capacity", "x"
+            ),
+            "fail",
+        ),
         (policy.classify("start", "recipe.runtime_oom", "x"), "fail"),
         (
             policy.classify("start", "recipe.runtime_oom", "x", verdict.UNATTRIBUTED),

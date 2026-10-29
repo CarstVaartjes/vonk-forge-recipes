@@ -7,6 +7,7 @@ again and again, and both lanes stayed idle.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -165,3 +166,87 @@ def test_a_state_file_with_finished_downloads_resumes_without_asking_again(
     assert _downloads(fleet) == [
         "vonk-forge/a2"
     ]  # the sibling pulled its image; a1 was not asked for again
+
+
+SWAP_REFUSAL = {
+    "allowed": False,
+    "effects": {"runs": []},
+    "admission_decisions": [
+        {
+            "alias": "a",
+            "allowed": False,
+            "blockers": [
+                {
+                    "code": "run-switch.resource.insufficient_swap",
+                    "detail": "swap",
+                },
+                {"code": "run-switch.run_admission_blocked", "detail": "blocked"},
+                {"code": "run.insufficient_swap", "detail": "swap"},
+            ],
+        }
+    ],
+}
+
+
+def test_a_swap_shortfall_in_a_review_waits_instead_of_failing_the_recipe(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    sweep, fleet, _clock = make_sweep(
+        tmp_path, [FakeRecipe("a", memory=100 * GB)], [FakeModel("m1")], gateway=gateway
+    )
+    real = fleet._load
+    refusals: list[tuple[str, ...]] = []
+
+    def short_of_swap(n, data, a):
+        if (
+            "--review" in a
+            and any(i["desired_state"] == "running" for i in data["assignments"])
+            and len(refusals) < 2
+        ):
+            refusals.append(a)
+            return 2, SWAP_REFUSAL
+        return real(n, data, a)
+
+    fleet._load = short_of_swap
+    assert sweep.run() == 0
+    entry = sweep.state.recipes["vonk-forge/a"]
+    assert entry["status"] == "passed"
+    assert entry.get("attempts", 0) == 1  # only the real attempt
+    assert len(refusals) == 2
+    rows = [
+        json.loads(line)
+        for line in (tmp_path / "results.jsonl").read_text().splitlines()
+    ]
+    waits = [r for r in rows if r.get("status") == "waiting"]
+    assert len(waits) >= 2 and {r.get("disposition") for r in waits} == {"wait"}
+    assert not any(r.get("status") == "failed" for r in rows)
+    # no fleet clearing was requested for it
+    assert not entry.get("review_freeing")
+    assert not any("clearing the fleet" in str(r.get("reason")) for r in rows)
+
+
+def test_a_pass_records_the_swap_each_spark_reported_and_the_declared_values(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    recipe = FakeRecipe("a", memory=100 * GB, load_peak=110 * GB, minimum_swap=8 * GB)
+    sweep, fleet, _clock = make_sweep(
+        tmp_path, [recipe], [FakeModel("m1")], gateway=gateway
+    )
+    fleet.swap = {node_id: (64 * GB, 62 * GB) for node_id, _ in fleet.sparks[:1]}
+    assert sweep.run() == 0
+    rows = [
+        json.loads(line)
+        for line in (tmp_path / "results.jsonl").read_text().splitlines()
+    ]
+    memory = next(r["memory"] for r in rows if r.get("status") == "passed")
+    assert memory["load_peak_bytes"] == 110 * GB
+    assert memory["minimum_swap_bytes"] == 8 * GB
+    reported = [n for n in memory["nodes"] if n["swap_total_bytes"] is not None]
+    assert [(n["swap_total_bytes"], n["swap_used_bytes"]) for n in reported] == [
+        (64 * GB, 2 * GB)
+    ]
+    assert all(
+        n["swap_total_bytes"] is None and n["swap_used_bytes"] is None
+        for n in memory["nodes"]
+        if n not in reported
+    )
