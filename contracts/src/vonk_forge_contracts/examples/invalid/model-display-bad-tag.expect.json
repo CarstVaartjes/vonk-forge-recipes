@@ -1,0 +1,4 @@
+{
+  "contract": "ModelDisplay",
+  "error_contains": "String should match pattern"
+}

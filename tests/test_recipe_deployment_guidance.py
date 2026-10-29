@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from documents import display_of
+from documents import recipe_display
 from generated_catalog import GENERATED
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
@@ -39,11 +39,14 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
         nano = load("recipes/nemotron-3-nano-30b-a3b-vllm-single.json")
 
         self.assertTrue(
-            {"preferred", "default", "target-only"} <= set(display_of(standard).tags)
+            {"preferred", "default", "target-only"}
+            <= set(recipe_display(standard["identity"]["slug"]).tags)
         )
-        self.assertNotIn("memory-tight", display_of(standard).tags)
+        self.assertNotIn(
+            "memory-tight", recipe_display(standard["identity"]["slug"]).tags
+        )
 
-        latency_tags = set(display_of(latency).tags)
+        latency_tags = set(recipe_display(latency["identity"]["slug"]).tags)
         self.assertTrue(
             {"high-context", "memory-tight", "specialized", "low-concurrency"}
             <= latency_tags
@@ -54,19 +57,22 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
         self.assertEqual(standard["topology"]["node_count"], 1)
         self.assertEqual(latency["topology"]["node_count"], 1)
 
-        nano_tags = set(display_of(nano).tags)
+        nano_tags = set(recipe_display(nano["identity"]["slug"]).tags)
         self.assertTrue({"executable", "historical", "superseded"} <= nano_tags)
-        self.assertIn("Nemotron 3.5 Lightning", display_of(nano).description)
+        self.assertIn(
+            "Nemotron 3.5 Lightning",
+            recipe_display(nano["identity"]["slug"]).description,
+        )
 
     def test_moss_is_labeled_as_replay_not_interactive_service(self) -> None:
         recipe = load("recipes/moss-vl-realtime-11b-pytorch-single.json")
-        tags = set(display_of(recipe).tags)
+        tags = set(recipe_display(recipe["identity"]["slug"]).tags)
         self.assertTrue(
             {"session-replay", "batch-job", "not-interactive-service"} <= tags
         )
         self.assertIn(
             "does not expose the upstream interactive WebSocket",
-            display_of(recipe).description,
+            recipe_display(recipe["identity"]["slug"]).description,
         )
         self.assertEqual(recipe["interfaces"][0]["adapter"], "artifact-job")
         outputs = {slot["id"] for slot in recipe["interfaces"][0]["output"]["slots"]}
@@ -75,13 +81,20 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
     def test_mova_360p_is_default_and_720p_is_tight(self) -> None:
         low = load("recipes/mova-360p-diffusers-single.json")
         high = load("recipes/mova-720p-diffusers-single.json")
-        self.assertTrue({"preferred", "default"} <= set(display_of(low).tags))
-        self.assertNotIn("memory-tight", display_of(low).tags)
         self.assertTrue(
-            {"memory-tight", "high-resolution"} <= set(display_of(high).tags)
+            {"preferred", "default"}
+            <= set(recipe_display(low["identity"]["slug"]).tags)
         )
-        self.assertNotIn("default", display_of(high).tags)
-        self.assertIn("360p recipe as the default", display_of(high).description)
+        self.assertNotIn("memory-tight", recipe_display(low["identity"]["slug"]).tags)
+        self.assertTrue(
+            {"memory-tight", "high-resolution"}
+            <= set(recipe_display(high["identity"]["slug"]).tags)
+        )
+        self.assertNotIn("default", recipe_display(high["identity"]["slug"]).tags)
+        self.assertIn(
+            "360p recipe as the default",
+            recipe_display(high["identity"]["slug"]).description,
+        )
 
     def test_muse_runtime_and_limit_are_truthful_and_bound(self) -> None:
         recipe_path = "recipes/muse-glimmer-30b-bf16-vllm-single.json"
@@ -89,7 +102,7 @@ class RecipeDeploymentGuidanceTests(unittest.TestCase):
         self.assertEqual(recipe["runtime"]["engine"], "vllm")
         self.assertIn(
             "combining reasoning with JSON-schema structured output is not supported",
-            display_of(recipe).description,
+            recipe_display(recipe["identity"]["slug"]).description,
         )
 
     def test_release_metadata_and_package_bind_current_recipe_digests(self) -> None:

@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from documents import display_of
+from documents import recipe_display
 
 ROOT = Path(__file__).resolve().parents[1]
 QWEN_RECIPES = {
@@ -29,18 +29,18 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
         for slug in sorted(QWEN_RECIPES):
             with self.subTest(recipe=slug):
                 recipe = _recipe(slug)
-                tags = set(display_of(recipe).tags)
+                tags = set(recipe_display(recipe["identity"]["slug"]).tags)
                 self.assertTrue(
                     {"multimodal", "vision", "text-qualified", "vision-unproven"}
                     <= tags
                 )
                 self.assertIn(
                     "Current qualification proves bounded text chat only",
-                    display_of(recipe).description,
+                    recipe_display(recipe["identity"]["slug"]).description,
                 )
                 self.assertIn(
                     "vision serving remains unproven on Spark",
-                    display_of(recipe).description,
+                    recipe_display(recipe["identity"]["slug"]).description,
                 )
                 checks = recipe["validation"]["serving"]["checks"]
                 self.assertEqual(
@@ -57,8 +57,14 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
                 )
 
     def test_qwen38_fp8_is_preferred_dense_default(self) -> None:
-        preferred = set(display_of(_recipe("qwen3-8-27b-fp8-vllm-single")).tags)
-        older_dense = set(display_of(_recipe("qwen3-6-27b-vllm-single")).tags)
+        preferred = set(
+            recipe_display(
+                _recipe("qwen3-8-27b-fp8-vllm-single")["identity"]["slug"]
+            ).tags
+        )
+        older_dense = set(
+            recipe_display(_recipe("qwen3-6-27b-vllm-single")["identity"]["slug"]).tags
+        )
 
         self.assertTrue({"preferred-dense", "default"} <= preferred)
         self.assertNotIn("superseded", preferred)
@@ -69,7 +75,9 @@ class QwenRecipeQualificationMetadataTests(unittest.TestCase):
             "qwen3-8-27b-nvfp4-dspark-sglang-single",
         ):
             with self.subTest(alternative=alternative):
-                tags = set(display_of(_recipe(alternative)).tags)
+                tags = set(
+                    recipe_display(_recipe(alternative)["identity"]["slug"]).tags
+                )
                 self.assertTrue({"preferred-dense", "default"}.isdisjoint(tags))
 
 

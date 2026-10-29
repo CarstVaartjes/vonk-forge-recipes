@@ -1,0 +1,5 @@
+{
+  "contract": "RecipeDisplay",
+  "error_contains": "Extra inputs are not permitted",
+  "producer_only": true
+}

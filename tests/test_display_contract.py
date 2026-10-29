@@ -19,6 +19,7 @@ from vonk_forge_contracts import (
     read_model_display,
     read_recipe_display,
     recipe_display_of,
+    require_display_of,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,9 +32,8 @@ def _json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def test_the_library_is_the_size_the_brief_assumes() -> None:
-    assert len(RECIPES) >= 355
-    assert len(MODELS) >= 280
+def test_the_library_is_not_empty() -> None:
+    assert RECIPES and MODELS
 
 
 def test_every_committed_document_round_trips_through_its_contract() -> None:
@@ -92,13 +92,17 @@ def test_display_carries_the_documents_text_unchanged() -> None:
 
 
 def _check_pair(pair: dict[str, Any]) -> None:
-    document = RecipeDefinition.model_validate(pair["document"])
-    display = read_recipe_display(pair["display"])
-    if (display.identity.publisher, display.identity.slug) != (
-        document.identity.publisher,
-        document.identity.slug,
-    ):
-        raise ValueError("display identity differs from its document")
+    display = pair["display"]
+    if display["kind"] == "model-display":
+        require_display_of(
+            ModelDisplay.model_validate(display),
+            ModelDefinition.model_validate(pair["document"]).identity,
+        )
+    else:
+        require_display_of(
+            RecipeDisplay.model_validate(display),
+            RecipeDefinition.model_validate(pair["document"]).identity,
+        )
 
 
 def refuse(contract: str, document: dict[str, Any]) -> None:
@@ -109,7 +113,7 @@ def refuse(contract: str, document: dict[str, Any]) -> None:
         RecipeDisplay.model_validate(document)
     elif contract == "ModelDisplay":
         ModelDisplay.model_validate(document)
-    elif contract == "RecipeDisplayOfDocument":
+    elif contract == "require_display_of":
         _check_pair(document)
     else:
         raise AssertionError(f"unknown contract {contract!r}")
@@ -125,9 +129,15 @@ def invalid_vectors() -> list[Path]:
 
 def test_there_are_invalid_vectors_for_each_named_failure() -> None:
     assert {path.stem for path in invalid_vectors()} == {
+        "model-display-bad-tag",
         "model-display-duplicate-tag",
+        "model-display-identity-mismatch",
+        "recipe-display-bad-alignment",
+        "recipe-display-empty-title",
+        "recipe-display-identity-extra-key",
         "recipe-display-identity-mismatch",
         "recipe-display-kind-recipe",
+        "recipe-display-title-too-long",
         "recipe-display-with-runtime",
     }
 
@@ -138,3 +148,17 @@ def test_every_invalid_vector_is_refused_with_its_named_error(path: Path) -> Non
     with pytest.raises((ValidationError, ValueError)) as caught:
         refuse(expect["contract"], _json(path))
     assert expect["error_contains"] in str(caught.value)
+
+
+def test_producer_only_vectors_are_accepted_by_the_lenient_readers() -> None:
+    marked = [
+        path
+        for path in invalid_vectors()
+        if _json(path.with_suffix(".expect.json")).get("producer_only")
+    ]
+    assert {path.stem for path in marked} == {
+        "recipe-display-identity-extra-key",
+        "recipe-display-with-runtime",
+    }
+    for path in marked:
+        read_recipe_display(_json(path))

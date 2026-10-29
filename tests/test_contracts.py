@@ -219,7 +219,15 @@ def test_every_invalid_display_vector_names_its_contract_and_error() -> None:
     assert vectors
     for path in vectors:
         expect = json.loads(path.with_suffix(".expect.json").read_text())
-        assert set(expect) == {"contract", "error_contains"}, path.name
+        assert (
+            {"contract", "error_contains"}
+            <= set(expect)
+            <= {
+                "contract",
+                "error_contains",
+                "producer_only",
+            }
+        ), path.name
         assert expect["error_contains"], path.name
     # The generated schemas also refuse what a display may never carry.
     runtime = json.loads((invalid / "recipe-display-with-runtime.json").read_text())

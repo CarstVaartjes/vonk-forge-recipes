@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from documents import display_of
+from documents import recipe_display
 from generated_catalog import GENERATED
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
@@ -61,9 +61,12 @@ class Vllm028ModelVariantTests(unittest.TestCase):
                     RUNTIME_IMAGE.split("@sha256:")[1],
                 )
                 self.assertTrue(
-                    {"executable", "candidate"} <= set(display_of(recipe).tags)
+                    {"executable", "candidate"}
+                    <= set(recipe_display(recipe["identity"]["slug"]).tags)
                 )
-                self.assertIn("fallback", display_of(recipe).description)
+                self.assertIn(
+                    "fallback", recipe_display(recipe["identity"]["slug"]).description
+                )
 
     def test_gemma_exact_image_chat_contract(self) -> None:
         arguments = {
@@ -80,7 +83,7 @@ class Vllm028ModelVariantTests(unittest.TestCase):
         self.assertNotIn("enable-auto-tool-choice", arguments)
         self.assertTrue(
             {"multimodal", "vision", "image", "reasoning"}
-            <= set(display_of(self.gemma).tags)
+            <= set(recipe_display(self.gemma["identity"]["slug"]).tags)
         )
         self.assertEqual(
             self.gemma["interfaces"][0]["model_aliases"],
@@ -102,7 +105,7 @@ class Vllm028ModelVariantTests(unittest.TestCase):
         self.assertIs(arguments["enable-auto-tool-choice"], True)
         self.assertTrue(
             {"multimodal", "vision-language", "image", "tool-use"}
-            <= set(display_of(self.lfm).tags)
+            <= set(recipe_display(self.lfm["identity"]["slug"]).tags)
         )
         self.assertEqual(
             self.lfm["interfaces"][0]["model_aliases"],
