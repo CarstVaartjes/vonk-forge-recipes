@@ -10,6 +10,7 @@ from typing import Any, cast
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from catalog_documents import catalog_models
+from documents import recipe_display
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.resolver import validate_recipe_models
 
@@ -50,7 +51,7 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
                 self.assertEqual(model["source"]["revision"], REVISIONS[name])
                 self.assertEqual(recipe.runtime.engine, "vllm")
                 self.assertEqual(recipe.topology.node_count, 1)
-                self.assertIn("candidate", recipe.metadata.tags)
+                self.assertIn("candidate", recipe_display(recipe.identity.slug).tags)
 
     def test_custom_reasoning_parser_is_selected_from_model_manifest(self) -> None:
         expected = {
@@ -95,7 +96,10 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
     def test_omni_is_explicitly_text_only(self) -> None:
         recipe = read(RECIPES["omni"])
         self.assertTrue(arguments(recipe)["language-model-only"])
-        self.assertTrue({"text", "text-only"} <= set(recipe["metadata"]["tags"]))
+        self.assertTrue(
+            {"text", "text-only"}
+            <= set(recipe_display(recipe["identity"]["slug"]).tags)
+        )
         self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")
         model = recipe_model(recipe)
         self.assertEqual(model["modalities"], ["text"])

@@ -43,6 +43,7 @@ from vonk_forge_contracts import (
     ModelDefinition,
     RecipeDefinition,
     document_sha256,
+    model_display_of,
 )
 from vonk_forge_contracts.model import ModelSource
 from vonk_forge_contracts.qualification_authority import QualificationAuthority
@@ -335,7 +336,7 @@ def _row(
                 "key": model_key,
                 "selection": selection.id,
                 "family": model.identity.family.slug,
-                "family_title": model.identity.family.title,
+                "family_title": model_display_of(model).family_title,
                 "model": model.identity.model.slug,
                 "variant": model.identity.variant,
                 "precision": model.format.precision,
