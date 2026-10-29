@@ -175,6 +175,17 @@ def test_cli_errors_are_decided_by_their_published_fields(
             ),
             "fail",
         ),
+        (policy.classify("review", "run.inventory_missing", "x"), "wait"),
+        (policy.classify("review", "node.gpu_unavailable", "x"), "wait"),
+        (policy.classify("review", "run.target_membership_changed", "x"), "wait"),
+        (policy.classify("review", "run.mapping_not_ready", "x"), "wait"),
+        (policy.classify("review", "run.capacity_busy", "x"), "wait"),
+        (
+            policy.classify("review", "run-switch.run_admission_unavailable", "x"),
+            "wait",
+        ),
+        (policy.classify("review", "resource.resident_usage_unknown", "x"), "wait"),
+        (policy.classify("review", "run.insufficient_memory", "x"), "observe"),
         (policy.classify("start", "recipe.runtime_oom", "x"), "fail"),
         (
             policy.classify("start", "recipe.runtime_oom", "x", verdict.UNATTRIBUTED),
@@ -335,3 +346,65 @@ def test_profile_retry_wait_has_one_current_location() -> None:
         ).wait
         is None
     )
+
+
+@pytest.mark.parametrize(
+    ("blockers", "expected"),
+    [
+        (
+            ["resource.resident_usage_unknown", "run-switch.run_admission_blocked"],
+            "resource.resident_usage_unknown",
+        ),
+        (
+            ["run-switch.run_admission_blocked", "run.stale_inventory"],
+            "run.stale_inventory",
+        ),
+        (
+            ["run-switch.run_admission_blocked", "run.insufficient_memory"],
+            "run.insufficient_memory",
+        ),
+        (
+            ["run-switch.run_admission_blocked", "run.insufficient_swap"],
+            "run.insufficient_swap",
+        ),
+        (
+            ["run-switch.resource.insufficient_swap", "run.insufficient_memory"],
+            "run.insufficient_memory",
+        ),
+        (
+            ["node.gpu_requires_reset", "run-switch.resource.demand_exceeds_capacity"],
+            "run-switch.resource.demand_exceeds_capacity",
+        ),
+        ([], "review.blocked"),
+    ],
+)
+def test_the_deciding_review_blocker_is_picked_over_the_whole_set(
+    blockers: list[str], expected: str
+) -> None:
+    pairs = [(code, f"{code} detail") for code in blockers]
+    for ordered in (pairs, pairs[::-1]):
+        code, detail = policy.review_blocker(ordered)
+        assert code == expected
+        assert all(f"{c}: {d}" in detail for c, d in ordered)
+
+
+def test_a_preparation_blocker_outranks_a_swap_wait_but_not_a_final_word() -> None:
+    prep = next(iter(sorted(verdict.PREPARATION_CODES)))
+    swap = "run-switch.resource.insufficient_swap"
+    final = "resource.demand_exceeds_capacity"
+    assert (
+        policy.review_blocker([(swap, ""), (prep, "")], verdict.PREPARATION_CODES)[0]
+        == prep
+    )
+    assert (
+        policy.review_blocker([(prep, ""), (final, "")], verdict.PREPARATION_CODES)[0]
+        == final
+    )
+
+
+def test_a_review_with_only_wrappers_takes_the_first_word() -> None:
+    pairs = [
+        ("run-switch.run_admission_blocked", "a"),
+        ("run-switch.run_admission_unavailable", "b"),
+    ]
+    assert policy.review_blocker(pairs)[0] == "run-switch.run_admission_blocked"
