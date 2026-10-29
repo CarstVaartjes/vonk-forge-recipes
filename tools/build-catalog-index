@@ -700,7 +700,13 @@ def build(
 ) -> dict[str, Any]:
     package_dir.mkdir(parents=True, exist_ok=True)
     entities = _catalog_entity_documents()
-    from vonk_forge_contracts import ModelDefinition, document_sha256
+    from vonk_forge_contracts import (
+        ModelDefinition,
+        document_sha256,
+        model_display_of,
+        published_json,
+        recipe_display_of,
+    )
 
     memory_models = {
         document_sha256(document): ModelDefinition.model_validate(document)
@@ -737,6 +743,7 @@ def build(
                 "content_sha256": document_sha256(document),
                 "source_bundle_sha256": metadata["source_bundle_sha256"],
                 "document": document,
+                "display": published_json(recipe_display_of(recipe)),
                 "package": metadata,
                 "release": document["release"],
             }
@@ -784,6 +791,9 @@ def build(
             "source_path": f"models/{document['identity']['slug']}.json",
             "content_sha256": document_sha256(document),
             "document": document,
+            "display": published_json(
+                model_display_of(memory_models[document_sha256(document)])
+            ),
         }
         for document in sorted(
             entities.values(), key=lambda item: str(item["identity"]["slug"])

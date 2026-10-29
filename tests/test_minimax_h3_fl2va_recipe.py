@@ -6,6 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from documents import recipe_display
+
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_PATH = ROOT / "recipes/minimax-h3-fl2va-diffusers-single.json"
 FULL_RECIPE_PATH = ROOT / "recipes/minimax-h3-diffusers-single.json"
@@ -24,7 +26,8 @@ class MiniMaxH3Fl2vaRecipeTests(unittest.TestCase):
             recipe["identity"]["slug"], "minimax-h3-fl2va-diffusers-single"
         )
         self.assertTrue(
-            {"executable", "candidate", "fl2va"} <= set(recipe["metadata"]["tags"])
+            {"executable", "candidate", "fl2va"}
+            <= set(recipe_display(recipe["identity"]["slug"]).tags)
         )
         self.assertNotEqual(recipe["identity"]["slug"], full["identity"]["slug"])
         self.assertEqual(recipe["interfaces"][0]["adapter"], "video-job")

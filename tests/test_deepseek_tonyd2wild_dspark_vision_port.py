@@ -13,6 +13,8 @@ import re
 import unittest
 from pathlib import Path
 
+from documents import recipe_display
+
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXT = "adapters/deepseek/tonyd2wild-dspark-dual"
 VISION_TAGS = {"vision", "multimodal", "image", "native-vision"}
@@ -34,14 +36,17 @@ def _recipes() -> list[dict]:
 class TonyDSparkVisionPortTests(unittest.TestCase):
     def test_context_serves_a_text_and_a_vision_recipe(self) -> None:
         kinds = {
-            bool(VISION_TAGS & set(recipe["metadata"]["tags"])) for recipe in _recipes()
+            bool(VISION_TAGS & set(recipe_display(recipe["identity"]["slug"]).tags))
+            for recipe in _recipes()
         }
         self.assertEqual(kinds, {False, True})
 
     def test_build_applies_the_port_exactly_for_vision_checkpoints(self) -> None:
         for recipe in _recipes():
             slug = recipe["identity"]["slug"]
-            vision = bool(VISION_TAGS & set(recipe["metadata"]["tags"]))
+            vision = bool(
+                VISION_TAGS & set(recipe_display(recipe["identity"]["slug"]).tags)
+            )
             dockerfile = (ROOT / recipe["execution"]["build"]["dockerfile"]).read_text(
                 encoding="utf-8"
             )

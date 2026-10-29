@@ -13,10 +13,12 @@ sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import (
     campaign_authority_json_schema,
     campaign_manifest_json_schema,
+    model_display_json_schema,
     model_json_schema,
     published_qualification_status_json_schema,
     qualification_evidence_json_schema,
     qualification_status_json_schema,
+    recipe_display_json_schema,
     recipe_json_schema,
 )
 
@@ -69,6 +71,16 @@ def main() -> int:
             ROOT
             / "contracts/src/vonk_forge_contracts/schema/qualification-campaign-manifest-v2.schema.json",
             campaign_manifest_json_schema(),
+        ),
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/recipe-display-v2.schema.json",
+            recipe_display_json_schema(),
+        ),
+        (
+            ROOT
+            / "contracts/src/vonk_forge_contracts/schema/model-display-v2.schema.json",
+            model_display_json_schema(),
         ),
     )
     ok = all(_write(path, schema, args.check) for path, schema in targets)

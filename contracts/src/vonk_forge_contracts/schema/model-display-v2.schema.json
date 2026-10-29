@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.vonkforge.ai/contracts/model-display-v2.schema.json",
+  "$defs": {
+    "ModelDisplayIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 63,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug"
+      ],
+      "title": "ModelDisplayIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "model-display",
+      "default": "model-display",
+      "title": "Kind",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/ModelDisplayIdentity"
+    },
+    "family_title": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Family Title",
+      "type": "string"
+    },
+    "model_title": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Model Title",
+      "type": "string"
+    },
+    "description": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "pattern": "^[a-z0-9][a-z0-9.-]{0,39}$",
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Tags",
+      "type": "array"
+    }
+  },
+  "required": [
+    "identity",
+    "family_title",
+    "model_title",
+    "description",
+    "tags"
+  ],
+  "title": "ModelDisplay",
+  "type": "object"
+}

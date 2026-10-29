@@ -192,7 +192,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/check-model-families
+          "$RECIPE_TEST_PYTHON" tools/check-model-families
 
       - name: Require every Dockerfile COPY/ADD source in its build context
         shell: bash
