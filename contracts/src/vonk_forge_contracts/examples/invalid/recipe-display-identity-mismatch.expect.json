@@ -1,4 +1,4 @@
 {
-  "contract": "RecipeDisplayOfDocument",
-  "error_contains": "identity differs from its document"
+  "contract": "require_display_of",
+  "error_contains": "display identity differs from its document"
 }

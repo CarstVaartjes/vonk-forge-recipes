@@ -15,6 +15,7 @@ from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
 from pydantic import (
+    AfterValidator,
     BaseModel,
     ConfigDict,
     Field,
@@ -36,6 +37,18 @@ class _ModelContract(BaseModel):
 
 
 Slug = Annotated[StrictStr, Field(min_length=2, max_length=63, pattern=_SLUG)]
+Title = Annotated[StrictStr, Field(min_length=1, max_length=120)]
+Description = Annotated[StrictStr, Field(min_length=1, max_length=4000)]
+
+
+def _unique_tags(value: list[str]) -> list[str]:
+    if len(value) != len(set(value)):
+        raise ValueError("tags must be unique")
+    return value
+
+
+Tag = Annotated[StrictStr, Field(pattern=r"^[a-z0-9][a-z0-9.-]{0,39}$")]
+Tags = Annotated[list[Tag], Field(max_length=20), AfterValidator(_unique_tags)]
 Sha256 = Annotated[StrictStr, Field(pattern=_SHA256)]
 Revision = Annotated[StrictStr, Field(pattern=_REVISION)]
 
@@ -52,13 +65,13 @@ def _https_or_http(value: str, field_name: str) -> str:
 class ModelFamily(_ModelContract):
     publisher: Slug
     slug: Slug
-    title: StrictStr = Field(min_length=1, max_length=120)
+    title: Title
 
 
 class ModelRecord(_ModelContract):
     publisher: Slug
     slug: Slug
-    title: StrictStr = Field(min_length=1, max_length=120)
+    title: Title
 
 
 class ModelIdentity(_ModelContract):
@@ -73,17 +86,8 @@ class ModelIdentity(_ModelContract):
 
 
 class ModelMetadata(_ModelContract):
-    description: StrictStr = Field(min_length=1, max_length=4000)
-    tags: list[Annotated[StrictStr, Field(pattern=r"^[a-z0-9][a-z0-9.-]{0,39}$")]] = (
-        Field(max_length=20)
-    )
-
-    @field_validator("tags")
-    @classmethod
-    def unique_tags(cls, value: list[str]) -> list[str]:
-        if len(value) != len(set(value)):
-            raise ValueError("metadata tags must be unique")
-        return value
+    description: Description
+    tags: Tags
 
 
 class ModelSource(_ModelContract):

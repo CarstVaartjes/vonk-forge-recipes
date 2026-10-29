@@ -25,6 +25,7 @@ from .display import (
     read_model_display,
     read_recipe_display,
     recipe_display_of,
+    require_display_of,
 )
 from .endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
 from .model import (
@@ -137,6 +138,7 @@ __all__ = [
     "read_recipe_display",
     "recipe_display_of",
     "recovery_coverage_id",
+    "require_display_of",
 ]
 
 

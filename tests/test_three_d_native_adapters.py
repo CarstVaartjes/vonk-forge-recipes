@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Protocol, cast
 from unittest import mock
 
-from documents import display_of
+from documents import recipe_display
 from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -243,7 +243,7 @@ class NativeThreeDAdapterTests(unittest.TestCase):
                         }
                     ],
                 )
-                tags = set(display_of(recipe).tags)
+                tags = set(recipe_display(recipe["identity"]["slug"]).tags)
                 self.assertIn("candidate", tags)
                 self.assertFalse(
                     tags.intersection(

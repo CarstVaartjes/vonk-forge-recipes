@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from documents import display_of
+from documents import recipe_display
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER_ROOT = ROOT / "adapters/video/minimax-h3-modular-diffusers"
@@ -57,7 +57,7 @@ class MiniMaxH3AuthorityTests(unittest.TestCase):
             {"HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE"},
         )
 
-        tags = set(display_of(recipe).tags)
+        tags = set(recipe_display(recipe["identity"]["slug"]).tags)
         self.assertIn("candidate", tags)
         self.assertTrue({"video", "audio", "multimodal", "modular-diffusers"} <= tags)
         self.assertTrue(recipe["execution"])

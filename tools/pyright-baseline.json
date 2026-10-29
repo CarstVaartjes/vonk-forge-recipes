@@ -64,7 +64,7 @@
     {
       "file": "tests/test_nemotron_executable_recipes.py",
       "rule": "reportIndexIssue",
-      "count": 3,
+      "count": 4,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -142,19 +142,19 @@
     {
       "file": "tests/test_qwen_recipe_qualification_metadata.py",
       "rule": "reportIndexIssue",
-      "count": 1,
+      "count": 7,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
       "file": "tests/test_recipe_deployment_guidance.py",
       "rule": "reportIndexIssue",
-      "count": 10,
+      "count": 23,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
       "file": "tests/test_recipe_operator_guidance.py",
       "rule": "reportIndexIssue",
-      "count": 3,
+      "count": 13,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -256,7 +256,7 @@
     {
       "file": "tests/test_three_d_native_adapters.py",
       "rule": "reportIndexIssue",
-      "count": 3,
+      "count": 4,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
@@ -292,13 +292,13 @@
     {
       "file": "tests/test_vllm028_migration.py",
       "rule": "reportIndexIssue",
-      "count": 7,
+      "count": 8,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
       "file": "tests/test_vllm028_model_variants.py",
       "rule": "reportIndexIssue",
-      "count": 20,
+      "count": 24,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {

@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from documents import display_of
+from documents import recipe_display
 from vonk_forge_contracts import RecipeDefinition
 
 from qualification.memory_need import require_admissible_declaration
@@ -262,7 +262,7 @@ class LtxSparkFitTests(unittest.TestCase):
             recipe["execution"]["build"]["context"]["path"],
             "adapters/video/ltx23-sync-native-disk",
         )
-        self.assertIn("disk-offload", display_of(recipe).tags)
+        self.assertIn("disk-offload", recipe_display(recipe["identity"]["slug"]).tags)
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
         self.assertEqual(memory["peak_bytes"] + memory["reserve_bytes"], 97_000_000_000)
 
@@ -274,7 +274,7 @@ class LtxSparkFitTests(unittest.TestCase):
 
     def test_ltx23_disk_offload_candidate_is_admissible_but_unaccepted(self) -> None:
         recipe = load(ROOT / f"recipes/{LTX23_SLUG}.json")
-        tags = set(display_of(recipe).tags)
+        tags = set(recipe_display(recipe["identity"]["slug"]).tags)
         self.assertTrue({"executable", "candidate", "disk-offload"} <= tags)
         self.assertNotIn("accepted", tags)
         self.assertNotIn("hardware-blocked", tags)
@@ -285,10 +285,10 @@ class LtxSparkFitTests(unittest.TestCase):
         )
         require_admissible_declaration(RecipeDefinition.model_validate(recipe))
         for fact in ("93 GB", "77 GB", "31 GB", "8 GB"):
-            self.assertIn(fact, display_of(recipe).description)
+            self.assertIn(fact, recipe_display(recipe["identity"]["slug"]).description)
         self.assertIn(
             "Physical Spark acceptance remains pending",
-            display_of(recipe).description,
+            recipe_display(recipe["identity"]["slug"]).description,
         )
         self.assertEqual(
             recipe["execution"]["build"]["context"]["path"],

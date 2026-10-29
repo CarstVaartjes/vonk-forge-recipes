@@ -1,0 +1,14 @@
+{
+  "description": "Synthetic source-build example.",
+  "identity": {
+    "extra": "x",
+    "publisher": "vonk-forge",
+    "slug": "synthetic-tiny-build"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "synthetic",
+    "text"
+  ],
+  "title": "Synthetic Tiny build"
+}

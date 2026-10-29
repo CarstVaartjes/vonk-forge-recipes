@@ -10,7 +10,7 @@ from typing import Any, cast
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from catalog_documents import catalog_models
-from documents import display_of, recipe_display
+from documents import recipe_display
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.resolver import validate_recipe_models
 
@@ -96,7 +96,10 @@ class NemotronExecutableRecipeTests(unittest.TestCase):
     def test_omni_is_explicitly_text_only(self) -> None:
         recipe = read(RECIPES["omni"])
         self.assertTrue(arguments(recipe)["language-model-only"])
-        self.assertTrue({"text", "text-only"} <= set(display_of(recipe).tags))
+        self.assertTrue(
+            {"text", "text-only"}
+            <= set(recipe_display(recipe["identity"]["slug"]).tags)
+        )
         self.assertEqual(recipe["interfaces"][0]["adapter"], "openai")
         model = recipe_model(recipe)
         self.assertEqual(model["modalities"], ["text"])

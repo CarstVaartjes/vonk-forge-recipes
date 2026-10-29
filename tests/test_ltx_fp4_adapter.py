@@ -12,7 +12,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from documents import display_of
+from documents import recipe_display
 from generated_catalog import GENERATED
 from ltx_protocol import assert_streaming_quantization_supported, manifest_bytes
 
@@ -313,7 +313,9 @@ class LtxFp4PromptContractTests(unittest.TestCase):
         self.assertEqual(output["slots"][0]["media_types"], ["video/mp4"])
         self.assertEqual(output["slots"][0]["min_files"], 1)
         self.assertEqual(output["slots"][0]["max_files"], 1)
-        self.assertNotIn("disk-offload", display_of(recipe).tags)
+        self.assertNotIn(
+            "disk-offload", recipe_display(recipe["identity"]["slug"]).tags
+        )
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
         self.assertEqual(
             memory,

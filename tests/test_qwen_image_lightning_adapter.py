@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from documents import display_of
+from documents import recipe_display
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "adapters/image/qwen-image-lightning-diffusers/qwen_image_lightning.py"
@@ -59,8 +59,12 @@ class QwenImageLightningAdapterTests(unittest.TestCase):
                 (ROOT / "models" / f"{target['model']['slug']}.json").read_text()
             )
             self.assertTrue(model["files"][0]["roles"])
-            self.assertNotIn("metadata-only", display_of(recipe).tags)
-            self.assertNotIn("non-executable", display_of(recipe).tags)
+            self.assertNotIn(
+                "metadata-only", recipe_display(recipe["identity"]["slug"]).tags
+            )
+            self.assertNotIn(
+                "non-executable", recipe_display(recipe["identity"]["slug"]).tags
+            )
 
 
 if __name__ == "__main__":

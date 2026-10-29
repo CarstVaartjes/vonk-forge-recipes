@@ -64,15 +64,24 @@ def _lfs_model(model: dict[str, Any]) -> dict[str, Any]:
 
 
 def _invalid(
-    name: str, contract: str, error_contains: str, document: dict[str, Any]
+    name: str,
+    contract: str,
+    error_contains: str,
+    document: dict[str, Any],
+    *,
+    producer_only: bool = False,
 ) -> None:
-    """One refused vector: the document and the contract error it must raise."""
+    """One refused vector: the document and the contract error it must raise.
+
+    ``producer_only`` marks a vector only strict ``model_validate`` refuses; the
+    lenient readers consumers use ignore the unknown field.
+    """
 
     _write(f"invalid/{name}.json", document)
-    _write(
-        f"invalid/{name}.expect.json",
-        {"contract": contract, "error_contains": error_contains},
-    )
+    expect: dict[str, Any] = {"contract": contract, "error_contains": error_contains}
+    if producer_only:
+        expect["producer_only"] = True
+    _write(f"invalid/{name}.expect.json", expect)
 
 
 def _display_vectors(
@@ -99,6 +108,16 @@ def _display_vectors(
         "RecipeDisplay",
         "Extra inputs are not permitted",
         {**recipe_display, "runtime": {"engine": "vllm"}},
+        producer_only=True,
+    )
+    identity = recipe_display["identity"]
+    assert isinstance(identity, dict)
+    _invalid(
+        "recipe-display-identity-extra-key",
+        "RecipeDisplay",
+        "Extra inputs are not permitted",
+        {**recipe_display, "identity": {**identity, "extra": "x"}},
+        producer_only=True,
     )
     _invalid(
         "recipe-display-kind-recipe",
@@ -107,19 +126,46 @@ def _display_vectors(
         {**recipe_display, "kind": "recipe"},
     )
     _invalid(
+        "recipe-display-empty-title",
+        "RecipeDisplay",
+        "at least 1 character",
+        {**recipe_display, "title": ""},
+    )
+    _invalid(
+        "recipe-display-title-too-long",
+        "RecipeDisplay",
+        "at most 120 characters",
+        {**recipe_display, "title": "x" * 121},
+    )
+    _invalid(
+        "recipe-display-bad-alignment",
+        "RecipeDisplay",
+        "Input should be",
+        {**recipe_display, "alignment": "wild"},
+    )
+    _invalid(
         "recipe-display-identity-mismatch",
-        "RecipeDisplayOfDocument",
-        "identity differs from its document",
-        {
-            "document": recipes["job"],
-            "display": recipe_display,
-        },
+        "require_display_of",
+        "display identity differs from its document",
+        {"document": recipes["job"], "display": recipe_display},
+    )
+    _invalid(
+        "model-display-identity-mismatch",
+        "require_display_of",
+        "display identity differs from its document",
+        {"document": models["-github-lfs"], "display": model_display},
     )
     _invalid(
         "model-display-duplicate-tag",
         "ModelDisplay",
-        "display tags must be unique",
+        "tags must be unique",
         {**model_display, "tags": ["synthetic", "synthetic"]},
+    )
+    _invalid(
+        "model-display-bad-tag",
+        "ModelDisplay",
+        "String should match pattern",
+        {**model_display, "tags": ["Bad Tag"]},
     )
 
 

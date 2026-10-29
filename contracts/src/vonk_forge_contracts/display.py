@@ -7,25 +7,22 @@ own: the signed index that transports it is verified at ingress.
 On contracts 2.x the display is derived from the document's own ``metadata`` and
 titles by ``recipe_display_of`` / ``model_display_of``. Readers use those
 accessors, never the document fields.
+
+Strict ``model_validate`` is for this repository's files and output;
+``read_recipe_display`` / ``read_model_display`` ignore unknown fields and are
+only for consumers of a published index. ``require_display_of`` is the one
+identity rule: a display describes exactly the document it travels with.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Annotated, Any, Literal
+from typing import Any, Literal
 
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    StrictStr,
-    field_validator,
-)
+from pydantic import BaseModel, ConfigDict
 
-from .model import ModelDefinition, Slug
-from .recipe import RecipeDefinition, RecipeIdentity
-
-Tag = Annotated[StrictStr, Field(pattern=r"^[a-z0-9][a-z0-9.-]{0,39}$")]
+from .model import Description, ModelDefinition, ModelIdentity, Slug, Tags, Title
+from .recipe import Alignment, RecipeDefinition, RecipeIdentity, RecipeTags
 
 
 class _DisplayContract(BaseModel):
@@ -40,29 +37,19 @@ class ModelDisplayIdentity(_DisplayContract):
 class RecipeDisplay(_DisplayContract):
     kind: Literal["recipe-display"] = "recipe-display"
     identity: RecipeIdentity
-    title: StrictStr = Field(min_length=1, max_length=120)
-    description: StrictStr = Field(min_length=1, max_length=4000)
-    tags: list[StrictStr] = Field(max_length=20)
-    alignment: (
-        Literal["standard", "abliterated", "derisked", "other-modified", "unspecified"]
-        | None
-    ) = None
+    title: Title
+    description: Description
+    tags: RecipeTags
+    alignment: Alignment | None = None
 
 
 class ModelDisplay(_DisplayContract):
     kind: Literal["model-display"] = "model-display"
     identity: ModelDisplayIdentity
-    family_title: StrictStr = Field(min_length=1, max_length=120)
-    model_title: StrictStr = Field(min_length=1, max_length=120)
-    description: StrictStr = Field(min_length=1, max_length=4000)
-    tags: list[Tag] = Field(max_length=20)
-
-    @field_validator("tags")
-    @classmethod
-    def unique_tags(cls, value: list[str]) -> list[str]:
-        if len(value) != len(set(value)):
-            raise ValueError("display tags must be unique")
-        return value
+    family_title: Title
+    model_title: Title
+    description: Description
+    tags: Tags
 
 
 def read_recipe_display(document: Mapping[str, object]) -> RecipeDisplay:
@@ -75,6 +62,19 @@ def read_model_display(document: Mapping[str, object]) -> ModelDisplay:
     """Parse a published ModelDisplay, ignoring fields a newer minor added."""
 
     return ModelDisplay.model_validate(document, extra="ignore")
+
+
+def require_display_of(
+    display: RecipeDisplay | ModelDisplay,
+    document_identity: RecipeIdentity | ModelIdentity,
+) -> None:
+    """Raise unless ``display`` names exactly the document it travels with."""
+
+    if (display.identity.publisher, display.identity.slug) != (
+        document_identity.publisher,
+        document_identity.slug,
+    ):
+        raise ValueError("display identity differs from its document")
 
 
 def published_json(document: BaseModel) -> dict[str, object]:
