@@ -12,6 +12,7 @@ RECIPES = ROOT / "recipes"
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 
 from catalog_documents import catalog_models
+from documents import recipe_display
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeBuildDefinition
 from vonk_forge_contracts.resolver import (
@@ -51,13 +52,7 @@ class RecipeExecutabilityTests(unittest.TestCase):
         for directory in ("recipes",):
             seen: dict[str, Path] = {}
             for path in sorted((ROOT / directory).glob("*.json")):
-                document = json.loads(path.read_text(encoding="utf-8"))
-                metadata = document.get("metadata")
-                self.assertIsInstance(metadata, dict, f"{path.name}: missing metadata")
-                assert isinstance(metadata, dict)
-                title = metadata.get("title")
-                self.assertIsInstance(title, str, f"{path.name}: missing title")
-                assert isinstance(title, str)
+                title = recipe_display(path.stem).title
                 normalized = " ".join(title.split()).casefold()
                 self.assertNotIn(
                     normalized,
@@ -97,20 +92,11 @@ class RecipeExecutabilityTests(unittest.TestCase):
 
         for path, document in recipes:
             with self.subTest(recipe=path.name):
-                metadata = document.get("metadata")
-                self.assertIsInstance(metadata, dict, f"{path.name}: missing metadata")
-                assert isinstance(metadata, dict)
-
-                tags = metadata.get("tags")
-                self.assertIsInstance(
-                    tags,
-                    list,
-                    f"{path.name}: metadata.tags must be a list",
-                )
-                assert isinstance(tags, list)
+                display = recipe_display(path.stem)
+                tags = display.tags
                 self.assertTrue(
-                    all(isinstance(tag, str) and tag.strip() for tag in tags),
-                    f"{path.name}: metadata.tags must contain nonempty strings",
+                    all(tag.strip() for tag in tags),
+                    f"{path.name}: display tags must contain nonempty strings",
                 )
                 normalized_tags = {tag.casefold() for tag in tags}
                 self.assertFalse(
@@ -120,13 +106,7 @@ class RecipeExecutabilityTests(unittest.TestCase):
                 )
 
                 for field in ("title", "description"):
-                    value = metadata.get(field)
-                    self.assertIsInstance(
-                        value,
-                        str,
-                        f"{path.name}: metadata.{field} must be text",
-                    )
-                    assert isinstance(value, str)
+                    value = getattr(display, field)
                     matched_claims = [
                         pattern.pattern
                         for pattern in FORBIDDEN_METADATA_CLAIMS
@@ -134,7 +114,7 @@ class RecipeExecutabilityTests(unittest.TestCase):
                     ]
                     self.assertFalse(
                         matched_claims,
-                        f"{path.name}: current metadata.{field} claims the recipe "
+                        f"{path.name}: current display {field} claims the recipe "
                         f"is not executable: {matched_claims}",
                     )
 

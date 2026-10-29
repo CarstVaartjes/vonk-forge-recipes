@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from documents import recipe_display
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
@@ -175,7 +176,10 @@ def test_corrected_pools_cover_all_declared_concurrency() -> None:
     for path in sorted((ROOT / "recipes").glob("*.json")):
         document = json.loads(path.read_text())
         recipe = RecipeDefinition.model_validate(document)
-        if "Absolute KV correction:" not in recipe.metadata.description:
+        if (
+            "Absolute KV correction:"
+            not in recipe_display(recipe.identity.slug).description
+        ):
             continue
         for variant in memory_variants(recipe):
             concurrency = argument_value(variant, "max-num-seqs")

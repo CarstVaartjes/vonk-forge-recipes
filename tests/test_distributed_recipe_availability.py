@@ -5,6 +5,7 @@ import json
 import unittest
 from pathlib import Path
 
+from documents import recipe_display
 from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,7 +35,8 @@ class DistributedRecipeAvailabilityTests(unittest.TestCase):
             recipe = load(ROOT / "recipes" / f"{slug}.json")
             self.assertEqual(recipe["topology"]["node_count"], nodes)
             self.assertTrue(
-                {"candidate", "executable"} <= set(recipe["metadata"]["tags"])
+                {"candidate", "executable"}
+                <= set(recipe_display(recipe["identity"]["slug"]).tags)
             )
             self.assertTrue(recipe["models"])
 

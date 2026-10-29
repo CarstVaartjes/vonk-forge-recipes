@@ -23,6 +23,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from vonk_forge_contracts import RecipeDisplay
+
 ROOT = Path(__file__).resolve().parents[1]
 KIT_FLAGS = Path(__file__).resolve().parent / "kit-engine-flags.json"
 
@@ -132,16 +134,18 @@ def _kit_flags() -> dict[str, Any]:
     return json.loads(KIT_FLAGS.read_text(encoding="utf-8"))
 
 
-def tags(recipe: Mapping[str, Any]) -> set[str]:
-    return set(recipe["metadata"]["tags"])
+def tags(display: RecipeDisplay) -> set[str]:
+    return set(display.tags)
 
 
-def multimodal(recipe: Mapping[str, Any], models: Mapping[str, Any]) -> bool:
+def multimodal(
+    recipe: Mapping[str, Any], models: Mapping[str, Any], display: RecipeDisplay
+) -> bool:
     """The recipe serves images: declared by its tags or by a model it loads."""
     arguments = _flag_text(_arguments(recipe))
     if _VISION_OFF.search(arguments):
         return False
-    if tags(recipe) & _VISION_TAGS:
+    if tags(display) & _VISION_TAGS:
         return True
     for entry in recipe["models"]:
         model = models.get(entry["model"]["slug"], {})
@@ -156,6 +160,7 @@ def serving_capabilities(
     recipe: Mapping[str, Any],
     slug: str,
     models: Mapping[str, Any],
+    display: RecipeDisplay,
     root: Path = ROOT,
 ) -> Capabilities:
     engine = recipe["runtime"]["engine"]
@@ -164,7 +169,7 @@ def serving_capabilities(
         return Capabilities(
             tools=not jinja_off,
             reasoning_parser=True,
-            vision=multimodal(recipe, models),
+            vision=multimodal(recipe, models, display),
             flags_from="native",
         )
     if engine not in FLAG_ENGINES:
@@ -190,20 +195,24 @@ def serving_capabilities(
     return Capabilities(
         tools=tools,
         reasoning_parser=reasoning,
-        vision=multimodal(recipe, models),
+        vision=multimodal(recipe, models, display),
         flags_from=source,
     )
 
 
 def generic_case_problems(
-    slug: str, recipe: Mapping[str, Any], smoke_cases: list[str], caps: Capabilities
+    slug: str,
+    recipe: Mapping[str, Any],
+    smoke_cases: list[str],
+    caps: Capabilities,
+    display: RecipeDisplay,
 ) -> list[str]:
     """Every way a recipe's smoke cases or tags claim more (or less) than it serves."""
     engine = recipe["runtime"]["engine"]
     cases = set(smoke_cases)
     problems: list[str] = []
     asks_tools = bool(cases & TOOL_CASES)
-    tagged = "tool-use" in tags(recipe)
+    tagged = "tool-use" in tags(display)
     if engine in FLAG_ENGINES:
         if asks_tools != caps.tools:
             problems.append(
@@ -231,7 +240,7 @@ def generic_case_problems(
     if (
         engine in FLAG_ENGINES
         and not caps.reasoning_parser
-        and "reasoning" in tags(recipe)
+        and "reasoning" in tags(display)
         and arithmetic
     ):
         problems.append(

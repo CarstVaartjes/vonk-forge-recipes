@@ -5,6 +5,7 @@ import json
 import unittest
 from pathlib import Path
 
+from documents import recipe_display
 from generated_catalog import GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,7 +43,8 @@ class Flux2NVFP4RecipeTests(unittest.TestCase):
         self.assertEqual(model["format"]["quantization"], "nvfp4")
         self.assertEqual(recipe["models"][0]["model"]["content_sha256"], digest(model))
         self.assertTrue(
-            {"candidate", "executable", "nvfp4"} <= set(recipe["metadata"]["tags"])
+            {"candidate", "executable", "nvfp4"}
+            <= set(recipe_display(recipe["identity"]["slug"]).tags)
         )
 
     def test_comfy_workflow_and_interface_remain_hash_locked(self) -> None:

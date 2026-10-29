@@ -1,0 +1,189 @@
+{
+  "display": {
+    "description": "Synthetic source-build example.",
+    "identity": {
+      "publisher": "vonk-forge",
+      "slug": "synthetic-tiny-build"
+    },
+    "kind": "recipe-display",
+    "tags": [
+      "synthetic",
+      "text"
+    ],
+    "title": "Synthetic Tiny build"
+  },
+  "document": {
+    "execution": {
+      "build": {
+        "base_image": {
+          "digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "repository": "registry.example/vonk/base"
+        },
+        "context": {
+          "path": "context.tar"
+        },
+        "dockerfile": "Dockerfile",
+        "network": {
+          "hosts": []
+        },
+        "patches": []
+      }
+    },
+    "identity": {
+      "publisher": "vonk-forge",
+      "slug": "synthetic-image-job"
+    },
+    "interfaces": [
+      {
+        "adapter": "image-job",
+        "output": {
+          "max_total_bytes": 1048576,
+          "slots": [
+            {
+              "description": "PNG output",
+              "extensions": [
+                ".png"
+              ],
+              "id": "image",
+              "label": "Image",
+              "max_file_bytes": 1048576,
+              "max_files": 1,
+              "max_total_bytes": 1048576,
+              "media_types": [
+                "image/png"
+              ],
+              "min_files": 1
+            }
+          ]
+        }
+      }
+    ],
+    "kind": "recipe",
+    "metadata": {
+      "description": "Synthetic image job example.",
+      "tags": [
+        "synthetic",
+        "text"
+      ],
+      "title": "Synthetic image job"
+    },
+    "models": [
+      {
+        "files": [
+          {
+            "file_id": "weights",
+            "id": "weights",
+            "mount": {
+              "target": "/models"
+            },
+            "roles": [
+              "entrypoint"
+            ]
+          }
+        ],
+        "id": "primary",
+        "model": {
+          "content_sha256": "05a481f76890725bfb498309a58b7464846ac4853b8e4a5db6495d40ce631ac4",
+          "kind": "model",
+          "publisher": "vonk-forge",
+          "slug": "synthetic-tiny-fp16"
+        }
+      }
+    ],
+    "provenance": {
+      "attribution": [
+        "Vonk Forge"
+      ],
+      "source_reference": null
+    },
+    "release": {
+      "released_at": "2026-09-05",
+      "version": "1.0.0"
+    },
+    "runtime": {
+      "arguments": [
+        {
+          "name": "unknown-option",
+          "value": "value with spaces; $HOME/Δ and {json}"
+        },
+        {
+          "name": "structured_option",
+          "value": {
+            "enabled": true,
+            "items": [
+              "a",
+              3,
+              0.25
+            ]
+          }
+        }
+      ],
+      "engine": "image-job",
+      "entrypoint": [
+        "vllm",
+        "serve",
+        "/models"
+      ],
+      "environment": [],
+      "lifecycle": {
+        "stop_timeout_seconds": 30
+      }
+    },
+    "settings": {
+      "kind": "job",
+      "knobs": {}
+    },
+    "topology": {
+      "name": "solo",
+      "node_count": 1,
+      "parallelism": {
+        "backend": "local",
+        "data": 1,
+        "pipeline": 1,
+        "tensor": 1
+      },
+      "roles": [
+        {
+          "count": 1,
+          "endpoint_owner": true,
+          "name": "entrypoint",
+          "resources": {
+            "disk": {
+              "artifact_bytes": 1024,
+              "image_bytes": 1000,
+              "safety_margin_bytes": 1024,
+              "working_bytes": 3072
+            },
+            "memory": {
+              "peak_bytes": 80000000,
+              "reserve_bytes": 1000000
+            }
+          }
+        }
+      ],
+      "start_order": [
+        "entrypoint"
+      ]
+    },
+    "validation": {
+      "serving": {
+        "checks": [
+          {
+            "assertions": [
+              "inference.completed",
+              "artifact.output"
+            ],
+            "kind": "image-job.output",
+            "name": "image",
+            "request": {
+              "fixture": "blank",
+              "output_slot": "image",
+              "transport": "job"
+            }
+          }
+        ],
+        "interface": "image-job"
+      }
+    }
+  }
+}

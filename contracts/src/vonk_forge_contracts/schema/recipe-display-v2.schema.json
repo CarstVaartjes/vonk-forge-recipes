@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.vonkforge.ai/contracts/recipe-display-v2.schema.json",
+  "$defs": {
+    "RecipeIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "publisher": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Publisher",
+          "type": "string"
+        },
+        "slug": {
+          "maxLength": 64,
+          "minLength": 2,
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Slug",
+          "type": "string"
+        }
+      },
+      "required": [
+        "publisher",
+        "slug"
+      ],
+      "title": "RecipeIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "const": "recipe-display",
+      "default": "recipe-display",
+      "title": "Kind",
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/RecipeIdentity"
+    },
+    "title": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "description": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Tags",
+      "type": "array"
+    },
+    "alignment": {
+      "anyOf": [
+        {
+          "enum": [
+            "standard",
+            "abliterated",
+            "derisked",
+            "other-modified",
+            "unspecified"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Alignment"
+    }
+  },
+  "required": [
+    "identity",
+    "title",
+    "description",
+    "tags"
+  ],
+  "title": "RecipeDisplay",
+  "type": "object"
+}
