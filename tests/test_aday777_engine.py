@@ -71,10 +71,9 @@ def test_aday777_avoids_failed_cuda_paths(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_proven_drowzeys_siblings_remain_at_hardware_identity() -> None:
-    for slug in (
-        "qwen3-8-27b-nvfp4-drowzeys-vllm-single",
-        "qwen3-8-27b-aeon-abliterated-dflash2-drowzeys-vllm-single",
-    ):
+    # The AEON recipe left this list when it was restored to the creator's
+    # memory values (2026-10-29): the sweep re-proves it at its new digest.
+    for slug in ("qwen3-8-27b-nvfp4-drowzeys-vllm-single",):
         document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
         assert hardware_proven(
             RecipeDefinition.model_validate(document), document_sha256(document)

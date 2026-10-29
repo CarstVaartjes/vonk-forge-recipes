@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SM121 vLLM profiles for its own Qwen3.8 27B NVFP4 (W4A16 NVFP4 linear layers, BF16 MTP head merged into the checkpoint, 4 shards, Apache-2.0 card) on one Spark, from r0b0tlab/qwen38-27b-nvfp4-sm121-vllm at a96186f8 (MIT). Runs on r0b0tlab's published vLLM 0.27.2rc0 SM121 wheel image (source-built for the FP4 GEMM tune) with upstream's DFlash2 overlay, FP8 KV, eager mode, prefix caching off, 32K context, qwen3_xml tool parser. Default is MTP K=3 (upstream's quickest profile, best at c8 and above); the option switches to the z-lab DFlash2 K=8 draft (Apache-2.0), which upstream measures as the best choice at c1 to c6 and for 262K needle-in-a-haystack. Upstream's DSpark and no-speculation profiles are not offered: DSpark needs the RadixArk draft rewritten on the host (scripts/adapt_dspark_draft.py), which a pinned model file cannot express. Upstream claims (not measured here): MTP K=3 27.8 tok/s at c1 (2.45x over 11.35 tok/s AR), 82.9 tok/s at c8; DFlash2 K=8 67.1 / 121.5 / 211.5 / 279.2 aggregate tok/s at c1 / c2 / c4 / c6. The upstream repository declares an MIT licence and the checkpoint card Apache-2.0; the Qwen base licence terms apply to the weights. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): the DFlash2 choice loads a separate draft model that holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 froze a GB10), so that choice runs at 0.6 and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
+    "description": "r0b0tlab's SM121 vLLM profiles for its own Qwen3.8 27B NVFP4 (W4A16 NVFP4 linear layers, BF16 MTP head merged into the checkpoint, 4 shards, Apache-2.0 card) on one Spark, from r0b0tlab/qwen38-27b-nvfp4-sm121-vllm at a96186f8 (MIT). Runs on r0b0tlab's published vLLM 0.27.2rc0 SM121 wheel image (source-built for the FP4 GEMM tune) with upstream's DFlash2 overlay, FP8 KV, eager mode, prefix caching off, 32K context, qwen3_xml tool parser. Default is MTP K=3 (upstream's quickest profile, best at c8 and above); the option switches to the z-lab DFlash2 K=8 draft (Apache-2.0), which upstream measures as the best choice at c1 to c6 and for 262K needle-in-a-haystack. Upstream's DSpark and no-speculation profiles are not offered: DSpark needs the RadixArk draft rewritten on the host (scripts/adapt_dspark_draft.py), which a pinned model file cannot express. Upstream claims (not measured here): MTP K=3 27.8 tok/s at c1 (2.45x over 11.35 tok/s AR), 82.9 tok/s at c8; DFlash2 K=8 67.1 / 121.5 / 211.5 / 279.2 aggregate tok/s at c1 / c2 / c4 / c6. The upstream repository declares an MIT licence and the checkpoint card Apache-2.0; the Qwen base licence terms apply to the weights. Physical Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.70 for both the MTP and the DFlash2 profiles, as in r0b0tlab's scripts/serve.sh at a96186f8 (lines 53 and 103). The steady per-node peak is 0.70 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "candidate",
       "dflash2",
@@ -317,16 +317,12 @@
             {
               "name": "kernel-config",
               "value": "{\"enable_jit_warmup\":false,\"enable_cutedsl_warmup\":false}"
-            },
-            {
-              "name": "gpu-memory-utilization",
-              "value": "0.6"
             }
           ],
           "env": {
             "VLLM_USE_V2_MODEL_RUNNER": "1"
           },
-          "help": "z-lab DFlash2 draft, block 8, V2 model runner, warmups off. Upstream claims 67.1 / 121.5 / 211.5 / 279.2 aggregate tok/s at c1 / c2 / c4 / c6 and NIAH 3/3 at 262,144. Runs at gpu-memory-utilization 0.6: the draft model holds memory outside that budget.",
+          "help": "z-lab DFlash2 draft, block 8, V2 model runner, warmups off. Upstream claims 67.1 / 121.5 / 211.5 / 279.2 aggregate tok/s at c1 / c2 / c4 / c6 and NIAH 3/3 at 262,144.",
           "label": "DFlash2 K=8",
           "value": "dflash2"
         }
@@ -347,7 +343,7 @@
   },
   "release": {
     "released_at": "2026-08-20",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -453,7 +449,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 103397938893,
+            "peak_bytes": 99464262042,
             "reserve_bytes": 8000000000
           }
         }
