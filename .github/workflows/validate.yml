@@ -258,6 +258,15 @@ jobs:
           set -euo pipefail
           python3 tools/check-writable-state-env --base origin/main
 
+      # Recipe, Model and display JSON are read through the contract package
+      # (vonk_forge_contracts, qualification/documents.py). Checks only lines
+      # added against main.
+      - name: Reject new raw reads of recipe, Model or display documents
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check-document-reads --base origin/main
+
       # Every test runs on recipe changes too: the suite takes about as long
       # as any subset, and a subset silently misses recipe-data checks.
       - name: Run the full producer test suite

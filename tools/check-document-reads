@@ -1,0 +1,290 @@
+#!/usr/bin/env python3
+"""Reject new raw reads of Recipe, Model or display JSON outside the contract package.
+
+A Recipe, a Model and their display documents each have one typed contract
+(``vonk_forge_contracts``: ``read_recipe``, ``read_model``, ``read_recipe_display``,
+``read_model_display``; ``qualification/documents.py`` for qualification code).
+Code that loads such a file with ``json.load`` and indexes the dict re-derives
+the shape by hand and drifts from the contract.
+
+Only lines added since the merge base with ``--base`` are checked; existing raw
+readers are left alone. There is no count and no allowlist of offenders. The
+exempt paths are the places that own the typed read.
+
+A hit is an added line that holds either
+  (a) a raw load (``json.load``/``json.loads``/``open``/``.read_text``/
+      ``.read_bytes``) in a statement that names a document path, or
+  (b) a subscript or ``.get()`` with a document key on a raw document value: a
+      name bound to an (a) load, or a ``dict``/``Mapping``/``Any`` variable named
+      ``document``, ``recipe``, ``model``, ``doc`` or ``display``.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import re
+import subprocess
+import sys
+from collections.abc import Iterator
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+PATHSPEC = ("*.py", "tools/", "spark_sweep/", "qualification/", "scripts/", "tests/")
+EXEMPT_PREFIXES = (
+    "contracts/src/vonk_forge_contracts/",
+    "adapters/",
+    "qualification/documents.py",
+    "tests/documents.py",
+    "tools/split-display",
+    "tools/check-document-reads",
+    "tests/test_check_document_reads.py",
+)
+KEYS = frozenset(
+    {
+        "identity",
+        "metadata",
+        "runtime",
+        "topology",
+        "execution",
+        "models",
+        "interfaces",
+        "validation",
+        "provenance",
+        "settings",
+        "release",
+        "options",
+        "files",
+        "format",
+        "license",
+        "source",
+        "dependencies",
+        "capabilities",
+        "modalities",
+        "requires_token",
+        "title",
+        "description",
+        "tags",
+        "alignment",
+        "family_title",
+        "model_title",
+    }
+)
+SEGMENTS = frozenset({"recipes", "models", "display"})
+FRAGMENTS = ("recipe.json", "recipes/", "models/", "display/")
+DOCUMENT_NAMES = frozenset({"document", "recipe", "model", "doc", "display"})
+ANNOTATIONS = frozenset({"dict", "Mapping", "Any"})
+READ_METHODS = frozenset({"read_text", "read_bytes"})
+JSON_LOADS = frozenset({"load", "loads"})
+HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+ADVICE = (
+    "use vonk_forge_contracts (read_recipe/read_model/read_recipe_display/"
+    "read_model_display) or qualification/documents.py"
+)
+
+
+def _git(root: Path, *args: str) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, text=True, check=False
+    )
+    if completed.returncode != 0:
+        sys.exit(f"git {' '.join(args)}: {completed.stderr.strip()}")
+    return completed.stdout
+
+
+def added_lines(root: Path, base: str) -> dict[str, set[int]]:
+    diff = _git(
+        root, "diff", "-U0", "--no-color", "--diff-filter=AMR", f"{base}...HEAD",
+        "--", *PATHSPEC,
+    )  # fmt: skip
+    result: dict[str, set[int]] = {}
+    path: str | None = None
+    for line in diff.splitlines():
+        if line.startswith("+++ "):
+            path = line[4:].removeprefix("b/") if line != "+++ /dev/null" else None
+        elif path and (hunk := HUNK.match(line)):
+            start, count = int(hunk[1]), int(hunk[2] if hunk[2] is not None else 1)
+            result.setdefault(path, set()).update(range(start, start + count))
+    return result
+
+
+def _is_python_shebang(first_line: str) -> bool:
+    return first_line.startswith("#!") and "python" in first_line
+
+
+def names_python(root: Path, name: str) -> bool:
+    if name.endswith(".py"):
+        return True
+    if "." in Path(name).name or not name.startswith("tools/"):
+        return False
+    with (root / name).open(encoding="utf-8", errors="replace") as handle:
+        return _is_python_shebang(handle.readline())
+
+
+def walk_scope(scope: ast.AST) -> Iterator[ast.AST]:
+    """Every node of a scope, not descending into nested function scopes."""
+    stack = list(ast.iter_child_nodes(scope))
+    while stack:
+        node = stack.pop()
+        yield node
+        if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+            stack.extend(ast.iter_child_nodes(node))
+
+
+def names_document_path(node: ast.AST, tainted: set[str]) -> bool:
+    for child in ast.walk(node):
+        if isinstance(child, ast.Constant) and isinstance(child.value, str):
+            if child.value in SEGMENTS or any(f in child.value for f in FRAGMENTS):
+                return True
+        elif isinstance(child, ast.Name) and child.id in tainted:
+            return True
+    return False
+
+
+def is_raw_load(call: ast.Call) -> bool:
+    func = call.func
+    if isinstance(func, ast.Name):
+        return func.id == "open"
+    if isinstance(func, ast.Attribute):
+        if func.attr in READ_METHODS:
+            return True
+        return (
+            func.attr in JSON_LOADS
+            and isinstance(func.value, ast.Name)
+            and func.value.id == "json"
+        )
+    return False
+
+
+def targets(node: ast.AST) -> Iterator[str]:
+    for child in ast.walk(node):
+        if isinstance(child, ast.Name) and isinstance(child.ctx, ast.Store):
+            yield child.id
+
+
+def annotated_documents(scope: ast.AST) -> set[str]:
+    found: set[str] = set()
+    if isinstance(scope, ast.FunctionDef | ast.AsyncFunctionDef):
+        args = scope.args
+        for arg in [*args.posonlyargs, *args.args, *args.kwonlyargs]:
+            if arg.annotation and _loose_annotation(arg.annotation):
+                found.add(arg.arg)
+    for node in walk_scope(scope):
+        if (
+            isinstance(node, ast.AnnAssign)
+            and isinstance(node.target, ast.Name)
+            and _loose_annotation(node.annotation)
+        ):
+            found.add(node.target.id)
+    return found & DOCUMENT_NAMES
+
+
+def _loose_annotation(annotation: ast.AST) -> bool:
+    return any(
+        (isinstance(n, ast.Name) and n.id in ANNOTATIONS)
+        or (isinstance(n, ast.Attribute) and n.attr in ANNOTATIONS)
+        for n in ast.walk(annotation)
+    )
+
+
+def statement_of(parents: dict[ast.AST, ast.AST], node: ast.AST) -> ast.AST:
+    while not isinstance(node, ast.stmt):
+        node = parents[node]
+    return node
+
+
+def scan(source: str, added: set[int]) -> list[tuple[int, str]]:
+    tree = ast.parse(source)
+    parents = {c: p for p in ast.walk(tree) for c in ast.iter_child_nodes(p)}
+    hits: set[tuple[int, str]] = set()
+    scopes = [
+        tree,
+        *(
+            n
+            for n in ast.walk(tree)
+            if isinstance(n, ast.FunctionDef | ast.AsyncFunctionDef)
+        ),
+    ]
+    for scope in scopes:
+        nodes = list(walk_scope(scope))
+        # Names bound from an expression that names a document path.
+        tainted: set[str] = set()
+        for node in nodes:
+            if isinstance(node, ast.Assign) and names_document_path(
+                node.value, tainted
+            ):
+                tainted.update(targets(node.targets[0]))
+            elif isinstance(node, ast.For | ast.AsyncFor) and names_document_path(
+                node.iter, tainted
+            ):
+                tainted.update(targets(node.target))
+        loads: dict[ast.Call, bool] = {}
+        raw_names: set[str] = set()
+        for node in nodes:
+            if isinstance(node, ast.Call) and is_raw_load(node):
+                statement = statement_of(parents, node)
+                if names_document_path(statement, tainted):
+                    loads[node] = True
+                    if node.lineno in added:
+                        hits.add((node.lineno, "load"))
+        for node in nodes:
+            if isinstance(node, ast.Assign) and any(
+                c in loads for c in ast.walk(node.value)
+            ):
+                raw_names.update(targets(node.targets[0]))
+        raw_names |= annotated_documents(scope)
+        for node in nodes:
+            access = document_access(node)
+            if access is None:
+                continue
+            line, key, owner = access
+            if key not in KEYS or line not in added:
+                continue
+            raw = (isinstance(owner, ast.Name) and owner.id in raw_names) or any(
+                c in loads for c in ast.walk(owner)
+            )
+            if raw:
+                hits.add((line, "subscript"))
+    return sorted(hits)
+
+
+def document_access(node: ast.AST) -> tuple[int, object, ast.expr] | None:
+    """``(line, key, value)`` of ``value[key]`` or ``value.get(key)`` with a constant key."""
+    if isinstance(node, ast.Subscript) and isinstance(node.slice, ast.Constant):
+        return node.lineno, node.slice.value, node.value
+    if (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "get"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+    ):
+        return node.lineno, node.args[0].value, node.func.value
+    return None
+
+
+def check(root: Path, base: str) -> list[str]:
+    problems: list[str] = []
+    for name, lines in sorted(added_lines(root, base).items()):
+        if name.startswith(EXEMPT_PREFIXES) or not names_python(root, name):
+            continue
+        source = (root / name).read_text(encoding="utf-8")
+        problems.extend(
+            f"{name}:{line}: raw {kind} read; {ADVICE}"
+            for line, kind in scan(source, lines)
+        )
+    return problems
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
+    parser.add_argument("--base", required=True, help="revision to diff against")
+    parser.add_argument("--root", type=Path, default=ROOT)
+    arguments = parser.parse_args()
+    problems = check(arguments.root, arguments.base)
+    print("\n".join(problems))
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
