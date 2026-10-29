@@ -4935,15 +4935,12 @@ class Sweep:
         for placement in blocked:
             key = placement.recipe.key
             entry = self.state.entry(key)
-            code, detail = policy.review_blocker(
-                reasons.get(self._alias(placement.recipe), []),
-                verdict.PREPARATION_CODES,
-            )
+            blockers = reasons.get(self._alias(placement.recipe), [])
+            code, detail = policy.review_blocker(blockers, verdict.PREPARATION_CODES)
             # A preparation (build, image, download) the Controller has not finished is a
             # wait, never a verdict: the next review (alone, or with lanes that fit) takes the
             # wait-for-preparation path. A busy lane may hold the room: wait for it too.
             if code in verdict.PREPARATION_CODES or busy:
-                self._clear_review_wait(entry)
                 entry["defer_until"] = now + self.cfg.defer_delay
                 self.record_result(
                     key,
@@ -4978,7 +4975,6 @@ class Sweep:
                 # Bounded, so a recipe that really does not fit is still recorded (with the
                 # attempts in its evidence).
                 entry["review_freeing"] = freeing + 1
-                self._clear_review_wait(entry)
                 entry["defer_until"] = now + self.cfg.defer_delay
                 self._request_clearing(now)
                 self.record_result(
@@ -4999,7 +4995,6 @@ class Sweep:
                 # Not beyond an idle Spark (or unknown): what holds the room (a Controller build, a
                 # workload no clearing stops) is the platform's wait, never a verdict. Review
                 # again later, no attempt spent.
-                self._clear_review_wait(entry)
                 entry["defer_until"] = now + self.cfg.defer_delay
                 self.record_result(
                     key,
@@ -5016,8 +5011,9 @@ class Sweep:
                     evidence={**failure.evidence, "freeing_attempts": freeing},
                 )
             if verdict.disposition(failure) is Disposition.WAIT:
-                self._watch_review_wait(key, entry, placement, failure, now)
-            else:
+                codes = tuple(sorted({c for c, _ in blockers}))
+                self._watch_review_wait(key, entry, placement, failure, codes, now)
+            elif verdict.disposition(failure) is Disposition.FAIL:
                 self._clear_review_wait(entry)
             # Only the observed demand, never a clearing count, can settle capacity.
             self._record_failure(key, failure, None, document=document)
@@ -5028,16 +5024,18 @@ class Sweep:
         entry: dict[str, Any],
         placement: policy.Placement,
         failure: policy.Failure,
+        codes: tuple[str, ...],
         now: float,
     ) -> None:
-        """A review wait is never silent: the same refusal past ``idle_alert_seconds`` is an
-        escalation (informational; it pauses nothing and ends nothing)."""
+        """A review wait is never silent: the same blocker words past ``idle_alert_seconds``
+        are an escalation (informational; it pauses nothing and ends nothing). The detail
+        carries live readings, so only the codes are the signature; it is the alarm text."""
         watch = entry.setdefault("review_watch", {})
         identity = placement.recipe.content_sha256
         if watch.get("content_sha256") != identity:
             self._clear_review_wait(entry)
             watch = entry.setdefault("review_watch", {"content_sha256": identity})
-        signal = verdict.Signal(signature=(failure.code, failure.detail))
+        signal = verdict.Signal(signature=codes)
         progress = verdict.progress_verdict(
             signal, watch, window=self.cfg.idle_alert_seconds, now=now
         )
@@ -5051,7 +5049,7 @@ class Sweep:
             )
 
     def _clear_review_wait(self, entry: dict[str, Any]) -> None:
-        """The review is admitted or the recipe changed: its wait alarm and watch end."""
+        """Admission, a content change or a final verdict ends a review wait's alarm and watch."""
         watch = entry.pop("review_watch", None)
         if isinstance(watch, dict) and watch.get("source"):
             self.clear_infra(watch["source"])
