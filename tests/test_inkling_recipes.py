@@ -619,6 +619,8 @@ def test_dspark_dual_follows_the_creators_settings_and_declares_load_peaks() -> 
     """
     from documents import recipe
 
+    from qualification.memory_need import swap_needed_bytes
+
     definition = recipe(DSPARK_DUAL)
     arguments = {
         item["name"]: item
@@ -637,4 +639,7 @@ def test_dspark_dual_follows_the_creators_settings_and_declares_load_peaks() -> 
     for role in definition.topology.roles:
         memory = role.resources.memory
         assert memory.peak_bytes == 112530585191
-        assert memory.minimum_swap_bytes == 17179869184
+        assert memory.load_peak_bytes is not None
+        assert memory.minimum_swap_bytes == swap_needed_bytes(
+            memory.load_peak_bytes - memory.peak_bytes
+        )
