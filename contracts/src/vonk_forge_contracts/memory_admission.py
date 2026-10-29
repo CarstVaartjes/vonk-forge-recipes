@@ -2,7 +2,11 @@
 
 from pydantic import BaseModel, ConfigDict
 
-PLATFORM_MEMORY_FLOOR_BYTES = 6_000_000_000
+# 2 GiB: creators run with 2-3 GiB of steady free memory (0xSero DeepSeek V4.1
+# "2-3 GiB available"; Mia DeepSeek V4.1 EXL3 low-water 2.1 GiB at 601k context),
+# and the swap-aware host memory guard (vonk-forge #1936, R1) stops a workload
+# only below 1 GiB MemAvailable, so this keeps 1 GiB above its trigger.
+PLATFORM_MEMORY_FLOOR_BYTES = 2 * 1024**3
 
 
 class MemoryAdmission(BaseModel):

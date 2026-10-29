@@ -305,7 +305,7 @@ and [InstantTensor backend selection](https://github.com/scitix/InstantTensor#ba
 ### Memory: preserve proof, reserve by need
 
 The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` owns
-admission, explanatory headroom and the 6 GB platform floor. Every recipe and
+admission, explanatory headroom and the 2 GiB platform floor. Every recipe and
 option variant, on every role, must pass its empty-target-pool check: peak plus platform floor fits the
 pool. `reserve_bytes` is informational and is never charged. Offline validation
 (`require_admissible_declaration`, `qualification/vllm_memory_fit.py`) charges
@@ -487,8 +487,8 @@ pre-#1612 calibration guard for historical vLLM documents and options on **each
 role of each node**, including dual/multi-Spark recipes. Its shared
 implementation and constants live in `qualification/vllm_memory_fit.py`: utilization ×
 **130,663,231,488 bytes** + **8 GB** runtime overhead must fit the declared
-per-node peak; peak + the **6 GB OS floor** must fit
-the **126,600,000,000-byte idle-available floor**. The 2026-10-15/16 incident also
+per-node peak; peak + the **2 GiB platform floor** must fit
+the **126,600,000,000-byte idle-available floor**. The 2 GiB floor follows the creators' measured 2-3 GiB of steady free memory; the swap-aware host memory guard (vonk-forge #1936, R1) is the runtime backstop. The 2026-10-15/16 incident also
 retains its measured overhead and the lower spark-3542 idle-available value above.
 
 [qualification/memory_need.py](../qualification/memory_need.py), exercised by
