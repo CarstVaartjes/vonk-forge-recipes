@@ -9,7 +9,9 @@ from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 from qualification.memory_need import (
+    ADMISSION_IDLE_USE_BYTES,
     GUARD_BYTES,
+    OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
@@ -108,7 +110,9 @@ def test_guard_rejects_unsafe_envelopes(defect: str) -> None:
     if defect == "torch-only":
         recipe.topology.roles[0].resources.memory.peak_bytes = 118_000_000_000
     elif defect == "os-floor":
-        recipe.topology.roles[0].resources.memory.peak_bytes = 121_000_000_000
+        recipe.topology.roles[0].resources.memory.peak_bytes = (
+            SPARK_MEMORY_BYTES - ADMISSION_IDLE_USE_BYTES - OS_FLOOR_BYTES + 1
+        )
     elif defect == "worker":
         recipe.topology.roles[1].resources.memory.peak_bytes = 118_000_000_000
     else:

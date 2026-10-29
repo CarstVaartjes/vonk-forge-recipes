@@ -215,7 +215,9 @@ def test_catalog_checks_each_supported_document() -> None:
 @pytest.mark.parametrize("rank", [0, 1])
 def test_original_deferral_fails_before_any_controller_operation(rank: int) -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
-    recipe.topology.roles[rank].resources.memory.peak_bytes = 124_000_000_000
+    recipe.topology.roles[rank].resources.memory.peak_bytes = (
+        TOTAL_BYTES - ADMISSION_IDLE_USE_BYTES - OS_FLOOR_BYTES + 1
+    )
     with pytest.raises(ValueError, match="not admissible"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
 

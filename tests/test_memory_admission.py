@@ -3,6 +3,7 @@
 import ast
 from pathlib import Path
 
+import documents
 import pytest
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import (
@@ -11,6 +12,7 @@ from vonk_forge_contracts.memory_admission import (
 )
 
 from qualification import memory_need
+from qualification.memory_need import vllm_utilization_envelope
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -25,7 +27,9 @@ def test_declaration_boundary_and_observed_host_are_distinct() -> None:
     ).admissible
     assert evaluate_memory_admission(124_000_000_000, pool).admissible
     assert not evaluate_memory_admission(
-        124_000_000_000, pool, occupied_bytes=4_515_061_760
+        124_000_000_000,
+        pool,
+        occupied_bytes=pool - 124_000_000_000 - PLATFORM_MEMORY_FLOOR_BYTES + 1,
     ).admissible
 
 
@@ -117,3 +121,29 @@ def test_guard_rejects_a_second_admission_formula() -> None:
 def test_invalid_byte_evidence_is_not_clamped(bad) -> None:
     with pytest.raises(ValueError, match="nonnegative integer"):
         evaluate_memory_admission(1, 100, occupied_bytes=bad)
+
+
+def _single_at_utilization(value: str) -> RecipeDefinition:
+    recipe = documents.recipe("qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single")
+    for argument in recipe.runtime.arguments:
+        if argument.name == "gpu-memory-utilization":
+            argument.value = value
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = envelope
+    return recipe
+
+
+def test_creator_utilization_088_single_is_admissible() -> None:
+    """The creator's 0.88 (122,983,643,710 B) fits an idle Spark beside the 2 GiB floor."""
+    recipe = _single_at_utilization("0.88")
+    assert vllm_utilization_envelope(recipe) == 122_983_643_710
+    memory_need.require_admissible_declaration(recipe)
+
+
+def test_utilization_090_single_is_still_refused() -> None:
+    recipe = _single_at_utilization("0.90")
+    assert vllm_utilization_envelope(recipe) == 125_596_908_340
+    with pytest.raises(ValueError, match="not admissible"):
+        memory_need.require_admissible_declaration(recipe)
