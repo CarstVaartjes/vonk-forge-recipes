@@ -643,3 +643,31 @@ def test_dspark_dual_follows_the_creators_settings_and_declares_load_peaks() -> 
         assert memory.minimum_swap_bytes == swap_needed_bytes(
             memory.load_peak_bytes - memory.peak_bytes
         )
+
+
+class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):
+    """eugr's launch-cluster.sh at 60dee5b4 injects these into every container."""
+
+    LAUNCHER_PIN = "60dee5b4"
+    # launch-cluster.sh:10-11 at the pin: DOCKER_ARGS="-e NAME=VALUE"
+    LAUNCHER_LINES_10_11 = (
+        ("NCCL_IGNORE_CPU_AFFINITY", "1"),
+        ("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True"),
+    )
+    RECIPES = (
+        "recipes/inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual.json",
+        "recipes/inkling-small-nvfp4-mtp-tonyd2wild-vllm-dual.json",
+    )
+
+    def test_recipes_restore_the_launcher_environment(self) -> None:
+        from vonk_forge_contracts import read_recipe
+
+        for path in self.RECIPES:
+            with self.subTest(recipe=path):
+                recipe = read_recipe(load(path))
+                env = [(e.name, e.value) for e in recipe.runtime.environment]
+                for entry in self.LAUNCHER_LINES_10_11:
+                    self.assertEqual(env.count(entry), 1, entry)
+                description = recipe.metadata.description
+                self.assertIn(self.LAUNCHER_PIN, description)
+                self.assertIn("(lines 10-11)", description)
