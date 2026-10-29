@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "0xSero's a0 baseline of GLM-5.3-Flash EXL3 on one Spark with SGLang, the default profile of glm-5.3-flash-spark-mosaic at 248dbaa0 (docker/run-spark.sh; the same image and launch as recipe A of 0xSero/GLM-5.3-Flash-DGX-Spark): turboderp's 2.05 bpw quantization (codebook mul1, 85.2 GB, branch 2.05bpw) served through upstream's exl3-plain SGLang overlay image (pinned by digest, built on the lmsysorg glm-5.3-flash base) with DSA attention, FP8 E4M3 KV cache, 8192-token context, one concurrent request, image input, glm45 reasoning and glm47 tool parsers. CUDA graphs are off and there is no speculative decoding. Upstream's census of the tensors runs first at container start and stops the launch on a layout mismatch. Upstream claims, not measured here: 78.9 percent top-1 agreement with BF16 (KL 0.384) and retrieval at 262016 tokens; 9 to 10 tok/s decode for the turboderp mul1 lineage at 262144-token class context (the upstream lineage table, which covers this baseline and the mosaic). Licences are informational: repository and weights are MIT. Physical Spark acceptance is pending. GB10 repair: the 2026-10-21 start reported a negative hybrid-cache budget (-6.32 GiB) at fraction 0.75. Fraction 0.85 permits profiling the loaded weights; actual pools are bounded independently to 8192 total tokens and two Mamba states, with CUDA graphs disabled. The 108.4 GB peak includes an inferred 22 GB resident/runtime allowance above selected weights and conservative cache bounds; it is not a hardware measurement. Physical requalification is pending.",
+    "description": "0xSero's a0 baseline of GLM-5.3-Flash EXL3 on one Spark with SGLang, the default profile of glm-5.3-flash-spark-mosaic at 248dbaa0 (docker/run-spark.sh; the same image and launch as recipe A of 0xSero/GLM-5.3-Flash-DGX-Spark): turboderp's 2.05 bpw quantization (codebook mul1, 85.2 GB, branch 2.05bpw) served through upstream's exl3-plain SGLang overlay image (pinned by digest, built on the lmsysorg glm-5.3-flash base) with DSA attention, FP8 E4M3 KV cache, 8192-token context, one concurrent request, image input, glm45 reasoning and glm47 tool parsers. CUDA graphs are off and there is no speculative decoding. Upstream's census of the tensors runs first at container start and stops the launch on a layout mismatch. Upstream claims, not measured here: 78.9 percent top-1 agreement with BF16 (KL 0.384) and retrieval at 262016 tokens; 9 to 10 tok/s decode for the turboderp mul1 lineage at 262144-token class context (the upstream lineage table, which covers this baseline and the mosaic). Licences are informational: repository and weights are MIT. Physical Spark acceptance is pending. GB10 repair: the 2026-10-21 start reported a negative hybrid-cache budget (-6.32 GiB) at fraction 0.75. Fraction 0.85 permits profiling the loaded weights; actual pools are bounded independently to 8192 total tokens and five Mamba state slots, with CUDA graphs disabled. The 2026-10-28 start with two slots failed in SGLang resolve_max_num_reqs (2 // 5 = 0 requests), so the pool holds the five slots one request needs, charged with the padding slot. The 108.63 GB peak includes an inferred 22 GB resident/runtime allowance above selected weights and conservative cache bounds; it is inferred from the pinned geometry, not a hardware measurement, and exceeds the 108.47 GB planning limit by 0.16 GB while staying admissible on an idle Spark. Physical requalification is pending. Chat template: upstream's with the standard enable_thinking switch on the generation prompt (<think></think> when a request turns thinking off, <think> otherwise), so the glm45 reasoning parser separates reasoning for requests that turn thinking off as well as for those that leave it on; SGLang's template detection otherwise leaves the parser unforced for enable_thinking=false and the end tag leaks into content.",
     "tags": [
       "0xsero",
       "candidate",
@@ -302,7 +302,7 @@
   },
   "release": {
     "released_at": "2026-09-18",
-    "version": "1.0.0"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -394,7 +394,7 @@
       {
         "name": "chat-template",
         "setting": null,
-        "value": "/opt/glm53/chat-template-mm.jinja"
+        "value": "/opt/vonk/glm53-chat-template.jinja"
       },
       {
         "name": "reasoning-parser",
@@ -417,7 +417,7 @@
       },
       {
         "name": "max-mamba-cache-size",
-        "value": 2
+        "value": 5
       }
     ],
     "engine": "sglang",
@@ -484,7 +484,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 108400000000,
+            "peak_bytes": 108629500270,
             "reserve_bytes": 8000000000
           }
         }

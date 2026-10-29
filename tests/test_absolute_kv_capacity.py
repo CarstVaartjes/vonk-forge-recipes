@@ -344,49 +344,58 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
     cap.value = context - 1
     with pytest.raises(ValueError, match="one full-context request"):
         require_memory_need(recipe, models, inputs, document_digest="")
+    # Uncapped, the fraction bounds the pools and the Controller admits the
+    # declared peak: only SGLang's startup room is checked (see
+    # test_inkling_recipes.py for the failing side).
     recipe.runtime.arguments.remove(cap)
-    with pytest.raises(ValueError, match="set absolute max-total-tokens"):
-        require_memory_need(recipe, models, inputs, document_digest="")
-    # The state cap holds one request's five slots, not five per running request.
+    require_memory_need(recipe, models, inputs, document_digest="")
+    # The state cap holds five slots for each of the four running requests.
     recipe = recipe_for(QWEN_NEXT)
     slots = next(
         arg for arg in recipe.runtime.arguments if arg.name == "max-mamba-cache-size"
     )
-    slots.value = 5
+    slots.value = 20
     require_memory_need(recipe, models, inputs, document_digest="")
-    slots.value = 4
-    with pytest.raises(ValueError, match="state slots of one request"):
+    slots.value = 19
+    with pytest.raises(ValueError, match="state slots of each of 4 running"):
         require_memory_need(recipe, models, inputs, document_digest="")
 
-    # Fault injection at the budget edge: without speculation 0.571 holds the
+    # Fault injection at the budget edge: without speculation 0.584 holds the
     # sharded weights, the capped token pool and the 21 state slots; the
     # default NEXTN option adds (min(4, 20 // 5) + 1) x 4 intermediate slot
-    # states, which need 0.572.
-    def rank_budget(fraction: str, draft_tokens: int | None = None) -> None:
+    # states, which need 0.594.
+    def rank_budget(
+        fraction: str, draft_tokens: int | None = None, expect_refused: bool = False
+    ) -> None:
         for variant in memory_variants(recipe_for(QWEN_NEXT)):
             for arg in variant.runtime.arguments:
                 if arg.name == "mem-fraction-static":
                     arg.value = fraction
                 elif arg.name == "speculative-num-draft-tokens" and draft_tokens:
                     arg.value = draft_tokens
-            if argument_value(variant, "speculative-algorithm") is None:
-                require_sglang_rank_budget(variant, models, inputs, "k")
-            else:
+            if argument_value(variant, "speculative-algorithm") is not None:
                 speculative.append(variant)
+            elif expect_refused:
+                with pytest.raises(ValueError, match="static budget"):
+                    require_sglang_rank_budget(variant, models, inputs, "k")
+            else:
+                require_sglang_rank_budget(variant, models, inputs, "k")
 
     speculative: list[RecipeDefinition] = []
-    rank_budget("0.571")
+    rank_budget("0.583", expect_refused=True)
+    speculative.clear()
+    rank_budget("0.593")
     assert speculative
     for variant in speculative:
         with pytest.raises(ValueError, match="static budget"):
             require_sglang_rank_budget(variant, models, inputs, "k")
     speculative.clear()
-    rank_budget("0.572")
+    rank_budget("0.594")
     for variant in speculative:
         require_sglang_rank_budget(variant, models, inputs, "k")
     # Eight draft tokens double the intermediate state past that edge.
     speculative.clear()
-    rank_budget("0.572", draft_tokens=8)
+    rank_budget("0.594", draft_tokens=8)
     for variant in speculative:
         with pytest.raises(ValueError, match="static budget"):
             require_sglang_rank_budget(variant, models, inputs, "k")

@@ -199,7 +199,7 @@
           {
             "id": "video",
             "label": "Generated video",
-            "description": "Generated 640x640 H.264 MP4 video with 81 frames at 16 fps.",
+            "description": "Generated 864x480 H.264 MP4 video with sound, 124 frames at 24 fps.",
             "media_types": [
               "video/mp4"
             ],

@@ -273,8 +273,8 @@ fabric with a 200 Gbit/s floor, endpoint withdrawal on rank loss, worker-first
 recovery and endpoint-owner-first stopping; do not author contradictory copies
 of those derived properties (`RecipeTopology`, `tests/test_contracts.py`).
 Declare per-role
-unified memory as `peak_bytes` (the most the workload uses at any time,
-startup or steady state) plus `reserve_bytes`, and disk as image, artifact,
+unified memory as `peak_bytes` (the most the workload uses while serving; a
+higher load-time peak goes in `load_peak_bytes`) plus `reserve_bytes`, and disk as image, artifact,
 working (staging plus caches) and safety-margin bytes. Declare `node_count`,
 roles and their start order. Bind tunable
 arguments to the corresponding declared settings instead of maintaining two
@@ -313,10 +313,26 @@ one idle host baseline, `ADMISSION_IDLE_USE_BYTES` (130,663,231,488 −
 126,600,000,000 idle-available bytes), calibrated on the proven set: the live
 Controller admitted proven 120,370,379,081-byte peaks on both Sparks of a dual.
 It proves declaration admissibility, not live fit.
+
 The Controller supplies observed host use, exact commitments, unmaterialized
 claims and unknown resident upper bounds to this same function. It does not
 assume the historical idle baseline below. Proven recipes are calibration inputs,
 never exemptions or candidates for automatic retuning.
+
+A load that uses more than the steady peak and is served from swap declares
+`load_peak_bytes` (strictly above `peak_bytes`; `peak_bytes` stays the steady
+peak) and `minimum_swap_bytes`. Both are omitted when unset, so existing
+documents and digests do not change. Honest numbers only: `load_peak_bytes` is a
+measured peak with its citation, or source-backed; a measurement from a killed
+run is a lower bound and the recipe says so. `minimum_swap_bytes` is the
+creator's stated prerequisite, or the measured swap peak plus the guard margin,
+and is never lowered to fit. Offline validation (`require_admissible_declaration`)
+refuses a load overshoot above the usable part of the 128 GiB swap maximum
+(usable = max(0, min(total − max(2 GiB, 10% of total), 90% of total)), integer
+percent steps), a `minimum_swap_bytes` below what the overshoot needs (the
+smallest whole-GiB total) or above 128 GiB, and warns when the needed swap
+exceeds the 64 GiB default. The constants are copied, with citation, in
+`qualification/memory_need.py`.
 
 **A.** Preserve the runtime settings of every recipe that passed on real hardware.
 Change them only after a hardware failure, or deliberately with hardware retesting.
@@ -349,7 +365,16 @@ admissible, and the fraction × the idle available bytes must hold the selected
 weights, their resident expansion and any capped token/state pools (GLM a0 at
 0.75 was OOM-killed; restoring its 262,144-token cap needs 116.8 GB against
 0.85's 106.8 GB). The declared peak covers the same static need plus the 8 GB
-overhead. SGLang derives an omitted fraction at launch, so none is required. A pool-less single-Spark vLLM declaration's peak must cover its
+overhead. SGLang's base on GB10 is host MemAvailable after CUDA init
+(`utils/common.py` is_integrated path), so the calculator charges the Spark's total
+memory. When `max-total-tokens` (and, for hybrid geometries, `max-mamba-cache-size`)
+caps every pool, SGLang allocates only those pools and the fraction merely gates
+remaining memory > 0, so the demand is the static need plus the 8 GB overhead.
+This rule is derived from the SGLang source and is uncalibrated: no fully capped
+proven run (graph-less, no speculation) backs it, and capped recipes with CUDA
+graphs or speculation rest on the 8 GB overhead. A hybrid Model without
+`max-mamba-cache-size` is not capped (the Mamba pool grows with the fraction).
+An uncapped pool keeps the calibrated fraction × total + 8 GB. SGLang derives an omitted fraction at launch, so none is required. A pool-less single-Spark vLLM declaration's peak must cover its
 utilization budget plus the overhead, since the Controller
 reserves the declared peak. `tests/test_absolute_kv_capacity.py` replays the recorded
 failures and must reject each. `qualification/memory_need.py`
@@ -394,7 +419,7 @@ workload limit subtracts it, and a touched multi-Spark utilization-sized pool
 must leave it (below). It began as the host memory guard's per-sample
 MemAvailable bar (vonk-forge `040c51b8531523bebe542b5e1f7b9403e0767f72`,
 `host_memory_guard_policy.rs::STALL_AVAILABLE_BYTES`), which the swap-aware
-guard (vonk-forge #1936, `fef665bf820346c885d50723e3179b2335c9216a`) removed.
+guard (vonk-forge #1936, `fc6059e42edb1b26416fd78493138201f427de96`) removed.
 That guard has no per-sample bar; it stops managed workloads on
 R1 MemAvailable < 1 GiB and free swap < max(2 GiB, 10% of swap) for 2 s
 (without swap: MemAvailable < 256 MiB for 3 s); R2 swap > 90% used and still
@@ -468,9 +493,10 @@ expansion and capped token/state pools in `mem-fraction-static` × the lowest id
 available bytes. Its absolute `max-total-tokens` cap must hold one full-context
 request, not context × `max-running-requests`: SGLang schedules requests within
 it, and the proven Qwen3.8 Flash Next W4A16 dual caps one 262,144-token context
-at concurrency 4. A hybrid model's `max-mamba-cache-size` must hold one
-request's five state slots; at startup SGLang lowers `max-running-requests` to
-slots // 5, so 5 slots serve concurrency 1. With speculation the budget also
+at concurrency 4. A hybrid model's `max-mamba-cache-size` must hold five
+state slots per running request (`max-running-requests`); at startup SGLang lowers
+`max-running-requests` to slots // 5 and fails below one, so 5 slots serve
+concurrency 1 and 20 serve concurrency 4. With speculation the budget also
 charges (min(`max-running-requests`, slots // 5) + 1) ×
 `speculative-num-draft-tokens` intermediate state slots. Geometry that names a
 `runtime_image_digest` applies only to that image. A multi-Spark vLLM recipe file a change touches must bound KV

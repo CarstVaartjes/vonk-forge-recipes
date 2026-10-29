@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""Reject new image-private state variables that point at the read-only image.
+
+Containers run with a read-only root, a tmpfs /tmp and the /outputs bind (its
+cache/ included). The platform sets the standard cache, home and temp variables
+at container start (its ``runtime.env``, mirrored in
+``tests/fixtures/compiled_workload_v2.json``, the one owner of that list), so
+they are not checked. Any other ``*_PATH``/``*_DIR``/``*_ROOT``/``*CACHE*``
+variable that an adapter Dockerfile sets in its final stage is the adapter's
+own state: it must point under /tmp or /outputs. MiMo's ``STATE_PATH=/state``
+died on ``/state/launch.json.tmp`` before SGLang started.
+
+Only ENV lines added since the merge base with ``--base`` (working tree
+included) in the Dockerfile a recipe builds (``execution.build.dockerfile``)
+are checked; unbuilt reference files and existing lines are left alone.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import shlex
+import subprocess
+import sys
+from collections.abc import Iterator
+from pathlib import Path, PurePosixPath
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURE = "tests/fixtures/compiled_workload_v2.json"
+WRITABLE = (PurePosixPath("/tmp"), PurePosixPath("/outputs"))
+STATE_NAME = re.compile(r"(_PATH|_DIR|_ROOT)$|CACHE", re.IGNORECASE)
+# Pointers at image or model files that are only read, never written.
+READ_ONLY = frozenset(
+    {
+        "MODEL_PATH",
+        "LD_LIBRARY_PATH",
+        "VLLM_NCCL_SO_PATH",
+        "TRITON_PTXAS_PATH",
+        "VLLM_BASE_DIR",
+        "TIKTOKEN_CACHE_DIR",
+        "TIKTOKEN_RS_CACHE_DIR",
+    }
+)
+HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+ADVICE = (
+    "the root filesystem is read-only: point it under /outputs/cache (writable for "
+    "every role) or /tmp; see docs/recipe-authoring.md."
+)
+
+
+class DiffError(RuntimeError):
+    """The base revision could not be compared."""
+
+
+def _git(root: Path, *args: str) -> str:
+    completed = subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, text=True, check=False
+    )
+    if completed.returncode != 0:
+        raise DiffError(completed.stderr.strip())
+    return completed.stdout
+
+
+def platform_names(root: Path) -> frozenset[str]:
+    document = json.loads((root / FIXTURE).read_text(encoding="utf-8"))
+    return frozenset(item["name"] for item in document["runtime"]["env"])
+
+
+def built_dockerfiles(root: Path) -> set[str]:
+    return {
+        json.loads(path.read_text(encoding="utf-8"))["execution"]["build"]["dockerfile"]
+        for path in (root / "recipes").glob("*.json")
+    }
+
+
+def added_lines(root: Path, base: str, names: set[str]) -> dict[str, set[int]]:
+    result: dict[str, set[int]] = {}
+    for name in _git(root, "ls-files", "--others", "--exclude-standard").splitlines():
+        if name in names:
+            text = (root / name).read_text(encoding="utf-8", errors="replace")
+            result[name] = set(range(1, text.count("\n") + 2))
+    diff = _git(
+        root, "diff", "--unified=0", "--no-color", "--diff-filter=AMR",
+        "--merge-base", base,
+    )  # fmt: skip
+    path: str | None = None
+    for line in diff.splitlines():
+        if line.startswith("+++ "):
+            name = line[4:].removeprefix("b/")
+            path = name if name in names else None
+        elif path is not None and (match := HUNK.match(line)):
+            start, count = int(match[1]), int(match[2] or "1")
+            result.setdefault(path, set()).update(range(start, start + count))
+    return result
+
+
+def _instructions(text: str) -> Iterator[tuple[int, int, str]]:
+    """Logical (first line, last line, text) instructions, continuations joined."""
+    first, parts = 0, []
+    for number, raw in enumerate(text.splitlines(), 1):
+        if not parts:
+            first = number
+        if raw.rstrip().endswith("\\"):
+            parts.append(raw.rstrip()[:-1])
+            continue
+        parts.append(raw)
+        yield first, number, " ".join(parts).strip()
+        parts = []
+
+
+def findings(
+    path: str, text: str, added: set[int], platform: frozenset[str]
+) -> Iterator[str]:
+    lines = text.splitlines()
+    instructions = list(_instructions(text))
+    stage = max(
+        (n for n, _, line in instructions if line.upper().startswith("FROM ")),
+        default=0,
+    )
+    for first, last, line in instructions:
+        keyword, _, rest = line.partition(" ")
+        if first < stage or keyword.upper() != "ENV":
+            continue
+        tokens = shlex.split(rest, comments=True)
+        if tokens and "=" not in tokens[0]:  # `ENV NAME value` form
+            tokens = [f"{tokens[0]}={' '.join(tokens[1:])}"]
+        for token in tokens:
+            name, _, value = token.partition("=")
+            where = next(
+                (n for n in range(first, last + 1) if name in lines[n - 1]), first
+            )
+            value_path = PurePosixPath(value)
+            if (
+                where in added
+                and STATE_NAME.search(name)
+                and name not in platform
+                and name not in READ_ONLY
+                and "$" not in value
+                and value_path.is_absolute()
+                and not any(value_path.is_relative_to(r) for r in WRITABLE)
+            ):
+                yield f"{path}:{where}: {name}={value} is on the read-only image; {ADVICE}"
+
+
+def violations(root: Path, base: str) -> list[str]:
+    names = built_dockerfiles(root)
+    platform = platform_names(root)
+    found: list[str] = []
+    for path, added in sorted(added_lines(root, base, names).items()):
+        text = (root / path).read_text(encoding="utf-8")
+        found.extend(findings(path, text, added, platform))
+    return found
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base", default="origin/main")
+    arguments = parser.parse_args()
+    try:
+        found = violations(ROOT, arguments.base)
+    except DiffError as error:
+        print(f"cannot compare with {arguments.base}: {error}", file=sys.stderr)
+        return 2
+    for message in found:
+        print(message, file=sys.stderr)
+    return 1 if found else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

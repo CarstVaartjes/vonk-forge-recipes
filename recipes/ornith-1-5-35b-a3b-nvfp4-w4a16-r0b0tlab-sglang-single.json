@@ -280,8 +280,8 @@
     "source_reference": "https://github.com/r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang/tree/6d0a25d9cc8b8963161cde085a83768b6bc545e0"
   },
   "release": {
-    "released_at": "2026-10-19",
-    "version": "1.0.2"
+    "released_at": "2026-10-28",
+    "version": "1.0.3"
   },
   "runtime": {
     "arguments": [

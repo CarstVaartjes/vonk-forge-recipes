@@ -76,6 +76,36 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "f732dcd80d5839d375985b7851cc11c0c790da49c6d18f560e1d3be9c740c4ae",
+        "source_bundle_sha256": "8a81d0b652c6c286bce4103ded34886592cba5c4a31e660507a31e403b0afef2",
+        "runtime_image": {
+          "build_key": "da8058fb23ba7f82fbe7be5cb0d844fbbff4db31a9a649aa3a0fb67f12cf4bab",
+          "image_digest": "sha256:c2360ba3d9556b08a5884f29c6b8d9fb04120e96568bab9be02ea0d744b1c917"
+        },
+        "model_digests": [
+          "0f92e7cfb75689d7b51aef8072df572ce8360e8f8034793a88b0290178602f07"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "70e75c94f73593bb4aa53c8a050e3e72b20dc9c9f29301ff09e5744fa6c6f8f5"
+      ],
+      "tested_at": "2026-10-28T23:23:09.404973Z",
+      "platform": {
+        "controller_source_sha": "a1095fe7031d69044420ace99babb1dae9b9533c",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
     }
   ]
 }

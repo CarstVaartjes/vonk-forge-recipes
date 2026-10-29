@@ -32,9 +32,8 @@ def test_failed_load_is_recorded_with_phase_class_and_evidence(
     bad = FakeRecipe(
         "bad",
         ("m2",),
-        fail_load="container exited with code 1: unsupported kernel",
+        fail_load="runtime_process_exited: exit_cause=bad_arguments exception=container exited with code 1: unsupported kernel",
         fail_phase="start",
-        fail_code="recipe.runtime_exit",
     )
     sweep, fleet, _ = make_sweep(
         tmp_path, [good, bad], [FakeModel("m1"), FakeModel("m2")], gateway=gateway
@@ -65,9 +64,8 @@ def test_transient_failure_recovers_beyond_the_old_attempt_limit(
 ) -> None:
     flaky = FakeRecipe(
         "flaky",
-        fail_load="connection reset by peer while pulling",
-        fail_phase="container-download",
-        fail_code="controller.transport_timeout",
+        fail_load="runtime_process_exited: exit_cause=unclassified",
+        fail_phase="start",
     )
     sweep, fleet, clock = make_sweep(
         tmp_path, [flaky], [FakeModel("m1")], gateway=gateway
@@ -86,9 +84,8 @@ def test_transient_failure_recovers_beyond_the_old_attempt_limit(
 def test_non_transient_failure_is_not_retried(tmp_path: Path, gateway: Gateway) -> None:
     oom = FakeRecipe(
         "oom",
-        fail_load="CUDA error: out of memory",
+        fail_load="runtime_process_exited: exit_cause=oom_killed exception=CUDA error: out of memory",
         fail_phase="start",
-        fail_code="recipe.runtime_oom",
     )
     sweep, _, _ = make_sweep(tmp_path, [oom], [FakeModel("m1")], gateway=gateway)
     sweep.run()
@@ -231,23 +228,20 @@ def test_same_root_cause_forms_one_cluster(tmp_path: Path, gateway: Gateway) -> 
         FakeRecipe(
             "a",
             ("m1",),
-            fail_load="kernel image 123 not found for device 7",
+            fail_load="runtime_process_exited: exit_cause=bad_arguments exception=kernel image 123 not found for device 7",
             fail_phase="start",
-            fail_code="recipe.runtime_exit",
         ),
         FakeRecipe(
             "b",
             ("m2",),
-            fail_load="kernel image 456 not found for device 9",
+            fail_load="runtime_process_exited: exit_cause=bad_arguments exception=kernel image 456 not found for device 9",
             fail_phase="start",
-            fail_code="recipe.runtime_exit",
         ),
         FakeRecipe(
             "c",
             ("m3",),
-            fail_load="driver mismatch",
+            fail_load="runtime_process_exited: exit_cause=bad_arguments exception=driver mismatch",
             fail_phase="start",
-            fail_code="recipe.runtime_exit",
         ),
     ]
     sweep, _, _ = make_sweep(
@@ -262,15 +256,14 @@ def test_same_root_cause_forms_one_cluster(tmp_path: Path, gateway: Gateway) -> 
     assert sizes == [1, 2]
 
 
-def test_a_bad_checkpoint_found_at_start_pushes_its_siblings_to_the_back_but_still_tests_them(
+def test_a_bad_checkpoint_download_pushes_its_siblings_to_the_back_but_still_tests_them(
     tmp_path: Path, gateway: Gateway
 ) -> None:
     lead = FakeRecipe(
         "lead",
         ("m1",),
-        fail_load="invalid model: corrupt safetensors header",
-        fail_phase="start",
-        fail_code="model.digest_mismatch",
+        fail_download="invalid model: corrupt safetensors header",
+        fail_download_code="model.digest_mismatch",
     )
     sibling = FakeRecipe("sibling", ("m1",), engine="sglang")
     others = [FakeRecipe(f"other{i}", (f"m{i + 2}",)) for i in range(3)]
@@ -283,9 +276,7 @@ def test_a_bad_checkpoint_found_at_start_pushes_its_siblings_to_the_back_but_sti
     )
     sweep.run()
     order = [c[2] for p, c in fleet.calls if p == 10 and c[:2] == ("profile", "add")]
-    assert (
-        order[0] == "vonk-forge/lead" and order[-1] == "vonk-forge/sibling"
-    )  # siblings last
+    assert order[-1] == "vonk-forge/sibling"  # siblings last
     assert sweep.state.recipes["vonk-forge/lead"]["failure_class"] == "model-integrity"
     assert (
         sweep.state.recipes["vonk-forge/sibling"]["status"] == "passed"
