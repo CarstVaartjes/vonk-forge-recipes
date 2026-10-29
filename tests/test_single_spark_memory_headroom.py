@@ -146,9 +146,9 @@ def test_utilization_sized_peak_covers_the_vllm_budget_on_one_spark() -> None:
 
 
 def test_touched_utilization_budget_must_be_admissible_on_one_spark() -> None:
-    # The proven set runs single-Spark utilization pools up to 0.86, whose
-    # share plus overhead is the largest admitted peak; vLLM's 0.90 default and
-    # 0.87 are not admissible.
+    # With the 2 GiB platform floor the largest admitted peak is 124,452,516,352
+    # bytes (utilization up to 0.8912); vLLM's 0.90 default and 0.90 are not
+    # admissible, the creators' 0.88 is.
     recipe = llama()
     recipe.runtime.arguments = [
         item
@@ -165,11 +165,11 @@ def test_touched_utilization_budget_must_be_admissible_on_one_spark() -> None:
     with pytest.raises(ValueError, match="not admissible"):
         touched()
     recipe.runtime.arguments.append(
-        RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.87")
+        RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.90")
     )
     with pytest.raises(ValueError, match="not admissible"):
         touched()
-    recipe.runtime.arguments[-1].value = "0.86"
+    recipe.runtime.arguments[-1].value = "0.88"
     touched()
 
 
