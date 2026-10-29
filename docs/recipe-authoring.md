@@ -427,7 +427,7 @@ filling with MemAvailable < 4 GiB for 3 s; R3 swap-ins plus refaults ≥ 50,000
 pages/s with full PSI avg10 > 60% and MemAvailable + free swap < 8 GiB for
 10 s; R4 full PSI avg10 > 60% for 30 s while serving, or avg60 > 80% and not
 falling for 60 s while loading; R5 an NVRM allocation failure together with
-R1's or R3's condition, or MemFree < 1 GiB, held for 2 s
+R1's or R3's condition, or, without swap, MemFree < 1 GiB, held for 2 s
 (`host_memory_guard_policy.rs`, thresholds calibratable). Idle use is from spark-3542
 2026-10-15/16 incident telemetry, **125,650,657,280 bytes idle MemAvailable**,
 retained in the calculator's historical source. Runtime

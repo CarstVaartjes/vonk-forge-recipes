@@ -606,3 +606,40 @@ def test_startup_room_boundary_is_the_replays_fifth_slot() -> None:
 
     assert error(low)
     assert not error(high)
+
+
+DSPARK_DUAL = "inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual"
+
+
+def test_dspark_dual_follows_the_creators_settings_and_declares_load_peaks() -> None:
+    """tonyd2wild 7795dd3a runs 0.8 and 262,144 with no absolute KV pool.
+
+    The 2026-10-25 Controller-measured whole-run peaks are the load peaks; they
+    exceed the steady peak and are served from swap.
+    """
+    from documents import recipe
+
+    from qualification.memory_need import swap_needed_bytes
+
+    definition = recipe(DSPARK_DUAL)
+    arguments = {
+        item["name"]: item
+        for item in definition.runtime.model_dump(mode="json")["arguments"]
+    }
+    assert arguments["gpu-memory-utilization"]["value"] == "0.8"
+    assert "kv-cache-memory-bytes" not in arguments
+    assert arguments["max-model-len"]["setting"] == "context_tokens"
+    settings = definition.settings.model_dump(mode="json")
+    assert settings["context_tokens"]["value"] == 262144
+    load_peaks = {
+        role.name: role.resources.memory.load_peak_bytes
+        for role in definition.topology.roles
+    }
+    assert load_peaks == {"entrypoint": 127251378176, "worker": 127039012864}
+    for role in definition.topology.roles:
+        memory = role.resources.memory
+        assert memory.peak_bytes == 112530585191
+        assert memory.load_peak_bytes is not None
+        assert memory.minimum_swap_bytes == swap_needed_bytes(
+            memory.load_peak_bytes - memory.peak_bytes
+        )
