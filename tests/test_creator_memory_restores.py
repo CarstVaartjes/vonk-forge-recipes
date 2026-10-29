@@ -29,6 +29,8 @@ from qualification.memory_need import (
 
 ROOT = Path(__file__).resolve().parents[1]
 MIA = "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks/blob/94ae731f4619f769be1f4dfe6f6607ce0a3e869d"
+EUGR = "https://github.com/eugr/spark-vllm-docker/blob/4709188da2921c89b12ae1231a6e712c6ab536e9/recipes"
+UTILIZATION = r"gpu_memory_utilization:\s*([0-9.]+)"
 FORBIDDEN = (
     "GB10 memory correction",
     "GB10 fit:",
@@ -77,6 +79,62 @@ CREATOR = {
         arguments={"gpu-memory-utilization": "0.85"},
         absent=("kv-cache-memory-bytes",),
     ),
+    "gemma-4-26b-a4b-it-nvfp4-eugr-vllm-single": Creator(
+        source=f"{EUGR}/gemma4-26b-a4b-nvfp4.yaml#L28",
+        arguments={"gpu-memory-utilization": "0.7"},
+        vendored=(
+            "adapters/eugr/gemma4-26b-a4b-nvfp4/recipes/gemma4-26b-a4b-nvfp4.yaml",
+            UTILIZATION,
+        ),
+    ),
+    "nemotron-3-5-lightning-30b-a3b-nvfp4-eugr-vllm-single": Creator(
+        source=f"{EUGR}/nemotron-3.5-lightning.yaml#L18",
+        arguments={"gpu-memory-utilization": "0.7"},
+        vendored=(
+            "adapters/eugr/nemotron-3.5-lightning/recipes/nemotron-3.5-lightning.yaml",
+            UTILIZATION,
+        ),
+    ),
+    "nemotron-3-5-lightning-30b-a3b-nvfp4-eugr-vllm-dual": Creator(
+        source=f"{EUGR}/nemotron-3.5-lightning.yaml#L18",
+        arguments={"gpu-memory-utilization": "0.7"},
+        vendored=(
+            "adapters/eugr/nemotron-3.5-lightning/recipes/nemotron-3.5-lightning.yaml",
+            UTILIZATION,
+        ),
+    ),
+    "qwen3-6-35b-a3b-fp8-dflash-eugr-vllm-single": Creator(
+        source=f"{EUGR}/qwen3.6-35b-a3b-fp8-dflash.yaml#L26",
+        arguments={"gpu-memory-utilization": "0.8"},
+        vendored=(
+            "adapters/eugr/qwen3-6-35b-a3b-fp8-dflash/recipes/qwen3.6-35b-a3b-fp8-dflash.yaml",
+            UTILIZATION,
+        ),
+    ),
+    "qwen3-6-35b-a3b-fp8-dflash-eugr-vllm-dual": Creator(
+        source=f"{EUGR}/qwen3.6-35b-a3b-fp8-dflash.yaml#L26",
+        arguments={"gpu-memory-utilization": "0.8"},
+        vendored=(
+            "adapters/eugr/qwen3-6-35b-a3b-fp8-dflash/recipes/qwen3.6-35b-a3b-fp8-dflash.yaml",
+            UTILIZATION,
+        ),
+    ),
+    "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single": Creator(
+        source=f"{EUGR}/qwen3.8-27b-nvfp4-dflash2.yaml#L18",
+        arguments={"gpu-memory-utilization": "0.8"},
+        vendored=(
+            "adapters/eugr/qwen3-8-27b-nvfp4-dflash2/recipes/qwen3.8-27b-nvfp4-dflash2.yaml",
+            UTILIZATION,
+        ),
+    ),
+    "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-dual": Creator(
+        source=f"{EUGR}/qwen3.8-27b-nvfp4-dflash2.yaml#L18",
+        arguments={"gpu-memory-utilization": "0.8"},
+        vendored=(
+            "adapters/eugr/qwen3-8-27b-nvfp4-dflash2/recipes/qwen3.8-27b-nvfp4-dflash2.yaml",
+            UTILIZATION,
+        ),
+    ),
 }
 
 
@@ -122,6 +180,19 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
 def test_lowering_a_restored_peak_by_one_byte_is_refused() -> None:
     slug = "laguna-s-2-1-nvfp4-r0b0tlab-vllm-single"
     recipe = load_recipe(slug)
+    models, inputs = catalog_models(), load_inputs()
+    digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
+    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes -= 1
+    with pytest.raises(ValueError, match="peak understates"):
+        require_memory_need(
+            recipe, models, inputs, document_digest=digest, touched=True
+        )
+
+
+def test_lowering_the_qwen38_single_peak_by_one_byte_is_refused() -> None:
+    recipe = load_recipe("qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single")
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
     require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
