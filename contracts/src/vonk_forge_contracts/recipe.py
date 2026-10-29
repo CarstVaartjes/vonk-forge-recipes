@@ -443,10 +443,30 @@ class RecipeRuntime(_RecipeContract):
 class RecipeMemoryResources(_RecipeContract):
     """Unified (DGX Spark) memory one role needs."""
 
-    # The most the workload uses at any time: startup or steady state.
+    # The most the workload uses while serving; a higher load-time peak goes in
+    # load_peak_bytes.
     peak_bytes: StrictInt = Field(ge=1)
     # Memory left to the host operating system and runtime.
     reserve_bytes: StrictInt = Field(ge=0)
+    # The most the workload uses while loading, when that exceeds the steady
+    # peak and the host serves the difference from swap. Omitted means the load
+    # needs no more than peak_bytes, so a document without it serializes as it
+    # did before the field existed and digests do not change.
+    load_peak_bytes: StrictInt | None = Field(
+        default=None, ge=1, exclude_if=lambda value: value is None
+    )
+    # Host swap the load needs to finish. Omitted (0) means none.
+    minimum_swap_bytes: StrictInt = Field(
+        default=0, ge=0, exclude_if=lambda value: value == 0
+    )
+
+    @model_validator(mode="after")
+    def load_overshoot_is_declared_whole(self) -> RecipeMemoryResources:
+        if self.load_peak_bytes is not None and self.load_peak_bytes <= self.peak_bytes:
+            raise ValueError("load_peak_bytes must exceed peak_bytes when declared")
+        if self.minimum_swap_bytes > 0 and self.load_peak_bytes is None:
+            raise ValueError("minimum_swap_bytes requires load_peak_bytes")
+        return self
 
 
 class RecipeDiskResources(_RecipeContract):
