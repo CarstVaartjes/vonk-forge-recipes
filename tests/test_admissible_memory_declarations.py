@@ -6,6 +6,7 @@ import re
 from decimal import Decimal
 from pathlib import Path
 
+import documents
 import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
@@ -375,3 +376,49 @@ def test_unproven_absolute_kv_recipes_bound_startup_for_every_option() -> None:
             continue
         for variant in memory_variants(recipe):
             require_vllm_startup_budget(variant)
+
+
+def _creator_startup_variant(slug: str, fraction: str, pool: str | int):
+    recipe = documents.recipe(slug)
+    values = {
+        "gpu-memory-utilization": fraction,
+        "kv-cache-memory-bytes": pool,
+    }
+    for argument in recipe.runtime.arguments:
+        if argument.name in values:
+            argument.value = values[argument.name]
+    return recipe
+
+
+def test_startup_budget_matches_vllms_free_memory_check() -> None:
+    from qualification.memory_need import require_vllm_startup_budget
+
+    reap = _creator_startup_variant(
+        "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.88", "6G"
+    )
+    assert reap.topology.roles[0].resources.memory.peak_bytes == 120_370_379_081
+    require_vllm_startup_budget(reap)
+
+    dual = _creator_startup_variant(
+        "deepseek-v4-1-flash-exl3-mia-dual", "0.88", 2_684_354_560
+    )
+    peak = per_rank_need(dual, catalog_models(), load_inputs()).peak_bytes
+    assert peak == 115_984_824_099
+    for role in dual.topology.roles:
+        role.resources.memory.peak_bytes = peak
+    dual = RecipeDefinition.model_validate(dual.model_dump(mode="json"))
+    require_vllm_startup_budget(dual)
+    require_memory_need(
+        dual, catalog_models(), load_inputs(), document_digest="", touched=True
+    )
+
+
+def test_startup_budget_still_refuses_a_fraction_above_the_peak() -> None:
+    from qualification.memory_need import require_vllm_startup_budget
+
+    reap = _creator_startup_variant(
+        "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.93", "6G"
+    )
+    assert Decimal("0.93") * TOTAL_BYTES > 120_370_379_081
+    with pytest.raises(ValueError, match="startup free-memory check"):
+        require_vllm_startup_budget(reap)

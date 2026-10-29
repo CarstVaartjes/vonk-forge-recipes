@@ -1379,7 +1379,19 @@ def require_bounded_kv_pool(
 
 
 def require_vllm_startup_budget(recipe: RecipeDefinition) -> None:
-    """Absolute KV overrides cache sizing, not vLLM's earlier startup check."""
+    """Absolute KV overrides cache sizing, not vLLM's earlier startup check.
+
+    Beside a fixed pool the fraction sizes nothing; vLLM only requires free
+    memory >= utilization x total before loading weights (v0.30.0 gpu_worker.py:451
+    free-memory snapshot, mem_utils.py:143-150; request_memory in worker/utils.py
+    at dda4668b). The Controller admits a role only when its declared peak fits
+    observed free memory, so utilization x total <= peak guarantees that check
+    on an admitted Spark; no overhead term belongs here. Creator evidence: Mia
+    (DeepSeek-v4.1-Flash-EXL3-2x-DGX-Sparks .env.example#L143 at 6f7d1590, "only
+    vLLM's startup sanity check, not a budget"), MiniMax M3 (DEFAULT-CONFIG.md
+    #L137-L142 at a8101fa4: 0.93 failed by 0.02 GiB), Step 3.7
+    (evidence/runtime/vllm-stepfun-tp2-failure.md#L19 at e79e192d).
+    """
     if recipe.runtime.engine != "vllm" or (
         argument_value(recipe, "kv-cache-memory-bytes") is None
         and argument_value(recipe, "kv-cache-memory") is None
@@ -1395,13 +1407,10 @@ def require_vllm_startup_budget(recipe: RecipeDefinition) -> None:
     if not utilization.is_finite() or not 0 < utilization <= 1:
         raise ValueError(f"{recipe.identity.slug}: invalid vLLM startup budget")
     for role in recipe.topology.roles:
-        if (
-            utilization * TOTAL_BYTES + OVERHEAD_BYTES
-            > role.resources.memory.peak_bytes
-        ):
+        if utilization * TOTAL_BYTES > role.resources.memory.peak_bytes:
             raise ValueError(
-                f"{recipe.identity.slug}/{role.name}: vLLM startup budget plus "
-                "overhead exceeds declared peak"
+                f"{recipe.identity.slug}/{role.name}: vLLM startup free-memory "
+                "check (utilization x total) exceeds declared peak"
             )
 
 
