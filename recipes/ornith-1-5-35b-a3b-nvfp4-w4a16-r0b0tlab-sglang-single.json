@@ -10,7 +10,9 @@
       },
       "dockerfile": "adapters/nvidia/r0b0tlab-ornith-sglang-single/Dockerfile",
       "network": {
-        "hosts": []
+        "hosts": [
+          "ports.ubuntu.com"
+        ]
       },
       "patches": []
     }
@@ -280,8 +282,8 @@
     "source_reference": "https://github.com/r0b0tlab/ornith-15-35b-nvfp4-w4a16-sm121-sglang/tree/6d0a25d9cc8b8963161cde085a83768b6bc545e0"
   },
   "release": {
-    "released_at": "2026-10-28",
-    "version": "1.0.3"
+    "released_at": "2026-10-29",
+    "version": "1.0.4"
   },
   "runtime": {
     "arguments": [
@@ -344,10 +346,6 @@
       {
         "name": "HF_HUB_OFFLINE",
         "value": "1"
-      },
-      {
-        "name": "SGLANG_ENABLE_JIT_DEEPGEMM",
-        "value": "0"
       }
     ],
     "lifecycle": {
