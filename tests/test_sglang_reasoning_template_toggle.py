@@ -29,6 +29,7 @@ SWITCH = re.compile(r"enable_thinking\s+is\s+defined\s+and\s+not\s+enable_thinki
 MUSE_TEMPLATES = sorted(
     (ROOT / "adapters").glob("*/*/vonk-muse-glimmer-chat-template.jinja")
 )
+MUSE_SERVED_PATH = "/opt/vonk/muse-glimmer-chat-template.jinja"
 MUSE_UPSTREAM_SHA256 = (
     "114f55ebdc1804c1af371197b9fdf2d6bb925966c9dfe46b73782a71bc07965e"
 )
@@ -48,6 +49,11 @@ def _copied_templates(build_dir: Path) -> dict[str, Path]:
         if len(parts) == 3 and parts[0] == "COPY":
             copies[parts[2]] = build_dir / parts[1]
     return copies
+
+
+def _argument(slug: str, name: str) -> object:
+    runtime = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())["runtime"]
+    return {a["name"]: a.get("value") for a in runtime["arguments"]}.get(name)
 
 
 def _reasoning_templates() -> list[tuple[str, str, Path]]:
@@ -102,7 +108,13 @@ def test_reasoning_strength_templates_honour_the_switch() -> None:
 
 
 def test_muse_template_differs_from_upstream_only_in_the_switch() -> None:
-    assert len(MUSE_TEMPLATES) == 2
+    served = {
+        source
+        for slug, _, source in _reasoning_templates()
+        if slug.startswith("muse-glimmer")
+        and _argument(slug, "chat-template") == MUSE_SERVED_PATH
+    }
+    assert served and served == set(MUSE_TEMPLATES)
     for path in MUSE_TEMPLATES:
         ours = path.read_bytes()
         assert ours.count(MUSE_SWITCHED_RS.encode()) == 1
