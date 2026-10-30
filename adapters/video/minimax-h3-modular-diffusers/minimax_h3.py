@@ -235,7 +235,6 @@ def _load_pipeline(workflow: str):
         ),
     )
     pipe.load_components(
-        workflow=workflow,
         pretrained_model_name_or_path=str(MODEL_ROOT),
         dtype=torch.bfloat16,
         local_files_only=True,
