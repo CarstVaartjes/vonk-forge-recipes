@@ -12,6 +12,7 @@ COPY start.sh /opt/vonk/upstream/start.sh
 COPY LICENSE.upstream /opt/vonk/upstream/LICENSE
 COPY NOTICE.upstream /opt/vonk/upstream/NOTICE
 COPY verify-speculative-config.py /opt/vonk/verify-speculative-config.py
+COPY vonk-muse-glimmer-chat-template.jinja /opt/vonk/muse-glimmer-chat-template.jinja
 
 # Exercise the pinned vLLM CLI parser without creating an engine or loading a model.
 RUN python3 /opt/vonk/verify-speculative-config.py

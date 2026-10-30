@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's single-Spark vLLM profile for its own NVFP4 (W4A4, block 16; NVIDIA Model Optimizer 0.45, cnn_dailymail calibration) quantization of Meta's Muse Glimmer-30B (29.6B dense multimodal model, ViT-G/14 vision tower, Apache-2.0), from r0b0tlab/muse-glimmer-30b-nvfp4-vllm at d22c7324 (MIT). Upstream serves it from a source build of vllm-project/vllm PR #51655 (head 1f7f0715, plain sm_120 cubins: sm_120a cubins do not run on SM121); Muse support has since shipped in the official vLLM 0.30.0 ARM64 release image that the catalog's Muse BF16 recipe already uses, so this recipe runs upstream's checkpoint and flags on that image instead. That runtime substitution is not what upstream measured. Flags from upstream's serve recipe: bfloat16, 131,072-token context, memory utilisation 0.70 (0.80 pre-allocates into the host-reserve danger zone at that context), 8 sequences, eager mode, FlashInfer for LLM attention and the ViT encoder (required for this family on SM121), FP8 KV, modelopt_fp4 with the FlashInfer CUTLASS linear backend, one image per prompt, muse_glimmer reasoning and tool parsers. Muse reasoning needs a token budget of at least about 256 to 512 for the answer channel to fill, and the model is nondeterministic at temperature 0. Upstream claims (not measured here): about 10.3 tok/s single stream (2.5x BF16), 52.5 tok/s aggregate at c16, 131,072-token needle retrieval at 3 depths, GSM8K-200 91.0%, HumanEval 85.4%. Upstream's optional DFlash combination with NVFP4 is blocked upstream and not offered. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+    "description": "r0b0tlab's single-Spark vLLM profile for its own NVFP4 (W4A4, block 16; NVIDIA Model Optimizer 0.45, cnn_dailymail calibration) quantization of Meta's Muse Glimmer-30B (29.6B dense multimodal model, ViT-G/14 vision tower, Apache-2.0), from r0b0tlab/muse-glimmer-30b-nvfp4-vllm at d22c7324 (MIT). Upstream serves it from a source build of vllm-project/vllm PR #51655 (head 1f7f0715, plain sm_120 cubins: sm_120a cubins do not run on SM121); Muse support has since shipped in the official vLLM 0.30.0 ARM64 release image that the catalog's Muse BF16 recipe already uses, so this recipe runs upstream's checkpoint and flags on that image instead. That runtime substitution is not what upstream measured. Flags from upstream's serve recipe: bfloat16, 131,072-token context, memory utilisation 0.70 (0.80 pre-allocates into the host-reserve danger zone at that context), 8 sequences, eager mode, FlashInfer for LLM attention and the ViT encoder (required for this family on SM121), FP8 KV, modelopt_fp4 with the FlashInfer CUTLASS linear backend, one image per prompt, muse_glimmer reasoning and tool parsers. Muse reasoning needs a token budget of at least about 256 to 512 for the answer channel to fill, and the model is nondeterministic at temperature 0. Upstream claims (not measured here): about 10.3 tok/s single stream (2.5x BF16), 52.5 tok/s aggregate at c16, 131,072-token needle retrieval at 3 depths, GSM8K-200 91.0%, HumanEval 85.4%. Upstream's optional DFlash combination with NVFP4 is blocked upstream and not offered. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Chat template: the checkpoint's own (sha256 114f55eb, revision e83ead54) with one change in render_reasoning: a request that sets enable_thinking or thinking to false renders 'Reasoning strength: low.' (the MiaAI-Lab Muse Glimmer README, lines 181-184 and 254, and the model card advise low for simple tasks; r0b0tlab's own README does not) instead of the always-high default; without the flag the creator's reasoning_strength / high is unchanged. The unmodified template never reads either flag, so the model reasoned until finish_reason=length with null content (smoke V7, sweeps 2026-10-17 and 2026-10-30).",
     "tags": [
       "candidate",
       "executable",
@@ -242,8 +242,8 @@
     "source_reference": "https://github.com/r0b0tlab/muse-glimmer-30b-nvfp4-vllm/tree/d22c7324f72fd6cdb95f54763d2bf2e2b7aac814"
   },
   "release": {
-    "released_at": "2026-08-15",
-    "version": "1.0.0"
+    "released_at": "2026-10-30",
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -306,6 +306,11 @@
         "name": "limit-mm-per-prompt",
         "setting": null,
         "value": "{\"image\":1}"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/vonk/muse-glimmer-chat-template.jinja"
       },
       {
         "name": "reasoning-parser",
