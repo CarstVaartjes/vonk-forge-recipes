@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B NVFP4 (RedHatAI W4A4) with the official Meta DFlash drafter, FP8 KV cache and the muse_glimmer reasoning/tool parsers, following the MiaAI-Lab DGX Spark launch profile on the official vLLM 0.30.0 ARM64 image. Context defaults to the model's native 131072 (upstream's 262144 needs an unmerged RoPE-cache patch on a vLLM fork). Chat, vision, reasoning, tool calling and DFlash speedup remain Candidate capabilities; upstream throughput figures are its own claims. Memory follows the creator's settings: gpu-memory-utilization 0.42, as in MiaAI-Lab's start.sh at 1b71dc01 (line 37). The steady per-node peak is 0.42 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
+    "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B NVFP4 (RedHatAI W4A4) with the official Meta DFlash drafter, FP8 KV cache and the muse_glimmer reasoning/tool parsers, following the MiaAI-Lab DGX Spark launch profile on the official vLLM 0.30.0 ARM64 image. Context defaults to the model's native 131072 (upstream's 262144 needs an unmerged RoPE-cache patch on a vLLM fork). Chat, vision, reasoning, tool calling and DFlash speedup remain Candidate capabilities; upstream throughput figures are its own claims. Memory follows the creator's settings: gpu-memory-utilization 0.42, as in MiaAI-Lab's start.sh at 1b71dc01 (line 37). The steady per-node peak is 0.42 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak. Chat template: the checkpoint's own (sha256 114f55eb, revision e83ead54) with one change in render_reasoning: a request that sets enable_thinking or thinking to false renders 'Reasoning strength: low.' (the creator's README: low for simple tasks) instead of the always-high default; without the flag the creator's reasoning_strength / high is unchanged. The unmodified template never reads either flag, so the model reasoned until finish_reason=length with null content (smoke V7, sweeps 2026-10-17 and 2026-10-30).",
     "tags": [
       "executable",
       "candidate",
@@ -318,8 +318,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/Muse-Glimmer-30B-DGX-Spark-RTX-5090-6000-PRO/tree/1b71dc011010a3e2c373eafd8a41f12c7c7913fc"
   },
   "release": {
-    "released_at": "2026-10-01",
-    "version": "1.0.4"
+    "released_at": "2026-10-30",
+    "version": "1.0.5"
   },
   "runtime": {
     "arguments": [
@@ -357,6 +357,11 @@
         "name": "kv-cache-dtype",
         "setting": null,
         "value": "fp8_e4m3"
+      },
+      {
+        "name": "chat-template",
+        "setting": null,
+        "value": "/opt/vonk/muse-glimmer-chat-template.jinja"
       },
       {
         "name": "reasoning-parser",

@@ -1,7 +1,8 @@
 {
   "ours": [
     "NOTICE.upstream",
-    "verify-speculative-config.py"
+    "verify-speculative-config.py",
+    "vonk-muse-glimmer-chat-template.jinja"
   ],
   "source": {
     "commit": "1b71dc011010a3e2c373eafd8a41f12c7c7913fc",
