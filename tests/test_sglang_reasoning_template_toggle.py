@@ -51,13 +51,8 @@ def _copied_templates(build_dir: Path) -> dict[str, Path]:
     return copies
 
 
-def _argument(slug: str, name: str) -> object:
-    runtime = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())["runtime"]
-    return {a["name"]: a.get("value") for a in runtime["arguments"]}.get(name)
-
-
-def _reasoning_templates() -> list[tuple[str, str, Path]]:
-    found: list[tuple[str, str, Path]] = []
+def _reasoning_templates() -> list[tuple[str, str, str, Path]]:
+    found: list[tuple[str, str, str, Path]] = []
     for path in sorted((ROOT / "recipes").glob("*.json")):
         recipe = json.loads(path.read_text())
         runtime = recipe.get("runtime", {})
@@ -69,19 +64,19 @@ def _reasoning_templates() -> list[tuple[str, str, Path]]:
             continue
         source = _copied_templates(ROOT / context).get(str(template))
         if source is not None:
-            found.append((path.stem, runtime.get("engine", ""), source))
+            found.append((path.stem, runtime.get("engine", ""), str(template), source))
     return found
 
 
 def test_reasoning_templates_honour_enable_thinking() -> None:
     templates = _reasoning_templates()
-    assert {slug for slug, _, _ in templates} >= {
+    assert {slug for slug, *_ in templates} >= {
         "glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single",
         "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single",
         "muse-glimmer-30b-nvfp4-vllm-mia-single",
         "muse-glimmer-30b-nvfp4-r0b0tlab-vllm-single",
     }
-    for slug, engine, source in templates:
+    for slug, engine, _, source in templates:
         text = source.read_text()
         if "Reasoning strength" in text:
             assert SWITCH.search(text), (
@@ -110,9 +105,8 @@ def test_reasoning_strength_templates_honour_the_switch() -> None:
 def test_muse_template_differs_from_upstream_only_in_the_switch() -> None:
     served = {
         source
-        for slug, _, source in _reasoning_templates()
-        if slug.startswith("muse-glimmer")
-        and _argument(slug, "chat-template") == MUSE_SERVED_PATH
+        for _, _, template, source in _reasoning_templates()
+        if template == MUSE_SERVED_PATH
     }
     assert served and served == set(MUSE_TEMPLATES)
     for path in MUSE_TEMPLATES:
