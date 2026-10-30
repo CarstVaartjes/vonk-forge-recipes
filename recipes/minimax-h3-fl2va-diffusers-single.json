@@ -783,8 +783,8 @@
     "source_reference": "https://huggingface.co/MiniMaxAI/MiniMax-H3/tree/42ed227ee7df40d41602854ae760620d6eb651fe"
   },
   "release": {
-    "released_at": "2026-09-28",
-    "version": "1.0.9"
+    "released_at": "2026-10-30",
+    "version": "1.0.10"
   },
   "runtime": {
     "arguments": [
