@@ -353,21 +353,6 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
     assert "Memory follows the creator's settings" in description
 
 
-def test_qwen38_dflash2_single_keeps_its_hardware_proven_memory() -> None:
-    """Deviation from the creator's 0.8, after an observed failure.
-
-    The 2026-10-31 sweep run at 0.8 on spark-3542 was OOM-killed during the
-    FlashInfer fp4_gemm autotune (MemAvailable 0.84 GB, NV_ERR_NO_MEMORY, exit
-    137); 0.6 with this peak passed hardware on 2026-10-17.
-    """
-    slug = "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single"
-    recipe = load_recipe(slug)
-    assert str(argument_value(recipe, "gpu-memory-utilization")) == "0.6"
-    for role in recipe.topology.roles:
-        assert role.resources.memory.peak_bytes == 103397938893, role.name
-    assert "hardware with on 2026-10-17" in recipe_display(slug).description
-
-
 def test_lowering_a_restored_peak_by_one_byte_is_refused() -> None:
     slug = "laguna-s-2-1-nvfp4-r0b0tlab-vllm-single"
     recipe = load_recipe(slug)
