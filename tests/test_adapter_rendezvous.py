@@ -211,32 +211,41 @@ def test_multi_node_vllm_recipes_bind_the_controller_placement() -> None:
     assert not unbound, f"multi-node vLLM recipes without a rendezvous bind: {unbound}"
 
 
-@pytest.mark.parametrize("placed", [False, True])
-def test_llama_405b_wrapper_binds_the_controller_placement(
-    tmp_path: Path, placed: bool
-) -> None:
+def _run_llama_405b_wrapper(tmp_path: Path, env: dict[str, str]):
     stub = tmp_path / "vllm"
     stub.write_text('#!/bin/sh\nprintf "%s\\n" "$VLLM_HOST_IP" "$@"\n')
     stub.chmod(0o755)
     wrapper = ROOT / "adapters/nvidia" / LLAMA_405B / "vllm"
-    env = {"PATH": f"{tmp_path}:/usr/bin:/bin"}
-    if placed:
-        env |= {
-            "VONK_LOCAL_ADDR": "192.0.2.2",
-            "VONK_MASTER_ADDR": "192.0.2.1",
-            "VONK_MASTER_PORT": "29500",
-        }
     argv = ["serve", "/models", "--nnodes", "2", "--node-rank", "1", "--headless"]
     result = subprocess.run(
         ["/bin/sh", str(wrapper), *argv],
-        env=env,
+        env={"PATH": f"{tmp_path}:/usr/bin:/bin", **env},
         capture_output=True,
         text=True,
-        check=True,
+        check=False,
     )
+    return argv, result
+
+
+def test_llama_405b_wrapper_binds_the_controller_placement(tmp_path: Path) -> None:
+    argv, result = _run_llama_405b_wrapper(
+        tmp_path,
+        {
+            "VONK_LOCAL_ADDR": "192.0.2.2",
+            "VONK_MASTER_ADDR": "192.0.2.1",
+            "VONK_MASTER_PORT": "29500",
+        },
+    )
+    assert result.returncode == 0, result.stderr
     host, *seen = result.stdout.splitlines()
-    if placed:
-        assert host == "192.0.2.2"
-        assert seen == [*argv, "--master-addr", "192.0.2.1", "--master-port", "29500"]
-    else:
-        assert seen == argv
+    assert host == "192.0.2.2"
+    assert seen == [*argv, "--master-addr", "192.0.2.1", "--master-port", "29500"]
+
+
+def test_llama_405b_wrapper_refuses_to_launch_without_placement(
+    tmp_path: Path,
+) -> None:
+    _, result = _run_llama_405b_wrapper(tmp_path, {"VONK_LOCAL_ADDR": "192.0.2.2"})
+    assert result.returncode != 0
+    assert "Controller rendezvous required" in result.stderr
+    assert result.stdout == ""

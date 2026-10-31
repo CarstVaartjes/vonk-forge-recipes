@@ -445,6 +445,15 @@
       "tensor_replicated": true,
       "value_dim": 64
     },
+    "llama-3-1-405b-instruct-awq-int4-1954fc59": {
+      "architecture": "LlamaForCausalLM",
+      "configuration_sha256": "6cefe0e90d4a5526ca08cfb4de530935783ba005b5522e2dee40e4d3fad49e0a",
+      "key_dim": 128,
+      "kv_heads": 16,
+      "layers": 126,
+      "source": "https://huggingface.co/hugging-quants/Meta-Llama-3.1-405B-Instruct-AWQ-INT4/resolve/1954fc5977cde8271bd7fd3e9bbb827a7bdd3bcd/config.json; 126 layers, 16 KV heads, hidden_size 16384 / 128 attention heads = head_dim 128, torch_dtype float16 (config sha256 verified against the download). Per TP=2 rank: 126 x 8 x 128 x 2 (K,V) x 2 bytes = 516,096 bytes/token.",
+      "value_dim": 128
+    },
     "llama-3-1-8b-instruct-nvfp4-bdb54e24": {
       "architecture": "LlamaForCausalLM",
       "configuration_sha256": "017c7a2d285256747f75b01c5fbc7a78fa351ea49958cdf6e16f45b0a8d31afe",

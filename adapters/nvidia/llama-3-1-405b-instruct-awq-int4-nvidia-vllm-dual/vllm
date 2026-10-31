@@ -1,9 +1,8 @@
 #!/bin/sh
-# The platform passes the rendezvous placement only as environment, while it
-# renders --nnodes/--node-rank/--headless itself. Bind it for vLLM's native
-# multi-node launch; a launch without a placement stays single-node.
-if [ -n "${VONK_MASTER_ADDR:-}" ]; then
-  export VLLM_HOST_IP="$VONK_LOCAL_ADDR"
-  set -- "$@" --master-addr "$VONK_MASTER_ADDR" --master-port "$VONK_MASTER_PORT"
-fi
-exec vllm "$@"
+# The platform renders --nnodes/--node-rank/--headless itself but passes the
+# rendezvous placement only as environment. Bind it for vLLM's native
+# multi-node launch; without it rank 0 would wait out the 601 s store timeout.
+export VLLM_HOST_IP="${VONK_LOCAL_ADDR:?Controller placement required}"
+exec vllm "$@" \
+  --master-addr "${VONK_MASTER_ADDR:?Controller rendezvous required}" \
+  --master-port "${VONK_MASTER_PORT:?Controller rendezvous required}"
