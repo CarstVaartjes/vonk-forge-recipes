@@ -10,12 +10,18 @@ holds for image cases and a recipe that is not multimodal.
 from __future__ import annotations
 
 import json
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
 
 import pytest
 from documents import recipe_display
-from vonk_forge_contracts import RecipeDisplay
+from vonk_forge_contracts import (
+    RecipeDefinition,
+    RecipeDisplay,
+    read_model,
+    read_recipe,
+)
 from vonk_forge_contracts.recipe import RecipeIdentity
 
 from qualification.capabilities import (
@@ -52,6 +58,70 @@ def test_a_recipes_smoke_cases_and_tags_match_what_its_engine_serves(slug: str) 
     caps = serving_capabilities(recipe, slug, MODELS, display)
     cases = DEFINITIONS["service_recipes"][f"vonk-forge/{slug}"]["smoke_cases"]
     assert generic_case_problems(slug, recipe, cases, caps, display) == []
+
+
+def _tokenizer_mode(recipe: RecipeDefinition) -> str | None:
+    """vLLM lowercases the mode; an explicit ``auto`` behaves like unset."""
+    mode = None
+    for argument in recipe.with_option_choices().runtime.arguments:
+        if argument.name.lstrip("-").replace("_", "-") == "tokenizer-mode":
+            mode = None if argument.value is None else str(argument.value)
+    if mode is not None and mode.lower() != "auto":
+        return mode.lower()
+    return None
+
+
+def _uses_mistral_tokenizer(recipe: RecipeDefinition) -> bool:
+    """vLLM picks the Mistral tokenizer from the primary model's files."""
+    if recipe.runtime.engine != "vllm":
+        return False
+    mode = _tokenizer_mode(recipe)
+    if mode is not None:
+        return mode == "mistral"
+    primary = recipe.models[0]  # the served model, as qualification/memory_need.py
+    mounted = {item.file_id for item in primary.files}
+    paths = {
+        item.path
+        for item in read_model(MODELS[primary.model.slug]).files
+        if item.id in mounted
+    }
+    return any(fnmatch(p, "consolidated*.safetensors") for p in paths) and any(
+        p == "tekken.json" or fnmatch(p, "tokenizer.model.v*") for p in paths
+    )
+
+
+def mistral_template_problems(
+    recipe: RecipeDefinition, cases: list[str], templates: dict[str, Any]
+) -> list[str]:
+    """vLLM v0.24.0 vllm/tokenizers/mistral.py rejects chat_template[_kwargs] with 400."""
+    if not _uses_mistral_tokenizer(recipe):
+        return []
+    return [
+        f"{case}: body sends {key}, which the Mistral tokenizer rejects; use MIS_*"
+        for case in cases
+        for key in ("chat_template", "chat_template_kwargs")
+        if key in (templates[case]["body"] or {})
+    ]
+
+
+@pytest.mark.parametrize("slug", SERVICE_SLUGS)
+def test_a_mistral_tokenizer_recipe_sends_no_chat_template_fields(slug: str) -> None:
+    cases = DEFINITIONS["service_recipes"][f"vonk-forge/{slug}"]["smoke_cases"]
+    templates = DEFINITIONS["service_case_templates"]
+    assert mistral_template_problems(read_recipe(_recipe(slug)), cases, templates) == []
+
+
+def test_the_mistral_guard_flags_the_generic_cases_on_a_mistral_recipe() -> None:
+    recipe = read_recipe(_recipe("leanstral-1-5-119b-a6b-vllm-mia-dual"))
+    templates = DEFINITIONS["service_case_templates"]
+    assert _uses_mistral_tokenizer(recipe)
+    assert mistral_template_problems(
+        recipe, ["A391", "T_REPORT", "V_RED"], templates
+    ) == [
+        f"{case}: body sends chat_template_kwargs, which the Mistral tokenizer "
+        "rejects; use MIS_*"
+        for case in ("A391", "T_REPORT", "V_RED")
+    ]
 
 
 def test_every_smoke_case_names_a_reviewed_template() -> None:
