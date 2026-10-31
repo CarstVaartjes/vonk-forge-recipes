@@ -400,6 +400,64 @@
         }
       ]
     },
+    "MIS_A391": {
+      "method": "POST",
+      "path": "/chat/completions",
+      "body": {
+        "model": "$ALIAS",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Return only the decimal integer equal to 17 multiplied by 23. No words or punctuation."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 256,
+        "stream": false,
+        "reasoning_effort": "none"
+      },
+      "timeout_seconds": 180,
+      "max_response_bytes": 262144,
+      "assertions": [
+        {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
+        },
+        {
+          "kind": "raw.not-contains",
+          "values": [
+            "<|channel>",
+            "<|tool_call>",
+            "<think>",
+            "</think>"
+          ]
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "[\\s\\S]*(?<![-0-9])391(?![0-9])[\\s\\S]*",
+          "expected": "391"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*-?[0-9]+\\s*$",
+          "expected": "only the integer in content"
+        }
+      ]
+    },
     "A391_UNPARSED": {
       "method": "POST",
       "path": "/chat/completions",
@@ -702,6 +760,93 @@
         }
       ]
     },
+    "MIS_T_REPORT": {
+      "method": "POST",
+      "path": "/chat/completions",
+      "body": {
+        "model": "$ALIAS",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Call report_temperature exactly once for Amsterdam. Do not answer in prose."
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 256,
+        "stream": false,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "report_temperature",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "city": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "city"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        ],
+        "tool_choice": {
+          "type": "function",
+          "function": {
+            "name": "report_temperature"
+          }
+        },
+        "reasoning_effort": "none"
+      },
+      "timeout_seconds": 180,
+      "max_response_bytes": 262144,
+      "assertions": [
+        {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
+          "kind": "path.count",
+          "path": "choices.0.message.tool_calls",
+          "value": 1
+        },
+        {
+          "kind": "path.equals",
+          "path": "choices.0.message.tool_calls.0.function.name",
+          "value": "report_temperature"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.tool_calls.0.function.arguments",
+          "value": "^\\s*\\{[\\s\\S]*\"city\"\\s*:\\s*\"[^\"]+\"[\\s\\S]*\\}\\s*$"
+        },
+        {
+          "kind": "path.equals",
+          "path": "choices.0.finish_reason",
+          "value": "tool_calls"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.json-equals",
+          "path": "choices.0.message.tool_calls.0.function.arguments",
+          "value": {
+            "city": "Amsterdam"
+          },
+          "expected": "{\"city\": \"Amsterdam\"}"
+        }
+      ]
+    },
     "T_PRODUCT": {
       "method": "POST",
       "path": "/chat/completions",
@@ -829,6 +974,68 @@
           "enable_thinking": false,
           "thinking": false
         }
+      },
+      "timeout_seconds": 180,
+      "max_response_bytes": 262144,
+      "assertions": [
+        {
+          "kind": "path.equals",
+          "path": "model",
+          "value": "$ALIAS"
+        },
+        {
+          "kind": "path.count",
+          "path": "choices",
+          "value": 1
+        },
+        {
+          "kind": "path.nonempty",
+          "path": "choices.0.message.content"
+        }
+      ],
+      "quality_assertions": [
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "[\\s\\S]*\\bred\\b[\\s\\S]*",
+          "expected": "red"
+        },
+        {
+          "kind": "path.regex",
+          "path": "choices.0.message.content",
+          "value": "^\\s*[A-Za-z]+[.!]?\\s*$",
+          "expected": "only one word in content"
+        }
+      ]
+    },
+    "MIS_V_RED": {
+      "method": "POST",
+      "path": "/chat/completions",
+      "body": {
+        "model": "$ALIAS",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "image_url",
+                "image_url": {
+                  "url": {
+                    "$fixture_data_uri": "generic-image-png"
+                  }
+                }
+              },
+              {
+                "type": "text",
+                "text": "What color fills this image? Reply with one lowercase color word."
+              }
+            ]
+          }
+        ],
+        "temperature": 0,
+        "max_tokens": 256,
+        "stream": false,
+        "reasoning_effort": "none"
       },
       "timeout_seconds": 180,
       "max_response_bytes": 262144,

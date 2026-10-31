@@ -32,8 +32,10 @@ GENERIC_CHAT_CASES = (
 
 # Top-level request fields every serving engine accepts. TensorRT-LLM's server
 # rejects any other top-level field (its request model forbids extras), so the
-# thinking switch rides in ``chat_template_kwargs``, which vLLM, SGLang,
-# llama.cpp, TensorRT-LLM, ds4 and TensorFold take or skip.
+# thinking switch rides in ``chat_template_kwargs``, which SGLang, llama.cpp,
+# TensorRT-LLM, ds4, TensorFold and vLLM with a Hugging Face tokenizer accept.
+# vLLM with the Mistral tokenizer rejects it (HTTP 400), so those recipes use the
+# MIS_* cases, which send ``reasoning_effort`` instead.
 ACCEPTED_TOP_LEVEL = {
     "model",
     "messages",

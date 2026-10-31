@@ -34,9 +34,9 @@ FLAG_ENGINES = frozenset({"vllm", "sglang", "tensorrt-llm"})
 # TensorFold, the exllamav3 OpenAI server, ds4): no flag decides.
 NATIVE_ENGINES = frozenset({"llama-cpp", "tensorfold", "exllamav3", "ds4"})
 
-TOOL_CASES = frozenset({"T_REPORT", "T_PRODUCT", "NEM_TOOL"})
-VISION_CASES = frozenset({"V_RED", "V7"})
-STRICT_ARITHMETIC = ("A391", "A323")
+TOOL_CASES = frozenset({"T_REPORT", "T_PRODUCT", "NEM_TOOL", "MIS_T_REPORT"})
+VISION_CASES = frozenset({"V_RED", "V7", "MIS_V_RED"})
+STRICT_ARITHMETIC = ("A391", "A323", "MIS_A391")
 UNPARSED_ARITHMETIC = {"A391": "A391_UNPARSED", "A323": "A323_UNPARSED"}
 
 _TOOL_PARSER = re.compile(r"(?<![\w-])--?tool[-_](?:call[-_])?parser\b")
