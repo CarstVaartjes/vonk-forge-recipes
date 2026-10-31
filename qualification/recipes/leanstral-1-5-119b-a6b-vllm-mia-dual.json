@@ -4,9 +4,9 @@
     "alias": "mistralai-leanstral-1.5-119b-a6b",
     "smoke_cases": [
       "M0",
-      "A391",
-      "T_REPORT",
-      "V_RED"
+      "MIS_A391",
+      "MIS_T_REPORT",
+      "MIS_V_RED"
     ],
     "higher_tiers": {
       "stress": [

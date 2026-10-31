@@ -10,6 +10,7 @@ holds for image cases and a recipe that is not multimodal.
 from __future__ import annotations
 
 import json
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,7 @@ from qualification.capabilities import (
     ROOT,
     UNPARSED_ARITHMETIC,
     Capabilities,
+    _arguments,
     generic_case_problems,
     serving_capabilities,
 )
@@ -52,6 +54,66 @@ def test_a_recipes_smoke_cases_and_tags_match_what_its_engine_serves(slug: str) 
     caps = serving_capabilities(recipe, slug, MODELS, display)
     cases = DEFINITIONS["service_recipes"][f"vonk-forge/{slug}"]["smoke_cases"]
     assert generic_case_problems(slug, recipe, cases, caps, display) == []
+
+
+def _tokenizer_mode(recipe: dict[str, Any]) -> str | None:
+    for name, value in _arguments(recipe):
+        if name.lstrip("-").replace("_", "-") == "tokenizer-mode":
+            return str(value)
+    return None
+
+
+def _uses_mistral_tokenizer(recipe: dict[str, Any]) -> bool:
+    """vLLM picks the Mistral tokenizer from the primary model's files."""
+    if recipe["runtime"]["engine"] != "vllm":
+        return False
+    mode = _tokenizer_mode(recipe)
+    if mode is not None:
+        return mode == "mistral"
+    primary = recipe["models"][0]
+    paths = {
+        f["path"]
+        for f in MODELS[primary["model"]["slug"]]["files"]
+        if f["id"] in {entry["file_id"] for entry in primary["files"]}
+    }
+    return any(fnmatch(p, "consolidated*.safetensors") for p in paths) and any(
+        p == "tekken.json" or fnmatch(p, "tokenizer.model.v*") for p in paths
+    )
+
+
+def mistral_template_problems(
+    recipe: dict[str, Any], cases: list[str], templates: dict[str, Any]
+) -> list[str]:
+    """vLLM v0.24.0 vllm/tokenizers/mistral.py rejects chat_template[_kwargs] with 400."""
+    if not _uses_mistral_tokenizer(recipe):
+        return []
+    return [
+        f"{case}: body sends {key}, which the Mistral tokenizer rejects; use MIS_*"
+        for case in cases
+        for key in ("chat_template", "chat_template_kwargs")
+        if key in (templates[case]["body"] or {})
+    ]
+
+
+@pytest.mark.parametrize("slug", SERVICE_SLUGS)
+def test_a_mistral_tokenizer_recipe_sends_no_chat_template_fields(slug: str) -> None:
+    cases = DEFINITIONS["service_recipes"][f"vonk-forge/{slug}"]["smoke_cases"]
+    templates = DEFINITIONS["service_case_templates"]
+    assert mistral_template_problems(_recipe(slug), cases, templates) == []
+
+
+def test_the_mistral_guard_flags_the_generic_cases_on_a_mistral_recipe() -> None:
+    slug = "leanstral-1-5-119b-a6b-vllm-mia-dual"
+    templates = DEFINITIONS["service_case_templates"]
+    assert _uses_mistral_tokenizer(_recipe(slug))
+    assert (
+        len(
+            mistral_template_problems(
+                _recipe(slug), ["A391", "T_REPORT", "V_RED"], templates
+            )
+        )
+        == 3
+    )
 
 
 def test_every_smoke_case_names_a_reviewed_template() -> None:
