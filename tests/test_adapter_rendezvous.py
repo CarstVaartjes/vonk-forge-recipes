@@ -12,6 +12,8 @@ from unittest import mock
 
 import pytest
 
+from tests.documents import recipe
+
 ROOT = Path(__file__).resolve().parents[1]
 MOVA = "video/mova-pytorch/run.py"
 CALIBRATION = (
@@ -36,7 +38,9 @@ def _rendezvous_errors(source: str) -> list[str]:
     if not LAUNCH.search(normalized):
         return errors
     # These are local launchers, including the multi-GPU calibration probes.
-    # New multi-node launchers need a separate, explicitly reviewed policy.
+    # Multi-node vLLM recipes are checked by their recipe topology instead
+    # (test_multi_node_vllm_recipes_bind_the_controller_placement); other new
+    # multi-node launchers need a separate, explicitly reviewed policy.
     if "--nnodes=1" not in source:
         errors.append("launcher must explicitly select one node")
     if "--rdzv-endpoint=127.0.0.1:" not in source:
@@ -171,3 +175,68 @@ def test_launcher_uses_available_loopback_port_without_hostname_lookup(
             listener.bind((address, int(port)))
             second = _capture_launch(adapter, tmp_path)
             assert endpoint not in second
+
+
+PLACEMENT = ("VONK_MASTER_ADDR", "VONK_MASTER_PORT")
+LLAMA_405B = "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual"
+
+
+def _binds_placement(slug: str) -> bool:
+    """Whether the recipe's launcher or runtime names the Controller's rendezvous."""
+    document = recipe(slug)
+    text = "".join(
+        str(value)
+        for entry in (*document.runtime.arguments, *document.runtime.environment)
+        for value in entry.model_dump().values()
+    )
+    build = document.execution.build
+    if build is not None:
+        for path in sorted((ROOT / build.context.path).rglob("*")):
+            if path.is_file():
+                text += path.read_text(encoding="utf-8", errors="ignore")
+    return all(name in text for name in PLACEMENT)
+
+
+def test_multi_node_vllm_recipes_bind_the_controller_placement() -> None:
+    # The platform renders --nnodes/--node-rank/--headless but passes the
+    # rendezvous address only as VONK_MASTER_ADDR/VONK_MASTER_PORT, so a launcher
+    # that never reads them leaves rank 0 waiting for a client that cannot join.
+    unbound = [
+        path.stem
+        for path in sorted((ROOT / "recipes").glob("*.json"))
+        if recipe(path.stem).topology.node_count >= 2
+        and recipe(path.stem).runtime.engine == "vllm"
+        and not _binds_placement(path.stem)
+    ]
+    assert not unbound, f"multi-node vLLM recipes without a rendezvous bind: {unbound}"
+
+
+@pytest.mark.parametrize("placed", [False, True])
+def test_llama_405b_wrapper_binds_the_controller_placement(
+    tmp_path: Path, placed: bool
+) -> None:
+    stub = tmp_path / "vllm"
+    stub.write_text('#!/bin/sh\nprintf "%s\\n" "$VLLM_HOST_IP" "$@"\n')
+    stub.chmod(0o755)
+    wrapper = ROOT / "adapters/nvidia" / LLAMA_405B / "vllm"
+    env = {"PATH": f"{tmp_path}:/usr/bin:/bin"}
+    if placed:
+        env |= {
+            "VONK_LOCAL_ADDR": "192.0.2.2",
+            "VONK_MASTER_ADDR": "192.0.2.1",
+            "VONK_MASTER_PORT": "29500",
+        }
+    argv = ["serve", "/models", "--nnodes", "2", "--node-rank", "1", "--headless"]
+    result = subprocess.run(
+        ["/bin/sh", str(wrapper), *argv],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    host, *seen = result.stdout.splitlines()
+    if placed:
+        assert host == "192.0.2.2"
+        assert seen == [*argv, "--master-addr", "192.0.2.1", "--master-port", "29500"]
+    else:
+        assert seen == argv
