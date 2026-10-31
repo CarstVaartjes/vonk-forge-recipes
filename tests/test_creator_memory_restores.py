@@ -144,14 +144,6 @@ CREATOR = {
             UTILIZATION,
         ),
     ),
-    "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single": Creator(
-        source=f"{EUGR}/qwen3.8-27b-nvfp4-dflash2.yaml#L18",
-        arguments={"gpu-memory-utilization": "0.8"},
-        vendored=(
-            "adapters/eugr/qwen3-8-27b-nvfp4-dflash2/recipes/qwen3.8-27b-nvfp4-dflash2.yaml",
-            UTILIZATION,
-        ),
-    ),
     "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-dual": Creator(
         source=f"{EUGR}/qwen3.8-27b-nvfp4-dflash2.yaml#L18",
         arguments={"gpu-memory-utilization": "0.8"},
@@ -361,22 +353,24 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
     assert "Memory follows the creator's settings" in description
 
 
+def test_qwen38_dflash2_single_keeps_its_hardware_proven_memory() -> None:
+    """Deviation from the creator's 0.8, after an observed failure.
+
+    The 2026-10-31 sweep run at 0.8 on spark-3542 was OOM-killed during the
+    FlashInfer fp4_gemm autotune (MemAvailable 0.84 GB, NV_ERR_NO_MEMORY, exit
+    137); 0.6 with this peak passed hardware on 2026-10-17.
+    """
+    slug = "qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single"
+    recipe = load_recipe(slug)
+    assert str(argument_value(recipe, "gpu-memory-utilization")) == "0.6"
+    for role in recipe.topology.roles:
+        assert role.resources.memory.peak_bytes == 103397938893, role.name
+    assert "hardware with on 2026-10-17" in recipe_display(slug).description
+
+
 def test_lowering_a_restored_peak_by_one_byte_is_refused() -> None:
     slug = "laguna-s-2-1-nvfp4-r0b0tlab-vllm-single"
     recipe = load_recipe(slug)
-    models, inputs = catalog_models(), load_inputs()
-    digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
-    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    for role in recipe.topology.roles:
-        role.resources.memory.peak_bytes -= 1
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(
-            recipe, models, inputs, document_digest=digest, touched=True
-        )
-
-
-def test_lowering_the_qwen38_single_peak_by_one_byte_is_refused() -> None:
-    recipe = load_recipe("qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single")
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
     require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
