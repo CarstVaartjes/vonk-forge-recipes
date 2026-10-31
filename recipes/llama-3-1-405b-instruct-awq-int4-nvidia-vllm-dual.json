@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Llama 3.1 405B Instruct AWQ INT4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Tensor parallel 2 across the pair uses vLLM's native multi-node launch (the platform's --nnodes/--node-rank placement options) instead of the playbook's hand-started Ray cluster: the pinned NVIDIA NGC vllm 26.05.post1 image does not ship Ray (its layers hold no ray package and no ray executable), and vLLM rejects --nnodes with the Ray executor. Deviation from the playbook: the context is 256 tokens (batched tokens 256) instead of 64, so the bounded 64-token chat check fits the context. Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.9 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Absolute KV correction: the creator value is vLLM's default 0.9 utilization; 0.85 came from an offline fit, not a hardware failure, and at 0.85 only about 1.4 GB per rank remain beside the 109.64 GB of weights, so no utilization-only value passes the KV need check within admission. A 1,073,741,824-byte pool per rank holds 2,080 tokens at 516,096 bytes/token (126 layers x 8 KV heads per TP=2 rank x 128 head_dim x 2 K/V x 2 bytes), eight full-context requests at the 256-token context; 0.85 stays only as vLLM's startup check. This is an offline estimate; physical acceptance remains pending.",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Llama 3.1 405B Instruct AWQ INT4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Tensor parallel 2 across the pair uses vLLM's native multi-node launch (the platform's --nnodes/--node-rank placement options) instead of the playbook's hand-started Ray cluster: the pinned NVIDIA NGC vllm 26.05.post1 image does not ship Ray (its layers hold no ray package and no ray executable), and vLLM rejects --nnodes with the Ray executor. Deviation from the playbook: the context is 512 tokens (batched tokens 512) instead of 64, so the sweep's 256-token A323 chat case plus its prompt fits the context and the bounded 64-token chat check fits too. Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.9 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Absolute KV correction: the creator value is vLLM's default 0.9 utilization; 0.85 came from an offline fit, not a hardware failure, and at 0.85 only about 1.4 GB per rank remain beside the 109.64 GB of weights, so no utilization-only value passes the KV need check within admission. A 1,073,741,824-byte pool per rank holds 2,080 tokens at 516,096 bytes/token (126 layers x 8 KV heads per TP=2 rank x 128 head_dim x 2 K/V x 2 bytes), four full-context requests at the 512-token context; 0.85 stays only as vLLM's startup check. This is an offline estimate; physical acceptance remains pending.",
     "tags": [
       "executable",
       "candidate",
@@ -736,7 +736,7 @@
       {
         "name": "max-num-batched-tokens",
         "setting": null,
-        "value": 256
+        "value": 512
       }
     ],
     "engine": "vllm",
@@ -766,7 +766,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 256
+      "value": 512
     },
     "kind": "generation",
     "knobs": {},
