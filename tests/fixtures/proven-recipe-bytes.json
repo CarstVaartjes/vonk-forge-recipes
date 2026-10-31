@@ -150,7 +150,7 @@
   "vonk-forge/qwen3-8-27b-mia-tensorfold-single": "d25acbf908e7d8fe2b55c2f4d96e27663d2fd2786ec952484a435c03c6f61d42",
   "vonk-forge/qwen3-8-27b-nvfp4-ashhart-tensorfold-single": "6f61622542ecd086fad4bcfa226956f45585e98606ce6e773a5136f604ff080e",
   "vonk-forge/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-dual": "1e06726ee3aa7d03a8255be93fe9a844c7561461a1293dede21e864d89ba5351",
-  "vonk-forge/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single": "e38cee790f7a410982d697bf53a3b07244adaec7c8366961659b2481b0dc00eb",
+  "vonk-forge/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single": "4afc711ee8b920f3ff96351cfe3b1d7bc34eb87f8b61e272a308765f08a73e5b",
   "vonk-forge/qwen3-8-27b-nvfp4-drowzeys-vllm-single": "c61befa9ebd03b940f2f5b4c6e074f141adf1343a505f781e8f6208dd7dcd210",
   "vonk-forge/qwen3-8-27b-nvfp4-dspark-sglang-single": "e9092a841963e307091ce9d131c562c9a2564259da4c16f4af543c0c1583ff25",
   "vonk-forge/qwen3-8-27b-nvfp4-mtp-r0b0tlab-sglang-single": "32548a8a5d1d9f926de91a3d43ea412e3881838958685cf84359815d8234fe5c",
