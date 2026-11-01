@@ -193,20 +193,18 @@ def test_multi_spark_vllm_utilization_maximum_is_08728(
 
 
 def test_refresh_raises_peaks_to_the_budget_envelope_and_never_lowers() -> None:
-    document = documents.recipe("deepseek-v4-flash-vllm-mia-dual").model_dump(
-        mode="json", by_alias=True
-    )
-    memory = [role["resources"]["memory"] for role in document["topology"]["roles"]]
-    for item in memory:
-        item["peak_bytes"] = 100_000_000_000
-        item["load_peak_bytes"] = 101_000_000_000
-    assert memory_need.raise_peaks_to_envelope(document)
-    envelope = vllm_utilization_envelope(RecipeDefinition.model_validate(document))
+    recipe = documents.recipe("deepseek-v4-flash-vllm-mia-dual")
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = 100_000_000_000
+        role.resources.memory.load_peak_bytes = 101_000_000_000
+    raised = memory_need.raise_peaks_to_envelope(recipe)
+    assert raised is not None
+    envelope = vllm_utilization_envelope(raised)
     assert envelope is not None and envelope > 100_000_000_000
-    for item in memory:
-        assert item["peak_bytes"] == envelope
-        assert item["load_peak_bytes"] == envelope + 1_000_000_000
-    assert not memory_need.raise_peaks_to_envelope(document)
-    memory[0]["peak_bytes"] = envelope + 5
-    assert not memory_need.raise_peaks_to_envelope(document)
-    assert memory[0]["peak_bytes"] == envelope + 5
+    for role in raised.topology.roles:
+        assert role.resources.memory.peak_bytes == envelope
+        assert role.resources.memory.load_peak_bytes == envelope + 1_000_000_000
+    assert memory_need.raise_peaks_to_envelope(raised) is None
+    raised.topology.roles[0].resources.memory.peak_bytes = envelope + 5
+    assert memory_need.raise_peaks_to_envelope(raised) is None
+    assert raised.topology.roles[0].resources.memory.peak_bytes == envelope + 5

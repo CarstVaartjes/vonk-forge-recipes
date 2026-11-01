@@ -287,8 +287,7 @@ def test_touching_any_proven_document_keeps_it_valid(engine: str, single: bool) 
             continue
         checked += 1
         # A touched document is a refresh, which raises its peaks to the envelope.
-        raise_peaks_to_envelope(document)
-        recipe = RecipeDefinition.model_validate(document)
+        recipe = raise_peaks_to_envelope(recipe) or recipe
         try:
             require_memory_need(
                 recipe, models, inputs, document_digest="", touched=True

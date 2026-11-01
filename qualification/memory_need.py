@@ -1262,30 +1262,28 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
     return int(envelope.to_integral_value(ROUND_CEILING))
 
 
-def raise_peaks_to_envelope(document: dict) -> bool:
-    """Raise a recipe document's role peaks to its vLLM budget envelope, never lower.
+def raise_peaks_to_envelope(recipe: RecipeDefinition) -> RecipeDefinition | None:
+    """The recipe with role peaks raised to its vLLM budget envelope, None if none is.
 
     A document that moves (``tools/refresh-upstream``) is new content and meets the
-    current margins; raising here keeps a refresh from blocking. A declared load
-    peak keeps its rise above the peak. Returns whether anything changed.
+    current margins; raising here keeps a refresh from blocking. Peaks are never
+    lowered, and a declared load peak keeps its rise above the peak.
     """
-    recipe = RecipeDefinition.model_validate(document)
     envelope = max(
         (e for v in memory_variants(recipe) if (e := vllm_utilization_envelope(v))),
         default=0,
     )
-    changed = False
-    for role in document["topology"]["roles"]:
-        memory = role["resources"]["memory"]
-        if memory["peak_bytes"] >= envelope:
+    if all(r.resources.memory.peak_bytes >= envelope for r in recipe.topology.roles):
+        return None
+    raised = recipe.model_copy(deep=True)
+    for role in raised.topology.roles:
+        memory = role.resources.memory
+        if memory.peak_bytes >= envelope:
             continue
-        load = memory.get("load_peak_bytes")
-        if load is not None:
-            load += envelope - memory["peak_bytes"]
-            memory["load_peak_bytes"] = load
-        memory["peak_bytes"] = envelope
-        changed = True
-    return changed
+        if memory.load_peak_bytes is not None:
+            memory.load_peak_bytes += envelope - memory.peak_bytes
+        memory.peak_bytes = envelope
+    return raised
 
 
 def applicable_geometry(

@@ -1240,7 +1240,12 @@ class VendoredCreatorMoveTests(unittest.TestCase):
 
     def test_a_moved_vllm_document_follows_the_budget_envelope(self) -> None:
         new_yaml = OLD_YAML.replace("8192", "4096")
-        with patch("refresh_upstream.raise_peaks_to_envelope") as raised:
+        with (
+            patch(
+                "refresh_upstream.raise_peaks_to_envelope", return_value=None
+            ) as raised,
+            patch("refresh_upstream.RecipeDefinition"),
+        ):
             self.assess(new_yaml, engine="vllm")
             raised.assert_called_once()
         with patch("refresh_upstream.raise_peaks_to_envelope") as raised:
