@@ -46,7 +46,7 @@
       "reap",
       "single",
       "sparkinfer",
-      "spark",
+      "spark VERIFICATION RUN at the creator's absolute budget (owner decision 2026-11-02, one run): GPU utilization 0.84 → 0.931, the absolute translation of 0xSero's 0.9465 of a reported 119.69 GiB (113.29 GiB) onto vLLM's 121.69 GiB view of this Spark (0.9465 × 119.69 / 121.69 = 0.931); runs at 0.84 failed with 'No available memory for the cache blocks'. The declared peak is the admission maximum (124,452,516,352 bytes) for this run only; the Spark memory guard is the safety net, and the measured peak decides next and replaces this declaration.",
       "speculative-decoding"
     ],
     "title": "DeepSeek V4 Flash 0731 REAP-K216 SparkInfer single Spark"
@@ -1977,7 +1977,7 @@
   },
   "release": {
     "released_at": "2026-09-03",
-    "version": "0.1.6"
+    "version": "0.1.7"
   },
   "runtime": {
     "arguments": [
@@ -2014,7 +2014,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.84"
+        "value": "0.931"
       },
       {
         "name": "enable-prefix-caching",
@@ -2085,7 +2085,7 @@
             "working_bytes": 135000000000
           },
           "memory": {
-            "peak_bytes": 119693367686,
+            "peak_bytes": 124452516352,
             "reserve_bytes": 8000000000
           }
         }

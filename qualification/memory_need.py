@@ -1152,6 +1152,11 @@ def require_absolute_kv_capacity(
                     )
 
 
+def envelope_exception(slug: str) -> bool:
+    """Whether memory-envelope-exceptions.json records an owner-approved exception."""
+    return slug in json.loads((ROOT / "memory-envelope-exceptions.json").read_text())
+
+
 def require_memory_need(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
@@ -1186,7 +1191,7 @@ def require_memory_need(
         vllm = variant.runtime.engine == "vllm"
         envelope = (
             None
-            if not single
+            if not single or envelope_exception(recipe.identity.slug)
             else vllm_utilization_envelope(variant)
             if vllm
             else sglang_static_need(variant, models, inputs, key, pinned=False)
