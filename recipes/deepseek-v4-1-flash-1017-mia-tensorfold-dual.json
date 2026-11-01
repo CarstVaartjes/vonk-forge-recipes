@@ -37,7 +37,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Mia AI Lab's exact two-Spark TensorFold kit at 75cab1d6: EAQ v1 EXL3 2.9 bpw checkpoint, 262,144-token shared pool, four streams, target-only decoding, image input, thinking on, and required/named tool-choice enforcement. Preserves the pinned upstream engine patches with kept prompt snapshots disabled. Uses Mia's digest-pinned ARM64 image with its exact serving fork, auxiliary rank-cache tools and patches, plus the pinned kernel kit. Controller-managed read-only models and local Engram shards replace upstream SSH/NFS setup; durable per-rank derived inputs use /outputs/cache. The former 115 GiB declaration combined upstream's 98.9 GiB rank weights with a misidentified 12.2 GiB runtime allowance: 12.2 GiB is the engine's free-memory reserve, not an allocation. This is an estimate; physical qualification on this fleet is pending. The optional gated abliterated overlay is not included. Admission repair: --no-drafts skips DSpark weight loading and draft buffers on BOTH ranks (weights.zig::load, model.zig::open); credit only 3 GiB of the creator's approximately 3.5 GiB draft weights. Reducing --context/--pool from 1,048,576 to 262,144 removes at least another 1 GiB: prompt.zig::Caches.init uses 890 bytes/position (KV sources 2/8/14 at ratio 2 and 20 at ratio 1, packed 512-wide FP4 plus scales and 128-wide index keys), and model.zig allocates 512 RoPE bytes/position; 786,432 * 1,402 = 1,102,577,664 bytes removed, before smaller round/index workspace. Keep the remaining original allowance: 115 - 3 - 1 = 111 GiB (119,185,342,464 bytes) peak/rank. --prompt-cache-gib=0 prevents additional kept-state snapshots. Engram remains disk-backed, no CPU offload or RAM-fraction cap is substituted. This is a conservative source-backed planning estimate, not measured fleet acceptance.",
+    "description": "Mia AI Lab's exact two-Spark TensorFold kit at 0e7d421e (engine pin fbbc9713 of BertholomusAI's fork with the kit's patches 0001 to 0038): EAQ v1 EXL3 2.9 bpw checkpoint, 262,144-token shared pool, four streams, target-only decoding, image input, thinking on, and required/named tool-choice enforcement. Carries the kit's verbatim engine patch series (the optional spill tier, KV sharding and EAQ v1.1 mixed-pack features stay off or unused: EAQ v1 remains the default, as in the kit) with kept prompt snapshots disabled. Uses Mia's digest-pinned ARM64 image with its exact serving fork, auxiliary rank-cache tools and patches, plus the pinned kernel kit. Controller-managed read-only models and local Engram shards replace upstream SSH/NFS setup; durable per-rank derived inputs use /outputs/cache. The former 115 GiB declaration combined upstream's 98.9 GiB rank weights with a misidentified 12.2 GiB runtime allowance: 12.2 GiB is the engine's free-memory reserve, not an allocation. This is an estimate; physical qualification on this fleet is pending. The optional gated abliterated overlay is not included. Admission repair: --no-drafts skips DSpark weight loading and draft buffers on BOTH ranks (weights.zig::load, model.zig::open); credit only 3 GiB of the creator's approximately 3.5 GiB draft weights. Reducing --context/--pool from 1,048,576 to 262,144 removes at least another 1 GiB: prompt.zig::Caches.init uses 890 bytes/position (KV sources 2/8/14 at ratio 2 and 20 at ratio 1, packed 512-wide FP4 plus scales and 128-wide index keys), and model.zig allocates 512 RoPE bytes/position; 786,432 * 1,402 = 1,102,577,664 bytes removed, before smaller round/index workspace. Keep the remaining original allowance: 115 - 3 - 1 = 111 GiB (119,185,342,464 bytes) peak/rank. --prompt-cache-gib=0 prevents additional kept-state snapshots. Engram remains disk-backed, no CPU offload or RAM-fraction cap is substituted. This is a conservative source-backed planning estimate, not measured fleet acceptance.",
     "tags": [
       "deepseek",
       "1017",
@@ -76,8 +76,19 @@
           ]
         },
         {
-          "file_id": "readme-23701fbd9ae9-b335630551",
-          "id": "primary-readme-23701fbd9ae9-b335630551",
+          "file_id": "readme-177f7aa70a21-b335630551",
+          "id": "primary-readme-177f7aa70a21-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "chat-template-3e0c2a31ea12-00824420d1",
+          "id": "primary-chat-template-3e0c2a31ea12-00824420d1",
           "mount": {
             "target": "/models/target"
           },
@@ -89,6 +100,182 @@
         {
           "file_id": "config-4eac47f0da99-587cb980af",
           "id": "primary-config-4eac47f0da99-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "readme-a34a5ca98c65-5728b2733a",
+          "id": "primary-readme-a34a5ca98c65-5728b2733a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "encoding-13231c592e95-498d5dc375",
+          "id": "primary-encoding-13231c592e95-498d5dc375",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-encoding-288b79c9ea7d-d3add5cc1f",
+          "id": "primary-test-encoding-288b79c9ea7d-d3add5cc1f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-input-1-6a5a86694e47-c2c0cf1c63",
+          "id": "primary-test-input-1-6a5a86694e47-c2c0cf1c63",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-input-2-fd985cda88e8-1e915f673a",
+          "id": "primary-test-input-2-fd985cda88e8-1e915f673a",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-input-3-4207613f15c7-a9bea918ca",
+          "id": "primary-test-input-3-4207613f15c7-a9bea918ca",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-input-4-4c3890a7bc04-8eeffe20fa",
+          "id": "primary-test-input-4-4c3890a7bc04-8eeffe20fa",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-input-5-88289b0aac8d-b4b029e5d9",
+          "id": "primary-test-input-5-88289b0aac8d-b4b029e5d9",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-output-1-91f79aa95571-61eeac8704",
+          "id": "primary-test-output-1-91f79aa95571-61eeac8704",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-output-2-9fa162587b73-5cee9cd964",
+          "id": "primary-test-output-2-9fa162587b73-5cee9cd964",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-output-3-cf2b801d0738-8f31f9617b",
+          "id": "primary-test-output-3-cf2b801d0738-8f31f9617b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-output-4-94433b68370d-11e6eaf31c",
+          "id": "primary-test-output-4-94433b68370d-11e6eaf31c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "test-output-5-4d6730917465-dcf742ed02",
+          "id": "primary-test-output-5-4d6730917465-dcf742ed02",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "kl-by-position-0e9238e0a4bf-7730a101ca",
+          "id": "primary-kl-by-position-0e9238e0a4bf-7730a101ca",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "kl-by-workload-6edb4fbf966a-230d9c8753",
+          "id": "primary-kl-by-workload-6edb4fbf966a-230d9c8753",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint",
+            "worker"
+          ]
+        },
+        {
+          "file_id": "kl-overview-7333205893a8-959a5e23d3",
+          "id": "primary-kl-overview-7333205893a8-959a5e23d3",
           "mount": {
             "target": "/models/target"
           },
@@ -573,10 +760,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "da464c8cbd1c228a82f83c1f1e9579dadae1d5b09b5cf05f47cf449b02385f6e",
+        "content_sha256": "03b948ab5ac723fd622c05b688d626fea3e362efe182b0564d59395de0b460d9",
         "kind": "model",
         "publisher": "mia-ailab",
-        "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-6d54be4f"
+        "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-45ee5d0f"
       }
     },
     {
@@ -633,11 +820,11 @@
       "DeepSeek-AI",
       "hashd1ve"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks/tree/75cab1d6047a414f9b8db7a3639fe5a1f98f17dc"
+    "source_reference": "https://github.com/MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks/tree/0e7d421eb4797d98dc781dad764b8f86d34118ae"
   },
   "release": {
-    "released_at": "2026-10-20",
-    "version": "1.1.0"
+    "released_at": "2026-10-29",
+    "version": "1.2.0"
   },
   "runtime": {
     "arguments": [
@@ -709,7 +896,7 @@
       },
       {
         "name": "VONK_MODEL_REVISION",
-        "value": "6d54be4fca338d79b17c3b03cc9a423bb3ac6718"
+        "value": "45ee5d0fd106c94a3d77f721e09cbb2f50e5a16b"
       },
       {
         "name": "TF_DS_PREFILL_INTERLEAVE_MS",
@@ -748,7 +935,7 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 413736057017,
+            "artifact_bytes": 413736370415,
             "image_bytes": 35000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 115000000000
@@ -765,7 +952,7 @@
         "name": "worker",
         "resources": {
           "disk": {
-            "artifact_bytes": 413736057017,
+            "artifact_bytes": 413736370415,
             "image_bytes": 35000000000,
             "safety_margin_bytes": 20000000000,
             "working_bytes": 115000000000

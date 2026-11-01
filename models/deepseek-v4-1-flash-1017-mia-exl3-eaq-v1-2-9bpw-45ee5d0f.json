@@ -26,13 +26,22 @@
       "size_bytes": 1084
     },
     {
-      "id": "readme-23701fbd9ae9-b335630551",
+      "id": "readme-177f7aa70a21-b335630551",
       "path": "README.md",
       "roles": [
         "metadata"
       ],
-      "sha256": "23701fbd9ae90d93301a23280c097860f794ca1ba3fba83ecd6678e488c881df",
-      "size_bytes": 7221
+      "sha256": "177f7aa70a21c4ab124e49c979148cec5d51720c9dc6dd1d3b4491bb86ff5104",
+      "size_bytes": 14350
+    },
+    {
+      "id": "chat-template-3e0c2a31ea12-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "3e0c2a31ea12b1d7c02319e20356e2e2bc46da2638e4bae6980493329efeca73",
+      "size_bytes": 34236
     },
     {
       "id": "config-4eac47f0da99-587cb980af",
@@ -42,6 +51,150 @@
       ],
       "sha256": "4eac47f0da99a65f2bcfb97ca357f7d5388a79c9b377d6dd65b1ed18548d846d",
       "size_bytes": 3563
+    },
+    {
+      "id": "readme-a34a5ca98c65-5728b2733a",
+      "path": "encoding/README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a34a5ca98c65e5b5b2bedd693cc2e18e732fe50192723fb6937ae07219c23739",
+      "size_bytes": 12164
+    },
+    {
+      "id": "encoding-13231c592e95-498d5dc375",
+      "path": "encoding/encoding.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "13231c592e958fb39e2af6001dae69d90e7a36b265702b9b390236fb387599e2",
+      "size_bytes": 37962
+    },
+    {
+      "id": "test-encoding-288b79c9ea7d-d3add5cc1f",
+      "path": "encoding/test_encoding.py",
+      "roles": [
+        "runtime"
+      ],
+      "sha256": "288b79c9ea7d018ae03b0dd3e54a8220cc3a2df1ff97f59907e75ed8112765d6",
+      "size_bytes": 22449
+    },
+    {
+      "id": "test-input-1-6a5a86694e47-c2c0cf1c63",
+      "path": "encoding/tests/test_input_1.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "6a5a86694e47169c8f0c9243a7e24cc5db05447be0d3d3a9891034e913c518de",
+      "size_bytes": 2761
+    },
+    {
+      "id": "test-input-2-fd985cda88e8-1e915f673a",
+      "path": "encoding/tests/test_input_2.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "fd985cda88e8640b8e2404d8e659f7006cad204eb41f73c9e6662b1f218c01aa",
+      "size_bytes": 527
+    },
+    {
+      "id": "test-input-3-4207613f15c7-a9bea918ca",
+      "path": "encoding/tests/test_input_3.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4207613f15c79b95ad92074bdb8b2b81c5ce9cfdf15b7a67f58ded6bb3ec4fa5",
+      "size_bytes": 2554
+    },
+    {
+      "id": "test-input-4-4c3890a7bc04-8eeffe20fa",
+      "path": "encoding/tests/test_input_4.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "4c3890a7bc042ec6396d98d024a39a73cdcffbe1d0253e852da0c35e65296f3e",
+      "size_bytes": 712
+    },
+    {
+      "id": "test-input-5-88289b0aac8d-b4b029e5d9",
+      "path": "encoding/tests/test_input_5.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "88289b0aac8d650aa55c4ffeb392818fff3a0ac83c2293ddfd90546804d5e5c4",
+      "size_bytes": 1143
+    },
+    {
+      "id": "test-output-1-91f79aa95571-61eeac8704",
+      "path": "encoding/tests/test_output_1.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "91f79aa955717b414a82aabfb38bcd83ab5a998bd47db89d2a26338e8d3de550",
+      "size_bytes": 2476
+    },
+    {
+      "id": "test-output-2-9fa162587b73-5cee9cd964",
+      "path": "encoding/tests/test_output_2.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "9fa162587b73ab9b315be5c88d433f9e0e681b4b36926952f289099ed9bc1dab",
+      "size_bytes": 294
+    },
+    {
+      "id": "test-output-3-cf2b801d0738-8f31f9617b",
+      "path": "encoding/tests/test_output_3.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "cf2b801d0738c88abb691bf4a096000c0e0737faab8a54a4ba5243c5513a3711",
+      "size_bytes": 2481
+    },
+    {
+      "id": "test-output-4-94433b68370d-11e6eaf31c",
+      "path": "encoding/tests/test_output_4.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "94433b68370dcc69fa61efc5011b5d0e28685e4716fee1ee77fbbfc0c9935b54",
+      "size_bytes": 574
+    },
+    {
+      "id": "test-output-5-4d6730917465-dcf742ed02",
+      "path": "encoding/tests/test_output_5.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "4d673091746553d1cb2e40a3fc01dc09a7c53c40627096a3e49c97a269a81f64",
+      "size_bytes": 408
+    },
+    {
+      "id": "kl-by-position-0e9238e0a4bf-7730a101ca",
+      "path": "images/kl_by_position.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "0e9238e0a4bf53edb384caff6c63be33b30c564e82012bd5f8190c256762b98f",
+      "size_bytes": 44202
+    },
+    {
+      "id": "kl-by-workload-6edb4fbf966a-230d9c8753",
+      "path": "images/kl_by_workload.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "6edb4fbf966a12ed7435675dbc970478c96ab7e3393dedd5ebf3f68c8e16d48a",
+      "size_bytes": 68361
+    },
+    {
+      "id": "kl-overview-7333205893a8-959a5e23d3",
+      "path": "images/kl_overview.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "7333205893a882a1a6aa8ea7ea41e1ad6a72f3d80f7f693e33f75243c3e7ede4",
+      "size_bytes": 72965
     },
     {
       "id": "model-00001-of-00039-7d18021abd29-6467600fe4",
@@ -447,9 +600,9 @@
       "title": "DeepSeek V4.1 Flash 1017"
     },
     "publisher": "mia-ailab",
-    "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-6d54be4f",
+    "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-45ee5d0f",
     "variant": "EAQ v1 EXL3 2.9 bpw",
-    "version": "1017-6d54be4f"
+    "version": "1017-45ee5d0f"
   },
   "kind": "model",
   "license": {
@@ -458,7 +611,7 @@
       "DeepSeek-AI"
     ],
     "spdx": "MIT",
-    "url": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw/blob/6d54be4fca338d79b17c3b03cc9a423bb3ac6718/LICENSE"
+    "url": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw/blob/45ee5d0fd106c94a3d77f721e09cbb2f50e5a16b/LICENSE"
   },
   "metadata": {
     "description": "Mia AI Lab EAQ v1 EXL3 2.9 bpw checkpoint, including vision and DSpark draft tensors. Engram tables are supplied separately from the pinned original checkpoint.",
@@ -477,6 +630,6 @@
   "requires_token": false,
   "source": {
     "repository": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw",
-    "revision": "6d54be4fca338d79b17c3b03cc9a423bb3ac6718"
+    "revision": "45ee5d0fd106c94a3d77f721e09cbb2f50e5a16b"
   }
 }
