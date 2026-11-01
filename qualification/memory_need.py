@@ -1216,7 +1216,7 @@ def require_memory_need(
             raise ValueError(f"{key}: " + "; ".join(problems))
         if not single and variant.runtime.engine == "sglang":
             require_sglang_rank_budget(variant, models, inputs, key)
-        elif touched:
+        elif touched and not envelope_exception(recipe.identity.slug):
             require_bounded_kv_pool(variant, models, inputs, key)
         if not single:
             require_vllm_startup_budget(variant)
