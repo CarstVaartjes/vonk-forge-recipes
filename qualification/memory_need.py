@@ -272,8 +272,22 @@ class MemoryInputs(BaseModel):
     # Engram n-gram table files, by content digest, with their source. Owner
     # rule (2026-10-26): Engram tables are never memory usage.
     engram_files: dict[str, str]
+    # Bytes of a weights file the engine reads from disk on demand and never
+    # holds resident (the rest of the file still counts), by content digest.
+    # Qwen3.8 Flash Next: model-fp8-mtp-ple.safetensors carries the 320,001,536 x
+    # 160 B PLE n-gram table (51,200,245,760 B) that tonyd2wild's adapter reads
+    # with preadv; the MTP weights in the same file stay counted.
+    disk_resident_bytes: dict[str, int] = Field(default_factory=dict)
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
+
+
+def resident_weight_bytes(size_bytes: int, sha256: str, inputs: MemoryInputs) -> int:
+    """Bytes of a weights file that sit in memory: none for an Engram file, less
+    the disk-resident part for a file that carries an on-demand table."""
+    if sha256 in inputs.engram_files:
+        return 0
+    return size_bytes - inputs.disk_resident_bytes.get(sha256, 0)
 
 
 def unchanged_recipe(
@@ -469,11 +483,9 @@ def calculate_need(
         selected = {item.file_id for item in selection.files}
         weights.append(
             sum(
-                item.size_bytes
+                resident_weight_bytes(item.size_bytes, item.sha256, inputs)
                 for item in model.files
-                if item.id in selected
-                and "weights" in item.roles
-                and item.sha256 not in inputs.engram_files
+                if item.id in selected and "weights" in item.roles
             )
         )
         geometry = pinned_geometry(
@@ -1487,12 +1499,10 @@ def rank_weight_bytes(
     for selection in recipe.models:
         selected = {item.file_id for item in selection.files}
         for item in models[selection.model.content_sha256].files:
-            if (
-                item.id in selected
-                and "weights" in item.roles
-                and item.sha256 not in inputs.engram_files
-            ):
-                weights[item.sha256] = item.size_bytes
+            if item.id in selected and "weights" in item.roles:
+                weights[item.sha256] = resident_weight_bytes(
+                    item.size_bytes, item.sha256, inputs
+                )
     parallel = recipe.topology.parallelism
     shards = parallel.tensor * parallel.pipeline
     cache = 0

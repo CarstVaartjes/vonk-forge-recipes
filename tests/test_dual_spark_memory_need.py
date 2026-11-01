@@ -218,3 +218,16 @@ def test_explicit_row_cache_is_charged_per_rank() -> None:
         RecipeRuntimeEnvironment(name="DSV41_CACHE_GIB", value="8")
     )
     assert per_rank_need(recipe, models, inputs).peak_bytes - floor == 8 * 2**30
+
+
+def test_disk_resident_table_bytes_leave_the_single_spark_weights() -> None:
+    # tonyd2wild reads the 51,200,245,760-byte PLE table of
+    # model-fp8-mtp-ple.safetensors from disk; the MTP weights in the file stay.
+    models, inputs = catalog_models(), load_inputs()
+    recipe = recipe_for("qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-single")
+    counted = calculate_need(recipe, models, inputs).weights_bytes
+    whole = calculate_need(
+        recipe, models, inputs.model_copy(update={"disk_resident_bytes": {}})
+    ).weights_bytes
+    assert whole - counted == 51_200_245_760
+    assert counted < LIMIT_BYTES
