@@ -4469,6 +4469,38 @@ class Sweep:
             return
         for placement in added:
             self.clear_infra(self._review_transport_source(placement.recipe))
+        # The revision comes first: every reply that names assignments (blocked ones too)
+        # is checked before any verdict can be recorded for the requested revision.
+        reviewed = self._reviewed_revisions(document)
+        unnamed = [p for alias, p in aliases.items() if alias not in reviewed]
+        wrong = [
+            p
+            for alias, p in aliases.items()
+            if reviewed.get(alias, p.recipe.revision_id) != p.recipe.revision_id
+        ]
+        if unnamed or wrong:
+            self._rollback(
+                unnamed + wrong, "review names another or no recipe revision"
+            )
+            for placement in unnamed:
+                # An unreadable reply says nothing about the recipe: back off this topology.
+                self.state.entry(placement.recipe.key).pop("not_before", None)
+                self.note_infra(
+                    self._review_transport_source(placement.recipe),
+                    "the review names no recipe revision for " + placement.recipe.key,
+                )
+            for placement in wrong:
+                self._revision_mismatch(
+                    placement.recipe,
+                    reviewed[self._alias(placement.recipe)],
+                    document,
+                    now,
+                )
+            self.state.save()
+            remaining = [p for p in added if p not in unnamed + wrong]
+            if remaining:
+                self._apply(remaining, now)
+            return
         stopped = [
             r["alias"]
             for r in dig(document, "effects", "runs", default=[])
@@ -4571,26 +4603,6 @@ class Sweep:
                 # starve an independent lane. Each re-plan removes an assignment.
                 self._apply(remaining, now)
             return
-        reviewed = self._reviewed_revisions(document)
-        wrong = [
-            p
-            for alias, p in aliases.items()
-            if reviewed.get(alias, p.recipe.revision_id) != p.recipe.revision_id
-        ]
-        if wrong:
-            self._rollback(wrong, "review binds another recipe revision than requested")
-            for placement in wrong:
-                self._revision_mismatch(
-                    placement.recipe,
-                    reviewed[self._alias(placement.recipe)],
-                    document,
-                    now,
-                )
-            self.state.save()
-            remaining = [p for p in added if p not in wrong]
-            if remaining:
-                self._apply(remaining, now)
-            return
         self.clear_infra("review")
         for placement in added:
             self._clear_review_wait(self.state.entry(placement.recipe.key))
@@ -4613,8 +4625,9 @@ class Sweep:
         for placement in added:
             self._open_slot(placement, key, now)
             self.state.entry(placement.recipe.key).pop("revision_mismatches", None)
-            if revision := reviewed.get(self._alias(placement.recipe)):
-                self.state.slots[placement.recipe.key]["ran_revision"] = revision
+            self.state.slots[placement.recipe.key]["ran_revision"] = reviewed[
+                self._alias(placement.recipe)
+            ]
         self.state.data["dirty"] = (
             True  # the submitted effect may be accepted even if its reply is lost
         )

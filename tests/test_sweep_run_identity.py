@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
+from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -66,6 +66,48 @@ def test_a_review_binding_another_revision_submits_no_load_and_waits_paced(
     assert rows[0]["evidence"]["reviewed_revision"] == "rev-reverted"
     assert delays[1] > delays[0]  # repeats back off instead of reloading every delay
     assert not sweep.qualification_evidence.get(fake.key)
+
+
+def test_a_blocked_review_binding_another_revision_records_no_verdict(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = FakeRecipe("drift", memory=500 * GB, local="cached")
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [fake], [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    assert sweep._take_over(clock.now())
+    fleet.review_revisions[fake.key] = "rev-reverted"
+    blocked = []
+    monkeypatch.setattr(sweep, "_blocked", lambda *a: blocked.append(a))
+    before = len(fleet.calls)
+    sweep._apply([policy.Placement(sweep.recipes[fake.key], ("spk_a",))], clock.now())
+    review = [c for _, c in fleet.calls[before:] if "--review" in c]
+    assert review
+    assert not blocked  # the revision is judged before any verdict on the review
+    assert [r["step"] for r in _rows(tmp_path)] == ["identity"]
+    assert not sweep.qualification_evidence.get(fake.key)
+
+
+def test_a_review_naming_no_revision_waits_and_loads_nothing(tmp_path: Path) -> None:
+    fake = FakeRecipe("silent", local="cached")
+    sweep, fleet, clock = make_sweep(
+        tmp_path, [fake], [FakeModel("m1", local="cached")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    assert sweep._take_over(clock.now())
+    fleet.review_revisions[fake.key] = None
+    before = len(fleet.calls)
+    sweep._apply([policy.Placement(sweep.recipes[fake.key], ("spk_a",))], clock.now())
+    assert not _loads(sweep, fleet.calls[before:])
+    assert fake.key not in sweep.state.slots
+    assert (
+        sweep._review_transport_source(sweep.recipes[fake.key])
+        in (sweep.state.data["infra"])
+    )
+    assert not (tmp_path / "results.jsonl").exists()  # an unreadable reply is no result
 
 
 @pytest.mark.parametrize("fails", [False, True])

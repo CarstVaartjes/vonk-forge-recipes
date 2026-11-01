@@ -423,8 +423,8 @@ class FakeFleet:
         self.ops: dict[str, dict[str, Any]] = {}
         self.by_request: dict[str, str] = {}
         self.runs: list[dict[str, Any]] = []
-        # Review revisions that differ from the listed recipe's, by recipe key.
-        self.review_revisions: dict[str, str] = {}
+        # Review revisions that differ from the listed recipe's, by recipe key; None omits it.
+        self.review_revisions: dict[str, str | None] = {}
         self.calls: list[tuple[int | None, tuple[str, ...]]] = []
         self.call_times: list[float] = []
         self.download_seconds = 60.0
@@ -1317,8 +1317,31 @@ class FakeFleet:
                 ]
             return 0, self._app_doc(app) if app else {}
         if verb == "load":
-            return self._load(n, data, a)
+            code, doc = self._load(n, data, a)
+            if "--review" in a and isinstance(doc, dict) and "assignments" not in doc:
+                # Every Controller preview names each assignment's recipe revision,
+                # blocked ones too; hand-made refusals get the same shape.
+                doc = {**doc, **self._review_assignments(data)}
+                for d in doc.get("admission_decisions", []):
+                    d.setdefault("assignment_id", f"id-{d.get('alias')}")
+            return code, doc
         return self._error("unsupported", f"profile {verb}")
+
+    def _review_assignments(self, data: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "assignments": [
+                {
+                    "assignment_id": f"id-{x['assignment_name']}",
+                    "recipe_revision_id": self.review_revisions.get(
+                        x["recipe_selector"]
+                    )
+                    or f"rev-{self.recipes[x['recipe_selector']].content}",
+                }
+                for x in data["assignments"]
+                if x["recipe_selector"] in self.recipes
+                and self.review_revisions.get(x["recipe_selector"], "") is not None
+            ]
+        }
 
     def _desired_by_spark(
         self, data: dict[str, Any]
@@ -1445,17 +1468,7 @@ class FakeFleet:
             doc = {
                 "allowed": not blocked,
                 "waits_for_preparation": False,
-                "assignments": [
-                    {
-                        "assignment_id": f"id-{x['assignment_name']}",
-                        "recipe_revision_id": self.review_revisions.get(
-                            x["recipe_selector"]
-                        )
-                        or f"rev-{self.recipes[x['recipe_selector']].content}",
-                    }
-                    for x in data["assignments"]
-                    if x["recipe_selector"] in self.recipes
-                ],
+                **self._review_assignments(data),
                 "effects": {
                     "adopted": adopted,
                     "runs": [
