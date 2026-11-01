@@ -1,0 +1,10 @@
+#!/bin/sh
+# Entrypoint for the single-Spark Ornith-1.5-122B TensorFold recipe. The recipe
+# passes only named `tensorfold-native serve` options; the target checkpoint is
+# always mounted at /models/target and the DFlash2 drafter at /models/drafter.
+set -eu
+: "${HOME:?}" "${CUDA_CACHE_PATH:?}" "${TORCH_EXTENSIONS_DIR:?}" "${TRITON_CACHE_DIR:?}" "${TMPDIR:?}"
+# The platform binds /outputs/cache; the cache and temporary directories below
+# it are created here (nothing else is writable).
+mkdir -p "$HOME/.cache/tensorfold" "$CUDA_CACHE_PATH" "$TORCH_EXTENSIONS_DIR" "$TRITON_CACHE_DIR" "$TMPDIR"
+exec tensorfold-native serve /models/target "$@"

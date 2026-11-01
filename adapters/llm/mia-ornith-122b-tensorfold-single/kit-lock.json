@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "drafter": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "a5ed7396f5f9e5b1abf7ff50b7899a3186961432",
+      "repo": "incoai/Ornith-1.5-122B-DFlash2",
+      "revision": "a5ed7396f5f9e5b1abf7ff50b7899a3186961432"
+    },
+    "image": {
+      "datasource": "oci-image",
+      "digest": "sha256:56c064d22327a6d0ce09d0de3930084b11841918072e9467a2dd9039b3d92b82",
+      "kind": "tag",
+      "overridden": "the kit derives the tag it pulls (scripts/config.sh prebuilt_image: $GHCR_IMAGE:<TF_TAG>-<image_hash>, the sha256 of patches/*.patch, the prepare.sh Dockerfile and the pinned build settings, first 12 hex digits) instead of writing it in a file, and pins no digest; zig-d1018b3-f5683f4c5651 is that tag at the kit commit (the image's tf.patches label agrees).",
+      "ref": "zig-d1018b3-f5683f4c5651",
+      "repo": "ghcr.io/miaai-lab/ornith-1.5-122b-tensorfold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "9c5c913b3de1eef901520d6fedaf450044ea0423",
+      "repo": "Mia-AiLab/Ornith-1.5-122B-EXL3-EAQv1-4-bpw",
+      "revision": "9c5c913b3de1eef901520d6fedaf450044ea0423"
+    }
+  },
+  "kit": {
+    "commit": "0c8fd6a0d1e2ece7557978a7d8c3d96d137eb075",
+    "repo": "MiaAI-Lab/Ornith-1.5-122B-TensorFold"
+  }
+}

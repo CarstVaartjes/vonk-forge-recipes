@@ -1,0 +1,98 @@
+{
+  "capabilities": [
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-8e63f02a5caa-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "8e63f02a5caa4dbc92838d44dddcfa2c1b76f355503fcbeaa3d6512f7fe132ef",
+      "size_bytes": 1581
+    },
+    {
+      "id": "readme-49c24c62c13a-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "49c24c62c13aaa4bc895f9440e1a73aa19462c0e202184d698a929383e748f39",
+      "size_bytes": 4304
+    },
+    {
+      "id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
+      "path": "assets/dflash2-figure.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "6d8dcc9a9472bddb644c881fe83050b5343d09bf5ffb0912e5598e55fe671e99",
+      "size_bytes": 286889
+    },
+    {
+      "id": "config-f85c6e9f50a2-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "f85c6e9f50a2f9bd5cc6d855569de90e96dd697a6c4a9f6911f19244bf361f52",
+      "size_bytes": 1292
+    },
+    {
+      "id": "model-448fed97ee07-9d75c1098f",
+      "path": "model.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "448fed97ee07d1bd2ab2550231ceeb6272f7c846903bac46060757757227b05f",
+      "size_bytes": 1860568336
+    }
+  ],
+  "format": {
+    "precision": "bf16",
+    "quantization": "none"
+  },
+  "identity": {
+    "family": {
+      "publisher": "ornith-ai",
+      "slug": "ornith",
+      "title": "Ornith"
+    },
+    "model": {
+      "publisher": "incoai",
+      "slug": "ornith-1-5-122b-dflash2",
+      "title": "Ornith 1.5 122B DFlash2"
+    },
+    "publisher": "incoai",
+    "slug": "ornith-1-5-122b-dflash2-a5ed7396",
+    "variant": "Ornith 1.5 122B DFlash2 a5ed7396",
+    "version": "Ornith 1.5 122B DFlash2 a5ed7396"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "IncoAI"
+    ],
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/incoai/Ornith-1.5-122B-DFlash2/blob/a5ed7396f5f9e5b1abf7ff50b7899a3186961432/README.md"
+  },
+  "metadata": {
+    "description": "Exact public Ornith 1.5 122B DFlash2 draft checkpoint a5ed7396 selected by MiaAI-Lab's TensorFold kit.",
+    "tags": [
+      "incoai",
+      "dflash2",
+      "ornith",
+      "draft"
+    ]
+  },
+  "modalities": [
+    "text"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/incoai/Ornith-1.5-122B-DFlash2",
+    "revision": "a5ed7396f5f9e5b1abf7ff50b7899a3186961432"
+  }
+}

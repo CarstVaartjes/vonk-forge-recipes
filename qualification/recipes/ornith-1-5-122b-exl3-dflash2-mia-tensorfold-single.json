@@ -1,0 +1,20 @@
+{
+  "id": "vonk-forge/ornith-1-5-122b-exl3-dflash2-mia-tensorfold-single",
+  "service_recipes": {
+    "alias": "ornith-1.5-122b",
+    "smoke_cases": [
+      "M0",
+      "A323",
+      "T_PRODUCT",
+      "V7"
+    ],
+    "higher_tiers": {
+      "stress": [
+        "Bounded multi-stream concurrency (--parallel) and long-context canaries, with the first-start model load time recorded separately"
+      ],
+      "recovery": [
+        "Controller stop/start with warm restart"
+      ]
+    }
+  }
+}
