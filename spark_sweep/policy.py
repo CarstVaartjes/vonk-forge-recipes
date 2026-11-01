@@ -522,6 +522,8 @@ _CHILD_PHASE = {
     "final_verify": "start",
     "verify": "start",
 }
+#: The run executed another recipe revision than the requested one: the platform's fault.
+REVISION_MISMATCH = "platform.revision_mismatch"
 # The one table of recipe-data codes, for CLI errors and Controller failures alike:
 # attribution follows typed codes; platform detail text is evidence only.
 RECIPE_FAILURE_CODES: dict[str, str] = {

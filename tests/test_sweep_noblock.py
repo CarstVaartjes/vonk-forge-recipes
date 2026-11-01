@@ -458,6 +458,16 @@ def test_storage_shortfall_never_submits_an_impossible_lane(tmp_path: Path) -> N
     blocked_review = json.loads(
         (FIXTURE.parent / "sweep-storage-shortfall.json").read_text()
     )
+    # Like every preview, it resolves the revision each assignment would load.
+    blocked_review["resolved_assignments"] = [
+        {
+            "id": f"id-{recipe.slug}",
+            "alias": sweep._alias(sweep.recipes[recipe.key]),
+            "desired_state": "running",
+            "recipe_revision_id": f"rev-{recipe.content}",
+        }
+        for recipe in recipes
+    ]
     fleet.observations.append((("profile", "load", "--review"), 0, blocked_review))
     sweep._apply(
         [
