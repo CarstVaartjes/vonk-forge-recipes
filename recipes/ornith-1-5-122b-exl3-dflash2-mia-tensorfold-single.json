@@ -1,0 +1,650 @@
+{
+  "execution": {
+    "build": {
+      "base_image": {
+        "digest": "56c064d22327a6d0ce09d0de3930084b11841918072e9467a2dd9039b3d92b82",
+        "repository": "ghcr.io/miaai-lab/ornith-1.5-122b-tensorfold"
+      },
+      "context": {
+        "path": "adapters/llm/mia-ornith-122b-tensorfold-single"
+      },
+      "dockerfile": "adapters/llm/mia-ornith-122b-tensorfold-single/Dockerfile",
+      "network": {
+        "hosts": []
+      },
+      "patches": []
+    }
+  },
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "ornith-1-5-122b-exl3-dflash2-mia-tensorfold-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "openai",
+      "health_path": "/v1/models",
+      "model_aliases": [
+        "Ornith-1.5-122B"
+      ],
+      "port": 8888
+    }
+  ],
+  "kind": "recipe",
+  "metadata": {
+    "alignment": "unspecified",
+    "description": "Ornith-1.5-122B (Qwen3.5-MoE architecture) as MiaAI-Lab's 4-bpw EXL3 EAQv1 checkpoint (revision 9c5c913b, 62 GiB on disk) with incoai's DFlash2 draft model, on one DGX Spark through TensorFold's Zig engine (tensorfold-native, commit d1018b31) plus MiaAI-Lab's patches 0001 to 0027 (EXL3 for the Qwen3.5-MoE CUDA engine, DFlash2, prompt and decode kernels). Runs MiaAI-Lab's published image of her kit (0c8fd6a0), zig-d1018b3-f5683f4c5651 (sha256:56c064d22327a6d0ce09d0de3930084b11841918072e9467a2dd9039b3d92b82), as published and not rebuilt, with only a thin layer for the Controller's launcher. Four streams, a 262,144-token window, fp8 KV cache (lossy; bf16 is exact), image input (the engine rejects video) and replies of up to 32,768 tokens without max_tokens. DFlash2 output matched the no-draft run on 21 of 21 greedy prompts (creator-measured). The declared peak follows the creator's measurements: about 69.5 GiB for the weights, drafter and scratch on the device, four full fp8 windows with their GatedDeltaNet state, the 2 GiB vision workspace and a prompt cache of up to 16 GiB; the engine keeps 10 GiB free when it sizes the pool. Upstream performance (prefill about 2,450 tok/s at 4k, decode 53 tok/s prose and 83 tok/s code on one stream) is the creator's measurement on one DGX Spark, not measured here. The checkpoint is MIT-licensed on its model card; the DFlash2 draft model is Apache-2.0. Thinking is chosen per request (chat template kwargs), not as a recipe option; server default: think first (upstream default).",
+    "tags": [
+      "dflash2",
+      "engine",
+      "exl3",
+      "image-input",
+      "ornith",
+      "reasoning",
+      "spark",
+      "tensorfold"
+    ],
+    "title": "Ornith 1.5 122B EXL3 DFlash2 TensorFold single Spark (Mia)"
+  },
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "metadata-75d14950cc71-618cd5b83d",
+          "id": "metadata-75d14950cc71-618cd5b83d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-07b3de63d18b-b335630551",
+          "id": "readme-07b3de63d18b-b335630551",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "chat-template-9dd2fbd270fe-00824420d1",
+          "id": "chat-template-9dd2fbd270fe-00824420d1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-8ef17ad5057f-587cb980af",
+          "id": "config-8ef17ad5057f-587cb980af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "generation-config-303aba891d66-97dd3d578b",
+          "id": "generation-config-303aba891d66-97dd3d578b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "kl-by-category-0a8a3261ba4b-e9dbc37e75",
+          "id": "kl-by-category-0a8a3261ba4b-e9dbc37e75",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "kl-histogram-016a07dd4b38-19dec44946",
+          "id": "kl-histogram-016a07dd4b38-19dec44946",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "layerwise-error-57b7f9d00f0b-498d2598dc",
+          "id": "layerwise-error-57b7f9d00f0b-498d2598dc",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "size-breakdown-dbca1a5feb53-f0da58ca9b",
+          "id": "size-breakdown-dbca1a5feb53-f0da58ca9b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "top1-by-category-638be06b6e67-4bcae3f733",
+          "id": "top1-by-category-638be06b6e67-4bcae3f733",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00001-of-00009-4f5056002565-88587b10f1",
+          "id": "model-00001-of-00009-4f5056002565-88587b10f1",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00009-82225cc27d95-197402693c",
+          "id": "model-00002-of-00009-82225cc27d95-197402693c",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00009-16e413a3efce-861ce467d6",
+          "id": "model-00003-of-00009-16e413a3efce-861ce467d6",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00009-ff75a4451973-ef1df50c87",
+          "id": "model-00004-of-00009-ff75a4451973-ef1df50c87",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00009-63413f0c882e-6efe792e18",
+          "id": "model-00005-of-00009-63413f0c882e-6efe792e18",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00009-ec6d24f932b7-6ce9a8a49b",
+          "id": "model-00006-of-00009-ec6d24f932b7-6ce9a8a49b",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00009-51af589d7c46-9bf5db00eb",
+          "id": "model-00007-of-00009-51af589d7c46-9bf5db00eb",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00009-f20d678dec72-7a39f1d683",
+          "id": "model-00008-of-00009-f20d678dec72-7a39f1d683",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00009-d395c8c4bcb5-f25cdaf348",
+          "id": "model-00009-of-00009-d395c8c4bcb5-f25cdaf348",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-safetensors-index-2e1052cfd557-0a05be8238",
+          "id": "model-safetensors-index-2e1052cfd557-0a05be8238",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "quantization-config-c64d1f223969-6f24389fb3",
+          "id": "quantization-config-c64d1f223969-6f24389fb3",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-5f9e4d4901a9-224931eb13",
+          "id": "tokenizer-5f9e4d4901a9-224931eb13",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "tokenizer-config-316230d6a809-94d5c6ba8f",
+          "id": "tokenizer-config-316230d6a809-94d5c6ba8f",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "28f76de3473bd9214847bee781e1c699c62ee42bc8b4a4f1aad22f77df986b5d",
+        "kind": "model",
+        "publisher": "mia-ailab",
+        "slug": "ornith-1-5-122b-mia-exl3-eaq-v1-4bpw-9c5c913b"
+      }
+    },
+    {
+      "files": [
+        {
+          "file_id": "metadata-8e63f02a5caa-618cd5b83d",
+          "id": "metadata-8e63f02a5caa-618cd5b83d",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "readme-49c24c62c13a-b335630551",
+          "id": "readme-49c24c62c13a-b335630551",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "id": "dflash2-figure-6d8dcc9a9472-e520c8f797",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "config-f85c6e9f50a2-587cb980af",
+          "id": "config-f85c6e9f50a2-587cb980af",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-448fed97ee07-9d75c1098f",
+          "id": "model-448fed97ee07-9d75c1098f",
+          "mount": {
+            "target": "/models/drafter"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "drafter",
+      "model": {
+        "content_sha256": "fc61b3b99f4826326f29aab6624ae155cb4d1748459210673d6b9d3e247476b8",
+        "kind": "model",
+        "publisher": "incoai",
+        "slug": "ornith-1-5-122b-dflash2-a5ed7396"
+      }
+    }
+  ],
+  "provenance": {
+    "attribution": [
+      "MiaAI-Lab",
+      "Ash Hart (TensorFold)",
+      "incoai",
+      "Ornith AI"
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/Ornith-1.5-122B-TensorFold/tree/0c8fd6a0d1e2ece7557978a7d8c3d96d137eb075"
+  },
+  "release": {
+    "released_at": "2026-10-21",
+    "version": "1.0.0"
+  },
+  "runtime": {
+    "arguments": [
+      {
+        "name": "host",
+        "value": "0.0.0.0"
+      },
+      {
+        "name": "port",
+        "value": 8888
+      },
+      {
+        "name": "name",
+        "value": "Ornith-1.5-122B"
+      },
+      {
+        "name": "max-tokens",
+        "value": 32768
+      },
+      {
+        "name": "temperature",
+        "value": 0.6
+      },
+      {
+        "name": "top-p",
+        "value": 0.95
+      },
+      {
+        "name": "top-k",
+        "value": 20
+      },
+      {
+        "name": "thinking",
+        "value": true
+      },
+      {
+        "name": "kv-cache",
+        "value": "fp8"
+      },
+      {
+        "name": "drafter",
+        "value": "/models/drafter"
+      },
+      {
+        "name": "vision",
+        "value": true
+      },
+      {
+        "name": "vision-max-images",
+        "value": 50
+      },
+      {
+        "name": "vision-max-videos",
+        "value": 4
+      },
+      {
+        "name": "vision-image-tokens",
+        "value": 16384
+      },
+      {
+        "name": "parallel",
+        "setting": "concurrency"
+      },
+      {
+        "name": "context",
+        "setting": "context_tokens"
+      }
+    ],
+    "engine": "tensorfold",
+    "entrypoint": [
+      "/opt/vonk/bin/tensorfold-serve"
+    ],
+    "environment": [
+      {
+        "name": "HF_HUB_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TRANSFORMERS_OFFLINE",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_NO_UPDATE_CHECK",
+        "value": "1"
+      },
+      {
+        "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
+        "value": "10"
+      },
+      {
+        "name": "TENSORFOLD_CUDA_KERNELS",
+        "value": "native"
+      },
+      {
+        "name": "TENSORFOLD_MAX_IMAGES",
+        "value": "50"
+      },
+      {
+        "name": "TENSORFOLD_IMAGE_TOKENS",
+        "value": "16384"
+      },
+      {
+        "name": "TENSORFOLD_VIDEO_TOKENS",
+        "value": "16384"
+      },
+      {
+        "name": "TENSORFOLD_VISION_WORKSPACE_MIB",
+        "value": "2048"
+      }
+    ],
+    "lifecycle": {
+      "stop_timeout_seconds": 60
+    }
+  },
+  "settings": {
+    "concurrency": {
+      "change_effect": "restart",
+      "value": 4
+    },
+    "context_tokens": {
+      "change_effect": "restart",
+      "value": 262144
+    },
+    "kind": "generation",
+    "knobs": {},
+    "max_batch_tokens": null
+  },
+  "topology": {
+    "name": "solo",
+    "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
+    "roles": [
+      {
+        "count": 1,
+        "endpoint_owner": true,
+        "name": "entrypoint",
+        "resources": {
+          "disk": {
+            "artifact_bytes": 67491819405,
+            "image_bytes": 26000000000,
+            "safety_margin_bytes": 10000000000,
+            "working_bytes": 8000000000
+          },
+          "memory": {
+            "peak_bytes": 107803679129,
+            "reserve_bytes": 10737418240
+          }
+        }
+      }
+    ],
+    "start_order": [
+      "entrypoint"
+    ]
+  },
+  "validation": {
+    "serving": {
+      "checks": [
+        {
+          "assertions": [
+            "endpoint.healthy"
+          ],
+          "kind": "openai.health",
+          "name": "health",
+          "request": {
+            "body": null,
+            "method": "GET",
+            "path": "/v1/models",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.chat",
+          "name": "bounded-chat",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": "hello",
+                  "role": "user"
+                }
+              ],
+              "model": "Ornith-1.5-122B"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        },
+        {
+          "assertions": [
+            "chat.nonempty",
+            "chat.output-cap"
+          ],
+          "kind": "openai.vision",
+          "name": "bounded-vision",
+          "request": {
+            "body": {
+              "max_tokens": 256,
+              "messages": [
+                {
+                  "content": [
+                    {
+                      "text": "describe this image",
+                      "type": "text"
+                    },
+                    {
+                      "image_url": {
+                        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAABAAAAAQBPJcTWAAAAYElEQVR4nO3PwQkAIBDAMAX3H/lwCB9BaCZo96y/HR3wqgGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQHtAgK6AfwYG1VIAAAAAElFTkSuQmCC"
+                      },
+                      "type": "image_url"
+                    }
+                  ],
+                  "role": "user"
+                }
+              ],
+              "model": "Ornith-1.5-122B"
+            },
+            "method": "POST",
+            "path": "/v1/chat/completions",
+            "transport": "http"
+          }
+        }
+      ],
+      "interface": "openai"
+    }
+  }
+}
