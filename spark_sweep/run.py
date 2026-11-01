@@ -2019,6 +2019,39 @@ class Sweep:
             raise ValueError(reply.error_text)
         return str(target)
 
+    def _ran_other_revision(self, key: str, slot: dict[str, Any]) -> bool:
+        """The run executed a revision other than the one requested: nothing is evidence.
+
+        Evidence binds to the bytes that ran. The row names the platform and is not a
+        smoke row, so it never becomes qualification evidence under the listed identity;
+        the recipe is planned again. An unreported run revision changes nothing.
+        """
+        accepted = AcceptedRequest.read(slot)
+        listed = accepted.recipe.revision_id if accepted else ""
+        ran = {
+            p.recipe_revision_id
+            for p in self.fleet.presences
+            if p.run_id == slot.get("run_id") and p.recipe_revision_id
+        }
+        if not listed or not ran or ran == {listed}:
+            return False
+        now = self.clock.now()
+        entry = self.state.entry(key)
+        entry.update(status="pending", not_before=now + self.cfg.retry_delay)
+        slot["phase"] = "finished"
+        self.record_result(
+            key,
+            "identity",
+            "deferred",
+            blame="platform",
+            code="platform.revision_mismatch",
+            reason="the run executed another recipe revision than the one requested",
+            evidence={"requested_revision": listed, "ran_revisions": sorted(ran)},
+            slot=slot,
+        )
+        self.state.event(f"deferred {key}: platform.revision_mismatch")
+        return True
+
     def _record_pass(self, key: str, slot: dict[str, Any], result: SmokeResult) -> None:
         now = self.clock.now()
         entry = self.state.entry(key)
@@ -2995,6 +3028,8 @@ class Sweep:
             result = future.result()
         except Exception as error:  # noqa: BLE001 - a bug in one smoke must not stop an unattended sweep
             self._smoke_crashed(key, error)
+            return
+        if self._ran_other_revision(key, slot):
             return
         if result.ok:
             self.clear_infra("client-key")
