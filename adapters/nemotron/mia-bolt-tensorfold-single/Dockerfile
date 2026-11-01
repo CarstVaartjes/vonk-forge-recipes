@@ -1,8 +1,9 @@
 # Native Bolt runtime with creator patches 5e11cf1ed295; thin Controller wrapper.
+# The kit has moved on to TensorFold v1.1.6; its image is not published yet, so this stays on the published 46a08c1 build.
 FROM ghcr.io/miaai-lab/nemotron-3.5-bolt-tensorfold-dgx-spark@sha256:9d39df6d1526ede3d0afb983d122643284ae4a92f50c07ee544c47e2b7befa1e
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark" \
-      org.opencontainers.image.revision="6f61d7727ae3fac010f30e240799cc884d295f6e" \
+      org.opencontainers.image.revision="6b064a31dd47e4f959e9041d6129eb2bad830481" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 

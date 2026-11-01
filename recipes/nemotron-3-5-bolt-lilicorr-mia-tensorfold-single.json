@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Nemotron 3.5 Bolt 74B-A9B 24GB with its LiLiCorr speculative drafter, using MiaAI-Lab native TensorFold at 46a08c18 plus the Bolt engine and patch set 5e11cf1ed295. Sixteen streams, a 262,144-token window, BF16 KV and an 8 GiB prompt cache. Supports images and video through the RADIO tower. The estimated 80 GiB peak includes target/drafter weights, 32 GiB of full-window KV, recurrent state per stream, vision workspace and runtime overhead. Physical performance and quality are unmeasured here.",
+    "description": "Nemotron 3.5 Bolt 74B-A9B 24GB with its LiLiCorr speculative drafter, using MiaAI-Lab native TensorFold at 46a08c18 plus the Bolt engine and patch set 5e11cf1ed295. Sixteen streams, a 262,144-token window, BF16 KV and an 8 GiB prompt cache. Supports images and video through the RADIO tower. The estimated 80 GiB peak includes target/drafter weights, 32 GiB of full-window KV, recurrent state per stream, vision workspace and runtime overhead. Physical performance and quality are unmeasured here. The kit pin is MiaAI-Lab's current head, which names TensorFold v1.1.6 (lazy Mamba state, Q8_0 drafter projections and FP4 prompt projections by default); its image is not published yet, so this recipe still runs the published image of the previous engine (TensorFold 46a08c18, patch set 5e11cf1ed295) and none of those changes until the creator publishes one.",
     "tags": [
       "nemotron",
       "tensorfold",
@@ -1308,7 +1308,7 @@
     }
   ],
   "provenance": {
-    "source_reference": "https://github.com/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark/tree/6f61d7727ae3fac010f30e240799cc884d295f6e",
+    "source_reference": "https://github.com/MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark/tree/6b064a31dd47e4f959e9041d6129eb2bad830481",
     "attribution": [
       "MiaAI-Lab",
       "Ash Hart (TensorFold)",
@@ -1316,8 +1316,8 @@
     ]
   },
   "release": {
-    "version": "1.0.12",
-    "released_at": "2026-10-18"
+    "version": "1.0.13",
+    "released_at": "2026-11-01"
   },
   "runtime": {
     "arguments": [
