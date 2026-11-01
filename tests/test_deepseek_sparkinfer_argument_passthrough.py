@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -12,44 +11,32 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize(
-    "adapter",
-    ["sparkinfer-single", "sparkinfer-target-only-single", "mia-sparkinfer-single"],
+    "adapter", ["sparkinfer-single", "sparkinfer-target-only-single"]
 )
-def test_sparkinfer_console_uses_native_extension_interpreter(
-    tmp_path: Path, adapter: str
-) -> None:
-    """Bypassing the image ENTRYPOINT must still use its Torch ABI environment."""
-    dockerfile = (ROOT / "adapters/deepseek" / adapter / "Dockerfile").read_text()
-    # Execute the shipped build instruction against a local console script,
-    # then invoke that script as the upstream serve-ds4-flash.sh does.
-    instruction = next(
-        line.removeprefix("RUN ").removesuffix(" \\")
-        for line in dockerfile.splitlines()
-        if line.startswith("RUN printf '#!/opt/runtime-venv/bin/python")
-    )
-    interpreter = tmp_path / "runtime-python"
-    interpreter.symlink_to(sys.executable)
-    package = tmp_path / "vllm/entrypoints/cli"
-    package.mkdir(parents=True)
-    (package / "main.py").write_text(
-        "import json, sys\ndef main():\n    print(json.dumps(sys.argv))\n"
-    )
-    console = tmp_path / "vllm-console"
-    instruction = instruction.replace("/opt/runtime-venv/bin/python", str(interpreter))
-    instruction = instruction.replace("/usr/local/bin/vllm", str(console))
-    subprocess.run(["sh", "-c", instruction], check=True, timeout=10)
-    console.chmod(0o755)
-    args = ["serve", "/models", "--gpu-memory-utilization", "0.85"]
-    result = subprocess.run(
-        [str(console), *args],
-        env={**os.environ, "PYTHONPATH": str(tmp_path)},
-        capture_output=True,
-        text=True,
-        check=True,
-        timeout=10,
-    )
-    assert json.loads(result.stdout) == [str(console), *args]
-    assert "from vllm.entrypoints.cli.main import main" in console.read_text()
+def test_creator_adapters_select_venv_python_via_vllm_python(adapter: str) -> None:
+    """Follow the creator: VLLM_PYTHON makes serve-ds4-flash.sh run `python -m`.
+
+    Rewriting /usr/local/bin/vllm without a __main__ guard broke vLLM's spawn
+    start method (engine child re-imported the script), so it must stay absent.
+    """
+    root = ROOT / "adapters/deepseek" / adapter
+    assert "/usr/local/bin/vllm" not in (root / "Dockerfile").read_text()
+    wrapper = (root / "vllm-wrapper.sh").read_text()
+    assert "\nexport VLLM_PYTHON=/opt/runtime-venv/bin/python\n" in wrapper
+
+
+def test_no_generated_console_script_lacks_main_guard() -> None:
+    """vLLM uses spawn: a generated `main()` script without a guard re-runs in the child."""
+    offenders = [
+        str(path.relative_to(ROOT))
+        for path in sorted((ROOT / "adapters").glob("**/Dockerfile"))
+        for line in path.read_text().splitlines()
+        if "printf '#!" in line
+        and "python" in line
+        and "SystemExit(main())" in line
+        and "__main__" not in line
+    ]
+    assert offenders == []
 
 
 @pytest.mark.parametrize(
@@ -117,7 +104,7 @@ def test_sparkinfer_wrappers_preserve_authored_engine_argv(
 
     captured_launcher = tmp_path / "capture-launcher.sh"
     captured_launcher.write_text(
-        "#!/bin/sh\nprintf '%s\\0' \"$@\"\n",
+        '#!/bin/sh\nprintf \'%s\\0\' "$@"\nprintf \'%s\' "$VLLM_PYTHON" > "$(dirname "$0")/vllm-python"\n',
         encoding="utf-8",
     )
     captured_launcher.chmod(0o755)
@@ -186,3 +173,5 @@ def test_sparkinfer_wrappers_preserve_authored_engine_argv(
     assert result.returncode == 0, result.stderr.decode("utf-8", errors="replace")
     captured = result.stdout.split(b"\0")[:-1]
     assert [token.decode("utf-8") for token in captured] == authored_args
+    # The creator's serve script runs `$VLLM_PYTHON -m vllm.entrypoints.cli.main`.
+    assert (tmp_path / "vllm-python").read_text() == str(fake_python)

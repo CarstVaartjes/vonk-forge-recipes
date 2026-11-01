@@ -104,6 +104,8 @@ fi
 
 /opt/runtime-venv/bin/python /opt/recipe/scripts/selftest.py
 
+# Creator entrypoint.sh:50: serve-ds4-flash.sh runs vLLM with the Torch-ABI venv Python.
+export VLLM_PYTHON=/opt/runtime-venv/bin/python
 export ALLREDUCE_MODE=nccl
 export BACKEND=b12x-a8
 export CUDAGRAPH_CAPTURE_SIZES=6
