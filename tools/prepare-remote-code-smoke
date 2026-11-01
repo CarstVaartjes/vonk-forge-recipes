@@ -42,16 +42,17 @@ class Plan(BaseModel):
     images: list[PlannedImage]
 
 
-# vLLM, SGLang and the native TensorFold engine build registered architectures
-# from their own model registry (TensorFold implements them itself, with no
-# `transformers` in its image).
+# vLLM and SGLang build registered architectures from their own model registry.
 # They import auto_map AutoModel* classes only on their Transformers backend
 # (`model-impl transformers`, or an unregistered architecture, whose failed
 # import ends the load with evidence) and in SGLang's ModelOpt quantization
 # load (`modelopt-*` arguments, or quantization to these formats, which
 # SGLang applies to an unquantized checkpoint). Other engines
 # keep every module checked. Option choices can add or replace arguments.
-NATIVE_MODEL_ENGINES = {"vllm", "sglang", "tensorfold"}
+NATIVE_MODEL_ENGINES = {"vllm", "sglang"}
+# TensorFold imports no model Python code at all (the model's .py files, its
+# auto_map modules included, are never loaded), so it adds nothing to the smoke.
+NO_MODEL_PYTHON_ENGINES = {"tensorfold"}
 MODELOPT_QUANTIZE = {"modelopt", "modelopt_fp8", "modelopt_mixed"}
 
 
@@ -457,6 +458,8 @@ def prepare(plan: Plan, output: Path, root: Path = ROOT) -> None:
             recipe = RecipeDefinition.model_validate_json(
                 (root / planned.source_path).read_bytes()
             )
+            if recipe.runtime.engine in NO_MODEL_PYTHON_ENGINES:
+                continue
             files.update(model_files(recipe, root))
             if imports_remote_model(recipe):
                 model_code.update(selection.model.slug for selection in recipe.models)
