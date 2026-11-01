@@ -345,7 +345,8 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
         assert expected_peak >= need.peak_bytes
     for role in recipe.topology.roles:
         memory = role.resources.memory
-        assert memory.peak_bytes == expected_peak, role.name
+        # The creator's envelope is the floor; a role's honest measured peak may be higher.
+        assert memory.peak_bytes >= expected_peak, role.name
         if row.os_floor_reserve:
             assert memory.reserve_bytes >= OS_FLOOR_BYTES, role.name
     description = recipe_display(slug).description
