@@ -451,7 +451,7 @@
       "key_dim": 128,
       "kv_heads": 16,
       "layers": 126,
-      "source": "https://huggingface.co/hugging-quants/Meta-Llama-3.1-405B-Instruct-AWQ-INT4/resolve/1954fc5977cde8271bd7fd3e9bbb827a7bdd3bcd/config.json; 126 layers, 16 KV heads, hidden_size 16384 / 128 attention heads = head_dim 128, torch_dtype float16 (config sha256 verified against the download). Per TP=2 rank: 126 x 8 x 128 x 2 (K,V) x 2 bytes = 516,096 bytes/token.",
+      "source": "https://huggingface.co/hugging-quants/Meta-Llama-3.1-405B-Instruct-AWQ-INT4/resolve/1954fc5977cde8271bd7fd3e9bbb827a7bdd3bcd/config.json; 126 layers, 16 KV heads, hidden_size 16384 / 128 attention heads = head_dim 128, torch_dtype float16 (config sha256 verified against the download). Per TP=4 rank: 126 x 4 x 128 x 2 (K,V) x 2 bytes = 258,048 bytes/token.",
       "value_dim": 128
     },
     "llama-3-1-8b-instruct-nvfp4-bdb54e24": {
@@ -1018,9 +1018,6 @@
     ],
     "vonk-forge/ling-3-0-flash-vl-nvfp4-mp-r0b0tlab-vllm-single": [
       "7408b88f1cc7939ad8be4d1e7c02e3ee1c64daa8a9b89263e018b9bbe5ccc7ca"
-    ],
-    "vonk-forge/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual": [
-      "fe07c0ae7a5c69e52cfb0aecc247c25d560a165af8fcf568092df392f90794d2"
     ],
     "vonk-forge/llama-3-1-8b-instruct-fp8-nvidia-sglang-single": [
       "1832241dfac980b81de32f613e29aeae3c2e579014ed567c0dd6f7c9cf3ef1cb",
