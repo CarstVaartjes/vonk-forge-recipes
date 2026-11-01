@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recipe_key": "vonk-forge/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual",
+  "recipe_key": "vonk-forge/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four",
   "records": [
     {
       "identity": {

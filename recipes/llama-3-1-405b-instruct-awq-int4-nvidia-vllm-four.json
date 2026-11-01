@@ -6,9 +6,9 @@
         "repository": "nvcr.io/nvidia/vllm"
       },
       "context": {
-        "path": "adapters/nvidia/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual"
+        "path": "adapters/nvidia/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
       },
-      "dockerfile": "adapters/nvidia/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual/Dockerfile",
+      "dockerfile": "adapters/nvidia/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four/Dockerfile",
       "network": {
         "hosts": []
       },
@@ -17,7 +17,7 @@
   },
   "identity": {
     "publisher": "vonk-forge",
-    "slug": "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual"
+    "slug": "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
   },
   "interfaces": [
     {
@@ -32,21 +32,21 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Llama 3.1 405B Instruct AWQ INT4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Tensor parallel 2 across the pair uses vLLM's native multi-node launch (the platform's --nnodes/--node-rank placement options) instead of the playbook's hand-started Ray cluster: the pinned NVIDIA NGC vllm 26.05.post1 image does not ship Ray (its layers hold no ray package and no ray executable), and vLLM rejects --nnodes with the Ray executor. Deviation from the playbook: the context is 512 tokens (batched tokens 512) instead of 64, so the sweep's 256-token A323 chat case plus its prompt fits the context and the bounded 64-token chat check fits too. Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.9 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Absolute KV correction: the creator value is vLLM's default 0.9 utilization; 0.85 came from an offline fit, not a hardware failure, and at 0.85 only about 1.4 GB per rank remain beside the 109.64 GB of weights, so no utilization-only value passes the KV need check within admission. A 1,073,741,824-byte pool per rank holds 2,080 tokens at 516,096 bytes/token (126 layers x 8 KV heads per TP=2 rank x 128 head_dim x 2 K/V x 2 bytes), four full-context requests at the 512-token context; 0.85 stays only as vLLM's startup check. This is an offline estimate; physical acceptance remains pending.",
+    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Llama 3.1 405B Instruct AWQ INT4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Tensor parallel 4 across four Sparks uses vLLM's native multi-node launch (the platform's --nnodes/--node-rank placement options) instead of the playbook's hand-started Ray cluster: the pinned NVIDIA NGC vllm 26.05.post1 image does not ship Ray (its layers hold no ray package and no ray executable), and vLLM rejects --nnodes with the Ray executor. Deviation from the playbook: the context is 512 tokens (batched tokens 512) instead of 64, so the sweep's 256-token A323 chat case plus its prompt fits the context and the bounded 64-token chat check fits too. Four Sparks, not two: the AWQ INT4 checkpoint is 204.22 GiB, so a pair holds 109.64 GB of weights per rank against about 119.4 GiB usable. Hardware-observed 2026-11-01 (two Sparks, tensor parallel 2): both ranks ran out of memory during weight loading (the host guard killed the worker on one Spark at MemAvailable 0; the kernel OOM-killed the other), and swap stayed unused because the weights land in GPU/driver memory. NVIDIA's own playbook notes insufficient memory headroom on two Sparks and marks that setup testing only. At tensor parallel 4 (128 attention heads and 16 KV heads divide evenly) each rank holds about 54.8 GB of weights. Per-rank peak is the honest loading floor: 54,821,967,093 bytes of weights (219,287,868,370 / 4, rounded up) plus the 1,073,741,824-byte KV pool plus the 8,000,000,000-byte runtime-overhead estimate; it is an offline estimate, not a measurement, and physical acceptance is pending. The explicit KV pool of 1,073,741,824 bytes per rank holds 4,161 tokens at 258,048 bytes/token (126 layers x 4 KV heads per TP=4 rank x 128 head_dim x 2 K/V x 2 bytes), eight full-context requests at the 512-token context; utilization 0.48 (62.7 GB) is only vLLM's startup free-memory check beside the fixed pool and must stay at or below the per-rank peak; the playbook's 0.85 would require 111 GB free per rank, which no honest four-rank peak declares. It needs four enrolled Sparks.",
     "tags": [
       "executable",
       "candidate",
       "nvidia",
       "vllm",
       "openai",
-      "single",
+      "four",
       "spark",
       "llama",
       "awq",
       "int4",
       "mp"
     ],
-    "title": "Llama 3.1 405B Instruct AWQ INT4 vLLM two Sparks (NVIDIA playbook)"
+    "title": "Llama 3.1 405B Instruct AWQ INT4 vLLM four Sparks (NVIDIA playbook)"
   },
   "models": [
     {
@@ -721,12 +721,12 @@
       {
         "name": "tensor-parallel-size",
         "setting": null,
-        "value": 2
+        "value": 4
       },
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.85"
+        "value": "0.48"
       },
       {
         "name": "kv-cache-memory-bytes",
@@ -773,13 +773,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "name": "dual",
-    "node_count": 2,
+    "name": "four",
+    "node_count": 4,
     "parallelism": {
       "backend": "mp",
       "data": 1,
       "pipeline": 1,
-      "tensor": 2
+      "tensor": 4
     },
     "roles": [
       {
@@ -791,16 +791,16 @@
             "artifact_bytes": 219287868370,
             "image_bytes": 25000000000,
             "safety_margin_bytes": 12000000000,
-            "working_bytes": 109643934185
+            "working_bytes": 54821967093
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 63895708917,
             "reserve_bytes": 17179869184
           }
         }
       },
       {
-        "count": 1,
+        "count": 3,
         "endpoint_owner": false,
         "name": "worker",
         "resources": {
@@ -808,10 +808,10 @@
             "artifact_bytes": 219287868370,
             "image_bytes": 25000000000,
             "safety_margin_bytes": 12000000000,
-            "working_bytes": 109643934185
+            "working_bytes": 54821967093
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 63895708917,
             "reserve_bytes": 17179869184
           }
         }
