@@ -423,6 +423,8 @@ class FakeFleet:
         self.ops: dict[str, dict[str, Any]] = {}
         self.by_request: dict[str, str] = {}
         self.runs: list[dict[str, Any]] = []
+        # Review revisions that differ from the listed recipe's, by recipe key.
+        self.review_revisions: dict[str, str] = {}
         self.calls: list[tuple[int | None, tuple[str, ...]]] = []
         self.call_times: list[float] = []
         self.download_seconds = 60.0
@@ -1151,12 +1153,6 @@ class FakeFleet:
                     if run["ready"]
                     else "pending",
                     "run_state": "running" if run["ready"] else "starting",
-                    "recipe_revision_id": run.get("recipe_revision_id")
-                    or (
-                        f"rev-{self.recipes[run['recipe']].content}"
-                        if run.get("recipe") in self.recipes
-                        else ""
-                    ),
                 }
                 for run in self.runs
                 if node_id in run["node_ids"]
@@ -1449,6 +1445,17 @@ class FakeFleet:
             doc = {
                 "allowed": not blocked,
                 "waits_for_preparation": False,
+                "assignments": [
+                    {
+                        "assignment_id": f"id-{x['assignment_name']}",
+                        "recipe_revision_id": self.review_revisions.get(
+                            x["recipe_selector"]
+                        )
+                        or f"rev-{self.recipes[x['recipe_selector']].content}",
+                    }
+                    for x in data["assignments"]
+                    if x["recipe_selector"] in self.recipes
+                ],
                 "effects": {
                     "adopted": adopted,
                     "runs": [
@@ -1467,12 +1474,24 @@ class FakeFleet:
                 },
                 "admission_decisions": [
                     {
+                        "assignment_id": f"id-{alias}",
                         "alias": alias,
                         "allowed": False,
                         "blockers": found,
                         "requirements": required.get(alias, []),
                     }
                     for alias, found in blocked.items()
+                ]
+                + [
+                    {
+                        "assignment_id": f"id-{x['assignment_name']}",
+                        "alias": x["assignment_name"],
+                        "allowed": True,
+                        "blockers": [],
+                        "requirements": [],
+                    }
+                    for x in data["assignments"]
+                    if x["assignment_name"] not in blocked
                 ],
                 "reasons": [],
             }

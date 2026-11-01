@@ -379,12 +379,7 @@ def test_catalog_change_during_lane_keeps_the_verdict_bound_to_accepted_content(
         policy.Placement(accepted, ("spk_a",)), "accepted-request", clock.now()
     )
     slot = sweep.state.slots[fake.key]
-    slot.update(
-        phase=phase,
-        ready_at=clock.now(),
-        run_id="accepted-run",
-        ran_revision=accepted.revision_id,
-    )
+    slot.update(phase=phase, ready_at=clock.now(), run_id="accepted-run")
     sweep.state.save()
     if restart:
         sweep, _, _ = make_sweep(tmp_path, [fake], [], fleet=fleet)
@@ -421,7 +416,6 @@ def test_saved_lane_fixture_never_certifies_the_catalog_at_restart(
     fixture = Path(__file__).parent / "fixtures/sweep-accepted-content-state.json"
     saved = json.loads(fixture.read_text())
     key = "vonk-forge/changing"
-    saved["slots"][key]["ran_revision"] = "rev-c1"
     if not bound:
         saved["slots"][key].pop("accepted_content")
     (tmp_path / "state.json").write_text(json.dumps(saved))
@@ -469,7 +463,6 @@ def test_lane_failure_and_its_evidence_bind_to_the_accepted_content(
     sweep._open_slot(
         policy.Placement(accepted, ("spk_a",)), "accepted-request", clock.now()
     )
-    sweep.state.slots[fake.key]["ran_revision"] = accepted.revision_id
     sweep.recipes[fake.key] = replace(
         accepted, content_sha256="d" * 64, revision_id="rev-c2"
     )

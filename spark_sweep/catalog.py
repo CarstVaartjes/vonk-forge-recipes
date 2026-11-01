@@ -332,8 +332,6 @@ class Presence:
     healthy: bool
     route_state: str
     run_state: str
-    # The revision the run executes; empty when the Controller does not report it.
-    recipe_revision_id: str = ""
 
 
 @dataclass(frozen=True)
@@ -396,7 +394,6 @@ def parse_fleet(document: Any, default_memory: int) -> Fleet:
                         healthy=item.get("healthy") is True,
                         route_state=str(item.get("route_state", "")),
                         run_state=str(item.get("run_state", "")),
-                        recipe_revision_id=str(item.get("recipe_revision_id") or ""),
                     )
                 )
     return Fleet(tuple(sparks), tuple(presences))

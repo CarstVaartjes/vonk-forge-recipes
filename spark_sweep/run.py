@@ -1939,12 +1939,6 @@ class Sweep:
         bounded event ring. A lane's own row (``key`` None) names its Spark instead.
         """
         row: dict[str, Any] = {"batch": "sweep", "step": step, "status": status}
-        # A slot's smoke verdict is evidence only for the revision its run executed.
-        evidential = not (
-            step == "smoke"
-            and slot is not None
-            and not self._ran_requested_revision(slot)
-        )
         if key is not None:
             entry = self.state.entry(key)
             slot = slot if slot is not None else self.state.slots.get(key)
@@ -1956,8 +1950,7 @@ class Sweep:
             row["controller_document"] = _bounded_document(document)
         try:
             recorded = self.log.append(**row)
-            if evidential:
-                self._remember_qualification(recorded)
+            self._remember_qualification(recorded)
         except OSError as error:
             # The log is the evidence; a full disk is an infrastructure fact to show.
             self.note_infra("results-log", f"{type(error).__name__}: {error}")
@@ -2008,6 +2001,9 @@ class Sweep:
             else entry.get("verdict_identity"),
         }
         if slot:
+            # The revision the Controller's review bound to this load; evidence readers
+            # accept the row only when it is the requested one.
+            facts["ran_revision"] = slot.get("ran_revision")
             facts["node_ids"] = list(slot.get("node_ids", []))
             facts["sparks"] = list(slot.get("spark_names", []))
             facts["run_id"] = slot.get("run_id")
@@ -2026,67 +2022,6 @@ class Sweep:
         if not reply.ok:
             raise ValueError(reply.error_text)
         return str(target)
-
-    def _capture_run_revision(self, key: str, slot: dict[str, Any]) -> bool:
-        """Remember which revision this load's run executes, the first time it is seen.
-
-        The Controller drops stopped and failed runs from the fleet, so the revision is
-        captured while the run is visible and not re-read at the verdict. A run of another
-        revision than the requested one ends the lane here: it waits, paced by how often it
-        happened, and its verdict is never evidence (``record_result``). Returns True then.
-        """
-        if "ran_revision" in slot:
-            return False
-        accepted = AcceptedRequest.read(slot)
-        if accepted is None:
-            return False
-        prior = set(slot.get("prior_runs", ()))
-        ran = {
-            p.recipe_revision_id
-            for p in self.fleet.presences
-            if p.alias == slot["alias"]
-            and p.node_id in slot["node_ids"]
-            and p.run_id not in prior
-        }
-        if not ran:
-            return False
-        slot["ran_revision"] = "|".join(sorted(ran))
-        entry = self.state.entry(key)
-        if slot["ran_revision"] == accepted.recipe.revision_id:
-            entry.pop("revision_mismatches", None)
-            return False
-        entry["revision_mismatches"] = int(entry.get("revision_mismatches", 0)) + 1
-        entry.update(
-            status="pending",
-            not_before=self.clock.now()
-            + verdict.retry_delay(self.cfg.retry_delay, entry["revision_mismatches"]),
-        )
-        slot["phase"] = "finished"
-        self.record_result(
-            key,
-            "identity",
-            "waiting",
-            blame=QualificationBlame.PLATFORM.value,
-            code=policy.REVISION_MISMATCH,
-            disposition=Disposition.WAIT.value,
-            reason="the run executed another recipe revision than the one requested",
-            evidence={
-                "requested_revision": accepted.recipe.revision_id,
-                "ran_revision": slot["ran_revision"],
-                "occurrences": entry["revision_mismatches"],
-            },
-            slot=slot,
-        )
-        self.state.event(f"waiting {key}: {policy.REVISION_MISMATCH}")
-        return True
-
-    def _ran_requested_revision(self, slot: Mapping[str, Any]) -> bool:
-        accepted = AcceptedRequest.read(slot)
-        return (
-            accepted is not None
-            and bool(accepted.recipe.revision_id)
-            and slot.get("ran_revision") == accepted.recipe.revision_id
-        )
 
     def _record_pass(self, key: str, slot: dict[str, Any], result: SmokeResult) -> None:
         now = self.clock.now()
@@ -2529,8 +2464,6 @@ class Sweep:
             # Unknown is no ending: a receipt last seen held stays held.
             if self._observe_load(slot, now) is Progress.WAIT_EXPIRED and not held:
                 self._expire_wait(key, slot, slot["watch"])
-            return
-        if self._capture_run_revision(key, slot):
             return
         run_id = serving_run(
             self.fleet,
@@ -4638,6 +4571,26 @@ class Sweep:
                 # starve an independent lane. Each re-plan removes an assignment.
                 self._apply(remaining, now)
             return
+        reviewed = self._reviewed_revisions(document)
+        wrong = [
+            p
+            for alias, p in aliases.items()
+            if reviewed.get(alias, p.recipe.revision_id) != p.recipe.revision_id
+        ]
+        if wrong:
+            self._rollback(wrong, "review binds another recipe revision than requested")
+            for placement in wrong:
+                self._revision_mismatch(
+                    placement.recipe,
+                    reviewed[self._alias(placement.recipe)],
+                    document,
+                    now,
+                )
+            self.state.save()
+            remaining = [p for p in added if p not in wrong]
+            if remaining:
+                self._apply(remaining, now)
+            return
         self.clear_infra("review")
         for placement in added:
             self._clear_review_wait(self.state.entry(placement.recipe.key))
@@ -4659,6 +4612,9 @@ class Sweep:
         }
         for placement in added:
             self._open_slot(placement, key, now)
+            self.state.entry(placement.recipe.key).pop("revision_mismatches", None)
+            if revision := reviewed.get(self._alias(placement.recipe)):
+                self.state.slots[placement.recipe.key]["ran_revision"] = revision
         self.state.data["dirty"] = (
             True  # the submitted effect may be accepted even if its reply is lost
         )
@@ -4695,6 +4651,51 @@ class Sweep:
         self.state.data["dirty"] = True
         self.state.event("load submitted: " + ", ".join(p.recipe.key for p in added))
         self.state.save()
+
+    @staticmethod
+    def _reviewed_revisions(review: Mapping[str, Any]) -> dict[str, str]:
+        """The recipe revision the Controller's review binds to each alias, before any effect."""
+        revisions = {
+            a.get("assignment_id"): a.get("recipe_revision_id")
+            for a in review.get("assignments") or []
+            if isinstance(a, Mapping)
+        }
+        return {
+            str(d["alias"]): str(revisions[d.get("assignment_id")])
+            for d in review.get("admission_decisions") or []
+            if isinstance(d, Mapping)
+            and d.get("alias")
+            and revisions.get(d.get("assignment_id"))
+        }
+
+    def _revision_mismatch(
+        self, recipe: Recipe, reviewed: str, document: Mapping[str, Any], now: float
+    ) -> None:
+        """The platform would load another revision than the requested one: nothing loads.
+
+        A wait paced by how often it happened; the platform's fault, never the recipe's.
+        """
+        entry = self.state.entry(recipe.key)
+        entry["revision_mismatches"] = int(entry.get("revision_mismatches", 0)) + 1
+        entry["not_before"] = now + verdict.retry_delay(
+            self.cfg.retry_delay, entry["revision_mismatches"]
+        )
+        self.record_result(
+            recipe.key,
+            "identity",
+            "waiting",
+            blame=QualificationBlame.PLATFORM.value,
+            code=policy.REVISION_MISMATCH,
+            disposition=Disposition.WAIT.value,
+            reason="the review binds another recipe revision than the one requested",
+            evidence={
+                "requested_revision": recipe.revision_id,
+                "reviewed_revision": reviewed,
+                "occurrences": entry["revision_mismatches"],
+            },
+            document=document,
+        )
+        self.state.event(f"waiting {recipe.key}: {policy.REVISION_MISMATCH}")
 
     def _adopted_requests(
         self, review: Mapping[str, Any], *, excluded: frozenset[str] = frozenset()
