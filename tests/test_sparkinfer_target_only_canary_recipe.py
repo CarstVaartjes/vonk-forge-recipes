@@ -77,13 +77,13 @@ class SparkInferTargetOnlyCanaryRecipeTests(unittest.TestCase):
         self.assertEqual(_document(RECIPE_PATH)["settings"]["concurrency"]["value"], 4)
         self.assertEqual(arguments["max-num-batched-tokens"], 8_192)
         self.assertEqual(arguments["max-cudagraph-capture-size"], 4)
-        self.assertEqual(arguments["gpu-memory-utilization"], "0.85")
+        self.assertEqual(arguments["gpu-memory-utilization"], "0.89")
         self.assertEqual(arguments["kv-cache-dtype"], "nvfp4_ds_mla")
 
     def test_declared_envelope_covers_overhead_and_fits_the_node(self) -> None:
         memory = _document(RECIPE_PATH)["topology"]["roles"][0]["resources"]["memory"]
         self.assertGreaterEqual(
-            memory["peak_bytes"], SPARK_MEMORY_BYTES * 0.85 + 8_000_000_000
+            memory["peak_bytes"], SPARK_MEMORY_BYTES * 0.89 + 8_000_000_000
         )
         self.assertEqual(memory["reserve_bytes"], 8_000_000_000)
         self.assertLessEqual(memory["peak_bytes"] + OS_FLOOR_BYTES, SPARK_MEMORY_BYTES)
