@@ -4667,18 +4667,11 @@ class Sweep:
 
     @staticmethod
     def _reviewed_revisions(review: Mapping[str, Any]) -> dict[str, str]:
-        """The recipe revision the Controller's review binds to each alias, before any effect."""
-        revisions = {
-            a.get("assignment_id"): a.get("recipe_revision_id")
-            for a in review.get("assignments") or []
-            if isinstance(a, Mapping)
-        }
+        """The recipe revision the Controller's review resolves for each alias, before any effect."""
         return {
-            str(d["alias"]): str(revisions[d.get("assignment_id")])
-            for d in review.get("admission_decisions") or []
-            if isinstance(d, Mapping)
-            and d.get("alias")
-            and revisions.get(d.get("assignment_id"))
+            str(r["alias"]): str(r["recipe_revision_id"])
+            for r in review.get("resolved_assignments") or []
+            if isinstance(r, Mapping) and r.get("alias") and r.get("recipe_revision_id")
         }
 
     def _revision_mismatch(

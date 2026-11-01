@@ -1317,28 +1317,25 @@ class FakeFleet:
                 ]
             return 0, self._app_doc(app) if app else {}
         if verb == "load":
-            code, doc = self._load(n, data, a)
-            if "--review" in a and isinstance(doc, dict) and "assignments" not in doc:
-                # Every Controller preview names each assignment's recipe revision,
-                # blocked ones too; hand-made refusals get the same shape.
-                doc = {**doc, **self._review_assignments(data)}
-                for d in doc.get("admission_decisions", []):
-                    d.setdefault("assignment_id", f"id-{d.get('alias')}")
-            return code, doc
+            return self._load(n, data, a)
         return self._error("unsupported", f"profile {verb}")
 
-    def _review_assignments(self, data: dict[str, Any]) -> dict[str, Any]:
+    def review_assignments(self, data: dict[str, Any]) -> dict[str, Any]:
+        """The preview's resolved assignments: alias and recipe revision of each running one."""
         return {
-            "assignments": [
+            "resolved_assignments": [
                 {
-                    "assignment_id": f"id-{x['assignment_name']}",
+                    "id": f"id-{x['assignment_name']}",
+                    "alias": x["assignment_name"],
+                    "desired_state": x["desired_state"],
                     "recipe_revision_id": self.review_revisions.get(
                         x["recipe_selector"]
                     )
                     or f"rev-{self.recipes[x['recipe_selector']].content}",
                 }
                 for x in data["assignments"]
-                if x["recipe_selector"] in self.recipes
+                if x["desired_state"] == "running"
+                and x["recipe_selector"] in self.recipes
                 and self.review_revisions.get(x["recipe_selector"], "") is not None
             ]
         }
@@ -1468,7 +1465,7 @@ class FakeFleet:
             doc = {
                 "allowed": not blocked,
                 "waits_for_preparation": False,
-                **self._review_assignments(data),
+                **self.review_assignments(data),
                 "effects": {
                     "adopted": adopted,
                     "runs": [
@@ -1487,24 +1484,12 @@ class FakeFleet:
                 },
                 "admission_decisions": [
                     {
-                        "assignment_id": f"id-{alias}",
                         "alias": alias,
                         "allowed": False,
                         "blockers": found,
                         "requirements": required.get(alias, []),
                     }
                     for alias, found in blocked.items()
-                ]
-                + [
-                    {
-                        "assignment_id": f"id-{x['assignment_name']}",
-                        "alias": x["assignment_name"],
-                        "allowed": True,
-                        "blockers": [],
-                        "requirements": [],
-                    }
-                    for x in data["assignments"]
-                    if x["assignment_name"] not in blocked
                 ],
                 "reasons": [],
             }

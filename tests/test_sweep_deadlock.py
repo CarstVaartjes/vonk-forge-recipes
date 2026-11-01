@@ -119,6 +119,7 @@ def test_a_review_blocked_by_a_workload_that_is_back_clears_the_fleet_instead_of
         ):
             return 2, {
                 "allowed": False,
+                **fleet.review_assignments(data),
                 "effects": {"runs": []},
                 "admission_decisions": [
                     {
@@ -208,7 +209,7 @@ def test_a_swap_shortfall_in_a_review_waits_instead_of_failing_the_recipe(
             and len(refusals) < 2
         ):
             refusals.append(a)
-            return 2, SWAP_REFUSAL
+            return 2, {**SWAP_REFUSAL, **fleet.review_assignments(data)}
         return real(n, data, a)
 
     fleet._load = short_of_swap
@@ -257,13 +258,18 @@ def test_a_pass_records_the_swap_each_spark_reported_and_the_declared_values(
     )
 
 
-def _refusal(*codes: str, reading: int | None = None) -> tuple[int, dict[str, Any]]:
+def _refusal(
+    *codes: str,
+    reading: int | None = None,
+    resolved: dict[str, Any] | None = None,
+) -> tuple[int, dict[str, Any]]:
     """A review refusal with the blockers in the order given (the Controller sorts them).
 
     ``reading`` puts a live number in each detail, as the Controller's swap detail does.
     """
     return 2, {
         "allowed": False,
+        **(resolved or {}),
         "effects": {"runs": []},
         "admission_decisions": [
             {
@@ -294,7 +300,7 @@ def _refuse_reviews(fleet, codes: tuple[str, ...], *, times: int | None) -> list
             and (times is None or len(refusals) < times)
         ):
             refusals.append(1)
-            return _refusal(*codes)
+            return _refusal(*codes, resolved=fleet.review_assignments(data))
         return real(n, data, a)
 
     fleet._load = refusing
@@ -417,7 +423,11 @@ def test_a_long_review_wait_escalates_and_clears_when_the_review_admits(
             and any(i["desired_state"] == "running" for i in data["assignments"])
             and clock.now() < start + window + 120
         ):
-            return _refusal(*codes, reading=int(clock.now()) if live_reading else None)
+            return _refusal(
+                *codes,
+                reading=int(clock.now()) if live_reading else None,
+                resolved=fleet.review_assignments(data),
+            )
         return real(n, data, a)
 
     def observe(now: float) -> None:
