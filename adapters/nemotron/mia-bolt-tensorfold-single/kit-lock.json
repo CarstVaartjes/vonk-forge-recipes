@@ -11,7 +11,7 @@
       "datasource": "oci-image",
       "digest": "sha256:9d39df6d1526ede3d0afb983d122643284ae4a92f50c07ee544c47e2b7befa1e",
       "kind": "tag",
-      "overridden": "image_ref derives this published tag from the exact engine revision plus image_hash over kit patches, native engine sources, Dockerfile and toolchain settings; matching tf.gate=bolt and tf.patches labels verified.",
+      "overridden": "The kit now names TensorFold v1.1.6 (TF_REF eea9dc9c), whose image tag by the kit's image_hash is zig-eea9dc9-4425be0c2259, and that tag is not published (GHCR tags checked 2026-11-01: latest and zig-46a08c1-5e11cf1ed295 share digest 9d39df6d, plus zig-46a08c1-* and zig-c7137bb-*). This recipe keeps running the published image of the previous engine (TensorFold 46a08c18 with patch set 5e11cf1ed295; matching tf.gate=bolt and tf.patches labels verified) until the creator publishes the new one.",
       "ref": "zig-46a08c1-5e11cf1ed295",
       "repo": "ghcr.io/miaai-lab/nemotron-3.5-bolt-tensorfold-dgx-spark"
     },
@@ -24,7 +24,7 @@
     }
   },
   "kit": {
-    "commit": "6f61d7727ae3fac010f30e240799cc884d295f6e",
+    "commit": "6b064a31dd47e4f959e9041d6129eb2bad830481",
     "repo": "MiaAI-Lab/Nemotron-3.5-Bolt-TensorFold-DGX-Spark"
   }
 }
