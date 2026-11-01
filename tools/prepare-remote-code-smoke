@@ -42,14 +42,16 @@ class Plan(BaseModel):
     images: list[PlannedImage]
 
 
-# vLLM and SGLang build registered architectures from their own model registry.
+# vLLM, SGLang and the native TensorFold engine build registered architectures
+# from their own model registry (TensorFold implements them itself, with no
+# `transformers` in its image).
 # They import auto_map AutoModel* classes only on their Transformers backend
 # (`model-impl transformers`, or an unregistered architecture, whose failed
 # import ends the load with evidence) and in SGLang's ModelOpt quantization
 # load (`modelopt-*` arguments, or quantization to these formats, which
 # SGLang applies to an unquantized checkpoint). Other engines
 # keep every module checked. Option choices can add or replace arguments.
-NATIVE_MODEL_ENGINES = {"vllm", "sglang"}
+NATIVE_MODEL_ENGINES = {"vllm", "sglang", "tensorfold"}
 MODELOPT_QUANTIZE = {"modelopt", "modelopt_fp8", "modelopt_mixed"}
 
 

@@ -714,6 +714,13 @@ def test_transformers_engines_import_remote_model() -> None:
     )
 
 
+def test_the_native_tensorfold_engine_does_not_import_remote_model() -> None:
+    # Its image has no `transformers`; it implements the architectures itself.
+    assert not TOOL["imports_remote_model"](
+        recipe("recipes/qwen3-8-flash-next-taussoe-tensorfold-single.json")
+    )
+
+
 def test_a_list_valued_quantization_does_not_crash_the_plan() -> None:
     changed = with_argument(SGLANG_OPTIONS, "quantization", ["a", "b"], False)
     assert TOOL["imports_remote_model"](changed) is False
