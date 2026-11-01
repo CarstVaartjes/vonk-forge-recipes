@@ -714,6 +714,18 @@ def test_transformers_engines_import_remote_model() -> None:
     )
 
 
+def test_a_tensorfold_recipe_adds_nothing_to_the_smoke(tmp_path: Path) -> None:
+    # Its model has AutoConfig/AutoProcessor auto_map modules and .py files, but
+    # TensorFold loads none of them: no script, so no transformers import.
+    source = "recipes/nemotron-3-5-bolt-lilicorr-mia-tensorfold-single.json"
+    assert TOOL["model_files"](recipe(source), ROOT)
+    plan = TOOL["Plan"].model_validate(
+        {"images": [{"build_key": KEY, "recipes": [{"source_path": source}]}]}
+    )
+    TOOL["prepare"](plan, tmp_path)
+    assert not (tmp_path / KEY / "remote-code-smoke.py").exists()
+
+
 def test_a_list_valued_quantization_does_not_crash_the_plan() -> None:
     changed = with_argument(SGLANG_OPTIONS, "quantization", ["a", "b"], False)
     assert TOOL["imports_remote_model"](changed) is False
