@@ -31,6 +31,7 @@ from typing import Any, Protocol
 
 from pydantic import ValidationError
 from vonk_forge_contracts import (
+    QualificationBlame,
     QualificationStatus,
     QualificationStatusView,
     RecipeQualificationEvidence,
@@ -1938,6 +1939,12 @@ class Sweep:
         bounded event ring. A lane's own row (``key`` None) names its Spark instead.
         """
         row: dict[str, Any] = {"batch": "sweep", "step": step, "status": status}
+        # A slot's smoke verdict is evidence only for the revision its run executed.
+        evidential = not (
+            step == "smoke"
+            and slot is not None
+            and not self._ran_requested_revision(slot)
+        )
         if key is not None:
             entry = self.state.entry(key)
             slot = slot if slot is not None else self.state.slots.get(key)
@@ -1949,7 +1956,8 @@ class Sweep:
             row["controller_document"] = _bounded_document(document)
         try:
             recorded = self.log.append(**row)
-            self._remember_qualification(recorded)
+            if evidential:
+                self._remember_qualification(recorded)
         except OSError as error:
             # The log is the evidence; a full disk is an infrastructure fact to show.
             self.note_infra("results-log", f"{type(error).__name__}: {error}")
@@ -2019,38 +2027,66 @@ class Sweep:
             raise ValueError(reply.error_text)
         return str(target)
 
-    def _ran_other_revision(self, key: str, slot: dict[str, Any]) -> bool:
-        """The run executed a revision other than the one requested: nothing is evidence.
+    def _capture_run_revision(self, key: str, slot: dict[str, Any]) -> bool:
+        """Remember which revision this load's run executes, the first time it is seen.
 
-        Evidence binds to the bytes that ran. The row names the platform and is not a
-        smoke row, so it never becomes qualification evidence under the listed identity;
-        the recipe is planned again. An unreported run revision changes nothing.
+        The Controller drops stopped and failed runs from the fleet, so the revision is
+        captured while the run is visible and not re-read at the verdict. A run of another
+        revision than the requested one ends the lane here: it waits, paced by how often it
+        happened, and its verdict is never evidence (``record_result``). Returns True then.
         """
+        if "ran_revision" in slot:
+            return False
         accepted = AcceptedRequest.read(slot)
-        listed = accepted.recipe.revision_id if accepted else ""
+        if accepted is None:
+            return False
+        prior = set(slot.get("prior_runs", ()))
         ran = {
             p.recipe_revision_id
             for p in self.fleet.presences
-            if p.run_id == slot.get("run_id") and p.recipe_revision_id
+            if p.alias == slot["alias"]
+            and p.node_id in slot["node_ids"]
+            and p.run_id not in prior
         }
-        if not listed or not ran or ran == {listed}:
+        if not ran:
             return False
-        now = self.clock.now()
+        slot["ran_revision"] = "|".join(sorted(ran))
         entry = self.state.entry(key)
-        entry.update(status="pending", not_before=now + self.cfg.retry_delay)
+        if slot["ran_revision"] == accepted.recipe.revision_id:
+            entry.pop("revision_mismatches", None)
+            return False
+        entry["revision_mismatches"] = int(entry.get("revision_mismatches", 0)) + 1
+        entry.update(
+            status="pending",
+            not_before=self.clock.now()
+            + verdict.retry_delay(self.cfg.retry_delay, entry["revision_mismatches"]),
+        )
         slot["phase"] = "finished"
         self.record_result(
             key,
             "identity",
-            "deferred",
-            blame="platform",
-            code="platform.revision_mismatch",
+            "waiting",
+            blame=QualificationBlame.PLATFORM.value,
+            code=policy.REVISION_MISMATCH,
+            disposition=Disposition.WAIT.value,
             reason="the run executed another recipe revision than the one requested",
-            evidence={"requested_revision": listed, "ran_revisions": sorted(ran)},
+            evidence={
+                "requested_revision": accepted.recipe.revision_id,
+                "ran_revision": slot["ran_revision"],
+                "occurrences": entry["revision_mismatches"],
+            },
             slot=slot,
         )
-        self.state.event(f"deferred {key}: platform.revision_mismatch")
+        self.state.event(f"waiting {key}: {policy.REVISION_MISMATCH}")
         return True
+
+    def _ran_requested_revision(self, slot: Mapping[str, Any]) -> bool:
+        accepted = AcceptedRequest.read(slot)
+        return (
+            accepted is not None
+            and bool(accepted.recipe.revision_id)
+            and slot.get("ran_revision") == accepted.recipe.revision_id
+        )
 
     def _record_pass(self, key: str, slot: dict[str, Any], result: SmokeResult) -> None:
         now = self.clock.now()
@@ -2493,6 +2529,8 @@ class Sweep:
             # Unknown is no ending: a receipt last seen held stays held.
             if self._observe_load(slot, now) is Progress.WAIT_EXPIRED and not held:
                 self._expire_wait(key, slot, slot["watch"])
+            return
+        if self._capture_run_revision(key, slot):
             return
         run_id = serving_run(
             self.fleet,
@@ -3028,8 +3066,6 @@ class Sweep:
             result = future.result()
         except Exception as error:  # noqa: BLE001 - a bug in one smoke must not stop an unattended sweep
             self._smoke_crashed(key, error)
-            return
-        if self._ran_other_revision(key, slot):
             return
         if result.ok:
             self.clear_infra("client-key")

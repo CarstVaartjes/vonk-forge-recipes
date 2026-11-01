@@ -1151,11 +1151,11 @@ class FakeFleet:
                     if run["ready"]
                     else "pending",
                     "run_state": "running" if run["ready"] else "starting",
-                    # Reported only when a test sets it, like an older Controller.
-                    **(
-                        {"recipe_revision_id": run["recipe_revision_id"]}
-                        if "recipe_revision_id" in run
-                        else {}
+                    "recipe_revision_id": run.get("recipe_revision_id")
+                    or (
+                        f"rev-{self.recipes[run['recipe']].content}"
+                        if run.get("recipe") in self.recipes
+                        else ""
                     ),
                 }
                 for run in self.runs
