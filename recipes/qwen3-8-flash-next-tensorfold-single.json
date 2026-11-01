@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "a503c88acdcfaab6231cf0089d747dac794cb5a7d1b121e566b180f35f8b02c6",
+        "digest": "5c6c42b9747318c1cd8b6cb85cb69493fff2e82cb23b61e49b9cf54cd09ac28e",
         "repository": "ghcr.io/miaai-lab/qwen3.8-flash-next-single-dgx-spark-tensorfold"
       },
       "context": {
@@ -26,18 +26,17 @@
       "model_aliases": [
         "Qwen3.8-Flash-Next"
       ],
-      "port": 8000
+      "port": 8888
     }
   ],
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v0.6.1 (exactly verified speculative decoding, custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and native MTP head. Serves five concurrent 262,144-token streams with an int8 KV cache, SSD-resident n-gram tables, and optional image/video input. Runs MiaAI-Lab's published image of her kit (4c0dea8e), v0.6.1-f8a0b4cb702b (sha256:a503c88acdcfaab6231cf0089d747dac794cb5a7d1b121e566b180f35f8b02c6; the kit's tag for her patches including the optional draft languages), as published and not rebuilt, with only a thin layer for the Controller's launcher. It is TensorFold v0.6.1 (17c73e18) with the kit's patch that extends TensorFold's image input with video and many images per request (up to 50 images sharing 16,384 image tokens, and a 16,384-token video budget), prompt-piece rows of 2,048, prompt-lookup copy drafts and a 2 GiB startup memory reserve. Replies without max_tokens get up to 32,768 tokens. Chinese and Japanese draft vocabularies are opt-in and affect draft coverage only; exact verification preserves output semantics. Upstream performance claims have not been measured on this deployment. The model weights are under the Qwen Community License 1.0 (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (upstream default, Qwen thinking-mode sampling).",
+    "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v1.1.4's Zig engine (tensorfold-native; exactly verified MTP speculative decoding, CUDA kernels embedded in the image) with NVIDIA's quantization-aware-distilled FP4 checkpoint (nvidia/Qwen3.8-Flash-Next-FP4-Local, NVFP4 routed experts, MXFP8 elsewhere, FP8 n-gram table and MTP head). Serves five concurrent 262,144-token streams with an fp8 KV cache and optional image/video input (up to 50 images sharing 16,384 image tokens, a 16,384-token video budget). Runs MiaAI-Lab's published image of her kit (20e15e41), v1.1.4-eab8582-4baf16137ecd (sha256:5c6c42b9747318c1cd8b6cb85cb69493fff2e82cb23b61e49b9cf54cd09ac28e), as published and not rebuilt, with only a thin layer for the Controller's launcher. It is TensorFold v1.1.4 (eab85828) with the kit's 17 patches (the vision tower for the NVIDIA checkpoint, fp8 KV cache, prompt expert tiles, decode and prefill speed work, sampled streams in the batched draft pass, the n-gram pread reader and a draft chain that stops on the running product of the draft probabilities), and the creator's launcher environment. Loading takes about 81 GiB of memory; the engine sizes its KV pool from what is left beside a 9 GiB reserve and 2 GiB kept for the vision helper (creator-measured pool 27 to 29 GiB; five full windows take 23.9 GiB). Replies without max_tokens get up to 32,768 tokens. The creator's optional abliteration overlay (ABLIT) is not offered. Upstream performance claims have not been measured on this deployment. The weights are used under the NVIDIA Open Model Agreement, and the base model's Qwen Community License 1.0 applies as well (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: open a think block by default (upstream default, Qwen thinking-mode sampling).",
     "tags": [
       "engine",
+      "fp4",
       "image-input",
-      "kernel-jit",
-      "mlx-checkpoint",
       "mtp",
       "multimodal",
       "qwen3.8",
@@ -52,8 +51,8 @@
     {
       "files": [
         {
-          "file_id": "metadata-34448b82c17d-618cd5b83d",
-          "id": "primary-metadata-34448b82c17d-618cd5b83d",
+          "file_id": "metadata-8237eb95e69c-618cd5b83d",
+          "id": "primary-metadata-8237eb95e69c-618cd5b83d",
           "mount": {
             "target": "/models"
           },
@@ -62,18 +61,8 @@
           ]
         },
         {
-          "file_id": "license-a0dc42256084-c693279643",
-          "id": "primary-license-a0dc42256084-c693279643",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "readme-235f260dd21b-b335630551",
-          "id": "primary-readme-235f260dd21b-b335630551",
+          "file_id": "readme-b0ad2a8a314c-b335630551",
+          "id": "primary-readme-b0ad2a8a314c-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -92,8 +81,8 @@
           ]
         },
         {
-          "file_id": "config-4efd5f41c47e-587cb980af",
-          "id": "primary-config-4efd5f41c47e-587cb980af",
+          "file_id": "config-b50dbc52a0c8-587cb980af",
+          "id": "primary-config-b50dbc52a0c8-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -122,228 +111,8 @@
           ]
         },
         {
-          "file_id": "model-00001-of-00022-308f20b7e35a-66c3c434ad",
-          "id": "primary-model-00001-of-00022-308f20b7e35a-66c3c434ad",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00002-of-00022-8af1a616f2f3-6047bb79c0",
-          "id": "primary-model-00002-of-00022-8af1a616f2f3-6047bb79c0",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00003-of-00022-519a0472252a-428e9f10de",
-          "id": "primary-model-00003-of-00022-519a0472252a-428e9f10de",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00004-of-00022-b1ad7e951969-d176f7bfba",
-          "id": "primary-model-00004-of-00022-b1ad7e951969-d176f7bfba",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00005-of-00022-9ca797304c56-3f054a7098",
-          "id": "primary-model-00005-of-00022-9ca797304c56-3f054a7098",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00006-of-00022-8aab4c1dce7d-82589b5654",
-          "id": "primary-model-00006-of-00022-8aab4c1dce7d-82589b5654",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00007-of-00022-7908da37b2e3-3a5d7cdc74",
-          "id": "primary-model-00007-of-00022-7908da37b2e3-3a5d7cdc74",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00008-of-00022-85beff20f250-cf64932166",
-          "id": "primary-model-00008-of-00022-85beff20f250-cf64932166",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00009-of-00022-f7c03ae640e9-e7ee8ef226",
-          "id": "primary-model-00009-of-00022-f7c03ae640e9-e7ee8ef226",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00010-of-00022-6897f5222753-009e26e857",
-          "id": "primary-model-00010-of-00022-6897f5222753-009e26e857",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00011-of-00022-905d27f9db88-8252ea3d5e",
-          "id": "primary-model-00011-of-00022-905d27f9db88-8252ea3d5e",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00012-of-00022-c4d2bb76fa46-f85bce0fc3",
-          "id": "primary-model-00012-of-00022-c4d2bb76fa46-f85bce0fc3",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00013-of-00022-1f20a5e1f225-4aafe282da",
-          "id": "primary-model-00013-of-00022-1f20a5e1f225-4aafe282da",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00014-of-00022-860d12691792-78ace24cf5",
-          "id": "primary-model-00014-of-00022-860d12691792-78ace24cf5",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00015-of-00022-259fb7577b82-e4e6781df6",
-          "id": "primary-model-00015-of-00022-259fb7577b82-e4e6781df6",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00016-of-00022-e931785f9ff4-26e60725af",
-          "id": "primary-model-00016-of-00022-e931785f9ff4-26e60725af",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00017-of-00022-4f4610dc4a86-1f2305b0c8",
-          "id": "primary-model-00017-of-00022-4f4610dc4a86-1f2305b0c8",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00018-of-00022-afdb48289201-9e10e62c45",
-          "id": "primary-model-00018-of-00022-afdb48289201-9e10e62c45",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00019-of-00022-869d34c6e8f7-76f78b32fa",
-          "id": "primary-model-00019-of-00022-869d34c6e8f7-76f78b32fa",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00020-of-00022-5ca2f994fec1-7587bc0e46",
-          "id": "primary-model-00020-of-00022-5ca2f994fec1-7587bc0e46",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00021-of-00022-58def6762f29-b95975f319",
-          "id": "primary-model-00021-of-00022-58def6762f29-b95975f319",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-00022-of-00022-30a3c82b573d-317de6275d",
-          "id": "primary-model-00022-of-00022-30a3c82b573d-317de6275d",
-          "mount": {
-            "target": "/models"
-          },
-          "roles": [
-            "entrypoint"
-          ]
-        },
-        {
-          "file_id": "model-safetensors-index-8848503860c7-0a05be8238",
-          "id": "primary-model-safetensors-index-8848503860c7-0a05be8238",
+          "file_id": "model-safetensors-index-5fa166bbb1cf-0a05be8238",
+          "id": "primary-model-safetensors-index-5fa166bbb1cf-0a05be8238",
           "mount": {
             "target": "/models"
           },
@@ -362,8 +131,208 @@
           ]
         },
         {
-          "file_id": "qwen-logo-e56f3a62991f-f86d0c6523",
-          "id": "primary-qwen-logo-e56f3a62991f-f86d0c6523",
+          "file_id": "model-00001-of-00021-ebf3648c5f4c-560b25b548",
+          "id": "primary-model-00001-of-00021-ebf3648c5f4c-560b25b548",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00002-of-00021-79a643fc5c02-a0564fa2af",
+          "id": "primary-model-00002-of-00021-79a643fc5c02-a0564fa2af",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00003-of-00021-c45f942203db-a1b01cf5b5",
+          "id": "primary-model-00003-of-00021-c45f942203db-a1b01cf5b5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00004-of-00021-071ab9cf963c-a469002989",
+          "id": "primary-model-00004-of-00021-071ab9cf963c-a469002989",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00005-of-00021-f80d17870eb1-6f424332e6",
+          "id": "primary-model-00005-of-00021-f80d17870eb1-6f424332e6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00006-of-00021-3e9183d4ebb2-21ee8047e1",
+          "id": "primary-model-00006-of-00021-3e9183d4ebb2-21ee8047e1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00007-of-00021-aa1ad959c4d6-e7439820a8",
+          "id": "primary-model-00007-of-00021-aa1ad959c4d6-e7439820a8",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00008-of-00021-0b18844027be-d09207fa7f",
+          "id": "primary-model-00008-of-00021-0b18844027be-d09207fa7f",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00009-of-00021-2d0b6c66790c-fa5f133206",
+          "id": "primary-model-00009-of-00021-2d0b6c66790c-fa5f133206",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00010-of-00021-3ed9bd73745a-fd84ab6369",
+          "id": "primary-model-00010-of-00021-3ed9bd73745a-fd84ab6369",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00011-of-00021-4936ff28c6cc-e4651bb33e",
+          "id": "primary-model-00011-of-00021-4936ff28c6cc-e4651bb33e",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00012-of-00021-dd7df5a6ff73-420f105f44",
+          "id": "primary-model-00012-of-00021-dd7df5a6ff73-420f105f44",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00013-of-00021-28a455c8ea4e-489cc0a5c5",
+          "id": "primary-model-00013-of-00021-28a455c8ea4e-489cc0a5c5",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00014-of-00021-6941676e685a-32ceb9c6ed",
+          "id": "primary-model-00014-of-00021-6941676e685a-32ceb9c6ed",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00015-of-00021-2a1129b5acfc-366abe9dd1",
+          "id": "primary-model-00015-of-00021-2a1129b5acfc-366abe9dd1",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00016-of-00021-635e97fbad78-5ba816c901",
+          "id": "primary-model-00016-of-00021-635e97fbad78-5ba816c901",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00017-of-00021-bf60d564d89a-7e13ec5606",
+          "id": "primary-model-00017-of-00021-bf60d564d89a-7e13ec5606",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00018-of-00021-c5bde22f9364-bdae9f3647",
+          "id": "primary-model-00018-of-00021-c5bde22f9364-bdae9f3647",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00019-of-00021-da3dc3b4f428-68d5c40be6",
+          "id": "primary-model-00019-of-00021-da3dc3b4f428-68d5c40be6",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00020-of-00021-4978bb6b8480-ca1646b853",
+          "id": "primary-model-00020-of-00021-4978bb6b8480-ca1646b853",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "model-00021-of-00021-48203838f2c7-6f28fa1bdc",
+          "id": "primary-model-00021-of-00021-48203838f2c7-6f28fa1bdc",
           "mount": {
             "target": "/models"
           },
@@ -392,6 +361,16 @@
           ]
         },
         {
+          "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "primary-video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "mount": {
+            "target": "/models"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
           "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "id": "primary-vocab-ce99b4cb2983-ba05d8e2e4",
           "mount": {
@@ -404,10 +383,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "543fede119b0bedaba367bb41b7e51d7815e41c61ac3cbb3575e15abf4d58b87",
+        "content_sha256": "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f",
         "kind": "model",
-        "publisher": "vontra",
-        "slug": "qwen3-8-flash-next-mlx-4bit-mtp-dadefa80"
+        "publisher": "nvidia",
+        "slug": "qwen3-8-flash-next-fp4-local-b9ce18a6"
       }
     }
   ],
@@ -419,10 +398,18 @@
             {
               "name": "vision-max-images",
               "value": 50
+            },
+            {
+              "name": "vision-max-videos",
+              "value": 4
+            },
+            {
+              "name": "vision-image-tokens",
+              "value": 16384
             }
           ],
           "default": true,
-          "help": "Load the 0.84 GiB vision tower; image and video requests are available (up to 50 images a request, sharing 16,384 image tokens).",
+          "help": "Load the 0.84 GiB vision tower; image and video requests are available (up to 50 images a request, sharing 16,384 image tokens, and up to 4 videos with a 16,384-token budget). The helper keeps 2 GiB out of the KV pool.",
           "label": "Images and video",
           "value": "vision"
         },
@@ -433,12 +420,15 @@
               "value": false
             }
           ],
-          "help": "Skip the vision tower (text only).",
+          "env": {
+            "TENSORFOLD_VISION_WORKSPACE_MIB": "0"
+          },
+          "help": "Skip the vision tower (text only) and return the 2 GiB helper workspace to the KV pool.",
           "label": "Text only",
           "value": "text-only"
         }
       ],
-      "help": "Load Flash Next's vision tower for image_url and video_url requests, or choose text only. Prompt pieces are 2,048 rows in both modes while the n-gram tables are on SSD (the kit measured 4,096 rows 10-30% slower there).",
+      "help": "Load Flash Next's vision tower for image_url and video_url requests, or choose text only.",
       "label": "Image and video input",
       "name": "images_video"
     },
@@ -470,59 +460,9 @@
       "choices": [
         {
           "default": true,
-          "help": "int8 KV with an fp16 scale per 32 values, about 23.4 GiB for the 5-stream pool (upstream default).",
-          "label": "int8",
-          "value": "int8"
-        },
-        {
-          "args": [
-            {
-              "name": "kv-dtype",
-              "value": "int4"
-            }
-          ],
-          "help": "int4 KV: smaller cache, slightly different outputs, quality not measured.",
-          "label": "int4",
-          "value": "int4"
-        }
-      ],
-      "help": "Precision of the per-stream KV cache. int8 keeps 5 x 262,144 tokens within budget; int4 needs less memory (upstream says it changes outputs slightly, quality not measured). bf16 is omitted because it only fits 3 streams at full context.",
-      "label": "KV cache precision",
-      "name": "kv_dtype"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "At most 6 MTP drafts a round; a chain stops before a draft under 60 percent (Mia default).",
-          "label": "MTP, 6 drafts, confidence 0.60",
-          "value": "mtp-6-060"
-        },
-        {
-          "args": [
-            {
-              "name": "mtp-confidence",
-              "value": 0.3
-            }
-          ],
-          "help": "TensorFold's stock drafting confidence.",
-          "label": "MTP, 6 drafts, confidence 0.30",
-          "value": "mtp-6-030"
-        },
-        {
-          "args": [
-            {
-              "name": "mtp-drafts",
-              "value": 4
-            },
-            {
-              "name": "mtp-confidence",
-              "value": 0.5
-            }
-          ],
-          "help": "Matched the default on prose but not on code in upstream's sweep (upstream claim).",
-          "label": "MTP, 4 drafts, confidence 0.50",
-          "value": "mtp-4-050"
+          "help": "MTP drafts, at most 6 a round, checked against the model's own samples (upstream default).",
+          "label": "MTP drafts",
+          "value": "mtp"
         },
         {
           "args": [
@@ -536,84 +476,23 @@
           "value": "serial"
         }
       ],
-      "help": "MTP drafts are verified against the model's own samples, so outputs are unchanged by drafting (upstream claim). Mia's sweep of 2026-09-29 found 6 drafts at 0.60 confidence beat TensorFold's stock 6/0.30 by about 3 percent on prose and 4 percent on code (upstream claim). Serial decoding is TensorFold's reference path.",
+      "help": "MTP drafts are verified against the model's own samples, so outputs are unchanged by drafting (upstream claim). Serial decoding is TensorFold's reference path.",
       "label": "Speculative drafting",
       "name": "drafting"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "help": "Copy drafts enabled (upstream default).",
-          "label": "On",
-          "value": "on"
-        },
-        {
-          "env": {
-            "TENSORFOLD_MTP_COPY": "0"
-          },
-          "help": "TENSORFOLD_MTP_COPY=0.",
-          "label": "Off",
-          "value": "off"
-        }
-      ],
-      "help": "Copy drafts from earlier text when the reply repeats the prompt. This changes only proposal coverage; the main model verifies every draft. It is effective with at least two concurrent streams.",
-      "label": "Prompt-lookup drafts",
-      "name": "prompt_lookup"
-    },
-    {
-      "choices": [
-        {
-          "default": true,
-          "env": {
-            "TENSORFOLD_DRAFT_VOCAB": "default"
-          },
-          "help": "Use TensorFold’s default draft vocabulary; best suited to English and code.",
-          "label": "Default",
-          "value": "default"
-        },
-        {
-          "env": {
-            "TENSORFOLD_DRAFT_VOCAB": "zh"
-          },
-          "help": "Add the reviewed Chinese draft-token list. Exact verification keeps output behavior unchanged; the language-specific draft list is experimental on this hardware.",
-          "label": "Chinese",
-          "value": "zh"
-        },
-        {
-          "env": {
-            "TENSORFOLD_DRAFT_VOCAB": "ja"
-          },
-          "help": "Add the reviewed Japanese draft-token list. Exact verification keeps output behavior unchanged; the language-specific draft list is experimental on this hardware.",
-          "label": "Japanese",
-          "value": "ja"
-        },
-        {
-          "env": {
-            "TENSORFOLD_DRAFT_VOCAB": "zh,ja"
-          },
-          "help": "Add both reviewed language draft-token lists. This uses the largest MTP candidate set; speed has not been measured on this hardware.",
-          "label": "Chinese and Japanese",
-          "value": "zh-ja"
-        }
-      ],
-      "help": "Choose additional tokens for MTP proposals. The model still verifies proposals against its full vocabulary; the setting affects draft coverage and memory use, not answer correctness.",
-      "label": "Language draft vocabulary",
-      "name": "draft_vocabulary"
     }
   ],
   "provenance": {
     "attribution": [
       "MiaAI Lab",
       "Ash Hart (TensorFold)",
-      "Vontra",
+      "NVIDIA",
       "Qwen contributors"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold/tree/4c0dea8ebe93a1d445d6a716b5a38995ff6e9362"
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold/tree/20e15e41f2f514a0d287710f4665ee1b5009ba41"
   },
   "release": {
-    "released_at": "2026-10-01",
-    "version": "0.6.1"
+    "released_at": "2026-10-24",
+    "version": "1.1.4"
   },
   "runtime": {
     "arguments": [
@@ -625,7 +504,7 @@
       {
         "name": "port",
         "setting": null,
-        "value": 8000
+        "value": 8888
       },
       {
         "name": "name",
@@ -643,19 +522,9 @@
         "value": null
       },
       {
-        "name": "kv-dtype",
+        "name": "kv-cache",
         "setting": null,
-        "value": "int8"
-      },
-      {
-        "name": "mtp-drafts",
-        "setting": null,
-        "value": 6
-      },
-      {
-        "name": "mtp-confidence",
-        "setting": null,
-        "value": 0.6
+        "value": "fp8"
       },
       {
         "name": "temperature",
@@ -676,11 +545,6 @@
         "name": "max-tokens",
         "setting": null,
         "value": 32768
-      },
-      {
-        "name": "ple-on-ssd",
-        "setting": null,
-        "value": true
       },
       {
         "name": "vision",
@@ -711,32 +575,100 @@
         "value": "1"
       },
       {
-        "name": "TENSORFOLD_PREFILL_ROWS",
-        "value": "2048"
+        "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
+        "value": "9"
       },
       {
-        "name": "TENSORFOLD_VISION_WORKSPACE_MIB",
-        "value": "0"
-      },
-      {
-        "name": "TENSORFOLD_VIDEO_TOKENS",
-        "value": "16384"
-      },
-      {
-        "name": "TENSORFOLD_MTP_COPY",
-        "value": "1"
+        "name": "TENSORFOLD_MAX_IMAGES",
+        "value": "50"
       },
       {
         "name": "TENSORFOLD_IMAGE_TOKENS",
         "value": "16384"
       },
       {
-        "name": "TENSORFOLD_MEMORY_RESERVE_GIB",
-        "value": "2"
+        "name": "TENSORFOLD_VIDEO_TOKENS",
+        "value": "16384"
       },
       {
-        "name": "TENSORFOLD_DRAFT_VOCAB",
-        "value": "default"
+        "name": "TENSORFOLD_VISION_WORKSPACE_MIB",
+        "value": "2048"
+      },
+      {
+        "name": "TF_FLASHNEXT_DRAFTS",
+        "value": "6"
+      },
+      {
+        "name": "TF_FLASHNEXT_SAMPLED_HEADS",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_SAMPLE_CAND",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_GATHER_EARLY",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_HOST_DRAW_THREADS",
+        "value": "7"
+      },
+      {
+        "name": "TF_FLASHNEXT_KEEP_LATE",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_GATHER_READ",
+        "value": "pread"
+      },
+      {
+        "name": "TF_FLASHNEXT_DRAFT_AHEAD",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_WARM_AHEAD",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_PREFILL_TAIL",
+        "value": "512"
+      },
+      {
+        "name": "TF_FLASHNEXT_PROMPT_HC2",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_PROMPT_SHARED_DIRECT",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_PROMPT_EXPERT_TILE_ROWS",
+        "value": "256"
+      },
+      {
+        "name": "TF_FLASHNEXT_HEAD_PIECE",
+        "value": "1536"
+      },
+      {
+        "name": "TF_FLASHNEXT_PROMPT_GEMM2",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_SHARED_SIDE",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_GDN_LANES",
+        "value": "1"
+      },
+      {
+        "name": "TF_FLASHNEXT_CONFIDENCE",
+        "value": "-0.4"
+      },
+      {
+        "name": "TF_FLASHNEXT_PRODUCT_STREAMS",
+        "value": "5"
       }
     ],
     "lifecycle": {
@@ -772,14 +704,14 @@
         "name": "entrypoint",
         "resources": {
           "disk": {
-            "artifact_bytes": 113233047784,
+            "artifact_bytes": 102262310289,
             "image_bytes": 26000000000,
             "safety_margin_bytes": 15000000000,
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 112000000000,
-            "reserve_bytes": 13100000000
+            "peak_bytes": 120259084288,
+            "reserve_bytes": 9663676416
           }
         }
       }
