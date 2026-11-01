@@ -12,9 +12,21 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize(
-    "adapter",
-    ["sparkinfer-single", "sparkinfer-target-only-single", "mia-sparkinfer-single"],
+    "adapter", ["sparkinfer-single", "sparkinfer-target-only-single"]
 )
+def test_creator_adapters_select_venv_python_via_vllm_python(adapter: str) -> None:
+    """Follow the creator: VLLM_PYTHON makes serve-ds4-flash.sh run `python -m`.
+
+    Rewriting /usr/local/bin/vllm without a __main__ guard broke vLLM's spawn
+    start method (engine child re-imported the script), so it must stay absent.
+    """
+    root = ROOT / "adapters/deepseek" / adapter
+    assert "/usr/local/bin/vllm" not in (root / "Dockerfile").read_text()
+    wrapper = (root / "vllm-wrapper.sh").read_text()
+    assert "\nexport VLLM_PYTHON=/opt/runtime-venv/bin/python\n" in wrapper
+
+
+@pytest.mark.parametrize("adapter", ["mia-sparkinfer-single"])
 def test_sparkinfer_console_uses_native_extension_interpreter(
     tmp_path: Path, adapter: str
 ) -> None:
