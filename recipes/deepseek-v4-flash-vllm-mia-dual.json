@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "MiaAI-Lab's DeepSeek-V4-Flash (base checkpoint, pre-0731) 1M-context profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and FlashInfer autotune on aidendle94's published vLLM fork image (digest-pinned, used unmodified), with upstream's coding-tuned sampling default (temperature 0.6, top_p 0.95), thinking on and reasoning effort high. Upstream marks this kit OLD in favour of its DSpark kit; the current Mia dual recipe is the Vision Experimental one. Licences (information only): recipe repository has no licence file (its README states MIT), model MIT. Upstream states no throughput figures; Vonk physical two-Spark acceptance is pending. The first start compiles and autotunes for several minutes (upstream allows about 20 minutes). Default sampling is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream's coding-tuned default. Memory follows the creator's settings: gpu-memory-utilization 0.83 with no explicit KV pool and a 1,000,000-token context, as in MiaAI-Lab's docker-compose.yml at d8431995 (line 68; the README says 0.82 at line 194), with upstream's 0.75 out-of-memory fallback as an option (README line 232). The steady per-node peak is 0.83 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 6 GB, and admission keeps the platform memory floor free beside the peak.",
+    "description": "MiaAI-Lab's DeepSeek-V4-Flash (base checkpoint, pre-0731) 1M-context profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and FlashInfer autotune on aidendle94's published vLLM fork image (digest-pinned, used unmodified), with upstream's coding-tuned sampling default (temperature 0.6, top_p 0.95), thinking on and reasoning effort high. Upstream marks this kit OLD in favour of its DSpark kit; the current Mia dual recipe is the Vision Experimental one. Licences (information only): recipe repository has no licence file (its README states MIT), model MIT. Upstream states no throughput figures; Vonk physical two-Spark acceptance is pending. The first start compiles and autotunes for several minutes (upstream allows about 20 minutes). Default sampling is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream's coding-tuned default. Memory follows the creator's settings: gpu-memory-utilization 0.83 with no explicit KV pool and a 1,000,000-token context, as in MiaAI-Lab's docker-compose.yml at d8431995 (line 68; the README says 0.82 at line 194), with upstream's 0.75 out-of-memory fallback as an option (README line 232). The steady per-node peak is 0.83 x 130,663,231,488-byte unified memory plus 10.4 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 6 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "deepseek",
       "distributed",
@@ -900,7 +900,7 @@
   },
   "release": {
     "released_at": "2026-08-20",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1112,7 +1112,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 116450482136,
+            "peak_bytes": 118850482136,
             "reserve_bytes": 6000000000
           }
         }
@@ -1129,7 +1129,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 116450482136,
+            "peak_bytes": 118850482136,
             "reserve_bytes": 6000000000
           }
         }

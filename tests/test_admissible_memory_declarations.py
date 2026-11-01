@@ -17,7 +17,6 @@ from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     IDLE_AVAILABLE_BYTES,
     OS_FLOOR_BYTES,
-    OVERHEAD_BYTES,
     TOTAL_BYTES,
     argument_value,
     declaration_problems,
@@ -27,6 +26,8 @@ from qualification.memory_need import (
     require_admissible_declaration,
     require_memory_need,
     require_sglang_rank_budget,
+    sglang_demand,
+    vllm_utilization_envelope,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -127,16 +128,16 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
     if variant.runtime.engine == "vllm":
         fraction = argument_value(variant, "gpu-memory-utilization")
         assert fraction is not None
-        budget = Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
-        assert all(
+        budget = vllm_utilization_envelope(variant)
+        assert budget is None or all(
             budget <= role.resources.memory.peak_bytes
             for role in variant.topology.roles
         )
     else:
         fraction = argument_value(variant, "mem-fraction-static")
         assert fraction is not None
-        allocated = Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
-        assert all(
+        allocated = sglang_demand(variant, None)
+        assert allocated is not None and all(
             allocated <= role.resources.memory.peak_bytes
             for role in variant.topology.roles
         )
@@ -271,6 +272,8 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
         r"|assertLess(?:Equal)?\(\s*(?:envelope|admission)\b"
         r"|reserve_bytes\W*\s*<=?\s*\d"
         r"|peak_bytes\s*==\s*need\.peak_bytes"
+        # The margin beside an engine budget has one owner, budget_margin_bytes.
+        r"|(?:TOTAL_BYTES|SPARK_MEMORY_BYTES)\)?\s*\+\s*OVERHEAD_BYTES\b"
     )
     copies = [
         f"{path.name}:{number}"
@@ -339,8 +342,9 @@ def test_absolute_kv_launch_survives_observed_startup_memory(rank: int) -> None:
     fraction = argument_value(recipe, "gpu-memory-utilization")
     assert fraction is not None
     startup(Decimal(str(fraction)))
+    # The startup request (utilization x total) is the floor the peak must cover.
     assert (
-        Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        Decimal(str(fraction)) * TOTAL_BYTES
         <= recipe.topology.roles[rank].resources.memory.peak_bytes
     )
     assert argument_value(recipe, "kv-cache-memory-bytes") == 3_414_163_456

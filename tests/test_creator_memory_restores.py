@@ -295,7 +295,9 @@ CREATOR = {
     ),
     "mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-triple": Creator(
         source=f"{TONY_MIMO}/mimo-v25-tp3-omni-1mctx-6seq-mtp2-nvfp4kv.yaml#L34",
-        arguments={"gpu-memory-utilization": "0.89"},
+        # The creator's 0.89 needs 126.69e9 with the 10.4e9 multi-Spark margin, above
+        # the admission cap; 0.8728 is the highest admissible value (#1980 precedent).
+        arguments={"gpu-memory-utilization": "0.8728"},
         absent=("kv-cache-memory-bytes",),
     ),
     "qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single": Creator(
@@ -354,14 +356,21 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
     assert "Memory follows the creator's settings" in description
 
 
+def lower_below_requirement(recipe: RecipeDefinition) -> None:
+    """Set every role one byte under what its launch requires (need or budget envelope)."""
+    need = per_rank_need(recipe, catalog_models(), load_inputs()).peak_bytes
+    required = max(need, vllm_utilization_envelope(recipe) or 0)
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = required - 1
+
+
 def test_lowering_a_restored_peak_by_one_byte_is_refused() -> None:
     slug = "laguna-s-2-1-nvfp4-r0b0tlab-vllm-single"
     recipe = load_recipe(slug)
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
     require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    for role in recipe.topology.roles:
-        role.resources.memory.peak_bytes -= 1
+    lower_below_requirement(recipe)
     with pytest.raises(ValueError, match="peak understates"):
         require_memory_need(
             recipe, models, inputs, document_digest=digest, touched=True
@@ -373,8 +382,7 @@ def test_lowering_the_mia_gemma_26b_peak_by_one_byte_is_refused() -> None:
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
     require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    for role in recipe.topology.roles:
-        role.resources.memory.peak_bytes -= 1
+    lower_below_requirement(recipe)
     with pytest.raises(ValueError, match="peak understates"):
         require_memory_need(
             recipe, models, inputs, document_digest=digest, touched=True
@@ -440,8 +448,7 @@ def test_lowering_the_r0b0tlab_qwen36_single_peak_by_one_byte_is_refused() -> No
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
     require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    for role in recipe.topology.roles:
-        role.resources.memory.peak_bytes -= 1
+    lower_below_requirement(recipe)
     with pytest.raises(ValueError, match="peak understates"):
         require_memory_need(
             recipe, models, inputs, document_digest=digest, touched=True

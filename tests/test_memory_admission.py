@@ -10,6 +10,7 @@ from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
     evaluate_memory_admission,
 )
+from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
 from qualification import memory_need
 from qualification.memory_need import vllm_utilization_envelope
@@ -138,12 +139,74 @@ def _single_at_utilization(value: str) -> RecipeDefinition:
 def test_creator_utilization_088_single_is_admissible() -> None:
     """The creator's 0.88 (122,983,643,710 B) fits an idle Spark beside the 2 GiB floor."""
     recipe = _single_at_utilization("0.88")
-    assert vllm_utilization_envelope(recipe) == 122_983_643_710
+    assert vllm_utilization_envelope(recipe) == 121_183_643_710
     memory_need.require_admissible_declaration(recipe)
 
 
-def test_utilization_090_single_is_still_refused() -> None:
+def test_utilization_090_single_is_admissible() -> None:
     recipe = _single_at_utilization("0.90")
-    assert vllm_utilization_envelope(recipe) == 125_596_908_340
-    with pytest.raises(ValueError, match="not admissible"):
+    assert vllm_utilization_envelope(recipe) == 123_796_908_340
+    memory_need.require_admissible_declaration(recipe)
+
+
+@pytest.mark.parametrize(
+    ("value", "admissible"),
+    [("0.905", True), ("0.9051", False)],
+)
+def test_single_spark_vllm_utilization_maximum_is_0905(
+    value: str, admissible: bool
+) -> None:
+    recipe = _single_at_utilization(value)
+    if admissible:
         memory_need.require_admissible_declaration(recipe)
+    else:
+        with pytest.raises(ValueError, match="not admissible"):
+            memory_need.require_admissible_declaration(recipe)
+
+
+@pytest.mark.parametrize(
+    ("value", "admissible"),
+    [("0.8728", True), ("0.8729", False)],
+)
+def test_multi_spark_vllm_utilization_maximum_is_08728(
+    value: str, admissible: bool
+) -> None:
+    recipe = documents.recipe("deepseek-v4-flash-vllm-mia-dual")
+    recipe.runtime.arguments = [
+        item
+        for item in recipe.runtime.arguments
+        if item.name not in {"gpu-memory-utilization", "kv-cache-memory-bytes"}
+    ]
+    recipe.runtime.arguments.append(
+        RecipeRuntimeArgument(name="gpu-memory-utilization", value=value)
+    )
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    assert memory_need.budget_margin_bytes(recipe) == 10_400_000_000
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = envelope
+    if admissible:
+        memory_need.require_admissible_declaration(recipe)
+    else:
+        with pytest.raises(ValueError, match="not admissible"):
+            memory_need.require_admissible_declaration(recipe)
+
+
+def test_refresh_raises_peaks_to_the_budget_envelope_and_never_lowers() -> None:
+    document = documents.recipe("deepseek-v4-flash-vllm-mia-dual").model_dump(
+        mode="json", by_alias=True
+    )
+    memory = [role["resources"]["memory"] for role in document["topology"]["roles"]]
+    for item in memory:
+        item["peak_bytes"] = 100_000_000_000
+        item["load_peak_bytes"] = 101_000_000_000
+    assert memory_need.raise_peaks_to_envelope(document)
+    envelope = vllm_utilization_envelope(RecipeDefinition.model_validate(document))
+    assert envelope is not None and envelope > 100_000_000_000
+    for item in memory:
+        assert item["peak_bytes"] == envelope
+        assert item["load_peak_bytes"] == envelope + 1_000_000_000
+    assert not memory_need.raise_peaks_to_envelope(document)
+    memory[0]["peak_bytes"] = envelope + 5
+    assert not memory_need.raise_peaks_to_envelope(document)
+    assert memory[0]["peak_bytes"] == envelope + 5

@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "r0b0tlab's SM121 vLLM overlay serving the official nvidia/GLM-5.3-Flash-NVFP4 ModelOpt checkpoint (MIT) with the incoai DFlash2 K7 block-diffusion drafter (CC-BY-NC-ND-4.0, non-commercial, no derivatives). TP2 over two Sparks, using the da920bb0 NVIDIA Model revision whose config adds layer-45 quantization ignore rules (weight shards unchanged; native-MTP load remains unverified). 126,720-token window, bf16 KV, FULL_DECODE_ONLY CUDA graphs, thinking at reasoning_effort max, image and video input. Same checkpoint is used by tonyd2wild abb38bb0 and sfxnz 072c3f68; this recipe follows r0b0tlab 22269731. Runs the kit's published image ghcr.io/r0b0tlab/glm53-flash-nvfp4-sm121:overlay-v2 (its four SM121/GLM patches already applied on vllm/vllm-openai b0501f99), pinned by digest and not rebuilt from the kit's patches; a thin layer adds the Controller's launcher and the non-root user. Performance figures are upstream claims until measured here; Vonk physical two-Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.86 with no explicit KV pool, as in r0b0tlab's serve/boot_dflash2.sh at 22269731 (line 14); upstream measured that 0.87 or more can be rejected (README lines 58-59), and this recipe passed on hardware at 0.86 (2026-10-08). The creator-settings floor is 0.86 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the declared steady peak is the measured value below (the worker keeps the floor because its measurement was lower); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak. Measured peak (hardware sweep 2026-10-31T15:30:04Z, run alone, Controller node telemetry, OS included): entrypoint 123,673,772,032 and worker 120,156,110,848 bytes in use (a single post-smoke sample, so a lower bound of the steady peak); the declared peaks are the in-use bytes less the 2 GiB OS allowance, never lower than before: entrypoint 121,526,288,384, worker 120,370,379,080.",
+    "description": "r0b0tlab's SM121 vLLM overlay serving the official nvidia/GLM-5.3-Flash-NVFP4 ModelOpt checkpoint (MIT) with the incoai DFlash2 K7 block-diffusion drafter (CC-BY-NC-ND-4.0, non-commercial, no derivatives). TP2 over two Sparks, using the da920bb0 NVIDIA Model revision whose config adds layer-45 quantization ignore rules (weight shards unchanged; native-MTP load remains unverified). 126,720-token window, bf16 KV, FULL_DECODE_ONLY CUDA graphs, thinking at reasoning_effort max, image and video input. Same checkpoint is used by tonyd2wild abb38bb0 and sfxnz 072c3f68; this recipe follows r0b0tlab 22269731. Runs the kit's published image ghcr.io/r0b0tlab/glm53-flash-nvfp4-sm121:overlay-v2 (its four SM121/GLM patches already applied on vllm/vllm-openai b0501f99), pinned by digest and not rebuilt from the kit's patches; a thin layer adds the Controller's launcher and the non-root user. Performance figures are upstream claims until measured here; Vonk physical two-Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.86 with no explicit KV pool, as in r0b0tlab's serve/boot_dflash2.sh at 22269731 (line 14); upstream measured that 0.87 or more can be rejected (README lines 58-59), and this recipe passed on hardware at 0.86 (2026-10-08). The creator-settings floor is 0.86 x 130,663,231,488-byte unified memory plus 10.4 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the declared steady peak is the measured value below (the worker keeps the floor because its measurement was lower); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak. Measured peak (hardware sweep 2026-10-31T15:30:04Z, run alone, Controller node telemetry, OS included): entrypoint 123,673,772,032 and worker 120,156,110,848 bytes in use (a single post-smoke sample, so a lower bound of the steady peak); the declared peaks are the in-use bytes less the 2 GiB OS allowance, never lower than before: entrypoint 121,526,288,384, worker 120,370,379,080.",
     "tags": [
       "candidate",
       "dflash2",
@@ -674,7 +674,7 @@
   },
   "release": {
     "released_at": "2026-10-06",
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "runtime": {
     "arguments": [
@@ -885,7 +885,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 121526288384,
+            "peak_bytes": 122770379080,
             "reserve_bytes": 8000000000
           }
         }
@@ -902,7 +902,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120370379080,
+            "peak_bytes": 122770379080,
             "reserve_bytes": 8000000000
           }
         }

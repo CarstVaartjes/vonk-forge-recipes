@@ -1174,7 +1174,9 @@ class VendoredCreatorMoveTests(unittest.TestCase):
     """A vendored file the recipe's own creator changed follows when nothing it
     references in it is gone (the 15 eugr recipes of refresh run 38469862398)."""
 
-    def assess(self, new_yaml: str, *, dockerfile: str = "", ours=(), extra=None):
+    def assess(
+        self, new_yaml: str, *, dockerfile: str = "", ours=(), extra=None, engine=None
+    ):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name)
@@ -1213,6 +1215,8 @@ class VendoredCreatorMoveTests(unittest.TestCase):
                 "entrypoint": ["/opt/vonk/bin/vllm", "serve", "/models"],
             },
         }
+        if engine is not None:
+            recipe["runtime"]["engine"] = engine
         catalog = refresh.Catalog(root, recipes={"recipe": recipe})
         assessor = refresh.Assessor(catalog, object(), None, {})
         assessor.target = lambda _provider, _repo: refresh.Target(
@@ -1233,6 +1237,21 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             active.start()
             self.addCleanup(active.stop)
         return assessor.assess("recipe")
+
+    def test_a_moved_vllm_document_follows_the_budget_envelope(self) -> None:
+        new_yaml = OLD_YAML.replace("8192", "4096")
+        with patch("refresh_upstream.raise_peaks_to_envelope") as raised:
+            self.assess(new_yaml, engine="vllm")
+            raised.assert_called_once()
+        with patch("refresh_upstream.raise_peaks_to_envelope") as raised:
+            self.assess(new_yaml, engine="sglang")
+            raised.assert_not_called()
+        with patch(
+            "refresh_upstream.raise_peaks_to_envelope", side_effect=ValueError("bad")
+        ):
+            result = self.assess(new_yaml, engine="vllm")
+        self.assertFalse(result.mechanical)
+        self.assertIn("memory envelope", " ".join(result.reasons))
 
     def test_verbatim_file_with_its_flags_intact_is_mechanical(self) -> None:
         new_yaml = OLD_YAML.replace("8192", "4096")
