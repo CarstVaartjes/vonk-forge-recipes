@@ -287,12 +287,19 @@ hardcodes a setting, align its implementation with the declared setting.
 The workload sandbox deliberately blocks io_uring. Recipes, option choices and
 image launchers must use a loader with a verified non-io_uring path: standard
 safetensors, InstantTensor automatic/AIO or BUFFERED/MMAP selection (never
-URING-only), or b12x disk PLE/Engram with `B12X_DISK_BACKEND=gds` and
-`CUFILE_FORCE_COMPAT_MODE=true` (requires cuFile >= 1.14 development files).
-Older b12x images without that backend need a tested POSIX reader replacement;
-never request relaxed seccomp. Enforce image-owned transport policy in the
+URING-only), or the b12x image's PLE table in RAM. On the b12x image
+(`eugr/spark-vllm-b12x`) the Qwen PLE table is `disk` (io_uring) when
+`VLLM_PLE_TABLE_MEMORY=disk` and also when the variable is unset for a
+bfloat16 PLE checkpoint (no `ple_embedding_dtype`, or bfloat16); a non-bfloat16
+checkpoint resolves unset to the device table and needs nothing. The disk table
+needs io_uring (blocked by the sandbox) or direct GDS (needs a real nvidia-fs;
+`CUFILE_FORCE_COMPAT_MODE` is rejected with cuFile error 5027), so set
+`VLLM_PLE_TABLE_MEMORY=shared`. The table then counts inside the vLLM memory
+budget: raise utilization, peak and the context bound to match.
+`tests/test_recipe_sandbox_loaders.py` enforces this by the recipe's base image.
+Never request relaxed seccomp. Enforce image-owned transport policy in the
 launcher before exec, including when a kit declares an unsafe backend. b12x
-defaults PLE BF16 tables and disk Engram to io_uring even when no backend is specified.
+defaults a bfloat16 PLE table to io_uring even when no backend is specified.
 The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
 I/O on GB10; `B12X_DISK_BACKEND` does not control it. Use `--load-format safetensors`
 at the image launcher handoff for checkpoint loading while retaining the B12X
