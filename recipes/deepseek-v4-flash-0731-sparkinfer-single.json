@@ -35,7 +35,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable single-Spark Candidate for 0xSero's public REAP-K216 EXL3 checkpoint and immutable SparkInfer TP1 runtime. The offline adapter losslessly coalesces the hydrated TP4 archive, verifies it, builds the K64 DSpark draft, runs the SparkInfer self-test, and starts the OpenAI-compatible endpoint. GB10 memory correction: GPU utilization 0.9465 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.85 → 0.84 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "Executable single-Spark Candidate for 0xSero's public REAP-K216 EXL3 checkpoint and immutable SparkInfer TP1 runtime. The offline adapter losslessly coalesces the hydrated TP4 archive, verifies it, builds the K64 DSpark draft, runs the SparkInfer self-test, and starts the OpenAI-compatible endpoint. GB10 memory correction: GPU utilization 0.9465 → 0.85. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. VERIFICATION RUN at the creator's absolute budget (owner decision 2026-11-02, one run): GPU utilization 0.84 → 0.931, the absolute translation of 0xSero's 0.9465 of a reported 119.69 GiB (113.29 GiB) onto vLLM's 121.69 GiB view of this Spark (0.9465 × 119.69 / 121.69 = 0.931); runs at 0.84 failed with 'No available memory for the cache blocks'. The declared peak is the admission maximum (124,452,516,352 bytes) for this run only; the Spark memory guard is the safety net, and the measured peak decides next and replaces this declaration.",
     "tags": [
       "executable",
       "candidate",
@@ -46,7 +46,7 @@
       "reap",
       "single",
       "sparkinfer",
-      "spark VERIFICATION RUN at the creator's absolute budget (owner decision 2026-11-02, one run): GPU utilization 0.84 → 0.931, the absolute translation of 0xSero's 0.9465 of a reported 119.69 GiB (113.29 GiB) onto vLLM's 121.69 GiB view of this Spark (0.9465 × 119.69 / 121.69 = 0.931); runs at 0.84 failed with 'No available memory for the cache blocks'. The declared peak is the admission maximum (124,452,516,352 bytes) for this run only; the Spark memory guard is the safety net, and the measured peak decides next and replaces this declaration.",
+      "spark",
       "speculative-decoding"
     ],
     "title": "DeepSeek V4 Flash 0731 REAP-K216 SparkInfer single Spark"

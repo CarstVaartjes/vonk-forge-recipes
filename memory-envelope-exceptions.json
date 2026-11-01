@@ -1,3 +1,8 @@
 {
-  "deepseek-v4-flash-0731-sparkinfer-single": "Owner decision 2026-11-02: single verification run at the creator's absolute memory budget (gpu-memory-utilization 0.931 = 0xSero's 0.9465 of 119.69 GiB on this Spark's 121.69 GiB view); peak declared at the admission maximum. Single verification run; the measured peak replaces this after the run."
+  "deepseek-v4-flash-0731-sparkinfer-single": {
+    "content_sha256": "7dcc38a55c9e8688fd11ea90d5835dcb5db1fdd94ec9e81cce54398d7072ac21",
+    "date": "2026-11-02",
+    "owner_decision": "One run at the creator budget: gpu-memory-utilization 0.931 = 0xSero's 0.9465 of 119.69 GiB on this Spark's 121.69 GiB view; peak declared at the admission maximum.",
+    "reason": "Single verification run; the measured peak replaces this after the run. Expires on any change to the recipe content."
+  }
 }
