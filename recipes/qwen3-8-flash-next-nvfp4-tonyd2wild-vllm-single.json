@@ -61,8 +61,8 @@
           ]
         },
         {
-          "file_id": "readme-e56b4bd51523-b335630551",
-          "id": "primary-readme-e56b4bd51523-b335630551",
+          "file_id": "readme-e3ed0cb89950-b335630551",
+          "id": "primary-readme-e3ed0cb89950-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -81,8 +81,8 @@
           ]
         },
         {
-          "file_id": "config-4156f806efe3-587cb980af",
-          "id": "primary-config-4156f806efe3-587cb980af",
+          "file_id": "config-deef67a61f33-587cb980af",
+          "id": "primary-config-deef67a61f33-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -303,10 +303,10 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "66e8cb28fea8610fb58c517ee5048ec0cd2ed316356002122685e076c4bffa4e",
+        "content_sha256": "563044819c1c7c2b4559f610e6e93ccea952ddf25958065f2db2ca12982c662c",
         "kind": "model",
         "publisher": "nvidia",
-        "slug": "qwen3-8-flash-next-nvfp4-fab0aecb"
+        "slug": "qwen3-8-flash-next-nvfp4-fc694b54"
       }
     }
   ],
