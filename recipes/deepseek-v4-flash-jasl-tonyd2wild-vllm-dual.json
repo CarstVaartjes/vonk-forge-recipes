@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's boot-fixed jasl sparkrun recipe for the original DeepSeek-V4-Flash on two Sparks: vLLM tensor parallel 2 on scitrera's public jasl-ds4 image (vLLM 0.22.1-jasl-ds4+21a54ea, tag 20260609, digest-pinned, used unmodified), FP8 KV cache, DeepSeek MTP with two drafted tokens, instanttensor loading, a 256,000-token context and jasl's sparse-MLA long-context chunk profile. Upstream states this is a boot fix, not a performance upgrade: it did not beat aidendle94's production-ready image on decode or long prefill on its cluster (43.8 versus 45.1 tok/s decode; 33K prefill 37.1 versus 28.0 s). Same-creator alternative for this model and Spark count: the MTP recipe on the aidendle94 image. Licences (information only): model MIT; the upstream repository declares no licence file; vLLM Apache-2.0. Upstream figures (43.8 tok/s, 79 to 85 percent MTP acceptance) are claims until measured here; Vonk physical two-Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.825 with no explicit KV pool, as in tonyd2wild's recipe/deepseek4-flash-fp8-mtp-vllm-sparkfix.yaml at 050f1ba3 (line 16). The steady per-node peak is 0.825 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 6 GB, and admission keeps the platform memory floor free beside the peak.",
+    "description": "tonyd2wild's boot-fixed jasl sparkrun recipe for the original DeepSeek-V4-Flash on two Sparks: vLLM tensor parallel 2 on scitrera's public jasl-ds4 image (vLLM 0.22.1-jasl-ds4+21a54ea, tag 20260609, digest-pinned, used unmodified), FP8 KV cache, DeepSeek MTP with two drafted tokens, instanttensor loading, a 256,000-token context and jasl's sparse-MLA long-context chunk profile. Upstream states this is a boot fix, not a performance upgrade: it did not beat aidendle94's production-ready image on decode or long prefill on its cluster (43.8 versus 45.1 tok/s decode; 33K prefill 37.1 versus 28.0 s). Same-creator alternative for this model and Spark count: the MTP recipe on the aidendle94 image. Licences (information only): model MIT; the upstream repository declares no licence file; vLLM Apache-2.0. Upstream figures (43.8 tok/s, 79 to 85 percent MTP acceptance) are claims until measured here; Vonk physical two-Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.825 with no explicit KV pool, as in tonyd2wild's recipe/deepseek4-flash-fp8-mtp-vllm-sparkfix.yaml at 050f1ba3 (line 16). The steady per-node peak is 0.825 x 130,663,231,488-byte unified memory plus 10.4 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 6 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "deepseek",
       "distributed",
@@ -918,7 +918,7 @@
   },
   "release": {
     "released_at": "2026-07-13",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1104,7 +1104,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 115797165978,
+            "peak_bytes": 118197165978,
             "reserve_bytes": 6000000000
           }
         }
@@ -1121,7 +1121,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 115797165978,
+            "peak_bytes": 118197165978,
             "reserve_bytes": 6000000000
           }
         }

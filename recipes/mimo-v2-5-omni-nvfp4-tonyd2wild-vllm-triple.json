@@ -34,7 +34,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on three Sparks with vLLM tensor parallel 3 over Ray, a 1,000,000-token context on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode), MTP2 speculative decoding and the TP3 virtual-heads mod that pads the attention heads for three ranks. Basis: tonyd2wild's TP3 NVFP4-KV recipe (MIT) and his earlier TP3 MTP repository (FP8 KV variant, offered as an option), on his published patched vLLM 0.21.1rc1.dev85 dev-build image with the upstream mods applied at build time (the mods are derived from vLLM, Apache-2.0). The upstream TP3 repository does not name an image; the published TP2 image is used because the earlier TP3 repository's audio recipe names the same image lineage (vllm-mimo-omni-mtp2-1m-audio-exp:20260620). The two-Spark recipe by the same creator is mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual. Upstream figures (about 36 tok/s decode, 10.59M-token KV pool at 1M context with NVFP4 KV against 3.06M with FP8 KV) are claims until measured here; Vonk physical three-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: No server default (upstream TP3 default). Memory follows the creator's settings: gpu-memory-utilization 0.89 with no explicit KV pool, as in tonyd2wild's recipes/mimo-v25-tp3-omni-1mctx-6seq-mtp2-nvfp4kv.yaml at 8024c85b (line 34; lines 93-94 say to keep it fixed at 0.89). The steady per-node peak is 0.89 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak. The creator context is retained. Physical acceptance remains pending.",
+    "description": "Xiaomi MiMo-V2.5 Omni (text, image, video and audio input) as lukealonso's ModelOpt NVFP4 checkpoint on three Sparks with vLLM tensor parallel 3 over Ray, a 1,000,000-token context on a 4-bit NVFP4 KV cache (DiffKV Triton backend with WMMA decode), MTP2 speculative decoding and the TP3 virtual-heads mod that pads the attention heads for three ranks. Basis: tonyd2wild's TP3 NVFP4-KV recipe (MIT) and his earlier TP3 MTP repository (FP8 KV variant, offered as an option), on his published patched vLLM 0.21.1rc1.dev85 dev-build image with the upstream mods applied at build time (the mods are derived from vLLM, Apache-2.0). The upstream TP3 repository does not name an image; the published TP2 image is used because the earlier TP3 repository's audio recipe names the same image lineage (vllm-mimo-omni-mtp2-1m-audio-exp:20260620). The two-Spark recipe by the same creator is mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual. Upstream figures (about 36 tok/s decode, 10.59M-token KV pool at 1M context with NVFP4 KV against 3.06M with FP8 KV) are claims until measured here; Vonk physical three-Spark acceptance is pending. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: No server default (upstream TP3 default). Memory follows the creator's settings except the utilization: gpu-memory-utilization is 0.8728 with no explicit KV pool, where tonyd2wild's recipes/mimo-v25-tp3-omni-1mctx-6seq-mtp2-nvfp4kv.yaml at 8024c85b uses 0.89 (line 34; lines 93-94 say to keep it fixed at 0.89). The creator's 0.89 x 130,663,231,488-byte unified memory plus the 10.4 GB measured beside the budget on multi-Spark runs is 126.69 GB, which exceeds the 124,452,516,352-byte admission cap of an idle Spark, so it can never be admitted; 0.8728 is the highest admissible value below it (the same admission-cap reduction as the sparkinfer canary, #1980). The steady per-node peak is 0.8728 x 130,663,231,488 plus 10.4 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak. The creator context is retained. Physical acceptance remains pending.",
     "tags": [
       "audio",
       "diffkv",
@@ -735,7 +735,7 @@
   },
   "release": {
     "released_at": "2026-07-13",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -852,7 +852,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.89"
+        "value": "0.8728"
       }
     ],
     "engine": "vllm",
@@ -998,7 +998,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 124290276025,
+            "peak_bytes": 124442868443,
             "reserve_bytes": 8000000000
           }
         }
@@ -1015,7 +1015,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 124290276025,
+            "peak_bytes": 124442868443,
             "reserve_bytes": 8000000000
           }
         }

@@ -44,6 +44,28 @@ SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 # 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
 ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
 OVERHEAD_BYTES = 8_000_000_000
+# Data-backed use beside the engine budget (p90 of 277 sweep samples, audit
+# 2026-11-01). The single margin below is the only owner; OVERHEAD_BYTES stays
+# the loading floor, the inside-budget check and the SGLang static need.
+VLLM_SINGLE_MARGIN_BYTES = 6_200_000_000
+# Measured on 2-Spark runs only (56 samples, 28 contents); borrowed for 3, 4, 8.
+VLLM_MULTI_MARGIN_BYTES = 10_400_000_000
+SGLANG_SINGLE_MARGIN_BYTES = 8_500_000_000
+
+
+def budget_margin_bytes(recipe: RecipeDefinition) -> int:
+    """Bytes a launch holds beside its engine budget, by engine and topology.
+
+    Applies only where the constant means "beside the budget": the vLLM
+    utilization envelope and the SGLang fraction demand. Multi-Spark SGLang
+    keeps OVERHEAD_BYTES.
+    """
+    single = recipe.topology.node_count == 1
+    if recipe.runtime.engine == "vllm":
+        return VLLM_SINGLE_MARGIN_BYTES if single else VLLM_MULTI_MARGIN_BYTES
+    return SGLANG_SINGLE_MARGIN_BYTES if single else OVERHEAD_BYTES
+
+
 # Offline copy of the swap policy pinned to vonk-forge fc6059e42edb1b26416fd78493138201f427de96
 # (#1936 swap-aware memory guard): rust/crates/vonk-agent-protocol/src/
 # host_memory_guard_policy.rs::SWAP_EXHAUSTED_FREE_FLOOR_BYTES (2 GiB),
@@ -692,7 +714,7 @@ def sglang_demand(recipe: RecipeDefinition, capped_need: int | None) -> Decimal 
         return None
     if capped_need is not None:
         return Decimal(capped_need + OVERHEAD_BYTES)
-    return Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+    return Decimal(str(fraction)) * TOTAL_BYTES + budget_margin_bytes(recipe)
 
 
 def require_sglang_rank_budget(
@@ -1206,6 +1228,12 @@ def require_memory_need(
             ]
             if single
             else declaration_problems(variant, need)
+            + [
+                f"{role.name}: peak understates vLLM budget plus overhead {multi}"
+                for role in variant.topology.roles
+                if (multi := vllm_utilization_envelope(variant)) is not None
+                and role.resources.memory.peak_bytes < multi
+            ]
         )
         if problems:
             raise ValueError(f"{key}: " + "; ".join(problems))
@@ -1218,7 +1246,7 @@ def require_memory_need(
 
 
 def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
-    """vLLM's utilization budget plus the 8 GB it holds beside it, if pool-less.
+    """vLLM's utilization budget plus the margin it holds beside it, if pool-less.
 
     A speculative drafter is charged inside the budget, whichever mechanism
     loads it (qualification/vllm_memory_fit.py).
@@ -1230,8 +1258,32 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
         return None
     fraction = argument_value(recipe, "gpu-memory-utilization")
     share = Decimal(str(fraction)) if fraction is not None else VLLM_DEFAULT_UTILIZATION
-    envelope = share * TOTAL_BYTES + OVERHEAD_BYTES
+    envelope = share * TOTAL_BYTES + budget_margin_bytes(recipe)
     return int(envelope.to_integral_value(ROUND_CEILING))
+
+
+def raise_peaks_to_envelope(recipe: RecipeDefinition) -> RecipeDefinition | None:
+    """The recipe with role peaks raised to its vLLM budget envelope, None if none is.
+
+    A document that moves (``tools/refresh-upstream``) is new content and meets the
+    current margins; raising here keeps a refresh from blocking. Peaks are never
+    lowered, and a declared load peak keeps its rise above the peak.
+    """
+    envelope = max(
+        (e for v in memory_variants(recipe) if (e := vllm_utilization_envelope(v))),
+        default=0,
+    )
+    if all(r.resources.memory.peak_bytes >= envelope for r in recipe.topology.roles):
+        return None
+    raised = recipe.model_copy(deep=True)
+    for role in raised.topology.roles:
+        memory = role.resources.memory
+        if memory.peak_bytes >= envelope:
+            continue
+        if memory.load_peak_bytes is not None:
+            memory.load_peak_bytes += envelope - memory.peak_bytes
+        memory.peak_bytes = envelope
+    return raised
 
 
 def applicable_geometry(
@@ -1323,7 +1375,7 @@ def require_bounded_kv_pool(
         ):
             raise ValueError(
                 f"{key}: mem-fraction-static {fraction} share of {TOTAL_BYTES} bytes "
-                f"plus {OVERHEAD_BYTES} overhead is not admissible on an idle Spark"
+                f"plus {budget_margin_bytes(recipe)} overhead is not admissible on an idle Spark"
             )
         return
     pools = (
@@ -1372,7 +1424,7 @@ def require_bounded_kv_pool(
     if not bounded:
         raise ValueError(
             f"{key}: set absolute {pools[0]}, or a {name} whose share of "
-            f"{TOTAL_BYTES} bytes plus {OVERHEAD_BYTES} overhead is admissible on "
+            f"{TOTAL_BYTES} bytes plus {budget_margin_bytes(recipe)} overhead is admissible on "
             "an idle Spark"
         )
 

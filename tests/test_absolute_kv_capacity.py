@@ -23,6 +23,7 @@ from qualification.memory_need import (
     hardware_proven,
     load_inputs,
     memory_variants,
+    raise_peaks_to_envelope,
     require_absolute_kv_capacity,
     require_memory_need,
     require_sglang_rank_budget,
@@ -223,6 +224,14 @@ def smallest_inadmissible_utilization(recipe: RecipeDefinition) -> Decimal:
     raise AssertionError("every two-decimal utilization is admissible")
 
 
+def declare_envelope(recipe: RecipeDefinition) -> None:
+    """A touched pool-less dual declares its vLLM budget envelope."""
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = envelope
+
+
 def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None:
     recipe = recipe_for(LAGUNA)
     models, inputs = catalog_models(), load_inputs()
@@ -244,16 +253,17 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     recipe.runtime.arguments.remove(pool)
     utilization = utilization_argument(recipe)
     utilization.value = "0.82"
+    declare_envelope(recipe)
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
     utilization.value = str(smallest_inadmissible_utilization(recipe))
+    declare_envelope(recipe)
     with pytest.raises(ValueError, match="admissible on an idle Spark"):
         require_memory_need(recipe, models, inputs, document_digest="", touched=True)
-    # Files the change does not touch keep their utilization-sized pools.
-    require_memory_need(recipe, models, inputs, document_digest="")
     # The highest proven utilization-sized dual budget (0.80) is accepted.
     next(
         arg for arg in recipe.runtime.arguments if arg.name == "gpu-memory-utilization"
     ).value = "0.80"
+    declare_envelope(recipe)
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 
@@ -276,6 +286,8 @@ def test_touching_any_proven_document_keeps_it_valid(engine: str, single: bool) 
         ):
             continue
         checked += 1
+        # A touched document is a refresh, which raises its peaks to the envelope.
+        recipe = raise_peaks_to_envelope(recipe) or recipe
         try:
             require_memory_need(
                 recipe, models, inputs, document_digest="", touched=True
