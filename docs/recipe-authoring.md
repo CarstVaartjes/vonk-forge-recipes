@@ -287,10 +287,13 @@ hardcodes a setting, align its implementation with the declared setting.
 The workload sandbox deliberately blocks io_uring. Recipes, option choices and
 image launchers must use a loader with a verified non-io_uring path: standard
 safetensors, InstantTensor automatic/AIO or BUFFERED/MMAP selection (never
-URING-only), or b12x disk PLE/Engram with `B12X_DISK_BACKEND=gds` and
-`CUFILE_FORCE_COMPAT_MODE=true` (requires cuFile >= 1.14 development files).
-Older b12x images without that backend need a tested POSIX reader replacement;
-never request relaxed seccomp. Enforce image-owned transport policy in the
+URING-only), or, on b12x images, PLE/Engram tables held in RAM with
+`VLLM_PLE_TABLE_MEMORY=shared` (or `ram`). b12x disk tables need io_uring or
+direct GDS; neither works in the sandbox (io_uring is blocked, and direct GDS
+needs a real nvidia-fs: `CUFILE_FORCE_COMPAT_MODE` is rejected with cuFile
+error 5027), so never leave the table on `disk` or unset (the BF16 PLE default
+is disk). `tests/test_b12x_table_memory.py` guards this. Never request relaxed
+seccomp. Enforce image-owned transport policy in the
 launcher before exec, including when a kit declares an unsafe backend. b12x
 defaults PLE BF16 tables and disk Engram to io_uring even when no backend is specified.
 The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
