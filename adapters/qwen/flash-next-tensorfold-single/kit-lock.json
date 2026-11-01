@@ -2,15 +2,21 @@
   "dependencies": {
     "image": {
       "datasource": "oci-image",
-      "digest": "sha256:a503c88acdcfaab6231cf0089d747dac794cb5a7d1b121e566b180f35f8b02c6",
-      "kind": "tag",
-      "overridden": "the kit derives the tag it pulls (scripts/prepare.sh: $GHCR_IMAGE:<TF_VERSION>-<patches hash>, scripts/config.sh patches_hash) instead of writing it in a file, and the kit pins no digest; v0.6.1-f8a0b4cb702b is that tag for patches/*.patch plus patches/languages/*.patch at the kit commit (sha256 of their concatenation, first 12 hex digits; the image's tf.patches label agrees), the patch set the recipe offers its draft-language options on",
-      "ref": "v0.6.1-f8a0b4cb702b",
+      "digest": "sha256:5c6c42b9747318c1cd8b6cb85cb69493fff2e82cb23b61e49b9cf54cd09ac28e",
+      "kind": "digest",
+      "ref": "sha256:5c6c42b9747318c1cd8b6cb85cb69493fff2e82cb23b61e49b9cf54cd09ac28e",
       "repo": "ghcr.io/miaai-lab/qwen3.8-flash-next-single-dgx-spark-tensorfold"
+    },
+    "model": {
+      "datasource": "hf-revision",
+      "kind": "commit",
+      "ref": "b9ce18a6887e18c089fdea8509a33e63429a3300",
+      "repo": "nvidia/Qwen3.8-Flash-Next-FP4-Local",
+      "revision": "b9ce18a6887e18c089fdea8509a33e63429a3300"
     }
   },
   "kit": {
-    "commit": "4c0dea8ebe93a1d445d6a716b5a38995ff6e9362",
+    "commit": "20e15e41f2f514a0d287710f4665ee1b5009ba41",
     "repo": "MiaAI-Lab/Qwen3.8-Flash-Next-Single-DGX-Spark-TensorFold"
   }
 }
