@@ -1,10 +1,10 @@
 {
   "dependencies": {
     "engine": {
-      "commit": "629c524a0ea57512a5342abb498d1b7c25353343",
+      "commit": "fbbc97132cd004237d9887b8d3185896efaedc5c",
       "datasource": "git-ref",
       "kind": "commit",
-      "ref": "629c524a0ea57512a5342abb498d1b7c25353343",
+      "ref": "fbbc97132cd004237d9887b8d3185896efaedc5c",
       "repo": "bertholomus/TensorFold"
     },
     "engram": {
@@ -18,19 +18,27 @@
       "datasource": "oci-image",
       "digest": "sha256:4ed15dceaf0a210052d5db89c74145794d8ee45f63a3436878ac3ec01cea38b5",
       "kind": "tag",
+      "overridden": "the kit publishes no image of its current pins (scripts/config.sh: none published yet; the tag would be exl3-tp2-<image_hash>), so the recipe takes the last published image's CUDA/Zig/input-tool stack by digest and rebuilds the serving engine and rank-cache tool on it from the kit's pins and patches (refresh-engine.sh).",
       "ref": "exl3-tp2-7c9bf5d36350",
       "repo": "ghcr.io/miaai-lab/deepseek-v4.1-flash-1017-2x-dgx-sparks-tensorfold"
+    },
+    "inputs": {
+      "commit": "59402086381a42c74d53053443224eec2790b4c5",
+      "datasource": "git-ref",
+      "kind": "commit",
+      "ref": "59402086381a42c74d53053443224eec2790b4c5",
+      "repo": "bertholomus/TensorFold"
     },
     "model": {
       "datasource": "hf-revision",
       "kind": "commit",
-      "ref": "6d54be4fca338d79b17c3b03cc9a423bb3ac6718",
+      "ref": "45ee5d0fd106c94a3d77f721e09cbb2f50e5a16b",
       "repo": "Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw",
-      "revision": "6d54be4fca338d79b17c3b03cc9a423bb3ac6718"
+      "revision": "45ee5d0fd106c94a3d77f721e09cbb2f50e5a16b"
     }
   },
   "kit": {
-    "commit": "75cab1d6047a414f9b8db7a3639fe5a1f98f17dc",
+    "commit": "0e7d421eb4797d98dc781dad764b8f86d34118ae",
     "repo": "MiaAI-Lab/DeepSeek-v4.1-Flash-1017-2x-DGX-Sparks"
   }
 }

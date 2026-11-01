@@ -16,16 +16,25 @@
       },
       "image": {
         "datasource": "oci-image",
-        "file": "README.md",
-        "pattern": "ghcr\\.io/miaai-lab/deepseek-v4\\.1-flash-1017-2x-dgx-sparks-tensorfold:(?P<version>exl3-tp2-[0-9a-f]{12})",
+        "file": "scripts/config.sh",
+        "override": {
+          "reason": "the kit publishes no image of its current pins (scripts/config.sh: none published yet; the tag would be exl3-tp2-<image_hash>), so the recipe takes the last published image's CUDA/Zig/input-tool stack by digest and rebuilds the serving engine and rank-cache tool on it from the kit's pins and patches (refresh-engine.sh).",
+          "ref": "exl3-tp2-7c9bf5d36350"
+        },
+        "pattern": "^TAG_BASE=\"(?P<version>[^\"]+)\"",
         "repo": "ghcr.io/miaai-lab/deepseek-v4.1-flash-1017-2x-dgx-sparks-tensorfold"
+      },
+      "inputs": {
+        "datasource": "git-ref",
+        "file": "scripts/config.sh",
+        "pattern": "^INPUTS_REF=\"\\$\\{INPUTS_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo": "bertholomus/TensorFold"
       },
       "model": {
         "binds": "primary",
         "datasource": "hf-revision",
         "file": "scripts/config.sh",
-        "pattern": "&& _rev=(?P<version>[0-9a-f]{40})",
-        "repo": "Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw"
+        "pattern": "^  (?P<repo>Mia-AiLab/DeepSeek-V4\\.1-Flash-1017-EXL3-EAQ-v1-2\\.9-bpw)\\) _rev=(?P<version>[0-9a-f]{40}) ;;"
       }
     },
     "whole": true

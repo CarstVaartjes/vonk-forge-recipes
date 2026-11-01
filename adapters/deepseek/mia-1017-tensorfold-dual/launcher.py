@@ -56,11 +56,13 @@ def launch(arguments, environ):
                TF_DS_HC_SIDE="1", TF_DS_L2_PREFETCH="1", TF_DS_ENGRAM_AIO="1",
                TF_DS_STREAMS=str(args.parallel))
     env["TF_DS_REPLAY_FLOOR"] = "1"
+    # the kit's scripts/config.sh defaults (zig/patches/0010 and 0033): the RDMA proxy naps when idle, the CUDA graph cache keeps 128 graphs
+    env.update(TF_RDMA_IDLE_S="2", TF_RDMA_NAP_US="500", TF_DS_GRAPH_CAP="128")
     model = cache / "model"
     if args.rank == 0:
         command = ["/opt/tensorfold/bin/tensorfold-native", "serve", str(model), "--context", str(args.context), "--parallel", str(args.parallel), *server_args, "--backend", "cuda"]
     else:
-        command = ["/opt/tensorfold/bin/tf-dsv41-lanes", str(model), str(cache / "rank-cache"), str(args.rank), str(args.tp), master, port, str(cache / "kit"), "--engram", "/models/engram", "--token-map", str(cache / "dsv41_token_map.json"), "--pool", str(args.context), "--rdma", rails, "--graphs", "1", "--side", "1", "--prefetch", "1", "--aio", "1", "--streams", str(args.parallel), "--drafts", "0" if args.no_drafts else "1"]
+        command = ["/opt/tensorfold/bin/tf-dsv41-lanes", str(model), str(cache / "rank-cache"), str(args.rank), str(args.tp), master, port, str(cache / "kit"), "--engram", "/models/engram", "--token-map", str(cache / "dsv41_token_map.json"), "--pool", str(args.context), "--rdma", rails, "--graphs", "1", "--side", "1", "--prefetch", "1", "--aio", "1", "--streams", str(args.parallel), "--drafts", "0" if args.no_drafts else "1", "--graph-cap", "128"]
     return args, cache, command, env
 
 
