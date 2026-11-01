@@ -2,7 +2,7 @@
   "execution": {
     "build": {
       "base_image": {
-        "digest": "14b5072e8e9918f1080153f57321415a387bc7d78cf9c9b44a7aeae2d4399ccf",
+        "digest": "99fe7496d7002fd8f2ca3b1beb0aa07513835cd09989ca657b65875d60f69956",
         "repository": "ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold"
       },
       "context": {
@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "GLM-5.3-Flash on two DGX Sparks with the TensorFold engine (exact decoding, custom CUDA kernels JIT-compiled on first start), one rank per Spark over the ConnectX-7 link with RoCE all-gathers that use both PCIe links of the cabled QSFP port when the platform's fabric setup passes both RoCE devices (the engine takes up to two from NCCL_IB_HCA). Serves MiaAI-Lab's EXL3 4 bpw TensorFold checkpoint (EXL3 routed experts, BF16 elsewhere; Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold at the revision the kit pins) with a 1,048,576-token window, up to 4 concurrent requests sharing an FP8 KV pool (a drafter choice raises that to 8 at the cost of a smaller pool), DFlash2 and copy drafts, 4-bit dense weights, image and video input (up to 50 images and 4 videos a request), tool calling (a call is sent whole, never cut off) and structured outputs, smooth token streaming, earlier turns' reasoning kept in the prompt, a default reply budget of 32,768 tokens for requests that set none, and room for 32 kept prompt states. Based on MiaAI-Lab's two-Spark TensorFold kit v1.7.1 (68ebd67b, Apache-2.0) on TensorFold v0.6.0 (Apache-2.0; code written before 0.6.0 keeps its MIT notice) with her 76 patches, applied at fuzz 0; the recipe runs her published image v0.6.0-1692d2df78d2 (sha256:a8067cd7e14c14fa83d1dbed60261428f6d1737cec4554445573354af040dd7c) as the kit pins it, with only a thin layer for the Controller's launcher, and does not rebuild it from the patches. A different engine from the vLLM two-Spark recipe. Memory per Spark, from the kit's README (KV pool and memory, rank 0, not measured here): startup estimate 88.09 GiB, about 10 GiB more at a 1M-token prompt, 14.5 GiB host reserve, unchanged at 4 requests since the previous kit. Upstream claims 60.4 tok/s for one request and 108.8 tok/s aggregate at 4, about 1,950 tok/s prefill and, for this checkpoint, GSM8K 98.8 percent / HumanEval 95.7 percent, all unmeasured here. Licences, for information: the quantization is Apache-2.0 per the kit's NOTICE, with Z.AI's MIT licence kept for the base model (the pinned checkpoint revision's own LICENSE and card still carry Z.AI's MIT text; the relicensing is a later upstream commit that changes no weights); the DFlash2 drafter is CC BY-NC-ND 4.0 (non-commercial) and is not used with the MTP drafter option. Thinking is on by default (the chat template's default) and is chosen per request: a request can set reasoning_effort or chat_template_kwargs.enable_thinking, and reasoning comes back in reasoning_content.",
+    "description": "GLM-5.3-Flash on two DGX Sparks with the TensorFold engine (exact decoding, custom CUDA kernels JIT-compiled on first start), one rank per Spark over the ConnectX-7 link with RoCE all-gathers that use both PCIe links of the cabled QSFP port when the platform's fabric setup passes both RoCE devices (the engine takes up to two from NCCL_IB_HCA). Serves MiaAI-Lab's EXL3 4 bpw TensorFold checkpoint (EXL3 routed experts, BF16 elsewhere; Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold at the revision the kit pins) with a 1,048,576-token window, up to 4 concurrent requests sharing an FP8 KV pool (a drafter choice raises that to 8 at the cost of a smaller pool), DFlash2 and copy drafts, 4-bit dense weights, image and video input (up to 50 images and 4 videos a request, each picture keeping its size across a chat), a keep-alive comment on a silent stream every 15 s, tool calling (a call is sent whole, never cut off) and structured outputs, smooth token streaming, earlier turns' reasoning kept in the prompt, a default reply budget of 32,768 tokens for requests that set none, and room for 32 kept prompt states. Based on MiaAI-Lab's two-Spark TensorFold kit at commit bf5f9452 (v1.10 plus later commits, Apache-2.0) on TensorFold v0.6.0 (Apache-2.0; code written before 0.6.0 keeps its MIT notice) with her 123 patches, applied at fuzz 0; the recipe runs her published image v0.6.0-789e8f3bdfa2 (sha256:99fe7496d7002fd8f2ca3b1beb0aa07513835cd09989ca657b65875d60f69956) as the kit pins it, with only a thin layer for the Controller's launcher, and does not rebuild it from the patches. A different engine from the vLLM two-Spark recipe. Memory per Spark, from the kit's README (KV pool and memory, rank 0, not measured here): startup estimate 88.74 GiB (88.09 GiB before the kit sized the vision workspace at 1,440 MiB for up to 50 full-size pictures a request), about 10 GiB more at a 1M-token prompt, 14.5 GiB host reserve. Upstream claims 60.4 tok/s for one request and 108.8 tok/s aggregate at 4, about 1,950 tok/s prefill and, for this checkpoint, GSM8K 98.8 percent / HumanEval 95.7 percent, all unmeasured here. Licences, for information: the quantization is Apache-2.0 per the kit's NOTICE, with Z.AI's MIT licence kept for the base model (the pinned checkpoint revision's own LICENSE and card still carry Z.AI's MIT text; the relicensing is a later upstream commit that changes no weights); the DFlash2 drafter is CC BY-NC-ND 4.0 (non-commercial) and is not used with the MTP drafter option. Thinking is on by default (the chat template's default) and is chosen per request: a request can set reasoning_effort or chat_template_kwargs.enable_thinking, and reasoning comes back in reasoning_content.",
     "tags": [
       "dflash2",
       "engine",
@@ -1242,11 +1242,11 @@
       "IncoAI",
       "Z.AI"
     ],
-    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/3fd60dfc836fab0f1ed0fd4f0afaf2a1d62b2aab"
+    "source_reference": "https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold/tree/bf5f94523a8251029cedae86bf61f8ce37fac218"
   },
   "release": {
-    "released_at": "2026-10-12",
-    "version": "1.7.9"
+    "released_at": "2026-11-01",
+    "version": "1.7.10"
   },
   "runtime": {
     "arguments": [
@@ -1426,6 +1426,18 @@
         "value": "1"
       },
       {
+        "name": "TENSORFOLD_GLM_REQUEST_IMAGE_TOKENS",
+        "value": "102400"
+      },
+      {
+        "name": "TENSORFOLD_VISION_WORKSPACE_MIB",
+        "value": "1440"
+      },
+      {
+        "name": "TENSORFOLD_SSE_KEEPALIVE_S",
+        "value": "15"
+      },
+      {
         "name": "NCCL_MIN_NCHANNELS",
         "value": "4"
       },
@@ -1473,7 +1485,7 @@
             "working_bytes": 8000000000
           },
           "memory": {
-            "peak_bytes": 105100000000,
+            "peak_bytes": 105800000000,
             "reserve_bytes": 15600000000
           }
         }

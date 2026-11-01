@@ -1,13 +1,14 @@
-# MiaAI-Lab's published image of her GLM-5.3-Flash EXL3 TensorFold kit v1.7.1 (68ebd67b, Apache-2.0): TensorFold v0.6.0
-# (Apache-2.0, commit c4646171) plus her 76 patches on NVIDIA's PyTorch container 26.07 (arm64), tag v0.6.0-1692d2df78d2.
+# MiaAI-Lab's published image of her GLM-5.3-Flash EXL3 TensorFold kit at commit bf5f9452 (v1.10 plus later commits,
+# Apache-2.0): TensorFold v0.6.0 (Apache-2.0, commit c4646171) plus her 123 patches on NVIDIA's PyTorch container 26.07
+# (arm64), tag v0.6.0-789e8f3bdfa2.
 # The kit pins it by digest (scripts/config.sh IMAGE_DIGEST); this recipe runs that image as published and does not
 # rebuild it from the kit's sources. This layer only adds the Controller placement wrapper at the platform's launcher
 # path, the licence texts and the non-root user. Base: the linux/arm64 image
 # ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold, by digest.
-FROM ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold@sha256:14b5072e8e9918f1080153f57321415a387bc7d78cf9c9b44a7aeae2d4399ccf
+FROM ghcr.io/miaai-lab/glm-5.3-flash-exl3-2x-dgx-sparks-tensorfold@sha256:99fe7496d7002fd8f2ca3b1beb0aa07513835cd09989ca657b65875d60f69956
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/GLM-5.3-Flash-EXL3-2x-DGX-Sparks-TensorFold" \
-      org.opencontainers.image.revision="0cbe026146852df68516aa4482b6376f69cca1b9" \
+      org.opencontainers.image.revision="bf5f94523a8251029cedae86bf61f8ce37fac218" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 
