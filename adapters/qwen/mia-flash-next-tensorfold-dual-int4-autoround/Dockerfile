@@ -1,8 +1,9 @@
 # Native TensorFold at db28187; creator-published image, thin placement wrapper.
+# The image is the creator's zig-db28187-f3e1300f4f62 (patches 0001-0009); the kit's 0010-0012 await a published image.
 FROM ghcr.io/miaai-lab/qwen3.8-flash-dual-dgx-sparks-tensorfold@sha256:e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c
 
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold" \
-      org.opencontainers.image.revision="6730319ed948cc88b525bbbdc9d309451a863834" \
+      org.opencontainers.image.revision="dc05c912342ec19467b3b7b686888de763f2ada1" \
       org.opencontainers.image.licenses="Apache-2.0" \
       ai.vonkforge.runtime-interface="v1"
 

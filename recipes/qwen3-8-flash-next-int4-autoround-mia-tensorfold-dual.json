@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "MiaAI-Lab native TensorFold at db28187 on two Sparks, with the creator's pinned int4-autoround checkpoint. Sixteen concurrent streams share the engine's dynamic FP8 KV pool; 1,048,576-token window with YaRN factor four, MTP depth fifteen, RoCE all-gather, image/video helper on rank zero. FP8 KV is lossy; draft verification does not imply equivalence to BF16 KV. Memory peak is an estimate for one full-window request based on the kit's model, cache and prefill accounting; additional streams remain subject to engine admission. Physical execution is unmeasured here.",
+    "description": "MiaAI-Lab native TensorFold at db28187 on two Sparks, with the creator's pinned int4-autoround checkpoint. Sixteen concurrent streams share the engine's dynamic FP8 KV pool; 1,048,576-token window with YaRN factor four, MTP depth fifteen, RoCE all-gather, image/video helper on rank zero. FP8 KV is lossy; draft verification does not imply equivalence to BF16 KV. Memory peak is an estimate for one full-window request based on the kit's model, cache and prefill accounting; additional streams remain subject to engine admission. Physical execution is unmeasured here. The pinned creator image (zig-db28187-f3e1300f4f62) carries the kit's patches 0001-0009; the kit's newer fixes 0010-0012 (prompt-cache eviction inside a pass, the ranks' prefill admission, the control link's record order) are not in a published image yet, so this recipe does not run them until the creator publishes one.",
     "tags": [
       "qwen3.8",
       "tensorfold",
@@ -1411,7 +1411,7 @@
     }
   ],
   "provenance": {
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/6730319ed948cc88b525bbbdc9d309451a863834",
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/dc05c912342ec19467b3b7b686888de763f2ada1",
     "attribution": [
       "MiaAI-Lab",
       "Ash Hart (TensorFold)",
@@ -1420,8 +1420,8 @@
     ]
   },
   "release": {
-    "version": "1.0.0",
-    "released_at": "2026-10-18"
+    "version": "1.0.1",
+    "released_at": "2026-11-01"
   },
   "runtime": {
     "arguments": [

@@ -16,7 +16,7 @@
     }
   },
   "kit": {
-    "commit": "6730319ed948cc88b525bbbdc9d309451a863834",
+    "commit": "dc05c912342ec19467b3b7b686888de763f2ada1",
     "repo": "MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold"
   }
 }
