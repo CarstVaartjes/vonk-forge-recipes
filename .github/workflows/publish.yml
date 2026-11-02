@@ -2,7 +2,11 @@ name: Publish recipe library release
 
 # The library release version is the contract version (v<CONTRACT_VERSION>).
 # Recipe changes update that release in place; an additive contract change
-# (minor) or a breaking one (major) creates a new release.
+# (minor) or a breaking one (major) creates a new release. Its tag stays on the
+# commit that first published the contract version: consumers address the
+# release by tag name and take the commit from the signed bundle, and
+# GITHUB_TOKEN may not point a ref at a commit whose workflow files differ from
+# main's, which is every publish that lags a newer workflow change.
 #
 # This is the only workflow that runs on a push to main: it orchestrates the
 # validation jobs (the platform validator, the producer checks reused from
@@ -215,7 +219,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if ! gh release view "$RELEASE_TAG" --json tagName >/dev/null 2>&1; then
+          # Only a published release counts: the tags endpoint never returns a
+          # draft, so a draft left by a run that failed before undrafting is
+          # replaced by the publish step instead of blocking every later run.
+          if ! gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             echo "exists=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -250,11 +257,6 @@ jobs:
           cp "$ATTESTATION_BUNDLE" "$release/SHA256SUMS.sigstore.json"
           title="Vonk Forge recipes $RELEASE_TAG (updated $UPDATED_AT)"
           notes="Recipe library for contract ${RELEASE_TAG#v}, updated $UPDATED_AT from $GITHUB_SHA."
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag --force --annotate "$RELEASE_TAG" \
-            --message "Vonk Forge recipe library $RELEASE_TAG, updated $UPDATED_AT" "$GITHUB_SHA"
-          git push --force origin "refs/tags/$RELEASE_TAG"
           # One asset holds the whole signed library: SHA256SUMS, its Sigstore
           # bundle and every listed file, deterministically. It is the release's
           # only asset.
@@ -262,8 +264,14 @@ jobs:
           mkdir -p "$(dirname "$bundle")"
           "$RELEASE_TEST_PYTHON" tools/build-release-bundle "$release" "$bundle"
           if [ "$RELEASE_EXISTS" != "true" ]; then
-            # Upload the bundle to a draft first: "latest" must never name a
-            # release without its bundle.
+            # Delete leftover drafts of this tag, then upload the bundle to a
+            # fresh draft first: "latest" must never name a release without its
+            # bundle. Undrafting creates the tag at --target when it is missing.
+            drafts=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" \
+              --jq ".[] | select(.draft and .tag_name == \"$RELEASE_TAG\") | .id")
+            for id in $drafts; do
+              gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/$id"
+            done
             gh release create "$RELEASE_TAG" --draft --target "$GITHUB_SHA" \
               --title "$title" --notes "$notes" "$bundle"
             gh release edit "$RELEASE_TAG" --draft=false --latest
