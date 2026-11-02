@@ -39,7 +39,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "Executable Candidate for MiaAI-Lab's public 94ae731f GLM-5.3-Flash EXL3 kit at tensor-parallel 4 across four DGX Sparks, built on the digest-pinned vLLM CUDA 13 base like the two-Spark Mia recipe and serving the same TR3 4 bpw EXL3 target with the launcher-selected dc77ff1c DFlash2 drafter sharded four ways. It follows upstream's start-tp4.sh and .env.tp4 defaults: native-mp ranks with headless workers, 850k context, 8 sequences, 2048 batched tokens, GPU utilisation 0.75, no explicit KV pool cap, FP8 sparse-MLA target KV, BF16 draft KV, DFlash2 with 3 speculative tokens, E3 grouped fat-expert prefill, fair mixed prefill, vision, reasoning and tools. Upstream marks start-tp4.sh EXPERIMENTAL and untested by Mia (no four-Spark kit); the .env.tp4 numbers were measured by a third-party kit (punkjazz-labs, switch fabric) with an older image, and upstream documents an all-rank stall under long chunked prefills mixed with speculative decode that its optional sparse-MLA slice mitigation (not packaged here) only bounds. start-tp4.sh does not wire the dense FP8 projections, adaptive verification length or per-request no-store overlays that the two-Spark launcher enables, so the default keeps BF16 projections and an option selects FP8. The four ranks need an RoCE path among all of them (a QSFP ring on both CX7 ports or a switch); the platform owns the fabric settings. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT.  A same-checkpoint native MTP k=2 rollback is available from the upstream launcher; the DFlash2 companion stays in the recipe closure but is unused in that mode. Vonk physical acceptance and checkpoint requalification remain pending. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter. Memory follows the creator's settings: gpu-memory-utilization 0.75 with no explicit KV pool, as in MiaAI-Lab's .env.tp4.example at 94ae731f (line 115; upstream measured about 9 GiB host memory left at 0.75 and engine deaths at 0.85). The steady per-node peak is 0.75 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, with a separate 6 GB OS floor.",
+    "description": "Executable Candidate for MiaAI-Lab's public 94ae731f GLM-5.3-Flash EXL3 kit at tensor-parallel 4 across four DGX Sparks, built on the digest-pinned vLLM CUDA 13 base like the two-Spark Mia recipe and serving the same TR3 4 bpw EXL3 target with the launcher-selected dc77ff1c DFlash2 drafter sharded four ways. It follows upstream's start-tp4.sh and .env.tp4 defaults: native-mp ranks with headless workers, 850k context, 8 sequences, 2048 batched tokens, GPU utilisation 0.75, no explicit KV pool cap, FP8 sparse-MLA target KV, BF16 draft KV, DFlash2 with 3 speculative tokens, E3 grouped fat-expert prefill, fair mixed prefill, vision, reasoning and tools. Upstream marks start-tp4.sh EXPERIMENTAL and untested by Mia (no four-Spark kit); the .env.tp4 numbers were measured by a third-party kit (punkjazz-labs, switch fabric) with an older image, and upstream documents an all-rank stall under long chunked prefills mixed with speculative decode that its optional sparse-MLA slice mitigation (not packaged here) only bounds. start-tp4.sh does not wire the dense FP8 projections, adaptive verification length or per-request no-store overlays that the two-Spark launcher enables, so the default keeps BF16 projections and an option selects FP8. The four ranks need an RoCE path among all of them (a QSFP ring on both CX7 ports or a switch); the platform owns the fabric settings. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT.  A same-checkpoint native MTP k=2 rollback is available from the upstream launcher; the DFlash2 companion stays in the recipe closure but is unused in that mode. Vonk physical acceptance and checkpoint requalification remain pending. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter. Memory follows the creator's settings: gpu-memory-utilization 0.75 with no explicit KV pool, as in MiaAI-Lab's .env.tp4.example at 94ae731f (line 115; upstream measured about 9 GiB host memory left at 0.75 and engine deaths at 0.85). The steady per-node peak is 0.75 x 130,663,231,488-byte unified memory plus 10.4 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, with a separate 6 GB OS floor.",
     "tags": [
       "candidate",
       "dflash2",
@@ -1748,7 +1748,7 @@
   },
   "release": {
     "released_at": "2026-10-01",
-    "version": "1.0.6"
+    "version": "1.0.7"
   },
   "runtime": {
     "arguments": [
@@ -2092,7 +2092,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 105997423616,
+            "peak_bytes": 108397423616,
             "reserve_bytes": 8000000000
           }
         }
@@ -2109,7 +2109,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 105997423616,
+            "peak_bytes": 108397423616,
             "reserve_bytes": 8000000000
           }
         }

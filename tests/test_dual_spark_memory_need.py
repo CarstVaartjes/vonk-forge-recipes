@@ -16,6 +16,7 @@ from qualification.memory_need import (
     load_inputs,
     memory_variants,
     per_rank_need,
+    rank_weight_bytes,
     require_memory_need,
 )
 
@@ -218,3 +219,38 @@ def test_explicit_row_cache_is_charged_per_rank() -> None:
         RecipeRuntimeEnvironment(name="DSV41_CACHE_GIB", value="8")
     )
     assert per_rank_need(recipe, models, inputs).peak_bytes - floor == 8 * 2**30
+
+
+PLE_TABLE_BYTES = 51_200_245_760  # 320,001,536 rows x 160 B in model-fp8-mtp-ple
+
+
+def rank_weights(slug: str, **choices: str) -> int:
+    recipe = recipe_for(slug)
+    if choices:
+        recipe = recipe.with_option_choices(choices)
+    return rank_weight_bytes(recipe, catalog_models(), load_inputs())
+
+
+def without_disk_residency(slug: str) -> int:
+    inputs = load_inputs().model_copy(update={"disk_resident_bytes": {}})
+    return rank_weight_bytes(recipe_for(slug), catalog_models(), inputs)
+
+
+def test_disk_resident_table_leaves_only_the_single_that_reads_it_from_disk() -> None:
+    # Residency is a launch property (QWEN4EXP_PLE_MMAP=1), not a file property.
+    single = "qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-single"
+    assert without_disk_residency(single) - rank_weights(single) == PLE_TABLE_BYTES
+    # The dual's base launch does not read the table from disk: weights unchanged.
+    dual = "qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-dual"
+    assert rank_weights(dual) == without_disk_residency(dual)
+    assert 66.3e9 < rank_weights(dual) < 66.4e9
+    # A recipe selecting the same file under another engine is unchanged.
+    sglang = "qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single"
+    assert rank_weights(sglang) == without_disk_residency(sglang)
+
+
+def test_four_table_option_keeps_the_table_resident() -> None:
+    four = "qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-four"
+    disk = rank_weights(four, table="disk")
+    memory = rank_weights(four, table="memory")
+    assert memory - disk == (PLE_TABLE_BYTES + 3) // 4

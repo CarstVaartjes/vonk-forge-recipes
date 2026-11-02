@@ -22,6 +22,7 @@ from qualification.memory_need import (
     TOTAL_BYTES,
     CacheGeometry,
     argument_value,
+    budget_margin_bytes,
     cache_bytes,
     calculate_need,
     hardware_proven,
@@ -147,8 +148,8 @@ def test_utilization_sized_peak_covers_the_vllm_budget_on_one_spark() -> None:
 
 def test_touched_utilization_budget_must_be_admissible_on_one_spark() -> None:
     # With the 2 GiB platform floor the largest admitted peak is 124,452,516,352
-    # bytes (utilization up to 0.8912); vLLM's 0.90 default and 0.90 are not
-    # admissible, the creators' 0.88 is.
+    # bytes (utilization up to 0.9050 beside the 6.2 GB single-Spark margin);
+    # vLLM's 0.90 default is admissible, 0.91 is not.
     recipe = llama()
     recipe.runtime.arguments = [
         item
@@ -162,10 +163,9 @@ def test_touched_utilization_budget_must_be_admissible_on_one_spark() -> None:
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
         )
 
-    with pytest.raises(ValueError, match="not admissible"):
-        touched()
+    touched()
     recipe.runtime.arguments.append(
-        RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.90")
+        RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.91")
     )
     with pytest.raises(ValueError, match="not admissible"):
         touched()
@@ -581,8 +581,9 @@ def test_uncapped_sglang_fraction_stays_the_calibrated_proxy() -> None:
     recipe = glm_a0()
     fraction = argument_value(recipe, "mem-fraction-static")
     assert sglang_demand(recipe, None) == Decimal(str(fraction)) * TOTAL_BYTES + (
-        OVERHEAD_BYTES
+        budget_margin_bytes(recipe)
     )
+    assert budget_margin_bytes(recipe) == 8_500_000_000
     assert sglang_demand(recipe, 40_000_000_000) == Decimal(48_000_000_000)
 
 

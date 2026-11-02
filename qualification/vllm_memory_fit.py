@@ -10,9 +10,9 @@ from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     OS_FLOOR_BYTES,
-    OVERHEAD_BYTES,
     SPARK_MEMORY_BYTES,
     VLLM_DEFAULT_UTILIZATION,
+    budget_margin_bytes,
     speculative_config,
 )
 
@@ -78,7 +78,7 @@ def assert_memory_fit(recipe: RecipeDefinition) -> None:
         need = calculate_need(recipe, models, load_inputs())
         required_peak = Decimal(need.total_bytes)
     else:
-        required_peak = utilization * SPARK_MEMORY_BYTES + OVERHEAD_BYTES
+        required_peak = utilization * SPARK_MEMORY_BYTES + budget_margin_bytes(recipe)
     for role in recipe.topology.roles:
         memory = role.resources.memory
         label = f"{recipe.identity.slug}/{role.name} at utilization {utilization}"
