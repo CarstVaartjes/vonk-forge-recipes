@@ -175,6 +175,7 @@ VLLM_UNMODELED_HYBRID = {
     # CircularBufferSpec ring, an MLA compressed-key cache and an MTP QSA
     # layer; its sfxnz dual is proven (9f77f966) on this hand bound.
     "qwen3-8-flash-next-nvfp4-fab0aecb": "Qwen4Exp on vLLM v0.30.0",
+    "qwen3-8-flash-next-nvfp4-lil-6c01ac37": "Qwen4Exp on the eugr b12x vLLM image",
     # Sliding-window plus short-convolution layers on creator images whose
     # vLLM Inkling layout is not pinned; SGLang-measured state.
     "inkling-small-nvfp4": "Inkling short convolution on creator images",
