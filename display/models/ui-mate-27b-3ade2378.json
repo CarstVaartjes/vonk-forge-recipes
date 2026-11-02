@@ -1,0 +1,16 @@
+{
+  "description": "Exact public UI-Mate 27B BF16 checkpoint.",
+  "family_title": "UI-Mate",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "ui-mate-27b-3ade2378"
+  },
+  "kind": "model-display",
+  "model_title": "UI-Mate 27B",
+  "tags": [
+    "tencent",
+    "ui-mate",
+    "multimodal",
+    "candidate"
+  ]
+}

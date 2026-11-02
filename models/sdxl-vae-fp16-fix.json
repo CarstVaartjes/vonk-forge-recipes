@@ -28,13 +28,11 @@
   "identity": {
     "family": {
       "publisher": "stabilityai",
-      "slug": "stable-diffusion-xl",
-      "title": "Stable Diffusion XL"
+      "slug": "stable-diffusion-xl"
     },
     "model": {
       "publisher": "madebyollin",
-      "slug": "sdxl-vae-fp16-fix",
-      "title": "SDXL VAE fp16 fix"
+      "slug": "sdxl-vae-fp16-fix"
     },
     "publisher": "madebyollin",
     "slug": "sdxl-vae-fp16-fix",
@@ -48,15 +46,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/blob/207b116dae70ace3637169f1ddd2434b91b3a8cd/README.md"
-  },
-  "metadata": {
-    "description": "Exact local-only VAE config and safe weights loaded by the Step1X texture adapter.",
-    "tags": [
-      "madebyollin",
-      "vae",
-      "diffusers",
-      "step1x"
-    ]
   },
   "modalities": [
     "image"

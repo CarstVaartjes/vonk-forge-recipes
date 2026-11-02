@@ -680,13 +680,11 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek-flash"
     },
     "model": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-flash-dspark",
-      "title": "DeepSeek V4 Flash DSpark"
+      "slug": "deepseek-v4-flash-dspark"
     },
     "publisher": "deepseek-ai",
     "slug": "deepseek-v4-flash-dspark-913f0657",
@@ -700,20 +698,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark/blob/62af8fffb2f7030cac4de2f0169f5b8d1101b646/LICENSE"
-  },
-  "metadata": {
-    "description": "Official DeepSeek-V4-Flash-DSpark snapshot 62af8fff: mixed FP4/FP8 shards with DSpark speculative-decoding prediction layers, tokenizer, prompt encoder and minimal inference reference. MIT.",
-    "tags": [
-      "candidate",
-      "deepseek-ai",
-      "deepseek-flash",
-      "dspark",
-      "fp4",
-      "fp8",
-      "language",
-      "mtp",
-      "official"
-    ]
   },
   "modalities": [
     "text"

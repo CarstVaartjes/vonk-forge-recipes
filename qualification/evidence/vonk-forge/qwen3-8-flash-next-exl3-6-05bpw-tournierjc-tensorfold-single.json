@@ -29,6 +29,36 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "bf4dcaaa4e0f4c8b0d6bcb91aeca929fc620e08576dafa2a2c5eaab7920f9541",
+        "runtime_image": {
+          "build_key": "a4ad041869312b3774d93b5ae1409388669e520f59018f2e561e7e04bd488c0d",
+          "image_digest": "sha256:3297c4bc308a851e50d5289b0e77353e26c62eda046f36cb1a2997a3ec572a40"
+        },
+        "model_digests": [
+          "e42271a43ea2d6958d8f459f80410ba3d6932916870a418b7fc1416117cb527f"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "f12e3f621e9788453b4e8cf2260c87ab57d1dfedb6ac9f88086da1f2ba66a7b8"
+      ],
+      "tested_at": "2026-10-21T19:58:42.518131Z",
+      "platform": {
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     }
   ]
 }

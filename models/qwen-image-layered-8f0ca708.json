@@ -309,13 +309,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen-image",
-      "title": "Qwen Image"
+      "slug": "qwen-image"
     },
     "model": {
       "publisher": "qwen",
-      "slug": "qwen-image-layered",
-      "title": "Qwen Image Layered"
+      "slug": "qwen-image-layered"
     },
     "publisher": "qwen",
     "slug": "qwen-image-layered-8f0ca708",
@@ -329,18 +327,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen-Image-Layered/blob/8f0ca708dfff6ba1dd5f2d85d78f8c108a040bcf/README.md"
-  },
-  "metadata": {
-    "description": "Exact official Qwen Image Layered checkpoint for a candidate single-Spark Diffusers image-decomposition recipe.",
-    "tags": [
-      "qwen",
-      "image",
-      "editing",
-      "layered",
-      "image-to-image",
-      "bf16",
-      "spark"
-    ]
   },
   "modalities": [
     "image"

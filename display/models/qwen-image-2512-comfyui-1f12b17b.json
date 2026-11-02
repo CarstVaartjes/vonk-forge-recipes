@@ -1,0 +1,18 @@
+{
+  "description": "Exact Comfy-Org BF16 Qwen Image 2512 diffusion model, scaled-FP8 Qwen-VL encoder, and VAE.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-2512-comfyui-1f12b17b"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen Image 2512",
+  "tags": [
+    "qwen",
+    "image",
+    "text-to-image",
+    "comfyui",
+    "bf16",
+    "candidate"
+  ]
+}

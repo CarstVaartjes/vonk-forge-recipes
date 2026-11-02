@@ -1,0 +1,14 @@
+{
+  "description": "LightOnOCR 3 0.8B immutable upstream checkpoint. Physical Spark qualification pending.",
+  "family_title": "LightOnOCR",
+  "identity": {
+    "publisher": "lightonai",
+    "slug": "lightonocr-3-0-8b-bf16-36d86369"
+  },
+  "kind": "model-display",
+  "model_title": "LightOnOCR 3 0.8B",
+  "tags": [
+    "candidate",
+    "lightonocr"
+  ]
+}

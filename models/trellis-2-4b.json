@@ -210,13 +210,11 @@
   "identity": {
     "family": {
       "publisher": "microsoft",
-      "slug": "trellis",
-      "title": "TRELLIS"
+      "slug": "trellis"
     },
     "model": {
       "publisher": "microsoft",
-      "slug": "trellis-2-4b",
-      "title": "TRELLIS.2"
+      "slug": "trellis-2-4b"
     },
     "publisher": "microsoft",
     "slug": "trellis-2-4b",
@@ -230,14 +228,6 @@
     ],
     "spdx": "MIT",
     "url": "https://github.com/microsoft/TRELLIS.2/blob/75fbf0183001ed9876c8dbb35de6b68552ee08bd/LICENSE"
-  },
-  "metadata": {
-    "description": "Immutable public snapshot at af44b45f.",
-    "tags": [
-      "microsoft",
-      "three-d",
-      "candidate"
-    ]
   },
   "modalities": [
     "3d"

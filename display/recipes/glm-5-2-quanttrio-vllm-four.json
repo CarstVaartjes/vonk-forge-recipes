@@ -1,0 +1,22 @@
+{
+  "alignment": "unspecified",
+  "description": "Superseded historical Candidate TP4 recipe for the unpruned GLM 5.2 Int4/Int8 checkpoint. It is unsupported on Vonk's current one- or two-Spark configuration: a two-rank split alone would require at least 202.8 GB of checkpoint bytes per Spark before KV cache or runtime overhead, above the roughly 126.9 GB-per-node inventory. The immutable contract remains installable for reproducibility; its archived upstream directs four-node users to DFlash, while glm-5-3-flash-exl3-dflash2-vllm-dual is the current 126 GB-admission-envelope GLM alternative. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Absolute KV correction: 10,278,747,648 bytes per rank covers 4 simultaneous full-context requests at 41,808 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 128,000 tokens to 41,808 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-2-quanttrio-vllm-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "chat",
+    "distributed",
+    "glm-5.2",
+    "historical",
+    "reasoning",
+    "spark",
+    "superseded",
+    "tp4"
+  ],
+  "title": "GLM 5.2 QuantTrio four Sparks (superseded)"
+}

@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Qwen3.8 27B NVFP4 BF16 LM head 009632fe checkpoint.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "radixark",
+    "slug": "qwen3-8-27b-nvfp4-009632fe"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 27B NVFP4 BF16 LM head",
+  "tags": [
+    "radixark",
+    "qwen3-8-radixark",
+    "multimodal",
+    "candidate"
+  ]
+}

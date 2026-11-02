@@ -1,0 +1,21 @@
+{
+  "description": "Exact Comfy-Org stock-ComfyUI INT8 tensorwise ConvRot Qwen Image Edit 2511 transformer, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-comfyui-int8-convrot-f68ace85"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen Image Edit",
+  "tags": [
+    "qwen",
+    "image",
+    "editing",
+    "comfyui",
+    "int8",
+    "convrot",
+    "mixed-precision",
+    "candidate",
+    "spark"
+  ]
+}

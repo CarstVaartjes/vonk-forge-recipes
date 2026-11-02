@@ -1,0 +1,17 @@
+{
+  "description": "Exact DS4 96/128-GB imatrix target GGUF and matching DSpark support GGUF.",
+  "family_title": "DeepSeek Flash",
+  "identity": {
+    "publisher": "antirez",
+    "slug": "deepseek-v4-flash-0731-ds4"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek V4 Flash 0731",
+  "tags": [
+    "deepseek",
+    "ds4",
+    "gguf",
+    "iq2",
+    "spark"
+  ]
+}

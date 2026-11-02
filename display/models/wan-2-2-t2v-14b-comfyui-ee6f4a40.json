@@ -1,0 +1,18 @@
+{
+  "description": "Exact Comfy-Org scaled-FP8 high/low-noise T2V experts, encoder, and Wan VAE.",
+  "family_title": "Wan",
+  "identity": {
+    "publisher": "wan-ai",
+    "slug": "wan-2-2-t2v-14b-comfyui-ee6f4a40"
+  },
+  "kind": "model-display",
+  "model_title": "Wan 2.2 T2V 14B",
+  "tags": [
+    "wan",
+    "video",
+    "text-to-video",
+    "comfyui",
+    "fp8",
+    "candidate"
+  ]
+}

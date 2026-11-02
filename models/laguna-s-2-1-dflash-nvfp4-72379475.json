@@ -57,13 +57,11 @@
   "identity": {
     "family": {
       "publisher": "poolside",
-      "slug": "laguna",
-      "title": "Laguna"
+      "slug": "laguna"
     },
     "model": {
       "publisher": "poolside",
-      "slug": "laguna-s-2-1-dflash",
-      "title": "Laguna S 2.1 DFlash"
+      "slug": "laguna-s-2-1-dflash"
     },
     "publisher": "poolside",
     "slug": "laguna-s-2-1-dflash-nvfp4-72379475",
@@ -77,14 +75,6 @@
     ],
     "spdx": "NOASSERTION",
     "url": "https://huggingface.co/poolside/Laguna-S-2.1-DFlash-NVFP4/blob/723794750422b3efbf3a7b3af76dffb4ba035943/README.md"
-  },
-  "metadata": {
-    "description": "DFlash speculative-decoding draft head for Laguna S 2.1.",
-    "tags": [
-      "poolside",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

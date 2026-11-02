@@ -75,13 +75,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "redhatai",
-      "slug": "glm-5-3-dspark",
-      "title": "GLM 5.3 DSpark"
+      "slug": "glm-5-3-dspark"
     },
     "publisher": "redhatai",
     "slug": "glm-5-3-dspark-b374b956",
@@ -96,15 +94,6 @@
     ],
     "spdx": "LicenseRef-GLM-5.3",
     "url": "https://huggingface.co/RedHatAI/GLM-5.3-speculator.dspark/blob/b374b95663447ea0e935151be4f3d6666e36e6d7/LICENSE"
-  },
-  "metadata": {
-    "description": "DSpark speculative drafter for GLM 5.3.",
-    "tags": [
-      "redhatai",
-      "glm",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

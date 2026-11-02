@@ -1,0 +1,17 @@
+{
+  "description": "Exact public NVIDIA Model Optimizer FP8 quantization of Phi-4-reasoning-plus.",
+  "family_title": "Microsoft Phi-4",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "phi-4-reasoning-plus-fp8-18abf8a5"
+  },
+  "kind": "model-display",
+  "model_title": "Phi-4 Reasoning Plus",
+  "tags": [
+    "nvidia",
+    "phi-4",
+    "language",
+    "fp8",
+    "candidate"
+  ]
+}

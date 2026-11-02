@@ -127,7 +127,7 @@ def test_editing_one_recipe_changes_only_that_package(
     }
     target = rows[0]
     edited = copy.deepcopy(target["document"])
-    edited["metadata"]["description"] += " edited"
+    edited["provenance"]["attribution"] = [*edited["provenance"]["attribution"], "edit"]
     entities = TOOL["_catalog_entity_documents"]()
     package_bytes, package = TOOL["recipe_package"](
         edited,

@@ -30,23 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's own DGX Spark playbook (trt-llm) for Qwen3 8B FP8: the NGC TensorRT-LLM release image 1.3.0rc13 (pinned by arm64 digest) serving the exact model revision through trtllm-serve with the playbook's LLM API options. Resource envelopes are estimates from the playbook's 0.8-0.9 KV memory fraction, not measurements; physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "tensorrt-llm",
-      "openai",
-      "single",
-      "spark",
-      "qwen",
-      "fp8",
-      "reasoning"
-    ],
-    "title": "Qwen3 8B FP8 TensorRT-LLM single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -203,7 +186,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4b6a4af99c156d4a6ad8f5bd3eae3a2dd573a98974b865fef35d574262f1b179",
+        "content_sha256": "8a2e0a7560bbfb101923ce5d3993101ac7ca5470109a178dcc082e36fe112e00",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-8b-fp8-2cebc4c8"

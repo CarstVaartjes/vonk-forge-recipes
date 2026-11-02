@@ -1,0 +1,16 @@
+{
+  "description": "MLX four-bit GLM 5.3 Flash with MTP head.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "vontra",
+    "slug": "glm-5-3-flash-mlx-4bit-mtp-d2b17f52"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.3 Flash",
+  "tags": [
+    "vontra",
+    "glm",
+    "language",
+    "candidate"
+  ]
+}

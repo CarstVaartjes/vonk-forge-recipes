@@ -30,22 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Llama 3.1 8B Instruct NVFP4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 \u2192 0.85 (previously implicit). Per-node peak budgets utilization \u00d7 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. Following the captured 93.28 GiB automatic KV allocation failure, reserve 8 GiB FP8 KV for 131072 tokens and one engine sequence (32 layers, 8 KV heads, 128 dimensions for K and V). Need is selected weights plus this pool and an 8 GB runtime estimate. Physical requalification is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "llama",
-      "nvfp4"
-    ],
-    "title": "Llama 3.1 8B Instruct NVFP4 vLLM single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -182,7 +166,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "06e87a022cce41677b21499753d9b0b647cb084c89150ed3194ec17a5ef15055",
+        "content_sha256": "13d9335a6b01ffa136ed922c7d5035a42c157cea7217e48faebf9a3ec18308f6",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "llama-3-1-8b-instruct-nvfp4-bdb54e24"

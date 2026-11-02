@@ -30,23 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate llama.cpp recipe based on the ggml-org GGUF repository: the official ggml-org llama.cpp 0.5.0 CUDA 13 server image (arm64, pinned by digest; its default CUDA architectures include GB10 sm_121a) serving the exact GGUF revision through llama-server. NVIDIA's llama.cpp playbook compiles the same upstream source with -DCMAKE_CUDA_ARCHITECTURES=121a-real; this recipe uses the project's published binary instead. Resource envelopes are estimates, not measurements; physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "llama-cpp",
-      "openai",
-      "single",
-      "spark",
-      "nemotron",
-      "gguf",
-      "q4_k_m",
-      "reasoning"
-    ],
-    "title": "Nemotron 3 Nano 30B-A3B Q4_K_M llama.cpp single Spark (ggml-org)"
-  },
   "models": [
     {
       "files": [
@@ -83,7 +66,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a7cd8870cc7e799f7855f8417c07d639c75256944778a9ae97cf7e8556e1ef74",
+        "content_sha256": "8c8e83e379b047f06b1b1c01e000874c1e829ef842fee7b01e9d990b2368306e",
         "kind": "model",
         "publisher": "ggml-org",
         "slug": "nemotron-3-nano-30b-a3b-q4-k-m-fe801509"

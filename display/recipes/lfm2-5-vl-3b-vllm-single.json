@@ -1,0 +1,27 @@
+{
+  "alignment": "unspecified",
+  "description": "Executable one-Spark OpenAI vision-language recipe for Liquid AI LFM2.5-VL-3B with text, image, screen, scanned-document OCR/layout, normalized-coordinate grounding, multi-image, and parsed tool-call support.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "lfm2-5-vl-3b-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "liquidai",
+    "lfm2-5",
+    "multimodal",
+    "vision-language",
+    "ocr",
+    "document",
+    "screen-understanding",
+    "grounding",
+    "tool-use",
+    "vllm",
+    "openai",
+    "single",
+    "spark"
+  ],
+  "title": "LFM2.5-VL-3B BF16 vLLM single Spark"
+}

@@ -568,13 +568,11 @@
   "identity": {
     "family": {
       "publisher": "tencent",
-      "slug": "hy-memory",
-      "title": "Hy Memory"
+      "slug": "hy-memory"
     },
     "model": {
       "publisher": "tencent",
-      "slug": "hy-memory-30b-a3b-bf16",
-      "title": "Hy-Memory-30B-A3B"
+      "slug": "hy-memory-30b-a3b-bf16"
     },
     "publisher": "tencent",
     "slug": "hy-memory-30b-a3b-bf16-64a460a9",
@@ -588,13 +586,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/tencent/Hy-Memory-30B-A3B/blob/64a460a94d5498b7316fb02395c72d01c47a7347/LICENSE"
-  },
-  "metadata": {
-    "description": "Hy-Memory-30B-A3B immutable upstream checkpoint. Physical Spark qualification pending.",
-    "tags": [
-      "candidate",
-      "hy-memory"
-    ]
   },
   "modalities": [
     "text"

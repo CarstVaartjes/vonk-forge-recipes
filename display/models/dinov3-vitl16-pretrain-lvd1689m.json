@@ -1,0 +1,16 @@
+{
+  "description": "Exact DINOv3 feature encoder referenced by TRELLIS.2-4B at af44b45f and Pixal3D at b0cb2e1b. Official snapshot blob IDs match the public camenduru/dinov3-vitl16-pretrain-lvd1689m snapshot at 3c276edd87d6f6e569ff0c4400e086807d0f3881, including the LFS pointer reconstructed from the weight SHA-256 and size. Downloads use the official gated Facebook repository.",
+  "family_title": "DINOv3",
+  "identity": {
+    "publisher": "facebook",
+    "slug": "dinov3-vitl16-pretrain-lvd1689m"
+  },
+  "kind": "model-display",
+  "model_title": "DINOv3 ViT-L/16 LVD-1689M",
+  "tags": [
+    "facebook",
+    "auxiliary",
+    "image",
+    "offline"
+  ]
+}

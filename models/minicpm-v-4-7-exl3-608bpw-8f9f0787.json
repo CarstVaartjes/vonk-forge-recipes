@@ -284,13 +284,11 @@
   "identity": {
     "family": {
       "publisher": "openbmb",
-      "slug": "minicpm",
-      "title": "MiniCPM"
+      "slug": "minicpm"
     },
     "model": {
       "publisher": "r0b0tlab",
-      "slug": "minicpm-v-4-7-35b-a3b",
-      "title": "MiniCPM-V 4.7 35B A3B"
+      "slug": "minicpm-v-4-7-35b-a3b"
     },
     "publisher": "r0b0tlab",
     "slug": "minicpm-v-4-7-exl3-608bpw-8f9f0787",
@@ -305,15 +303,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/r0b0tlab/MiniCPM-V-4.7-35B-A3B-EXL3-6.08bpw/blob/8f9f07872b09846f2e14b3c908e99be1ccf3402a/README.md"
-  },
-  "metadata": {
-    "description": "MiniCPM-V 4.7 EXL3 6.08bpw; this runtime uses the text path.",
-    "tags": [
-      "r0b0tlab",
-      "minicpm",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

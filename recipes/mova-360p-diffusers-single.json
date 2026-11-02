@@ -104,24 +104,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Preferred default MOVA profile for one Spark, using the exact official 360p checkpoint and native pipeline. It produces one fail-closed MP4 containing synchronized 24 fps video and 48 kHz audio; the ARM64 image builds reproducibly and only the physical Spark canary remains pending. Keeps models on CUDA without CPU offload on GB10 unified memory; smoke fit is estimated, and physical memory and latency qualification remain pending.",
-    "tags": [
-      "candidate",
-      "executable",
-      "preferred",
-      "default",
-      "openmoss",
-      "mova",
-      "video",
-      "audio",
-      "pytorch",
-      "single",
-      "spark"
-    ],
-    "title": "MOVA 360p native synchronized media single Spark (preferred)"
-  },
   "models": [
     {
       "files": [
@@ -408,7 +390,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8533420444efd03b6d5e0bdbc98a16b9fba5f369eec17681c6c3921651b9851b",
+        "content_sha256": "bb4d892c29d60f0082c88e480cae87bc1c8d7561a77906f3e2b15be5daee33f8",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "mova-360p"
@@ -472,12 +454,12 @@
     "kind": "job",
     "knobs": {
       "num-frames": {
-        "value": 193,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 193
       },
       "num-inference-steps": {
-        "value": 50,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 50
       }
     }
   },

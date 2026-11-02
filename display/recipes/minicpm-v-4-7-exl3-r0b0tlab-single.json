@@ -1,0 +1,19 @@
+{
+  "alignment": "standard",
+  "description": "Pinned r0b0tlab ExLlamaV3 fork 5ddae7d1 and creator HTTP server. Text only, 262,144-token window, FP16 KV and one stream. Plain decoding avoids the DSpark output divergence reported upstream. Exact creator checkpoint, immutable CUDA 13.0 image and hash-locked Torch 2.14.0 cu130 dependencies. The memory envelope is a conservative estimate; container and physical model acceptance remain separate.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minicpm-v-4-7-exl3-r0b0tlab-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "minicpm",
+    "exl3",
+    "exllamav3",
+    "spark",
+    "reasoning",
+    "tool-use",
+    "text-only"
+  ],
+  "title": "MiniCPM-V 4.7 EXL3 6.08bpw text (r0b0tlab)"
+}

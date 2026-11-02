@@ -1,0 +1,15 @@
+{
+  "description": "Exact immutable geometry pipeline subtree at bf708449; its DINOv2 config and image-processor metadata are separately selected without external encoder weights.",
+  "family_title": "Step1X-3D",
+  "identity": {
+    "publisher": "stepfun-ai",
+    "slug": "step1x-3d-geometry"
+  },
+  "kind": "model-display",
+  "model_title": "Step1X-3D",
+  "tags": [
+    "stepfun-ai",
+    "three-d",
+    "candidate"
+  ]
+}

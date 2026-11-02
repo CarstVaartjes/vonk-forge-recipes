@@ -1,0 +1,16 @@
+{
+  "description": "Exact public z-lab DFlash block-diffusion draft model for Qwen3.6-35B-A3B.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "z-lab",
+    "slug": "qwen3-6-35b-a3b-dflash-f181eece"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.6 35B-A3B DFlash draft",
+  "tags": [
+    "z-lab",
+    "qwen3-6-z-lab",
+    "text",
+    "candidate"
+  ]
+}

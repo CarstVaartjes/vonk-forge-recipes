@@ -1,0 +1,15 @@
+{
+  "description": "Immutable public snapshot of TencentARC/Pixal3D at b0cb2e1b: the single-view checkpoint set (the multi-view *_mv files are not used by this recipe).",
+  "family_title": "Pixal3D",
+  "identity": {
+    "publisher": "tencentarc",
+    "slug": "pixal3d-b0cb2e1b"
+  },
+  "kind": "model-display",
+  "model_title": "Pixal3D",
+  "tags": [
+    "tencentarc",
+    "three-d",
+    "candidate"
+  ]
+}

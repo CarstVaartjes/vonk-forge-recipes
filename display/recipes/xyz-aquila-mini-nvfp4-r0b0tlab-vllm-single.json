@@ -1,0 +1,24 @@
+{
+  "alignment": "unspecified",
+  "description": "r0b0tlab's digest-pinned vLLM 0.25.0 serve of its NVFP4 quantization of XYZAILab XYZ-Aquila-mini on one GB10: native SM121 ModelOpt NVFP4 routing (an upstream patch sends the calibrated W4A16-labelled linear layers through W4A4), FlashInfer B12X MoE, FlashInfer-CUTLASS linear, FlashInfer attention and fp8 KV, language model only, Qwen3 parsers, MTP off by default. Upstream quick start: 32,768 context, 16 sequences, 0.85 memory utilization; weights support 262,144 tokens with one sequence (upstream measured needle retrieval at 65K, 131K and 236K). The upstream registry image is not public, so the runtime is rebuilt from upstream's Dockerfile and patch on its public digest-pinned base. Licences: model Apache-2.0 per its card, package MIT (information only). Upstream reports about 65 tok/s at c=1 (claims, not measured here). GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "xyz-aquila-mini-nvfp4-r0b0tlab-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "moe",
+    "nvfp4",
+    "openai",
+    "qwen3",
+    "r0b0tlab",
+    "reasoning",
+    "single",
+    "spark",
+    "tool-use",
+    "vllm"
+  ],
+  "title": "XYZ-Aquila-mini NVFP4 vLLM single Spark (r0b0tlab)"
+}

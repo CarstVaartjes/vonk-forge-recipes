@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "repository": "nvcr.io/nvidia/cuda",
-        "digest": "5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6"
+        "digest": "5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6",
+        "repository": "nvcr.io/nvidia/cuda"
       },
       "context": {
         "path": "adapters/minicpm/r0b0tlab-exl3-single"
@@ -39,33 +39,12 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "standard",
-    "description": "Pinned r0b0tlab ExLlamaV3 fork 5ddae7d1 and creator HTTP server. Text only, 262,144-token window, FP16 KV and one stream. Plain decoding avoids the DSpark output divergence reported upstream. Exact creator checkpoint, immutable CUDA 13.0 image and hash-locked Torch 2.14.0 cu130 dependencies. The memory envelope is a conservative estimate; container and physical model acceptance remain separate.",
-    "tags": [
-      "minicpm",
-      "exl3",
-      "exllamav3",
-      "spark",
-      "reasoning",
-      "tool-use",
-      "text-only"
-    ],
-    "title": "MiniCPM-V 4.7 EXL3 6.08bpw text (r0b0tlab)"
-  },
   "models": [
     {
-      "id": "primary",
-      "model": {
-        "kind": "model",
-        "publisher": "r0b0tlab",
-        "slug": "minicpm-v-4-7-exl3-608bpw-8f9f0787",
-        "content_sha256": "51118c90ece1549f3dda4d4658ac45e1ff5b7aa6e9522839a19aa1051cbd3e1e"
-      },
       "files": [
         {
-          "id": "metadata-ab97511ab464-618cd5b83d",
           "file_id": "metadata-ab97511ab464-618cd5b83d",
+          "id": "metadata-ab97511ab464-618cd5b83d",
           "mount": {
             "target": "/models/target"
           },
@@ -74,8 +53,8 @@
           ]
         },
         {
-          "id": "convert-26626068500d-fd0c0168e8",
           "file_id": "convert-26626068500d-fd0c0168e8",
+          "id": "convert-26626068500d-fd0c0168e8",
           "mount": {
             "target": "/models/target"
           },
@@ -84,8 +63,8 @@
           ]
         },
         {
-          "id": "license-cfc7749b96f6-c693279643",
           "file_id": "license-cfc7749b96f6-c693279643",
+          "id": "license-cfc7749b96f6-c693279643",
           "mount": {
             "target": "/models/target"
           },
@@ -94,8 +73,8 @@
           ]
         },
         {
-          "id": "notice-ed07481f528b-dfb14fbb9e",
           "file_id": "notice-ed07481f528b-dfb14fbb9e",
+          "id": "notice-ed07481f528b-dfb14fbb9e",
           "mount": {
             "target": "/models/target"
           },
@@ -104,8 +83,8 @@
           ]
         },
         {
-          "id": "readme-af35d2876836-b335630551",
           "file_id": "readme-af35d2876836-b335630551",
+          "id": "readme-af35d2876836-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -114,8 +93,8 @@
           ]
         },
         {
-          "id": "upload-manifest-b3098a00b7a2-e7e2b271bb",
           "file_id": "upload-manifest-b3098a00b7a2-e7e2b271bb",
+          "id": "upload-manifest-b3098a00b7a2-e7e2b271bb",
           "mount": {
             "target": "/models/target"
           },
@@ -124,8 +103,8 @@
           ]
         },
         {
-          "id": "calibration-08d231bb0567-345160881a",
           "file_id": "calibration-08d231bb0567-345160881a",
+          "id": "calibration-08d231bb0567-345160881a",
           "mount": {
             "target": "/models/target"
           },
@@ -134,8 +113,8 @@
           ]
         },
         {
-          "id": "calibration-acbf9851e6f0-038fd87f3f",
           "file_id": "calibration-acbf9851e6f0-038fd87f3f",
+          "id": "calibration-acbf9851e6f0-038fd87f3f",
           "mount": {
             "target": "/models/target"
           },
@@ -144,8 +123,8 @@
           ]
         },
         {
-          "id": "chat-template-c4531cacbf2a-00824420d1",
           "file_id": "chat-template-c4531cacbf2a-00824420d1",
+          "id": "chat-template-c4531cacbf2a-00824420d1",
           "mount": {
             "target": "/models/target"
           },
@@ -154,8 +133,8 @@
           ]
         },
         {
-          "id": "config-b332cdb7ca06-587cb980af",
           "file_id": "config-b332cdb7ca06-587cb980af",
+          "id": "config-b332cdb7ca06-587cb980af",
           "mount": {
             "target": "/models/target"
           },
@@ -164,8 +143,8 @@
           ]
         },
         {
-          "id": "exl3-retry-log-9fb40e504035-072aaa3f79",
           "file_id": "exl3-retry-log-9fb40e504035-072aaa3f79",
+          "id": "exl3-retry-log-9fb40e504035-072aaa3f79",
           "mount": {
             "target": "/models/target"
           },
@@ -174,8 +153,8 @@
           ]
         },
         {
-          "id": "generation-config-7fa47217744f-97dd3d578b",
           "file_id": "generation-config-7fa47217744f-97dd3d578b",
+          "id": "generation-config-7fa47217744f-97dd3d578b",
           "mount": {
             "target": "/models/target"
           },
@@ -184,8 +163,8 @@
           ]
         },
         {
-          "id": "kl-b510a36bb60e-01e954dab0",
           "file_id": "kl-b510a36bb60e-01e954dab0",
+          "id": "kl-b510a36bb60e-01e954dab0",
           "mount": {
             "target": "/models/target"
           },
@@ -194,8 +173,8 @@
           ]
         },
         {
-          "id": "model-00001-of-00008-e35037215430-8522ec2a1c",
           "file_id": "model-00001-of-00008-e35037215430-8522ec2a1c",
+          "id": "model-00001-of-00008-e35037215430-8522ec2a1c",
           "mount": {
             "target": "/models/target"
           },
@@ -204,8 +183,8 @@
           ]
         },
         {
-          "id": "model-00002-of-00008-165c85ab89c7-737153de9f",
           "file_id": "model-00002-of-00008-165c85ab89c7-737153de9f",
+          "id": "model-00002-of-00008-165c85ab89c7-737153de9f",
           "mount": {
             "target": "/models/target"
           },
@@ -214,8 +193,8 @@
           ]
         },
         {
-          "id": "model-00003-of-00008-a1ba7fca2d96-62975fc789",
           "file_id": "model-00003-of-00008-a1ba7fca2d96-62975fc789",
+          "id": "model-00003-of-00008-a1ba7fca2d96-62975fc789",
           "mount": {
             "target": "/models/target"
           },
@@ -224,8 +203,8 @@
           ]
         },
         {
-          "id": "model-00004-of-00008-0c6743519751-65920c8b4c",
           "file_id": "model-00004-of-00008-0c6743519751-65920c8b4c",
+          "id": "model-00004-of-00008-0c6743519751-65920c8b4c",
           "mount": {
             "target": "/models/target"
           },
@@ -234,8 +213,8 @@
           ]
         },
         {
-          "id": "model-00005-of-00008-eb197338fb68-afdea6f773",
           "file_id": "model-00005-of-00008-eb197338fb68-afdea6f773",
+          "id": "model-00005-of-00008-eb197338fb68-afdea6f773",
           "mount": {
             "target": "/models/target"
           },
@@ -244,8 +223,8 @@
           ]
         },
         {
-          "id": "model-00006-of-00008-aff890e36675-04b37beecc",
           "file_id": "model-00006-of-00008-aff890e36675-04b37beecc",
+          "id": "model-00006-of-00008-aff890e36675-04b37beecc",
           "mount": {
             "target": "/models/target"
           },
@@ -254,8 +233,8 @@
           ]
         },
         {
-          "id": "model-00007-of-00008-8bb73fb2bd4c-dc99b36274",
           "file_id": "model-00007-of-00008-8bb73fb2bd4c-dc99b36274",
+          "id": "model-00007-of-00008-8bb73fb2bd4c-dc99b36274",
           "mount": {
             "target": "/models/target"
           },
@@ -264,8 +243,8 @@
           ]
         },
         {
-          "id": "model-00008-of-00008-8ef5f1cd7b36-13c34dfda1",
           "file_id": "model-00008-of-00008-8ef5f1cd7b36-13c34dfda1",
+          "id": "model-00008-of-00008-8ef5f1cd7b36-13c34dfda1",
           "mount": {
             "target": "/models/target"
           },
@@ -274,8 +253,8 @@
           ]
         },
         {
-          "id": "model-safetensors-index-a621148b7afc-0a05be8238",
           "file_id": "model-safetensors-index-a621148b7afc-0a05be8238",
+          "id": "model-safetensors-index-a621148b7afc-0a05be8238",
           "mount": {
             "target": "/models/target"
           },
@@ -284,8 +263,8 @@
           ]
         },
         {
-          "id": "preprocessor-config-c64289d04f36-36afccab5d",
           "file_id": "preprocessor-config-c64289d04f36-36afccab5d",
+          "id": "preprocessor-config-c64289d04f36-36afccab5d",
           "mount": {
             "target": "/models/target"
           },
@@ -294,8 +273,8 @@
           ]
         },
         {
-          "id": "processor-config-44136fa355b3-27f0cb76af",
           "file_id": "processor-config-44136fa355b3-27f0cb76af",
+          "id": "processor-config-44136fa355b3-27f0cb76af",
           "mount": {
             "target": "/models/target"
           },
@@ -304,8 +283,8 @@
           ]
         },
         {
-          "id": "quantization-config-5ea9d03ecdba-6f24389fb3",
           "file_id": "quantization-config-5ea9d03ecdba-6f24389fb3",
+          "id": "quantization-config-5ea9d03ecdba-6f24389fb3",
           "mount": {
             "target": "/models/target"
           },
@@ -314,8 +293,8 @@
           ]
         },
         {
-          "id": "rel-l2-scan-05fa68ca0a0e-192eaf43f4",
           "file_id": "rel-l2-scan-05fa68ca0a0e-192eaf43f4",
+          "id": "rel-l2-scan-05fa68ca0a0e-192eaf43f4",
           "mount": {
             "target": "/models/target"
           },
@@ -324,8 +303,8 @@
           ]
         },
         {
-          "id": "readme-e96742dbc5e4-47bb9c515c",
           "file_id": "readme-e96742dbc5e4-47bb9c515c",
+          "id": "readme-e96742dbc5e4-47bb9c515c",
           "mount": {
             "target": "/models/target"
           },
@@ -334,8 +313,8 @@
           ]
         },
         {
-          "id": "minicpmv4-7-6cc291bc2803-e8b46c2618",
           "file_id": "minicpmv4-7-6cc291bc2803-e8b46c2618",
+          "id": "minicpmv4-7-6cc291bc2803-e8b46c2618",
           "mount": {
             "target": "/models/target"
           },
@@ -344,8 +323,8 @@
           ]
         },
         {
-          "id": "tokenizer-e4608c5d7b3f-224931eb13",
           "file_id": "tokenizer-e4608c5d7b3f-224931eb13",
+          "id": "tokenizer-e4608c5d7b3f-224931eb13",
           "mount": {
             "target": "/models/target"
           },
@@ -354,8 +333,8 @@
           ]
         },
         {
-          "id": "tokenizer-config-03c8faa31145-94d5c6ba8f",
           "file_id": "tokenizer-config-03c8faa31145-94d5c6ba8f",
+          "id": "tokenizer-config-03c8faa31145-94d5c6ba8f",
           "mount": {
             "target": "/models/target"
           },
@@ -363,20 +342,27 @@
             "entrypoint"
           ]
         }
-      ]
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "95ff6042c46c9591390846d07a035640fa42aae2d1bbfe5ac1ad54429754bc19",
+        "kind": "model",
+        "publisher": "r0b0tlab",
+        "slug": "minicpm-v-4-7-exl3-608bpw-8f9f0787"
+      }
     }
   ],
   "provenance": {
-    "source_reference": "https://github.com/r0b0tlab/minicpm-v47-exl3-exllamav3-gb10/tree/b8859be8b257ddb7602f68ce7b85a7f0fd03f7b4",
     "attribution": [
       "OpenBMB",
       "r0b0tlab",
       "turboderp (ExLlamaV3)"
-    ]
+    ],
+    "source_reference": "https://github.com/r0b0tlab/minicpm-v47-exl3-exllamav3-gb10/tree/b8859be8b257ddb7602f68ce7b85a7f0fd03f7b4"
   },
   "release": {
-    "version": "1.0.0",
-    "released_at": "2026-10-18"
+    "released_at": "2026-10-18",
+    "version": "1.0.0"
   },
   "runtime": {
     "arguments": [

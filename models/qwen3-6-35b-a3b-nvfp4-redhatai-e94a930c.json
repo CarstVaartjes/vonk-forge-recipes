@@ -131,13 +131,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "redhatai",
-      "slug": "qwen3-6-35b-a3b-nvfp4",
-      "title": "Qwen3.6 35B-A3B NVFP4"
+      "slug": "qwen3-6-35b-a3b-nvfp4"
     },
     "publisher": "redhatai",
     "slug": "qwen3-6-35b-a3b-nvfp4-redhatai-e94a930c",
@@ -152,15 +150,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen3.6-35B-A3B/blob/main/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public RedHatAI compressed-tensors NVFP4 Qwen3.6 35B-A3B (built-in MTP layer) at e850c696, the last revision before r0b0tlab's 2026-05-19 evidence.",
-    "tags": [
-      "redhatai",
-      "qwen3-6-redhatai",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

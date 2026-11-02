@@ -33,27 +33,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate one-DGX Spark Qwen3.6 35B-A3B (MoE, with vision projector) on llama.cpp llama-server: Unsloth's UD-Q8_K_XL GGUF with MTP heads, 262,144-token context and MTP speculative decoding (draft-mtp, up to 6 draft tokens), as in MiaAI-Lab's start script (MIT). The script expects a host-built llama-server; this recipe builds llama.cpp release b11261 (MIT, commit b5cf8ce0) with CUDA for sm_121a from source in its own image, without the web UI. Model weights are Apache-2.0 (Qwen); the upstream repository has no licence file (its README says MIT). Memory figures are estimates, not measurements; physical Spark acceptance is still required. Version 1.0.1 (2026-09-30) resolves the build-stage tools from the 2026-09-29 Ubuntu Noble ARM64 snapshot, with the NGC CUDA package source excluded because the digest-pinned base already supplies CUDA. The direct packages are version-pinned (ca-certificates 20260601~24.04.1, cmake 3.28.3-1build7, curl 8.5.0-2ubuntu10.15, ninja-build 1.11.1-2), and the snapshot fixes their transitive closure.",
-    "tags": [
-      "candidate",
-      "executable",
-      "qwen",
-      "qwen3-6",
-      "llama-cpp",
-      "gguf",
-      "mtp",
-      "speculative-decoding",
-      "openai",
-      "chat",
-      "reasoning",
-      "vision",
-      "single",
-      "spark"
-    ],
-    "title": "Qwen3.6 35B-A3B UD-Q8_K_XL llama.cpp single Spark (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -80,7 +59,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "fcf1f711045194af5ae81c9d17e2072ef59f3eae4538802c58503ce0e67debdc",
+        "content_sha256": "0da8a7c44dfe01a2427388df9baa2f54153e5525d110fa9654c2e84bf69d6654",
         "kind": "model",
         "publisher": "unsloth",
         "slug": "qwen3-6-35b-a3b-mtp-ud-q8-k-xl-gguf-5bc3e238"

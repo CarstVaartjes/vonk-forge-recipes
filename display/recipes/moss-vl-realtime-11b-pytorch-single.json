@@ -1,0 +1,27 @@
+{
+  "alignment": "unspecified",
+  "description": "Single-Spark MOSS-VL-Realtime 11B session-replay job using the exact d1f71a58 BF16 snapshot. It preserves the bounded MP4-plus-JSONL contract and adopts upstream cached-vision RoPE, preprocessing, system-prompt, and per-sample batched-vision fixes. It does not expose the upstream interactive WebSocket, camera, or screen-capture service. Physical Spark acceptance remains pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "moss-vl-realtime-11b-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "pending",
+    "candidate",
+    "openmoss",
+    "moss-vl",
+    "video-understanding",
+    "realtime",
+    "streaming",
+    "session-replay",
+    "batch-job",
+    "not-interactive-service",
+    "multimodal",
+    "pytorch",
+    "single",
+    "spark"
+  ],
+  "title": "MOSS-VL-Realtime 11B BF16 native single Spark"
+}

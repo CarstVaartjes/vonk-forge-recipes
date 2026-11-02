@@ -1,0 +1,16 @@
+{
+  "description": "DFlash2 companion for full GLM-5.3; non-commercial license.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "incoai",
+    "slug": "glm-5-3-dflash2-425aa615"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.3 DFlash2",
+  "tags": [
+    "incoai",
+    "glm",
+    "language",
+    "candidate"
+  ]
+}

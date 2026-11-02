@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Installable but not accepted TripoSG single-Spark Candidate with exact upstream source, frozen RMBG companion, offline inference, and deterministic GLB output. The native ARM64 container build is unvalidated and both that build and a physical GB10 image-to-GLB canary must pass before acceptance.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "triposg-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "three-d",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "image-to-three-d",
+    "native",
+    "build-unvalidated",
+    "native-build-required",
+    "physical-acceptance-required"
+  ],
+  "title": "TripoSG base pytorch-pipeline single Spark"
+}

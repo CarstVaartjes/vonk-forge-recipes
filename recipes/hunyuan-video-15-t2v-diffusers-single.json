@@ -78,20 +78,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable Candidate for 720p text-to-video generation with a complete immutable Diffusers snapshot and offline ARM64 runtime; physical Spark acceptance remains pending. Keeps models on CUDA without CPU offload on GB10 unified memory; smoke fit is estimated, and physical memory and latency qualification remain pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "video",
-      "text-to-video",
-      "diffusers",
-      "single",
-      "spark"
-    ],
-    "title": "HunyuanVideo 1.5 T2V diffusers single Spark"
-  },
   "models": [
     {
       "files": [
@@ -448,7 +434,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c95294a1948bc994779878c8ef47ae6ec55821541ab9130e0179afa365f7985f",
+        "content_sha256": "666c27b5ce38b8e7eefb778d6d140f68bc38416e1c5b9e01666aa4e32f1b6926",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-15-t2v"
@@ -526,12 +512,12 @@
     "kind": "job",
     "knobs": {
       "num-frames": {
-        "value": 121,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 121
       },
       "num-inference-steps": {
-        "value": 50,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 50
       }
     }
   },

@@ -30,31 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate binding of NVIDIA's official agent-ready Qwen3.6 35B-A3B NVFP4 checkpoint and stable vLLM 0.30 ARM64 image for one DGX Spark. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "qwen",
-      "qwen3-6",
-      "moe",
-      "nvfp4",
-      "multimodal",
-      "vision",
-      "reasoning",
-      "agentic",
-      "tool-use",
-      "text-qualified",
-      "vision-unproven",
-      "vllm",
-      "openai",
-      "single",
-      "spark"
-    ],
-    "title": "NVIDIA Qwen3.6 35B-A3B NVFP4 vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -231,7 +206,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d7c1cd3ec539bfa10d64c33c7a4b027fde59b457f5c11cebe18f88334d3ea8ba",
+        "content_sha256": "e4fbac37744fc6766dbd641f98718cf7a0fcb5ab6054d549f081a7a877f6210b",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-6-35b-a3b-nvfp4-1355db6a"

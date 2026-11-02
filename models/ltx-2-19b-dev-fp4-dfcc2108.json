@@ -265,13 +265,11 @@
   "identity": {
     "family": {
       "publisher": "lightricks",
-      "slug": "ltx",
-      "title": "LTX"
+      "slug": "ltx"
     },
     "model": {
       "publisher": "lightricks",
-      "slug": "ltx-2",
-      "title": "LTX-2"
+      "slug": "ltx-2"
     },
     "publisher": "lightricks",
     "slug": "ltx-2-19b-dev-fp4-dfcc2108",
@@ -285,18 +283,6 @@
     ],
     "spdx": "LTX-2 Community License Agreement",
     "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact Lightricks LTX-2 development FP4 checkpoint and native-pipeline companion artifacts for an experimental Spark video/audio recipe.",
-    "tags": [
-      "lightricks",
-      "ltx",
-      "video",
-      "audio",
-      "generation",
-      "fp4",
-      "spark"
-    ]
   },
   "modalities": [
     "audio",

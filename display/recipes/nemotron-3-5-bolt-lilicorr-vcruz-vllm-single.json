@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "Creator profile pinned to vLLM 77154ca61 and b12x 1.5.1, target a326822a and draft abd47806. Eight streams, 262K context, FP8 KV, DFlash seven-token standard rejection and the checkpoint ultra_v3 reasoning parser. Preserves 0.55 utilization and a 102 GB estimated envelope. Runtime dependencies and SM12x precompiled kernels are hash-locked; fresh container bootstrap and physical model quality remain unqualified.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-5-bolt-lilicorr-vcruz-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "nemotron",
+    "vllm",
+    "spark",
+    "tool-use",
+    "reasoning",
+    "vision"
+  ],
+  "title": "Nemotron 3.5 Bolt LiLiCorr vLLM single Spark (vcruz305)"
+}

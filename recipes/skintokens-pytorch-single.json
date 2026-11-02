@@ -80,24 +80,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable but not accepted SkinTokens/TokenRig single-Spark Candidate with an exact upstream source build, offline checkpoint binding, and deterministic rigged-GLB exporter. The native ARM64 container build is unvalidated and both that build and a physical GB10 rigged-GLB canary must pass before acceptance.",
-    "tags": [
-      "executable",
-      "candidate",
-      "three-d",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "rigging",
-      "native",
-      "build-unvalidated",
-      "native-build-required",
-      "physical-acceptance-required"
-    ],
-    "title": "SkinTokens / TokenRig pytorch-pipeline single Spark"
-  },
   "models": [
     {
       "files": [
@@ -124,7 +106,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d0a9359ce92499d231fda42fe9f78cec4cf9ede799e623688de548e8f6dfeb82",
+        "content_sha256": "c3d5b6ea3a6e5853dacd5230be59e99328e240427b91c46587fdb1c93c3aa84c",
         "kind": "model",
         "publisher": "vast-ai",
         "slug": "skintokens"

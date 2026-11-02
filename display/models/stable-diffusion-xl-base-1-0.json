@@ -1,0 +1,16 @@
+{
+  "description": "Complete default-weight SDXL pipeline closure used by Step1X texture inference, excluding only its explicitly overridden VAE. Model files are manifest-selected; no HF network fallback is intended.",
+  "family_title": "Stable Diffusion XL",
+  "identity": {
+    "publisher": "stabilityai",
+    "slug": "stable-diffusion-xl-base-1-0"
+  },
+  "kind": "model-display",
+  "model_title": "Stable Diffusion XL Base 1.0",
+  "tags": [
+    "stabilityai",
+    "diffusers",
+    "image-generation",
+    "step1x"
+  ]
+}

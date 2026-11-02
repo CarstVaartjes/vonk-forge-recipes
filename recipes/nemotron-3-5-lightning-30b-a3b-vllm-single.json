@@ -30,25 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Preferred default Nemotron text profile for one Spark, serving the exact Nemotron 3.5 Lightning NVFP4 checkpoint without a speculative companion. NVIDIA's Marlin MoE and aligned Mamba cache settings preserve deployment headroom relative to the specialized high-context latency profile; physical GB10 acceptance is still required. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "executable",
-      "candidate",
-      "preferred",
-      "default",
-      "nemotron",
-      "nvfp4",
-      "vllm",
-      "openai",
-      "target-only",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Nemotron 3.5 Lightning 30B-A3B NVFP4 vLLM single Spark (preferred)"
-  },
   "models": [
     {
       "files": [
@@ -755,7 +736,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9dc64a40590bf10ea0236e869907fe640d6f6608ddcba992cef527213d512a9a",
+        "content_sha256": "abf68d0d237a71b899bb9c36911ed46a366194ecaf57ae22e6df6ff0df7be378",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"

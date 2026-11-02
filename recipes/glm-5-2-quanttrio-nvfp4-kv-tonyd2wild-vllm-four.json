@@ -32,23 +32,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "standard",
-    "description": "Unpruned GLM-5.2 (744B total, 40B active; QuantTrio Int4-Int8Mix, compressed-tensors) on four Sparks with vLLM tensor parallel 4, a true 4-bit NVFP4 (E2M1) DeepSeek-MLA KV cache (400 bytes per token against 656 for FP8) in a fixed 10.95 GB pool, a 316,000-token context, MTP with five drafted tokens, FLASHMLA_SPARSE attention with patched b12x kernels and full CUDA graphs. Basis: tonyd2wild's NVFP4-KV port (Apache-2.0; store kernel adapted from danielwoz/vllm-dspark-nvfp4) on drowzeys' published probe-modded vLLM ab666069 image, the base upstream patches locally; the upstream run-time kernel overlay is the ten-file set of his 200K QuantTrio repository, patched and installed at build time. The same creator's FP8-KV variant is glm-5-2-quanttrio-200k-mtp-tonyd2wild-vllm-four. Upstream figures (317K-token KV pool against 200K for FP8, 42.5 tok/s peak single stream on MTP-friendly content, 23.7 tok/s on mixed content) are claims until measured here; the 4-bit cache lowers MTP acceptance on mixed content; Vonk physical four-Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.91 beside the fixed 10.95 GB NVFP4 KV pool and a 316,000-token context, as in tonyd2wild's serve/speednight-nvfp4.sh at 34e81562 (lines 169 and 170); with a fixed pool the utilization is vLLM's startup free-memory check, and upstream calls the pool load-bearing and measured (OPERATIONS.md line 88; 317,279 tokens, line 14). The declared peak is the per-rank loading floor: the weights, the pool and 8 GB of runtime overhead; the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
-    "tags": [
-      "chat",
-      "distributed",
-      "glm-5.2",
-      "mtp",
-      "nvfp4-kv",
-      "reasoning",
-      "spark",
-      "tool-use",
-      "tp4",
-      "vllm"
-    ],
-    "title": "GLM 5.2 QuantTrio NVFP4 KV vLLM four Sparks"
-  },
   "models": [
     {
       "files": [
@@ -1617,7 +1600,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "26c25b86261b5e1548f682397f2bdad5d6c00516c5eeec3b7abd075e0857f57a",
+        "content_sha256": "0ddf5d3d1889ce151c0f40c9e364ebd46757d9ea019ca9b8582e83e4e7c63c0e",
         "kind": "model",
         "publisher": "quanttrio",
         "slug": "glm-5-2-int4-int8mix"

@@ -57,13 +57,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "z-lab",
-      "slug": "qwen3-8-27b-dflash2",
-      "title": "Qwen3.8 27B DFlash2 draft"
+      "slug": "qwen3-8-27b-dflash2"
     },
     "publisher": "z-lab",
     "slug": "qwen3-8-27b-dflash2-50307d4c",
@@ -78,15 +76,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/z-lab/Qwen3.8-27B-DFlash2/blob/50307d4c4cde6860d4eee73e2547cd786fe8e8a4/README.md"
-  },
-  "metadata": {
-    "description": "Exact public z-lab DFlash2 (DFlash2DraftModel, block 8) draft for Qwen3.8 27B.",
-    "tags": [
-      "z-lab",
-      "qwen3-8-z-lab",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

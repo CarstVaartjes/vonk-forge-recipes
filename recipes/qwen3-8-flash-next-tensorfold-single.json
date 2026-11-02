@@ -30,23 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Single-DGX-Spark Qwen3.8 Flash Next on TensorFold v1.1.4's Zig engine (tensorfold-native; exactly verified MTP speculative decoding, CUDA kernels embedded in the image) with NVIDIA's quantization-aware-distilled FP4 checkpoint (nvidia/Qwen3.8-Flash-Next-FP4-Local, NVFP4 routed experts, MXFP8 elsewhere, FP8 n-gram table and MTP head). Serves five concurrent 262,144-token streams with an fp8 KV cache and optional image/video input (up to 50 images sharing 16,384 image tokens, a 16,384-token video budget). Runs MiaAI-Lab's published image of her kit (20e15e41), v1.1.4-eab8582-4baf16137ecd (sha256:5c6c42b9747318c1cd8b6cb85cb69493fff2e82cb23b61e49b9cf54cd09ac28e), as published and not rebuilt, with only a thin layer for the Controller's launcher. It is TensorFold v1.1.4 (eab85828) with the kit's 17 patches (the vision tower for the NVIDIA checkpoint, fp8 KV cache, prompt expert tiles, decode and prefill speed work, sampled streams in the batched draft pass, the n-gram pread reader and a draft chain that stops on the running product of the draft probabilities), and the creator's launcher environment. Loading takes about 81 GiB of memory; the engine sizes its KV pool from what is left beside a 9 GiB reserve and 2 GiB kept for the vision helper (creator-measured pool 27 to 29 GiB; five full windows take 23.9 GiB). Replies without max_tokens get up to 32,768 tokens. The creator's optional abliteration overlay (ABLIT) is not offered. Upstream performance claims have not been measured on this deployment. The weights are used under the NVIDIA Open Model Agreement, and the base model's Qwen Community License 1.0 applies as well (attribution above 100M MAU or US$20M monthly revenue; separate licence for Model-as-a-Service or AI Work Assistant businesses). Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: open a think block by default (upstream default, Qwen thinking-mode sampling).",
-    "tags": [
-      "engine",
-      "fp4",
-      "image-input",
-      "mtp",
-      "multimodal",
-      "qwen3.8",
-      "reasoning",
-      "spark",
-      "tensorfold",
-      "video-input"
-    ],
-    "title": "Qwen3.8 Flash Next TensorFold single Spark"
-  },
   "models": [
     {
       "files": [
@@ -383,7 +366,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3af2c445535dc19b8dc4c3a75bf585672acf23eb627972f8fb56e7b844c6489f",
+        "content_sha256": "e6c63ce3c89cd6eca19139fe2f642cd11cd33154e3039c42ce458a6c80f7bfe8",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-8-flash-next-fp4-local-b9ce18a6"

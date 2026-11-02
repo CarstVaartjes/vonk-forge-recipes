@@ -30,20 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "LightOnOCR 3 1B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately.",
-    "tags": [
-      "candidate",
-      "executable",
-      "spark",
-      "vllm",
-      "lightonocr",
-      "ocr",
-      "vision"
-    ],
-    "title": "LightOnOCR 3 1B vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -180,7 +166,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "c68a94be372438ee7655569739320d6d878218683dab88ede008543b163f4d1f",
+        "content_sha256": "bc7753ef74445095af823369228d885d66c350317d903c845fd75a1e68c2f043",
         "kind": "model",
         "publisher": "lightonai",
         "slug": "lightonocr-3-1b-bf16-23d54408"

@@ -1,0 +1,16 @@
+{
+  "description": "MiniCPM-V 4.7 EXL3 6.08bpw; this runtime uses the text path.",
+  "family_title": "MiniCPM",
+  "identity": {
+    "publisher": "r0b0tlab",
+    "slug": "minicpm-v-4-7-exl3-608bpw-8f9f0787"
+  },
+  "kind": "model-display",
+  "model_title": "MiniCPM-V 4.7 35B A3B",
+  "tags": [
+    "r0b0tlab",
+    "minicpm",
+    "language",
+    "candidate"
+  ]
+}

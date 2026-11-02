@@ -20,11 +20,9 @@ from .display import (
     ModelDisplay,
     ModelDisplayIdentity,
     RecipeDisplay,
-    model_display_of,
     published_json,
     read_model_display,
     read_recipe_display,
-    recipe_display_of,
     require_display_of,
 )
 from .endpoint_alias import ENDPOINT_ALIAS_PATTERN, EndpointAlias
@@ -126,7 +124,6 @@ __all__ = [
     "canonical_json",
     "derive_status",
     "document_sha256",
-    "model_display_of",
     "published_json",
     "published_qualification_status_json_schema",
     "published_status",
@@ -136,7 +133,6 @@ __all__ = [
     "read_model_display",
     "read_recipe",
     "read_recipe_display",
-    "recipe_display_of",
     "recovery_coverage_id",
     "require_display_of",
 ]
@@ -147,7 +143,7 @@ def model_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/model-definition-v2.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/model-definition-v3.schema.json",
         **ModelDefinition.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -157,7 +153,7 @@ def recipe_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v2.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-definition-v3.schema.json",
         **RecipeDefinition.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -167,7 +163,7 @@ def recipe_display_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/recipe-display-v2.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/recipe-display-v3.schema.json",
         **RecipeDisplay.model_json_schema(ref_template="#/$defs/{model}"),
     }
 
@@ -177,6 +173,6 @@ def model_display_json_schema() -> dict[str, object]:
 
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "$id": "https://api.vonkforge.ai/contracts/model-display-v2.schema.json",
+        "$id": "https://api.vonkforge.ai/contracts/model-display-v3.schema.json",
         **ModelDisplay.model_json_schema(ref_template="#/$defs/{model}"),
     }

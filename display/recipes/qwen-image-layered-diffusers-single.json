@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Separate layer-decomposition Candidate, not a general Qwen Image Edit variant: one Spark converts one input image into 1–4 transparent PNG layers at the pinned 640-pixel, 50-step schedule. Four remains the default and maximum offered count. The pinned Diffusers pipeline allocates a latent frame batch proportional to layers + 1, so counts above four are withheld until native memory qualification establishes a larger resource envelope.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-layered-diffusers-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "layer-decomposition",
+    "qwen",
+    "image",
+    "editing",
+    "layered",
+    "diffusers",
+    "bf16",
+    "single",
+    "spark"
+  ],
+  "title": "Qwen Image Layered Diffusers single Spark"
+}

@@ -30,22 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Gemma 4 E2B IT: vllm/vllm-openai:gemma4-cu130 (Gemma 4 custom container named by the playbook), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "gemma",
-      "bf16"
-    ],
-    "title": "Gemma 4 E2B IT vLLM single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -142,7 +126,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "24524aaa082a2a681962a94367bede0aab18651b01c1d68114df4fbaf419a51a",
+        "content_sha256": "f4bb913140447a15cc5c67ee58958e21f8343cefdad8949614d7b8946551c370",
         "kind": "model",
         "publisher": "google",
         "slug": "gemma-4-e2b-it-3e22461f"

@@ -500,13 +500,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "vontra",
-      "slug": "glm-5-3-flash",
-      "title": "GLM 5.3 Flash"
+      "slug": "glm-5-3-flash"
     },
     "publisher": "vontra",
     "slug": "glm-5-3-flash-mlx-4bit-mtp-d2b17f52",
@@ -521,15 +519,6 @@
     ],
     "spdx": "LicenseRef-GLM-5.3",
     "url": "https://huggingface.co/Vontra/GLM-5.3-Flash-MLX-4bit-MTP/blob/main/LICENSE"
-  },
-  "metadata": {
-    "description": "MLX four-bit GLM 5.3 Flash with MTP head.",
-    "tags": [
-      "vontra",
-      "glm",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

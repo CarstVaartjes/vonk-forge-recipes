@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "Tournierjc TensorFold fork 53ceb126 with the exact turboderp EXL3 4.05bpw checkpoint declared by the kit. The published vision sidecar is converted once by the pinned engine into the managed cache; atomic conversion output is reused on restart. Three streams at the native 262,144-token window follow the kit sample. INT8 KV, MTP and the creator’s EXL3 kernels. Memory is an estimate, not a measured qualification; physical Spark execution remains untested here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-exl3-4-05bpw-tournierjc-tensorfold-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "qwen3.8",
+    "tensorfold",
+    "exl3",
+    "mtp",
+    "spark",
+    "vision"
+  ],
+  "title": "Qwen3.8 Flash Next EXL3 4.05bpw TensorFold single Spark (tournierjc)"
+}

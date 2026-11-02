@@ -78,21 +78,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable Candidate for 480p CFG-distilled text-to-video with a complete immutable Diffusers snapshot and offline ARM64 runtime; physical Spark acceptance remains pending. Keeps models on CUDA without CPU offload on GB10 unified memory; smoke fit is estimated, and physical memory and latency qualification remain pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "video",
-      "text-to-video",
-      "cfg-distilled",
-      "diffusers",
-      "single",
-      "spark"
-    ],
-    "title": "HunyuanVideo 1.5 distilled diffusers single Spark"
-  },
   "models": [
     {
       "files": [
@@ -449,7 +434,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "00d3d0d08d3be500bf499fdebf7aac3c537f5a170381a28806284d36c5a00c41",
+        "content_sha256": "0a1993464d5aa88bc9a786c0941a80faee9053838f0bdfd65a35b64718311800",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan-video-15-distilled"
@@ -527,12 +512,12 @@
     "kind": "job",
     "knobs": {
       "num-frames": {
-        "value": 121,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 121
       },
       "num-inference-steps": {
-        "value": 50,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 50
       }
     }
   },

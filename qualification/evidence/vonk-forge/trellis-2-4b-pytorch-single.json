@@ -142,6 +142,31 @@
     },
     {
       "identity": {
+        "content_sha256": "fc38aa0f8de6a35efe6d47e00043b8a361b9283755a973c3c4342e189a482841",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "f52e67d3ba2cd9dacc9fd139d8981ff0e7bbdb03607177616152aac1049494f4"
+      ],
+      "tested_at": "2026-10-19T08:12:18.543863Z",
+      "platform": {
+        "controller_source_sha": "d8dbafb7c1b947a6ee8e13bcc55638a634eb444d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [],
         "required_sparks": 1,
@@ -162,6 +187,31 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fc38aa0f8de6a35efe6d47e00043b8a361b9283755a973c3c4342e189a482841",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "135dd3b7cd107f6aab98dfeba99653e85120b81d8b56c90456fb6159d8a97dc6"
+      ],
+      "tested_at": "2026-10-19T10:25:12.913358Z",
+      "platform": {
+        "controller_source_sha": "c59ee7b49ab13b7ec7ec9f6f9149c0fbe5ad8c27",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     },
     {
       "identity": {
@@ -188,6 +238,31 @@
     },
     {
       "identity": {
+        "content_sha256": "fc38aa0f8de6a35efe6d47e00043b8a361b9283755a973c3c4342e189a482841",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "3cee05f58bc70b82639fd206ee45ddb2a76dab8b26de1e9d9aea7c8e41738767"
+      ],
+      "tested_at": "2026-10-19T16:06:19.676968Z",
+      "platform": {
+        "controller_source_sha": "9c520e14342b514fbd2368b64a865ca00e227f2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [],
         "required_sparks": 1,
@@ -208,6 +283,31 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fc38aa0f8de6a35efe6d47e00043b8a361b9283755a973c3c4342e189a482841",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "e1d4ad5425820d0335a7119d35c7a1eb73d58337d2175003efe3879c05864829"
+      ],
+      "tested_at": "2026-10-19T16:59:42.065775Z",
+      "platform": {
+        "controller_source_sha": "9c520e14342b514fbd2368b64a865ca00e227f2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     },
     {
       "identity": {
@@ -234,6 +334,31 @@
     },
     {
       "identity": {
+        "content_sha256": "fc38aa0f8de6a35efe6d47e00043b8a361b9283755a973c3c4342e189a482841",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "983becb1e00ca78efd79ea4bedee2330cd0defd0401d807faa1862d510b9aaa6"
+      ],
+      "tested_at": "2026-10-19T20:42:48.604905Z",
+      "platform": {
+        "controller_source_sha": "9c520e14342b514fbd2368b64a865ca00e227f2a",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [],
         "required_sparks": 1,
@@ -254,6 +379,31 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fc38aa0f8de6a35efe6d47e00043b8a361b9283755a973c3c4342e189a482841",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "48faf250a65a45c3f2af275deac90001ecbd5cd5f72c9494b06f4f4db8138433"
+      ],
+      "tested_at": "2026-10-20T03:40:30.580981Z",
+      "platform": {
+        "controller_source_sha": "45611a407761b281e6d132c7443ff8dab102be6f",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     },
     {
       "identity": {
@@ -284,6 +434,35 @@
     },
     {
       "identity": {
+        "content_sha256": "fc38aa0f8de6a35efe6d47e00043b8a361b9283755a973c3c4342e189a482841",
+        "model_digests": [
+          "44e8d1b703b401330c228b10875cde474aa54ad79f327057cc95650bf3b2b129",
+          "54219b8ffcef0267f307d4c342333dc061932f916a9f1a14c82d653d6214c9b8",
+          "9981bfdcf106954140ee85b8b918b7e34d10f21c814dd0b6242ab55eb591cf79"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "7974c43dc4c2b3686ce380c7fbf5d45372d2aeb069504ad5cc472bd8d9dfa9c2"
+      ],
+      "tested_at": "2026-10-20T15:10:48.065701Z",
+      "platform": {
+        "controller_source_sha": "6109552dc9e08c488c6c3db252d661c2c63156b6",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "fb6012afceb9605d54d3e8e4a7d6b6e82097f92975e9b36070117a73ade56b9e",
         "model_digests": [
           "0126432fff80b31bf740830c85eff35f33d1f7ee31de491a1a089ea5277b2030",
@@ -308,6 +487,35 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fc38aa0f8de6a35efe6d47e00043b8a361b9283755a973c3c4342e189a482841",
+        "model_digests": [
+          "44e8d1b703b401330c228b10875cde474aa54ad79f327057cc95650bf3b2b129",
+          "54219b8ffcef0267f307d4c342333dc061932f916a9f1a14c82d653d6214c9b8",
+          "9981bfdcf106954140ee85b8b918b7e34d10f21c814dd0b6242ab55eb591cf79"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.job_failure",
+      "cause_summary": "Artifact job failed; needs fix",
+      "evidence_refs": [
+        "8054770b57b1546e2bf74dca77b2d45adf1d4dba302c594cca569eceb6a625b5"
+      ],
+      "tested_at": "2026-10-20T17:53:20.279233Z",
+      "platform": {
+        "controller_source_sha": "8d7e68c9b2b6f5432ff0832ca7055e0394c36e67",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     },
     {
       "identity": {
@@ -339,6 +547,39 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fc38aa0f8de6a35efe6d47e00043b8a361b9283755a973c3c4342e189a482841",
+        "source_bundle_sha256": "7d171fe64ef2da27ed5bc9d31da69a3c2ec8dd54139961bba320afd7cc81354a",
+        "runtime_image": {
+          "build_key": "60cfb6fd8c2e4b9713f0f82f92af2814d51beec64b32c0cd1b955195ffba5df2",
+          "image_digest": "sha256:59dad518a78432e3c7b7aee786dc119364e52d18ef2f3a36cdbf5e11d852d73f"
+        },
+        "model_digests": [
+          "44e8d1b703b401330c228b10875cde474aa54ad79f327057cc95650bf3b2b129",
+          "54219b8ffcef0267f307d4c342333dc061932f916a9f1a14c82d653d6214c9b8",
+          "9981bfdcf106954140ee85b8b918b7e34d10f21c814dd0b6242ab55eb591cf79"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "906fc74c39f331c4051575bef666d54c832f4a2865bc90fe50978af1371349b0"
+      ],
+      "tested_at": "2026-10-28T21:59:10.527674Z",
+      "platform": {
+        "controller_source_sha": "57b76d54a03ad2c1bfdae66f46e80893172cb7bf",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     }
   ]
 }

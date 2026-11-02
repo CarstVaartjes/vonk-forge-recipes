@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Two-Spark TensorFold configuration from taussoe/tensorfold-recipes at d8a7c09c, using the creator's glm-long-context engine fork at c32abe92. Both ranks mount the same immutable checkpoint; the Controller supplies rank and rendezvous information. The default uses one stream and an explicit 262,144-token window. Memory is a conservative estimate carried from the single-Spark configuration per node, not a measurement. CUDA kernels compile into the managed cache on first start. Text-only serving; physical two-Spark performance and recovery remain unmeasured here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-27b-taussoe-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "dense",
+    "dflash2",
+    "engine",
+    "kernel-jit",
+    "mlx-checkpoint",
+    "qwen3.8",
+    "reasoning",
+    "spark",
+    "speculative-decoding",
+    "tensorfold",
+    "text-only"
+  ],
+  "title": "Qwen3.8 27B TensorFold dual Spark (taussoe)"
+}

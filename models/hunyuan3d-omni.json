@@ -4,7 +4,7 @@
   ],
   "dependencies": [
     {
-      "content_sha256": "7a57f2c1944d3ffa5cf01b0d8396d759b072f576c259bb46b7f74730ef53759c",
+      "content_sha256": "7d430ed00162e6a0cce265dc41fe2544c53c11cc67e581db8397f140038f8385",
       "kind": "model",
       "publisher": "facebook",
       "slug": "dinov2-large-47b73eef"
@@ -118,13 +118,11 @@
   "identity": {
     "family": {
       "publisher": "tencent",
-      "slug": "hunyuan3d",
-      "title": "Hunyuan3D"
+      "slug": "hunyuan3d"
     },
     "model": {
       "publisher": "tencent",
-      "slug": "hunyuan3d-omni",
-      "title": "Hunyuan3D-Omni"
+      "slug": "hunyuan3d-omni"
     },
     "publisher": "tencent",
     "slug": "hunyuan3d-omni",
@@ -146,14 +144,6 @@
       "notice": "The upstream Hunyuan3D-Omni Community License does not apply in the European Union, United Kingdom, or South Korea."
     },
     "url": "https://github.com/Tencent-Hunyuan/Hunyuan3D-Omni/blob/4d47c0cc2bd0c4281963a7314ab330a5af36bfa8/License.txt"
-  },
-  "metadata": {
-    "description": "Immutable public snapshot at 70e803bf.",
-    "tags": [
-      "tencent",
-      "three-d",
-      "candidate"
-    ]
   },
   "modalities": [
     "3d"

@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Quality-reference Candidate for one-or-two-reference Qwen Image Edit 2511 jobs on one Spark, using Comfy-Org's monolithic BF16 transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. Its declared admission envelope is 126.00 GB unified memory including reserve and 135.50 GB peak installation disk; choose the FP8mixed ComfyUI variant when memory or installation headroom matters.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-edit-2511-comfyui-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "quality-reference",
+    "qwen",
+    "image",
+    "editing",
+    "comfyui",
+    "bf16",
+    "fp8",
+    "single",
+    "spark"
+  ],
+  "title": "Qwen Image Edit 2511 ComfyUI single Spark"
+}

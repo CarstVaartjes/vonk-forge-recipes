@@ -1,0 +1,16 @@
+{
+  "description": "Exact public BF16 a3af5799 checkpoint.",
+  "family_title": "LiquidAI LFM2.5",
+  "identity": {
+    "publisher": "liquidai",
+    "slug": "lfm2-5-vl-3b-bf16-a3af5799"
+  },
+  "kind": "model-display",
+  "model_title": "LFM2.5-VL-3B",
+  "tags": [
+    "liquidai",
+    "lfm2-5",
+    "multimodal",
+    "candidate"
+  ]
+}

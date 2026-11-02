@@ -717,13 +717,11 @@
   "identity": {
     "family": {
       "publisher": "minimax",
-      "slug": "minimax",
-      "title": "MiniMax"
+      "slug": "minimax"
     },
     "model": {
       "publisher": "sebesky",
-      "slug": "minimax-m3-w4a16-gptq",
-      "title": "MiniMax M3 W4A16 GPTQ"
+      "slug": "minimax-m3-w4a16-gptq"
     },
     "publisher": "sebesky",
     "slug": "minimax-m3-w4a16-gptq-6696ce6f",
@@ -738,15 +736,6 @@
     ],
     "spdx": "LicenseRef-MiniMax-M3-Community-License",
     "url": "https://huggingface.co/Sebesky/MiniMax-M3-W4A16-GPTQ/blob/6696ce6fed67de2c5027320fdfbc83f3fd3abb4e/LICENSE"
-  },
-  "metadata": {
-    "description": "Sebesky's data-free GPTQ W4A16 quantization of MiniMaxAI/MiniMax-M3 (428B, unpruned): Marlin int4 MoE experts, 224 GB, for two-Spark tensor parallel serving.",
-    "tags": [
-      "sebesky",
-      "minimax-m3",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

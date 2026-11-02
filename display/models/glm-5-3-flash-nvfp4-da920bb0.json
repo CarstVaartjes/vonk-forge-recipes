@@ -1,0 +1,16 @@
+{
+  "description": "Official NVIDIA ModelOpt NVFP4 checkpoint of Z.ai GLM 5.3 Flash (NVFP4 routed experts and dense MLP, FP8 KV cache metadata, multimodal).",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "glm-5-3-flash-nvfp4-da920bb0"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.3 Flash NVFP4",
+  "tags": [
+    "nvidia",
+    "glm-5-3-nvidia",
+    "multimodal",
+    "candidate"
+  ]
+}

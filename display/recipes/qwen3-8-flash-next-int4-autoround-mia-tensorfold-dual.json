@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "MiaAI-Lab native TensorFold at db28187 on two Sparks, with the creator's pinned int4-autoround checkpoint. Sixteen concurrent streams share the engine's dynamic FP8 KV pool; 1,048,576-token window with YaRN factor four, MTP depth fifteen, RoCE all-gather, image/video helper on rank zero. FP8 KV is lossy; draft verification does not imply equivalence to BF16 KV. Memory peak is an estimate for one full-window request based on the kit's model, cache and prefill accounting; additional streams remain subject to engine admission. Physical execution is unmeasured here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-int4-autoround-mia-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "qwen3.8",
+    "tensorfold",
+    "mtp",
+    "vision",
+    "video",
+    "spark",
+    "fp8-kv"
+  ],
+  "title": "Qwen3.8 Flash Next INT4-AUTOROUND TensorFold dual Spark (Mia)"
+}

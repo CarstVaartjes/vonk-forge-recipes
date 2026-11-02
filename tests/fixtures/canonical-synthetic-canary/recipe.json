@@ -4,17 +4,6 @@
     "publisher": "vonk-forge-test",
     "slug": "canonical-synthetic-canary"
   },
-  "metadata": {
-    "title": "Canonical synthetic HTTP smoke canary",
-    "description": "Test-only schema2 source-build fixture for the deterministic Python HTTP smoke runtime.",
-    "tags": [
-      "test-only",
-      "synthetic",
-      "http",
-      "smoke"
-    ],
-    "alignment": "unspecified"
-  },
   "models": [
     {
       "id": "primary",
@@ -22,7 +11,7 @@
         "kind": "model",
         "publisher": "vonk-forge-test",
         "slug": "canonical-synthetic-http-model-v1",
-        "content_sha256": "363b5bce6a45bc0e8ea488910bf042472e904b735b34398f67503fba3ff99bcc"
+        "content_sha256": "f860905d8ae4f9db80dddb8a1fdcab69d128c44b9292960d6ebc448b599a0a43"
       },
       "files": [
         {
@@ -83,8 +72,8 @@
           "disk": {
             "image_bytes": 268435456,
             "artifact_bytes": 10,
-            "safety_margin_bytes": 536870912,
-            "working_bytes": 536870912
+            "working_bytes": 536870912,
+            "safety_margin_bytes": 536870912
           }
         }
       }

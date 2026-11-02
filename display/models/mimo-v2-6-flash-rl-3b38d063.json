@@ -1,0 +1,16 @@
+{
+  "description": "Xiaomi MiMo-V2.6-Flash-RL: 309B total / 15B active MoE, fp8 attention with MXFP4 routed experts, 1M native context, text, image, video and audio input, with the MTP head and DFlash drafter.",
+  "family_title": "MiMo",
+  "identity": {
+    "publisher": "xiaomimimo",
+    "slug": "mimo-v2-6-flash-rl-3b38d063"
+  },
+  "kind": "model-display",
+  "model_title": "MiMo V2.6 Flash RL",
+  "tags": [
+    "xiaomimimo",
+    "mimo",
+    "video",
+    "candidate"
+  ]
+}

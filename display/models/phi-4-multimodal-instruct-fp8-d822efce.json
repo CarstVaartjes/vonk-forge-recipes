@@ -1,0 +1,17 @@
+{
+  "description": "Exact public NVIDIA Model Optimizer FP8 quantization of Phi-4-multimodal-instruct with its speech and vision LoRA adapters.",
+  "family_title": "Microsoft Phi-4",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "phi-4-multimodal-instruct-fp8-d822efce"
+  },
+  "kind": "model-display",
+  "model_title": "Phi-4 Multimodal Instruct",
+  "tags": [
+    "nvidia",
+    "phi-4",
+    "language",
+    "fp8",
+    "candidate"
+  ]
+}

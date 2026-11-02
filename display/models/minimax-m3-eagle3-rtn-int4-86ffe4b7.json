@@ -1,0 +1,16 @@
+{
+  "description": "Sebesky's EAGLE-3 draft model for MiniMax M3: one Llama decoder block with full multi-head attention, int4 RTN everywhere including embeddings and lm_head (1.6 GB).",
+  "family_title": "MiniMax",
+  "identity": {
+    "publisher": "sebesky",
+    "slug": "minimax-m3-eagle3-rtn-int4-86ffe4b7"
+  },
+  "kind": "model-display",
+  "model_title": "MiniMax M3 EAGLE3 RTN INT4",
+  "tags": [
+    "sebesky",
+    "minimax-m3-eagle3",
+    "language",
+    "candidate"
+  ]
+}

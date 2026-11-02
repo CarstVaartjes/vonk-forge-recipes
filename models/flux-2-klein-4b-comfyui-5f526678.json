@@ -39,13 +39,11 @@
   "identity": {
     "family": {
       "publisher": "black-forest-labs",
-      "slug": "flux-2",
-      "title": "FLUX.2"
+      "slug": "flux-2"
     },
     "model": {
       "publisher": "black-forest-labs",
-      "slug": "flux-2-klein-4b",
-      "title": "FLUX.2 Klein 4B"
+      "slug": "flux-2-klein-4b"
     },
     "publisher": "black-forest-labs",
     "slug": "flux-2-klein-4b-comfyui-5f526678",
@@ -60,17 +58,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4B/blob/e7b7dc27f91deacad38e78976d1f2b499d76a294/LICENSE.md"
-  },
-  "metadata": {
-    "description": "Exact Comfy-Org BF16 FLUX.2 Klein 4B diffusion, Qwen3 encoder, and VAE files for core ComfyUI inference.",
-    "tags": [
-      "flux",
-      "image",
-      "comfyui",
-      "bf16",
-      "distilled",
-      "candidate"
-    ]
   },
   "modalities": [
     "image"

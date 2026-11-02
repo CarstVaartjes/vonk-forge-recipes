@@ -1,0 +1,16 @@
+{
+  "description": "Exact public NVFP4 94e431d9 checkpoint.",
+  "family_title": "Ornith",
+  "identity": {
+    "publisher": "ornith-ai",
+    "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"
+  },
+  "kind": "model-display",
+  "model_title": "Ornith 1.5 35B-A3B",
+  "tags": [
+    "ornith-ai",
+    "ornith-1-5",
+    "language",
+    "candidate"
+  ]
+}

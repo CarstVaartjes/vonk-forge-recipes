@@ -1,0 +1,16 @@
+{
+  "description": "Exact public r0b0tlab mixed NVFP4 + FP8 quantization (NVIDIA Model Optimizer 0.48) of inclusionAI/Ling-3.0-flash-VL (124B total, 5.1B active hybrid KDA + MLA MoE vision-language model), 64 shards, 72.6 GB.",
+  "family_title": "Ling",
+  "identity": {
+    "publisher": "r0b0tlab",
+    "slug": "ling-3-0-flash-vl-nvfp4-mp-093789ca"
+  },
+  "kind": "model-display",
+  "model_title": "Ling 3.0 flash VL NVFP4-MP",
+  "tags": [
+    "r0b0tlab",
+    "ling-3-0-r0b0tlab",
+    "language",
+    "candidate"
+  ]
+}

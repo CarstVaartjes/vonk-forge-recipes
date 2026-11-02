@@ -1,0 +1,14 @@
+{
+  "description": "Mellum2.1-12B-A2.5B-Thinking immutable upstream checkpoint. Physical Spark qualification pending.",
+  "family_title": "Mellum",
+  "identity": {
+    "publisher": "jetbrains",
+    "slug": "mellum2-1-12b-a2-5b-thinking-bf16-92ddae9f"
+  },
+  "kind": "model-display",
+  "model_title": "Mellum2.1-12B-A2.5B-Thinking",
+  "tags": [
+    "candidate",
+    "mellum"
+  ]
+}

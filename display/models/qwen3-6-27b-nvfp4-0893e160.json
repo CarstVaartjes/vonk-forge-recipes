@@ -1,0 +1,16 @@
+{
+  "description": "Exact public NVIDIA Qwen3.6 27B NVFP4 (ModelOpt native W4A4) at 0893e160, the revision r0b0tlab's SM121 runtime pins.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "qwen3-6-27b-nvfp4-0893e160"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.6 27B NVFP4",
+  "tags": [
+    "nvidia",
+    "qwen3-6-nvidia",
+    "language",
+    "candidate"
+  ]
+}

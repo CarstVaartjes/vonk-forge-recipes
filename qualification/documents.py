@@ -1,10 +1,9 @@
 """The one place tools and tests get a Recipe, a Model and their display.
 
 Documents are execution data (``recipes/<slug>.json``, ``models/<slug>.json``).
-Display is what a person reads about them. On contracts 2.x the display is
-derived from the document; contracts 3.0.0 switches only the two display
-functions to read ``display/**``. Callers never read display fields off a
-document.
+Display is what a person reads about them (``display/recipes/<slug>.json``,
+``display/models/<slug>.json``); a display edit never changes a document digest.
+Callers never read display fields off a document.
 """
 
 from __future__ import annotations
@@ -17,8 +16,6 @@ from vonk_forge_contracts import (
     ModelDisplay,
     RecipeDefinition,
     RecipeDisplay,
-    model_display_of,
-    recipe_display_of,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,8 +32,16 @@ def model(slug: str, root: Path = ROOT) -> ModelDefinition:
 
 
 def recipe_display(slug: str, root: Path = ROOT) -> RecipeDisplay:
-    return recipe_display_of(recipe(slug, root))
+    path = root / "display" / "recipes" / f"{slug}.json"
+    display = RecipeDisplay.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    if display.identity.slug != slug:
+        raise ValueError(f"{path.name} describes {display.identity.slug}")
+    return display
 
 
 def model_display(slug: str, root: Path = ROOT) -> ModelDisplay:
-    return model_display_of(model(slug, root))
+    path = root / "display" / "models" / f"{slug}.json"
+    display = ModelDisplay.model_validate(json.loads(path.read_text(encoding="utf-8")))
+    if display.identity.slug != slug:
+        raise ValueError(f"{path.name} describes {display.identity.slug}")
+    return display

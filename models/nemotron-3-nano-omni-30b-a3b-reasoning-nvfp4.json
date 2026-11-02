@@ -247,13 +247,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-nano-omni-30b-a3b",
-      "title": "Nemotron 3 Nano Omni 30B-A3B"
+      "slug": "nemotron-3-nano-omni-30b-a3b"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-nvfp4",
@@ -267,15 +265,6 @@
     ],
     "spdx": "LicenseRef-NVIDIA-Open-Model-Agreement",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-agreement/"
-  },
-  "metadata": {
-    "description": "Exact public Reasoning NVFP4 16993199 checkpoint.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

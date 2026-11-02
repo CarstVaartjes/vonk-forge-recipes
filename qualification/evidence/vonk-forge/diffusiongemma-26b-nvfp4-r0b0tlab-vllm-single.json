@@ -72,6 +72,31 @@
     },
     {
       "identity": {
+        "content_sha256": "26d0e59740d70676b8b5a8f1d56796c876a9fb92692cf088fa786c31449f525a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "5efa85eb656f157980dde07335b34e6945755a8fbe5432e9fad892b8bc5c22f7"
+      ],
+      "tested_at": "2026-10-15T00:25:31.718765Z",
+      "platform": {
+        "controller_source_sha": "fadaeb65d44cfbddb4999a3ad9a092efce943d29",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "ae462f524e9a279a48d9981a7d9b40f5a26449e1f4f7e83c6e488cc08dd7563d",
         "model_digests": [],
         "required_sparks": 1,
@@ -92,6 +117,30 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "26d0e59740d70676b8b5a8f1d56796c876a9fb92692cf088fa786c31449f525a",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "dd1ff1cd005cc6781232720da05ef9f551add1b5b9d4794fa93244d64f4154a5"
+      ],
+      "tested_at": "2026-10-15T03:55:26.089382Z",
+      "platform": {
+        "controller_source_sha": "31f812e2b7342eb3d15c18c4d5877ed898b807ea",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     },
     {
       "identity": {

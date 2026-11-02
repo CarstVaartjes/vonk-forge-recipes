@@ -1086,13 +1086,11 @@
   "identity": {
     "family": {
       "publisher": "tencent",
-      "slug": "hy3",
-      "title": "Hy3"
+      "slug": "hy3"
     },
     "model": {
       "publisher": "libertaidai",
-      "slug": "hy3-nvfp4",
-      "title": "Hy3 NVFP4 (LibertAI)"
+      "slug": "hy3-nvfp4"
     },
     "publisher": "libertaidai",
     "slug": "hy3-nvfp4-libertai-8a805d68",
@@ -1107,20 +1105,6 @@
     ],
     "spdx": "LicenseRef-tencent-hy-community-license",
     "url": "https://huggingface.co/LibertAIDAI/Hy3-NVFP4/blob/8a805d687c4bf02b364af15db5ee85e43ed998bf/LICENSE"
-  },
-  "metadata": {
-    "description": "LibertAI weight-only NVFP4 (compressed-tensors, modelopt) quantization of Tencent Hy3 (295B MoE, 21B active, 192 routed experts). Tencent Hy Community License.",
-    "tags": [
-      "candidate",
-      "hy3",
-      "hy3-libertai",
-      "language",
-      "libertaidai",
-      "moe",
-      "mtp",
-      "nvfp4",
-      "tencent-hy-community-license"
-    ]
   },
   "modalities": [
     "text"

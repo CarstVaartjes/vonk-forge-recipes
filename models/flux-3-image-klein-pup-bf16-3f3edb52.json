@@ -118,13 +118,11 @@
   "identity": {
     "family": {
       "publisher": "black-forest-labs",
-      "slug": "flux-3",
-      "title": "FLUX 3"
+      "slug": "flux-3"
     },
     "model": {
       "publisher": "black-forest-labs",
-      "slug": "flux-3-image-klein-pup-bf16",
-      "title": "FLUX 3 Image Klein Prompt Upsampler"
+      "slug": "flux-3-image-klein-pup-bf16"
     },
     "publisher": "black-forest-labs",
     "slug": "flux-3-image-klein-pup-bf16-3f3edb52",
@@ -138,13 +136,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/black-forest-labs/flux-3-image-klein-pup/blob/3f3edb52b2c55de0d49feab28598b68f7f8e4830/LICENSE"
-  },
-  "metadata": {
-    "description": "FLUX 3 Image Klein Prompt Upsampler immutable upstream checkpoint. Physical Spark qualification pending.",
-    "tags": [
-      "candidate",
-      "flux-3"
-    ]
   },
   "modalities": [
     "text"

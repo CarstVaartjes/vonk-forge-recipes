@@ -1,0 +1,24 @@
+{
+  "alignment": "unspecified",
+  "description": "Executable Candidate llama.cpp recipe based on NVIDIA's llama.cpp DGX Spark playbook (its hands-on example): the official ggml-org llama.cpp 0.5.0 CUDA 13 server image (arm64, pinned by digest; its default CUDA architectures include GB10 sm_121a) serving the exact GGUF revision through llama-server. NVIDIA's llama.cpp playbook compiles the same upstream source with -DCMAKE_CUDA_ARCHITECTURES=121a-real; this recipe uses the project's published binary instead. Resource envelopes are estimates, not measurements; physical Spark acceptance is pending. Preserve thinking blocks is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Playbook default launch: template default.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-6-35b-a3b-mtp-q4-k-xl-nvidia-llamacpp-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "llama-cpp",
+    "openai",
+    "single",
+    "spark",
+    "qwen",
+    "qwen3-6",
+    "gguf",
+    "mtp",
+    "reasoning",
+    "vision"
+  ],
+  "title": "Qwen3.6 35B-A3B MTP UD-Q4_K_XL llama.cpp single Spark (NVIDIA playbook)"
+}

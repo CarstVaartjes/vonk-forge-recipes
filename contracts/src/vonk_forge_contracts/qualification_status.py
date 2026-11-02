@@ -109,6 +109,7 @@ QUALIFICATION_SUMMARIES = {
 
 class QualificationQualityNote(StrEnum):
     ANSWER_VARIANCE = "Model output differed from the expected answer"
+    CARRIED = "Carried from the identical document before the display split"
 
 
 class QualificationChange(StrEnum):
@@ -367,6 +368,10 @@ def derive_status(
         evidence.records,
         key=lambda r: (
             r.tested_at,
+            # On a tie in time the record of the current document is the later
+            # one: a run recorded under two digests of the same execution never
+            # lets the older digest decide.
+            r.identity.content_sha256 == current_identity.content_sha256,
             r.outcome == QualificationOutcome.FAILED,
             r.model_dump_json(),
         ),
@@ -410,6 +415,9 @@ def derive_status(
     elif any(_same_content_identity(r.identity, current_identity) for r in failures):
         status = QualificationStatus.BLOCKED_PLATFORM
         reason = QualificationUnverifiedReason.PLATFORM_ISSUE
+        last_failure = [
+            r for r in failures if _same_content_identity(r.identity, current_identity)
+        ][-1]
         if last_pass:
             changed = _changes(last_pass.identity, current_identity)
     elif behavioural:

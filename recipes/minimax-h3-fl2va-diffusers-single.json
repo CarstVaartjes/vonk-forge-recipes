@@ -118,30 +118,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Artifact-slim single-Spark Candidate for the official MiniMax H3 FL2VA partition: text-to-video-and-audio plus optional first and/or last keyframes. It preserves the pinned Modular Diffusers int8 streamed-offload and verified 24-fps video plus 32-kHz stereo audio contract while excluding Ref2VA and duplicate checkpoint layouts; physical Spark qualification is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "minimax",
-      "video",
-      "audio",
-      "multimodal",
-      "fl2va",
-      "t2va",
-      "keyframe",
-      "artifact-slim",
-      "local",
-      "diffusers",
-      "modular-diffusers",
-      "torchao",
-      "int8-runtime",
-      "single",
-      "spark"
-    ],
-    "title": "MiniMax H3 FL2VA local Modular Diffusers single Spark"
-  },
   "models": [
     {
       "files": [
@@ -768,7 +744,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "300be8da891511c435734c86ef3f6b3a37ed25216f65435021f0d8930d78ade6",
+        "content_sha256": "8bb91b23cfb5e6e4a26be81c4cbb208cf3fddcc9a9345abb0dab14a14dd39054",
         "kind": "model",
         "publisher": "minimax",
         "slug": "minimax-h3-fl2va-42ed227e"

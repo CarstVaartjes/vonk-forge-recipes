@@ -537,13 +537,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "local-inference-lab",
-      "slug": "glm-5-3-flash-nvfp4-spark",
-      "title": "GLM 5.3 Flash NVFP4 Spark"
+      "slug": "glm-5-3-flash-nvfp4-spark"
     },
     "publisher": "local-inference-lab",
     "slug": "glm-5-3-flash-nvfp4-spark-a6082410",
@@ -558,15 +556,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/local-inference-lab/GLM-5.3-Flash-NVFP4-Spark/blob/a608241037e4c2565356bff7ca293f2133888f88/LICENSE"
-  },
-  "metadata": {
-    "description": "local-inference-lab NVFP4 (ModelOpt, mixed) checkpoint of Z.ai GLM-5.3-Flash prepared for DGX Spark (multimodal, MTP layers, amax calibration files).",
-    "tags": [
-      "local-inference-lab",
-      "glm-5-3-local-inference-lab",
-      "image",
-      "candidate"
-    ]
   },
   "modalities": [
     "image"

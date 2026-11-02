@@ -1,0 +1,28 @@
+{
+  "alignment": "unspecified",
+  "description": "Executable Pending single-Spark OpenAI-compatible text-and-image recipe for Meta Muse Glimmer 30B BF16, using the official vLLM 0.30.0 ARM64 release image and immutable local media inputs. Chat, vision, reasoning, and tool calling remain Candidate capabilities; combining reasoning with JSON-schema structured output is not supported by this pinned runtime. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "muse-glimmer-30b-bf16-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "pending",
+    "meta",
+    "muse-glimmer",
+    "multimodal",
+    "vision",
+    "agentic",
+    "reasoning",
+    "tool-use",
+    "bf16",
+    "vllm",
+    "openai",
+    "structured-output-limited",
+    "single",
+    "spark"
+  ],
+  "title": "Muse Glimmer 30B BF16 vLLM single Spark"
+}

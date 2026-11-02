@@ -591,13 +591,11 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek",
-      "title": "DeepSeek"
+      "slug": "deepseek"
     },
     "model": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-1-flash-1017",
-      "title": "DeepSeek V4.1 Flash 1017"
+      "slug": "deepseek-v4-1-flash-1017"
     },
     "publisher": "mia-ailab",
     "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-45ee5d0f",
@@ -612,16 +610,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/Mia-AiLab/DeepSeek-V4.1-Flash-1017-EXL3-EAQ-v1-2.9-bpw/blob/45ee5d0fd106c94a3d77f721e09cbb2f50e5a16b/LICENSE"
-  },
-  "metadata": {
-    "description": "Mia AI Lab EAQ v1 EXL3 2.9 bpw checkpoint, including vision and DSpark draft tensors. Engram tables are supplied separately from the pinned original checkpoint.",
-    "tags": [
-      "deepseek",
-      "1017",
-      "exl3",
-      "eaq",
-      "mia"
-    ]
   },
   "modalities": [
     "text",

@@ -1,0 +1,16 @@
+{
+  "description": "Exact public NVIDIA ModelOpt export of Qwen3.8-27B: NVFP4 MLP and language-model head, FP8 attention and linear-attention projections, with vision tower.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "qwen3-8-27b-nvfp4-nvidia-482ca0f3"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 27B NVFP4 (ModelOpt)",
+  "tags": [
+    "nvidia",
+    "qwen3-8-nvidia",
+    "multimodal",
+    "candidate"
+  ]
+}

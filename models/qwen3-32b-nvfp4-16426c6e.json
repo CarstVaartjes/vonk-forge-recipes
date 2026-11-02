@@ -178,13 +178,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "qwen3-32b",
-      "title": "Qwen3 32B"
+      "slug": "qwen3-32b"
     },
     "publisher": "nvidia",
     "slug": "qwen3-32b-nvfp4-16426c6e",
@@ -199,16 +197,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "metadata": {
-    "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Qwen3 32B.",
-    "tags": [
-      "nvidia",
-      "qwen3",
-      "language",
-      "nvfp4",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

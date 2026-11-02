@@ -4,6 +4,30 @@
   "records": [
     {
       "identity": {
+        "content_sha256": "2d83cc362959b3ec5e08b8f436fa15746bc7bbb0c9792999dbcf8145cfbbe9ad",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "84232b894cde469dceb2b7230d5890de3ed877d8c51d115673ccd9a1e9e52e61"
+      ],
+      "tested_at": "2026-10-17T18:36:25.059941Z",
+      "platform": {
+        "controller_source_sha": "4f1199d1fa0319434f68e2017d30bb581e54c4e6",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "94cf12498dddc8965c186c9a065bc088cf550a43a09642d2575b100ec576e48a",
         "model_digests": [],
         "required_sparks": 1,

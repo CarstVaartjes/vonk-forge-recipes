@@ -37,25 +37,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Directly installable Candidate refreshed from MiaAI-Lab's public 94ae731f EXL3 source tree on the digest-pinned vLLM CUDA 13 base, reproducing its 2x DGX Spark EXL3/TR3 4 bpw target with the launcher-selected dc77ff1c DFlash2 K7 checkpoint, native-mp TP2, E3 grouped fat-expert prefill, 192k context, right-sized indexer workspace, FP8 sparse-MLA target KV, BF16 draft KV, CUDA graphs, prefix caching, vision, reasoning, and tools. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT. The build applies the GB10 persistent-topk overlay and verify-runtime.py fails closed unless its marker is present. Selected upstream fixes are vendored for bounded Mamba align-state retention, Mamba-block chunk checkpoints, and tool_choice:none decode masking while the source and runtime image pins remain fixed. A 320k context was refused by the engine's own KV check at 0.84 GPU utilization; the declared 0.845 utilization keeps the 192k context about 0.6 GiB inside the engine's measured KV budget. Upstream defaults now include FP8 dense projections with BF16 large-batch KDA prefill, compact draft KV pages, the Mamba/kpool/loader fixes and an explicit 11 GiB KV pool. Options choose adaptive verification length and BF16 projections; same-checkpoint native MTP (k=2) is also available as a rollback. The launcher documents SPEC_METHOD=mtp. The DFlash2 drafter remains part of the exact recipe closure but is unused in MTP mode. No comparative performance claim is made. Vonk physical acceptance and checkpoint requalification remain pending. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter.",
-    "tags": [
-      "candidate",
-      "dflash2",
-      "executable",
-      "exl3",
-      "glm-5.3",
-      "multimodal",
-      "native-mp",
-      "pending",
-      "reasoning",
-      "spark",
-      "tool-use",
-      "vllm"
-    ],
-    "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM two Sparks"
-  },
   "models": [
     {
       "files": [
@@ -1624,7 +1605,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a79abb0012ffb54e7e91cb0803b8f8359f3819a7f71a2603902827806b2d6654",
+        "content_sha256": "e0b3bd5867b8f38406b2c1cd45e7c815bad5e8aa3df9a3b5e0e4dc45c5a84ba3",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704"
@@ -1679,7 +1660,7 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-dc77ff1c",
       "model": {
-        "content_sha256": "ae1112b6c62040f6bd9ca69b2518e834a073a0d60f841ef4b29c9330e31577ad",
+        "content_sha256": "51a32c485d57aafc318b0ae45b7828cbaf7efc0901ebe63748701f42839e58e3",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-dc77ff1c"

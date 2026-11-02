@@ -30,27 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate adaptation of MiaAI-Lab's two-DGX-Spark Inkling Small NVFP4 profile: SGLang TP2 over RoCE with RadixArk's DSpark Preview draft (block size 7), the fp4_mx_block16 KV cache and a 1M-token context, on drowzeys' prebuilt KV-quant GB10 SGLang image pinned by digest. Launch flags are upstream's text-only set (no --enable-multimodal); throughput figures in upstream's README are its own claims.",
-    "tags": [
-      "executable",
-      "candidate",
-      "thinkingmachines",
-      "inkling",
-      "text",
-      "reasoning",
-      "tool-use",
-      "nvfp4",
-      "dspark",
-      "sglang",
-      "speculative-decoding",
-      "long-context",
-      "distributed",
-      "spark"
-    ],
-    "title": "Inkling Small NVFP4 SGLang DSpark two Sparks (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -288,7 +267,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a3026d05251c1fbabb33540cd6decf870b03db69cfa996100f20f3990a37d378",
+        "content_sha256": "cd3e585d66309580758c5ade2a7fa70648f24eeb9193917a274b94edf2cddc91",
         "kind": "model",
         "publisher": "thinkingmachines",
         "slug": "inkling-small-nvfp4"
@@ -365,7 +344,7 @@
       ],
       "id": "dependency-inkling-small-dspark-fcc210dc",
       "model": {
-        "content_sha256": "d181d851f59f52d91a0f393c52092a591048cbfb6e9b2e48df39c374f9c14b55",
+        "content_sha256": "85da06316b920044248dc1a42dcb4899e410d5970e961d8b52bf8c4f50c09fec",
         "kind": "model",
         "publisher": "radixark",
         "slug": "inkling-small-dspark-fcc210dc"

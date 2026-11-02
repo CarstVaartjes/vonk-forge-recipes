@@ -230,13 +230,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-labs-3-puzzle-75b-a9b",
-      "title": "Nemotron Labs 3 Puzzle 75B-A9B"
+      "slug": "nemotron-labs-3-puzzle-75b-a9b"
     },
     "publisher": "nvidia",
     "slug": "nemotron-labs-3-puzzle-75b-a9b-nvfp4-1d370e47",
@@ -250,20 +248,6 @@
     ],
     "spdx": "OpenMDW-1.1",
     "url": "https://openmdw.ai/license/1-1/"
-  },
-  "metadata": {
-    "description": "NVIDIA Nemotron-Labs-3 Puzzle 75B-A9B (Mamba-2 + MoE + attention, NAS-derived from Nemotron 3 Super 120B, 9B active) NVFP4 mixed-precision checkpoint with an MTP head. License OpenMDW-1.1.",
-    "tags": [
-      "candidate",
-      "language",
-      "mamba",
-      "moe",
-      "mtp",
-      "nemotron",
-      "nvfp4",
-      "nvidia",
-      "puzzle"
-    ]
   },
   "modalities": [
     "text"

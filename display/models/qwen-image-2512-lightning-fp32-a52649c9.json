@@ -1,0 +1,22 @@
+{
+  "description": "Exact ModelTC/lightx2v four-step FP32 distilled LoRA selected by the pinned official ComfyUI Qwen Image 2512 blueprint.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-2512-lightning-fp32-a52649c9"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen Image 2512 Lightning",
+  "tags": [
+    "qwen",
+    "image",
+    "generation",
+    "text-to-image",
+    "comfyui",
+    "lightning",
+    "lora",
+    "fp32",
+    "candidate",
+    "spark"
+  ]
+}

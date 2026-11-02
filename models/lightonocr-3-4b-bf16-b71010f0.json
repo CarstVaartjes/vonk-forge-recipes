@@ -154,13 +154,11 @@
   "identity": {
     "family": {
       "publisher": "lightonai",
-      "slug": "lightonocr",
-      "title": "LightOnOCR"
+      "slug": "lightonocr"
     },
     "model": {
       "publisher": "lightonai",
-      "slug": "lightonocr-3-4b-bf16",
-      "title": "LightOnOCR 3 4B"
+      "slug": "lightonocr-3-4b-bf16"
     },
     "publisher": "lightonai",
     "slug": "lightonocr-3-4b-bf16-b71010f0",
@@ -174,13 +172,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/lightonai/LightOnOCR-3-4B/blob/b71010f095dc3735de7ee6b9969bff8f8f50b39a/LICENSE"
-  },
-  "metadata": {
-    "description": "LightOnOCR 3 4B immutable upstream checkpoint. Physical Spark qualification pending.",
-    "tags": [
-      "candidate",
-      "lightonocr"
-    ]
   },
   "modalities": [
     "text"

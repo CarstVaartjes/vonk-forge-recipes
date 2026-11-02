@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker deepseek-v4-flash recipe for DeepSeek's DeepSeek-V4-Flash (MIT; checkpoint revision 60d8d707) served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: InstantTensor loading, FP8 KV cache with block size 256, MTP speculative decoding with two tokens, deepseek_v4 tokenizer, tool-call and reasoning parsers with thinking on and high reasoning effort by default, 500,000-token context (VLLM_ALLOW_LONG_MAX_MODEL_LEN), four sequences, 8,192 batched tokens and memory utilisation 0.8 (upstream defaults), with DG_JIT_USE_NVRTC=0 and VLLM_USE_BREAKABLE_CUDAGRAPH=1. Tensor parallel 2 across the pair uses vLLM's native multi-node launch, eugr's default no-Ray cluster mode, so upstream's --distributed-executor-backend ray is dropped. Upstream's `--default-chat-template-kwargs.thinking=true` and `.reasoning_effort=high` are passed as one JSON `--default-chat-template-kwargs` value (equivalent). The recipe is cluster-only upstream (the checkpoint does not fit one Spark). No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "candidate",
-      "deepseek",
-      "deepseek-v4",
-      "dual",
-      "eugr",
-      "executable",
-      "mtp",
-      "reasoning",
-      "spark",
-      "tool-use",
-      "vllm"
-    ],
-    "title": "DeepSeek V4 Flash MTP vLLM two Sparks (eugr)"
-  },
   "models": [
     {
       "files": [
@@ -857,7 +839,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4d545ba0fbacb2101d3189c282ac4e4a4f1dc135a32b42362141e2d9466640f1",
+        "content_sha256": "ff6b5bf45c9b0c7aaf7fadf87aed1d705f712ce614ddf071c01aed34be3f5ec6",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-flash-60d8d707"

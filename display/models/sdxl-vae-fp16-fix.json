@@ -1,0 +1,16 @@
+{
+  "description": "Exact local-only VAE config and safe weights loaded by the Step1X texture adapter.",
+  "family_title": "Stable Diffusion XL",
+  "identity": {
+    "publisher": "madebyollin",
+    "slug": "sdxl-vae-fp16-fix"
+  },
+  "kind": "model-display",
+  "model_title": "SDXL VAE fp16 fix",
+  "tags": [
+    "madebyollin",
+    "vae",
+    "diffusers",
+    "step1x"
+  ]
+}

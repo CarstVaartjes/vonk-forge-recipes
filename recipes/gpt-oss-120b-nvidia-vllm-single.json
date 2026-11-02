@@ -30,23 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "NVIDIA DGX Spark vLLM 26.08 (vLLM 0.27.1) MXFP4 recipe for the exact OpenAI GPT-OSS 120B revision, with offline Harmony encodings. NVIDIA's playbook runs the latest NGC vLLM container; 26.08 is the first on vLLM 0.26.0 or later, the line upstream validated for this model on DGX Spark (checked at image build). On 26.05.post1 (vLLM 0.21.0) the load exhausted an otherwise idle Spark's unified memory right after the weights loaded, before KV allocation, on 2026-10-21 and again with the #47851 backport on 2026-10-27. Keeps 131072-token context with one engine sequence, a conservative 9663676416-byte BF16 KV pool charging all 36 layers at full context, 2048-token prefill batches and eager execution. Declared peak is selected weight bytes + absolute KV + 10 GB Marlin padding/scale expansion + 8 GB estimated runtime/loading overhead, not a fraction of host RAM. Physical startup and full-context acceptance remain pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "gpt-oss",
-      "mxfp4",
-      "reasoning"
-    ],
-    "title": "gpt-oss 120b MXFP4 vLLM single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -313,7 +296,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "43358b54fdc6ef2cb10f658a465217d30db6bcef756812bd7644838096128ba8",
+        "content_sha256": "05c6ed6c0b33257e2673d0f08c9face7db1f25e850d8c90be5de2a0be46ef735",
         "kind": "model",
         "publisher": "openai",
         "slug": "gpt-oss-120b-mxfp4-b5c939de"

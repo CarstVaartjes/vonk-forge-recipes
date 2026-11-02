@@ -30,25 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna XS NVFP4 checkpoint. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "executable",
-      "candidate",
-      "poolside",
-      "laguna",
-      "nvfp4",
-      "vllm",
-      "reasoning",
-      "agentic",
-      "openai",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Laguna XS 2.1 NVFP4 vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -225,7 +206,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "61dce8ab9cb5e9b4b62904edbc6fe4039027718c46927c6177ecc27b03fca00c",
+        "content_sha256": "d5063c88eb08f963e423f6cd2bf18e9bdd80bb54045ad9a0a869fd71f60bf25c",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-xs-2-1-nvfp4-d32afde8"

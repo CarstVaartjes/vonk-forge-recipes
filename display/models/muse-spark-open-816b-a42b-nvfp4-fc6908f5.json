@@ -1,0 +1,14 @@
+{
+  "description": "Muse Spark Open 816B-A42B immutable upstream checkpoint. Physical Spark qualification pending.",
+  "family_title": "Muse Spark",
+  "identity": {
+    "publisher": "unsloth",
+    "slug": "muse-spark-open-816b-a42b-nvfp4-fc6908f5"
+  },
+  "kind": "model-display",
+  "model_title": "Muse Spark Open 816B-A42B",
+  "tags": [
+    "candidate",
+    "muse-spark"
+  ]
+}

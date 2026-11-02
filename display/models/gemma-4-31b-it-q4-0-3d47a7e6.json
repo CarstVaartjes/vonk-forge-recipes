@@ -1,0 +1,17 @@
+{
+  "description": "ggml-org GGUF conversion of Gemma 4 31B IT at Q4_0, plus the Q8_0 vision projector.",
+  "family_title": "Google Gemma",
+  "identity": {
+    "publisher": "ggml-org",
+    "slug": "gemma-4-31b-it-q4-0-3d47a7e6"
+  },
+  "kind": "model-display",
+  "model_title": "Gemma 4 31B",
+  "tags": [
+    "ggml-org",
+    "gemma",
+    "language",
+    "gguf",
+    "candidate"
+  ]
+}

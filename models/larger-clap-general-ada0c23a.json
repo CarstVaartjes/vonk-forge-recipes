@@ -82,13 +82,11 @@
   "identity": {
     "family": {
       "publisher": "laion",
-      "slug": "clap",
-      "title": "CLAP"
+      "slug": "clap"
     },
     "model": {
       "publisher": "laion",
-      "slug": "larger-clap-general",
-      "title": "LAION CLAP Larger General"
+      "slug": "larger-clap-general"
     },
     "publisher": "laion",
     "slug": "larger-clap-general-ada0c23a",
@@ -102,15 +100,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/laion/larger_clap_general/blob/ada0c23a36c4e8582805bb38fec3905903f18b41/README.md"
-  },
-  "metadata": {
-    "description": "Pinned LAION-CLAP larger-general files required by the HunyuanVideo-Foley offline text encoder.",
-    "tags": [
-      "laion",
-      "auxiliary",
-      "audio",
-      "offline"
-    ]
   },
   "modalities": [
     "audio",

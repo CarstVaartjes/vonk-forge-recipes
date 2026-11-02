@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Installable Candidate for the exact official ComfyUI 0.37.4 Qwen Image 2512 profile: FP8 transformer, FP32 four-step Lightning LoRA, scaled-FP8 text encoder, and Qwen Image VAE on one Spark.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen-image-2512-fp8-lightning-comfyui-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "qwen",
+    "image",
+    "text-to-image",
+    "comfyui",
+    "fp8",
+    "lightning",
+    "lora",
+    "single",
+    "spark"
+  ],
+  "title": "Qwen Image 2512 FP8 Lightning ComfyUI single Spark"
+}

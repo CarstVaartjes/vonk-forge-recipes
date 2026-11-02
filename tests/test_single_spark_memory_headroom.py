@@ -322,6 +322,24 @@ def test_real_catalog_build_rejects_a_new_recipe_whose_pool_cannot_hold_a_reques
         recipe.model_dump_json()
     )
     (tmp_path / "models").symlink_to(ROOT / "models", target_is_directory=True)
+    (tmp_path / "display/recipes").mkdir(parents=True)
+    (tmp_path / "display/recipes/synthetic-pool-below-request-new.json").write_text(
+        json.dumps(
+            {
+                "kind": "recipe-display",
+                "identity": {
+                    "publisher": recipe.identity.publisher,
+                    "slug": recipe.identity.slug,
+                },
+                "title": "Synthetic",
+                "description": "A synthetic recipe.",
+                "tags": [],
+            }
+        )
+    )
+    (tmp_path / "display/models").symlink_to(
+        ROOT / "display/models", target_is_directory=True
+    )
     monkeypatch.setitem(build.__globals__, "ROOT", tmp_path)
 
     def forbidden_package(*args: object, **kwargs: object) -> None:

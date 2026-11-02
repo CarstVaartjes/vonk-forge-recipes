@@ -37,13 +37,11 @@
   "identity": {
     "family": {
       "publisher": "facebook",
-      "slug": "dinov2",
-      "title": "DINOv2"
+      "slug": "dinov2"
     },
     "model": {
       "publisher": "facebook",
-      "slug": "dinov2-large",
-      "title": "DINOv2 Large"
+      "slug": "dinov2-large"
     },
     "publisher": "facebook",
     "slug": "dinov2-large-47b73eef",
@@ -57,15 +55,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/facebook/dinov2-large/blob/47b73eefe95e8d44ec3623f8890bd894b6ea2d6c/README.md"
-  },
-  "metadata": {
-    "description": "The exact DINOv2-Large feature encoder loaded locally by the Hunyuan3D-Omni adapter.",
-    "tags": [
-      "facebook",
-      "auxiliary",
-      "image",
-      "offline"
-    ]
   },
   "modalities": [
     "image"

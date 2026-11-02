@@ -30,28 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate following sfxnz's Ornith-1.5-35B-A3B-NVFP4-DGX-Spark kit at commit 45c2e78d063cd53ad5835978844b2f7924ccfc1d on one DGX Spark. This refresh binds Hugging Face revision 94e431d9cc47fa1986a7a1a4e9a80f7f118b03aa and updates config.json, model.safetensors.index.json and all three weight shards together from the prior 9660379a snapshot, along with its quant summary and README metadata. The Qwen3.5 MoE architecture is supported by the unchanged, digest-pinned vLLM 0.27.1 image. The image, tokenizer, SFXNZ launch profile and serving defaults remain pinned: tensor-parallel 1, Marlin MoE, FlashInfer attention, FP8 KV cache, MTP-3, 262,144 context, 4 sequences, 0.4 GPU memory utilization and fastsafetensors loading. Upstream measured 59 GiB after load, 22 GiB of weights loaded in 24.7 s, engine initialization in about 148 s, and 52.61/89.88 completion tokens/s at concurrency 1/2; those are not measurements here. Upstream notes that thinking must be off for short generation and chat benchmarks. Model and recipe-kit licences are MIT. The refreshed checkpoint has not been loaded in this image or physically qualified here.",
-    "tags": [
-      "executable",
-      "candidate",
-      "sfxnz",
-      "ornith",
-      "ornith-1.5",
-      "nvfp4",
-      "modelopt",
-      "vllm",
-      "mtp",
-      "reasoning",
-      "agentic",
-      "openai",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Ornith 1.5 35B-A3B NVFP4 sfxnz vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -278,7 +256,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "06ed43d41ee814b5606f1e5df24210e55efa8b6e3c18e9dfec12b36d395418b8",
+        "content_sha256": "4199fee7d99030da1ba789880f9252d456c71498473275d424d9517b67587ea1",
         "kind": "model",
         "publisher": "ornith-ai",
         "slug": "ornith-1-5-35b-a3b-nvfp4-94e431d9"

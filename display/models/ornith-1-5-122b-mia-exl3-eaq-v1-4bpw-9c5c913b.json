@@ -1,0 +1,17 @@
+{
+  "description": "Mia AI Lab EAQ v1 EXL3 4 bpw checkpoint of Ornith-1.5-122B (Qwen3.5-MoE architecture, 9 safetensors shards, vision tower), revision 9c5c913b, for TensorFold's Zig engine.",
+  "family_title": "Ornith",
+  "identity": {
+    "publisher": "mia-ailab",
+    "slug": "ornith-1-5-122b-mia-exl3-eaq-v1-4bpw-9c5c913b"
+  },
+  "kind": "model-display",
+  "model_title": "Ornith 1.5 122B",
+  "tags": [
+    "ornith",
+    "exl3",
+    "eaq",
+    "mia",
+    "tensorfold"
+  ]
+}

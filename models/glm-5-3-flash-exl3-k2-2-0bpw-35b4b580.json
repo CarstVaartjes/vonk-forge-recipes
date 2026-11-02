@@ -3048,13 +3048,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "0xsero",
-      "slug": "glm-5-3-flash-exl3-k2-2-0bpw",
-      "title": "GLM 5.3 Flash EXL3 K2 2.0bpw"
+      "slug": "glm-5-3-flash-exl3-k2-2-0bpw"
     },
     "publisher": "0xsero",
     "slug": "glm-5-3-flash-exl3-k2-2-0bpw-35b4b580",
@@ -3070,15 +3068,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/0xSero/GLM-5.3-Flash-EXL3-TR3-2.0bpw/blob/35b4b580debe2a1510a2eb042d9d6d4cd7fb3a6b/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public 0xSero GLM 5.3 Flash EXL3 K2 2.0bpw checkpoint (mcg codebook, 133 weight shards plus the EXL3 sidecar manifests upstream downloads, native unquantized MTP layer 45): the repository start.sh serves it as-is. The card names it the provenance-verified twin of the K2 staging artifact; the GitHub repository description calls the quantization 2.33 bpw while its scripts and docs say 2.0 bpw.",
-    "tags": [
-      "0xsero",
-      "glm-5-3-0xsero",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

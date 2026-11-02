@@ -80,26 +80,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Historical native LTX 1.4.2 two-stage pipeline using the exact mixed BF16/NVFP4 checkpoint, the nvfp4-prequant loader and NVFP4-aware distilled refinement LoRA fusion, spatial upscaler, and Gemma 3 companion closure. Prequantized companion scales require the resident model loader; CPU/disk block streaming is unsupported. The image builds the pinned native NVFP4 kernels for Spark SM121. The conservative 89 GB peak and 8 GB reserve cover the 49 GB Gemma encoder or 20 GB checkpoint plus 8 GB LoRA, transient fusion and inference buffers; physical Spark acceptance remains required. This historical recipe remains available for reproducibility.",
-    "tags": [
-      "executable",
-      "candidate",
-      "build-unvalidated",
-      "historical",
-      "superseded",
-      "lightricks",
-      "ltx",
-      "video",
-      "audio",
-      "fp4",
-      "pytorch",
-      "single",
-      "spark"
-    ],
-    "title": "LTX-2 19B dev FP4 native pipeline single Spark (superseded)"
-  },
   "models": [
     {
       "files": [
@@ -386,7 +366,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9253bb344fb0bab7f19db2aed480e1e27649848b478a4b5064b7ba99de828e47",
+        "content_sha256": "712b5a5f0777591fec47f743659a1dcc17bca28be246b6a792dcadf371ddf618",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-19b-dev-fp4-dfcc2108"
@@ -455,12 +435,12 @@
     "kind": "job",
     "knobs": {
       "num-frames": {
-        "value": 97,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 97
       },
       "num-inference-steps": {
-        "value": 40,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 40
       }
     }
   },

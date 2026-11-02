@@ -1279,13 +1279,11 @@
   "identity": {
     "family": {
       "publisher": "meta",
-      "slug": "muse-spark",
-      "title": "Muse Spark"
+      "slug": "muse-spark"
     },
     "model": {
       "publisher": "meta",
-      "slug": "muse-spark-open-816b-a42b-nvfp4",
-      "title": "Muse Spark Open 816B-A42B"
+      "slug": "muse-spark-open-816b-a42b-nvfp4"
     },
     "publisher": "unsloth",
     "slug": "muse-spark-open-816b-a42b-nvfp4-fc6908f5",
@@ -1299,13 +1297,6 @@
     ],
     "spdx": "muse-model-license",
     "url": "https://huggingface.co/unsloth/Muse-Spark-Open-816B-A42B-NVFP4/blob/fc6908f53c6882d4ec48fca5ba144e41d21e1f92/LICENSE.md"
-  },
-  "metadata": {
-    "description": "Muse Spark Open 816B-A42B immutable upstream checkpoint. Physical Spark qualification pending.",
-    "tags": [
-      "candidate",
-      "muse-spark"
-    ]
   },
   "modalities": [
     "text"

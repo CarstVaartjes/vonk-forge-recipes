@@ -1,0 +1,15 @@
+{
+  "description": "Exact immutable texture adapter subtree at bf708449; SDXL and its replacement VAE are separately selected as explicit offline dependencies.",
+  "family_title": "Step1X-3D",
+  "identity": {
+    "publisher": "stepfun-ai",
+    "slug": "step1x-3d-texture"
+  },
+  "kind": "model-display",
+  "model_title": "Step1X-3D",
+  "tags": [
+    "stepfun-ai",
+    "three-d",
+    "candidate"
+  ]
+}

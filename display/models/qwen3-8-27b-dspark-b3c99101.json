@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Qwen3.8 27B DSpark v2 Stage 2 checkpoint at b3c99101.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "radixark",
+    "slug": "qwen3-8-27b-dspark-b3c99101"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 27B DSpark companion",
+  "tags": [
+    "radixark",
+    "qwen3-8-radixark",
+    "language",
+    "candidate"
+  ]
+}

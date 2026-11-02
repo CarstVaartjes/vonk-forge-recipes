@@ -284,13 +284,11 @@
   "identity": {
     "family": {
       "publisher": "minimax",
-      "slug": "minimax",
-      "title": "MiniMax"
+      "slug": "minimax"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "minimax-m2-7",
-      "title": "MiniMax M2.7"
+      "slug": "minimax-m2-7"
     },
     "publisher": "nvidia",
     "slug": "minimax-m2-7-nvfp4-e79701cb",
@@ -305,15 +303,6 @@
     ],
     "spdx": "LicenseRef-NVIDIA-Software-and-Model-Evaluation-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-software-and-model-evaluation-license"
-  },
-  "metadata": {
-    "description": "MiniMax M2.7 mixture-of-experts language model.",
-    "tags": [
-      "nvidia",
-      "minimax",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

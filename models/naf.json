@@ -19,13 +19,11 @@
   "identity": {
     "family": {
       "publisher": "valeoai",
-      "slug": "naf",
-      "title": "NAF"
+      "slug": "naf"
     },
     "model": {
       "publisher": "valeoai",
-      "slug": "naf",
-      "title": "NAF"
+      "slug": "naf"
     },
     "publisher": "valeoai",
     "slug": "naf",
@@ -39,15 +37,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://github.com/valeoai/NAF/blob/37f2dfc180f2de53d98bd601109c0da0dd6b0f43/LICENSE"
-  },
-  "metadata": {
-    "description": "Neighborhood Attention Filtering feature upsampler loaded by Pixal3D at f7cf3842 through valeoai/NAF hubconf.py at 37f2dfc1. Immutable release and asset IDs bind the upstream checkpoint.",
-    "tags": [
-      "valeoai",
-      "auxiliary",
-      "image",
-      "offline"
-    ]
   },
   "modalities": [
     "image"

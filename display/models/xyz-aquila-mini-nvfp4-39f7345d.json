@@ -1,0 +1,16 @@
+{
+  "description": "XYZAILab XYZ-Aquila-mini (Qwen3-architecture mixture-of-experts language model).",
+  "family_title": "XYZ Aquila",
+  "identity": {
+    "publisher": "r0b0tlab",
+    "slug": "xyz-aquila-mini-nvfp4-39f7345d"
+  },
+  "kind": "model-display",
+  "model_title": "XYZ-Aquila-mini",
+  "tags": [
+    "r0b0tlab",
+    "xyz-aquila",
+    "language",
+    "candidate"
+  ]
+}

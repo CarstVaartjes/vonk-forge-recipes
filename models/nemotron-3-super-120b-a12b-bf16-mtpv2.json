@@ -73,13 +73,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-super-120b-a12b",
-      "title": "Nemotron 3 Super 120B-A12B"
+      "slug": "nemotron-3-super-120b-a12b"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2",
@@ -93,17 +91,6 @@
     ],
     "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
-  },
-  "metadata": {
-    "description": "Exact NVIDIA MTPv2 speculative-decoding companion for Nemotron 3 Super target checkpoints; this is not a standalone language model.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "mtp",
-      "speculative-decoding",
-      "companion"
-    ]
   },
   "modalities": [
     "text"

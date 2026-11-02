@@ -1,0 +1,15 @@
+{
+  "description": "Original GLM-5.3 first shard, used only to extract the exact BF16 lm_head.weight in the managed cache. This is a companion source artifact, not a complete standalone checkpoint.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "zai-org",
+    "slug": "glm-5-3-bf16-head-source-aca966e4"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.3",
+  "tags": [
+    "glm",
+    "companion",
+    "bf16-head"
+  ]
+}

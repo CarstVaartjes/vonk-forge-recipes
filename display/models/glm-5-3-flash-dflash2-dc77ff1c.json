@@ -1,0 +1,16 @@
+{
+  "description": "Exact public GLM 5.3 Flash DFlash2 dc77ff1c checkpoint selected by the Mia launcher.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "incoai",
+    "slug": "glm-5-3-flash-dflash2-dc77ff1c"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.3 Flash DFlash2",
+  "tags": [
+    "incoai",
+    "glm-5-3-dflash",
+    "language",
+    "candidate"
+  ]
+}

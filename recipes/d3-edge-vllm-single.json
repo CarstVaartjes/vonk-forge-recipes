@@ -30,20 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Native Decision 3.0 service with choice, noul and score probabilities over text, JSON, images and video. BF16 backbone and FP32 readout. A 32768-token input context and one concurrent sequence bound this profile. Estimated peak is 0.15 times 130663231488 bytes plus 8 GB runtime overhead; physical Spark qualification is pending. Requires native System One gateway support.",
-    "tags": [
-      "candidate",
-      "executable",
-      "spark",
-      "vllm",
-      "decision",
-      "vision",
-      "video"
-    ],
-    "title": "D3 EDGE vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -200,7 +186,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9b76e3f6c3e0197bb8c2cd05c1be8df0d7ef2d4aa9d4a77af99e3a173e616a9b",
+        "content_sha256": "51a80d879c4da7576406e897a46ea6d74ac09940cccbf5cd7e7c271d6e3f04e4",
         "kind": "model",
         "publisher": "vonk-forge",
         "slug": "d3-edge-bf16-c454ee39"

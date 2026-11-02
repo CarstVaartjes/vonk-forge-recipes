@@ -151,13 +151,11 @@
   "identity": {
     "family": {
       "publisher": "google",
-      "slug": "gemma",
-      "title": "Google Gemma"
+      "slug": "gemma"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "gemma-4-31b-it-nvfp4",
-      "title": "Gemma 4 31B IT NVFP4"
+      "slug": "gemma-4-31b-it-nvfp4"
     },
     "publisher": "nvidia",
     "slug": "gemma-4-31b-it-nvfp4-4135a98a",
@@ -172,15 +170,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://ai.google.dev/gemma/apache_2"
-  },
-  "metadata": {
-    "description": "NVIDIA ModelOpt NVFP4 quantization of google/gemma-4-31B-it at an exact Hugging Face revision.",
-    "tags": [
-      "nvidia",
-      "gemma-4-31b",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

@@ -75,13 +75,11 @@
   "identity": {
     "family": {
       "publisher": "google",
-      "slug": "gemma",
-      "title": "Google Gemma"
+      "slug": "gemma"
     },
     "model": {
       "publisher": "google",
-      "slug": "gemma-4-26b-a4b-it-assistant",
-      "title": "Gemma 4 26B-A4B IT assistant"
+      "slug": "gemma-4-26b-a4b-it-assistant"
     },
     "publisher": "google",
     "slug": "gemma-4-26b-a4b-it-assistant-6e5aaaf4",
@@ -95,15 +93,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://ai.google.dev/gemma/docs/gemma_4_license"
-  },
-  "metadata": {
-    "description": "Google's Multi-Token Prediction assistant (draft) model for Gemma 4 26B-A4B IT at an exact Hugging Face revision.",
-    "tags": [
-      "google",
-      "gemma-4-26b-a4b-assistant",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

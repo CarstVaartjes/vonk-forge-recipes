@@ -1,0 +1,20 @@
+{
+  "alignment": "unspecified",
+  "description": "MiaAI-Lab's pinned dev-dsv41 base profile at 64b02dea8681fb1d8e3a659ea432a8e9e9ba3995: native MXFP4 experts, DSpark 5 and NVMe Engram on 4 Sparks. Uses the creator's base image and adapters, including SM121 attention and chat-history repair. All ranks read Controller-managed local checkpoint files; the upstream row store reads Engram directly from those immutable files. Does not use host NFS, packed Engram copies, display-reservation memory or the optional canary RoCEnante image. Memory and throughput remain upstream estimates; physical Spark acceptance is unmeasured.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-1017-mia-sglang-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "deepseek",
+    "1017",
+    "sglang",
+    "dspark",
+    "vision",
+    "reasoning",
+    "tool-use",
+    "spark"
+  ],
+  "title": "DeepSeek V4.1 Flash 1017 SGLang 4 Sparks (Mia)"
+}

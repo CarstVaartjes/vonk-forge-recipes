@@ -28,13 +28,11 @@
   "identity": {
     "family": {
       "publisher": "microsoft",
-      "slug": "trellis",
-      "title": "TRELLIS"
+      "slug": "trellis"
     },
     "model": {
       "publisher": "microsoft",
-      "slug": "trellis-sparse-decoder",
-      "title": "TRELLIS sparse structure decoder"
+      "slug": "trellis-sparse-decoder"
     },
     "publisher": "microsoft",
     "slug": "trellis-sparse-decoder",
@@ -48,15 +46,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/microsoft/TRELLIS-image-large/blob/25e0d31ffbebe4b5a97464dd851910efc3002d96/README.md"
-  },
-  "metadata": {
-    "description": "Sparse structure decoder referenced by TRELLIS.2-4B at af44b45f; exact files from microsoft/TRELLIS-image-large.",
-    "tags": [
-      "microsoft",
-      "auxiliary",
-      "three-d",
-      "offline"
-    ]
   },
   "modalities": [
     "3d"

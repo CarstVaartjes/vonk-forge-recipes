@@ -1,0 +1,16 @@
+{
+  "description": "Full GLM 5.3 with mixed-width EXL3 2.75bpw experts.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "drowzeys",
+    "slug": "glm-5-3-exl3-275bpw-drowzeys-ae7b6967"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.3",
+  "tags": [
+    "drowzeys",
+    "glm",
+    "language",
+    "candidate"
+  ]
+}

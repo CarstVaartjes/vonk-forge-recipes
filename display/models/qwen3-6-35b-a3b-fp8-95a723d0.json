@@ -1,0 +1,16 @@
+{
+  "description": "Exact official Qwen block-wise FP8 checkpoint of Qwen3.6-35B-A3B, a multimodal mixture-of-experts model with a trained MTP layer.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen3-6-35b-a3b-fp8-95a723d0"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.6 35B-A3B FP8",
+  "tags": [
+    "qwen",
+    "qwen3-6-qwen",
+    "video",
+    "candidate"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "description": "Exact Intel AutoRound INT4 quantization of Qwen3-Coder-Next; Intel states to follow the licence of the original model.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "intel",
+    "slug": "qwen3-coder-next-int4-autoround-79c8a6bb"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3-Coder-Next INT4 AutoRound (Intel)",
+  "tags": [
+    "intel",
+    "qwen3-coder-next-intel",
+    "text",
+    "candidate"
+  ]
+}

@@ -157,13 +157,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "qwen",
-      "slug": "qwen3-5-9b",
-      "title": "Qwen3.5 9B"
+      "slug": "qwen3-5-9b"
     },
     "publisher": "qwen",
     "slug": "qwen3-5-9b-c2022362",
@@ -177,18 +175,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen3.5-9B/blob/c202236235762e1c871ad0ccb60c8ee5ba337b9a/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact Qwen3.5-9B multimodal checkpoint revision for a candidate single-Spark vLLM recipe.",
-    "tags": [
-      "qwen",
-      "qwen3-5",
-      "language",
-      "multimodal",
-      "reasoning",
-      "bf16",
-      "spark"
-    ]
   },
   "modalities": [
     "image",

@@ -33,22 +33,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Tonyd2wild multi-stream engine bundled at 1758bc2d, based on Mia’s TensorFold 0.6.0 patches, with Brandonmusic EXL3 tr3-4bpw and incoai DFlash2. 4 ranks, 8 streams and 500,000-token context per request; FP8 KV, q4 dense matrices, vision and adaptive MTP/DFlash. The creator’s unpublished local image is replaced by a pinned NGC CUDA base plus the exact bundled engine and locked dependencies. Controller placement supplies rank and fabric identities instead of creator-specific SSH/NFS addresses. Memory is an estimate; upstream benchmark results are not local physical qualification.",
-    "tags": [
-      "glm",
-      "tensorfold",
-      "exl3",
-      "dflash2",
-      "mtp",
-      "vision",
-      "tool-use",
-      "reasoning",
-      "spark"
-    ],
-    "title": "GLM-5.3 Flash EXL3 TensorFold four Spark (tonyd2wild)"
-  },
   "models": [
     {
       "files": [
@@ -2662,7 +2646,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "73fe71f01ddc4aa6a1501e1bedf04150f295ab6d8d3c08d15e604b7cb0d13e83",
+        "content_sha256": "aef724a8a997a67a6a7a77019385d75beccbc64c7d31c0abdaf38bf0d79d7ab1",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-a5fee929"
@@ -2728,7 +2712,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "43c57f0707622cfa27e81749a79267a89050dd86b9dc148d479b36ab66a9a71b",
+        "content_sha256": "2d8e03a41333a86e3f1d566e3a31c7f6e10bb44d9d0110c2189337ec640b2b54",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-bf582e4e"

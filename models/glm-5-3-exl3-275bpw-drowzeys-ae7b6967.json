@@ -832,13 +832,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "drowzeys",
-      "slug": "glm-5-3",
-      "title": "GLM 5.3"
+      "slug": "glm-5-3"
     },
     "publisher": "drowzeys",
     "slug": "glm-5-3-exl3-275bpw-drowzeys-ae7b6967",
@@ -853,15 +851,6 @@
     ],
     "spdx": "LicenseRef-GLM-5.3",
     "url": "https://huggingface.co/drowzeys/keys-GLM-5.3-EXL3-2.75BPW/blob/ae7b69671a94cf130fd1360a3b9213539ef3446f/LICENSE"
-  },
-  "metadata": {
-    "description": "Full GLM 5.3 with mixed-width EXL3 2.75bpw experts.",
-    "tags": [
-      "drowzeys",
-      "glm",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

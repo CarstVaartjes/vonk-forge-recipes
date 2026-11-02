@@ -1,0 +1,15 @@
+{
+  "description": "Immutable public snapshot at 2c1c516d.",
+  "family_title": "TripoSG",
+  "identity": {
+    "publisher": "vast-ai",
+    "slug": "triposg"
+  },
+  "kind": "model-display",
+  "model_title": "TripoSG",
+  "tags": [
+    "vast-ai",
+    "three-d",
+    "candidate"
+  ]
+}

@@ -165,6 +165,31 @@
     },
     {
       "identity": {
+        "content_sha256": "5641b9b8a196f60f1a93a156d1d3d1d2307af68bf2d30f7e6a80370ea86356cf",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "fa1e7bfafd12ff21c3f47989efa3872ccca1e95bbd7ac1d642e16dae7dbdbbcd"
+      ],
+      "tested_at": "2026-10-19T23:05:05.164369Z",
+      "platform": {
+        "controller_source_sha": "d9908ba74f349ce0d2a10eda53ca191c7f823382",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "0b0eda2f83682b5590d6c22545d0825a174ecfe85092bb89ada14dea50d4db6e",
         "model_digests": [],
         "required_sparks": 1,
@@ -184,6 +209,30 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "5641b9b8a196f60f1a93a156d1d3d1d2307af68bf2d30f7e6a80370ea86356cf",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "064f3569ad101d198b8681208d2c50888373216489db96d665823689a38ea03d"
+      ],
+      "tested_at": "2026-10-20T04:24:58.906978Z",
+      "platform": {
+        "controller_source_sha": "dc0e945ec169f3a9dbd4c426cde44d49463eb0a8",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     }
   ]
 }

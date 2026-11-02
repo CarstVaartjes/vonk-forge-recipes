@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "Mellum2.1-12B-A2.5B-Thinking with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mellum2-1-12b-thinking-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "spark",
+    "vllm",
+    "mellum",
+    "reasoning",
+    "tool-use"
+  ],
+  "title": "Mellum2.1-12B-A2.5B-Thinking vLLM single Spark"
+}

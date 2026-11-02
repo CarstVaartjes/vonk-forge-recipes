@@ -30,20 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Nemotron 3.5 Super VL 120B-A12B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead and the library's 17 GB separate-drafter allowance; reserve is informational, with the platform OS floor accounted separately. Uses NVIDIA's Spark-recommended LiLiCorr seven-token draft and Mamba cache configuration.",
-    "tags": [
-      "candidate",
-      "executable",
-      "spark",
-      "vllm",
-      "nemotron",
-      "reasoning",
-      "tool-use"
-    ],
-    "title": "Nemotron 3.5 Super VL 120B-A12B vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -1190,7 +1176,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6c669b88a36fc823e1ea47be07b0158e1da134721d835a0006ba0d9bc2ca3ffa",
+        "content_sha256": "389e3411f2207d5be1dc790115d889cbcb580acdfa1e60736c2833bb4bba159b",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4-59b87216"
@@ -1251,7 +1237,7 @@
       ],
       "id": "draft",
       "model": {
-        "content_sha256": "27f5298bd128b8f517aecaee0f724492828237c1894d0f3adc2150c57ab3d3d9",
+        "content_sha256": "98035865de27755905a98ecdde7a81d0ba9f6d03f5919dca811a2b76d4b18312",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-super-vl-lilicorr-nvfp4-292bf1ef"

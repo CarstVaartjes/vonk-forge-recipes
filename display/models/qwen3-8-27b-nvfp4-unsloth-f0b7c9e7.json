@@ -1,0 +1,20 @@
+{
+  "description": "Unsloth NVFP4 quantization of Qwen3.8 27B with the MTP head baked in, vision-language. Apache-2.0.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "unsloth",
+    "slug": "qwen3-8-27b-nvfp4-unsloth-f0b7c9e7"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 27B NVFP4 (Unsloth)",
+  "tags": [
+    "candidate",
+    "language",
+    "mtp",
+    "multimodal",
+    "nvfp4",
+    "qwen3-8-unsloth",
+    "qwen3.8",
+    "unsloth"
+  ]
+}

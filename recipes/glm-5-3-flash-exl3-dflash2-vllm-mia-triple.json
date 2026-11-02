@@ -37,27 +37,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate for MiaAI-Lab's public 94ae731f GLM-5.3-Flash EXL3 kit at tensor-parallel 3 across three DGX Sparks, built on the digest-pinned vLLM CUDA 13 base like the two- and four-Spark Mia recipes and serving the same TR3 4 bpw EXL3 target with the launcher-selected dc77ff1c DFlash2 drafter on rank 0 only (its 32 attention and 8 KV heads do not divide by three, so the drafter runs unsharded from a config padded to 36 and 9 heads). It follows upstream's start-tp3.sh and .env.tp3.example defaults on top of .env.example: native-mp ranks with headless workers, 1,000,000 context, 4 sequences, 7168 batched tokens, GPU utilisation 0.80, no explicit KV pool cap, FP8 sparse-MLA target KV, BF16 draft KV, DFlash2 with 7 speculative tokens, E3 grouped fat-expert prefill, fair mixed prefill, FP8 dense and KDA projections, vision (data-parallel encoder), reasoning and tools. Nothing in the model divides by three, so the target's 64 attention and KV heads are padded to 66 with --hf-overrides, the routed experts run expert-parallel (96 of 288 per rank) and the FlyCockpit TP3 overlays apply: upstream bind-mounts four patched vLLM sources and rewrites the installed glm5next model.py and exl3.py at every container start, which this image does at build time from the pinned commit because the workload root is read-only. Upstream reports the kit booting on three Sparks (2026-09-14) with a directed-ring QSFP triangle or a switch fabric; the platform owns the fabric settings. Upstream's start-tp3.sh does not wire the compact per-request no-store overlay, and its optional FlashKDA patch is not packaged here. The source overlay is AGPL-3.0 with prior MIT contributions retained in upstream-LICENSE-MIT; the TP3 overlays are MIT (FlyCockpit).  A same-checkpoint native MTP k=2 rollback is available from the upstream launcher; the DFlash2 companion stays in the recipe closure but is unused in that mode. Vonk physical acceptance and checkpoint requalification remain pending. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter. Memory follows the creator's settings: gpu-memory-utilization 0.80 with no explicit KV pool, as in MiaAI-Lab's .env.tp3.example at 94ae731f (line 172; upstream measured 4-6 GB host free at 0.83 and 9-12 GB at 0.78). The steady per-node peak is 0.80 x 130,663,231,488-byte unified memory plus 10.4 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, with a separate 6 GB OS floor.",
-    "tags": [
-      "candidate",
-      "dflash2",
-      "executable",
-      "exl3",
-      "expert-parallel",
-      "glm-5.3",
-      "multimodal",
-      "native-mp",
-      "pending",
-      "reasoning",
-      "spark",
-      "tool-use",
-      "tp3",
-      "vllm"
-    ],
-    "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM three Sparks (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -1626,7 +1605,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a79abb0012ffb54e7e91cb0803b8f8359f3819a7f71a2603902827806b2d6654",
+        "content_sha256": "e0b3bd5867b8f38406b2c1cd45e7c815bad5e8aa3df9a3b5e0e4dc45c5a84ba3",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704"
@@ -1681,7 +1660,7 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-dc77ff1c",
       "model": {
-        "content_sha256": "ae1112b6c62040f6bd9ca69b2518e834a073a0d60f841ef4b29c9330e31577ad",
+        "content_sha256": "51a32c485d57aafc318b0ae45b7828cbaf7efc0901ebe63748701f42839e58e3",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-dc77ff1c"

@@ -182,6 +182,30 @@
     },
     {
       "identity": {
+        "content_sha256": "8e80f3270cdcfe8feb4cfad328b3dae021e5a488dddf1c288202bad696fd0474",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "eed18830c1c99909cc5fd479795a86964673ee75560c7dddfed643ff346beacf"
+      ],
+      "tested_at": "2026-10-17T15:42:14.531705Z",
+      "platform": {
+        "controller_source_sha": "d083b43f558b94ddda479d2e227a6ca7b373b1e3",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "2520107eda8445190adc19f8c4680a506087990c95f318c30db69d89d98b889e",
         "source_bundle_sha256": "606d11c5965b7bc42421dcc1df5e832a10a26fcf646f86d98aeb3529ba150d1e",
         "runtime_image": {

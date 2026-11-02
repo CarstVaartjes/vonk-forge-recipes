@@ -30,25 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "r0b0tlab's four-GB10 SGLang serve of the official DeepSeek V4.1 Flash checkpoint: TP=4 with EP=4, vision retained, a local file-backed Engram lookup, static DSpark K=5 and the overlay-v4 adapter on SGLang da64c5cb. Upstream's production profile is the exclusive C1 512K retrieval envelope (one running request, chunked prefill 256, 0.80 memory fraction, advertised 524,288 tokens); its 8-request candidate profile and K=3 variant are options, the 1M profile is deferred upstream. Upstream reports Q200v2 189/200, 512K needle retrieval passed and about 31 tok/s short single-stream; these are upstream claims, not measured here. Package code MIT; the model is MIT (information only).",
-    "tags": [
-      "candidate",
-      "deepseek",
-      "distributed",
-      "dspark",
-      "engram",
-      "executable",
-      "multimodal",
-      "openai",
-      "r0b0tlab",
-      "sglang",
-      "spark",
-      "vision"
-    ],
-    "title": "DeepSeek V4.1 Flash SGLang TP4 four Sparks (r0b0tlab)"
-  },
   "models": [
     {
       "files": [
@@ -1034,7 +1015,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "cab6d52acd79c431bcd7304454b96e553e7a3ce2896d0b7ec9d716b77076be1f",
+        "content_sha256": "6295d50a6968267a3ae2bb91897a2a54dc860e6a4c4fe40c0b6f7fb4039bf6ad",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-314113f8"

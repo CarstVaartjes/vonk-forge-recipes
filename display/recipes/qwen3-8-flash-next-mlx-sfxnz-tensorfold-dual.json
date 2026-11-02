@@ -1,0 +1,17 @@
+{
+  "alignment": "unspecified",
+  "description": "sfxnz's default two-Spark TensorFold 0.6.2 configuration at 56e2e3ec, with the exact MLX 4-bit MTP checkpoint and xgrammar 0.2.8 on both ranks. One stream, a 262,144-token native window, BF16 KV, MTP depth fifteen and confidence 0.70; thinking off. The optional concurrency patch is not enabled in this default configuration. Text only. Memory peak is a conservative per-node estimate inherited from the existing single-node MLX runtime, not a physical measurement.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-mlx-sfxnz-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "qwen3.8",
+    "tensorfold",
+    "mtp",
+    "spark",
+    "text-only"
+  ],
+  "title": "Qwen3.8 Flash Next MLX TensorFold dual Spark (sfxnz)"
+}

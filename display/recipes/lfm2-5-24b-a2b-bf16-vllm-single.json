@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "LFM2.5-24B-A2B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "lfm2-5-24b-a2b-bf16-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "spark",
+    "vllm",
+    "lfm2-5",
+    "tool-use",
+    "reasoning"
+  ],
+  "title": "LFM2.5-24B-A2B vLLM single Spark"
+}

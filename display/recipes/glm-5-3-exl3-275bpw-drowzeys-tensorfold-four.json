@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "Full GLM 5.3 EXL3 2.75bpw on four Sparks, following drowzeys at ea05ec69 and the creator-published 2026-10-10 image. Uses the Python TensorFold engine and checkpoint MTP drafting, one stream and a 140,000-token window. Each rank receives the same immutable model through the Controller-managed cache. The 100 GiB per-node peak is an estimate covering sharded weights, KV and runtime workspace, not a local measurement. Four physical Sparks and a connected fabric are required; physical execution remains unqualified here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-exl3-275bpw-drowzeys-tensorfold-four"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "glm",
+    "tensorfold",
+    "exl3",
+    "mtp",
+    "spark",
+    "text-only"
+  ],
+  "title": "GLM 5.3 full EXL3 TensorFold four Sparks (drowzeys)"
+}

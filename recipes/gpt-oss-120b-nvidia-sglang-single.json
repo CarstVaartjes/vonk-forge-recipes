@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (sglang) for gpt-oss 120b MXFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags, except --attention-backend triton: the playbook's flashinfer comes from its DeepSeek-V2-Lite example and SGLang rejects it for GptOssForCausalLM; plus --reasoning-parser gpt-oss and --tool-call-parser gpt-oss as in SGLang's GPT-OSS cookbook, because SGLang keeps gpt-oss's harmony special tokens in the output and only these parsers turn the channel markup into OpenAI content, reasoning and tool calls. The model's chat template is served from a vendored copy (--chat-template, sha256-checked at build) that differs from upstream only in rendering a tool's description comment when the tool has one, as openai/harmony does: the upstream template concatenates the optional function.description unconditionally and fails for a tool without one. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "sglang",
-      "openai",
-      "single",
-      "spark",
-      "gpt-oss",
-      "mxfp4",
-      "reasoning",
-      "tool-use"
-    ],
-    "title": "gpt-oss 120b MXFP4 SGLang single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -314,7 +296,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "43358b54fdc6ef2cb10f658a465217d30db6bcef756812bd7644838096128ba8",
+        "content_sha256": "05c6ed6c0b33257e2673d0f08c9face7db1f25e850d8c90be5de2a0be46ef735",
         "kind": "model",
         "publisher": "openai",
         "slug": "gpt-oss-120b-mxfp4-b5c939de"

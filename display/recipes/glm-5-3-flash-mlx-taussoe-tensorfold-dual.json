@@ -1,0 +1,20 @@
+{
+  "alignment": "unspecified",
+  "description": "Taussoe glm-long-context fork c32abe92 and Vontra MLX 4-bit MTP weights. Two ranks load their halves directly from the immutable full checkpoint using the engine RankReader; no persistent split copies are needed. One stream, 458,752-token window, native MTP without an external drafter, one GiB GPU conversation cache and a 64 GiB disk prompt cache. The engine automatically loads the vision tower on rank zero. The 116 GB per-node peak is a conservative estimate; physical execution is unverified.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-flash-mlx-taussoe-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "glm",
+    "tensorfold",
+    "mlx-checkpoint",
+    "mtp",
+    "spark",
+    "vision",
+    "reasoning",
+    "tool-use"
+  ],
+  "title": "GLM-5.3 Flash MLX TensorFold dual Spark (taussoe)"
+}

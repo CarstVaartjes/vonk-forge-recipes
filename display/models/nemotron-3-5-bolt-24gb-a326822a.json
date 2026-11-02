@@ -1,0 +1,16 @@
+{
+  "description": "Nemotron 3.5 Bolt 74B-A9B 24GB checkpoint.",
+  "family_title": "NVIDIA Nemotron",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-bolt-24gb-a326822a"
+  },
+  "kind": "model-display",
+  "model_title": "Nemotron 3.5 Bolt",
+  "tags": [
+    "nvidia",
+    "nemotron",
+    "language",
+    "candidate"
+  ]
+}

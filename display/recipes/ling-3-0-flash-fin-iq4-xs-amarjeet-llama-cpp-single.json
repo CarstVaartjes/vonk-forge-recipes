@@ -1,0 +1,26 @@
+{
+  "alignment": "standard",
+  "description": "Candidate one-DGX Spark Ling 3.0 Flash Fin (inclusionAI's finance-domain continued training of Ling 3.0 Flash; bailingmoe3 hybrid KDA + MLA mixture-of-experts, 124B total, 5.1B active, thinking on by default) on llama.cpp llama-server: bartowski's imatrix IQ4_XS GGUF (two shards, 64 GiB), the model's full 262,144-token context, one slot (the concurrency setting; upstream's PARALLEL, which divides the window across slots), flash attention, and the model's own MTP layer for draft-mtp speculative decoding, as in amarjeet's dgx-spark-recipes (MIT), which pins the model revision and every shard SHA-256. Upstream runs the mutable image tag ghcr.io/ggml-org/llama.cpp:server-cuda with a build-number floor of b10776; this recipe pins the arm64 image by digest (server-cuda13-v0.5.0, commit 7fe450e1, which carries bailingmoe3, draft-mtp, --load-mode and --reasoning-format). Upstream loads the weights with mmap+mlock; this recipe uses plain mmap because the platform raises the memlock limit only for multi-Spark fabric containers. Upstream's Q3_K_XL (57.5 GiB) and Q4_K_M (72.5 GiB) profiles are not packaged: a recipe carries one set of model files. Reasoning is long (upstream's finance prompt spends over 2,000 tokens thinking), so give requests generous max_tokens. Upstream figures (about 46 to 52 tok/s decode, 76 GiB resident at full context) are claims until measured here; Vonk physical Spark acceptance is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "ling-3-0-flash-fin-iq4-xs-amarjeet-llama-cpp-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "bartowski",
+    "candidate",
+    "executable",
+    "finance",
+    "gguf",
+    "iq4-xs",
+    "ling",
+    "llama-cpp",
+    "mtp",
+    "openai",
+    "reasoning",
+    "single",
+    "spark",
+    "speculative-decoding"
+  ],
+  "title": "Ling 3.0 Flash Fin IQ4_XS llama.cpp single Spark (amarjeet)"
+}

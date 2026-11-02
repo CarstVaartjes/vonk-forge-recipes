@@ -1,0 +1,19 @@
+{
+  "description": "sfxnz EXL3 2.0 bpw (codebook MCG, K=2) pack of DeepSeek V4.1 Flash, branch 2.0bpw-mcg-viterbi-lmhead-mxfp8 (357 GB on the Hub, which upstream rounds as 334 GB): routed experts re-encoded with tail-biting Viterbi plus a scale refit, lm_head in MXFP8, vision tower and native DSpark draft experts kept; the Engram tables ship in the same pack (shards 47 and 48). Weights MIT (DeepSeek).",
+  "family_title": "DeepSeek Flash",
+  "identity": {
+    "publisher": "sfxnz",
+    "slug": "deepseek-v4-1-flash-exl3-2bpw-mcg-viterbi-982b7045"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek V4.1 Flash EXL3",
+  "tags": [
+    "deepseek",
+    "deepseek-v4-1",
+    "dspark",
+    "exl3",
+    "multimodal",
+    "sfxnz",
+    "spark"
+  ]
+}

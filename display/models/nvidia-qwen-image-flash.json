@@ -1,0 +1,15 @@
+{
+  "description": "Exact public four-step Qwen Image Flash checkpoint at eafac15f for candidate single-Spark Diffusers qualification.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "nvidia-qwen-image-flash"
+  },
+  "kind": "model-display",
+  "model_title": "NVIDIA Qwen Image",
+  "tags": [
+    "nvidia",
+    "image",
+    "candidate"
+  ]
+}

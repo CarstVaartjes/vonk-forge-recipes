@@ -265,13 +265,11 @@
   "identity": {
     "family": {
       "publisher": "openmoss",
-      "slug": "mova",
-      "title": "MOVA"
+      "slug": "mova"
     },
     "model": {
       "publisher": "openmoss",
-      "slug": "mova-720p",
-      "title": "MOVA 720p"
+      "slug": "mova-720p"
     },
     "publisher": "openmoss",
     "slug": "mova-720p",
@@ -285,14 +283,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/OpenMOSS-Team/MOVA-720p/blob/8462bea9a317a3591279faeedfd3ca01b055cb59/README.md"
-  },
-  "metadata": {
-    "description": "Immutable public snapshot at 8462bea9.",
-    "tags": [
-      "openmoss",
-      "video",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

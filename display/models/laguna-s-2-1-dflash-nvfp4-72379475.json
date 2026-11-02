@@ -1,0 +1,15 @@
+{
+  "description": "DFlash speculative-decoding draft head for Laguna S 2.1.",
+  "family_title": "Laguna",
+  "identity": {
+    "publisher": "poolside",
+    "slug": "laguna-s-2-1-dflash-nvfp4-72379475"
+  },
+  "kind": "model-display",
+  "model_title": "Laguna S 2.1 DFlash",
+  "tags": [
+    "poolside",
+    "language",
+    "candidate"
+  ]
+}

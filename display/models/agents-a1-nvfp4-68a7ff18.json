@@ -1,0 +1,16 @@
+{
+  "description": "InternScience Agents-A1 (Qwen3.5 MoE agentic model).",
+  "family_title": "Agents-A1",
+  "identity": {
+    "publisher": "r0b0tlab",
+    "slug": "agents-a1-nvfp4-68a7ff18"
+  },
+  "kind": "model-display",
+  "model_title": "Agents-A1",
+  "tags": [
+    "r0b0tlab",
+    "agents-a1",
+    "language",
+    "candidate"
+  ]
+}

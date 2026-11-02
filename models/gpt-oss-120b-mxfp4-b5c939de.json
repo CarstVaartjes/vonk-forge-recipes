@@ -250,13 +250,11 @@
   "identity": {
     "family": {
       "publisher": "openai",
-      "slug": "gpt-oss",
-      "title": "OpenAI gpt-oss"
+      "slug": "gpt-oss"
     },
     "model": {
       "publisher": "openai",
-      "slug": "gpt-oss-120b",
-      "title": "gpt-oss 120b"
+      "slug": "gpt-oss-120b"
     },
     "publisher": "openai",
     "slug": "gpt-oss-120b-mxfp4-b5c939de",
@@ -270,16 +268,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "metadata": {
-    "description": "Exact public OpenAI gpt-oss-120b checkpoint (MXFP4 MoE weights) without the duplicate original/ and metal/ trees.",
-    "tags": [
-      "openai",
-      "gpt-oss",
-      "language",
-      "mxfp4",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

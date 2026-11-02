@@ -22,13 +22,11 @@
   "identity": {
     "family": {
       "publisher": "vonk-forge",
-      "slug": "synthetic",
-      "title": "Synthetic"
+      "slug": "synthetic"
     },
     "model": {
       "publisher": "vonk-forge",
-      "slug": "synthetic-tiny",
-      "title": "Synthetic Tiny"
+      "slug": "synthetic-tiny"
     },
     "publisher": "vonk-forge",
     "slug": "synthetic-tiny-lfs",
@@ -42,13 +40,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "metadata": {
-    "description": "A Git LFS model used only for contract examples.",
-    "tags": [
-      "synthetic",
-      "text"
-    ]
   },
   "modalities": [
     "text",

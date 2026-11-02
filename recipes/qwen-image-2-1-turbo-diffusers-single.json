@@ -79,20 +79,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "QwenImage21Pipeline with the checkpoint's saved eight-step schedule, CFG=1 and prefix KV caching. BF16, 1024 square text-to-image; image editing is not exposed by this recipe. Estimated peak 90 GB includes 32.5 GB checkpoint, activations, workspace and host buffers. Physical Spark acceptance pending.",
-    "tags": [
-      "candidate",
-      "executable",
-      "spark",
-      "image",
-      "generation",
-      "diffusers",
-      "qwen-image"
-    ],
-    "title": "Qwen Image 2.1 Turbo single Spark"
-  },
   "models": [
     {
       "files": [
@@ -279,7 +265,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "09db079fbcfecb92cacc36890d612e9bd023bb8a73f9a43b3b8b9a940b982cb4",
+        "content_sha256": "cd55015ea57a334d91d14364c838456dfe6e1f6dd498f05f74e7e24e3f2b03a7",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2-1-turbo-bf16-fc13ba19"

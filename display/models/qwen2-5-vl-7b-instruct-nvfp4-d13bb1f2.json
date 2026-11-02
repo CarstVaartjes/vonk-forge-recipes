@@ -1,0 +1,18 @@
+{
+  "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Qwen2.5-VL-7B-Instruct.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "qwen2-5-vl-7b-instruct-nvfp4-d13bb1f2"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen2.5-VL 7B Instruct",
+  "tags": [
+    "nvidia",
+    "qwen",
+    "language",
+    "vision",
+    "nvfp4",
+    "candidate"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "alignment": "unspecified",
+  "description": "Still-deployable historical Candidate using the exact official native LTX 1.4.1 distilled pipeline, BF16 checkpoint, spatial upscaler, and Gemma 3 companion closure; physical Spark acceptance remains pending. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this immutable execution contract remains available for reproducibility.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "ltx-2-19b-distilled-diffusers-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "build-unvalidated",
+    "historical",
+    "superseded",
+    "lightricks",
+    "ltx",
+    "video",
+    "audio",
+    "synchronized",
+    "pytorch-pipeline",
+    "single",
+    "spark"
+  ],
+  "title": "LTX-2 19B distilled native synchronized single Spark (superseded)"
+}

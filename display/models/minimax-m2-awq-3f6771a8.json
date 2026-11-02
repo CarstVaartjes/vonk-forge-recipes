@@ -1,0 +1,16 @@
+{
+  "description": "QuantTrio AWQ 4-bit quantization of MiniMax M2.",
+  "family_title": "MiniMax",
+  "identity": {
+    "publisher": "quanttrio",
+    "slug": "minimax-m2-awq-3f6771a8"
+  },
+  "kind": "model-display",
+  "model_title": "MiniMax M2 AWQ",
+  "tags": [
+    "quanttrio",
+    "minimax-quanttrio",
+    "text",
+    "candidate"
+  ]
+}

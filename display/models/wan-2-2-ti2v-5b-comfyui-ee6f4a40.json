@@ -1,0 +1,18 @@
+{
+  "description": "Exact Comfy-Org FP16 TI2V 5B model, scaled-FP8 encoder, and Wan 2.2 VAE.",
+  "family_title": "Wan",
+  "identity": {
+    "publisher": "wan-ai",
+    "slug": "wan-2-2-ti2v-5b-comfyui-ee6f4a40"
+  },
+  "kind": "model-display",
+  "model_title": "Wan 2.2 TI2V 5B",
+  "tags": [
+    "wan",
+    "video",
+    "image-to-video",
+    "comfyui",
+    "fp16",
+    "candidate"
+  ]
+}

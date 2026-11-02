@@ -1,0 +1,20 @@
+{
+  "description": "Exact Poolside Laguna XS 2.1 NVFP4 checkpoint with an FP8 KV cache for a candidate single-Spark vLLM recipe.",
+  "family_title": "Laguna",
+  "identity": {
+    "publisher": "poolside",
+    "slug": "laguna-xs-2-1-nvfp4-d32afde8"
+  },
+  "kind": "model-display",
+  "model_title": "Laguna XS 2.1",
+  "tags": [
+    "poolside",
+    "laguna",
+    "language",
+    "reasoning",
+    "agentic",
+    "nvfp4",
+    "fp8-kv-cache",
+    "spark"
+  ]
+}

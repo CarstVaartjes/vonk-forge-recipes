@@ -1,0 +1,29 @@
+{
+  "alignment": "unspecified",
+  "description": "Specialized high-context, low-concurrency single-DGX-Spark profile pairing NVIDIA's exact Nemotron 3.5 Lightning NVFP4 target with its official DSpark companion at the declared 1M-token context. Its declared memory contract is tight, so it is not the default Nemotron text profile; physical GB10 latency, acceptance-rate, memory, and output-equivalence canaries are still required. Memory follows the creator's settings: gpu-memory-utilization 0.85, as in NVIDIA's model card at bee75962 (the DGX Spark vLLM command, README lines 114 and 296). The steady per-node peak is 0.85 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-5-lightning-30b-a3b-vllm-dspark-latency-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "nvidia",
+    "nemotron",
+    "nvfp4",
+    "vllm",
+    "openai",
+    "dspark",
+    "speculative-decoding",
+    "latency",
+    "low-concurrency",
+    "high-context",
+    "memory-tight",
+    "specialized",
+    "single",
+    "spark",
+    "tool-use"
+  ],
+  "title": "Nemotron 3.5 Lightning 30B-A3B vLLM DSpark 1M latency single Spark (tight)"
+}

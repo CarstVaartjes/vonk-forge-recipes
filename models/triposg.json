@@ -4,7 +4,7 @@
   ],
   "dependencies": [
     {
-      "content_sha256": "3d16b213b06f5d6f1c42a3fdc3eb6d2b3268f8e9c700f200fe69cc0e23fd053b",
+      "content_sha256": "88bd00232eeb03eff1f99abfa61bb34d4e6f970084f8dc19970da2ab7d44aa49",
       "kind": "model",
       "publisher": "bria-ai",
       "slug": "bria-rmbg-1-4"
@@ -118,13 +118,11 @@
   "identity": {
     "family": {
       "publisher": "vast-ai",
-      "slug": "triposg",
-      "title": "TripoSG"
+      "slug": "triposg"
     },
     "model": {
       "publisher": "vast-ai",
-      "slug": "triposg",
-      "title": "TripoSG"
+      "slug": "triposg"
     },
     "publisher": "vast-ai",
     "slug": "triposg",
@@ -139,14 +137,6 @@
     "spdx": "MIT",
     "territorial_restrictions": null,
     "url": "https://github.com/VAST-AI-Research/TripoSG/blob/fc5c40990181e2a756c4e0b1c2f4d6b5202faf8c/LICENSE"
-  },
-  "metadata": {
-    "description": "Immutable public snapshot at 2c1c516d.",
-    "tags": [
-      "vast-ai",
-      "three-d",
-      "candidate"
-    ]
   },
   "modalities": [
     "3d"

@@ -1,0 +1,16 @@
+{
+  "description": "LiLiCorr speculative drafter for the Bolt 24GB checkpoint.",
+  "family_title": "NVIDIA Nemotron",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "nemotron-3-5-bolt-lilicorr-4c6a5613"
+  },
+  "kind": "model-display",
+  "model_title": "Nemotron 3.5 Bolt LiLiCorr",
+  "tags": [
+    "nvidia",
+    "nemotron",
+    "language",
+    "candidate"
+  ]
+}

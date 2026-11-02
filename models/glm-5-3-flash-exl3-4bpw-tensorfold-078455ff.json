@@ -862,13 +862,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "mia-ai-lab",
-      "slug": "glm-5-3-flash-exl3-4bpw-tensorfold",
-      "title": "GLM 5.3 Flash EXL3 4bpw TensorFold"
+      "slug": "glm-5-3-flash-exl3-4bpw-tensorfold"
     },
     "publisher": "mia-ai-lab",
     "slug": "glm-5-3-flash-exl3-4bpw-tensorfold-078455ff",
@@ -883,17 +881,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-Flash-EXL3-4bpw-TensorFold/blob/41ba3c2b82eff6ef5b93debff02f47ae4681d824/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public MiaAI-Lab GLM 5.3 Flash EXL3 4bpw checkpoint for TensorFold (EXL3 routed experts at 4 bpw, BF16 elsewhere), revision 078455ff. Pinned by MiaAI-Lab's two-Spark TensorFold kit. The pinned revision's own LICENSE and model card carry Z.AI's MIT text; MiaAI-Lab relicensed the quantization Apache-2.0 in a later metadata-only commit (41ba3c2b) and the kit's NOTICE states Apache-2.0 for it, with Z.AI's MIT kept for the base model. Information only. Drafter checkpoints are selected separately by each recipe.",
-    "tags": [
-      "mia-ai-lab",
-      "glm-5-3-mia",
-      "text",
-      "image",
-      "video",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

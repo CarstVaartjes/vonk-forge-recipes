@@ -1,0 +1,16 @@
+{
+  "description": "Exact public z-lab DFlash draft for Qwen3.6 27B.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "z-lab",
+    "slug": "qwen3-6-27b-dflash-09196886"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.6 27B DFlash draft",
+  "tags": [
+    "z-lab",
+    "qwen3-6-z-lab",
+    "language",
+    "candidate"
+  ]
+}

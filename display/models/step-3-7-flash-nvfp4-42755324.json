@@ -1,0 +1,16 @@
+{
+  "description": "Exact public stepfun-ai Step-3.7-Flash-NVFP4 checkpoint 4275532f: ModelOpt NVFP4 of the 198B MoE vision-language model (196B language backbone, 1.8B vision encoder, about 11B active), with the three BF16 MTP (next-n predict) layers shipped in model-mtp-bf16.safetensors and indexed; 13 weight shards. Base model stepfun-ai/Step-3.7-Flash.",
+  "family_title": "Step 3.7 Flash",
+  "identity": {
+    "publisher": "stepfun-ai",
+    "slug": "step-3-7-flash-nvfp4-42755324"
+  },
+  "kind": "model-display",
+  "model_title": "Step 3.7 Flash NVFP4",
+  "tags": [
+    "stepfun-ai",
+    "step-3-7-flash",
+    "multimodal",
+    "candidate"
+  ]
+}

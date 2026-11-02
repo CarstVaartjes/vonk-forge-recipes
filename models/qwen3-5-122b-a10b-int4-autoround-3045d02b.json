@@ -239,13 +239,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "intel",
-      "slug": "qwen3-5-122b-a10b-int4-autoround",
-      "title": "Qwen3.5 122B-A10B INT4 AutoRound (Intel)"
+      "slug": "qwen3-5-122b-a10b-int4-autoround"
     },
     "publisher": "intel",
     "slug": "qwen3-5-122b-a10b-int4-autoround-3045d02b",
@@ -260,15 +258,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Intel/Qwen3.5-122B-A10B-int4-AutoRound/blob/3045d02bb737effc4581da91bddbad3be02934e4/README.md"
-  },
-  "metadata": {
-    "description": "Exact Intel AutoRound INT4 (group size 128) quantization of Qwen3.5-122B-A10B; Intel states to follow the licence of the original model.",
-    "tags": [
-      "intel",
-      "qwen3-5-intel",
-      "image",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

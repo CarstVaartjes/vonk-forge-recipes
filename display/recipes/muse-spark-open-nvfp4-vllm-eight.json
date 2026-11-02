@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "Muse Spark Open 816B-A42B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately. Requires exactly 8 Sparks; not runnable on the current two-Spark fleet. Uses the dedicated Muse launch image and an accessible Unsloth NVFP4 distribution. SM121 uses Marlin rather than SM100-only fused MoE; this eight-node adaptation is unqualified. Speculative decoding is omitted until this baseline is qualified.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "muse-spark-open-nvfp4-vllm-eight"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "spark",
+    "vllm",
+    "muse-spark",
+    "reasoning",
+    "tool-use"
+  ],
+  "title": "Muse Spark Open 816B-A42B vLLM 8 Sparks"
+}

@@ -337,13 +337,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-super-120b-a12b",
-      "title": "Nemotron 3 Super 120B-A12B"
+      "slug": "nemotron-3-super-120b-a12b"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-super-120b-a12b-nvfp4",
@@ -357,15 +355,6 @@
     ],
     "spdx": "LicenseRef-NVIDIA-Nemotron-Open-Model-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/"
-  },
-  "metadata": {
-    "description": "Exact public NVFP4 ff433f54 checkpoint with NVIDIA's current DGX Spark vLLM 0.27.1 and MTPv2 deployment guidance.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

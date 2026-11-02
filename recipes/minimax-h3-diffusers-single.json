@@ -162,25 +162,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable single-Spark Candidate for text, keyframe, and ordered multimodal-reference generation with TorchAO int8 streamed offload and a verified joint 24-fps video plus 32-kHz stereo audio MP4 export. Physical Spark qualification is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "minimax",
-      "video",
-      "audio",
-      "multimodal",
-      "diffusers",
-      "modular-diffusers",
-      "torchao",
-      "int8-runtime",
-      "single",
-      "spark"
-    ],
-    "title": "MiniMax H3 Modular Diffusers single Spark"
-  },
   "models": [
     {
       "files": [
@@ -2987,7 +2968,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "37279c51b4184e54bf5d821cf4d704b4b84afb4d6dd5b0306dfdea5979319ef0",
+        "content_sha256": "5f78a3fa0c3f0e2f97f3feb9d6215c4b7324c912367945cca18117ae0319a019",
         "kind": "model",
         "publisher": "minimax",
         "slug": "minimax-h3"

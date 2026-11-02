@@ -753,13 +753,11 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek-flash"
     },
     "model": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-flash-vision-exp",
-      "title": "DeepSeek V4 Flash Vision Experimental"
+      "slug": "deepseek-v4-flash-vision-exp"
     },
     "publisher": "deepseek-ai",
     "slug": "deepseek-v4-flash-vision-exp-86f746b3",
@@ -773,20 +771,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp/blob/6821d6ad3681a4b137b066b76094fa82ebd0a380/LICENSE"
-  },
-  "metadata": {
-    "description": "Complete 84-file official DeepSeek V4 Flash Vision Experimental snapshot at 6821d6ad: native interleaved image and text understanding, 48 mixed FP4/FP8/BF16 shards, a 32-layer ViT and aligner, three DSpark prediction layers, tokenizer, prompt encoder, and minimal inference reference.",
-    "tags": [
-      "candidate",
-      "deepseek",
-      "dspark",
-      "fp4",
-      "fp8",
-      "image-text-to-text",
-      "multimodal",
-      "official",
-      "vision"
-    ]
   },
   "modalities": [
     "image",

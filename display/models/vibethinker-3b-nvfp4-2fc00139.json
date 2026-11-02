@@ -1,0 +1,16 @@
+{
+  "description": "VibeThinker 3B reasoning model.",
+  "family_title": "VibeThinker",
+  "identity": {
+    "publisher": "r0b0tlab",
+    "slug": "vibethinker-3b-nvfp4-2fc00139"
+  },
+  "kind": "model-display",
+  "model_title": "VibeThinker-3B",
+  "tags": [
+    "r0b0tlab",
+    "vibethinker",
+    "language",
+    "candidate"
+  ]
+}

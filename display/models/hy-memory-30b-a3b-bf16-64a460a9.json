@@ -1,0 +1,14 @@
+{
+  "description": "Hy-Memory-30B-A3B immutable upstream checkpoint. Physical Spark qualification pending.",
+  "family_title": "Hy Memory",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hy-memory-30b-a3b-bf16-64a460a9"
+  },
+  "kind": "model-display",
+  "model_title": "Hy-Memory-30B-A3B",
+  "tags": [
+    "candidate",
+    "hy-memory"
+  ]
+}

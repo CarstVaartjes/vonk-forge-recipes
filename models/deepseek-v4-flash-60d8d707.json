@@ -672,13 +672,11 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek-flash"
     },
     "model": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-flash",
-      "title": "DeepSeek V4 Flash"
+      "slug": "deepseek-v4-flash"
     },
     "publisher": "deepseek-ai",
     "slug": "deepseek-v4-flash-60d8d707",
@@ -692,15 +690,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash/blob/60d8d70770c6776ff598c94bb586a859a38244f1/LICENSE"
-  },
-  "metadata": {
-    "description": "DeepSeek-V4-Flash (FP8 with MLA and sparse indexer, native MTP head), the original release before 0731.",
-    "tags": [
-      "deepseek-ai",
-      "deepseek-v4-flash",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

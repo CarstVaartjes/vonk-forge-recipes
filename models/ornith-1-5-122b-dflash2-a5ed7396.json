@@ -57,13 +57,11 @@
   "identity": {
     "family": {
       "publisher": "ornith-ai",
-      "slug": "ornith",
-      "title": "Ornith"
+      "slug": "ornith"
     },
     "model": {
       "publisher": "incoai",
-      "slug": "ornith-1-5-122b-dflash2",
-      "title": "Ornith 1.5 122B DFlash2"
+      "slug": "ornith-1-5-122b-dflash2"
     },
     "publisher": "incoai",
     "slug": "ornith-1-5-122b-dflash2-a5ed7396",
@@ -77,15 +75,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/incoai/Ornith-1.5-122B-DFlash2/blob/a5ed7396f5f9e5b1abf7ff50b7899a3186961432/README.md"
-  },
-  "metadata": {
-    "description": "Exact public Ornith 1.5 122B DFlash2 draft checkpoint a5ed7396 selected by MiaAI-Lab's TensorFold kit.",
-    "tags": [
-      "incoai",
-      "dflash2",
-      "ornith",
-      "draft"
-    ]
   },
   "modalities": [
     "text"

@@ -291,13 +291,11 @@
   "identity": {
     "family": {
       "publisher": "tencent",
-      "slug": "hunyuan-video",
-      "title": "HunyuanVideo"
+      "slug": "hunyuan-video"
     },
     "model": {
       "publisher": "tencent",
-      "slug": "hunyuan-video-15",
-      "title": "HunyuanVideo 1.5"
+      "slug": "hunyuan-video-15"
     },
     "publisher": "tencent",
     "slug": "hunyuan-video-15-i2v-step-distilled",
@@ -319,14 +317,6 @@
       "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
     },
     "url": "https://huggingface.co/tencent/HunyuanVideo-1.5/blob/9b49404b3f5df2a8f0b31df27a0c7ab872e7b038/LICENSE"
-  },
-  "metadata": {
-    "description": "Complete immutable 480p I2V step-distilled Diffusers snapshot at 854c04a4.",
-    "tags": [
-      "tencent",
-      "video",
-      "candidate"
-    ]
   },
   "modalities": [
     "video"

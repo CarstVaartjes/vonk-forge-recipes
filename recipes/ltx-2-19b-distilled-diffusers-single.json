@@ -80,26 +80,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Still-deployable historical Candidate using the exact official native LTX 1.4.1 distilled pipeline, BF16 checkpoint, spatial upscaler, and Gemma 3 companion closure; physical Spark acceptance remains pending. LTX-2.5 BF16 is the current fidelity baseline and LTX-2.5 FP8-cast is the current lower-memory canary; this immutable execution contract remains available for reproducibility.",
-    "tags": [
-      "executable",
-      "candidate",
-      "build-unvalidated",
-      "historical",
-      "superseded",
-      "lightricks",
-      "ltx",
-      "video",
-      "audio",
-      "synchronized",
-      "pytorch-pipeline",
-      "single",
-      "spark"
-    ],
-    "title": "LTX-2 19B distilled native synchronized single Spark (superseded)"
-  },
   "models": [
     {
       "files": [
@@ -126,7 +106,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4b89f7f16e893ded4eccd58a7d709adb98bf5e7d9ede45a7f70768533ff4e1eb",
+        "content_sha256": "217c77391d8666a16ba6d7aedce75fe2f22b89dc0a657c2c5701b769642f9d1d",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-19b-distilled"
@@ -357,7 +337,7 @@
       ],
       "id": "dependency-ltx-2-gemma3-text-encoder-dfcc2108",
       "model": {
-        "content_sha256": "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+        "content_sha256": "7bcc3f9e353351a39e3167859c2d9d4a44d71c0a27dd11420c44b7032cdcba5a",
         "kind": "model",
         "publisher": "lightricks",
         "slug": "ltx-2-gemma3-text-encoder-dfcc2108"

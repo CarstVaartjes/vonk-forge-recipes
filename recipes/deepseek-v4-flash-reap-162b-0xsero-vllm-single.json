@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "0xSero's DeepSeek V4 Flash REAP 162B (K144, 144 experts per layer, MXFP4, about 93.7 GB) on one Spark with vLLM, from 0xSero/deepseek-spark at 97fd6f02 (runtime/ configs and launcher; the vLLM Studio controller in the same repository is not packaged). Runs on upstream's public arm64 cutlass451-g27 vLLM image (pinned by digest) with upstream's GB10 REAP patcher applied at build time instead of at each start: router fallback for non-standard expert counts, per-layer MXFP4 memory hygiene, CUDA-IPC fix. 200000-token context, FP8 KV cache (fixed KV budget), one sequence, thinking on by default, DeepSeek V4 tokenizer, tool-call and reasoning parsers, CUDA graphs (FULL_AND_PIECEWISE), prefix caching. No speculative decoding (the k144-nospec-200k profile), larger KV budget and batch. Upstream publishes 200K-context sweeps for this profile in runtime/evidence; numbers are upstream claims and not repeated here. Licences are informational: weights repository and DeepSeek V4 are MIT; the source repository carries no licence file. Physical Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.88 beside the fixed 14G FP8 KV pool, as in 0xSero's runtime/configs/k144-nospec-200k.env at 97fd6f02 (lines 6 and 9); with a fixed pool the utilization is vLLM's startup free-memory check. The declared peak, 120,370,379,081 bytes, covers the weights, the pool and 8 GB of runtime overhead (116,721,706,080 bytes) and the tight teardown upstream records near its 8 GiB watchdog floor; the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
-    "tags": [
-      "0xsero",
-      "candidate",
-      "deepseek-v4",
-      "executable",
-      "mxfp4",
-      "reap",
-      "reasoning",
-      "single",
-      "spark",
-      "tool-use",
-      "vllm"
-    ],
-    "title": "DeepSeek V4 Flash REAP 162B (K144) vLLM single Spark (0xSero)"
-  },
   "models": [
     {
       "files": [
@@ -824,7 +806,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ea845a09b7f906892c7d071dc6014ff19b3d0939db71dc05c41510ca6f51789e",
+        "content_sha256": "bd0216f332011d1547b4da91aa7d54be5769ccb9de630e148f53b67bbaff72a4",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "deepseek-v4-flash-reap-162b-k144-2b29d032"

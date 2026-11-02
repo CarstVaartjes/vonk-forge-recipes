@@ -132,13 +132,11 @@
   "identity": {
     "family": {
       "publisher": "meta",
-      "slug": "muse-glimmer",
-      "title": "Muse Glimmer"
+      "slug": "muse-glimmer"
     },
     "model": {
       "publisher": "meta",
-      "slug": "muse-glimmer-30b",
-      "title": "Muse Glimmer 30B"
+      "slug": "muse-glimmer-30b"
     },
     "publisher": "meta",
     "slug": "muse-glimmer-30b-bf16-a4e59da5",
@@ -152,15 +150,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public Muse Glimmer 30B BF16 a4e59da5 checkpoint.",
-    "tags": [
-      "meta",
-      "muse-glimmer",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

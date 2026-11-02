@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Mia-AiLab EXL3 3.5 bpw quantization of Qwen/Qwen3.8-27B (14.2 GB, workload-calibrated, text model with a built-in MTP draft head, no vision tower). Apache-2.0.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "mia-ai-lab",
+    "slug": "qwen3-8-27b-exl3-3-5bpw-19441ac8"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 27B EXL3 3.5bpw (Mia)",
+  "tags": [
+    "mia-ai-lab",
+    "qwen3-8-mia",
+    "language",
+    "candidate"
+  ]
+}

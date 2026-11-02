@@ -30,26 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding for the exact multimodal Qwen3.5-9B checkpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "executable",
-      "candidate",
-      "qwen",
-      "qwen3-5",
-      "vllm",
-      "multimodal",
-      "vision",
-      "text-qualified",
-      "vision-unproven",
-      "openai",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Qwen3.5 9B vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -216,7 +196,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8cf4e116807770179756cbd89de86c78e471ba4e8a99259b504b23a4c6a8991e",
+        "content_sha256": "d0879c6792d6c7074418e1b14bc36880acbb566980cc5ea2acdb6459f9c4eda1",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen3-5-9b-c2022362"

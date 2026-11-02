@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate one-DGX Spark DeepSeek V4.1 Flash text profile on antirez/ds4 with the Q2 GGUF streamed from local SSD (341 GiB file, including 189 GiB of disk-only Engram tables; keep it on a fast SSD). Vision and DSpark are not supported on CUDA for V4.1; one resident session; physical Spark acceptance is still required.",
-    "tags": [
-      "candidate",
-      "executable",
-      "deepseek",
-      "deepseek-v4-1",
-      "ds4",
-      "openai",
-      "chat",
-      "reasoning",
-      "ssd-streaming",
-      "single",
-      "spark"
-    ],
-    "title": "DeepSeek V4.1 Flash DS4 single Spark"
-  },
   "models": [
     {
       "files": [
@@ -64,7 +46,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "aa4c14c4f11f9b0577775137fd2ec6d58f7a8ba792bcadcc4fe11977e9b6c472",
+        "content_sha256": "a13c7d5e44bcc9784ee23cc54fc669ce496eca31291d2571096f5145ec48b9ef",
         "kind": "model",
         "publisher": "antirez",
         "slug": "deepseek-v4-1-flash-ds4-q2-dd8a266f"

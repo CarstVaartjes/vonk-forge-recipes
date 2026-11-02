@@ -64,13 +64,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "radixark",
-      "slug": "qwen3-8-27b-dspark",
-      "title": "Qwen3.8 27B DSpark companion"
+      "slug": "qwen3-8-27b-dspark"
     },
     "publisher": "radixark",
     "slug": "qwen3-8-27b-dspark-b3c99101",
@@ -85,15 +83,6 @@
     ],
     "spdx": "LicenseRef-Qwen3.8-DSpark",
     "url": "https://huggingface.co/RadixArk/Qwen3.8-27B-DSpark/blob/b3c9910194dc7ae53fea3d95a1959b654f495416/README.md"
-  },
-  "metadata": {
-    "description": "Exact public Qwen3.8 27B DSpark v2 Stage 2 checkpoint at b3c99101.",
-    "tags": [
-      "radixark",
-      "qwen3-8-radixark",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

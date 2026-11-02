@@ -168,13 +168,11 @@
   "identity": {
     "family": {
       "publisher": "meta",
-      "slug": "muse-glimmer",
-      "title": "Muse Glimmer"
+      "slug": "muse-glimmer"
     },
     "model": {
       "publisher": "r0b0tlab",
-      "slug": "muse-glimmer-30b-nvfp4",
-      "title": "Muse Glimmer 30B NVFP4"
+      "slug": "muse-glimmer-30b-nvfp4"
     },
     "publisher": "r0b0tlab",
     "slug": "muse-glimmer-30b-nvfp4-d356db1d",
@@ -189,15 +187,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/meta-models/Muse-Glimmer-30B/blob/a4e59da52a7bc87ae7251dd5545c0dd437c44b68/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public r0b0tlab NVFP4 (W4A4, block 16; NVIDIA Model Optimizer 0.45, cnn_dailymail calibration) quantization of meta-models/Muse-Glimmer-30B, qualified upstream on one DGX Spark to 131,072 tokens.",
-    "tags": [
-      "r0b0tlab",
-      "muse-glimmer-r0b0tlab",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

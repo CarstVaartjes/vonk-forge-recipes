@@ -1195,13 +1195,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "libertaidai",
-      "slug": "glm-5-3-flash-nvfp4",
-      "title": "GLM 5.3 Flash NVFP4"
+      "slug": "glm-5-3-flash-nvfp4"
     },
     "publisher": "libertaidai",
     "slug": "glm-5-3-flash-nvfp4-caca4e6a",
@@ -1216,15 +1214,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/LibertAIDAI/GLM-5.3-Flash-NVFP4/blob/caca4e6a4ebbd66f159d3d2fc256683fd6e27177/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public GLM 5.3 Flash NVFP4 caca4e6a checkpoint; its 120 weight shards and runtime configuration are byte-identical to the prior 92d8bfb9 inventory, while the upstream README is refreshed.",
-    "tags": [
-      "libertaidai",
-      "glm-5-3-libertai",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

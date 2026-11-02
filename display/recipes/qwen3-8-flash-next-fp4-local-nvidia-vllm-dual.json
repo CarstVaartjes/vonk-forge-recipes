@@ -1,0 +1,17 @@
+{
+  "alignment": "unspecified",
+  "description": "Official NVIDIA two-Spark profile: exact b9ce18a6 checkpoint and measured eugr b12x image 03a95654. TP2, 262,144-token window, 16 streams, FP8 KV, shared PLE tables, four-token MTP and RoCE all-reduce. Controller supplies placement and fabric identities. Memory is a conservative per-node estimate, not a local measurement. Publication does not establish physical Spark qualification.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-fp4-local-nvidia-vllm-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "qwen3.8",
+    "vllm",
+    "spark",
+    "tool-use",
+    "reasoning"
+  ],
+  "title": "Qwen3.8 Flash Next FP4-Local vLLM dual Spark (NVIDIA)"
+}

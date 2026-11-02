@@ -2,17 +2,17 @@
   "execution": {
     "build": {
       "base_image": {
-        "repository": "ghcr.io/miaai-lab/qwen3.8-27b-dgx-spark-tensorfold",
-        "digest": "043d192b9e1725f55c5439fc9672055de891433e5b31448ed8963918e3c460e9"
+        "digest": "043d192b9e1725f55c5439fc9672055de891433e5b31448ed8963918e3c460e9",
+        "repository": "ghcr.io/miaai-lab/qwen3.8-27b-dgx-spark-tensorfold"
       },
       "context": {
         "path": "adapters/qwen/mia-qwen3-8-27b-tensorfold-single"
       },
       "dockerfile": "adapters/qwen/mia-qwen3-8-27b-tensorfold-single/Dockerfile",
-      "patches": [],
       "network": {
         "hosts": []
-      }
+      },
+      "patches": []
     }
   },
   "identity": {
@@ -30,20 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "MiaAI-Lab TensorFold v0.6.0 with five patches for image/video input, YaRN, FP8 KV and pooled attention cache. Runs the creator-published ARM64 image tagged v0.6.0-fb91a0019fdc. Vontra MLX 4-bit target with z-lab DFlash2 drafter; eight streams and a 262,144-token window. KV caches grow on demand using upstream\u2019s supported zero-pool mode instead of pinning its 78 GiB maximum at startup. The conservative 109 GiB memory envelope is retained; actual allocation depends on active requests. Physical Spark execution and model quality are unmeasured here.",
-    "tags": [
-      "qwen3.8",
-      "tensorfold",
-      "dflash2",
-      "vision",
-      "video",
-      "fp8-kv",
-      "spark"
-    ],
-    "title": "Qwen3.8 27B TensorFold single Spark (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -210,7 +196,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a6496351590b8c663086688937f8d54ec669ece232681d9aa4a796d2fd318003",
+        "content_sha256": "df02689d8f0e0a07bdc41b266abc40476a7909109403ce6048c3aa6a59e88bc2",
         "kind": "model",
         "publisher": "vontra",
         "slug": "qwen3-8-27b-mlx-4bit-70ae7fac"
@@ -251,7 +237,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "1655bb6aa618f32e84d7136c982eb068b91acebccbb0299f0cc18f4377a720a7",
+        "content_sha256": "5479ba57e0cb31945807660fbe38cdf62c9a5c516ce4a0b593e1f907c56e08c9",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-8-27b-dflash2-50307d4c"
@@ -295,8 +281,8 @@
     "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-27B-DGX-Spark-TensorFold/tree/c11ff138871cf43d12898d79dbfa4dc952d17ca4"
   },
   "release": {
-    "version": "0.6.0",
-    "released_at": "2026-10-18"
+    "released_at": "2026-10-18",
+    "version": "0.6.0"
   },
   "runtime": {
     "arguments": [

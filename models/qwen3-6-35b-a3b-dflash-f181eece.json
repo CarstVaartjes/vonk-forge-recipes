@@ -66,13 +66,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "z-lab",
-      "slug": "qwen3-6-35b-a3b-dflash",
-      "title": "Qwen3.6 35B-A3B DFlash draft"
+      "slug": "qwen3-6-35b-a3b-dflash"
     },
     "publisher": "z-lab",
     "slug": "qwen3-6-35b-a3b-dflash-f181eece",
@@ -87,15 +85,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/z-lab/Qwen3.6-35B-A3B-DFlash/blob/f181eece646affea2c38b2765f1aaa01a9734ccd/README.md"
-  },
-  "metadata": {
-    "description": "Exact public z-lab DFlash block-diffusion draft model for Qwen3.6-35B-A3B.",
-    "tags": [
-      "z-lab",
-      "qwen3-6-z-lab",
-      "text",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

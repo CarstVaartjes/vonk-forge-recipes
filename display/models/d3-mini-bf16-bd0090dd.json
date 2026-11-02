@@ -1,0 +1,16 @@
+{
+  "description": "d3-mini typed-decision model with probability outputs and an FP32 answer-code readout.",
+  "family_title": "Decision 3.0",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "d3-mini-bf16-bd0090dd"
+  },
+  "kind": "model-display",
+  "model_title": "D3-MINI",
+  "tags": [
+    "vonk-forge",
+    "decision-3",
+    "language",
+    "candidate"
+  ]
+}

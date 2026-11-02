@@ -158,13 +158,11 @@
   "identity": {
     "family": {
       "publisher": "vonk-forge",
-      "slug": "decision-3",
-      "title": "Decision 3.0"
+      "slug": "decision-3"
     },
     "model": {
       "publisher": "vonk-forge",
-      "slug": "d3-mini",
-      "title": "D3-MINI"
+      "slug": "d3-mini"
     },
     "publisher": "vonk-forge",
     "slug": "d3-mini-bf16-bd0090dd",
@@ -178,15 +176,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/vllm-sr/d3-mini/blob/bd0090dd758d32ba59ef5c749910a8e87fc4391f/LICENSE"
-  },
-  "metadata": {
-    "description": "d3-mini typed-decision model with probability outputs and an FP32 answer-code readout.",
-    "tags": [
-      "vonk-forge",
-      "decision-3",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text",

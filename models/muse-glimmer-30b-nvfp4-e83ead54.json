@@ -122,13 +122,11 @@
   "identity": {
     "family": {
       "publisher": "meta",
-      "slug": "muse-glimmer",
-      "title": "Muse Glimmer"
+      "slug": "muse-glimmer"
     },
     "model": {
       "publisher": "redhatai",
-      "slug": "muse-glimmer-30b",
-      "title": "Muse Glimmer 30B"
+      "slug": "muse-glimmer-30b"
     },
     "publisher": "redhatai",
     "slug": "muse-glimmer-30b-nvfp4-e83ead54",
@@ -143,15 +141,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/RedHatAI/Muse-Glimmer-30B-NVFP4/blob/e83ead547c81973aaa09c0072c0dbc916e0d8190/README.md"
-  },
-  "metadata": {
-    "description": "Exact public Muse Glimmer 30B NVFP4 (W4A4) e83ead54 checkpoint by RedHatAI.",
-    "tags": [
-      "redhatai",
-      "muse-glimmer",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

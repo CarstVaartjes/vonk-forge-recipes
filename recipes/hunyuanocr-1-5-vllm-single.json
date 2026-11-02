@@ -30,29 +30,8 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "title": "HunyuanOCR 1.5 vLLM single Spark",
-    "description": "Plain autoregressive OCR serving from Tencent\u2019s single-GPU inference/vLLM/serve.sh, with the current 47644ecc target checkpoint and digest-pinned vLLM v0.32.0 ARM64 CUDA 13 image. No speculative decoder or draft weights. Context is bounded to 32768 tokens and concurrency to four. Physical Spark acceptance is pending. Per-node peak is an estimate: 0.35 times 130,663,231,488 bytes plus 8 GB runtime/host overhead. Tencent license terms, including territorial notices, remain informational in the Model. Eager execution avoids the CUDA graph-capture startup failure observed on GB10; graph replay performance is not claimed.",
-    "tags": [
-      "candidate",
-      "executable",
-      "spark",
-      "vllm",
-      "hunyuanocr",
-      "ocr",
-      "vision"
-    ]
-  },
   "models": [
     {
-      "id": "primary",
-      "model": {
-        "content_sha256": "bf43de13dd7d9d6c67efeb574e1620e869c1ea625e68f6a7ed79b4643e078fec",
-        "kind": "model",
-        "publisher": "tencent",
-        "slug": "hunyuanocr-1-5-47644ecc"
-      },
       "files": [
         {
           "file_id": "license",
@@ -164,7 +143,14 @@
             "entrypoint"
           ]
         }
-      ]
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "6ea341cd00b2e49f0c9b5bc8332b846090679c30e4d192ea21842d6a0ea901c6",
+        "kind": "model",
+        "publisher": "tencent",
+        "slug": "hunyuanocr-1-5-47644ecc"
+      }
     }
   ],
   "provenance": {
@@ -316,8 +302,8 @@
                 {
                   "content": [
                     {
-                      "type": "text",
-                      "text": "Extract the text visible in this image. Return only the text."
+                      "text": "Extract the text visible in this image. Return only the text.",
+                      "type": "text"
                     },
                     {
                       "image_url": {
@@ -330,8 +316,8 @@
                 }
               ],
               "model": "hunyuanocr-1-5-vllm-single",
-              "temperature": 0,
-              "repetition_penalty": 1.08
+              "repetition_penalty": 1.08,
+              "temperature": 0
             },
             "method": "POST",
             "path": "/v1/chat/completions",

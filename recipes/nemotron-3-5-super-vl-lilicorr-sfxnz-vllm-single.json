@@ -30,19 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "sfxnz interactive profile at 1747d213: exact target 82d93699, draft 7c7221ae and vLLM image cb9bc64f. 32 sequences, 262,144-token context, fixed 19 GiB KV pool, seven-token DFlash, four images per prompt and bounded image profiling dimensions. Preserves the creator\u2019s Mamba rounding and CUTLASS linear-kernel settings. The 110 GiB peak follows the creator\u2019s memory estimate; physical execution is unverified here. The managed profile caps GPU utilization at 0.7 to include separate-drafter overhead and the platform OS floor; this capacity adjustment has not been physically qualified.",
-    "tags": [
-      "nemotron",
-      "vllm",
-      "vision",
-      "tool-use",
-      "reasoning",
-      "spark"
-    ],
-    "title": "Nemotron 3.5 Super VL LiLiCorr vLLM single Spark (sfxnz)"
-  },
   "models": [
     {
       "files": [
@@ -1189,7 +1176,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "efefaef42471c5a94b3b721d7d2db84a1c19810ec25d4aeba6183849902b1227",
+        "content_sha256": "3a6a6fd5782ee35d182eb198bd9af3565ba12af167ec31931b83a8a7656e0fa3",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-super-vl-nvfp4-82d93699"
@@ -1250,7 +1237,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "e7868625b850e1fb847275ab388021e309942c2372b53e0db903ee2a07b5c7f5",
+        "content_sha256": "fe8f90be8bb94f90c4d3267c1d4366f4f012f0f2756e42114a081f8f3f9c8dc5",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-super-vl-lilicorr-7c7221ae"

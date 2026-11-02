@@ -66,13 +66,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "mia-ai-lab",
-      "slug": "qwen3-8-27b-dflash2-exl3-5-0bpw",
-      "title": "Qwen3.8 27B DFlash2 EXL3 5.0bpw draft (Mia)"
+      "slug": "qwen3-8-27b-dflash2-exl3-5-0bpw"
     },
     "publisher": "mia-ai-lab",
     "slug": "qwen3-8-27b-dflash2-exl3-5-0bpw-4f043626",
@@ -89,15 +87,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Mia-AiLab/Qwen3.8-27B-DFlash2-EXL3-5.0bpw/blob/4f0436269bca761b071f05319e8e04a87cc633f9/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public Mia-AiLab EXL3 5.0 bpw quantization of the inco.ai Qwen3.8-27B DFlash2 block-diffusion draft (1.4 GB). Not a standalone language model: it drafts tokens for Qwen3.8-27B and needs the MiaAI-Lab exllamav3 fork. Apache-2.0.",
-    "tags": [
-      "mia-ai-lab",
-      "qwen3-8-mia",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

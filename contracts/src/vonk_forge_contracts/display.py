@@ -4,9 +4,9 @@ A display carries what a person reads in a catalog (titles, description, tags,
 alignment). It never carries execution data, and a display has no digest of its
 own: the signed index that transports it is verified at ingress.
 
-On contracts 2.x the display is derived from the document's own ``metadata`` and
-titles by ``recipe_display_of`` / ``model_display_of``. Readers use those
-accessors, never the document fields.
+Display lives in ``display/recipes/<slug>.json`` and ``display/models/<slug>.json``,
+never in the Recipe or Model document, so the document digest covers execution
+data only and a display edit never changes it.
 
 Strict ``model_validate`` is for this repository's files and output;
 ``read_recipe_display`` / ``read_model_display`` ignore unknown fields and are
@@ -17,12 +17,12 @@ identity rule: a display describes exactly the document it travels with.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-from .model import Description, ModelDefinition, ModelIdentity, Slug, Tags, Title
-from .recipe import Alignment, RecipeDefinition, RecipeIdentity, RecipeTags
+from .model import Description, ModelIdentity, Slug, Tags, Title
+from .recipe import Alignment, RecipeIdentity, RecipeTags
 
 
 class _DisplayContract(BaseModel):
@@ -81,37 +81,3 @@ def published_json(document: BaseModel) -> dict[str, object]:
     """The one write form of a published contract object."""
 
     return document.model_dump(mode="json", exclude_unset=True)
-
-
-def recipe_display_of(recipe: RecipeDefinition) -> RecipeDisplay:
-    """The display of a 2.x Recipe, built from its ``metadata``."""
-
-    metadata = recipe.metadata
-    optional: dict[str, Any] = {}
-    if "alignment" in metadata.model_fields_set:
-        optional["alignment"] = metadata.alignment
-    return RecipeDisplay(
-        kind="recipe-display",
-        identity=RecipeIdentity(
-            publisher=recipe.identity.publisher, slug=recipe.identity.slug
-        ),
-        title=metadata.title,
-        description=metadata.description,
-        tags=list(metadata.tags),
-        **optional,
-    )
-
-
-def model_display_of(model: ModelDefinition) -> ModelDisplay:
-    """The display of a 2.x Model, built from its ``metadata`` and titles."""
-
-    return ModelDisplay(
-        kind="model-display",
-        identity=ModelDisplayIdentity(
-            publisher=model.identity.publisher, slug=model.identity.slug
-        ),
-        family_title=model.identity.family.title,
-        model_title=model.identity.model.title,
-        description=model.metadata.description,
-        tags=list(model.metadata.tags),
-    )

@@ -1,0 +1,19 @@
+{
+  "description": "Exact Comfy-Org monolithic BF16 Qwen Image Edit 2511 transformer for core ComfyUI, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-comfyui-f68ace85"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen Image Edit",
+  "tags": [
+    "qwen",
+    "image",
+    "editing",
+    "comfyui",
+    "bf16",
+    "candidate",
+    "spark"
+  ]
+}

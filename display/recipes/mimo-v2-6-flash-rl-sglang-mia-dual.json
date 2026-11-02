@@ -1,0 +1,24 @@
+{
+  "alignment": "standard",
+  "description": "MiMo-V2.6-Flash-RL on two DGX Sparks using MiaAI-Lab's current SGLang kit and creator-selected CUDA 13 nightly. Restored after correcting the build verifier for SGLang's msgspec ServerArgs contract. The kit-declared 3b38d063 checkpoint, packed MXFP4 experts, EAGLE/DFLASH/off choices and multimodal path are retained. New-document memory planning bounds the shared target pool to 65,536 tokens, two 32K requests, static allocation 0.80 and a 112.54 GB per-node peak including estimated runtime overhead. Physical Spark acceptance is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mimo-v2-6-flash-rl-sglang-mia-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "audio",
+    "dflash",
+    "eagle",
+    "mimo-v2.6",
+    "multimodal",
+    "mxfp4",
+    "reasoning",
+    "sglang",
+    "spark",
+    "speculative-decoding",
+    "tool-use",
+    "video"
+  ],
+  "title": "MiMo V2.6 Flash RL SGLang two Sparks (Mia)"
+}

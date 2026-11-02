@@ -1,0 +1,17 @@
+{
+  "alignment": "unspecified",
+  "description": "Pinned Wasserman Studio FastH3 workflow: 864x480, 124 frames at 24 fps, eight Euler steps, CFG 1 and 80% sparse TensorFold int8 transformer blocks. ComfyUI owns text encoding, sampling, projections and video/audio decoding. Generates one H.264 MP4 with sound from a prompt. Read-only checkpoint mounts feed a revision-bound writable model view; native int8 cache files are reused and incomplete writes are regenerated. 104 GB peak is an unqualified planning estimate. Physical Spark, video and audio-quality acceptance remain pending. MiniMax H3 Community License terms and territory information are recorded in the model.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "fasth3-8step-v2-drowzeys-tensorfold-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "video",
+    "audio",
+    "tensorfold",
+    "comfyui",
+    "spark"
+  ],
+  "title": "FastH3 8-Step V2 TensorFold video and audio single Spark"
+}

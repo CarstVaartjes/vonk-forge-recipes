@@ -4,13 +4,13 @@
   ],
   "dependencies": [
     {
-      "content_sha256": "330050cf2c6c454847e4a4719ff04d83c331e22d5ee1a7ac95978714a0951e1d",
+      "content_sha256": "0435a1b907313b4e9e8966c13b4dd987dd80076f92e21eb9f61549faf76754fb",
       "kind": "model",
       "publisher": "stabilityai",
       "slug": "stable-diffusion-xl-base-1-0"
     },
     {
-      "content_sha256": "8461ba39b80cb27b8bf7b6409d020b5124b89b0c9c21a05d6519ca7147788eb9",
+      "content_sha256": "92386af9dcb24a758cbceebd219ec9176968d6dec3e0e9990b28e9cfc1da8721",
       "kind": "model",
       "publisher": "madebyollin",
       "slug": "sdxl-vae-fp16-fix"
@@ -34,13 +34,11 @@
   "identity": {
     "family": {
       "publisher": "stepfun-ai",
-      "slug": "step1x-3d",
-      "title": "Step1X-3D"
+      "slug": "step1x-3d"
     },
     "model": {
       "publisher": "stepfun-ai",
-      "slug": "step1x-3d",
-      "title": "Step1X-3D"
+      "slug": "step1x-3d"
     },
     "publisher": "stepfun-ai",
     "slug": "step1x-3d-texture",
@@ -54,14 +52,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://github.com/stepfun-ai/Step1X-3D/blob/cb5ac944709c6c913109070c7b90c3447f57f3d4/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact immutable texture adapter subtree at bf708449; SDXL and its replacement VAE are separately selected as explicit offline dependencies.",
-    "tags": [
-      "stepfun-ai",
-      "three-d",
-      "candidate"
-    ]
   },
   "modalities": [
     "3d"

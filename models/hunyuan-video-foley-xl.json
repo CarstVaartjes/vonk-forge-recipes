@@ -5,13 +5,13 @@
   ],
   "dependencies": [
     {
-      "content_sha256": "b9369da043d15102a1d0846ead9d50e40e9e281032deb791a27561781bb62185",
+      "content_sha256": "a2735690a7471a2c063708d4944afd4c91f22cddac4d38cbfc4cdea813288606",
       "kind": "model",
       "publisher": "google",
       "slug": "siglip2-base-patch16-512-a89f5c50"
     },
     {
-      "content_sha256": "93ad9df26ac5d64c323fc4f34eb557ecbfd100ccb65e067601e7499543f428d2",
+      "content_sha256": "c1f7a6b1591790031d1bb5c6bc1ad302194c37e507a415ca2b31b7cf4109ff8b",
       "kind": "model",
       "publisher": "laion",
       "slug": "larger-clap-general-ada0c23a"
@@ -89,13 +89,11 @@
   "identity": {
     "family": {
       "publisher": "tencent",
-      "slug": "hunyuan-video-foley",
-      "title": "HunyuanVideo Foley"
+      "slug": "hunyuan-video-foley"
     },
     "model": {
       "publisher": "tencent",
-      "slug": "hunyuan-video-foley",
-      "title": "HunyuanVideo Foley"
+      "slug": "hunyuan-video-foley"
     },
     "publisher": "tencent",
     "slug": "hunyuan-video-foley-xl",
@@ -117,14 +115,6 @@
       "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
     },
     "url": "https://huggingface.co/tencent/HunyuanVideo-Foley/blob/3abd4e833b95b8db0fc9c687afc52483a48e9a97/LICENSE"
-  },
-  "metadata": {
-    "description": "Immutable public snapshot at 3abd4e83.",
-    "tags": [
-      "tencent",
-      "audio",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

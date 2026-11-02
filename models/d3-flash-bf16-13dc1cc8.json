@@ -176,13 +176,11 @@
   "identity": {
     "family": {
       "publisher": "vonk-forge",
-      "slug": "decision-3",
-      "title": "Decision 3.0"
+      "slug": "decision-3"
     },
     "model": {
       "publisher": "vonk-forge",
-      "slug": "d3-flash",
-      "title": "D3-FLASH"
+      "slug": "d3-flash"
     },
     "publisher": "vonk-forge",
     "slug": "d3-flash-bf16-13dc1cc8",
@@ -196,15 +194,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/vllm-sr/d3-flash/blob/13dc1cc8ef23caefa765907e1d764751e5629f7d/LICENSE"
-  },
-  "metadata": {
-    "description": "d3-flash typed-decision model with probability outputs and an FP32 answer-code readout.",
-    "tags": [
-      "vonk-forge",
-      "decision-3",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text",

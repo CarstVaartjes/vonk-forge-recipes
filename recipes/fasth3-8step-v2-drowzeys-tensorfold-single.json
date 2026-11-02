@@ -1,85 +1,14 @@
 {
-  "kind": "recipe",
-  "identity": {
-    "publisher": "vonk-forge",
-    "slug": "fasth3-8step-v2-drowzeys-tensorfold-single"
-  },
-  "metadata": {
-    "title": "FastH3 8-Step V2 TensorFold video and audio single Spark",
-    "description": "Pinned Wasserman Studio FastH3 workflow: 864x480, 124 frames at 24 fps, eight Euler steps, CFG 1 and 80% sparse TensorFold int8 transformer blocks. ComfyUI owns text encoding, sampling, projections and video/audio decoding. Generates one H.264 MP4 with sound from a prompt. Read-only checkpoint mounts feed a revision-bound writable model view; native int8 cache files are reused and incomplete writes are regenerated. 104 GB peak is an unqualified planning estimate. Physical Spark, video and audio-quality acceptance remain pending. MiniMax H3 Community License terms and territory information are recorded in the model.",
-    "tags": [
-      "video",
-      "audio",
-      "tensorfold",
-      "comfyui",
-      "spark"
-    ],
-    "alignment": "unspecified"
-  },
-  "models": [
-    {
-      "id": "primary",
-      "model": {
-        "kind": "model",
-        "publisher": "fastvideo",
-        "slug": "fasth3-8step-v2-comfy-ec1e3aa3",
-        "content_sha256": "09eb1b5a43b384ec06fc6038bcea8c460456058882ecf825c6b3095f5a002133"
-      },
-      "files": [
-        {
-          "id": "primary-target",
-          "file_id": "target",
-          "roles": [
-            "entrypoint"
-          ],
-          "mount": {
-            "target": "/models/target"
-          }
-        },
-        {
-          "id": "primary-text-encoder",
-          "file_id": "text-encoder",
-          "roles": [
-            "entrypoint"
-          ],
-          "mount": {
-            "target": "/models/text-encoder"
-          }
-        },
-        {
-          "id": "primary-video-vae",
-          "file_id": "video-vae",
-          "roles": [
-            "entrypoint"
-          ],
-          "mount": {
-            "target": "/models/video-vae"
-          }
-        },
-        {
-          "id": "primary-audio-vae",
-          "file_id": "audio-vae",
-          "roles": [
-            "entrypoint"
-          ],
-          "mount": {
-            "target": "/models/audio-vae"
-          }
-        }
-      ]
-    }
-  ],
   "execution": {
     "build": {
       "base_image": {
-        "repository": "nvcr.io/nvidia/pytorch",
-        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3"
+        "digest": "7531d90bcbe0e43e1f7363029c7e145ce90eebeb494a7b4695fdba0329d7c3c3",
+        "repository": "nvcr.io/nvidia/pytorch"
       },
       "context": {
         "path": "adapters/video/drowzeys-fasth3-tensorfold"
       },
       "dockerfile": "adapters/video/drowzeys-fasth3-tensorfold/Dockerfile",
-      "patches": [],
       "network": {
         "hosts": [
           "codeload.github.com",
@@ -93,14 +22,133 @@
           "security.ubuntu.com",
           "ports.ubuntu.com"
         ]
-      }
+      },
+      "patches": []
     }
   },
-  "runtime": {
-    "engine": "comfyui",
-    "entrypoint": [
-      "/opt/vonk/bin/comfyui-job"
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "fasth3-8step-v2-drowzeys-tensorfold-single"
+  },
+  "interfaces": [
+    {
+      "adapter": "video-job",
+      "input": {
+        "max_bytes": 16384,
+        "media_types": [
+          "text/plain"
+        ],
+        "required": true,
+        "slots": [
+          {
+            "description": "Text prompt describing the video to generate.",
+            "extensions": [
+              ".txt"
+            ],
+            "id": "prompt",
+            "label": "Prompt",
+            "max_file_bytes": 16384,
+            "max_files": 1,
+            "max_total_bytes": 16384,
+            "media_types": [
+              "text/plain"
+            ],
+            "min_files": 1
+          }
+        ]
+      },
+      "output": {
+        "max_total_bytes": 536870912,
+        "slots": [
+          {
+            "description": "Generated 864x480 H.264 MP4 video with sound, 124 frames at 24 fps.",
+            "extensions": [
+              ".mp4"
+            ],
+            "id": "video",
+            "label": "Generated video",
+            "max_file_bytes": 536870912,
+            "max_files": 1,
+            "max_total_bytes": 536870912,
+            "media_types": [
+              "video/mp4"
+            ],
+            "min_files": 1
+          }
+        ]
+      }
+    }
+  ],
+  "kind": "recipe",
+  "models": [
+    {
+      "files": [
+        {
+          "file_id": "target",
+          "id": "primary-target",
+          "mount": {
+            "target": "/models/target"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "text-encoder",
+          "id": "primary-text-encoder",
+          "mount": {
+            "target": "/models/text-encoder"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "video-vae",
+          "id": "primary-video-vae",
+          "mount": {
+            "target": "/models/video-vae"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        },
+        {
+          "file_id": "audio-vae",
+          "id": "primary-audio-vae",
+          "mount": {
+            "target": "/models/audio-vae"
+          },
+          "roles": [
+            "entrypoint"
+          ]
+        }
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "adfc705729d0800b58c03a89e6eb3331ed5657ecf8eb06cdf295d5fff7d6fb17",
+        "kind": "model",
+        "publisher": "fastvideo",
+        "slug": "fasth3-8step-v2-comfy-ec1e3aa3"
+      }
+    }
+  ],
+  "options": [],
+  "provenance": {
+    "attribution": [
+      "FastVideo",
+      "MiniMax",
+      "ComfyUI",
+      "drowzeys",
+      "TensorFold contributors"
     ],
+    "source_reference": "https://github.com/drowzeys/keys-Wasserman-Slate-AI-Studio-powered-by-TensorFold-built-with-integrated-Fish-Audio-Drama3/tree/1e8677e7c9151836de375e3cc6306ed6e4170c65"
+  },
+  "release": {
+    "released_at": "2026-10-17",
+    "version": "2.9.1"
+  },
+  "runtime": {
     "arguments": [
       {
         "name": "workflow",
@@ -124,6 +172,10 @@
         "value": null
       }
     ],
+    "engine": "comfyui",
+    "entrypoint": [
+      "/opt/vonk/bin/comfyui-job"
+    ],
     "environment": [
       {
         "name": "HF_HUB_OFFLINE",
@@ -134,132 +186,68 @@
       "stop_timeout_seconds": 120
     }
   },
+  "settings": {
+    "kind": "job",
+    "knobs": {
+      "num-frames": {
+        "change_effect": "none",
+        "value": 124
+      }
+    }
+  },
   "topology": {
     "name": "solo",
     "node_count": 1,
+    "parallelism": {
+      "backend": "local",
+      "data": 1,
+      "pipeline": 1,
+      "tensor": 1
+    },
     "roles": [
       {
-        "name": "entrypoint",
         "count": 1,
         "endpoint_owner": true,
+        "name": "entrypoint",
         "resources": {
+          "disk": {
+            "artifact_bytes": 74636908968,
+            "image_bytes": 35000000000,
+            "safety_margin_bytes": 12000000000,
+            "working_bytes": 60000000000
+          },
           "memory": {
             "peak_bytes": 104000000000,
             "reserve_bytes": 8000000000
-          },
-          "disk": {
-            "image_bytes": 35000000000,
-            "artifact_bytes": 74636908968,
-            "working_bytes": 60000000000,
-            "safety_margin_bytes": 12000000000
           }
         }
       }
     ],
-    "parallelism": {
-      "tensor": 1,
-      "pipeline": 1,
-      "data": 1,
-      "backend": "local"
-    },
     "start_order": [
       "entrypoint"
     ]
   },
-  "interfaces": [
-    {
-      "adapter": "video-job",
-      "input": {
-        "required": true,
-        "media_types": [
-          "text/plain"
-        ],
-        "max_bytes": 16384,
-        "slots": [
-          {
-            "id": "prompt",
-            "label": "Prompt",
-            "description": "Text prompt describing the video to generate.",
-            "media_types": [
-              "text/plain"
-            ],
-            "extensions": [
-              ".txt"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 16384,
-            "max_total_bytes": 16384
-          }
-        ]
-      },
-      "output": {
-        "max_total_bytes": 536870912,
-        "slots": [
-          {
-            "id": "video",
-            "label": "Generated video",
-            "description": "Generated 864x480 H.264 MP4 video with sound, 124 frames at 24 fps.",
-            "media_types": [
-              "video/mp4"
-            ],
-            "extensions": [
-              ".mp4"
-            ],
-            "min_files": 1,
-            "max_files": 1,
-            "max_file_bytes": 536870912,
-            "max_total_bytes": 536870912
-          }
-        ]
-      }
-    }
-  ],
   "validation": {
     "serving": {
-      "interface": "video-job",
       "checks": [
         {
-          "name": "job-output",
+          "assertions": [
+            "inference.completed",
+            "artifact.output"
+          ],
           "kind": "video-job.output",
+          "name": "job-output",
           "request": {
-            "transport": "job",
             "fixture": "qualification/fixtures/prompt.txt",
             "input_slots": {
               "prompt": "qualification/fixtures/prompt.txt"
             },
-            "output_slot": "video"
-          },
-          "assertions": [
-            "inference.completed",
-            "artifact.output"
-          ]
+            "output_slot": "video",
+            "transport": "job"
+          }
         }
-      ]
+      ],
+      "interface": "video-job"
     }
-  },
-  "provenance": {
-    "source_reference": "https://github.com/drowzeys/keys-Wasserman-Slate-AI-Studio-powered-by-TensorFold-built-with-integrated-Fish-Audio-Drama3/tree/1e8677e7c9151836de375e3cc6306ed6e4170c65",
-    "attribution": [
-      "FastVideo",
-      "MiniMax",
-      "ComfyUI",
-      "drowzeys",
-      "TensorFold contributors"
-    ]
-  },
-  "settings": {
-    "knobs": {
-      "num-frames": {
-        "value": 124,
-        "change_effect": "none"
-      }
-    },
-    "kind": "job"
-  },
-  "release": {
-    "version": "2.9.1",
-    "released_at": "2026-10-17"
-  },
-  "options": []
+  }
 }

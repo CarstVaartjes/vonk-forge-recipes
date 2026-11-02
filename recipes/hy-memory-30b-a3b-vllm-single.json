@@ -30,18 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Hy-Memory-30B-A3B with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately.",
-    "tags": [
-      "candidate",
-      "executable",
-      "spark",
-      "vllm",
-      "hy-memory"
-    ],
-    "title": "Hy-Memory-30B-A3B vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -668,7 +656,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e640c7c20a2e7fe9ce56946a8dbd2814dd43d0d9949a1751dcb6e4e3ba8d5bc1",
+        "content_sha256": "af4071ecd8c30816dee24b30ee8c7bbc1875c4c8958a0011da0ee3f0df000c31",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hy-memory-30b-a3b-bf16-64a460a9"

@@ -21,13 +21,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen-image",
-      "title": "Qwen Image"
+      "slug": "qwen-image"
     },
     "model": {
       "publisher": "qwen",
-      "slug": "qwen-image-edit-2511-lightning",
-      "title": "Qwen Image Edit 2511"
+      "slug": "qwen-image-edit-2511-lightning"
     },
     "publisher": "qwen",
     "slug": "qwen-image-edit-2511-lightning",
@@ -43,19 +41,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://github.com/ModelTC/Qwen-Image-Lightning/blob/25d1e9935ba97e1f60503f8c000201e08b1fe8f4/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact ModelTC/lightx2v four-step BF16 distilled LoRA for the official Qwen Image Edit 2511 base checkpoint.",
-    "tags": [
-      "qwen",
-      "image",
-      "editing",
-      "image-to-image",
-      "lightning",
-      "lora",
-      "bf16",
-      "candidate"
-    ]
   },
   "modalities": [
     "image"

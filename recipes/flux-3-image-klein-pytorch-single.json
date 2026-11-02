@@ -73,20 +73,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Native FLUX 3 distilled BF16 reference pipeline, 16 steps, with its required local prompt upsampler. Uses the official gated checkpoint (requires a granted Hugging Face account and Controller token) and the upstream-tested vLLM 0.21 dependency family. Text-to-image at 1024 square; image editing is not exposed by this recipe. Estimated peak 100 GB includes the upsampler's 35% memory pool, DiT, text encoder, VAE and workspace. Physical Spark acceptance pending.",
-    "tags": [
-      "candidate",
-      "executable",
-      "spark",
-      "image",
-      "generation",
-      "pytorch-pipeline",
-      "flux-3"
-    ],
-    "title": "FLUX 3 Image Klein single Spark"
-  },
   "models": [
     {
       "files": [
@@ -303,7 +289,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ff402e9c8fafdd4f14a151880d41e39691be58e133e911820b617601e10ffbf0",
+        "content_sha256": "9b0c1c8cc6774b567109c0f0e3646aae67a9c1bef0fb7e9e82ed9005a6caa4c4",
         "kind": "model",
         "publisher": "black-forest-labs",
         "slug": "flux-3-image-klein-bf16-33733762"
@@ -434,7 +420,7 @@
       ],
       "id": "upsampler",
       "model": {
-        "content_sha256": "684cacf6ae1daea83b0d0c3caf7da6a528542c71d4f9d2134fedd6f563f44148",
+        "content_sha256": "f51b5572e467f888bc2c81dc52fc88d7f059d56ea2c030fc3af8e7045396a6e9",
         "kind": "model",
         "publisher": "black-forest-labs",
         "slug": "flux-3-image-klein-pup-bf16-3f3edb52"
@@ -505,7 +491,7 @@
       ],
       "id": "classifier",
       "model": {
-        "content_sha256": "222152847be50e1eb25e422e6d0c78c0704d2f376ea468cdb4914e2f08966801",
+        "content_sha256": "998c24794e185c2bb9865f4187b69b92659c1f5fd6bc78ebcbf531332f42ffa7",
         "kind": "model",
         "publisher": "falconsai",
         "slug": "flux-3-safety-classifier-96cb0d03"

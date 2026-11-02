@@ -1,0 +1,16 @@
+{
+  "description": "AutoRound INT4 checkpoint with healed shared expert and top-5 routing.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "azampatti",
+    "slug": "qwen3-8-flash-next-int4-autoround-14642741"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 Flash Next",
+  "tags": [
+    "azampatti",
+    "qwen",
+    "language",
+    "candidate"
+  ]
+}

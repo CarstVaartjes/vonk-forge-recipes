@@ -1,0 +1,18 @@
+{
+  "description": "IncoAI's DFlash2 block-diffusion speculative-decoding draft for Qwen3.8 27B (BF16). Apache-2.0 per the model card.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "incoai",
+    "slug": "qwen3-8-27b-dflash2-incoai-015e7956"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 27B DFlash2 draft (IncoAI)",
+  "tags": [
+    "candidate",
+    "dflash2",
+    "incoai",
+    "language",
+    "qwen3-8-dflash2-incoai",
+    "speculator"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "description": "FastVideo FastH3 8-Step V2 Comfy checkpoint and its exact H3 text encoder, video VAE and audio VAE. TensorFold converts the transformer blocks to int8 at load. The underlying MiniMax H3 Community License applies.",
+  "family_title": "MiniMax H3",
+  "identity": {
+    "publisher": "fastvideo",
+    "slug": "fasth3-8step-v2-comfy-ec1e3aa3"
+  },
+  "kind": "model-display",
+  "model_title": "MiniMax",
+  "tags": [
+    "fasth3",
+    "video",
+    "audio",
+    "tensorfold"
+  ]
+}

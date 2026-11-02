@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's model card for Nemotron 3 Nano 30B-A3B NVFP4: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags, except that the card's reasoning parser nano_v3 is passed under its current SGLang name nemotron_3 (renamed upstream in sgl-project/sglang#19865; the pinned image no longer accepts nano_v3). Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "sglang",
-      "openai",
-      "single",
-      "spark",
-      "nemotron",
-      "nvfp4",
-      "reasoning",
-      "tool-use"
-    ],
-    "title": "Nemotron 3 Nano 30B-A3B NVFP4 SGLang single Spark (NVIDIA model card)"
-  },
   "models": [
     {
       "files": [
@@ -234,7 +216,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "78c8b06c2b95d40529a9836439480ee7b8d1dfa143491d9790ae9170c5c0fefa",
+        "content_sha256": "c5cd10cd0130d73ec7b074cbf0d0da87e8917314472f37b7e4e7ccd5d6655afc",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-nano-30b-a3b-nvfp4"

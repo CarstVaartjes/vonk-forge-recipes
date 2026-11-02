@@ -1724,13 +1724,11 @@
   "identity": {
     "family": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-flash",
-      "title": "DeepSeek Flash"
+      "slug": "deepseek-flash"
     },
     "model": {
       "publisher": "deepseek-ai",
-      "slug": "deepseek-v4-flash-0731",
-      "title": "DeepSeek V4 Flash 0731"
+      "slug": "deepseek-v4-flash-0731"
     },
     "publisher": "0xsero",
     "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216-22f28d32",
@@ -1747,20 +1745,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/0xSero/deepseek-v4-flash-0731-spark/blob/ce5ff0f1efb2e184aafc759d281bfae47d3a359c/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public 0xSero rank-sliced EXL3/Trellis checkpoint for one DGX Spark. REAP retains 216 of 256 routed experts; all 190 files are bound to the immutable source revision with exact sizes and SHA-256 checksums.",
-    "tags": [
-      "candidate",
-      "deepseek",
-      "deepseek-v4",
-      "exl3",
-      "language",
-      "reap",
-      "single",
-      "spark",
-      "trellis"
-    ]
   },
   "modalities": [
     "text"

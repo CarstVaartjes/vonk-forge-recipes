@@ -1347,13 +1347,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "jarrelscy",
-      "slug": "glm-5-2-aqlm-hybrid",
-      "title": "GLM 5.2 NVFP4 AQLM Hybrid"
+      "slug": "glm-5-2-aqlm-hybrid"
     },
     "publisher": "jarrelscy",
     "slug": "glm-5-2-nvfp4-aqlm-hybrid-53e0082e",
@@ -1368,15 +1366,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/blob/c5d93567f1ff2de4dbba6018b58a653654c1309a/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public GLM 5.2 NVFP4 AQLM Hybrid c5d93567 checkpoint with the complete 751-file pinned Hugging Face snapshot, including non-runtime Terminal-Bench trace evidence.",
-    "tags": [
-      "jarrelscy",
-      "glm-5-2",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

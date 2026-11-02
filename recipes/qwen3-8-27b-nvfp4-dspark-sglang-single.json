@@ -30,30 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate adaptation of MiaAI-Lab's one-DGX-Spark Qwen3.8 27B profile, pairing the multimodal NVFP4 target with RadixArk's immutable DSpark v2 drafter for an offline OpenAI-compatible endpoint. Current qualification proves bounded text chat only; vision serving remains unproven on Spark.",
-    "tags": [
-      "executable",
-      "candidate",
-      "qwen",
-      "qwen3-8",
-      "27b",
-      "nvfp4",
-      "dspark",
-      "sglang",
-      "multimodal",
-      "vision",
-      "reasoning",
-      "tool-use",
-      "text-qualified",
-      "vision-unproven",
-      "single",
-      "spark",
-      "speculative-decoding"
-    ],
-    "title": "Qwen3.8 27B NVFP4 SGLang DSpark single Spark"
-  },
   "models": [
     {
       "files": [
@@ -280,7 +256,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0850ffb41a5ea983e889fe3b8d3d099d7b219a0695913c3f81adb7567b1a0e2f",
+        "content_sha256": "3de1054778ba55ab6424031ddaa8842fa3ed6d30fd8961f4c726f5f2330f0808",
         "kind": "model",
         "publisher": "radixark",
         "slug": "qwen3-8-27b-nvfp4-009632fe"
@@ -351,7 +327,7 @@
       ],
       "id": "dependency-qwen3-8-27b-dspark-b3c99101",
       "model": {
-        "content_sha256": "7cab383cc304e45e510d5e9611037729ba902a57c48f5fe293efbe0ee261b4ad",
+        "content_sha256": "6a22ff906daeb3f1e00fc18f233d8dfed65d88a684588608dd6e3c61c5887ad4",
         "kind": "model",
         "publisher": "radixark",
         "slug": "qwen3-8-27b-dspark-b3c99101"

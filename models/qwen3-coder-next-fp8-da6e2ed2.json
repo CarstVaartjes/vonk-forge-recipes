@@ -481,13 +481,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "qwen",
-      "slug": "qwen3-coder-next-fp8",
-      "title": "Qwen3-Coder-Next FP8"
+      "slug": "qwen3-coder-next-fp8"
     },
     "publisher": "qwen",
     "slug": "qwen3-coder-next-fp8-da6e2ed2",
@@ -501,15 +499,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen3-Coder-Next-FP8/blob/da6e2ed27304dd39abadd9c82ef50e8de67bdd4c/README.md"
-  },
-  "metadata": {
-    "description": "Exact official Qwen block-wise FP8 checkpoint of Qwen3-Coder-Next, an 80B-total mixture-of-experts coding model.",
-    "tags": [
-      "qwen",
-      "qwen3-coder-next-qwen",
-      "text",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

@@ -203,13 +203,11 @@
   "identity": {
     "family": {
       "publisher": "thinkingmachines",
-      "slug": "inkling",
-      "title": "Inkling"
+      "slug": "inkling"
     },
     "model": {
       "publisher": "thinkingmachines",
-      "slug": "inkling-small",
-      "title": "Inkling Small"
+      "slug": "inkling-small"
     },
     "publisher": "thinkingmachines",
     "slug": "inkling-small-nvfp4",
@@ -223,20 +221,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/thinkingmachines/Inkling-Small-NVFP4/blob/b6a99534467840620d411e4cd4ad5819b2610d9c/README.md"
-  },
-  "metadata": {
-    "description": "Exact public NVFP4 checkpoint, including its built-in eight-head MTP weights and text, image, and 16 kHz audio processor contract.",
-    "tags": [
-      "thinkingmachines",
-      "inkling",
-      "multimodal",
-      "text",
-      "vision",
-      "audio",
-      "reasoning",
-      "tool-use",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

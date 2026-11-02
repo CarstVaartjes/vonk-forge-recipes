@@ -30,26 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "standard",
-    "description": "Executable Candidate single-Spark recipe for NVIDIA's Nemotron-Labs-3 Puzzle 75B-A9B NVFP4 checkpoint (modelopt mixed precision, MTP head), following MiaAI-Lab's Nemotron-Labs-3-Puzzle-75B-DGX-Spark launcher: stock vLLM v0.24.0 arm64 image pinned by digest with upstream's aarch64 NCCL and FlashInfer patches applied at build time, expert parallel, flashinfer Mamba backend and FLASHINFER_CUTLASS MoE, FP8 KV cache, MTP k=3, qwen3_coder tool parser, nemotron_v3 reasoning parser, prefix caching, eager mode, 256K context and 7 sequences. Upstream warns the first start can take several minutes while FlashInfer kernels compile. Code: no licence file upstream; model: NVIDIA OpenMDW-1.1, not gated. Vonk physical Spark acceptance is pending; upstream publishes no throughput figures. Not expressed: upstream's SPEC-empty switch (MTP off) cannot be offered because a choice cannot remove an argument, and the docker-level flags (privileged, memory cap, cache mounts) are platform-owned. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "candidate",
-      "executable",
-      "mamba",
-      "mia",
-      "moe",
-      "mtp",
-      "nemotron",
-      "nvfp4",
-      "reasoning",
-      "single",
-      "spark",
-      "tool-use",
-      "vllm"
-    ],
-    "title": "Nemotron Labs 3 Puzzle 75B-A9B NVFP4 vLLM one Spark (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -296,7 +276,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "3215c2f6d3a49fb7490d73bd4d705151b8c33b03c80f3beab09c664c0e44dd1e",
+        "content_sha256": "9069b33ac1fc1a9a0f99dfdbfb58e9f4c0c6882f32ca681bc7cdb922c99eb7e1",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-labs-3-puzzle-75b-a9b-nvfp4-1d370e47"

@@ -1,0 +1,19 @@
+{
+  "description": "Exact official Qwen Image Layered checkpoint for a candidate single-Spark Diffusers image-decomposition recipe.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-layered-8f0ca708"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen Image Layered",
+  "tags": [
+    "qwen",
+    "image",
+    "editing",
+    "layered",
+    "image-to-image",
+    "bf16",
+    "spark"
+  ]
+}
