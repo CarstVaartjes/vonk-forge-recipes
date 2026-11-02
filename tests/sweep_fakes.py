@@ -619,6 +619,9 @@ class FakeFleet:
                         self.runs = [
                             r for r in self.runs if r["alias"] != item["alias"]
                         ]
+                        # Only the application that started the child records the
+                        # failure; an adopter sees it as a failed run effect carrying
+                        # that application's id (failed-adopted-lane.json).
                         app["reason"] = item["fail"]
                         # FleetProfileAssignmentFailure: ids and a reason, no alias or node.
                         app.setdefault("failures", []).append(
@@ -640,6 +643,82 @@ class FakeFleet:
             ):
                 failed = any(a["fail"] for a in app["assign"])
                 app["state"] = "failed" if failed else "succeeded"
+
+    def _effect_rows(self, app: dict[str, Any]) -> list[dict[str, Any]]:
+        own = (
+            [
+                {key: value for key, value in row.items() if key != "finish_at"}
+                for row in app.get("effects", [])
+            ]
+            if self.cleanup_projection
+            else []
+        )
+        return [*own, *self._adopted_failure_effects(app)]
+
+    def _selected_adopter(self, app: dict[str, Any]) -> dict[str, Any] | None:
+        """The profile's selected (newest) live application when it adopted ``app``'s child.
+
+        continuing_effects.py ``_adopted_application_scope``: the selected application
+        keeps the original executor through an exact link (same child, same plan).
+        """
+        selected = list(self.apps.values())[-1]
+        if (
+            selected is app
+            or selected["profile"] != app["profile"]
+            or selected["state"] not in ("queued", "running")
+            or selected.get("admission_pending")  # not selected yet
+            or selected.get("cancel")
+            or app.get("cancel")
+        ):
+            return None
+        shared = [x for x in selected["assign"] if any(x is y for y in app["assign"])]
+        return selected if shared else None
+
+    def _adopted_failure_effects(self, app: dict[str, Any]) -> list[dict[str, Any]]:
+        """Failed run effects of children this application adopted from an older one."""
+        rows = []
+        for original in self.apps.values():
+            if original is app:
+                continue
+            for failure in original.get("failures", []):
+                item = next(
+                    (
+                        x
+                        for x in app["assign"]
+                        if x["assignment_ids"][0] == failure["assignment_id"]
+                    ),
+                    None,
+                )
+                if item is None:
+                    continue
+                rows.append(
+                    {
+                        "application_id": original["id"],
+                        "kind": "run",
+                        "state": "failed",
+                        "target_id": failure["assignment_id"],
+                        "node_ids": item["node_ids"],
+                        "queue_index": failure["queue_index"],
+                        "operation_id": failure["operation_id"],
+                        "progress": {
+                            "members": [
+                                {
+                                    "node_id": node,
+                                    "state": "failed",
+                                    "error": failure["reason"],
+                                }
+                                for node in item["node_ids"]
+                            ]
+                        },
+                        "result": {
+                            "run_switch": {
+                                "failed_phase": item["phase"],
+                                "failure_code": "recipe_start_failed",
+                            }
+                        },
+                    }
+                )
+        return rows
 
     def _admit(self, app: dict[str, Any]) -> None:
         """Admission binds the queued application: its runs and effects start now.
@@ -1304,6 +1383,18 @@ class FakeFleet:
             return self._app_progress(data, a)
         if verb == "cancel":
             app = self.apps.get(a[0])
+            if (
+                app
+                and app["state"] in ("queued", "running")
+                and self._selected_adopter(app)
+            ):
+                # continuing_effects.py: the continuing effects belong to the newer
+                # selected request (FleetProfileInvalid CONFLICT, cancellation.py).
+                return self._error(
+                    "profile.request_invalid",
+                    "Profile effects belong to a newer selected request; "
+                    "cancel that application instead",
+                )
             if app and app["state"] in ("queued", "running"):
                 app["state"] = "cancelled"
                 app["cancel"] = True
@@ -1825,17 +1916,8 @@ class FakeFleet:
             "progress": {
                 "admission_pending": bool(pending),
                 **(
-                    {
-                        "effects": [
-                            {
-                                key: value
-                                for key, value in row.items()
-                                if key != "finish_at"
-                            }
-                            for row in app.get("effects", [])
-                        ]
-                    }
-                    if self.cleanup_projection
+                    {"effects": effects}
+                    if (effects := self._effect_rows(app)) or self.cleanup_projection
                     else {}
                 ),
                 "child_progress": {} if pending else self._child_progress(app),
