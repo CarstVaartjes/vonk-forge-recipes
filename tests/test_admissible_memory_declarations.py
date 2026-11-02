@@ -290,11 +290,6 @@ def test_absolute_kv_launch_survives_observed_startup_memory(rank: int) -> None:
     fraction = argument_value(recipe, "gpu-memory-utilization")
     assert fraction is not None
     startup(Decimal(str(fraction)))
-    # The startup request (utilization x total) is the floor the peak must cover.
-    assert (
-        Decimal(str(fraction)) * TOTAL_BYTES
-        <= recipe.topology.roles[rank].resources.memory.peak_bytes
-    )
     assert argument_value(recipe, "kv-cache-memory-bytes") == 3_414_163_456
 
 

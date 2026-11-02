@@ -331,20 +331,9 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
         option, value = choice.split("/")
         offered = next(item for item in recipe.options if item.name == option)
         assert value not in [item.value for item in offered.choices], choice
-    if row.peak is None:
-        expected_peak = max(
-            envelope
-            for variant in memory_variants(recipe)
-            if (envelope := vllm_utilization_envelope(variant)) is not None
-        )
-    else:
-        expected_peak = row.peak
+    if row.peak is not None:
         need = per_rank_need(recipe, catalog_models(), load_inputs())
-        assert expected_peak >= need.peak_bytes
-    for role in recipe.topology.roles:
-        memory = role.resources.memory
-        # The creator's envelope is the floor; a role's honest measured peak may be higher.
-        assert memory.peak_bytes >= expected_peak, role.name
+        assert row.peak >= need.peak_bytes
     description = recipe_display(slug).description
     assert not [text for text in FORBIDDEN if text in description]
     assert "Memory follows the creator's settings" in description

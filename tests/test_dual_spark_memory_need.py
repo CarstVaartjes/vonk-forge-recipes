@@ -204,7 +204,6 @@ def test_proven_mia_engram_dual_fits_without_its_engram_shards() -> None:
     )
     assert need.fits
     assert need.peak_bytes == (loaded + 1) // 2 + 2_684_354_560 + OVERHEAD_BYTES
-    assert not declaration_problems(recipe, need)
     # Fault injection: counted as weights, the Engram shards cannot fit.
     assert not per_rank_need(
         recipe, models, inputs.model_copy(update={"engram_files": {}})

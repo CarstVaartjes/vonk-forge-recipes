@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import unittest
+import warnings
 from pathlib import Path
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
@@ -35,19 +36,28 @@ def peaks() -> dict[str, int]:
 
 
 class MemoryEnvelopeTests(unittest.TestCase):
-    def test_exceptions_are_current(self) -> None:
+    def test_exceptions_name_existing_recipes(self) -> None:
         known = peaks()
-        stale = [
+        self.assertEqual(
+            [slug for slug in EXCEPTIONS if slug not in known],
+            [],
+            "memory-envelope-exceptions.json lists a recipe that is gone; remove it",
+        )
+
+    def test_an_exception_that_now_fits_only_warns(self) -> None:
+        # A measured peak below the estimate is the direction we want: report it,
+        # never fail on it.
+        known = peaks()
+        fits = [
             slug
             for slug in EXCEPTIONS
-            if slug not in known or known[slug] <= ADMISSIBLE_PEAK_BYTES
+            if slug in known and known[slug] <= ADMISSIBLE_PEAK_BYTES
         ]
-        self.assertEqual(
-            stale,
-            [],
-            "memory-envelope-exceptions.json lists a recipe that is gone or now "
-            "fits the Spark; remove it",
-        )
+        if fits:
+            warnings.warn(
+                f"memory-envelope-exceptions.json lists recipes that now fit: {fits}",
+                stacklevel=1,
+            )
 
 
 if __name__ == "__main__":

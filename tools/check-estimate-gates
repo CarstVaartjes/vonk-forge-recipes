@@ -21,14 +21,14 @@ import importlib.machinery
 import importlib.util
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-LOADER_CALLS = frozenset({"recipe", "read_recipe", "recipe_for", "load_recipe"})
 PEAK = "peak_bytes"
 PEAK_SETTERS = frozenset({"declare_peak"})
 
 
-def _reads() -> object:
+def _reads() -> Any:
     path = ROOT / "tools/check-document-reads"
     loader = importlib.machinery.SourceFileLoader("check_document_reads", str(path))
     spec = importlib.util.spec_from_loader(loader.name, loader)
@@ -43,7 +43,7 @@ def call_name(call: ast.Call) -> str:
     return func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
 
 
-def local_calls(function: ast.FunctionDef) -> set[str]:
+def local_calls(function: ast.AST) -> set[str]:
     return {call_name(n) for n in ast.walk(function) if isinstance(n, ast.Call)}
 
 
@@ -59,19 +59,6 @@ def closure(functions: dict[str, ast.FunctionDef], seed) -> set[str]:
         if not more:
             return found
         found |= more
-
-
-def names_real_recipe(function: ast.FunctionDef) -> bool:
-    for node in ast.walk(function):
-        if (
-            isinstance(node, ast.Constant)
-            and isinstance(node.value, str)
-            and (node.value == "recipes" or "recipes/" in node.value)
-        ):
-            return True
-        if isinstance(node, ast.Call) and call_name(node) in LOADER_CALLS:
-            return True
-    return False
 
 
 def assigns_peak(node: ast.AST) -> bool:
@@ -105,9 +92,60 @@ def is_estimate_call(node: ast.AST, estimate: set[str]) -> bool:
     return isinstance(node, ast.Call) and call_name(node) in estimate
 
 
+ORDERINGS = frozenset(
+    {"assertGreater", "assertGreaterEqual", "assertLess", "assertLessEqual"}
+)
+BOUND_OPS = (ast.Lt, ast.LtE, ast.Gt, ast.GtE)
+
+
+def reads_estimate_bound(node: ast.AST) -> bool:
+    """Whether the expression reads a declared peak or a declaration_problems call."""
+    for child in ast.walk(node):
+        if (
+            isinstance(child, ast.Attribute)
+            and child.attr == PEAK
+            and (
+                (isinstance(child.value, ast.Name) and child.value.id == "memory")
+                or (
+                    isinstance(child.value, ast.Attribute)
+                    and child.value.attr == "memory"
+                )
+            )
+        ):
+            return True
+        if (
+            isinstance(child, ast.Subscript)
+            and isinstance(child.slice, ast.Constant)
+            and child.slice.value == PEAK
+        ):
+            return True
+        if isinstance(child, ast.Call) and call_name(child) == "declaration_problems":
+            return True
+    return False
+
+
+def is_bound_assertion(node: ast.AST) -> bool:
+    """A lower or upper bound on a declared peak, or a clean declaration_problems."""
+    if isinstance(node, ast.Call):
+        return call_name(node) in ORDERINGS and reads_estimate_bound(node)
+    if not isinstance(node, ast.Assert):
+        return False
+    test = node.test
+    if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):
+        return reads_estimate_bound(test.operand)
+    return (
+        isinstance(test, ast.Compare)
+        and any(isinstance(op, BOUND_OPS) for op in test.ops)
+        and reads_estimate_bound(test)
+    )
+
+
 def gate_lines(function: ast.FunctionDef, estimate: set[str]) -> list[int]:
     lines = []
     for node in ast.walk(function):
+        if isinstance(node, ast.Assert | ast.Call) and is_bound_assertion(node):
+            lines.append(node.lineno)
+            continue
         if isinstance(node, ast.Call) and call_name(node) == "assert_not_warns":
             lines.append(node.lineno)
         elif isinstance(node, ast.Assert):
@@ -166,7 +204,7 @@ def scan(source: str, added: set[int] | None) -> list[tuple[int, str]]:
                         else n.lineno <= line
                     )
                 )
-                and (assigns_peak(n) or bool(local_calls(n) & setters))  # type: ignore[arg-type]
+                and (assigns_peak(n) or bool(local_calls(n) & setters))
             ]
             if not prior:
                 hits.append(
@@ -195,7 +233,7 @@ def main() -> int:
             for p in sorted((ROOT / "tests").glob("test_*.py"))
         }
     else:
-        changed = reads.added_lines(ROOT, arguments.base)  # type: ignore[attr-defined]
+        changed = reads.added_lines(ROOT, arguments.base)
         targets = {
             p: lines
             for p, lines in changed.items()

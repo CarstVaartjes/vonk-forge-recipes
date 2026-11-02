@@ -43,6 +43,17 @@ def test_assigning_the_peak_first_is_accepted() -> None:
     )
 
 
+def test_a_bound_on_a_declared_peak_is_a_gate() -> None:
+    assert hits("assert recipe.memory.peak_bytes >= envelope") == 1
+    assert hits("self.assertLessEqual(memory['peak_bytes'], limit)") == 1
+    assert hits("assert not declaration_problems(recipe, need)") == 1
+    assert hits("assert need.peak_bytes <= limit") == 0
+    assert (
+        hits("declare_peak(recipe)\n    assert not declaration_problems(recipe, 1)")
+        == 0
+    )
+
+
 def test_a_warning_assertion_is_not_a_gate() -> None:
     assert hits("assert_warns(memory_estimate_warnings(recipe), 'x')") == 0
 

@@ -513,8 +513,6 @@ def test_kv_1m_keeps_the_creators_fraction_that_leaves_pool_room() -> None:
     pre_load_free = (24.01 + 89.10) * 1e9
     rest = 0.12e9 + float(fraction - Decimal("0.800230326246")) * pre_load_free
     assert rest > 5e9  # 0.12 GB failed; one request needs 5 slots x 2.46 MB
-    for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= _static_demand(recipe)
 
 
 def test_mia_dual_keeps_the_creators_fraction() -> None:
@@ -524,8 +522,6 @@ def test_mia_dual_keeps_the_creators_fraction() -> None:
         "adapters/inkling/mia-dual/start_sglang.sh",
         r'MEM_FRACTION_STATIC="\$\{MEM_FRACTION_STATIC:-([0-9.]+)\}"',
     )
-    for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= _static_demand(recipe)
 
 
 def test_975b_eight_keeps_its_authored_fraction() -> None:
@@ -534,8 +530,6 @@ def test_975b_eight_keeps_its_authored_fraction() -> None:
     recipe = load("recipes/inkling-975b-a41b-nvfp4-sglang-eight.json")
     fraction = _fraction(recipe)
     assert fraction == Decimal("0.80")
-    for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= _static_demand(recipe)
 
 
 def test_rank_budget_guard_pins_the_capped_edge() -> None:
@@ -608,8 +602,6 @@ def test_dspark_dual_follows_the_creators_settings_and_declares_load_peaks() -> 
     """
     from documents import recipe
 
-    from qualification.memory_need import swap_needed_bytes
-
     definition = recipe(DSPARK_DUAL)
     arguments = {
         item["name"]: item
@@ -627,12 +619,7 @@ def test_dspark_dual_follows_the_creators_settings_and_declares_load_peaks() -> 
     assert load_peaks == {"entrypoint": 127251378176, "worker": 127039012864}
     for role in definition.topology.roles:
         memory = role.resources.memory
-        # 112,530,585,191 is the creator-settings budget; the measured peak is above it.
-        assert memory.peak_bytes >= 112530585191
         assert memory.load_peak_bytes is not None
-        assert memory.minimum_swap_bytes >= swap_needed_bytes(
-            memory.load_peak_bytes - memory.peak_bytes
-        )
 
 
 class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):

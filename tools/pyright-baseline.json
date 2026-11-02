@@ -286,7 +286,7 @@
     {
       "file": "tests/test_ui_mate_executable_recipe.py",
       "rule": "reportIndexIssue",
-      "count": 9,
+      "count": 8,
       "reason": "Tests index into decoded JSON fixtures and asserted response bodies whose shape is checked separately in the same test."
     },
     {
