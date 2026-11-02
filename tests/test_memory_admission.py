@@ -5,6 +5,7 @@ from pathlib import Path
 
 import documents
 import pytest
+from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
@@ -208,3 +209,28 @@ def test_refresh_raises_peaks_to_the_budget_envelope_and_never_lowers() -> None:
     raised.topology.roles[0].resources.memory.peak_bytes = envelope + 5
     assert memory_need.raise_peaks_to_envelope(raised) is None
     assert raised.topology.roles[0].resources.memory.peak_bytes == envelope + 5
+
+
+def test_multi_spark_peak_below_the_vllm_envelope_is_refused_untouched() -> None:
+    """A pool-less dual declares utilization x total + 10.4e9, touched or not."""
+    recipe = documents.recipe("deepseek-v4-flash-vllm-mia-dual")
+    envelope = vllm_utilization_envelope(recipe)
+    assert envelope is not None
+    floor = memory_need.per_rank_need(
+        recipe, catalog_models(), memory_need.load_inputs()
+    ).peak_bytes
+    assert floor < envelope - 1
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = envelope - 1
+    with pytest.raises(ValueError, match="vLLM budget plus overhead"):
+        memory_need.require_memory_need(
+            recipe,
+            catalog_models(),
+            memory_need.load_inputs(),
+            document_digest="",
+        )
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = envelope
+    memory_need.require_memory_need(
+        recipe, catalog_models(), memory_need.load_inputs(), document_digest=""
+    )

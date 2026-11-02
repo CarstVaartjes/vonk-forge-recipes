@@ -128,8 +128,11 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
     if variant.runtime.engine == "vllm":
         fraction = argument_value(variant, "gpu-memory-utilization")
         assert fraction is not None
-        budget = vllm_utilization_envelope(variant)
-        assert budget is None or all(
+        # Pool-less: the envelope; absolute pool: the startup request (utilization x total).
+        budget = vllm_utilization_envelope(variant) or (
+            Decimal(str(fraction)) * TOTAL_BYTES
+        )
+        assert all(
             budget <= role.resources.memory.peak_bytes
             for role in variant.topology.roles
         )
@@ -273,7 +276,8 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
         r"|reserve_bytes\W*\s*<=?\s*\d"
         r"|peak_bytes\s*==\s*need\.peak_bytes"
         # The margin beside an engine budget has one owner, budget_margin_bytes.
-        r"|(?:TOTAL_BYTES|SPARK_MEMORY_BYTES)\)?\s*\+\s*OVERHEAD_BYTES\b"
+        r"|(?:TOTAL_BYTES|SPARK_MEMORY_BYTES)\)?(?:\s*\*\s*[\d.]+)?\s*\+\s*"
+        r"(?:OVERHEAD_BYTES|8_000_000_000|8000000000|8e9)\b"
     )
     copies = [
         f"{path.name}:{number}"

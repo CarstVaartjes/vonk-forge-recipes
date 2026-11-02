@@ -1240,23 +1240,48 @@ class VendoredCreatorMoveTests(unittest.TestCase):
 
     def test_a_moved_vllm_document_follows_the_budget_envelope(self) -> None:
         new_yaml = OLD_YAML.replace("8192", "4096")
-        with (
-            patch(
-                "refresh_upstream.raise_peaks_to_envelope", return_value=None
-            ) as raised,
-            patch("refresh_upstream.RecipeDefinition"),
-        ):
+        with patch("refresh_upstream.raise_document_peaks") as raised:
             self.assess(new_yaml, engine="vllm")
             raised.assert_called_once()
-        with patch("refresh_upstream.raise_peaks_to_envelope") as raised:
+        with patch("refresh_upstream.raise_document_peaks") as raised:
             self.assess(new_yaml, engine="sglang")
             raised.assert_not_called()
         with patch(
-            "refresh_upstream.raise_peaks_to_envelope", side_effect=ValueError("bad")
+            "refresh_upstream.raise_document_peaks", side_effect=ValueError("bad")
         ):
             result = self.assess(new_yaml, engine="vllm")
         self.assertFalse(result.mechanical)
         self.assertIn("memory envelope", " ".join(result.reasons))
+
+    def test_real_proven_dual_is_raised_and_then_passes_the_touched_check(self) -> None:
+        from catalog_documents import catalog_models
+        from vonk_forge_contracts import RecipeDefinition
+
+        from qualification.memory_need import load_inputs, require_memory_need
+
+        slug = "deepseek-v4-flash-eugr-vllm-dual"
+        document = json.loads(
+            (refresh.ROOT / "recipes" / f"{slug}.json").read_text(encoding="utf-8")
+        )
+        models, inputs = catalog_models(), load_inputs()
+        before = RecipeDefinition.model_validate(document)
+        with self.assertRaisesRegex(ValueError, "vLLM budget plus overhead"):
+            require_memory_need(
+                before, models, inputs, document_digest="", touched=True
+            )
+        refresh.raise_document_peaks(document)
+        peaks = {
+            r["resources"]["memory"]["peak_bytes"]
+            for r in document["topology"]["roles"]
+        }
+        self.assertEqual(peaks, {114_930_585_191})
+        require_memory_need(
+            RecipeDefinition.model_validate(document),
+            models,
+            inputs,
+            document_digest="",
+            touched=True,
+        )
 
     def test_verbatim_file_with_its_flags_intact_is_mechanical(self) -> None:
         new_yaml = OLD_YAML.replace("8192", "4096")

@@ -1186,8 +1186,8 @@ def require_memory_need(
 
     Calibrated on the proven set: a fixed pool holds one full-context request,
     not context x concurrency, and the declared peak covers the loading floor
-    (and on one Spark a vLLM utilization budget with what vLLM holds beside
-    it) and is admissible. ``touched`` marks a recipe file the change under
+    (and a vLLM utilization budget, on any Spark count, with the margin vLLM
+    holds beside it) and is admissible. ``touched`` marks a recipe file the change under
     review edits; only those must bound a utilization-sized KV pool.
     """
     require_absolute_kv_capacity(recipe, models, inputs)
@@ -1361,10 +1361,8 @@ def require_bounded_kv_pool(
                 f"{base} cannot hold the selected weights, resident "
                 f"expansion and capped pools ({resident} bytes)"
             )
-        demand = sglang_demand(
-            recipe,
-            sglang_capped_static_need(recipe, models, inputs, key),
-        )
+        capped = sglang_capped_static_need(recipe, models, inputs, key)
+        demand = sglang_demand(recipe, capped)
         if (
             demand is None
             or not evaluate_memory_admission(
@@ -1375,7 +1373,8 @@ def require_bounded_kv_pool(
         ):
             raise ValueError(
                 f"{key}: mem-fraction-static {fraction} share of {TOTAL_BYTES} bytes "
-                f"plus {budget_margin_bytes(recipe)} overhead is not admissible on an idle Spark"
+                f"plus {OVERHEAD_BYTES if capped is not None else budget_margin_bytes(recipe)} "
+                "overhead is not admissible on an idle Spark"
             )
         return
     pools = (

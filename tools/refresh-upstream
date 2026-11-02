@@ -2218,20 +2218,7 @@ class Assessor:
             if new_recipe != recipe:
                 if new_recipe.get("runtime", {}).get("engine") == "vllm":
                     try:  # a moved document meets today's margins (never lowered)
-                        raised = raise_peaks_to_envelope(
-                            RecipeDefinition.model_validate(new_recipe)
-                        )
-                        for role, kept in zip(
-                            new_recipe["topology"]["roles"],
-                            raised.topology.roles if raised else [],
-                            strict=False,
-                        ):
-                            memory = role["resources"]["memory"]
-                            memory["peak_bytes"] = kept.resources.memory.peak_bytes
-                            if kept.resources.memory.load_peak_bytes is not None:
-                                memory["load_peak_bytes"] = (
-                                    kept.resources.memory.load_peak_bytes
-                                )
+                        raise_document_peaks(new_recipe)
                     except (KeyError, TypeError, ValueError) as error:
                         result.reasons.append(
                             f"memory envelope: peaks could not be raised: {str(error)[:300]}"
@@ -3406,6 +3393,20 @@ def checks_moved(root: Path, head: str) -> bool:
     return bool(
         git("diff", "--name-only", base, "origin/main", "--", *CHECK_PATHS, cwd=root)
     )
+
+
+def raise_document_peaks(document: dict[str, Any]) -> None:
+    """Raise a moved vLLM document's role peaks to the budget envelope, in place."""
+    raised = raise_peaks_to_envelope(RecipeDefinition.model_validate(document))
+    if raised is None:
+        return
+    for role, kept in zip(
+        document["topology"]["roles"], raised.topology.roles, strict=True
+    ):
+        memory = role["resources"]["memory"]
+        memory["peak_bytes"] = kept.resources.memory.peak_bytes
+        if kept.resources.memory.load_peak_bytes is not None:
+            memory["load_peak_bytes"] = kept.resources.memory.load_peak_bytes
 
 
 def follow_proven_bytes(root: Path, edits: dict[str, bytes | None]) -> None:

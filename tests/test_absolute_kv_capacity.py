@@ -259,6 +259,11 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     declare_envelope(recipe)
     with pytest.raises(ValueError, match="admissible on an idle Spark"):
         require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    # A pool-less dual must cover its envelope untouched too, so an inadmissible
+    # budget is refused there as well (the old "untouched keeps its pool" pin is
+    # unreachable: the peak, not the touch, now carries the budget).
+    with pytest.raises(ValueError, match="not admissible"):
+        require_memory_need(recipe, models, inputs, document_digest="")
     # The highest proven utilization-sized dual budget (0.80) is accepted.
     next(
         arg for arg in recipe.runtime.arguments if arg.name == "gpu-memory-utilization"
