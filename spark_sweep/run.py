@@ -1085,6 +1085,7 @@ class Sweep:
             },
             deprioritised=self._deprioritised(pending),
             variants_last=self.cfg.variants_last,
+            boost=self.boost,
             refreshed={
                 k
                 for k, e in self.state.recipes.items()

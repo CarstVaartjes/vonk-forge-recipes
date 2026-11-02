@@ -148,6 +148,23 @@ def test_group_members_are_back_to_back_with_engine_and_base_image_locality() ->
     ]  # model group together; engine, then base image, inside it
 
 
+def test_boosted_recipe_places_before_smaller_ready_recipes() -> None:
+    small, favourite = recipe("small", ("S",)), recipe("favourite", ("F",))
+    by_key = {r.key: r for r in (small, favourite)}
+    sizes = {"S": GB, "F": 9 * GB}
+    plans = policy.plan_groups([small, favourite], sizes, {"S", "F"})
+    unboosted = policy.order_queue(plans, by_key, cached={"S", "F"}, sizes=sizes)
+    boosted = policy.order_queue(
+        plans,
+        by_key,
+        cached={"S", "F"},
+        sizes=sizes,
+        boost=policy.keyword_boost(["favourite"]),
+    )
+    assert [k.split("/")[1] for k in unboosted] == ["small", "favourite"]
+    assert [k.split("/")[1] for k in boosted] == ["favourite", "small"]
+
+
 def test_revalidation_goes_after_new_work_including_suspect_siblings() -> None:
     rs = [recipe("new", ("N",)), recipe("old", ("O",)), recipe("sib", ("S",))]
     by_key = {r.key: r for r in rs}

@@ -199,6 +199,7 @@ def order_queue(
     deprioritised: Collection[str] = (),
     variants_last: bool = False,
     refreshed: Collection[str] = (),
+    boost: Boost = no_boost,
 ) -> list[str]:
     """Cached singles, cached duals, then downloads; smallest models first.
 
@@ -223,12 +224,20 @@ def order_queue(
 
     positions = {key: index for index, key in enumerate(ordered)}
 
-    def priority(key: str) -> tuple[int, int, int, int, int]:
+    def priority(key: str) -> tuple[int, float, int, int, int, int]:
         recipe = recipes[key]
         ready = recipe.model_set <= cached_models
         category = (0 if recipe.node_count == 1 else 1) if ready else 2
         size = sum(sizes.get(d, 0) for d in recipe.model_set)
-        return tier(key), category, int(key in tail), size, positions[key]
+        # Boosted recipes place first among the rest of their tier, as they download first.
+        return (
+            tier(key),
+            -boost(recipe),
+            category,
+            int(key in tail),
+            size,
+            positions[key],
+        )
 
     newest = sorted(
         (key for key in ordered if key in refreshed),
