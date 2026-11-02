@@ -79,7 +79,7 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-def sync(history: Path, directory: Path) -> bool:
+def sync(history: Path, directory: Path) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
     _deadline = time.monotonic() + 240
@@ -151,7 +151,7 @@ def sync(history: Path, directory: Path) -> bool:
                 else f"evidence: PR #{pr.number} awaiting CI/auto-merge; new results remain in history",
                 flush=True,
             )
-            return False
+            return SweepEvidenceExit.FAILING_CHECK if red else SweepEvidenceExit.WAITING
         # Conflicts or required base updates get a fresh clone and a new plan.
     with tempfile.TemporaryDirectory(
         prefix="qualification-", dir=directory
@@ -242,7 +242,9 @@ def sync(history: Path, directory: Path) -> bool:
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
         ):
-            return True  # merged evidence or an empty batch never creates an empty PR
+            return (
+                SweepEvidenceExit.SYNCED
+            )  # merged evidence or an empty batch never creates an empty PR
         changed = command(clone, "git", "diff", "--cached", "--name-only")
         merging = (clone / ".git/MERGE_HEAD").exists()
         if changed or merging:
@@ -256,7 +258,7 @@ def sync(history: Path, directory: Path) -> bool:
             )
             command(clone, "git", "push", "origin", f"HEAD:refs/heads/{BRANCH}")
         elif not remote:
-            return True
+            return SweepEvidenceExit.SYNCED
         opened = json.loads(
             command(
                 clone,
@@ -321,7 +323,7 @@ def sync(history: Path, directory: Path) -> bool:
             "--squash",
         )
         print(f"evidence: PR #{pr.number}, auto-merge requested", flush=True)
-        return True
+        return SweepEvidenceExit.SYNCED
 
 
 class EvidencePublisher:
@@ -351,6 +353,8 @@ class EvidencePublisher:
                 if code == SweepEvidenceExit.SYNCED
                 else "evidence PR awaiting CI/auto-merge; new results queued; check in 300s (see publisher.log)"
                 if code == SweepEvidenceExit.WAITING
+                else "evidence PR has a failing check; waiting for main to move (see publisher.log)"
+                if code == SweepEvidenceExit.FAILING_CHECK
                 else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
             )
             if self._output is not None:

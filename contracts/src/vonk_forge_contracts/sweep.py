@@ -293,6 +293,7 @@ class SweepProgress(StrEnum):
 class SweepEvidenceExit(IntEnum):
     SYNCED = 0
     WAITING = 10
+    FAILING_CHECK = 11
 
 
 class SweepEvidenceMergeState(StrEnum):

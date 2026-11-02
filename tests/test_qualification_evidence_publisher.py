@@ -213,7 +213,10 @@ def test_open_pr_has_a_quiet_head_for_ci_and_auto_merge(tmp_path, monkeypatch, s
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
-    assert publisher.sync(history, tmp_path / "work") is False
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.WAITING
+    )
     assert not any(c[0] == "git" for c in calls)
     assert any(c[:3] == ("gh", "pr", "merge") and "--auto" in c for c in calls)
     assert history.read_bytes() == before
@@ -312,7 +315,10 @@ def test_red_pr_with_moved_main_takes_the_fresh_plan(tmp_path, monkeypatch):
 
 def test_red_pr_on_current_main_waits_and_says_so(tmp_path, monkeypatch, capsys):
     history, calls = _open_pr(tmp_path, monkeypatch, RED, 0)
-    assert publisher.sync(history, tmp_path / "work") is False
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.FAILING_CHECK
+    )
     assert not any(c[0] == "git" for c in calls)
     assert (
         "evidence PR #123 has a failing check; waiting for main to move"
@@ -322,6 +328,32 @@ def test_red_pr_on_current_main_waits_and_says_so(tmp_path, monkeypatch, capsys)
 
 def test_pending_pr_waits_as_before(tmp_path, monkeypatch, capsys):
     history, calls = _open_pr(tmp_path, monkeypatch, PENDING, 3)
-    assert publisher.sync(history, tmp_path / "work") is False
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.WAITING
+    )
     assert not any(c[0] == "git" or c[:2] == ("gh", "api") for c in calls)
     assert "awaiting CI/auto-merge" in capsys.readouterr().out
+
+
+def test_lane_status_shows_a_failing_evidence_check(tmp_path, monkeypatch):
+    class Process:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def poll(self):
+            return publisher.SweepEvidenceExit.FAILING_CHECK
+
+        def wait(self, timeout):
+            return self.poll()
+
+    monkeypatch.setattr(publisher.subprocess, "Popen", Process)
+    worker = publisher.EvidencePublisher(
+        tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker")
+    )
+    worker.tick(0)
+    worker.tick(1)
+    assert worker.message == (
+        "evidence PR has a failing check; waiting for main to move (see publisher.log)"
+    )
+    assert worker.next_attempt == 301
