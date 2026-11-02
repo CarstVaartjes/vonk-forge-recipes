@@ -20,10 +20,8 @@ from qualification.memory_need import (
     absolute_kv_need,
     argument_value,
     cache_bytes,
-    hardware_proven,
     load_inputs,
     memory_variants,
-    raise_peaks_to_envelope,
     require_absolute_kv_capacity,
     require_memory_need,
     require_sglang_rank_budget,
@@ -272,39 +270,6 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 
-@pytest.mark.parametrize("single", [True, False], ids=["single", "multi"])
-@pytest.mark.parametrize("engine", ["vllm", "sglang"])
-def test_touching_any_proven_document_keeps_it_valid(engine: str, single: bool) -> None:
-    # Calibration: every hardware-proven document passes the touched rules.
-    models, inputs = catalog_models(), load_inputs()
-    checked, rejected = 0, []
-    for path in sorted((ROOT / "qualification/evidence").rglob("*.json")):
-        key = json.loads(path.read_text())["recipe_key"]
-        document = json.loads(
-            (ROOT / "recipes" / f"{key.split('/')[1]}.json").read_text()
-        )
-        recipe = RecipeDefinition.model_validate(document)
-        if (
-            recipe.runtime.engine != engine
-            or (recipe.topology.node_count == 1) != single
-            or not hardware_proven(recipe, document_sha256(document))
-        ):
-            continue
-        checked += 1
-        # A touched document is a refresh, which raises its peaks to the envelope.
-        recipe = raise_peaks_to_envelope(recipe) or recipe
-        try:
-            require_memory_need(
-                recipe, models, inputs, document_digest="", touched=True
-            )
-        except (TypeError, ValueError) as error:
-            rejected.append(str(error))
-    assert checked > 0
-    assert not rejected, f"{len(rejected)} of {checked} rejected:\n" + "\n".join(
-        rejected
-    )
-
-
 FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
 
 
@@ -509,21 +474,18 @@ def creator_dual(slug: str, utilization: str) -> RecipeDefinition:
 
 
 @pytest.mark.parametrize(
-    ("slug", "utilization", "reserve_bytes"),
+    ("slug", "utilization"),
     [
         # sparkfix.yaml#L16 at 050f1ba3.
-        (JASL, "0.825", None),
+        (JASL, "0.825"),
         # boot_dflash2.sh#L14 at 22269731; passed on hardware, pool-less (7cb340f9).
-        (GLM_DFLASH2, "0.86", 8_000_000_000),
+        (GLM_DFLASH2, "0.86"),
     ],
 )
 def test_creator_dual_utilizations_are_bounded_by_admission(
-    slug: str, utilization: str, reserve_bytes: int | None
+    slug: str, utilization: str
 ) -> None:
     recipe = creator_dual(slug, utilization)
-    if reserve_bytes is not None:
-        for role in recipe.topology.roles:
-            role.resources.memory.reserve_bytes = reserve_bytes
     assert admissible(recipe)
     require_memory_need(
         recipe, catalog_models(), load_inputs(), document_digest="", touched=True

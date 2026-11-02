@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/swift-1-5-flash-next-nvfp4-tournierjc-tensorfold-single",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "9fcb8360191b8c0ffe66f5f9c7390c38371bc7ce26c5f961bb751d91aed25a40",
+        "source_bundle_sha256": "66f7fce94a846b1aecf442c9eab27a82bf04fa2bacfe3e6b29db5f571e63e185",
+        "runtime_image": {
+          "build_key": "0ad14a025bf5698eb14999da7bf96c22123e256d22f7b5306fcb74b0b445e30d",
+          "image_digest": "sha256:703ee6fde77840b613f6eff5604b899454a0605be9ac64b3b31cf98693093d67"
+        },
+        "model_digests": [
+          "e20b9aadd64e13b2c9279eb7acde15f2caa906f31888fa30dd0b0ca78dfcde71"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "5060009ecaf5c77d1b1b20cf43ac2080c0ea7a2f4cd4b90ae315857914f284ba"
+      ],
+      "tested_at": "2026-10-31T01:27:37.778041Z",
+      "platform": {
+        "controller_source_sha": "1d456a38254d885101755debc8906e9d838ba813",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "bd25a321f559d551064321119da31ca1564a0f8a40d7b4d93e17819c412e6390",
+        "source_bundle_sha256": "66f7fce94a846b1aecf442c9eab27a82bf04fa2bacfe3e6b29db5f571e63e185",
+        "runtime_image": {
+          "build_key": "0ad14a025bf5698eb14999da7bf96c22123e256d22f7b5306fcb74b0b445e30d",
+          "image_digest": "sha256:703ee6fde77840b613f6eff5604b899454a0605be9ac64b3b31cf98693093d67"
+        },
+        "model_digests": [
+          "83bffdb4a566b34e8f23c74d0dc3a658d89534a1c1495ec9821dd42f2ba1401c"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "5060009ecaf5c77d1b1b20cf43ac2080c0ea7a2f4cd4b90ae315857914f284ba"
+      ],
+      "tested_at": "2026-10-31T01:27:37.778041Z",
+      "platform": {
+        "controller_source_sha": "1d456a38254d885101755debc8906e9d838ba813",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    }
+  ]
+}

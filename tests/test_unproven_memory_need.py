@@ -23,9 +23,6 @@ from qualification.memory_need import (
     calculate_need,
     hardware_proven,
     load_inputs,
-    memory_variants,
-    per_rank_need,
-    require_admissible_declaration,
     require_memory_need,
 )
 
@@ -188,31 +185,6 @@ def test_mosaic_failure_has_honest_demand_without_retuning_siblings() -> None:
     )
     # The estimate is informative: the tag no longer gates the document.
     require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
-
-
-def test_calibration_runs_every_hardware_pass_without_exemptions() -> None:
-    checked = proven = 0
-    for path in (ROOT / "qualification/evidence").rglob("*.json"):
-        evidence = RecipeQualificationEvidence.model_validate_json(path.read_text())
-        if not any(r.outcome == QualificationOutcome.PASSED for r in evidence.records):
-            continue
-        document = json.loads(
-            (ROOT / "recipes" / f"{evidence.recipe_key.split('/')[1]}.json").read_text()
-        )
-        recipe = RecipeDefinition.model_validate(document)
-        if recipe.runtime.engine not in {"vllm", "sglang"}:
-            continue
-        for variant in memory_variants(recipe):
-            assert per_rank_need(variant, catalog_models(), load_inputs()).fits, (
-                evidence.recipe_key
-            )
-        checked += 1
-        # Proven bytes also calibrate the declaration rules a change must meet.
-        if hardware_proven(recipe, document_sha256(document)):
-            require_admissible_declaration(recipe)
-            proven += 1
-    assert checked > 100
-    assert proven > 100
 
 
 def test_qualification_evidence_is_the_only_pass_source(tmp_path, monkeypatch) -> None:

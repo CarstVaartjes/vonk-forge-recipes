@@ -1268,8 +1268,8 @@ def require_memory_need(
     single = recipe.topology.node_count == 1
     for variant in memory_variants(recipe):
         need = per_rank_need(variant, models, inputs)
-        # Proven single-Spark documents run below the multi-Spark reserve and
-        # SGLang static-peak declarations; the loading floor, vLLM's budget and
+        # Proven single-Spark documents run below the multi-Spark SGLang
+        # static-peak declaration; the loading floor, vLLM's budget and
         # SGLang's weights, expansion and capped pools hold there, because the
         # Controller reserves the declared peak.
         vllm = variant.runtime.engine == "vllm"
@@ -1671,7 +1671,11 @@ def per_rank_need(
 def declaration_problems(
     recipe: RecipeDefinition, need: PerRankMemoryNeed
 ) -> list[str]:
-    """An oversized estimate is valid; hiding demand or headroom is not."""
+    """An oversized estimate is valid; hiding demand is not.
+
+    ``reserve_bytes`` is informational and never charged (admission holds the
+    platform floor itself), so it is not judged here.
+    """
     problems: list[str] = []
     fraction = argument_value(recipe, "mem-fraction-static")
     static_peak = (
@@ -1683,10 +1687,6 @@ def declaration_problems(
         memory = role.resources.memory
         if memory.peak_bytes < need.peak_bytes:
             problems.append(f"{role.name}: peak understates need {need.peak_bytes}")
-        if memory.reserve_bytes < OS_FLOOR_BYTES:
-            problems.append(
-                f"{role.name}: reserve understates host headroom {OS_FLOOR_BYTES}"
-            )
         if static_peak is not None and (
             not static_peak.is_finite() or static_peak > memory.peak_bytes
         ):

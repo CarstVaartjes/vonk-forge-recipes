@@ -220,6 +220,190 @@
         "hardware_class": "GB10"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "321264cd7644524baa0ab546a40f97307fe0d3405f3d28963812fa09ad920ec0",
+        "source_bundle_sha256": "c1c3bedb56f390339fea247d8fe8bcd08e4ec29858093afe090a1a488aea7428",
+        "runtime_image": {
+          "build_key": "ac6bdcc9fe7d302093a48c5e89b3faef9034de637d228d0f0474aecd0956bacb",
+          "image_digest": "sha256:d442d351db2ba553d3eac4f8c65d90bf62d3f23bd5c9dead54c720a1fb31c537"
+        },
+        "model_digests": [
+          "95e2c239726332fef1107c7b45709ae4a6351abad2f65ba8a7409169f5508fdf"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "23ba56e4477c0c016ceef0e3a002a2d084a07fddcc0f52c0700ee224f99152b6"
+      ],
+      "tested_at": "2026-10-29T19:06:12.579385Z",
+      "platform": {
+        "controller_source_sha": "02a171da26dc38c3cf73308a58bc73ac313771aa",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "321264cd7644524baa0ab546a40f97307fe0d3405f3d28963812fa09ad920ec0",
+        "source_bundle_sha256": "c1c3bedb56f390339fea247d8fe8bcd08e4ec29858093afe090a1a488aea7428",
+        "runtime_image": {
+          "build_key": "ac6bdcc9fe7d302093a48c5e89b3faef9034de637d228d0f0474aecd0956bacb",
+          "image_digest": "sha256:d442d351db2ba553d3eac4f8c65d90bf62d3f23bd5c9dead54c720a1fb31c537"
+        },
+        "model_digests": [
+          "95e2c239726332fef1107c7b45709ae4a6351abad2f65ba8a7409169f5508fdf"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "148319e9041f48ca219a8e11e99734d97cddbb6bbec59f6b3c3934d325628922"
+      ],
+      "tested_at": "2026-10-31T20:50:55.711767Z",
+      "platform": {
+        "controller_source_sha": "3a7c34d30baa66f4e5aca4517673545a04312470",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "3de78ce7add99447251ea30d1597858e8eec24352a2d2f3a0786f2810d622101",
+        "source_bundle_sha256": "b63831e31b93edaa5088d4f3f51cbaaf1d4535ead086134de5e1d537805c74d9",
+        "runtime_image": {
+          "build_key": "c8be058c60b45718adb56b391cde92bcc9a16c17cc46fae63ad7d19613c0cd37",
+          "image_digest": "sha256:db7cda6984c6af72b707f0a5233082258b8b204f47a7ebfeb1a71c322803792f"
+        },
+        "model_digests": [
+          "3470a192c5ad8667e732bb654764de8464b23244b6a2765b9e09fef7cd4c7d75"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "15cbb48d2fccee19f71ecfe9e4517a92fc16476a3732a6ce5db2dbfc6ab36970"
+      ],
+      "tested_at": "2026-11-01T19:25:23.127533Z",
+      "platform": {
+        "controller_source_sha": "9ce7bcdb494290f997abeca565468fe36691ebd3",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "ac4d32e36d982f163a48a161ec551135f890dcf8791f236cbaa97f1fd52e4ae7",
+        "source_bundle_sha256": "b63831e31b93edaa5088d4f3f51cbaaf1d4535ead086134de5e1d537805c74d9",
+        "runtime_image": {
+          "build_key": "c8be058c60b45718adb56b391cde92bcc9a16c17cc46fae63ad7d19613c0cd37",
+          "image_digest": "sha256:db7cda6984c6af72b707f0a5233082258b8b204f47a7ebfeb1a71c322803792f"
+        },
+        "model_digests": [
+          "95e2c239726332fef1107c7b45709ae4a6351abad2f65ba8a7409169f5508fdf"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "15cbb48d2fccee19f71ecfe9e4517a92fc16476a3732a6ce5db2dbfc6ab36970"
+      ],
+      "tested_at": "2026-11-01T19:25:23.127533Z",
+      "platform": {
+        "controller_source_sha": "9ce7bcdb494290f997abeca565468fe36691ebd3",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "3de78ce7add99447251ea30d1597858e8eec24352a2d2f3a0786f2810d622101",
+        "source_bundle_sha256": "b63831e31b93edaa5088d4f3f51cbaaf1d4535ead086134de5e1d537805c74d9",
+        "runtime_image": {
+          "build_key": "c8be058c60b45718adb56b391cde92bcc9a16c17cc46fae63ad7d19613c0cd37",
+          "image_digest": "sha256:db7cda6984c6af72b707f0a5233082258b8b204f47a7ebfeb1a71c322803792f"
+        },
+        "model_digests": [
+          "3470a192c5ad8667e732bb654764de8464b23244b6a2765b9e09fef7cd4c7d75"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "96c7655b7d79c4affc079f26c0560a28f95b14862fcc824c80f0840bb8729195"
+      ],
+      "tested_at": "2026-11-01T22:18:52.728960Z",
+      "platform": {
+        "controller_source_sha": "d9ae2a2c63e4512a7f60dd9de90e2fdef8147db8",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "ac4d32e36d982f163a48a161ec551135f890dcf8791f236cbaa97f1fd52e4ae7",
+        "source_bundle_sha256": "b63831e31b93edaa5088d4f3f51cbaaf1d4535ead086134de5e1d537805c74d9",
+        "runtime_image": {
+          "build_key": "c8be058c60b45718adb56b391cde92bcc9a16c17cc46fae63ad7d19613c0cd37",
+          "image_digest": "sha256:db7cda6984c6af72b707f0a5233082258b8b204f47a7ebfeb1a71c322803792f"
+        },
+        "model_digests": [
+          "95e2c239726332fef1107c7b45709ae4a6351abad2f65ba8a7409169f5508fdf"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_oom",
+      "cause_summary": "Recipe runtime exceeded available memory; needs fix",
+      "evidence_refs": [
+        "96c7655b7d79c4affc079f26c0560a28f95b14862fcc824c80f0840bb8729195"
+      ],
+      "tested_at": "2026-11-01T22:18:52.728960Z",
+      "platform": {
+        "controller_source_sha": "d9ae2a2c63e4512a7f60dd9de90e2fdef8147db8",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
     }
   ]
 }

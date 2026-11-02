@@ -8,6 +8,7 @@ again and again, and both lanes stayed idle.
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,7 @@ from sweep_fakes import GB, FakeModel, FakeRecipe, Gateway, make_sweep
 
 from spark_sweep import policy
 from spark_sweep.identity import content_identity
+from spark_sweep.prefetch import PrefetchConfig
 
 pytest_plugins = ["sweep_bounds"]
 pytestmark = pytest.mark.usefixtures("bounded_clock")
@@ -61,19 +63,111 @@ def test_a_finished_download_stands_even_when_the_library_still_says_not_cached(
     )  # the sweep took the fleet over to test
 
 
-def test_assets_the_library_assessment_calls_ready_need_no_download(
+def test_a_cached_recipe_of_a_partly_fetched_model_runs_without_any_download(
     tmp_path: Path, gateway: Gateway
 ) -> None:
-    recipes = [FakeRecipe("a", ("m1",), local="cached")]
+    """The livelock shape: the recipe row is cached, its model row never is (it uses a few
+    files of a larger model), and nothing may be fetched for it."""
+    recipes = [FakeRecipe("a", ("m1",), local="cached", partial_files=True)]
     sweep, fleet, _ = make_sweep(
-        tmp_path, recipes, [FakeModel("m1", local="cached")], gateway=gateway
+        tmp_path, recipes, [FakeModel("m1", local="not_cached")], gateway=gateway
     )
-    fleet.runs.append(dict(OWNER))
-    fleet.library_lag = True
-    fleet.assessments = True
     assert sweep.run() == 0
     assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
+    assert fleet.models["m1"].local == "not_cached"
     assert _downloads(fleet) == []
+
+
+def _download_requests(fleet) -> list[tuple]:
+    return [
+        c
+        for _, c in fleet.calls
+        if c[:2] in (("recipe", "download"), ("recipe", "retry"))
+    ]
+
+
+@pytest.mark.parametrize("state", ["none", "failed", "succeeded", "retired"])
+def test_a_ready_recipe_never_gets_a_download_or_retry_request(
+    tmp_path: Path, state: str
+) -> None:
+    """The row says cached, the model row never will: no download, no retry, in any history."""
+    fake = FakeRecipe(
+        "a",
+        ("m1",),
+        local="not_cached" if state == "failed" else "cached",
+        partial_files=True,
+        fail_download="invalid recipe input" if state == "failed" else None,
+        fail_download_code="recipe.invalid_definition",
+    )
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [fake],
+        [FakeModel("m1", local="not_cached")],
+        prefetch=PrefetchConfig(pin_profile=None),
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    recipe = sweep.recipes[fake.key]
+    if state == "failed":  # a real terminal receipt from the Controller
+        sweep.prefetcher._request(recipe, "model")
+        clock.sleep(fleet.download_seconds + 1)
+        sweep.prefetcher._poll()
+        assert sweep.state.downloads[recipe.key]["state"] == "failed"
+        assert sweep.state.downloads[recipe.key]["operation_id"]
+        sweep._schedule_retest(recipe.key, "scheduled-retest")
+        fleet.recipes[recipe.key].local = "cached"
+        fleet.recipes[recipe.key].fail_download = None
+        sweep.refresh_catalog()
+        recipe = sweep.recipes[fake.key]
+    elif state != "none":
+        sweep.state.downloads[recipe.key] = {
+            "state": state,
+            "kind": "model",
+            "operation_id": "old",
+            "done_at": clock.now(),
+            "retry_at": 0,
+            "next_check": 0,
+        }
+    assert recipe.local == "cached"
+    before = len(_download_requests(fleet))
+    clock.sleep(10**5)
+    if state in ("none", "failed"):  # not vacuous: a cold recipe would be requested
+        assert sweep.prefetcher._can_request(
+            replace(recipe, local="not_cached"), clock.now()
+        )
+    sweep.prefetcher.tick(
+        sweep.recipes,
+        sweep.models,
+        [recipe],
+        sweep.sizes,
+        sweep._present(),
+        sweep.boost,
+        sweep._cached_models(),
+    )
+    assert sweep.prefetcher.last_plans
+    assert len(_download_requests(fleet)) == before
+
+
+def test_a_cached_recipe_waiting_for_lanes_keeps_its_eviction_pin(
+    tmp_path: Path,
+) -> None:
+    """Its model row is not_cached and nothing is active, yet its assets are on the NAS and
+    untested: they must be protected while the recipe waits to be placed."""
+    sweep, _, _ = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", ("m1",), local="cached", partial_files=True)],
+        [FakeModel("m1", local="not_cached")],
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    recipe = sweep.recipes["vonk-forge/a"]
+    plans = sweep.prefetcher.plan_queue(
+        [recipe], sweep.sizes, sweep._present(), sweep.boost
+    )
+    pins = sweep.prefetcher.desired_pins(
+        plans, sweep.recipes, sweep.models, sweep._present()
+    )
+    assert pins == [recipe.key]
 
 
 def test_the_sweep_takes_over_at_the_start_not_at_the_first_placement(

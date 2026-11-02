@@ -110,11 +110,7 @@ def test_proven_set_calibrates_need_without_false_rejections() -> None:
             continue
         for variant in memory_variants(recipe):
             need = per_rank_need(variant, catalog_models(), load_inputs())
-            assert all(
-                need.peak_bytes + role.resources.memory.reserve_bytes
-                <= IDLE_AVAILABLE_BYTES
-                for role in variant.topology.roles
-            ), key
+            assert need.peak_bytes <= IDLE_AVAILABLE_BYTES, key
         checked += 1
     assert checked == 115
 
@@ -272,21 +268,24 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
         role.resources.memory.peak_bytes = 120_370_379_081
         role.resources.memory.reserve_bytes = 8_000_000_000
     require_admissible_declaration(recipe)
-    # The 128-GB literal, and a peak + reserve sum bounded by hand.
+    # The 128-GB literal and the margin beside an engine budget, in tests.
     restated = re.compile(
         r"\b128(?:_000_000_000|000000000|e9)\b"
         r"|assertLess(?:Equal)?\(\s*(?:envelope|admission)\b"
-        r"|reserve_bytes\W*\s*<=?\s*\d"
         r"|peak_bytes\s*==\s*need\.peak_bytes"
         # The margin beside an engine budget has one owner, budget_margin_bytes.
         r"|(?:TOTAL_BYTES|SPARK_MEMORY_BYTES)\)?(?:\s*\*\s*[\d.]+)?\s*\+\s*"
         r"(?:OVERHEAD_BYTES|8_000_000_000|8000000000|8e9)\b"
     )
+    # The informational reserve compared or summed, in tests or qualification:
+    # admission owns the platform floor and never charges reserve_bytes.
+    reserve = re.compile(r"reserve_bytes\W*[<>+]|\+\s*[\w.\[\]\"']*reserve_bytes")
     copies = [
-        f"{path.name}:{number}"
-        for path in sorted((ROOT / "tests").glob("*.py"))
+        f"{folder}/{path.name}:{number}"
+        for folder in ("tests", "qualification")
+        for path in sorted((ROOT / folder).glob("*.py"))
         for number, line in enumerate(path.read_text().splitlines(), 1)
-        if restated.search(line)
+        if reserve.search(line) or (folder == "tests" and restated.search(line))
     ]
     assert not copies, f"restated admission limit: {copies}"
 
