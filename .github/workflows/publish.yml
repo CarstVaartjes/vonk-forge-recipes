@@ -5,7 +5,8 @@ name: Publish recipe library release
 # (minor) or a breaking one (major) creates a new release. Its tag stays on the
 # commit that first published the contract version: consumers address the
 # release by tag name and take the commit from the signed bundle, and
-# GITHUB_TOKEN may not move a ref across workflow-file changes.
+# GITHUB_TOKEN may not point a ref at a commit whose workflow files differ from
+# main's, which is every publish that lags a newer workflow change.
 #
 # This is the only workflow that runs on a push to main: it orchestrates the
 # validation jobs (the platform validator, the producer checks reused from
