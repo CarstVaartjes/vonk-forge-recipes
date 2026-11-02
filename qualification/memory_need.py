@@ -275,6 +275,10 @@ class MemoryInputs(BaseModel):
     engram_files: dict[str, str]
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
+    # Qwen4Exp PLE table storage dtype by model configuration digest. A
+    # configuration naming none is bfloat16 (b12x getattr default), which b12x
+    # resolves to the io_uring disk table unless VLLM_PLE_TABLE_MEMORY is set.
+    ple_embedding_dtypes: dict[str, str] = Field(default_factory=dict)
 
 
 def unchanged_recipe(
