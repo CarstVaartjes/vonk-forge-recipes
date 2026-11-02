@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import (
     RecipeOption,
@@ -20,8 +21,14 @@ from vonk_forge_contracts.recipe import (
     RecipeRuntimeEnvironment,
 )
 
+from qualification.memory_need import MemoryInputs, load_inputs
+
 ROOT = Path(__file__).resolve().parents[1]
 QWEN = "qwen3-8-flash-next-nvfp4-eugr-vllm-single"
+B12X_IMAGE = "eugr/spark-vllm-b12x"
+# Absent from memory-inputs ple_embedding_dtypes = bfloat16 (b12x's getattr default).
+BF16_PLE_INPUTS = load_inputs().model_copy(update={"ple_embedding_dtypes": {}})
+NVFP4_PLE = "qwen3-8-flash-next-fp4-local-nvidia-vllm-dual"  # nvfp4 PLE table
 CHECKPOINT_RECIPES = (
     "deepseek-v4-flash-0731-eugr-vllm-dual",
     "deepseek-v4-flash-vision-exp-eugr-vllm-dual",
@@ -39,8 +46,28 @@ def recipe(slug: str = QWEN) -> RecipeDefinition:
     )
 
 
+def has_bfloat16_ple(document: RecipeDefinition, inputs: MemoryInputs) -> bool:
+    """A Flash Next checkpoint whose config names no non-bfloat16 PLE dtype."""
+    models = catalog_models()
+    for selection in document.models:
+        if not selection.model.slug.startswith("qwen3-8-flash-next"):
+            continue
+        for item in models[selection.model.content_sha256].files:
+            dtype = inputs.ple_embedding_dtypes.get(item.sha256, "bfloat16")
+            if (
+                item.id.startswith("config-")
+                and "configuration" in item.roles
+                and dtype == "bfloat16"
+            ):
+                return True
+    return False
+
+
 def require_sandbox_loaders(
-    document: RecipeDefinition, *, image_policy: bool = True
+    document: RecipeDefinition,
+    *,
+    image_policy: bool = True,
+    inputs: MemoryInputs | None = None,
 ) -> None:
     """Check base launch and every authored option through the real merger."""
     launches = [document]
@@ -78,16 +105,6 @@ def require_sandbox_loaders(
                     continue
                 source = wrapper.read_text()
                 for node in ast.parse(source).body:
-                    if (
-                        isinstance(node, ast.Assign)
-                        and any(
-                            isinstance(target, ast.Name)
-                            and target.id == "SANDBOX_LOADER_ENV"
-                            for target in node.targets
-                        )
-                        and "os.environ.update(SANDBOX_LOADER_ENV)" in source
-                    ):
-                        env.update(ast.literal_eval(node.value))
                     if isinstance(node, ast.Assign) and any(
                         isinstance(target, ast.Name)
                         and target.id == "SANDBOX_LOAD_FORMAT"
@@ -121,13 +138,23 @@ def require_sandbox_loaders(
             engram = json.loads(engram)
         assert isinstance(engram, dict)
         ple = additional.get("ple_table_memory", env.get("VLLM_PLE_TABLE_MEMORY"))
-        # b12x Qwen Flash Next defaults BF16 PLE to disk, even without an env.
+        # On the b12x image the Qwen Flash Next PLE table is disk (io_uring) when
+        # asked for, and also by default for a bfloat16 table with no env.
+        b12x_image = (
+            launch.execution.build.base_image.repository.removeprefix("docker.io/")
+            == B12X_IMAGE
+        )
         implicit_ple_disk = (
-            args.get("linear-backend") == "b12x"
-            and any("flash-next" in item.model.slug for item in launch.models)
+            b12x_image
             and ple is None
             and "VLLM_PLE_CPU_OFFLOAD" not in env
+            and has_bfloat16_ple(launch, inputs or load_inputs())
         )
+        if ple in {"disk", "io_uring"} or implicit_ple_disk:
+            assert not b12x_image, (
+                "b12x disk PLE table defaults to io_uring (blocked by the sandbox) "
+                "or needs direct GDS (no real nvidia-fs): set VLLM_PLE_TABLE_MEMORY=shared"
+            )
         if (
             ple in {"disk", "io_uring"}
             or implicit_ple_disk
@@ -142,10 +169,9 @@ def require_sandbox_loaders(
                 and "pread(" in posix.read_text()
                 and "io_uring" not in posix.read_text()
             )
-            assert posix_image or (
-                env.get("B12X_DISK_BACKEND") == "gds"
-                and env.get("CUFILE_FORCE_COMPAT_MODE") == "true"
-            ), "disk PLE/Engram defaults to io_uring; select compatibility I/O"
+            assert posix_image, (
+                "disk PLE/Engram defaults to io_uring; install the POSIX reader"
+            )
 
 
 def test_catalog_loaders_do_not_require_io_uring() -> None:
@@ -172,10 +198,10 @@ def test_catalog_loaders_do_not_require_io_uring() -> None:
 def test_guard_rejects_uring_only_launches(
     environment: list[RecipeRuntimeEnvironment],
 ) -> None:
-    document = recipe()
+    document = recipe(NVFP4_PLE)
     document.runtime.environment = environment
     with pytest.raises(AssertionError, match="io_uring"):
-        require_sandbox_loaders(document, image_policy=False)
+        require_sandbox_loaders(document, image_policy=False, inputs=BF16_PLE_INPUTS)
 
 
 @pytest.mark.parametrize("backend", ["AIO", "BUFFERED", "MMAP", "URING,AIO"])
@@ -326,18 +352,20 @@ def test_guard_checks_nondefault_options() -> None:
 
 
 def test_guard_checks_implicit_bf16_ple_and_additional_config() -> None:
-    document = recipe()
+    document = recipe(NVFP4_PLE)
     for argument in document.runtime.arguments:
         if argument.name == "load-format":
             argument.value = "safetensors"
     document.runtime.environment = []
+    # nvfp4 PLE table: unset resolves to the device table, nothing to flag.
+    require_sandbox_loaders(document, image_policy=False)
     with pytest.raises(AssertionError, match="defaults to io_uring"):
-        require_sandbox_loaders(document, image_policy=False)
+        require_sandbox_loaders(document, image_policy=False, inputs=BF16_PLE_INPUTS)
 
     document.runtime.environment = [
-        RecipeRuntimeEnvironment(name="VLLM_PLE_TABLE_MEMORY", value="ram")
+        RecipeRuntimeEnvironment(name="VLLM_PLE_TABLE_MEMORY", value="shared")
     ]
-    require_sandbox_loaders(document, image_policy=False)
+    require_sandbox_loaders(document, image_policy=False, inputs=BF16_PLE_INPUTS)
     document.runtime.arguments.append(
         RecipeRuntimeArgument(
             name="additional-config", value='{"ple_table_memory":"disk"}'
@@ -345,6 +373,21 @@ def test_guard_checks_implicit_bf16_ple_and_additional_config() -> None:
     )
     with pytest.raises(AssertionError, match="defaults to io_uring"):
         require_sandbox_loaders(document, image_policy=False)
+
+
+def test_engram_disk_table_needs_the_posix_reader(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    document = recipe("deepseek-v4-1-flash-exl3-0xsero-vllm-dual")
+    require_sandbox_loaders(document)
+    is_file = Path.is_file
+    monkeypatch.setattr(
+        Path,
+        "is_file",
+        lambda self: False if self.name == "_ple_reader.c" else is_file(self),
+    )
+    with pytest.raises(AssertionError, match="POSIX reader"):
+        require_sandbox_loaders(document)
 
 
 @pytest.mark.parametrize(
@@ -357,8 +400,6 @@ def test_guard_checks_implicit_bf16_ple_and_additional_config() -> None:
 def test_launcher_replaces_uring_even_when_requested(
     monkeypatch: pytest.MonkeyPatch, wrapper: str
 ) -> None:
-    monkeypatch.setenv("B12X_DISK_BACKEND", "io_uring")
-    monkeypatch.setenv("CUFILE_FORCE_COMPAT_MODE", "false")
     monkeypatch.setattr(sys, "argv", [wrapper, "serve", "/models"])
     monkeypatch.setattr(shutil, "which", lambda *args, **kwargs: "/fake/vllm")
     calls: list[list[str]] = []
@@ -368,11 +409,7 @@ def test_launcher_replaces_uring_even_when_requested(
     ) -> None:
         assert executable
         # Inject the sandbox's hard refusal at the process handoff.
-        if os.environ.get("B12X_DISK_BACKEND") != "gds":
-            raise RuntimeError(
-                "io_uring initialization failed: Operation not permitted"
-            )
-        assert os.environ["CUFILE_FORCE_COMPAT_MODE"] == "true"
+        assert "b12x" not in arguments
         calls.append(list(arguments))
 
     monkeypatch.setattr(os, "execv", exec_without_uring)

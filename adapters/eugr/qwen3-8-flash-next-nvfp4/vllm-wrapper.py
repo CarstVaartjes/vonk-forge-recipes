@@ -29,15 +29,6 @@ def _value(arguments: list[str], option: str) -> str | None:
     return arguments[index + 1]
 
 
-# The workload sandbox blocks io_uring. Keep b12x's disk staging and kernels,
-# using its documented cuFile CPU compatibility transport. Enforce this before
-# starting vLLM, including when the kit recipe explicitly requests io_uring.
-SANDBOX_LOADER_ENV = {
-    "B12X_DISK_BACKEND": "gds",
-    "CUFILE_FORCE_COMPAT_MODE": "true",
-}
-os.environ.update(SANDBOX_LOADER_ENV)
-
 arguments = sys.argv[1:]
 # The b12x checkpoint reader auto-selects io_uring bounce I/O on GB10,
 # independently of B12X_DISK_BACKEND. Keep its compute kernels, but load the

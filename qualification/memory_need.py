@@ -304,6 +304,10 @@ class MemoryInputs(BaseModel):
     disk_resident_bytes: dict[str, int] = Field(default_factory=dict)
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
+    # Qwen4Exp PLE table storage dtype by model configuration digest. A
+    # configuration naming none is bfloat16 (b12x getattr default), which b12x
+    # resolves to the io_uring disk table unless VLLM_PLE_TABLE_MEMORY is set.
+    ple_embedding_dtypes: dict[str, str] = Field(default_factory=dict)
 
 
 PLE_DISK_READ_ENVIRONMENT = "QWEN4EXP_PLE_MMAP"
