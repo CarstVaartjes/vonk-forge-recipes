@@ -6,6 +6,7 @@ import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeRuntimeEnvironment
+from warning_asserts import assert_warns
 
 from qualification.memory_need import (
     LIMIT_BYTES,
@@ -13,10 +14,10 @@ from qualification.memory_need import (
     calculate_need,
     declaration_problems,
     load_inputs,
+    memory_estimate_warnings,
     memory_variants,
     per_rank_need,
     rank_weight_bytes,
-    require_memory_need,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,10 +46,10 @@ def test_capacity_profiles_declare_the_loading_floor(slug: str) -> None:
         need = per_rank_need(variant, catalog_models(), load_inputs())
         assert not declaration_problems(variant, need)
         assert (
-            require_memory_need(
+            memory_estimate_warnings(
                 variant, catalog_models(), load_inputs(), document_digest=""
             )
-            is None
+            == []
         )
 
 
@@ -60,14 +61,23 @@ def test_guard_rejects_hidden_demand(slug: str, rank: int) -> None:
     memory = recipe.topology.roles[rank].resources.memory
     memory.peak_bytes = need.peak_bytes - 1
     assert any("peak understates" in p for p in declaration_problems(recipe, need))
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, catalog_models(), load_inputs(), document_digest=""
+        ),
+        "peak understates",
+    )
     # The reserve is informational: the proven GLM 5.3 Flash EXL3 dual runs
     # with 2 GB, under the 2 GiB platform floor that admission holds itself.
     memory.peak_bytes = need.peak_bytes
     memory.reserve_bytes = 2_000_000_000
     assert declaration_problems(recipe, need) == []
-    require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+    assert (
+        memory_estimate_warnings(
+            recipe, catalog_models(), load_inputs(), document_digest=""
+        )
+        == []
+    )
 
 
 def test_loading_floor_does_not_double_count_the_fraction_draft_term() -> None:

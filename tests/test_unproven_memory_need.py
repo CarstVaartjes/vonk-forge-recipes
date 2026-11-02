@@ -17,13 +17,14 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
     document_sha256,
 )
+from warning_asserts import assert_warns
 
 from qualification.memory_need import (
     SPARK_MEMORY_BYTES,
     calculate_need,
     hardware_proven,
     load_inputs,
-    require_memory_need,
+    memory_estimate_warnings,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,24 +49,26 @@ def test_unchanged_untested_document_is_informational(tmp_path, monkeypatch) -> 
     recipe = RecipeDefinition.model_validate(document)
     assert not hardware_proven(recipe, document_sha256(document))
     assert (
-        require_memory_need(
+        memory_estimate_warnings(
             recipe,
             catalog_models(),
             load_inputs(),
             document_digest=document_sha256(document),
         )
-        is None
+        == []
     )
     # Fault injection: an old digest must never waive a modified launch.
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = SPARK_MEMORY_BYTES
-    with pytest.raises(ValueError, match="not admissible"):
-        require_memory_need(
+    assert_warns(
+        memory_estimate_warnings(
             recipe,
             catalog_models(),
             load_inputs(),
             document_digest=document_sha256(document),
-        )
+        ),
+        "not admissible",
+    )
 
 
 @pytest.mark.parametrize("use_snapshot", [True, False])
@@ -114,7 +117,7 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
         pytest.fail("memory validation must not invoke Git or other subprocesses")
 
     monkeypatch.setattr(subprocess, "run", forbidden)
-    assert require_memory_need(recipe, {}, inputs, document_digest=digest) is None
+    assert memory_estimate_warnings(recipe, {}, inputs, document_digest=digest) == []
     assert not hardware_proven(recipe, digest)
 
     # A known digest cannot hide edited bytes, even with the old parsed model.
@@ -123,19 +126,23 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
         role.resources.memory.peak_bytes = SPARK_MEMORY_BYTES
     authored.write_text(changed.model_dump_json())
     assert not memory.unchanged_recipe(recipe, digest, inputs)
-    with pytest.raises(ValueError):
-        require_memory_need(changed, {}, inputs, document_digest=digest)
-    with pytest.raises(ValueError):
-        require_memory_need(
+    assert_warns(
+        memory_estimate_warnings(changed, {}, inputs, document_digest=digest),
+        "",
+    )
+    assert_warns(
+        memory_estimate_warnings(
             changed,
             {},
             inputs,
             document_digest=document_sha256(json.loads(authored.read_text())),
-        )
+        ),
+        "",
+    )
 
     # Restoring exact content restores the informational treatment immediately.
     authored.write_text(source.read_text())
-    assert require_memory_need(recipe, {}, inputs, document_digest=digest) is None
+    assert memory_estimate_warnings(recipe, {}, inputs, document_digest=digest) == []
 
 
 def test_new_recipe_without_git_still_requires_memory_inputs(tmp_path, monkeypatch):
@@ -156,10 +163,12 @@ def test_new_recipe_without_git_still_requires_memory_inputs(tmp_path, monkeypat
 
     monkeypatch.setattr(subprocess, "run", forbidden)
     # Its absolute pool must be shown to hold one request by pinned geometry.
-    with pytest.raises(ValueError, match="source-backed cache geometry"):
-        require_memory_need(
+    assert_warns(
+        memory_estimate_warnings(
             recipe, catalog_models(), inputs, document_digest=document_sha256(document)
-        )
+        ),
+        "source-backed cache geometry",
+    )
 
 
 def test_catalog_report_warns_without_a_nonfit_verdict(monkeypatch, capsys) -> None:
@@ -184,7 +193,12 @@ def test_mosaic_failure_has_honest_demand_without_retuning_siblings() -> None:
         for role in recipe.topology.roles
     )
     # The estimate is informative: the tag no longer gates the document.
-    require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+    assert (
+        memory_estimate_warnings(
+            recipe, catalog_models(), load_inputs(), document_digest=""
+        )
+        == []
+    )
 
 
 def test_qualification_evidence_is_the_only_pass_source(tmp_path, monkeypatch) -> None:

@@ -19,9 +19,9 @@ from qualification.memory_need import (
     cache_need_for_context,
     hardware_proven,
     load_inputs,
+    memory_estimate_warnings,
     memory_variants,
     positive_argument,
-    require_memory_need,
     speculative_tokens,
 )
 from qualification.vllm_memory_fit import loads_draft_model
@@ -188,8 +188,16 @@ def test_proven_hybrid_documents_pass_unchanged() -> None:
         if not hardware_proven(recipe, digest):
             continue
         proven.append(recipe.identity.slug)
-        require_memory_need(recipe, models, INPUTS, document_digest=digest)
-        require_memory_need(recipe, models, INPUTS, document_digest="", touched=True)
+        assert (
+            memory_estimate_warnings(recipe, models, INPUTS, document_digest=digest)
+            == []
+        )
+        assert (
+            memory_estimate_warnings(
+                recipe, models, INPUTS, document_digest="", touched=True
+            )
+            == []
+        )
     assert "nemotron-3-5-super-vl-lilicorr-sfxnz-vllm-single" in proven
     assert "nemotron-3-nano-omni-30b-a3b-bf16-nvidia-vllm-single" in proven
 

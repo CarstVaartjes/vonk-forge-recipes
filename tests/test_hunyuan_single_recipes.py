@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, patch
 
 from vonk_forge_contracts import RecipeDefinition
 
-from qualification.memory_need import require_admissible_declaration
+from qualification.memory_need import admissible_declaration_warnings
 
 ROOT = Path(__file__).resolve().parents[1]
 RECIPE_SLUGS = (
@@ -110,8 +110,13 @@ class HunyuanSingleRecipeAuthorityTests(unittest.TestCase):
 
     def test_offloaded_hunyuan_video_envelope_fits_healthy_spark(self) -> None:
         for slug in RECIPE_SLUGS[:3]:
-            require_admissible_declaration(
-                RecipeDefinition.model_validate(load(ROOT / "recipes" / f"{slug}.json"))
+            assert (
+                admissible_declaration_warnings(
+                    RecipeDefinition.model_validate(
+                        load(ROOT / "recipes" / f"{slug}.json")
+                    )
+                )
+                == []
             )
 
 

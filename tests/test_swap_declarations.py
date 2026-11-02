@@ -9,12 +9,13 @@ import pytest
 from pydantic import ValidationError
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeMemoryResources
+from warning_asserts import assert_warns
 
 from qualification.memory_need import (
     SWAP_DEFAULT_BYTES,
     SWAP_MAXIMUM_BYTES,
+    admissible_declaration_warnings,
     memory_warnings,
-    require_admissible_declaration,
     swap_needed_bytes,
     swap_warnings,
     usable_swap_bytes,
@@ -117,28 +118,38 @@ def test_contract_fields_serialize_only_when_set() -> None:
 def test_overshoot_at_the_usable_maximum_is_admitted_and_one_byte_past_never_fits() -> (
     None
 ):
-    require_admissible_declaration(declared(USABLE_MAX, SWAP_MAXIMUM_BYTES))
-    with pytest.raises(ValueError, match="can never fit"):
-        require_admissible_declaration(declared(USABLE_MAX + 1, SWAP_MAXIMUM_BYTES))
+    assert (
+        admissible_declaration_warnings(declared(USABLE_MAX, SWAP_MAXIMUM_BYTES)) == []
+    )
+    assert_warns(
+        admissible_declaration_warnings(declared(USABLE_MAX + 1, SWAP_MAXIMUM_BYTES)),
+        "can never fit",
+    )
 
 
 def test_minimum_swap_must_cover_the_overshoot_exactly() -> None:
     overshoot = 50 * GIB
     needed = swap_needed_bytes(overshoot)
-    require_admissible_declaration(declared(overshoot, needed))
-    with pytest.raises(ValueError, match="is below"):
-        require_admissible_declaration(declared(overshoot, needed - 1))
+    assert admissible_declaration_warnings(declared(overshoot, needed)) == []
+    assert_warns(
+        admissible_declaration_warnings(declared(overshoot, needed - 1)),
+        "is below",
+    )
 
 
 def test_a_load_peak_without_minimum_swap_is_refused() -> None:
-    with pytest.raises(ValueError, match="is below"):
-        require_admissible_declaration(recipe_with(load_peak_bytes=peak() + GIB))
+    assert_warns(
+        admissible_declaration_warnings(recipe_with(load_peak_bytes=peak() + GIB)),
+        "is below",
+    )
 
 
 def test_minimum_swap_cannot_exceed_the_policy_maximum() -> None:
-    require_admissible_declaration(declared(GIB, SWAP_MAXIMUM_BYTES))
-    with pytest.raises(ValueError, match="exceeds the .*swap maximum"):
-        require_admissible_declaration(declared(GIB, SWAP_MAXIMUM_BYTES + 1))
+    assert admissible_declaration_warnings(declared(GIB, SWAP_MAXIMUM_BYTES)) == []
+    assert_warns(
+        admissible_declaration_warnings(declared(GIB, SWAP_MAXIMUM_BYTES + 1)),
+        "exceeds the .*swap maximum",
+    )
 
 
 def test_warning_only_when_needed_swap_passes_the_default() -> None:

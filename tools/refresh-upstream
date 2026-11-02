@@ -78,6 +78,8 @@ APP_AUTH: Any = None
 SHA = re.compile(r"^[0-9a-f]{40}$")
 LABEL_NEEDS_REVIEW = "refresh:needs-review"
 LABEL_MECHANICAL = "refresh:mechanical"
+LABEL_MEMORY_ESTIMATE = "memory:estimate"
+MEMORY_ESTIMATE_TITLE = "Memory estimate mismatches"
 FAILED_CONCLUSIONS = {"FAILURE", "TIMED_OUT", "STARTUP_FAILURE", "ERROR"}
 # Full-suite verification takes minutes per recipe, so a run pushes (prepares) at most
 # this many new or updated PRs; the rest wait for the next run, which the publish
@@ -3792,13 +3794,15 @@ def close_stale_refresh_prs(
         summary.closed.append(f"{recipe_id}: PR #{pr['number']}")
 
 
-def review_issue(title: str, state: str) -> dict[str, Any] | None:
-    """The newest ``refresh:needs-review`` issue titled ``title`` in ``state``."""
+def review_issue(
+    title: str, state: str, label: str = LABEL_NEEDS_REVIEW
+) -> dict[str, Any] | None:
+    """The newest issue labelled ``label`` (default ``refresh:needs-review``) titled ``title`` in ``state``."""
     issues = gh_json(
         "issue",
         "list",
         "--label",
-        LABEL_NEEDS_REVIEW,
+        label,
         "--state",
         state,
         "--limit",
@@ -3810,36 +3814,74 @@ def review_issue(title: str, state: str) -> dict[str, Any] | None:
     return max(found, key=lambda i: int(i["number"])) if found else None
 
 
-def sync_issue(assessment: Assessment, summary: Summary, create: bool = True) -> None:
-    """Keep the recipe's one review issue showing the current assessment.
+def sync_titled_issue(
+    title: str,
+    render: Callable[[str | None], str],
+    label: str = LABEL_NEEDS_REVIEW,
+    create: bool = True,
+) -> None:
+    """Keep the one issue titled ``title`` showing ``render(previous body)``.
 
-    A recipe has one issue for life: when it needs review again, its closed issue is
-    reopened with the new body rather than a second issue opened. ``create=False``
-    only updates an open issue (a recipe that waits for an unreachable upstream).
+    A subject has one issue for life: when it needs attention again, its closed issue
+    is reopened with the new body rather than a second issue opened. ``create=False``
+    only updates an open issue.
     """
-    title = issue_title(assessment.recipe_id)
-    existing = review_issue(title, "open")
-    if existing is None and create and (closed := review_issue(title, "closed")):
+    existing = review_issue(title, "open", label)
+    if existing is None and create and (closed := review_issue(title, "closed", label)):
         gh("issue", "reopen", str(closed["number"]))
         existing = closed
     if existing is None and not create:
         return
-    body = issue_body(assessment, None if existing is None else existing["body"])
+    body = render(None if existing is None else existing["body"])
     if existing is None:
-        gh(
-            "issue",
-            "create",
-            "--title",
-            title,
-            "--body",
-            body,
-            "--label",
-            LABEL_NEEDS_REVIEW,
-        )
+        gh("issue", "create", "--title", title, "--body", body, "--label", label)
     elif (existing["body"] or "").strip() != body.strip():
         gh("issue", "edit", str(existing["number"]), "--body", body)
+
+
+def sync_issue(assessment: Assessment, summary: Summary, create: bool = True) -> None:
+    """Keep the recipe's one review issue showing the current assessment."""
+    sync_titled_issue(
+        issue_title(assessment.recipe_id),
+        lambda previous: issue_body(assessment, previous),
+        create=create,
+    )
     if assessment.reasons:
         summary.review.append(f"{assessment.recipe_id}: {assessment.reasons[0][:140]}")
+
+
+def command_memory_estimate_issue(report: Path) -> int:
+    """Keep the one memory-estimate issue current from ``check-recipe-memory-need --report``.
+
+    A body with findings opens or refreshes the issue; an empty report closes it.
+    """
+    body = report.read_text(encoding="utf-8")
+    gh(
+        "label",
+        "create",
+        LABEL_MEMORY_ESTIMATE,
+        "--color",
+        "fbca04",
+        "--description",
+        "Declared memory disagrees with the estimate; nothing blocks",
+        "--force",
+        check=False,
+    )
+    if body.strip():
+        sync_titled_issue(
+            MEMORY_ESTIMATE_TITLE, lambda _previous: body, LABEL_MEMORY_ESTIMATE
+        )
+    elif open_issue := review_issue(
+        MEMORY_ESTIMATE_TITLE, "open", LABEL_MEMORY_ESTIMATE
+    ):
+        gh(
+            "issue",
+            "close",
+            str(open_issue["number"]),
+            "--comment",
+            "No declared memory disagrees with the estimate any more.",
+        )
+    return 0
 
 
 def close_current_issues(
@@ -4342,12 +4384,20 @@ def main() -> int:
         action="store_true",
         help="only decide whether a chained refresh should proceed (needs gh, no App)",
     )
+    parser.add_argument(
+        "--memory-estimate-issue",
+        type=Path,
+        metavar="REPORT",
+        help="only keep the one memory-estimate issue current from this report (needs gh, no App)",
+    )
     parser.add_argument("--event", default="schedule")
     parser.add_argument("--run-id", type=int, default=0)
     parser.add_argument("--upstream-conclusion", default="success")
     arguments = parser.parse_args()
     if arguments.guard:
         return command_guard(arguments)
+    if arguments.memory_estimate_issue:
+        return command_memory_estimate_issue(arguments.memory_estimate_issue)
     if arguments.verify_app and not arguments.github_app:
         parser.error("--verify-app requires --github-app")
     global APP_AUTH

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-from qualification.memory_need import require_admissible_declaration
+from qualification.memory_need import admissible_declaration_warnings
 
 
 def read(path: Path) -> dict[str, object]:
@@ -38,7 +38,12 @@ class QwenImageEditVariantMatrixTests(unittest.TestCase):
         for path in sorted((ROOT / "recipes").glob("qwen-image-edit-2511-*.json")):
             recipe = read(path)
             with self.subTest(recipe=path.name):
-                require_admissible_declaration(RecipeDefinition.model_validate(recipe))
+                assert (
+                    admissible_declaration_warnings(
+                        RecipeDefinition.model_validate(recipe)
+                    )
+                    == []
+                )
                 validation: Any = recipe["validation"]
                 checks = validation["serving"]["checks"]
                 self.assertTrue(

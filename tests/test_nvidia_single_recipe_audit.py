@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
-from qualification.memory_need import require_admissible_declaration
+from qualification.memory_need import admissible_declaration_warnings
 
 SUPER_RECIPE = ROOT / "recipes/nemotron-3-super-120b-a12b-vllm-single.json"
 FLASH_RECIPE = ROOT / "recipes/nvidia-qwen-image-flash-diffusers-single.json"
@@ -86,7 +86,10 @@ class NvidiaSingleRecipeAuditTests(unittest.TestCase):
     def test_single_spark_memory_admission_and_representative_checks(self) -> None:
         for path in (SUPER_RECIPE, FLASH_RECIPE):
             recipe: dict[str, Any] = read(path)
-            require_admissible_declaration(RecipeDefinition.model_validate(recipe))
+            assert (
+                admissible_declaration_warnings(RecipeDefinition.model_validate(recipe))
+                == []
+            )
             self.assertGreaterEqual(len(recipe["validation"]["serving"]["checks"]), 1)
 
 

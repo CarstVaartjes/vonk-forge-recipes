@@ -321,11 +321,11 @@ The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` own
 admission, explanatory headroom and the 2 GiB platform floor. Every recipe and
 option variant, on every role, must pass its empty-target-pool check: peak plus platform floor fits the
 pool. `reserve_bytes` is informational and is never charged. Offline validation
-(`require_admissible_declaration`, `qualification/vllm_memory_fit.py`) charges
+(`admissible_declaration_warnings`, `qualification/vllm_memory_fit.py`) charges
 one idle host baseline, `ADMISSION_IDLE_USE_BYTES` (130,663,231,488 −
 126,600,000,000 idle-available bytes), calibrated on the proven set: the live
 Controller admitted proven 120,370,379,081-byte peaks on both Sparks of a dual.
-It proves declaration admissibility, not live fit.
+It estimates declaration admissibility; it does not prove live fit, and a mismatch is a warning.
 
 The Controller supplies observed host use, exact commitments, unmaterialized
 claims and unknown resident upper bounds to this same function. It does not
@@ -339,8 +339,9 @@ documents and digests do not change. Honest numbers only: `load_peak_bytes` is a
 measured peak with its citation, or source-backed; a measurement from a killed
 run is a lower bound and the recipe says so. `minimum_swap_bytes` is the
 creator's stated prerequisite, or the measured swap peak plus the guard margin,
-and is never lowered to fit. Offline validation (`require_admissible_declaration`)
-refuses a load overshoot above the usable part of the 128 GiB swap maximum
+and is never lowered to fit. The contract requires only its shape (`peak_bytes` at
+least 1, `load_peak_bytes` above `peak_bytes`, swap only with a load peak). Offline
+estimation (`admissible_declaration_warnings`) warns about a load overshoot above the usable part of the 128 GiB swap maximum
 (usable = max(0, min(total − max(2 GiB, 10% of total), 90% of total)), integer
 percent steps), a `minimum_swap_bytes` below what the overshoot needs (the
 smallest whole-GiB total) or above 128 GiB, and warns when the needed swap
@@ -351,14 +352,13 @@ exceeds the 64 GiB default. The constants are copied, with citation, in
 Change them only after a hardware failure, or deliberately with hardware retesting.
 
 **B.** New/failing recipes declare, per role, their honest measured peak
-(owner, 2026-10-27). It covers selected weights (including drafts), any
+(owner, 2026-10-27; the recipes are estimates until the hardware try measures them). It covers selected weights (including drafts), any
 absolute KV pool and runtime overhead; that loading floor is a lower bound, and
 where hardware evidence shows a role using more, its peak is that measured use
 (entrypoint and worker may differ). It must be admissible
-on an idle Spark. An honest peak that is not admissible means the recipe can
-never fit: report it; never shave the number. The guard is calibrated on the proven set, which
-`tests/test_absolute_kv_capacity.py` replays through the touched path for every
-proven vLLM/SGLang document. A KV pool holds at least one full-context request,
+on an idle Spark. An honest peak that is not admissible is an estimate; the
+try decides, so it warns and never blocks. Never shave the number. The
+estimate rules are calibrated on the proven set. A KV pool holds at least one full-context request,
 not declared context × engine concurrency: engines schedule requests within it.
 GLM DSA (sparse-MLA) pools count the indexer cache inside the same pool: bytes per
 token are (backbone + MTP layers) × the main record (656 fp8_ds_mla, 400
@@ -413,7 +413,7 @@ checks free memory ≥ utilization × total before loading weights.
 An absolute pool must also hold one request at the declared context (or the
 pinned model default when the engine context is omitted/automatic), including block rounding, packed scales
 and per-rank cache layout. Tensor parallelism shards GQA heads but does not
-halve replicated MLA latents. `require_absolute_kv_capacity` checks every option
+halve replicated MLA latents. `absolute_kv_warnings` checks every option
 combination; the multi-Spark startup invariant precedes the historical-content
 waiver. SGLang absolute token pools must hold one context too. TRT-LLM fractional
 pools are outside this absolute-pool check. Cache geometry binds configuration
@@ -477,11 +477,13 @@ Only new or changed recipe documents are subject to the need guard. An exact
 identifies existing content, regardless of its qualification outcome. The snapshot's
 `historical_sources` records its source commits; it is a content baseline, never
 hardware proof. Validation reads these committed identities without Git or remote
-refs. Changed content and new ids must satisfy the need guard; supplying an old
-digest cannot exempt modified recipe bytes or a modified parsed launch. Existing
-untested recipes produce informative **WARNING** lines in
-`tools/build-catalog-index` and `tools/check-recipe-memory-need`; estimates never
-rewrite them or assign a “does not fit” verdict. Qualification status comes only
+refs. Changed content and new ids are checked by the estimate rules (warnings); supplying an old
+digest cannot exempt modified recipe bytes or a modified parsed launch. Memory
+estimates (the envelope, loading floor, KV pool, startup budget, admissibility and
+swap rules) produce **WARNING** lines in `tools/build-catalog-index` and
+`tools/check-recipe-memory-need`, in the PR step summary, and on `main` in one
+“Memory estimate mismatches” issue; they never fail a build or a PR, rewrite a recipe
+or assign a “does not fit” verdict. Qualification status comes only
 from `qualification/evidence/` and the shared `derive_status` reducer. There is
 no second pass/failure list in memory inputs; that file contains numerical
 geometry, source references and the immutable content baseline only. Preserve all
@@ -490,13 +492,13 @@ unrelated recipe bytes.
 Repair unproven, unadmittable declarations by calculated need, preserving absolute
 cache requirements and bounding engine allocation (an absolute pool or an
 admissible engine fraction). The peak must fit the owner's idle capacity,
-which already subtracts host use; `reserve_bytes` is never charged. The catalog guard rejects changed
+which already subtracts host use; `reserve_bytes` is never charged. The catalog guard warns about changed
 declarations that exceed capacity despite a fitting need. Preserve proven bytes,
 calibrate against hardware passes, and leave unknown or oversized needs unresolved.
 
 Proven recipes are the calibration set. Run
 `tools/check-recipe-memory-need --calibrate` without exemptions before changing
-an estimator. The catalog loading floor must reject no proven recipe; engines
+an estimator. The catalog loading floor should flag no proven recipe; engines
 outside its vLLM/SGLang scope are reported explicitly. A loading floor does not
 prove full-context capacity, graph peaks, or runtime fit. Missing full-workload
 geometry is an unknown warning, never a hardware failure.

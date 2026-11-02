@@ -25,7 +25,7 @@ from vonk_forge_contracts import (
     document_sha256,
 )
 
-from qualification.memory_need import require_admissible_declaration
+from qualification.memory_need import admissible_declaration_warnings
 
 ADAPTER = ROOT / "adapters/video/wan-dancer-diffsynth-disk"
 RECIPE = ROOT / "recipes/wan-dancer-14b-disk-offload-pytorch-single.json"
@@ -123,7 +123,10 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
         self.assertEqual(memory["peak_bytes"], 118_000_000_000)
-        require_admissible_declaration(RecipeDefinition.model_validate(recipe))
+        assert (
+            admissible_declaration_warnings(RecipeDefinition.model_validate(recipe))
+            == []
+        )
 
         runtime = recipe["runtime"]
         self.assertEqual(

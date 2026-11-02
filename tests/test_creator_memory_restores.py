@@ -16,14 +16,15 @@ from catalog_documents import catalog_models
 from documents import recipe as load_recipe
 from documents import recipe_display
 from vonk_forge_contracts import RecipeDefinition, document_sha256
+from warning_asserts import assert_warns
 
 from qualification.memory_need import (
+    admissible_declaration_warnings,
     argument_value,
     load_inputs,
+    memory_estimate_warnings,
     memory_variants,
     per_rank_need,
-    require_admissible_declaration,
-    require_memory_need,
     vllm_utilization_envelope,
 )
 
@@ -362,31 +363,47 @@ def test_lowering_a_restored_peak_by_one_byte_is_refused() -> None:
     recipe = load_recipe(slug)
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
-    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    lower_below_requirement(recipe)
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(
+    assert (
+        memory_estimate_warnings(
             recipe, models, inputs, document_digest=digest, touched=True
         )
+        == []
+    )
+    lower_below_requirement(recipe)
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest=digest, touched=True
+        ),
+        "peak understates",
+    )
 
 
 def test_lowering_the_mia_gemma_26b_peak_by_one_byte_is_refused() -> None:
     recipe = load_recipe("gemma-4-26b-a4b-vllm-mia-single")
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
-    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    lower_below_requirement(recipe)
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(
+    assert (
+        memory_estimate_warnings(
             recipe, models, inputs, document_digest=digest, touched=True
         )
+        == []
+    )
+    lower_below_requirement(recipe)
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest=digest, touched=True
+        ),
+        "peak understates",
+    )
 
 
 def test_the_creators_gemma_31b_095_choice_can_never_be_admitted() -> None:
     document = load_recipe("gemma-4-31b-it-nvfp4-vllm-mia-single").model_dump(
         mode="json", by_alias=True
     )
-    require_admissible_declaration(RecipeDefinition.model_validate(document))
+    assert (
+        admissible_declaration_warnings(RecipeDefinition.model_validate(document)) == []
+    )
     option = next(item for item in document["options"] if item["name"] == "gpu-memory")
     option["choices"].append(
         {
@@ -410,8 +427,10 @@ def test_the_creators_gemma_31b_095_choice_can_never_be_admitted() -> None:
     )
     for role in widened.topology.roles:
         role.resources.memory.peak_bytes = peak
-    with pytest.raises(ValueError, match="not admissible"):
-        require_admissible_declaration(widened)
+    assert_warns(
+        admissible_declaration_warnings(widened),
+        "not admissible",
+    )
 
 
 @pytest.mark.parametrize(
@@ -427,22 +446,38 @@ def test_lowering_a_reap_single_peak_below_its_loading_floor_is_refused(
     models, inputs = catalog_models(), load_inputs()
     recipe = load_recipe(slug)
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
-    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
+    assert (
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest=digest, touched=True
+        )
+        == []
+    )
     floor = per_rank_need(recipe, models, inputs).peak_bytes
     below = load_recipe(slug)
     for role in below.topology.roles:
         role.resources.memory.peak_bytes = floor - 1
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(below, models, inputs, document_digest=digest, touched=True)
+    assert_warns(
+        memory_estimate_warnings(
+            below, models, inputs, document_digest=digest, touched=True
+        ),
+        "peak understates",
+    )
 
 
 def test_lowering_the_r0b0tlab_qwen36_single_peak_by_one_byte_is_refused() -> None:
     recipe = load_recipe("qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single")
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
-    require_memory_need(recipe, models, inputs, document_digest=digest, touched=True)
-    lower_below_requirement(recipe)
-    with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(
+    assert (
+        memory_estimate_warnings(
             recipe, models, inputs, document_digest=digest, touched=True
         )
+        == []
+    )
+    lower_below_requirement(recipe)
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest=digest, touched=True
+        ),
+        "peak understates",
+    )

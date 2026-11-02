@@ -1,12 +1,11 @@
 """vLLM's GPU budget excludes unified-memory overhead on each GB10 node."""
 
-import json
 import math
 from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
-from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts import RecipeDefinition
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
@@ -18,28 +17,12 @@ from qualification.memory_need import (
     cache_bytes,
     calculate_need,
     load_inputs,
-    require_memory_need,
+    memory_estimate_warnings,
     vllm_utilization_envelope,
 )
 from qualification.vllm_memory_fit import assert_memory_fit, loads_draft_model
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-@pytest.mark.parametrize(
-    "path", sorted((ROOT / "recipes").glob("*.json")), ids=lambda path: path.stem
-)
-def test_vllm_recipe_fits_each_target_node(path: Path) -> None:
-    document = json.loads(path.read_text())
-    recipe = RecipeDefinition.model_validate(document)
-    if recipe.runtime.engine != "vllm":
-        return
-    require_memory_need(
-        recipe,
-        catalog_models(),
-        load_inputs(),
-        document_digest=document_sha256(document),
-    )
 
 
 def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
@@ -50,7 +33,12 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
     )
     assert recipe.settings.kind == "generation"
     assert recipe.settings.context_tokens.value == 1_048_576
-    require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+    assert (
+        memory_estimate_warnings(
+            recipe, catalog_models(), load_inputs(), document_digest=""
+        )
+        == []
+    )
     need = calculate_need(recipe, catalog_models(), load_inputs())
     assert need.kv_bytes > 16 * 4 * (256 + 256) * 1_048_576
     # vLLM's one-request check (_check_enough_kv_cache_memory): each of the 48

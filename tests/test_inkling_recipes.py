@@ -255,11 +255,11 @@ def _static_demand(document: dict) -> Decimal | None:
 
 
 def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
-    """Run the changed-document guard; the empty digest skips the waiver."""
+    """The changed-document estimate warnings; the empty digest skips the waiver."""
     from catalog_documents import catalog_models
     from vonk_forge_contracts import RecipeDefinition
 
-    from qualification.memory_need import load_inputs, require_memory_need
+    from qualification.memory_need import load_inputs, memory_estimate_warnings
 
     document = load(path)
     arguments = document["runtime"]["arguments"]
@@ -273,16 +273,13 @@ def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
             arguments[:] = [item for item in arguments if item["name"] != name]
         else:
             next(item for item in arguments if item["name"] == name)["value"] = value
-    try:
-        require_memory_need(
-            RecipeDefinition.model_validate(document),
-            catalog_models(),
-            load_inputs(),
-            document_digest="",
-        )
-    except (TypeError, ValueError) as error:
-        return str(error)
-    return None
+    warnings = memory_estimate_warnings(
+        RecipeDefinition.model_validate(document),
+        catalog_models(),
+        load_inputs(),
+        document_digest="",
+    )
+    return "; ".join(warnings) or None
 
 
 def test_rank_budget_guard_accepts_the_new_settings() -> None:
@@ -579,23 +576,21 @@ def test_startup_room_boundary_is_the_replays_fifth_slot() -> None:
 
         from qualification.memory_need import (
             load_inputs,
-            require_sglang_rank_budget,
+            sglang_rank_budget_warnings,
         )
 
         document = load(KV_1M)
         for item in document["runtime"]["arguments"]:
             if item["name"] == "mem-fraction-static":
                 item["value"] = f"{Decimal(fraction):.12f}"
-        try:
-            require_sglang_rank_budget(
+        return bool(
+            sglang_rank_budget_warnings(
                 RecipeDefinition.model_validate(document),
                 catalog_models(),
                 load_inputs(),
                 "k",
             )
-        except ValueError:
-            return True
-        return False
+        )
 
     assert error(low)
     assert not error(high)

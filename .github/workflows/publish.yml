@@ -73,6 +73,38 @@ jobs:
           "$test_venv/bin/python" tools/build-catalog-index --release-dir "$RUNNER_TEMP/second"
           diff -r "$RUNNER_TEMP/first" "$RUNNER_TEMP/second"
 
+  # The recipes are estimates until the hardware try measures them: a PR token
+  # cannot edit issues, so the main run keeps one issue current. Nothing waits
+  # for it and it blocks nothing.
+  memory-estimates:
+    name: Keep the memory estimate issue current
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out recipes
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up uv and Python
+        uses: ./.github/actions/setup-tooling
+
+      - name: Report estimate mismatches and sync the one issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          venv="$RUNNER_TEMP/memory-venv"
+          uv venv --python 3.14 "$venv"
+          uv pip install --python "$venv/bin/python" -e contracts 'jsonschema>=4.24,<5'
+          "$venv/bin/python" tools/check-recipe-memory-need --report "$RUNNER_TEMP/memory-estimates.md"
+          "$venv/bin/python" tools/refresh-upstream --memory-estimate-issue "$RUNNER_TEMP/memory-estimates.md"
+
   # Promote PR-proven content digests; build only keys without a candidate
   # through the same planner, build and smoke path.
   images:
