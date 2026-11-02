@@ -666,6 +666,7 @@ class FakeFleet:
             selected is app
             or selected["profile"] != app["profile"]
             or selected["state"] not in ("queued", "running")
+            or selected.get("admission_pending")  # not selected yet
             or selected.get("cancel")
             or app.get("cancel")
         ):
@@ -709,7 +710,12 @@ class FakeFleet:
                                 for node in item["node_ids"]
                             ]
                         },
-                        "result": {"run_switch": {"failed_phase": item["phase"]}},
+                        "result": {
+                            "run_switch": {
+                                "failed_phase": item["phase"],
+                                "failure_code": "recipe_start_failed",
+                            }
+                        },
                     }
                 )
         return rows
@@ -1385,7 +1391,7 @@ class FakeFleet:
                 # continuing_effects.py: the continuing effects belong to the newer
                 # selected request (FleetProfileInvalid CONFLICT, cancellation.py).
                 return self._error(
-                    "controller.invalid_request",
+                    "profile.request_invalid",
                     "Profile effects belong to a newer selected request; "
                     "cancel that application instead",
                 )
