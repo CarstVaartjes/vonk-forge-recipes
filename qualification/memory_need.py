@@ -175,6 +175,7 @@ VLLM_UNMODELED_HYBRID = {
     # CircularBufferSpec ring, an MLA compressed-key cache and an MTP QSA
     # layer; its sfxnz dual is proven (9f77f966) on this hand bound.
     "qwen3-8-flash-next-nvfp4-fab0aecb": "Qwen4Exp on vLLM v0.30.0",
+    "qwen3-8-flash-next-nvfp4-lil-6c01ac37": "Qwen4Exp on the eugr b12x vLLM image",
     # Sliding-window plus short-convolution layers on creator images whose
     # vLLM Inkling layout is not pinned; SGLang-measured state.
     "inkling-small-nvfp4": "Inkling short convolution on creator images",
@@ -303,6 +304,10 @@ class MemoryInputs(BaseModel):
     disk_resident_bytes: dict[str, int] = Field(default_factory=dict)
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
+    # Qwen4Exp PLE table storage dtype by model configuration digest. A
+    # configuration naming none is bfloat16 (b12x getattr default), which b12x
+    # resolves to the io_uring disk table unless VLLM_PLE_TABLE_MEMORY is set.
+    ple_embedding_dtypes: dict[str, str] = Field(default_factory=dict)
 
 
 PLE_DISK_READ_ENVIRONMENT = "QWEN4EXP_PLE_MMAP"

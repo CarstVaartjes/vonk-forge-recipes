@@ -296,12 +296,25 @@ hardcodes a setting, align its implementation with the declared setting.
 The workload sandbox deliberately blocks io_uring. Recipes, option choices and
 image launchers must use a loader with a verified non-io_uring path: standard
 safetensors, InstantTensor automatic/AIO or BUFFERED/MMAP selection (never
-URING-only), or b12x disk PLE/Engram with `B12X_DISK_BACKEND=gds` and
-`CUFILE_FORCE_COMPAT_MODE=true` (requires cuFile >= 1.14 development files).
-Older b12x images without that backend need a tested POSIX reader replacement;
-never request relaxed seccomp. Enforce image-owned transport policy in the
-launcher before exec, including when a kit declares an unsafe backend. b12x
-defaults PLE BF16 tables and disk Engram to io_uring even when no backend is specified.
+URING-only), or the b12x image's PLE table in RAM. On the b12x image
+(`eugr/spark-vllm-b12x`) the Qwen PLE table is `disk` (io_uring) when
+`VLLM_PLE_TABLE_MEMORY=disk` and also when the variable is unset for a
+bfloat16 PLE checkpoint (`qualification/memory-inputs.json`
+`ple_embedding_dtypes`, keyed by the config digest; absent means bfloat16);
+unset is fine for a non-bfloat16 checkpoint, which resolves to the device
+table. The disk table needs io_uring (blocked by the sandbox) or direct GDS
+(needs a real nvidia-fs; `CUFILE_FORCE_COMPAT_MODE` is rejected with cuFile
+error 5027), so set `VLLM_PLE_TABLE_MEMORY=shared`. The table then counts
+inside the vLLM memory budget: raise utilization to the admission maximum;
+change the context only on evidence. A disk Engram table (`engram-config`
+`table_memory: disk`), or any disk table on an image that is not the b12x
+image, needs an image that installs a tested POSIX reader (see
+`adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c`). The recipe loader test
+(`tests/test_recipe_sandbox_loaders.py`) enforces both by the recipe's base
+image. Never request relaxed seccomp. Enforce image-owned transport policy in
+the launcher before exec, including when a kit declares an unsafe backend. b12x
+defaults a bfloat16 PLE table and a disk Engram table to io_uring even when no
+backend is specified.
 The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
 I/O on GB10; `B12X_DISK_BACKEND` does not control it. Use `--load-format safetensors`
 at the image launcher handoff for checkpoint loading while retaining the B12X

@@ -493,7 +493,7 @@
       },
       {
         "name": "gpu-memory-utilization",
-        "value": 0.8
+        "value": 0.89
       },
       {
         "name": "max-model-len",
@@ -513,11 +513,7 @@
     "environment": [
       {
         "name": "VLLM_PLE_TABLE_MEMORY",
-        "value": "disk"
-      },
-      {
-        "name": "B12X_DISK_BACKEND",
-        "value": "io_uring"
+        "value": "shared"
       },
       {
         "name": "CUTE_DSL_ARCH",
@@ -623,7 +619,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 113000000000,
+            "peak_bytes": 124290276025,
             "reserve_bytes": 8000000000
           }
         }

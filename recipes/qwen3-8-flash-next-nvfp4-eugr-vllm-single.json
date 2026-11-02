@@ -762,7 +762,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.8"
+        "value": "0.905"
       }
     ],
     "engine": "vllm",
@@ -774,7 +774,7 @@
     "environment": [
       {
         "name": "VLLM_PLE_TABLE_MEMORY",
-        "value": "disk"
+        "value": "shared"
       },
       {
         "name": "CUTE_DSL_ARCH",
@@ -859,7 +859,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
+            "peak_bytes": 124450224497,
             "reserve_bytes": 8000000000
           }
         }

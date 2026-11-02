@@ -642,6 +642,18 @@
       "state_bytes_per_request": 167772160,
       "value_dim": 256
     },
+    "qwen3-8-flash-next-nvfp4-lil-6c01ac37": {
+      "architecture": "Qwen4ExpForConditionalGeneration",
+      "configuration_sha256": "fffcfb4bd7870c52cb0359b3a1f541b3b95465cc5fa427407e0e704b6e740fc1",
+      "key_dim": 256,
+      "kv_heads": 2,
+      "layers": 12,
+      "max_context_tokens": 262144,
+      "replicated_token_bytes": 768,
+      "source": "https://huggingface.co/local-inference-lab/Qwen3.8-Flash-Next-NVFP4/resolve/6c01ac378d22f6652c9f392c87700496eca8e5dc/config.json; full-attention layers only: 12 layers x 2 KV heads x head dim 256 (key and value), FP8 KV cache, about 12.3 KB/token, plus the indexer bound (12 layers x indexer_kv_heads=1 x indexer_head_dim=128 x 2 bytes / indexer_compress_ratio=4 = 768 replicated bytes/token) and the MTP drafter layer. Per-request state bound 160 MiB, the same hand bound as the fab0aecb entry (same linear dimensions; Qwen4Exp adds cache types the recurrent formula does not express).",
+      "state_bytes_per_request": 167772160,
+      "value_dim": 256
+    },
     "qwen3-8-flash-next-nvfp4-w4a16-sm121-8b73dc60": {
       "architecture": "Qwen4ExpForConditionalGeneration",
       "configuration_sha256": "f4d6ee20273ad4358652b53cafefe4466bb9bb6b0777f78c7058e2d142f35266",
@@ -1357,13 +1369,13 @@
       "d4df0bb1a04fbb28f6ae3afff7304e12539835b6ac3ee6af94babae00f6eb67b"
     ],
     "vonk-forge/qwen3-8-flash-next-fp4-local-vcruz-vllm-single": [
-      "8a3ec582e98cf418ad913fe0a45d1302cbbced12d0ede6c2ab895bca75dbf314"
+      "8f130bc01594bd2f2d5b543720068c31e4c2e47db10d72a9be458d7720e91478"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-eugr-vllm-dual": [
       "611400e5bbffd032af83c7c52b6d150650b69aace1e89cd47951d548b0937165"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-eugr-vllm-single": [
-      "ab948a875af38d1b1373a7a288a466192aab4891f154004da7be532490fea540"
+      "937f28f1b12823650feb4aed5dd9fb18643166d6e8c37928c5b38e589211f3e8"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-r0b0tlab-sglang-single": [
       "c9fb6d1f027267955fa79bfabb3df39314515cfaa96be06eb28fa20c16699c7f"
@@ -1436,6 +1448,10 @@
     "vonk-forge/xyz-aquila-mini-nvfp4-r0b0tlab-vllm-single": [
       "42f7f98918442836b337636d0a880a0758d4848ed031076c91e03810f4387d35"
     ]
+  },
+  "ple_embedding_dtypes": {
+    "b50dbc52a0c83b0cd2a44a372c1fb6b5e0e6827d22f2611c97d4d030f92f6b28": "nvfp4",
+    "fffcfb4bd7870c52cb0359b3a1f541b3b95465cc5fa427407e0e704b6e740fc1": "nvfp4"
   },
   "historical_sources": [
     "2baabeecab328eed03d63317f3c66bd35b21f412",
