@@ -81,6 +81,27 @@
           "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
           "b60b82a99f796b592cf77c5beec52096ec65ee285ff12dddd6a6964e074c548e"
         ],
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "866a7ae6b59cd7a94a37857d4f3c6a7e693c589b0b047d27da04d059f1f57bfb"
+      ],
+      "tested_at": "2026-10-21T00:02:18.378059Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "c87956f96ff76c5b1361e00de15daf97ef38903b1d82d487b8c758c21df1e721",
+        "model_digests": [
+          "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+          "b60b82a99f796b592cf77c5beec52096ec65ee285ff12dddd6a6964e074c548e"
+        ],
         "required_sparks": 1,
         "models_resolved": true
       },
