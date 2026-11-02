@@ -1,0 +1,212 @@
+#!/usr/bin/env python3
+"""Reject a new test that gates on a REAL recipe's declared memory.
+
+The recipes are estimates until the hardware try measures them. A test that loads
+a real recipe and asserts that an estimate rule does not warn
+(``assert_not_warns(...)`` or ``assert <estimate call> == []``) fails the next
+recipe PR that declares a higher but valid peak. Such a test must overwrite the
+declaration it asserts on (``peak_bytes``) before the assertion, so it judges the
+rule on a synthetic declaration, not on the catalog.
+
+Only lines added since the merge base with ``--base`` are checked (``--all`` audits
+whole files). There is no count and no allowlist. An estimate call is a call to a
+function named ``*_warnings`` or to a local helper that returns one.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import importlib.machinery
+import importlib.util
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+LOADER_CALLS = frozenset({"recipe", "read_recipe", "recipe_for", "load_recipe"})
+PEAK = "peak_bytes"
+PEAK_SETTERS = frozenset({"declare_peak"})
+
+
+def _reads() -> object:
+    path = ROOT / "tools/check-document-reads"
+    loader = importlib.machinery.SourceFileLoader("check_document_reads", str(path))
+    spec = importlib.util.spec_from_loader(loader.name, loader)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def call_name(call: ast.Call) -> str:
+    func = call.func
+    return func.id if isinstance(func, ast.Name) else getattr(func, "attr", "")
+
+
+def local_calls(function: ast.FunctionDef) -> set[str]:
+    return {call_name(n) for n in ast.walk(function) if isinstance(n, ast.Call)}
+
+
+def closure(functions: dict[str, ast.FunctionDef], seed) -> set[str]:
+    """Local functions that satisfy ``seed`` directly or by calling one that does."""
+    found = {name for name, fn in functions.items() if seed(fn)}
+    while True:
+        more = {
+            name
+            for name, fn in functions.items()
+            if name not in found and local_calls(fn) & found
+        }
+        if not more:
+            return found
+        found |= more
+
+
+def names_real_recipe(function: ast.FunctionDef) -> bool:
+    for node in ast.walk(function):
+        if (
+            isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and (node.value == "recipes" or "recipes/" in node.value)
+        ):
+            return True
+        if isinstance(node, ast.Call) and call_name(node) in LOADER_CALLS:
+            return True
+    return False
+
+
+def assigns_peak(node: ast.AST) -> bool:
+    for child in ast.walk(node):
+        if isinstance(child, ast.keyword) and child.arg == PEAK:
+            return True
+        if isinstance(child, ast.Dict) and any(
+            isinstance(k, ast.Constant) and k.value == PEAK for k in child.keys
+        ):
+            return True
+        targets = (
+            child.targets
+            if isinstance(child, ast.Assign)
+            else [child.target]
+            if isinstance(child, ast.AugAssign)
+            else []
+        )
+        for target in targets:
+            if isinstance(target, ast.Attribute) and target.attr == PEAK:
+                return True
+            if (
+                isinstance(target, ast.Subscript)
+                and isinstance(target.slice, ast.Constant)
+                and target.slice.value == PEAK
+            ):
+                return True
+    return False
+
+
+def is_estimate_call(node: ast.AST, estimate: set[str]) -> bool:
+    return isinstance(node, ast.Call) and call_name(node) in estimate
+
+
+def gate_lines(function: ast.FunctionDef, estimate: set[str]) -> list[int]:
+    lines = []
+    for node in ast.walk(function):
+        if isinstance(node, ast.Call) and call_name(node) == "assert_not_warns":
+            lines.append(node.lineno)
+        elif isinstance(node, ast.Assert):
+            test = node.test
+            if (
+                isinstance(test, ast.Compare)
+                and len(test.ops) == 1
+                and is_estimate_call(test.left, estimate)
+                and (
+                    (
+                        isinstance(test.ops[0], ast.Eq)
+                        and isinstance(test.comparators[0], ast.List)
+                        and not test.comparators[0].elts
+                    )
+                    or (
+                        isinstance(test.ops[0], ast.Is)
+                        and isinstance(test.comparators[0], ast.Constant)
+                        and test.comparators[0].value is None
+                    )
+                )
+            ):
+                lines.append(node.lineno)
+    return lines
+
+
+def scan(source: str, added: set[int] | None) -> list[tuple[int, str]]:
+    tree = ast.parse(source)
+    functions = {n.name: n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
+    called = {call_name(n) for n in ast.walk(tree) if isinstance(n, ast.Call)}
+    estimate = {n for n in called | set(functions) if n.endswith("_warnings")}
+    estimate |= closure(functions, lambda fn: bool(local_calls(fn) & estimate))
+    setters = (
+        closure(
+            functions,
+            lambda fn: assigns_peak(fn) or bool(local_calls(fn) & PEAK_SETTERS),
+        )
+        | PEAK_SETTERS
+    )
+    hits = []
+    for name, function in functions.items():
+        if not name.startswith("test"):
+            continue
+        for line in gate_lines(function, estimate):
+            if added is not None and line not in added:
+                continue
+            prior = [
+                n
+                for n in ast.walk(function)
+                if isinstance(n, ast.stmt)
+                and n is not function
+                and (
+                    n.end_lineno is not None
+                    and (
+                        n.end_lineno < line
+                        if isinstance(n, ast.If | ast.For | ast.While | ast.With)
+                        else n.lineno <= line
+                    )
+                )
+                and (assigns_peak(n) or bool(local_calls(n) & setters))  # type: ignore[arg-type]
+            ]
+            if not prior:
+                hits.append(
+                    (
+                        line,
+                        (
+                            f"{name}: estimate gate on a real recipe without first "
+                            f"assigning its {PEAK}; build the declaration synthetically"
+                        ),
+                    )
+                )
+    return hits
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--base", help="check lines added since the merge base")
+    group.add_argument("--all", action="store_true", help="audit whole test files")
+    arguments = parser.parse_args()
+    reads = _reads()
+    failed = False
+    if arguments.all:
+        targets: dict[str, set[int] | None] = {
+            p.relative_to(ROOT).as_posix(): None
+            for p in sorted((ROOT / "tests").glob("test_*.py"))
+        }
+    else:
+        changed = reads.added_lines(ROOT, arguments.base)  # type: ignore[attr-defined]
+        targets = {
+            p: lines
+            for p, lines in changed.items()
+            if p.startswith("tests/") and p.endswith(".py")
+        }
+    for path, added in targets.items():
+        for line, message in scan((ROOT / path).read_text(encoding="utf-8"), added):
+            print(f"{path}:{line}: {message}")
+            failed = True
+    return int(failed)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

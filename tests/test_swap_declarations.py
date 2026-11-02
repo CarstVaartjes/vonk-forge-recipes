@@ -27,6 +27,9 @@ GIB = 1024**3
 USABLE_MAX = usable_swap_bytes(SWAP_MAXIMUM_BYTES)
 
 
+PEAK = 100_000_000_000
+
+
 def document() -> dict[str, Any]:
     path = ROOT / "recipes" / f"{SLUG}.json"
     return json.loads(path.read_text())
@@ -35,12 +38,15 @@ def document() -> dict[str, Any]:
 def recipe_with(**memory: int) -> RecipeDefinition:
     value = document()
     for role in value["topology"]["roles"]:
+        role["resources"]["memory"]["peak_bytes"] = PEAK
+        role["resources"]["memory"].pop("load_peak_bytes", None)
+        role["resources"]["memory"].pop("minimum_swap_bytes", None)
         role["resources"]["memory"].update(memory)
     return RecipeDefinition.model_validate(value)
 
 
 def peak() -> int:
-    return document()["topology"]["roles"][0]["resources"]["memory"]["peak_bytes"]
+    return PEAK
 
 
 def declared(overshoot: int, swap: int) -> RecipeDefinition:

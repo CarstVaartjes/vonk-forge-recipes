@@ -12,7 +12,7 @@ from documents import recipe as document_recipe
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
-from warning_asserts import assert_not_warns, assert_warns
+from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
@@ -80,6 +80,7 @@ def test_explicit_and_model_default_context_have_the_same_need(context) -> None:
 
 def test_pool_boundary_and_wrapper_alias_are_checked() -> None:
     recipe = recipe_for()
+    declare_peak(recipe)
     need = absolute_kv_need(recipe, catalog_models(), load_inputs())
     pool = next(
         arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
@@ -143,6 +144,7 @@ def test_geometry_must_match_selected_configuration() -> None:
 
 def test_sglang_token_pool_must_hold_one_context() -> None:
     recipe = recipe_for("deepseek-v4-1-flash-1017-mia-sglang-triple")
+    declare_peak(recipe)
     context = argument_value(recipe, "context-length")
     assert isinstance(context, int)
     pool = next(
@@ -225,6 +227,7 @@ def declare_envelope(recipe: RecipeDefinition) -> None:
 
 def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None:
     recipe = recipe_for(LAGUNA)
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     assert_not_warns(
         memory_estimate_warnings(
@@ -369,6 +372,7 @@ def test_recorded_fraction_is_rejected_on_the_current_capped_glm_a0() -> None:
     # fa86311a's 0.75 cannot hold the weights and 14 GB expansion even with
     # today's 8,192-token and 2-slot caps; the document's 0.85 can.
     recipe = recipe_for("glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single")
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     assert_not_warns(
         memory_estimate_warnings(
@@ -390,6 +394,7 @@ def test_recorded_fraction_is_rejected_on_the_current_capped_glm_a0() -> None:
 def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> None:
     # Proven (9b60b9a7): one 262,144-token context capped at concurrency 4.
     recipe = recipe_for(QWEN_NEXT)
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     assert recipe.settings.kind == "generation"
     assert recipe.settings.concurrency is not None
@@ -420,6 +425,7 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
     )
     # The state cap holds five slots for each of the four running requests.
     recipe = recipe_for(QWEN_NEXT)
+    declare_peak(recipe)
     slots = next(
         arg for arg in recipe.runtime.arguments if arg.name == "max-mamba-cache-size"
     )
@@ -610,6 +616,7 @@ def creator_glm_recipe(
     slug: str, dtype: str, context: int, pool: int
 ) -> RecipeDefinition:
     recipe = document_recipe(slug)
+    declare_peak(recipe)
     assert recipe.settings.kind == "generation"
     recipe.settings.context_tokens.value = context
     set_pool(recipe, pool)

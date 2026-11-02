@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
-from warning_asserts import assert_not_warns
+from warning_asserts import assert_not_warns, declare_peak
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
@@ -31,6 +31,7 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
             ROOT / "recipes/qwen3-8-27b-aday777-abliterated-drowzeys-vllm-single.json"
         ).read_text()
     )
+    declare_peak(recipe)
     assert recipe.settings.kind == "generation"
     assert recipe.settings.context_tokens.value == 1_048_576
     assert_not_warns(

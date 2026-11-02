@@ -6,7 +6,7 @@ import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeRuntimeEnvironment
-from warning_asserts import assert_warns
+from warning_asserts import assert_warns, declare_peak
 
 from qualification.memory_need import (
     LIMIT_BYTES,
@@ -36,6 +36,7 @@ def recipe_for(slug: str) -> RecipeDefinition:
 @pytest.mark.parametrize("slug", RECIPES)
 def test_capacity_profiles_declare_the_loading_floor(slug: str) -> None:
     recipe = recipe_for(slug)
+    declare_peak(recipe)
     variants = [recipe]
     variants.extend(
         recipe.with_option_choices({option.name: choice.value})
@@ -58,6 +59,7 @@ def test_capacity_profiles_declare_the_loading_floor(slug: str) -> None:
 def test_guard_rejects_hidden_demand(slug: str, rank: int) -> None:
     recipe = recipe_for(slug)
     need = per_rank_need(recipe, catalog_models(), load_inputs())
+    declare_peak(recipe, need.peak_bytes)
     memory = recipe.topology.roles[rank].resources.memory
     memory.peak_bytes = need.peak_bytes - 1
     assert any("peak understates" in p for p in declaration_problems(recipe, need))

@@ -2999,6 +2999,15 @@ def verify_steps() -> list[tuple[str, list[str]]]:
             ],
         ),
         (
+            "estimate gates",
+            [
+                sys.executable,
+                "tools/check-estimate-gates",
+                "--base",
+                "origin/main",
+            ],
+        ),
+        (
             "full test suite",
             [
                 sys.executable,

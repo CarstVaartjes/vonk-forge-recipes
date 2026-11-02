@@ -10,7 +10,7 @@ from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
-from warning_asserts import assert_not_warns, assert_warns
+from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
@@ -118,6 +118,7 @@ def test_guard_rejects_pool_drift(value: str, match: str) -> None:
 def test_pool_holds_one_request_at_any_engine_concurrency() -> None:
     # vLLM schedules sequences within the pool: concurrency does not size it.
     recipe = llama()
+    declare_peak(recipe)
     argument = next(
         item for item in recipe.runtime.arguments if item.name == "max-num-seqs"
     )
@@ -247,6 +248,7 @@ def test_unknown_new_model_requires_source_backed_geometry() -> None:
 
 def test_single_spark_sglang_token_cap_holds_one_request() -> None:
     recipe = llama()
+    declare_peak(recipe)
     recipe.runtime.engine = "sglang"
     next(
         item for item in recipe.runtime.arguments if item.name == "max-model-len"
@@ -413,6 +415,7 @@ def test_a_drafter_is_charged_inside_the_vllm_budget() -> None:
     recipe = RecipeDefinition.model_validate_json(
         (ROOT / "recipes/qwen3-8-27b-nvfp4-dflash2-eugr-vllm-single.json").read_text()
     )
+    declare_peak(recipe)
     models = catalog_models()
 
     def touched() -> list[str]:
@@ -463,12 +466,6 @@ def test_multispark_delegates_every_role_even_for_historical_identity(
     document = json.loads((ROOT / "recipes" / f"{slug}.json").read_text())
     recipe = RecipeDefinition.model_validate(document)
     digest = document_sha256(document)
-    assert (
-        memory_estimate_warnings(
-            recipe, catalog_models(), INPUTS, document_digest=digest
-        )
-        == []
-    )
     worker = recipe.topology.roles[-1]
     worker.resources.memory.peak_bytes = 0
     assert_warns(
@@ -490,6 +487,7 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
             ROOT / "recipes/glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single.json"
         ).read_text()
     )
+    declare_peak(recipe)
     args = {item.name: item.value for item in recipe.runtime.arguments}
     concurrency = int(str(argument_value(recipe, "max-running-requests")))
     context = int(str(argument_value(recipe, "context-length")))
@@ -580,6 +578,9 @@ def test_glm_hybrid_cache_profiles_without_autosizing_the_physical_pools() -> No
         sizer._profile_available_bytes(120)
 
 
+GLM_A0_PEAK = 108_629_500_270
+
+
 def glm_a0() -> RecipeDefinition:
     return RecipeDefinition.model_validate_json(
         (
@@ -603,6 +604,7 @@ def test_capped_sglang_guard_rejects_restored_large_pools(
     name: str, value: int | str, match: str
 ) -> None:
     recipe = glm_a0()
+    declare_peak(recipe, GLM_A0_PEAK)
     assert (
         memory_estimate_warnings(
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
@@ -622,6 +624,7 @@ def test_capped_sglang_pools_are_admitted_by_need_not_by_fraction() -> None:
     """The fraction gates only rest > 0 when both pools are capped (SGLang
     kv_cache_configurator): a capped recipe at 0.95 takes need + overhead."""
     recipe = glm_a0()
+    declare_peak(recipe, GLM_A0_PEAK)
     next(
         item for item in recipe.runtime.arguments if item.name == "mem-fraction-static"
     ).value = "0.95"
@@ -664,6 +667,7 @@ def test_hybrid_without_mamba_cap_stays_on_the_fraction_model() -> None:
             ROOT / "recipes/nemotron-3-5-lightning-r0b0tlab-sglang-eagle-single.json"
         ).read_text()
     )
+    declare_peak(recipe, 100_000_000_000)
     assert argument_value(recipe, "max-total-tokens") is not None
     assert (
         sglang_capped_static_need(recipe, catalog_models(), INPUTS, "nemotron") is None

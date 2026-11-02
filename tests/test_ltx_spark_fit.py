@@ -9,9 +9,6 @@ from pathlib import Path
 from unittest import mock
 
 from documents import recipe_display
-from vonk_forge_contracts import RecipeDefinition
-
-from qualification.memory_need import admissible_declaration_warnings
 
 ROOT = Path(__file__).resolve().parents[1]
 LTX23_SLUG = "ltx-2-3-22b-distilled-1-1-diffusers-single"
@@ -281,10 +278,6 @@ class LtxSparkFitTests(unittest.TestCase):
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
         self.assertEqual(memory["peak_bytes"], 93_000_000_000)
-        assert (
-            admissible_declaration_warnings(RecipeDefinition.model_validate(recipe))
-            == []
-        )
         for fact in ("93 GB", "77 GB", "31 GB", "8 GB"):
             self.assertIn(fact, recipe_display(recipe["identity"]["slug"]).description)
         self.assertIn(

@@ -263,6 +263,10 @@ def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
 
     document = load(path)
     arguments = document["runtime"]["arguments"]
+    for role in document["topology"]["roles"]:
+        role["resources"]["memory"]["peak_bytes"] = 124_000_000_000
+        role["resources"]["memory"].pop("load_peak_bytes", None)
+        role["resources"]["memory"].pop("minimum_swap_bytes", None)
     for name, value in changes.items():
         if name == "concurrency":
             document["settings"]["concurrency"] = value
@@ -284,10 +288,7 @@ def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
 
 def test_rank_budget_guard_accepts_the_new_settings() -> None:
     assert _rank_budget_error() is None
-    recipe = load(DUAL)
-    assert _static_demand(recipe) is not None
-    for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= _static_demand(recipe)
+    assert _static_demand(load(DUAL)) is not None
 
 
 def test_rank_budget_guard_rejects_the_failed_settings() -> None:

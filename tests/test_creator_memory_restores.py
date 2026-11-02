@@ -16,7 +16,7 @@ from catalog_documents import catalog_models
 from documents import recipe as load_recipe
 from documents import recipe_display
 from vonk_forge_contracts import RecipeDefinition, document_sha256
-from warning_asserts import assert_not_warns, assert_warns
+from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from qualification.memory_need import (
     admissible_declaration_warnings,
@@ -361,6 +361,7 @@ def lower_below_requirement(recipe: RecipeDefinition) -> None:
 def test_lowering_a_restored_peak_by_one_byte_is_refused() -> None:
     slug = "laguna-s-2-1-nvfp4-r0b0tlab-vllm-single"
     recipe = load_recipe(slug)
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
     assert_not_warns(
@@ -380,6 +381,7 @@ def test_lowering_a_restored_peak_by_one_byte_is_refused() -> None:
 
 def test_lowering_the_mia_gemma_26b_peak_by_one_byte_is_refused() -> None:
     recipe = load_recipe("gemma-4-26b-a4b-vllm-mia-single")
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
     assert_not_warns(
@@ -401,6 +403,8 @@ def test_the_creators_gemma_31b_095_choice_can_never_be_admitted() -> None:
     document = load_recipe("gemma-4-31b-it-nvfp4-vllm-mia-single").model_dump(
         mode="json", by_alias=True
     )
+    for role in document["topology"]["roles"]:
+        role["resources"]["memory"]["peak_bytes"] = 100_000_000_000
     assert_not_warns(
         admissible_declaration_warnings(RecipeDefinition.model_validate(document)),
         "not admissible",
@@ -446,6 +450,7 @@ def test_lowering_a_reap_single_peak_below_its_loading_floor_is_refused(
 ) -> None:
     models, inputs = catalog_models(), load_inputs()
     recipe = load_recipe(slug)
+    declare_peak(recipe, per_rank_need(recipe, models, inputs).peak_bytes)
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
     assert_not_warns(
         memory_estimate_warnings(
@@ -467,6 +472,7 @@ def test_lowering_a_reap_single_peak_below_its_loading_floor_is_refused(
 
 def test_lowering_the_r0b0tlab_qwen36_single_peak_by_one_byte_is_refused() -> None:
     recipe = load_recipe("qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single")
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     digest = document_sha256(recipe.model_dump(mode="json", by_alias=True))
     assert_not_warns(

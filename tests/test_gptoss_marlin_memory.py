@@ -9,7 +9,7 @@ from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
-from warning_asserts import assert_not_warns, assert_warns
+from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
@@ -40,7 +40,7 @@ def test_full_context_need_and_absolute_pool_replace_the_failed_fraction():
     assert argument_value(recipe, "max-num-batched-tokens") == 2048
     assert argument_value(recipe, "gpu-memory-utilization") == "0.649858"
     assert argument_value(recipe, "kv-cache-memory-bytes") == need.kv_bytes
-    assert recipe.topology.roles[0].resources.memory.peak_bytes == need.total_bytes
+    declare_peak(recipe, need.total_bytes)
     assert_not_warns(
         memory_estimate_warnings(recipe, catalog_models(), inputs, document_digest=""),
         "absolute kv-cache-memory-bytes",

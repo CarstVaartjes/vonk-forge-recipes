@@ -11,11 +11,10 @@ import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import (
     RecipeDefinition,
-    document_sha256,
 )
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
-from warning_asserts import assert_not_warns, assert_warns
+from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
@@ -128,6 +127,7 @@ def test_repaired_role_declares_its_measured_peak_above_the_floor() -> None:
 def test_sglang_rank_budget_refuses_the_shaved_fraction(slug: str, shaved: str) -> None:
     """#1647 cut the fraction below the per-rank weights plus one request's pools."""
     recipe = recipe_for(slug)
+    declare_peak(recipe)
     key = f"vonk-forge/{slug}"
     assert_not_warns(
         sglang_rank_budget_warnings(recipe, catalog_models(), load_inputs(), key),
@@ -158,6 +158,7 @@ def test_original_deferral_fails_before_any_controller_operation(rank: int) -> N
 
 def test_static_budget_drift_cannot_hide_behind_a_smaller_declaration() -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
+    declare_peak(recipe, 112_530_585_191)
     next(
         a for a in recipe.runtime.arguments if a.name == "mem-fraction-static"
     ).value = "0.85"
@@ -174,6 +175,7 @@ def test_repaired_deferral_uses_shared_admission_with_owned_idle_host() -> None:
     # Proven 120,370,379,081-byte peaks were admitted live; the offline host
     # baseline must admit them too (it is not the estimator's 3542 incident).
     assert ADMISSION_IDLE_USE_BYTES <= TOTAL_BYTES - OS_FLOOR_BYTES - 120_370_379_081
+    declare_peak(recipe, 112_530_585_191)
     for role in recipe.topology.roles:
         assert role.resources.memory.peak_bytes == 112_530_585_191
         assert evaluate_memory_admission(
@@ -231,13 +233,8 @@ def test_recorded_content_precedes_admission(monkeypatch) -> None:
     from qualification import memory_need
 
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
-    document = json.loads(
-        (ROOT / "recipes" / f"{recipe.identity.slug}.json").read_text()
-    )
-    digest = document_sha256(document)
+    declare_peak(recipe)
     inputs = load_inputs()
-    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    inputs.historical_documents[key] = [digest]
     calls = []
 
     def reject(*args, **kwargs):
@@ -245,11 +242,13 @@ def test_recorded_content_precedes_admission(monkeypatch) -> None:
         return evaluate_memory_admission(1, 0)
 
     monkeypatch.setattr(memory_need, "evaluate_memory_admission", reject)
+    monkeypatch.setattr(memory_need, "unchanged_recipe", lambda *_: True)
     assert_not_warns(
-        memory_estimate_warnings(recipe, {}, inputs, document_digest=digest),
+        memory_estimate_warnings(recipe, {}, inputs, document_digest="recorded"),
         "not admissible",
     )
     assert not calls
+    monkeypatch.setattr(memory_need, "unchanged_recipe", lambda *_: False)
     assert_warns(
         memory_estimate_warnings(recipe, {}, inputs, document_digest=""),
         "not admissible",
@@ -260,6 +259,7 @@ def test_recorded_content_precedes_admission(monkeypatch) -> None:
 def test_wrapper_cache_alias_counts_toward_actual_rank_demand() -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sfxnz-vllm-dual")
     initial = per_rank_need(recipe, catalog_models(), load_inputs()).peak_bytes
+    declare_peak(recipe, initial)
     pin = next(a for a in recipe.runtime.arguments if a.name == "kv-cache-memory")
     assert isinstance(pin.value, int)
     assert pin.value == 12 * 1024**3
@@ -310,6 +310,7 @@ def test_absolute_kv_cannot_hide_an_implicit_startup_reservation(
     defect: str, slug: str
 ) -> None:
     recipe = recipe_for(slug)
+    declare_peak(recipe, 100_000_000_000)
     recipe.runtime.arguments = [
         a for a in recipe.runtime.arguments if a.name != "gpu-memory-utilization"
     ]
@@ -343,7 +344,7 @@ def test_startup_budget_matches_vllms_free_memory_check() -> None:
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.88", "6G"
     )
-    assert reap.topology.roles[0].resources.memory.peak_bytes == 120_370_379_081
+    declare_peak(reap, 120_370_379_081)
     assert startup_budget_warnings(reap) == []
 
     dual = _creator_startup_variant(
@@ -369,6 +370,7 @@ def test_startup_budget_still_refuses_a_fraction_above_the_peak() -> None:
     reap = _creator_startup_variant(
         "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.93", "6G"
     )
+    declare_peak(reap, 120_370_379_081)
     assert Decimal("0.93") * TOTAL_BYTES > 120_370_379_081
     assert_warns(
         startup_budget_warnings(reap),

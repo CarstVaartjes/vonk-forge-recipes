@@ -17,7 +17,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
     document_sha256,
 )
-from warning_asserts import assert_not_warns, assert_warns
+from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from qualification.memory_need import (
     SPARK_MEMORY_BYTES,
@@ -45,15 +45,22 @@ def untested_root(tmp_path: Path, monkeypatch, slug: str) -> Path:
 
 def test_unchanged_untested_document_is_informational(tmp_path, monkeypatch) -> None:
     untested_root(tmp_path, monkeypatch, "d3-edge-vllm-single")
-    document = json.loads((ROOT / "recipes/d3-edge-vllm-single.json").read_text())
-    recipe = RecipeDefinition.model_validate(document)
-    assert not hardware_proven(recipe, document_sha256(document))
+    recipe = RecipeDefinition.model_validate(
+        json.loads((ROOT / "recipes/d3-edge-vllm-single.json").read_text())
+    )
+    declare_peak(recipe, 60_000_000_000)
+    document = json.loads(recipe.model_dump_json())
+    digest = document_sha256(document)
+    (tmp_path / "recipes/d3-edge-vllm-single.json").write_text(json.dumps(document))
+    key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
+    inputs = load_inputs().model_copy(update={"historical_documents": {key: [digest]}})
+    assert not hardware_proven(recipe, digest)
     assert_not_warns(
         memory_estimate_warnings(
             recipe,
             catalog_models(),
-            load_inputs(),
-            document_digest=document_sha256(document),
+            inputs,
+            document_digest=digest,
         ),
         "not admissible",
     )
@@ -64,8 +71,8 @@ def test_unchanged_untested_document_is_informational(tmp_path, monkeypatch) -> 
         memory_estimate_warnings(
             recipe,
             catalog_models(),
-            load_inputs(),
-            document_digest=document_sha256(document),
+            inputs,
+            document_digest=digest,
         ),
         "not admissible",
     )
@@ -77,13 +84,14 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
 
     slug = "d3-edge-vllm-single"
     source = ROOT / "recipes" / f"{slug}.json"
-    document = json.loads(source.read_text())
-    recipe = RecipeDefinition.model_validate(document)
+    recipe = RecipeDefinition.model_validate(json.loads(source.read_text()))
+    declare_peak(recipe, 60_000_000_000)
+    document = json.loads(recipe.model_dump_json())
     digest = document_sha256(document)
     key = f"{recipe.identity.publisher}/{slug}"
     authored = tmp_path / "recipes" / source.name
     authored.parent.mkdir()
-    authored.write_text(source.read_text())
+    authored.write_text(json.dumps(document))
     inputs = load_inputs().model_copy(
         update={"historical_documents": {key: [digest]} if use_snapshot else {}}
     )
@@ -144,7 +152,7 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
     )
 
     # Restoring exact content restores the informational treatment immediately.
-    authored.write_text(source.read_text())
+    authored.write_text(json.dumps(document))
     assert_not_warns(
         memory_estimate_warnings(recipe, {}, inputs, document_digest=digest),
         "peak understates|not admissible|full-context request|cannot hold the selected weights|set absolute|mem-fraction-static|state slots",
@@ -191,6 +199,7 @@ def test_mosaic_failure_has_honest_demand_without_retuning_siblings() -> None:
     recipe = RecipeDefinition.model_validate_json(
         (ROOT / "recipes" / f"{MOSAIC}.json").read_text()
     )
+    declare_peak(recipe)
     need = calculate_need(recipe, catalog_models(), load_inputs())
     assert need.total_bytes == 119_501_146_944 > need.limit_bytes == 108_470_788_096
     assert "does-not-fit" in recipe_display(recipe.identity.slug).tags

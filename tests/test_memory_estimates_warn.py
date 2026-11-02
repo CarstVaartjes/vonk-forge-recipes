@@ -25,6 +25,24 @@ def mismatching_root(tmp_path: Path, **memory: int) -> Path:
         json.dumps(document)
     )
     (tmp_path / "models").symlink_to(ROOT / "models", target_is_directory=True)
+    (tmp_path / "display/recipes").mkdir(parents=True)
+    (tmp_path / "display/recipes/synthetic-memory-mismatch.json").write_text(
+        json.dumps(
+            {
+                "kind": "recipe-display",
+                "identity": {
+                    "publisher": document["identity"]["publisher"],
+                    "slug": "synthetic-memory-mismatch",
+                },
+                "title": "Synthetic",
+                "description": "A synthetic recipe.",
+                "tags": [],
+            }
+        )
+    )
+    (tmp_path / "display/models").symlink_to(
+        ROOT / "display/models", target_is_directory=True
+    )
     return tmp_path
 
 
@@ -131,7 +149,7 @@ def test_contract_shape_violation_fails_the_catalog_build(
     build = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["build"]
     root = mismatching_root(tmp_path, load_peak_bytes=1_000_000_000)
     monkeypatch.setitem(build.__globals__, "ROOT", root)
-    with pytest.raises(SystemExit, match="recipe contract validation failed"):
+    with pytest.raises(SystemExit, match="load_peak_bytes must exceed peak_bytes"):
         build(package_dir=tmp_path / "packages", source_commit="0" * 40)
 
 

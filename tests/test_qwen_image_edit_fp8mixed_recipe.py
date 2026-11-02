@@ -8,9 +8,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
-from vonk_forge_contracts import RecipeDefinition, document_sha256
-
-from qualification.memory_need import admissible_declaration_warnings
+from vonk_forge_contracts import document_sha256
 
 
 def read(path: Path) -> dict[str, object]:
@@ -45,10 +43,6 @@ class QwenImageEditFP8MixedRecipeTests(unittest.TestCase):
         }
         self.assertTrue(args["workflow"].endswith("qwen-image-edit-2511-fp8mixed.json"))
         self.assertEqual(len(args["workflow-sha256"]), 64)
-        assert (
-            admissible_declaration_warnings(RecipeDefinition.model_validate(recipe))
-            == []
-        )
 
     def test_shared_comfyui_recipes_have_self_contained_model_selections(self) -> None:
         for path in sorted((ROOT / "recipes").glob("*-comfyui-single.json")):
