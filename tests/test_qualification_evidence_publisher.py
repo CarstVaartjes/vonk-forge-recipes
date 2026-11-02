@@ -213,7 +213,10 @@ def test_open_pr_has_a_quiet_head_for_ci_and_auto_merge(tmp_path, monkeypatch, s
         return ""
 
     monkeypatch.setattr(publisher, "command", command)
-    assert publisher.sync(history, tmp_path / "work") is False
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.WAITING
+    )
     assert not any(c[0] == "git" for c in calls)
     assert any(c[:3] == ("gh", "pr", "merge") and "--auto" in c for c in calls)
     assert history.read_bytes() == before
@@ -270,3 +273,130 @@ def test_sync_removes_withdrawn_evidence_despite_branch_conflict_and_old_history
         "--",
         "qualification/evidence/vonk-forge/withdrawn.json",
     ) in calls
+
+
+RED = [{"status": "COMPLETED", "conclusion": "FAILURE"}]
+CANCELLED = [{"status": "COMPLETED", "conclusion": "CANCELLED"}]
+COMMIT_STATUS = [{"state": "FAILURE"}]
+PASSED = [
+    {"status": "COMPLETED", "conclusion": "SUCCESS"},
+    {"status": "COMPLETED", "conclusion": "SKIPPED"},
+    {"status": "COMPLETED", "conclusion": "NEUTRAL"},
+    {"state": "SUCCESS"},
+]
+PENDING = [{"status": "IN_PROGRESS", "conclusion": ""}]
+
+
+def _open_pr(tmp_path, monkeypatch, rollup, behind_by):
+    history = tmp_path / "results.jsonl"
+    history.write_text(json.dumps(historical()) + "\n")
+    calls = []
+
+    def command(cwd, *args, **kwargs):
+        calls.append(args)
+        if args[:3] == ("gh", "pr", "list"):
+            return '[{"number":123}]'
+        if args[:3] == ("gh", "pr", "view"):
+            return json.dumps(
+                {
+                    "number": 123,
+                    "mergeStateStatus": "BLOCKED",
+                    "statusCheckRollup": rollup,
+                }
+            )
+        if args[:2] == ("gh", "api"):
+            return str(behind_by)
+        if args[:2] == ("git", "clone"):
+            raise RuntimeError("fresh plan reached")
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    return history, calls
+
+
+def test_red_pr_with_moved_main_takes_the_fresh_plan(tmp_path, monkeypatch):
+    history, calls = _open_pr(tmp_path, monkeypatch, RED, 3)
+    with pytest.raises(RuntimeError, match="fresh plan reached"):
+        publisher.sync(history, tmp_path / "work")
+    assert not any(c[:3] == ("gh", "pr", "merge") for c in calls)
+
+
+def test_red_pr_on_current_main_waits_and_says_so(tmp_path, monkeypatch, capsys):
+    history, calls = _open_pr(tmp_path, monkeypatch, RED, 0)
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.FAILING_CHECK
+    )
+    assert not any(c[0] == "git" for c in calls)
+    assert (
+        "evidence PR #123 has a failing check; waiting for main to move"
+        in capsys.readouterr().out
+    )
+
+
+def test_pending_pr_waits_as_before(tmp_path, monkeypatch, capsys):
+    history, calls = _open_pr(tmp_path, monkeypatch, PENDING, 3)
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.WAITING
+    )
+    assert not any(c[0] == "git" or c[:2] == ("gh", "api") for c in calls)
+    assert "awaiting CI/auto-merge" in capsys.readouterr().out
+
+
+def test_lane_status_shows_a_failing_evidence_check(tmp_path, monkeypatch):
+    class Process:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def poll(self):
+            return publisher.SweepEvidenceExit.FAILING_CHECK
+
+        def wait(self, timeout):
+            return self.poll()
+
+    monkeypatch.setattr(publisher.subprocess, "Popen", Process)
+    worker = publisher.EvidencePublisher(
+        tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker")
+    )
+    worker.tick(0)
+    worker.tick(1)
+    assert worker.message == (
+        "evidence PR has a failing check; waiting for main to move (see publisher.log)"
+    )
+    assert worker.next_attempt == 301
+
+
+@pytest.mark.parametrize("rollup", [RED, CANCELLED, COMMIT_STATUS])
+def test_cancelled_and_commit_status_failures_are_red(rollup, tmp_path, monkeypatch):
+    history, _calls = _open_pr(tmp_path, monkeypatch, rollup, 0)
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.FAILING_CHECK
+    )
+
+
+def test_passed_and_pending_checks_are_not_red(tmp_path, monkeypatch):
+    history, calls = _open_pr(tmp_path, monkeypatch, PASSED + PENDING, 3)
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.WAITING
+    )
+    assert not any(c[:2] == ("gh", "api") for c in calls)
+
+
+def test_behind_pr_replans_without_asking_how_far_main_moved(tmp_path, monkeypatch):
+    history, calls = _open_pr(tmp_path, monkeypatch, RED, 3)
+    original = publisher.command
+
+    def behind(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "view"):
+            return json.dumps(
+                {"number": 123, "mergeStateStatus": "BEHIND", "statusCheckRollup": RED}
+            )
+        return original(cwd, *args, **kwargs)
+
+    monkeypatch.setattr(publisher, "command", behind)
+    with pytest.raises(RuntimeError, match="fresh plan reached"):
+        publisher.sync(history, tmp_path / "work")
+    assert not any(c[:2] == ("gh", "api") for c in calls)

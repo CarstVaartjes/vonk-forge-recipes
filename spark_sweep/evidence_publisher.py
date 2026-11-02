@@ -14,7 +14,13 @@ from pathlib import Path
 from typing import TextIO
 
 from pydantic import BaseModel, ConfigDict, Field
-from vonk_forge_contracts.sweep import SweepEvidenceExit, SweepEvidenceMergeState
+from vonk_forge_contracts.sweep import (
+    SweepCheckConclusion,
+    SweepCheckStatus,
+    SweepCommitStatusState,
+    SweepEvidenceExit,
+    SweepEvidenceMergeState,
+)
 
 from .qualification import (
     backfill,
@@ -35,6 +41,35 @@ class EvidencePublicationTimeout(TimeoutError):
     """Only the optional repository transport ends; hardware lanes continue."""
 
 
+_PASSED = (
+    SweepCheckConclusion.SUCCESS,
+    SweepCheckConclusion.NEUTRAL,
+    SweepCheckConclusion.SKIPPED,
+)
+_STATUS_RED = (SweepCommitStatusState.FAILURE, SweepCommitStatusState.ERROR)
+
+
+class CheckResult(BaseModel):
+    """A check run (status, conclusion) or a commit status (state).
+
+    Unknown provider words stay plain strings; only the shapes below are red.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+    status: SweepCheckStatus | str | None = None
+    conclusion: SweepCheckConclusion | str | None = None
+    state: SweepCommitStatusState | str | None = None
+
+    @property
+    def failed(self) -> bool:
+        if self.status is not None:
+            return (
+                self.status == SweepCheckStatus.COMPLETED
+                and self.conclusion not in _PASSED
+            )
+        return self.state in _STATUS_RED
+
+
 class PullRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
     number: int
@@ -42,6 +77,11 @@ class PullRequest(BaseModel):
     merge_state: str = Field(
         default=SweepEvidenceMergeState.UNKNOWN, alias="mergeStateStatus"
     )
+    checks: list[CheckResult] = Field(default_factory=list, alias="statusCheckRollup")
+
+    @property
+    def check_failed(self) -> bool:
+        return any(check.failed for check in self.checks)
 
 
 def command(cwd: Path, *args: str, timeout: int = 60) -> str:
@@ -56,7 +96,7 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-def sync(history: Path, directory: Path) -> bool:
+def sync(history: Path, directory: Path) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
     _deadline = time.monotonic() + 240
@@ -91,13 +131,30 @@ def sync(history: Path, directory: Path) -> bool:
                 "--repo",
                 REPOSITORY,
                 "--json",
-                "number,mergeStateStatus",
+                "number,mergeStateStatus,statusCheckRollup",
             )
         )
-        if details.merge_state not in (
+        # A PR that needs a base update is re-planned from fresh main. So is a
+        # red PR that main has outgrown (the fix may be there); a red PR on
+        # current main waits, visibly.
+        red = details.check_failed
+        replan = details.merge_state in (
             SweepEvidenceMergeState.BEHIND,
             SweepEvidenceMergeState.DIRTY,
-        ):
+        ) or (
+            red
+            and int(
+                command(
+                    directory,
+                    "gh",
+                    "api",
+                    f"repos/{REPOSITORY}/compare/main...{BRANCH}",
+                    "--jq",
+                    ".behind_by",
+                )
+            )
+        )
+        if not replan:
             command(
                 directory,
                 "gh",
@@ -110,10 +167,12 @@ def sync(history: Path, directory: Path) -> bool:
                 "--squash",
             )
             print(
-                f"evidence: PR #{pr.number} awaiting CI/auto-merge; new results remain in history",
+                f"evidence PR #{pr.number} has a failing check; waiting for main to move"
+                if red
+                else f"evidence: PR #{pr.number} awaiting CI/auto-merge; new results remain in history",
                 flush=True,
             )
-            return False
+            return SweepEvidenceExit.FAILING_CHECK if red else SweepEvidenceExit.WAITING
         # Conflicts or required base updates get a fresh clone and a new plan.
     with tempfile.TemporaryDirectory(
         prefix="qualification-", dir=directory
@@ -204,7 +263,9 @@ def sync(history: Path, directory: Path) -> bool:
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
         ):
-            return True  # merged evidence or an empty batch never creates an empty PR
+            return (
+                SweepEvidenceExit.SYNCED
+            )  # merged evidence or an empty batch never creates an empty PR
         changed = command(clone, "git", "diff", "--cached", "--name-only")
         merging = (clone / ".git/MERGE_HEAD").exists()
         if changed or merging:
@@ -218,7 +279,7 @@ def sync(history: Path, directory: Path) -> bool:
             )
             command(clone, "git", "push", "origin", f"HEAD:refs/heads/{BRANCH}")
         elif not remote:
-            return True
+            return SweepEvidenceExit.SYNCED
         opened = json.loads(
             command(
                 clone,
@@ -283,7 +344,7 @@ def sync(history: Path, directory: Path) -> bool:
             "--squash",
         )
         print(f"evidence: PR #{pr.number}, auto-merge requested", flush=True)
-        return True
+        return SweepEvidenceExit.SYNCED
 
 
 class EvidencePublisher:
@@ -313,6 +374,8 @@ class EvidencePublisher:
                 if code == SweepEvidenceExit.SYNCED
                 else "evidence PR awaiting CI/auto-merge; new results queued; check in 300s (see publisher.log)"
                 if code == SweepEvidenceExit.WAITING
+                else "evidence PR has a failing check; waiting for main to move (see publisher.log)"
+                if code == SweepEvidenceExit.FAILING_CHECK
                 else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
             )
             if self._output is not None:
