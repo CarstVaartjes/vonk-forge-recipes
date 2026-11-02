@@ -272,8 +272,9 @@ class MemoryInputs(BaseModel):
     # Engram n-gram table files, by content digest, with their source. Owner
     # rule (2026-10-26): Engram tables are never memory usage.
     engram_files: dict[str, str]
-    # Bytes of a weights file the engine reads from disk on demand and never
-    # holds resident (the rest of the file still counts), by content digest.
+    # Bytes of a weights file that a launch reading its table from disk on demand
+    # (QWEN4EXP_PLE_MMAP=1, see reads_table_from_disk) never holds resident; the
+    # rest of the file still counts. By content digest.
     # Qwen3.8 Flash Next: model-fp8-mtp-ple.safetensors carries the 320,001,536 x
     # 160 B PLE n-gram table (51,200,245,760 B) that tonyd2wild's adapter reads
     # with preadv; the MTP weights in the same file stay counted.
@@ -282,12 +283,29 @@ class MemoryInputs(BaseModel):
     historical_documents: dict[str, list[str]]
 
 
-def resident_weight_bytes(size_bytes: int, sha256: str, inputs: MemoryInputs) -> int:
+PLE_DISK_READ_ENVIRONMENT = "QWEN4EXP_PLE_MMAP"
+
+
+def reads_table_from_disk(recipe: RecipeDefinition) -> bool:
+    """Residency is a property of the launch: tonyd2wild's ple_mmap reads the PLE
+    table with preadv only when QWEN4EXP_PLE_MMAP=1 in the merged environment
+    (an option variant may turn it off and keep the table in memory)."""
+    return any(
+        item.name == PLE_DISK_READ_ENVIRONMENT and str(item.value) == "1"
+        for item in recipe.runtime.environment
+    )
+
+
+def resident_weight_bytes(
+    size_bytes: int, sha256: str, recipe: RecipeDefinition, inputs: MemoryInputs
+) -> int:
     """Bytes of a weights file that sit in memory: none for an Engram file, less
-    the disk-resident part for a file that carries an on-demand table."""
+    the disk-resident part when this launch reads that table from disk."""
     if sha256 in inputs.engram_files:
         return 0
-    return size_bytes - inputs.disk_resident_bytes.get(sha256, 0)
+    if reads_table_from_disk(recipe):
+        return size_bytes - inputs.disk_resident_bytes.get(sha256, 0)
+    return size_bytes
 
 
 def unchanged_recipe(
@@ -483,7 +501,7 @@ def calculate_need(
         selected = {item.file_id for item in selection.files}
         weights.append(
             sum(
-                resident_weight_bytes(item.size_bytes, item.sha256, inputs)
+                resident_weight_bytes(item.size_bytes, item.sha256, recipe, inputs)
                 for item in model.files
                 if item.id in selected and "weights" in item.roles
             )
@@ -1533,7 +1551,7 @@ def rank_weight_bytes(
         for item in models[selection.model.content_sha256].files:
             if item.id in selected and "weights" in item.roles:
                 weights[item.sha256] = resident_weight_bytes(
-                    item.size_bytes, item.sha256, inputs
+                    item.size_bytes, item.sha256, recipe, inputs
                 )
     parallel = recipe.topology.parallelism
     shards = parallel.tensor * parallel.pipeline
