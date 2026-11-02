@@ -1040,7 +1040,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 99464262042,
+            "peak_bytes": 101864262042,
             "reserve_bytes": 8000000000
           }
         }
@@ -1057,7 +1057,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 99464262042,
+            "peak_bytes": 101864262042,
             "reserve_bytes": 8000000000
           }
         }

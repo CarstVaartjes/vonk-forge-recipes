@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import subprocess
 import tarfile
+from functools import partial
 from io import BytesIO
 from pathlib import Path
 
@@ -78,6 +79,10 @@ def _identity(
         model_digests=models,
         required_sparks=recipe.topology.node_count,
     )
+
+
+def identity_of(identity: QualificationIdentity) -> QualificationIdentity:
+    return identity
 
 
 def _digest_free(value: object) -> object:
@@ -152,7 +157,9 @@ def test_every_recipe_keeps_its_status_across_the_split(tmp_path: Path) -> None:
                     record,
                 )
         # The sweep requeues from this decision alone.
-        assert retest_reason(old_view, old_id) == retest_reason(new_view, new_id), key
+        assert retest_reason(old_view, partial(identity_of, old_id)) == retest_reason(
+            new_view, partial(identity_of, new_id)
+        ), key
         compared += 1
     assert compared == len(list((base / "recipes").glob("*.json")))
     assert working

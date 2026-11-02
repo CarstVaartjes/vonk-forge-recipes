@@ -714,7 +714,7 @@
   },
   "release": {
     "released_at": "2026-07-13",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -831,7 +831,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.89"
+        "value": "0.8728"
       }
     ],
     "engine": "vllm",
@@ -977,7 +977,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 124290276025,
+            "peak_bytes": 124442868443,
             "reserve_bytes": 8000000000
           }
         }
@@ -994,7 +994,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 124290276025,
+            "peak_bytes": 124442868443,
             "reserve_bytes": 8000000000
           }
         }

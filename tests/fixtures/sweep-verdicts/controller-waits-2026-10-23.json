@@ -115,7 +115,7 @@
   {
     "recorded_at": "2026-10-23T10:53:04.827300Z",
     "recipe": "vonk-forge/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-single",
-    "content_sha256": "0592137242803af2bc3687a2e398624a95ed35c49671ddd783866561b64a7349",
+    "content_sha256": "a02d17da3151d71270947463ff9c6b1c2a9257c89c1163471f6daca2e4987227",
     "code": "sweep.wait_budget_exhausted",
     "controller_document": {
       "id": "b55488ac-aefd-4b46-af04-e5f47fe09eb6",

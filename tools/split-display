@@ -52,6 +52,7 @@ DIGEST_FIXTURES = (
 )
 PROVEN_BYTES = "tests/fixtures/proven-recipe-bytes.json"
 # Holds the raw file sha256 of reviewed recipe documents.
+NAMED_BY_DIGEST_TESTS = ("tests/test_absolute_kv_capacity.py",)
 RAW_BYTES_TESTS = ("tests/test_qualification_case_assertions.py",)
 LEDGER = "qualification/memory-inputs.json"
 ENVELOPE_EXCEPTIONS = "memory-envelope-exceptions.json"
@@ -67,6 +68,7 @@ ARCHIVE_PATHS = (
     PROVEN_BYTES,
     *DIGEST_FIXTURES,
     *RAW_BYTES_TESTS,
+    *NAMED_BY_DIGEST_TESTS,
 )
 
 # The one field list: what leaves a document (typed exclusion under the base contract).
@@ -183,6 +185,7 @@ def compute(tree: Path, phase_a_output: dict[str, dict[str, Any]]) -> dict[str, 
     from spark_sweep.qualification import merge_evidence, read_evidence
 
     expected: dict[str, bytes] = {}
+    removed: list[str] = []
     items = phase_a_output
     old_to_model_path = {
         item["old_sha256"]: path
@@ -338,9 +341,26 @@ def compute(tree: Path, phase_a_output: dict[str, dict[str, Any]]) -> dict[str, 
     for relative in DIGEST_FIXTURES:
         text = (tree / relative).read_text(encoding="utf-8")
         expected[relative] = _map_digests(text, mapping).encode()
+    # A recorded failure is named by the digest prefix of its document: it moves
+    # with the digest, and the test that lists the names follows.
+    renamed: dict[str, str] = {}
     for path, recipe in new_recipe.items():
         if path.startswith(FAILURES + "/"):
-            expected[path] = dump(published_json(recipe))
+            old8, new8 = (
+                items[path]["old_sha256"][:8],
+                mapping[items[path]["old_sha256"]][:8],
+            )
+            if not path.endswith(f"-{old8}.json"):
+                raise SystemExit(f"{path}: not named by its document digest")
+            target = path[: -len(f"{old8}.json")] + f"{new8}.json"
+            expected[target] = dump(published_json(recipe))
+            renamed[old8] = new8
+            removed.append(path)
+    for relative in NAMED_BY_DIGEST_TESTS:
+        text = (tree / relative).read_text(encoding="utf-8")
+        for old8, new8 in renamed.items():
+            text = text.replace(f'-{old8}"', f'-{new8}"')
+        expected[relative] = text.encode()
     raw_bytes = {
         hashlib.sha256((tree / path).read_bytes()).hexdigest(): hashlib.sha256(
             payload
@@ -361,6 +381,7 @@ def compute(tree: Path, phase_a_output: dict[str, dict[str, Any]]) -> dict[str, 
     # The canary: documents, its package and the index that names them.
     expected.update(_canary(tree, items, new_model, new_recipe, mapping))
 
+    expected["__removed__"] = json.dumps(removed).encode()
     expected["__counts__"] = json.dumps(
         {
             "recipes": len(library_recipes),
@@ -489,6 +510,7 @@ def main() -> int:
         )
         expected = compute(tree, json.loads(output.read_text(encoding="utf-8")))
     counts = json.loads(expected.pop("__counts__"))
+    removed = json.loads(expected.pop("__removed__"))
     managed = {
         path
         for path in expected
@@ -497,6 +519,13 @@ def main() -> int:
         )
     }
     if arguments.check:
+        leftover = [path for path in removed if (ROOT / path).exists()]
+        if leftover:
+            print(
+                f"split-display: not part of the split result: {leftover[0]}",
+                file=sys.stderr,
+            )
+            return 1
         extra = sorted(set(_managed_actual()) - managed)
         if extra:
             print(
@@ -521,6 +550,8 @@ def main() -> int:
         target.parent.mkdir(parents=True, exist_ok=True)
         if not target.is_file() or target.read_bytes() != payload:
             target.write_bytes(payload)
+    for path in removed:
+        (ROOT / path).unlink(missing_ok=True)
     print(f"split-display: wrote the split of {revision[:12]} {counts}")
     return 0
 

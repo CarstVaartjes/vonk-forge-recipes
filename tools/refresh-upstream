@@ -47,10 +47,11 @@ from urllib.parse import quote
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "contracts" / "src"))
 sys.path.insert(0, str(ROOT))
-from vonk_forge_contracts import document_sha256, published_json
+from vonk_forge_contracts import RecipeDefinition, document_sha256, published_json
 from vonk_forge_contracts.recipe import RecipeRelease
 
 from qualification.documents import model_display
+from qualification.memory_need import raise_peaks_to_envelope
 from spark_sweep.tolerant import InputReason, read_optional
 
 
@@ -2225,6 +2226,16 @@ class Assessor:
                 new_recipe["release"] = {"version": version, "released_at": date}
                 result.version = (version, date)
             if new_recipe != recipe:
+                if new_recipe.get("runtime", {}).get("engine") == "vllm":
+                    try:  # a moved document meets today's margins (never lowered)
+                        raise_role_peaks(
+                            new_recipe["topology"]["roles"],
+                            RecipeDefinition.model_validate(new_recipe),
+                        )
+                    except (KeyError, TypeError, ValueError) as error:
+                        result.reasons.append(
+                            f"memory envelope: peaks could not be raised: {str(error)[:300]}"
+                        )
                 edits[f"recipes/{recipe_id}.json"] = canonical(new_recipe)
             result.edits = edits
         return result
@@ -3399,6 +3410,18 @@ def checks_moved(root: Path, head: str) -> bool:
     return bool(
         git("diff", "--name-only", base, "origin/main", "--", *CHECK_PATHS, cwd=root)
     )
+
+
+def raise_role_peaks(roles: list[dict[str, Any]], recipe: RecipeDefinition) -> None:
+    """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope."""
+    raised = raise_peaks_to_envelope(recipe)
+    if raised is None:
+        return
+    for role, kept in zip(roles, raised.topology.roles, strict=True):
+        memory = role["resources"]["memory"]
+        memory["peak_bytes"] = kept.resources.memory.peak_bytes
+        if kept.resources.memory.load_peak_bytes is not None:
+            memory["load_peak_bytes"] = kept.resources.memory.load_peak_bytes
 
 
 def follow_proven_bytes(root: Path, edits: dict[str, bytes | None]) -> None:

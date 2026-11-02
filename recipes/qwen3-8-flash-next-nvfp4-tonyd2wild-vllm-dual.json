@@ -529,7 +529,7 @@
   },
   "release": {
     "released_at": "2026-09-06",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -745,7 +745,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
+            "peak_bytes": 114930585191,
             "reserve_bytes": 8000000000
           }
         }
@@ -762,7 +762,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
+            "peak_bytes": 114930585191,
             "reserve_bytes": 8000000000
           }
         }

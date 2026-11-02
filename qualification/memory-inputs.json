@@ -700,6 +700,9 @@
     "76a05106ece259be83d1bfea0dcb54f23377864ee60fd321690f35e6698a2af5": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards.",
     "9dc51433e195bc78b5ad846b68643cc0351d3b174e5e4309222d3b7402c83afd": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards."
   },
+  "disk_resident_bytes": {
+    "3525520c8602d850003eb1960aec0b64291dae33b83f8b65dd639a451df78823": 51200245760
+  },
   "historical_documents": {
     "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single": [
       "5b1a996681cd153b7dcae8dcdfd41ba5e1939044a002bd067cd83aac3e7ef5e7"
@@ -1375,7 +1378,7 @@
       "02a9bd2624fa6328dde31d269333a58c9543f8d81dcebea2bca09df371b31577"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-single": [
-      "0592137242803af2bc3687a2e398624a95ed35c49671ddd783866561b64a7349"
+      "a02d17da3151d71270947463ff9c6b1c2a9257c89c1163471f6daca2e4987227"
     ],
     "vonk-forge/qwen3-8-flash-next-nvfp4-vllm-dual": [
       "f06e63d487b8c71962678f14c4f6766d3aee02a548d232b2c40e7cc62aa194b6"

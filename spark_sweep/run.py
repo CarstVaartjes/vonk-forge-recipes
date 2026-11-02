@@ -133,7 +133,7 @@ DOCUMENT_EVIDENCE_LIMIT = 65536
 
 
 def retest_reason(
-    view: QualificationStatusView | None, current: QualificationIdentity
+    view: QualificationStatusView | None, current: Callable[[], QualificationIdentity]
 ) -> RetestReason | None:
     """Why a recorded verdict asks for a new run, from the derived status alone."""
     if view is None:
@@ -141,7 +141,7 @@ def retest_reason(
     if (
         view.status == QualificationStatus.BLOCKED_PLATFORM
         and view.last_failure is not None
-        and view.last_failure.identity != current
+        and view.last_failure.identity != current()
     ):
         return RetestReason.DEFERRED_OLDER_REVISION
     return {
@@ -829,7 +829,7 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
-        why = retest_reason(view, current_identity(recipe))
+        why = retest_reason(view, lambda: current_identity(recipe))
         if entry.get("status") == RecipeStatus.PENDING:
             return
         if why is None:
