@@ -14,7 +14,13 @@ from pathlib import Path
 from typing import TextIO
 
 from pydantic import BaseModel, ConfigDict, Field
-from vonk_forge_contracts.sweep import SweepEvidenceExit, SweepEvidenceMergeState
+from vonk_forge_contracts.sweep import (
+    SweepCheckConclusion,
+    SweepCheckStatus,
+    SweepCommitStatusState,
+    SweepEvidenceExit,
+    SweepEvidenceMergeState,
+)
 
 from .qualification import (
     backfill,
@@ -35,22 +41,33 @@ class EvidencePublicationTimeout(TimeoutError):
     """Only the optional repository transport ends; hardware lanes continue."""
 
 
-_FAILED = {"FAILURE", "TIMED_OUT", "STARTUP_FAILURE", "ERROR"}
+_PASSED = (
+    SweepCheckConclusion.SUCCESS,
+    SweepCheckConclusion.NEUTRAL,
+    SweepCheckConclusion.SKIPPED,
+)
+_STATUS_RED = (SweepCommitStatusState.FAILURE, SweepCommitStatusState.ERROR)
 
 
 class CheckResult(BaseModel):
-    """A check run (status, conclusion) or a commit status (state)."""
+    """A check run (status, conclusion) or a commit status (state).
+
+    Unknown provider words stay plain strings; only the shapes below are red.
+    """
 
     model_config = ConfigDict(extra="ignore")
-    status: str | None = None
-    conclusion: str | None = None
-    state: str | None = None
+    status: SweepCheckStatus | str | None = None
+    conclusion: SweepCheckConclusion | str | None = None
+    state: SweepCommitStatusState | str | None = None
 
     @property
     def failed(self) -> bool:
         if self.status is not None:
-            return self.status == "COMPLETED" and self.conclusion in _FAILED
-        return self.state in _FAILED
+            return (
+                self.status == SweepCheckStatus.COMPLETED
+                and self.conclusion not in _PASSED
+            )
+        return self.state in _STATUS_RED
 
 
 class PullRequest(BaseModel):
@@ -117,23 +134,27 @@ def sync(history: Path, directory: Path) -> SweepEvidenceExit:
                 "number,mergeStateStatus,statusCheckRollup",
             )
         )
-        # A red PR that main has outgrown is re-planned from fresh main (the
-        # fix may be there); a red PR on current main waits, visibly.
+        # A PR that needs a base update is re-planned from fresh main. So is a
+        # red PR that main has outgrown (the fix may be there); a red PR on
+        # current main waits, visibly.
         red = details.check_failed
-        moved = red and int(
-            command(
-                directory,
-                "gh",
-                "api",
-                f"repos/{REPOSITORY}/compare/main...{BRANCH}",
-                "--jq",
-                ".behind_by",
-            )
-        )
-        if details.merge_state not in (
+        replan = details.merge_state in (
             SweepEvidenceMergeState.BEHIND,
             SweepEvidenceMergeState.DIRTY,
-        ) and not (red and moved):
+        ) or (
+            red
+            and int(
+                command(
+                    directory,
+                    "gh",
+                    "api",
+                    f"repos/{REPOSITORY}/compare/main...{BRANCH}",
+                    "--jq",
+                    ".behind_by",
+                )
+            )
+        )
+        if not replan:
             command(
                 directory,
                 "gh",

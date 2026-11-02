@@ -276,6 +276,14 @@ def test_sync_removes_withdrawn_evidence_despite_branch_conflict_and_old_history
 
 
 RED = [{"status": "COMPLETED", "conclusion": "FAILURE"}]
+CANCELLED = [{"status": "COMPLETED", "conclusion": "CANCELLED"}]
+COMMIT_STATUS = [{"state": "FAILURE"}]
+PASSED = [
+    {"status": "COMPLETED", "conclusion": "SUCCESS"},
+    {"status": "COMPLETED", "conclusion": "SKIPPED"},
+    {"status": "COMPLETED", "conclusion": "NEUTRAL"},
+    {"state": "SUCCESS"},
+]
 PENDING = [{"status": "IN_PROGRESS", "conclusion": ""}]
 
 
@@ -357,3 +365,38 @@ def test_lane_status_shows_a_failing_evidence_check(tmp_path, monkeypatch):
         "evidence PR has a failing check; waiting for main to move (see publisher.log)"
     )
     assert worker.next_attempt == 301
+
+
+@pytest.mark.parametrize("rollup", [RED, CANCELLED, COMMIT_STATUS])
+def test_cancelled_and_commit_status_failures_are_red(rollup, tmp_path, monkeypatch):
+    history, _calls = _open_pr(tmp_path, monkeypatch, rollup, 0)
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.FAILING_CHECK
+    )
+
+
+def test_passed_and_pending_checks_are_not_red(tmp_path, monkeypatch):
+    history, calls = _open_pr(tmp_path, monkeypatch, PASSED + PENDING, 3)
+    assert (
+        publisher.sync(history, tmp_path / "work")
+        == publisher.SweepEvidenceExit.WAITING
+    )
+    assert not any(c[:2] == ("gh", "api") for c in calls)
+
+
+def test_behind_pr_replans_without_asking_how_far_main_moved(tmp_path, monkeypatch):
+    history, calls = _open_pr(tmp_path, monkeypatch, RED, 3)
+    original = publisher.command
+
+    def behind(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "view"):
+            return json.dumps(
+                {"number": 123, "mergeStateStatus": "BEHIND", "statusCheckRollup": RED}
+            )
+        return original(cwd, *args, **kwargs)
+
+    monkeypatch.setattr(publisher, "command", behind)
+    with pytest.raises(RuntimeError, match="fresh plan reached"):
+        publisher.sync(history, tmp_path / "work")
+    assert not any(c[:2] == ("gh", "api") for c in calls)
