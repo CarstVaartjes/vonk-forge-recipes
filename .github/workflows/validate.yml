@@ -32,13 +32,13 @@ jobs:
 
   validate:
     if: ${{ !inputs.producer_only }}
-    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@c69d622ed9b727cb907cb9a80fd7657123e7c913
+    uses: CarstVaartjes/vonk-forge/.github/workflows/validate-recipe-library.yml@999329d55ba98ed4133d6e3dbdc2a51638134714
     with:
       # Keep the validator and platform checkout on the same reviewed commit.
       # It builds this checkout's index/packages, validates current contract
       # and archive contents, and checks every option choice against Forge's
       # runtime policy.
-      platform_ref: c69d622ed9b727cb907cb9a80fd7657123e7c913
+      platform_ref: 999329d55ba98ed4133d6e3dbdc2a51638134714
 
   # PR catalog checks run inside producer-contracts. Keep this existing
   # required check as the image fan-in, so a failed matrix cannot be merged
@@ -184,6 +184,23 @@ jobs:
         run: |
           set -euo pipefail
           "$RECIPE_TEST_PYTHON" tools/split-display --check --base origin/main
+
+      # A platform pin on a PR branch commit stops resolving when that branch is
+      # deleted after its squash merge, and every recipes workflow then fails to
+      # load. Each pinned SHA must be an ancestor of vonk-forge main.
+      - name: Require every platform pin to be reachable from vonk-forge main
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for ref in $(grep -rhoE 'vonk-forge/\.github/workflows/[a-z-]+\.yml@[0-9a-f]{40}|platform_ref: [0-9a-f]{40}' .github/workflows | grep -oE '[0-9a-f]{40}' | sort -u); do
+            status=$(gh api "repos/CarstVaartjes/vonk-forge/compare/${ref}...main" --jq .status)
+            case "$status" in
+              ahead|identical) echo "platform pin ${ref} is on vonk-forge main ($status)" ;;
+              *) echo "::error::platform pin ${ref} is not an ancestor of vonk-forge main ($status)"; exit 1 ;;
+            esac
+          done
 
       - name: Require touched multi-Spark vLLM recipes to bound KV by need
         shell: bash
