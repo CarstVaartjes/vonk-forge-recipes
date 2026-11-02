@@ -402,7 +402,7 @@ def _canary(
     new_recipe: dict[str, Any],
     mapping: dict[str, str],
 ) -> dict[str, bytes]:
-    from vonk_forge_contracts import document_sha256, published_json
+    from vonk_forge_contracts import CONTRACT_VERSION, document_sha256, published_json
 
     model_path, recipe_path = f"{CANARY}/model.json", f"{CANARY}/recipe.json"
     model: dict[str, Any] = published_json(new_model[model_path])
@@ -414,6 +414,7 @@ def _canary(
     )
     index = json.loads((tree / CANARY / "index.json").read_text(encoding="utf-8"))
     entry, entity = index["recipes"][0], index["catalog_entities"][0]
+    index["contract_version"] = CONTRACT_VERSION
     entry.update(
         document=recipe,
         content_sha256=document_sha256(recipe),
