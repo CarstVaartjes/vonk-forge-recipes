@@ -38,5 +38,13 @@
     },
     "reason": "fc694b54 (2026-09-05 'Fix MTP serving metadata') changed config.json quantization_config mtp.layers.0.mlp.experts.quant_algo from FP8_BLOCK_SCALES to FP8_PB_WO; the creator's modelopt overlay routes only FP8_BLOCK_SCALES/FP8_BLOCK to Fp8MoEMethod, so FP8_PB_WO gets no scale parameters and the load fails with AttributeError w2_weight_scale_inv (hardware 2026-11-01T22:38Z). The creator ran fab0aecb (weights byte-identical; only config.json and README differ), which sfxnz's dual also passed on 2026-10-23.",
     "upstream": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4/commit/fc694b54fb0174e0913e6adf86691ef85a4ead47"
+  },
+  "qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-single": {
+    "declined": "fc694b54fb0174e0913e6adf86691ef85a4ead47",
+    "model": {
+      "repository": "nvidia/Qwen3.8-Flash-Next-NVFP4"
+    },
+    "reason": "fc694b54 (2026-09-05 'Fix MTP serving metadata') changed config.json quantization_config mtp.layers.0.mlp.experts.quant_algo from FP8_BLOCK_SCALES to FP8_PB_WO; the creator's modelopt overlay routes only FP8_BLOCK_SCALES/FP8_BLOCK to Fp8MoEMethod, so FP8_PB_WO gets no scale parameters and the load fails with AttributeError w2_weight_scale_inv (hardware 2026-11-01T22:38Z). The creator ran fab0aecb (weights byte-identical; only config.json and README differ), which sfxnz's dual also passed on 2026-10-23.",
+    "upstream": "https://huggingface.co/nvidia/Qwen3.8-Flash-Next-NVFP4/commit/fc694b54fb0174e0913e6adf86691ef85a4ead47"
   }
 }
