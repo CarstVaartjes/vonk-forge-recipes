@@ -61,6 +61,62 @@ def test_a_finished_download_stands_even_when_the_library_still_says_not_cached(
     )  # the sweep took the fleet over to test
 
 
+def test_a_cached_recipe_of_a_partly_fetched_model_runs_without_any_download(
+    tmp_path: Path, gateway: Gateway
+) -> None:
+    """The livelock shape: the recipe row is cached, its model row never is (it uses a few
+    files of a larger model), and nothing may be fetched for it."""
+    recipes = [FakeRecipe("a", ("m1",), local="cached", partial_files=True)]
+    sweep, fleet, _ = make_sweep(
+        tmp_path, recipes, [FakeModel("m1", local="not_cached")], gateway=gateway
+    )
+    assert sweep.run() == 0
+    assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
+    assert fleet.models["m1"].local == "not_cached"
+    assert _downloads(fleet) == []
+
+
+@pytest.mark.parametrize("state", ["failed", "succeeded", "retired"])
+def test_a_ready_recipe_never_gets_a_download_or_retry_request(
+    tmp_path: Path, state: str
+) -> None:
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        [FakeRecipe("a", ("m1",), local="cached", partial_files=True)],
+        [FakeModel("m1", local="not_cached")],
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    recipe = sweep.recipes["vonk-forge/a"]
+    sweep.state.downloads[recipe.key] = {
+        "state": state,
+        "kind": "model",
+        "operation_id": "old",
+        "done_at": clock.now(),
+        "retry_at": 0,
+        "next_check": 0,
+    }
+    clock.sleep(10**5)
+    plans = sweep.prefetcher.plan_queue(
+        [recipe], sweep.sizes, sweep._present(), sweep.boost
+    )
+    sweep.prefetcher.tick(
+        sweep.recipes,
+        sweep.models,
+        [recipe],
+        sweep.sizes,
+        sweep._present(),
+        sweep.boost,
+        sweep._cached_models(),
+    )
+    assert plans
+    assert [
+        c
+        for _, c in fleet.calls
+        if c[:2] in (("recipe", "download"), ("recipe", "retry"))
+    ] == []
+
+
 def test_the_sweep_takes_over_at_the_start_not_at_the_first_placement(
     tmp_path: Path, gateway: Gateway
 ) -> None:
