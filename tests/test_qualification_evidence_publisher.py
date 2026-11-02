@@ -485,3 +485,84 @@ def test_guard_flags_repo_lacking_a_resolved_local_record(tmp_path):
     }  # only B is resolved+missing
     write_evidence(tmp_path, evidence(record(A), record(B)))
     assert unpublished_resolved(local, tmp_path) == {}
+
+
+def test_only_resolved_records_are_exported_and_unresolved_stay_local(
+    tmp_path, monkeypatch
+):
+    from test_qualification_status import A, B, evidence, record
+
+    unresolved = B.model_copy(update={"models_resolved": False, "model_digests": ()})
+    published = _publish_with_state(
+        tmp_path, monkeypatch, None, evidence(record(A), record(unresolved, day=1))
+    )
+    assert [r.identity for r in published] == [A]
+
+
+def test_unreadable_state_prints_its_cause_and_returns_nothing(tmp_path, capsys):
+    from spark_sweep.qualification import read_state_evidence
+
+    broken = tmp_path / "state.json"
+    broken.write_text("{not json")
+    assert read_state_evidence(broken) == {}
+    assert "sweep state unreadable: JSONDecodeError" in capsys.readouterr().out
+
+
+def test_the_publisher_child_receives_the_sweep_state(tmp_path, monkeypatch):
+    argv = []
+
+    class Process:
+        def __init__(self, args, **kwargs):
+            argv.extend(args)
+
+    monkeypatch.setattr(publisher.subprocess, "Popen", Process)
+    state = tmp_path / "state.json"
+    publisher.EvidencePublisher(
+        tmp_path / "results.jsonl", tmp_path / "publisher", Path("worker"), state
+    ).tick(0)
+    assert argv[argv.index("--state") + 1] == str(state)
+
+
+def test_the_sweep_wires_its_state_file_into_the_publisher(tmp_path):
+    from test_qualification_status import evidence_sweep
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    assert sweep.evidence_publisher.state == sweep.state.path
+
+
+def test_missing_records_show_in_the_publisher_message_and_alert_when_persistent(
+    tmp_path, monkeypatch
+):
+    from test_qualification_status import evidence_sweep
+
+    from spark_sweep.report import build_status, render_status
+
+    sweep, _, _ = evidence_sweep(tmp_path)
+    worker = sweep.evidence_publisher
+    worker.directory.mkdir(parents=True, exist_ok=True)
+
+    class Done:
+        def poll(self):
+            return 0
+
+        def wait(self, timeout):
+            return 0
+
+    def batch(count, now):
+        (worker.directory / publisher.UNPUBLISHED_FILE).write_text(
+            json.dumps({"count": count})
+        )
+        worker.process = Done()
+        worker.next_attempt = 1e18
+        worker.tick(now)
+
+    batch(3, 0)
+    status = build_status(sweep)
+    assert "3 resolved sweep records were missing" in status["evidence_publication"]
+    assert not any("evidence publisher" in a for a in status["alerts"])
+    batch(3, 1)
+    status = build_status(sweep)
+    assert any("3 resolved sweep records still missing" in a for a in status["alerts"])
+    assert "evidence publisher: 3 resolved" in render_status(status)
+    batch(0, 2)
+    assert worker.alert is None

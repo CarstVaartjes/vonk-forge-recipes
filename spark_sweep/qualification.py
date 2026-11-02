@@ -276,23 +276,23 @@ class BackfillResult(BaseModel):
     imported: int = 0
     rejected: int = 0
     changed_files: int = 0
+    unpublished: int = 0  # resolved sweep records the repo lacked before this batch
 
 
 def read_state_evidence(path: Path) -> dict[str, RecipeQualificationEvidence]:
     """The sweep's merged evidence from its saved state, read only.
 
-    Never use State.load here (its recovery path mutates source state). Records
-    the state holds are the same ones qualification_view derives from; an entry
-    that does not validate is skipped, never fatal to the batch.
+    State.load already adopted the saved verdicts, so only the persisted
+    `qualification_evidence` is read. Never use State.load here (its recovery
+    path mutates source state). An entry that does not validate is skipped; an
+    unreadable file prints its cause and publishes history as before.
     """
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            return {}
-        if "qualification_evidence" not in data:
-            return adopt_state_evidence(data)
-        raw = data["qualification_evidence"]
-    except (OSError, ValueError, TypeError, AttributeError):
+        raw = json.loads(path.read_text(encoding="utf-8")).get(
+            "qualification_evidence", {}
+        )
+    except (OSError, ValueError, AttributeError) as error:
+        print(f"evidence: sweep state unreadable: {type(error).__name__}", flush=True)
         return {}
     found = {}
     for key, value in raw.items():
@@ -303,36 +303,36 @@ def read_state_evidence(path: Path) -> dict[str, RecipeQualificationEvidence]:
     return found
 
 
+def resolved_missing(
+    local: RecipeQualificationEvidence, repo: RecipeQualificationEvidence
+) -> tuple[QualificationEvidenceRecord, ...]:
+    """The one rule: resolved local records (same identity and outcome) the repo lacks."""
+    known = {(r.identity.model_dump_json(), r.outcome) for r in repo.records}
+    return tuple(
+        r
+        for r in local.records
+        if r.identity.models_resolved
+        and (r.identity.model_dump_json(), r.outcome) not in known
+    )
+
+
 def unpublished_resolved(
     local: Mapping[str, RecipeQualificationEvidence],
     root: Path,
     keys: Iterable[str] | None = None,
 ) -> dict[str, int]:
-    """Resolved local records (content, model digests) the repo evidence lacks.
-
-    The repo must never know less than the sweep: a record with resolved models
-    counts as missing when no repo record carries the same identity and outcome.
-    """
+    """Guard: per recipe, how many resolved local records the repo evidence lacks."""
     wanted = set(keys) if keys is not None else None
     missing: dict[str, int] = {}
     for key, evidence in local.items():
         if wanted is not None and key not in wanted:
             continue
         try:
-            known = {
-                (r.identity.model_dump_json(), r.outcome)
-                for r in read_evidence(root, key).records
-            }
+            repo = read_evidence(root, key)
         except (ValueError, OSError):
-            known = set()
-        lacking = sum(
-            1
-            for r in evidence.records
-            if r.identity.models_resolved
-            and (r.identity.model_dump_json(), r.outcome) not in known
-        )
-        if lacking:
-            missing[key] = lacking
+            repo = RecipeQualificationEvidence(recipe_key=key)
+        if lacking := resolved_missing(evidence, repo):
+            missing[key] = len(lacking)
     return missing
 
 
@@ -345,7 +345,13 @@ def backfill(
     result = BackfillResult()
     grouped: dict[str, RecipeQualificationEvidence] = {}
     for key, evidence in (extra or {}).items():
-        grouped[key] = merge_evidence(read_evidence(root, key), evidence)
+        previous = read_evidence(root, key)
+        lacking = resolved_missing(evidence, previous)
+        result.unpublished += len(lacking)
+        if lacking:  # resolved records only; nothing is rewritten, only appended
+            grouped[key] = merge_evidence(
+                previous, evidence.model_copy(update={"records": lacking})
+            )
     for path in paths:
         # Read only. Never use State.load: its recovery path mutates source state.
         for line in path.read_text().splitlines():

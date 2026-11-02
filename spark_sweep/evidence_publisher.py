@@ -29,14 +29,16 @@ from .qualification import (
     prune_withdrawn_evidence,
     read_evidence,
     read_state_evidence,
-    unpublished_resolved,
     write_evidence,
 )
+from .state import write_atomic
 
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 _deadline: float | None = None
+UNPUBLISHED_FILE = "unpublished.json"
+PERSISTENT_BATCHES = 2
 
 
 class EvidencePublicationTimeout(TimeoutError):
@@ -258,18 +260,16 @@ def sync(
             paths.append(history)
         local = read_state_evidence(state) if state is not None else {}
         result = backfill(paths, clone, local)
+        # Counted before the merge, on the fresh clone; reported, never a blocker.
+        write_atomic(
+            directory / UNPUBLISHED_FILE, json.dumps({"count": result.unpublished})
+        )
         if result.rejected:
             print(
                 f"evidence: rejected {result.rejected} malformed historical rows",
                 flush=True,
             )
         prune_withdrawn_evidence(clone)
-        lacking = unpublished_resolved(local, clone, catalog_recipe_keys(clone))
-        if lacking:  # alarm, never a blocker: the rest of the batch still goes out
-            print(
-                f"evidence: ALARM repo still lacks resolved sweep records: {lacking}",
-                flush=True,
-            )
         command(clone, "git", "add", "qualification/evidence")
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
@@ -370,6 +370,8 @@ class EvidencePublisher:
     ) -> None:
         self.history = history
         self.state = state
+        self.unpublished = 0
+        self.unpublished_batches = 0
         self.directory = directory
         self.script = script
         self.process: subprocess.Popen | None = None
@@ -377,6 +379,28 @@ class EvidencePublisher:
         self.started_at = 0.0
         self.message = "evidence publication pending"
         self._output: TextIO | None = None
+
+    def _read_unpublished(self) -> None:
+        try:
+            count = int(
+                json.loads((self.directory / UNPUBLISHED_FILE).read_text())["count"]
+            )
+        except (OSError, ValueError, KeyError, TypeError):
+            return  # this batch did not report; keep the last count
+        self.unpublished = count
+        self.unpublished_batches = self.unpublished_batches + 1 if count else 0
+        if count:
+            self.message += f"; {count} resolved sweep records were missing from main"
+
+    @property
+    def alert(self) -> str | None:
+        """Raised only when the same gap persists across batches: the publisher is broken."""
+        if self.unpublished_batches < PERSISTENT_BATCHES:
+            return None
+        return (
+            f"evidence publisher: {self.unpublished} resolved sweep records still "
+            f"missing from main after {self.unpublished_batches} batches"
+        )
 
     def tick(self, now: float) -> None:
         if self.process is not None:
@@ -396,6 +420,7 @@ class EvidencePublisher:
                 if code == SweepEvidenceExit.FAILING_CHECK
                 else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
             )
+            self._read_unpublished()
             if self._output is not None:
                 self._output.close()
             self.process = None
@@ -421,6 +446,7 @@ class EvidencePublisher:
                 stderr=self._output,
             )
         except OSError as error:
+            self._read_unpublished()
             if self._output is not None:
                 self._output.close()
             self.process = None
