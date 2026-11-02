@@ -1449,6 +1449,10 @@
       "432e1e316a4f4067d9fb68e16750fdc8d20feb20d41c3e612f7829d996901f72"
     ]
   },
+  "ple_embedding_dtypes": {
+    "b50dbc52a0c83b0cd2a44a372c1fb6b5e0e6827d22f2611c97d4d030f92f6b28": "nvfp4",
+    "fffcfb4bd7870c52cb0359b3a1f541b3b95465cc5fa427407e0e704b6e740fc1": "nvfp4"
+  },
   "historical_sources": [
     "2baabeecab328eed03d63317f3c66bd35b21f412",
     "db06379397c4f4dd8b6f20d6e5988e3311a306c8",
