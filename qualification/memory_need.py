@@ -1152,6 +1152,38 @@ def require_absolute_kv_capacity(
                     )
 
 
+class EnvelopeException(BaseModel):
+    """An owner-approved envelope exception for one exact recipe content."""
+
+    model_config = ConfigDict(extra="forbid")
+    content_sha256: str
+    reason: str
+    owner_decision: str
+    date: str
+
+
+@cache
+def envelope_exceptions() -> dict[str, EnvelopeException]:
+    document = json.loads((ROOT / "memory-envelope-exceptions.json").read_text())
+    return {
+        slug: EnvelopeException.model_validate(entry)
+        for slug, entry in document.items()
+    }
+
+
+def envelope_exception(slug: str, document_digest: str) -> bool:
+    """Whether this exact recipe content has a recorded owner-approved exception.
+
+    Bound to the content digest: any edit to the recipe expires the entry.
+    """
+    entry = envelope_exceptions().get(slug)
+    return (
+        entry is not None
+        and bool(document_digest)
+        and (entry.content_sha256 == document_digest)
+    )
+
+
 def require_memory_need(
     recipe: RecipeDefinition,
     models: Mapping[str, ModelDefinition],
@@ -1186,7 +1218,7 @@ def require_memory_need(
         vllm = variant.runtime.engine == "vllm"
         envelope = (
             None
-            if not single
+            if not single or envelope_exception(recipe.identity.slug, document_digest)
             else vllm_utilization_envelope(variant)
             if vllm
             else sglang_static_need(variant, models, inputs, key, pinned=False)
@@ -1211,7 +1243,7 @@ def require_memory_need(
             raise ValueError(f"{key}: " + "; ".join(problems))
         if not single and variant.runtime.engine == "sglang":
             require_sglang_rank_budget(variant, models, inputs, key)
-        elif touched:
+        elif touched and not envelope_exception(recipe.identity.slug, document_digest):
             require_bounded_kv_pool(variant, models, inputs, key)
         if not single:
             require_vllm_startup_budget(variant)
