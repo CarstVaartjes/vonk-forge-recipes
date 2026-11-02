@@ -107,6 +107,9 @@ def sync(
     global _deadline
     _deadline = time.monotonic() + 240
     directory.mkdir(parents=True, exist_ok=True)
+    (directory / UNPUBLISHED_FILE).unlink(
+        missing_ok=True
+    )  # only a synced batch reports
     opened = json.loads(
         command(
             directory,
@@ -386,7 +389,7 @@ class EvidencePublisher:
                 json.loads((self.directory / UNPUBLISHED_FILE).read_text())["count"]
             )
         except (OSError, ValueError, KeyError, TypeError):
-            return  # this batch did not report; keep the last count
+            return  # this batch did not reach backfill: neither counted nor reset
         self.unpublished = count
         self.unpublished_batches = self.unpublished_batches + 1 if count else 0
         if count:
@@ -446,7 +449,6 @@ class EvidencePublisher:
                 stderr=self._output,
             )
         except OSError as error:
-            self._read_unpublished()
             if self._output is not None:
                 self._output.close()
             self.process = None

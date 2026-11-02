@@ -472,19 +472,48 @@ def test_state_evidence_is_only_appended_never_rewritten(tmp_path, monkeypatch):
     assert again == published
 
 
-def test_guard_flags_repo_lacking_a_resolved_local_record(tmp_path):
-    from test_qualification_status import KEY, A, B, evidence, record
+def test_guard_flags_repo_lacking_a_resolved_local_record():
+    from test_qualification_status import A, B, evidence, record
 
-    from spark_sweep.qualification import unpublished_resolved, write_evidence
+    from spark_sweep.qualification import resolved_missing
 
     unresolved = A.model_copy(update={"models_resolved": False, "model_digests": ()})
-    local = {KEY: evidence(record(A), record(B), record(unresolved))}
-    write_evidence(tmp_path, evidence(record(A)))
-    assert unpublished_resolved(local, tmp_path) == {
-        KEY: 1
-    }  # only B is resolved+missing
-    write_evidence(tmp_path, evidence(record(A), record(B)))
-    assert unpublished_resolved(local, tmp_path) == {}
+    local = evidence(record(A), record(B), record(unresolved))
+    assert [r.identity for r in resolved_missing(local, evidence(record(A)))] == [B]
+    assert resolved_missing(local, evidence(record(A), record(B))) == ()
+
+
+def test_withdrawn_recipes_are_never_counted_as_missing(tmp_path):
+    from test_qualification_status import KEY, A, evidence, record
+
+    from spark_sweep.qualification import backfill
+
+    seed_catalog(tmp_path)
+    withdrawn = evidence(record(A)).model_copy(update={"recipe_key": "vonk-forge/gone"})
+    result = backfill(
+        [], tmp_path, {"vonk-forge/gone": withdrawn, KEY: evidence(record(A))}
+    )
+    assert result.unpublished == 1  # only the catalog recipe
+
+
+def test_a_batch_that_never_reaches_backfill_leaves_no_stale_count(
+    tmp_path, monkeypatch
+):
+    work = tmp_path / "work"
+    work.mkdir()
+    (work / publisher.UNPUBLISHED_FILE).write_text('{"count": 5}')
+
+    def command(cwd, *args, **kwargs):
+        if args[:3] == ("gh", "pr", "list"):
+            return '[{"number": 9}]'
+        if args[:3] == ("gh", "pr", "view"):
+            return '{"number": 9, "mergeStateStatus": "CLEAN", "statusCheckRollup": []}'
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    code = publisher.sync(tmp_path / "results.jsonl", work, tmp_path / "state.json")
+    assert code == publisher.SweepEvidenceExit.WAITING
+    assert not (work / publisher.UNPUBLISHED_FILE).exists()
 
 
 def test_only_resolved_records_are_exported_and_unresolved_stay_local(
@@ -549,9 +578,11 @@ def test_missing_records_show_in_the_publisher_message_and_alert_when_persistent
             return 0
 
     def batch(count, now):
-        (worker.directory / publisher.UNPUBLISHED_FILE).write_text(
-            json.dumps({"count": count})
-        )
+        # The real child unlinks first and reports only if it reached backfill.
+        report = worker.directory / publisher.UNPUBLISHED_FILE
+        report.unlink(missing_ok=True)
+        if count is not None:
+            report.write_text(json.dumps({"count": count}))
         worker.process = Done()
         worker.next_attempt = 1e18
         worker.tick(now)
@@ -564,5 +595,7 @@ def test_missing_records_show_in_the_publisher_message_and_alert_when_persistent
     status = build_status(sweep)
     assert any("3 resolved sweep records still missing" in a for a in status["alerts"])
     assert "evidence publisher: 3 resolved" in render_status(status)
-    batch(0, 2)
+    batch(None, 2)  # WAITING/FAILING_CHECK exit: no new report, nothing changes
+    assert worker.unpublished_batches == 2
+    batch(0, 3)
     assert worker.alert is None

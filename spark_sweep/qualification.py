@@ -316,26 +316,6 @@ def resolved_missing(
     )
 
 
-def unpublished_resolved(
-    local: Mapping[str, RecipeQualificationEvidence],
-    root: Path,
-    keys: Iterable[str] | None = None,
-) -> dict[str, int]:
-    """Guard: per recipe, how many resolved local records the repo evidence lacks."""
-    wanted = set(keys) if keys is not None else None
-    missing: dict[str, int] = {}
-    for key, evidence in local.items():
-        if wanted is not None and key not in wanted:
-            continue
-        try:
-            repo = read_evidence(root, key)
-        except (ValueError, OSError):
-            repo = RecipeQualificationEvidence(recipe_key=key)
-        if lacking := resolved_missing(evidence, repo):
-            missing[key] = len(lacking)
-    return missing
-
-
 def backfill(
     paths: Iterable[Path],
     root: Path,
@@ -344,7 +324,10 @@ def backfill(
     """Append history rows and the sweep's merged evidence (`extra`) to the repo."""
     result = BackfillResult()
     grouped: dict[str, RecipeQualificationEvidence] = {}
+    catalog = catalog_recipe_keys(root) if extra else set()
     for key, evidence in (extra or {}).items():
+        if key not in catalog:
+            continue  # withdrawn recipes are pruned, never counted
         previous = read_evidence(root, key)
         lacking = resolved_missing(evidence, previous)
         result.unpublished += len(lacking)
