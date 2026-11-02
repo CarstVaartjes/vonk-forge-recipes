@@ -18,7 +18,6 @@ from documents import recipe_display
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 from qualification.memory_need import (
-    OS_FLOOR_BYTES,
     argument_value,
     load_inputs,
     memory_variants,
@@ -74,7 +73,6 @@ class Creator:
     # "option/choice" ids the creator's profile dropped.
     absent_choices: tuple[str, ...] = ()
     peak: int | None = None  # None: the pool-less vLLM envelope
-    os_floor_reserve: bool = False
 
 
 CREATOR = {
@@ -82,13 +80,11 @@ CREATOR = {
         source=f"{MIA}/.env.tp4.example#L115",
         arguments={"gpu-memory-utilization": "0.75"},
         absent=("kv-cache-memory-bytes",),
-        os_floor_reserve=True,
     ),
     "glm-5-3-flash-exl3-dflash2-vllm-mia-triple": Creator(
         source=f"{MIA}/.env.tp3.example#L172",
         arguments={"gpu-memory-utilization": "0.80"},
         absent=("kv-cache-memory-bytes",),
-        os_floor_reserve=True,
     ),
     "glm-5-3-flash-nvfp4-vllm-four": Creator(
         source="https://github.com/tonyd2wild/GLM-5.3-Flash-NVFP4-1M-KV-4x-DGX-Spark/blob/2ac4e8dd661b12e6a1d7e69df711707abd6b9cd4/launch-glm53-tp4-24g.sh#L86",
@@ -233,7 +229,6 @@ CREATOR = {
     "glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": Creator(
         source=f"{R0B0_GLM}/serve/boot_dflash2.sh#L14",
         arguments={"gpu-memory-utilization": "0.86"},
-        os_floor_reserve=True,
     ),
     "leanstral-1-5-119b-a6b-vllm-mia-dual": Creator(
         source=f"{MIA_LEAN}/start.sh#L21",
@@ -349,8 +344,6 @@ def test_recipe_follows_the_creators_memory_settings(slug: str) -> None:
         memory = role.resources.memory
         # The creator's envelope is the floor; a role's honest measured peak may be higher.
         assert memory.peak_bytes >= expected_peak, role.name
-        if row.os_floor_reserve:
-            assert memory.reserve_bytes >= OS_FLOOR_BYTES, role.name
     description = recipe_display(slug).description
     assert not [text for text in FORBIDDEN if text in description]
     assert "Memory follows the creator's settings" in description

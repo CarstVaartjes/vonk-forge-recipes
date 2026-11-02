@@ -62,6 +62,12 @@ def test_guard_rejects_hidden_demand(slug: str, rank: int) -> None:
     assert any("peak understates" in p for p in declaration_problems(recipe, need))
     with pytest.raises(ValueError, match="peak understates"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+    # The reserve is informational: the proven GLM 5.3 Flash EXL3 dual runs
+    # with 2 GB, under the 2 GiB platform floor that admission holds itself.
+    memory.peak_bytes = need.peak_bytes
+    memory.reserve_bytes = 2_000_000_000
+    assert declaration_problems(recipe, need) == []
+    require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
 
 
 def test_loading_floor_does_not_double_count_the_fraction_draft_term() -> None:
