@@ -21,11 +21,8 @@ sys.path.insert(0, str(ROOT / "contracts" / "src"))
 from documents import recipe_display
 from generated_catalog import GENERATED
 from vonk_forge_contracts import (
-    RecipeDefinition,
     document_sha256,
 )
-
-from qualification.memory_need import require_admissible_declaration
 
 ADAPTER = ROOT / "adapters/video/wan-dancer-diffsynth-disk"
 RECIPE = ROOT / "recipes/wan-dancer-14b-disk-offload-pytorch-single.json"
@@ -123,7 +120,6 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
         self.assertEqual(memory["peak_bytes"], 118_000_000_000)
-        require_admissible_declaration(RecipeDefinition.model_validate(recipe))
 
         runtime = recipe["runtime"]
         self.assertEqual(

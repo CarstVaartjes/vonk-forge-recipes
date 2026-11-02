@@ -1270,29 +1270,33 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         import documents
         from catalog_documents import catalog_models
         from vonk_forge_contracts import RecipeDefinition
+        from warning_asserts import assert_not_warns, assert_warns
 
-        from qualification.memory_need import load_inputs, require_memory_need
+        from qualification.memory_need import load_inputs, memory_estimate_warnings
 
         slug = "deepseek-v4-flash-eugr-vllm-dual"
         before = documents.recipe(slug)
+        for role in before.topology.roles:
+            role.resources.memory.peak_bytes = 100_000_000_000
         payload = before.model_dump(mode="json", by_alias=True)
         models, inputs = catalog_models(), load_inputs()
-        with self.assertRaisesRegex(ValueError, "vLLM budget plus overhead"):
-            require_memory_need(
+        assert_warns(
+            memory_estimate_warnings(
                 before, models, inputs, document_digest="", touched=True
-            )
+            ),
+            "vLLM budget plus overhead",
+        )
         refresh.raise_role_peaks(payload["topology"]["roles"], before)
         after = RecipeDefinition.model_validate(payload)
         self.assertEqual(
             {r.resources.memory.peak_bytes for r in after.topology.roles},
             {114_930_585_191},
         )
-        require_memory_need(
-            after,
-            models,
-            inputs,
-            document_digest="",
-            touched=True,
+        assert_not_warns(
+            memory_estimate_warnings(
+                after, models, inputs, document_digest="", touched=True
+            ),
+            "vLLM budget plus overhead",
         )
 
     def test_verbatim_file_with_its_flags_intact_is_mechanical(self) -> None:
@@ -2529,6 +2533,39 @@ class ReviewIssueLifecycleTests(unittest.TestCase):
         self.assertIn("waits for an upstream", body)
         self.assertIn("## Why it waits", body)
         self.assertIn("- commit not on GitHub", body)
+
+    def test_memory_estimate_report_keeps_one_issue_current(self) -> None:
+        title = refresh.MEMORY_ESTIMATE_TITLE
+        with tempfile.TemporaryDirectory() as directory:
+            report = Path(directory) / "report.md"
+            report.write_text("- recipe: peak understates need 1\n")
+            created = self.run_gh(
+                {"open": [], "closed": []},
+                refresh.command_memory_estimate_issue,
+                report,
+            )
+            reopened = self.run_gh(
+                {"open": [], "closed": [{"number": 5, "title": title, "body": ""}]},
+                refresh.command_memory_estimate_issue,
+                report,
+            )
+            report.write_text("")
+            closed = self.run_gh(
+                {"open": [{"number": 5, "title": title, "body": "old"}]},
+                refresh.command_memory_estimate_issue,
+                report,
+            )
+        self.assertEqual(
+            [c[:2] for c in created if c[0] == "issue"], [("issue", "create")]
+        )
+        self.assertIn(refresh.LABEL_MEMORY_ESTIMATE, created[-1])
+        self.assertEqual(
+            [c[:3] for c in reopened if c[0] == "issue"],
+            [("issue", "reopen", "5"), ("issue", "edit", "5")],
+        )
+        self.assertEqual(
+            [c[:3] for c in closed if c[0] == "issue"], [("issue", "close", "5")]
+        )
 
 
 class StalePullRequestTests(unittest.TestCase):

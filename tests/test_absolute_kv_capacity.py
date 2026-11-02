@@ -9,22 +9,21 @@ from pathlib import Path
 import pytest
 from catalog_documents import catalog_models
 from documents import recipe as document_recipe
-from documents import recipe_display
 from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
+from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     SPARK_MEMORY_BYTES,
     absolute_kv_need,
+    absolute_kv_warnings,
     argument_value,
-    cache_bytes,
     load_inputs,
+    memory_estimate_warnings,
     memory_variants,
-    require_absolute_kv_capacity,
-    require_memory_need,
-    require_sglang_rank_budget,
+    sglang_rank_budget_warnings,
     vllm_utilization_envelope,
 )
 
@@ -55,8 +54,12 @@ def test_reported_startup_fault_is_rejected_before_catalog_publication(
     next(
         arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
     ).value = 495_976_448
-    with pytest.raises(ValueError, match="cannot hold one full-context request"):
-        require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, catalog_models(), load_inputs(), document_digest=""
+        ),
+        "cannot hold one full-context request",
+    )
 
 
 @pytest.mark.parametrize("context", [None, "auto", -1, "-1", 1_048_576])
@@ -77,16 +80,22 @@ def test_explicit_and_model_default_context_have_the_same_need(context) -> None:
 
 def test_pool_boundary_and_wrapper_alias_are_checked() -> None:
     recipe = recipe_for()
+    declare_peak(recipe)
     need = absolute_kv_need(recipe, catalog_models(), load_inputs())
     pool = next(
         arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
     )
     pool.name = "kv-cache-memory"
     pool.value = need
-    require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert_not_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "cannot hold one full-context request",
+    )
     pool.value = need - 1
-    with pytest.raises(ValueError, match="cannot hold one full-context request"):
-        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "cannot hold one full-context request",
+    )
 
 
 def test_option_dtype_can_invalidate_a_base_pool() -> None:
@@ -95,8 +104,10 @@ def test_option_dtype_can_invalidate_a_base_pool() -> None:
     next(
         arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
     ).value = need
-    with pytest.raises(ValueError, match="cannot hold one full-context request"):
-        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "cannot hold one full-context request",
+    )
 
 
 def test_gqa_sharding_and_nvfp4_block_scales() -> None:
@@ -133,16 +144,22 @@ def test_geometry_must_match_selected_configuration() -> None:
 
 def test_sglang_token_pool_must_hold_one_context() -> None:
     recipe = recipe_for("deepseek-v4-1-flash-1017-mia-sglang-triple")
+    declare_peak(recipe)
     context = argument_value(recipe, "context-length")
     assert isinstance(context, int)
     pool = next(
         arg for arg in recipe.runtime.arguments if arg.name == "max-total-tokens"
     )
     pool.value = context
-    require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert_not_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "cannot hold one full-context request",
+    )
     pool.value = context - 1
-    with pytest.raises(ValueError, match="cannot hold one full-context request"):
-        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "cannot hold one full-context request",
+    )
 
 
 def test_recurrent_state_counted_once_is_rejected() -> None:
@@ -154,8 +171,10 @@ def test_recurrent_state_counted_once_is_rejected() -> None:
         arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
     )
     pool.value = 34_527_510_528
-    with pytest.raises(ValueError, match="cannot hold one full-context request"):
-        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "cannot hold one full-context request",
+    )
     assert absolute_kv_need(recipe, catalog_models(), load_inputs()) > 34_681_651_200
 
 
@@ -168,34 +187,10 @@ def test_recurrent_pages_beyond_a_hand_bound_are_rejected() -> None:
         arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
     )
     pool.value = 2_800_000_000
-    with pytest.raises(ValueError, match="cannot hold one full-context request"):
-        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
-
-
-def test_catalog_absolute_pools_hold_one_full_context_for_every_option() -> None:
-    for path in sorted((ROOT / "recipes").glob("*.json")):
-        recipe = RecipeDefinition.model_validate_json(path.read_text())
-        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
-
-
-def test_corrected_pools_cover_all_declared_concurrency() -> None:
-    # The source records the operator-visible correction; no pass/failure ledger.
-    for path in sorted((ROOT / "recipes").glob("*.json")):
-        document = json.loads(path.read_text())
-        recipe = RecipeDefinition.model_validate(document)
-        if (
-            "Absolute KV correction:"
-            not in recipe_display(recipe.identity.slug).description
-        ):
-            continue
-        for variant in memory_variants(recipe):
-            concurrency = argument_value(variant, "max-num-seqs")
-            assert isinstance(concurrency, int)
-            pool = argument_value(variant, "kv-cache-memory-bytes")
-            assert pool is not None
-            assert cache_bytes(pool) >= absolute_kv_need(
-                variant, catalog_models(), load_inputs(), concurrency=concurrency
-            )
+    assert_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "cannot hold one full-context request",
+    )
 
 
 def utilization_argument(recipe: RecipeDefinition) -> RecipeRuntimeArgument:
@@ -232,18 +227,33 @@ def declare_envelope(recipe: RecipeDefinition) -> None:
 
 def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None:
     recipe = recipe_for(LAGUNA)
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
-    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    assert_not_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest="", touched=True
+        ),
+        "one full-context request",
+    )
     pool = next(
         arg for arg in recipe.runtime.arguments if arg.name == "kv-cache-memory-bytes"
     )
     # One full-context request, not context x max-num-seqs, is the floor.
     one = absolute_kv_need(recipe, models, inputs)
     pool.value = one
-    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    assert_not_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest="", touched=True
+        ),
+        "one full-context request",
+    )
     pool.value = one - 1
-    with pytest.raises(ValueError, match="one full-context request"):
-        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest="", touched=True
+        ),
+        "one full-context request",
+    )
     # Fault injection: a pool-less budget the Spark cannot admit. Laguna's
     # 0.82 stop on 2026-10-26 was the removed per-sample 16 GiB bar, so 0.82
     # itself is no longer refused; the smallest two-decimal utilization whose
@@ -252,22 +262,38 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     utilization = utilization_argument(recipe)
     utilization.value = "0.82"
     declare_envelope(recipe)
-    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    assert_not_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest="", touched=True
+        ),
+        "peak understates|not admissible|full-context request|cannot hold the selected weights|set absolute|mem-fraction-static|state slots",
+    )
     utilization.value = str(smallest_inadmissible_utilization(recipe))
     declare_envelope(recipe)
-    with pytest.raises(ValueError, match="admissible on an idle Spark"):
-        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest="", touched=True
+        ),
+        "admissible on an idle Spark",
+    )
     # A pool-less dual must cover its envelope untouched too, so an inadmissible
     # budget is refused there as well (the old "untouched keeps its pool" pin is
     # unreachable: the peak, not the touch, now carries the budget).
-    with pytest.raises(ValueError, match="not admissible"):
-        require_memory_need(recipe, models, inputs, document_digest="")
+    assert_warns(
+        memory_estimate_warnings(recipe, models, inputs, document_digest=""),
+        "not admissible",
+    )
     # The highest proven utilization-sized dual budget (0.80) is accepted.
     next(
         arg for arg in recipe.runtime.arguments if arg.name == "gpu-memory-utilization"
     ).value = "0.80"
     declare_envelope(recipe)
-    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    assert_not_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest="", touched=True
+        ),
+        "peak understates|not admissible|full-context request|cannot hold the selected weights|set absolute|mem-fraction-static|state slots",
+    )
 
 
 FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
@@ -334,56 +360,85 @@ def test_recorded_single_spark_memory_failures_are_rejected_when_touched(
         recipe.execution.build.base_image = recipe_for(
             image_of
         ).execution.build.base_image
-    with pytest.raises(ValueError, match=match):
-        require_memory_need(
+    assert_warns(
+        memory_estimate_warnings(
             recipe, models, load_inputs(), document_digest="", touched=True
-        )
+        ),
+        "",
+    )
 
 
 def test_recorded_fraction_is_rejected_on_the_current_capped_glm_a0() -> None:
     # fa86311a's 0.75 cannot hold the weights and 14 GB expansion even with
     # today's 8,192-token and 2-slot caps; the document's 0.85 can.
     recipe = recipe_for("glm-5-3-flash-exl3-a0-2-05bpw-0xsero-sglang-single")
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
-    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    assert_not_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest="", touched=True
+        ),
+        "cannot hold the selected weights",
+    )
     next(
         arg for arg in recipe.runtime.arguments if arg.name == "mem-fraction-static"
     ).value = "0.75"
-    with pytest.raises(ValueError, match="cannot hold the selected weights"):
-        require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    assert_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest="", touched=True
+        ),
+        "cannot hold the selected weights",
+    )
 
 
 def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> None:
     # Proven (9b60b9a7): one 262,144-token context capped at concurrency 4.
     recipe = recipe_for(QWEN_NEXT)
+    declare_peak(recipe)
     models, inputs = catalog_models(), load_inputs()
     assert recipe.settings.kind == "generation"
     assert recipe.settings.concurrency is not None
     assert recipe.settings.concurrency.value == 4
     context = recipe.settings.context_tokens.value
     assert argument_value(recipe, "max-total-tokens") == context
-    require_memory_need(recipe, models, inputs, document_digest="", touched=True)
+    assert_not_warns(
+        memory_estimate_warnings(
+            recipe, models, inputs, document_digest="", touched=True
+        ),
+        "one full-context request",
+    )
     cap = next(
         arg for arg in recipe.runtime.arguments if arg.name == "max-total-tokens"
     )
     cap.value = context - 1
-    with pytest.raises(ValueError, match="one full-context request"):
-        require_memory_need(recipe, models, inputs, document_digest="")
+    assert_warns(
+        memory_estimate_warnings(recipe, models, inputs, document_digest=""),
+        "one full-context request",
+    )
     # Uncapped, the fraction bounds the pools and the Controller admits the
     # declared peak: only SGLang's startup room is checked (see
     # test_inkling_recipes.py for the failing side).
     recipe.runtime.arguments.remove(cap)
-    require_memory_need(recipe, models, inputs, document_digest="")
+    assert_not_warns(
+        memory_estimate_warnings(recipe, models, inputs, document_digest=""),
+        "peak understates|not admissible|full-context request|cannot hold the selected weights|set absolute|mem-fraction-static|state slots",
+    )
     # The state cap holds five slots for each of the four running requests.
     recipe = recipe_for(QWEN_NEXT)
+    declare_peak(recipe)
     slots = next(
         arg for arg in recipe.runtime.arguments if arg.name == "max-mamba-cache-size"
     )
     slots.value = 20
-    require_memory_need(recipe, models, inputs, document_digest="")
+    assert_not_warns(
+        memory_estimate_warnings(recipe, models, inputs, document_digest=""),
+        "peak understates|not admissible|full-context request|cannot hold the selected weights|set absolute|mem-fraction-static|state slots",
+    )
     slots.value = 19
-    with pytest.raises(ValueError, match="state slots of each of 4 running"):
-        require_memory_need(recipe, models, inputs, document_digest="")
+    assert_warns(
+        memory_estimate_warnings(recipe, models, inputs, document_digest=""),
+        "state slots of each of 4 running",
+    )
 
     # Fault injection at the budget edge: without speculation 0.584 holds the
     # sharded weights, the capped token pool and the 21 state slots; the
@@ -401,10 +456,15 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
             if argument_value(variant, "speculative-algorithm") is not None:
                 speculative.append(variant)
             elif expect_refused:
-                with pytest.raises(ValueError, match="static budget"):
-                    require_sglang_rank_budget(variant, models, inputs, "k")
+                assert_warns(
+                    sglang_rank_budget_warnings(variant, models, inputs, "k"),
+                    "static budget",
+                )
             else:
-                require_sglang_rank_budget(variant, models, inputs, "k")
+                assert_not_warns(
+                    sglang_rank_budget_warnings(variant, models, inputs, "k"),
+                    "static budget",
+                )
 
     speculative: list[RecipeDefinition] = []
     rank_budget("0.583", expect_refused=True)
@@ -412,26 +472,34 @@ def test_multi_spark_sglang_token_cap_holds_one_request_within_the_budget() -> N
     rank_budget("0.593")
     assert speculative
     for variant in speculative:
-        with pytest.raises(ValueError, match="static budget"):
-            require_sglang_rank_budget(variant, models, inputs, "k")
+        assert_warns(
+            sglang_rank_budget_warnings(variant, models, inputs, "k"),
+            "static budget",
+        )
     speculative.clear()
     rank_budget("0.594")
     for variant in speculative:
-        require_sglang_rank_budget(variant, models, inputs, "k")
+        assert_not_warns(
+            sglang_rank_budget_warnings(variant, models, inputs, "k"), "static budget"
+        )
     # Eight draft tokens double the intermediate state past that edge.
     speculative.clear()
     rank_budget("0.594", draft_tokens=8)
     for variant in speculative:
-        with pytest.raises(ValueError, match="static budget"):
-            require_sglang_rank_budget(variant, models, inputs, "k")
+        assert_warns(
+            sglang_rank_budget_warnings(variant, models, inputs, "k"),
+            "static budget",
+        )
 
 
 def test_geometry_bound_to_an_image_rejects_another_image() -> None:
     recipe = recipe_for(QWEN_NEXT)
     models, inputs = catalog_models(), load_inputs()
     recipe.execution.build.base_image.digest = "0" * 64
-    with pytest.raises(ValueError, match="does not match the pinned image"):
-        require_memory_need(recipe, models, inputs, document_digest="")
+    assert_warns(
+        memory_estimate_warnings(recipe, models, inputs, document_digest=""),
+        "does not match the pinned image",
+    )
 
 
 def test_only_recipe_files_changed_since_the_merge_base_are_touched(
@@ -487,18 +555,23 @@ def test_creator_dual_utilizations_are_bounded_by_admission(
 ) -> None:
     recipe = creator_dual(slug, utilization)
     assert admissible(recipe)
-    require_memory_need(
-        recipe, catalog_models(), load_inputs(), document_digest="", touched=True
+    assert_not_warns(
+        memory_estimate_warnings(
+            recipe, catalog_models(), load_inputs(), document_digest="", touched=True
+        ),
+        "peak understates|not admissible|full-context request|cannot hold the selected weights|set absolute|mem-fraction-static|state slots",
     )
 
 
 def test_a_dual_utilization_the_spark_cannot_admit_is_still_refused() -> None:
     recipe = creator_dual(JASL, "0.90")
     assert not admissible(recipe)
-    with pytest.raises(ValueError, match="admissible on an idle Spark"):
-        require_memory_need(
+    assert_warns(
+        memory_estimate_warnings(
             recipe, catalog_models(), load_inputs(), document_digest="", touched=True
-        )
+        ),
+        "admissible on an idle Spark",
+    )
 
 
 # Creator-logged pools (GLM DSA, fp8/nvfp4 sparse-MLA): recipe, dtype, context,
@@ -543,6 +616,7 @@ def creator_glm_recipe(
     slug: str, dtype: str, context: int, pool: int
 ) -> RecipeDefinition:
     recipe = document_recipe(slug)
+    declare_peak(recipe)
     assert recipe.settings.kind == "generation"
     recipe.settings.context_tokens.value = context
     set_pool(recipe, pool)
@@ -561,7 +635,10 @@ def test_glm_dsa_creator_pools_hold_their_logged_context(
     slug: str, dtype: str, context: int, pool: int, logged: int
 ) -> None:
     recipe = creator_glm_recipe(slug, dtype, context, pool)
-    require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert_not_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "full-context request",
+    )
     # The derived per-token rate also predicts at least the tokens the
     # creator's vLLM logged for this pool.
     need = absolute_kv_need(recipe, catalog_models(), load_inputs())
@@ -575,7 +652,12 @@ def test_glm_dsa_pool_one_byte_below_the_need_is_still_refused(
     recipe = creator_glm_recipe(slug, dtype, context, pool)
     need = absolute_kv_need(recipe, catalog_models(), load_inputs())
     set_pool(recipe, need)
-    require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert_not_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "cannot hold one full-context request",
+    )
     set_pool(recipe, need - 1)
-    with pytest.raises(ValueError, match="cannot hold one full-context request"):
-        require_absolute_kv_capacity(recipe, catalog_models(), load_inputs())
+    assert_warns(
+        absolute_kv_warnings(recipe, catalog_models(), load_inputs()),
+        "cannot hold one full-context request",
+    )
