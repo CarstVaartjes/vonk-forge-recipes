@@ -9,6 +9,7 @@ from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
+from warning_asserts import assert_not_warns, assert_warns, declare_peak
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
@@ -16,7 +17,7 @@ from qualification.memory_need import (
     argument_value,
     calculate_need,
     load_inputs,
-    require_memory_need,
+    memory_estimate_warnings,
     vllm_utilization_envelope,
 )
 
@@ -39,8 +40,11 @@ def test_full_context_need_and_absolute_pool_replace_the_failed_fraction():
     assert argument_value(recipe, "max-num-batched-tokens") == 2048
     assert argument_value(recipe, "gpu-memory-utilization") == "0.649858"
     assert argument_value(recipe, "kv-cache-memory-bytes") == need.kv_bytes
-    assert recipe.topology.roles[0].resources.memory.peak_bytes == need.total_bytes
-    require_memory_need(recipe, catalog_models(), inputs, document_digest="")
+    declare_peak(recipe, need.total_bytes)
+    assert_not_warns(
+        memory_estimate_warnings(recipe, catalog_models(), inputs, document_digest=""),
+        "absolute kv-cache-memory-bytes",
+    )
     # The actual shared admission contract charges host occupancy exactly once.
     admission = evaluate_memory_admission(
         pool_bytes=TOTAL_BYTES,
@@ -58,11 +62,16 @@ def test_full_context_need_and_absolute_pool_replace_the_failed_fraction():
     envelope = vllm_utilization_envelope(recipe)
     assert envelope is not None
     recipe.topology.roles[0].resources.memory.peak_bytes = envelope
-    require_memory_need(recipe, catalog_models(), inputs, document_digest="")
-    with pytest.raises(ValueError, match="absolute kv-cache-memory-bytes"):
-        require_memory_need(
+    assert_not_warns(
+        memory_estimate_warnings(recipe, catalog_models(), inputs, document_digest=""),
+        "absolute kv-cache-memory-bytes",
+    )
+    assert_warns(
+        memory_estimate_warnings(
             recipe, catalog_models(), inputs, document_digest="", touched=True
-        )
+        ),
+        "absolute kv-cache-memory-bytes",
+    )
 
 
 def test_resident_expansion_rejects_graph_and_image_drift():

@@ -26,7 +26,7 @@ from qualification.memory_need import (
 # on, envs.py:2109); the KV budget is the requested share less everything
 # consumed since the snapshot (mem_utils.py:312-321, gpu_worker.py:621-625), and
 # the drafter's attention layers draw on that pool. Its weights therefore count
-# inside the budget (memory_need.require_bounded_kv_pool). On hardware the
+# inside the budget (memory_need.bounded_kv_warnings). On hardware the
 # pool-less single-Spark runs with a separate drafter held at most 9.9 GB beside
 # utilization x memory with the OS included, inside the 8 GB overhead plus the
 # 6 GB OS floor (the proven DFlash single Nemotron 3.5 Bolt at 0.7 held 1.4 and

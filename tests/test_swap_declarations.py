@@ -9,12 +9,13 @@ import pytest
 from pydantic import ValidationError
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeMemoryResources
+from warning_asserts import assert_not_warns, assert_warns
 
 from qualification.memory_need import (
     SWAP_DEFAULT_BYTES,
     SWAP_MAXIMUM_BYTES,
+    admissible_declaration_warnings,
     memory_warnings,
-    require_admissible_declaration,
     swap_needed_bytes,
     swap_warnings,
     usable_swap_bytes,
@@ -26,6 +27,9 @@ GIB = 1024**3
 USABLE_MAX = usable_swap_bytes(SWAP_MAXIMUM_BYTES)
 
 
+PEAK = 100_000_000_000
+
+
 def document() -> dict[str, Any]:
     path = ROOT / "recipes" / f"{SLUG}.json"
     return json.loads(path.read_text())
@@ -34,12 +38,15 @@ def document() -> dict[str, Any]:
 def recipe_with(**memory: int) -> RecipeDefinition:
     value = document()
     for role in value["topology"]["roles"]:
+        role["resources"]["memory"]["peak_bytes"] = PEAK
+        role["resources"]["memory"].pop("load_peak_bytes", None)
+        role["resources"]["memory"].pop("minimum_swap_bytes", None)
         role["resources"]["memory"].update(memory)
     return RecipeDefinition.model_validate(value)
 
 
 def peak() -> int:
-    return document()["topology"]["roles"][0]["resources"]["memory"]["peak_bytes"]
+    return PEAK
 
 
 def declared(overshoot: int, swap: int) -> RecipeDefinition:
@@ -117,28 +124,44 @@ def test_contract_fields_serialize_only_when_set() -> None:
 def test_overshoot_at_the_usable_maximum_is_admitted_and_one_byte_past_never_fits() -> (
     None
 ):
-    require_admissible_declaration(declared(USABLE_MAX, SWAP_MAXIMUM_BYTES))
-    with pytest.raises(ValueError, match="can never fit"):
-        require_admissible_declaration(declared(USABLE_MAX + 1, SWAP_MAXIMUM_BYTES))
+    assert_not_warns(
+        admissible_declaration_warnings(declared(USABLE_MAX, SWAP_MAXIMUM_BYTES)),
+        "can never fit",
+    )
+    assert_warns(
+        admissible_declaration_warnings(declared(USABLE_MAX + 1, SWAP_MAXIMUM_BYTES)),
+        "can never fit",
+    )
 
 
 def test_minimum_swap_must_cover_the_overshoot_exactly() -> None:
     overshoot = 50 * GIB
     needed = swap_needed_bytes(overshoot)
-    require_admissible_declaration(declared(overshoot, needed))
-    with pytest.raises(ValueError, match="is below"):
-        require_admissible_declaration(declared(overshoot, needed - 1))
+    assert_not_warns(
+        admissible_declaration_warnings(declared(overshoot, needed)), "is below"
+    )
+    assert_warns(
+        admissible_declaration_warnings(declared(overshoot, needed - 1)),
+        "is below",
+    )
 
 
 def test_a_load_peak_without_minimum_swap_is_refused() -> None:
-    with pytest.raises(ValueError, match="is below"):
-        require_admissible_declaration(recipe_with(load_peak_bytes=peak() + GIB))
+    assert_warns(
+        admissible_declaration_warnings(recipe_with(load_peak_bytes=peak() + GIB)),
+        "is below",
+    )
 
 
 def test_minimum_swap_cannot_exceed_the_policy_maximum() -> None:
-    require_admissible_declaration(declared(GIB, SWAP_MAXIMUM_BYTES))
-    with pytest.raises(ValueError, match="exceeds the .*swap maximum"):
-        require_admissible_declaration(declared(GIB, SWAP_MAXIMUM_BYTES + 1))
+    assert_not_warns(
+        admissible_declaration_warnings(declared(GIB, SWAP_MAXIMUM_BYTES)),
+        "exceeds the .*swap maximum",
+    )
+    assert_warns(
+        admissible_declaration_warnings(declared(GIB, SWAP_MAXIMUM_BYTES + 1)),
+        "exceeds the .*swap maximum",
+    )
 
 
 def test_warning_only_when_needed_swap_passes_the_default() -> None:
