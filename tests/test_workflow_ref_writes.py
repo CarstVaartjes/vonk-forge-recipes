@@ -1,4 +1,14 @@
-"""CI never writes git refs: GITHUB_TOKEN may not aim one at stale workflows."""
+"""Workflow and action YAML never writes git refs with GITHUB_TOKEN.
+
+Scope: every ``*.yml``/``*.yaml`` under ``.github`` (workflows and composite
+actions), whose shell runs with GITHUB_TOKEN. GitHub refuses a ref that
+GITHUB_TOKEN points at a commit whose workflow files differ from main's, so a
+publish that lags a newer workflow change would fail. Releases are addressed
+by tag name and carry their commit in the signed bundle; undrafting a release
+creates a new contract version's tag. ``tools/refresh-upstream`` pushes its PR
+branches with the refresh GitHub App's token, a different authority, and is
+outside this guard.
+"""
 
 from __future__ import annotations
 
@@ -6,10 +16,6 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-# A ref written to a commit whose workflow files differ from main's is refused,
-# so a publish that lags a newer workflow change would fail. Releases are addressed by
-# tag name and carry their commit in the signed bundle; the Releases API
-# creates a new contract version's tag.
 REF_WRITE = re.compile(r"\bgit\s+(?:push|tag)\b|\bgit/refs\b|\bupdateRef\b")
 
 
