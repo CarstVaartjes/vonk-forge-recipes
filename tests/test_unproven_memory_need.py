@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from catalog_documents import catalog_models
+from documents import recipe as recipe_of
 from documents import recipe_display
 from vonk_forge_contracts import (
     QualificationBlame,
@@ -22,12 +23,15 @@ from warning_asserts import assert_not_warns, assert_warns, declare_peak
 from qualification.memory_need import (
     SPARK_MEMORY_BYTES,
     calculate_need,
+    envelope_exceptions,
     hardware_proven,
     load_inputs,
     memory_estimate_warnings,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+# Read before a test points the module root at a temporary directory.
+envelope_exceptions()
 MOSAIC = "glm-5-3-flash-exl3-mosaic-12l-0xsero-sglang-single"
 
 
@@ -45,9 +49,7 @@ def untested_root(tmp_path: Path, monkeypatch, slug: str) -> Path:
 
 def test_unchanged_untested_document_is_informational(tmp_path, monkeypatch) -> None:
     untested_root(tmp_path, monkeypatch, "d3-edge-vllm-single")
-    recipe = RecipeDefinition.model_validate(
-        json.loads((ROOT / "recipes/d3-edge-vllm-single.json").read_text())
-    )
+    recipe = recipe_of("d3-edge-vllm-single")
     declare_peak(recipe, 60_000_000_000)
     document = json.loads(recipe.model_dump_json())
     digest = document_sha256(document)
@@ -84,7 +86,7 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
 
     slug = "d3-edge-vllm-single"
     source = ROOT / "recipes" / f"{slug}.json"
-    recipe = RecipeDefinition.model_validate(json.loads(source.read_text()))
+    recipe = recipe_of(slug)
     declare_peak(recipe, 60_000_000_000)
     document = json.loads(recipe.model_dump_json())
     digest = document_sha256(document)
