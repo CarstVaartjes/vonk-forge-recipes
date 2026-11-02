@@ -30,7 +30,13 @@ from . import policy, verdict
 from .evidence_contract import read_result
 from .identity import recorded_identity
 from .lifecycle import ACTIVE
-from .qualification import current_identity, from_history, merge_evidence, read_evidence
+from .qualification import (
+    current_identity,
+    from_history,
+    merge_evidence,
+    read_evidence,
+    unpublished_resolved,
+)
 from .removal_contract import RecipeVerdict, RemovalWait
 from .state import write_atomic
 
@@ -268,6 +274,12 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         ],
         "queue_length": len(sweep.queue),
         "evidence_publication": sweep.evidence_publisher.message,
+        # Alarm: resolved records the sweep holds that the repo checkout lacks.
+        "evidence_unpublished": unpublished_resolved(
+            sweep.qualification_evidence,
+            Path(__file__).resolve().parents[1],
+            sweep.recipes,
+        ),
         "qualification": {
             key: view.model_dump(mode="json", exclude_none=True)
             for key, recipe in sweep.recipes.items()
@@ -519,6 +531,11 @@ def render_status(status: Mapping[str, Any]) -> str:
             for key, view in sorted(status["qualification"].items())
         ]
         lines += ["", str(status.get("evidence_publication", ""))]
+        if status.get("evidence_unpublished"):
+            lines.append(
+                "ALARM: repo evidence lacks resolved sweep records: "
+                f"{status['evidence_unpublished']}"
+            )
     return "\n".join(lines) + "\n"
 
 

@@ -28,6 +28,8 @@ from .qualification import (
     merge_evidence,
     prune_withdrawn_evidence,
     read_evidence,
+    read_state_evidence,
+    unpublished_resolved,
     write_evidence,
 )
 
@@ -96,7 +98,9 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-def sync(history: Path, directory: Path) -> SweepEvidenceExit:
+def sync(
+    history: Path, directory: Path, state: Path | None = None
+) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
     _deadline = time.monotonic() + 240
@@ -252,13 +256,20 @@ def sync(history: Path, directory: Path) -> SweepEvidenceExit:
         paths = sorted(history.parent.glob(history.name + ".*"))
         if history.exists():
             paths.append(history)
-        result = backfill(paths, clone)
+        local = read_state_evidence(state) if state is not None else {}
+        result = backfill(paths, clone, local)
         if result.rejected:
             print(
                 f"evidence: rejected {result.rejected} malformed historical rows",
                 flush=True,
             )
         prune_withdrawn_evidence(clone)
+        lacking = unpublished_resolved(local, clone, catalog_recipe_keys(clone))
+        if lacking:  # alarm, never a blocker: the rest of the batch still goes out
+            print(
+                f"evidence: ALARM repo still lacks resolved sweep records: {lacking}",
+                flush=True,
+            )
         command(clone, "git", "add", "qualification/evidence")
         if not command(
             clone, "git", "diff", "origin/main", "--", "qualification/evidence"
@@ -350,8 +361,15 @@ def sync(history: Path, directory: Path) -> SweepEvidenceExit:
 class EvidencePublisher:
     """Tick-driven child process; never wait on git or GitHub in a sweep lane."""
 
-    def __init__(self, history: Path, directory: Path, script: Path) -> None:
+    def __init__(
+        self,
+        history: Path,
+        directory: Path,
+        script: Path,
+        state: Path | None = None,
+    ) -> None:
         self.history = history
+        self.state = state
         self.directory = directory
         self.script = script
         self.process: subprocess.Popen | None = None
@@ -397,6 +415,7 @@ class EvidencePublisher:
                     str(self.history),
                     "--work-dir",
                     str(self.directory),
+                    *(["--state", str(self.state)] if self.state else []),
                 ],
                 stdout=self._output,
                 stderr=self._output,

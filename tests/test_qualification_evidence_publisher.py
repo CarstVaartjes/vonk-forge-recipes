@@ -400,3 +400,88 @@ def test_behind_pr_replans_without_asking_how_far_main_moved(tmp_path, monkeypat
     with pytest.raises(RuntimeError, match="fresh plan reached"):
         publisher.sync(history, tmp_path / "work")
     assert not any(c[:2] == ("gh", "api") for c in calls)
+
+
+def _publish_with_state(tmp_path, monkeypatch, repo_records, state_evidence):
+    """Run one sync with mocked git/gh; return (state text, records the repo ends with)."""
+    from test_qualification_status import KEY
+
+    from spark_sweep.qualification import read_evidence, write_evidence
+
+    history = tmp_path / "results.jsonl"
+    history.write_text("")
+    state = tmp_path / "state.json"
+    state.write_text(
+        json.dumps(
+            {"qualification_evidence": {KEY: state_evidence.model_dump(mode="json")}}
+        )
+    )
+    before = state.read_text()
+    final = []
+    listed = 0
+
+    def command(cwd, *args, **kwargs):
+        nonlocal listed
+        if args[:2] == ("git", "clone"):
+            clone = Path(args[-1])
+            (clone / ".git").mkdir()
+            seed_catalog(clone)
+            if repo_records:
+                write_evidence(clone, repo_records)
+        if args[:3] == ("git", "diff", "origin/main"):
+            final.extend(read_evidence(cwd, KEY).records)
+            return "changed evidence"
+        if args[:3] == ("git", "diff", "--cached"):
+            return "qualification/evidence/vonk-forge/example.json"
+        if args[:3] == ("gh", "pr", "list"):
+            listed += 1
+            return "[]" if listed == 1 else '[{"number":7}]'
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    publisher.sync(history, tmp_path / "work", state)
+    assert state.read_text() == before  # the child only reads the sweep state
+    return final
+
+
+def test_resolved_state_only_record_is_published(tmp_path, monkeypatch):
+    from test_qualification_status import B, evidence, record
+
+    published = _publish_with_state(tmp_path, monkeypatch, None, evidence(record(B)))
+    assert [r.identity for r in published] == [B]
+    assert published[0].identity.models_resolved and published[0].identity.model_digests
+
+
+def test_state_evidence_is_only_appended_never_rewritten(tmp_path, monkeypatch):
+    from test_qualification_status import A, B, evidence, record
+
+    old = record(A, day=0)
+    published = _publish_with_state(
+        tmp_path, monkeypatch, evidence(old), evidence(record(B, day=1))
+    )
+    assert published[0] == old  # existing repo record kept as it was
+    assert [r.identity for r in published] == [A, B]
+    # Re-publishing the same state adds nothing.
+    (tmp_path / "again").mkdir()
+    again = _publish_with_state(
+        tmp_path / "again",
+        monkeypatch,
+        evidence(*published),
+        evidence(record(B, day=1)),
+    )
+    assert again == published
+
+
+def test_guard_flags_repo_lacking_a_resolved_local_record(tmp_path):
+    from test_qualification_status import KEY, A, B, evidence, record
+
+    from spark_sweep.qualification import unpublished_resolved, write_evidence
+
+    unresolved = A.model_copy(update={"models_resolved": False, "model_digests": ()})
+    local = {KEY: evidence(record(A), record(B), record(unresolved))}
+    write_evidence(tmp_path, evidence(record(A)))
+    assert unpublished_resolved(local, tmp_path) == {
+        KEY: 1
+    }  # only B is resolved+missing
+    write_evidence(tmp_path, evidence(record(A), record(B)))
+    assert unpublished_resolved(local, tmp_path) == {}
