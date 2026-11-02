@@ -35,6 +35,24 @@ class EvidencePublicationTimeout(TimeoutError):
     """Only the optional repository transport ends; hardware lanes continue."""
 
 
+_FAILED = {"FAILURE", "TIMED_OUT", "STARTUP_FAILURE", "ERROR"}
+
+
+class CheckResult(BaseModel):
+    """A check run (status, conclusion) or a commit status (state)."""
+
+    model_config = ConfigDict(extra="ignore")
+    status: str | None = None
+    conclusion: str | None = None
+    state: str | None = None
+
+    @property
+    def failed(self) -> bool:
+        if self.status is not None:
+            return self.status == "COMPLETED" and self.conclusion in _FAILED
+        return self.state in _FAILED
+
+
 class PullRequest(BaseModel):
     model_config = ConfigDict(extra="ignore")
     number: int
@@ -42,6 +60,11 @@ class PullRequest(BaseModel):
     merge_state: str = Field(
         default=SweepEvidenceMergeState.UNKNOWN, alias="mergeStateStatus"
     )
+    checks: list[CheckResult] = Field(default_factory=list, alias="statusCheckRollup")
+
+    @property
+    def check_failed(self) -> bool:
+        return any(check.failed for check in self.checks)
 
 
 def command(cwd: Path, *args: str, timeout: int = 60) -> str:
@@ -91,13 +114,26 @@ def sync(history: Path, directory: Path) -> bool:
                 "--repo",
                 REPOSITORY,
                 "--json",
-                "number,mergeStateStatus",
+                "number,mergeStateStatus,statusCheckRollup",
+            )
+        )
+        # A red PR that main has outgrown is re-planned from fresh main (the
+        # fix may be there); a red PR on current main waits, visibly.
+        red = details.check_failed
+        moved = red and int(
+            command(
+                directory,
+                "gh",
+                "api",
+                f"repos/{REPOSITORY}/compare/main...{BRANCH}",
+                "--jq",
+                ".behind_by",
             )
         )
         if details.merge_state not in (
             SweepEvidenceMergeState.BEHIND,
             SweepEvidenceMergeState.DIRTY,
-        ):
+        ) and not (red and moved):
             command(
                 directory,
                 "gh",
@@ -110,7 +146,9 @@ def sync(history: Path, directory: Path) -> bool:
                 "--squash",
             )
             print(
-                f"evidence: PR #{pr.number} awaiting CI/auto-merge; new results remain in history",
+                f"evidence PR #{pr.number} has a failing check; waiting for main to move"
+                if red
+                else f"evidence: PR #{pr.number} awaiting CI/auto-merge; new results remain in history",
                 flush=True,
             )
             return False

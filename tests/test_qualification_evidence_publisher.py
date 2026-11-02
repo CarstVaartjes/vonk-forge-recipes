@@ -270,3 +270,58 @@ def test_sync_removes_withdrawn_evidence_despite_branch_conflict_and_old_history
         "--",
         "qualification/evidence/vonk-forge/withdrawn.json",
     ) in calls
+
+
+RED = [{"status": "COMPLETED", "conclusion": "FAILURE"}]
+PENDING = [{"status": "IN_PROGRESS", "conclusion": ""}]
+
+
+def _open_pr(tmp_path, monkeypatch, rollup, behind_by):
+    history = tmp_path / "results.jsonl"
+    history.write_text(json.dumps(historical()) + "\n")
+    calls = []
+
+    def command(cwd, *args, **kwargs):
+        calls.append(args)
+        if args[:3] == ("gh", "pr", "list"):
+            return '[{"number":123}]'
+        if args[:3] == ("gh", "pr", "view"):
+            return json.dumps(
+                {
+                    "number": 123,
+                    "mergeStateStatus": "BLOCKED",
+                    "statusCheckRollup": rollup,
+                }
+            )
+        if args[:2] == ("gh", "api"):
+            return str(behind_by)
+        if args[:2] == ("git", "clone"):
+            raise RuntimeError("fresh plan reached")
+        return ""
+
+    monkeypatch.setattr(publisher, "command", command)
+    return history, calls
+
+
+def test_red_pr_with_moved_main_takes_the_fresh_plan(tmp_path, monkeypatch):
+    history, calls = _open_pr(tmp_path, monkeypatch, RED, 3)
+    with pytest.raises(RuntimeError, match="fresh plan reached"):
+        publisher.sync(history, tmp_path / "work")
+    assert not any(c[:3] == ("gh", "pr", "merge") for c in calls)
+
+
+def test_red_pr_on_current_main_waits_and_says_so(tmp_path, monkeypatch, capsys):
+    history, calls = _open_pr(tmp_path, monkeypatch, RED, 0)
+    assert publisher.sync(history, tmp_path / "work") is False
+    assert not any(c[0] == "git" for c in calls)
+    assert (
+        "evidence PR #123 has a failing check; waiting for main to move"
+        in capsys.readouterr().out
+    )
+
+
+def test_pending_pr_waits_as_before(tmp_path, monkeypatch, capsys):
+    history, calls = _open_pr(tmp_path, monkeypatch, PENDING, 3)
+    assert publisher.sync(history, tmp_path / "work") is False
+    assert not any(c[0] == "git" or c[:2] == ("gh", "api") for c in calls)
+    assert "awaiting CI/auto-merge" in capsys.readouterr().out
