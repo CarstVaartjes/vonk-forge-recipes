@@ -28,6 +28,7 @@ from vonk_forge_contracts import (
 )
 
 from spark_sweep.qualification import read_evidence
+from spark_sweep.run import retest_reason
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -80,12 +81,7 @@ def _identity(
 
 
 def _digest_free(value: object) -> object:
-    """A status view without the digests the split changes by design.
-
-    The ``changed`` hint of a recipe that is not Working names what moved since
-    its latest recorded run; an original record and its twin share a test time,
-    so which of them is latest is arbitrary and the hint is not compared.
-    """
+    """A status view without the digests the split changes by design."""
 
     if isinstance(value, dict):
         return {
@@ -117,17 +113,46 @@ def test_every_recipe_keeps_its_status_across_the_split(tmp_path: Path) -> None:
                 mode="json"
             ),
         )
+        twinned = any(
+            r.identity.content_sha256 == old_id.content_sha256
+            for r in old_evidence.records
+        )
         for view in views:
             old = _digest_free(view(old_evidence, old_id))
             new = _digest_free(view(new_evidence, new_id))
             assert isinstance(old, dict) and isinstance(new, dict)
-            assert old["status"] == new["status"], key
-            assert old["reason"] == new["reason"], key
-            assert old["required_sparks"] == new["required_sparks"], key
-            if old["status"] == "Working":
-                # Proven stays proven, with the same proof.
-                assert old == new, key
-                working += 1
+            if not twinned:
+                # Evidence only on older digests names the Models of its run, whose
+                # digests changed by design: only that hint may differ.
+                for shown in (old, new):
+                    shown["changed"] = [c for c in shown["changed"] if c != "model"]
+            # The whole view, not only the status: the hint of what changed and
+            # the proof or failure it stands on are the same across the split.
+            assert old == new, key
+            working += old["status"] == "Working"
+        old_view = derive_status(
+            old_evidence, old_id, old_id.required_sparks or 1, False
+        )
+        new_view = derive_status(
+            new_evidence, new_id, new_id.required_sparks or 1, False
+        )
+        # Which record the view stands on is the same record, seen against the
+        # same identity: it names the current document exactly when it did.
+        for record in ("last_pass", "last_failure"):
+            old_record, new_record = (
+                getattr(old_view, record),
+                getattr(new_view, record),
+            )
+            assert (old_record is None) == (new_record is None), key
+            if old_record is not None and new_record is not None:
+                assert (
+                    old_record.identity.content_sha256 == old_id.content_sha256
+                ) == (new_record.identity.content_sha256 == new_id.content_sha256), (
+                    key,
+                    record,
+                )
+        # The sweep requeues from this decision alone.
+        assert retest_reason(old_view, old_id) == retest_reason(new_view, new_id), key
         compared += 1
     assert compared == len(list((base / "recipes").glob("*.json")))
     assert working

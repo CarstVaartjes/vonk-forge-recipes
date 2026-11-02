@@ -32,6 +32,7 @@ from typing import Any, Protocol
 from pydantic import ValidationError
 from vonk_forge_contracts import (
     QualificationBlame,
+    QualificationIdentity,
     QualificationStatus,
     QualificationStatusView,
     RecipeQualificationEvidence,
@@ -129,6 +130,24 @@ RETEST_SECONDS = 24 * 3600.0
 ENDPOINT_RECHECK_SECONDS = 20.0
 # A results row carries the Controller document it ended on, bounded.
 DOCUMENT_EVIDENCE_LIMIT = 65536
+
+
+def retest_reason(
+    view: QualificationStatusView | None, current: QualificationIdentity
+) -> RetestReason | None:
+    """Why a recorded verdict asks for a new run, from the derived status alone."""
+    if view is None:
+        return None
+    if (
+        view.status == QualificationStatus.BLOCKED_PLATFORM
+        and view.last_failure is not None
+        and view.last_failure.identity != current
+    ):
+        return RetestReason.DEFERRED_OLDER_REVISION
+    return {
+        QualificationStatus.RECHECK: RetestReason.PASSED_OLDER_REVISION,
+        QualificationStatus.FIX_TO_VERIFY: RetestReason.FAILED_OLDER_REVISION,
+    }.get(view.status)
 
 
 @dataclass(frozen=True)
@@ -810,18 +829,7 @@ class Sweep:
             self.state.event(f"{recipe.key} is {why}: pending")
         if recipe.node_count > enrolled_sparks:
             return  # a Spark leaving the fleet must not rewrite a recorded result
-        why = None
-        if view is not None:
-            why = {
-                QualificationStatus.RECHECK: RetestReason.PASSED_OLDER_REVISION,
-                QualificationStatus.FIX_TO_VERIFY: RetestReason.FAILED_OLDER_REVISION,
-            }.get(view.status)
-            if (
-                view.status == QualificationStatus.BLOCKED_PLATFORM
-                and view.last_failure is not None
-                and view.last_failure.identity != current_identity(recipe)
-            ):
-                why = RetestReason.DEFERRED_OLDER_REVISION
+        why = retest_reason(view, current_identity(recipe))
         if entry.get("status") == RecipeStatus.PENDING:
             return
         if why is None:
