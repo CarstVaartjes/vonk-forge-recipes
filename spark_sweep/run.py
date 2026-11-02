@@ -420,6 +420,9 @@ class Sweep:
             self.cfg.boost, self.cfg.seed, self.clock.now(), self.cfg.recent_days
         )
 
+    def _placement_priority(self) -> policy.Boost:
+        return policy.make_priority(self.cfg.boost, self.cfg.seed)
+
     def preflight(self) -> None:
         """Read-only facts before anything is changed: fleet, owner baseline, owner profile export."""
         self.fleet = fetch_fleet(self.vk, self.cfg.default_spark_memory)
@@ -1085,6 +1088,7 @@ class Sweep:
             },
             deprioritised=self._deprioritised(pending),
             variants_last=self.cfg.variants_last,
+            boost=self._placement_priority(),
             refreshed={
                 k
                 for k, e in self.state.recipes.items()

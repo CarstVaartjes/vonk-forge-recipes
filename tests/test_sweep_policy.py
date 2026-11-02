@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 import pytest
 
 from qualification.memory_need import SPARK_MEMORY_BYTES
@@ -146,6 +148,45 @@ def test_group_members_are_back_to_back_with_engine_and_base_image_locality() ->
         "v3",
         "o",
     ]  # model group together; engine, then base image, inside it
+
+
+def _placement_order(rs, sizes, boost) -> list[str]:
+    by_key = {r.key: r for r in rs}
+    plans = policy.plan_groups(rs, sizes, set(sizes))
+    ordered = policy.order_queue(
+        plans, by_key, ready=set(by_key), sizes=sizes, boost=boost
+    )
+    return [k.split("/")[1] for k in ordered]
+
+
+def test_boosted_recipe_places_before_smaller_ready_recipes() -> None:
+    rs = [recipe("small", ("S",)), recipe("favourite", ("F",))]
+    sizes = {"S": GB, "F": 9 * GB}
+    assert _placement_order(rs, sizes, policy.no_boost) == ["small", "favourite"]
+    priority = policy.make_priority(["favourite"], ())
+    assert _placement_order(rs, sizes, priority) == ["favourite", "small"]
+
+
+def test_boosted_dual_leads_ready_singles() -> None:
+    rs = [
+        recipe("small", ("S",)),
+        recipe("favourite", ("F",), node_count=2),
+    ]
+    sizes = {"S": GB, "F": 9 * GB}
+    assert _placement_order(rs, sizes, policy.no_boost) == ["small", "favourite"]
+    priority = policy.make_priority(["favourite"], ())
+    assert _placement_order(rs, sizes, priority) == ["favourite", "small"]
+
+
+def test_recent_update_alone_does_not_change_placement_order() -> None:
+    rs = [recipe("small", ("S",)), recipe("fresh", ("F",), updated_at="2026-11-01")]
+    sizes = {"S": GB, "F": 9 * GB}
+    now = datetime.fromisoformat("2026-11-02").timestamp()
+    assert policy.make_boost([], (), now)(rs[1]) > 1.0  # it does boost the download
+    placement = policy.make_priority([], ())
+    assert _placement_order(rs, sizes, placement) == _placement_order(
+        rs, sizes, policy.no_boost
+    )
 
 
 def test_revalidation_goes_after_new_work_including_suspect_siblings() -> None:
