@@ -6,6 +6,7 @@ import runpy
 from pathlib import Path
 
 import pytest
+from documents import recipe
 from pydantic import ValidationError
 from vonk_forge_contracts.recipe import RecipeMemoryResources
 
@@ -15,7 +16,7 @@ LLAMA = "llama-3-1-8b-instruct-nvfp4-nvidia-vllm-single"
 
 def mismatching_root(tmp_path: Path, **memory: int) -> Path:
     """A catalog holding one new recipe whose declared memory understates its need."""
-    document = json.loads((ROOT / "recipes" / f"{LLAMA}.json").read_text())
+    document = json.loads(recipe(LLAMA).model_dump_json())
     document["identity"]["slug"] = "synthetic-memory-mismatch"
     for role in document["topology"]["roles"]:
         role["resources"]["memory"].update({"peak_bytes": 1_000_000_000, **memory})
