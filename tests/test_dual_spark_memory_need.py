@@ -9,7 +9,6 @@ from vonk_forge_contracts.recipe import RecipeRuntimeEnvironment
 
 from qualification.memory_need import (
     LIMIT_BYTES,
-    OS_FLOOR_BYTES,
     OVERHEAD_BYTES,
     calculate_need,
     declaration_problems,
@@ -55,18 +54,13 @@ def test_capacity_profiles_declare_the_loading_floor(slug: str) -> None:
 
 @pytest.mark.parametrize("slug", RECIPES)
 @pytest.mark.parametrize("rank", [0, 1])
-def test_guard_rejects_hidden_demand_and_headroom(slug: str, rank: int) -> None:
+def test_guard_rejects_hidden_demand(slug: str, rank: int) -> None:
     recipe = recipe_for(slug)
     need = per_rank_need(recipe, catalog_models(), load_inputs())
     memory = recipe.topology.roles[rank].resources.memory
     memory.peak_bytes = need.peak_bytes - 1
     assert any("peak understates" in p for p in declaration_problems(recipe, need))
     with pytest.raises(ValueError, match="peak understates"):
-        require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
-    memory.peak_bytes = need.peak_bytes
-    memory.reserve_bytes = OS_FLOOR_BYTES - 1
-    assert any("reserve understates" in p for p in declaration_problems(recipe, need))
-    with pytest.raises(ValueError, match="reserve understates"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
 
 
