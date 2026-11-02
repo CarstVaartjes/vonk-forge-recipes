@@ -29,6 +29,36 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "fece0d61b1b6b7aad83af506cf4f69afa6785525e7adefda0ab0dbba2a56dc86",
+        "runtime_image": {
+          "build_key": "7f194b3a84dc4e75f90a9c57bc8f2558c1c9147b23037298ce14b75714a35daf",
+          "image_digest": "sha256:399d32692b5dc09ceae956b68a5a62affe79d5048cebdbb58dddc8207b13b9b7"
+        },
+        "model_digests": [
+          "05c6ed6c0b33257e2673d0f08c9face7db1f25e850d8c90be5de2a0be46ef735"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "4d5632cd81485aa89efce6cfb0a0c3f0afd575689ba8b09dca4c788dc5f04264"
+      ],
+      "tested_at": "2026-10-21T21:14:37.701556Z",
+      "platform": {
+        "controller_source_sha": "e8ce8d1fa39d705d2dd3e4d571a4ead2bc9051e2",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     }
   ]
 }

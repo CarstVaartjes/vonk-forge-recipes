@@ -1,0 +1,15 @@
+{
+  "description": "Complete immutable 720p T2V Diffusers snapshot at f4dbc4a1.",
+  "family_title": "HunyuanVideo",
+  "identity": {
+    "publisher": "tencent",
+    "slug": "hunyuan-video-15-t2v"
+  },
+  "kind": "model-display",
+  "model_title": "HunyuanVideo 1.5",
+  "tags": [
+    "tencent",
+    "video",
+    "candidate"
+  ]
+}

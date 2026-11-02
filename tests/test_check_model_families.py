@@ -26,14 +26,24 @@ EXAMPLE = json.loads(
 
 def _write(root: Path, name: str, publisher: str, family: dict[str, str]) -> None:
     (root / "models").mkdir(exist_ok=True)
+    (root / "display/models").mkdir(parents=True, exist_ok=True)
     document = json.loads(json.dumps(EXAMPLE))
     document["identity"].update(
         publisher=publisher,
         slug=name,
-        family=family,
-        model={"publisher": publisher, "slug": name, "title": name},
+        family={key: value for key, value in family.items() if key != "title"},
+        model={"publisher": publisher, "slug": name},
     )
     (root / "models" / f"{name}.json").write_text(json.dumps(document))
+    display = {
+        "kind": "model-display",
+        "identity": {"publisher": publisher, "slug": name},
+        "family_title": family["title"],
+        "model_title": name,
+        "description": "A model.",
+        "tags": [],
+    }
+    (root / "display/models" / f"{name}.json").write_text(json.dumps(display))
 
 
 def test_the_library_is_consistent() -> None:

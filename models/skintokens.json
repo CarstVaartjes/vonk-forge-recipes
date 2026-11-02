@@ -48,13 +48,11 @@
   "identity": {
     "family": {
       "publisher": "vast-ai",
-      "slug": "skintokens",
-      "title": "SkinTokens"
+      "slug": "skintokens"
     },
     "model": {
       "publisher": "vast-ai",
-      "slug": "skintokens",
-      "title": "SkinTokens"
+      "slug": "skintokens"
     },
     "publisher": "vast-ai",
     "slug": "skintokens",
@@ -69,14 +67,6 @@
     "spdx": "MIT",
     "territorial_restrictions": null,
     "url": "https://github.com/VAST-AI-Research/SkinTokens/blob/273b691d35989d71cd17ff2895fdc735097b92d1/LICENSE"
-  },
-  "metadata": {
-    "description": "Immutable public snapshot at 79736cad.",
-    "tags": [
-      "vast-ai",
-      "three-d",
-      "candidate"
-    ]
   },
   "modalities": [
     "3d"

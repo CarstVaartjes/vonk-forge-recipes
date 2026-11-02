@@ -30,20 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Step 5 Preview Spark with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately. Requires exactly 4 Sparks; not runnable on the current two-Spark fleet. Reproduces 0xSero's K4 expert/K8 hybrid-body image and MTP2 launch. Upstream reports 26-30 tokens/s on four Sparks; not measured here.",
-    "tags": [
-      "candidate",
-      "executable",
-      "spark",
-      "vllm",
-      "step-5",
-      "reasoning",
-      "tool-use"
-    ],
-    "title": "Step 5 Preview Spark vLLM 4 Sparks"
-  },
   "models": [
     {
       "files": [
@@ -2217,7 +2203,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7ef631b64c66bebd2d7e9e88a6522bffcde9d3dd21cf1d10e9b6ea0138dd17f9",
+        "content_sha256": "d71c5f7b2a587985eab6fb12af538c8c5eeb9a6b3df1b63601c87b2e6f1b90a7",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "step-5-preview-spark-exl3-51a46a7f"

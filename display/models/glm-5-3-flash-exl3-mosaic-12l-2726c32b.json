@@ -1,0 +1,16 @@
+{
+  "description": "Exact public 0xSero M288-12L mosaic of GLM 5.3 Flash EXL3 (12 of 45 MoE layers at 3.05 bpw, the rest 2.05 bpw, codebook mul1; 12 shards, 96.1 GB). Byte-copy combination of turboderp's 2.05 and 3.05 bpw quants; the native MTP layer is carried over unquantized but is not usable by the SGLang runtime. Head 2726c32b differs from the revision upstream pinned (26428517) only in the card and sha256-manifest.txt.",
+  "family_title": "GLM",
+  "identity": {
+    "publisher": "0xsero",
+    "slug": "glm-5-3-flash-exl3-mosaic-12l-2726c32b"
+  },
+  "kind": "model-display",
+  "model_title": "GLM 5.3 Flash EXL3 M288-12L mosaic",
+  "tags": [
+    "0xsero",
+    "glm-5-3-0xsero",
+    "language",
+    "candidate"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Realtime 0708 BF16 d1f71a58 checkpoint with per-sample media budgets, batched-vision MRoPE fixes, cached-vision RoPE correction, and synchronized preprocessing defaults.",
+  "family_title": "OpenMOSS MOSS-VL",
+  "identity": {
+    "publisher": "openmoss",
+    "slug": "moss-vl-realtime-11b-bf16-d1f71a58"
+  },
+  "kind": "model-display",
+  "model_title": "MOSS-VL-Realtime 11B",
+  "tags": [
+    "openmoss",
+    "moss-vl",
+    "video",
+    "candidate"
+  ]
+}

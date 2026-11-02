@@ -1,0 +1,15 @@
+{
+  "description": "Immutable public snapshot at eab4aa91.",
+  "family_title": "MOVA",
+  "identity": {
+    "publisher": "openmoss",
+    "slug": "mova-360p"
+  },
+  "kind": "model-display",
+  "model_title": "MOVA 360p",
+  "tags": [
+    "openmoss",
+    "video",
+    "candidate"
+  ]
+}

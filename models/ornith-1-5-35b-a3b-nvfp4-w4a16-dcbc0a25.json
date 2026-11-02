@@ -166,13 +166,11 @@
   "identity": {
     "family": {
       "publisher": "ornith-ai",
-      "slug": "ornith",
-      "title": "Ornith"
+      "slug": "ornith"
     },
     "model": {
       "publisher": "r0b0tlab",
-      "slug": "ornith-1-5-35b-a3b-nvfp4-w4a16",
-      "title": "Ornith 1.5 35B-A3B NVFP4 W4A16"
+      "slug": "ornith-1-5-35b-a3b-nvfp4-w4a16"
     },
     "publisher": "r0b0tlab",
     "slug": "ornith-1-5-35b-a3b-nvfp4-w4a16-dcbc0a25",
@@ -187,15 +185,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/r0b0tlab/Ornith-1.5-35B-A3B-NVFP4-W4A16/blob/dcbc0a25d5b3ce634c2f5d988a81ba598ca7adcc/README.md"
-  },
-  "metadata": {
-    "description": "Exact public r0b0tlab NVFP4 W4A16 weight-only (NVIDIA Model Optimizer w4_nvfp4 preset) quantization of ornith-ai/Ornith-1.5-35B-A3B e4dfb35a, with the bundled MTP head kept in BF16.",
-    "tags": [
-      "r0b0tlab",
-      "ornith-1-5-r0b0tlab",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

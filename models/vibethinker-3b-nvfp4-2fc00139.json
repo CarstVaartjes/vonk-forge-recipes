@@ -113,13 +113,11 @@
   "identity": {
     "family": {
       "publisher": "r0b0tlab",
-      "slug": "vibethinker",
-      "title": "VibeThinker"
+      "slug": "vibethinker"
     },
     "model": {
       "publisher": "r0b0tlab",
-      "slug": "vibethinker-3b",
-      "title": "VibeThinker-3B"
+      "slug": "vibethinker-3b"
     },
     "publisher": "r0b0tlab",
     "slug": "vibethinker-3b-nvfp4-2fc00139",
@@ -133,15 +131,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/r0b0tlab/VibeThinker-3B-NVFP4/blob/2fc0013974d1a466e6a5a11839f029d5aff34dc9/README.md"
-  },
-  "metadata": {
-    "description": "VibeThinker 3B reasoning model.",
-    "tags": [
-      "r0b0tlab",
-      "vibethinker",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

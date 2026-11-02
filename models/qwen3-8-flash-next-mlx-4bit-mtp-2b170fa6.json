@@ -328,13 +328,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "tensorfold",
-      "slug": "qwen3-8-flash-next",
-      "title": "Qwen3.8 Flash Next"
+      "slug": "qwen3-8-flash-next"
     },
     "publisher": "tensorfold",
     "slug": "qwen3-8-flash-next-mlx-4bit-mtp-2b170fa6",
@@ -349,15 +347,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/TensorFold/Qwen3.8-Flash-Next-MLX-4bit-MTP/blob/2b170fa6309d5d1ee380b35636075fac7945f286/LICENSE"
-  },
-  "metadata": {
-    "description": "MLX 4-bit Flash Next checkpoint with MTP head for TensorFold.",
-    "tags": [
-      "tensorfold",
-      "qwen",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

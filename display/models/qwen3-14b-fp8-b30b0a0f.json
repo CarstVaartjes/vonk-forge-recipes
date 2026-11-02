@@ -1,0 +1,17 @@
+{
+  "description": "Exact public NVIDIA Model Optimizer FP8 quantization of Qwen3 14B.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "qwen3-14b-fp8-b30b0a0f"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3 14B",
+  "tags": [
+    "nvidia",
+    "qwen3",
+    "language",
+    "fp8",
+    "candidate"
+  ]
+}

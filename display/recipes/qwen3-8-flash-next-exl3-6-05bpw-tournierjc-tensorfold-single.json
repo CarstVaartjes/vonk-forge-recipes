@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "Tournierjc TensorFold fork 53ceb126 with the exact turboderp EXL3 6.05bpw checkpoint declared by the kit. Text only: this exact checkpoint revision has no published vision sidecar, despite the kit documenting the optional conversion path. One stream and explicit disk-backed PLE tables reduce memory pressure for the 6.05bpw checkpoint. INT8 KV, MTP and the creator’s EXL3 kernels. Memory is an estimate, not a measured qualification; physical Spark execution remains untested here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-exl3-6-05bpw-tournierjc-tensorfold-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "qwen3.8",
+    "tensorfold",
+    "exl3",
+    "mtp",
+    "spark",
+    "text-only"
+  ],
+  "title": "Qwen3.8 Flash Next EXL3 6.05bpw TensorFold single Spark (tournierjc)"
+}

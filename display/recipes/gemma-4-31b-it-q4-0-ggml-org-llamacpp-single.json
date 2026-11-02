@@ -1,0 +1,22 @@
+{
+  "alignment": "unspecified",
+  "description": "Executable Candidate llama.cpp recipe based on the ggml-org GGUF repository: the official ggml-org llama.cpp 0.5.0 CUDA 13 server image (arm64, pinned by digest; its default CUDA architectures include GB10 sm_121a) serving the exact GGUF revision through llama-server. NVIDIA's llama.cpp playbook compiles the same upstream source with -DCMAKE_CUDA_ARCHITECTURES=121a-real; this recipe uses the project's published binary instead. Resource envelopes are estimates, not measurements; physical Spark acceptance is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "gemma-4-31b-it-q4-0-ggml-org-llamacpp-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "llama-cpp",
+    "openai",
+    "single",
+    "spark",
+    "gemma",
+    "gguf",
+    "q4_0",
+    "vision"
+  ],
+  "title": "Gemma 4 31B IT Q4_0 llama.cpp single Spark (ggml-org)"
+}

@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "r0b0tlab's vLLM 0.22 serve of its NVFP4 quantization of WeiboAI VibeThinker-3B (3B reasoning model) on one GB10: ModelOpt quantization, fp8 KV cache, FlashInfer attention, eager execution and prefix caching. Upstream defaults: 32,768 context, 8 sequences, 0.85 memory utilization; upstream reports about 2.6x throughput over its BF16 baseline (claim, not measured here). The upstream registry image is not public and its startup downloads the model, so the recipe uses upstream's digest-pinned public vllm/vllm-openai base with the model mounted. Licence: MIT per the HF card (information only). No licence file in the upstream repository. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "candidate",
-      "executable",
-      "nvfp4",
-      "openai",
-      "r0b0tlab",
-      "reasoning",
-      "single",
-      "small",
-      "spark",
-      "vibethinker",
-      "vllm"
-    ],
-    "title": "VibeThinker-3B NVFP4 vLLM single Spark (r0b0tlab)"
-  },
   "models": [
     {
       "files": [
@@ -164,7 +146,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "449b7948c59c686d1c944847028b617bbab8b9dfbaadc9a2a86bb357d9c8ceae",
+        "content_sha256": "f8bb778a21cd139df486b3964f37501c47a2e08627184f78ffda0bbe55bead25",
         "kind": "model",
         "publisher": "r0b0tlab",
         "slug": "vibethinker-3b-nvfp4-2fc00139"

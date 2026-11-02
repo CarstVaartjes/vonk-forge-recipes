@@ -149,13 +149,11 @@
   "identity": {
     "family": {
       "publisher": "vonk-forge",
-      "slug": "decision-3",
-      "title": "Decision 3.0"
+      "slug": "decision-3"
     },
     "model": {
       "publisher": "vonk-forge",
-      "slug": "d3-edge",
-      "title": "D3-EDGE"
+      "slug": "d3-edge"
     },
     "publisher": "vonk-forge",
     "slug": "d3-edge-bf16-c454ee39",
@@ -169,15 +167,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/vllm-sr/d3-edge/blob/c454ee39b862248d70abd7f84195d2f54ffe6d43/LICENSE"
-  },
-  "metadata": {
-    "description": "d3-edge typed-decision model with probability outputs and an FP32 answer-code readout.",
-    "tags": [
-      "vonk-forge",
-      "decision-3",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text",

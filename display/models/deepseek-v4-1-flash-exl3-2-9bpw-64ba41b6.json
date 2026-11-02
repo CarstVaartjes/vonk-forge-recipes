@@ -1,0 +1,20 @@
+{
+  "description": "MiaAI-Lab EXL3 2.9 bpw (codebook mul1, mixed K per tensor, lm_head 6 bits, MTP 4 bits) quantization of DeepSeek V4.1 Flash: 39 shards, vision tower and native DSpark draft experts kept in the checkpoint. The n-gram (Engram) tables are not quantized and stay in shards 47 and 48 of the official checkpoint, which this Model lists as a dependency.",
+  "family_title": "DeepSeek Flash",
+  "identity": {
+    "publisher": "mia-ai-lab",
+    "slug": "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek V4.1 Flash EXL3",
+  "tags": [
+    "candidate",
+    "deepseek",
+    "deepseek-v4-1",
+    "dspark",
+    "exl3",
+    "mia-ai-lab",
+    "multimodal",
+    "spark"
+  ]
+}

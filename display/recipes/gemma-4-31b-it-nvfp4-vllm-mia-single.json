@@ -1,0 +1,27 @@
+{
+  "alignment": "unspecified",
+  "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 31B IT on one Spark with stock vLLM v0.25.1: 262144-token context, fp8 KV cache, up to 2 concurrent sequences, MTP speculative decoding (4 tokens) with Google's gemma-4-31B-it-assistant, image and video input, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's start.sh (no licence file upstream; its README says scripts are MIT). Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput and KV-capacity figures are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking true (upstream default); reasoning is returned in the reasoning field via the gemma4 parser. Memory follows the creator's settings: gpu-memory-utilization 0.70 by default, as in MiaAI-Lab's start.sh at ac429cca (line 156), with the creator's 0.85 tuning-table value as an option (README line 209). The creator's 0.95 alternative is not offered: its peak, 0.95 x 130,663,231,488 bytes plus 8 GB, can never be admitted on a Spark. The steady per-node peak is 0.85 x 130,663,231,488-byte unified memory (the largest option) plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (the assistant drafter is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "gemma-4-31b-it-nvfp4-vllm-mia-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "fp8-kv",
+    "gemma",
+    "google",
+    "modelopt",
+    "mtp",
+    "multimodal",
+    "nvfp4",
+    "reasoning",
+    "single",
+    "spark",
+    "speculative-decoding",
+    "tool-use",
+    "vllm"
+  ],
+  "title": "Gemma 4 31B IT NVFP4 MTP vLLM single Spark (Mia)"
+}

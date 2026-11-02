@@ -1,0 +1,19 @@
+{
+  "description": "Exact Lightricks LTX-2 development FP4 checkpoint and native-pipeline companion artifacts for an experimental Spark video/audio recipe.",
+  "family_title": "LTX",
+  "identity": {
+    "publisher": "lightricks",
+    "slug": "ltx-2-19b-dev-fp4-dfcc2108"
+  },
+  "kind": "model-display",
+  "model_title": "LTX-2",
+  "tags": [
+    "lightricks",
+    "ltx",
+    "video",
+    "audio",
+    "generation",
+    "fp4",
+    "spark"
+  ]
+}

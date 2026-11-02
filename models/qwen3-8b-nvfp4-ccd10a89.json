@@ -151,13 +151,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "qwen3-8b",
-      "title": "Qwen3 8B"
+      "slug": "qwen3-8b"
     },
     "publisher": "nvidia",
     "slug": "qwen3-8b-nvfp4-ccd10a89",
@@ -172,16 +170,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "metadata": {
-    "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Qwen3 8B.",
-    "tags": [
-      "nvidia",
-      "qwen3",
-      "language",
-      "nvfp4",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

@@ -33,32 +33,12 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Tournierjc TensorFold fork 53ceb126 with the exact turboderp EXL3 3.05bpw checkpoint declared by the kit. Text only: this exact checkpoint revision has no published vision sidecar, despite the kit documenting the optional conversion path. Three streams at the native 262,144-token window follow the kit sample. INT8 KV, MTP and the creator\u2019s EXL3 kernels. Memory is an estimate, not a measured qualification; physical Spark execution remains untested here.",
-    "tags": [
-      "qwen3.8",
-      "tensorfold",
-      "exl3",
-      "mtp",
-      "spark",
-      "text-only"
-    ],
-    "title": "Qwen3.8 Flash Next EXL3 3.05bpw TensorFold single Spark (tournierjc)"
-  },
   "models": [
     {
-      "id": "primary",
-      "model": {
-        "kind": "model",
-        "publisher": "turboderp",
-        "slug": "qwen3-8-flash-next-exl3-3-05bpw-69e33439",
-        "content_sha256": "6d165c1b7cdc514e501ae58116a25a1d60a9e84732d0173935645b2253421fe1"
-      },
       "files": [
         {
-          "id": "metadata-d3b10d515fb2-618cd5b83d",
           "file_id": "metadata-d3b10d515fb2-618cd5b83d",
+          "id": "metadata-d3b10d515fb2-618cd5b83d",
           "mount": {
             "target": "/models"
           },
@@ -67,8 +47,8 @@
           ]
         },
         {
-          "id": "license-a0dc42256084-c693279643",
           "file_id": "license-a0dc42256084-c693279643",
+          "id": "license-a0dc42256084-c693279643",
           "mount": {
             "target": "/models"
           },
@@ -77,8 +57,8 @@
           ]
         },
         {
-          "id": "readme-35ca37ccc366-b335630551",
           "file_id": "readme-35ca37ccc366-b335630551",
+          "id": "readme-35ca37ccc366-b335630551",
           "mount": {
             "target": "/models"
           },
@@ -87,8 +67,8 @@
           ]
         },
         {
-          "id": "chat-template-c3cf9e34abf4-00824420d1",
           "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "id": "chat-template-c3cf9e34abf4-00824420d1",
           "mount": {
             "target": "/models"
           },
@@ -97,8 +77,8 @@
           ]
         },
         {
-          "id": "config-92ce0839c71b-587cb980af",
           "file_id": "config-92ce0839c71b-587cb980af",
+          "id": "config-92ce0839c71b-587cb980af",
           "mount": {
             "target": "/models"
           },
@@ -107,8 +87,8 @@
           ]
         },
         {
-          "id": "generation-config-e70c136c1b78-97dd3d578b",
           "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "generation-config-e70c136c1b78-97dd3d578b",
           "mount": {
             "target": "/models"
           },
@@ -117,8 +97,8 @@
           ]
         },
         {
-          "id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "merges-a9d356d7bdf1-b0d6dcfed4",
           "mount": {
             "target": "/models"
           },
@@ -127,8 +107,8 @@
           ]
         },
         {
-          "id": "model-00001-of-00007-248b0490f3a1-7174d6af0f",
           "file_id": "model-00001-of-00007-248b0490f3a1-7174d6af0f",
+          "id": "model-00001-of-00007-248b0490f3a1-7174d6af0f",
           "mount": {
             "target": "/models"
           },
@@ -137,8 +117,8 @@
           ]
         },
         {
-          "id": "model-00002-of-00007-b51039a706e5-1a4d5d40b2",
           "file_id": "model-00002-of-00007-b51039a706e5-1a4d5d40b2",
+          "id": "model-00002-of-00007-b51039a706e5-1a4d5d40b2",
           "mount": {
             "target": "/models"
           },
@@ -147,8 +127,8 @@
           ]
         },
         {
-          "id": "model-00003-of-00007-053f5337aabd-8b57abb0fb",
           "file_id": "model-00003-of-00007-053f5337aabd-8b57abb0fb",
+          "id": "model-00003-of-00007-053f5337aabd-8b57abb0fb",
           "mount": {
             "target": "/models"
           },
@@ -157,8 +137,8 @@
           ]
         },
         {
-          "id": "model-00004-of-00007-eb3ee11406c1-82082f708e",
           "file_id": "model-00004-of-00007-eb3ee11406c1-82082f708e",
+          "id": "model-00004-of-00007-eb3ee11406c1-82082f708e",
           "mount": {
             "target": "/models"
           },
@@ -167,8 +147,8 @@
           ]
         },
         {
-          "id": "model-00005-of-00007-d188dced0538-5b20d2b8b6",
           "file_id": "model-00005-of-00007-d188dced0538-5b20d2b8b6",
+          "id": "model-00005-of-00007-d188dced0538-5b20d2b8b6",
           "mount": {
             "target": "/models"
           },
@@ -177,8 +157,8 @@
           ]
         },
         {
-          "id": "model-00006-of-00007-3792d95808ec-7a0e2a031d",
           "file_id": "model-00006-of-00007-3792d95808ec-7a0e2a031d",
+          "id": "model-00006-of-00007-3792d95808ec-7a0e2a031d",
           "mount": {
             "target": "/models"
           },
@@ -187,8 +167,8 @@
           ]
         },
         {
-          "id": "model-00007-of-00007-ce89387b7c29-443a3b9ef8",
           "file_id": "model-00007-of-00007-ce89387b7c29-443a3b9ef8",
+          "id": "model-00007-of-00007-ce89387b7c29-443a3b9ef8",
           "mount": {
             "target": "/models"
           },
@@ -197,8 +177,8 @@
           ]
         },
         {
-          "id": "model-safetensors-index-318339ceddd7-0a05be8238",
           "file_id": "model-safetensors-index-318339ceddd7-0a05be8238",
+          "id": "model-safetensors-index-318339ceddd7-0a05be8238",
           "mount": {
             "target": "/models"
           },
@@ -207,8 +187,8 @@
           ]
         },
         {
-          "id": "mtp-hyper-connection-mixer-patch-9b29ae894138-9bbe8001cd",
           "file_id": "mtp-hyper-connection-mixer-patch-9b29ae894138-9bbe8001cd",
+          "id": "mtp-hyper-connection-mixer-patch-9b29ae894138-9bbe8001cd",
           "mount": {
             "target": "/models"
           },
@@ -217,8 +197,8 @@
           ]
         },
         {
-          "id": "ngram-embedding-32006bf33c1e-651a5f9db3",
           "file_id": "ngram-embedding-32006bf33c1e-651a5f9db3",
+          "id": "ngram-embedding-32006bf33c1e-651a5f9db3",
           "mount": {
             "target": "/models"
           },
@@ -227,8 +207,8 @@
           ]
         },
         {
-          "id": "preprocessor-config-27225450ac9c-36afccab5d",
           "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "preprocessor-config-27225450ac9c-36afccab5d",
           "mount": {
             "target": "/models"
           },
@@ -237,8 +217,8 @@
           ]
         },
         {
-          "id": "qbench-prompts-80b3b8c6d41e-ad1a2ae833",
           "file_id": "qbench-prompts-80b3b8c6d41e-ad1a2ae833",
+          "id": "qbench-prompts-80b3b8c6d41e-ad1a2ae833",
           "mount": {
             "target": "/models"
           },
@@ -247,8 +227,8 @@
           ]
         },
         {
-          "id": "qbench-prompts-f2b3f16d2f92-19411f315b",
           "file_id": "qbench-prompts-f2b3f16d2f92-19411f315b",
+          "id": "qbench-prompts-f2b3f16d2f92-19411f315b",
           "mount": {
             "target": "/models"
           },
@@ -257,8 +237,8 @@
           ]
         },
         {
-          "id": "quantization-config-c6ad4cb2f24b-6f24389fb3",
           "file_id": "quantization-config-c6ad4cb2f24b-6f24389fb3",
+          "id": "quantization-config-c6ad4cb2f24b-6f24389fb3",
           "mount": {
             "target": "/models"
           },
@@ -267,8 +247,8 @@
           ]
         },
         {
-          "id": "tokenizer-0997f410c57a-224931eb13",
           "file_id": "tokenizer-0997f410c57a-224931eb13",
+          "id": "tokenizer-0997f410c57a-224931eb13",
           "mount": {
             "target": "/models"
           },
@@ -277,8 +257,8 @@
           ]
         },
         {
-          "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "mount": {
             "target": "/models"
           },
@@ -287,8 +267,8 @@
           ]
         },
         {
-          "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
           "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
           "mount": {
             "target": "/models"
           },
@@ -297,8 +277,8 @@
           ]
         },
         {
-          "id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "vocab-ce99b4cb2983-ba05d8e2e4",
           "mount": {
             "target": "/models"
           },
@@ -306,17 +286,24 @@
             "entrypoint"
           ]
         }
-      ]
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "6ce39b04e90f2d73139cd99c6df9ea28f1afdf2974ae3d572b76f818ea4221af",
+        "kind": "model",
+        "publisher": "turboderp",
+        "slug": "qwen3-8-flash-next-exl3-3-05bpw-69e33439"
+      }
     }
   ],
   "provenance": {
-    "source_reference": "https://github.com/tournierjc/TensorFold-Single-DGX-Spark/tree/70c561394e6e955e369b135b5edfd70c1dfe9efb",
     "attribution": [
       "tournierjc",
       "Ash Hart (TensorFold)",
       "turboderp",
       "Qwen"
-    ]
+    ],
+    "source_reference": "https://github.com/tournierjc/TensorFold-Single-DGX-Spark/tree/70c561394e6e955e369b135b5edfd70c1dfe9efb"
   },
   "release": {
     "released_at": "2026-10-03",

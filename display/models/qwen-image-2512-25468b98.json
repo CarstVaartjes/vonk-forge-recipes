@@ -1,0 +1,18 @@
+{
+  "description": "Exact official Qwen Image 2512 checkpoint for a candidate single-Spark Diffusers recipe.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-2512-25468b98"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen Image 2512",
+  "tags": [
+    "qwen",
+    "image",
+    "generation",
+    "text-to-image",
+    "bf16",
+    "spark"
+  ]
+}

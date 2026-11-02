@@ -257,13 +257,11 @@
   "identity": {
     "family": {
       "publisher": "poolside",
-      "slug": "laguna",
-      "title": "Laguna"
+      "slug": "laguna"
     },
     "model": {
       "publisher": "poolside",
-      "slug": "laguna-s-2-1",
-      "title": "Laguna S 2.1"
+      "slug": "laguna-s-2-1"
     },
     "publisher": "poolside",
     "slug": "laguna-s-2-1-nvfp4-07614121",
@@ -277,14 +275,6 @@
     ],
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://www.poolside.ai/legal/openmdw-1-1"
-  },
-  "metadata": {
-    "description": "Poolside Laguna S 2.1 mixture-of-experts coding model.",
-    "tags": [
-      "poolside",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

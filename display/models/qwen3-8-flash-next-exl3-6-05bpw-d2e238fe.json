@@ -1,0 +1,16 @@
+{
+  "description": "EXL3 checkpoint without a published vision sidecar at this revision.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "turboderp",
+    "slug": "qwen3-8-flash-next-exl3-6-05bpw-d2e238fe"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 Flash Next EXL3",
+  "tags": [
+    "turboderp",
+    "qwen",
+    "language",
+    "candidate"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "Full GLM 5.3 with EXL3 2.75bpw routed experts and the RedHatAI DSpark drafter, following MiaAI-Lab at eb6414b4. Three TensorFold ranks use context parallelism, a 499,712-token window, FP4 latent KV and Q4 dense weights. One concurrent stream; the checkpoint is replicated into the managed read-only model cache on each node. Prompt states persist under the managed writable cache, capped at 64 GiB per node. The memory envelope is an estimate based on upstream model and buffer accounting plus runtime overhead, not a local measurement. Quantized KV and dense projections are lossy. Three physical Sparks and a connected fabric are required; execution is not qualified here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "glm-5-3-exl3-dspark-mia-tensorfold-triple"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "glm",
+    "tensorfold",
+    "dspark",
+    "exl3",
+    "spark",
+    "context-parallel"
+  ],
+  "title": "GLM 5.3 full EXL3 DSpark TensorFold three Sparks (Mia)"
+}

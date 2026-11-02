@@ -1,0 +1,19 @@
+{
+  "description": "Official Black Forest Labs NVFP4 transformer with the exact Comfy-Org Qwen3 encoder and VAE companions required for core ComfyUI inference.",
+  "family_title": "FLUX.2",
+  "identity": {
+    "publisher": "black-forest-labs",
+    "slug": "flux-2-klein-4b-nvfp4-1db2b2f7"
+  },
+  "kind": "model-display",
+  "model_title": "FLUX.2 Klein 4B",
+  "tags": [
+    "flux",
+    "image",
+    "comfyui",
+    "nvfp4",
+    "distilled",
+    "candidate",
+    "spark"
+  ]
+}

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
 
+from .display import ModelDisplay, RecipeDisplay
 from .model import ModelDefinition
 from .recipe import RecipeDefinition, RecipeJobServingRequest
 
@@ -61,6 +62,49 @@ def validate_model_references(models: Mapping[str, ModelDefinition]) -> None:
 
     for model in models.values():
         resolve(model)
+
+
+def validate_library(
+    recipes: Iterable[RecipeDefinition],
+    models: Iterable[ModelDefinition],
+    recipe_displays: Mapping[str, RecipeDisplay],
+    model_displays: Mapping[str, ModelDisplay],
+) -> None:
+    """Require exactly one display per Recipe and Model, and no orphan display.
+
+    Displays are keyed by their file name stem (the slug). Each document's slug
+    must name a display whose identity is that document, and every display must
+    belong to a document.
+    """
+
+    for label, identities, displays in (
+        ("recipe", [r.identity for r in recipes], recipe_displays),
+        ("model", [m.identity for m in models], model_displays),
+    ):
+        keys: set[tuple[str, str]] = set()
+        for identity in identities:
+            key = (identity.publisher, identity.slug)
+            if key in keys:
+                raise ContractResolutionError(
+                    f"duplicate {label} identity: {key[0]}/{key[1]}"
+                )
+            keys.add(key)
+            display = displays.get(identity.slug)
+            if display is None:
+                raise ContractResolutionError(
+                    f"{label} has no display: {key[0]}/{key[1]}"
+                )
+            if (display.identity.publisher, display.identity.slug) != key:
+                raise ContractResolutionError(
+                    f"{label} display identity differs from its document: "
+                    f"{key[0]}/{key[1]}"
+                )
+        for slug, display in displays.items():
+            if (display.identity.publisher, slug) not in keys:
+                raise ContractResolutionError(
+                    f"{label} display has no document: "
+                    f"{display.identity.publisher}/{slug}"
+                )
 
 
 def validate_recipe_models(

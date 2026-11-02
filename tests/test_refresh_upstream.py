@@ -6,6 +6,7 @@ import importlib.util
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 import types
@@ -14,6 +15,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, ClassVar
 from unittest.mock import patch
+
+from vonk_forge_contracts import ModelDisplay
 
 from tools._catalog_model import roles_for
 
@@ -951,12 +954,17 @@ class ReleaseTests(unittest.TestCase):
 
 class OpenPullRequestTests(unittest.TestCase):
     footprint = (
-        {"recipes/a.json", "models/m-1.json"},
+        {"recipes/a.json", "models/m-1.json", "display/models/m-1.json"},
         ["adapters/llm/a/"],
     )
 
     def test_foreign_pr_touching_recipe_model_or_adapter_blocks(self) -> None:
-        for name in ("recipes/a.json", "models/m-1.json", "adapters/llm/a/Dockerfile"):
+        for name in (
+            "recipes/a.json",
+            "models/m-1.json",
+            "display/models/m-1.json",
+            "adapters/llm/a/Dockerfile",
+        ):
             with self.subTest(name=name):
                 self.assertEqual(
                     refresh.blocking_prs(self.footprint, {7: {name, "README.md"}}), [7]
@@ -1374,8 +1382,26 @@ class ModelReExportTests(unittest.TestCase):
                 "roles": [{"resources": {"disk": {"artifact_bytes": 1_000_000}}}]
             },
         }
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        (root / "display/models").mkdir(parents=True)
+        (root / "display/models" / f"{old['identity']['slug']}.json").write_text(
+            json.dumps(
+                {
+                    "kind": "model-display",
+                    "identity": {
+                        "publisher": old["identity"]["publisher"],
+                        "slug": old["identity"]["slug"],
+                    },
+                    "family_title": "Demo family",
+                    "model_title": "Demo",
+                    "description": "A demo model.",
+                    "tags": ["demo"],
+                }
+            )
+        )
         catalog = refresh.Catalog(
-            Path("."),
+            root,
             recipes={"recipe": recipe},
             models={old["identity"]["slug"]: old},
         )
@@ -1413,6 +1439,17 @@ class ModelReExportTests(unittest.TestCase):
         self.assertNotIn("model-00036-of-00036.safetensors", paths)
         mounted = {s["file_id"] for s in new_recipe["models"][0]["files"]}
         self.assertEqual(mounted, {f["id"] for f in moved["files"]})
+
+    def test_the_models_display_moves_with_it(self) -> None:
+        _, _, edits = self.move(None)
+        # The Model's display moves with it: same text, the new Model's identity.
+        written_displays = dict(edits)
+        shown = written_displays.pop(f"display/models/demo-{NEW[:8]}.json")
+        assert shown is not None
+        moved_display = ModelDisplay.model_validate_json(shown)
+        self.assertEqual(moved_display.identity.slug, f"demo-{NEW[:8]}")
+        self.assertEqual(moved_display.description, "A demo model.")
+        self.assertIsNone(written_displays[f"display/models/demo-{OLD[:8]}.json"])
 
     def test_a_named_mounted_file_gone_stays_a_review_naming_it(self) -> None:
         result, _, edits = self.move(

@@ -1,0 +1,22 @@
+{
+  "alignment": "unspecified",
+  "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (sglang) for Qwen3 8B FP8: lmsysorg/sglang:latest-cu130 as named by the playbook (resolves to v0.5.20, build 94602c9c), pinned by arm64 digest, serving the exact model revision through sglang.launch_server with the playbook's flags. Resource envelopes are estimates from the playbook's --mem-fraction-static, not measurements; physical Spark acceptance is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8b-fp8-nvidia-sglang-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "nvidia",
+    "sglang",
+    "openai",
+    "single",
+    "spark",
+    "qwen",
+    "fp8",
+    "reasoning"
+  ],
+  "title": "Qwen3 8B FP8 SGLang single Spark (NVIDIA playbook)"
+}

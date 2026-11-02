@@ -37,6 +37,7 @@ EXEMPT_PREFIXES = (
     "qualification/documents.py",
     "tests/documents.py",
     "tools/split-display",
+    "tests/test_display_split_equivalence.py",
     "tools/check-document-reads",
     "tests/test_check_document_reads.py",
 )

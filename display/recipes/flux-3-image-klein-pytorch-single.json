@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "Native FLUX 3 distilled BF16 reference pipeline, 16 steps, with its required local prompt upsampler. Uses the official gated checkpoint (requires a granted Hugging Face account and Controller token) and the upstream-tested vLLM 0.21 dependency family. Text-to-image at 1024 square; image editing is not exposed by this recipe. Estimated peak 100 GB includes the upsampler's 35% memory pool, DiT, text encoder, VAE and workspace. Physical Spark acceptance pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "flux-3-image-klein-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "spark",
+    "image",
+    "generation",
+    "pytorch-pipeline",
+    "flux-3"
+  ],
+  "title": "FLUX 3 Image Klein single Spark"
+}

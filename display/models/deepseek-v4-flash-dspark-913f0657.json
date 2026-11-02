@@ -1,0 +1,21 @@
+{
+  "description": "Official DeepSeek-V4-Flash-DSpark snapshot 62af8fff: mixed FP4/FP8 shards with DSpark speculative-decoding prediction layers, tokenizer, prompt encoder and minimal inference reference. MIT.",
+  "family_title": "DeepSeek Flash",
+  "identity": {
+    "publisher": "deepseek-ai",
+    "slug": "deepseek-v4-flash-dspark-913f0657"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek V4 Flash DSpark",
+  "tags": [
+    "candidate",
+    "deepseek-ai",
+    "deepseek-flash",
+    "dspark",
+    "fp4",
+    "fp8",
+    "language",
+    "mtp",
+    "official"
+  ]
+}

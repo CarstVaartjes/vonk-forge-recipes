@@ -30,25 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding for the exact Poolside Laguna S 2.1 NVFP4 checkpoint 07614121 (71.9 GB, FP8 KV cache scheme, 262,144 positions; the same files the r0b0tlab and Mia singles share). The earlier 826aacdf export (99.7 GB, experts of layers 40-47 in BF16) is not used. Memory follows the creator's settings: gpu-memory-utilization 0.85, as in Poolside's model card at 07614121 (README line 185). The steady per-node peak is 0.85 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak. The card's DFlash profile (262,144 context, 32 sequences, a k=15 drafter) is a different recipe shape and is not part of this one.",
-    "tags": [
-      "executable",
-      "candidate",
-      "poolside",
-      "laguna",
-      "nvfp4",
-      "vllm",
-      "reasoning",
-      "agentic",
-      "openai",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Laguna S 2.1 NVFP4 vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -325,7 +306,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "aa43743d4fbc01f3e26976f9abb4ec19ca1a977116c1b4e1cd2d2561c6ef4043",
+        "content_sha256": "92d073f12c6164fc4af416c7c3b6c7b94955026ff522e6b6c8d0612baa310f3a",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-s-2-1-nvfp4-07614121"

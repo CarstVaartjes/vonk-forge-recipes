@@ -32,24 +32,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "standard",
-    "description": "The full GLM-5.3 (743B mixture-of-experts, about 40B active) as tonyd2wild's data-free Int4/Int8 mixed-precision compressed-tensors quantization (377 GiB, about 98 GiB per rank at TP4 with the MTP layer) on four Sparks with vLLM tensor parallel 4 over a switched RoCE fabric, native MTP speculative decoding (4 tokens), FP8 sparse-MLA KV pinned at 10.95 GB, CUDA graphs, 200K context and glm45/glm47 reasoning and tool parsers. Basis: tonyd2wild's GLM-5.3 TP4 launcher, which reuses his GLM-5.2 launch stack; this recipe bakes the ten sm12x sparse-MLA kernel overlays and the indexer MTP-overhang patch from that repository at 162d7a76 into the published digest-pinned vLLM 0.23.1rc1.dev190 base. Other upstream lanes (DFlash2, NVFP4 KV) need locally built images and are not included. The upstream launch pins kv-cache-memory-bytes, which skips memory profiling, and expects page cache to be dropped on every node during load because GB10 page cache reduces CUDA-visible memory one to one. GLM-5.3 licence: MIT-style grant with a security-review condition for Model-as-a-Service businesses above 10 billion US dollars revenue, shown for information. Upstream figures (about 27 tok/s single-stream count-to-100 with MTP-4, 53 tok/s with DFlash2) are claims until measured here, and upstream ran no quality evaluation on this quant; Vonk physical four-Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.91 beside the fixed 10.95 GB FP8 KV pool and a 200,000-token context, as in tonyd2wild's launch/launch-glm53-tp4.sh at f5440eff (lines 131 and 132); with a fixed pool the utilization is vLLM's startup free-memory check. Upstream drops the page cache on every node during load (lines 13-18) and runs with 16 GB of swap at swappiness 10, MemAvailable near 0.7 GB and 3.2 GB of swap as its designed operating point (README lines 315-320). The declared peak is the per-rank loading floor: the weights, the pool and 8 GB of runtime overhead; the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
-    "tags": [
-      "compressed-tensors",
-      "distributed",
-      "glm-5.3",
-      "int4",
-      "int8",
-      "mtp",
-      "reasoning",
-      "spark",
-      "tool-use",
-      "tp4",
-      "vllm"
-    ],
-    "title": "GLM 5.3 Int4 Int8Mix MTP vLLM four Sparks"
-  },
   "models": [
     {
       "files": [
@@ -3268,7 +3250,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7502dbc945749f846f50fdf25aa69cf7ead1f084438c84aa75349424d1ab5f85",
+        "content_sha256": "0688e422ad6cf1c6540eaef79df12ca64f97aa37b432ace2bf575e1dabc83ecd",
         "kind": "model",
         "publisher": "tech2wild",
         "slug": "glm-5-3-int4-int8mix-206507bb"

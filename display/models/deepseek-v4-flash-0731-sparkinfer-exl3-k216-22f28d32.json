@@ -1,0 +1,21 @@
+{
+  "description": "Exact public 0xSero rank-sliced EXL3/Trellis checkpoint for one DGX Spark. REAP retains 216 of 256 routed experts; all 190 files are bound to the immutable source revision with exact sizes and SHA-256 checksums.",
+  "family_title": "DeepSeek Flash",
+  "identity": {
+    "publisher": "0xsero",
+    "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216-22f28d32"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek V4 Flash 0731",
+  "tags": [
+    "candidate",
+    "deepseek",
+    "deepseek-v4",
+    "exl3",
+    "language",
+    "reap",
+    "single",
+    "spark",
+    "trellis"
+  ]
+}

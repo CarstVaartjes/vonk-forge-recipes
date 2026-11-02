@@ -154,13 +154,11 @@
   "identity": {
     "family": {
       "publisher": "stabilityai",
-      "slug": "stable-diffusion-xl",
-      "title": "Stable Diffusion XL"
+      "slug": "stable-diffusion-xl"
     },
     "model": {
       "publisher": "stabilityai",
-      "slug": "stable-diffusion-xl-base-1-0",
-      "title": "Stable Diffusion XL Base 1.0"
+      "slug": "stable-diffusion-xl-base-1-0"
     },
     "publisher": "stabilityai",
     "slug": "stable-diffusion-xl-base-1-0",
@@ -174,15 +172,6 @@
     ],
     "spdx": "LicenseRef-CreativeML-Open-RAIL-Plus-Plus-M",
     "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/462165984030d82259a11f4367a4eed129e94a7b/LICENSE.md"
-  },
-  "metadata": {
-    "description": "Complete default-weight SDXL pipeline closure used by Step1X texture inference, excluding only its explicitly overridden VAE. Model files are manifest-selected; no HF network fallback is intended.",
-    "tags": [
-      "stabilityai",
-      "diffusers",
-      "image-generation",
-      "step1x"
-    ]
   },
   "modalities": [
     "image"

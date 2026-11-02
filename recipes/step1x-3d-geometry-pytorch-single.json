@@ -88,23 +88,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable single-DGX Spark image-to-geometry Candidate using the exact Step1X source and declared DINOv2 configuration/preprocessor inputs, an SM121-native CUDA 13 runtime, deterministic offline input handling, and GLB output. For generated GLBs up to 240 MiB, the linked next step is vonk-forge/step1x-3d-texture-pytorch-single with the same reference image. Physical Spark quality, memory, and latency acceptance is still required.",
-    "tags": [
-      "candidate",
-      "three-d",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "executable",
-      "offline",
-      "source-bundled",
-      "stage-geometry",
-      "next-step-texture"
-    ],
-    "title": "Step1X-3D geometry pytorch-pipeline single Spark"
-  },
   "models": [
     {
       "files": [
@@ -201,7 +184,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "af27c65d86d5565fce48f61680e2e60626d60cee2280ae46705d17e03d62f90c",
+        "content_sha256": "7083ba4dbdf63e5acbd0bd819673dd5adda67d87faf9f3ee0aa0cabde23a0ada",
         "kind": "model",
         "publisher": "stepfun-ai",
         "slug": "step1x-3d-geometry"
@@ -232,7 +215,7 @@
       ],
       "id": "dinov2-registers",
       "model": {
-        "content_sha256": "1dc231dc891334a8fca97099e5e734ff679370849c4794c0923caba34d987900",
+        "content_sha256": "ab5ae5fdcdf6e4e976cb56a1d9cb58efe152cbba6d74347dfcfdd1afa61e9ff4",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov2-with-registers-large"

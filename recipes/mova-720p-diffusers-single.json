@@ -104,24 +104,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Higher-resolution, memory-tight MOVA profile for one Spark, using the exact official 720p checkpoint and native pipeline. It produces one fail-closed MP4 containing synchronized 24 fps video and 48 kHz audio; use the 360p recipe as the default until this profile completes its physical Spark memory canary. Keeps models on CUDA without CPU offload on GB10 unified memory; smoke fit is estimated, and physical memory and latency qualification remain pending.",
-    "tags": [
-      "candidate",
-      "executable",
-      "memory-tight",
-      "high-resolution",
-      "openmoss",
-      "mova",
-      "video",
-      "audio",
-      "pytorch",
-      "single",
-      "spark"
-    ],
-    "title": "MOVA 720p native synchronized media single Spark (tight)"
-  },
   "models": [
     {
       "files": [
@@ -408,7 +390,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "e9ee5114179de6c3dafb94c922a0bb118bffcc6af73b8387cc3f2b14cd4ae50b",
+        "content_sha256": "bc6c175277b2daf29b5a39f24da829971758d9b37267e872847784281b6de14f",
         "kind": "model",
         "publisher": "openmoss",
         "slug": "mova-720p"
@@ -472,12 +454,12 @@
     "kind": "job",
     "knobs": {
       "num-frames": {
-        "value": 193,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 193
       },
       "num-inference-steps": {
-        "value": 50,
-        "change_effect": "none"
+        "change_effect": "none",
+        "value": 50
       }
     }
   },

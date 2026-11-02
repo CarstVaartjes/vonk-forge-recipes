@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "Xiaomi's BF16 distillation with the upstream SGLang mimo reasoning parser. 32K context and four requests are conservative defaults, not measured performance. Physical Spark acceptance pending. Peak memory estimates 45% of GB10 unified memory plus 8 GB runtime overhead.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "mimo-v2-6-distill-qwen-9b-sglang-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "executable",
+    "spark",
+    "sglang",
+    "mimo",
+    "reasoning"
+  ],
+  "title": "MiMo V2.6 Distill Qwen 9B SGLang single Spark"
+}

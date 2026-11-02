@@ -66,13 +66,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dflash",
-      "title": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DFlash draft"
+      "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dflash"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dflash-7fc1f1ff",
@@ -86,15 +84,6 @@
     ],
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://openmdw.ai/license/1-1/"
-  },
-  "metadata": {
-    "description": "Exact public NVIDIA DFlash speculative draft head for Nemotron 3.5 Lightning at 7fc1f1ff, the revision r0b0tlab's SGLang evidence binds to.",
-    "tags": [
-      "nvidia",
-      "nemotron-3-5-lightning",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

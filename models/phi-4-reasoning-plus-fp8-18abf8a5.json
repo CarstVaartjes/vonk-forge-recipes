@@ -158,13 +158,11 @@
   "identity": {
     "family": {
       "publisher": "microsoft",
-      "slug": "phi-4",
-      "title": "Microsoft Phi-4"
+      "slug": "phi-4"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "phi-4-reasoning-plus",
-      "title": "Phi-4 Reasoning Plus"
+      "slug": "phi-4-reasoning-plus"
     },
     "publisher": "nvidia",
     "slug": "phi-4-reasoning-plus-fp8-18abf8a5",
@@ -179,16 +177,6 @@
     ],
     "spdx": "MIT",
     "url": "https://opensource.org/license/mit"
-  },
-  "metadata": {
-    "description": "Exact public NVIDIA Model Optimizer FP8 quantization of Phi-4-reasoning-plus.",
-    "tags": [
-      "nvidia",
-      "phi-4",
-      "language",
-      "fp8",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

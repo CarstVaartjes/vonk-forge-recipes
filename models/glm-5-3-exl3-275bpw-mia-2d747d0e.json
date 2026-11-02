@@ -1336,13 +1336,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "mia-ailab",
-      "slug": "glm-5-3",
-      "title": "GLM 5.3"
+      "slug": "glm-5-3"
     },
     "publisher": "mia-ailab",
     "slug": "glm-5-3-exl3-275bpw-mia-2d747d0e",
@@ -1357,15 +1355,6 @@
     ],
     "spdx": "LicenseRef-GLM-5.3",
     "url": "https://huggingface.co/Mia-AiLab/GLM-5.3-EXL3-2.75bpw-TensorFold/blob/2d747d0e30eca6e3fe37ba63c471cdf9172faa83/LICENSE"
-  },
-  "metadata": {
-    "description": "Full GLM 5.3 with EXL3 2.75bpw routed experts for TensorFold.",
-    "tags": [
-      "mia-ailab",
-      "glm",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

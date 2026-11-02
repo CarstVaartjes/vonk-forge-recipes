@@ -36,24 +36,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "abliterated",
-    "description": "aday777's abliterated (ARA) Qwen3.8 27B NVFP4 weights on the pinned drowzeys/eugr vLLM 0.27 image. Recovery baseline after run 452a0f71-d875-4f3b-8ca5-d6da59a898ae died during the 2026-10-21 streaming smoke: the retained EngineCore traceback reports torch.AcceleratorError, CUDA illegal memory access at torch/accelerator/__init__.py:270, with oom_killed=false. The original kernel frames were not retained; the NVFP4-KV/A4Q, MTP and graph combination is suspected, not proven. Use ordinary FP8 KV, eager execution, no speculative decoding or FlashInfer autotune, and one concurrent sequence to avoid those paths. Retains the 1,048,576-token YaRN x4 context, prefix caching, 4096 batched tokens and qwen3_xml tools. The absolute cache pool budgets 16 full-attention layers x 4 KV heads x 256 dimensions x K/V x one byte x context, plus vLLM's hybrid allocation for the 48 linear-attention layers: two 3,211,264-byte padded recurrent pages per layer with prefix caching, at most one 1568-token block of rounding per full-attention layer, and one 16-layer group block for vLLM's null block (411,041,792 bytes). The earlier 160 MiB state term left the pool 154,140,672 bytes below vLLM's 34,681,651,200-byte one-request check at 1,048,576 tokens. Selected weights (including the unused MTP file) and an 11 GB runtime allowance are covered by the 67 GB peak; 16 GiB host reserve. These are planning bounds, not a measured peak or hardware pass. Long-context cold prefill is slow; clients should allow adequate output tokens for this verbose checkpoint. Checkpoint Apache-2.0; upstream recipe repository declares no licence file. Not gated.",
-    "tags": [
-      "abliterated",
-      "candidate",
-      "executable",
-      "fp8-kv",
-      "multimodal",
-      "nvfp4",
-      "qwen3.8",
-      "single",
-      "spark",
-      "tool-use",
-      "vllm"
-    ],
-    "title": "Qwen3.8 27B ADay777 Abliterated NVFP4 FP8-KV 1M eager vLLM one Spark"
-  },
   "models": [
     {
       "files": [
@@ -280,7 +262,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "7392c13353aea5db2cf285f6b11b038bceeb0b03fed898ac2e768876db622cda",
+        "content_sha256": "2e9bd1e7f1825bf1929af663d28dc3747f7d91bb35c0f2309a9f0085944259a8",
         "kind": "model",
         "publisher": "aday777",
         "slug": "qwen3-8-27b-ara-abliterated-nvfp4-mtp-df03f976"

@@ -1,0 +1,17 @@
+{
+  "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Qwen3 8B.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "qwen3-8b-nvfp4-ccd10a89"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3 8B",
+  "tags": [
+    "nvidia",
+    "qwen3",
+    "language",
+    "nvfp4",
+    "candidate"
+  ]
+}

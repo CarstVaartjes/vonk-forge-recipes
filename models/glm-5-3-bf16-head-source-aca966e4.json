@@ -8,8 +8,8 @@
       "roles": [
         "weights"
       ],
-      "size_bytes": 5363940952,
-      "sha256": "29c537abddf4fc94689defddbdd03694b287385c620072a7805d63a3dcd7d5b6"
+      "sha256": "29c537abddf4fc94689defddbdd03694b287385c620072a7805d63a3dcd7d5b6",
+      "size_bytes": 5363940952
     },
     {
       "id": "license",
@@ -17,8 +17,8 @@
       "roles": [
         "metadata"
       ],
-      "size_bytes": 4263,
-      "sha256": "96e1622099fc9d6b70c9760f007d99e66d7497eec636b63c60fe208401e9170c"
+      "sha256": "96e1622099fc9d6b70c9760f007d99e66d7497eec636b63c60fe208401e9170c",
+      "size_bytes": 4263
     }
   ],
   "format": {
@@ -28,13 +28,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "zai-org",
-      "slug": "glm-5-3",
-      "title": "GLM 5.3"
+      "slug": "glm-5-3"
     },
     "publisher": "zai-org",
     "slug": "glm-5-3-bf16-head-source-aca966e4",
@@ -43,19 +41,11 @@
   },
   "kind": "model",
   "license": {
-    "spdx": "LicenseRef-GLM-5.3",
-    "url": "https://huggingface.co/zai-org/GLM-5.3/blob/aca966e4e02791568aa6a4ced368624b3d897f42/LICENSE",
     "attribution": [
       "Z.ai"
-    ]
-  },
-  "metadata": {
-    "description": "Original GLM-5.3 first shard, used only to extract the exact BF16 lm_head.weight in the managed cache. This is a companion source artifact, not a complete standalone checkpoint.",
-    "tags": [
-      "glm",
-      "companion",
-      "bf16-head"
-    ]
+    ],
+    "spdx": "LicenseRef-GLM-5.3",
+    "url": "https://huggingface.co/zai-org/GLM-5.3/blob/aca966e4e02791568aa6a4ced368624b3d897f42/LICENSE"
   },
   "modalities": [
     "text"

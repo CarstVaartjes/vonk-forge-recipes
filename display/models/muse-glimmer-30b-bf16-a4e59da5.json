@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Muse Glimmer 30B BF16 a4e59da5 checkpoint.",
+  "family_title": "Muse Glimmer",
+  "identity": {
+    "publisher": "meta",
+    "slug": "muse-glimmer-30b-bf16-a4e59da5"
+  },
+  "kind": "model-display",
+  "model_title": "Muse Glimmer 30B",
+  "tags": [
+    "meta",
+    "muse-glimmer",
+    "multimodal",
+    "candidate"
+  ]
+}

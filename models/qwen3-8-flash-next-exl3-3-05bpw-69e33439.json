@@ -239,13 +239,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "turboderp",
-      "slug": "qwen3-8-flash-next-exl3-3-05bpw",
-      "title": "Qwen3.8 Flash Next EXL3 3.05 bpw"
+      "slug": "qwen3-8-flash-next-exl3-3-05bpw"
     },
     "publisher": "turboderp",
     "slug": "qwen3-8-flash-next-exl3-3-05bpw-69e33439",
@@ -260,15 +258,6 @@
     ],
     "spdx": "LicenseRef-Qwen-Community-1.0",
     "url": "https://huggingface.co/turboderp/Qwen3.8-Flash-Next-exl3/blob/69e33439ae950f17bcbe95c98f117d80f759ab6d/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public turboderp EXL3 3.05 bits-per-weight pack (branch 3.05bpw_h5_ng5) of Qwen3.8 Flash Next with MTP layer, read by TensorFold's experimental CUDA EXL3 path.",
-    "tags": [
-      "turboderp",
-      "qwen3-8-exl3",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

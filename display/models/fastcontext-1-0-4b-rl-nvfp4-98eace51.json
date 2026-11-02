@@ -1,0 +1,16 @@
+{
+  "description": "Microsoft FastContext-1.0-4B-RL async repo-exploration subagent model.",
+  "family_title": "FastContext",
+  "identity": {
+    "publisher": "r0b0tlab",
+    "slug": "fastcontext-1-0-4b-rl-nvfp4-98eace51"
+  },
+  "kind": "model-display",
+  "model_title": "FastContext-1.0-4B-RL",
+  "tags": [
+    "r0b0tlab",
+    "fastcontext",
+    "language",
+    "candidate"
+  ]
+}

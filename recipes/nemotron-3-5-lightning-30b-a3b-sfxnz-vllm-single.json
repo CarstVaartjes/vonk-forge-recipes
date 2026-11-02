@@ -30,26 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate reproducing sfxnz's Nemotron-3.5-Lightning-vLLM-DGX-Spark kit (MIT; commit 0214edfd, last commit 2026-09-02, no version tag) on one DGX Spark: stock vLLM v0.27.1 (ARM64 manifest digest-pinned), NVIDIA's Nemotron 3.5 Lightning 30B-A3B NVFP4 target (ModelOpt mixed quantization, Marlin MoE, FP8 KV cache, FlashInfer Mamba backend with align cache mode, prefix caching) with the official DSpark drafter (3 draft tokens), 262,144 context, 4 sequences, GPU memory utilization 0.8, nemotron_v3 reasoning and qwen3_coder tool parsers. The kit's own choice of 0.8 is safer than the model card's 0.91 on a shared Spark. Upstream measured on its L.A.I.L lab (not measured here, run 20260812T131332Z_d0f7ae): about 93 tok/s decode, 678 tok/s prefill, TTFT p50 246 ms, 20/20 mixed agent bench, about 15 GiB system RAM left after load. Not exposed: the kit's ENABLE_DSPARK=0 switch, because a choice cannot remove the speculative-config argument (the drafter Model is still mounted). Thinking is on by default; the validation chat disables it. Kit licence MIT; model weights NVIDIA OpenMDW-1.1 (see the Models). Physical Spark acceptance remains pending. Memory follows the creator's settings: gpu-memory-utilization 0.8, as in sfxnz's run.sh at 0214edfd (line 10), with the kit's 0.7 lab-friendly value as an option (README line 122). The kit's aggressive 0.91 profile is not offered: its peak, 0.91 x 130,663,231,488 bytes plus 8 GB, can never be admitted on a Spark, and upstream reports it pushed free RAM toward 1 GiB and into swap (README line 101). The steady per-node peak is 0.8 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
-    "tags": [
-      "candidate",
-      "executable",
-      "sfxnz",
-      "nvidia",
-      "nemotron",
-      "nvfp4",
-      "vllm",
-      "openai",
-      "dspark",
-      "speculative-decoding",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Nemotron 3.5 Lightning 30B-A3B NVFP4 DSpark sfxnz vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -756,7 +736,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9dc64a40590bf10ea0236e869907fe640d6f6608ddcba992cef527213d512a9a",
+        "content_sha256": "abf68d0d237a71b899bb9c36911ed46a366194ecaf57ae22e6df6ff0df7be378",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
@@ -827,7 +807,7 @@
       ],
       "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark",
       "model": {
-        "content_sha256": "54b07fa26f4a09e7fad6b26e3997dc83e2d514f91d15f5a503e5627a0ff0df94",
+        "content_sha256": "239c502d421384614cb0aaaed8295f7821e77a739354b940118696d8a415fab6",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark"

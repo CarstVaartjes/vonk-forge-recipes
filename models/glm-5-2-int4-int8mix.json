@@ -1292,13 +1292,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "quanttrio",
-      "slug": "glm-5-2-int4-int8mix",
-      "title": "GLM 5.2 Int4 Int8Mix"
+      "slug": "glm-5-2-int4-int8mix"
     },
     "publisher": "quanttrio",
     "slug": "glm-5-2-int4-int8mix",
@@ -1313,15 +1311,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/blob/main/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public GLM 5.2 Int4 Int8Mix checkpoint.",
-    "tags": [
-      "quanttrio",
-      "glm-5-2",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

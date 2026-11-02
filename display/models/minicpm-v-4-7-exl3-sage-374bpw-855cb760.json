@@ -1,0 +1,16 @@
+{
+  "description": "MiniCPM-V 4.7 SAGE EXL3 3.74bpw including the native vision weights and optional embedded DSpark.",
+  "family_title": "MiniCPM",
+  "identity": {
+    "publisher": "vcruz305",
+    "slug": "minicpm-v-4-7-exl3-sage-374bpw-855cb760"
+  },
+  "kind": "model-display",
+  "model_title": "MiniCPM-V 4.7 35B A3B",
+  "tags": [
+    "vcruz305",
+    "minicpm",
+    "language",
+    "candidate"
+  ]
+}

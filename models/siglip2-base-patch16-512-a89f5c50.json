@@ -73,13 +73,11 @@
   "identity": {
     "family": {
       "publisher": "google",
-      "slug": "siglip2",
-      "title": "SigLIP 2"
+      "slug": "siglip2"
     },
     "model": {
       "publisher": "google",
-      "slug": "siglip2-base-patch16-512",
-      "title": "SigLIP 2 Base Patch16 512"
+      "slug": "siglip2-base-patch16-512"
     },
     "publisher": "google",
     "slug": "siglip2-base-patch16-512-a89f5c50",
@@ -93,15 +91,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/google/siglip2-base-patch16-512/blob/a89f5c5093f902bf39d3cd4d81d2c09867f0724b/README.md"
-  },
-  "metadata": {
-    "description": "Pinned SigLIP 2 Base files for the HunyuanVideo-Foley offline image encoder.",
-    "tags": [
-      "google",
-      "auxiliary",
-      "image",
-      "offline"
-    ]
   },
   "modalities": [
     "image"

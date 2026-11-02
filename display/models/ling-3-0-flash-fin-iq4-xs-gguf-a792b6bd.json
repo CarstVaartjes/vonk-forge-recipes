@@ -1,0 +1,21 @@
+{
+  "description": "bartowski imatrix IQ4_XS GGUF (two shards, 64 GiB) of inclusionAI/Ling-3.0-flash-Fin, the finance-domain continued training of Ling 3.0 Flash (bailingmoe3 hybrid KDA + MLA mixture-of-experts, 124B total, 5.1B active, 262,144-token context, one MTP layer kept for draft-mtp). Only the IQ4_XS shards are cataloged; the repository has no licence file (the base model and the model card declare MIT).",
+  "family_title": "Ling",
+  "identity": {
+    "publisher": "bartowski",
+    "slug": "ling-3-0-flash-fin-iq4-xs-gguf-a792b6bd"
+  },
+  "kind": "model-display",
+  "model_title": "Ling 3.0 Flash Fin GGUF",
+  "tags": [
+    "bartowski",
+    "ling-3-0",
+    "gguf",
+    "llama-cpp",
+    "mtp",
+    "finance",
+    "iq4-xs",
+    "spark",
+    "candidate"
+  ]
+}

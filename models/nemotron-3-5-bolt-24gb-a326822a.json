@@ -1077,13 +1077,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-5-bolt",
-      "title": "Nemotron 3.5 Bolt"
+      "slug": "nemotron-3-5-bolt"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-5-bolt-24gb-a326822a",
@@ -1097,15 +1095,6 @@
     ],
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://openmdw.ai/license/1-1/"
-  },
-  "metadata": {
-    "description": "Nemotron 3.5 Bolt 74B-A9B 24GB checkpoint.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

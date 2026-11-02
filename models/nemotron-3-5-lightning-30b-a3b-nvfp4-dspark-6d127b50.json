@@ -64,13 +64,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-5-lightning-30b-a3b-dspark",
-      "title": "Nemotron 3.5 Lightning 30B-A3B DSpark companion"
+      "slug": "nemotron-3-5-lightning-30b-a3b-dspark"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-6d127b50",
@@ -84,19 +82,6 @@
     ],
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://openmdw.ai/license/1-1/"
-  },
-  "metadata": {
-    "description": "Official NVIDIA six-layer DSpark speculative-decoding companion for the exact Nemotron 3.5 Lightning 30B-A3B NVFP4 target.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "reasoning",
-      "nvfp4",
-      "dspark",
-      "speculative-decoding",
-      "spark"
-    ]
   },
   "modalities": [
     "text"

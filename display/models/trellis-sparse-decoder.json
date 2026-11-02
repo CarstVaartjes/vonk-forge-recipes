@@ -1,0 +1,16 @@
+{
+  "description": "Sparse structure decoder referenced by TRELLIS.2-4B at af44b45f; exact files from microsoft/TRELLIS-image-large.",
+  "family_title": "TRELLIS",
+  "identity": {
+    "publisher": "microsoft",
+    "slug": "trellis-sparse-decoder"
+  },
+  "kind": "model-display",
+  "model_title": "TRELLIS sparse structure decoder",
+  "tags": [
+    "microsoft",
+    "auxiliary",
+    "three-d",
+    "offline"
+  ]
+}

@@ -563,13 +563,11 @@
   "identity": {
     "family": {
       "publisher": "poolside",
-      "slug": "laguna",
-      "title": "Laguna"
+      "slug": "laguna"
     },
     "model": {
       "publisher": "poolside",
-      "slug": "laguna-s-2-1",
-      "title": "Laguna S 2.1"
+      "slug": "laguna-s-2-1"
     },
     "publisher": "poolside",
     "slug": "laguna-s-2-1-nvfp4-826aacdf",
@@ -583,14 +581,6 @@
     ],
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://www.poolside.ai/legal/openmdw-1-1"
-  },
-  "metadata": {
-    "description": "Exact public 1M-context NVFP4 64734b3a checkpoint.",
-    "tags": [
-      "poolside",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

@@ -649,6 +649,7 @@ class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):
     )
 
     def test_recipes_restore_the_launcher_environment(self) -> None:
+        from documents import recipe_display
         from vonk_forge_contracts import read_recipe
 
         for path in self.RECIPES:
@@ -657,6 +658,6 @@ class InklingTonyd2wildLauncherEnvironmentTests(unittest.TestCase):
                 env = [(e.name, e.value) for e in recipe.runtime.environment]
                 for entry in self.LAUNCHER_LINES_10_11:
                     self.assertEqual(env.count(entry), 1, entry)
-                description = recipe.metadata.description
+                description = recipe_display(Path(path).stem).description
                 self.assertIn(self.LAUNCHER_PIN, description)
                 self.assertIn("(lines 10-11)", description)

@@ -65,13 +65,11 @@ def _https_or_http(value: str, field_name: str) -> str:
 class ModelFamily(_ModelContract):
     publisher: Slug
     slug: Slug
-    title: Title
 
 
 class ModelRecord(_ModelContract):
     publisher: Slug
     slug: Slug
-    title: Title
 
 
 class ModelIdentity(_ModelContract):
@@ -83,11 +81,6 @@ class ModelIdentity(_ModelContract):
     model: ModelRecord
     version: StrictStr = Field(min_length=1, max_length=128)
     variant: StrictStr = Field(min_length=1, max_length=128)
-
-
-class ModelMetadata(_ModelContract):
-    description: Description
-    tags: Tags
 
 
 class ModelSource(_ModelContract):
@@ -317,7 +310,6 @@ class ModelDefinition(_ModelContract):
 
     kind: Literal["model"] = "model"
     identity: ModelIdentity
-    metadata: ModelMetadata
     # A provider account token is needed to download the files (a gated
     # repository). Public models download anonymously.
     requires_token: StrictBool
