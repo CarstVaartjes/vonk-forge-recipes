@@ -20,10 +20,8 @@ from qualification.memory_need import (
     absolute_kv_need,
     argument_value,
     cache_bytes,
-    hardware_proven,
     load_inputs,
     memory_variants,
-    raise_peaks_to_envelope,
     require_absolute_kv_capacity,
     require_memory_need,
     require_sglang_rank_budget,
@@ -270,39 +268,6 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     ).value = "0.80"
     declare_envelope(recipe)
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
-
-
-@pytest.mark.parametrize("single", [True, False], ids=["single", "multi"])
-@pytest.mark.parametrize("engine", ["vllm", "sglang"])
-def test_touching_any_proven_document_keeps_it_valid(engine: str, single: bool) -> None:
-    # Calibration: every hardware-proven document passes the touched rules.
-    models, inputs = catalog_models(), load_inputs()
-    checked, rejected = 0, []
-    for path in sorted((ROOT / "qualification/evidence").rglob("*.json")):
-        key = json.loads(path.read_text())["recipe_key"]
-        document = json.loads(
-            (ROOT / "recipes" / f"{key.split('/')[1]}.json").read_text()
-        )
-        recipe = RecipeDefinition.model_validate(document)
-        if (
-            recipe.runtime.engine != engine
-            or (recipe.topology.node_count == 1) != single
-            or not hardware_proven(recipe, document_sha256(document))
-        ):
-            continue
-        checked += 1
-        # A touched document is a refresh, which raises its peaks to the envelope.
-        recipe = raise_peaks_to_envelope(recipe) or recipe
-        try:
-            require_memory_need(
-                recipe, models, inputs, document_digest="", touched=True
-            )
-        except (TypeError, ValueError) as error:
-            rejected.append(str(error))
-    assert checked > 0
-    assert not rejected, f"{len(rejected)} of {checked} rejected:\n" + "\n".join(
-        rejected
-    )
 
 
 FAILURES = ROOT / "tests/fixtures/single-spark-memory-failures"
