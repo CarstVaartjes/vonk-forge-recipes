@@ -272,10 +272,26 @@ def test_touched_multi_spark_vllm_recipe_bounds_kv_like_the_proven_set() -> None
     require_memory_need(recipe, models, inputs, document_digest="", touched=True)
 
 
+def admits(peak_bytes: int) -> bool:
+    return evaluate_memory_admission(
+        peak_bytes, SPARK_MEMORY_BYTES, occupied_bytes=ADMISSION_IDLE_USE_BYTES
+    ).admissible
+
+
+def declares_whole_spark(recipe: RecipeDefinition) -> bool:
+    """Every role declares the largest peak an idle Spark admits."""
+    peaks = [role.resources.memory.peak_bytes for role in recipe.topology.roles]
+    return all(admits(peak) and not admits(peak + 1) for peak in peaks)
+
+
 @pytest.mark.parametrize("single", [True, False], ids=["single", "multi"])
 @pytest.mark.parametrize("engine", ["vllm", "sglang"])
 def test_touching_any_proven_document_keeps_it_valid(engine: str, single: bool) -> None:
-    # Calibration: every hardware-proven document passes the touched rules.
+    # Calibration: every hardware-proven document passes the touched rules,
+    # except one proven above the formula: its budget plus the planning margin
+    # exceeds an idle Spark, and it ran declared at the whole Spark (DeepSeek
+    # V4 SparkInfer single at 0.931, owner decision 2026-11-02, #1984). Any
+    # edit to such a document is verified on hardware again.
     models, inputs = catalog_models(), load_inputs()
     checked, rejected = 0, []
     for path in sorted((ROOT / "qualification/evidence").rglob("*.json")):
@@ -291,6 +307,14 @@ def test_touching_any_proven_document_keeps_it_valid(engine: str, single: bool) 
         ):
             continue
         checked += 1
+        envelope = max(
+            (e for v in memory_variants(recipe) if (e := vllm_utilization_envelope(v))),
+            default=0,
+        )
+        if not admits(envelope):
+            if not declares_whole_spark(recipe):
+                rejected.append(f"{key}: inadmissible envelope {envelope}")
+            continue
         # A touched document is a refresh, which raises its peaks to the envelope.
         recipe = raise_peaks_to_envelope(recipe) or recipe
         try:

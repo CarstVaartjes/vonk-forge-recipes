@@ -249,6 +249,22 @@ def test_disk_resident_table_leaves_only_the_single_that_reads_it_from_disk() ->
     assert rank_weights(sglang) == without_disk_residency(sglang)
 
 
+def test_packed_ple_offload_keeps_the_table_out_of_resident_weights() -> None:
+    # MiaAI-Lab's patched offload (VLLM_PLE_CPU_OFFLOAD=1) skips the 128 PLE
+    # shard tensor pairs and memory-maps a packed copy; the proven run used
+    # 109.68e9 host bytes beside a 102.70e9 vLLM budget, below the full weights.
+    slug = "qwen3-8-flash-next-nvfp4-vllm-single"
+    assert without_disk_residency(slug) - rank_weights(slug) == 28_800_138_240
+    resident = recipe_for(slug)
+    for item in resident.runtime.environment:
+        if item.name == "VLLM_PLE_CPU_OFFLOAD":
+            item.value = "0"
+    inputs = load_inputs()
+    assert rank_weight_bytes(
+        resident, catalog_models(), inputs
+    ) == without_disk_residency(slug)
+
+
 def test_four_table_option_keeps_the_table_resident() -> None:
     four = "qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-four"
     disk = rank_weights(four, table="disk")

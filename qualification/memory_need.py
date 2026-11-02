@@ -296,11 +296,15 @@ class MemoryInputs(BaseModel):
     # rule (2026-10-26): Engram tables are never memory usage.
     engram_files: dict[str, str]
     # Bytes of a weights file that a launch reading its table from disk on demand
-    # (QWEN4EXP_PLE_MMAP=1, see reads_table_from_disk) never holds resident; the
-    # rest of the file still counts. By content digest.
+    # (see reads_table_from_disk) never holds resident; the rest of the file
+    # still counts. By content digest.
     # Qwen3.8 Flash Next: model-fp8-mtp-ple.safetensors carries the 320,001,536 x
     # 160 B PLE n-gram table (51,200,245,760 B) that tonyd2wild's adapter reads
     # with preadv; the MTP weights in the same file stay counted.
+    # Qwen3.8 Flash Next NVFP4 (local-inference-lab@ada4da32): model-00001..00019
+    # carry the 128 ngram_embedding.shard_* tensor pairs (28,800,138,240 B, 26.82
+    # GiB; safetensors headers) that MiaAI-Lab's patched offload skips at load
+    # and serves from a packed memory-mapped copy (page cache).
     disk_resident_bytes: dict[str, int] = Field(default_factory=dict)
     historical_sources: list[str]
     historical_documents: dict[str, list[str]]
@@ -310,15 +314,20 @@ class MemoryInputs(BaseModel):
     ple_embedding_dtypes: dict[str, str] = Field(default_factory=dict)
 
 
-PLE_DISK_READ_ENVIRONMENT = "QWEN4EXP_PLE_MMAP"
+PLE_DISK_READ_ENVIRONMENTS = frozenset({"QWEN4EXP_PLE_MMAP", "VLLM_PLE_CPU_OFFLOAD"})
 
 
 def reads_table_from_disk(recipe: RecipeDefinition) -> bool:
-    """Residency is a property of the launch: tonyd2wild's ple_mmap reads the PLE
-    table with preadv only when QWEN4EXP_PLE_MMAP=1 in the merged environment
-    (an option variant may turn it off and keep the table in memory)."""
+    """Residency is a property of the launch, set to "1" in the merged environment
+    (an option variant may turn it off and keep the table in memory):
+    tonyd2wild's ple_mmap reads the PLE table with preadv under QWEN4EXP_PLE_MMAP;
+    adapters/qwen/flash-next-vllm-single (patch_ple_offload.py) skips the PLE
+    shard tensors under VLLM_PLE_CPU_OFFLOAD and memory-maps a packed copy (its
+    wrapper always sets VLLM_PLE_PACKED_TABLE_DIR). Stock vLLM's offload copies
+    the table into RAM, so only the file digests in disk_resident_bytes, which
+    only these adapters' recipes select, are discounted."""
     return any(
-        item.name == PLE_DISK_READ_ENVIRONMENT and str(item.value) == "1"
+        item.name in PLE_DISK_READ_ENVIRONMENTS and str(item.value) == "1"
         for item in recipe.runtime.environment
     )
 
