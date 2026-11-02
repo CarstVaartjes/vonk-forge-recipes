@@ -2218,7 +2218,10 @@ class Assessor:
             if new_recipe != recipe:
                 if new_recipe.get("runtime", {}).get("engine") == "vllm":
                     try:  # a moved document meets today's margins (never lowered)
-                        raise_document_peaks(new_recipe)
+                        raise_role_peaks(
+                            new_recipe["topology"]["roles"],
+                            RecipeDefinition.model_validate(new_recipe),
+                        )
                     except (KeyError, TypeError, ValueError) as error:
                         result.reasons.append(
                             f"memory envelope: peaks could not be raised: {str(error)[:300]}"
@@ -3395,14 +3398,12 @@ def checks_moved(root: Path, head: str) -> bool:
     )
 
 
-def raise_document_peaks(document: dict[str, Any]) -> None:
-    """Raise a moved vLLM document's role peaks to the budget envelope, in place."""
-    raised = raise_peaks_to_envelope(RecipeDefinition.model_validate(document))
+def raise_role_peaks(roles: list[dict[str, Any]], recipe: RecipeDefinition) -> None:
+    """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope."""
+    raised = raise_peaks_to_envelope(recipe)
     if raised is None:
         return
-    for role, kept in zip(
-        document["topology"]["roles"], raised.topology.roles, strict=True
-    ):
+    for role, kept in zip(roles, raised.topology.roles, strict=True):
         memory = role["resources"]["memory"]
         memory["peak_bytes"] = kept.resources.memory.peak_bytes
         if kept.resources.memory.load_peak_bytes is not None:
