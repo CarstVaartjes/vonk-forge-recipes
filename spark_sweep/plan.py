@@ -33,7 +33,7 @@ def make_plan(
     queue = policy.order_queue(
         plans,
         {r.key: r for r in recipes},
-        cached={d for d, m in models.items() if m.local == "cached"},
+        ready={r.key for r in recipes if r.local == "cached"},
         sizes=sizes,
     )
     unique = {d for r in testable for d in r.model_digests}

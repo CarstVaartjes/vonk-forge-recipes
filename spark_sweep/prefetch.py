@@ -733,7 +733,6 @@ class Prefetcher:
                         or self.state.downloads.get(recipe.key, {}).get("state")
                         == "retired"
                     )
-                    and not recipe.cache_ready
                     and image_ops < self.config.max_image_pulls
                     and self._can_request(recipe, now)
                 ):
@@ -790,8 +789,6 @@ class Prefetcher:
                 )
             )
         if active(record.get("state")) and record.get("state") != "retired":
-            return False
-        if recipe.cache_ready:
             return False
         accepted = AcceptedRequest.read(record)
         if accepted is not None and content_identity(

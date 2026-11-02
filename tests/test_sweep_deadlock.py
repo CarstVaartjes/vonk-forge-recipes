@@ -61,21 +61,6 @@ def test_a_finished_download_stands_even_when_the_library_still_says_not_cached(
     )  # the sweep took the fleet over to test
 
 
-def test_assets_the_library_assessment_calls_ready_need_no_download(
-    tmp_path: Path, gateway: Gateway
-) -> None:
-    recipes = [FakeRecipe("a", ("m1",), local="cached")]
-    sweep, fleet, _ = make_sweep(
-        tmp_path, recipes, [FakeModel("m1", local="cached")], gateway=gateway
-    )
-    fleet.runs.append(dict(OWNER))
-    fleet.library_lag = True
-    fleet.assessments = True
-    assert sweep.run() == 0
-    assert sweep.state.recipes["vonk-forge/a"]["status"] == "passed"
-    assert _downloads(fleet) == []
-
-
 def test_the_sweep_takes_over_at_the_start_not_at_the_first_placement(
     tmp_path: Path, gateway: Gateway
 ) -> None:

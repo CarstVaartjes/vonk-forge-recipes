@@ -69,7 +69,6 @@ class Recipe:
     local: str
     updated_at: str
     base_image: str
-    cache_ready: bool = False  # the library's own assessment: exact NAS assets ready
     checks: tuple[dict[str, Any], ...] = field(default=(), compare=False)
     runtime_image: RuntimeImageIdentity | None = None
     library_commit: str | None = None
@@ -148,7 +147,6 @@ def parse_recipe(row: dict[str, Any], library_commit: str = "") -> Recipe | None
         local=str(dig(row, "local", "controller", default="unknown")),
         updated_at=str(dig(row, "updated_at", default="")),
         base_image=str(dig(document, "base_image_digest", default="")),
-        cache_ready=dig(row, "assessment", "cache", "state") == "ready",
         library_commit=library_commit or None,
         load_peak_bytes=max(
             (

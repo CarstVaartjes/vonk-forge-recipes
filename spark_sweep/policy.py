@@ -193,7 +193,7 @@ def order_queue(
     plans: Sequence[GroupPlan],
     recipes: Mapping[str, Recipe],
     *,
-    cached: Collection[str],
+    ready: Collection[str],
     sizes: Mapping[str, int],
     revalidate: Collection[str] = (),
     deprioritised: Collection[str] = (),
@@ -202,10 +202,10 @@ def order_queue(
 ) -> list[str]:
     """Cached singles, cached duals, then downloads; smallest models first.
 
-    Explicit cache facts avoid treating greedy plans' projected reuse as NAS cache.
+    ``ready`` is the recipe keys whose exact assets are on the NAS (the sweep's one readiness
+    definition); greedy plans' projected reuse is never NAS cache.
     Engine/image locality breaks ties between equally sized recipes.
     """
-    cached_models = set(cached)
     head: list[str] = []
     tail: list[str] = []
     for plan in plans:
@@ -225,8 +225,7 @@ def order_queue(
 
     def priority(key: str) -> tuple[int, int, int, int, int]:
         recipe = recipes[key]
-        ready = recipe.model_set <= cached_models
-        category = (0 if recipe.node_count == 1 else 1) if ready else 2
+        category = (0 if recipe.node_count == 1 else 1) if key in ready else 2
         size = sum(sizes.get(d, 0) for d in recipe.model_set)
         return tier(key), category, int(key in tail), size, positions[key]
 

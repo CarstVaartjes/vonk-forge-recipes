@@ -112,4 +112,9 @@ class AcceptedRequest(BaseModel):
         # Older saved records cannot be bound to whatever the catalog names now.
         if not record or record.get("accepted_content") is None:
             return None
-        return cls.model_validate(record["accepted_content"])
+        content = dict(record["accepted_content"])
+        # A receipt saved before the library-assessment input was removed still carries it.
+        recipe = content.get("recipe")
+        if isinstance(recipe, Mapping):
+            content["recipe"] = {k: v for k, v in recipe.items() if k != "cache_ready"}
+        return cls.model_validate(content)
