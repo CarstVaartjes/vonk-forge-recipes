@@ -1,0 +1,38 @@
+{
+  "kit": {
+    "dependencies": {
+      "image": {
+        "datasource": "oci-image",
+        "file": "scripts/config.sh",
+        "override": {
+          "ref": "zig-d1018b3-f5683f4c5651",
+          "reason": "the kit derives the tag it pulls (scripts/config.sh prebuilt_image: $GHCR_IMAGE:<TF_TAG>-<image_hash>, the sha256 of patches/*.patch, the prepare.sh Dockerfile and the pinned build settings, first 12 hex digits) instead of writing it in a file, and pins no digest; zig-d1018b3-f5683f4c5651 is that tag at the kit commit (the image's tf.patches label agrees)."
+        },
+        "pattern": "^TF_REF=\"\\$\\{TF_REF:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^GHCR_IMAGE=\"\\$\\{GHCR_IMAGE:-(?P<repo>[^}\"\\s]+)\\}\"$"
+      },
+      "model": {
+        "binds": "primary",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "^\\(\\( ! _pin \\)\\) \\|\\| : \"\\$\\{MODEL_REVISION:=(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^MODEL_ID=\"\\$\\{MODEL_ID:-(?P<repo>[^}\"]+)\\}\""
+      },
+      "drafter": {
+        "binds": "drafter",
+        "datasource": "hf-revision",
+        "file": "scripts/config.sh",
+        "pattern": "^DRAFT_REVISION=\"\\$\\{DRAFT_REVISION:-(?P<version>[0-9a-f]{40})\\}\"",
+        "repo_pattern": "^DRAFT_ID=\"\\$\\{DRAFT_ID:-(?P<repo>[^}\"]+)\\}\""
+      }
+    }
+  },
+  "ours": [
+    "licenses/",
+    "tensorfold-serve"
+  ],
+  "source": {
+    "commit": "0c8fd6a0d1e2ece7557978a7d8c3d96d137eb075",
+    "repo": "MiaAI-Lab/Ornith-1.5-122B-TensorFold"
+  }
+}

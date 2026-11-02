@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "unspecified",
-    "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 31B IT on one Spark with stock vLLM v0.25.1: 262144-token context, fp8 KV cache, up to 2 concurrent sequences, MTP speculative decoding (4 tokens) with Google's gemma-4-31B-it-assistant, image and video input, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's start.sh (no licence file upstream; its README says scripts are MIT). Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput and KV-capacity figures are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking true (upstream default); reasoning is returned in the reasoning field via the gemma4 parser. GB10 memory correction: gpu-memory/util-088 utilization 0.95 → 0.88. Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool. GB10 fit: GPU utilization 0.88 → 0.86 so the declared peak plus the 6 GB OS floor fits a Spark's idle available memory.",
+    "description": "NVIDIA's NVFP4 (ModelOpt) quantization of Google Gemma 4 31B IT on one Spark with stock vLLM v0.25.1: 262144-token context, fp8 KV cache, up to 2 concurrent sequences, MTP speculative decoding (4 tokens) with Google's gemma-4-31B-it-assistant, image and video input, thinking on by default, Gemma 4 reasoning and tool-call parsers. Basis: MiaAI-Lab's start.sh (no licence file upstream; its README says scripts are MIT). Model and assistant are under Google's Gemma terms (recorded as information). Upstream throughput and KV-capacity figures are its claims; Vonk physical Spark acceptance is pending. Security note: upstream allows the server to fetch images from any URL (--allowed-media-domains *). Anyone who can send requests to this endpoint can make the Spark fetch arbitrary URLs, including addresses on your local network. Thinking default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: enable_thinking true (upstream default); reasoning is returned in the reasoning field via the gemma4 parser. Memory follows the creator's settings: gpu-memory-utilization 0.70 by default, as in MiaAI-Lab's start.sh at ac429cca (line 156), with the creator's 0.85 tuning-table value as an option (README line 209). The creator's 0.95 alternative is not offered: its peak, 0.95 x 130,663,231,488 bytes plus 8 GB, can never be admitted on a Spark. The steady per-node peak is 0.85 x 130,663,231,488-byte unified memory (the largest option) plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (the assistant drafter is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "candidate",
       "executable",
@@ -310,32 +310,15 @@
             {
               "name": "gpu-memory-utilization",
               "setting": null,
-              "value": "0.70"
+              "value": "0.85"
             }
           ],
-          "help": "--gpu-memory-utilization 0.85; upstream estimates about 740K KV tokens (not measured). Capped at 0.70 (was 0.85): with the draft-model allowance no larger budget fits one Spark.",
+          "help": "--gpu-memory-utilization 0.85; upstream estimates about 740K KV tokens (not measured).",
           "label": "0.85",
           "value": "util-085"
-        },
-        {
-          "args": [
-            {
-              "name": "gpu-memory-utilization",
-              "setting": null,
-              "value": "0.70"
-            },
-            {
-              "name": "max-num-batched-tokens",
-              "setting": null,
-              "value": 16384
-            }
-          ],
-          "help": "GPU utilization 0.86 for GB10 unified-memory headroom; smaller KV pool than the upstream memory profile; other choice flags retained. Capped at 0.70 (was 0.86): with the draft-model allowance no larger budget fits one Spark.",
-          "label": "0.86 + 16384 batched tokens",
-          "value": "util-088"
         }
       ],
-      "help": "vLLM memory budget. Upstream measured 27.96 GiB KV cache (542,037 tokens) at 0.70 and lists 0.85 and 0.95 as estimates for more concurrency; it advises watching nvidia-smi to avoid OOM.",
+      "help": "vLLM memory budget. Upstream measured 27.96 GiB KV cache (542,037 tokens) at 0.70 and lists 0.85 and 0.95 as estimates for more concurrency; 0.95 is not offered because its peak can never be admitted. Upstream advises watching nvidia-smi to avoid OOM.",
       "label": "GPU memory budget",
       "name": "gpu-memory"
     }
@@ -351,7 +334,7 @@
   },
   "release": {
     "released_at": "2026-07-16",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -535,7 +518,7 @@
             "working_bytes": 67274781776
           },
           "memory": {
-            "peak_bytes": 120370379081,
+            "peak_bytes": 119063746765,
             "reserve_bytes": 8000000000
           }
         }

@@ -12,6 +12,7 @@ from vonk_forge_contracts.qualification_status import QualificationQualityNote
 
 from spark_sweep import policy
 from spark_sweep.issues import file_issues
+from spark_sweep.memory import OS_FLOOR_BYTES
 from spark_sweep.report import (
     build_report,
     export_evidence,
@@ -90,7 +91,7 @@ def test_a_correct_answer_in_prose_runs_with_a_format_note(
 
 @pytest.mark.parametrize(
     ("observed", "noted"),
-    [(105 * GB, False), (40 * GB + 2 * GB, False), (60 * GB, True)],
+    [(105 * GB, False), (40 * GB + OS_FLOOR_BYTES - 4 * GB, False), (60 * GB, True)],
     ids=["under-envelope", "within-os-allowance", "over-envelope"],
 )
 def test_memory_beyond_the_declared_envelope_is_a_quality_note(

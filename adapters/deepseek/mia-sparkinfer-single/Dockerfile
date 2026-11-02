@@ -1,12 +1,6 @@
 # syntax=docker/dockerfile:1.7
 FROM ghcr.io/0xsero/deepseek-v4-flash-0731-spark-sparkinfer@sha256:2e077489a83a0360952828051fe7f7a32c1801e5ce8436d85f7267583d614ff4
 
-# The base console script uses system Python, but the native extension was built
-# against the Torch ABI in runtime-venv. The image ENTRYPOINT normally selects
-# that interpreter; Vonk replaces ENTRYPOINT, so bind the console script here.
-RUN printf '#!/opt/runtime-venv/bin/python\nfrom vllm.entrypoints.cli.main import main\nraise SystemExit(main())\n' > /usr/local/bin/vllm \
-    && chmod 0755 /usr/local/bin/vllm
-
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-One-DGX-Spark" \
       org.opencontainers.image.revision="fdcd538fbf95fb15b2d6850db9613d22b2c889b8" \
       org.opencontainers.image.licenses="Apache-2.0 AND MIT" \

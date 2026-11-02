@@ -361,8 +361,36 @@ def scan_source(
     ]
 
 
+def upstream_files(root: Path, files: list[str]) -> set[str]:
+    """Adapter files that are upstream bytes (tools/check-vendored-upstream).
+
+    They are the creator's code, byte-identical at a pinned commit, and are never
+    our memory policy: a power of two in a kernel is not a platform floor.
+    """
+    vendored: set[str] = set()
+    for manifest in files:
+        if not manifest.endswith("/vendored-upstream.json"):
+            continue
+        base = manifest.removesuffix("vendored-upstream.json")
+        ours = json.loads((root / manifest).read_text()).get("ours", [])
+        vendored.update(
+            path
+            for path in files
+            if path.startswith(base)
+            and path not in (base + "Dockerfile", manifest)
+            and not any(
+                path == base + item
+                or item.endswith("/")
+                and path.startswith(base + item)
+                for item in ours
+            )
+        )
+    return vendored
+
+
 def check(root: Path, files: list[str] | None = None) -> list[Violation]:
     files = tracked_files(root) if files is None else files
+    vendored = upstream_files(root, files)
     registrations = [
         Registration.model_validate(item)
         for path in files
@@ -396,6 +424,8 @@ def check(root: Path, files: list[str] | None = None) -> list[Violation]:
 
             generated = projections(root)
         for path in files:
+            if registration.kind == ValueKind.MEMORY_BYTES and path in vendored:
+                continue
             if (
                 registration.kind == ValueKind.PROTOCOL_WHEEL
                 and _WHEEL.search(path)

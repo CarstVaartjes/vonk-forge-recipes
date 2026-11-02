@@ -63,6 +63,9 @@ class HistoricalResult(BaseModel):
     status: RecipeStatus
     recorded_at: datetime
     content_sha256: str
+    recipe_revision_id: str | None = None
+    # The revision the review bound to the run; absent in older rows.
+    ran_revision: str | None = None
     verdict_identity: HistoricalIdentity | None = None
     model_digests: tuple[str, ...] | None = None
     controller_release: str | None = None
@@ -126,6 +129,8 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
     ):
         return None
     row = HistoricalResult.model_validate(value)
+    if row.ran_revision and row.ran_revision != row.recipe_revision_id:
+        return None  # the run executed other bytes than the identity this row names
     recorded = row.verdict_identity
     models = recorded.model_digests if recorded else row.model_digests
     identity = QualificationIdentity(

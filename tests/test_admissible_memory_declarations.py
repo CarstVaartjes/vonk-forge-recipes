@@ -6,6 +6,7 @@ import re
 from decimal import Decimal
 from pathlib import Path
 
+import documents
 import pytest
 from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
@@ -16,7 +17,6 @@ from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     IDLE_AVAILABLE_BYTES,
     OS_FLOOR_BYTES,
-    OVERHEAD_BYTES,
     TOTAL_BYTES,
     argument_value,
     declaration_problems,
@@ -26,6 +26,8 @@ from qualification.memory_need import (
     require_admissible_declaration,
     require_memory_need,
     require_sglang_rank_budget,
+    sglang_demand,
+    vllm_utilization_envelope,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -126,7 +128,10 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
     if variant.runtime.engine == "vllm":
         fraction = argument_value(variant, "gpu-memory-utilization")
         assert fraction is not None
-        budget = Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        # Pool-less: the envelope; absolute pool: the startup request (utilization x total).
+        budget = vllm_utilization_envelope(variant) or (
+            Decimal(str(fraction)) * TOTAL_BYTES
+        )
         assert all(
             budget <= role.resources.memory.peak_bytes
             for role in variant.topology.roles
@@ -134,8 +139,8 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
     else:
         fraction = argument_value(variant, "mem-fraction-static")
         assert fraction is not None
-        allocated = Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
-        assert all(
+        allocated = sglang_demand(variant, None)
+        assert allocated is not None and all(
             allocated <= role.resources.memory.peak_bytes
             for role in variant.topology.roles
         )
@@ -214,7 +219,9 @@ def test_catalog_checks_each_supported_document() -> None:
 @pytest.mark.parametrize("rank", [0, 1])
 def test_original_deferral_fails_before_any_controller_operation(rank: int) -> None:
     recipe = recipe_for("deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual")
-    recipe.topology.roles[rank].resources.memory.peak_bytes = 124_000_000_000
+    recipe.topology.roles[rank].resources.memory.peak_bytes = (
+        TOTAL_BYTES - ADMISSION_IDLE_USE_BYTES - OS_FLOOR_BYTES + 1
+    )
     with pytest.raises(ValueError, match="not admissible"):
         require_memory_need(recipe, catalog_models(), load_inputs(), document_digest="")
 
@@ -268,6 +275,9 @@ def test_tests_judge_admission_only_through_its_owner() -> None:
         r"|assertLess(?:Equal)?\(\s*(?:envelope|admission)\b"
         r"|reserve_bytes\W*\s*<=?\s*\d"
         r"|peak_bytes\s*==\s*need\.peak_bytes"
+        # The margin beside an engine budget has one owner, budget_margin_bytes.
+        r"|(?:TOTAL_BYTES|SPARK_MEMORY_BYTES)\)?(?:\s*\*\s*[\d.]+)?\s*\+\s*"
+        r"(?:OVERHEAD_BYTES|8_000_000_000|8000000000|8e9)\b"
     )
     copies = [
         f"{path.name}:{number}"
@@ -336,8 +346,9 @@ def test_absolute_kv_launch_survives_observed_startup_memory(rank: int) -> None:
     fraction = argument_value(recipe, "gpu-memory-utilization")
     assert fraction is not None
     startup(Decimal(str(fraction)))
+    # The startup request (utilization x total) is the floor the peak must cover.
     assert (
-        Decimal(str(fraction)) * TOTAL_BYTES + OVERHEAD_BYTES
+        Decimal(str(fraction)) * TOTAL_BYTES
         <= recipe.topology.roles[rank].resources.memory.peak_bytes
     )
     assert argument_value(recipe, "kv-cache-memory-bytes") == 3_414_163_456
@@ -375,3 +386,49 @@ def test_unproven_absolute_kv_recipes_bound_startup_for_every_option() -> None:
             continue
         for variant in memory_variants(recipe):
             require_vllm_startup_budget(variant)
+
+
+def _creator_startup_variant(slug: str, fraction: str, pool: str | int):
+    recipe = documents.recipe(slug)
+    values = {
+        "gpu-memory-utilization": fraction,
+        "kv-cache-memory-bytes": pool,
+    }
+    for argument in recipe.runtime.arguments:
+        if argument.name in values:
+            argument.value = values[argument.name]
+    return recipe
+
+
+def test_startup_budget_matches_vllms_free_memory_check() -> None:
+    from qualification.memory_need import require_vllm_startup_budget
+
+    reap = _creator_startup_variant(
+        "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.88", "6G"
+    )
+    assert reap.topology.roles[0].resources.memory.peak_bytes == 120_370_379_081
+    require_vllm_startup_budget(reap)
+
+    dual = _creator_startup_variant(
+        "deepseek-v4-1-flash-exl3-mia-dual", "0.88", 2_684_354_560
+    )
+    peak = per_rank_need(dual, catalog_models(), load_inputs()).peak_bytes
+    assert peak == 115_984_824_099
+    for role in dual.topology.roles:
+        role.resources.memory.peak_bytes = peak
+    dual = RecipeDefinition.model_validate(dual.model_dump(mode="json"))
+    require_vllm_startup_budget(dual)
+    require_memory_need(
+        dual, catalog_models(), load_inputs(), document_digest="", touched=True
+    )
+
+
+def test_startup_budget_still_refuses_a_fraction_above_the_peak() -> None:
+    from qualification.memory_need import require_vllm_startup_budget
+
+    reap = _creator_startup_variant(
+        "deepseek-v4-flash-reap-180b-0xsero-vllm-single", "0.93", "6G"
+    )
+    assert Decimal("0.93") * TOTAL_BYTES > 120_370_379_081
+    with pytest.raises(ValueError, match="startup free-memory check"):
+        require_vllm_startup_budget(reap)

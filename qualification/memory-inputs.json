@@ -235,11 +235,11 @@
       "kv_heads": 1,
       "layers": 78,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/resolve/1d3bcfe5ec549ecd000fd80b37f191183842e983/config.json",
+      "source": "https://huggingface.co/QuantTrio/GLM-5.2-Int4-Int8Mix/resolve/1d3bcfe5ec549ecd000fd80b37f191183842e983/config.json; per-token bytes across all layers = main-cache layers x record + indexer-cache layers x 132. Main record: 656 (fp8_ds_mla) or 400 (nvfp4_ds_mla) per layer, https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-nvfp4kv-four/LAYOUT-SPEC.md. Main layers: 78 backbone + 1 MTP layer (deepseek_v2.py:1801-1805, num_nextn_predict_layers 1). Indexer cache: DeepseekV32IndexerCache uint8, head_dim 128 + 128//128*4 = 132 per token (deepseek_v2.py:575-596,655-660), allocated as an MLAAttentionSpec at the same block size inside the kv-cache-memory-bytes pool, not beside it. Indexer layers: layers with max(layer-index_skip_topk_offset+1,0) % index_topk_freq == 0, plus every MTP layer (deepseek_v2.py:1038-1070 in https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-quanttrio-four/kernels/deepseek_v2.py). Config index_skip_topk_offset 3, index_topk_freq 4: 21 backbone + 1 MTP = 22 indexer layers. fp8 79*656+22*132 = 54728, nvfp4 79*400+22*132 = 34504.",
       "tensor_replicated": true,
       "token_bytes_by_dtype": {
-        "fp8_ds_mla": 61464,
-        "nvfp4_ds_mla": 61464
+        "fp8_ds_mla": 54728,
+        "nvfp4_ds_mla": 34504
       },
       "value_dim": 64
     },
@@ -250,11 +250,11 @@
       "kv_heads": 1,
       "layers": 78,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/resolve/53e0082eedebd806b63e19779c47905937d768ca/config.json",
+      "source": "https://huggingface.co/jarrelscy/GLM-5.2-NVFP4-AQLM-hybrid/resolve/53e0082eedebd806b63e19779c47905937d768ca/config.json; per-token bytes across all layers = main-cache layers x record + indexer-cache layers x 132. Main record: 656 (fp8_ds_mla) or 400 (nvfp4_ds_mla) per layer, https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-nvfp4kv-four/LAYOUT-SPEC.md. Main layers: 78 backbone + 1 MTP layer (deepseek_v2.py:1801-1805, num_nextn_predict_layers 1). Indexer cache: DeepseekV32IndexerCache uint8, head_dim 128 + 128//128*4 = 132 per token (deepseek_v2.py:575-596,655-660), allocated as an MLAAttentionSpec at the same block size inside the kv-cache-memory-bytes pool, not beside it. Indexer layers: layers with max(layer-index_skip_topk_offset+1,0) % index_topk_freq == 0, plus every MTP layer (deepseek_v2.py:1038-1070 in https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-quanttrio-four/kernels/deepseek_v2.py). The recipe overrides index_topk_freq to 8 (hf-overrides in recipes/glm-5-2-aqlm-vllm-triple.json): 12 backbone + 1 MTP = 13 indexer layers. fp8 79*656+13*132 = 53540, nvfp4 79*400+13*132 = 33316; this geometry is bound to that override.",
       "tensor_replicated": true,
       "token_bytes_by_dtype": {
-        "fp8_ds_mla": 61464,
-        "nvfp4_ds_mla": 61464
+        "fp8_ds_mla": 53540,
+        "nvfp4_ds_mla": 33316
       },
       "value_dim": 64
     },
@@ -341,11 +341,11 @@
       "kv_heads": 1,
       "layers": 78,
       "max_context_tokens": 1048576,
-      "source": "https://huggingface.co/Tech2wild/GLM-5.3-Int4-Int8Mix/resolve/206507bbb047d8223964a0414cd83230c59428f9/config.json",
+      "source": "https://huggingface.co/Tech2wild/GLM-5.3-Int4-Int8Mix/resolve/206507bbb047d8223964a0414cd83230c59428f9/config.json; per-token bytes across all layers = main-cache layers x record + indexer-cache layers x 132. Main record: 656 (fp8_ds_mla) or 400 (nvfp4_ds_mla) per layer, https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-nvfp4kv-four/LAYOUT-SPEC.md. Main layers: 78 backbone + 1 MTP layer (deepseek_v2.py:1801-1805, num_nextn_predict_layers 1). Indexer cache: DeepseekV32IndexerCache uint8, head_dim 128 + 128//128*4 = 132 per token (deepseek_v2.py:575-596,655-660), allocated as an MLAAttentionSpec at the same block size inside the kv-cache-memory-bytes pool, not beside it. Indexer layers: layers with max(layer-index_skip_topk_offset+1,0) % index_topk_freq == 0, plus every MTP layer (deepseek_v2.py:1038-1070 in https://github.com/CarstVaartjes/vonk-forge-recipes/blob/main/adapters/glm/tonyd2wild-glm52-quanttrio-four/kernels/deepseek_v2.py). Config index_skip_topk_offset 3, index_topk_freq 4: 21 backbone + 1 MTP = 22 indexer layers. fp8 79*656+22*132 = 54728, nvfp4 79*400+22*132 = 34504.",
       "tensor_replicated": true,
       "token_bytes_by_dtype": {
-        "fp8_ds_mla": 61464,
-        "nvfp4_ds_mla": 61464
+        "fp8_ds_mla": 54728,
+        "nvfp4_ds_mla": 34504
       },
       "value_dim": 64
     },
@@ -444,6 +444,15 @@
       "source": "https://huggingface.co/mistralai/Leanstral-1.5-119B-A6B/resolve/81592da95d94ab0439bfce16df1d55b402e598b6/params.json",
       "tensor_replicated": true,
       "value_dim": 64
+    },
+    "llama-3-1-405b-instruct-awq-int4-1954fc59": {
+      "architecture": "LlamaForCausalLM",
+      "configuration_sha256": "6cefe0e90d4a5526ca08cfb4de530935783ba005b5522e2dee40e4d3fad49e0a",
+      "key_dim": 128,
+      "kv_heads": 16,
+      "layers": 126,
+      "source": "https://huggingface.co/hugging-quants/Meta-Llama-3.1-405B-Instruct-AWQ-INT4/resolve/1954fc5977cde8271bd7fd3e9bbb827a7bdd3bcd/config.json; 126 layers, 16 KV heads, hidden_size 16384 / 128 attention heads = head_dim 128, torch_dtype float16 (config sha256 verified against the download). Per TP=2 rank: 126 x 8 x 128 x 2 (K,V) x 2 bytes = 516,096 bytes/token.",
+      "value_dim": 128
     },
     "llama-3-1-8b-instruct-nvfp4-bdb54e24": {
       "architecture": "LlamaForCausalLM",
@@ -633,6 +642,18 @@
       "state_bytes_per_request": 167772160,
       "value_dim": 256
     },
+    "qwen3-8-flash-next-nvfp4-lil-6c01ac37": {
+      "architecture": "Qwen4ExpForConditionalGeneration",
+      "configuration_sha256": "fffcfb4bd7870c52cb0359b3a1f541b3b95465cc5fa427407e0e704b6e740fc1",
+      "key_dim": 256,
+      "kv_heads": 2,
+      "layers": 12,
+      "max_context_tokens": 262144,
+      "replicated_token_bytes": 768,
+      "source": "https://huggingface.co/local-inference-lab/Qwen3.8-Flash-Next-NVFP4/resolve/6c01ac378d22f6652c9f392c87700496eca8e5dc/config.json; full-attention layers only: 12 layers x 2 KV heads x head dim 256 (key and value), FP8 KV cache, about 12.3 KB/token, plus the indexer bound (12 layers x indexer_kv_heads=1 x indexer_head_dim=128 x 2 bytes / indexer_compress_ratio=4 = 768 replicated bytes/token) and the MTP drafter layer. Per-request state bound 160 MiB, the same hand bound as the fab0aecb entry (same linear dimensions; Qwen4Exp adds cache types the recurrent formula does not express).",
+      "state_bytes_per_request": 167772160,
+      "value_dim": 256
+    },
     "qwen3-8-flash-next-nvfp4-w4a16-sm121-8b73dc60": {
       "architecture": "Qwen4ExpForConditionalGeneration",
       "configuration_sha256": "f4d6ee20273ad4358652b53cafefe4466bb9bb6b0777f78c7058e2d142f35266",
@@ -690,6 +711,9 @@
     "976330f4954338e1ad8b508c32aa912032c7ad908959fd53c8307650fe4520ed": "V4.1 Flash Engram tables (layers 1 and 14), byte-identical in every V4.1 Flash checkpoint that carries them: shards 47/48 of https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash/tree/dba1be0a (official, sfxnz, TR3 hybrid, r0b0tlab) and model-00005/00006 of 0xSero/DeepSeek-V4.1-Flash-Spark@9e3bbeab. MiaAI-Lab README @6f7d1590: shards 47+48 are the Engram tables.",
     "76a05106ece259be83d1bfea0dcb54f23377864ee60fd321690f35e6698a2af5": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards.",
     "9dc51433e195bc78b5ad846b68643cc0351d3b174e5e4309222d3b7402c83afd": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards."
+  },
+  "disk_resident_bytes": {
+    "3525520c8602d850003eb1960aec0b64291dae33b83f8b65dd639a451df78823": 51200245760
   },
   "historical_documents": {
     "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single": [
@@ -1424,6 +1448,10 @@
     "vonk-forge/xyz-aquila-mini-nvfp4-r0b0tlab-vllm-single": [
       "432e1e316a4f4067d9fb68e16750fdc8d20feb20d41c3e612f7829d996901f72"
     ]
+  },
+  "ple_embedding_dtypes": {
+    "b50dbc52a0c83b0cd2a44a372c1fb6b5e0e6827d22f2611c97d4d030f92f6b28": "nvfp4",
+    "fffcfb4bd7870c52cb0359b3a1f541b3b95465cc5fa427407e0e704b6e740fc1": "nvfp4"
   },
   "historical_sources": [
     "2baabeecab328eed03d63317f3c66bd35b21f412",

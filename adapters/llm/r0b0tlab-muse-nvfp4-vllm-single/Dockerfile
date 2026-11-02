@@ -9,6 +9,7 @@ LABEL org.opencontainers.image.source="https://github.com/r0b0tlab/muse-glimmer-
 # the official vLLM 0.30.0 ARM64 release image, which the catalog's Muse BF16 recipe
 # already uses; this recipe runs r0b0tlab's NVFP4 checkpoint and flags on that image.
 COPY LICENSE.upstream /opt/vonk/licenses/LICENSE.upstream
+COPY vonk-muse-glimmer-chat-template.jinja /opt/vonk/muse-glimmer-chat-template.jinja
 RUN install --directory --mode=0755 /opt/vonk/bin \
     && printf '%s\n' '#!/bin/sh' 'exec vllm "$@"' > /opt/vonk/bin/vllm \
     && chmod 0755 /opt/vonk/bin/vllm

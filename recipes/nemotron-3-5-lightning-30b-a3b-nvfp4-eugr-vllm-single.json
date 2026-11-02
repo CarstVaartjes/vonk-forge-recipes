@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker nemotron-3.5-lightning recipe for NVIDIA's NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4 (OpenMDW-1.1; checkpoint revision bee75962) with NVIDIA's Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark draft model (revision 8a017711), served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: Marlin MoE backend, FP8 KV cache, DSpark speculative decoding with seven tokens, FlashInfer mamba backend with float16 SSM cache, stochastic rounding (5 Philox rounds) and cache mode align, prefix caching, nemotron_v3 reasoning and qwen3_xml tool-call parsers, InstantTensor loading, 1,048,576-token context, 16,384 batched tokens and memory utilisation 0.7 (upstream defaults); the sequence limit is left to vLLM's default. Upstream's dotted --speculative_config.* options are passed as one JSON --speculative-config value (equivalent) whose model is the mounted draft directory /models/draft (target at /models/target). Upstream's recipe is written for two Sparks; eugr's --solo mode runs the same command at tensor parallel 1 (the only override), which is this single-Spark recipe. The 22 GB checkpoint fits one Spark, so both topologies apply. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Draft-model correction (2026-10-14): a separately loaded speculative draft model holds memory outside gpu-memory-utilization (the eugr Qwen3.8 27B DFlash2 recipe at 0.7 drove a GB10 to about 121 GB in use and froze it), so utilization is capped at 0.6 (was 0.7) and the peak budgets 0.6 x 130,663,231,488 bytes plus 8 GB plus a 17 GB draft-model allowance.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker nemotron-3.5-lightning recipe for NVIDIA's NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4 (OpenMDW-1.1; checkpoint revision bee75962) with NVIDIA's Nemotron-3.5-Lightning-30B-A3B-NVFP4-DSpark draft model (revision 8a017711), served by vLLM on a single Spark. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: Marlin MoE backend, FP8 KV cache, DSpark speculative decoding with seven tokens, FlashInfer mamba backend with float16 SSM cache, stochastic rounding (5 Philox rounds) and cache mode align, prefix caching, nemotron_v3 reasoning and qwen3_xml tool-call parsers, InstantTensor loading, 1,048,576-token context, 16,384 batched tokens and memory utilisation 0.7 (upstream defaults); the sequence limit is left to vLLM's default. Upstream's dotted --speculative_config.* options are passed as one JSON --speculative-config value (equivalent) whose model is the mounted draft directory /models/draft (target at /models/target). Upstream's recipe is written for two Sparks; eugr's --solo mode runs the same command at tensor parallel 1 (the only override), which is this single-Spark recipe. The 22 GB checkpoint fits one Spark, so both topologies apply. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.7 as in eugr's recipes/nemotron-3.5-lightning.yaml at 4709188d (line 18). The steady per-node peak is 0.7 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "candidate",
       "dspark",
@@ -916,7 +916,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.6"
+        "value": "0.7"
       },
       {
         "name": "reasoning-parser",
@@ -984,7 +984,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 103397938893,
+            "peak_bytes": 99464262042,
             "reserve_bytes": 8000000000
           }
         }

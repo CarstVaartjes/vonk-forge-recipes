@@ -39,6 +39,7 @@ def _refusing(fleet, times: int | None, demand: int | None = 40 * 10**9):
             refused.append(1)
             return 2, {
                 "allowed": False,
+                **fleet.review_assignments(data),
                 "effects": {"runs": []},
                 "admission_decisions": [
                     {

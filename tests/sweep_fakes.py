@@ -423,6 +423,8 @@ class FakeFleet:
         self.ops: dict[str, dict[str, Any]] = {}
         self.by_request: dict[str, str] = {}
         self.runs: list[dict[str, Any]] = []
+        # Review revisions that differ from the listed recipe's, by recipe key; None omits it.
+        self.review_revisions: dict[str, str | None] = {}
         self.calls: list[tuple[int | None, tuple[str, ...]]] = []
         self.call_times: list[float] = []
         self.download_seconds = 60.0
@@ -1318,6 +1320,26 @@ class FakeFleet:
             return self._load(n, data, a)
         return self._error("unsupported", f"profile {verb}")
 
+    def review_assignments(self, data: dict[str, Any]) -> dict[str, Any]:
+        """The preview's resolved assignments: alias and recipe revision of each running one."""
+        return {
+            "resolved_assignments": [
+                {
+                    "id": f"id-{x['assignment_name']}",
+                    "alias": x["assignment_name"],
+                    "desired_state": x["desired_state"],
+                    "recipe_revision_id": self.review_revisions.get(
+                        x["recipe_selector"]
+                    )
+                    or f"rev-{self.recipes[x['recipe_selector']].content}",
+                }
+                for x in data["assignments"]
+                if x["desired_state"] == "running"
+                and x["recipe_selector"] in self.recipes
+                and self.review_revisions.get(x["recipe_selector"], "") is not None
+            ]
+        }
+
     def _desired_by_spark(
         self, data: dict[str, Any]
     ) -> dict[str, list[dict[str, Any]]]:
@@ -1443,6 +1465,7 @@ class FakeFleet:
             doc = {
                 "allowed": not blocked,
                 "waits_for_preparation": False,
+                **self.review_assignments(data),
                 "effects": {
                     "adopted": adopted,
                     "runs": [

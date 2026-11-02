@@ -1,0 +1,311 @@
+{
+  "capabilities": [
+    "chat",
+    "code-generation",
+    "image-understanding",
+    "text-generation"
+  ],
+  "dependencies": [],
+  "files": [
+    {
+      "id": "metadata-75d14950cc71-618cd5b83d",
+      "path": ".gitattributes",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "75d14950cc71b15f68ea65ca0e04f6212c59e90261e94f4bd101136fc42317a9",
+      "size_bytes": 1884
+    },
+    {
+      "id": "readme-07b3de63d18b-b335630551",
+      "path": "README.md",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "07b3de63d18b1372b861d7c175948ac5c12d4335aa600d76d56b6bfda34a79c6",
+      "size_bytes": 10216
+    },
+    {
+      "id": "chat-template-9dd2fbd270fe-00824420d1",
+      "path": "chat_template.jinja",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "9dd2fbd270feaa1fbef2d4f634d7887c9c506e3bde140f8e7351c8944e8fd235",
+      "size_bytes": 7593
+    },
+    {
+      "id": "config-8ef17ad5057f-587cb980af",
+      "path": "config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "8ef17ad5057f8dd050cbe155ecb86a11943cd14eb34247c061c19fb7bd8d29ed",
+      "size_bytes": 3636
+    },
+    {
+      "id": "generation-config-303aba891d66-97dd3d578b",
+      "path": "generation_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "303aba891d66ab63908a7b3cc9163bcb835fdf8b9f6301c73216f3f1eb3992dd",
+      "size_bytes": 244
+    },
+    {
+      "id": "kl-by-category-0a8a3261ba4b-e9dbc37e75",
+      "path": "images/kl_by_category.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "0a8a3261ba4bbef1b54569f908069d5872b02bbd3aa1e99a9b81d29be1c9108d",
+      "size_bytes": 110479
+    },
+    {
+      "id": "kl-histogram-016a07dd4b38-19dec44946",
+      "path": "images/kl_histogram.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "016a07dd4b38437eeef29c61dcc469aae17d883a7e5a14e34488d1ab55181524",
+      "size_bytes": 80665
+    },
+    {
+      "id": "layerwise-error-57b7f9d00f0b-498d2598dc",
+      "path": "images/layerwise_error.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "57b7f9d00f0ba75c591a55d46f223400ebebe4f0d864a9d4aeb43ce0291fab4c",
+      "size_bytes": 77582
+    },
+    {
+      "id": "size-breakdown-dbca1a5feb53-f0da58ca9b",
+      "path": "images/size_breakdown.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "dbca1a5feb53b77d76055a692d986df9a46757d0b4e656d247b3b2b4131626f7",
+      "size_bytes": 111151
+    },
+    {
+      "id": "top1-by-category-638be06b6e67-4bcae3f733",
+      "path": "images/top1_by_category.png",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "638be06b6e67002395fe47cbf6aa3fc0b3a79266d89a1b774c1591d315eec852",
+      "size_bytes": 125636
+    },
+    {
+      "id": "merges-a9d356d7bdf1-b0d6dcfed4",
+      "path": "merges.txt",
+      "roles": [
+        "metadata"
+      ],
+      "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "size_bytes": 3353259
+    },
+    {
+      "id": "model-00001-of-00009-4f5056002565-88587b10f1",
+      "path": "model-00001-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "4f5056002565e4ba656fd60f518bf96611e4e2ee8a1d5d0a9233f6a53f2408a9",
+      "size_bytes": 7909849102
+    },
+    {
+      "id": "model-00002-of-00009-82225cc27d95-197402693c",
+      "path": "model-00002-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "82225cc27d95297b8f6162558727d240a929cbd5070b84816f934836e973c2e7",
+      "size_bytes": 7662359052
+    },
+    {
+      "id": "model-00003-of-00009-16e413a3efce-861ce467d6",
+      "path": "model-00003-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "16e413a3efceab7e7c01ed995d5a765bc8d0ec5ce319784d2b6fa168247c6ec9",
+      "size_bytes": 7655592038
+    },
+    {
+      "id": "model-00004-of-00009-ff75a4451973-ef1df50c87",
+      "path": "model-00004-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ff75a445197367ea39789a49df855baeaba60d0d239dfe36f9745ca7cfa83295",
+      "size_bytes": 7662374582
+    },
+    {
+      "id": "model-00005-of-00009-63413f0c882e-6efe792e18",
+      "path": "model-00005-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "63413f0c882ee0f95fa4fc38c2e0623bcb8975edb848ac9c5360aa5f56caa7db",
+      "size_bytes": 7655592038
+    },
+    {
+      "id": "model-00006-of-00009-ec6d24f932b7-6ce9a8a49b",
+      "path": "model-00006-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "ec6d24f932b70e8389249e2fcc539dd4f3b73f710b0776fdb1c39199ca67838a",
+      "size_bytes": 7662374582
+    },
+    {
+      "id": "model-00007-of-00009-51af589d7c46-9bf5db00eb",
+      "path": "model-00007-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "51af589d7c46063625e6251b040d6efdb7f64971e5b7df70759a17452fa5d28a",
+      "size_bytes": 7655592038
+    },
+    {
+      "id": "model-00008-of-00009-f20d678dec72-7a39f1d683",
+      "path": "model-00008-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "f20d678dec72b383388ac545c1a657da2bbe9cd7f3176e90cacc9ccbaf9bec99",
+      "size_bytes": 7662374582
+    },
+    {
+      "id": "model-00009-of-00009-d395c8c4bcb5-f25cdaf348",
+      "path": "model-00009-of-00009.safetensors",
+      "roles": [
+        "weights"
+      ],
+      "sha256": "d395c8c4bcb583723b51c75b9310057d8e02dffde75bc9b145ba6540b1aeccb9",
+      "size_bytes": 4016483740
+    },
+    {
+      "id": "model-safetensors-index-2e1052cfd557-0a05be8238",
+      "path": "model.safetensors.index.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "2e1052cfd5572c98dedded90049ab90be0dd1a192edd2e97e6ed407fab3a4eec",
+      "size_bytes": 16399150
+    },
+    {
+      "id": "preprocessor-config-27225450ac9c-36afccab5d",
+      "path": "preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516",
+      "size_bytes": 390
+    },
+    {
+      "id": "processor-config-d89ef49ce9cd-27f0cb76af",
+      "path": "processor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "d89ef49ce9cd37fbf510158e13c1ef063d9286411c1ec9049932dbe0487143b1",
+      "size_bytes": 1191
+    },
+    {
+      "id": "quantization-config-c64d1f223969-6f24389fb3",
+      "path": "quantization_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "c64d1f223969baf06847b3d8488a6e28ad21c44d2b4452ae805ef2bc6ab0168a",
+      "size_bytes": 48534337
+    },
+    {
+      "id": "tokenizer-5f9e4d4901a9-224931eb13",
+      "path": "tokenizer.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "size_bytes": 12807982
+    },
+    {
+      "id": "tokenizer-config-316230d6a809-94d5c6ba8f",
+      "path": "tokenizer_config.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "316230d6a809701f4db5ea8f8fc862bc3a6f3229c937c174e674ff3ca0a64ac8",
+      "size_bytes": 16710
+    },
+    {
+      "id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+      "path": "video_preprocessor_config.json",
+      "roles": [
+        "configuration"
+      ],
+      "sha256": "7768af27c1fafa9cc9011c1dc20067e03f8915e03b63504550e11d5066986d13",
+      "size_bytes": 385
+    },
+    {
+      "id": "vocab-ce99b4cb2983-ba05d8e2e4",
+      "path": "vocab.json",
+      "roles": [
+        "tokenizer"
+      ],
+      "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "size_bytes": 6722759
+    }
+  ],
+  "format": {
+    "precision": "exl3",
+    "quantization": "exl3"
+  },
+  "identity": {
+    "family": {
+      "publisher": "ornith-ai",
+      "slug": "ornith",
+      "title": "Ornith"
+    },
+    "model": {
+      "publisher": "ornith-ai",
+      "slug": "ornith-1-5-122b",
+      "title": "Ornith 1.5 122B"
+    },
+    "publisher": "mia-ailab",
+    "slug": "ornith-1-5-122b-mia-exl3-eaq-v1-4bpw-9c5c913b",
+    "variant": "EAQ v1 EXL3 4 bpw",
+    "version": "EAQ v1 EXL3 4 bpw 9c5c913b"
+  },
+  "kind": "model",
+  "license": {
+    "attribution": [
+      "Mia-AiLab",
+      "Ornith-AI"
+    ],
+    "spdx": "MIT",
+    "url": "https://huggingface.co/Mia-AiLab/Ornith-1.5-122B-EXL3-EAQv1-4-bpw/blob/9c5c913b3de1eef901520d6fedaf450044ea0423/README.md"
+  },
+  "metadata": {
+    "description": "Mia AI Lab EAQ v1 EXL3 4 bpw checkpoint of Ornith-1.5-122B (Qwen3.5-MoE architecture, 9 safetensors shards, vision tower), revision 9c5c913b, for TensorFold's Zig engine.",
+    "tags": [
+      "ornith",
+      "exl3",
+      "eaq",
+      "mia",
+      "tensorfold"
+    ]
+  },
+  "modalities": [
+    "text",
+    "image"
+  ],
+  "requires_token": false,
+  "source": {
+    "repository": "https://huggingface.co/Mia-AiLab/Ornith-1.5-122B-EXL3-EAQv1-4-bpw",
+    "revision": "9c5c913b3de1eef901520d6fedaf450044ea0423"
+  }
+}

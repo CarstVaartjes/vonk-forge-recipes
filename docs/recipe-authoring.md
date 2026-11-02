@@ -287,12 +287,25 @@ hardcodes a setting, align its implementation with the declared setting.
 The workload sandbox deliberately blocks io_uring. Recipes, option choices and
 image launchers must use a loader with a verified non-io_uring path: standard
 safetensors, InstantTensor automatic/AIO or BUFFERED/MMAP selection (never
-URING-only), or b12x disk PLE/Engram with `B12X_DISK_BACKEND=gds` and
-`CUFILE_FORCE_COMPAT_MODE=true` (requires cuFile >= 1.14 development files).
-Older b12x images without that backend need a tested POSIX reader replacement;
-never request relaxed seccomp. Enforce image-owned transport policy in the
-launcher before exec, including when a kit declares an unsafe backend. b12x
-defaults PLE BF16 tables and disk Engram to io_uring even when no backend is specified.
+URING-only), or the b12x image's PLE table in RAM. On the b12x image
+(`eugr/spark-vllm-b12x`) the Qwen PLE table is `disk` (io_uring) when
+`VLLM_PLE_TABLE_MEMORY=disk` and also when the variable is unset for a
+bfloat16 PLE checkpoint (`qualification/memory-inputs.json`
+`ple_embedding_dtypes`, keyed by the config digest; absent means bfloat16);
+unset is fine for a non-bfloat16 checkpoint, which resolves to the device
+table. The disk table needs io_uring (blocked by the sandbox) or direct GDS
+(needs a real nvidia-fs; `CUFILE_FORCE_COMPAT_MODE` is rejected with cuFile
+error 5027), so set `VLLM_PLE_TABLE_MEMORY=shared`. The table then counts
+inside the vLLM memory budget: raise utilization to the admission maximum;
+change the context only on evidence. A disk Engram table (`engram-config`
+`table_memory: disk`), or any disk table on an image that is not the b12x
+image, needs an image that installs a tested POSIX reader (see
+`adapters/deepseek/0xsero-exl3-vllm-dual/_ple_reader.c`). The recipe loader test
+(`tests/test_recipe_sandbox_loaders.py`) enforces both by the recipe's base
+image. Never request relaxed seccomp. Enforce image-owned transport policy in
+the launcher before exec, including when a kit declares an unsafe backend. b12x
+defaults a bfloat16 PLE table and a disk Engram table to io_uring even when no
+backend is specified.
 The separate `--load-format b12x` checkpoint reader also selects io_uring bounce
 I/O on GB10; `B12X_DISK_BACKEND` does not control it. Use `--load-format safetensors`
 at the image launcher handoff for checkpoint loading while retaining the B12X
@@ -305,7 +318,7 @@ and [InstantTensor backend selection](https://github.com/scitix/InstantTensor#ba
 ### Memory: preserve proof, reserve by need
 
 The shared `vonk_forge_contracts.memory_admission.evaluate_memory_admission` owns
-admission, explanatory headroom and the 6 GB platform floor. Every recipe and
+admission, explanatory headroom and the 2 GiB platform floor. Every recipe and
 option variant, on every role, must pass its empty-target-pool check: peak plus platform floor fits the
 pool. `reserve_bytes` is informational and is never charged. Offline validation
 (`require_admissible_declaration`, `qualification/vllm_memory_fit.py`) charges
@@ -347,12 +360,25 @@ never fit: report it; never shave the number. The guard is calibrated on the pro
 `tests/test_absolute_kv_capacity.py` replays through the touched path for every
 proven vLLM/SGLang document. A KV pool holds at least one full-context request,
 not declared context × engine concurrency: engines schedule requests within it.
+GLM DSA (sparse-MLA) pools count the indexer cache inside the same pool: bytes per
+token are (backbone + MTP layers) × the main record (656 fp8_ds_mla, 400
+nvfp4_ds_mla) plus the layers that build an indexer (the full layers of
+`index_topk_freq`/`index_skip_topk_offset`, plus the MTP layer) × 132. That
+reproduces the creators' logged pools (200,064 tokens in 10.95 GB fp8; 317,312
+nvfp4; 354,496 in 11,811,160,064 for the AQLM recipe, whose
+`index_topk_freq` 8 override leaves 13 indexer layers). The derivation is in the
+`source` of each geometry in `qualification/memory-inputs.json`.
 A single-Spark recipe file a change touches must bound KV: an absolute pool
 (vLLM `kv-cache-memory-bytes`; SGLang `max-total-tokens`), or a declared
 `gpu-memory-utilization`/`mem-fraction-static` whose share of physical memory
-plus the 8 GB overhead (plus the resident expansion of geometry pinned to the
-launch) is admissible on an idle Spark. Proven singles run up to 0.86, exactly the largest admitted peak;
-vLLM's implicit 0.90 is not admissible. A touched pool-less vLLM budget (any
+plus the margin held beside the engine budget (plus the resident expansion of
+geometry pinned to the launch) is admissible on an idle Spark. That margin has one
+owner, `budget_margin_bytes` in `qualification/memory_need.py`, from the p90 of the
+277 sweep samples (audit 2026-11-01): vLLM 6.2 GB on one Spark and 10.4 GB on
+several (measured on 2-Spark runs; borrowed for 3, 4 and 8), SGLang 8.5 GB on one
+Spark and 8 GB on several. The loading floor, the inside-budget check and the
+SGLang static need keep 8 GB. The highest admissible utilization is 0.9050 on one
+Spark (vLLM's implicit 0.90 fits) and 0.8728 pool-less on several. A touched pool-less vLLM budget (any
 Spark count) must also hold the selected weights per rank plus the 8 GB
 overhead: Laguna S 2.1 r0b0tlab at 0.6 left 4.25 GB beside 74.15 GB of target
 and draft weights, and vLLM found no memory for KV cache blocks. Where the launch
@@ -365,7 +391,7 @@ admissible, and the fraction × the idle available bytes must hold the selected
 weights, their resident expansion and any capped token/state pools (GLM a0 at
 0.75 was OOM-killed; restoring its 262,144-token cap needs 116.8 GB against
 0.85's 106.8 GB). The declared peak covers the same static need plus the 8 GB
-overhead. SGLang's base on GB10 is host MemAvailable after CUDA init
+overhead (SGLang static need keeps 8 GB). SGLang's base on GB10 is host MemAvailable after CUDA init
 (`utils/common.py` is_integrated path), so the calculator charges the Spark's total
 memory. When `max-total-tokens` (and, for hybrid geometries, `max-mamba-cache-size`)
 caps every pool, SGLang allocates only those pools and the fraction merely gates
@@ -374,14 +400,15 @@ This rule is derived from the SGLang source and is uncalibrated: no fully capped
 proven run (graph-less, no speculation) backs it, and capped recipes with CUDA
 graphs or speculation rest on the 8 GB overhead. A hybrid Model without
 `max-mamba-cache-size` is not capped (the Mamba pool grows with the fraction).
-An uncapped pool keeps the calibrated fraction × total + 8 GB. SGLang derives an omitted fraction at launch, so none is required. A pool-less single-Spark vLLM declaration's peak must cover its
-utilization budget plus the overhead, since the Controller
-reserves the declared peak. `tests/test_absolute_kv_capacity.py` replays the recorded
+An uncapped pool keeps the calibrated fraction × total plus the SGLang margin (8.5 GB on one Spark, 8 GB on several). SGLang derives an omitted fraction at launch, so none is required. A pool-less vLLM declaration's peak, on one Spark or several,
+must cover its utilization budget plus the margin, since the Controller
+reserves the declared peak. `tools/refresh-upstream` raises a moved vLLM document's
+peaks to that envelope in the same refresh, so a refresh never blocks on it. `tests/test_absolute_kv_capacity.py` replays the recorded
 failures and must reject each. `qualification/memory_need.py`
 supplies the guard and an informative full-workload calculator. For a
 multi-Spark vLLM absolute pool, also set an explicit `gpu-memory-utilization`
-startup budget whose fraction of physical memory plus runtime overhead fits the
-smallest role peak: vLLM checks it against free memory before loading weights.
+startup budget whose fraction of physical memory fits every role peak: vLLM
+checks free memory ≥ utilization × total before loading weights.
 
 An absolute pool must also hold one request at the declared context (or the
 pinned model default when the engine context is omitted/automatic), including block rounding, packed scales
@@ -479,8 +506,8 @@ pre-#1612 calibration guard for historical vLLM documents and options on **each
 role of each node**, including dual/multi-Spark recipes. Its shared
 implementation and constants live in `qualification/vllm_memory_fit.py`: utilization ×
 **130,663,231,488 bytes** + **8 GB** runtime overhead must fit the declared
-per-node peak; peak + the **6 GB OS floor** must fit
-the **126,600,000,000-byte idle-available floor**. The 2026-10-15/16 incident also
+per-node peak; peak + the **2 GiB platform floor** must fit
+the **126,600,000,000-byte idle-available floor**. The 2 GiB floor follows the creators' measured 2-3 GiB of steady free memory; the swap-aware host memory guard (vonk-forge #1936, R1) is the runtime backstop. The 2026-10-15/16 incident also
 retains its measured overhead and the lower spark-3542 idle-available value above.
 
 [qualification/memory_need.py](../qualification/memory_need.py), exercised by
@@ -502,9 +529,12 @@ charges (min(`max-running-requests`, slots // 5) + 1) ×
 `runtime_image_digest` applies only to that image. A multi-Spark vLLM recipe file a change touches must bound KV
 (`tools/check-recipe-memory-need --base origin/main`): an absolute
 `kv-cache-memory-bytes` pool that holds one full-context request per rank, or a
-`gpu-memory-utilization` whose share of physical memory plus the 8 GB overhead
-leaves the 16 GiB estimator headroom. Laguna M.1 at 0.82 with no pool fell to
-16 GiB MemAvailable, the host guard's per-sample bar at the time, on 2026-10-26; proven utilization-sized duals run at 0.80 or below. The
+`gpu-memory-utilization` whose share of physical memory plus the margin
+(10.4 GB) is admissible on an idle Spark, as for a single Spark; its declared peak
+covers that envelope. The Laguna M.1 stop at
+0.82 with no pool on 2026-10-26 was the host guard's per-sample 16 GiB bar,
+since removed; the GLM 5.3 Flash NVFP4 DFlash2 dual passed pool-less at the
+creator's 0.86. The
 pool need not hold context × `max-num-seqs`: vLLM schedules sequences within it,
 proven duals hold fewer, and the DSpark vLLM 0.25 dual pool sized for
 16 × 200,000 tokens exhausted host memory on both Sparks.
