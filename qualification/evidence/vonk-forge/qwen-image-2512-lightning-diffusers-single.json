@@ -4,6 +4,28 @@
   "records": [
     {
       "identity": {
+        "content_sha256": "b912ccda24c4b4162815106f2f9c24c063493e801edd4303871c1c4b787cf11a",
+        "model_digests": [
+          "42c179c7ed6a7d155d61ab5e123c159794897b724f8280606156ba71397b1bcc",
+          "ce6ca834b6ac1770cd110ae7abd3cd2f367fe8d722a1fabacfb5f6ae1767bebb"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "972fb7777bc9dde43adc782bd99ea7b2d87559a1dbbaa93055a5137c975fe063"
+      ],
+      "tested_at": "1970-01-01T00:00:00Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
         "content_sha256": "1d30ad7aadfffb78d5665b5ad1a05b8d83433598ac43fd190bf4cd5683307de9",
         "model_digests": [],
         "models_resolved": false

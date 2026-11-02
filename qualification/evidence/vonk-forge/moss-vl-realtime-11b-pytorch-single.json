@@ -4,6 +4,27 @@
   "records": [
     {
       "identity": {
+        "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "model_digests": [
+          "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "4457562648cd07431d2e8b64bf14527d99b0dead2bd00960a2f5af3b71216600"
+      ],
+      "tested_at": "1970-01-01T00:00:00Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
         "content_sha256": "ceba2f24648717909eb6a969f3578cbdb2407cf5a3d9a52aa98a94be73b33fdd",
         "model_digests": [],
         "models_resolved": false
@@ -581,6 +602,26 @@
       "quality_notes": [
         "Carried from the identical document before the display split"
       ]
+    },
+    {
+      "identity": {
+        "content_sha256": "2ff0131900af9680913269def40d2ec6abb61c8ae859d730392c43933693aaa6",
+        "model_digests": [
+          "191f3e9452d1a36e627380782b590d64575a9a4b7ee369d7236b866999bc9450"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "1bbf00fa0155f01e8eaeede5732b577f9549efacb0ad59b5ddafcb5382860dcc"
+      ],
+      "tested_at": "2026-10-21T08:19:43.934288Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
     },
     {
       "identity": {

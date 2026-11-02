@@ -160,6 +160,26 @@
     },
     {
       "identity": {
+        "content_sha256": "e4c75bcfe7869848f03494b108152e7a8216558fed05a2e3b4033426f0e8d08b",
+        "model_digests": [
+          "d84a5ff33a36d9c35b0e622bdfa9139540c1f8dde1433fca7a22badf57fc2353"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "d4380bde5dd62eee5dac73b45ca37730d9ab31fbf8cac216b1a4845d6bf6d8f7"
+      ],
+      "tested_at": "2026-10-21T00:54:09.401908Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
         "content_sha256": "0d20b5e0330baf8022e101267848b696eb4ef1581655bbc042035b18358861a3",
         "model_digests": [
           "7ec4b5b967fdfff38b683aa4326ecc22afe6d279d1707b0cdca0ef97e9e1e35c"
