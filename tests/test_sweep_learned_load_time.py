@@ -47,7 +47,4 @@ def test_copy_ticks_are_not_also_counted_as_waited(tmp_path: Path) -> None:
     assert slot["copy_seconds"] == 300
     assert slot["waited_seconds"] == 100
     # The engine's own load time, as the sweep learns it, is positive.
-    learned = (
-        clock.now() - slot["started_at"] - slot["copy_seconds"] - slot["waited_seconds"]
-    )
-    assert learned == 50
+    assert sweep._engine_load_seconds(slot, clock.now()) == 50

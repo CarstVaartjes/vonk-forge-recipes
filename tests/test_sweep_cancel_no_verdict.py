@@ -14,7 +14,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from sweep_fakes import FakeModel, FakeRecipe, make_sweep
+import pytest
+from sweep_fakes import FakeModel, FakeRecipe, Gateway, make_sweep
 
 INCIDENT = (
     Path(__file__).parent
@@ -122,3 +123,80 @@ def test_a_request_a_newer_load_adopted_is_not_cancelled(tmp_path: Path) -> None
     sweep._release_orphan_load(live)
     assert not [c for c in _cancels(fleet) if live["app_id"] in c]
     assert live["request_key"] not in sweep.state.data["loads"]
+
+
+def _adopted_pair(tmp_path: Path, gateway, *extra: FakeRecipe):
+    """Two lanes in one application: the whole-profile load adopted the first lane's load."""
+    from dataclasses import replace
+
+    bad = FakeRecipe("bad", ("m1",), local="cached", copy_seconds=0, load_seconds=9000)
+    other = FakeRecipe("good", ("m2",), local="cached", load_seconds=9000)
+    recipes = [bad, other, *extra]
+    sweep, fleet, clock = make_sweep(
+        tmp_path,
+        recipes,
+        [FakeModel("m1", local="cached"), FakeModel("m2", local="cached")],
+        gateway=gateway,
+        only=("bad",),
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    sweep._tick()
+    clock.sleep(20)
+    sweep._tick()
+    sweep.cfg = replace(sweep.cfg, only=())
+    sweep.refresh_catalog()
+    clock.sleep(20)
+    sweep._tick()
+    old = sweep.state.slots[bad.key]
+    loads = sweep.state.data["loads"]
+    (older,) = [x for x in loads.values() if not x.get("adopted_requests")]
+    (newer,) = [x for x in loads.values() if x.get("adopted_requests")]
+    assert newer["adopted_requests"] == [older["request_key"]]
+    return sweep, fleet, clock, older, newer, bad, other, old
+
+
+def test_a_cancel_the_controller_refuses_is_logged_with_its_cause(
+    tmp_path: Path, gateway
+) -> None:
+    sweep, fleet, _clock, older, newer, *_ = _adopted_pair(tmp_path, gateway)
+    # A stale record: the sweep does not know the newer load adopted this request.
+    newer["adopted_requests"] = []
+    for slot in sweep.state.slots.values():
+        slot["phase"] = "finished"
+    sweep._release_orphan_load(older)
+    assert [c for c in _cancels(fleet) if older["app_id"] in c]
+    assert fleet.apps[older["app_id"]]["state"] == "running"  # refused: not cancelled
+    messages = [e["message"] for e in sweep.state.data["events"]]
+    assert any(
+        f"cancel of {older['app_id']} failed" in m and "newer selected request" in m
+        for m in messages
+    )
+
+
+def test_a_skipped_cancel_does_not_block_a_later_overlapping_load(
+    tmp_path: Path, gateway
+) -> None:
+    third = FakeRecipe("third", ("m1",), local="cached", load_seconds=9000)
+    sweep, fleet, clock, older, _newer, bad, other, _ = _adopted_pair(
+        tmp_path, gateway, third
+    )
+    (adopter,) = [k for k in sweep.state.slots if k != bad.key]
+    later = next(k for k in (other.key, third.key) if k != adopter)
+    sweep.state.slots[bad.key]["phase"] = "finished"
+    sweep.release_orphan_load()
+    assert not [c for c in _cancels(fleet) if older["app_id"] in c]
+    # The next profile load leaves the adopted workload out and overlaps its Spark:
+    # it is admitted, and the Controller supersedes what the sweep did not cancel.
+    sweep.enqueue_finished_cleanup()
+    sweep.queue = [later]
+    sweep.schedule(clock.now())
+    assert sweep.state.slots[later]["phase"] == "loading"
+    assert fleet.apps[older["app_id"]]["state"] == "superseded"
+
+
+@pytest.fixture
+def gateway():
+    gateway = Gateway()
+    yield gateway
+    gateway.stop()

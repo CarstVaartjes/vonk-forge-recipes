@@ -2348,6 +2348,17 @@ class Sweep:
             elif slot["phase"] == "smoking":
                 self._advance_smoking(key, slot)
 
+    @staticmethod
+    def _engine_load_seconds(slot: Mapping[str, Any], now: float) -> float:
+        """The engine's own load time: held Controller waits and copies are not it."""
+        return max(
+            0.0,
+            now
+            - slot["started_at"]
+            - float(slot.get("copy_seconds", 0))
+            - float(slot.get("waited_seconds", 0)),
+        )
+
     def _load_window(self, slot: Mapping[str, Any]) -> float:
         """The lane's stall window: learned per engine, or the copy window while bytes move."""
         if slot.get("copying"):
@@ -2495,14 +2506,7 @@ class Sweep:
                 self.state.data["learned"],
                 recipe.engine,
                 slot["model_bytes"],
-                # Held Controller waits are not the engine's load time.
-                max(
-                    0.0,
-                    now
-                    - slot["started_at"]
-                    - float(slot.get("copy_seconds", 0))
-                    - float(slot.get("waited_seconds", 0)),
-                ),
+                self._engine_load_seconds(slot, now),
             )
             self._submit_smoke(key, slot)
             return
@@ -3393,7 +3397,10 @@ class Sweep:
             and not any(
                 key in (other.get("adopted_requests") or [])
                 for other in self.state.data["loads"].values()
+                # Only a live, admitted load owns what it adopted.
                 if other is not load
+                and other.get("app_id")
+                and other.get("state") not in SETTLED
             )
         ):
             # Ours (the sweep's own request key): cancel it so it releases what it holds.
