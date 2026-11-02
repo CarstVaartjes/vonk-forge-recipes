@@ -226,8 +226,12 @@ def test_qualification_evidence_is_the_only_pass_source(tmp_path, monkeypatch) -
     evidence = RecipeQualificationEvidence.model_validate_json(
         (ROOT / "qualification/evidence/vonk-forge" / f"{slug}.json").read_text()
     )
-    passed = evidence.records[-1]
-    assert passed.outcome == QualificationOutcome.PASSED
+    passed = next(
+        record
+        for record in reversed(evidence.records)
+        if record.identity.content_sha256 == document_sha256(document)
+        and record.outcome == QualificationOutcome.PASSED
+    )
     failed = passed.model_copy(
         update={
             "outcome": QualificationOutcome.FAILED,

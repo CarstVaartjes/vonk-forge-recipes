@@ -64,13 +64,11 @@
   "identity": {
     "family": {
       "publisher": "falconsai",
-      "slug": "nsfw-image-detection",
-      "title": "NSFW Image Detection"
+      "slug": "nsfw-image-detection"
     },
     "model": {
       "publisher": "falconsai",
-      "slug": "flux-3-safety-classifier",
-      "title": "FLUX reference image classifier"
+      "slug": "flux-3-safety-classifier"
     },
     "publisher": "falconsai",
     "slug": "flux-3-safety-classifier-96cb0d03",
@@ -84,13 +82,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Falconsai/nsfw_image_detection/blob/96cb0d0342c7afb80cab76ecc58b265fa44da256/LICENSE"
-  },
-  "metadata": {
-    "description": "FLUX reference image classifier immutable upstream checkpoint. Physical Spark qualification pending.",
-    "tags": [
-      "candidate",
-      "nsfw-image-detection"
-    ]
   },
   "modalities": [
     "image"

@@ -140,13 +140,11 @@
   "identity": {
     "family": {
       "publisher": "vonk-forge",
-      "slug": "decision-3",
-      "title": "Decision 3.0"
+      "slug": "decision-3"
     },
     "model": {
       "publisher": "vonk-forge",
-      "slug": "d3-nano",
-      "title": "D3-NANO"
+      "slug": "d3-nano"
     },
     "publisher": "vonk-forge",
     "slug": "d3-nano-bf16-462efc36",
@@ -160,15 +158,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/vllm-sr/d3-nano/blob/462efc366229ea268cf4eed3738b3fc4415e4817/LICENSE"
-  },
-  "metadata": {
-    "description": "d3-nano typed-decision model with probability outputs and an FP32 answer-code readout.",
-    "tags": [
-      "vonk-forge",
-      "decision-3",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text",

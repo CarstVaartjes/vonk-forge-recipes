@@ -46,13 +46,11 @@
   "identity": {
     "family": {
       "publisher": "inclusionai",
-      "slug": "ling",
-      "title": "Ling"
+      "slug": "ling"
     },
     "model": {
       "publisher": "inclusionai",
-      "slug": "ling-3-0-flash-dspark",
-      "title": "Ling 3.0 Flash DSpark companion"
+      "slug": "ling-3-0-flash-dspark"
     },
     "publisher": "inclusionai",
     "slug": "ling-3-0-flash-dspark-8e5d9988",
@@ -66,15 +64,6 @@
     ],
     "spdx": "LicenseRef-Ling-DSpark",
     "url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-dspark/blob/8e5d9988c9b09de13f1f7c9d999ff2bfa533a149/README.md"
-  },
-  "metadata": {
-    "description": "Exact public Ling 3.0 Flash DSpark 8e5d9988 checkpoint.",
-    "tags": [
-      "inclusionai",
-      "ling-3-0",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

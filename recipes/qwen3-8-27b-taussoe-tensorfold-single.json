@@ -33,24 +33,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Single-DGX-Spark dense Qwen3.8-27B (Gated DeltaNet plus full attention) on the creator's TensorFold fork (taussoe/TensorFold branch glm-long-context at c32abe92: TensorFold 0.3.6.3 plus the creator's long-context work; exact decoding: drafted replies equal serial ones; custom CUDA kernels JIT-compiled on first start) with Vontra's MLX 4-bit checkpoint and z-lab's DFlash2 draft model proposing token trees of 12 rows, following taussoe's tensorfold-recipes (d8a7c09c, MIT, NODES=1), which builds that fork branch on a Spark by default (TENSORFOLD_SOURCE=local; the base follows that declaration). Text only. Upstream measured on one Spark (TensorFold 0.3.6.1): decode 59 / 52 / 56 / 52 tok/s in the standard cells (code and chat, sampled and greedy), code as a chat reply 96 / 111, a 32k prompt read at 1,579 tok/s; serial decoding without the draft model is 13.1 tok/s, so drafting is where the speed comes from (upstream figures, unmeasured here). TensorFold's published concurrency figure on one Spark is 161.7 tok/s at 16 streams in flight (25.4 GiB peak, context 8192; TensorFold's own benchmark). The memory envelope is TensorFold's startup estimate of 62.5 GiB at the 262,144-token window for the sibling NVFP4 checkpoint; upstream states none for this checkpoint. Both the checkpoint and the draft model are Apache-2.0 (the DFlash2 draft model per its card). The fork is older than the TensorFold 0.6.0 this recipe carried before (no xgrammar structured-output support, which arrived in 0.6.0); the recipe keeps every option it passes. Thinking is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Open a think block by default (TensorFold default).",
-    "tags": [
-      "dense",
-      "dflash2",
-      "engine",
-      "kernel-jit",
-      "mlx-checkpoint",
-      "qwen3.8",
-      "reasoning",
-      "spark",
-      "speculative-decoding",
-      "tensorfold",
-      "text-only"
-    ],
-    "title": "Qwen3.8 27B TensorFold single Spark (taussoe)"
-  },
   "models": [
     {
       "files": [
@@ -217,7 +199,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a6496351590b8c663086688937f8d54ec669ece232681d9aa4a796d2fd318003",
+        "content_sha256": "df02689d8f0e0a07bdc41b266abc40476a7909109403ce6048c3aa6a59e88bc2",
         "kind": "model",
         "publisher": "vontra",
         "slug": "qwen3-8-27b-mlx-4bit-70ae7fac"
@@ -258,7 +240,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "1655bb6aa618f32e84d7136c982eb068b91acebccbb0299f0cc18f4377a720a7",
+        "content_sha256": "5479ba57e0cb31945807660fbe38cdf62c9a5c516ce4a0b593e1f907c56e08c9",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-8-27b-dflash2-50307d4c"

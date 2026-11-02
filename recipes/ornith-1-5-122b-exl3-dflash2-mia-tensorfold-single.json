@@ -30,21 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Ornith-1.5-122B (Qwen3.5-MoE architecture) as MiaAI-Lab's 4-bpw EXL3 EAQv1 checkpoint (revision 9c5c913b, 62 GiB on disk) with incoai's DFlash2 draft model, on one DGX Spark through TensorFold's Zig engine (tensorfold-native, commit d1018b31) plus MiaAI-Lab's patches 0001 to 0027 (EXL3 for the Qwen3.5-MoE CUDA engine, DFlash2, prompt and decode kernels). Runs MiaAI-Lab's published image of her kit (0c8fd6a0), zig-d1018b3-f5683f4c5651 (sha256:56c064d22327a6d0ce09d0de3930084b11841918072e9467a2dd9039b3d92b82), as published and not rebuilt, with only a thin layer for the Controller's launcher. Four streams, a 262,144-token window, fp8 KV cache (lossy; bf16 is exact), image input (the engine rejects video) and replies of up to 32,768 tokens without max_tokens. DFlash2 output matched the no-draft run on 21 of 21 greedy prompts (creator-measured). The declared peak follows the creator's measurements: about 69.5 GiB for the weights, drafter and scratch on the device, four full fp8 windows with their GatedDeltaNet state, the 2 GiB vision workspace and a prompt cache of up to 16 GiB; the engine keeps 10 GiB free when it sizes the pool. Upstream performance (prefill about 2,450 tok/s at 4k, decode 53 tok/s prose and 83 tok/s code on one stream) is the creator's measurement on one DGX Spark, not measured here. The checkpoint is MIT-licensed on its model card; the DFlash2 draft model is Apache-2.0. Thinking is chosen per request (chat template kwargs), not as a recipe option; server default: think first (upstream default).",
-    "tags": [
-      "dflash2",
-      "engine",
-      "exl3",
-      "image-input",
-      "ornith",
-      "reasoning",
-      "spark",
-      "tensorfold"
-    ],
-    "title": "Ornith 1.5 122B EXL3 DFlash2 TensorFold single Spark (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -331,7 +316,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "28f76de3473bd9214847bee781e1c699c62ee42bc8b4a4f1aad22f77df986b5d",
+        "content_sha256": "1539d8464826c8123cfcb3b432de5fa4dbb68b1d804fc560b83fde66f4ec4fda",
         "kind": "model",
         "publisher": "mia-ailab",
         "slug": "ornith-1-5-122b-mia-exl3-eaq-v1-4bpw-9c5c913b"
@@ -392,7 +377,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "fc61b3b99f4826326f29aab6624ae155cb4d1748459210673d6b9d3e247476b8",
+        "content_sha256": "ef6bab3263b2458e76ab685dda8fdf0e13f31fd7dc5548573b33174635034790",
         "kind": "model",
         "publisher": "incoai",
         "slug": "ornith-1-5-122b-dflash2-a5ed7396"

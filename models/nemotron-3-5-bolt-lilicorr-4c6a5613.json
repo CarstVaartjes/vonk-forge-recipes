@@ -66,13 +66,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-5-bolt-lilicorr",
-      "title": "Nemotron 3.5 Bolt LiLiCorr"
+      "slug": "nemotron-3-5-bolt-lilicorr"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-5-bolt-lilicorr-4c6a5613",
@@ -86,15 +84,6 @@
     ],
     "spdx": "LicenseRef-OpenMDW-1.1",
     "url": "https://openmdw.ai/license/1-1/"
-  },
-  "metadata": {
-    "description": "LiLiCorr speculative drafter for the Bolt 24GB checkpoint.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

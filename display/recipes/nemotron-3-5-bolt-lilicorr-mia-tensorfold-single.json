@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "Nemotron 3.5 Bolt 74B-A9B 24GB with its LiLiCorr speculative drafter, using MiaAI-Lab native TensorFold at 46a08c18 plus the Bolt engine and patch set 5e11cf1ed295. Sixteen streams, a 262,144-token window, BF16 KV and an 8 GiB prompt cache. Supports images and video through the RADIO tower. The estimated 80 GiB peak includes target/drafter weights, 32 GiB of full-window KV, recurrent state per stream, vision workspace and runtime overhead. Physical performance and quality are unmeasured here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "nemotron-3-5-bolt-lilicorr-mia-tensorfold-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "nemotron",
+    "tensorfold",
+    "lilicorr",
+    "vision",
+    "video",
+    "spark"
+  ],
+  "title": "Nemotron 3.5 Bolt LiLiCorr TensorFold single Spark (Mia)"
+}

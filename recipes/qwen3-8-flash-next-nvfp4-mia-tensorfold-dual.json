@@ -2,8 +2,8 @@
   "execution": {
     "build": {
       "base_image": {
-        "repository": "ghcr.io/miaai-lab/qwen3.8-flash-dual-dgx-sparks-tensorfold",
-        "digest": "e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c"
+        "digest": "e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c",
+        "repository": "ghcr.io/miaai-lab/qwen3.8-flash-dual-dgx-sparks-tensorfold"
       },
       "context": {
         "path": "adapters/qwen/mia-flash-next-tensorfold-dual-nvfp4"
@@ -30,33 +30,12 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "MiaAI-Lab native TensorFold at db28187 on two Sparks, with the creator's pinned nvfp4 checkpoint. Sixteen concurrent streams share the engine's dynamic FP8 KV pool; 1,048,576-token window with YaRN factor four, MTP depth fifteen, RoCE all-gather, image/video helper on rank zero. FP8 KV is lossy; draft verification does not imply equivalence to BF16 KV. Memory peak is an estimate for one full-window request based on the kit's model, cache and prefill accounting; additional streams remain subject to engine admission. Physical execution is unmeasured here.",
-    "tags": [
-      "qwen3.8",
-      "tensorfold",
-      "mtp",
-      "vision",
-      "video",
-      "spark",
-      "fp8-kv"
-    ],
-    "title": "Qwen3.8 Flash Next NVFP4 TensorFold dual Spark (Mia)"
-  },
   "models": [
     {
-      "id": "primary",
-      "model": {
-        "kind": "model",
-        "publisher": "nvidia",
-        "slug": "qwen3-8-flash-next-nvfp4-fc694b54",
-        "content_sha256": "563044819c1c7c2b4559f610e6e93ccea952ddf25958065f2db2ca12982c662c"
-      },
       "files": [
         {
-          "id": "target-metadata-fe81d528e7ee-618cd5b83d",
           "file_id": "metadata-fe81d528e7ee-618cd5b83d",
+          "id": "target-metadata-fe81d528e7ee-618cd5b83d",
           "mount": {
             "target": "/models/target"
           },
@@ -66,8 +45,8 @@
           ]
         },
         {
-          "id": "target-readme-e3ed0cb89950-b335630551",
           "file_id": "readme-e3ed0cb89950-b335630551",
+          "id": "target-readme-e3ed0cb89950-b335630551",
           "mount": {
             "target": "/models/target"
           },
@@ -77,8 +56,8 @@
           ]
         },
         {
-          "id": "target-chat-template-c3cf9e34abf4-00824420d1",
           "file_id": "chat-template-c3cf9e34abf4-00824420d1",
+          "id": "target-chat-template-c3cf9e34abf4-00824420d1",
           "mount": {
             "target": "/models/target"
           },
@@ -88,8 +67,8 @@
           ]
         },
         {
-          "id": "target-config-deef67a61f33-587cb980af",
           "file_id": "config-deef67a61f33-587cb980af",
+          "id": "target-config-deef67a61f33-587cb980af",
           "mount": {
             "target": "/models/target"
           },
@@ -99,8 +78,8 @@
           ]
         },
         {
-          "id": "target-generation-config-e70c136c1b78-97dd3d578b",
           "file_id": "generation-config-e70c136c1b78-97dd3d578b",
+          "id": "target-generation-config-e70c136c1b78-97dd3d578b",
           "mount": {
             "target": "/models/target"
           },
@@ -110,8 +89,8 @@
           ]
         },
         {
-          "id": "target-hf-quant-config-331ad11d57c8-a481ad90fa",
           "file_id": "hf-quant-config-331ad11d57c8-a481ad90fa",
+          "id": "target-hf-quant-config-331ad11d57c8-a481ad90fa",
           "mount": {
             "target": "/models/target"
           },
@@ -121,8 +100,8 @@
           ]
         },
         {
-          "id": "target-merges-a9d356d7bdf1-b0d6dcfed4",
           "file_id": "merges-a9d356d7bdf1-b0d6dcfed4",
+          "id": "target-merges-a9d356d7bdf1-b0d6dcfed4",
           "mount": {
             "target": "/models/target"
           },
@@ -132,8 +111,8 @@
           ]
         },
         {
-          "id": "target-model-00001-of-00010-63fde954be6f-abda2caf91",
           "file_id": "model-00001-of-00010-63fde954be6f-abda2caf91",
+          "id": "target-model-00001-of-00010-63fde954be6f-abda2caf91",
           "mount": {
             "target": "/models/target"
           },
@@ -143,8 +122,8 @@
           ]
         },
         {
-          "id": "target-model-00002-of-00010-4dafaef62a90-c78aeb3aa5",
           "file_id": "model-00002-of-00010-4dafaef62a90-c78aeb3aa5",
+          "id": "target-model-00002-of-00010-4dafaef62a90-c78aeb3aa5",
           "mount": {
             "target": "/models/target"
           },
@@ -154,8 +133,8 @@
           ]
         },
         {
-          "id": "target-model-00003-of-00010-3218ddc12925-3bbb02f554",
           "file_id": "model-00003-of-00010-3218ddc12925-3bbb02f554",
+          "id": "target-model-00003-of-00010-3218ddc12925-3bbb02f554",
           "mount": {
             "target": "/models/target"
           },
@@ -165,8 +144,8 @@
           ]
         },
         {
-          "id": "target-model-00004-of-00010-55e2bdf6a3a1-9744fa3b65",
           "file_id": "model-00004-of-00010-55e2bdf6a3a1-9744fa3b65",
+          "id": "target-model-00004-of-00010-55e2bdf6a3a1-9744fa3b65",
           "mount": {
             "target": "/models/target"
           },
@@ -176,8 +155,8 @@
           ]
         },
         {
-          "id": "target-model-00005-of-00010-d3c169d3694b-287722c574",
           "file_id": "model-00005-of-00010-d3c169d3694b-287722c574",
+          "id": "target-model-00005-of-00010-d3c169d3694b-287722c574",
           "mount": {
             "target": "/models/target"
           },
@@ -187,8 +166,8 @@
           ]
         },
         {
-          "id": "target-model-00006-of-00010-38f65a9d1109-5c0b2f8f0d",
           "file_id": "model-00006-of-00010-38f65a9d1109-5c0b2f8f0d",
+          "id": "target-model-00006-of-00010-38f65a9d1109-5c0b2f8f0d",
           "mount": {
             "target": "/models/target"
           },
@@ -198,8 +177,8 @@
           ]
         },
         {
-          "id": "target-model-00007-of-00010-8cf3fa05c04c-3028b843f1",
           "file_id": "model-00007-of-00010-8cf3fa05c04c-3028b843f1",
+          "id": "target-model-00007-of-00010-8cf3fa05c04c-3028b843f1",
           "mount": {
             "target": "/models/target"
           },
@@ -209,8 +188,8 @@
           ]
         },
         {
-          "id": "target-model-00008-of-00010-53d1f80746aa-1a97e5bd74",
           "file_id": "model-00008-of-00010-53d1f80746aa-1a97e5bd74",
+          "id": "target-model-00008-of-00010-53d1f80746aa-1a97e5bd74",
           "mount": {
             "target": "/models/target"
           },
@@ -220,8 +199,8 @@
           ]
         },
         {
-          "id": "target-model-00009-of-00010-eaff6a87ece6-9e545a3307",
           "file_id": "model-00009-of-00010-eaff6a87ece6-9e545a3307",
+          "id": "target-model-00009-of-00010-eaff6a87ece6-9e545a3307",
           "mount": {
             "target": "/models/target"
           },
@@ -231,8 +210,8 @@
           ]
         },
         {
-          "id": "target-model-00010-of-00010-0d49b0cf7c15-3cc422b9fe",
           "file_id": "model-00010-of-00010-0d49b0cf7c15-3cc422b9fe",
+          "id": "target-model-00010-of-00010-0d49b0cf7c15-3cc422b9fe",
           "mount": {
             "target": "/models/target"
           },
@@ -242,8 +221,8 @@
           ]
         },
         {
-          "id": "target-model-fp8-mtp-ple-3525520c8602-8c766fad0c",
           "file_id": "model-fp8-mtp-ple-3525520c8602-8c766fad0c",
+          "id": "target-model-fp8-mtp-ple-3525520c8602-8c766fad0c",
           "mount": {
             "target": "/models/target"
           },
@@ -253,8 +232,8 @@
           ]
         },
         {
-          "id": "target-model-safetensors-index-660414e83007-0a05be8238",
           "file_id": "model-safetensors-index-660414e83007-0a05be8238",
+          "id": "target-model-safetensors-index-660414e83007-0a05be8238",
           "mount": {
             "target": "/models/target"
           },
@@ -264,8 +243,8 @@
           ]
         },
         {
-          "id": "target-preprocessor-config-27225450ac9c-36afccab5d",
           "file_id": "preprocessor-config-27225450ac9c-36afccab5d",
+          "id": "target-preprocessor-config-27225450ac9c-36afccab5d",
           "mount": {
             "target": "/models/target"
           },
@@ -275,8 +254,8 @@
           ]
         },
         {
-          "id": "target-processor-config-d89ef49ce9cd-27f0cb76af",
           "file_id": "processor-config-d89ef49ce9cd-27f0cb76af",
+          "id": "target-processor-config-d89ef49ce9cd-27f0cb76af",
           "mount": {
             "target": "/models/target"
           },
@@ -286,8 +265,8 @@
           ]
         },
         {
-          "id": "target-tokenizer-0997f410c57a-224931eb13",
           "file_id": "tokenizer-0997f410c57a-224931eb13",
+          "id": "target-tokenizer-0997f410c57a-224931eb13",
           "mount": {
             "target": "/models/target"
           },
@@ -297,8 +276,8 @@
           ]
         },
         {
-          "id": "target-tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "file_id": "tokenizer-config-b11349aafa7c-94d5c6ba8f",
+          "id": "target-tokenizer-config-b11349aafa7c-94d5c6ba8f",
           "mount": {
             "target": "/models/target"
           },
@@ -308,8 +287,8 @@
           ]
         },
         {
-          "id": "target-video-preprocessor-config-7768af27c1fa-35d01a7325",
           "file_id": "video-preprocessor-config-7768af27c1fa-35d01a7325",
+          "id": "target-video-preprocessor-config-7768af27c1fa-35d01a7325",
           "mount": {
             "target": "/models/target"
           },
@@ -319,8 +298,8 @@
           ]
         },
         {
-          "id": "target-vocab-ce99b4cb2983-ba05d8e2e4",
           "file_id": "vocab-ce99b4cb2983-ba05d8e2e4",
+          "id": "target-vocab-ce99b4cb2983-ba05d8e2e4",
           "mount": {
             "target": "/models/target"
           },
@@ -329,21 +308,28 @@
             "worker"
           ]
         }
-      ]
+      ],
+      "id": "primary",
+      "model": {
+        "content_sha256": "788c612ba2913fe19f8b4b7f7694998318909d8c0c98162bb3f55055bd9981fb",
+        "kind": "model",
+        "publisher": "nvidia",
+        "slug": "qwen3-8-flash-next-nvfp4-fc694b54"
+      }
     }
   ],
   "provenance": {
-    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/6730319ed948cc88b525bbbdc9d309451a863834",
     "attribution": [
       "MiaAI-Lab",
       "Ash Hart (TensorFold)",
       "Qwen",
       "NVIDIA"
-    ]
+    ],
+    "source_reference": "https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold/tree/6730319ed948cc88b525bbbdc9d309451a863834"
   },
   "release": {
-    "version": "1.0.0",
-    "released_at": "2026-10-18"
+    "released_at": "2026-10-18",
+    "version": "1.0.0"
   },
   "runtime": {
     "arguments": [

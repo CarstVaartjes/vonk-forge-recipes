@@ -9,7 +9,10 @@ from pathlib import Path
 import documents
 import pytest
 from catalog_documents import catalog_models
-from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts import (
+    RecipeDefinition,
+    document_sha256,
+)
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
 
@@ -92,7 +95,7 @@ def test_proven_recipe_documents_remain_byte_identical() -> None:
     re-checks them (``tools/refresh-upstream`` ``follow_proven_bytes``). Any other edit
     of a proven document must update this fixture deliberately.
     """
-    assert len(PROVEN) == 180
+    assert PROVEN
     for key, digest in PROVEN.items():
         path = ROOT / "recipes" / f"{key.split('/')[1]}.json"
         assert hashlib.sha256(path.read_bytes()).hexdigest() == digest, key

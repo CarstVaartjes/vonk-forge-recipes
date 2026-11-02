@@ -53,13 +53,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "ggml-org",
-      "slug": "qwen3-8-27b",
-      "title": "Qwen3.8 27B"
+      "slug": "qwen3-8-27b"
     },
     "publisher": "ggml-org",
     "slug": "qwen3-8-27b-q4-k-m-a316ea52",
@@ -74,16 +72,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://www.apache.org/licenses/LICENSE-2.0"
-  },
-  "metadata": {
-    "description": "ggml-org GGUF conversion of Qwen3.8 27B at Q4_K_M, plus the Q8_0 vision projector.",
-    "tags": [
-      "ggml-org",
-      "qwen3",
-      "language",
-      "gguf",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

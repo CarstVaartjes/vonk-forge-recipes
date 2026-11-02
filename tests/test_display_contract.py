@@ -1,4 +1,4 @@
-"""Display is its own contract; 2.x derives it from the document, unchanged."""
+"""Display is its own contract: its files, shared vectors and strict refusals."""
 
 from __future__ import annotations
 
@@ -14,11 +14,11 @@ from vonk_forge_contracts import (
     ModelDisplay,
     RecipeDefinition,
     RecipeDisplay,
-    model_display_of,
     published_json,
+    read_model,
     read_model_display,
+    read_recipe,
     read_recipe_display,
-    recipe_display_of,
     require_display_of,
 )
 
@@ -52,43 +52,11 @@ def test_every_committed_document_round_trips_through_its_contract() -> None:
 def test_every_document_has_a_valid_display_that_round_trips() -> None:
     for path in RECIPES:
         display = recipe_display(path.stem)
-        assert display == recipe_display_of(
-            RecipeDefinition.model_validate(_json(path))
-        )
+        assert display.identity.slug == path.stem
         assert read_recipe_display(published_json(display)) == display
     for path in MODELS:
         display_model = model_display(path.stem)
         assert read_model_display(published_json(display_model)) == display_model
-
-
-def test_display_fields_are_exactly_the_moved_set() -> None:
-    assert set(RecipeDisplay.model_fields) == {
-        "kind",
-        "identity",
-        "title",
-        "description",
-        "tags",
-        "alignment",
-    }
-    assert set(ModelDisplay.model_fields) == {
-        "kind",
-        "identity",
-        "family_title",
-        "model_title",
-        "description",
-        "tags",
-    }
-
-
-def test_display_carries_the_documents_text_unchanged() -> None:
-    document = _json(
-        ROOT / "contracts/src/vonk_forge_contracts/examples/model-definition.json"
-    )
-    display = model_display_of(ModelDefinition.model_validate(document))
-    assert display.family_title == document["identity"]["family"]["title"]
-    assert display.model_title == document["identity"]["model"]["title"]
-    assert display.description == document["metadata"]["description"]
-    assert display.tags == document["metadata"]["tags"]
 
 
 def _check_pair(pair: dict[str, Any]) -> None:
@@ -109,7 +77,11 @@ def refuse(contract: str, document: dict[str, Any]) -> None:
     """Run one invalid vector through the contract it names."""
 
     # Producers validate strictly; readers ignore unknown fields on purpose.
-    if contract == "RecipeDisplay":
+    if contract == "RecipeDefinition":
+        RecipeDefinition.model_validate(document)
+    elif contract == "ModelDefinition":
+        ModelDefinition.model_validate(document)
+    elif contract == "RecipeDisplay":
         RecipeDisplay.model_validate(document)
     elif contract == "ModelDisplay":
         ModelDisplay.model_validate(document)
@@ -132,6 +104,7 @@ def test_there_are_invalid_vectors_for_each_named_failure() -> None:
         "model-display-bad-tag",
         "model-display-duplicate-tag",
         "model-display-identity-mismatch",
+        "model-with-family-title",
         "recipe-display-bad-alignment",
         "recipe-display-empty-title",
         "recipe-display-identity-extra-key",
@@ -139,6 +112,7 @@ def test_there_are_invalid_vectors_for_each_named_failure() -> None:
         "recipe-display-kind-recipe",
         "recipe-display-title-too-long",
         "recipe-display-with-runtime",
+        "recipe-with-metadata",
     }
 
 
@@ -157,8 +131,16 @@ def test_producer_only_vectors_are_accepted_by_the_lenient_readers() -> None:
         if _json(path.with_suffix(".expect.json")).get("producer_only")
     ]
     assert {path.stem for path in marked} == {
+        "model-with-family-title",
         "recipe-display-identity-extra-key",
         "recipe-display-with-runtime",
+        "recipe-with-metadata",
     }
     for path in marked:
-        read_recipe_display(_json(path))
+        document = _json(path)
+        if document["kind"] == "recipe-display":
+            read_recipe_display(document)
+        elif document["kind"] == "recipe":
+            read_recipe(document)
+        else:
+            read_model(document)

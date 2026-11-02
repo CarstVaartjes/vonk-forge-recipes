@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "MiaAI-Lab TensorFold v0.6.0 with five patches for image/video input, YaRN, FP8 KV and pooled attention cache. Runs the creator-published ARM64 image tagged v0.6.0-fb91a0019fdc. Vontra MLX 4-bit target with z-lab DFlash2 drafter; eight streams and a 262,144-token window. KV caches grow on demand using upstream’s supported zero-pool mode instead of pinning its 78 GiB maximum at startup. The conservative 109 GiB memory envelope is retained; actual allocation depends on active requests. Physical Spark execution and model quality are unmeasured here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-27b-mia-tensorfold-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "qwen3.8",
+    "tensorfold",
+    "dflash2",
+    "vision",
+    "video",
+    "fp8-kv",
+    "spark"
+  ],
+  "title": "Qwen3.8 27B TensorFold single Spark (Mia)"
+}

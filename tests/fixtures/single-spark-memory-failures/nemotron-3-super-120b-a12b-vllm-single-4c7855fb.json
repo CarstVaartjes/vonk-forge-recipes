@@ -30,22 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate single-Spark recipe for NVIDIA's current Nemotron 3 Super NVFP4 contract. It binds vLLM 0.30.0, the immutable super_v3 parser, FP4/Marlin execution, FP8 KV, Mamba cache, and the separately pinned MTPv2 speculative-decoding head without runtime downloads. GB10 host-guard headroom: explicit engine reservation capped at 0.60; budget includes runtime overhead and leaves at least 16 GiB of the lower observed idle MemAvailable free. Smaller KV pool; context and model pins retained. Resource envelopes remain conservative estimates; physical requalification is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nemotron",
-      "nvfp4",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Nemotron 3 Super 120B-A12B NVFP4 vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -412,7 +396,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "6aa6f5e0542e5676862996deb985c8017b081fcfe98da045671439c722a5c09c",
+        "content_sha256": "4ad62d68ca8d92e7f8cf8d6948d6ebdf0f1890b861f9414b1bff7e7794faeac1",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-super-120b-a12b-nvfp4"
@@ -493,7 +477,7 @@
       ],
       "id": "dependency-nemotron-3-super-120b-a12b-bf16-mtpv2",
       "model": {
-        "content_sha256": "8226a040e300fc4c423955926d2e7d7e4a273e934f16e7504dc85be0b3c1a879",
+        "content_sha256": "0b0b10fc8f4daf658b0a75f791d8aa72ead058d138e9cb76f597cc7baa42f82f",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-super-120b-a12b-bf16-mtpv2"

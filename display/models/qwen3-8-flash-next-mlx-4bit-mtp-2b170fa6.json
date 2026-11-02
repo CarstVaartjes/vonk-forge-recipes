@@ -1,0 +1,16 @@
+{
+  "description": "MLX 4-bit Flash Next checkpoint with MTP head for TensorFold.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "tensorfold",
+    "slug": "qwen3-8-flash-next-mlx-4bit-mtp-2b170fa6"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 Flash Next",
+  "tags": [
+    "tensorfold",
+    "qwen",
+    "language",
+    "candidate"
+  ]
+}

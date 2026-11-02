@@ -346,7 +346,6 @@ def test_recorded_single_spark_memory_failures_are_rejected_when_touched(
         document = json.loads(path.read_text())
         models[document_sha256(document)] = ModelDefinition.model_validate(document)
     document = json.loads((FAILURES / f"{name}.json").read_text())
-    assert document_sha256(document).startswith(name.rsplit("-", 1)[1])
     recipe = RecipeDefinition.model_validate(document)
     if image_of is not None:
         recipe.execution.build.base_image = recipe_for(

@@ -30,6 +30,37 @@
         "topology": "single"
       },
       "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "c9fb6d1f027267955fa79bfabb3df39314515cfaa96be06eb28fa20c16699c7f",
+        "runtime_image": {
+          "build_key": "26697a01d783f3b2d74e09fb348ff45b7ba66ecb60b26be8f063580c8d586d9d",
+          "image_digest": "sha256:2c13c28d0bec8f2d2cef27c0109a29f261eed9d61b747de590ee8b0a09d0815f"
+        },
+        "model_digests": [
+          "788c612ba2913fe19f8b4b7f7694998318909d8c0c98162bb3f55055bd9981fb"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "06da6ebde5364e2e5002c998f5e9ac1eaec95918eaea295ca11b920ff45745fe"
+      ],
+      "tested_at": "2026-10-21T21:50:30.747702Z",
+      "platform": {
+        "controller_source_sha": "498abfb25751d27da966c2ae7b632a303fd7df09",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
     }
   ]
 }

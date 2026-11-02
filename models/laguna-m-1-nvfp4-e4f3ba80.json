@@ -374,13 +374,11 @@
   "identity": {
     "family": {
       "publisher": "poolside",
-      "slug": "laguna",
-      "title": "Laguna"
+      "slug": "laguna"
     },
     "model": {
       "publisher": "poolside",
-      "slug": "laguna-m-1",
-      "title": "Laguna M.1"
+      "slug": "laguna-m-1"
     },
     "publisher": "poolside",
     "slug": "laguna-m-1-nvfp4-e4f3ba80",
@@ -394,14 +392,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/poolside/Laguna-M.1-NVFP4/blob/e4f3ba80ca1d8d83443df18e03ecebd7ef55a066/LICENSE.md"
-  },
-  "metadata": {
-    "description": "Poolside Laguna M.1 mixture-of-experts coding model (225B total, 23B active).",
-    "tags": [
-      "poolside",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

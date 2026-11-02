@@ -1,0 +1,21 @@
+{
+  "description": "Complete 84-file official DeepSeek V4 Flash Vision Experimental snapshot at 6821d6ad: native interleaved image and text understanding, 48 mixed FP4/FP8/BF16 shards, a 32-layer ViT and aligner, three DSpark prediction layers, tokenizer, prompt encoder, and minimal inference reference.",
+  "family_title": "DeepSeek Flash",
+  "identity": {
+    "publisher": "deepseek-ai",
+    "slug": "deepseek-v4-flash-vision-exp-6821d6ad"
+  },
+  "kind": "model-display",
+  "model_title": "DeepSeek V4 Flash Vision Experimental",
+  "tags": [
+    "candidate",
+    "deepseek",
+    "dspark",
+    "fp4",
+    "fp8",
+    "image-text-to-text",
+    "multimodal",
+    "official",
+    "vision"
+  ]
+}

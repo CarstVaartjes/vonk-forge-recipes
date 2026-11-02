@@ -5,7 +5,7 @@
   ],
   "dependencies": [
     {
-      "content_sha256": "4b5edb4629d7d4d0310c51e43f8e4a3421220732aee2b2a5d90220329b450975",
+      "content_sha256": "7bcc3f9e353351a39e3167859c2d9d4a44d71c0a27dd11420c44b7032cdcba5a",
       "kind": "model",
       "publisher": "lightricks",
       "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
@@ -38,13 +38,11 @@
   "identity": {
     "family": {
       "publisher": "lightricks",
-      "slug": "ltx",
-      "title": "LTX"
+      "slug": "ltx"
     },
     "model": {
       "publisher": "lightricks",
-      "slug": "ltx-2",
-      "title": "LTX-2"
+      "slug": "ltx-2"
     },
     "publisher": "lightricks",
     "slug": "ltx-2-19b-distilled-fp8",
@@ -58,16 +56,6 @@
     ],
     "spdx": "LTX-2 Community License Agreement",
     "url": "https://huggingface.co/Lightricks/LTX-2/blob/dfcc2108383fe1aaa0584bdf55d368a4bdadd90c/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact executable checkpoint closure at dfcc2108 with a digest-bound Gemma 3 companion dependency.",
-    "tags": [
-      "lightricks",
-      "ltx",
-      "video",
-      "audio",
-      "candidate"
-    ]
   },
   "modalities": [
     "audio",

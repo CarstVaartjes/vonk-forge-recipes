@@ -64,13 +64,11 @@
   "identity": {
     "family": {
       "publisher": "facebook",
-      "slug": "dinov3",
-      "title": "DINOv3"
+      "slug": "dinov3"
     },
     "model": {
       "publisher": "facebook",
-      "slug": "dinov3-vitl16-pretrain-lvd1689m",
-      "title": "DINOv3 ViT-L/16 LVD-1689M"
+      "slug": "dinov3-vitl16-pretrain-lvd1689m"
     },
     "publisher": "facebook",
     "slug": "dinov3-vitl16-pretrain-lvd1689m",
@@ -84,15 +82,6 @@
     ],
     "spdx": "LicenseRef-DINOv3",
     "url": "https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m/blob/ea8dc2863c51be0a264bab82070e3e8836b02d51/LICENSE.md"
-  },
-  "metadata": {
-    "description": "Exact DINOv3 feature encoder referenced by TRELLIS.2-4B at af44b45f and Pixal3D at b0cb2e1b. Official snapshot blob IDs match the public camenduru/dinov3-vitl16-pretrain-lvd1689m snapshot at 3c276edd87d6f6e569ff0c4400e086807d0f3881, including the LFS pointer reconstructed from the weight SHA-256 and size. Downloads use the official gated Facebook repository.",
-    "tags": [
-      "facebook",
-      "auxiliary",
-      "image",
-      "offline"
-    ]
   },
   "modalities": [
     "image"

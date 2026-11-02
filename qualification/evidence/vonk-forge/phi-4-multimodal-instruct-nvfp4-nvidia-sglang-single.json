@@ -191,6 +191,31 @@
     },
     {
       "identity": {
+        "content_sha256": "d3b3473f1bb4c06d35f2bce7a4185c871429bf089f1998fd8c62991d958e082b",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "b451219fe2bbdaeff7af1cf09892211294db116afed8a401c82b70d2dcb46575"
+      ],
+      "tested_at": "2026-10-14T21:51:27.228514Z",
+      "platform": {
+        "controller_source_sha": "fadaeb65d44cfbddb4999a3ad9a092efce943d29",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Carried from the identical document before the display split"
+      ]
+    },
+    {
+      "identity": {
         "content_sha256": "762c22c95959aba047acb0b28845cbdafccf4244695e9469a658cfa8a6d15f6d",
         "model_digests": [],
         "required_sparks": 1,
@@ -211,6 +236,31 @@
       },
       "quality_notes": [
         "Model output differed from the expected answer"
+      ]
+    },
+    {
+      "identity": {
+        "content_sha256": "d3b3473f1bb4c06d35f2bce7a4185c871429bf089f1998fd8c62991d958e082b",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "a366946c6c6405cbb7dbddf69344c89d2a5419d7d44f9e1507c329b6653fa53c"
+      ],
+      "tested_at": "2026-10-14T21:58:52.625603Z",
+      "platform": {
+        "controller_source_sha": "fadaeb65d44cfbddb4999a3ad9a092efce943d29",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer",
+        "Carried from the identical document before the display split"
       ]
     }
   ]

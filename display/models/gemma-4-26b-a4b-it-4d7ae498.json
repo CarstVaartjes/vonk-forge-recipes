@@ -1,0 +1,19 @@
+{
+  "description": "Exact public instruction-tuned Gemma 4 26B-A4B checkpoint with Google's canonical chat template.",
+  "family_title": "Google Gemma",
+  "identity": {
+    "publisher": "google",
+    "slug": "gemma-4-26b-a4b-it-4d7ae498"
+  },
+  "kind": "model-display",
+  "model_title": "Gemma 4 26B-A4B",
+  "tags": [
+    "google",
+    "gemma",
+    "language",
+    "reasoning",
+    "multimodal",
+    "instruction-tuned",
+    "candidate"
+  ]
+}

@@ -79,25 +79,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable Candidate pairing the exact Qwen Image 2512 base checkpoint with ModelTC/lightx2v's four-step BF16 Lightning LoRA and published shift-3 schedule; physical Spark acceptance remains pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "qwen",
-      "image",
-      "generation",
-      "text-to-image",
-      "lightning",
-      "lora",
-      "diffusers",
-      "bf16",
-      "single",
-      "spark"
-    ],
-    "title": "Qwen Image 2512 Lightning diffusers single Spark"
-  },
   "models": [
     {
       "files": [
@@ -114,7 +95,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ce6ca834b6ac1770cd110ae7abd3cd2f367fe8d722a1fabacfb5f6ae1767bebb",
+        "content_sha256": "6c538cd7a6e4121d4316bcc5deccb368d0f86b896868958fcf5d72be33fb8576",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-lightning"
@@ -425,7 +406,7 @@
       ],
       "id": "dependency-qwen-image-2512-25468b98",
       "model": {
-        "content_sha256": "42c179c7ed6a7d155d61ab5e123c159794897b724f8280606156ba71397b1bcc",
+        "content_sha256": "5f8b6a59753751b29ef66b19f408ac79c2ba9024b382f0d8c6bf5f8d5b46f022",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-25468b98"

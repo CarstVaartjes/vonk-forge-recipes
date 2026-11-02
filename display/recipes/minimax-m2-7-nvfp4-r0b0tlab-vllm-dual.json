@@ -1,0 +1,24 @@
+{
+  "alignment": "unspecified",
+  "description": "r0b0tlab's dual-GB10 vLLM 0.21.1 (SM120/SM121 FP4 source build) serving of NVIDIA's ModelOpt NVFP4 checkpoint of MiniMax M2.7: tensor parallel 2 over Ray, FlashInfer-CUTLASS NVFP4 GEMM and MoE, FP8 KV, torch.compile mode 3 with CUDA graphs disabled (upstream found graph replay deadlocks the cross-node shared-memory broadcast). Text, tool calling and reasoning (minimax_m2 parsers; reasoning uses minimax_m2 instead of the upstream launch's minimax_m2_append_think, which keeps the thinking in message content), 196,608 token context, 4 sequences (upstream launch script). Licences: r0b0tlab package MIT, vLLM Apache-2.0; the NVIDIA checkpoint is under the NVIDIA Software and Model Evaluation License (information only; upstream README asks users to accept the model licence). Upstream claims about 25 tok/s single-stream decode (tg128) on two GB10; not measured here. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Absolute KV correction: 41,705,013,248 bytes per rank covers 4 simultaneous full-context requests at 164,224 tokens using the pinned cache-geometry allocation bound. Context is capped from the creator profile's 196,608 tokens to 164,224 so selected weights, this KV pool and 8 GB runtime overhead remain admissible on an idle Spark; full creator context with this concurrency does not fit. This is an offline estimate; physical acceptance remains pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "minimax-m2-7-nvfp4-r0b0tlab-vllm-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "distributed",
+    "executable",
+    "minimax",
+    "nvfp4",
+    "openai",
+    "r0b0tlab",
+    "ray",
+    "reasoning",
+    "spark",
+    "tool-use",
+    "vllm"
+  ],
+  "title": "MiniMax M2.7 NVFP4 vLLM dual Spark (r0b0tlab)"
+}

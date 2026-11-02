@@ -1036,13 +1036,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4",
-      "title": "Nemotron 3.5 Super VL 120B-A12B"
+      "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-5-super-vl-120b-a12b-nvfp4-59b87216",
@@ -1056,13 +1054,6 @@
     ],
     "spdx": "openmdw-1.1",
     "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Super-VL-120B-A12B-NVFP4/blob/59b8721646c38111a242da18218859fb2b454322/https://openmdw.ai/license/1-1/"
-  },
-  "metadata": {
-    "description": "Nemotron 3.5 Super VL 120B-A12B immutable upstream checkpoint. Physical Spark qualification pending.",
-    "tags": [
-      "candidate",
-      "nemotron"
-    ]
   },
   "modalities": [
     "text"

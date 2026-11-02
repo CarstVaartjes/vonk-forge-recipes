@@ -1,0 +1,19 @@
+{
+  "alignment": "unspecified",
+  "description": "FP4-Local checkpoint served by the exact eugr b12x ARM64 image pinned in vcruz305’s kit at 0d727c4e. Eight concurrent sequences, a 262,144-token window, FP8 KV and four-token MTP speculation. Preserves the kit’s b12x load format, disk-backed PLE table and one-worker compilation setting. The 110 GB peak is a conservative runtime estimate for the 0.8 GPU-memory utilization setting and host workspace; physical Spark execution is unmeasured here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-flash-next-fp4-local-vcruz-vllm-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "qwen3.8",
+    "vllm",
+    "b12x",
+    "fp4",
+    "mtp",
+    "spark",
+    "tool-use"
+  ],
+  "title": "Qwen3.8 Flash Next FP4-Local vLLM single Spark (vcruz305)"
+}

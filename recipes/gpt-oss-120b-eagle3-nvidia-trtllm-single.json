@@ -30,25 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's own DGX Spark playbook (speculative-decoding) for gpt-oss 120b Eagle3 speculative decoding: the NGC TensorRT-LLM release image 1.3.0rc12 (pinned by arm64 digest) serving the exact model revision through trtllm-serve with the playbook's LLM API options. Resource envelopes are estimates from the playbook's 0.8-0.9 KV memory fraction, not measurements; physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "tensorrt-llm",
-      "openai",
-      "single",
-      "spark",
-      "gpt-oss",
-      "mxfp4",
-      "eagle3",
-      "speculative-decoding",
-      "reasoning"
-    ],
-    "title": "gpt-oss 120b Eagle3 speculative decoding TensorRT-LLM single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -315,7 +296,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "43358b54fdc6ef2cb10f658a465217d30db6bcef756812bd7644838096128ba8",
+        "content_sha256": "05c6ed6c0b33257e2673d0f08c9face7db1f25e850d8c90be5de2a0be46ef735",
         "kind": "model",
         "publisher": "openai",
         "slug": "gpt-oss-120b-mxfp4-b5c939de"
@@ -386,7 +367,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "815dcd7008dc169b01864568eff5186fa5053cba9997aa6787ee05a81bc57d90",
+        "content_sha256": "ec06a73b940ecd334fb643f505f79c3f3342613df6be242588c75c0d5dd194b0",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "gpt-oss-120b-eagle3-long-context-eagle3-633caf45"

@@ -127,22 +127,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate native Hunyuan3D-Omni single-Spark controllable 3D pipeline with exact upstream source, offline multimodal job input, and GLB output; physical GB10 acceptance remains pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "three-d",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "multimodal",
-      "native",
-      "build-unvalidated"
-    ],
-    "title": "Hunyuan3D-Omni pytorch-pipeline single Spark"
-  },
   "models": [
     {
       "files": [
@@ -259,7 +243,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "47c7457924ffeb0fba78a6aa263930edde53d1838f8292eb2bd0d70602f77252",
+        "content_sha256": "6bd82469cdad1ffe8f0666e37646f10b16f402a3aedc9650d94324d7dae301b0",
         "kind": "model",
         "publisher": "tencent",
         "slug": "hunyuan3d-omni"
@@ -300,7 +284,7 @@
       ],
       "id": "dinov2-large",
       "model": {
-        "content_sha256": "7a57f2c1944d3ffa5cf01b0d8396d759b072f576c259bb46b7f74730ef53759c",
+        "content_sha256": "7d430ed00162e6a0cce265dc41fe2544c53c11cc67e581db8397f140038f8385",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov2-large-47b73eef"

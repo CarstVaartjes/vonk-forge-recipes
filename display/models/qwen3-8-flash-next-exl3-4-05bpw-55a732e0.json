@@ -1,0 +1,16 @@
+{
+  "description": "EXL3 4.05bpw checkpoint including its quantized vision sidecar.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "turboderp",
+    "slug": "qwen3-8-flash-next-exl3-4-05bpw-55a732e0"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 Flash Next EXL3",
+  "tags": [
+    "turboderp",
+    "qwen",
+    "language",
+    "candidate"
+  ]
+}

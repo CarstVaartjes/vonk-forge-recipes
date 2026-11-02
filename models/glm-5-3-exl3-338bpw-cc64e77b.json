@@ -608,13 +608,11 @@
   "identity": {
     "family": {
       "publisher": "zai-org",
-      "slug": "glm",
-      "title": "GLM"
+      "slug": "glm"
     },
     "model": {
       "publisher": "vcruz305",
-      "slug": "glm-5-3",
-      "title": "GLM 5.3"
+      "slug": "glm-5-3"
     },
     "publisher": "vcruz305",
     "slug": "glm-5-3-exl3-338bpw-cc64e77b",
@@ -629,15 +627,6 @@
     ],
     "spdx": "LicenseRef-GLM-5.3",
     "url": "https://huggingface.co/vcruz305/GLM-5.3-EXL3-3.38bpw/blob/cc64e77b1b1744c7bc71e54c838727f0db0f1a36/LICENSE"
-  },
-  "metadata": {
-    "description": "Full GLM-5.3 SAGE EXL3 3.38bpw, exact creator revision.",
-    "tags": [
-      "vcruz305",
-      "glm",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

@@ -33,23 +33,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Two-Spark TensorFold configuration from taussoe/tensorfold-recipes at d8a7c09c, using the creator's glm-long-context engine fork at c32abe92. Both ranks mount the same immutable checkpoint; the Controller supplies rank and rendezvous information. The default uses one stream and an explicit 131,072-token window. Memory is a conservative estimate carried from the single-Spark configuration per node, not a measurement. CUDA kernels compile into the managed cache on first start. Text-only serving; physical two-Spark performance and recovery remain unmeasured here.",
-    "tags": [
-      "agent-resume",
-      "engine",
-      "kernel-jit",
-      "mlx-checkpoint",
-      "mtp",
-      "qwen3.8",
-      "reasoning",
-      "spark",
-      "tensorfold",
-      "text-only"
-    ],
-    "title": "Qwen3.8 Flash Next TensorFold dual Spark (taussoe)"
-  },
   "models": [
     {
       "files": [
@@ -441,7 +424,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "543fede119b0bedaba367bb41b7e51d7815e41c61ac3cbb3575e15abf4d58b87",
+        "content_sha256": "2d87f7011ead9bc51747cdc6fef676ec1a5a180167aecbe1d0e14fa14e281367",
         "kind": "model",
         "publisher": "vontra",
         "slug": "qwen3-8-flash-next-mlx-4bit-mtp-dadefa80"

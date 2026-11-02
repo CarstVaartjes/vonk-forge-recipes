@@ -167,13 +167,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "turboderp",
-      "slug": "qwen3-8-27b-exl3-3-00bpw",
-      "title": "Qwen3.8 27B EXL3 3.00 bpw"
+      "slug": "qwen3-8-27b-exl3-3-00bpw"
     },
     "publisher": "turboderp",
     "slug": "qwen3-8-27b-exl3-3-00bpw-6fe61ad6",
@@ -188,15 +186,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/turboderp/Qwen3.8-27B-exl3/blob/6fe61ad620abfe97c5b49f9722c2bceeea4ccc28/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public turboderp EXL3 3.00 bits-per-weight pack (branch 3.00bpw) of Qwen3.8-27B, read by TensorFold's experimental CUDA EXL3 path.",
-    "tags": [
-      "turboderp",
-      "qwen3-8-exl3",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

@@ -1,0 +1,16 @@
+{
+  "description": "Exact public r0b0tlab self-quantized ModelOpt NVFP4 W4A16 Qwen3.8 Flash Next (180B-A4B) checkpoint, 131 safetensors shards with BF16 MTP (NEXTN) tensors kept, qualified upstream on two GB10 with TP=2. Base Qwen/Qwen3.8-Flash-Next f5d08274; card licence 'other' (Qwen Community 1.0 base terms).",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "r0b0tlab",
+    "slug": "qwen3-8-flash-next-nvfp4-w4a16-sm121-8b73dc60"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 Flash Next NVFP4 W4A16 sm121",
+  "tags": [
+    "r0b0tlab",
+    "qwen3-8-r0b0tlab",
+    "language",
+    "candidate"
+  ]
+}

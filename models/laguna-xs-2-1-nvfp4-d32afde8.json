@@ -167,13 +167,11 @@
   "identity": {
     "family": {
       "publisher": "poolside",
-      "slug": "laguna",
-      "title": "Laguna"
+      "slug": "laguna"
     },
     "model": {
       "publisher": "poolside",
-      "slug": "laguna-xs-2-1",
-      "title": "Laguna XS 2.1"
+      "slug": "laguna-xs-2-1"
     },
     "publisher": "poolside",
     "slug": "laguna-xs-2-1-nvfp4-d32afde8",
@@ -187,19 +185,6 @@
     ],
     "spdx": "OpenMDW-1.1",
     "url": "https://huggingface.co/poolside/Laguna-XS-2.1-NVFP4/blob/d32afde8b09af1539b49ff96ff5551c674485f8e/LICENSE.md"
-  },
-  "metadata": {
-    "description": "Exact Poolside Laguna XS 2.1 NVFP4 checkpoint with an FP8 KV cache for a candidate single-Spark vLLM recipe.",
-    "tags": [
-      "poolside",
-      "laguna",
-      "language",
-      "reasoning",
-      "agentic",
-      "nvfp4",
-      "fp8-kv-cache",
-      "spark"
-    ]
   },
   "modalities": [
     "text"

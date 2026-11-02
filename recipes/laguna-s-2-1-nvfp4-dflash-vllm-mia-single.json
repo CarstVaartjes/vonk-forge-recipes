@@ -35,28 +35,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM profile from MiaAI-Lab's Laguna-S-2.1-DGX-Spark-RTX-6000-PRO at 750a52ea: the exact 07614121 Laguna S 2.1 NVFP4 checkpoint with the exact b3b5921a Laguna S 2.1 DFlash NVFP4 speculative draft (7 tokens), vLLM 0.25.1 with FlashInfer attention, 256K context, 4 sequences, reasoning and tool parsing. Upstream ships no container: the image is the digest-pinned official vLLM v0.25.1 image with upstream's FlashInfer 0.6.15.dev20260712 nightly wheels baked in at build time instead of installed at every start. Upstream code has no licence file; the target model is OpenMDW-1.1 and the draft repository declares no licence. Upstream claims (not measured here) a ~15 minute first start and its own decode-throughput chart. Physical Spark acceptance is pending. Upstream's RTX 6000 PRO variant is not covered. Reasoning by default is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: Upstream default: enable_thinking true. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. Checkpoint correction (2026-10-27): upstream measured 32.44 GiB of KV cache at 0.85 on the July checkpoint its script downloaded (about 71 GB, FP8 KV scheme). The later 826aacdf export keeps the experts of layers 40-47 in BF16 (99.7 GB) and drops the FP8 KV scheme; at 0.85 vLLM reported -23.95 GiB of KV cache memory and refused to start on hardware, and no admissible utilization holds it with one 262,144-token request. This recipe therefore pins 07614121, the newest revision with upstream's weight footprint. The b3b5921a draft has the same weights as 4cdcc6e9, the draft adapted to 07614121's rotation-free weights, and differs from it only in its 1,048,576-token position limit.",
-    "tags": [
-      "executable",
-      "candidate",
-      "pending",
-      "poolside",
-      "laguna",
-      "nvfp4",
-      "vllm",
-      "dflash",
-      "speculative-decoding",
-      "reasoning",
-      "agentic",
-      "openai",
-      "single",
-      "spark",
-      "tool-use"
-    ],
-    "title": "Laguna S 2.1 NVFP4 DFlash vLLM single Spark (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -333,7 +311,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "aa43743d4fbc01f3e26976f9abb4ec19ca1a977116c1b4e1cd2d2561c6ef4043",
+        "content_sha256": "92d073f12c6164fc4af416c7c3b6c7b94955026ff522e6b6c8d0612baa310f3a",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-s-2-1-nvfp4-07614121"
@@ -394,7 +372,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "8a572883db408417169930c58e9cfc4ac465730e6a65549dccf8314b2c60aba1",
+        "content_sha256": "1e8b82e9f9b51d167be1a1683217a0cf1ba55ace6ea3d596e49757493d4724fa",
         "kind": "model",
         "publisher": "poolside",
         "slug": "laguna-s-2-1-dflash-nvfp4-b3b5921a"

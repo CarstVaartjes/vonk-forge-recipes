@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate llama.cpp recipe based on NVIDIA's Nemotron 3.5 Lightning model card (llama.cpp section, flags -c 40960 -ngl 99 -fa on --jinja --no-webui --fit off) and the ggml-org GGUF it links: the official ggml-org llama.cpp 0.5.0 CUDA 13 server image (arm64, pinned by digest; its default CUDA architectures include GB10 sm_121a) serving the exact GGUF revision through llama-server. NVIDIA's llama.cpp playbook compiles the same upstream source with -DCMAKE_CUDA_ARCHITECTURES=121a-real; this recipe uses the project's published binary instead. Resource envelopes are estimates, not measurements; physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "llama-cpp",
-      "openai",
-      "single",
-      "spark",
-      "nemotron",
-      "lightning",
-      "gguf",
-      "q4_0",
-      "reasoning"
-    ],
-    "title": "Nemotron 3.5 Lightning 30B-A3B Q4_0 llama.cpp single Spark (NVIDIA model card)"
-  },
   "models": [
     {
       "files": [
@@ -84,7 +66,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "08236382b57f4acb8ca2374020db1cb9f5d355b48e3f8e538d9fc1e83df35dd6",
+        "content_sha256": "ba78faec0213ab74403f69b4ef6d7f3f67f3e4cc648f1efbb242db24b39e4817",
         "kind": "model",
         "publisher": "ggml-org",
         "slug": "nemotron-3-5-lightning-30b-a3b-q4-0-8cd08217"

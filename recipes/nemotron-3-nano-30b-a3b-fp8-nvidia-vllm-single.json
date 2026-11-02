@@ -30,23 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Nemotron 3 Nano 30B-A3B FP8: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "nemotron",
-      "fp8",
-      "reasoning"
-    ],
-    "title": "Nemotron 3 Nano 30B-A3B FP8 vLLM single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -433,7 +416,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "4d41a80ef441b983a53f6d84f27cc87d64e83ec9d9f9004af5337fa28d636ae6",
+        "content_sha256": "9a8e0058736fb50f29efb3836e19611fa91482d71b258d532fc39b04dfb0f72f",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-nano-30b-a3b-fp8-9bee1944"

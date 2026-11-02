@@ -102,25 +102,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Memory-efficient single-Spark Candidate for one-or-two-reference Qwen Image Edit 2511 jobs, using Comfy-Org's mixed-precision FP8 transformer, scaled-FP8 Qwen-VL encoder, and Qwen Image VAE. It preserves the 40-step quality schedule while reducing the declared admission envelope to 108.00 GB unified memory including reserve and 95.17 GB peak installation disk.",
-    "tags": [
-      "executable",
-      "candidate",
-      "memory-efficient",
-      "qwen",
-      "image",
-      "editing",
-      "comfyui",
-      "fp8",
-      "fp8mixed",
-      "mixed-precision",
-      "single",
-      "spark"
-    ],
-    "title": "Qwen Image Edit 2511 FP8mixed ComfyUI single Spark"
-  },
   "models": [
     {
       "files": [
@@ -137,7 +118,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "ed79de7ad6f4bda34fbdff5cb69f768d1ec6d4a003f3a138670669e61b9c0ebb",
+        "content_sha256": "6dff0a3f200972461c2a40e0835577befee46abf24a7459677e4ba8138a3cdd3",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-comfyui-fp8mixed-f68ace85"
@@ -168,7 +149,7 @@
       ],
       "id": "dependency-qwen-image-2512-comfyui-1f12b17b",
       "model": {
-        "content_sha256": "efb222d33973f73f1b1c1da7dc30b5260bf9e2b5d333459e3e25501aeff8dcd0",
+        "content_sha256": "670e2a8010a939ebc86ed90fd7c4c14e402b5a8a4b137f277d9e6cca3fc191d3",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-2512-comfyui-1f12b17b"

@@ -1783,13 +1783,11 @@
   "identity": {
     "family": {
       "publisher": "stepfun-ai",
-      "slug": "step-5",
-      "title": "Step 5"
+      "slug": "step-5"
     },
     "model": {
       "publisher": "stepfun-ai",
-      "slug": "step-5-preview-spark-exl3",
-      "title": "Step 5 Preview Spark"
+      "slug": "step-5-preview-spark-exl3"
     },
     "publisher": "0xsero",
     "slug": "step-5-preview-spark-exl3-51a46a7f",
@@ -1803,13 +1801,6 @@
     ],
     "spdx": "stepfun-community-license",
     "url": "https://huggingface.co/0xSero/Step-5-Preview-Spark/blob/51a46a7f62eee1225d124170da903bba23d04a26/LICENSE"
-  },
-  "metadata": {
-    "description": "Step 5 Preview Spark immutable upstream checkpoint. Physical Spark qualification pending.",
-    "tags": [
-      "candidate",
-      "step-5"
-    ]
   },
   "modalities": [
     "text"

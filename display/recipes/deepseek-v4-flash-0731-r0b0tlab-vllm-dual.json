@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "r0b0tlab's frozen native-v11 dual-GB10 runtime (vLLM 0.26.0+dspark.sm121.3, NCCL 2.30.4, FlashInfer B12X MoE, NVFP4 DS-MLA KV, DSpark K=6, native regular CUDA graphs) for the official DeepSeek V4 Flash 0731 checkpoint at 9e165c30. Text only. Upstream production defaults: 327,680 token context, 16 sequences, KV pool pinned at about 15 GiB (roughly 156k tokens); the repository's 1M-context profile (auto-sized KV, one sequence) is not selectable here. Licences: recipe and runtime MIT AND Apache-2.0, model MIT (information only). Vonk physical dual-Spark acceptance is pending; performance figures are upstream claims.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-flash-0731-r0b0tlab-vllm-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "deepseek",
+    "distributed",
+    "dspark",
+    "executable",
+    "openai",
+    "r0b0tlab",
+    "reasoning",
+    "spark",
+    "tool-use",
+    "vllm"
+  ],
+  "title": "DeepSeek V4 Flash 0731 DSpark vLLM 0.26 dual Spark (r0b0tlab)"
+}

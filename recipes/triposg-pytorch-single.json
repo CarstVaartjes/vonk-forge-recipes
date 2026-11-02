@@ -86,24 +86,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable but not accepted TripoSG single-Spark Candidate with exact upstream source, frozen RMBG companion, offline inference, and deterministic GLB output. The native ARM64 container build is unvalidated and both that build and a physical GB10 image-to-GLB canary must pass before acceptance.",
-    "tags": [
-      "executable",
-      "candidate",
-      "three-d",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "image-to-three-d",
-      "native",
-      "build-unvalidated",
-      "native-build-required",
-      "physical-acceptance-required"
-    ],
-    "title": "TripoSG base pytorch-pipeline single Spark"
-  },
   "models": [
     {
       "files": [
@@ -220,7 +202,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "af6c70fef1e0a8028a7340e8858016ef51c8b61b21530e2baac10be274304db2",
+        "content_sha256": "3a4ffa3911c121817245e2bbf3d7d986c8f7db9a5356e10d6d225cef4c6b1dca",
         "kind": "model",
         "publisher": "vast-ai",
         "slug": "triposg"
@@ -251,7 +233,7 @@
       ],
       "id": "background-removal",
       "model": {
-        "content_sha256": "3d16b213b06f5d6f1c42a3fdc3eb6d2b3268f8e9c700f200fe69cc0e23fd053b",
+        "content_sha256": "88bd00232eeb03eff1f99abfa61bb34d4e6f970084f8dc19970da2ab7d44aa49",
         "kind": "model",
         "publisher": "bria-ai",
         "slug": "bria-rmbg-1-4"

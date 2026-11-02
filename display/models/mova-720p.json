@@ -1,0 +1,15 @@
+{
+  "description": "Immutable public snapshot at 8462bea9.",
+  "family_title": "MOVA",
+  "identity": {
+    "publisher": "openmoss",
+    "slug": "mova-720p"
+  },
+  "kind": "model-display",
+  "model_title": "MOVA 720p",
+  "tags": [
+    "openmoss",
+    "video",
+    "candidate"
+  ]
+}

@@ -109,6 +109,7 @@ QUALIFICATION_SUMMARIES = {
 
 class QualificationQualityNote(StrEnum):
     ANSWER_VARIANCE = "Model output differed from the expected answer"
+    CARRIED = "Carried from the identical document before the display split"
 
 
 class QualificationChange(StrEnum):

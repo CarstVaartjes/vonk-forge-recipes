@@ -1,0 +1,15 @@
+{
+  "description": "Poolside Laguna S 2.1 mixture-of-experts coding model.",
+  "family_title": "Laguna",
+  "identity": {
+    "publisher": "poolside",
+    "slug": "laguna-s-2-1-nvfp4-07614121"
+  },
+  "kind": "model-display",
+  "model_title": "Laguna S 2.1",
+  "tags": [
+    "poolside",
+    "language",
+    "candidate"
+  ]
+}

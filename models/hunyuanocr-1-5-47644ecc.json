@@ -114,13 +114,11 @@
   "identity": {
     "family": {
       "publisher": "tencent",
-      "slug": "hunyuanocr",
-      "title": "HunyuanOCR"
+      "slug": "hunyuanocr"
     },
     "model": {
       "publisher": "tencent",
-      "slug": "hunyuanocr-1-5",
-      "title": "HunyuanOCR 1.5"
+      "slug": "hunyuanocr-1-5"
     },
     "publisher": "tencent",
     "slug": "hunyuanocr-1-5-47644ecc",
@@ -142,17 +140,6 @@
       "notice": "The Tencent Hunyuan Community License Agreement does not apply in the European Union, United Kingdom, or South Korea."
     },
     "url": "https://huggingface.co/tencent/HunyuanOCR/blob/47644ecc4fc854efa4f505155158831f36773ee4/LICENSE"
-  },
-  "metadata": {
-    "description": "Official HunyuanOCR 1.5 BF16 target checkpoint for plain autoregressive OCR serving. Draft and archived 1.0 files are not selected.",
-    "tags": [
-      "tencent",
-      "hunyuan",
-      "ocr",
-      "vision-language",
-      "bf16",
-      "spark"
-    ]
   },
   "modalities": [
     "image",

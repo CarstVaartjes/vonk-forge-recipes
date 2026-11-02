@@ -30,27 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "standard",
-    "description": "r0b0tlab's SGLang runtime for NVIDIA's unmodified nvidia/Qwen3.8-Flash-Next-NVFP4 (revision fc694b54, NVIDIA Open Model License plus Qwen terms) on one Spark, from r0b0tlab/qwen38-flash-next-nvidia-nvfp4-sm121-sglang v1.0.1 (1dc3c2f0, MIT). Runs upstream's published v1.0.1-sm121-nextn image (patched SGLang 0.5.19-era, digest-pinned) through its own profile compiler: native NVFP4 W4A4 experts on FlashInfer CUTLASS, FP8 block-scaled integrated MTP (NEXTN, 3 steps), BF16 KV, BF16 vision (image, multi-image, video), a file-backed PLE embedding offload (about 48 GiB prepared once into the platform cache, 4 GiB RSS budget) and full decode CUDA graphs, with 262,144 tokens of context in one shared KV pool. The profile option picks upstream's frozen profiles: production c2 (two requests share the 262K pool), c4, or the same c2 with ViT CUDA graphs off, which upstream ships for sustained mixed-shape vision traffic. Context and request limits are fixed by the profile and are not editable settings. Upstream claims (not measured here): 37.32 tok/s dedicated c1, NEXTN acceptance length 3.38, needle-in-a-haystack 9/9 to 258K, Q200 185/200, vision 11/11; weights load about 9 minutes; needs an otherwise idle Spark with at least 104 GiB host RAM available and does not sustain two consecutive full-window prefills. Upstream's own verdict is runtime and Q200 verified, not a physical Vonk acceptance. Physical Spark acceptance is pending.",
-    "tags": [
-      "candidate",
-      "executable",
-      "mtp",
-      "multimodal",
-      "nextn",
-      "nvfp4",
-      "qwen3.8",
-      "r0b0tlab",
-      "reasoning",
-      "sglang",
-      "single",
-      "spark",
-      "tool-use",
-      "vision"
-    ],
-    "title": "Qwen3.8 Flash Next NVFP4 SGLang single Spark (r0b0tlab)"
-  },
   "models": [
     {
       "files": [
@@ -307,7 +286,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "563044819c1c7c2b4559f610e6e93ccea952ddf25958065f2db2ca12982c662c",
+        "content_sha256": "788c612ba2913fe19f8b4b7f7694998318909d8c0c98162bb3f55055bd9981fb",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-8-flash-next-nvfp4-fc694b54"

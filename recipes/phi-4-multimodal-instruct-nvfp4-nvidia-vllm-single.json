@@ -30,23 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's DGX Spark playbook (vllm) for Phi-4 Multimodal Instruct NVFP4: vllm 0.21.0+2325b6f0 (NVIDIA NGC vllm 26.05.post1-py3), pinned by arm64 digest, serving the exact model revision through `vllm serve` with the playbook's flags (vLLM defaults where the playbook passes none). Resource envelopes budget the explicit GPU memory utilization plus unified-memory overhead, not measurements; physical Spark acceptance is pending. GB10 memory correction: GPU utilization 0.90 → 0.85 (previously implicit). Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint. This deviates from the upstream memory profile to avoid unified-memory thrashing; context and other kit flags are retained with a smaller KV pool.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "phi",
-      "nvfp4",
-      "multimodal"
-    ],
-    "title": "Phi-4 Multimodal Instruct NVFP4 vLLM single Spark (NVIDIA playbook)"
-  },
   "models": [
     {
       "files": [
@@ -423,7 +406,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "d9db969d33a631e8cd1e416385bd851237fa30a2e792d088d608c7dfe7f28d6c",
+        "content_sha256": "7897f2cd75b3502c194073a1ffa0774df133a4ee135aa2a7cb6b6d625674177a",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "phi-4-multimodal-instruct-nvfp4-617cfabb"

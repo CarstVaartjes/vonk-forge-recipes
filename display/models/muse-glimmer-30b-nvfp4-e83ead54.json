@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Muse Glimmer 30B NVFP4 (W4A4) e83ead54 checkpoint by RedHatAI.",
+  "family_title": "Muse Glimmer",
+  "identity": {
+    "publisher": "redhatai",
+    "slug": "muse-glimmer-30b-nvfp4-e83ead54"
+  },
+  "kind": "model-display",
+  "model_title": "Muse Glimmer 30B",
+  "tags": [
+    "redhatai",
+    "muse-glimmer",
+    "multimodal",
+    "candidate"
+  ]
+}

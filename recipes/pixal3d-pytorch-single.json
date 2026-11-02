@@ -88,24 +88,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable single-DGX Spark image-to-3D Candidate using the pinned official Pixal3D source, local DINOv3 and NAF feature stack, bounded manual camera calibration, ARM64-native extensions, and deterministic GLB adapter. Its pinned nvdiffrast runtime dependency is limited to non-commercial research or evaluation; operator acceptance and physical Spark quality, memory, and latency evidence are still required. Excludes Trimesh WebP alignment bytes from image views before strict artifact validation.",
-    "tags": [
-      "candidate",
-      "three-d",
-      "image-to-3d",
-      "glb",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "executable",
-      "offline",
-      "source-bundled",
-      "non-commercial-runtime"
-    ],
-    "title": "Pixal3D native single Spark"
-  },
   "models": [
     {
       "files": [
@@ -302,7 +284,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "8ce5a064b7d4ec8c375f8f0f4f2629bc899b2588470d316644d2a87d0d101bb9",
+        "content_sha256": "387537edd0d31daddc7d3b7036a1c91c44733b4514fb323ec108c7141233340f",
         "kind": "model",
         "publisher": "tencentarc",
         "slug": "pixal3d-b0cb2e1b"
@@ -323,7 +305,7 @@
       ],
       "id": "naf",
       "model": {
-        "content_sha256": "70f6700c2234dd7a4f604f12e39352de445f8b1b7b7d5a481a86f31519a6a93e",
+        "content_sha256": "a575f0f25b91ed5ad705f0c091659b3bec3bc861a6a2e5bb26b68d54a0fdaf25",
         "kind": "model",
         "publisher": "valeoai",
         "slug": "naf"
@@ -394,7 +376,7 @@
       ],
       "id": "dino",
       "model": {
-        "content_sha256": "5ab6f36558b2f0fd1962d013609c7b5d55eb1565dc33dcb955fd1076536024da",
+        "content_sha256": "9981bfdcf106954140ee85b8b918b7e34d10f21c814dd0b6242ab55eb591cf79",
         "kind": "model",
         "publisher": "facebook",
         "slug": "dinov3-vitl16-pretrain-lvd1689m"

@@ -111,8 +111,17 @@ published-document readers to bypass producer validation (`tests/test_contracts.
 
 | Document | Required structure (read the definitions for typed variants) |
 | --- | --- |
-| Model | `identity`, `metadata`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
-| Recipe | `identity`, `metadata`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
+| Model | `identity`, `requires_token`, `dependencies`, `modalities`, `source`, `format`, `license`, `files`, `capabilities`. |
+| Recipe | `identity`, `models`, `execution`, `runtime`, `topology`, `interfaces`, `validation`, `provenance`, `settings`, `release`; `options` is optional. |
+
+A document holds execution data only. What a person reads about it (Recipe
+title, description, tags and alignment; Model family and model titles,
+description and tags) lives in its display file, `display/recipes/<slug>.json`
+or `display/models/<slug>.json`, one per document and no orphan (`RecipeDisplay`,
+`ModelDisplay`, checked by `validate_library`). A display edit never changes a
+document, its `content_sha256`, its evidence or its proven status; a change that
+alters what runs edits the document. Read display through `qualification/documents.py`
+(`recipe_display`, `model_display`), never off a document.
 
 `settings.kind` selects the typed generation, embedding, job or decision shape;
 never invent an LLM context length for an artifact job. `interfaces` contains one
@@ -122,7 +131,7 @@ OpenAI-compatible HTTP or filesystem job interface. Native decision models use
 extensions (`tests/test_systemone_contract.py`).
 
 Contract compatibility: the library's release version is the contract's
-semantic version (`CONTRACT_VERSION`, release `v2.3.0`). New or changed models
+semantic version (`CONTRACT_VERSION`, release `v3.0.0`). New or changed models
 and recipes never change it: publication updates that release in place and
 records when it was last updated, and vonk-forge follows the newest release
 within its contract major version, so recipe changes never need a vonk-forge
@@ -133,7 +142,7 @@ release. A change to the contract itself bumps `CONTRACT_VERSION`:
   `read_recipe`, which ignore fields they do not know, and identifies each
   document by the `document_sha256` of its published JSON, so an older
   Controller keeps working and picks the field up when vonk-forge upgrades.
-- **Breaking (major, `3.0.0`):** remove or rename a field, make one required,
+- **Breaking (major, for example `3.0.0`, which moved display text out of the documents):** remove or rename a field, make one required,
   or change a field's meaning. Making a required field optional also needs
   consumer compatibility evidence if producers will stop emitting it: ignoring
   unknown fields does not let an old reader accept a missing required field.
@@ -148,8 +157,8 @@ new versions are data; they do not require new Python classes.
 
 `identity.family` is the upstream lineage, not the checkpoint you are adding:
 every quantization, fine-tune and republished checkpoint of Qwen carries
-`{"publisher": "qwen", "slug": "qwen", "title": "Qwen"}`, whoever published
-it; the republisher is the Model's own `identity.publisher`, and the weight
+`{"publisher": "qwen", "slug": "qwen"}` (its title, "Qwen", is the Model
+display's `family_title`), whoever published it; the republisher is the Model's own `identity.publisher`, and the weight
 format belongs in `version`, `variant` and `format`. Reuse the family an
 existing Model of that lineage already declares
 (`rg -l '"slug": "glm"' models/`); invent a new one only for a new lineage,
@@ -1069,7 +1078,7 @@ review policies; no static guard can prove upstream completeness or honesty.
 | Guard/test | Required invariant and repair |
 | --- | --- |
 | `tests/test_contracts.py`, `tests/test_contract_examples.py` | Strict root/field/relationship validation, bounded paths/argv, source/file identities. Correct data to the current definitions; regenerate examples/schemas after a contract change. |
-| `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py` | Every pinned Model/file exists at the exact digest. Catalog the missing immutable Model or update all bindings together. |
+| `tools/check-recipe-model-references`, `tests/test_recipe_model_references.py`, `tests/test_display_split.py` | Every pinned Model/file exists at the exact digest, and every Recipe and Model has exactly one display file and none is orphaned. Catalog the missing immutable Model or update all bindings together; add or remove the display with its document. |
 | `tools/check-model-families`, `tests/test_check_model_families.py` | One consistent upstream lineage. Reuse its family identity instead of republisher/format families. |
 | `tools/check-recipe-topology --base origin/main`, `tests/test_recipe_topology_check.py` | Existing id keeps Spark count. Create a distinct topology id. |
 | `tests/test_recipe_executability.py` | Unique normalized titles, executable metadata/entrypoint, actual shebang/ELF for copied executables. Repair the launcher or metadata; do not publish placeholder tags. |

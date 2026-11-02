@@ -1,0 +1,14 @@
+{
+  "description": "Step 5 Preview Spark immutable upstream checkpoint. Physical Spark qualification pending.",
+  "family_title": "Step 5",
+  "identity": {
+    "publisher": "0xsero",
+    "slug": "step-5-preview-spark-exl3-51a46a7f"
+  },
+  "kind": "model-display",
+  "model_title": "Step 5 Preview Spark",
+  "tags": [
+    "candidate",
+    "step-5"
+  ]
+}
