@@ -12,11 +12,11 @@ from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
     GUARD_BYTES,
     OS_FLOOR_BYTES,
-    OVERHEAD_BYTES,
     SPARK_3542_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
     absolute_kv_need,
     argument_value,
+    budget_margin_bytes,
     cache_bytes,
     calculate_need,
     load_inputs,
@@ -105,7 +105,7 @@ def test_guard_rejects_unsafe_envelopes(defect: str) -> None:
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = (
             SPARK_MEMORY_BYTES * 85 + 99
-        ) // 100 + OVERHEAD_BYTES
+        ) // 100 + budget_margin_bytes(recipe)
     assert_memory_fit(recipe)
     if defect == "torch-only":
         recipe.topology.roles[0].resources.memory.peak_bytes = 118_000_000_000

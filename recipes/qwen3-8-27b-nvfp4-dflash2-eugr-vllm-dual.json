@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker qwen3.8-27b-nvfp4-dflash2 recipe: NVIDIA's Qwen3.8-27B-NVFP4 (ModelOpt NVFP4, Apache-2.0; checkpoint revision 482ca0f3) with the z-lab Qwen3.8-27B-DFlash2 draft model (Apache-2.0; revision 50307d4c) for DFlash2 speculative decoding, served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: trusted remote code, FP8 KV cache, chunked prefill, async scheduling, prefix caching, InstantTensor loading, qwen3 reasoning and qwen3_xml tool parsing, DFlash2 with 8 speculative tokens and a draft tensor-parallel size equal to the target's (the draft model is mounted as a second model), 262,144-token context, eight sequences, 16,384 batched tokens and memory utilisation 0.8 (utilisation is the 4709188d yaml default; eugr 42f62e34, the build the prebuilt image records, had 0.7). This is upstream's cluster mode (tensor parallel 2, draft tensor-parallel size 2); the Controller runs it as native multi-node vLLM (eugr's default no-Ray cluster mode). No upstream performance claims are recorded for this recipe. Upstream repository MIT. Physical Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.8 as in eugr's recipes/qwen3.8-27b-nvfp4-dflash2.yaml at 4709188d (lines 18-21). The steady per-node peak is 0.8 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
+    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker qwen3.8-27b-nvfp4-dflash2 recipe: NVIDIA's Qwen3.8-27B-NVFP4 (ModelOpt NVFP4, Apache-2.0; checkpoint revision 482ca0f3) with the z-lab Qwen3.8-27B-DFlash2 draft model (Apache-2.0; revision 50307d4c) for DFlash2 speculative decoding, served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: trusted remote code, FP8 KV cache, chunked prefill, async scheduling, prefix caching, InstantTensor loading, qwen3 reasoning and qwen3_xml tool parsing, DFlash2 with 8 speculative tokens and a draft tensor-parallel size equal to the target's (the draft model is mounted as a second model), 262,144-token context, eight sequences, 16,384 batched tokens and memory utilisation 0.8 (utilisation is the 4709188d yaml default; eugr 42f62e34, the build the prebuilt image records, had 0.7). This is upstream's cluster mode (tensor parallel 2, draft tensor-parallel size 2); the Controller runs it as native multi-node vLLM (eugr's default no-Ray cluster mode). No upstream performance claims are recorded for this recipe. Upstream repository MIT. Physical Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.8 as in eugr's recipes/qwen3.8-27b-nvfp4-dflash2.yaml at 4709188d (lines 18-21). The steady per-node peak is 0.8 x 130,663,231,488-byte unified memory plus 10.4 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "candidate",
       "dflash2",
@@ -484,7 +484,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
+            "peak_bytes": 114930585191,
             "reserve_bytes": 8000000000
           }
         }
@@ -501,7 +501,7 @@
             "working_bytes": 30000000000
           },
           "memory": {
-            "peak_bytes": 112530585191,
+            "peak_bytes": 114930585191,
             "reserve_bytes": 8000000000
           }
         }

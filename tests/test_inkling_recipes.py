@@ -245,6 +245,15 @@ def test_pinned_sglang_sizing_rejects_failed_fraction_and_holds_the_caps() -> No
         sizer._profile_available_bytes(SGLANG_PRELOAD_FREE_BYTES / gib)
 
 
+def _static_demand(document: dict) -> Decimal | None:
+    """The fraction demand, owned by memory_need.sglang_demand (margin included)."""
+    from vonk_forge_contracts import RecipeDefinition
+
+    from qualification.memory_need import sglang_demand
+
+    return sglang_demand(RecipeDefinition.model_validate(document), None)
+
+
 def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
     """Run the changed-document guard; the empty digest skips the waiver."""
     from catalog_documents import catalog_models
@@ -277,19 +286,11 @@ def _rank_budget_error(path: str = DUAL, **changes: object) -> str | None:
 
 
 def test_rank_budget_guard_accepts_the_new_settings() -> None:
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
-
     assert _rank_budget_error() is None
     recipe = load(DUAL)
-    fraction = next(
-        item["value"]
-        for item in recipe["runtime"]["arguments"]
-        if item["name"] == "mem-fraction-static"
-    )
+    assert _static_demand(recipe) is not None
     for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= (
-            Decimal(fraction) * TOTAL_BYTES + OVERHEAD_BYTES
-        )
+        assert role["resources"]["memory"]["peak_bytes"] >= _static_demand(recipe)
 
 
 def test_rank_budget_guard_rejects_the_failed_settings() -> None:
@@ -410,10 +411,14 @@ def test_dspark_sizing_replay_matches_the_10_28_failure_and_the_fix() -> None:
 def test_uncapped_startup_room_refuses_the_10_28_fraction_and_accepts_the_fix() -> None:
     from decimal import Decimal
 
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
+    from vonk_forge_contracts import RecipeDefinition
+
+    from qualification.memory_need import TOTAL_BYTES, budget_margin_bytes
+
+    margin = budget_margin_bytes(RecipeDefinition.model_validate(load(KV_1M)))
 
     def peak(fraction: str) -> int:
-        return int(Decimal(fraction) * TOTAL_BYTES + OVERHEAD_BYTES) + 1
+        return int(Decimal(fraction) * TOTAL_BYTES + margin) + 1
 
     failed = _rank_budget_error(
         KV_1M,
@@ -501,8 +506,6 @@ def test_kv_1m_keeps_the_creators_fraction_that_leaves_pool_room() -> None:
     total_rest_memory=0.12 GB (mamba_cache_per_req=2.46 MB), then refused to
     start. Each 0.01 of fraction adds 0.01 x pre-load free memory to the rest.
     """
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
-
     recipe = load("recipes/inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual.json")
     fraction = _fraction(recipe)
     assert fraction == _creator_default(
@@ -513,14 +516,10 @@ def test_kv_1m_keeps_the_creators_fraction_that_leaves_pool_room() -> None:
     rest = 0.12e9 + float(fraction - Decimal("0.800230326246")) * pre_load_free
     assert rest > 5e9  # 0.12 GB failed; one request needs 5 slots x 2.46 MB
     for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= (
-            fraction * TOTAL_BYTES + OVERHEAD_BYTES
-        )
+        assert role["resources"]["memory"]["peak_bytes"] >= _static_demand(recipe)
 
 
 def test_mia_dual_keeps_the_creators_fraction() -> None:
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
-
     recipe = load("recipes/inkling-small-nvfp4-sglang-mia-dual.json")
     fraction = _fraction(recipe)
     assert fraction == _creator_default(
@@ -528,23 +527,17 @@ def test_mia_dual_keeps_the_creators_fraction() -> None:
         r'MEM_FRACTION_STATIC="\$\{MEM_FRACTION_STATIC:-([0-9.]+)\}"',
     )
     for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= (
-            fraction * TOTAL_BYTES + OVERHEAD_BYTES
-        )
+        assert role["resources"]["memory"]["peak_bytes"] >= _static_demand(recipe)
 
 
 def test_975b_eight_keeps_its_authored_fraction() -> None:
     """No creator launch script exists for the eight-Spark recipe; 0.80 is the
     fraction it was added with (a9c33133), before #1647 lowered it to 0.634."""
-    from qualification.memory_need import OVERHEAD_BYTES, TOTAL_BYTES
-
     recipe = load("recipes/inkling-975b-a41b-nvfp4-sglang-eight.json")
     fraction = _fraction(recipe)
     assert fraction == Decimal("0.80")
     for role in recipe["topology"]["roles"]:
-        assert role["resources"]["memory"]["peak_bytes"] >= (
-            fraction * TOTAL_BYTES + OVERHEAD_BYTES
-        )
+        assert role["resources"]["memory"]["peak_bytes"] >= _static_demand(recipe)
 
 
 def test_rank_budget_guard_pins_the_capped_edge() -> None:

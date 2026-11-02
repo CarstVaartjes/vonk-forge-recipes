@@ -32,7 +32,7 @@
   "kind": "recipe",
   "metadata": {
     "alignment": "standard",
-    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 1,000,000-token context on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Upstream's 500K rollback profile is a memory option plus the context and concurrency settings (500000 and 8). Same-creator alternatives for this Spark count with the 0731 checkpoint are the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 45.5 tok/s single stream at MTP 2, 2.84M-token KV pool at 1M context) are claims until measured here; Vonk physical two-Spark acceptance is pending. The first request after boot can time out while autotune and warmup finish. Memory follows the creator's settings: gpu-memory-utilization 0.82 with no explicit KV pool and a 1,000,000-token context, as in tonyd2wild's launch/ds4-1m-launch.sh at 7cc2c55c (line 30); upstream notes that higher utilization runs out of memory at this context (README line 110), and its 500K rollback profile (0.80, 500000 tokens, 8 sequences; launch/ds4-500k-launch.sh line 30) is the memory option. The steady per-node peak is 0.82 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 6 GB, and admission keeps the platform memory floor free beside the peak.",
+    "description": "tonyd2wild's original DeepSeek-V4-Flash (pre-0731 release) profile on two Sparks: vLLM tensor parallel 2 without Ray, FP8 KV cache, DeepSeek MTP with two drafted tokens, b12x MoE kernels and a 1,000,000-token context on aidendle94's published vLLM fork image (digest-pinned, used unmodified). Upstream's 500K rollback profile is a memory option plus the context and concurrency settings (500000 and 8). Same-creator alternatives for this Spark count with the 0731 checkpoint are the DSpark recipes. Licences (information only): recipe MIT, model MIT. Upstream figures (about 45.5 tok/s single stream at MTP 2, 2.84M-token KV pool at 1M context) are claims until measured here; Vonk physical two-Spark acceptance is pending. The first request after boot can time out while autotune and warmup finish. Memory follows the creator's settings: gpu-memory-utilization 0.82 with no explicit KV pool and a 1,000,000-token context, as in tonyd2wild's launch/ds4-1m-launch.sh at 7cc2c55c (line 30); upstream notes that higher utilization runs out of memory at this context (README line 110), and its 500K rollback profile (0.80, 500000 tokens, 8 sequences; launch/ds4-500k-launch.sh line 30) is the memory option. The steady per-node peak is 0.82 x 130,663,231,488-byte unified memory plus 10.4 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 6 GB, and admission keeps the platform memory floor free beside the peak.",
     "tags": [
       "deepseek",
       "distributed",
@@ -924,7 +924,7 @@
   },
   "release": {
     "released_at": "2026-07-13",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "runtime": {
     "arguments": [
@@ -1113,7 +1113,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 115143849821,
+            "peak_bytes": 117543849821,
             "reserve_bytes": 6000000000
           }
         }
@@ -1130,7 +1130,7 @@
             "working_bytes": 60000000000
           },
           "memory": {
-            "peak_bytes": 115143849821,
+            "peak_bytes": 117543849821,
             "reserve_bytes": 6000000000
           }
         }
