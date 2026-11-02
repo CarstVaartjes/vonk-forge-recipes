@@ -1217,6 +1217,7 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         }
         if engine is not None:
             recipe["runtime"]["engine"] = engine
+            recipe["topology"] = {"roles": []}
         catalog = refresh.Catalog(root, recipes={"recipe": recipe})
         assessor = refresh.Assessor(catalog, object(), None, {})
         assessor.target = lambda _provider, _repo: refresh.Target(
@@ -1240,13 +1241,19 @@ class VendoredCreatorMoveTests(unittest.TestCase):
 
     def test_a_moved_vllm_document_follows_the_budget_envelope(self) -> None:
         new_yaml = OLD_YAML.replace("8192", "4096")
-        with patch("refresh_upstream.raise_role_peaks") as raised:
+        with (
+            patch("refresh_upstream.RecipeDefinition"),
+            patch("refresh_upstream.raise_role_peaks") as raised,
+        ):
             self.assess(new_yaml, engine="vllm")
             raised.assert_called_once()
         with patch("refresh_upstream.raise_role_peaks") as raised:
             self.assess(new_yaml, engine="sglang")
             raised.assert_not_called()
-        with patch("refresh_upstream.raise_role_peaks", side_effect=ValueError("bad")):
+        with (
+            patch("refresh_upstream.RecipeDefinition"),
+            patch("refresh_upstream.raise_role_peaks", side_effect=ValueError("bad")),
+        ):
             result = self.assess(new_yaml, engine="vllm")
         self.assertFalse(result.mechanical)
         self.assertIn("memory envelope", " ".join(result.reasons))
