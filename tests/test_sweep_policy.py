@@ -136,7 +136,7 @@ def test_group_members_are_back_to_back_with_engine_and_base_image_locality() ->
     order = [
         k.split("/")[1]
         for k in policy.order_queue(
-            plans, by_key, cached={"m", "O"}, sizes={"m": GB, "O": 2 * GB}
+            plans, by_key, ready=set(by_key), sizes={"m": GB, "O": 2 * GB}
         )
     ]
     assert order == [
@@ -155,7 +155,7 @@ def test_revalidation_goes_after_new_work_including_suspect_siblings() -> None:
     order = policy.order_queue(
         plans,
         by_key,
-        cached={"N", "O", "S"},
+        ready=set(by_key),
         sizes={"N": GB, "O": GB, "S": GB},
         revalidate={"vonk-forge/old"},
         deprioritised={"vonk-forge/sib"},
@@ -175,7 +175,7 @@ def test_variants_last_tests_one_recipe_per_model_first() -> None:
     order = policy.order_queue(
         plans,
         by_key,
-        cached={"A", "B"},
+        ready=set(by_key),
         sizes={"A": GB, "B": 2 * GB},
         variants_last=True,
     )

@@ -1078,7 +1078,7 @@ class Sweep:
         self.queue = policy.order_queue(
             plans,
             self.recipes,
-            cached=self.cached_models,
+            ready={k for k, r in self.recipes.items() if self.ready(r)},
             sizes=self.sizes,
             revalidate={
                 k for k, e in self.state.recipes.items() if e.get("revalidate")
@@ -1195,8 +1195,8 @@ class Sweep:
         self.state.data["model_removal_wait"] = wait.model_dump(mode="json")
 
     def _cached_models(self) -> set[str]:
-        """Models on the NAS: the library says so, a download of ours finished, or the library's own
-        assessment of a recipe says its exact assets are ready. Never fleet fit or readiness."""
+        """Models on the NAS: the library says so or a download of ours finished. Per model, never
+        recipe readiness (``ready``) and never fleet fit."""
         cached = {d for d, m in self.models.items() if m.local == "cached"}
         # Completion receipts bridge lagging catalog reads; a later complete
         # model pass can prove eviction. History must not reserve absent bytes.
@@ -1219,9 +1219,6 @@ class Sweep:
                 and self.model_list.complete_started_at > latest.get(digest, 0.0)
             )
         }
-        for recipe in self.recipes.values():
-            if recipe.cache_ready:
-                cached |= set(recipe.model_digests)
         return cached
 
     def _present(self) -> set[str]:
@@ -3153,13 +3150,11 @@ class Sweep:
                 )
 
     def ready(self, recipe: Recipe) -> bool:
-        """The exact NAS assets are there (the download finished).
+        """The exact NAS assets are there: the recipe row says cached, or our download finished.
 
-        Never fleet fit or the library's readiness: those cannot hold while someone else's
+        Never fleet fit: it cannot hold while someone else's
         workload fills the Sparks. ``profile load --review`` decides fit at placement.
         """
-        if recipe.cache_ready:
-            return True
         download = self.state.downloads.get(recipe.key, {})
         accepted = AcceptedRequest.read(download)
         if (
@@ -3173,9 +3168,7 @@ class Sweep:
             )
         ):
             return True
-        return recipe.local == "cached" and all(
-            d in self.cached_models for d in recipe.model_digests
-        )
+        return recipe.local == "cached"
 
     def _review_transport_source(self, recipe: Recipe) -> str:
         # Back off the failed review topology, not a recipe verdict or the
