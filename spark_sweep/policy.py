@@ -72,19 +72,32 @@ def recent_boost(now: float, days: float, factor: float = 1.5) -> Boost:
     return boost
 
 
+def make_priority(keywords: Sequence[str], seed: Collection[str]) -> Boost:
+    """The owner's explicit priority only: keyword families and the operator's seed list.
+
+    Placement uses this alone; a recently updated recipe is worth downloading early but must
+    not jump the queue, leaving a free lane idle for a dual."""
+    keyword = keyword_boost(keywords)
+
+    def priority(recipe: Recipe) -> float:
+        seeded = recipe.slug in seed or recipe.key in seed
+        return keyword(recipe) * (1000.0 if seeded else 1.0)
+
+    return priority
+
+
 def make_boost(
     keywords: Sequence[str],
     seed: Collection[str],
     now: float,
     recent_days: float = 3.0,
 ) -> Boost:
-    """Owner-priority families, recently updated recipes, and the operator's seed list."""
-    keyword = keyword_boost(keywords)
+    """Download order: the owner's priority plus recently updated recipes."""
+    priority = make_priority(keywords, seed)
     recent = recent_boost(now, recent_days)
 
     def boost(recipe: Recipe) -> float:
-        seeded = recipe.slug in seed or recipe.key in seed
-        return keyword(recipe) * recent(recipe) * (1000.0 if seeded else 1.0)
+        return priority(recipe) * recent(recipe)
 
     return boost
 
@@ -205,6 +218,7 @@ def order_queue(
     deprioritised: Collection[str] = (),
     variants_last: bool = False,
     refreshed: Collection[str] = (),
+    boost: Boost = no_boost,
 ) -> list[str]:
     """Cached singles, cached duals, then downloads; smallest models first.
 
@@ -229,11 +243,19 @@ def order_queue(
 
     positions = {key: index for index, key in enumerate(ordered)}
 
-    def priority(key: str) -> tuple[int, int, int, int, int]:
+    def priority(key: str) -> tuple[int, float, int, int, int, int]:
         recipe = recipes[key]
         category = (0 if recipe.node_count == 1 else 1) if key in ready else 2
         size = sum(sizes.get(d, 0) for d in recipe.model_set)
-        return tier(key), category, int(key in tail), size, positions[key]
+        # The owner's explicit priority leads its tier (callers pass ``make_priority``).
+        return (
+            tier(key),
+            -boost(recipe),
+            category,
+            int(key in tail),
+            size,
+            positions[key],
+        )
 
     newest = sorted(
         (key for key in ordered if key in refreshed),
