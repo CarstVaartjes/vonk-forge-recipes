@@ -123,6 +123,36 @@
       "quality_notes": [
         "Carried from the identical document before the display split"
       ]
+    },
+    {
+      "identity": {
+        "content_sha256": "c9fb6d1f027267955fa79bfabb3df39314515cfaa96be06eb28fa20c16699c7f",
+        "source_bundle_sha256": "e49ac8abb0882c000b2a872ef9776e817c893154170e6a57a48fada996de1442",
+        "runtime_image": {
+          "build_key": "5dc4789d3266897fb8b369d2e3054db2057b1af813ae0cf6094c02603e910f2d",
+          "image_digest": "sha256:4194501c705280b2e704526de570b6b58f1f5509b1dd942ac24389a7348215af"
+        },
+        "model_digests": [
+          "788c612ba2913fe19f8b4b7f7694998318909d8c0c98162bb3f55055bd9981fb"
+        ],
+        "required_sparks": 1,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "recipe.runtime_exit",
+      "cause_summary": "Recipe runtime exited; needs fix",
+      "evidence_refs": [
+        "4d0c66ba8bcdb2bce064a0dba0280a78db9774514642069c08580cfdec5b13dd"
+      ],
+      "tested_at": "2026-11-02T17:15:14.832829Z",
+      "platform": {
+        "controller_source_sha": "f145e6f2dbf16e606c96314595962467f732bf2d",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": []
     }
   ]
 }
