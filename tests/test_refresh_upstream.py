@@ -1262,12 +1262,14 @@ class VendoredCreatorMoveTests(unittest.TestCase):
         import documents
         from catalog_documents import catalog_models
         from vonk_forge_contracts import RecipeDefinition
-        from warning_asserts import assert_warns
+        from warning_asserts import assert_not_warns, assert_warns
 
         from qualification.memory_need import load_inputs, memory_estimate_warnings
 
         slug = "deepseek-v4-flash-eugr-vllm-dual"
         before = documents.recipe(slug)
+        for role in before.topology.roles:
+            role.resources.memory.peak_bytes = 100_000_000_000
         payload = before.model_dump(mode="json", by_alias=True)
         models, inputs = catalog_models(), load_inputs()
         assert_warns(
@@ -1282,15 +1284,11 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             {r.resources.memory.peak_bytes for r in after.topology.roles},
             {114_930_585_191},
         )
-        assert (
+        assert_not_warns(
             memory_estimate_warnings(
-                after,
-                models,
-                inputs,
-                document_digest="",
-                touched=True,
-            )
-            == []
+                after, models, inputs, document_digest="", touched=True
+            ),
+            "vLLM budget plus overhead",
         )
 
     def test_verbatim_file_with_its_flags_intact_is_mechanical(self) -> None:

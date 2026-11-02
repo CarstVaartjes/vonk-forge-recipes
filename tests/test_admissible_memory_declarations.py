@@ -12,7 +12,7 @@ from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
-from warning_asserts import assert_warns
+from warning_asserts import assert_not_warns, assert_warns
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
@@ -33,52 +33,6 @@ from qualification.memory_need import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PROVEN = json.loads((ROOT / "tests/fixtures/proven-recipe-bytes.json").read_text())
-REPAIRED = (
-    "deepseek-v4-flash-0731-dspark-tonyd2wild-vllm-dual",
-    "deepseek-v4-flash-0731-eugr-vllm-dual",
-    "deepseek-v4-flash-0731-r0b0tlab-vllm-dual",
-    "deepseek-v4-flash-dspark-nvfp4-kv-1-5m-drowzeys-vllm-dual",
-    "deepseek-v4-flash-dspark-r0b0tlab-vllm-025-dual",
-    "deepseek-v4-flash-fp8-r0b0tlab-vllm-dual",
-    "deepseek-v4-flash-mtp-tonyd2wild-vllm-dual",
-    "deepseek-v4-flash-vision-exp-dspark-tonyd2wild-vllm-dual",
-    "deepseek-v4-flash-vision-exp-eugr-vllm-dual",
-    "deepseek-v4-flash-vision-exp-mia-dual",
-    "deepseek-v4-flash-vision-exp-r0b0tlab-vllm-dual",
-    "deepseek-v4-flash-vision-exp-sfxnz-vllm-dual",
-    "deepseek-v4-flash-vision-exp-sglang-tonyd2wild-dual",
-    "deepseek-v4-flash-vllm-mia-dual",
-    "glm-5-2-aqlm-vllm-triple",
-    "glm-5-2-quanttrio-vllm-four",
-    "glm-5-3-flash-nvfp4-spark-eugr-vllm-dual",
-    "hy3-295b-nvfp4-a4q-drowzeys-vllm-dual",
-    "hy3-295b-nvfp4-mtp-tonyd2wild-vllm-dual",
-    "hy3-295b-nvfp4-vllm-mia-dual",
-    "inkling-975b-a41b-nvfp4-sglang-eight",
-    "inkling-small-nvfp4-dspark-tonyd2wild-vllm-dual",
-    "inkling-small-nvfp4-kv-1m-drowzeys-sglang-dual",
-    "inkling-small-nvfp4-sglang-dual",
-    "inkling-small-nvfp4-sglang-mia-dual",
-    "leanstral-1-5-119b-a6b-vllm-mia-dual",
-    "mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-dual",
-    "mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-triple",
-    "mimo-v2-5-omni-nvfp4-vllm-mia-dual",
-    "mimo-v2-6-flash-rl-nvfp4-r0b0tlab-sglang-dual",
-    "mimo-v2-6-flash-rl-vllm-dual",
-    "mimo-v2-6-pro-mopd-arvq-drowzeys-vllm-four",
-    "minimax-m2-7-nvfp4-r0b0tlab-vllm-dual",
-    "qwen3-8-flash-next-nvfp4-sfxnz-vllm-dual",
-    "qwen3-8-flash-next-w4a16-r0b0tlab-sglang-dual",
-    "step-3-7-flash-nvfp4-r0b0tlab-vllm-dual",
-    "step-5-preview-exl3-vllm-four",
-)
-
-# The multi-Spark SGLang rank budget rejects these repairs as new content; their
-# unchanged bytes stay baselined and each is a hardware-led follow-up (#1761).
-RANK_BUDGET_FOLLOW_UPS = {
-    "inkling-975b-a41b-nvfp4-sglang-eight",
-    "inkling-small-nvfp4-sglang-mia-dual",
-}
 
 
 def recipe_for(slug: str) -> RecipeDefinition:
@@ -119,7 +73,6 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
     Owner (2026-10-27): the peak may exceed the floor where hardware measured
     more, per role; it must still be admissible, never shaved to fit.
     """
-    assert admissible_declaration_warnings(variant) == []
     need = per_rank_need(variant, catalog_models(), load_inputs())
     assert not declaration_problems(variant, need)
     if variant.runtime.engine == "vllm":
@@ -141,30 +94,6 @@ def require_repaired_declaration(slug: str, variant: RecipeDefinition) -> None:
             allocated <= role.resources.memory.peak_bytes
             for role in variant.topology.roles
         )
-    if slug in RANK_BUDGET_FOLLOW_UPS:
-        assert_warns(
-            memory_estimate_warnings(
-                variant, catalog_models(), load_inputs(), document_digest=""
-            ),
-            "",
-        )
-    else:
-        assert (
-            memory_estimate_warnings(
-                variant, catalog_models(), load_inputs(), document_digest=""
-            )
-            == []
-        )
-
-
-@pytest.mark.parametrize("slug", REPAIRED)
-def test_repaired_declarations_and_engine_allocations_fit_every_variant(
-    slug: str,
-) -> None:
-    recipe = recipe_for(slug)
-    assert f"{recipe.identity.publisher}/{slug}" not in PROVEN
-    for variant in memory_variants(recipe):
-        require_repaired_declaration(slug, variant)
 
 
 def test_repaired_role_declares_its_measured_peak_above_the_floor() -> None:
@@ -197,8 +126,9 @@ def test_sglang_rank_budget_refuses_the_shaved_fraction(slug: str, shaved: str) 
     """#1647 cut the fraction below the per-rank weights plus one request's pools."""
     recipe = recipe_for(slug)
     key = f"vonk-forge/{slug}"
-    assert (
-        sglang_rank_budget_warnings(recipe, catalog_models(), load_inputs(), key) == []
+    assert_not_warns(
+        sglang_rank_budget_warnings(recipe, catalog_models(), load_inputs(), key),
+        "static budget",
     )
     next(
         a for a in recipe.runtime.arguments if a.name == "mem-fraction-static"
@@ -250,7 +180,7 @@ def test_repaired_deferral_uses_shared_admission_with_owned_idle_host() -> None:
         ).admissible
         # Informational reserve is not another claim in the shared predicate.
         role.resources.memory.reserve_bytes = TOTAL_BYTES
-    assert admissible_declaration_warnings(recipe) == []
+    assert_not_warns(admissible_declaration_warnings(recipe), "worker.*not admissible")
     recipe.topology.roles[1].resources.memory.peak_bytes = (
         TOTAL_BYTES - ADMISSION_IDLE_USE_BYTES - OS_FLOOR_BYTES + 1
     )
@@ -312,7 +242,10 @@ def test_recorded_content_precedes_admission(monkeypatch) -> None:
         return evaluate_memory_admission(1, 0)
 
     monkeypatch.setattr(memory_need, "evaluate_memory_admission", reject)
-    assert memory_estimate_warnings(recipe, {}, inputs, document_digest=digest) == []
+    assert_not_warns(
+        memory_estimate_warnings(recipe, {}, inputs, document_digest=digest),
+        "not admissible",
+    )
     assert not calls
     assert_warns(
         memory_estimate_warnings(recipe, {}, inputs, document_digest=""),

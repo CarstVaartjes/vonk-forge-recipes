@@ -1595,18 +1595,27 @@ def memory_warnings(
     *,
     touched: bool = False,
 ) -> list[str]:
-    """Catalog estimates and where the declaration disagrees; they never block.
+    """Catalog estimates and where the declaration disagrees, then the notes.
 
     Neither changes hardware qualification: the try decides, and the measured
     use replaces the estimate.
     """
+    return [
+        f"WARNING {item}"
+        for item in memory_estimate_warnings(
+            recipe, models, inputs, document_digest=document_digest, touched=touched
+        )
+    ] + memory_notes(recipe, models, inputs)
+
+
+def memory_notes(
+    recipe: RecipeDefinition,
+    models: Mapping[str, ModelDefinition],
+    inputs: MemoryInputs,
+) -> list[str]:
+    """The informational estimate lines: swap, full workload and loading floor."""
     if recipe.runtime.engine not in {"vllm", "sglang"}:
-        return [
-            f"WARNING {item}"
-            for item in memory_estimate_warnings(
-                recipe, models, inputs, document_digest=document_digest
-            )
-        ] + swap_warnings(recipe)
+        return swap_warnings(recipe)
     missing = {
         selection.model.content_sha256 for selection in recipe.models
     } - models.keys()
@@ -1617,12 +1626,7 @@ def memory_warnings(
                 f"missing Model inputs: {', '.join(sorted(missing))}"
             )
         ] + swap_warnings(recipe)
-    warnings = [
-        f"WARNING {item}"
-        for item in memory_estimate_warnings(
-            recipe, models, inputs, document_digest=document_digest, touched=touched
-        )
-    ] + swap_warnings(recipe)
+    warnings = swap_warnings(recipe)
     for index, variant in enumerate(memory_variants(recipe)):
         prefix = f"WARNING {recipe.identity.slug} [{index}]"
         try:

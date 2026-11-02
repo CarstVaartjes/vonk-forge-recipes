@@ -84,11 +84,11 @@ jobs:
       issues: write
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    # Never marks the publish run failed: refresh-upstream reads the run result.
+    continue-on-error: true
     steps:
       - name: Check out recipes
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
 
       - name: Set up uv and Python
         uses: ./.github/actions/setup-tooling

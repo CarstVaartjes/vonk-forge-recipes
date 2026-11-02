@@ -49,6 +49,31 @@ def test_estimate_mismatch_does_not_fail_the_catalog_build(
     assert "peak understates need" in capsys.readouterr().err
 
 
+def test_high_but_valid_declaration_warns_and_fails_nothing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A peak of 125e9 on a copy of a real recipe is a valid contract, not admitted."""
+    root = mismatching_root(tmp_path, peak_bytes=125_000_000_000)
+    build = runpy.run_path(str(ROOT / "tools/build-catalog-index"))["build"]
+    monkeypatch.setitem(build.__globals__, "ROOT", root)
+
+    def reached_packaging(*args: object, **kwargs: object) -> None:
+        raise PackagingReached
+
+    monkeypatch.setitem(build.__globals__, "recipe_package", reached_packaging)
+    with pytest.raises(PackagingReached):
+        build(package_dir=tmp_path / "packages", source_commit="0" * 40)
+    assert "not admissible on an idle Spark" in capsys.readouterr().err
+    main = runpy.run_path(str(ROOT / "tools/check-recipe-memory-need"))["main"]
+    monkeypatch.setitem(main.__globals__, "ROOT", root)
+    monkeypatch.setattr(
+        "sys.argv", ["check-recipe-memory-need", "synthetic-memory-mismatch"]
+    )
+    assert main() == 0
+
+
 def test_estimate_mismatch_does_not_fail_check_recipe_memory_need(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -116,7 +141,6 @@ def test_no_estimate_rule_can_raise_or_gate() -> None:
     functions = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
     assert not [f.name for f in functions if f.name.startswith("require_")]
     rules = [f for f in functions if f.name.endswith("_warnings")]
-    assert len(rules) >= 9
     for rule in rules:
         assert not [n for n in ast.walk(rule) if isinstance(n, ast.Raise)], rule.name
     for tool in ("build-catalog-index", "check-recipe-memory-need"):

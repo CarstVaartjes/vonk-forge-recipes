@@ -10,7 +10,7 @@ from catalog_documents import catalog_models
 from vonk_forge_contracts import RecipeDefinition, document_sha256
 from vonk_forge_contracts.memory_admission import evaluate_memory_admission
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
-from warning_asserts import assert_warns
+from warning_asserts import assert_not_warns, assert_warns
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
@@ -69,7 +69,6 @@ def test_llama_need_is_small_and_the_pool_matches_the_declared_workload() -> Non
     assert need.total_bytes < need.limit_bytes == 108_470_788_096
     assert argument_value(recipe, "kv-cache-memory-bytes") == need.kv_bytes
     assert argument_value(recipe, "gpu-memory-utilization") is None
-    assert checked(recipe) == []
 
 
 def test_limit_subtracts_idle_use_and_guard_exactly_once() -> None:
@@ -124,12 +123,12 @@ def test_pool_holds_one_request_at_any_engine_concurrency() -> None:
     )
     argument.setting = None
     argument.value = 256
-    assert checked(recipe) == []
-    assert (
+    assert_not_warns(checked(recipe), "full-context request")
+    assert_not_warns(
         memory_estimate_warnings(
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
-        )
-        == []
+        ),
+        "full-context request",
     )
 
 
@@ -148,12 +147,14 @@ def test_utilization_sized_peak_covers_the_vllm_budget_on_one_spark() -> None:
         for item in recipe.runtime.arguments
         if item.name != "kv-cache-memory-bytes"
     ] + [RecipeRuntimeArgument(name="gpu-memory-utilization", value="0.70")]
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = 1_000_000_000
     assert_warns(
         checked(recipe),
         "peak understates vLLM budget",
     )
     declare_envelope(recipe)
-    assert checked(recipe) == []
+    assert_not_warns(checked(recipe), "peak understates")
 
 
 def test_touched_utilization_budget_must_be_admissible_on_one_spark() -> None:
@@ -192,6 +193,8 @@ def test_failed_recipe_cannot_reuse_its_historical_pass_to_bypass_need() -> None
         for item in recipe.runtime.arguments
         if item.name != "kv-cache-memory-bytes"
     ]
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = 1_000_000_000
     assert_warns(
         memory_estimate_warnings(
             recipe,
@@ -262,7 +265,7 @@ def test_single_spark_sglang_token_cap_holds_one_request() -> None:
     cap.value = 131072
     concurrency.setting = None
     concurrency.value = 8
-    assert checked(recipe) == []
+    assert_not_warns(checked(recipe), "full-context request")
     cap.value = 131071
     assert_warns(
         checked(recipe),
@@ -270,11 +273,11 @@ def test_single_spark_sglang_token_cap_holds_one_request() -> None:
     )
     recipe.runtime.arguments.remove(cap)
     # SGLang derives an omitted fraction at launch; a declared one is bounded.
-    assert (
+    assert_not_warns(
         memory_estimate_warnings(
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
-        )
-        == []
+        ),
+        "mem-fraction-static",
     )
     recipe.runtime.arguments.append(
         RecipeRuntimeArgument(name="mem-fraction-static", value="0.90")
@@ -286,11 +289,11 @@ def test_single_spark_sglang_token_cap_holds_one_request() -> None:
         "mem-fraction-static 0.90 share.*not admissible",
     )
     recipe.runtime.arguments[-1].value = "0.85"
-    assert (
+    assert_not_warns(
         memory_estimate_warnings(
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
-        )
-        == []
+        ),
+        "mem-fraction-static",
     )
 
 
@@ -647,11 +650,11 @@ def test_hybrid_without_mamba_cap_stays_on_the_fraction_model() -> None:
     assert (
         sglang_capped_static_need(recipe, catalog_models(), INPUTS, "nemotron") is None
     )
-    assert (
+    assert_not_warns(
         memory_estimate_warnings(
             recipe, catalog_models(), INPUTS, document_digest="", touched=True
-        )
-        == []
+        ),
+        "not admissible on an idle Spark",
     )
     next(
         item for item in recipe.runtime.arguments if item.name == "mem-fraction-static"

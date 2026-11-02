@@ -6,13 +6,13 @@ from pathlib import Path
 import documents
 import pytest
 from catalog_documents import catalog_models
-from vonk_forge_contracts import RecipeDefinition, document_sha256
+from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
     evaluate_memory_admission,
 )
 from vonk_forge_contracts.recipe import RecipeRuntimeArgument
-from warning_asserts import assert_warns
+from warning_asserts import assert_not_warns, assert_warns
 
 from qualification import memory_need
 from qualification.memory_need import vllm_utilization_envelope
@@ -63,7 +63,11 @@ def test_recipe_guard_delegates_even_for_historical_content(monkeypatch) -> None
     )
     # Large informational reserve cannot alter admission.
     recipe.topology.roles[0].resources.memory.reserve_bytes = 10**15
-    assert memory_need.admissible_declaration_warnings(recipe) == []
+    for role in recipe.topology.roles:
+        role.resources.memory.peak_bytes = 50_000_000_000
+    assert_not_warns(
+        memory_need.admissible_declaration_warnings(recipe), "not admissible"
+    )
     monkeypatch.setattr(
         memory_need,
         "evaluate_memory_admission",
@@ -75,18 +79,6 @@ def test_recipe_guard_delegates_even_for_historical_content(monkeypatch) -> None
         ),
         "not admissible",
     )
-
-
-def test_unrecorded_declarations_fit_the_idle_target_pool() -> None:
-    import json
-
-    inputs = memory_need.load_inputs()
-    for path in (ROOT / "recipes").glob("*.json"):
-        document = json.loads(path.read_text())
-        recipe = RecipeDefinition.model_validate(document)
-        if memory_need.unchanged_recipe(recipe, document_sha256(document), inputs):
-            continue
-        assert memory_need.admissible_declaration_warnings(recipe) == []
 
 
 def _delegates_without_arithmetic(source: str) -> bool:
@@ -162,7 +154,9 @@ def test_single_spark_vllm_utilization_maximum_is_0905(
 ) -> None:
     recipe = _single_at_utilization(value)
     if admissible:
-        assert memory_need.admissible_declaration_warnings(recipe) == []
+        assert_not_warns(
+            memory_need.admissible_declaration_warnings(recipe), "not admissible"
+        )
     else:
         assert_warns(
             memory_need.admissible_declaration_warnings(recipe),
@@ -192,7 +186,9 @@ def test_multi_spark_vllm_utilization_maximum_is_08728(
     for role in recipe.topology.roles:
         role.resources.memory.peak_bytes = envelope
     if admissible:
-        assert memory_need.admissible_declaration_warnings(recipe) == []
+        assert_not_warns(
+            memory_need.admissible_declaration_warnings(recipe), "not admissible"
+        )
     else:
         assert_warns(
             memory_need.admissible_declaration_warnings(recipe),

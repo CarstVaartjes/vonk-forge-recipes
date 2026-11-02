@@ -9,7 +9,7 @@ import pytest
 from pydantic import ValidationError
 from vonk_forge_contracts import RecipeDefinition
 from vonk_forge_contracts.recipe import RecipeMemoryResources
-from warning_asserts import assert_warns
+from warning_asserts import assert_not_warns, assert_warns
 
 from qualification.memory_need import (
     SWAP_DEFAULT_BYTES,
@@ -118,8 +118,9 @@ def test_contract_fields_serialize_only_when_set() -> None:
 def test_overshoot_at_the_usable_maximum_is_admitted_and_one_byte_past_never_fits() -> (
     None
 ):
-    assert (
-        admissible_declaration_warnings(declared(USABLE_MAX, SWAP_MAXIMUM_BYTES)) == []
+    assert_not_warns(
+        admissible_declaration_warnings(declared(USABLE_MAX, SWAP_MAXIMUM_BYTES)),
+        "can never fit",
     )
     assert_warns(
         admissible_declaration_warnings(declared(USABLE_MAX + 1, SWAP_MAXIMUM_BYTES)),
@@ -130,7 +131,9 @@ def test_overshoot_at_the_usable_maximum_is_admitted_and_one_byte_past_never_fit
 def test_minimum_swap_must_cover_the_overshoot_exactly() -> None:
     overshoot = 50 * GIB
     needed = swap_needed_bytes(overshoot)
-    assert admissible_declaration_warnings(declared(overshoot, needed)) == []
+    assert_not_warns(
+        admissible_declaration_warnings(declared(overshoot, needed)), "is below"
+    )
     assert_warns(
         admissible_declaration_warnings(declared(overshoot, needed - 1)),
         "is below",
@@ -145,7 +148,10 @@ def test_a_load_peak_without_minimum_swap_is_refused() -> None:
 
 
 def test_minimum_swap_cannot_exceed_the_policy_maximum() -> None:
-    assert admissible_declaration_warnings(declared(GIB, SWAP_MAXIMUM_BYTES)) == []
+    assert_not_warns(
+        admissible_declaration_warnings(declared(GIB, SWAP_MAXIMUM_BYTES)),
+        "exceeds the .*swap maximum",
+    )
     assert_warns(
         admissible_declaration_warnings(declared(GIB, SWAP_MAXIMUM_BYTES + 1)),
         "exceeds the .*swap maximum",

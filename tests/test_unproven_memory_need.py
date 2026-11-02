@@ -17,7 +17,7 @@ from vonk_forge_contracts import (
     RecipeQualificationEvidence,
     document_sha256,
 )
-from warning_asserts import assert_warns
+from warning_asserts import assert_not_warns, assert_warns
 
 from qualification.memory_need import (
     SPARK_MEMORY_BYTES,
@@ -48,14 +48,14 @@ def test_unchanged_untested_document_is_informational(tmp_path, monkeypatch) -> 
     document = json.loads((ROOT / "recipes/d3-edge-vllm-single.json").read_text())
     recipe = RecipeDefinition.model_validate(document)
     assert not hardware_proven(recipe, document_sha256(document))
-    assert (
+    assert_not_warns(
         memory_estimate_warnings(
             recipe,
             catalog_models(),
             load_inputs(),
             document_digest=document_sha256(document),
-        )
-        == []
+        ),
+        "not admissible",
     )
     # Fault injection: an old digest must never waive a modified launch.
     for role in recipe.topology.roles:
@@ -117,7 +117,10 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
         pytest.fail("memory validation must not invoke Git or other subprocesses")
 
     monkeypatch.setattr(subprocess, "run", forbidden)
-    assert memory_estimate_warnings(recipe, {}, inputs, document_digest=digest) == []
+    assert_not_warns(
+        memory_estimate_warnings(recipe, {}, inputs, document_digest=digest),
+        "peak understates|not admissible|full-context request|cannot hold the selected weights|set absolute|mem-fraction-static|state slots",
+    )
     assert not hardware_proven(recipe, digest)
 
     # A known digest cannot hide edited bytes, even with the old parsed model.
@@ -142,7 +145,10 @@ def test_existing_content_needs_no_git(tmp_path, monkeypatch, use_snapshot) -> N
 
     # Restoring exact content restores the informational treatment immediately.
     authored.write_text(source.read_text())
-    assert memory_estimate_warnings(recipe, {}, inputs, document_digest=digest) == []
+    assert_not_warns(
+        memory_estimate_warnings(recipe, {}, inputs, document_digest=digest),
+        "peak understates|not admissible|full-context request|cannot hold the selected weights|set absolute|mem-fraction-static|state slots",
+    )
 
 
 def test_new_recipe_without_git_still_requires_memory_inputs(tmp_path, monkeypatch):
@@ -193,11 +199,11 @@ def test_mosaic_failure_has_honest_demand_without_retuning_siblings() -> None:
         for role in recipe.topology.roles
     )
     # The estimate is informative: the tag no longer gates the document.
-    assert (
+    assert_not_warns(
         memory_estimate_warnings(
             recipe, catalog_models(), load_inputs(), document_digest=""
-        )
-        == []
+        ),
+        "peak understates|not admissible|full-context request|cannot hold the selected weights|set absolute|mem-fraction-static|state slots",
     )
 
 

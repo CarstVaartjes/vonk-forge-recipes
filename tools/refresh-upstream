@@ -3038,6 +3038,11 @@ def ensure_labels() -> None:
             "d93f0b",
             "Upstream moved and a script could not vouch for it",
         ),
+        (
+            LABEL_MEMORY_ESTIMATE,
+            "fbca04",
+            "Declared memory disagrees with the estimate; the try decides",
+        ),
     ):
         gh(
             "label",
@@ -3856,17 +3861,7 @@ def command_memory_estimate_issue(report: Path) -> int:
     A body with findings opens or refreshes the issue; an empty report closes it.
     """
     body = report.read_text(encoding="utf-8")
-    gh(
-        "label",
-        "create",
-        LABEL_MEMORY_ESTIMATE,
-        "--color",
-        "fbca04",
-        "--description",
-        "Declared memory disagrees with the estimate; nothing blocks",
-        "--force",
-        check=False,
-    )
+    ensure_labels()
     if body.strip():
         sync_titled_issue(
             MEMORY_ESTIMATE_TITLE, lambda _previous: body, LABEL_MEMORY_ESTIMATE

@@ -28,8 +28,8 @@ from qualification.memory_need import (
     hardware_proven,
     load_inputs,
     memory_estimate_warnings,
+    memory_notes,
     memory_variants,
-    memory_warnings,
     per_rank_need,
     unchanged_recipe,
 )
@@ -53,12 +53,11 @@ def touched_recipes(root: Path, base: str) -> list[Path]:
 
 
 def report_markdown(mismatches: list[str]) -> str:
-    mismatches = list(dict.fromkeys(mismatches))
     if not mismatches:
         return ""
     return (
         "The recipes are estimates until the hardware try measures them. These "
-        "declared memory values disagree with the estimate; none blocks a recipe.\n\n"
+        "declared memory values disagree with the estimate; none fails a check.\n\n"
         + "\n".join(f"- {item}" for item in mismatches)
         + "\n"
     )
@@ -118,24 +117,26 @@ def main() -> int:
                 f"{key}: maximum loading floor {max(n.peak_bytes for n in needs)} bytes/rank"
             )
             continue
-        mismatches += memory_estimate_warnings(
+        found = memory_estimate_warnings(
             recipe, models, inputs, document_digest=digest, touched=bool(args.base)
         )
+        mismatches += found
+        for warning in found:
+            print(f"WARNING {warning}")
         if recipe.runtime.engine in {"vllm", "sglang"}:
             unchanged = unchanged_recipe(recipe, digest, inputs)
             print(
                 f"{key}: hardware-proven={hardware_proven(recipe, digest)}; unchanged={unchanged}"
             )
-            for warning in memory_warnings(
-                recipe, models, inputs, digest, touched=bool(args.base)
-            ):
-                print(warning)
+        for note in memory_notes(recipe, models, inputs):
+            print(note)
     if args.calibrate:
         print(
             f"Calibration: {proven_count} hardware-pass recipes; {applicable} applicable; {proven_count - applicable} other engines; {flagged} falsely flagged"
         )
+    mismatches = list(dict.fromkeys(mismatches))
     if mismatches:
-        print(f"{len(mismatches)} memory estimate mismatch(es); none blocks")
+        print(f"{len(mismatches)} memory estimate mismatch(es); none fails this check")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary and mismatches:
         with open(summary, "a", encoding="utf-8") as stream:
