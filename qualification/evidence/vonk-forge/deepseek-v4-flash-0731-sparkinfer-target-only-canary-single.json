@@ -4,6 +4,27 @@
   "records": [
     {
       "identity": {
+        "content_sha256": "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7",
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "2ff3291b0fc5bf673c332a4b5779996c2f9c98fae5ffed905206970f390eb5a5"
+      ],
+      "tested_at": "1970-01-01T00:00:00Z",
+      "platform": {
+        "hardware_class": "GB10"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
         "content_sha256": "9c3e1499efda7f7514da5b96aa472b746c0753410283d2186417f33d1d3c8dae",
         "model_digests": [
           "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
@@ -49,6 +70,27 @@
         "hardware_class": "GB10",
         "spark_count": 1,
         "topology": "single"
+      },
+      "quality_notes": []
+    },
+    {
+      "identity": {
+        "content_sha256": "b7ebcf811fe9b007dc650ca111e02e3f7d0f1b587c363357c98c1ce7b0e6bdf7",
+        "model_digests": [
+          "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815"
+        ],
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "platform",
+      "cause_code": "qualification.platform_failure",
+      "cause_summary": "Platform issue under fix",
+      "evidence_refs": [
+        "775f0bdb4f2752cff1f34a7a9e9b21cda609b764154a59092311d923037e733d"
+      ],
+      "tested_at": "2026-10-21T10:30:04.955021Z",
+      "platform": {
+        "hardware_class": "GB10"
       },
       "quality_notes": []
     },
