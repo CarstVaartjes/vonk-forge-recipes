@@ -229,20 +229,20 @@ def test_qualification_evidence_is_the_only_pass_source(tmp_path, monkeypatch) -
     evidence = RecipeQualificationEvidence.model_validate_json(
         (ROOT / "qualification/evidence/vonk-forge" / f"{slug}.json").read_text()
     )
-    passed = next(
-        record
-        for record in reversed(evidence.records)
+    # A later failure of every proof of this document (resolved or not).
+    failures = tuple(
+        record.model_copy(
+            update={
+                "outcome": QualificationOutcome.FAILED,
+                "blame": QualificationBlame.RECIPE,
+                "cause_code": QualificationCauseCode.RECIPE_FAILURE,
+                "cause_summary": QualificationSummary.RECIPE_FAILED,
+                "tested_at": record.tested_at.replace(year=record.tested_at.year + 1),
+            }
+        )
+        for record in evidence.records
         if record.identity.content_sha256 == document_sha256(document)
         and record.outcome == QualificationOutcome.PASSED
-    )
-    failed = passed.model_copy(
-        update={
-            "outcome": QualificationOutcome.FAILED,
-            "blame": QualificationBlame.RECIPE,
-            "cause_code": QualificationCauseCode.RECIPE_FAILURE,
-            "cause_summary": QualificationSummary.RECIPE_FAILED,
-            "tested_at": passed.tested_at.replace(year=passed.tested_at.year + 1),
-        }
     )
     monkeypatch.setattr(memory, "ROOT", tmp_path)
     assert not hardware_proven(recipe, document_sha256(document))
@@ -250,7 +250,7 @@ def test_qualification_evidence_is_the_only_pass_source(tmp_path, monkeypatch) -
     assert hardware_proven(recipe, document_sha256(document))
     path.write_text(
         evidence.model_copy(
-            update={"records": (*evidence.records, failed)}
+            update={"records": (*evidence.records, *failures)}
         ).model_dump_json()
     )
     assert not hardware_proven(recipe, document_sha256(document))
