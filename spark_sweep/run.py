@@ -1078,7 +1078,7 @@ class Sweep:
         self.queue = policy.order_queue(
             plans,
             self.recipes,
-            ready={k for k, r in self.recipes.items() if self.ready(r)},
+            ready=self.ready_keys(key for plan in plans for key in plan.recipes),
             sizes=self.sizes,
             revalidate={
                 k for k, e in self.state.recipes.items() if e.get("revalidate")
@@ -3168,23 +3168,28 @@ class Sweep:
             )
         ):
             return True
-        return recipe.local == "cached"
+        return policy.assets_cached(recipe)
 
     def _review_transport_source(self, recipe: Recipe) -> str:
         # Back off the failed review topology, not a recipe verdict or the
         # whole scheduler. A dual preview outage must leave singles eligible.
         return f"{ReviewInfrastructureSource.TRANSPORT}:{self.cfg.sweep_profile}:{recipe.node_count}"
 
+    def ready_keys(self, keys: Iterable[str]) -> set[str]:
+        """Readiness of the planned recipes only, never the whole catalog."""
+        return {k for k in keys if k in self.recipes and self.ready(self.recipes[k])}
+
     def ready_candidates(self) -> list[Recipe]:
         now = self.clock.now()
         # A shared Controller wait holds only the recipes behind it (their own
         # holds below); unrelated content keeps placing.
         waits = self.controller_wait_holds()
+        ready = self.ready_keys(self.queue)
         out = []
         for key in self.queue:
             recipe = self.recipes.get(key)
             entry = self.state.recipes.get(key, {})
-            if recipe is None or not self.ready(recipe) or key in self.state.slots:
+            if recipe is None or key not in ready or key in self.state.slots:
                 continue
             if (
                 key in waits

@@ -38,6 +38,12 @@ from .lifecycle import LifecycleState
 Boost = Callable[[Recipe], float]
 
 
+def assets_cached(recipe: Recipe) -> bool:
+    """The recipe's own exact NAS assets are there. The one rule behind readiness, queue order,
+    download leads and estimates; never per model (a recipe may use a few files of a larger one)."""
+    return recipe.local == "cached"
+
+
 def no_boost(_recipe: Recipe) -> float:
     return 1.0
 
