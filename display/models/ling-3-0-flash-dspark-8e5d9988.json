@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Ling 3.0 Flash DSpark 8e5d9988 checkpoint.",
+  "family_title": "Ling",
+  "identity": {
+    "publisher": "inclusionai",
+    "slug": "ling-3-0-flash-dspark-8e5d9988"
+  },
+  "kind": "model-display",
+  "model_title": "Ling 3.0 Flash DSpark companion",
+  "tags": [
+    "inclusionai",
+    "ling-3-0",
+    "language",
+    "candidate"
+  ]
+}

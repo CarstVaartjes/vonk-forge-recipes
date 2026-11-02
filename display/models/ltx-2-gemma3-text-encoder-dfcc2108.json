@@ -1,0 +1,18 @@
+{
+  "description": "Exact public Gemma 3 text-encoder and tokenizer closure redistributed with the immutable LTX-2 snapshot.",
+  "family_title": "LTX",
+  "identity": {
+    "publisher": "lightricks",
+    "slug": "ltx-2-gemma3-text-encoder-dfcc2108"
+  },
+  "kind": "model-display",
+  "model_title": "LTX-2",
+  "tags": [
+    "lightricks",
+    "ltx",
+    "gemma-3",
+    "text-encoder",
+    "companion",
+    "candidate"
+  ]
+}

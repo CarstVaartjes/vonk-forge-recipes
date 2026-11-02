@@ -66,13 +66,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "z-lab",
-      "slug": "qwen3-6-27b-dflash",
-      "title": "Qwen3.6 27B DFlash draft"
+      "slug": "qwen3-6-27b-dflash"
     },
     "publisher": "z-lab",
     "slug": "qwen3-6-27b-dflash-09196886",
@@ -87,15 +85,6 @@
     ],
     "spdx": "MIT",
     "url": "https://huggingface.co/z-lab/Qwen3.6-27B-DFlash/blob/0919688658996800f86b895034249700e9481106/README.md"
-  },
-  "metadata": {
-    "description": "Exact public z-lab DFlash draft for Qwen3.6 27B.",
-    "tags": [
-      "z-lab",
-      "qwen3-6-z-lab",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

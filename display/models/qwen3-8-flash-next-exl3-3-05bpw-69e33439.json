@@ -1,0 +1,16 @@
+{
+  "description": "Exact public turboderp EXL3 3.05 bits-per-weight pack (branch 3.05bpw_h5_ng5) of Qwen3.8 Flash Next with MTP layer, read by TensorFold's experimental CUDA EXL3 path.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "turboderp",
+    "slug": "qwen3-8-flash-next-exl3-3-05bpw-69e33439"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 Flash Next EXL3 3.05 bpw",
+  "tags": [
+    "turboderp",
+    "qwen3-8-exl3",
+    "multimodal",
+    "candidate"
+  ]
+}

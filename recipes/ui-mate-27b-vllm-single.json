@@ -30,27 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate single-Spark binding for Tencent's exact UI-Mate 27B checkpoint, official prompt/parser/action harness, and OpenAI-compatible vLLM server. It returns non-actuating action proposals only: a caller or operator must supply the screenshot/action loop and approve and execute actions externally. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "executable",
-      "candidate",
-      "tencent",
-      "ui-mate",
-      "computer-use",
-      "gui-agent",
-      "multimodal",
-      "vision",
-      "vllm",
-      "openai",
-      "single",
-      "spark",
-      "action-proposal",
-      "human-approval-required"
-    ],
-    "title": "UI-Mate 27B BF16 vLLM single Spark"
-  },
   "models": [
     {
       "files": [
@@ -277,7 +256,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "94510ed026f94a7756f7df26a3f8bbe103850ea18e038bd0594b79dd0f5eef5e",
+        "content_sha256": "44d733394d1ac9f4f30cddd44dc1fb543d998bd8202f93732b8d6bcb3a4b9f95",
         "kind": "model",
         "publisher": "tencent",
         "slug": "ui-mate-27b-3ade2378"

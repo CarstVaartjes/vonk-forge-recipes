@@ -1,0 +1,23 @@
+{
+  "alignment": "unspecified",
+  "description": "Installable but not accepted SkinTokens/TokenRig single-Spark Candidate with an exact upstream source build, offline checkpoint binding, and deterministic rigged-GLB exporter. The native ARM64 container build is unvalidated and both that build and a physical GB10 rigged-GLB canary must pass before acceptance.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "skintokens-pytorch-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "executable",
+    "candidate",
+    "three-d",
+    "pytorch-pipeline",
+    "single",
+    "spark",
+    "rigging",
+    "native",
+    "build-unvalidated",
+    "native-build-required",
+    "physical-acceptance-required"
+  ],
+  "title": "SkinTokens / TokenRig pytorch-pipeline single Spark"
+}

@@ -30,26 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable single-Spark Candidate canary for 0xSero's public REAP-K216 EXL3 checkpoint in SparkInfer's physically recorded target-only MODE=mtp0. It preserves the proven padded-FP8 sparse-MLA cache, 262K model limit, four scheduling slots, CUDA graphs, semantic generation, and structured output while omitting the 3.26 GiB K64 DSpark draft load. Its memory envelope is GPU utilization 0.89 of the 130,663,231,488-byte unified memory plus 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; the peak is a budget, not a measured footprint. The creator uses 0.9465, which can never be admitted on a 130,663,231,488-byte node (0.9465 x total + 8 GB exceeds it), so 0.89 is the highest admissible value below it. The earlier 0.85 failed on hardware at 2026-11-01T21:38Z (vLLM: 3.22 GiB KV available, 7.56 GiB needed for the 262144-token max length). Use the original speculative recipe for faster decode after that profile has sufficient memory headroom.",
-    "tags": [
-      "executable",
-      "candidate",
-      "canary",
-      "deepseek",
-      "exl3",
-      "low-memory",
-      "not-default",
-      "openai-compatible",
-      "reap",
-      "single",
-      "sparkinfer",
-      "spark",
-      "target-only"
-    ],
-    "title": "DeepSeek V4 Flash 0731 REAP-K216 SparkInfer target-only canary single Spark"
-  },
   "models": [
     {
       "files": [
@@ -1956,7 +1936,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "93a31dd52fad88645611f67763141e51c9de54239126869b2af3e5bb4a127815",
+        "content_sha256": "12fd6a229340fd80f190e82d8c73b0cc6de037f3c73ed7ca95bb795d1a2932c2",
         "kind": "model",
         "publisher": "0xsero",
         "slug": "deepseek-v4-flash-0731-sparkinfer-exl3-k216-22f28d32"

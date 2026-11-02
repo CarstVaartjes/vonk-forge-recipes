@@ -1,0 +1,16 @@
+{
+  "description": "Exact public Ling 3.0 Flash INT4 7a27e9eb checkpoint.",
+  "family_title": "Ling",
+  "identity": {
+    "publisher": "inclusionai",
+    "slug": "ling-3-0-flash-int4-7a27e9eb"
+  },
+  "kind": "model-display",
+  "model_title": "Ling 3.0 Flash",
+  "tags": [
+    "inclusionai",
+    "ling-3-0",
+    "language",
+    "candidate"
+  ]
+}

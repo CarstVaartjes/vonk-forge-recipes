@@ -176,13 +176,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "unsloth",
-      "slug": "qwen3-6-35b-a3b-nvfp4-fast",
-      "title": "Qwen3.6 35B-A3B NVFP4 Fast"
+      "slug": "qwen3-6-35b-a3b-nvfp4-fast"
     },
     "publisher": "unsloth",
     "slug": "qwen3-6-35b-a3b-nvfp4-fast-11fb1aff",
@@ -197,15 +195,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/main/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public Unsloth mixed-precision Qwen3.6 35B-A3B NVFP4-Fast (FP8 dense groups, NVFP4 experts, trained MTP layer kept) at the revision r0b0tlab reviewed on 2026-07-10.",
-    "tags": [
-      "unsloth",
-      "qwen3-6-unsloth",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

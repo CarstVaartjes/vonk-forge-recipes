@@ -78,26 +78,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Single-Spark NVIDIA MotionBricks job for the Unitree G1 on the exact 45c03fac checkpoints, read from NVIDIA's Git LFS objects. The input is a JSON motion script (per segment: style, duration, heading and an optional speed); there is no text prompt, because the release ships no text encoder. The output is one JSON file with the generated G1 MuJoCo qpos trajectory at 30 fps. Animated GLB and BVH are not offered because the artifact contract has no animation format. The optional speed is upstream-internal and unverified. Physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "motionbricks",
-      "motion-generation",
-      "robotics",
-      "animation",
-      "unitree-g1",
-      "pytorch-pipeline",
-      "single",
-      "spark",
-      "native",
-      "physical-acceptance-required"
-    ],
-    "title": "MotionBricks G1 pytorch-pipeline single Spark"
-  },
   "models": [
     {
       "files": [
@@ -144,7 +124,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "791c69ab530647f86effb2045371a81de3ecd4479524a8831c4287ddfddd363c",
+        "content_sha256": "92698751ef9d86383c88f12b4b5b5d7de79e44842d6a264665d2bacb30e62752",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "motionbricks-g1-45c03fac"

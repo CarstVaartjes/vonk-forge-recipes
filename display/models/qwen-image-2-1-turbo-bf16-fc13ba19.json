@@ -1,0 +1,14 @@
+{
+  "description": "Qwen Image 2.1 Turbo immutable upstream checkpoint. Physical Spark qualification pending.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-2-1-turbo-bf16-fc13ba19"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen Image 2.1 Turbo",
+  "tags": [
+    "candidate",
+    "qwen-image"
+  ]
+}

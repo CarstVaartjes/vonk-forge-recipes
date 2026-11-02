@@ -1,0 +1,16 @@
+{
+  "description": "Exact public turboderp EXL3 3.00 bits-per-weight pack (branch 3.00bpw) of Qwen3.8-27B, read by TensorFold's experimental CUDA EXL3 path.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "turboderp",
+    "slug": "qwen3-8-27b-exl3-3-00bpw-6fe61ad6"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.8 27B EXL3 3.00 bpw",
+  "tags": [
+    "turboderp",
+    "qwen3-8-exl3",
+    "multimodal",
+    "candidate"
+  ]
+}

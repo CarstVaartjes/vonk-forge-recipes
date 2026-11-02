@@ -1,0 +1,16 @@
+{
+  "description": "Pinned SigLIP 2 Base files for the HunyuanVideo-Foley offline image encoder.",
+  "family_title": "SigLIP 2",
+  "identity": {
+    "publisher": "google",
+    "slug": "siglip2-base-patch16-512-a89f5c50"
+  },
+  "kind": "model-display",
+  "model_title": "SigLIP 2 Base Patch16 512",
+  "tags": [
+    "google",
+    "auxiliary",
+    "image",
+    "offline"
+  ]
+}

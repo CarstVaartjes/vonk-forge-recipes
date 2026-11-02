@@ -102,26 +102,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Fast four-step Candidate for one-or-two-reference Qwen Image Edit 2511 jobs on one Spark, pairing the exact official BF16 base with ModelTC/lightx2v's selected LoRA and published shift-3 schedule. Its declared admission envelope is 126.00 GB unified memory including reserve and 150.57 GB peak installation disk; choose FP8mixed ComfyUI when memory or installation headroom matters.",
-    "tags": [
-      "executable",
-      "candidate",
-      "fast",
-      "qwen",
-      "image",
-      "editing",
-      "image-to-image",
-      "lightning",
-      "lora",
-      "diffusers",
-      "bf16",
-      "single",
-      "spark"
-    ],
-    "title": "Qwen Image Edit 2511 Lightning diffusers single Spark"
-  },
   "models": [
     {
       "files": [
@@ -138,7 +118,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "086d6f3e2f1d66f2095e3af9df7bb2c303b6d09a1fa4652496c8c034ca6be4f8",
+        "content_sha256": "ab7dcc8ab2925b0ff4e55ddecd591aa5eeaa456c9f6593e0a83e6f74bd2e3e39",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-lightning"
@@ -499,7 +479,7 @@
       ],
       "id": "dependency-qwen-image-edit-2511-6f3ccc0b",
       "model": {
-        "content_sha256": "095e243ab0065b593c853d2d8ebd64a4e1d47d7abd15abbcac5d9785dda00a57",
+        "content_sha256": "d7944c64933174cd91dba91ad9d7fe83e2c0b4a14232e9e536bf309a8050a9ff",
         "kind": "model",
         "publisher": "qwen",
         "slug": "qwen-image-edit-2511-6f3ccc0b"

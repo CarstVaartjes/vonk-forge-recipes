@@ -1,0 +1,17 @@
+{
+  "description": "Exact executable checkpoint closure at 5948be4c with a digest-bound Gemma 3 companion dependency.",
+  "family_title": "LTX",
+  "identity": {
+    "publisher": "lightricks",
+    "slug": "ltx-2-3-22b-distilled-1-1"
+  },
+  "kind": "model-display",
+  "model_title": "LTX-2.3 22B distilled",
+  "tags": [
+    "lightricks",
+    "ltx",
+    "video",
+    "audio",
+    "candidate"
+  ]
+}

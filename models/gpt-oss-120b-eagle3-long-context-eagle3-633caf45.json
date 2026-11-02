@@ -66,13 +66,11 @@
   "identity": {
     "family": {
       "publisher": "openai",
-      "slug": "gpt-oss",
-      "title": "OpenAI gpt-oss"
+      "slug": "gpt-oss"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "gpt-oss-120b-eagle3-long-context",
-      "title": "gpt-oss 120b Eagle3 long-context drafter"
+      "slug": "gpt-oss-120b-eagle3-long-context"
     },
     "publisher": "nvidia",
     "slug": "gpt-oss-120b-eagle3-long-context-eagle3-633caf45",
@@ -86,16 +84,6 @@
     ],
     "spdx": "LicenseRef-NVIDIA-Open-Model-License",
     "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/"
-  },
-  "metadata": {
-    "description": "Exact public NVIDIA Eagle3 speculative-decoding draft head for gpt-oss-120b (long-context variant).",
-    "tags": [
-      "nvidia",
-      "gpt-oss",
-      "language",
-      "eagle3",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

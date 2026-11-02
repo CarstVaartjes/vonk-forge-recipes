@@ -35,21 +35,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Mia AI Lab's exact two-Spark TensorFold kit at 0e7d421e (engine pin fbbc9713 of BertholomusAI's fork with the kit's patches 0001 to 0038): EAQ v1 EXL3 2.9 bpw checkpoint, 262,144-token shared pool, four streams, target-only decoding, image input, thinking on, and required/named tool-choice enforcement. Carries the kit's verbatim engine patch series (the optional spill tier, KV sharding and EAQ v1.1 mixed-pack features stay off or unused: EAQ v1 remains the default, as in the kit) with kept prompt snapshots disabled. Uses Mia's digest-pinned ARM64 image with its exact serving fork, auxiliary rank-cache tools and patches, plus the pinned kernel kit. Controller-managed read-only models and local Engram shards replace upstream SSH/NFS setup; durable per-rank derived inputs use /outputs/cache. The former 115 GiB declaration combined upstream's 98.9 GiB rank weights with a misidentified 12.2 GiB runtime allowance: 12.2 GiB is the engine's free-memory reserve, not an allocation. This is an estimate; physical qualification on this fleet is pending. The optional gated abliterated overlay is not included. Admission repair: --no-drafts skips DSpark weight loading and draft buffers on BOTH ranks (weights.zig::load, model.zig::open); credit only 3 GiB of the creator's approximately 3.5 GiB draft weights. Reducing --context/--pool from 1,048,576 to 262,144 removes at least another 1 GiB: prompt.zig::Caches.init uses 890 bytes/position (KV sources 2/8/14 at ratio 2 and 20 at ratio 1, packed 512-wide FP4 plus scales and 128-wide index keys), and model.zig allocates 512 RoPE bytes/position; 786,432 * 1,402 = 1,102,577,664 bytes removed, before smaller round/index workspace. Keep the remaining original allowance: 115 - 3 - 1 = 111 GiB (119,185,342,464 bytes) peak/rank. --prompt-cache-gib=0 prevents additional kept-state snapshots. Engram remains disk-backed, no CPU offload or RAM-fraction cap is substituted. This is a conservative source-backed planning estimate, not measured fleet acceptance.",
-    "tags": [
-      "deepseek",
-      "1017",
-      "tensorfold",
-      "exl3",
-      "eaq",
-      "vision",
-      "mia",
-      "spark"
-    ],
-    "title": "DeepSeek V4.1 Flash 1017 EAQ 2.9bpw TensorFold TP2 (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -760,7 +745,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "03b948ab5ac723fd622c05b688d626fea3e362efe182b0564d59395de0b460d9",
+        "content_sha256": "4d55e58e0d0c747a5c6700a7f9c5bb025ef3aced7fc553e5991b4cb51eb33d3a",
         "kind": "model",
         "publisher": "mia-ailab",
         "slug": "deepseek-v4-1-flash-1017-mia-exl3-eaq-v1-2-9bpw-45ee5d0f"
@@ -804,7 +789,7 @@
       ],
       "id": "engram",
       "model": {
-        "content_sha256": "12ed67e42c35dc08489bacb4d87ebd581bfd7360f404e879622f8cdcae9c3ca7",
+        "content_sha256": "d0d4352886a3cba94ad6233c93b594e770d0d8deeeda2331671fbd9deb5d7e1b",
         "kind": "model",
         "publisher": "deepseek-ai",
         "slug": "deepseek-v4-1-flash-1017-native-1bae0e10"

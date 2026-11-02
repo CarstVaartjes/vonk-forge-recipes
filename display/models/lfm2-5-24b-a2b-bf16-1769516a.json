@@ -1,0 +1,14 @@
+{
+  "description": "LFM2.5-24B-A2B immutable upstream checkpoint. Physical Spark qualification pending.",
+  "family_title": "LiquidAI LFM2.5",
+  "identity": {
+    "publisher": "liquidai",
+    "slug": "lfm2-5-24b-a2b-bf16-1769516a"
+  },
+  "kind": "model-display",
+  "model_title": "LFM2.5-24B-A2B",
+  "tags": [
+    "candidate",
+    "lfm2-5"
+  ]
+}

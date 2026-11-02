@@ -45,6 +45,31 @@
       "quality_notes": [
         "Model output differed from the expected answer"
       ]
+    },
+    {
+      "identity": {
+        "content_sha256": "feb6b461ee4cb24c5928ba14c8a718eb8cc11f985efb777b9c0cbd1b3e6cf5a3",
+        "model_digests": [],
+        "required_sparks": 1,
+        "models_resolved": false
+      },
+      "outcome": "passed",
+      "cause_code": "qualification.hardware_pass",
+      "cause_summary": "Hardware checks passed",
+      "evidence_refs": [
+        "f457c2b25afade96ef92534993eb3585fd1846f30a9f88055d6f9812d3f6fe83"
+      ],
+      "tested_at": "2026-10-15T15:10:06.199425Z",
+      "platform": {
+        "controller_source_sha": "a47f4856b87c62a0b38637edb4e431381deb4356",
+        "hardware_class": "GB10",
+        "spark_count": 1,
+        "topology": "single"
+      },
+      "quality_notes": [
+        "Model output differed from the expected answer",
+        "Carried from the identical document before the display split"
+      ]
     }
   ]
 }

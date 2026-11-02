@@ -3,36 +3,36 @@
   "identity": {
     "publisher": "vonk-forge-test",
     "slug": "canonical-synthetic-http-model-v1",
-    "version": "1.0.0",
-    "variant": "http-smoke",
     "family": {
       "publisher": "vonk-forge-test",
-      "slug": "canonical-synthetic-http",
-      "title": "Canonical synthetic HTTP smoke"
+      "slug": "canonical-synthetic-http"
     },
     "model": {
       "publisher": "vonk-forge-test",
-      "slug": "canonical-synthetic-http",
-      "title": "Canonical synthetic HTTP smoke"
-    }
+      "slug": "canonical-synthetic-http"
+    },
+    "version": "1.0.0",
+    "variant": "http-smoke"
   },
-  "metadata": {
-    "description": "Test-only immutable fixture identity for the schema2 HTTP smoke runtime.",
-    "tags": [
-      "test-only",
-      "synthetic",
-      "http"
-    ]
-  },
+  "requires_token": false,
+  "dependencies": [],
   "modalities": [
     "text"
   ],
-  "capabilities": [
-    "text-generation"
-  ],
+  "source": {
+    "repository": "https://huggingface.co/Qwen/Qwen3.6-27B",
+    "revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
+  },
   "format": {
     "precision": "utf8",
     "quantization": "none"
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/LICENSE",
+    "attribution": [
+      "Qwen"
+    ]
   },
   "files": [
     {
@@ -45,17 +45,7 @@
       ]
     }
   ],
-  "dependencies": [],
-  "license": {
-    "spdx": "Apache-2.0",
-    "url": "https://huggingface.co/Qwen/Qwen3.6-27B/blob/6a9e13bd6fc8f0983b9b99948120bc37f49c13e9/LICENSE",
-    "attribution": [
-      "Qwen"
-    ]
-  },
-  "source": {
-    "repository": "https://huggingface.co/Qwen/Qwen3.6-27B",
-    "revision": "6a9e13bd6fc8f0983b9b99948120bc37f49c13e9"
-  },
-  "requires_token": false
+  "capabilities": [
+    "text-generation"
+  ]
 }

@@ -30,27 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "abliterated",
-    "description": "drowzeys' community compile for one Spark: sakamakismile's uniform NVFP4 quantization of AEON-7's uncensored (abliterated) Qwen3.8 27B, IncoAI's DFlash2 draft at n=7, a cybersecurity-unlock chat template, and a 1,048,576-token window by YaRN x4 (nested rope hf-overrides plus a YaRN-extended drafter config, because vLLM does not stretch the draft rope past 262144). Runs AEON-7's aeon-vllm-ultimate as retagged by drowzeys. Defaults follow upstream's 1M seat (serve_b5_on_4.sh): 2 sequences, GPU memory 0.70, 8192 batched tokens, FP8 KV, Triton attention, no prefix caching, sampling temperature 0.6 top-p 0.95 top-k 20 repetition penalty 1.05. Upstream reports (not measured here): needle hit at 999,714 tokens, 1,113,770-token KV pool, cyber 8/8 and refusal 32/32, prose decode about 20 and code about 42 tok/s. Uncensored weights and an unlock template: users supply their own guardrails; upstream ships a Responsible Use agreement (RESPONSIBLE_USE.md, vendored). Licences: weights and draft Apache-2.0 per their model cards, drowzeys repository Apache-2.0 (LICENSE vendored). Not gated. Upstream's second seat (16k, 64 sequences) is available as an option; set the context and concurrency settings to 16384 and 64 with it. Memory follows the creator's settings: gpu-memory-utilization 0.70 and the 1,048,576-token context for the 1M seat, as in drowzeys' serve_b5_on_4.sh at fca3d18b (lines 16 and 43; upstream measured a 1,113,770-token FP8 KV pool, RECIPE.md line 26), and 0.75 for the 16k seat (serve_b5_16k.sh line 12). The steady per-node peak is 0.75 x 130,663,231,488-byte unified memory (the largest seat) plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (the DFlash2 drafter is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak. At the earlier lowered 0.6 the sweep measured 43.35 GiB of KV against the 51.31 GiB one 1M request needs (2026-10-18); 0.70 adds about 12.2 GiB.",
-    "tags": [
-      "abliterated",
-      "candidate",
-      "dflash2",
-      "executable",
-      "mtp",
-      "multimodal",
-      "nvfp4",
-      "qwen3.8",
-      "single",
-      "spark",
-      "tool-use",
-      "uncensored",
-      "vllm",
-      "yarn"
-    ],
-    "title": "Qwen3.8 27B AEON Uncensored NVFP4 DFlash2 768k YaRN vLLM one Spark (drowzeys)"
-  },
   "models": [
     {
       "files": [
@@ -197,7 +176,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "2ef6c0fe156e19aad30257afbe0a00d647bf194e25bde6d54159f93672d92dbc",
+        "content_sha256": "23c60a38b856b8a835062f2c34b1d9f87e52ebf4ec4ba083a61994dd9683381e",
         "kind": "model",
         "publisher": "sakamakismile",
         "slug": "qwen3-8-27b-aeon-ultimate-uncensored-nvfp4-8d5a3317"
@@ -258,7 +237,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "eea2450c8259b3665d06af06bcfd878b5e286420b61a077d21a3739bfbc69e45",
+        "content_sha256": "22501956f70a1f8b5ec97e68a78491d6b621ad267b2fb12347ae619cf0ce17e4",
         "kind": "model",
         "publisher": "incoai",
         "slug": "qwen3-8-27b-dflash2-incoai-015e7956"

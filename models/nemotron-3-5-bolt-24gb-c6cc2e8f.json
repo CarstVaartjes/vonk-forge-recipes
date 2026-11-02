@@ -1077,13 +1077,11 @@
   "identity": {
     "family": {
       "publisher": "nvidia",
-      "slug": "nemotron",
-      "title": "NVIDIA Nemotron"
+      "slug": "nemotron"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "nemotron-3-5-bolt",
-      "title": "NVIDIA Nemotron 3.5 Bolt"
+      "slug": "nemotron-3-5-bolt"
     },
     "publisher": "nvidia",
     "slug": "nemotron-3-5-bolt-24gb-c6cc2e8f",
@@ -1097,15 +1095,6 @@
     ],
     "spdx": "LicenseRef-NVIDIA-Open-Model-License",
     "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB/blob/c6cc2e8ffa353403213d6b9b18aaf8eb684d705a/LICENSE"
-  },
-  "metadata": {
-    "description": "Mixed IQ2_XXS experts, NVFP4 Mamba and Q8_0 attention weights; exact official vLLM profile checkpoint.",
-    "tags": [
-      "nvidia",
-      "nemotron",
-      "language",
-      "candidate"
-    ]
   },
   "modalities": [
     "text"

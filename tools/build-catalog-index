@@ -702,21 +702,41 @@ def build(
     entities = _catalog_entity_documents()
     from vonk_forge_contracts import (
         ModelDefinition,
+        RecipeDefinition,
         document_sha256,
-        model_display_of,
         published_json,
-        recipe_display_of,
     )
+    from vonk_forge_contracts.resolver import validate_library
+
+    from qualification.documents import model_display, recipe_display
+    from qualification.documents import recipe as recipe_of
 
     memory_models = {
         document_sha256(document): ModelDefinition.model_validate(document)
         for document in entities.values()
     }
+    recipe_paths = sorted((ROOT / "recipes").glob("*.json"))
+    try:
+        recipe_displays = {
+            path.stem: recipe_display(path.stem, ROOT)
+            for path in sorted((ROOT / "display/recipes").glob("*.json"))
+        }
+        model_displays = {
+            path.stem: model_display(path.stem, ROOT)
+            for path in sorted((ROOT / "display/models").glob("*.json"))
+        }
+        validate_library(
+            [recipe_of(path.stem, ROOT) for path in recipe_paths],
+            memory_models.values(),
+            recipe_displays,
+            model_displays,
+        )
+    except ValueError as error:
+        raise SystemExit(f"display validation failed: {error}") from error
     memory_inputs = load_inputs()
     recipes: list[dict[str, Any]] = []
-    for path in sorted((ROOT / "recipes").glob("*.json")):
+    for path in recipe_paths:
         document = json.loads(path.read_text(encoding="utf-8"))
-        from vonk_forge_contracts import RecipeDefinition, document_sha256
 
         try:
             recipe = RecipeDefinition.model_validate(document)
@@ -743,7 +763,7 @@ def build(
                 "content_sha256": document_sha256(document),
                 "source_bundle_sha256": metadata["source_bundle_sha256"],
                 "document": document,
-                "display": published_json(recipe_display_of(recipe)),
+                "display": published_json(recipe_displays[path.stem]),
                 "package": metadata,
                 "release": document["release"],
             }
@@ -792,7 +812,7 @@ def build(
             "content_sha256": document_sha256(document),
             "document": document,
             "display": published_json(
-                model_display_of(memory_models[document_sha256(document)])
+                model_displays[str(document["identity"]["slug"])]
             ),
         }
         for document in sorted(

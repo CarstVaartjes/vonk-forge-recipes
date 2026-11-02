@@ -1,0 +1,18 @@
+{
+  "alignment": "unspecified",
+  "description": "sfxnz's TensorFold Python 0.6.6 fork at 19f5478b adds the DeepSeek V4.1 CUDA family and measured decode optimizations; the newer native TensorFold engine does not support this family. EXL3 2bpw MCG/Viterbi experts with the checkpoint's FP8/MXFP8 dense weights and built-in DSpark drafting. Four streams, native 1,048,576-token window, decode-share 0.5 and up to five drafts with confidence 0.15. Thinking is off by default. Text only. The 105 GiB per-node peak is a conservative estimate from the creator's memory observations; physical execution remains unmeasured here.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "deepseek-v4-1-flash-exl3-sfxnz-tensorfold-dual"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "deepseek",
+    "tensorfold",
+    "exl3",
+    "dspark",
+    "spark",
+    "text-only"
+  ],
+  "title": "DeepSeek V4.1 Flash EXL3 TensorFold dual Spark (sfxnz)"
+}

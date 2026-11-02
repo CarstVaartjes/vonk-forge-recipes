@@ -733,7 +733,7 @@ def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
         json.loads(
             (
                 ROOT
-                / "contracts/src/vonk_forge_contracts/schema/model-definition-v2.schema.json"
+                / "contracts/src/vonk_forge_contracts/schema/model-definition-v3.schema.json"
             ).read_text()
         )
         == model_json_schema()
@@ -742,7 +742,7 @@ def test_checked_in_schemas_are_generated_from_the_same_models() -> None:
         json.loads(
             (
                 ROOT
-                / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v2.schema.json"
+                / "contracts/src/vonk_forge_contracts/schema/recipe-definition-v3.schema.json"
             ).read_text()
         )
         == recipe_json_schema()

@@ -1,0 +1,19 @@
+{
+  "description": "Exact Qwen3.5-9B multimodal checkpoint revision for a candidate single-Spark vLLM recipe.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen3-5-9b-c2022362"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.5 9B",
+  "tags": [
+    "qwen",
+    "qwen3-5",
+    "language",
+    "multimodal",
+    "reasoning",
+    "bf16",
+    "spark"
+  ]
+}

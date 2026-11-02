@@ -30,27 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate adaptation of MiaAI-Lab's DGX Spark lane for NVIDIA Nemotron 3.5 Lightning 30B-A3B NVFP4 with NVIDIA's DSpark draft on SGLang (cookbook DSpark operating point: mem-fraction 0.78, block size 3, 1M context). Upstream reports ~4.9M-token pool and 48 concurrent requests on a Spark; those are upstream claims, not measured here. The RTX 5090 / 6000 PRO lanes are not modelled.",
-    "tags": [
-      "candidate",
-      "executable",
-      "nvidia",
-      "nemotron",
-      "nvfp4",
-      "sglang",
-      "openai",
-      "dspark",
-      "speculative-decoding",
-      "reasoning",
-      "tool-use",
-      "high-context",
-      "single",
-      "spark"
-    ],
-    "title": "Nemotron 3.5 Lightning 30B-A3B SGLang DSpark single Spark (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -757,7 +736,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "9dc64a40590bf10ea0236e869907fe640d6f6608ddcba992cef527213d512a9a",
+        "content_sha256": "abf68d0d237a71b899bb9c36911ed46a366194ecaf57ae22e6df6ff0df7be378",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4"
@@ -828,7 +807,7 @@
       ],
       "id": "dependency-nemotron-3-5-lightning-30b-a3b-nvfp4-dspark",
       "model": {
-        "content_sha256": "86cac517fafd82ff540c87d51d9cea62857ab5dd7a3a543b9c993a9a017717a6",
+        "content_sha256": "e58c4a8c609254494c5665fd291af66181e8131fc656d4e011f2895bccbd2940",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-5-lightning-30b-a3b-nvfp4-dspark-6d127b50"

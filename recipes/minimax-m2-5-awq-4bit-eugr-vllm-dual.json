@@ -30,24 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "standard",
-    "description": "eugr's (Eugene Rakhmatulin) spark-vllm-docker minimax-m2.5-awq recipe for cyankiwi's MiniMax-M2.5-AWQ-4bit (AWQ 4-bit compressed-tensors quantization of MiniMax M2.5, MiniMax modified-MIT licence; checkpoint revision 07002ac7) served by vLLM on two Sparks. Runs eugr's published vllm-node image (nightly-20260929, digest pinned; its build-metadata records spark-vllm-docker 42f62e34, vLLM 0.30.1rc1.dev336+gaf5b4857e and FlashInfer 4a638133) with upstream's launch: InstantTensor loading, minimax_m2 reasoning and tool-call parsers, 128,000-token context and memory utilisation 0.8 (upstream defaults); the sequence limit is left to vLLM's default as upstream sets none. Tensor parallel 2 across the pair uses vLLM's native multi-node launch, eugr's default no-Ray cluster mode, so upstream's --distributed-executor-backend ray is dropped. The recipe is cluster-only upstream. No upstream performance claims are recorded. Upstream repository MIT. Physical Spark acceptance is pending. GB10 memory correction: Per-node peak budgets utilization × 130,663,231,488-byte unified memory plus at least 8 GB for CUDA context/graphs, FlashInfer workspace, auxiliary heads and CPU/mmap buffers; 8 GB reserve, with a separate 6 GB OS floor. This is a conservative budget, not a measured footprint.",
-    "tags": [
-      "awq",
-      "candidate",
-      "dual",
-      "eugr",
-      "executable",
-      "minimax",
-      "minimax-m2-5",
-      "reasoning",
-      "spark",
-      "tool-use",
-      "vllm"
-    ],
-    "title": "MiniMax M2.5 AWQ 4bit vLLM two Sparks (eugr)"
-  },
   "models": [
     {
       "files": [
@@ -758,7 +740,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "02870eddf877fd08ddfff06aad1c7e94c0b1984b17e96f315850f7b539bf0f14",
+        "content_sha256": "dc48ec9fb4aa8a91579ce2be04468a79436f236488a274e8932397021a911588",
         "kind": "model",
         "publisher": "cyankiwi",
         "slug": "minimax-m2-5-awq-4bit-07002ac7"

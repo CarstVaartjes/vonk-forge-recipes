@@ -1,0 +1,27 @@
+{
+  "alignment": "standard",
+  "description": "r0b0tlab's SGLang profiles for its own Qwen3.8 27B NVFP4 (W4A16 NVFP4 linear layers, BF16 MTP head, 4 shards, Apache-2.0 card) on one Spark, from r0b0tlab/qwen38-27b-nvfp4-sm121-sglang at 535e580e (MIT). Runs on the official lmsysorg/sglang Qwen3.8-27B day-0 image (arm64 digest of upstream's SM121 campaign) with upstream's DFlash2 overlay (sgl-project/sglang PR #35371 @ c14312a plus r0b0tlab's compat layer for the quantized LM head), FlashInfer attention, auto KV dtype, 262,144-token context, qwen3 reasoning and qwen3_coder tool parsers. Default is DFlash2 K8 with the z-lab draft (Apache-2.0), which upstream calls its production winner; options switch to the RadixArk native DSpark K7 draft (upstream's prior candidate, licence LicenseRef as recorded on the model), the checkpoint's own MTP through EAGLE, or no speculation. Upstream claims (not measured here), think-off dedicated c1: DFlash2 28.38, EAGLE 25.62, DSpark 20.97 tok/s; ladder c8 best 92.05 / 123.90 / 82.53. The upstream repository declares MIT; Qwen base licence terms apply to the weights. Physical Spark acceptance is pending.",
+  "identity": {
+    "publisher": "vonk-forge",
+    "slug": "qwen3-8-27b-nvfp4-mtp-r0b0tlab-sglang-single"
+  },
+  "kind": "recipe-display",
+  "tags": [
+    "candidate",
+    "dflash2",
+    "dspark",
+    "eagle",
+    "executable",
+    "nvfp4",
+    "qwen",
+    "qwen3-8",
+    "r0b0tlab",
+    "reasoning",
+    "sglang",
+    "single",
+    "spark",
+    "tool-use",
+    "w4a16"
+  ],
+  "title": "Qwen3.8 27B NVFP4 MTP SGLang single Spark (r0b0tlab)"
+}

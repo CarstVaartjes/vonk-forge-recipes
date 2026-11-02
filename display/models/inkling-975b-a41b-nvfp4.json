@@ -1,0 +1,16 @@
+{
+  "description": "Exact public NVFP4 42a75a99 checkpoint.",
+  "family_title": "Inkling",
+  "identity": {
+    "publisher": "thinkingmachines",
+    "slug": "inkling-975b-a41b-nvfp4"
+  },
+  "kind": "model-display",
+  "model_title": "Inkling 975B-A41B",
+  "tags": [
+    "thinkingmachines",
+    "inkling",
+    "multimodal",
+    "candidate"
+  ]
+}

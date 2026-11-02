@@ -1,0 +1,16 @@
+{
+  "description": "Exact public RedHatAI compressed-tensors NVFP4 Qwen3.6 35B-A3B (built-in MTP layer) at e850c696, the last revision before r0b0tlab's 2026-05-19 evidence.",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "redhatai",
+    "slug": "qwen3-6-35b-a3b-nvfp4-redhatai-e94a930c"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3.6 35B-A3B NVFP4",
+  "tags": [
+    "redhatai",
+    "qwen3-6-redhatai",
+    "language",
+    "candidate"
+  ]
+}

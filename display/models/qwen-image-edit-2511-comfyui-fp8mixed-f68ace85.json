@@ -1,0 +1,21 @@
+{
+  "description": "Exact Comfy-Org mixed-precision FP8 Qwen Image Edit 2511 transformer for core ComfyUI MixedPrecisionOps, used with the catalog's immutable scaled-FP8 Qwen-VL encoder and Qwen Image VAE companions.",
+  "family_title": "Qwen Image",
+  "identity": {
+    "publisher": "qwen",
+    "slug": "qwen-image-edit-2511-comfyui-fp8mixed-f68ace85"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen Image Edit",
+  "tags": [
+    "qwen",
+    "image",
+    "editing",
+    "comfyui",
+    "fp8",
+    "fp8mixed",
+    "mixed-precision",
+    "candidate",
+    "spark"
+  ]
+}

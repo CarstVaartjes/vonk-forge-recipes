@@ -30,25 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Executable Candidate recipe of NVIDIA's model card for Nemotron 3 Nano 30B-A3B NVFP4: the NGC TensorRT-LLM release image 1.3.0rc13 (pinned by arm64 digest) serving the exact model revision through trtllm-serve with the playbook's LLM API options. Resource envelopes are estimates from the playbook's 0.8-0.9 KV memory fraction, not measurements; physical Spark acceptance is pending.",
-    "tags": [
-      "executable",
-      "candidate",
-      "nvidia",
-      "tensorrt-llm",
-      "openai",
-      "single",
-      "spark",
-      "nemotron",
-      "nvfp4",
-      "autodeploy",
-      "reasoning",
-      "tool-use"
-    ],
-    "title": "Nemotron 3 Nano 30B-A3B NVFP4 TensorRT-LLM AutoDeploy single Spark (NVIDIA model card)"
-  },
   "models": [
     {
       "files": [
@@ -235,7 +216,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "78c8b06c2b95d40529a9836439480ee7b8d1dfa143491d9790ae9170c5c0fefa",
+        "content_sha256": "c5cd10cd0130d73ec7b074cbf0d0da87e8917314472f37b7e4e7ccd5d6655afc",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "nemotron-3-nano-30b-a3b-nvfp4"

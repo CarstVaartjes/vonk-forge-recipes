@@ -9,7 +9,8 @@ import shutil
 import sys
 from pathlib import Path
 
-from vonk_forge_contracts import document_sha256
+from documents import model
+from vonk_forge_contracts import document_sha256, published_json
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tools/check-recipe-model-references"
@@ -27,14 +28,17 @@ RECIPE = "deepseek-v4-1-flash-exl3-mia-dual"
 
 
 def _library(tmp_path: Path) -> Path:
-    for name in ("models", "recipes"):
-        (tmp_path / name).mkdir()
-    shutil.copy(ROOT / "models" / f"{MODEL}.json", tmp_path / "models")
-    shutil.copy(
-        ROOT / "models" / "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6.json",
-        tmp_path / "models",
-    )
+    for name in ("models", "recipes", "display/models", "display/recipes"):
+        (tmp_path / name).mkdir(parents=True)
+    for slug in (MODEL, "deepseek-v4-1-flash-exl3-2-9bpw-64ba41b6"):
+        shutil.copy(ROOT / "models" / f"{slug}.json", tmp_path / "models")
+        shutil.copy(
+            ROOT / "display/models" / f"{slug}.json", tmp_path / "display/models"
+        )
     shutil.copy(ROOT / "recipes" / f"{RECIPE}.json", tmp_path / "recipes")
+    shutil.copy(
+        ROOT / "display/recipes" / f"{RECIPE}.json", tmp_path / "display/recipes"
+    )
     return tmp_path
 
 
@@ -54,6 +58,7 @@ def test_a_complete_library_passes(tmp_path: Path) -> None:
 def test_a_missing_model_document_is_named(tmp_path: Path) -> None:
     library = _library(tmp_path)
     (library / "models" / f"{MODEL}.json").unlink()
+    (library / "display/models" / f"{MODEL}.json").unlink()
     [problem] = references.check(library)
     assert RECIPE in problem
     assert "deepseek-ai/deepseek-v4-1-flash-dba1be0a" in problem
@@ -63,9 +68,8 @@ def test_a_missing_model_document_is_named(tmp_path: Path) -> None:
 def test_a_stale_pinned_revision_is_named(tmp_path: Path) -> None:
     library = _library(tmp_path)
     path = library / "models" / f"{MODEL}.json"
-    document = json.loads(path.read_text())
-    document["metadata"] = {**document.get("metadata", {}), "note": "changed"}
-    path.write_text(json.dumps(document))
+    stale = model(MODEL).model_copy(update={"requires_token": True})
+    path.write_text(json.dumps(published_json(stale)))
     [problem] = references.check(library)
     assert RECIPE in problem
     assert "is pinned at" in problem
@@ -79,3 +83,21 @@ def test_a_selected_file_missing_from_the_model_is_named(tmp_path: Path) -> None
     path.write_text(json.dumps(document))
     problems = references.check(library)
     assert any("has no file not-a-file" in problem for problem in problems)
+
+
+def test_a_document_without_a_display_is_named(tmp_path: Path) -> None:
+    library = _library(tmp_path)
+    (library / "display/recipes" / f"{RECIPE}.json").unlink()
+    [problem] = references.check(library)
+    assert "recipe has no display" in problem
+    assert RECIPE in problem
+
+
+def test_a_display_without_a_document_is_named(tmp_path: Path) -> None:
+    library = _library(tmp_path)
+    shutil.copy(
+        ROOT / "display/recipes" / "d3-flash-vllm-single.json",
+        library / "display/recipes",
+    )
+    [problem] = references.check(library)
+    assert "recipe display has no document" in problem

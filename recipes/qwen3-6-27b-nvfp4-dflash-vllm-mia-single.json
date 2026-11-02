@@ -30,28 +30,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Candidate single-Spark vLLM binding from MiaAI-Lab/Qwen3.6-27B-NVFP4-DFlash-DGX-Spark at c9b07101: NVIDIA's exact Qwen3.6 27B NVFP4 checkpoint with the z-lab Qwen3.6-27B-DFlash draft (10 speculative tokens), TP1, bf16 KV cache, flash_attn, 256K context, 4 sequences, Qwen3 reasoning and qwen3_coder tool parsing, and upstream's froggeric v20 chat template with thinking on and preserved. Upstream runs the mutable vllm/vllm-openai:nightly-aarch64 tag; this recipe pins the arm64 image current on 2026-09-29 (vLLM build 36768d1b), so behaviour can differ from upstream's measurement. Upstream claims (not measured here): about 45.6 tok/s single stream and 102 tok/s aggregate at 4 streams. The upstream README's language-model-only line is not in its start.sh and is not applied; vision serving is unproven. Physical Spark acceptance is pending. Memory follows the creator's settings: gpu-memory-utilization 0.84, as in MiaAI-Lab's start.sh at c9b07101 (line 83). The steady per-node peak is 0.84 x 130,663,231,488-byte unified memory plus 8 GB for CUDA context, FlashInfer workspace, auxiliary heads and CPU/mmap buffers (a speculative draft is profiled inside the utilization budget); the reserve is 8 GB, and admission keeps the platform memory floor free beside the peak.",
-    "tags": [
-      "candidate",
-      "dflash",
-      "executable",
-      "mia",
-      "multimodal",
-      "nvfp4",
-      "pending",
-      "qwen",
-      "qwen3-6",
-      "reasoning",
-      "single",
-      "spark",
-      "tool-use",
-      "vllm",
-      "openai"
-    ],
-    "title": "Qwen3.6 27B NVFP4 DFlash vLLM single Spark (Mia)"
-  },
   "models": [
     {
       "files": [
@@ -228,7 +206,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "0a05f88a5d4cca6c0a888ced3ee3ac3a1594fc2b69869db076c590072443fe1f",
+        "content_sha256": "be6e665f3dcd8d6b2a0d5dce11a675de7aae2a427d818040674d08c4657cb77f",
         "kind": "model",
         "publisher": "nvidia",
         "slug": "qwen3-6-27b-nvfp4-0893e160"
@@ -299,7 +277,7 @@
       ],
       "id": "drafter",
       "model": {
-        "content_sha256": "70fda501bb5e36ebc19a4da3f32cf3009411adc1d1ec1c436fb2b5dbdc1fd122",
+        "content_sha256": "dfb3831c2d90352a64c84580cdbef91d944dac84c7d17bef5bb58c55009ff54a",
         "kind": "model",
         "publisher": "z-lab",
         "slug": "qwen3-6-27b-dflash-09196886"

@@ -37,26 +37,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Reederey87 GLM-5.3-Flash EXL3 dual-Spark source refresh at v1.6.0 (aad6481c94b20ef4853ea07819f3f4ea2ec18f33, 2026-10-05). Keeps the byte-exact Mia-AiLab TR3 4 bpw primary Model and the source launcher’s exact incoai DFlash2 drafter pin 7d74cdd881ed7e32c31175984a67823127b66cfe (non-commercial, no derivatives). The recipe-owned ARM64 ExLlamaV3 build is 1.4.9 5be886578ec80324c2c715269387be2058724b6e (its six EXL3 quant/MoE source files are byte-identical to 1.4.7, preserving the fused-kernel/ticket-scheduler ABI). v1.6.0 adds the prefix-admission and resident-tail scheduler patches, the 50 ms shared-memory recheck and the adaptive-k batch margin and position trim; upstream's release notes name them part of its production image (e3-armc-shm50), so the image bakes the first three and the recipe enables the last two (upstream's measurements, not measured here). The digest-pinned vLLM base image is unchanged. Refreshes the current GLM/DFlash2 overlay/test closure, retains Vonk’s non-root read-only runtime wrapper and build-time patching, and carries upstream’s default-on sparse-cache-miss metric and prompt-token detail reporting. Default serving remains DFlash2 k=7, TP2 across two Sparks, fp8 KV and the existing context envelope. Upstream’s performance and DFlash2 acceptance evidence is not Vonk physical two-Spark acceptance; local build and runtime qualification remain separate gates. The drafter license terms are shown in its Model document. The target-only Model has no historical drafter dependency; cache preparation uses only this recipe's explicitly selected drafter. Default thinking effort is chosen per request (chat template kwargs or sampling parameters), not as a recipe option; server default: reasoning_effort high (upstream production default). GB10 fit: GPU utilization 0.67 bounds the declared 112,544,365,097-byte peak (including draft overhead), above the 112,406,862,720-byte per-rank loading need. The peak retains the platform floor; hardware acceptance remains required.",
-    "tags": [
-      "adaptive-k",
-      "candidate",
-      "dflash2",
-      "exl3",
-      "executable",
-      "glm-5.3",
-      "mtp",
-      "multimodal",
-      "non-commercial-drafter",
-      "reasoning",
-      "spark",
-      "tool-use",
-      "vllm"
-    ],
-    "title": "GLM 5.3 Flash EXL3 DFlash2 vLLM two Sparks (Reederey87)"
-  },
   "models": [
     {
       "files": [
@@ -1625,7 +1605,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a79abb0012ffb54e7e91cb0803b8f8359f3819a7f71a2603902827806b2d6654",
+        "content_sha256": "e0b3bd5867b8f38406b2c1cd45e7c815bad5e8aa3df9a3b5e0e4dc45c5a84ba3",
         "kind": "model",
         "publisher": "mia-ai-lab",
         "slug": "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704"
@@ -1680,7 +1660,7 @@
       ],
       "id": "dependency-glm-5-3-flash-dflash2-7d74cdd8",
       "model": {
-        "content_sha256": "7bcdfc9d917aa669d3e9ec4854d9e1fec2218580bd47b89a9aecb42e0be3cc5c",
+        "content_sha256": "9f7d1f7e8ddbc4d0a4439bc3a78278fd59b283432fa3d92d01b471994c15ae31",
         "kind": "model",
         "publisher": "incoai",
         "slug": "glm-5-3-flash-dflash2-7d74cdd8"

@@ -1,0 +1,17 @@
+{
+  "description": "Exact executable checkpoint closure at dfcc2108 with a digest-bound Gemma 3 companion dependency.",
+  "family_title": "LTX",
+  "identity": {
+    "publisher": "lightricks",
+    "slug": "ltx-2-19b-distilled-fp8"
+  },
+  "kind": "model-display",
+  "model_title": "LTX-2",
+  "tags": [
+    "lightricks",
+    "ltx",
+    "video",
+    "audio",
+    "candidate"
+  ]
+}

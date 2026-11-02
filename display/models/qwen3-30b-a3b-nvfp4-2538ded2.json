@@ -1,0 +1,17 @@
+{
+  "description": "Exact public NVIDIA Model Optimizer NVFP4 quantization of Qwen3 30B-A3B (mixture of experts).",
+  "family_title": "Qwen",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "qwen3-30b-a3b-nvfp4-2538ded2"
+  },
+  "kind": "model-display",
+  "model_title": "Qwen3 30B-A3B",
+  "tags": [
+    "nvidia",
+    "qwen3",
+    "language",
+    "nvfp4",
+    "candidate"
+  ]
+}

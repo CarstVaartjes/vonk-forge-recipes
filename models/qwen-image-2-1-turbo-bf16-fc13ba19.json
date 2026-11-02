@@ -172,13 +172,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen-image",
-      "title": "Qwen Image"
+      "slug": "qwen-image"
     },
     "model": {
       "publisher": "qwen",
-      "slug": "qwen-image-2-1-turbo-bf16",
-      "title": "Qwen Image 2.1 Turbo"
+      "slug": "qwen-image-2-1-turbo-bf16"
     },
     "publisher": "qwen",
     "slug": "qwen-image-2-1-turbo-bf16-fc13ba19",
@@ -192,13 +190,6 @@
     ],
     "spdx": "qwen-research",
     "url": "https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/fc13ba1986fcb905854dc8de2f52eee395f49b5b/LICENSE"
-  },
-  "metadata": {
-    "description": "Qwen Image 2.1 Turbo immutable upstream checkpoint. Physical Spark qualification pending.",
-    "tags": [
-      "candidate",
-      "qwen-image"
-    ]
   },
   "modalities": [
     "image"

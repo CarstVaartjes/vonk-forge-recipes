@@ -186,13 +186,11 @@
   "identity": {
     "family": {
       "publisher": "qwen",
-      "slug": "qwen",
-      "title": "Qwen"
+      "slug": "qwen"
     },
     "model": {
       "publisher": "nvidia",
-      "slug": "qwen3-8-27b-nvfp4",
-      "title": "Qwen3.8 27B NVFP4 (ModelOpt)"
+      "slug": "qwen3-8-27b-nvfp4"
     },
     "publisher": "nvidia",
     "slug": "qwen3-8-27b-nvfp4-nvidia-482ca0f3",
@@ -207,15 +205,6 @@
     ],
     "spdx": "Apache-2.0",
     "url": "https://huggingface.co/nvidia/Qwen3.8-27B-NVFP4/blob/482ca0f3832238542f8f5295dde86b5f22711d80/LICENSE"
-  },
-  "metadata": {
-    "description": "Exact public NVIDIA ModelOpt export of Qwen3.8-27B: NVFP4 MLP and language-model head, FP8 attention and linear-attention projections, with vision tower.",
-    "tags": [
-      "nvidia",
-      "qwen3-8-nvidia",
-      "multimodal",
-      "candidate"
-    ]
   },
   "modalities": [
     "image",

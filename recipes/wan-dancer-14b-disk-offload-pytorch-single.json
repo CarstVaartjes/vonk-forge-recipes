@@ -149,29 +149,6 @@
     }
   ],
   "kind": "recipe",
-  "metadata": {
-    "alignment": "unspecified",
-    "description": "Installable but experimental single-DGX Spark canary for Wan-Dancer's global-planning and local-refinement pipeline. Pinned DiffSynth-Studio disk-maps each safetensors expert, uses a 64 GiB device-residency threshold, and runs the two stages in separate processes. Generation is bounded to 921,600 pixels. The declared 126 GB memory envelope fits Controller admission, but physical OOM, quality, and latency acceptance are mandatory before this can replace the original recipe.",
-    "tags": [
-      "executable",
-      "candidate",
-      "experimental",
-      "disk-offload",
-      "memory-tight",
-      "physical-oom-gated",
-      "not-default",
-      "video",
-      "music-to-dance",
-      "image-to-video",
-      "audio-conditioned",
-      "pytorch",
-      "single",
-      "spark",
-      "offline",
-      "source-bundled"
-    ],
-    "title": "Wan-Dancer 14B DiffSynth disk-offload single Spark canary"
-  },
   "models": [
     {
       "files": [
@@ -408,7 +385,7 @@
       ],
       "id": "primary",
       "model": {
-        "content_sha256": "a3db4842689df3cdea59a14fea3bf6f601e3bb0b00baad5fe1ebada0b2e1f60a",
+        "content_sha256": "989b425ec6ab563e1bacb0625cb7d0d7427a832bd480fd649dce6651c9193e51",
         "kind": "model",
         "publisher": "wan-ai",
         "slug": "wan-dancer-14b"

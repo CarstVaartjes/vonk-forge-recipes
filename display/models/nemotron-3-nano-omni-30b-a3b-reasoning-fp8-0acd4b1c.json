@@ -1,0 +1,17 @@
+{
+  "description": "Exact public NVIDIA Nemotron 3 Nano Omni 30B-A3B Reasoning FP8 checkpoint.",
+  "family_title": "NVIDIA Nemotron",
+  "identity": {
+    "publisher": "nvidia",
+    "slug": "nemotron-3-nano-omni-30b-a3b-reasoning-fp8-0acd4b1c"
+  },
+  "kind": "model-display",
+  "model_title": "Nemotron 3 Nano Omni 30B-A3B",
+  "tags": [
+    "nvidia",
+    "nemotron",
+    "language",
+    "reasoning-fp8",
+    "candidate"
+  ]
+}
