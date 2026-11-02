@@ -138,7 +138,7 @@ jobs:
           uv pip install --python "$test_venv/bin/python" \
             -e contracts \
             'jsonschema>=4.24,<5' \
-            'pytest==9.1.1' 'Pillow==12.0.0' \
+            'pytest==9.1.1' 'pytest-xdist==3.8.0' 'Pillow==12.0.0' \
             'numpy==2.3.5' 'trimesh==4.10.1'
           echo "RECIPE_TEST_PYTHON=$test_venv/bin/python" >> "$GITHUB_ENV"
 
@@ -299,11 +299,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Keep the active test visible and dump stacks for a stalled test;
-          # neither option changes production retry or observation deadlines.
+          # Tests run in parallel (xdist worksteal, as vonk-forge does); a
+          # failure prints its own traceback, so -vv's per-test lines are
+          # dropped. Dump stacks for a stalled test; this does not change
+          # production retry or observation deadlines.
           # Only a real stall dumps: a dump racing a slow test's C code once
           # segfaulted the whole suite (exit 139).
-          "$RECIPE_TEST_PYTHON" -m pytest -vv -o faulthandler_timeout=300
+          "$RECIPE_TEST_PYTHON" -m pytest -n auto --dist worksteal -o faulthandler_timeout=300
 
       - name: Lint the repository with pinned Ruff
         if: steps.scope.outputs.full == 'true'
