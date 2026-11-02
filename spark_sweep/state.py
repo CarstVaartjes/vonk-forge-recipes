@@ -94,6 +94,16 @@ def _adopt_evidence(entry: dict[str, Any]) -> None:
         entry.setdefault("evidence_bundle", entry.pop("evidence"))
 
 
+def _drop_cache_ready(data: dict[str, Any]) -> None:
+    """The library-assessment input is gone; receipts saved with it lose that one key."""
+    for name in ("downloads", "slots", "loads"):
+        for record in data[name].values():
+            content = record.get("accepted_content")
+            recipe = content.get("recipe") if isinstance(content, dict) else None
+            if isinstance(recipe, dict):
+                recipe.pop("cache_ready", None)
+
+
 def _adopt(
     data: dict[str, Any],
     now: float,
@@ -119,6 +129,7 @@ def _adopt(
         else:
             merged[name] = value
     data = merged
+    _drop_cache_ready(data)
     if data["schema"] == SCHEMA:
         return data
     load = data.pop("load", None)

@@ -33,13 +33,17 @@ def make_plan(
     queue = policy.order_queue(
         plans,
         {r.key: r for r in recipes},
-        cached={d for d, m in models.items() if m.local == "cached"},
+        ready={r.key for r in recipes if policy.assets_cached(r)},
         sizes=sizes,
     )
     unique = {d for r in testable for d in r.model_digests}
     unique_bytes = sum(sizes.get(d, 0) for d in unique)
+    # A recipe whose own assets are cached fetches nothing, whatever its models say.
+    fetching = {
+        d for r in testable if not policy.assets_cached(r) for d in r.model_digests
+    }
     cached_bytes = sum(sizes.get(d, 0) for d in unique if d in present)
-    to_download = unique_bytes - cached_bytes
+    to_download = sum(sizes.get(d, 0) for d in fetching if d not in present)
     eta = (
         {"measured": to_download / measured_rate}
         if measured_rate > 0

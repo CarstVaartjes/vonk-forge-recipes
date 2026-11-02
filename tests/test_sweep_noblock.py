@@ -497,3 +497,41 @@ def test_storage_shortfall_never_submits_an_impossible_lane(tmp_path: Path) -> N
     assert not next(
         b for b in restarted._bins() if b.id == "spk_a"
     ).disk_blocked_recipes
+
+
+def test_cached_recipe_is_ready_while_its_native_model_stays_not_cached(
+    tmp_path: Path,
+) -> None:
+    """Catches readiness read per whole model: a recipe using a few files of a larger
+    model is cached by its own row, yet its model row stays not_cached forever."""
+    fake = FakeRecipe("partial", ("m1",), local="cached")
+    other = FakeRecipe("cold", ("m2",), local="not_cached")
+    sweep, _, clock = make_sweep(
+        tmp_path, [fake, other], [FakeModel("m1"), FakeModel("m2")]
+    )
+    sweep.preflight()
+    sweep.refresh_catalog()
+    recipe = sweep.recipes[fake.key]
+    cold = sweep.recipes[other.key]
+    sweep.state.downloads[fake.key] = {
+        "state": "succeeded",
+        "kind": "model",
+        "done_at": clock.now(),
+        "operation_id": "d1",
+    }
+    sweep.model_list.complete_started_at = clock.now() + 60  # a later complete pass
+    assert sweep.models["m1"].local == "not_cached"
+    assert "m1" not in sweep._cached_models()
+    assert sweep.ready(recipe)
+    assert not sweep.ready(cold)
+    sweep.queue = [cold.key, recipe.key]
+    assert sweep.ready_candidates() == [recipe]
+    plans = [
+        policy.GroupPlan(cold.model_set, (cold.key,), 0),
+        policy.GroupPlan(recipe.model_set, (recipe.key,), 0),
+    ]
+    ready = {k for k, r in sweep.recipes.items() if sweep.ready(r)}
+    assert policy.order_queue(plans, sweep.recipes, ready=ready, sizes={}) == [
+        recipe.key,
+        cold.key,
+    ]

@@ -40,6 +40,7 @@ from .policy import (
     Failure,
     GroupPlan,
     RateTracker,
+    assets_cached,
     classify,
     excerpt,
     plan_groups,
@@ -686,12 +687,19 @@ class Prefetcher:
 
         if cached is None:
             cached = {d for d, model in models.items() if model.local == "cached"}
-        needs_model = [plan for plan in plans if plan.digests - cached]
-        model_ready = [plan for plan in plans if not plan.digests - cached]
+
+        def needs_fetch(plan: Any) -> bool:
+            # A recipe whose own assets are cached never fetches, whatever its models say.
+            return bool(plan.digests - cached) and any(
+                not assets_cached(by_key[k]) for k in plan.recipes if k in by_key
+            )
+
+        needs_model = [plan for plan in plans if needs_fetch(plan)]
+        model_ready = [plan for plan in plans if not needs_fetch(plan)]
         window = self.config.group_window
         for plan in needs_model[:window] + model_ready[:window]:
             leads = [by_key[k] for k in plan.recipes if k in by_key]
-            if plan.digests - cached:
+            if needs_fetch(plan):
                 # The model is not on the NAS yet: one lead recipe fetches it; siblings wait for it.
                 if any(
                     self._active(r.key)
@@ -709,7 +717,9 @@ class Prefetcher:
                     (
                         r
                         for r in leads
-                        if placeable(r.key) and self._can_request(r, now)
+                        if not assets_cached(r)
+                        and placeable(r.key)
+                        and self._can_request(r, now)
                     ),
                     None,
                 )
@@ -728,12 +738,12 @@ class Prefetcher:
                 continue
             for recipe in leads:  # model cached: only the runtime image is missing
                 if (
-                    (
-                        recipe.local not in ("cached", "preparing")
+                    not assets_cached(recipe)
+                    and (
+                        recipe.local != "preparing"
                         or self.state.downloads.get(recipe.key, {}).get("state")
                         == "retired"
                     )
-                    and not recipe.cache_ready
                     and image_ops < self.config.max_image_pulls
                     and self._can_request(recipe, now)
                 ):
@@ -790,8 +800,6 @@ class Prefetcher:
                 )
             )
         if active(record.get("state")) and record.get("state") != "retired":
-            return False
-        if recipe.cache_ready:
             return False
         accepted = AcceptedRequest.read(record)
         if accepted is not None and content_identity(
@@ -1001,8 +1009,12 @@ class Prefetcher:
             frozenset(slot.get("digests", ())) for slot in self.state.slots.values()
         }
         for plan in plans:
-            if plan.digests - present and not any(
-                self._active(k) for k in plan.recipes
+            if (
+                plan.digests - present
+                and not any(self._active(k) for k in plan.recipes)
+                and not any(
+                    assets_cached(by_key[k]) for k in plan.recipes if k in by_key
+                )
             ):
                 continue  # not downloaded, not requested: nothing to protect
             # The model is what needs protecting: one recipe per model set, plus any recipe
