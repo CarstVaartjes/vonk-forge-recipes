@@ -734,7 +734,12 @@ def test_evidence_revalidation_of_newest_cached_pass_is_last_even_with_limit(tmp
     assert pending[-1].slug == "passed"
     plans = [policy.GroupPlan(r.model_set, (r.key,), r.artifact_bytes) for r in pending]
     ordered = policy.order_queue(
-        plans, sweep.recipes, cached=set(A.model_digests), sizes={}
+        plans,
+        sweep.recipes,
+        ready={
+            k for k, r in sweep.recipes.items() if r.model_set <= set(A.model_digests)
+        },
+        sizes={},
     )
     ordered.sort(
         key=lambda key: scheduling_priority(

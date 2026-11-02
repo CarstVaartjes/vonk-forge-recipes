@@ -110,6 +110,8 @@ class FakeRecipe:
     minimum_swap: int = 0  # the role's declared minimum swap
     fail_phase: str = "runtime-install"
     fail_download: str | None = None
+    # Its download fetches a few files of its model: the recipe is cached, the model never is.
+    partial_files: bool = False
     fail_download_code: str = "model.download_failed"
     # The Controller holds the model download back for NAS space (a ``download_blocked``
     # backoff) until eviction can free this model digest's files: once its pin, seen in
@@ -555,6 +557,8 @@ class FakeFleet:
                     continue
                 op["state"] = "succeeded"
                 recipe.local = "cached"
+                if recipe.partial_files:
+                    continue  # it fetched some files of the model; the model row stays not cached
                 for digest in recipe.digests:
                     self.models[digest].local = "cached"
         for app in list(self.apps.values()):
