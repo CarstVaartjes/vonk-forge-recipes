@@ -112,7 +112,7 @@ def test_changed_content_is_ordered_newest_first():
     recipes = {item.key: item for item in [older, newest]}
     plans = [policy.GroupPlan(frozenset({"m"}), tuple(recipes), 0)]
     assert policy.order_queue(
-        plans, recipes, cached={"m"}, sizes={}, refreshed=set(recipes)
+        plans, recipes, ready=set(recipes), sizes={}, refreshed=set(recipes)
     ) == [newest.key, older.key]
 
 

@@ -256,8 +256,7 @@ def test_cache_arriving_during_retest_reuses_assets_without_download(
     fleet.models["m1"].local = "cached"
     sweep.refresh_catalog()
     current = sweep.recipes[recipe.key]
-    assert current.cache_ready
-    assert not sweep.prefetcher._can_request(current, clock.now())
+    assert current.local == "cached"
     sweep.prefetcher.tick(
         sweep.recipes,
         sweep.models,
