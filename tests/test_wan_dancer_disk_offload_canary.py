@@ -122,8 +122,7 @@ class WanDancerDiskOffloadAuthorityTests(unittest.TestCase):
         )
 
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        envelope = memory["peak_bytes"] + memory["reserve_bytes"]
-        self.assertEqual(envelope, 126_000_000_000)
+        self.assertEqual(memory["peak_bytes"], 118_000_000_000)
         require_admissible_declaration(RecipeDefinition.model_validate(recipe))
 
         runtime = recipe["runtime"]

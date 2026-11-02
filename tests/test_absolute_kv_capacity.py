@@ -509,21 +509,18 @@ def creator_dual(slug: str, utilization: str) -> RecipeDefinition:
 
 
 @pytest.mark.parametrize(
-    ("slug", "utilization", "reserve_bytes"),
+    ("slug", "utilization"),
     [
         # sparkfix.yaml#L16 at 050f1ba3.
-        (JASL, "0.825", None),
+        (JASL, "0.825"),
         # boot_dflash2.sh#L14 at 22269731; passed on hardware, pool-less (7cb340f9).
-        (GLM_DFLASH2, "0.86", 8_000_000_000),
+        (GLM_DFLASH2, "0.86"),
     ],
 )
 def test_creator_dual_utilizations_are_bounded_by_admission(
-    slug: str, utilization: str, reserve_bytes: int | None
+    slug: str, utilization: str
 ) -> None:
     recipe = creator_dual(slug, utilization)
-    if reserve_bytes is not None:
-        for role in recipe.topology.roles:
-            role.resources.memory.reserve_bytes = reserve_bytes
     assert admissible(recipe)
     require_memory_need(
         recipe, catalog_models(), load_inputs(), document_digest="", touched=True

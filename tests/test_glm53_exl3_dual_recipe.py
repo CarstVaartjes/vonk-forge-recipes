@@ -77,8 +77,7 @@ class Glm53Exl3DualRecipeTests(unittest.TestCase):
             memory = role["resources"]["memory"]
             self.assertGreaterEqual(memory["peak_bytes"], estimated_startup_bytes)
             self.assertGreaterEqual(
-                available_bytes - memory["peak_bytes"],
-                max(controller_floor_bytes, memory["reserve_bytes"]),
+                available_bytes - memory["peak_bytes"], controller_floor_bytes
             )
 
     def test_runtime_tracks_current_upstream_defaults(self) -> None:

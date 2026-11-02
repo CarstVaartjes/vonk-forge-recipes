@@ -10,9 +10,7 @@ from vonk_forge_contracts import RecipeDefinition, document_sha256
 
 from qualification.memory_need import (
     ADMISSION_IDLE_USE_BYTES,
-    GUARD_BYTES,
     OS_FLOOR_BYTES,
-    SPARK_3542_IDLE_AVAILABLE_BYTES,
     SPARK_MEMORY_BYTES,
     absolute_kv_need,
     argument_value,
@@ -81,10 +79,8 @@ def test_incident_recipe_keeps_one_million_context_with_headroom() -> None:
         recipe, catalog_models(), load_inputs()
     )
     memory = recipe.topology.roles[0].resources.memory
-    assert memory.reserve_bytes == GUARD_BYTES
     assert memory.peak_bytes >= need.total_bytes + 3_000_000_000
     assert_memory_fit(recipe)
-    assert memory.peak_bytes + memory.reserve_bytes <= SPARK_3542_IDLE_AVAILABLE_BYTES
 
 
 @pytest.mark.parametrize("defect", ["torch-only", "os-floor", "worker", "implicit"])

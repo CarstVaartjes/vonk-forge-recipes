@@ -489,8 +489,8 @@ unrelated recipe bytes.
 
 Repair unproven, unadmittable declarations by calculated need, preserving absolute
 cache requirements and bounding engine allocation (an absolute pool or an
-admissible engine fraction). Peak plus reserve must fit the owner's
-idle capacity, which already subtracts host use. The catalog guard rejects changed
+admissible engine fraction). The peak must fit the owner's idle capacity,
+which already subtracts host use; `reserve_bytes` is never charged. The catalog guard rejects changed
 declarations that exceed capacity despite a fitting need. Preserve proven bytes,
 calibrate against hardware passes, and leave unknown or oversized needs unresolved.
 

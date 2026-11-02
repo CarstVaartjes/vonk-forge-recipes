@@ -1,8 +1,8 @@
 """Memory envelopes describe demand; exceeding idle capacity is a warning.
 
 The Controller attempts the recipe even when the declared envelope exceeds the
-idle Spark estimate. The declaration must still be internally consistent; this
-producer check must not turn an informational warning into an admission ban.
+idle Spark estimate; this producer check must not turn an informational
+warning into an admission ban.
 """
 
 from __future__ import annotations
@@ -22,39 +22,25 @@ ADMISSIBLE_PEAK_BYTES = int(
 EXCEPTIONS = json.loads((ROOT / "memory-envelope-exceptions.json").read_text())
 
 
-def envelopes() -> dict[str, tuple[int, int, int]]:
-    """Slug to the largest (peak, peak, reserve) of its roles."""
-    result: dict[str, tuple[int, int, int]] = {}
+def peaks() -> dict[str, int]:
+    """Slug to the largest declared peak of its roles."""
+    result: dict[str, int] = {}
     for path in sorted((ROOT / "recipes").glob("*.json")):
         document = json.loads(path.read_text())
         roles = document.get("topology", {}).get("roles", [])
-        values = [
-            (
-                role["resources"]["memory"]["peak_bytes"],
-                role["resources"]["memory"]["peak_bytes"],
-                role["resources"]["memory"]["reserve_bytes"],
-            )
-            for role in roles
-        ]
+        values = [role["resources"]["memory"]["peak_bytes"] for role in roles]
         if values:
             result[path.stem] = max(values)
     return result
 
 
 class MemoryEnvelopeTests(unittest.TestCase):
-    def test_every_envelope_is_consistent(self) -> None:
-        for slug, (_total, peak, reserve) in envelopes().items():
-            with self.subTest(recipe=slug):
-                self.assertGreater(peak, 0)
-                self.assertGreaterEqual(reserve, 0)
-                self.assertLessEqual(reserve, peak)
-
     def test_exceptions_are_current(self) -> None:
-        known = envelopes()
+        known = peaks()
         stale = [
             slug
             for slug in EXCEPTIONS
-            if slug not in known or known[slug][0] <= ADMISSIBLE_PEAK_BYTES
+            if slug not in known or known[slug] <= ADMISSIBLE_PEAK_BYTES
         ]
         self.assertEqual(
             stale,
