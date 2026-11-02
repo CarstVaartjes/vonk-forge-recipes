@@ -712,6 +712,9 @@
     "76a05106ece259be83d1bfea0dcb54f23377864ee60fd321690f35e6698a2af5": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards.",
     "9dc51433e195bc78b5ad846b68643cc0351d3b174e5e4309222d3b7402c83afd": "V4.1 Flash 1017 Engram tables: shards 47/48 of the 1017 native checkpoint (1bae0e10), the only files the 1017 TensorFold recipes select from it as their Engram Model; MiaAI-Lab 1017 engram_backend.py @64b02dea reads layers.*.engram.embed.* from these shards."
   },
+  "disk_resident_bytes": {
+    "3525520c8602d850003eb1960aec0b64291dae33b83f8b65dd639a451df78823": 51200245760
+  },
   "historical_documents": {
     "vonk-forge/agents-a1-nvfp4-r0b0tlab-vllm-single": [
       "304512d867250e6fbea3d7d163d011bb5432361e2f4195c0df7ca2da0b4a6341"
