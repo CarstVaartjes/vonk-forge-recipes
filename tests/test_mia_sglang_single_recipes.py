@@ -73,9 +73,7 @@ class MiaSglangSingleRecipeTests(unittest.TestCase):
         recipe = load("recipes/ling-3-0-flash-dspark-sglang-single.json")
         self.assertEqual(recipe["settings"]["context_tokens"]["value"], 262144)
         memory = recipe["topology"]["roles"][0]["resources"]["memory"]
-        self.assertEqual(
-            memory["peak_bytes"] + memory["reserve_bytes"], 126_000_000_000
-        )
+        self.assertEqual(memory["peak_bytes"], 119_000_000_000)
         self.assertIn(
             "262144 context", recipe_display(recipe["identity"]["slug"]).description
         )

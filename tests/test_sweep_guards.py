@@ -785,3 +785,23 @@ def test_assignment_failures_are_read_only_through_the_typed_resolver() -> None:
     assert not offenders, (
         f"read through policy.assignment_failures instead: {offenders}"
     )
+
+
+def test_every_evidence_exit_has_its_own_status_message():
+    """A new SweepEvidenceExit member must not fall into the generic 'exited N'."""
+    from spark_sweep.evidence_publisher import SweepEvidenceExit
+
+    tree = ast.parse((ROOT / "spark_sweep/evidence_publisher.py").read_text())
+    tick = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef) and node.name == "tick"
+    )
+    mapped = {
+        node.attr
+        for node in ast.walk(tick)
+        if isinstance(node, ast.Attribute)
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "SweepEvidenceExit"
+    }
+    assert mapped == {member.name for member in SweepEvidenceExit}
