@@ -11,6 +11,12 @@ SLUG = "deepseek-v4-flash-0731-sparkinfer-single"
 INPUTS = load_inputs()
 
 
+@pytest.fixture(autouse=True)
+def unrecorded(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Judge the exception alone, even once the evidence records this digest.
+    monkeypatch.setattr(memory_need, "unchanged_recipe", lambda *_: False)
+
+
 def authored() -> tuple[RecipeDefinition, str]:
     # tools/check-recipe-memory-need runs the exact authored digest in CI.
     return documents.recipe(SLUG), memory_need.envelope_exceptions()[
