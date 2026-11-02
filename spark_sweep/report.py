@@ -396,7 +396,12 @@ def render_status(status: Mapping[str, Any]) -> str:
     lines.append("## Lanes")
     for spark, items in status["lanes"].items():
         text = ", ".join(
-            f"{i['recipe']} [{i['phase']} {_duration(i['elapsed_s'])}/{_duration(i['limit_s'])}]"
+            f"{i['recipe']} [{i['phase']} "
+            + (
+                f"window suspended, last progress {_duration(i['silent_s'])} ago]"
+                if i.get("held_receipt")
+                else f"{_duration(i['elapsed_s'])}/{_duration(i['limit_s'])}]"
+            )
             + (
                 f" OVER BUDGET by {_duration(i['over_budget_s'])}"
                 + ("; re-plan due" if i.get("waiting_on") else "")

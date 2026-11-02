@@ -619,18 +619,23 @@ class FakeFleet:
                         self.runs = [
                             r for r in self.runs if r["alias"] != item["alias"]
                         ]
-                        app["reason"] = item["fail"]
-                        # FleetProfileAssignmentFailure: ids and a reason, no alias or node.
-                        app.setdefault("failures", []).append(
-                            {
-                                "queue_index": item["ordinal"] - 1,
-                                "assignment_id": item["assignment_ids"][0],
-                                "operation_id": self._id("operation"),
-                                "reason": item["fail"],
-                                "terminal": True,
-                            }
-                        )
-                        app["phase"] = item["phase"]
+                        # Every application holding the child reports its failure: the
+                        # adopting (newest) one too, not only the one that started it.
+                        for holder in {
+                            id(x): x for x in (app, self._owner_of(app, item))
+                        }.values():
+                            holder["reason"] = item["fail"]
+                            # FleetProfileAssignmentFailure: ids and a reason, no alias or node.
+                            holder.setdefault("failures", []).append(
+                                {
+                                    "queue_index": item["ordinal"] - 1,
+                                    "assignment_id": item["assignment_ids"][0],
+                                    "operation_id": self._id("operation"),
+                                    "reason": item["fail"],
+                                    "terminal": True,
+                                }
+                            )
+                            holder["phase"] = item["phase"]
                     else:
                         for run in self.runs:
                             if run["alias"] == item["alias"]:
@@ -640,6 +645,19 @@ class FakeFleet:
             ):
                 failed = any(a["fail"] for a in app["assign"])
                 app["state"] = "failed" if failed else "succeeded"
+
+    def _owner_of(self, app: dict[str, Any], item: dict[str, Any]) -> dict[str, Any]:
+        """The newest live application holding this child (a newer load adopted it)."""
+        apps = list(self.apps.values())
+        for other in reversed(apps[apps.index(app) + 1 :]):
+            if other["state"] in ("queued", "running") and any(
+                x is item for x in other["assign"]
+            ):
+                return other
+        return app
+
+    def _adopted_by_newer(self, app: dict[str, Any], item: dict[str, Any]) -> bool:
+        return self._owner_of(app, item) is not app
 
     def _admit(self, app: dict[str, Any]) -> None:
         """Admission binds the queued application: its runs and effects start now.
@@ -1304,6 +1322,21 @@ class FakeFleet:
             return self._app_progress(data, a)
         if verb == "cancel":
             app = self.apps.get(a[0])
+            if (
+                app
+                and app["state"] in ("queued", "running")
+                and any(not x["resolved"] for x in app["assign"])
+                and all(
+                    self._adopted_by_newer(app, x)
+                    for x in app["assign"]
+                    if not x["resolved"]
+                )
+            ):
+                # Every live child was adopted by a newer load: not this one's to cancel.
+                return self._error(
+                    "controller.invalid_request",
+                    "workload cancellation scope is invalid",
+                )
             if app and app["state"] in ("queued", "running"):
                 app["state"] = "cancelled"
                 app["cancel"] = True

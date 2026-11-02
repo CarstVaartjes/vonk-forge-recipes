@@ -104,3 +104,21 @@ def test_the_recorded_cancel_requeues_the_recipe_without_a_verdict(
     requeue = next(r for r in rows if r["step"] == "requeue")
     assert "cause operator" in requeue["reason"]
     assert "effect unknown" in requeue["evidence"]["status_reason"]
+
+
+def test_a_request_a_newer_load_adopted_is_not_cancelled(tmp_path: Path) -> None:
+    sweep, fleet, _clock, live = _loading(tmp_path)
+    for slot in sweep.state.slots.values():
+        slot["phase"] = "finished"
+    # A newer profile load adopted this request: its intent owns the workload.
+    sweep.state.data["loads"]["newer"] = {
+        "request_key": "newer",
+        "app_id": "other-app",
+        "state": "queued",
+        "seq": 1,
+        "adopted_requests": [live["request_key"]],
+        "adopted_cleanup_requests": [],
+    }
+    sweep._release_orphan_load(live)
+    assert not [c for c in _cancels(fleet) if live["app_id"] in c]
+    assert live["request_key"] not in sweep.state.data["loads"]
