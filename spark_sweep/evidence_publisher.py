@@ -28,13 +28,17 @@ from .qualification import (
     merge_evidence,
     prune_withdrawn_evidence,
     read_evidence,
+    read_state_evidence,
     write_evidence,
 )
+from .state import write_atomic
 
 BRANCH = "qualification/evidence"
 TITLE = "qualification evidence"
 REPOSITORY = "CarstVaartjes/vonk-forge-recipes"
 _deadline: float | None = None
+UNPUBLISHED_FILE = "unpublished.json"
+PERSISTENT_BATCHES = 2
 
 
 class EvidencePublicationTimeout(TimeoutError):
@@ -96,11 +100,16 @@ def command(cwd: Path, *args: str, timeout: int = 60) -> str:
     return result.stdout.strip()
 
 
-def sync(history: Path, directory: Path) -> SweepEvidenceExit:
+def sync(
+    history: Path, directory: Path, state: Path | None = None
+) -> SweepEvidenceExit:
     """One batch, one branch, one open PR; every subprocess has a deadline."""
     global _deadline
     _deadline = time.monotonic() + 240
     directory.mkdir(parents=True, exist_ok=True)
+    (directory / UNPUBLISHED_FILE).unlink(
+        missing_ok=True
+    )  # only a synced batch reports
     opened = json.loads(
         command(
             directory,
@@ -252,7 +261,12 @@ def sync(history: Path, directory: Path) -> SweepEvidenceExit:
         paths = sorted(history.parent.glob(history.name + ".*"))
         if history.exists():
             paths.append(history)
-        result = backfill(paths, clone)
+        local = read_state_evidence(state) if state is not None else {}
+        result = backfill(paths, clone, local)
+        # Counted before the merge, on the fresh clone; reported, never a blocker.
+        write_atomic(
+            directory / UNPUBLISHED_FILE, json.dumps({"count": result.unpublished})
+        )
         if result.rejected:
             print(
                 f"evidence: rejected {result.rejected} malformed historical rows",
@@ -350,8 +364,17 @@ def sync(history: Path, directory: Path) -> SweepEvidenceExit:
 class EvidencePublisher:
     """Tick-driven child process; never wait on git or GitHub in a sweep lane."""
 
-    def __init__(self, history: Path, directory: Path, script: Path) -> None:
+    def __init__(
+        self,
+        history: Path,
+        directory: Path,
+        script: Path,
+        state: Path | None = None,
+    ) -> None:
         self.history = history
+        self.state = state
+        self.unpublished = 0
+        self.unpublished_batches = 0
         self.directory = directory
         self.script = script
         self.process: subprocess.Popen | None = None
@@ -359,6 +382,28 @@ class EvidencePublisher:
         self.started_at = 0.0
         self.message = "evidence publication pending"
         self._output: TextIO | None = None
+
+    def _read_unpublished(self) -> None:
+        try:
+            count = int(
+                json.loads((self.directory / UNPUBLISHED_FILE).read_text())["count"]
+            )
+        except (OSError, ValueError, KeyError, TypeError):
+            return  # this batch did not reach backfill: neither counted nor reset
+        self.unpublished = count
+        self.unpublished_batches = self.unpublished_batches + 1 if count else 0
+        if count:
+            self.message += f"; {count} resolved sweep records were missing from main"
+
+    @property
+    def alert(self) -> str | None:
+        """Raised only when the same gap persists across batches: the publisher is broken."""
+        if self.unpublished_batches < PERSISTENT_BATCHES:
+            return None
+        return (
+            f"evidence publisher: {self.unpublished} resolved sweep records still "
+            f"missing from main after {self.unpublished_batches} batches"
+        )
 
     def tick(self, now: float) -> None:
         if self.process is not None:
@@ -378,6 +423,7 @@ class EvidencePublisher:
                 if code == SweepEvidenceExit.FAILING_CHECK
                 else f"evidence publisher exited {code}; re-plan in 300s (see publisher.log)"
             )
+            self._read_unpublished()
             if self._output is not None:
                 self._output.close()
             self.process = None
@@ -397,6 +443,7 @@ class EvidencePublisher:
                     str(self.history),
                     "--work-dir",
                     str(self.directory),
+                    *(["--state", str(self.state)] if self.state else []),
                 ],
                 stdout=self._output,
                 stderr=self._output,

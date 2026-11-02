@@ -392,6 +392,7 @@ class Sweep:
             log.path,
             config.state_dir / "evidence-publisher",
             Path(__file__).resolve().parents[1] / "tools/sync-qualification-evidence",
+            state.path,
         )
         for row in log.entries():
             self._remember_qualification(row)

@@ -15,8 +15,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--history", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
+    parser.add_argument("--state", type=Path, default=None)
     args = parser.parse_args()
-    raise SystemExit(sync(args.history, args.work_dir))
+    raise SystemExit(sync(args.history, args.work_dir, args.state))
 
 
 if __name__ == "__main__":

@@ -30,7 +30,12 @@ from . import policy, verdict
 from .evidence_contract import read_result
 from .identity import recorded_identity
 from .lifecycle import ACTIVE
-from .qualification import current_identity, from_history, merge_evidence, read_evidence
+from .qualification import (
+    current_identity,
+    from_history,
+    merge_evidence,
+    read_evidence,
+)
 from .removal_contract import RecipeVerdict, RemovalWait
 from .state import write_atomic
 
@@ -250,6 +255,7 @@ def build_status(sweep: Sweep) -> dict[str, Any]:
         ),
         "alerts": list(data.get("alerts") or [])
         + ([sweep.stall_reason] if sweep.stall_reason else [])
+        + ([sweep.evidence_publisher.alert] if sweep.evidence_publisher.alert else [])
         + [
             f"ESCALATION: {source} has not recovered since {item['since']}; "
             f"{item['dependency']}"
