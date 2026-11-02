@@ -2,7 +2,10 @@ name: Publish recipe library release
 
 # The library release version is the contract version (v<CONTRACT_VERSION>).
 # Recipe changes update that release in place; an additive contract change
-# (minor) or a breaking one (major) creates a new release.
+# (minor) or a breaking one (major) creates a new release. Its tag stays on the
+# commit that first published the contract version: consumers address the
+# release by tag name and take the commit from the signed bundle, and
+# GITHUB_TOKEN may not move a ref across workflow-file changes.
 #
 # This is the only workflow that runs on a push to main: it orchestrates the
 # validation jobs (the platform validator, the producer checks reused from
@@ -250,11 +253,6 @@ jobs:
           cp "$ATTESTATION_BUNDLE" "$release/SHA256SUMS.sigstore.json"
           title="Vonk Forge recipes $RELEASE_TAG (updated $UPDATED_AT)"
           notes="Recipe library for contract ${RELEASE_TAG#v}, updated $UPDATED_AT from $GITHUB_SHA."
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag --force --annotate "$RELEASE_TAG" \
-            --message "Vonk Forge recipe library $RELEASE_TAG, updated $UPDATED_AT" "$GITHUB_SHA"
-          git push --force origin "refs/tags/$RELEASE_TAG"
           # One asset holds the whole signed library: SHA256SUMS, its Sigstore
           # bundle and every listed file, deterministically. It is the release's
           # only asset.
