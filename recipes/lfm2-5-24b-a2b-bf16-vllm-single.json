@@ -288,7 +288,7 @@
       },
       {
         "name": "reasoning-parser",
-        "value": "qwen3"
+        "value": "deepseek_r1"
       }
     ],
     "engine": "vllm",

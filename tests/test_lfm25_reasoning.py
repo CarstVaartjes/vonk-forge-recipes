@@ -23,9 +23,10 @@ def test_lfm25_serves_parsed_reasoning_and_keeps_strict_smoke() -> None:
     arguments = {
         arg["name"]: arg.get("value") for arg in recipe["runtime"]["arguments"]
     }
-    # The pinned template opens <think>; qwen3 starts in reasoning mode and
-    # consumes </think> even though the opening token is in the prompt.
-    assert arguments["reasoning-parser"] == "qwen3"
+    # The pinned template always opens <think> and ignores enable_thinking;
+    # deepseek_r1 splits on </think> and does not read that switch (qwen3
+    # honours enable_thinking=false and leaks reasoning into content).
+    assert arguments["reasoning-parser"] == "deepseek_r1"
     assert arguments["tool-call-parser"] == "lfm2"
     assert "reasoning" in display.tags
     assert "A323" in cases
