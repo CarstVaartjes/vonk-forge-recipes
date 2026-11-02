@@ -372,12 +372,12 @@
               "value": "{\"method\":\"mtp\",\"num_speculative_tokens\":3}"
             }
           ],
-          "default": true,
-          "help": "Upstream default: speculative-config method mtp with 3 speculative tokens.",
+          "help": "Upstream default: speculative-config method mtp with 3 speculative tokens. Named/required tool_choice returns corrupt arguments on this image (vLLM before #44297).",
           "label": "MTP, 3 tokens",
           "value": "mtp3"
         },
         {
+          "default": true,
           "help": "No speculative decoding (upstream's no-mtp mode).",
           "label": "Off (baseline)",
           "value": "off"
