@@ -754,16 +754,26 @@ class MergeGateTests(unittest.TestCase):
             refresh.git("add", "recipe.json", cwd=root)
             refresh.git("commit", "-qm", "Base", cwd=root)
             (root / "recipe.json").write_bytes(b"newer main\n")
+            (root / "added.json").write_bytes(b"main adds\n")
+            refresh.git("add", "added.json", cwd=root)
             refresh.git("commit", "-qam", "Main moves", cwd=root)
             main = refresh.git("rev-parse", "HEAD", cwd=root)
             refresh.git("update-ref", "refs/remotes/origin/main", main, cwd=root)
             refresh.git("switch", "-q", "--detach", "HEAD~1", cwd=root)
             (root / "recipe.json").write_bytes(b"left behind\n")
             refresh.git("add", "-A", cwd=root)
+            # An edit that raised before `git add -A` leaves a file untracked at a
+            # path the moved main tracks.
+            (root / "added.json").write_bytes(b"half applied\n")
 
             number = refresh.publish_mechanical(root, assessment, refresh.Summary())
 
             self.assertEqual(refresh.git("rev-parse", "HEAD", cwd=root), main)
+            self.assertEqual((root / "added.json").read_bytes(), b"main adds\n")
+            self.assertEqual(
+                refresh.git("diff", "--name-only", "origin/main", cwd=root),
+                "recipe.json",
+            )
             self.assertEqual(number, 7)
 
     def test_existing_armed_pr_does_not_block_a_disjoint_mechanical_merge(self) -> None:
