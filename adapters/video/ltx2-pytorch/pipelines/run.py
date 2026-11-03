@@ -34,7 +34,7 @@ GEMMA_REQUIRED_PATHS = (
     "tokenizer/tokenizer_config.json",
     *(f"text_encoder/model-{index:05d}-of-00011.safetensors" for index in range(1, 12)),
 )
-LTX_PIPELINES_VERSION = "1.4.2"
+LTX_PIPELINES_VERSION = "1.5.0"
 PIPELINE_OUTPUT_FIELDS = (
     "video",
     "audio",
