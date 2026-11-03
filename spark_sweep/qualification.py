@@ -71,7 +71,6 @@ class HistoricalResult(BaseModel):
     model_digests: tuple[str, ...] | None = None
     controller_release: str | None = None
     controller_version: str | None = None
-    agent_version: str | None = None
     node_count: int | None = Field(default=None, ge=1)
     node_ids: tuple[str, ...] = ()
     quality: tuple[HistoricalQualityCheck, ...] = ()
@@ -205,7 +204,6 @@ def from_history(value: Mapping[str, Any]) -> QualificationEvidenceRecord | None
         platform=QualificationPlatform(
             controller_source_sha=row.controller_release,
             controller_version=row.controller_version,
-            agent_version=row.agent_version,
             spark_count=identity.required_sparks,
             topology=(
                 QualificationTopology.SINGLE

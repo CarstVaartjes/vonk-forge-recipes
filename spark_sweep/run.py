@@ -2071,8 +2071,6 @@ class Sweep:
             "controller_release": entry.get("release"),
             "controller_version": self.state.data["release"].get("version"),
             "node_count": recipe.node_count if recipe else None,
-            # Agent identity is not inferred from Controller/client versions.
-            "agent_version": self.state.data["platform"].get("agent_version"),
             "engine": recipe.engine if recipe else None,
             "timings": entry.get("timings"),
             "verdict_identity": content_identity(recipe).model_dump(mode="json")

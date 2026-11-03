@@ -80,6 +80,9 @@ PLATFORM = Platform(
     spark_count=1,
     topology=Topology.SINGLE,
 )
+NO_CONTROLLER = PLATFORM.model_copy(
+    update={"controller_source_sha": None, "controller_version": None}
+)
 
 
 def record(identity=A, outcome=Outcome.PASSED, blame=None, day=0):
@@ -190,11 +193,21 @@ def test_incomplete_history_is_not_published_as_exact_proof():
     view = published_status(evidence(record(unresolved)), unresolved)
     assert view.status == Status.NOT_YET_VERIFIED
     assert view.reason == Reason.INCOMPLETE_PROVENANCE
-    unknown_agent = record().model_copy(
+    unknown_controller = record().model_copy(update={"platform": NO_CONTROLLER})
+    assert (
+        published_status(evidence(unknown_controller), A).status
+        == Status.NOT_YET_VERIFIED
+    )
+    # The agent version is optional: the Controller does not expose it as evidence.
+    no_agent = record().model_copy(
         update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
     )
+    assert published_status(evidence(no_agent), A).status == Status.WORKING
+    assert published_status(evidence(no_agent), A).last_pass == no_agent
+    unimaged = A.model_copy(update={"runtime_image": None})
     assert (
-        published_status(evidence(unknown_agent), A).status == Status.NOT_YET_VERIFIED
+        published_status(evidence(record(unimaged)), unimaged).status
+        == Status.NOT_YET_VERIFIED
     )
     assert published_status(evidence(record()), A).status == Status.WORKING
     assert published_status(evidence(record()), B).status == Status.RECHECK
@@ -621,9 +634,7 @@ def test_missing_historical_topology_stays_unknown_and_roundtrips():
     ],
 )
 def test_incomplete_later_telemetry_never_erases_complete_working_proof(suffix):
-    incomplete = suffix.model_copy(
-        update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
-    )
+    incomplete = suffix.model_copy(update={"platform": NO_CONTROLLER})
     proven = record()
     view = published_status(evidence(proven, incomplete), A)
     assert view.status == Status.WORKING
@@ -632,9 +643,7 @@ def test_incomplete_later_telemetry_never_erases_complete_working_proof(suffix):
 
 def test_partial_pass_after_recipe_failure_cannot_revive_an_invalidated_public_proof():
     failed = record(A, Outcome.FAILED, Blame.RECIPE, day=1)
-    partial = record(day=2).model_copy(
-        update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
-    )
+    partial = record(day=2).model_copy(update={"platform": NO_CONTROLLER})
     history = evidence(record(), failed, partial)
     assert published_status(history, A).status == Status.NOT_YET_VERIFIED
     assert (
@@ -1102,9 +1111,7 @@ def test_sparse_topology_failure_invalidates_older_public_proof():
     failed = record(A, Outcome.FAILED, Blame.RECIPE, day=1).model_copy(
         update={"identity": A.model_copy(update={"required_sparks": None})}
     )
-    partial = record(day=2).model_copy(
-        update={"platform": PLATFORM.model_copy(update={"agent_version": None})}
-    )
+    partial = record(day=2).model_copy(update={"platform": NO_CONTROLLER})
     history = evidence(record(), failed, partial)
     assert derive_status(history, A, 2, False).status == Status.WORKING
     assert published_status(history, A).status == Status.NOT_YET_VERIFIED
