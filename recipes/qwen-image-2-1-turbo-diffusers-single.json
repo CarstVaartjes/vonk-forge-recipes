@@ -277,11 +277,11 @@
       "Qwen",
       "Diffusers contributors"
     ],
-    "source_reference": "https://github.com/huggingface/diffusers/tree/b800f828f3951c4d206e154411bcbfa693cd322e"
+    "source_reference": "https://github.com/huggingface/diffusers/tree/2a1433913c7044f34fa4767dd84b28bba0bb0ecf"
   },
   "release": {
-    "released_at": "2026-10-17",
-    "version": "1.0.0"
+    "released_at": "2026-10-27",
+    "version": "0.42.1"
   },
   "runtime": {
     "arguments": [
