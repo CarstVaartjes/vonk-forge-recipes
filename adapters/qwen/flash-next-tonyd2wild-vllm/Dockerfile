@@ -7,9 +7,9 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/Qwen3.8-Fla
 
 # Upstream ran vllm/vllm-openai:nightly-8a728663 (CUDA 13.0.2), a tag that is gone.
 # Its commit's CUDA 13 build is the hash-locked wheel in requirements.lock, installed
-# system-wide on the CUDA 13 base (packages as of 2026-09-05, NCCL 2.30.7 as in the
-# creator's image; see requirements.in and overrides.txt). The CUDA 12.9 build of the same commit carries
-# its SM12x kernels as sm_120a only, which GB10 (sm_121) cannot load.
+# system-wide on the CUDA 13 base (packages as of 2026-09-04T05:06Z, NCCL 2.30.7 as in
+# the creator's image; see requirements.in and overrides.txt). The CUDA 12.9 build of
+# the same commit carries its SM12x kernels as sm_120a only, which GB10 (sm_121) cannot load.
 ENV DEBIAN_FRONTEND=noninteractive CUDA_HOME=/usr/local/cuda PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates build-essential python3 python3-dev python3-pip libnuma1 libibverbs1 ibverbs-providers librdmacm1 && rm -rf /var/lib/apt/lists/*
