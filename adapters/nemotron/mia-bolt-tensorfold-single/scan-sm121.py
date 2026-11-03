@@ -2,14 +2,15 @@
 """Build-time scan: the CUDA code a file carries must load on a GB10 (sm_121).
 
 Usage: scan-sm121.py [--require FILE]... [FILE]...
-Each file's `cuobjdump --list-elf` and `--list-ptx` listing is echoed. Rules (docs/recipe-authoring.md):
+Each file's `cuobjdump --list-elf` and `--list-ptx` output (stdout and stderr) is echoed. Rules
+(docs/recipe-authoring.md):
   * cubins load when they are sm_121, sm_121a or sm_121f, or plain/family sm_120 or sm_120f; an arch-specific
-    sm_120a cubin does not load on sm_121;
+    sm_120a cubin does not load on sm_121, and no other target loads;
   * PTX loads only when it is not arch-specific and targets 121 or lower (compute_XY or sm_XY with XY <= 121), or is
     sm_121a / compute_121a PTX;
-  * a file with any SM12x code needs at least one loadable image, or the scan fails;
-  * a --require file must carry a loadable image at all (a file with no device code fails);
-  * other files without device code are reported and pass.
+  * any file with device code needs at least one loadable image;
+  * a file with no device code (cuobjdump says so) passes unless it is a --require file;
+  * any other cuobjdump failure fails the scan.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ import subprocess
 import sys
 
 ARCH = re.compile(r"\b(?:sm|compute)_(\d+)([af]?)\b")
+NO_DEVICE_CODE = "does not contain device code"
 
 
 def images(listing: str) -> list[tuple[int, str]]:
@@ -39,22 +41,26 @@ def verdict(elf: str, ptx: str, *, required: bool = False) -> tuple[bool, str]:
     cubins, ptxs = images(elf), images(ptx)
     if not cubins and not ptxs:
         return (not required), "no device code"
-    sm12x = [i for i in cubins + ptxs if 120 <= i[0] <= 129]
-    ok = [i for i in cubins if loadable_cubin(*i)] + [
-        i for i in ptxs if loadable_ptx(*i)
-    ]
-    if ok:
-        return True, f"{len(ok)} loadable image(s)"
-    if sm12x:
-        return False, "SM12x code but no image loads on sm_121"
-    return True, "no SM12x code (other targets only)"
+    if any(loadable_cubin(*i) for i in cubins) or any(loadable_ptx(*i) for i in ptxs):
+        return True, "loadable image(s)"
+    return False, "device code but no image loads on sm_121"
 
 
-def listing(command: str, path: str) -> str:
+def interpret(stdout: str, stderr: str, code: int) -> tuple[str, str | None]:
+    """The listing, or the error when cuobjdump failed for any reason but missing device code."""
+    if NO_DEVICE_CODE in stdout + stderr:
+        return "", None
+    if code != 0:
+        return "", f"cuobjdump exited {code}: {stderr.strip() or stdout.strip()}"
+    return stdout, None
+
+
+def listing(command: str, path: str) -> tuple[str, str, str | None]:
     done = subprocess.run(
         ["cuobjdump", command, path], capture_output=True, text=True, check=False
     )
-    return done.stdout
+    text, error = interpret(done.stdout, done.stderr, done.returncode)
+    return text, done.stderr, error
 
 
 def main(arguments: list[str]) -> int:
@@ -67,10 +73,12 @@ def main(arguments: list[str]) -> int:
             files.append((argument, False))
     failed = False
     for path, required in files:
-        elf, ptx = listing("--list-elf", path), listing("--list-ptx", path)
-        ok, why = verdict(elf, ptx, required=required)
+        elf, elf_err, elf_fail = listing("--list-elf", path)
+        ptx, ptx_err, ptx_fail = listing("--list-ptx", path)
+        error = elf_fail or ptx_fail
+        ok, why = (False, error) if error else verdict(elf, ptx, required=required)
         print(f"== {path}: {'ok' if ok else 'FAIL'} ({why})")
-        for line in (elf + ptx).splitlines():
+        for line in (elf + ptx + elf_err + ptx_err).splitlines():
             if line.strip():
                 print(f"   {line.strip()}")
         failed = failed or not ok

@@ -28,22 +28,23 @@ RUN cd /tensorfold \
  && for p in /opt/tf-patches/*.patch; do [ -e "$p" ] || continue; echo "applying $p"; git apply --check "$p" && git apply "$p" || exit 1; done \
  && cp /opt/bolt-engine/bolt_native.zig /opt/bolt-engine/bolt_api.zig zig/src/families/nemotron/
 RUN cd /tensorfold && /opt/zig/zig build -Dnvcc=/usr/local/cuda/bin/nvcc -Dbolt-src=/opt/bolt-engine -Dffmpeg=/opt/ffmpeg \
-      -Dxgrammar=/opt/xgrammar -Doptimize=fast --prefix /opt/tensorfold -j"$(nproc)" install native bolt video grammar \
+      -Dxgrammar=/opt/xgrammar -Doptimize=fast --prefix /opt/tensorfold -j"$(nproc)" install native bolt video grammar fatbins \
  && cp -a /opt/jpeg/lib/libturbojpeg.so.0* /opt/tensorfold/native/lib/ \
  && test -x /opt/tensorfold/native/bin/tensorfold-native \
  && test -f /opt/tensorfold/native/lib/libbolt.so && test -f /opt/tensorfold/native/lib/libtfvideo.so \
  && test -f /opt/tensorfold/native/lib/libturbojpeg.so.0 && test -f /opt/tensorfold/native/lib/libtfgrammar.so
 # Build-time sm_121 kernel scan (scan-sm121.py: cubins sm_121[af] / sm_120[f], PTX not arch-specific and <= 121, or sm_121a;
-# each file's listing is echoed). Covered: libbolt.so and the other shared libraries in the install must load on sm_121 when
-# they carry SM12x code, and tensorfold-native's kernels, which the Zig build embeds as fatbins (zig/build/cuda_runtime.zig),
-# are scanned as the build's own fatbin outputs (`zig build fatbins`, same nvcc and -Dsm default 121, from the build cache);
-# every one of those must carry a loadable image. Not covered: a runtime JIT of kernels the binaries do not embed.
+# every file with device code needs a loadable image; each file's listing is echoed). Covered: libbolt.so and the other
+# shared libraries of the install, and tensorfold-native's kernels, which the Zig build embeds as fatbins
+# (zig/build/cuda_runtime.zig): the `fatbins` install step of the same zig build above installs those exact images to
+# /opt/tensorfold/fatbin, and every one is required to carry a loadable image (then the directory is removed again).
+# Not covered: a runtime JIT of kernels the binaries do not embed.
 COPY scan-sm121.py /opt/scan-sm121.py
-RUN cd /tensorfold && /opt/zig/zig build fatbins -Dnvcc=/usr/local/cuda/bin/nvcc -Doptimize=fast --prefix /opt/fatbins -j"$(nproc)" \
- && ls /opt/fatbins/fatbin/*.fatbin >/dev/null \
- && python3 /opt/scan-sm121.py $(for f in /opt/fatbins/fatbin/*.fatbin; do echo --require $f; done) \
+RUN ls /opt/tensorfold/fatbin/*.fatbin >/dev/null \
+ && python3 /opt/scan-sm121.py $(for f in /opt/tensorfold/fatbin/*.fatbin; do echo --require $f; done) \
       --require /opt/tensorfold/native/lib/libbolt.so \
-      $(find /opt/tensorfold/native -type f \( -name '*.so*' -o -name tensorfold-native \) ! -name libbolt.so)
+      $(find /opt/tensorfold/native -type f \( -name '*.so*' -o -name tensorfold-native \) ! -name libbolt.so) \
+ && rm -rf /opt/tensorfold/fatbin
 RUN mkdir -p /opt/tensorfold/share/doc/tensorfold && cd /tensorfold \
  && for f in LICENSE LICENSE.md LICENSES NOTICE THIRD_PARTY_NOTICES.md; do \
       if [ -e "$f" ]; then cp -a "$f" /opt/tensorfold/share/doc/tensorfold/ || exit 1; fi; done \

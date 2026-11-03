@@ -38,8 +38,10 @@ def ptx(*names: str) -> str:
         (elf("sm_120a"), ptx("sm_120a"), False),
         (elf("sm_120a"), ptx("compute_121"), True),
         ("", ptx("sm_121a"), True),
+        (elf("sm_90"), "", False),
+        (elf("sm_80", "sm_86"), "", False),
+        (elf("sm_100a"), "", False),
         ("", ptx("compute_90"), True),
-        (elf("sm_90"), "", True),
         (elf("sm_120a", "sm_121a"), "", True),
         ("", ptx("compute_122"), False),
         (elf("sm_122"), "", False),
@@ -51,11 +53,20 @@ def test_verdicts(listing_elf: str, listing_ptx: str, passes: bool) -> None:
     assert ok is passes
 
 
-def test_other_sm12x_numbers_are_not_loadable() -> None:
-    ok, why = scan.verdict(elf("sm_123"), "")
+def test_other_targets_are_not_loadable_even_when_required() -> None:
+    ok, why = scan.verdict(elf("sm_90"), "", required=True)
     assert not ok and "no image loads" in why
 
 
 def test_a_file_without_device_code_is_reported_and_required_ones_fail() -> None:
     assert scan.verdict("", "") == (True, "no device code")
     assert scan.verdict("", "", required=True) == (False, "no device code")
+
+
+def test_cuobjdump_errors_are_failures_but_missing_device_code_is_not() -> None:
+    message = "cuobjdump info    : File 'x' does not contain device code"
+    assert scan.interpret("", message, 0) == ("", None)
+    assert scan.interpret("", message, 1) == ("", None)
+    assert scan.interpret("ELF file 1: x.sm_121.cubin", "", 0)[1] is None
+    text, error = scan.interpret("", "cuobjdump fatal : Unrecognized file", 1)
+    assert text == "" and error and "exited 1" in error
