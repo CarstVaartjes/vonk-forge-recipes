@@ -36,11 +36,13 @@ RUN curl -fsSL https://ziglang.org/download/0.17.0/zig-aarch64-linux-0.17.0.tar.
  && rm -rf /tmp/engine /tmp/recipe /tmp/patches /tmp/*.tar.gz /tmp/zig* /root/.cache/zig
 # Build-time sm_121 kernel scan (scan-sm121.py: cubins sm_121[af] / sm_120[f], PTX not arch-specific and <= 121, or
 # sm_121a; every file with device code needs a loadable image; each file's listing is echoed). Covered: every kernel
-# image the engine embeds (the `fatbins` install of the same build, each required to carry a loadable image),
-# tensorfold-native (required) and the two follower/input binaries (any device code they hold must load). Not covered: the kit's prebuilt cubins, which the pinned kit archive supplies as the creator serves them.
+# image the engine embeds, through the `fatbins` install of the same build (each required to carry a loadable image):
+# the Zig build embeds those exact files as raw module bytes (zig/build/cuda.zig), so cuobjdump sees no device code in
+# tensorfold-native itself. The three binaries are still scanned (any device code they hold must load). Not covered: the
+# kit's prebuilt cubins, which the pinned kit archive supplies as the creator serves them.
 COPY scan-sm121.py /opt/scan-sm121.py
 RUN python3 /opt/scan-sm121.py $(for f in /opt/tensorfold/fatbin/*.fatbin; do echo --require $f; done) \
-      --require /opt/tensorfold/bin/tensorfold-native /opt/tensorfold/bin/tf-dsv41-lanes /opt/tensorfold/bin/tf-dsv41-rank-cache \
+      /opt/tensorfold/bin/tensorfold-native /opt/tensorfold/bin/tf-dsv41-lanes /opt/tensorfold/bin/tf-dsv41-rank-cache \
  && find /opt/tensorfold/fatbin -type f ! -name dsv41_rdma.fatbin -delete \
  && test -s /opt/tensorfold/fatbin/dsv41_rdma.fatbin \
  && rm /opt/scan-sm121.py
