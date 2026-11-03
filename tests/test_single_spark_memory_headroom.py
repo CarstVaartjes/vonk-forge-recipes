@@ -77,6 +77,7 @@ def test_limit_subtracts_idle_use_and_guard_exactly_once() -> None:
     assert TOTAL_BYTES - IDLE_USE_BYTES - GUARD_BYTES == LIMIT_BYTES
 
 
+@pytest.mark.live_evidence
 def test_hardware_pass_status_comes_from_qualification_evidence() -> None:
     document = json.loads(
         (ROOT / "recipes/gpt-oss-20b-nvidia-vllm-single.json").read_text()
