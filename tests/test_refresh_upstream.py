@@ -1286,7 +1286,11 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             ),
             "vLLM budget plus overhead",
         )
-        refresh.raise_role_peaks(payload["topology"]["roles"], before)
+        smaller = before.model_copy(deep=True)
+        for item in smaller.runtime.arguments:
+            if item.name == "gpu-memory-utilization":
+                item.value = "0.50"
+        refresh.raise_role_peaks(payload["topology"]["roles"], before, smaller)
         after = RecipeDefinition.model_validate(payload)
         self.assertEqual(
             {r.resources.memory.peak_bytes for r in after.topology.roles},

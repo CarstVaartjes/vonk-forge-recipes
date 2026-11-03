@@ -2233,6 +2233,7 @@ class Assessor:
                         raise_role_peaks(
                             new_recipe["topology"]["roles"],
                             RecipeDefinition.model_validate(new_recipe),
+                            RecipeDefinition.model_validate(recipe),
                         )
                     except (KeyError, TypeError, ValueError) as error:
                         result.reasons.append(
@@ -3428,9 +3429,16 @@ def checks_moved(root: Path, head: str) -> bool:
     )
 
 
-def raise_role_peaks(roles: list[dict[str, Any]], recipe: RecipeDefinition) -> None:
-    """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope."""
-    raised = raise_peaks_to_envelope(recipe)
+def raise_role_peaks(
+    roles: list[dict[str, Any]],
+    recipe: RecipeDefinition,
+    previous: RecipeDefinition,
+) -> None:
+    """Raise a moved vLLM document's role peaks (``roles``, in place) to the envelope.
+
+    A move that did not raise the budget over ``previous`` keeps the declared peaks.
+    """
+    raised = raise_peaks_to_envelope(recipe, previous)
     if raised is None:
         return
     for role, kept in zip(roles, raised.topology.roles, strict=True):
