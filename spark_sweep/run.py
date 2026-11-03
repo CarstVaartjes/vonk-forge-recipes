@@ -370,6 +370,7 @@ class Sweep:
         )
         self.prefetcher.on_infra = self.note_infra
         self.prefetcher.on_ok = self.clear_infra
+        self.prefetcher.release = lambda: self.release_sha
         self.prefetcher.online_lanes = lambda: (
             len(self.sparks()) if self.fleet.sparks else None  # None: not read yet
         )
@@ -1430,15 +1431,21 @@ class Sweep:
 
     def requeue_for_changed_owner(self) -> None:
         observations = self._component_observations()
+        api = observations.get("api")
+        release = api.source_sha if api is not None else None
         for key, entry in self.state.recipes.items():
             if entry.get("status") not in (
-                "failed",
-                "deferred",
+                RecipeStatus.FAILED,
+                RecipeStatus.DEFERRED,
             ) or not self._selected_key(key):
                 continue
             basis = recovery.changed_owner(entry, observations)
+            reason = RetestReason.OWNER_CHANGED
+            if basis is None:
+                basis = recovery.changed_release(entry, release)
+                reason = RetestReason.RELEASE_CHANGED
             if basis is not None:
-                self._schedule_retest(key, RetestReason.OWNER_CHANGED, basis=basis)
+                self._schedule_retest(key, reason, basis=basis)
 
     def _schedule_retest(
         self, key: str, reason: str, *, basis: Mapping[str, str] | None = None
@@ -1889,6 +1896,14 @@ class Sweep:
         if op_id:
             proof.setdefault("operation_id", op_id)
             proof["evidence_command"] = f"vonkctl fleet evidence {op_id}"
+        # The release the work started on (a load's slot or a download's record), not the
+        # one now deployed; none recorded (platform unreadable then) heals once on the next.
+        started = self.state.downloads.get(key) if from_download else slot
+        release = (
+            (started or {}).get("release")
+            if from_download or slot is not None
+            else self.release_sha
+        )
         attributable = failure.klass != verdict.UNATTRIBUTED and (
             failure.code in policy.RECIPE_FAILURE_CODES
             or failure.klass in verdict.FAIL_CLASSES
@@ -1904,10 +1919,8 @@ class Sweep:
             signature=failure.signature,
             cluster=failure.cluster,
             finished_at=now,
-            release=self.release_sha,
-            release_authority=ReleaseAuthority.DEPLOYED_CONTROLLER
-            if self.release_sha
-            else None,
+            release=release,
+            release_authority=ReleaseAuthority.DEPLOYED_CONTROLLER if release else None,
             recovery_basis=recovery.failure_basis(
                 failure.code, self._component_observations()
             ),
@@ -4926,6 +4939,7 @@ class Sweep:
             "phase": "loading",
             "request_key": request,
             "started_at": now,
+            "release": self.release_sha,
             "deadline": now + timeout,
             "model_bytes": model_bytes,
             "digests": list(recipe.model_digests),
