@@ -86,7 +86,11 @@ immutable revisions or image digests. Record the time of the check and the
 exact source URLs. An inaccessible source is unverified, not unchanged.
 Confirm that every artifact the creator's build fetches (wheels, CUDA builds,
 images) is still published at its pin; a build that is no longer published is a
-missing input to vendor or replace with evidence, never an assumption.
+missing input to vendor or replace with evidence, never an assumption. When the
+creator's image is gone, rebuild the creator's exact commit with the same CUDA
+major version (for example from the engine's published wheel for that commit).
+Another build of the same commit with a different CUDA major ships different GPU
+kernels, so it is a new runtime, not a substitute.
 
 Compare each previous pin with the proposed pin in the same source repository.
 Inspect relevant changed files as well as commit subjects. Distinguish actual
