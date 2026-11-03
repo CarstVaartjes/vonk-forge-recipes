@@ -719,6 +719,53 @@ class MergeGateTests(unittest.TestCase):
                 prepared,
             )
 
+    def test_leftover_edits_of_a_previous_recipe_do_not_block_the_next(self) -> None:
+        # Run 41704192720: an "already current" recipe returned with its edits staged,
+        # and every later `git switch --detach origin/main` aborted on them.
+        assessment = refresh.Assessment("recipe", edits={"recipe.json": b"new pin\n"})
+        with (
+            tempfile.TemporaryDirectory() as temporary,
+            patch.dict(
+                os.environ,
+                {
+                    "GIT_CONFIG_GLOBAL": os.devnull,
+                    "GIT_CONFIG_NOSYSTEM": "1",
+                    "GIT_CONFIG_COUNT": "0",
+                    "GIT_AUTHOR_NAME": "Refresh test",
+                    "GIT_AUTHOR_EMAIL": "refresh@example.test",
+                    "GIT_COMMITTER_NAME": "Refresh test",
+                    "GIT_COMMITTER_EMAIL": "refresh@example.test",
+                },
+            ),
+            patch("refresh_upstream.verify", return_value=None),
+            patch(
+                "refresh_upstream.gh",
+                side_effect=lambda *arguments: (
+                    "https://github.test/pull/7"
+                    if arguments[:2] == ("pr", "create")
+                    else "[]"
+                ),
+            ),
+        ):
+            root = Path(temporary)
+            refresh.git("init", "-q", "--initial-branch=main", cwd=root)
+            refresh.git("remote", "add", "origin", str(root), cwd=root)
+            (root / "recipe.json").write_bytes(b"old pin\n")
+            refresh.git("add", "recipe.json", cwd=root)
+            refresh.git("commit", "-qm", "Base", cwd=root)
+            (root / "recipe.json").write_bytes(b"newer main\n")
+            refresh.git("commit", "-qam", "Main moves", cwd=root)
+            main = refresh.git("rev-parse", "HEAD", cwd=root)
+            refresh.git("update-ref", "refs/remotes/origin/main", main, cwd=root)
+            refresh.git("switch", "-q", "--detach", "HEAD~1", cwd=root)
+            (root / "recipe.json").write_bytes(b"left behind\n")
+            refresh.git("add", "-A", cwd=root)
+
+            number = refresh.publish_mechanical(root, assessment, refresh.Summary())
+
+            self.assertEqual(refresh.git("rev-parse", "HEAD", cwd=root), main)
+            self.assertEqual(number, 7)
+
     def test_existing_armed_pr_does_not_block_a_disjoint_mechanical_merge(self) -> None:
         summary = refresh.Summary()
         summary.healthy = True

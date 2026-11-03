@@ -3655,7 +3655,9 @@ def _publish(
                 "started; the next run assesses it afresh"
             )
             return None
-    git("switch", "--detach", "origin/main", cwd=root)
+    # --discard-changes: edits an earlier recipe left staged (an early return keeps
+    # them) must never block this one.
+    git("switch", "--detach", "--discard-changes", "origin/main", cwd=root)
     git("reset", "--hard", "origin/main", cwd=root)
     git("clean", "-fdq", cwd=root)
     follow_proven_bytes(root, assessment.edits)
