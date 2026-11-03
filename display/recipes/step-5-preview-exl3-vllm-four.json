@@ -1,6 +1,6 @@
 {
   "alignment": "unspecified",
-  "description": "Step 5 Preview Spark with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Per-node peak is an estimate: GPU memory utilization times 130,663,231,488 bytes plus 8 GB for runtime/host overhead; reserve is informational, with the platform OS floor accounted separately. Requires exactly 4 Sparks; not runnable on the current two-Spark fleet. Reproduces 0xSero's K4 expert/K8 hybrid-body image and MTP2 launch. Upstream reports 26-30 tokens/s on four Sparks; not measured here.",
+  "description": "Step 5 Preview Spark with immutable checkpoint files and an ARM64 runtime. Physical Spark acceptance is pending. Memory follows the creator's settings: GPU memory utilization 0.85 beside the 20e9-byte KV pool, 0xSero's scripts/launch.sh defaults at 662949a6 (lines 41 and 45). The earlier 0.806230 came from an offline startup-budget fit (#1702), not from a hardware run. The declared peak is an estimate until the run measures it. Requires exactly 4 Sparks; not runnable on the current two-Spark fleet. Reproduces 0xSero's K4 expert/K8 hybrid-body image and MTP2 launch. Upstream reports 26-30 tokens/s on four Sparks; not measured here.",
   "identity": {
     "publisher": "vonk-forge",
     "slug": "step-5-preview-exl3-vllm-four"

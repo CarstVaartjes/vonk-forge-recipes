@@ -48,6 +48,15 @@ TONY_G53 = "https://github.com/tonyd2wild/GLM-5.3-Int4-Int8Mix-TP4-4x-DGX-Spark/
 EUGR_GLM = "https://github.com/eugr/spark-vllm-docker/blob/303b4a29a6bd390428d363358964ad298dc20625/recipes"
 TONY_MIMO = "https://github.com/tonyd2wild/MiMo-V2.5-TP3-NVFP4-KV-3xDGX-Spark/blob/8024c85b5e5fc5c9edd9db7b40f607683372cb0c/recipes"
 R0B0_Q36 = "https://github.com/r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm/blob/106fb53372c260e719c97d5b59e48142792783c7"
+MIA_DSV4 = "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-One-DGX-Spark/blob/fdcd538fbf95fb15b2d6850db9613d22b2c889b8"
+SERO_GLM = "https://github.com/0xSero/GLM-5.3-Flash-EXL3-1x-DGX-Spark/blob/6ff8595aa271f2eac49579fbf5e90cde9e90674e"
+SERO_DS41 = "https://github.com/0xSero/DeepSeek-V4.1-Flash-Two-Sparks/blob/ee688184827e50f296bfdaf4215e04d3a4f942c3"
+SERO_STEP5 = "https://github.com/0xSero/Step-5-Preview-Four-Sparks/blob/662949a6c1244c1e8a5c44ed62cedb89a207cbcc"
+REEDEREY = "https://github.com/Reederey87/glm53-flash-exl3-2x-dgx-spark/blob/aad6481c94b20ef4853ea07819f3f4ea2ec18f33"
+NVIDIA_VLLM = "https://github.com/NVIDIA/dgx-spark-playbooks/blob/98b3a473f30916ec05eef3e7a01b781aaf4daa8a/nvidia/vllm"
+MIA_AQLM = "https://github.com/MiaAI-Lab/GLM-5.2-NVFP4-AQLM-Triple-DGX-Sparks/blob/5c85163ccb8d98d395880e71e2dbd03976a3f4ad"
+DROWZEYS_QT = "https://github.com/drowzeys/keys-GLM5.2-Quantrio-INT4-INT8-Mixed-Abliterated-C1-30toks-4x-DGX-Sparks/blob/296699b44e024de938cb8b3251d49d4b1306a507"
+DROWZEYS_MIMO = "https://github.com/drowzeys/keys-MiMo-V2.6-Pro-MOPD-C3-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context/blob/d8a10997f2c6b1b6140b204fc5dddddd247d894b"
 DROWZEYS = "https://github.com/drowzeys/keys-Qwen3.8-27B-NVFP4-DFlash2-Ablit-Cybersecurity-Unlock-1M-Context-YARN-Single-DGXSpark/blob/fca3d18bcab52b65e4a428b883cbcbcb0a7a3443"
 AEON = "adapters/qwen/drowzeys-aeon-dflash2-single"
 GMU = r'GMU="\$\{GMU:-([0-9.]+)\}"'
@@ -291,10 +300,74 @@ CREATOR = {
     ),
     "mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-triple": Creator(
         source=f"{TONY_MIMO}/mimo-v25-tp3-omni-1mctx-6seq-mtp2-nvfp4kv.yaml#L34",
-        # The creator's 0.89 needs 126.69e9 with the 10.4e9 multi-Spark margin, above
-        # the admission cap; 0.8728 is the highest admissible value (#1980 precedent).
-        arguments={"gpu-memory-utilization": "0.8728"},
+        # Estimates until tried (owner 2026-11-02): the creator's 0.89, peak declared
+        # at the admission maximum; the run measures the real use.
+        arguments={"gpu-memory-utilization": "0.89"},
         absent=("kv-cache-memory-bytes",),
+    ),
+    "deepseek-v4-flash-0731-mia-sparkinfer-single": Creator(
+        source=f"{MIA_DSV4}/start.sh#L75",
+        arguments={"gpu-memory-utilization": "0.94"},
+    ),
+    "glm-5-3-flash-exl3-k2-0xsero-vllm-single": Creator(
+        source=f"{SERO_GLM}/.env.example#L17",
+        arguments={"gpu-memory-utilization": "0.93"},
+    ),
+    "deepseek-v4-1-flash-exl3-0xsero-vllm-dual": Creator(
+        source=f"{SERO_DS41}/scripts/launch.sh#L33",
+        arguments={
+            "gpu-memory-utilization": "0.88",
+            "kv-cache-memory-bytes": "2700000000",
+        },
+        context_tokens=262144,
+    ),
+    "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual": Creator(
+        source=f"{REEDEREY}/env.example#L247",
+        # Beside the KV pin (#L254) the utilization is only vLLM's boot gate.
+        arguments={
+            "gpu-memory-utilization": "0.85",
+            "kv-cache-memory-bytes": "15414698763",
+        },
+        context_tokens=1000000,
+        peak=112544365097,
+    ),
+    "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual": Creator(
+        source=f"{NVIDIA_VLLM}/README.md#L451",
+        arguments={"gpu-memory-utilization": "0.9"},
+        absent=("kv-cache-memory-bytes",),
+    ),
+    "step-5-preview-exl3-vllm-four": Creator(
+        source=f"{SERO_STEP5}/scripts/launch.sh#L45",
+        arguments={
+            "gpu-memory-utilization": "0.85",
+            "kv-cache-memory-bytes": "20000000000",
+        },
+        context_tokens=262144,
+        peak=113344691542,
+    ),
+    "glm-5-2-aqlm-vllm-triple": Creator(
+        source=f"{MIA_AQLM}/.env.example#L89",
+        arguments={
+            "gpu-memory-utilization": "0.895",
+            "kv-cache-memory-bytes": "11811160064",
+        },
+        context_tokens=348160,
+        peak=119649943144,
+    ),
+    "glm-5-2-quanttrio-vllm-four": Creator(
+        source=f"{DROWZEYS_QT}/recipe/serve.env.example#L7",
+        arguments={
+            "gpu-memory-utilization": "0.86",
+            "kv-cache-memory-bytes": "7008000000",
+        },
+        context_tokens=128000,
+        peak=119649001152,
+    ),
+    "mimo-v2-6-pro-mopd-arvq-drowzeys-vllm-four": Creator(
+        source=f"{DROWZEYS_MIMO}/serve/launch-rank.sh#L35",
+        arguments={"gpu-memory-utilization": "0.85"},
+        absent=("kv-cache-memory-bytes",),
+        context_tokens=1048576,
     ),
     "qwen3-6-35b-a3b-nvfp4-r0b0tlab-vllm-single": Creator(
         source=f"{R0B0_Q36}/Dockerfile.v025#L23",

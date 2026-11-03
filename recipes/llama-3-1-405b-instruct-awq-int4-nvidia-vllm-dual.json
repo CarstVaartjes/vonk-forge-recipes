@@ -708,12 +708,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.85"
-      },
-      {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 1073741824
+        "value": "0.9"
       },
       {
         "name": "max-num-batched-tokens",
@@ -776,7 +771,7 @@
             "working_bytes": 109643934185
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 124452516352,
             "reserve_bytes": 17179869184
           }
         }
@@ -793,7 +788,7 @@
             "working_bytes": 109643934185
           },
           "memory": {
-            "peak_bytes": 119063746765,
+            "peak_bytes": 124452516352,
             "reserve_bytes": 17179869184
           }
         }

@@ -5800,7 +5800,7 @@
   },
   "release": {
     "released_at": "2026-09-28",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -5895,14 +5895,9 @@
         "value": "{\"mode\":3,\"cudagraph_mode\":\"FULL_AND_PIECEWISE\",\"cudagraph_capture_sizes\":[1,2,3,4,6,8,9,12,16]}"
       },
       {
-        "name": "kv-cache-memory-bytes",
-        "setting": null,
-        "value": 20872396800
-      },
-      {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.854489"
+        "value": "0.85"
       }
     ],
     "engine": "vllm",
@@ -5984,7 +5979,7 @@
     },
     "context_tokens": {
       "change_effect": "restart",
-      "value": 398448
+      "value": 1048576
     },
     "kind": "generation",
     "knobs": {},
@@ -6012,7 +6007,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 119650415392,
+            "peak_bytes": 121463746765,
             "reserve_bytes": 8000000000
           }
         }
@@ -6029,7 +6024,7 @@
             "working_bytes": 70000000000
           },
           "memory": {
-            "peak_bytes": 119650415392,
+            "peak_bytes": 121463746765,
             "reserve_bytes": 8000000000
           }
         }

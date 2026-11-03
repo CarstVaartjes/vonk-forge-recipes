@@ -3200,7 +3200,7 @@
   },
   "release": {
     "released_at": "2026-10-03",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -3247,7 +3247,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.86"
+        "value": "0.88"
       },
       {
         "name": "max-model-len",
@@ -3509,7 +3509,7 @@
             "working_bytes": 20000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
+            "peak_bytes": 124452516352,
             "reserve_bytes": 8000000000
           }
         }
@@ -3526,7 +3526,7 @@
             "working_bytes": 20000000000
           },
           "memory": {
-            "peak_bytes": 120370379081,
+            "peak_bytes": 124452516352,
             "reserve_bytes": 8000000000
           }
         }

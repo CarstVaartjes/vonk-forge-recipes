@@ -2219,7 +2219,7 @@
   },
   "release": {
     "released_at": "2026-10-17",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -2311,7 +2311,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.806230"
+        "value": "0.85"
       }
     ],
     "engine": "vllm",
