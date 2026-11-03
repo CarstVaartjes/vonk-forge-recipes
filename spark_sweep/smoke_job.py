@@ -42,6 +42,7 @@ from . import verdict
 from .catalog import Recipe
 from .definitions import Definitions
 from .job_assertions import Output, evaluate
+from .lifecycle import TERMINAL, WAITING
 from .policy import Failure, classify, excerpt, redact
 from .smoke import AssertionFailed, SmokeResult
 from .vonkctl import Vonkctl, VonkctlError, request_key
@@ -50,8 +51,8 @@ from .vonkctl import Vonkctl, VonkctlError, request_key
 #: sweep keeps looking before it calls the outcome uncertain.
 JOB_GRACE_SECONDS = 600.0
 DOWNLOAD_TIMEOUT_SECONDS = 1800.0
-ENDED = frozenset({"succeeded", "failed", "cancelled"})
-OPERATOR_WAIT = frozenset({"needs-operator", "waiting-for-operator"})
+ENDED = frozenset(str(state) for state in TERMINAL)
+OPERATOR_WAIT = frozenset(str(state) for state in WAITING)
 #: The steps whose request is the recipe's own data: its definition bound to its contract.
 RECIPE_REQUEST_STEPS = frozenset({"create", "upload"})
 #: The end of a failed job's stderr a result row keeps: what happened last.
