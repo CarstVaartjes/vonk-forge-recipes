@@ -335,18 +335,23 @@ def resident_weight_bytes(
     return size_bytes
 
 
+def _evidence(key: str):
+    """The committed hardware evidence for one recipe (tests swap the corpus here)."""
+    from spark_sweep.qualification import read_evidence
+
+    return read_evidence(ROOT, key)
+
+
 def unchanged_recipe(
     recipe: RecipeDefinition, document_digest: str, inputs: MemoryInputs
 ) -> bool:
     """Recognize exact content in the committed snapshot or qualification evidence."""
-    from spark_sweep.qualification import read_evidence
-
     if not document_digest:
         return False
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
     known = document_digest in inputs.historical_documents.get(key, []) or any(
         record.identity.content_sha256 == document_digest
-        for record in read_evidence(ROOT, key).records
+        for record in _evidence(key).records
     )
     if not known:
         return False
@@ -365,10 +370,8 @@ def hardware_proven(recipe: RecipeDefinition, document_digest: str) -> bool:
     """Use the qualification reducer, including later failures and exact reverts."""
     from vonk_forge_contracts import QualificationStatus, derive_status
 
-    from spark_sweep.qualification import read_evidence
-
     key = f"{recipe.identity.publisher}/{recipe.identity.slug}"
-    evidence = read_evidence(ROOT, key)
+    evidence = _evidence(key)
     for record in evidence.records:
         if record.identity.content_sha256 != document_digest:
             continue
