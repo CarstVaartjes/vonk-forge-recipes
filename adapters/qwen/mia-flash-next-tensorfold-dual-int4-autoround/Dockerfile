@@ -1,35 +1,39 @@
-# Native TensorFold at db28187 with the kit's patches 0001-0012, on the creator's published image, thin placement wrapper.
-# The creator has published no image of this kit commit: its CHANGELOG says patches 0010-0012 change the engine and
-# "setup builds the image locally until one is published for these patches (the v1.1 digest in scripts/config.sh does
-# not apply)"; the kit's image_hash for these inputs is 3dfe459421d5, and GHCR has only zig-db28187-f3e1300f4f62 (this
-# FROM, kit commit f8287ef4) and zig-db28187-57a020c8d666. Since f8287ef4 the kit changed only Zig engine sources
-# (0007's zig/src/families/flashnext/cuda_lanes.zig, the PR #2 revert; 0010-0012's cuda_lanes.zig and cuda_mirror.zig):
-# no CUDA kernel source, Triton kernel source, kernels.json or vision Python. So the image keeps the published image's
-# CUDA toolkit, sm121 Triton AOT kernel set (/opt/tensorfold/share/tensorfold/cuda/sm121) and vision Python tree, and
-# rebuilds only what the kit's `zig build ... fatbins install native` installs (bin/, fatbin/, native/), with the kit's
-# own TensorFold commit, patches, Zig 0.17.0, nvcc and arch list (-Dsm default 121), exactly as scripts/prepare.sh does.
+# Native TensorFold with the kit's patches, built on the creator's published image (see kit-lock.json for the commits).
+# The creator has published no image of the pinned kit commit (its CHANGELOG: setup builds the image locally until one
+# is published), so this rebuilds the creator's exact engine (P15): the kit's TensorFold commit, patches, Zig, build line
+# and arch list (-Dsm default 121), with the published image's own CUDA toolkit. It replaces only what that build
+# installs (bin/, fatbin/, native/); the published Triton AOT kernel set and vision Python tree are reused, and the
+# build fails if the patched sources they come from differ from the published ones.
 FROM ghcr.io/miaai-lab/qwen3.8-flash-dual-dgx-sparks-tensorfold@sha256:e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c AS build
-RUN curl -fsSL -o /tmp/zig.tar.xz https://ziglang.org/download/0.17.0/zig-aarch64-linux-0.17.0.tar.xz \
- && echo "9e8d11661d4ae3bd57702a3832781e23ad151dde5798e16a5ccd503f65234ff8  /tmp/zig.tar.xz" | sha256sum -c - \
- && mkdir -p /opt/zig && tar -xJf /tmp/zig.tar.xz -C /opt/zig --strip-components=1 && rm /tmp/zig.tar.xz \
- && /opt/zig/zig version
-# The kit commit and the TensorFold commit it declares come from kit-lock.json (tools/kit-pins), checked by commit.
+# The kit and TensorFold commits come from kit-lock.json (tools/kit-pins), checked by commit after the fetch.
 COPY kit-lock.json /opt/vonk-build/kit-lock.json
 RUN set -- $(python3 -c 'import json; d = json.load(open("/opt/vonk-build/kit-lock.json")); k, e = d["kit"], d["dependencies"]["engine"]; print(k["repo"], k["commit"], e["repo"], e["commit"])') \
  && fetch() { git init -q "$1" && git -C "$1" fetch -q --depth 1 "https://github.com/$2.git" "$3" \
       && git -C "$1" checkout -q --detach FETCH_HEAD && test "$(git -C "$1" rev-parse HEAD)" = "$3"; } \
- && fetch /kit "$1" "$2" && fetch /tensorfold "$3" "$4" \
- && cd /tensorfold \
+ && fetch /kit "$1" "$2" && fetch /tensorfold "$3" "$4"
+# Zig: the version and sha256 the kit declares in scripts/config.sh, read as data (never sourced).
+RUN version=$(sed -n 's/^ZIG_VERSION="\${ZIG_VERSION:-\([0-9][0-9.]*\)}".*/\1/p' /kit/scripts/config.sh) \
+ && sha=$(sed -n 's/^ZIG_SHA256="\${ZIG_SHA256:-\([0-9a-f]\{64\}\)}".*/\1/p' /kit/scripts/config.sh) \
+ && if [ -z "$version" ] || [ -z "$sha" ] || [ "$(echo "$version" | wc -l)" -ne 1 ] || [ "$(echo "$sha" | wc -l)" -ne 1 ]; then \
+      echo "scripts/config.sh declares no single ZIG_VERSION/ZIG_SHA256 (got '$version' '$sha')" >&2; exit 1; fi \
+ && curl -fsSL -o /tmp/zig.tar.xz "https://ziglang.org/download/$version/zig-aarch64-linux-$version.tar.xz" \
+ && echo "$sha  /tmp/zig.tar.xz" | sha256sum -c - \
+ && mkdir -p /opt/zig && tar -xJf /tmp/zig.tar.xz -C /opt/zig --strip-components=1 && rm /tmp/zig.tar.xz \
+ && test "$(/opt/zig/zig version)" = "$version"
+RUN cd /tensorfold \
  && for p in /kit/patches/*.patch; do echo "applying $p"; git apply --check "$p" && git apply "$p" || exit 1; done
+# Reuse net: the published vision Python tree is the patched src/tensorfold, and every Triton kernel source the
+# published AOT kernel set was compiled from (zig/tests/cuda/flashnext/kernels.json) lies in it, so a kit change to
+# those sources fails the build here.
+RUN python3 -c 'import json, sys; files = {k["source"]["file"] for k in json.load(open(sys.argv[1]))["kernels"]}; bad = sorted(f for f in files if not f.startswith("tensorfold/")); sys.exit(f"kernel sources outside src/tensorfold: {bad}" if bad else 0)' \
+      /tensorfold/zig/tests/cuda/flashnext/kernels.json \
+ && diff -r /tensorfold/src/tensorfold /opt/tensorfold/python/tensorfold
 RUN cd /tensorfold && /opt/zig/zig build -Dnvcc=/usr/local/cuda/bin/nvcc -Doptimize=fast --prefix /opt/tf-engine \
       -j"$(nproc)" fatbins install native \
  && test -x /opt/tf-engine/native/bin/tensorfold-native \
  && test "$(ls /opt/tf-engine | tr '\n' ' ')" = "bin fatbin native "
-# Build-time sm_121 kernel scan (scan-sm121.py: cubins sm_121[af] / sm_120[f], PTX not arch-specific and <= 121, or
-# sm_121a; every file with device code needs a loadable image; each file's listing is echoed). Every rebuilt kernel
-# image is required to carry a loadable image: the fatbins the build installs are the exact images tensorfold-native
-# embeds (zig/src/cuda/kernels.zig, @embedFile). The rebuilt binaries are scanned too. Not rebuilt, so not scanned: the
-# published image's sm121 Triton AOT kernel set.
+# Build-time sm_121 kernel scan (scan-sm121.py; rules in docs/recipe-authoring.md). Every rebuilt fatbin, the exact
+# images tensorfold-native embeds (@embedFile), must carry a loadable image; the rebuilt binaries are scanned too.
 COPY scan-sm121.py /opt/vonk-build/scan-sm121.py
 RUN ls /opt/tf-engine/fatbin/*.fatbin >/dev/null \
  && python3 /opt/vonk-build/scan-sm121.py $(for f in /opt/tf-engine/fatbin/*.fatbin; do echo --require $f; done) \
@@ -37,8 +41,7 @@ RUN ls /opt/tf-engine/fatbin/*.fatbin >/dev/null \
 
 FROM ghcr.io/miaai-lab/qwen3.8-flash-dual-dgx-sparks-tensorfold@sha256:e188128ddabdc67ac02c05781f5c0c6b348db5f050cac297861d82b7f086e18c
 
-# tf.patches and the description name the base image's patch set (f3e1300f4f62); this image's patches are the kit
-# commit's (org.opencontainers.image.revision), recorded with the TensorFold commit in kit-lock.json.
+# The base image's tf.patches and description name its own patch set; this image's commits are in kit-lock.json.
 LABEL org.opencontainers.image.source="https://github.com/MiaAI-Lab/Qwen3.8-Flash-Dual-DGX-Sparks-TensorFold" \
       org.opencontainers.image.revision="dc05c912342ec19467b3b7b686888de763f2ada1" \
       org.opencontainers.image.licenses="Apache-2.0" \
