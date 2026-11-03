@@ -5,6 +5,7 @@
 # (manifest.json image.published); this recipe runs that image as published and does not
 # rebuild it from the kit's sources. This layer only adds the Controller placement wrapper at
 # the platform's launcher path (it reproduces the kit's `exec python3 -m sglang.launch_server`),
+# the kit's chat template with the standard enable_thinking switch on the generation prompt,
 # the offline settings and the non-root user. Base: the linux/arm64 image
 # ghcr.io/0xsero/glm-5.3-flash-sglang-sm121, by digest.
 FROM ghcr.io/0xsero/glm-5.3-flash-sglang-sm121@sha256:7aff51ea7050480dc47137055b5201b73e23e7803d9439233742cab65e3e5609
@@ -14,6 +15,7 @@ LABEL org.opencontainers.image.source="https://github.com/0xSero/glm-5.3-flash-s
       ai.vonkforge.runtime-interface="v1"
 
 COPY --chmod=0755 sglang-serve /opt/vonk/bin/sglang-serve
+COPY vonk-glm53-chat-template-mm.jinja /opt/vonk/glm53-chat-template-mm.jinja
 
 RUN python3 -c "import importlib.util as u, sys; sys.exit(u.find_spec('sglang') is None)" \
     && test -r /opt/glm53/chat-template-mm.jinja \

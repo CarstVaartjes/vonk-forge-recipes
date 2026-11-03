@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "recipe_key": "vonk-forge/glm-5-3-flash-nvfp4-0xsero-sglang-dual",
+  "records": [
+    {
+      "identity": {
+        "content_sha256": "e1d5ee7aaa6e54b5d5bedbedbb1ba99674749c804c273a40f1cfe30557875250",
+        "source_bundle_sha256": "7f26ba24707c7cd483f91fc0a1a0b9ca0f8db80ad2efec96ab718010d04802dd",
+        "runtime_image": {
+          "build_key": "7c22fc7f8516f3be0ba7058cec24d3e0f40905c55d442b5ed782c0edcd7281f2",
+          "image_digest": "sha256:fb6cab72a8810270d257e906a5eb840a94746396adf4a9aa0c34f2a1b5b4bb76"
+        },
+        "model_digests": [
+          "198b083f724ea6cb536e63cc6ad1948a703e55389749f245747b27f5c2540232"
+        ],
+        "required_sparks": 2,
+        "models_resolved": true
+      },
+      "outcome": "failed",
+      "blame": "recipe",
+      "cause_code": "qualification.serving_assertion",
+      "cause_summary": "Serving checks failed; needs fix",
+      "evidence_refs": [
+        "a4508f939a2ef56df1175e8281df2f48931dd0b49364aefda06ce14028217151"
+      ],
+      "tested_at": "2026-11-03T07:02:39.903636Z",
+      "platform": {
+        "controller_source_sha": "afab9b48214602fe4306a88e16979b4e39ea68e9",
+        "hardware_class": "GB10",
+        "spark_count": 2,
+        "topology": "multi"
+      },
+      "quality_notes": []
+    }
+  ]
+}
