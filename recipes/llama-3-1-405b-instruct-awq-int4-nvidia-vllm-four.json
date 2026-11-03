@@ -6,9 +6,9 @@
         "repository": "nvcr.io/nvidia/vllm"
       },
       "context": {
-        "path": "adapters/nvidia/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual"
+        "path": "adapters/nvidia/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
       },
-      "dockerfile": "adapters/nvidia/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual/Dockerfile",
+      "dockerfile": "adapters/nvidia/llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four/Dockerfile",
       "network": {
         "hosts": []
       },
@@ -17,7 +17,7 @@
   },
   "identity": {
     "publisher": "vonk-forge",
-    "slug": "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual"
+    "slug": "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-four"
   },
   "interfaces": [
     {
@@ -703,7 +703,7 @@
       {
         "name": "tensor-parallel-size",
         "setting": null,
-        "value": 2
+        "value": 4
       },
       {
         "name": "gpu-memory-utilization",
@@ -750,13 +750,13 @@
     "max_batch_tokens": null
   },
   "topology": {
-    "name": "dual",
-    "node_count": 2,
+    "name": "four",
+    "node_count": 4,
     "parallelism": {
       "backend": "mp",
       "data": 1,
       "pipeline": 1,
-      "tensor": 2
+      "tensor": 4
     },
     "roles": [
       {
@@ -768,7 +768,7 @@
             "artifact_bytes": 219287868370,
             "image_bytes": 25000000000,
             "safety_margin_bytes": 12000000000,
-            "working_bytes": 109643934185
+            "working_bytes": 54821967093
           },
           "memory": {
             "peak_bytes": 124452516352,
@@ -777,7 +777,7 @@
         }
       },
       {
-        "count": 1,
+        "count": 3,
         "endpoint_owner": false,
         "name": "worker",
         "resources": {
@@ -785,7 +785,7 @@
             "artifact_bytes": 219287868370,
             "image_bytes": 25000000000,
             "safety_margin_bytes": 12000000000,
-            "working_bytes": 109643934185
+            "working_bytes": 54821967093
           },
           "memory": {
             "peak_bytes": 124452516352,

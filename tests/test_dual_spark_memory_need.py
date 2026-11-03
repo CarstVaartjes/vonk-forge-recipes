@@ -21,13 +21,8 @@ from qualification.memory_need import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-RECIPES = (
-    "llama-3-1-405b-instruct-awq-int4-nvidia-vllm-dual",
-    "glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",
-)
-# Pinned-pool duals declare exactly their loading floor. The 405B dual runs the
-# creator's pool-less 0.9, whose vLLM budget envelope is an estimate above admission.
-POOLED = RECIPES[1:]
+RECIPES = ("glm-5-3-flash-exl3-dflash2-reederey87-vllm-dual",)
+POOLED = RECIPES
 
 
 def recipe_for(slug: str) -> RecipeDefinition:
@@ -86,7 +81,7 @@ def test_guard_rejects_hidden_demand(slug: str, rank: int) -> None:
 
 
 def test_loading_floor_does_not_double_count_the_fraction_draft_term() -> None:
-    recipe = recipe_for(RECIPES[1])
+    recipe = recipe_for(RECIPES[0])
     need = per_rank_need(recipe, catalog_models(), load_inputs())
     # The old 17 GB measurement was outside a utilization budget, not another
     # model beside the explicitly selected target/draft weight bytes.
