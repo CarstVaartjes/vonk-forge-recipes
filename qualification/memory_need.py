@@ -20,7 +20,11 @@ from pathlib import Path
 from typing import Annotated, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from vonk_forge_contracts import ModelDefinition, RecipeDefinition, document_sha256
+from vonk_forge_contracts import (
+    ModelDefinition,
+    RecipeDefinition,
+    document_sha256,
+)
 from vonk_forge_contracts.memory_admission import (
     PLATFORM_MEMORY_FLOOR_BYTES,
     evaluate_memory_admission,
@@ -43,6 +47,15 @@ SPARK_3542_IDLE_AVAILABLE_BYTES = 125_650_657_280
 # peaks (DeepSeek V4.1 Flash EXL3 Mia dual, Gemma 4 31B Mia single, Qwen3.6
 # 35B r0b0tlab single), so host use was at most 4,292,852,407 bytes there.
 ADMISSION_IDLE_USE_BYTES = SPARK_MEMORY_BYTES - SPARK_IDLE_AVAILABLE_BYTES
+# The repo's calibrated OFFLINE idle maximum: the largest peak
+# admissible_declaration_warnings accepts (evaluate_memory_admission with
+# ADMISSION_IDLE_USE_BYTES), i.e. the same derivation. The live Controller works
+# from telemetry and tries an over-maximum estimate alone on an empty Spark. A
+# peak above this only blocks co-tenants and is never reserved in full, so
+# estimates are capped here; a bigger need is the hardware try's to measure.
+ADMISSION_MAXIMUM_PEAK_BYTES = (
+    SPARK_MEMORY_BYTES - ADMISSION_IDLE_USE_BYTES - PLATFORM_MEMORY_FLOOR_BYTES
+)
 OVERHEAD_BYTES = 8_000_000_000
 # Data-backed use beside the engine budget (p90 of 277 sweep samples, audit
 # 2026-11-01). The single margin below is the only owner; OVERHEAD_BYTES stays
@@ -175,14 +188,13 @@ VLLM_UNMODELED_HYBRID = {
     # CircularBufferSpec ring, an MLA compressed-key cache and an MTP QSA
     # layer; its sfxnz dual is proven (9f77f966) on this hand bound.
     "qwen3-8-flash-next-nvfp4-fab0aecb": "Qwen4Exp on vLLM v0.30.0",
-    "qwen3-8-flash-next-nvfp4-lil-6c01ac37": "Qwen4Exp on the eugr b12x vLLM image",
+    "qwen3-8-flash-next-fp4-local-b9ce18a6": "Qwen4Exp on the eugr b12x vLLM image",
     # Sliding-window plus short-convolution layers on creator images whose
     # vLLM Inkling layout is not pinned; SGLang-measured state.
     "inkling-small-nvfp4": "Inkling short convolution on creator images",
     # KDA linear + DSA layers on creator vLLM forks: not modeled (follow-up).
     "glm-5-3-flash-exl3-tr3-4bpw-brandonmusic-1ae6d704": "Glm5Next KDA + DSA not modeled (follow-up)",
     "glm-5-3-flash-nvfp4-caca4e6a": "Glm5Next KDA + DSA not modeled (follow-up)",
-    "glm-5-3-flash-nvfp4-spark-a6082410": "Glm5Next KDA + DSA not modeled (follow-up)",
 }
 
 
@@ -1266,6 +1278,8 @@ def memory_estimate_warnings(
     *,
     document_digest: str,
     touched: bool = False,
+    previous: RecipeDefinition | None = None,
+    previous_digest: str = "",
 ) -> list[str]:
     """Where the declared memory disagrees with the estimate; none of it blocks.
 
@@ -1302,11 +1316,20 @@ def memory_estimate_warnings(
     if recipe.runtime.engine not in {"vllm", "sglang"}:
         return warnings
     single = recipe.topology.node_count == 1
+    keep = keeps_measured_peaks(recipe, previous, previous_digest)
     for variant in memory_variants(recipe):
         warnings += estimate_problems(
             key,
             lambda variant=variant: variant_estimate_warnings(
-                variant, recipe, models, inputs, key, document_digest, touched, single
+                variant,
+                recipe,
+                models,
+                inputs,
+                key,
+                document_digest,
+                touched,
+                single,
+                keep,
             ),
         )
     return warnings
@@ -1321,6 +1344,7 @@ def variant_estimate_warnings(
     document_digest: str,
     touched: bool,
     single: bool,
+    keep: bool = False,
 ) -> list[str]:
     need = per_rank_need(variant, models, inputs)
     # Proven single-Spark documents run below the multi-Spark SGLang
@@ -1330,11 +1354,16 @@ def variant_estimate_warnings(
     vllm = variant.runtime.engine == "vllm"
     envelope = (
         None
-        if not single or envelope_exception(recipe.identity.slug, document_digest)
-        else vllm_utilization_envelope(variant)
+        if not single
+        or envelope_exception(recipe.identity.slug, document_digest)
+        or (keep and vllm)
+        else declarable_vllm_envelope(variant)
         if vllm
-        else sglang_static_need(variant, models, inputs, key, pinned=False)
-        + OVERHEAD_BYTES
+        else min(
+            sglang_static_need(variant, models, inputs, key, pinned=False)
+            + OVERHEAD_BYTES,
+            ADMISSION_MAXIMUM_PEAK_BYTES,
+        )
     )
     engine = "vLLM budget" if vllm else "SGLang static need"
     problems = (
@@ -1353,7 +1382,8 @@ def variant_estimate_warnings(
         + [
             f"{role.name}: peak understates vLLM budget plus overhead {multi}"
             for role in variant.topology.roles
-            if (multi := vllm_utilization_envelope(variant)) is not None
+            if not keep
+            and (multi := declarable_vllm_envelope(variant)) is not None
             and role.resources.memory.peak_bytes < multi
         ]
     )
@@ -1384,17 +1414,63 @@ def vllm_utilization_envelope(recipe: RecipeDefinition) -> int | None:
     return int(envelope.to_integral_value(ROUND_CEILING))
 
 
-def raise_peaks_to_envelope(recipe: RecipeDefinition) -> RecipeDefinition | None:
+def declarable_vllm_envelope(recipe: RecipeDefinition) -> int | None:
+    """The vLLM envelope a declared peak is judged and raised against.
+
+    Capped at the offline admission maximum: a peak above what an idle Spark can
+    charge is never reserved in full, so no declaration should chase a larger
+    envelope. The uncapped envelope stays the admissibility test's input (a
+    budget above the maximum is reported there).
+    """
+    envelope = vllm_utilization_envelope(recipe)
+    return None if envelope is None else min(envelope, ADMISSION_MAXIMUM_PEAK_BYTES)
+
+
+def recipe_envelope(recipe: RecipeDefinition) -> int:
+    """The largest declarable vLLM envelope over the recipe's launch variants."""
+    return max(
+        (e for v in memory_variants(recipe) if (e := declarable_vllm_envelope(v))),
+        default=0,
+    )
+
+
+def keeps_measured_peaks(
+    recipe: RecipeDefinition,
+    previous: RecipeDefinition | None,
+    previous_digest: str,
+) -> bool:
+    """Whether a moved document keeps its declared peaks: measured and not out-grown.
+
+    The one rule for the raise and for the "peak understates" warning: the
+    pre-move content (``previous``, authored digest ``previous_digest``) has hardware
+    evidence AND the move did not raise the budget. Unmeasured estimates heal.
+    """
+    return (
+        previous is not None
+        and bool(previous_digest)
+        and recipe_envelope(recipe) <= recipe_envelope(previous)
+        and hardware_proven(previous, previous_digest)
+    )
+
+
+def raise_peaks_to_envelope(
+    recipe: RecipeDefinition,
+    previous: RecipeDefinition | None = None,
+    previous_digest: str = "",
+) -> RecipeDefinition | None:
     """The recipe with role peaks raised to its vLLM budget envelope, None if none is.
 
     A document that moves (``tools/refresh-upstream``) is new content and meets the
     current margins; raising here keeps a refresh from blocking. Peaks are never
-    lowered, and a declared load peak keeps its rise above the peak.
+    lowered, and a declared load peak keeps its rise above the peak. The envelope
+    is capped at the admission maximum. A move whose pre-move content is
+    hardware-measured and did not raise the budget keeps its declared peaks
+    (``keeps_measured_peaks``); every other move, including a measured one that
+    raises the budget, is raised to the capped envelope.
     """
-    envelope = max(
-        (e for v in memory_variants(recipe) if (e := vllm_utilization_envelope(v))),
-        default=0,
-    )
+    envelope = recipe_envelope(recipe)
+    if keeps_measured_peaks(recipe, previous, previous_digest):
+        return None
     if all(r.resources.memory.peak_bytes >= envelope for r in recipe.topology.roles):
         return None
     raised = recipe.model_copy(deep=True)

@@ -496,7 +496,7 @@ class EmbeddedSourceReviewTests(unittest.TestCase):
         self.assertIn(NEW, result.edits["recipes/recipe.json"].decode())
 
 
-def single_recipe_catalog(source_reference: str) -> object:
+def single_recipe_catalog(source_reference: str) -> Any:
     return refresh.Catalog(
         Path(tempfile.gettempdir()),
         recipes={
@@ -554,8 +554,12 @@ class NothingRunsTests(unittest.TestCase):
             )
         )
 
-    def assess(self, comparison_, *, used=None, report=None):
+    def assess(self, comparison_, *, used=None, report=None, engine=None):
         catalog = single_recipe_catalog(f"https://github.com/example/recipe/tree/{OLD}")
+        if engine is not None:
+            recipe = catalog.recipes["recipe"]
+            recipe["runtime"] = {"engine": engine}
+            recipe["topology"] = {"roles": []}
         assessor = refresh.Assessor(catalog, object(), None, {})
         assessor.target = lambda _provider, _repo: self.TARGET
         patches = [
@@ -589,6 +593,29 @@ class NothingRunsTests(unittest.TestCase):
         )
         self.assertFalse(result.drifted)
         self.assertFalse(result.reasons)
+
+    def test_a_moved_vllm_document_meets_the_budget_envelope(self) -> None:
+        moved = comparison(files=("src/engine.py",))
+        with (
+            patch("refresh_upstream.RecipeDefinition"),
+            patch("refresh_upstream.raise_role_peaks") as raised,
+        ):
+            self.assess(moved, engine="vllm")
+            raised.assert_called_once()
+            roles, _recipe, previous, digest = raised.call_args.args
+            self.assertEqual(roles, [])
+            self.assertEqual(len(digest), 64)  # the pre-move authored digest
+            self.assertIsNotNone(previous)  # the keep rule judges the pre-move content
+        with patch("refresh_upstream.raise_role_peaks") as raised:
+            self.assess(moved, engine="sglang")
+            raised.assert_not_called()
+        with (
+            patch("refresh_upstream.RecipeDefinition"),
+            patch("refresh_upstream.raise_role_peaks", side_effect=ValueError("bad")),
+        ):
+            result = self.assess(moved, engine="vllm")
+        self.assertFalse(result.mechanical)
+        self.assertIn("memory envelope", " ".join(result.reasons))
 
     def test_whole_repository_code_move_is_still_a_refresh(self) -> None:
         result = self.assess(comparison(files=("README.md", "src/engine.py")))
@@ -1264,15 +1291,18 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             self.addCleanup(active.stop)
         return assessor.assess("recipe")
 
-    def test_real_proven_dual_is_raised_and_then_passes_the_touched_check(self) -> None:
+    def test_real_unproven_dual_is_raised_and_then_passes_the_touched_check(
+        self,
+    ) -> None:
         import documents
         from catalog_documents import catalog_models
         from vonk_forge_contracts import RecipeDefinition
         from warning_asserts import assert_not_warns, assert_warns
 
+        from qualification import documents as qualification_documents
         from qualification.memory_need import load_inputs, memory_estimate_warnings
 
-        slug = "deepseek-v4-flash-eugr-vllm-dual"
+        slug = "muse-spark-open-nvfp4-vllm-eight"
         before = documents.recipe(slug)
         for role in before.topology.roles:
             role.resources.memory.peak_bytes = 100_000_000_000
@@ -1284,7 +1314,13 @@ class VendoredCreatorMoveTests(unittest.TestCase):
             ),
             "vLLM budget plus overhead",
         )
-        refresh.raise_role_peaks(payload["topology"]["roles"], before)
+        previous = documents.recipe(slug)
+        refresh.raise_role_peaks(
+            payload["topology"]["roles"],
+            before,
+            previous,
+            qualification_documents.recipe_digest(slug),
+        )
         after = RecipeDefinition.model_validate(payload)
         self.assertEqual(
             {r.resources.memory.peak_bytes for r in after.topology.roles},
@@ -2848,6 +2884,23 @@ class KitScopeTests(unittest.TestCase):
         same = {OLD: old, NEW: old}
         self.assertEqual(self.used(files, {"source": self.MAPPED["source"]}, same), [])
         self.assertEqual(refresh.active_mods(None), set())
+
+    def test_every_spelling_of_a_mod_list_counts(self) -> None:
+        spellings = {
+            "indented": "mods:\n  - mods/a\n",
+            "column zero": "mods:\n- mods/a\n",
+            "flow": "mods: [mods/a, mods/b]\n",
+            "quoted": "mods:\n  - 'mods/a'\n",
+            "commented": "mods:\n  # - mods/a\n",
+            "trailing slash": "mods:\n  - mods/a/\n",
+        }
+        for label, text in spellings.items():
+            with self.subTest(label), tempfile.TemporaryDirectory() as tmp:
+                (Path(tmp) / "r.yaml").write_text(text)
+                self.assertIn("mods/a", refresh.active_mods(Path(tmp)))
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "r.yaml").write_text("mods: []\n")
+            self.assertEqual(refresh.active_mods(Path(tmp)), set())
 
 
 class RewrittenHistoryTests(unittest.TestCase):

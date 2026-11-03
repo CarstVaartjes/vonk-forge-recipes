@@ -45,7 +45,7 @@ SERO = "https://github.com/0xSero/deepseek-spark/blob/97fd6f02e26870416d3c6b450d
 TONY_QT200 = "https://github.com/tonyd2wild/GLM-5.2-QuantTrio-200K-4x-DGX-Spark--36tok-s/blob/162d7a766e4bc9de1809ff724339538380c43b0c"
 TONY_NVFP4KV = "https://github.com/tonyd2wild/GLM-5.2-NVFP4-KV-4x-DGX-Spark-300kctx-42tok-s/blob/34e81562984bda993e0c9ed01ed6900c17e4857b"
 TONY_G53 = "https://github.com/tonyd2wild/GLM-5.3-Int4-Int8Mix-TP4-4x-DGX-Spark/blob/f5440eff7f80ae1b7f30898871a50707ba17d115"
-EUGR_GLM = "https://github.com/eugr/spark-vllm-docker/blob/303b4a29a6bd390428d363358964ad298dc20625/recipes"
+EUGR_GLM = "https://github.com/eugr/spark-vllm-docker/blob/b7f6b4cd4d85c655c5102eeb579f6de6a5bfe3d3/recipes"
 TONY_MIMO = "https://github.com/tonyd2wild/MiMo-V2.5-TP3-NVFP4-KV-3xDGX-Spark/blob/8024c85b5e5fc5c9edd9db7b40f607683372cb0c/recipes"
 R0B0_Q36 = "https://github.com/r0b0tlab/qwen36-35b-a3b-nvfp4-sm121-vllm/blob/106fb53372c260e719c97d5b59e48142792783c7"
 MIA_DSV4 = "https://github.com/MiaAI-Lab/DeepSeek-v4-Flash-One-DGX-Spark/blob/fdcd538fbf95fb15b2d6850db9613d22b2c889b8"
@@ -293,15 +293,15 @@ CREATOR = {
         peak=120260467668,
     ),
     "glm-5-3-flash-nvfp4-spark-eugr-vllm-dual": Creator(
-        source=f"{EUGR_GLM}/glm-5.3-flash.yaml#L30",
-        arguments={"gpu-memory-utilization": "0.87"},
-        # The yaml declares kv_cache_memory_bytes 8G (#L29) its command never passes.
+        source=f"{EUGR_GLM}/glm-5.3-flash.yaml#L29",
+        arguments={"gpu-memory-utilization": "0.8"},
+        # The yaml declares kv_cache_memory_bytes 8G (#L28) its command never passes.
         absent=("kv-cache-memory-bytes",),
     ),
     "mimo-v2-5-omni-nvfp4-tonyd2wild-vllm-triple": Creator(
         source=f"{TONY_MIMO}/mimo-v25-tp3-omni-1mctx-6seq-mtp2-nvfp4kv.yaml#L34",
         # Estimates until tried (owner 2026-11-02): the creator's 0.89, peak declared
-        # at the admission maximum; the run measures the real use.
+        # at ADMISSION_MAXIMUM_PEAK_BYTES; the run measures the real use.
         arguments={"gpu-memory-utilization": "0.89"},
         absent=("kv-cache-memory-bytes",),
     ),
