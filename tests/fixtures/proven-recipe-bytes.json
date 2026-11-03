@@ -27,7 +27,7 @@
   "vonk-forge/glm-4-7-flash-awq-4bit-eugr-vllm-dual": "924b13fdda3af1155f8768f4766f731269a23e42cbab11895480741e295914b2",
   "vonk-forge/glm-4-7-flash-awq-4bit-eugr-vllm-single": "7615ae6f1c0e6198571c24e0eeee2ab611ff484380a1942fb16a9aa53a6c36ce",
   "vonk-forge/glm-5-3-flash-exl3-dflash2-vllm-dual": "9ba364f0cd7472f959c37d479979bc5bde96c74a4a68337cfabb35c11fb8195c",
-  "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": "a191877274263150390dd526f7ff5a9187da5befc0662ecfd18431874a16d910",
+  "vonk-forge/glm-5-3-flash-nvidia-nvfp4-dflash2-vllm-dual": "c214f9b1347af001bba65af60d5b88d882cca7c584b3919b02e9c4e3b5ff25e7",
   "vonk-forge/gpt-oss-120b-eagle3-nvidia-trtllm-single": "1a5efbf8c5968894786601d5df3e2c87da73c85374e37a9968062fb8ac9a8acc",
   "vonk-forge/gpt-oss-120b-nvidia-trtllm-single": "a66aeb4c7290db057b821c7c776ba53b02fb45a5cb26eb95362a03ee872bf563",
   "vonk-forge/gpt-oss-20b-nvidia-sglang-single": "f787b8724935fd62f8f34d06cb4059e47dcc29f6b923c90aace677ef1db3daa5",
