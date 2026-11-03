@@ -990,7 +990,7 @@
       "choices": [
         {
           "default": true,
-          "help": "b12x nvfp4 KV everywhere at memory utilization 0.85 (upstream lane A). GPU budget reduced from upstream for unified-memory headroom.",
+          "help": "b12x nvfp4 KV everywhere at memory utilization 0.929 (upstream lane A as tonyd2wild runs it).",
           "label": "NVFP4 (default)",
           "value": "nvfp4"
         },
@@ -1009,10 +1009,10 @@
             {
               "name": "gpu-memory-utilization",
               "setting": null,
-              "value": "0.82"
+              "value": "0.9375"
             }
           ],
-          "help": "GPU utilization 0.82 for GB10 unified-memory headroom; smaller KV pool than the upstream memory profile; other choice flags retained.",
+          "help": "b12x fp8 KV and fp8 indexer KV at memory utilization 0.9375 (upstream's fp8 EAGLE3 recipe). Set the context setting to 131072 to match it.",
           "label": "FP8",
           "value": "fp8"
         }
@@ -1055,7 +1055,7 @@
   },
   "release": {
     "released_at": "2026-07-13",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "runtime": {
     "arguments": [
@@ -1077,7 +1077,7 @@
       {
         "name": "gpu-memory-utilization",
         "setting": null,
-        "value": "0.82"
+        "value": "0.929"
       },
       {
         "name": "block-size",
@@ -1266,7 +1266,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
+            "peak_bytes": 124452516352,
             "reserve_bytes": 8000000000
           }
         }
@@ -1283,7 +1283,7 @@
             "working_bytes": 65000000000
           },
           "memory": {
-            "peak_bytes": 120080103056,
+            "peak_bytes": 124452516352,
             "reserve_bytes": 8000000000
           }
         }
