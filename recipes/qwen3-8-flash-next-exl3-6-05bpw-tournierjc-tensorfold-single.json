@@ -435,10 +435,6 @@
         "name": "reasoning-effort",
         "setting": null,
         "value": "xhigh"
-      },
-      {
-        "name": "ple-on-ssd",
-        "value": true
       }
     ],
     "engine": "tensorfold",
