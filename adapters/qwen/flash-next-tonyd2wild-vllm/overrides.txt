@@ -1,0 +1,3 @@
+# Overrides for requirements.lock (ours). The creator's image forces this NCCL
+# over torch's pin (vLLM Dockerfile ARG NCCL_VERSION=2.30.7 via UV_OVERRIDE).
+nvidia-nccl-cu13==2.30.7

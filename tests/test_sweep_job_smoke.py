@@ -18,7 +18,7 @@ from spark_sweep.catalog import Fleet, Presence, parse_recipe, serving_run
 from spark_sweep.definitions import Definitions
 from spark_sweep.job_assertions import EVALUATED, NOT_EVALUATED, Output, evaluate
 from spark_sweep.smoke import AssertionFailed
-from spark_sweep.smoke_job import smoke_job
+from spark_sweep.smoke_job import job_budget_seconds, smoke_job
 from spark_sweep.vonkctl import Vonkctl
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -421,6 +421,22 @@ def test_a_job_that_never_ends_within_its_own_timeout_is_observed_again() -> Non
     )
     result = _smoke(controller)
     assert result.failure is not None and result.failure.code == "job.not_ended"
+    assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
+
+
+@pytest.mark.parametrize("state", ["needs-operator", "cancelled"])
+def test_a_waiting_or_cancelled_job_ends_the_wait_at_once(state: str) -> None:
+    clock = [0.0]
+    controller = Controller(
+        create=[_job(None, preparation="ready")],
+        submit=[_job("queued")],
+        detail=[_job(state)],
+    )
+    result = _smoke(controller, clock=clock)
+    assert result.failure is not None
+    assert result.failure.code == f"job.{state}"
+    assert result.failure.code != "job.not_ended"
+    assert clock[0] < job_budget_seconds({"timeout_seconds": 0})
     assert verdict.disposition(result.failure) is verdict.Disposition.OBSERVE
 
 

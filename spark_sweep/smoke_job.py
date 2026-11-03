@@ -42,6 +42,7 @@ from . import verdict
 from .catalog import Recipe
 from .definitions import Definitions
 from .job_assertions import Output, evaluate
+from .lifecycle import TERMINAL, WAITING, LifecycleState
 from .policy import Failure, classify, excerpt, redact
 from .smoke import AssertionFailed, SmokeResult
 from .vonkctl import Vonkctl, VonkctlError, request_key
@@ -50,8 +51,8 @@ from .vonkctl import Vonkctl, VonkctlError, request_key
 #: sweep keeps looking before it calls the outcome uncertain.
 JOB_GRACE_SECONDS = 600.0
 DOWNLOAD_TIMEOUT_SECONDS = 1800.0
-ENDED = frozenset({"succeeded", "failed", "cancelled"})
-OPERATOR_WAIT = frozenset({"needs-operator", "waiting-for-operator"})
+#: Where the wait for a job stops: an end, or a wait for an operator.
+ENDED = TERMINAL | WAITING
 #: The steps whose request is the recipe's own data: its definition bound to its contract.
 RECIPE_REQUEST_STEPS = frozenset({"create", "upload"})
 #: The end of a failed job's stderr a result row keeps: what happened last.
@@ -243,7 +244,7 @@ def _ended_failure(vk: Vonkctl, job: Mapping[str, Any]) -> Failure:
     }
     detail = f"job {state}: {_text(job, 'status_reason') or 'no reason given'}"
     platform = (
-        state != "failed"
+        state != LifecycleState.FAILED
         or evidence.get("failure_kind") is not None
         or evidence.get("active_scope_may_remain") is True
     )
@@ -316,7 +317,7 @@ def smoke_job(
                     vk, "submit", "submit", job_id, "--request-key", keys["submit"]
                 )
             deadline = now() + job_budget_seconds(spec)
-            while _text(job, "state") not in ENDED | OPERATOR_WAIT:
+            while _text(job, "state") not in ENDED:
                 if now() >= deadline:
                     result.failure = classify(
                         "smoke",
@@ -336,7 +337,7 @@ def smoke_job(
                         is not verdict.Disposition.WAIT
                     ):
                         raise
-            if _text(job, "state") != "succeeded":
+            if _text(job, "state") != LifecycleState.SUCCEEDED:
                 result.failure = _ended_failure(vk, job)
                 return result
             out = work / "outputs"
