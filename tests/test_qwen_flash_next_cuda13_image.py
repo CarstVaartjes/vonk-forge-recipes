@@ -10,11 +10,10 @@ aarch64 wheels.
 from __future__ import annotations
 
 import importlib.util
-import json
 import struct
 from pathlib import Path
 
-from vonk_forge_contracts import read_recipe
+from documents import recipe
 
 ROOT = Path(__file__).resolve().parents[1]
 ADAPTER = ROOT / "adapters/qwen/flash-next-tonyd2wild-vllm"
@@ -73,6 +72,11 @@ def test_family_plain_sm121_and_ptx_images_load_on_gb10() -> None:
         assert verify.stranded_fatbins(fatbin(*entries)) == [], entries
 
 
+def test_family_ptx_only_loads_inside_its_family() -> None:
+    assert verify.stranded_fatbins(fatbin((1, 100, 0x1200011), (2, 120, SM120A)))
+    assert not verify.stranded_fatbins(fatbin((1, 120, 0x1200011), (2, 120, SM120A)))
+
+
 def test_libraries_without_sm12x_code_are_not_judged() -> None:
     assert verify.stranded_fatbins(fatbin((2, 90, 0x100011), (2, 100, SM120A))) == []
     assert verify.stranded_fatbins(b"no fatbin here") == []
@@ -89,10 +93,14 @@ def test_dockerfile_installs_the_locked_cuda13_build_and_scans_kernels() -> None
         f"FROM nvcr.io/nvidia/cuda:13.0.2-devel-ubuntu24.04@sha256:{CUDA13_BASE}"
         in dockerfile
     )
-    assert "pip install --ignore-installed --require-hashes" in dockerfile.replace(
-        "python3 -m ", ""
+    assert (
+        "pip install --ignore-installed --no-deps --require-hashes"
+        in dockerfile.replace("python3 -m ", "")
     )
-    assert "import torch, vllm._C_stable_libtorch" in dockerfile
+    assert (
+        "import torch, vllm._C_stable_libtorch, vllm.entrypoints.openai.api_server"
+        in dockerfile
+    )
     assert "verify-runtime.py kernels" in dockerfile
     lock = (ADAPTER / "requirements.lock").read_text(encoding="utf-8")
     assert f"--hash=sha256:{WHEEL_SHA256}" in lock
@@ -107,15 +115,14 @@ def test_dockerfile_installs_the_locked_cuda13_build_and_scans_kernels() -> None
     ):
         assert pin in lock
     assert "flashinfer-jit-cache==0.6.18+cu130" in lock
+    assert "nvidia-nccl-cu13==2.30.7" in lock
+    assert "nvidia-nccl-cu13==2.29.7" not in lock
 
 
 def test_recipes_declare_the_cuda13_base_and_its_hosts() -> None:
     for topology in ("single", "dual", "four"):
-        path = (
-            ROOT / f"recipes/qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-{topology}.json"
-        )
-        build = read_recipe(
-            json.loads(path.read_text(encoding="utf-8"))
+        build = recipe(
+            f"qwen3-8-flash-next-nvfp4-tonyd2wild-vllm-{topology}"
         ).execution.build
         assert build.base_image.digest == CUDA13_BASE
         assert build.base_image.repository == "nvcr.io/nvidia/cuda"

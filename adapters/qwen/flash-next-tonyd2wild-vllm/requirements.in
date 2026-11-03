@@ -1,7 +1,29 @@
 # Inputs for requirements.lock (ours). Compile with:
-#   uv pip compile requirements.in --index-strategy unsafe-best-match \
-#     --python-version 3.12 --python-platform aarch64-manylinux_2_28 \
-#     --generate-hashes --output-file requirements.lock
+#   uv pip compile requirements.in --override overrides.txt \
+#     --exclude-newer 2026-09-05T00:00:00Z \
+#     --exclude-newer-package flashinfer-python=false \
+#     --exclude-newer-package flashinfer-cubin=false \
+#     --exclude-newer-package flashinfer-jit-cache=false \
+#     --exclude-newer-package cuda-toolkit=false \
+#     --exclude-newer-package nvidia-cudnn-cu13=false \
+#     --exclude-newer-package nvidia-cusparselt-cu13=false \
+#     --exclude-newer-package nvidia-nvshmem-cu13=false \
+#     --exclude-newer-package nvidia-cuda-runtime=false \
+#     --exclude-newer-package nvidia-cuda-nvrtc=false \
+#     --exclude-newer-package nvidia-cublas=false \
+#     --exclude-newer-package nvidia-cufft=false \
+#     --exclude-newer-package nvidia-cufile=false \
+#     --exclude-newer-package nvidia-cuda-cupti=false \
+#     --exclude-newer-package nvidia-curand=false \
+#     --exclude-newer-package nvidia-cusolver=false \
+#     --exclude-newer-package nvidia-cusparse=false \
+#     --exclude-newer-package nvidia-nvtx=false \
+#     --index-strategy unsafe-best-match --python-version 3.12 \
+#     --python-platform aarch64-manylinux_2_28 --generate-hashes \
+#     --output-file requirements.lock
+# --exclude-newer: packages as of the day after 8a728663's commit (2026-09-04). The
+# per-package exceptions are the flashinfer.ai and download.pytorch.org index
+# packages, which publish no upload time; they are exact-pinned or torch-pinned.
 # The creator's exact vLLM commit (8a728663), built with CUDA 13 by vLLM CI.
 --extra-index-url https://download.pytorch.org/whl/cu130
 --extra-index-url https://flashinfer.ai/whl

@@ -7,22 +7,24 @@ LABEL org.opencontainers.image.source="https://github.com/tonyd2wild/Qwen3.8-Fla
 
 # Upstream ran vllm/vllm-openai:nightly-8a728663 (CUDA 13.0.2), a tag that is gone.
 # Its commit's CUDA 13 build is the hash-locked wheel in requirements.lock, installed
-# system-wide on the CUDA 13 base. The CUDA 12.9 build of the same commit carries
+# system-wide on the CUDA 13 base (packages as of 2026-09-05, NCCL 2.30.7 as in the
+# creator's image; see requirements.in and overrides.txt). The CUDA 12.9 build of the same commit carries
 # its SM12x kernels as sm_120a only, which GB10 (sm_121) cannot load.
 ENV DEBIAN_FRONTEND=noninteractive CUDA_HOME=/usr/local/cuda PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates build-essential python3 python3-dev python3-pip libnuma1 libibverbs1 ibverbs-providers librdmacm1 && rm -rf /var/lib/apt/lists/*
 COPY requirements.lock /tmp/requirements.lock
-RUN python3 -m pip install --ignore-installed --require-hashes --extra-index-url https://download.pytorch.org/whl/cu130 --extra-index-url https://flashinfer.ai/whl --extra-index-url https://flashinfer.ai/whl/cu130 -r /tmp/requirements.lock && rm /tmp/requirements.lock
+RUN python3 -m pip install --ignore-installed --no-deps --require-hashes --extra-index-url https://download.pytorch.org/whl/cu130 --extra-index-url https://flashinfer.ai/whl --extra-index-url https://flashinfer.ai/whl/cu130 -r /tmp/requirements.lock && rm /tmp/requirements.lock
 # Upstream bind-mounts these files over the vLLM nightly's own copies at every
 # launch (launch/qwen38fn-nvidia-tp*.sh). The same exact files are baked in here.
 COPY --chmod=0755 verify-runtime.py /opt/vonk/verify-runtime.py
 RUN python3 /opt/vonk/verify-runtime.py base
 # libcuda.so.1 is a link-time dependency of vLLM's kernels; the CUDA stub lets the
-# import run without a driver. The fatbin scan fails the build for any library
+# imports run without a driver. The API server import fails the build on a
+# dependency API break. The fatbin scan fails the build for any library
 # whose SM12x kernels cannot load on GB10.
 RUN mkdir /tmp/cuda-stub && ln -s /usr/local/cuda/lib64/stubs/libcuda.so /tmp/cuda-stub/libcuda.so.1 \
-    && LD_LIBRARY_PATH=/tmp/cuda-stub python3 -c "import torch, vllm._C_stable_libtorch" \
+    && LD_LIBRARY_PATH=/tmp/cuda-stub python3 -c "import torch, vllm._C_stable_libtorch, vllm.entrypoints.openai.api_server" \
     && rm -r /tmp/cuda-stub \
     && python3 /opt/vonk/verify-runtime.py kernels
 

@@ -41,6 +41,7 @@ OVERLAYS = {
 FATBIN_MAGIC = b"\x50\xed\x55\xba"
 ENTRY_PTX = 1
 ARCH_SPECIFIC = 0x100000
+FAMILY = 0x200000
 GB10_SM = 121
 
 
@@ -71,6 +72,8 @@ def loads_on_gb10(kind: int, sm: int, flags: int) -> bool:
         return True  # sm_121 and sm_121a run on GB10 itself
     if flags & ARCH_SPECIFIC:
         return False
+    if kind == ENTRY_PTX and flags & FAMILY:
+        return sm in (120, GB10_SM)  # family PTX only JITs inside its own family
     return sm <= GB10_SM if kind == ENTRY_PTX else sm == 120
 
 
